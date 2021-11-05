@@ -163,13 +163,8 @@ class LocalLibraryContributor extends DartCompletionContributor {
       return;
     }
 
-    var libraryUnits = request.result.unit.declaredElement?.library.units;
-    if (libraryUnits == null) {
-      return;
-    }
-
     var visitor = LibraryElementSuggestionBuilder(request, builder);
-    for (var unit in libraryUnits) {
+    for (var unit in request.libraryElement.units) {
       if (unit.source != request.source) {
         unit.accept(visitor);
       }

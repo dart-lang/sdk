@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 
 /// Instances of the class [ByteStreamClientChannel] implement a
@@ -72,11 +73,13 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
 /// standard input and standard output) to communicate with clients.
 class ByteStreamServerChannel implements ServerCommunicationChannel {
   final Stream _input;
-
   final IOSink _output;
 
   /// The instrumentation service that is to be used by this analysis server.
   final InstrumentationService _instrumentationService;
+
+  /// The helper for recording request / response statistics.
+  final RequestStatisticsHelper? _requestStatistics;
 
   /// Completer that will be signalled when the input stream is closed.
   final Completer _closed = Completer();
@@ -84,8 +87,26 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   /// True if [close] has been called.
   bool _closeRequested = false;
 
+  @override
+  late final Stream<Request> requests = _input
+      .transform(const Utf8Decoder())
+      .transform(const LineSplitter())
+      .transform(
+        StreamTransformer.fromHandlers(
+          handleData: _readRequest,
+          handleDone: (sink) {
+            close();
+            sink.close();
+          },
+        ),
+      );
+
   ByteStreamServerChannel(
-      this._input, this._output, this._instrumentationService);
+      this._input, this._output, this._instrumentationService,
+      {RequestStatisticsHelper? requestStatistics})
+      : _requestStatistics = requestStatistics {
+    _requestStatistics?.serverChannel = this;
+  }
 
   /// Future that will be completed when the input stream is closed.
   Future get closed {
@@ -102,17 +123,6 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   }
 
   @override
-  void listen(void Function(Request request) onRequest,
-      {Function? onError, void Function()? onDone}) {
-    _input.transform(const Utf8Decoder()).transform(LineSplitter()).listen(
-        (String data) => _readRequest(data, onRequest),
-        onError: onError, onDone: () {
-      close();
-      onDone?.call();
-    });
-  }
-
-  @override
   void sendNotification(Notification notification) {
     // Don't send any further notifications after the communication channel is
     // closed.
@@ -121,7 +131,10 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     }
     var jsonEncoding = json.encode(notification.toJson());
     _outputLine(jsonEncoding);
-    _instrumentationService.logNotification(jsonEncoding);
+    if (!identical(notification.event, 'server.log')) {
+      _instrumentationService.logNotification(jsonEncoding);
+      _requestStatistics?.logNotification(notification);
+    }
   }
 
   @override
@@ -131,6 +144,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closeRequested) {
       return;
     }
+    _requestStatistics?.addResponse(response);
     var jsonEncoding = json.encode(response.toJson());
     _outputLine(jsonEncoding);
     _instrumentationService.logResponse(jsonEncoding);
@@ -147,7 +161,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
 
   /// Read a request from the given [data] and use the given function to handle
   /// the request.
-  void _readRequest(String data, void Function(Request request) onRequest) {
+  void _readRequest(String data, Sink<Request> sink) {
     // Ignore any further requests after the communication channel is closed.
     if (_closed.isCompleted) {
       return;
@@ -160,6 +174,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
       sendResponse(Response.invalidRequestFormat());
       return;
     }
-    onRequest(request);
+    _requestStatistics?.addRequest(request);
+    sink.add(request);
   }
 }

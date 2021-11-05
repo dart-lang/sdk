@@ -297,6 +297,14 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       return;
     }
 
+    server.completionRequestAborting.abort();
+    if (await server.completionRequestAborting.waitIfAborted(request)) {
+      return server.sendResponse(
+        CompletionGetSuggestions2Result(offset, 0, [], [], true)
+            .toResponse(request.id),
+      );
+    }
+
     var performance = OperationPerformanceImpl('<root>');
     performance.runAsync(
       'request',
@@ -501,6 +509,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           return;
         }
 
+        server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
+
         if (offset < 0 || offset > resolvedUnit.content.length) {
           server.sendResponse(Response.invalidParameter(
               request,
@@ -578,7 +588,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
             );
             computeIncludedSetList(
               declarationsTracker,
-              resolvedUnit,
+              completionRequest,
               includedSuggestionSets,
               includedElementNames,
             );
@@ -709,11 +719,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   _RequestToPlugins? _sendRequestToPlugins(
     DartCompletionRequest completionRequest,
   ) {
-    var resolvedUnit = completionRequest.result;
-    var analysisContext = resolvedUnit.session.analysisContext;
-
     var pluginRequestParameters = plugin.CompletionGetSuggestionsParams(
-      resolvedUnit.path,
+      completionRequest.path,
       completionRequest.offset,
     );
 
@@ -722,7 +729,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       parameters: pluginRequestParameters,
       futures: server.pluginManager.broadcastRequest(
         pluginRequestParameters,
-        contextRoot: analysisContext.contextRoot,
+        contextRoot: completionRequest.analysisContext.contextRoot,
       ),
     );
   }

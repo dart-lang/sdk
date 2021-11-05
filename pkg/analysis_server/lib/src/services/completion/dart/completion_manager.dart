@@ -37,6 +37,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -122,7 +123,7 @@ class DartCompletionManager {
   }) async {
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
-    if (!file_paths.isDart(pathContext, request.result.path)) {
+    if (!file_paths.isDart(pathContext, request.path)) {
       return const <CompletionSuggestion>[];
     }
 
@@ -276,7 +277,13 @@ class DartCompletionManager {
 
 /// The information about a requested list of completions within a Dart file.
 class DartCompletionRequest {
+  /// The analysis session that produced the elements of the request.
+  final AnalysisSessionImpl analysisSession;
+
   final CompletionPreference completionPreference;
+
+  /// The content of the file in which completion is requested.
+  final String content;
 
   /// Return the type imposed on the target's `containingNode` based on its
   /// context, or `null` if the context does not impose any type.
@@ -291,6 +298,9 @@ class DartCompletionRequest {
   /// compute relevance scores for suggestions.
   final FeatureComputer featureComputer;
 
+  /// The library element of the file in which completion is requested.
+  final LibraryElement libraryElement;
+
   /// Return the offset within the source at which the completion is being
   /// requested.
   final int offset;
@@ -299,13 +309,12 @@ class DartCompletionRequest {
   /// request.
   final OpType opType;
 
+  /// The absolute path of the file where completion is requested.
+  final String path;
+
   /// The source range that represents the region of text that should be
   /// replaced when a suggestion is selected.
   final SourceRange replacementRange;
-
-  /// The analysis result for the file in which the completion is being
-  /// requested.
-  final ResolvedUnitResult result;
 
   /// Return the source in which the completion is being requested.
   final Source source;
@@ -343,33 +352,44 @@ class DartCompletionRequest {
     }
 
     return DartCompletionRequest._(
+      analysisSession: resolvedUnit.session as AnalysisSessionImpl,
       completionPreference: completionPreference,
+      content: resolvedUnit.content,
       contextType: contextType,
       dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
       documentationCache: documentationCache,
       featureComputer: featureComputer,
+      libraryElement: resolvedUnit.libraryElement,
       offset: offset,
       opType: opType,
+      path: resolvedUnit.path,
       replacementRange: target.computeReplacementRange(offset),
-      result: resolvedUnit,
       source: resolvedUnit.unit.declaredElement!.source,
       target: target,
     );
   }
 
   DartCompletionRequest._({
+    required this.analysisSession,
     required this.completionPreference,
+    required this.content,
     required this.contextType,
     required this.dartdocDirectiveInfo,
     required this.documentationCache,
     required this.featureComputer,
+    required this.libraryElement,
     required this.offset,
     required this.opType,
+    required this.path,
     required this.replacementRange,
-    required this.result,
     required this.source,
     required this.target,
   });
+
+  DriverBasedAnalysisContext get analysisContext {
+    var analysisContext = analysisSession.analysisContext;
+    return analysisContext as DriverBasedAnalysisContext;
+  }
 
   /// Return the feature set that was used to analyze the compilation unit in
   /// which suggestions are being made.
@@ -385,10 +405,6 @@ class DartCompletionRequest {
     var entity = target.entity;
     return entity is Expression && entity.inConstantContext;
   }
-
-  /// Return the library element which contains the unit in which the completion
-  /// is occurring.
-  LibraryElement get libraryElement => result.libraryElement;
 
   /// Answer the [DartType] for Object in dart:core
   DartType get objectType => libraryElement.typeProvider.objectType;
@@ -408,16 +424,11 @@ class DartCompletionRequest {
   int get replacementOffset => replacementRange.offset;
 
   /// Return the resource provider associated with this request.
-  ResourceProvider get resourceProvider => result.session.resourceProvider;
-
-  /// Return the content of the [source] in which the completion is being
-  /// requested, or `null` if the content could not be accessed.
-  String? get sourceContents => result.content;
+  ResourceProvider get resourceProvider => analysisSession.resourceProvider;
 
   /// Return the [SourceFactory] of the request.
   SourceFactory get sourceFactory {
-    var context = result.session.analysisContext as DriverBasedAnalysisContext;
-    return context.driver.sourceFactory;
+    return analysisContext.driver.sourceFactory;
   }
 
   /// Return prefix that already exists in the document for [target] or empty

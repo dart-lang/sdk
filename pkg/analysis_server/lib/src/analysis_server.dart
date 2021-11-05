@@ -32,6 +32,7 @@ import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/search/search_domain.dart';
+import 'package:analysis_server/src/server/completion_request_aborting.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
@@ -40,6 +41,7 @@ import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/utilities/process.dart';
+import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -114,6 +116,9 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   final DetachableFileSystemManager? detachableFileSystemManager;
 
+  final CompletionRequestAborting completionRequestAborting =
+      CompletionRequestAborting();
+
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].
   ///
@@ -130,6 +135,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     InstrumentationService instrumentationService, {
     http.Client? httpClient,
     ProcessRunner? processRunner,
+    RequestStatisticsHelper? requestStatistics,
     DiagnosticServer? diagnosticServer,
     this.detachableFileSystemManager,
     // Disable to avoid using this in unit tests.
@@ -144,6 +150,7 @@ class AnalysisServer extends AbstractAnalysisServer {
           httpClient,
           processRunner,
           NotificationManager(channel, baseResourceProvider.pathContext),
+          requestStatistics: requestStatistics,
           enableBazelWatcher: enableBazelWatcher,
         ) {
     var contextManagerCallbacks =
@@ -164,7 +171,7 @@ class AnalysisServer extends AbstractAnalysisServer {
         io.pid,
       ).toNotification(),
     );
-    channel.listen(handleRequest, onDone: done, onError: error);
+    channel.requests.listen(handleRequest, onDone: done, onError: error);
     handlers = <server.RequestHandler>[
       ServerDomainHandler(this),
       AnalysisDomainHandler(this),

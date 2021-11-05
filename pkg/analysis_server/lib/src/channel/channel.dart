@@ -98,16 +98,11 @@ class ResponseConverter extends Converter<Map<String, Object?>, Response?> {
 /// objects that allow an [AnalysisServer] to receive [Request]s and to return
 /// both [Response]s and [Notification]s.
 abstract class ServerCommunicationChannel {
+  /// The single-subscription stream of requests.
+  Stream<Request> get requests;
+
   /// Close the communication channel.
   void close();
-
-  /// Listen to the channel for requests. If a request is received, invoke the
-  /// [onRequest] function. If an error is encountered while trying to read from
-  /// the socket, invoke the [onError] function. If the socket is closed by the
-  /// client, invoke the [onDone] function.
-  /// Only one listener is allowed per channel.
-  void listen(void Function(Request request) onRequest,
-      {Function onError, void Function() onDone});
 
   /// Send the given [notification] to the client.
   void sendNotification(Notification notification);

@@ -15871,18 +15871,249 @@ class ServerGetVersionResult implements ResponseResult {
   int get hashCode => version.hashCode;
 }
 
+/// ServerLogEntry
+///
+/// {
+///   "time": int
+///   "kind": ServerLogEntryKind
+///   "data": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerLogEntry implements HasToJson {
+  /// The time (milliseconds since epoch) at which the server created this log
+  /// entry.
+  int time;
+
+  /// The kind of the entry, used to determine how to interpret the "data"
+  /// field.
+  ServerLogEntryKind kind;
+
+  /// The payload of the entry, the actual format is determined by the "kind"
+  /// field.
+  String data;
+
+  ServerLogEntry(this.time, this.kind, this.data);
+
+  factory ServerLogEntry.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      int time;
+      if (json.containsKey('time')) {
+        time = jsonDecoder.decodeInt(jsonPath + '.time', json['time']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'time');
+      }
+      ServerLogEntryKind kind;
+      if (json.containsKey('kind')) {
+        kind = ServerLogEntryKind.fromJson(
+            jsonDecoder, jsonPath + '.kind', json['kind']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'kind');
+      }
+      String data;
+      if (json.containsKey('data')) {
+        data = jsonDecoder.decodeString(jsonPath + '.data', json['data']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'data');
+      }
+      return ServerLogEntry(time, kind, data);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'ServerLogEntry', json);
+    }
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['time'] = time;
+    result['kind'] = kind.toJson();
+    result['data'] = data;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerLogEntry) {
+      return time == other.time && kind == other.kind && data == other.data;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        time,
+        kind,
+        data,
+      );
+}
+
+/// ServerLogEntryKind
+///
+/// enum {
+///   NOTIFICATION
+///   RAW
+///   REQUEST
+///   RESPONSE
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerLogEntryKind implements Enum {
+  /// A notification from the server, such as "analysis.highlights". The "data"
+  /// field contains a JSON object with abbreviated notification.
+  static const ServerLogEntryKind NOTIFICATION =
+      ServerLogEntryKind._('NOTIFICATION');
+
+  /// Arbitrary string, describing some event that happened in the server, e.g.
+  /// starting a file analysis, and details which files were accessed. These
+  /// entries are not structured, but provide context information about
+  /// requests and notification, and can be related by "time" for further
+  /// manual analysis.
+  static const ServerLogEntryKind RAW = ServerLogEntryKind._('RAW');
+
+  /// A request from the client, as the server views it, e.g.
+  /// "edit.getAssists". The "data" field contains a JSON object with
+  /// abbreviated request.
+  static const ServerLogEntryKind REQUEST = ServerLogEntryKind._('REQUEST');
+
+  /// Various counters and measurements related to execution of a request. The
+  /// "data" field contains a JSON object with following fields:
+  ///
+  /// - "id" - the id of the request - copied from the request.
+  /// - "method" - the method of the request, e.g. "edit.getAssists".
+  /// - "clientRequestTime" - the time (milliseconds since epoch) at which the
+  ///   client made the request - copied from the request.
+  /// - "serverRequestTime" - the time (milliseconds since epoch) at which the
+  ///   server received and decoded the JSON request.
+  /// - "responseTime" - the time (milliseconds since epoch) at which the
+  ///   server created the response to be encoded into JSON and sent to the
+  ///   client.
+  static const ServerLogEntryKind RESPONSE = ServerLogEntryKind._('RESPONSE');
+
+  /// A list containing all of the enum values that are defined.
+  static const List<ServerLogEntryKind> VALUES = <ServerLogEntryKind>[
+    NOTIFICATION,
+    RAW,
+    REQUEST,
+    RESPONSE
+  ];
+
+  @override
+  final String name;
+
+  const ServerLogEntryKind._(this.name);
+
+  factory ServerLogEntryKind(String name) {
+    switch (name) {
+      case 'NOTIFICATION':
+        return NOTIFICATION;
+      case 'RAW':
+        return RAW;
+      case 'REQUEST':
+        return REQUEST;
+      case 'RESPONSE':
+        return RESPONSE;
+    }
+    throw Exception('Illegal enum value: $name');
+  }
+
+  factory ServerLogEntryKind.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    if (json is String) {
+      try {
+        return ServerLogEntryKind(json);
+      } catch (_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, 'ServerLogEntryKind', json);
+  }
+
+  @override
+  String toString() => 'ServerLogEntryKind.$name';
+
+  String toJson() => name;
+}
+
+/// server.log params
+///
+/// {
+///   "entry": ServerLogEntry
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerLogParams implements HasToJson {
+  ServerLogEntry entry;
+
+  ServerLogParams(this.entry);
+
+  factory ServerLogParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      ServerLogEntry entry;
+      if (json.containsKey('entry')) {
+        entry = ServerLogEntry.fromJson(
+            jsonDecoder, jsonPath + '.entry', json['entry']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'entry');
+      }
+      return ServerLogParams(entry);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'server.log params', json);
+    }
+  }
+
+  factory ServerLogParams.fromNotification(Notification notification) {
+    return ServerLogParams.fromJson(
+        ResponseDecoder(null), 'params', notification.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['entry'] = entry.toJson();
+    return result;
+  }
+
+  Notification toNotification() {
+    return Notification('server.log', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerLogParams) {
+      return entry == other.entry;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => entry.hashCode;
+}
+
 /// ServerService
 ///
 /// enum {
+///   LOG
 ///   STATUS
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ServerService implements Enum {
+  static const ServerService LOG = ServerService._('LOG');
+
   static const ServerService STATUS = ServerService._('STATUS');
 
   /// A list containing all of the enum values that are defined.
-  static const List<ServerService> VALUES = <ServerService>[STATUS];
+  static const List<ServerService> VALUES = <ServerService>[LOG, STATUS];
 
   @override
   final String name;
@@ -15891,6 +16122,8 @@ class ServerService implements Enum {
 
   factory ServerService(String name) {
     switch (name) {
+      case 'LOG':
+        return LOG;
       case 'STATUS':
         return STATUS;
     }

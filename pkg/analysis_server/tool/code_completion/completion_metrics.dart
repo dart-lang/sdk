@@ -1226,7 +1226,7 @@ class CompletionMetricsComputer {
         listener: listener,
       ).computeSuggestions(dartRequest, performance);
 
-      computeIncludedSetList(declarationsTracker, dartRequest.result,
+      computeIncludedSetList(declarationsTracker, dartRequest,
           includedSuggestionSetList, includedElementNames);
 
       var includedSuggestionSetMap = {
