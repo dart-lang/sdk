@@ -408,6 +408,10 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The number of objects in this list.
   ///
   /// The valid indices for a list are `0` through `length - 1`.
+  /// ```dart
+  /// final numbers = [1, 2, 3];
+  /// print(numbers.length); // 3
+  /// ```
   int get length;
 
   /// Changes the length of this list.
@@ -419,7 +423,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// if the element type [E] is non-nullable.
   ///
   /// ```dart
-  /// final List numbers = [1, 2, 3];
+  /// final numbers = [1, 2, 3];
   /// numbers.length = 5;
   /// print(numbers); // [1, 2, 3, null, null]
   /// print(numbers.length); // 5
