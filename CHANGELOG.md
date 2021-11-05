@@ -2,10 +2,9 @@
 
 ### Language
 
-The following new features are new in the Dart 2.15 [language version][]. To use
+The following features are new in the Dart 2.15 [language version][]. To use
 them, you must set the lower bound on the SDK constraint for your package to
-2.15 or greater. (If using a beta preview release, use an SDK constraint of
-`>=2.15.0-0`):
+2.15 or greater (`sdk: '>=2.15.0 <3.0.0'`).
 
 [language version]: https://dart.dev/guides/language/evolution
 
@@ -112,12 +111,6 @@ them, you must set the lower bound on the SDK constraint for your package to
     var z = List<int>; // The Type literal corresponding to `List<int>`.
   }
   ```
-
-  Generic type literals are only available as part of the 2.15 [language
-  version](https://dart.dev/guides/language/evolution). To use this feature, you
-  must set the lower bound on the SDK constraint for your package to 2.15 or
-  greater (if using a beta preview release, an SDK constraint of
-  `>=2.15.0-0` must be used).
 
 - **[Explicit generic method instantiations][explicit instantiation]**: Previous
   Dart versions allowed generic methods to be implicitly specialized (or
