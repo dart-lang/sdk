@@ -4869,17 +4869,28 @@ Fragment StreamingFlowGraphBuilder::BuildReturnStatement() {
 
   if (instructions.is_open()) {
     if (inside_try_finally) {
-      ASSERT(scopes()->finally_return_variable != NULL);
+      LocalVariable* const finally_return_variable =
+          scopes()->finally_return_variable;
+      ASSERT(finally_return_variable != nullptr);
       const Function& function = parsed_function()->function();
       if (NeedsDebugStepCheck(function, position)) {
         instructions += DebugStepCheck(position);
       }
-      instructions += StoreLocal(position, scopes()->finally_return_variable);
+      instructions += StoreLocal(position, finally_return_variable);
       instructions += Drop();
-      instructions += TranslateFinallyFinalizers(NULL, -1);
+      const intptr_t target_context_depth =
+          finally_return_variable->is_captured()
+              ? finally_return_variable->owner()->context_level()
+              : -1;
+      instructions += TranslateFinallyFinalizers(nullptr, target_context_depth);
       if (instructions.is_open()) {
-        instructions += LoadLocal(scopes()->finally_return_variable);
+        const intptr_t saved_context_depth = B->context_depth_;
+        if (finally_return_variable->is_captured()) {
+          B->context_depth_ = target_context_depth;
+        }
+        instructions += LoadLocal(finally_return_variable);
         instructions += Return(TokenPosition::kNoSource);
+        B->context_depth_ = saved_context_depth;
       }
     } else {
       instructions += Return(position);
