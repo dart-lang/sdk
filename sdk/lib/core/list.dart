@@ -9,11 +9,14 @@ part of dart.core;
 /// Subclasses of this class implement different kinds of lists.
 /// The most common kinds of lists are:
 ///
-/// * **Fixed-length list.**
+/// * **Fixed-length list**
+///
 ///   An error occurs when attempting to use operations
 ///   that can change the length of the list.
 ///
-/// * **Growable list.** Full implementation of the API defined in this class.
+/// * **Growable list**
+///
+///   Full implementation of the API defined in this class.
 ///
 /// The default growable list, as created by `[]`, keeps
 /// an internal buffer, and grows that buffer when necessary. This guarantees
@@ -23,18 +26,38 @@ part of dart.core;
 /// operation will need to immediately increase the buffer capacity.
 /// Other list implementations may have different performance behavior.
 ///
-/// The following code illustrates that some [List] implementations support
-/// only a subset of the API.
+/// Example of fixed-length list:
 /// ```dart
-/// var fixedLengthList = List<int>.filled(5, 0);
+/// final fixedLengthList = List<int>.filled(5, 0, growable: false);
+/// print(fixedLengthList); // [0, 0, 0, 0, 0]
+/// fixedLengthList[0] = 87;
+/// fixedLengthList.setAll(1, [1, 2, 3]);
+/// print(fixedLengthList); // [87, 1, 2, 3, 0]
+/// // Fixed length list length can't be changed or increased
 /// fixedLengthList.length = 0;  // Error
 /// fixedLengthList.add(499);    // Error
-/// fixedLengthList[0] = 87;
+/// ```
 ///
-/// var growableList = [1, 2];
-/// growableList.length = 0;
-/// growableList.add(499);
-/// growableList[0] = 87;
+/// Example of growable list:
+/// ```dart
+/// final List<String> growableList = []; // []
+/// growableList.addAll(['A', 'B', 'C', 'D']);
+/// growableList[0] = 'G';
+/// print(growableList); // [G, B, C, D]
+/// // Concatenate items to single string
+/// print(growableList.join('-')); // G-B-C-D
+/// // Check is item on list
+/// final isA = growableList.contains('A'); // false
+/// // Sort items on list and iterate list content
+/// growableList.sort((a, b) => a.compareTo(b));
+/// print(growableList); // [B, C, D, G]
+/// // Check is value 'E' on list otherwise return 'N'
+/// final ret = growableList.firstWhere((element) => element.contains('E'),
+///     orElse: () => 'N'); // N
+/// // Search items from list, convert result to list
+/// final resultList = growableList
+///     .where((element) => element.contains('B') || element.contains('G'))
+///     .toList(); // [B, G]
 /// ```
 /// Lists are [Iterable]. Iteration occurs over values in index order. Changing
 /// the values does not affect iteration, but changing the valid
@@ -151,7 +174,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// You can use [List.generate] to create a list with a fixed length
   /// and a new object at each position.
   /// ```dart
-  /// var unique = List.generate(3, (_) => []);
+  /// final unique = List.generate(3, (_) => []);
   /// unique[0].add(499);
   /// print(unique); // => [[499], [], []]
   /// ```
@@ -177,18 +200,22 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The [Iterator] of [elements] provides the order of the elements.
   ///
   /// All the [elements] should be instances of [E].
+  /// Example:
+  /// ```dart
+  /// final numbers = [1, 2, 3];
+  /// final listFrom = List.from(numbers); // [1, 2, 3]
+  /// ```
   /// The `elements` iterable itself may have any element type, so this
   /// constructor can be used to down-cast a `List`, for example as:
-  /// ```dart
-  /// List<dynamic> dynList = ...some JSON value...;
-  /// List<Map<String, dynamic>> fooList =
-  ///     List.from(dynList.where((x) => x is Map && x["kind"] == "foo"));
+  /// ```dart import:convert
+  /// const jsonArray = '[{"text": "foo", "value": 1, "status": true},'
+  ///     '{"text": "bar", "value": 2, "status":false}]';
+  /// final List<dynamic> dynamicList = jsonDecode(jsonArray);
+  /// final List<Map<String, dynamic>> fooData =
+  ///     List.from(dynamicList.where((x) => x is Map && x['text'] == 'bar'));
+  /// print(fooData); // [{text: bar, value: 2, status: false}]
   /// ```
   ///
-  /// ```dart
-  /// final List numbers = [1, 2, 3];
-  /// final List listFrom = List.from(numbers); // [1, 2, 3]
-  /// ```
   /// This constructor creates a growable list when [growable] is true;
   /// otherwise, it returns a fixed-length list.
   external factory List.from(Iterable elements, {bool growable = true});
@@ -866,7 +893,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// as values. The `Map.keys` [Iterable] iterates the indices of this list
   /// in numerical order.
   /// ```dart
-  /// final List words = ['fee', 'fi', 'fo', 'fum'];
+  /// final words = ['fee', 'fi', 'fo', 'fum'];
   /// final Map map = words.asMap();
   /// print(map); // {0: fee, 1: fi, 2: fo, 3: fum}
   /// print(map[0]! + map[1]!); // 'feefi';
