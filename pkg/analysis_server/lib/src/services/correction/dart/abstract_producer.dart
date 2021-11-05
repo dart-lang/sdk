@@ -241,7 +241,7 @@ class CorrectionProducerContext {
 
   /// A map keyed by lock names whose value is a list of the ranges for which a
   /// lock has already been acquired.
-  final Map<String, List<SourceRange>> _lockRanges = {};
+  final Map<String, List<SourceRange>> lockRanges;
 
   CorrectionProducerContext._({
     required this.resolvedResult,
@@ -253,6 +253,7 @@ class CorrectionProducerContext {
     this.overrideSet,
     this.selectionOffset = -1,
     this.selectionLength = 0,
+    required this.lockRanges,
   })  : file = resolvedResult.path,
         session = resolvedResult.session,
         sessionHelper = AnalysisSessionHelper(resolvedResult.session),
@@ -276,6 +277,7 @@ class CorrectionProducerContext {
     TransformOverrideSet? overrideSet,
     int selectionOffset = -1,
     int selectionLength = 0,
+    Map<String, List<SourceRange>>? lockRanges,
   }) {
     var selectionEnd = selectionOffset + selectionLength;
     var locator = NodeLocator(selectionOffset, selectionEnd);
@@ -292,6 +294,7 @@ class CorrectionProducerContext {
       overrideSet: overrideSet,
       selectionOffset: selectionOffset,
       selectionLength: selectionLength,
+      lockRanges: lockRanges ?? {},
     );
   }
 }
@@ -470,7 +473,7 @@ abstract class _AbstractCorrectionProducer {
   /// ensure this behavior by attempting to acquire a lock prior to creating any
   /// edits, and only create the edits if a lock could be acquired.
   bool acquireLockOnRange(String lockName, SourceRange range) {
-    var ranges = _context._lockRanges.putIfAbsent(lockName, () => []);
+    var ranges = _context.lockRanges.putIfAbsent(lockName, () => []);
     if (ranges.contains(range)) {
       return false;
     }

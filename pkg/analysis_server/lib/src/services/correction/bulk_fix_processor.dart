@@ -19,6 +19,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
@@ -208,6 +209,7 @@ class BulkFixProcessor {
     final analysisOptions = unit.session.analysisContext.analysisOptions;
 
     var overrideSet = _readOverrideSet(unit);
+    var lockRanges = <String, List<SourceRange>>{};
     for (var error in errors) {
       final processor = ErrorProcessor.getProcessor(analysisOptions, error);
       // Only fix errors not filtered out in analysis options.
@@ -219,7 +221,7 @@ class BulkFixProcessor {
           error,
           (name) => [],
         );
-        await _fixSingleError(fixContext, unit, error, overrideSet);
+        await _fixSingleError(fixContext, unit, error, overrideSet, lockRanges);
       }
     }
 
@@ -236,6 +238,7 @@ class BulkFixProcessor {
       var errors = List.from(unitResult.errors, growable: false);
       errors.sort((a, b) => a.offset.compareTo(b.offset));
 
+      var lockRanges = <String, List<SourceRange>>{};
       for (var error in errors) {
         var processor = ErrorProcessor.getProcessor(analysisOptions, error);
         // Only fix errors not filtered out in analysis options.
@@ -247,7 +250,8 @@ class BulkFixProcessor {
             error,
             (name) => [],
           );
-          await _fixSingleError(fixContext, unitResult, error, overrideSet);
+          await _fixSingleError(
+              fixContext, unitResult, error, overrideSet, lockRanges);
         }
       }
     }
@@ -260,11 +264,13 @@ class BulkFixProcessor {
       DartFixContext fixContext,
       ResolvedUnitResult result,
       AnalysisError diagnostic,
-      TransformOverrideSet? overrideSet) async {
+      TransformOverrideSet? overrideSet,
+      Map<String, List<SourceRange>> lockRanges) async {
     var context = CorrectionProducerContext.create(
       applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
+      lockRanges: lockRanges,
       overrideSet: overrideSet,
       resolvedResult: result,
       selectionOffset: diagnostic.offset,

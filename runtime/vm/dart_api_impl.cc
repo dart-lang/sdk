@@ -1463,13 +1463,6 @@ Dart_CreateIsolateInGroup(Dart_Isolate group_member,
 
   *error = nullptr;
 
-  if (!FLAG_enable_isolate_groups) {
-    *error = Utils::StrDup(
-        "Lightweight isolates need to be explicitly enabled by passing "
-        "--enable-isolate-groups.");
-    return nullptr;
-  }
-
   Isolate* isolate;
   isolate = CreateWithinExistingIsolateGroup(member->group(), name, error);
   if (isolate != nullptr) {
