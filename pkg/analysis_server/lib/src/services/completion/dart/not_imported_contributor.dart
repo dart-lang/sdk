@@ -13,7 +13,6 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
@@ -37,8 +36,8 @@ class NotImportedContributor extends DartCompletionContributor {
 
   @override
   Future<void> computeSuggestions() async {
-    var session = request.result.session as AnalysisSessionImpl;
-    var analysisDriver = session.getDriver(); // ignore: deprecated_member_use
+    var analysisSession = request.analysisSession;
+    var analysisDriver = request.analysisContext.driver;
 
     var fsState = analysisDriver.fsState;
     var filter = _buildFilter(fsState);
@@ -65,7 +64,7 @@ class NotImportedContributor extends DartCompletionContributor {
         continue;
       }
 
-      var elementResult = await session.getLibraryByUri(file.uriStr);
+      var elementResult = await analysisSession.getLibraryByUri(file.uriStr);
       if (elementResult is! LibraryElementResult) {
         continue;
       }
@@ -92,7 +91,7 @@ class NotImportedContributor extends DartCompletionContributor {
   }
 
   _Filter _buildFilter(FileSystemState fsState) {
-    var file = fsState.getFileForPath(request.result.path);
+    var file = fsState.getFileForPath(request.path);
     var workspacePackage = file.workspacePackage;
     if (workspacePackage is PubWorkspacePackage) {
       return _PubFilter(workspacePackage, file.path);

@@ -312,7 +312,7 @@ class CompletionHandler
               includedSuggestionRelevanceTags != null) {
             computeIncludedSetList(
               declarationsTracker,
-              unit,
+              completionRequest,
               includedSuggestionSets,
               includedElementNames,
             );

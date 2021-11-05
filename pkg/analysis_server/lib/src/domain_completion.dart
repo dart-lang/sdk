@@ -580,7 +580,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
             );
             computeIncludedSetList(
               declarationsTracker,
-              resolvedUnit,
+              completionRequest,
               includedSuggestionSets,
               includedElementNames,
             );
@@ -711,11 +711,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   _RequestToPlugins? _sendRequestToPlugins(
     DartCompletionRequest completionRequest,
   ) {
-    var resolvedUnit = completionRequest.result;
-    var analysisContext = resolvedUnit.session.analysisContext;
-
     var pluginRequestParameters = plugin.CompletionGetSuggestionsParams(
-      resolvedUnit.path,
+      completionRequest.path,
       completionRequest.offset,
     );
 
@@ -724,7 +721,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       parameters: pluginRequestParameters,
       futures: server.pluginManager.broadcastRequest(
         pluginRequestParameters,
-        contextRoot: analysisContext.contextRoot,
+        contextRoot: completionRequest.analysisContext.contextRoot,
       ),
     );
   }

@@ -738,8 +738,8 @@ class SuggestionBuilder {
   Future<void> suggestOverride(SimpleIdentifier targetId,
       ExecutableElement element, bool invokeSuper) async {
     var displayTextBuffer = StringBuffer();
-    var builder = ChangeBuilder(session: request.result.session);
-    await builder.addDartFileEdit(request.result.path, (builder) {
+    var builder = ChangeBuilder(session: request.analysisSession);
+    await builder.addDartFileEdit(request.path, (builder) {
       builder.addReplacement(range.node(targetId), (builder) {
         builder.writeOverride(
           element,
