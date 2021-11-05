@@ -230,9 +230,9 @@ class CompletionDomainHandlerGetSuggestions2Test
 
   Future<void> test_abort_onAnotherCompletionRequest() async {
     var abortedIdSet = <String>{};
-    server.completionRequestAborting.onAbort = (idSet) {
-      abortedIdSet.addAll(idSet);
-    };
+    server.discardedRequests.stream.listen((request) {
+      abortedIdSet.add(request.id);
+    });
 
     newFile(testFilePath, content: '');
 
@@ -268,9 +268,9 @@ class CompletionDomainHandlerGetSuggestions2Test
 
   Future<void> test_abort_onUpdateContent() async {
     var abortedIdSet = <String>{};
-    server.completionRequestAborting.onAbort = (idSet) {
-      abortedIdSet.addAll(idSet);
-    };
+    server.discardedRequests.stream.listen((request) {
+      abortedIdSet.add(request.id);
+    });
 
     newFile(testFilePath, content: '');
 
