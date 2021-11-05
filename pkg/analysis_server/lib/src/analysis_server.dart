@@ -32,6 +32,7 @@ import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/search/search_domain.dart';
+import 'package:analysis_server/src/server/completion_request_aborting.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
@@ -114,6 +115,9 @@ class AnalysisServer extends AbstractAnalysisServer {
       StreamController.broadcast(sync: true);
 
   final DetachableFileSystemManager? detachableFileSystemManager;
+
+  final CompletionRequestAborting completionRequestAborting =
+      CompletionRequestAborting();
 
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].

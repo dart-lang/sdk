@@ -417,6 +417,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       }
     }
 
+    server.completionRequestAborting.abort();
     server.updateContent(request.id, params.files);
     //
     // Forward the request to the plugins.

@@ -228,6 +228,73 @@ class CompletionDomainHandlerGetSuggestions2Test
     NotImportedContributor.onFile = null;
   }
 
+  Future<void> test_abort_onAnotherCompletionRequest() async {
+    var abortedIdSet = <String>{};
+    server.completionRequestAborting.onAbort = (idSet) {
+      abortedIdSet.addAll(idSet);
+    };
+
+    newFile(testFilePath, content: '');
+
+    await _configureWithWorkspaceRoot();
+
+    // Send three requests, the first two should be aborted.
+    var response0 = _sendTestCompletionRequest('0', 0);
+    var response1 = _sendTestCompletionRequest('1', 0);
+    var response2 = _sendTestCompletionRequest('2', 0);
+
+    // Wait for all three.
+    var validator0 = await response0.toResult();
+    var validator1 = await response1.toResult();
+    var validator2 = await response2.toResult();
+
+    // The first two should be aborted.
+    expect(abortedIdSet, {'0', '1'});
+
+    validator0
+      ..assertIncomplete()
+      ..suggestions.assertEmpty();
+
+    validator1
+      ..assertIncomplete()
+      ..suggestions.assertEmpty();
+
+    validator2
+      ..assertComplete()
+      ..suggestions.assertCompletionsContainsAll(
+        ['int', 'double', 'Future', 'Directory'],
+      );
+  }
+
+  Future<void> test_abort_onUpdateContent() async {
+    var abortedIdSet = <String>{};
+    server.completionRequestAborting.onAbort = (idSet) {
+      abortedIdSet.addAll(idSet);
+    };
+
+    newFile(testFilePath, content: '');
+
+    await _configureWithWorkspaceRoot();
+
+    // Schedule a completion request.
+    var response = _sendTestCompletionRequest('0', 0);
+
+    // Simulate typing in the IDE.
+    await _handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFilePathPlatform: AddContentOverlay('void f() {}'),
+      }).toRequest('1'),
+    );
+
+    // The request should be aborted.
+    var validator = await response.toResult();
+    expect(abortedIdSet, {'0'});
+
+    validator
+      ..assertIncomplete()
+      ..suggestions.assertEmpty();
+  }
+
   Future<void> test_notImported_abort() async {
     await _configureWithWorkspaceRoot();
 
@@ -1529,6 +1596,16 @@ void f() {
       maxResults: maxResults,
     );
   }
+
+  RequestWithFutureResponse _sendTestCompletionRequest(String id, int offset) {
+    var request = CompletionGetSuggestions2Params(
+      testFilePath,
+      0,
+      1 << 10,
+    ).toRequest(id);
+    var futureResponse = _handleRequest(request);
+    return RequestWithFutureResponse(offset, request, futureResponse);
+  }
 }
 
 @reflectiveTest
@@ -2594,6 +2671,21 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     var response = await _handleRequest(request);
     expect(response, isResponseSuccess(request.id));
     return response;
+  }
+}
+
+class RequestWithFutureResponse {
+  final int offset;
+  final Request request;
+  final Future<Response> futureResponse;
+
+  RequestWithFutureResponse(this.offset, this.request, this.futureResponse);
+
+  Future<CompletionGetSuggestions2ResponseValidator> toResult() async {
+    var response = await futureResponse;
+    expect(response, isResponseSuccess(request.id));
+    var result = CompletionGetSuggestions2Result.fromResponse(response);
+    return CompletionGetSuggestions2ResponseValidator(offset, result);
   }
 }
 
