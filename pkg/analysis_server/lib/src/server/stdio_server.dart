@@ -27,6 +27,7 @@ class StdioAnalysisServer {
       stdin,
       stdout,
       socketServer.instrumentationService,
+      requestStatistics: socketServer.requestStatistics,
     );
     socketServer.createAnalysisServer(serverChannel);
     return serverChannel.closed;

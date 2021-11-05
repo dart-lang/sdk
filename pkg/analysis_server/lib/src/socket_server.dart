@@ -10,6 +10,7 @@ import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -35,6 +36,7 @@ class SocketServer implements AbstractSocketServer {
 
   final CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder;
   final InstrumentationService instrumentationService;
+  final RequestStatisticsHelper? requestStatistics;
   @override
   final DiagnosticServer? diagnosticServer;
   final DetachableFileSystemManager? detachableFileSystemManager;
@@ -49,6 +51,7 @@ class SocketServer implements AbstractSocketServer {
       this.sdkManager,
       this.crashReportingAttachmentsBuilder,
       this.instrumentationService,
+      this.requestStatistics,
       this.diagnosticServer,
       this.detachableFileSystemManager);
 
@@ -75,6 +78,7 @@ class SocketServer implements AbstractSocketServer {
       sdkManager,
       crashReportingAttachmentsBuilder,
       instrumentationService,
+      requestStatistics: requestStatistics,
       diagnosticServer: diagnosticServer,
       detachableFileSystemManager: detachableFileSystemManager,
       enableBazelWatcher: true,

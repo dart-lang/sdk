@@ -354,6 +354,16 @@
       </field>
     </params>
   </notification>
+  <notification event="log" experimental="true">
+    <p>
+      The stream of entries describing events happened in the server.
+    </p>
+    <params>
+      <field name="entry">
+        <ref>ServerLogEntry</ref>
+      </field>
+    </params>
+  </notification>
   <notification event="status">
     <p>
       Reports the current status of the server. Parameters are
@@ -5314,6 +5324,7 @@
       An enumeration of the services provided by the server domain.
     </p>
     <enum>
+      <value><code>LOG</code></value>
       <value><code>STATUS</code></value>
     </enum>
   </type>
@@ -5387,6 +5398,94 @@
         </p>
       </field>
     </object>
+  </type>
+  <type name="ServerLogEntry" experimental="true">
+    <p>
+      A log entry from the server.
+    </p>
+    <object>
+      <field name="time">
+        <ref>int</ref>
+        <p>
+          The time (milliseconds since epoch) at which the server created
+          this log entry.
+        </p>
+      </field>
+      <field name="kind" >
+        <ref>ServerLogEntryKind</ref>
+        <p>
+          The kind of the entry, used to determine how to interpret the "data"
+          field.
+        </p>
+      </field>
+      <field name="data">
+        <ref>String</ref>
+        <p>
+          The payload of the entry, the actual format is determined by the
+          "kind" field.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="ServerLogEntryKind" experimental="true">
+    <p>
+      An enumeration of the kinds of server long entries.
+    </p>
+    <enum>
+      <value>
+        <code>NOTIFICATION</code>
+        <p>
+          A notification from the server, such as "analysis.highlights".
+          The "data" field contains a JSON object with abbreviated notification.
+        </p>
+      </value>
+      <value>
+        <code>RAW</code>
+        <p>
+          Arbitrary string, describing some event that happened in the server,
+          e.g. starting a file analysis, and details which files were accessed.
+          These entries are not structured, but provide context information
+          about requests and notification, and can be related by "time" for
+          further manual analysis.
+        </p>
+      </value>
+      <value>
+        <code>REQUEST</code>
+        <p>
+          A request from the client, as the server views it, e.g.
+          "edit.getAssists". The "data" field contains a JSON object with
+          abbreviated request.
+        </p>
+      </value>
+      <value>
+        <code>RESPONSE</code>
+        <p>
+          Various counters and measurements related to execution of a request.
+          The "data" field contains a JSON object with following fields:
+        </p>
+        <ul>
+          <li>
+            "id" - the id of the request - copied from the request.
+          </li>
+          <li>
+            "method" - the method of the request, e.g. "edit.getAssists".
+          </li>
+          <li>
+            "clientRequestTime" - the time (milliseconds since epoch) at which
+            the client made the request - copied from the request.
+          </li>
+          <li>
+            "serverRequestTime" - the time (milliseconds since epoch) at which
+            the server received and decoded the JSON request.
+          </li>
+          <li>
+            "responseTime" - the time (milliseconds since epoch) at which the
+            server created the response to be encoded into JSON and sent to the
+            client.
+          </li>
+        </ul>
+      </value>
+    </enum>
   </type>
 </types>
 <refactorings>

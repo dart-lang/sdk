@@ -501,6 +501,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           return;
         }
 
+        server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
+
         if (offset < 0 || offset > resolvedUnit.content.length) {
           server.sendResponse(Response.invalidParameter(
               request,

@@ -28,6 +28,7 @@ class IsolateAnalysisServer {
       serverIsolateChannel.stream,
       IOSink(serverIsolateChannel.sink),
       socketServer.instrumentationService,
+      requestStatistics: socketServer.requestStatistics,
     );
     socketServer.createAnalysisServer(serverChannel);
     await serverChannel.closed;

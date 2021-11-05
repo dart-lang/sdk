@@ -49,6 +49,9 @@ class ServerDomainHandler implements RequestHandler {
     server.serverServices =
         ServerSetSubscriptionsParams.fromRequest(request).subscriptions.toSet();
 
+    server.requestStatistics?.isNotificationSubscribed =
+        server.serverServices.contains(ServerService.LOG);
+
     return ServerSetSubscriptionsResult().toResponse(request.id);
   }
 
