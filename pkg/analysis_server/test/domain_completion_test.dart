@@ -1599,7 +1599,7 @@ void f() {
 
   RequestWithFutureResponse _sendTestCompletionRequest(String id, int offset) {
     var request = CompletionGetSuggestions2Params(
-      testFilePath,
+      testFilePathPlatform,
       0,
       1 << 10,
     ).toRequest(id);
