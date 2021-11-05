@@ -23223,13 +23223,13 @@ class Node extends EventTarget {
   }
 
   /**
-   * Inserts all of the nodes into this node directly before refChild.
+   * Inserts all of the nodes into this node directly before child.
    *
    * See also:
    *
    * * [insertBefore]
    */
-  void insertAllBefore(Iterable<Node> newNodes, Node refChild) {
+  void insertAllBefore(Iterable<Node> newNodes, Node child) {
     if (newNodes is _ChildNodeListLazy) {
       _ChildNodeListLazy otherList = newNodes;
       if (identical(otherList._this, this)) {
@@ -23238,11 +23238,11 @@ class Node extends EventTarget {
 
       // Optimized route for copying between nodes.
       for (var i = 0, len = otherList.length; i < len; ++i) {
-        this.insertBefore(otherList._this.firstChild!, refChild);
+        this.insertBefore(otherList._this.firstChild!, child);
       }
     } else {
       for (var node in newNodes) {
-        this.insertBefore(node, refChild);
+        this.insertBefore(node, child);
       }
     }
   }
@@ -23525,7 +23525,9 @@ class Node extends EventTarget {
   bool hasChildNodes() native;
 
   /**
-   * Inserts all of the nodes into this node directly before refChild.
+   * Inserts the given node into this node directly before child.
+   * If child is `null`, then the given node is inserted at the end
+   * of this node's child nodes.
    *
    * ## Other resources
    *
