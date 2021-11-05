@@ -53,7 +53,8 @@ testRenameToSamePath() async {
         // On Windows, the directory will be *deleted*.
         Expect.isFalse(dir.existsSync());
         Expect.isTrue(
-            e.osError.message.contains('cannot find the file specified'));
+            e.osError.message.contains('cannot find the file specified'),
+            'Unexpected error: $e');
       } else {
         Expect.fail('Directory.rename to same path should not fail on '
             '${Platform.operatingSystem} (${Platform.operatingSystemVersion}): '
@@ -76,9 +77,11 @@ testRenameToExistingFile() async {
       Expect.fail('Directory.rename should fail to rename a non-directory');
     } on FileSystemException catch (e) {
       if (Platform.isLinux || Platform.isMacOS) {
-        Expect.isTrue(e.osError.message.contains('Not a directory'));
+        Expect.isTrue(e.osError.message.contains('Not a directory'),
+            'Unexpected error: $e');
       } else if (Platform.isWindows) {
-        Expect.isTrue(e.osError.message.contains('file already exists'));
+        Expect.isTrue(e.osError.message.contains('file already exists'),
+            'Unexpected error: $e');
       }
     }
   });
@@ -124,7 +127,8 @@ testRenameToExistingNonEmptyDirectory() async {
       }
     } on FileSystemException catch (e) {
       if (Platform.isLinux || Platform.isMacOS) {
-        Expect.isTrue(e.osError.message.contains('Directory not empty'));
+        Expect.isTrue(e.osError.message.contains('Directory not empty'),
+            'Unexpected error: $e');
       }
     }
   });
