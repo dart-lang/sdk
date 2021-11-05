@@ -171,7 +171,7 @@ class AnalysisServer extends AbstractAnalysisServer {
         io.pid,
       ).toNotification(),
     );
-    channel.listen(handleRequest, onDone: done, onError: error);
+    channel.requests.listen(handleRequest, onDone: done, onError: error);
     handlers = <server.RequestHandler>[
       ServerDomainHandler(this),
       AnalysisDomainHandler(this),
