@@ -187,7 +187,7 @@ class Class1 extends core::Object {
     return new mai::Class1::•();
 }
 class Class2 extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[mai::Class2::redirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C9]/*isLegacy*/;
   constructor named() → mai::Class2
     : super core::Object::•()
     ;
@@ -207,7 +207,7 @@ class Class3 extends core::Object {
     return new mai::Class3::•(field);
 }
 class Class4<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[mai::Class4::redirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C10]/*isLegacy*/;
   constructor _() → mai::Class4<mai::Class4::T%>
     : super core::Object::•()
     ;
@@ -243,4 +243,6 @@ constants  {
   #C6 = static-tearoff mai::Class4::_#redirect#tearOff
   #C7 = static-tearoff mai::Class5::_#new#tearOff
   #C8 = false
+  #C9 = constructor-tearoff mai::Class2::redirect
+  #C10 = constructor-tearoff mai::Class4::redirect
 }

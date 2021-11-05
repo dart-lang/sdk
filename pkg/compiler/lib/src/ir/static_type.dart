@@ -1134,12 +1134,12 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     } else {
       ir.Class declaringClass = node.interfaceTarget.enclosingClass;
       if (declaringClass.typeParameters.isEmpty) {
-        resultType = node.interfaceTarget.getterType;
+        resultType = node.interfaceTarget.superGetterType;
       } else {
         ir.DartType receiver = typeEnvironment.getTypeAsInstanceOf(thisType,
             declaringClass, currentLibrary, typeEnvironment.coreTypes);
         resultType = ir.Substitution.fromInterfaceType(receiver)
-            .substituteType(node.interfaceTarget.getterType);
+            .substituteType(node.interfaceTarget.superGetterType);
       }
     }
     _staticTypeCache._expressionTypes[node] = resultType;

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
@@ -11,41 +10,7 @@ import 'package:path/path.dart' as path;
 import '../benchmarks.dart';
 import 'memory_tests.dart';
 
-Future<int> _runProcess(
-  String command,
-  List<String> args, {
-  String? cwd,
-  bool failOnError = true,
-}) async {
-  print('\n$command ${args.join(' ')}');
-
-  var process = await Process.start(command, args, workingDirectory: cwd);
-
-  process.stdout
-      .transform(utf8.decoder)
-      .transform(LineSplitter())
-      .listen((line) {
-    print('  $line');
-  });
-  process.stderr
-      .transform(utf8.decoder)
-      .transform(LineSplitter())
-      .listen((line) => print('  $line'));
-
-  var exitCode = await process.exitCode;
-  if (exitCode != 0 && failOnError) {
-    throw '$command exited with $exitCode';
-  }
-
-  return exitCode;
-}
-
-/// benchmarks:
-///   - analysis-server-warm-analysis
-///   - analysis-server-warm-memory
-///   - analysis-server-edit
-///   - analysis-server-completion
-class FlutterCompletionBenchmark extends Benchmark {
+class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
   static final das = FlutterCompletionBenchmark(
     'das',
     () => AnalysisServerBenchmarkTest(),
@@ -58,41 +23,17 @@ class FlutterCompletionBenchmark extends Benchmark {
 
   final AbstractBenchmarkTest Function() testConstructor;
 
-  late String flutterPath;
+  late final String flutterRepositoryPath;
 
   FlutterCompletionBenchmark(String protocolName, this.testConstructor)
       : super(
-          '$protocolName-flutter-completion',
+          '$protocolName-flutter',
           'Completion benchmarks with Flutter.',
           kind: 'group',
         );
 
   @override
-  bool get needsSetup => true;
-
-  @override
-  Future oneTimeSetup() async {
-    flutterPath = Directory.systemTemp.createTempSync('flutter').path;
-
-    // git clone https://github.com/flutter/flutter $flutterDir
-    await _runProcess('git', [
-      'clone',
-      'https://github.com/flutter/flutter',
-      path.canonicalize(flutterPath)
-    ]);
-
-    var flutterTool = path.join(flutterPath, 'bin', 'flutter');
-
-    // flutter --version
-    await _runProcess(flutterTool, ['--version'], cwd: flutterPath);
-
-    // flutter update-packages
-    await _runProcess(
-      flutterTool,
-      ['pub', 'get'],
-      cwd: path.join(flutterPath, 'packages', 'flutter'),
-    );
-  }
+  int get maxIterations => 2;
 
   @override
   Future<BenchMarkResult> run({
@@ -108,7 +49,8 @@ class FlutterCompletionBenchmark extends Benchmark {
       test.debugStdio();
     }
 
-    final flutterPkgPath = path.join(flutterPath, 'packages', 'flutter');
+    final flutterPkgPath =
+        path.join(flutterRepositoryPath, 'packages', 'flutter');
 
     // Open a small directory, but with the package config that allows us
     // to analyze any file in `package:flutter`, including tests.
@@ -136,7 +78,7 @@ class FlutterCompletionBenchmark extends Benchmark {
     // Total number of suggestions: 2322.
     // Filtered to: 82.
     result.add(
-      'smallFile-body',
+      'completion-smallFile-body',
       BenchMarkResult(
         'micros',
         await _completionTiming(
@@ -144,7 +86,7 @@ class FlutterCompletionBenchmark extends Benchmark {
           filePath: '$flutterPkgPath/lib/src/material/flutter_logo.dart',
           uniquePrefix: 'Widget build(BuildContext context) {',
           insertStringGenerator: () => 'M',
-          name: 'smallFile-body',
+          name: 'completion-smallFile-body',
         ),
       ),
     );
@@ -157,7 +99,7 @@ class FlutterCompletionBenchmark extends Benchmark {
       // Total number of suggestions: 2322.
       // Filtered to: 2322.
       result.add(
-        'smallFile-body-withoutPrefix',
+        'completion-smallFile-body-withoutPrefix',
         BenchMarkResult(
           'micros',
           await _completionTiming(
@@ -165,7 +107,7 @@ class FlutterCompletionBenchmark extends Benchmark {
             filePath: '$flutterPkgPath/lib/src/material/flutter_logo.dart',
             uniquePrefix: 'Widget build(BuildContext context) {',
             insertStringGenerator: null,
-            name: 'smallFile-body-withoutPrefix',
+            name: 'completion-smallFile-body-withoutPrefix',
           ),
         ),
       );
@@ -177,7 +119,7 @@ class FlutterCompletionBenchmark extends Benchmark {
       // Total number of suggestions: 4654.
       // Filtered to: 182.
       result.add(
-        'smallLibraryCycle-largeFile-smallBody',
+        'completion-smallLibraryCycle-largeFile-smallBody',
         BenchMarkResult(
           'micros',
           await _completionTiming(
@@ -185,7 +127,7 @@ class FlutterCompletionBenchmark extends Benchmark {
             filePath: '$flutterPkgPath/test/material/text_field_test.dart',
             uniquePrefix: 'getOpacity(WidgetTester tester, Finder finder) {',
             insertStringGenerator: () => 'M',
-            name: 'smallLibraryCycle-largeFile-smallBody',
+            name: 'completion-smallLibraryCycle-largeFile-smallBody',
           ),
         ),
       );
@@ -202,7 +144,7 @@ class FlutterCompletionBenchmark extends Benchmark {
       // Total number of suggestions: 3429.
       // Filtered to: 133.
       result.add(
-        'mediumLibraryCycle-mediumFile-smallBody',
+        'completion-mediumLibraryCycle-mediumFile-smallBody',
         BenchMarkResult(
           'micros',
           await _completionTiming(
@@ -210,7 +152,7 @@ class FlutterCompletionBenchmark extends Benchmark {
             filePath: '$flutterPkgPath/lib/src/material/app_bar.dart',
             uniquePrefix: 'computeDryLayout(BoxConstraints constraints) {',
             insertStringGenerator: () => 'M',
-            name: 'mediumLibraryCycle-mediumFile-smallBody',
+            name: 'completion-mediumLibraryCycle-mediumFile-smallBody',
           ),
         ),
       );
@@ -222,7 +164,7 @@ class FlutterCompletionBenchmark extends Benchmark {
       // Total number of suggestions: 1510.
       // Filtered to: 0.
       result.add(
-        'mediumLibraryCycle-mediumFile-api-parameterType',
+        'completion-mediumLibraryCycle-mediumFile-api-parameterType',
         BenchMarkResult(
           'micros',
           await _completionTiming(
@@ -230,7 +172,7 @@ class FlutterCompletionBenchmark extends Benchmark {
             filePath: '$flutterPkgPath/lib/src/material/app_bar.dart',
             uniquePrefix: 'computeDryLayout(BoxConstraints',
             insertStringGenerator: _IncrementingStringGenerator(),
-            name: 'mediumLibraryCycle-mediumFile-api-parameterType',
+            name: 'completion-mediumLibraryCycle-mediumFile-api-parameterType',
           ),
         ),
       );
@@ -291,7 +233,7 @@ class FlutterCompletionBenchmark extends Benchmark {
     // Perform warm-up.
     // The cold start does not matter.
     // The sustained performance is much more important.
-    const kWarmUpCount = 50;
+    const kWarmUpCount = 20;
     for (var i = 0; i < kWarmUpCount; i++) {
       await perform();
     }

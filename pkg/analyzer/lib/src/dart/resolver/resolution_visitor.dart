@@ -882,7 +882,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitNamedType(covariant TypeNameImpl node) {
+  void visitNamedType(covariant NamedTypeImpl node) {
     node.typeArguments?.accept(this);
 
     _typeNameResolver.nameScope = _nameScope;
@@ -1256,7 +1256,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// The flag [asClass] specifies if the type will be used as a class, so mixin
   /// declarations are not valid (they declare interfaces and mixins, but not
   /// classes).
-  void _resolveType(TypeNameImpl namedType, ErrorCode errorCode,
+  void _resolveType(NamedTypeImpl namedType, ErrorCode errorCode,
       {bool asClass = false}) {
     _typeNameResolver.classHierarchy_namedType = namedType;
     visitNamedType(namedType);
@@ -1295,7 +1295,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// @return an array containing all of the types that were resolved.
   void _resolveTypes(NodeList<NamedType> namedTypes, ErrorCode errorCode) {
     for (var namedType in namedTypes) {
-      _resolveType(namedType as TypeNameImpl, errorCode);
+      _resolveType(namedType as NamedTypeImpl, errorCode);
     }
   }
 
@@ -1305,7 +1305,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     for (var namedType in clause.mixinTypes2) {
       _typeNameResolver.withClause_namedType = namedType;
       _resolveType(
-        namedType as TypeNameImpl,
+        namedType as NamedTypeImpl,
         CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
       );
       _typeNameResolver.withClause_namedType = null;

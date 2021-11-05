@@ -77,6 +77,7 @@ final sharableObjects = [
   RegExp('a'),
   Isolate.current.pauseCapability,
   Int32x4(1, 2, 3, 4),
+  StackTrace.current,
 ];
 
 final copyableClosures = <dynamic>[

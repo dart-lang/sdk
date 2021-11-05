@@ -2290,9 +2290,35 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
       s->WriteUnsigned(length);
       uint8_t* entry_bits = pool->untag()->entry_bits();
       for (intptr_t j = 0; j < length; j++) {
-        s->Write<uint8_t>(entry_bits[j]);
         UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
-        switch (ObjectPool::TypeBits::decode(entry_bits[j])) {
+        uint8_t bits = entry_bits[j];
+        ObjectPool::EntryType type = ObjectPool::TypeBits::decode(bits);
+        if (weak && (type == ObjectPool::EntryType::kTaggedObject)) {
+          // By default, every switchable call site will put (ic_data, code)
+          // into the object pool. The [code] is initialized (at AOT
+          // compile-time) to be [StubCode::SwitchableCallMiss] or
+          // [StubCode::MegamorphicCall].
+          //
+          // In --use-bare-instruction we reduce the extra indirection via
+          // the [code] object and store instead (ic_data, entrypoint) in
+          // the object pool.
+          //
+          // Since the actual [entrypoint] is only known at AOT runtime we
+          // switch all existing entries for these stubs to entrypoints
+          // encoded as EntryType::kSwitchableCallMissEntryPoint and
+          // EntryType::kMegamorphicCallEntryPoint.
+          if (entry.raw_obj_ == StubCode::SwitchableCallMiss().ptr()) {
+            type = ObjectPool::EntryType::kSwitchableCallMissEntryPoint;
+            bits = ObjectPool::EncodeBits(type,
+                                          ObjectPool::Patchability::kPatchable);
+          } else if (entry.raw_obj_ == StubCode::MegamorphicCall().ptr()) {
+            type = ObjectPool::EntryType::kMegamorphicCallEntryPoint;
+            bits = ObjectPool::EncodeBits(type,
+                                          ObjectPool::Patchability::kPatchable);
+          }
+        }
+        s->Write<uint8_t>(bits);
+        switch (type) {
           case ObjectPool::EntryType::kTaggedObject: {
             if ((entry.raw_obj_ == StubCode::CallNoScopeNative().ptr()) ||
                 (entry.raw_obj_ == StubCode::CallAutoScopeNative().ptr())) {
@@ -2314,11 +2340,15 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
             s->Write<intptr_t>(entry.raw_value_);
             break;
           }
-          case ObjectPool::EntryType::kNativeFunction:
-          case ObjectPool::EntryType::kNativeFunctionWrapper: {
+          case ObjectPool::EntryType::kNativeFunction: {
             // Write nothing. Will initialize with the lazy link entry.
             break;
           }
+          case ObjectPool::EntryType::kSwitchableCallMissEntryPoint:
+          case ObjectPool::EntryType::kMegamorphicCallEntryPoint:
+            // Write nothing. Entry point is initialized during
+            // snapshot deserialization.
+            break;
           default:
             UNREACHABLE();
         }
@@ -2351,6 +2381,19 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
   void ReadFill(Deserializer* d, bool primary) {
     ASSERT(!is_canonical());  // Never canonical.
     fill_position_ = d->position();
+#if defined(DART_PRECOMPILED_RUNTIME)
+    const uint8_t immediate_bits =
+        ObjectPool::EncodeBits(ObjectPool::EntryType::kImmediate,
+                               ObjectPool::Patchability::kPatchable);
+    uword switchable_call_miss_entry_point = 0;
+    uword megamorphic_call_entry_point = 0;
+    if (FLAG_use_bare_instructions) {
+      switchable_call_miss_entry_point =
+          StubCode::SwitchableCallMiss().MonomorphicEntryPoint();
+      megamorphic_call_entry_point =
+          StubCode::MegamorphicCall().MonomorphicEntryPoint();
+    }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       const intptr_t length = d->ReadUnsigned();
@@ -2375,6 +2418,20 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             entry.raw_value_ = static_cast<intptr_t>(new_entry);
             break;
           }
+#if defined(DART_PRECOMPILED_RUNTIME)
+          case ObjectPool::EntryType::kSwitchableCallMissEntryPoint:
+            ASSERT(FLAG_use_bare_instructions);
+            pool->untag()->entry_bits()[j] = immediate_bits;
+            entry.raw_value_ =
+                static_cast<intptr_t>(switchable_call_miss_entry_point);
+            break;
+          case ObjectPool::EntryType::kMegamorphicCallEntryPoint:
+            ASSERT(FLAG_use_bare_instructions);
+            pool->untag()->entry_bits()[j] = immediate_bits;
+            entry.raw_value_ =
+                static_cast<intptr_t>(megamorphic_call_entry_point);
+            break;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
           default:
             UNREACHABLE();
         }
@@ -3787,14 +3844,9 @@ class TypeSerializationCluster
 
     PushFromTo(type);
 
-    if (type->untag()->type_class_id()->IsHeapObject()) {
-      // Type class is still an unresolved class.
-      UNREACHABLE();
-    }
-
-    SmiPtr raw_type_class_id = Smi::RawCast(type->untag()->type_class_id());
+    ASSERT(type->untag()->type_class_id_ != kIllegalCid);
     ClassPtr type_class =
-        s->isolate_group()->class_table()->At(Smi::Value(raw_type_class_id));
+        s->isolate_group()->class_table()->At(type->untag()->type_class_id_);
     s->Push(type_class);
   }
 
@@ -3826,9 +3878,8 @@ class TypeSerializationCluster
   // inserted into the canonical_types set.
   // Keep in sync with Type::Canonicalize.
   virtual bool IsInCanonicalSet(Serializer* s, TypePtr type) {
-    SmiPtr raw_type_class_id = Smi::RawCast(type->untag()->type_class_id());
     ClassPtr type_class =
-        s->isolate_group()->class_table()->At(Smi::Value(raw_type_class_id));
+        s->isolate_group()->class_table()->At(type->untag()->type_class_id_);
     if (type_class->untag()->declaration_type() != type) {
       return true;
     }
@@ -3841,6 +3892,9 @@ class TypeSerializationCluster
   void WriteType(Serializer* s, TypePtr type) {
     AutoTraceObject(type);
     WriteFromTo(type);
+    COMPILE_ASSERT(
+        std::is_unsigned<decltype(UntaggedType::type_class_id_)>::value);
+    s->WriteUnsigned(type->untag()->type_class_id_);
     ASSERT(type->untag()->type_state_ < (1 << UntaggedType::kTypeStateBitSize));
     ASSERT(type->untag()->nullability_ < (1 << kNullabilityBitSize));
     static_assert(UntaggedType::kTypeStateBitSize + kNullabilityBitSize <=
@@ -3877,6 +3931,9 @@ class TypeDeserializationCluster
       Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
                                      primary && is_canonical());
       ReadFromTo(type);
+      COMPILE_ASSERT(
+          std::is_unsigned<decltype(UntaggedType::type_class_id_)>::value);
+      type->untag()->type_class_id_ = d->ReadUnsigned();
       const uint8_t combined = d->Read<uint8_t>();
       type->untag()->type_state_ = combined >> kNullabilityBitSize;
       type->untag()->nullability_ = combined & kNullabilityBitMask;
@@ -5470,7 +5527,7 @@ class VMSerializationRoots : public SerializationRoots {
 
     if (!Snapshot::IncludesCode(s->kind())) {
       for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-        s->AddBaseObject(StubCode::EntryAt(i).ptr(), "Code", "<stub code>");
+        s->AddBaseObject(StubCode::EntryAt(i).ptr());
       }
     }
   }
@@ -6785,13 +6842,13 @@ void Serializer::WriteVersionAndFeatures(bool is_vm_snapshot) {
   const intptr_t version_len = strlen(expected_version);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
 
-  const char* expected_features =
+  char* expected_features =
       Dart::FeaturesString(IsolateGroup::Current(), is_vm_snapshot, kind_);
   ASSERT(expected_features != NULL);
   const intptr_t features_len = strlen(expected_features);
   WriteBytes(reinterpret_cast<const uint8_t*>(expected_features),
              features_len + 1);
-  free(const_cast<char*>(expected_features));
+  free(expected_features);
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -6894,6 +6951,8 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   // Code cluster should be deserialized before Function as
   // FunctionDeserializationCluster::ReadFill uses instructions table
   // which is filled in CodeDeserializationCluster::ReadFill.
+  // Code cluster should also precede ObjectPool as its ReadFill uses
+  // entry points of stubs.
   ADD_NON_CANONICAL_NEXT(kCodeCid)
   // The function cluster should be deserialized before any closures, as
   // PostLoad for closures caches the entry point found in the function.
@@ -7774,6 +7833,8 @@ class HeapLocker : public StackResource {
 };
 
 void Deserializer::Deserialize(DeserializationRoots* roots) {
+  const void* clustered_start = CurrentBufferAddress();
+
   Array& refs = Array::Handle(zone_);
   num_base_objects_ = ReadUnsigned();
   num_objects_ = ReadUnsigned();
@@ -7867,8 +7928,8 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
 
   roots->PostLoad(this, refs);
 
-#if defined(DEBUG)
   auto isolate_group = thread()->isolate_group();
+#if defined(DEBUG)
   isolate_group->ValidateClassTable();
   if (isolate_group != Dart::vm_isolate()->group()) {
     isolate_group->heap()->Verify();
@@ -7881,6 +7942,13 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
       TIMELINE_DURATION(thread(), Isolate, clusters_[i]->name());
       clusters_[i]->PostLoad(this, refs, primary);
     }
+  }
+
+  if (isolate_group->snapshot_is_dontneed_safe()) {
+    size_t clustered_length = reinterpret_cast<uword>(CurrentBufferAddress()) -
+                              reinterpret_cast<uword>(clustered_start);
+    VirtualMemory::DontNeed(const_cast<void*>(clustered_start),
+                            clustered_length);
   }
 }
 
@@ -8305,7 +8373,6 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
   ProgramDeserializationRoots roots(thread_->isolate_group()->object_store());
   deserializer.Deserialize(&roots);
 
-  PatchGlobalObjectPool();
   InitializeBSS();
 
   return ApiError::null();
@@ -8351,50 +8418,9 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
   UnitDeserializationRoots roots(unit);
   deserializer.Deserialize(&roots);
 
-  PatchGlobalObjectPool();
   InitializeBSS();
 
   return ApiError::null();
-}
-
-void FullSnapshotReader::PatchGlobalObjectPool() {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_use_bare_instructions) {
-    // By default, every switchable call site will put (ic_data, code) into the
-    // object pool.  The [code] is initialized (at AOT compile-time) to be a
-    // [StubCode::SwitchableCallMiss].
-    //
-    // In --use-bare-instruction we reduce the extra indirection via the [code]
-    // object and store instead (ic_data, entrypoint) in the object pool.
-    //
-    // Since the actual [entrypoint] is only known at AOT runtime we switch all
-    // existing UnlinkedCall entries in the object pool to be it's entrypoint.
-    auto zone = thread_->zone();
-    const auto& pool = ObjectPool::Handle(
-        zone, ObjectPool::RawCast(
-                  isolate_group()->object_store()->global_object_pool()));
-    auto& entry = Object::Handle(zone);
-    auto& smi = Smi::Handle(zone);
-    for (intptr_t i = 0; i < pool.Length(); i++) {
-      if (pool.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
-        entry = pool.ObjectAt(i);
-        if (entry.ptr() == StubCode::SwitchableCallMiss().ptr()) {
-          smi = Smi::FromAlignedAddress(
-              StubCode::SwitchableCallMiss().MonomorphicEntryPoint());
-          pool.SetTypeAt(i, ObjectPool::EntryType::kImmediate,
-                         ObjectPool::Patchability::kPatchable);
-          pool.SetObjectAt(i, smi);
-        } else if (entry.ptr() == StubCode::MegamorphicCall().ptr()) {
-          smi = Smi::FromAlignedAddress(
-              StubCode::MegamorphicCall().MonomorphicEntryPoint());
-          pool.SetTypeAt(i, ObjectPool::EntryType::kImmediate,
-                         ObjectPool::Patchability::kPatchable);
-          pool.SetObjectAt(i, smi);
-        }
-      }
-    }
-  }
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void FullSnapshotReader::InitializeBSS() {

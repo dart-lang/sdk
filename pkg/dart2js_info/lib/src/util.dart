@@ -18,7 +18,7 @@ Graph<Info> graphFromInfo(AllInfo info) {
   // of them.
   // TODO(sigmund): create a concrete implementation of InfoGraph, instead of
   // using the EdgeListGraph.
-  var graph = new EdgeListGraph<Info>();
+  var graph = EdgeListGraph<Info>();
   for (var f in info.functions) {
     graph.addNode(f);
     for (var g in f.uses) {
@@ -48,19 +48,19 @@ Graph<Info> graphFromInfo(AllInfo info) {
 
 /// Provide a unique long name associated with [info].
 // TODO(sigmund): guarantee that the name is actually unique.
-String longName(Info info, {bool useLibraryUri: false, bool forId: false}) {
+String longName(Info info, {bool useLibraryUri = false, bool forId = false}) {
   var infoPath = [];
   while (info != null) {
     infoPath.add(info);
     info = info.parent;
   }
-  var sb = new StringBuffer();
+  var sb = StringBuffer();
   var first = true;
   for (var segment in infoPath.reversed) {
     if (!first) sb.write('.');
     // TODO(sigmund): ensure that the first segment is a LibraryInfo.
     // assert(!first || segment is LibraryInfo);
-    // (today might not be true for for closure classes).
+    // (today might not be true for closure classes).
     if (segment is LibraryInfo) {
       // TODO(kevmoo): Remove this when dart2js can be invoked with an app-root
       // custom URI
@@ -91,7 +91,7 @@ String longName(Info info, {bool useLibraryUri: false, bool forId: false}) {
 }
 
 /// Produce a string containing [value] padded with white space up to [n] chars.
-pad(value, n, {bool right: false}) {
+pad(value, n, {bool right = false}) {
   var s = '$value';
   if (s.length >= n) return s;
   var pad = ' ' * (n - s.length);

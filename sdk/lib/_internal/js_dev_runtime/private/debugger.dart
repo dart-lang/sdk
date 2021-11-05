@@ -924,23 +924,9 @@ class ClassFormatter implements Formatter {
     // implemented interfaces, and methods.
     var ret = LinkedHashSet<NameValuePair>();
 
-    var staticProperties = Set<NameValuePair>();
-    var staticMethods = Set<NameValuePair>();
-    // Static fields and properties.
-    addPropertiesFromSignature(
-        dart.getStaticFields(type), staticProperties, type, false);
-    addPropertiesFromSignature(
-        dart.getStaticGetters(type), staticProperties, type, false);
-    // static methods.
-    addPropertiesFromSignature(
-        dart.getStaticMethods(type), staticMethods, type, false);
-
-    if (staticProperties.isNotEmpty || staticMethods.isNotEmpty) {
-      ret
-        ..add(NameValuePair(value: '[[Static members]]', hideName: true))
-        ..addAll(sortProperties(staticProperties))
-        ..addAll(sortProperties(staticMethods));
-    }
+    // Static fields, getters, setters, and methods signatures were removed
+    // from the runtime representation because they are not needed. At this
+    // time there is no intention to support them in this custom formatter.
 
     // instance methods.
     var instanceMethods = Set<NameValuePair>();

@@ -39,7 +39,6 @@ class PubPackageResolutionTest extends AbstractContextTest {
     path = convertPath(path);
 
     result = await resolveFile(path);
-    expect(result.state, ResultState.VALID);
 
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
@@ -329,7 +328,7 @@ int t;
 ''').path;
 
     var coreLibResult = await driverFor(testFilePath)
-        .getLibraryByUri2('dart:core') as LibraryElementResult;
+        .getLibraryByUri('dart:core') as LibraryElementResult;
     var intElement = coreLibResult.element.getType('int')!;
 
     var matches = await searchEngine.searchReferences(intElement);
@@ -428,7 +427,7 @@ class B extends A {}
       var contextRoot = driver.analysisContext!.contextRoot;
       for (var file in contextRoot.analyzedFiles()) {
         if (file.endsWith('.dart')) {
-          await driver.getUnitElement2(file);
+          await driver.getUnitElement(file);
         }
       }
     }

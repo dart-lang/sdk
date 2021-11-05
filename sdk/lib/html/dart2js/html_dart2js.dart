@@ -31,7 +31,6 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_audio' show AudioBuffer, AudioTrack, AudioTrackList;
 import 'dart:web_gl' as gl;
 import 'dart:web_gl' show RenderingContext, RenderingContext2;
-import 'dart:web_sql';
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 import 'dart:js_util' as js_util;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9212,13 +9211,6 @@ class DataTransferItemList extends Interceptor {
 
 // WARNING: Do not edit - generated code.
 
-typedef void DatabaseCallback(SqlDatabase database);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 typedef void DecodeErrorCallback(DomException error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12997,7 +12989,7 @@ class Element extends Node
   }
 
   @pragma('dart2js:tryInline')
-  void setAttribute(String name, String value) {
+  void setAttribute(String name, Object value) {
     // TODO(41258): Delete these assertions after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
@@ -13006,7 +12998,7 @@ class Element extends Node
   }
 
   @pragma('dart2js:tryInline')
-  void setAttributeNS(String? namespaceURI, String name, String value) {
+  void setAttributeNS(String? namespaceURI, String name, Object value) {
     // TODO(41258): Delete these assertions after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
@@ -13335,7 +13327,7 @@ class Element extends Node
   /**
    * Scrolls this element into view.
    *
-   * Only one of of the alignment options may be specified at a time.
+   * Only one of the alignment options may be specified at a time.
    *
    * If no options are specified then this will attempt to scroll the minimum
    * amount needed to bring the element into view.
@@ -14860,10 +14852,10 @@ class Element extends Node
   void _scrollTo_3(num? x, y) native;
 
   @JSName('setAttribute')
-  void _setAttribute(String name, String value) native;
+  void _setAttribute(String name, Object value) native;
 
   @JSName('setAttributeNS')
-  void _setAttributeNS(String? namespaceURI, String name, String value) native;
+  void _setAttributeNS(String? namespaceURI, String name, Object value) native;
 
   void setPointerCapture(int pointerId) native;
 
@@ -18336,7 +18328,7 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * Specify the desired `url`, and `method` to use in making the request.
    *
-   * By default the request is done asyncronously, with no user or password
+   * By default the request is done asynchronously, with no user or password
    * authentication information. If `async` is false, the request will be sent
    * synchronously.
    *
@@ -32982,16 +32974,6 @@ class Window extends EventTarget
   @JSName('moveTo')
   void _moveTo(int x, int y) native;
 
-  @JSName('openDatabase')
-
-  /// *Deprecated.*
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Creates('SqlDatabase')
-  SqlDatabase _openDatabase(
-      String name, String version, String displayName, int estimatedSize,
-      [DatabaseCallback? creationCallback]) native;
-
   void postMessage(/*any*/ message, String targetOrigin,
       [List<Object>? transfer]) {
     if (transfer != null) {
@@ -33677,26 +33659,6 @@ class Window extends EventTarget
    */
   void moveTo(Point p) {
     _moveTo(p.x.toInt(), p.y.toInt());
-  }
-
-  @JSName('openDatabase')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Creates('SqlDatabase')
-  @deprecated
-  SqlDatabase openDatabase(
-      String name, String version, String displayName, int estimatedSize,
-      [DatabaseCallback? creationCallback]) {
-    var db;
-    if (creationCallback == null)
-      db = _openDatabase(name, version, displayName, estimatedSize);
-    else
-      db = _openDatabase(
-          name, version, displayName, estimatedSize, creationCallback);
-
-    applyExtension('Database', db);
-
-    return db;
   }
 
   int get pageXOffset => JS<num>('num', '#.pageXOffset', this).round();

@@ -29,12 +29,12 @@ class DeferredStatusDiff extends Diff {
 }
 
 List<Diff> diff(AllInfo oldInfo, AllInfo newInfo) {
-  var differ = new _InfoDiffer(oldInfo, newInfo);
+  var differ = _InfoDiffer(oldInfo, newInfo);
   differ.diff();
   return differ.diffs;
 }
 
-class _InfoDiffer extends InfoVisitor<Null> {
+class _InfoDiffer extends InfoVisitor<void> {
   final AllInfo _old;
   final AllInfo _new;
 
@@ -50,23 +50,23 @@ class _InfoDiffer extends InfoVisitor<Null> {
 
   @override
   visitAll(AllInfo info) {
-    throw new StateError('should not diff AllInfo');
+    throw StateError('should not diff AllInfo');
   }
 
   @override
   visitProgram(ProgramInfo info) {
-    throw new StateError('should not diff ProgramInfo');
+    throw StateError('should not diff ProgramInfo');
   }
 
   @override
   visitOutput(OutputUnitInfo info) {
-    throw new StateError('should not diff OutputUnitInfo');
+    throw StateError('should not diff OutputUnitInfo');
   }
 
   // TODO(het): diff constants
   @override
   visitConstant(ConstantInfo info) {
-    throw new StateError('should not diff ConstantInfo');
+    throw StateError('should not diff ConstantInfo');
   }
 
   @override
@@ -85,6 +85,13 @@ class _InfoDiffer extends InfoVisitor<Null> {
     _checkDeferredStatus(info, other);
     _diffList(info.fields, other.fields);
     _diffList(info.functions, other.functions);
+  }
+
+  @override
+  visitClassType(ClassTypeInfo info) {
+    var other = _other as ClassTypeInfo;
+    _checkSize(info, other);
+    _checkDeferredStatus(info, other);
   }
 
   @override
@@ -120,7 +127,7 @@ class _InfoDiffer extends InfoVisitor<Null> {
 
   void _checkSize(BasicInfo info, BasicInfo other) {
     if (info.size != other.size) {
-      diffs.add(new SizeDiff(info, other.size - info.size));
+      diffs.add(SizeDiff(info, other.size - info.size));
     }
   }
 
@@ -128,7 +135,7 @@ class _InfoDiffer extends InfoVisitor<Null> {
     var oldIsDeferred = _isDeferred(oldInfo);
     var newIsDeferred = _isDeferred(newInfo);
     if (oldIsDeferred != newIsDeferred) {
-      diffs.add(new DeferredStatusDiff(oldInfo, oldIsDeferred));
+      diffs.add(DeferredStatusDiff(oldInfo, oldIsDeferred));
     }
   }
 
@@ -150,7 +157,7 @@ class _InfoDiffer extends InfoVisitor<Null> {
     }
     for (var oldName in oldNames.keys) {
       if (newNames[oldName] == null) {
-        diffs.add(new RemoveDiff(oldNames[oldName]));
+        diffs.add(RemoveDiff(oldNames[oldName]));
       } else {
         _other = newNames[oldName];
         oldNames[oldName].accept(this);
@@ -158,7 +165,7 @@ class _InfoDiffer extends InfoVisitor<Null> {
     }
     for (var newName in newNames.keys) {
       if (oldNames[newName] == null) {
-        diffs.add(new AddDiff(newNames[newName]));
+        diffs.add(AddDiff(newNames[newName]));
       }
     }
   }

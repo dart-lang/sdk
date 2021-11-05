@@ -16,8 +16,8 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'package:front_end/src/fasta/builder/declaration_builder.dart';
 import 'package:front_end/src/fasta/builder/field_builder.dart';
 import 'package:front_end/src/fasta/builder/modifier_builder.dart';
+import 'package:front_end/src/fasta/builder/type_builder.dart';
 import 'package:front_end/src/fasta/builder/type_declaration_builder.dart';
-import 'package:front_end/src/fasta/builder/unresolved_type.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/constant_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
@@ -235,7 +235,7 @@ class BodyBuilderTest extends BodyBuilder {
       Token nameLastToken,
       Arguments arguments,
       String name,
-      List<UnresolvedType> typeArguments,
+      List<TypeBuilder> typeArguments,
       int charOffset,
       Constness constness,
       {bool isTypeArgumentsInForest = false,

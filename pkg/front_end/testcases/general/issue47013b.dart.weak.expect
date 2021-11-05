@@ -12,7 +12,7 @@ class B extends self::A {
   synthetic constructor •() → self::B
     : super self::A::•()
     ;
-  forwarding-stub forwarding-semi-stub method m(covariant-by-declaration core::int i) → void
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::int) → void */ m(covariant-by-declaration core::num i) → void
     return super.{self::A::m}(i);
 }
 class C extends self::B {

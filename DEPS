@@ -44,9 +44,9 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "e9f3b0239dedd349084ca1e0b9d2ceacf4b2a1ef",
+  "co19_rev": "73545b2bf6c7f8e4eb931bb04d86e38d6485deee",
   # This line prevents conflicts when both packages are rolled simultaneously.
-  "co19_2_rev": "13344ad01472df9badfa78fd6aa411f042e13354",
+  "co19_2_rev": "52d3d2a6d2550ccd69c8facf8a36099be66f1493",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "076df10d9b77af337f2d8029725787155eb1cd52",
@@ -64,8 +64,8 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/integration/+/HEAD/prebuilts
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_revision": "7c4e9a68264ffeef6178865be76c45c4fb6390af",
-  "gn_revision": "39a87c0b36310bdf06b692c098f199a0d97fc810",
+  "clang_revision": "f37e8b0b831e61d3b6033829fff05d6d193ab735",
+  "gn_revision": "693f9fb87e4febdd4299db9f73d8d2c958e63148",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "c09c8deeac31f05bd801995c475e7c8070f9ecda",
@@ -74,7 +74,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_rev": "3b3f55766af13d895d2020ec001a28e8dc147f91",
-  "async_rev": "c64220396e0fa2f7b380590abfedbd25635cd7a0",
+  "async_rev": "80886150a5e6c58006c8ae5a6c2aa7108638e2a9",
   "bazel_worker_rev": "0885637b037979afbf5bcd05fd748b309fd669c0",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
@@ -85,15 +85,15 @@ vars = {
   "characters_rev": "6ec389c4dfa8fce14820dc5cbf6e693202e7e052",
   "charcode_rev": "84ea427711e24abf3b832923959caa7dd9a8514b",
   "chrome_rev" : "19997",
-  "cli_util_rev" : "c2dc871784b59720e6cf5794dee1a20735df3feb",
+  "cli_util_rev" : "b0adbba89442b2ea6fef39c7a82fe79cb31e1168",
   "clock_rev" : "a494269254ba978e7ef8f192c5f7fec3fc05b9d3",
   "collection_rev": "a4c941ab94044d118b2086a3f261c30377604127",
   "convert_rev": "e063fdca4bebffecbb5e6aa5525995120982d9ce",
   "crypto_rev": "b5024e4de2b1c474dd558bef593ddbf0bfade152",
-  "csslib_rev": "6338de25a09d098a62c9a1992c175e9ceb5b994a",
+  "csslib_rev": "6f35da3d93eb56eb25925779d235858d4090ce6f",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
-  # team so that the internal formatter in `tools/sdks/dart-sdk/bin/dartfmt`
+  # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here.
   #
   # Please follow this process to make updates:
@@ -104,10 +104,10 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_rev": "14d9b6fd58cc4744676c12be3cc5eee2a779db82",
+  "dart_style_rev": "08b0294d0a500d5c02168ef57dcb8868d0c3cb48",
 
-  "dartdoc_rev" : "e5ebb7a6e88427db25c21811dc91190475934b17",
-  "devtools_rev" : "2b47d9ed486479153ca2fd038000950674ed1beb",
+  "dartdoc_rev" : "520e64977de7a87b2fd5be56e5c2e1a58d55bdad",
+  "devtools_rev" : "8881a7caa9067471008a8e00750b161f53cdb843",
   "jsshell_tag": "version:88.0",
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
@@ -122,7 +122,7 @@ vars = {
   "intl_tag": "0.17.0-nullsafety",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "7e00f893440a72de0637970325e4ea44bd1e8c8e",
-  "linter_tag": "1.12.0",
+  "linter_tag": "1.14.0",
   "lints_tag": "f9670df2a66e0ec12eb51554e70c1cbf56c8f5d0",
   "logging_rev": "575781ef196e4fed4fb737e38fb4b73d62727187",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
@@ -139,9 +139,8 @@ vars = {
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
-  "pub_rev": "37d05928939b3100e7e55c3dff922651db1de1e1",
+  "pub_rev": "0035a40f25d027130c0314571da53ffafc6d973b",
   "pub_semver_rev": "a43ad72fb6b7869607581b5fedcb186d1e74276a",
-  "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
   "shelf_static_rev": "202ec1a53c9a830c17cf3b718d089cf7eba568ad",
@@ -151,7 +150,7 @@ vars = {
   "shelf_web_socket_rev": "24fb8a04befa75a94ac63a27047b231d1a22aab4",
   "source_map_stack_trace_rev": "1c3026f69d9771acf2f8c176a1ab750463309cce",
   "source_maps-0.9.4_rev": "38524",
-  "source_maps_rev": "53eb92ccfe6e64924054f83038a534b959b12b3e",
+  "source_maps_rev": "6499ee3adac8d469e2953e2e8ba4bdb4c2fbef90",
   "source_span_rev": "1be3c44045a06dff840d2ed3a13e6082d7a03a23",
   "sse_rev": "9084339389eb441d0c0518cddac211a097e78657",
   "stack_trace_rev": "6788afc61875079b71b3d1c3e65aeaa6a25cbc2f",
@@ -164,7 +163,7 @@ vars = {
   "test_reflective_loader_rev": "fcfce37666672edac849d2af6dffc0f8df236a94",
   "test_rev": "099dcc4d052a30c6921489cfbefa1c8531d12975",
   "typed_data_rev": "29ce5a92b03326d0b8035916ac04f528874994bd",
-  "usage_rev": "e0780cd8b2f8af69a28dc52678ffe8492da27d06",
+  "usage_rev": "f0cb8f7cce8b675255c81488dbab8cf9f2f56404",
   "vector_math_rev": "0c9f5d68c047813a6dcdeb88ba7a42daddf25025",
   "watcher_rev": "3924194385fb215cef483193ed2879a618a3d69c",
   "webdriver_rev": "ff5ccb1522edf4bed578ead4d65e0cbc1f2c4f02",
@@ -404,8 +403,6 @@ deps = {
       Var("dart_git") + "pub_semver.git" + "@" + Var("pub_semver_rev"),
   Var("dart_root") + "/third_party/pkg/pub":
       Var("dart_git") + "pub.git" + "@" + Var("pub_rev"),
-  Var("dart_root") + "/third_party/pkg/resource":
-      Var("dart_git") + "resource.git" + "@" + Var("resource_rev"),
   Var("dart_root") + "/third_party/pkg/shelf":
       Var("dart_git") + "shelf.git" + "@" + Var("shelf_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_packages_handler":
@@ -606,11 +603,22 @@ deps = {
       "dep_type": "cipd",
   },
 
+  # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
+  Var("dart_root") + "/third_party/fuchsia/sdk/mac": {
+    "packages": [
+      {
+      "package": "fuchsia/sdk/gn/mac-amd64",
+      "version": "git_revision:190502a955c482431c2edd0525e128423728b662"
+      }
+    ],
+    "condition": 'host_os == "mac" and host_cpu == "x64"',
+    "dep_type": "cipd",
+  },
   Var("dart_root") + "/third_party/fuchsia/sdk/linux": {
     "packages": [
       {
       "package": "fuchsia/sdk/gn/linux-amd64",
-      "version": "git_revision:e0a61431eb6e28d31d293cbb0c12f6b3a089bba4"
+      "version": "git_revision:190502a955c482431c2edd0525e128423728b662"
       }
     ],
     "condition": 'host_os == "linux" and host_cpu == "x64"',

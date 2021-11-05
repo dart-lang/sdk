@@ -117,3 +117,12 @@ class C<U extends core::Object* = dynamic> extends self::B<self::C::U*> {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_factory.dart:11:7 -> ConstructorTearOffConstant(A.a)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_factory.dart:11:7 -> ConstructorTearOffConstant(A.b)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_factory.dart:11:7 -> ConstructorTearOffConstant(A.c)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_factory.dart:19:7 -> ConstructorTearOffConstant(B.a)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_factory.dart:19:7 -> ConstructorTearOffConstant(B.b)
+Extra constant evaluation: evaluated: 9, effectively constant: 5

@@ -669,7 +669,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // We use kLowMemory to force the GC to compact, which is more likely to
     // discover untracked pointers (and other issues, like incorrect class
     // table).
-    heap->CollectAllGarbage(Heap::kLowMemory);
+    heap->CollectAllGarbage(GCReason::kLowMemory);
   }
 
   // Copy the size table for isolate group & class tables for each isolate.
@@ -683,7 +683,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // We use kLowMemory to force the GC to compact, which is more likely to
     // discover untracked pointers (and other issues, like incorrect class
     // table).
-    heap->CollectAllGarbage(Heap::kLowMemory);
+    heap->CollectAllGarbage(GCReason::kLowMemory);
   }
 
   // We synchronously load the hot-reload kernel diff (which includes changed
@@ -714,7 +714,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       // We use kLowMemory to force the GC to compact, which is more likely to
       // discover untracked pointers (and other issues, like incorrect class
       // table).
-      heap->CollectAllGarbage(Heap::kLowMemory);
+      heap->CollectAllGarbage(GCReason::kLowMemory);
     }
 
     // If we use the CFE and performed a compilation, we need to notify that
@@ -745,7 +745,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
           // We use kLowMemory to force the GC to compact, which is more likely
           // to discover untracked pointers (and other issues, like incorrect
           // class table).
-          heap->CollectAllGarbage(Heap::kLowMemory);
+          heap->CollectAllGarbage(GCReason::kLowMemory);
         }
         const intptr_t count = locator.count();
         if (count > 0) {
@@ -786,7 +786,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
           // We use kLowMemory to force the GC to compact, which is more likely
           // to discover untracked pointers (and other issues, like incorrect
           // class table).
-          heap->CollectAllGarbage(Heap::kLowMemory);
+          heap->CollectAllGarbage(GCReason::kLowMemory);
         }
       }
       if (discard_class_tables) {
@@ -829,6 +829,11 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     ReportReasonsForCancelling();
     success = false;
   }
+
+  Array& null_array = Array::Handle(Z);
+  // Invalidate the URI mapping caches.
+  IG->object_store()->set_uri_to_resolved_uri_map(null_array);
+  IG->object_store()->set_resolved_uri_to_uri_map(null_array);
 
   // Re-queue any shutdown requests so they can inform each isolate's own thread
   // to shut down.

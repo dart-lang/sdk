@@ -7,7 +7,7 @@
 T id<T>(T t) => t;
 
 method<S>(S s) {
-  /*spec.fields=[S],free=[S]*/
+  /*fields=[S],free=[S]*/
   S Function(S) getId() => id;
   return getId();
 }

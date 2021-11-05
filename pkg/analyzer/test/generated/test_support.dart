@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -44,6 +46,10 @@ class ExpectedError {
   /// The error code associated with the error.
   final ErrorCode code;
 
+  // A pattern that should be contained in the error's correction message, or
+  // `null` if the correction message contents should not be checked.
+  final Pattern? correctionContains;
+
   /// The offset of the beginning of the error's region.
   final int offset;
 
@@ -53,9 +59,9 @@ class ExpectedError {
   /// The message text of the error or `null` if the message should not be checked.
   final String? message;
 
-  /// A pattern that should be contained in the error message or `null` if the message
-  /// contents should not be checked.
-  final Pattern? messageContains;
+  /// A list of patterns that should be contained in the error message; empty if
+  /// the message contents should not be checked.
+  final List<Pattern> messageContains;
 
   /// The list of context messages that are expected to be associated with the
   /// error.
@@ -63,8 +69,9 @@ class ExpectedError {
 
   /// Initialize a newly created error description.
   ExpectedError(this.code, this.offset, this.length,
-      {this.message,
-      this.messageContains,
+      {this.correctionContains,
+      this.message,
+      this.messageContains = const [],
       this.expectedContextMessages = const <ExpectedContextMessage>[]});
 
   /// Return `true` if the [error] matches this description of what it's
@@ -78,8 +85,13 @@ class ExpectedError {
     if (message != null && error.message != message) {
       return false;
     }
-    if (messageContains != null &&
-        error.message.contains(messageContains!) != true) {
+    for (var pattern in messageContains) {
+      if (!error.message.contains(pattern)) {
+        return false;
+      }
+    }
+    if (correctionContains != null &&
+        !(error.correctionMessage ?? '').contains(correctionContains!)) {
       return false;
     }
     List<DiagnosticMessage> contextMessages = error.contextMessages.toList();
@@ -177,8 +189,18 @@ class GatheringErrorListener implements AnalysisErrorListener {
         buffer.write(', ');
         buffer.write(expected.length);
         if (expected.message != null) {
-          buffer.write(', ');
-          buffer.write(expected.message);
+          buffer.write(', message: ');
+          buffer.write(json.encode(expected.message));
+        }
+        if (expected.messageContains.isNotEmpty) {
+          buffer.write(', messageContains: ');
+          buffer.write(json.encode([
+            for (var pattern in expected.messageContains) pattern.toString()
+          ]));
+        }
+        if (expected.correctionContains != null) {
+          buffer.write(', correctionContains: ');
+          buffer.write(json.encode(expected.correctionContains.toString()));
         }
         buffer.writeln(']');
       }
@@ -196,7 +218,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
         buffer.write(', ');
         buffer.write(actual.length);
         buffer.write(', ');
-        buffer.write(actual.message);
+        buffer.write(json.encode(actual.message));
+        buffer.write(', ');
+        buffer.write(json.encode(actual.correctionMessage));
         buffer.writeln(']');
       }
     }

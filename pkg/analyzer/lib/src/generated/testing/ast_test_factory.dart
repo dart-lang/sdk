@@ -1427,7 +1427,7 @@ class AstTestFactory {
   ///
   /// <b>Note:</b> This method does not correctly handle class elements that
   /// have type parameters.
-  static TypeNameImpl typeName(ClassElement element,
+  static NamedTypeImpl typeName(ClassElement element,
       [List<TypeAnnotation>? arguments]) {
     var name = identifier3(element.name);
     name.staticElement = element;
@@ -1442,14 +1442,14 @@ class AstTestFactory {
     return typeName;
   }
 
-  static TypeNameImpl typeName3(Identifier name,
+  static NamedTypeImpl typeName3(Identifier name,
           [List<TypeAnnotation>? arguments]) =>
       astFactory.namedType(
         name: name,
         typeArguments: typeArgumentList(arguments),
       );
 
-  static TypeNameImpl typeName4(String name,
+  static NamedTypeImpl typeName4(String name,
           [List<TypeAnnotation>? arguments, bool question = false]) =>
       astFactory.namedType(
         name: identifier3(name),

@@ -90,8 +90,9 @@ String getV2() => v;
 @doNotStore
 String getV3() => v;
 ''', [
-      error(HintCode.RETURN_OF_DO_NOT_STORE, 87, 1, messageContains: 'getV'),
-      error(HintCode.RETURN_OF_DO_NOT_STORE, 111, 1, messageContains: 'getV2'),
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 87, 1, messageContains: ['getV']),
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 111, 1,
+          messageContains: ['getV2']),
     ]);
   }
 
@@ -111,8 +112,8 @@ String get v2 => _v;
 @doNotStore
 String get v3 => _v;
 ''', [
-      error(HintCode.RETURN_OF_DO_NOT_STORE, 87, 2, messageContains: 'v'),
-      error(HintCode.RETURN_OF_DO_NOT_STORE, 111, 2, messageContains: 'v2'),
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 87, 2, messageContains: ['v']),
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 111, 2, messageContains: ['v2']),
     ]);
   }
 
@@ -128,8 +129,8 @@ String? _v2 = '';
 
 String? get v => _v ?? _v2;
 ''', [
-      error(HintCode.RETURN_OF_DO_NOT_STORE, 112, 2, messageContains: '_v'),
-      error(HintCode.RETURN_OF_DO_NOT_STORE, 118, 3, messageContains: '_v2'),
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 112, 2, messageContains: ['_v']),
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 118, 3, messageContains: ['_v2']),
     ]);
   }
 
@@ -170,8 +171,9 @@ class A {
   String getV3() => _v;
 }
 ''', [
-      error(HintCode.RETURN_OF_DO_NOT_STORE, 106, 2, messageContains: 'getV'),
-      error(HintCode.RETURN_OF_DO_NOT_STORE, 135, 2, messageContains: 'getV2'),
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 106, 2, messageContains: ['getV']),
+      error(HintCode.RETURN_OF_DO_NOT_STORE, 135, 2,
+          messageContains: ['getV2']),
     ]);
   }
 }

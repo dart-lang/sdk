@@ -110,7 +110,7 @@ class LibraryAnalyzer {
 
     // Parse all files.
     performance.run('parse', (performance) {
-      for (FileState file in _library.libraryFiles) {
+      for (FileState file in _library.files().ofLibrary) {
         if (completionPath == null || file.path == completionPath) {
           units[file] = _parse(
             file: file,
@@ -231,19 +231,19 @@ class LibraryAnalyzer {
 
     if (_analysisOptions.lint) {
       performance.run('computeLints', (performance) {
-        var allUnits = _library.libraryFiles.map((file) {
+        var allUnits = _library.files().ofLibrary.map((file) {
           var content = getFileContent(file);
           return LinterContextUnit(content, units[file]!);
         }).toList();
         for (int i = 0; i < allUnits.length; i++) {
-          _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
+          _computeLints(_library.files().ofLibrary[i], allUnits[i], allUnits);
         }
       });
     }
 
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
-    for (var file in _library.libraryFiles) {
+    for (var file in _library.files().ofLibrary) {
       IgnoreValidator(
         _getErrorReporter(file),
         _getErrorListener(file).errors,
@@ -472,7 +472,7 @@ class LibraryAnalyzer {
   }
 
   bool _isExistingSource(Source source) {
-    for (var file in _library.directReferencedFiles) {
+    for (var file in _library.files().directReferencedFiles) {
       if (file.uri == source.uri) {
         return file.exists;
       }
@@ -565,9 +565,13 @@ class LibraryAnalyzer {
             directive.prefix?.staticElement = importElement.prefix;
             var source = importElement.importedLibrary?.source;
             if (source != null && !_isLibrarySource(source)) {
+              // It is safe to assume that `directive.uri.stringValue` is
+              // non-`null`, because the only time it is `null` is if the URI
+              // contains a string interpolation, in which case the import
+              // would never have resolved in the first place.
               ErrorCode errorCode = CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
               libraryErrorReporter.reportErrorForNode(
-                  errorCode, directive.uri, [directive.uri]);
+                  errorCode, directive.uri, [directive.uri.stringValue!]);
             }
           }
         }
@@ -577,17 +581,21 @@ class LibraryAnalyzer {
             directive.element = exportElement;
             var source = exportElement.exportedLibrary?.source;
             if (source != null && !_isLibrarySource(source)) {
+              // It is safe to assume that `directive.uri.stringValue` is
+              // non-`null`, because the only time it is `null` is if the URI
+              // contains a string interpolation, in which case the export
+              // would never have resolved in the first place.
               libraryErrorReporter.reportErrorForNode(
                   CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
                   directive.uri,
-                  [directive.uri]);
+                  [directive.uri.stringValue!]);
             }
           }
         }
       } else if (directive is PartDirectiveImpl) {
         StringLiteral partUri = directive.uri;
 
-        FileState partFile = _library.partedFiles[partIndex];
+        FileState partFile = _library.files().parted[partIndex];
         var partUnit = units[partFile]!;
         CompilationUnitElement partElement = _libraryElement.parts[partIndex];
         partUnit.element = partElement;
@@ -671,17 +679,6 @@ class LibraryAnalyzer {
 
     var unitElement = unit.declaredElement as CompilationUnitElementImpl;
 
-    // TODO(scheglov) Hack: set types for top-level variables
-    // Otherwise TypeResolverVisitor will set declared types, and because we
-    // don't run InferStaticVariableTypeTask, we will stuck with these declared
-    // types. And we don't need to run this task - resynthesized elements have
-    // inferred types.
-    for (var e in unitElement.topLevelVariables) {
-      if (!e.isSynthetic) {
-        e.type;
-      }
-    }
-
     unit.accept(
       ResolutionVisitor(
         unitElement: unitElement,
@@ -737,15 +734,17 @@ class LibraryAnalyzer {
         UriBasedDirectiveImpl.validateUri(isImport, uriLiteral, uriContent);
     if (code == null) {
       return _sourceFactory.resolveUri(file.source, uriContent);
-    } else if (code == UriValidationCode.URI_WITH_DART_EXT_SCHEME) {
-      return null;
     } else if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
       _getErrorReporter(file).reportErrorForNode(
           CompileTimeErrorCode.URI_WITH_INTERPOLATION, uriLiteral);
       return null;
     } else if (code == UriValidationCode.INVALID_URI) {
+      // It is safe to assume [uriContent] is non-null because the only way for
+      // it to be null is if the string literal contained an interpolation, and
+      // in that case the validation code would have been
+      // UriValidationCode.URI_WITH_INTERPOLATION.
       _getErrorReporter(file).reportErrorForNode(
-          CompileTimeErrorCode.INVALID_URI, uriLiteral, [uriContent]);
+          CompileTimeErrorCode.INVALID_URI, uriLiteral, [uriContent!]);
       return null;
     }
     return null;
@@ -798,13 +797,27 @@ class LibraryAnalyzer {
         return;
       }
     }
+
+    var uriContent = directive.uriContent;
+    if (uriContent != null && uriContent.startsWith('dart-ext:')) {
+      _getErrorReporter(file).reportErrorForNode(
+        CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
+        directive.uri,
+      );
+      return;
+    }
+
     StringLiteral uriLiteral = directive.uri;
     CompileTimeErrorCode errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
     if (isGeneratedSource(source)) {
       errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
     }
+    // It is safe to assume that `uriContent` is non-null because the only way
+    // for it to be null is if the string literal contained an interpolation,
+    // and in that case the call to `directive.validate()` above would have
+    // returned a non-null validation code.
     _getErrorReporter(file)
-        .reportErrorForNode(errorCode, uriLiteral, [directive.uriContent]);
+        .reportErrorForNode(errorCode, uriLiteral, [uriContent!]);
   }
 
   /// Check each directive in the given [unit] to see if the referenced source

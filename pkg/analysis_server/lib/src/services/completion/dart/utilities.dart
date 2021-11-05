@@ -5,7 +5,7 @@
 /// A collection of utility methods used by completion contributors.
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, Location;
-import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';

@@ -364,7 +364,7 @@ class _MixinInference {
     if (withClause == null) return;
 
     for (var mixinNode in withClause.mixinTypes2) {
-      var mixinType = _inferSingle(mixinNode as TypeNameImpl);
+      var mixinType = _inferSingle(mixinNode as NamedTypeImpl);
       interfacesMerger.addWithSupertypes(mixinType);
     }
   }
@@ -400,7 +400,7 @@ class _MixinInference {
     return result;
   }
 
-  InterfaceType _inferSingle(TypeNameImpl mixinNode) {
+  InterfaceType _inferSingle(NamedTypeImpl mixinNode) {
     var mixinType = _interfaceType(mixinNode.typeOrThrow);
 
     if (mixinNode.typeArguments != null) {

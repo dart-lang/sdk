@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
@@ -14,7 +16,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:path/path.dart' as path;
 
@@ -30,7 +32,7 @@ void main(List<String> args) async {
   print('To run this tool, run `dart tools/verify_docs/bin/verify_docs.dart`.');
   print('');
   print('For documentation about how to author dart: code samples,'
-      ' see tools/verify_docs/README.md');
+      ' see tools/verify_docs/README.md.');
   print('');
 
   final coreLibraries = args.isEmpty
@@ -54,7 +56,7 @@ void main(List<String> args) async {
 
   var hadErrors = false;
   for (final dir in coreLibraries) {
-    hadErrors |= await validateLibrary(dir);
+    hadErrors |= !(await validateLibrary(dir));
   }
 
   exitCode = hadErrors ? 1 : 0;
@@ -63,22 +65,29 @@ void main(List<String> args) async {
 Future<bool> validateLibrary(Directory dir) async {
   final libName = path.basename(dir.path);
 
+  final analysisHelper = AnalysisHelper(libName);
+
   print('## dart:$libName');
   print('');
 
-  var hadErrors = false;
+  var validDocs = true;
 
   for (final file in dir
       .listSync(recursive: true)
       .whereType<File>()
       .where((file) => file.path.endsWith('.dart'))) {
-    hadErrors |= await verifyFile(libName, file, dir);
+    validDocs &= await verifyFile(analysisHelper, libName, file, dir);
   }
 
-  return hadErrors;
+  return validDocs;
 }
 
-Future<bool> verifyFile(String coreLibName, File file, Directory parent) async {
+Future<bool> verifyFile(
+  AnalysisHelper analysisHelper,
+  String coreLibName,
+  File file,
+  Directory parent,
+) async {
   final text = file.readAsStringSync();
   var parseResult = parseString(
     content: text,
@@ -95,34 +104,37 @@ Future<bool> verifyFile(String coreLibName, File file, Directory parent) async {
     throw Exception(syntacticErrors);
   }
 
+  final sampleAssumptions = findFileAssumptions(text);
+
   var visitor = ValidateCommentCodeSamplesVisitor(
+    analysisHelper,
     coreLibName,
     file.path,
     parseResult.lineInfo,
+    sampleAssumptions,
   );
   await visitor.process(parseResult);
-  if (visitor.errors.isNotEmpty) {
-    print('${path.relative(file.path, from: parent.parent.path)}');
-    print('${visitor.errors.toString()}');
-  }
-
-  return visitor.errors.isEmpty;
+  return !visitor.hadErrors;
 }
 
-/// Visit a compilation unit and collect the list of code samples found in
-/// dartdoc comments.
+/// Visit a compilation unit and validate the code samples found in dartdoc
+/// comments.
 class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
+  final AnalysisHelper analysisHelper;
   final String coreLibName;
   final String filePath;
   final LineInfo lineInfo;
+  final String? sampleAssumptions;
 
   final List<CodeSample> samples = [];
-  final StringBuffer errors = StringBuffer();
+  bool hadErrors = false;
 
   ValidateCommentCodeSamplesVisitor(
+    this.analysisHelper,
     this.coreLibName,
     this.filePath,
     this.lineInfo,
+    this.sampleAssumptions,
   );
 
   Future process(ParseStringResult parseResult) async {
@@ -188,30 +200,44 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
   }
 
   Future validateCodeSample(CodeSample sample) async {
-    final resourceProvider =
-        OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
-
     var text = sample.text;
     final lines = sample.text.split('\n').map((l) => l.trim()).toList();
 
     final hasImports = text.contains("import '") || text.contains('import "');
-    var useDefaultTemplate = true;
 
-    if (lines.any((line) =>
-        line.startsWith('class ') ||
-        line.startsWith('enum ') ||
-        line.startsWith('extension '))) {
-      useDefaultTemplate = false;
+    // One of 'none', 'main', or 'expression'.
+    String? template;
+
+    if (sample.hasTemplateDirective) {
+      template = sample.templateDirective;
+    } else {
+      // If there's no explicit template, auto-detect one.
+      if (lines.any((line) =>
+          line.startsWith('class ') ||
+          line.startsWith('enum ') ||
+          line.startsWith('extension '))) {
+        template = 'none';
+      } else if (lines
+          .any((line) => line.startsWith('main(') || line.contains(' main('))) {
+        template = 'none';
+      } else if (lines.length == 1 && !lines.first.trim().endsWith(';')) {
+        template = 'expression';
+      } else {
+        template = 'main';
+      }
     }
 
-    if (lines
-        .any((line) => line.startsWith('main(') || line.contains(' main('))) {
-      useDefaultTemplate = false;
-    }
+    final assumptions = sampleAssumptions ?? '';
 
     if (!hasImports) {
-      if (useDefaultTemplate) {
-        text = "main() async {\n${text.trimRight()}\n}\n";
+      if (template == 'none') {
+        // just use the sample text as is
+      } else if (template == 'main') {
+        text = "${assumptions}main() async {\n${text.trimRight()}\n}\n";
+      } else if (template == 'expression') {
+        text = "${assumptions}main() async {\n${text.trimRight()}\n;\n}\n";
+      } else {
+        throw 'unexpected template directive: $template';
       }
 
       for (final directive
@@ -225,50 +251,55 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
       }
     }
 
-    // Note: the file paths used below will currently only work on posix
-    // filesystems.
-    final sampleFilePath = '/sample.dart';
-
-    resourceProvider.setOverlay(
-      sampleFilePath,
-      content: text,
-      modificationStamp: 0,
-    );
-
-    // TODO(devoncarew): Refactor to use AnalysisContextCollection to avoid
-    // re-creating analysis contexts.
-    final result = await resolveFile2(
-      path: sampleFilePath,
-      resourceProvider: resourceProvider,
-    );
-
-    resourceProvider.removeOverlay(sampleFilePath);
+    final result = await analysisHelper.resolveFile(text);
 
     if (result is ResolvedUnitResult) {
+      var errors = SplayTreeSet<AnalysisError>.from(
+        result.errors,
+        (a, b) {
+          var value = a.offset.compareTo(b.offset);
+          if (value == 0) {
+            value = a.message.compareTo(b.message);
+          }
+          return value;
+        },
+      );
+
       // Filter out unused imports, since we speculatively add imports to some
       // samples.
-      var errors = result.errors.where(
-        (e) => e.errorCode != HintCode.UNUSED_IMPORT,
+      errors.removeWhere(
+        (e) => e.errorCode == HintCode.UNUSED_IMPORT,
       );
 
       // Also, don't worry about 'unused_local_variable' and related; this may
       // be intentional in samples.
-      errors = errors.where(
+      errors.removeWhere(
         (e) =>
-            e.errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
-            e.errorCode != HintCode.UNUSED_ELEMENT,
+            e.errorCode == HintCode.UNUSED_LOCAL_VARIABLE ||
+            e.errorCode == HintCode.UNUSED_ELEMENT,
       );
 
       // Remove warnings about deprecated member use from the same library.
-      errors = errors.where(
+      errors.removeWhere(
         (e) =>
-            e.errorCode != HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE &&
-            e.errorCode !=
+            e.errorCode == HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE ||
+            e.errorCode ==
                 HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
       );
 
+      // Handle edge case around dart:_http
+      errors.removeWhere((e) {
+        if (e.message.contains("'dart:_http'")) {
+          return e.errorCode == HintCode.UNNECESSARY_IMPORT ||
+              e.errorCode == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY;
+        }
+        return false;
+      });
+
       if (errors.isNotEmpty) {
         print('$filePath:${sample.lineStartOffset}: ${errors.length} errors');
+
+        hadErrors = true;
 
         for (final error in errors) {
           final location = result.lineInfo.getLocation(error.offset);
@@ -317,6 +348,35 @@ class CodeSample {
     this.directives = const {},
     required this.lineStartOffset,
   });
+
+  bool get hasTemplateDirective => templateDirective != null;
+
+  String? get templateDirective {
+    const prefix = 'template:';
+
+    String? match = directives.cast<String?>().firstWhere(
+        (directive) => directive!.startsWith(prefix),
+        orElse: () => null);
+    return match == null ? match : match.substring(prefix.length);
+  }
+}
+
+/// Find and return any '// Examples can assume:' sample text.
+String? findFileAssumptions(String text) {
+  var inAssumptions = false;
+  var assumptions = <String>[];
+
+  for (final line in text.split('\n')) {
+    if (line == '// Examples can assume:') {
+      inAssumptions = true;
+    } else if (line.trim().isEmpty && inAssumptions) {
+      inAssumptions = false;
+    } else if (inAssumptions) {
+      assumptions.add(line.substring('// '.length));
+    }
+  }
+
+  return '${assumptions.join('\n')}\n';
 }
 
 String _severity(Severity severity) {
@@ -327,5 +387,38 @@ String _severity(Severity severity) {
       return 'warning';
     case Severity.error:
       return 'error';
+  }
+}
+
+class AnalysisHelper {
+  final String libraryName;
+  final resourceProvider =
+      OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
+  final pathRoot = Platform.isWindows ? r'c:\' : '/';
+  late AnalysisContextCollection collection;
+  int index = 0;
+
+  AnalysisHelper(this.libraryName) {
+    resourceProvider.pathContext;
+
+    collection = AnalysisContextCollection(
+      includedPaths: ['$pathRoot$libraryName'],
+      resourceProvider: resourceProvider,
+    );
+  }
+
+  Future<SomeResolvedUnitResult> resolveFile(String contents) async {
+    final samplePath =
+        '$pathRoot$libraryName${resourceProvider.pathContext.separator}'
+        'sample_${index++}.dart';
+    resourceProvider.setOverlay(
+      samplePath,
+      content: contents,
+      modificationStamp: 0,
+    );
+
+    var analysisContext = collection.contextFor(samplePath);
+    var analysisSession = analysisContext.currentSession;
+    return await analysisSession.getResolvedUnit(samplePath);
   }
 }

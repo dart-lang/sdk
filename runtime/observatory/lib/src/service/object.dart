@@ -672,6 +672,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   final List<Service> services = <Service>[];
 
   String version = 'unknown';
+  String features = 'unknown';
   String hostCPU = 'unknown';
   String targetCPU = 'unknown';
   String embedder = 'unknown';
@@ -1030,6 +1031,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
 
     _loaded = true;
     version = map['version'];
+    features = map['_features'] ?? 'unknown';
     hostCPU = map['hostCPU'];
     targetCPU = map['targetCPU'];
     architectureBits = map['architectureBits'];
@@ -3995,7 +3997,6 @@ M.ObjectPoolEntryKind stringToObjectPoolEntryKind(String kind) {
     case 'NativeEntryData':
       return M.ObjectPoolEntryKind.nativeEntryData;
     case 'NativeFunction':
-    case 'NativeFunctionWrapper':
       return M.ObjectPoolEntryKind.nativeEntry;
   }
   throw new Exception('Unknown ObjectPoolEntryKind ($kind)');

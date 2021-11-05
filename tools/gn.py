@@ -212,6 +212,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
 
     # Use tcmalloc only when targeting Linux and when not using ASAN.
     gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
+                                    (gn_args['target_cpu'] != 'arm') and
                                     sanitizer == 'none')
 
     if gn_args['target_os'] == 'linux':
@@ -374,7 +375,7 @@ def ProcessOptions(args):
                     % (os_name, arch))
                 return False
         elif os_name == 'fuchsia':
-            if HOST_OS != 'linux':
+            if not HOST_OS in ['linux', 'macos']:
                 print(
                     "Cross-compilation to %s is not supported on host os %s." %
                     (os_name, HOST_OS))

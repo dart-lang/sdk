@@ -74,7 +74,7 @@ class IllegalSupertype extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C<T extends core::Object* = dynamic> extends core::Object { // from org-dartlang-testcase:///qualified_part.dart
-  static final field dynamic _redirecting# = <dynamic>[self::C::b];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
@@ -115,7 +115,7 @@ import "org-dartlang-testcase:///qualified.dart" as main;
 
 typedef VoidFunction = () →* void;
 class C<T extends core::Object* = dynamic> extends self::C<lib::C::T*> {
-  static final field dynamic _redirecting# = <dynamic>[lib::C::b];
+  static final field dynamic _redirecting# = <dynamic>[#C2];
   constructor •() → lib::C<lib::C::T*>*
     : super self::C::•()
     ;
@@ -160,4 +160,9 @@ abstract class Mixin extends core::Object {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+
+constants  {
+  #C1 = constructor-tearoff self::C::b
+  #C2 = constructor-tearoff lib::C::b
 }

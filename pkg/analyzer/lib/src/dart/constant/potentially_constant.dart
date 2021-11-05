@@ -94,7 +94,7 @@ class _Collector {
     }
 
     if (node is TypedLiteral) {
-      return _typeLiteral(node);
+      return _typedLiteral(node);
     }
 
     if (node is ParenthesizedExpression) {
@@ -187,6 +187,22 @@ class _Collector {
       return;
     }
 
+    if (node is ConstructorReference) {
+      _typeArgumentList(node.constructorName.type2.typeArguments);
+      return;
+    }
+
+    if (node is FunctionReference) {
+      _typeArgumentList(node.typeArguments);
+      collect(node.function);
+      return;
+    }
+
+    if (node is TypeLiteral) {
+      _typeArgumentList(node.type.typeArguments);
+      return;
+    }
+
     nodes.add(node);
   }
 
@@ -261,6 +277,7 @@ class _Collector {
         return;
       }
     }
+    // TODO(srawlins): collect type arguments.
     nodes.add(node);
   }
 
@@ -292,7 +309,18 @@ class _Collector {
     nodes.add(node);
   }
 
-  void _typeLiteral(TypedLiteral node) {
+  void _typeArgumentList(TypeArgumentList? typeArgumentList) {
+    var typeArguments = typeArgumentList?.arguments;
+    if (typeArguments != null) {
+      for (var typeArgument in typeArguments) {
+        if (!isPotentiallyConstantTypeExpression(typeArgument)) {
+          nodes.add(typeArgument);
+        }
+      }
+    }
+  }
+
+  void _typedLiteral(TypedLiteral node) {
     if (!node.isConst) {
       nodes.add(node);
       return;
@@ -302,7 +330,7 @@ class _Collector {
       var typeArguments = node.typeArguments?.arguments;
       if (typeArguments != null && typeArguments.length == 1) {
         var elementType = typeArguments[0];
-        if (!isConstantTypeExpression(elementType)) {
+        if (!isPotentiallyConstantTypeExpression(elementType)) {
           nodes.add(elementType);
         }
       }
@@ -317,7 +345,7 @@ class _Collector {
       var typeArguments = node.typeArguments?.arguments;
       if (typeArguments != null && typeArguments.length == 1) {
         var elementType = typeArguments[0];
-        if (!isConstantTypeExpression(elementType)) {
+        if (!isPotentiallyConstantTypeExpression(elementType)) {
           nodes.add(elementType);
         }
       }
@@ -350,16 +378,12 @@ class _ConstantTypeChecker {
 
   _ConstantTypeChecker({required this.potentially});
 
-  /// Return `true` if the [node] is a constant type expression.
+  /// Return `true` if the [node] is a (potentially) constant type expression.
   bool check(TypeAnnotation? node) {
-    if (potentially) {
-      if (node is NamedType) {
-        var element = node.name.staticElement;
-        if (element is TypeParameterElement) {
-          var enclosing = element.enclosingElement;
-          return enclosing is ClassElement && !enclosing.isMixin;
-        }
-      }
+    if (potentially &&
+        node is NamedType &&
+        node.name.staticElement is TypeParameterElement) {
+      return true;
     }
 
     if (node is NamedType) {
@@ -374,10 +398,8 @@ class _ConstantTypeChecker {
         }
         return true;
       }
-      if (node.type is DynamicTypeImpl) {
-        return true;
-      }
-      if (node.type is VoidType) {
+      var type = node.type;
+      if (type is DynamicTypeImpl || type is NeverType || type is VoidType) {
         return true;
       }
       return false;

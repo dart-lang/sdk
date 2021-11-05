@@ -8,8 +8,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:math' show max, min;
 
-import 'package:front_end/src/fasta/kernel/constructor_tearoff_lowering.dart'
-    show isTearOffLowering;
+import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -1319,7 +1318,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// otherwise define them as lazy properties.
   void _emitStaticFields(Class c, List<js_ast.Statement> body) {
     var fields = c.fields
-        .where((f) => f.isStatic && getRedirectingFactories(f) == null)
+        .where((f) => f.isStatic && !isRedirectingFactoryField(f))
         .toList();
     if (c.isEnum) {
       // We know enum fields can be safely emitted as const fields, as long
@@ -1395,16 +1394,26 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     void emitSignature(String name, List<js_ast.Property> elements) {
       if (elements.isEmpty) return;
 
+      js_ast.Statement setSignature;
       if (!name.startsWith('Static')) {
         var proto = c == _coreTypes.objectClass
             ? js.call('Object.create(null)')
             : runtimeCall('get${name}s(#.__proto__)', [className]);
         elements.insert(0, js_ast.Property(propertyName('__proto__'), proto));
+        setSignature = runtimeStatement('set${name}Signature(#, () => #)', [
+          className,
+          js_ast.ObjectInitializer(elements, multiline: elements.length > 1)
+        ]);
+      } else {
+        // TODO(40273) Only tagging with the names of static members until the
+        // debugger consumes signature information from symbol files.
+        setSignature = runtimeStatement('set${name}Signature(#, () => #)', [
+          className,
+          js_ast.ArrayInitializer(elements.map((e) => e.name).toList())
+        ]);
       }
-      body.add(runtimeStatement('set${name}Signature(#, () => #)', [
-        className,
-        js_ast.ObjectInitializer(elements, multiline: elements.length > 1)
-      ]));
+
+      body.add(setSignature);
     }
 
     var extMethods = _classProperties.extensionMethods;
@@ -1416,6 +1425,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var staticSetters = <js_ast.Property>[];
     var instanceSetters = <js_ast.Property>[];
     List<js_ast.Property> getSignatureList(Procedure p) {
+      // TODO(40273) Skip for all statics when the debugger consumes signature
+      // information from symbol files.
       if (p.isStatic) {
         if (p.isGetter) {
           return staticGetters;
@@ -1437,9 +1448,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var classProcedures = c.procedures.where((p) => !p.isAbstract).toList();
     for (var member in classProcedures) {
-      // Static getters/setters/methods cannot be called with dynamic dispatch,
-      // nor can they be torn off.
-      if (member.isStatic) continue;
+      // Static getters/setters cannot be called with dynamic dispatch or torn
+      // off. Static methods can't be called with dynamic dispatch and are
+      // tagged with a type when torn off. Most are implicitly const and
+      // canonicalized. Static signatures are only used by the debugger and are
+      // not needed for runtime correctness.
+      // TODO(40273) Skip for all statics when the debugger consumes signature
+      // information from symbol files.
+      if (isTearOffLowering(member)) continue;
 
       var name = member.name.text;
       var reifiedType = _memberRuntimeType(member, c) as FunctionType;
@@ -1478,6 +1494,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     emitSignature('Method', instanceMethods);
+    // TODO(40273) Skip for all statics when the debugger consumes signature
+    // information from symbol files.
     emitSignature('StaticMethod', staticMethods);
     emitSignature('Getter', instanceGetters);
     emitSignature('Setter', instanceSetters);
@@ -1491,16 +1509,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var classFields = c.fields.toList();
     for (var field in classFields) {
-      // Only instance fields need to be saved for dynamic dispatch.
-      var isStatic = field.isStatic;
-      if (isStatic) continue;
-
+      // Static fields cannot be called with dynamic dispatch or torn off. The
+      // signatures are only used by the debugger and are not needed for runtime
+      // correctness.
       var memberName = _declareMemberName(field);
       var fieldSig = _emitFieldSignature(field, c);
-      (isStatic ? staticFields : instanceFields)
+      // TODO(40273) Skip static fields when the debugger consumes signature
+      // information from symbol files.
+      (field.isStatic ? staticFields : instanceFields)
           .add(js_ast.Property(memberName, fieldSig));
     }
     emitSignature('Field', instanceFields);
+    // TODO(40273) Skip for all statics when the debugger consumes signature
+    // information from symbol files.
     emitSignature('StaticField', staticFields);
 
     // Add static property dart._runtimeType to Object.
@@ -1831,7 +1852,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     Set<Member> redirectingFactories;
     for (var m in c.fields) {
       if (m.isStatic) {
-        redirectingFactories ??= getRedirectingFactories(m)?.toSet();
+        if (isRedirectingFactoryField(m)) {
+          redirectingFactories = getRedirectingFactories(m).toSet();
+        }
       } else if (_extensionTypes.isNativeClass(c)) {
         jsMethods.addAll(_emitNativeFieldAccessors(m));
       } else if (virtualFields.containsKey(m)) {
@@ -2006,7 +2029,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                   superMember.function.positionalParameters[0])) {
         return const [];
       }
-      var setterType = substituteType(superMember.setterType);
+      var setterType = substituteType(superMember.superSetterType);
       if (_types.isTop(setterType)) return const [];
       return [
         js_ast.Method(
@@ -2255,11 +2278,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       // Helper functions to test if a constructor invocation is internal and
       // should be eagerly evaluated.
-      var isInternalConstructor = (ConstructorInvocation node) {
+      bool isInternalConstructor(ConstructorInvocation node) {
         var type = node.getStaticType(_staticTypeContext) as InterfaceType;
         var library = type.classNode.enclosingLibrary;
         return isSdkInternalRuntime(library);
-      };
+      }
+
       for (var field in fields) {
         _staticTypeContext.enterMember(field);
         var init = field.initializer;
@@ -2524,6 +2548,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // annotation.
       var exportName = _jsExportName(member);
       if (exportName != null) return propertyName(exportName);
+    }
+    if (member is Procedure && member.isFactory) {
+      return _constructorName(member.name.text);
     }
     switch (name) {
       // Reserved for the compiler to do `x as T`.
@@ -2798,9 +2825,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // type arguments are applied.
       if (type.typeParameters.isNotEmpty) return true;
 
-      return (_canEmitTypeAtTopLevel(type.returnType) &&
+      return _canEmitTypeAtTopLevel(type.returnType) &&
           type.positionalParameters.every(_canEmitTypeAtTopLevel) &&
-          type.namedParameters.every((n) => _canEmitTypeAtTopLevel(n.type)));
+          type.namedParameters.every((n) => _canEmitTypeAtTopLevel(n.type));
     }
     if (type is TypedefType) {
       return type.typeArguments.every(_canEmitTypeAtTopLevel);
@@ -3641,6 +3668,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             _cacheUri(location?.file?.toString()),
             js.number(location?.line ?? -1),
             js.number(location?.column ?? -1),
+            // ignore: unnecessary_string_interpolations
             js.escapedString('${p.name}')
           ])
         ]);
@@ -4803,19 +4831,31 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     /// list and the element type is known to be invariant so it can skip the
     /// type check.
     bool isNativeListInvariantAdd(InvocationExpression node) {
-      Expression receiver;
-      if (receiver != null && node.name.text == 'add') {
+      if (node is InstanceInvocation &&
+          node.isInvariant &&
+          node.name.text == 'add') {
         // The call to add is marked as invariant, so the type check on the
         // parameter to add is not needed.
+        var receiver = node.receiver;
         if (receiver is VariableGet &&
             receiver.variable.isFinal &&
             !receiver.variable.isLate) {
           // The receiver is a final variable, so it only contains the
           // initializer value. Also, avoid late variables in case the CFE
           // lowering of late variables is changed in the future.
-          if (receiver.variable.initializer is ListLiteral) {
+          var initializer = receiver.variable.initializer;
+          if (initializer is ListLiteral) {
             // The initializer is a list literal, so we know the list can be
             // grown, modified, and is represented by a JavaScript Array.
+            return true;
+          }
+          if (initializer is StaticInvocation &&
+              initializer.target.enclosingClass == _coreTypes.listClass &&
+              initializer.target.name.text == 'of' &&
+              initializer.arguments.named.isEmpty) {
+            // The initializer is a `List.of()` call from the dart:core library
+            // and the growable named argument has not been passed (it defaults
+            // to true).
             return true;
           }
         }
@@ -5044,10 +5084,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (parent.name.text == '&' && parent.arguments.positional.length == 1) {
         var left = getInvocationReceiver(parent);
         var right = parent.arguments.positional[0];
-        final MAX = (1 << width) - 1;
+        final max = (1 << width) - 1;
         if (left != null) {
-          if (_asIntInRange(right, 0, MAX) != null) return true;
-          if (_asIntInRange(left, 0, MAX) != null) return true;
+          if (_asIntInRange(right, 0, max) != null) return true;
+          if (_asIntInRange(left, 0, max) != null) return true;
         }
       }
       return _parentMasksToWidth(parent, width);

@@ -24,6 +24,8 @@ import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
+import 'package:_fe_analyzer_shared/src/util/link.dart';
+
 import 'package:kernel/ast.dart'
     show AsyncMarker, InvalidType, Nullability, ProcedureKind, Variance;
 
@@ -39,7 +41,6 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-import '../builder/unresolved_type.dart';
 
 import '../combinator.dart' show CombinatorBuilder;
 
@@ -101,6 +102,258 @@ enum MethodBody {
   RedirectingFactoryBody,
 }
 
+/// Enum for the context in which declarations occur.
+///
+/// This is used to determine whether instance type variables access is allowed.
+enum DeclarationContext {
+  /// In the context of the enclosing library.
+  ///
+  /// This is used for library, import, export, part, and part of declarations
+  /// in libraries and parts, as well as annotations on top level declarations.
+  Library,
+
+  /// In a typedef declaration
+  ///
+  /// This excludes annotations on the typedef declaration itself, which are
+  /// seen in the [Library] context.
+  Typedef,
+
+  /// In an enum declaration
+  ///
+  /// This excludes annotations on the enum declaration itself, which are seen
+  /// in the [Library] context.
+  Enum,
+
+  /// In a top level method declaration.
+  ///
+  /// This includes return type of the declaration but excludes annotations on
+  /// the method declaration itself, which are seen in the [Library] context.
+  TopLevelMethod,
+
+  /// In a top level field declaration.
+  ///
+  /// This includes  type of the declaration but excludes annotations on the
+  /// field declaration itself, which are seen in the [Library] context.
+  TopLevelField,
+
+  /// In a `class Name<TypeParams>` or `mixin Name<TypeParams>` prefix of a
+  /// class declaration `class Name<TypeParams> ... { ... }`, mixin declaration
+  /// `mixin Name<TypeParams> ... { ... }` or named mixin application
+  /// `class Name<TypeParams> = ...;`.
+  ///
+  /// This is replaced by [Class], [Mixin] or [NamedMixinApplication] after the
+  /// type parameters have been parsed.
+  ClassOrMixinOrNamedMixinApplication,
+
+  /// In a named mixin application.
+  ///
+  /// This excludes type parameters declared on the named mixin application,
+  /// which are seen in the [ClassOrMixinOrNamedMixinApplication] context,
+  /// and annotations on the named mixin application itself, which are seen in
+  /// the [Library] context.
+  NamedMixinApplication,
+
+  /// In a class declaration before the class body.
+  ///
+  /// This excludes type parameters declared on the class declaration, which are
+  /// seen in the [ClassOrMixinOrNamedMixinApplication] context, and annotations
+  /// on the class declaration itself, which are seen in the [Library] context.
+  Class,
+
+  /// In a class declaration body.
+  ///
+  /// This includes annotations on class member declarations.
+  ClassBody,
+
+  /// In a generative constructor declaration inside a class declaration.
+  ///
+  /// This  excludes annotations on the constructor declaration itself, which
+  /// are seen in the [ClassBody] context.
+  ClassConstructor,
+
+  /// In a factory constructor declaration inside a class declaration.
+  ///
+  /// This excludes annotations on the constructor declaration itself, which
+  /// are seen in the [ClassBody] context.
+  ClassFactory,
+
+  /// In an instance method declaration inside a class declaration.
+  ///
+  /// This includes return type of the declaration but excludes annotations on
+  /// the method declaration itself, which are seen in the [ClassBody] context.
+  ClassInstanceMethod,
+
+  /// In an instance field declaration inside a class declaration.
+  ///
+  /// This includes type of the declaration but excludes annotations on the
+  /// field declaration itself, which are seen in the [ClassBody] context.
+  ClassInstanceField,
+
+  /// In a static method declaration inside a class declaration.
+  ///
+  /// This includes return type of the declaration but excludes annotations on
+  /// the method declaration itself, which are seen in the [ClassBody] context.
+  ClassStaticMethod,
+
+  /// In a static field declaration inside a class declaration.
+  ///
+  /// This includes type of the declaration but excludes annotations on the
+  /// field declaration itself, which are seen in the [ClassBody] context.
+  ClassStaticField,
+
+  /// In a mixin declaration before the mixin body.
+  ///
+  /// This excludes type parameters declared on the mixin declaration, which are
+  /// seen in the [ClassOrMixinOrNamedMixinApplication] context, and annotations
+  /// on the mixin declaration itself, which are seen in the [Library] context.
+  Mixin,
+
+  /// In a mixin declaration body.
+  ///
+  /// This includes annotations on mixin member declarations.
+  MixinBody,
+
+  /// In a generative constructor declaration inside a mixin declaration. This
+  /// is an error case.
+  ///
+  /// This excludes annotations on the constructor declaration itself, which
+  /// are seen in the [MixinBody] context.
+  MixinConstructor,
+
+  /// In a factory constructor declaration inside a mixin declaration. This is
+  /// an error case.
+  ///
+  /// This excludes annotations on the constructor declaration itself, which
+  /// are seen in the [MixinBody] context.
+  MixinFactory,
+
+  /// In an instance method declaration inside a mixin declaration.
+  ///
+  /// This includes return type of the declaration but excludes annotations on
+  /// the method declaration itself, which are seen in the [MixinBody] context.
+  MixinInstanceMethod,
+
+  /// In an instance field declaration inside a mixin declaration.
+  ///
+  /// This includes type of the declaration but excludes annotations on the
+  /// field declaration itself, which are seen in the [MixinBody] context.
+  MixinInstanceField,
+
+  /// In a static method declaration inside a mixin declaration.
+  ///
+  /// This includes return type of the declaration but excludes annotations on
+  /// the method declaration itself, which are seen in the [MixinBody] context.
+  MixinStaticMethod,
+
+  /// In a static field declaration inside a mixin declaration.
+  ///
+  /// This includes type of the declaration but excludes annotations on the
+  /// field declaration itself, which are seen in the [MixinBody] context.
+  MixinStaticField,
+
+  /// In an extension declaration before the extension body.
+  ///
+  /// This includes type parameters declared on the class declaration but
+  /// excludes annotations on the extension declaration itself, which are seen
+  /// in the [Library] context.
+  Extension,
+
+  /// In a extension declaration body.
+  ///
+  /// This includes annotations on extension member declarations.
+  ExtensionBody,
+
+  /// In a generative constructor declaration inside an extension declaration.
+  /// This is an error case.
+  ///
+  /// This excludes annotations on the constructor declaration itself, which
+  /// are seen in the [ExtensionBody] context.
+  ExtensionConstructor,
+
+  /// In a factory constructor declaration inside an extension declaration. This
+  /// is an error case.
+  ///
+  /// This excludes annotations on the constructor declaration itself, which
+  /// are seen in the [ExtensionBody] context.
+  ExtensionFactory,
+
+  /// In an instance method declaration inside an extension declaration.
+  ///
+  /// This includes return type of the declaration but excludes annotations on
+  /// the method declaration itself, which are seen in the [ExtensionBody]
+  /// context.
+  ExtensionInstanceMethod,
+
+  /// In a non-external instance field declaration inside an extension
+  /// declaration. This is an error case.
+  ///
+  /// This includes type of the declaration but excludes annotations on the
+  /// field declaration itself, which are seen in the [ExtensionBody] context.
+  ExtensionInstanceField,
+
+  /// In an external instance field declaration inside an extension declaration.
+  ///
+  /// This includes type of the declaration but excludes annotations on the
+  /// field declaration itself, which are seen in the [ExtensionBody] context.
+  ExtensionExternalInstanceField,
+
+  /// In a static method declaration inside an extension declaration.
+  ///
+  /// This includes return type of the declaration but excludes annotations on
+  /// the method declaration itself, which are seen in the [ExtensionBody]
+  /// context.
+  ExtensionStaticMethod,
+
+  /// In a static field declaration inside an extension declaration.
+  ///
+  /// This includes type of the declaration but excludes annotations on the
+  /// field declaration itself, which are seen in the [ExtensionBody] context.
+  ExtensionStaticField,
+}
+
+extension on DeclarationContext {
+  InstanceTypeVariableAccessState get instanceTypeVariableAccessState {
+    switch (this) {
+      case DeclarationContext.Library:
+      case DeclarationContext.Typedef:
+      case DeclarationContext.TopLevelMethod:
+      case DeclarationContext.TopLevelField:
+      case DeclarationContext.Enum:
+        return InstanceTypeVariableAccessState.Unexpected;
+      case DeclarationContext.ClassOrMixinOrNamedMixinApplication:
+      case DeclarationContext.NamedMixinApplication:
+      case DeclarationContext.Class:
+      case DeclarationContext.ClassConstructor:
+      case DeclarationContext.ClassFactory:
+      case DeclarationContext.ClassInstanceMethod:
+      case DeclarationContext.ClassInstanceField:
+      case DeclarationContext.Mixin:
+      case DeclarationContext.MixinInstanceMethod:
+      case DeclarationContext.MixinInstanceField:
+      case DeclarationContext.Extension:
+      case DeclarationContext.ExtensionInstanceMethod:
+      case DeclarationContext.ExtensionExternalInstanceField:
+        return InstanceTypeVariableAccessState.Allowed;
+      case DeclarationContext.ClassBody:
+      case DeclarationContext.ClassStaticMethod:
+      case DeclarationContext.ClassStaticField:
+      case DeclarationContext.MixinBody:
+      case DeclarationContext.MixinStaticMethod:
+      case DeclarationContext.MixinStaticField:
+      case DeclarationContext.ExtensionBody:
+      case DeclarationContext.ExtensionStaticMethod:
+      case DeclarationContext.ExtensionStaticField:
+        return InstanceTypeVariableAccessState.Disallowed;
+      case DeclarationContext.MixinConstructor:
+      case DeclarationContext.MixinFactory:
+      case DeclarationContext.ExtensionConstructor:
+      case DeclarationContext.ExtensionFactory:
+      case DeclarationContext.ExtensionInstanceField:
+        return InstanceTypeVariableAccessState.Invalid;
+    }
+  }
+}
+
 class OutlineBuilder extends StackListenerImpl {
   @override
   final SourceLibraryBuilder libraryBuilder;
@@ -117,12 +370,28 @@ class OutlineBuilder extends StackListenerImpl {
   /// Counter used for naming unnamed extension declarations.
   int unnamedExtensionCounter = 0;
 
+  Link<DeclarationContext> _declarationContext = const Link();
+
   OutlineBuilder(SourceLibraryBuilder library)
       : libraryBuilder = library,
         enableNative =
             library.loader.target.backendTarget.enableNative(library.importUri),
         stringExpectedAfterNative =
             library.loader.target.backendTarget.nativeExtensionExpectsString;
+
+  DeclarationContext get declarationContext => _declarationContext.head;
+
+  void pushDeclarationContext(DeclarationContext value) {
+    _declarationContext = _declarationContext.prepend(value);
+  }
+
+  void popDeclarationContext([DeclarationContext? expectedContext]) {
+    assert(
+        expectedContext == null || expectedContext == declarationContext,
+        "Unexpected declaration context: "
+        "Expected $expectedContext, actual $declarationContext.");
+    _declarationContext = _declarationContext.tail!;
+  }
 
   @override
   Uri get uri => libraryBuilder.fileUri;
@@ -143,6 +412,16 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
     return isParserRecovery ? null : list;
+  }
+
+  @override
+  void beginCompilationUnit(Token token) {
+    pushDeclarationContext(DeclarationContext.Library);
+  }
+
+  @override
+  void endCompilationUnit(int count, Token token) {
+    popDeclarationContext(DeclarationContext.Library);
   }
 
   @override
@@ -491,8 +770,10 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginClassOrNamedMixinApplicationPrelude(Token token) {
+  void beginClassOrMixinOrNamedMixinApplicationPrelude(Token token) {
     debugEvent("beginClassOrNamedMixinApplicationPrelude");
+    pushDeclarationContext(
+        DeclarationContext.ClassOrMixinOrNamedMixinApplication);
     libraryBuilder.beginNestedDeclaration(
         TypeParameterScopeKind.classOrNamedMixinApplication,
         "class or mixin application");
@@ -501,6 +782,9 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
     debugEvent("beginClassDeclaration");
+    popDeclarationContext(
+        DeclarationContext.ClassOrMixinOrNamedMixinApplication);
+    pushDeclarationContext(DeclarationContext.Class);
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     push(typeVariables ?? NullValue.TypeVariables);
@@ -514,6 +798,9 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void beginMixinDeclaration(Token mixinKeyword, Token name) {
     debugEvent("beginMixinDeclaration");
+    popDeclarationContext(
+        DeclarationContext.ClassOrMixinOrNamedMixinApplication);
+    pushDeclarationContext(DeclarationContext.Mixin);
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     push(typeVariables ?? NullValue.TypeVariables);
@@ -523,7 +810,22 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginClassOrMixinBody(DeclarationKind kind, Token token) {
+  void beginClassOrMixinOrExtensionBody(DeclarationKind kind, Token token) {
+    DeclarationContext declarationContext;
+    switch (kind) {
+      case DeclarationKind.TopLevel:
+        throw new UnsupportedError('Unexpected top level body.');
+      case DeclarationKind.Class:
+        declarationContext = DeclarationContext.ClassBody;
+        break;
+      case DeclarationKind.Mixin:
+        declarationContext = DeclarationContext.MixinBody;
+        break;
+      case DeclarationKind.Extension:
+        declarationContext = DeclarationContext.ExtensionBody;
+        break;
+    }
+    pushDeclarationContext(declarationContext);
     if (kind == DeclarationKind.Extension) {
       assert(checkState(token, [
         /* hide type elements = */ ValueKinds.TypeBuilderListOrNull,
@@ -553,7 +855,7 @@ class OutlineBuilder extends StackListenerImpl {
     // Resolve unresolved types from the class header (i.e., superclass, mixins,
     // and implemented types) before adding members from the class body which
     // should not shadow these unresolved types.
-    libraryBuilder.currentTypeParameterScopeBuilder.resolveTypes(
+    libraryBuilder.currentTypeParameterScopeBuilder.resolveNamedTypes(
         libraryBuilder.currentTypeParameterScopeBuilder.typeVariables,
         libraryBuilder);
   }
@@ -562,6 +864,9 @@ class OutlineBuilder extends StackListenerImpl {
   void beginNamedMixinApplication(
       Token begin, Token? abstractToken, Token name) {
     debugEvent("beginNamedMixinApplication");
+    popDeclarationContext(
+        DeclarationContext.ClassOrMixinOrNamedMixinApplication);
+    pushDeclarationContext(DeclarationContext.NamedMixinApplication);
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     push(typeVariables ?? NullValue.TypeVariables);
@@ -710,72 +1015,71 @@ class OutlineBuilder extends StackListenerImpl {
       libraryBuilder
           .endNestedDeclaration(
               TypeParameterScopeKind.classDeclaration, "<syntax-error>")
-          .resolveTypes(typeVariables, libraryBuilder);
-      return;
-    }
+          .resolveNamedTypes(typeVariables, libraryBuilder);
+    } else {
+      final int startCharOffset =
+          metadata == null ? beginToken.charOffset : metadata.first.charOffset;
 
-    final int startCharOffset =
-        metadata == null ? beginToken.charOffset : metadata.first.charOffset;
-
-    if (libraryBuilder.isNonNullableByDefault) {
-      String classNameForErrors = "${name}";
-      TypeBuilder? supertypeForErrors = supertype is MixinApplicationBuilder
-          ? supertype.supertype
-          : supertype;
-      List<TypeBuilder>? mixins =
-          supertype is MixinApplicationBuilder ? supertype.mixins : null;
-      if (supertypeForErrors != null) {
-        if (supertypeForErrors.nullabilityBuilder.build(libraryBuilder) ==
-            Nullability.nullable) {
-          libraryBuilder.addProblem(
-              templateNullableSuperclassError
-                  .withArguments(supertypeForErrors.fullNameForErrors),
-              nameOffset,
-              classNameForErrors.length,
-              uri);
-        }
-      }
-      if (mixins != null) {
-        for (TypeBuilder mixin in mixins) {
-          if (mixin.nullabilityBuilder.build(libraryBuilder) ==
+      if (libraryBuilder.isNonNullableByDefault) {
+        String classNameForErrors = "${name}";
+        TypeBuilder? supertypeForErrors = supertype is MixinApplicationBuilder
+            ? supertype.supertype
+            : supertype;
+        List<TypeBuilder>? mixins =
+            supertype is MixinApplicationBuilder ? supertype.mixins : null;
+        if (supertypeForErrors != null) {
+          if (supertypeForErrors.nullabilityBuilder.build(libraryBuilder) ==
               Nullability.nullable) {
             libraryBuilder.addProblem(
-                templateNullableMixinError
-                    .withArguments(mixin.fullNameForErrors),
+                templateNullableSuperclassError
+                    .withArguments(supertypeForErrors.fullNameForErrors),
                 nameOffset,
                 classNameForErrors.length,
                 uri);
           }
         }
-      }
-      if (interfaces != null) {
-        for (TypeBuilder interface in interfaces) {
-          if (interface.nullabilityBuilder.build(libraryBuilder) ==
-              Nullability.nullable) {
-            libraryBuilder.addProblem(
-                templateNullableInterfaceError
-                    .withArguments(interface.fullNameForErrors),
-                nameOffset,
-                classNameForErrors.length,
-                uri);
+        if (mixins != null) {
+          for (TypeBuilder mixin in mixins) {
+            if (mixin.nullabilityBuilder.build(libraryBuilder) ==
+                Nullability.nullable) {
+              libraryBuilder.addProblem(
+                  templateNullableMixinError
+                      .withArguments(mixin.fullNameForErrors),
+                  nameOffset,
+                  classNameForErrors.length,
+                  uri);
+            }
+          }
+        }
+        if (interfaces != null) {
+          for (TypeBuilder interface in interfaces) {
+            if (interface.nullabilityBuilder.build(libraryBuilder) ==
+                Nullability.nullable) {
+              libraryBuilder.addProblem(
+                  templateNullableInterfaceError
+                      .withArguments(interface.fullNameForErrors),
+                  nameOffset,
+                  classNameForErrors.length,
+                  uri);
+            }
           }
         }
       }
+
+      libraryBuilder.addClass(
+          metadata,
+          modifiers,
+          name as String,
+          typeVariables,
+          supertype,
+          interfaces,
+          startCharOffset,
+          nameOffset,
+          endToken.charOffset,
+          supertypeOffset);
     }
-
-    libraryBuilder.addClass(
-        metadata,
-        modifiers,
-        name as String,
-        typeVariables,
-        supertype,
-        interfaces,
-        startCharOffset,
-        nameOffset,
-        endToken.charOffset,
-        supertypeOffset);
-
     libraryBuilder.setCurrentClassName(null);
+    popDeclarationContext(DeclarationContext.Class);
   }
 
   Object? nullIfParserRecovery(Object? node) {
@@ -800,72 +1104,74 @@ class OutlineBuilder extends StackListenerImpl {
       libraryBuilder
           .endNestedDeclaration(
               TypeParameterScopeKind.mixinDeclaration, "<syntax-error>")
-          .resolveTypes(typeVariables, libraryBuilder);
-      return;
-    }
-    int startOffset =
-        metadata == null ? mixinToken.charOffset : metadata.first.charOffset;
-    TypeBuilder? supertype;
-    if (supertypeConstraints != null && supertypeConstraints.isNotEmpty) {
-      if (supertypeConstraints.length == 1) {
-        supertype = supertypeConstraints.first;
-      } else {
-        supertype = new MixinApplicationBuilder(
-            supertypeConstraints.first,
-            supertypeConstraints.skip(1).toList(),
-            supertypeConstraints.first.fileUri!,
-            supertypeConstraints.first.charOffset!);
+          .resolveNamedTypes(typeVariables, libraryBuilder);
+    } else {
+      int startOffset =
+          metadata == null ? mixinToken.charOffset : metadata.first.charOffset;
+      TypeBuilder? supertype;
+      if (supertypeConstraints != null && supertypeConstraints.isNotEmpty) {
+        if (supertypeConstraints.length == 1) {
+          supertype = supertypeConstraints.first;
+        } else {
+          supertype = new MixinApplicationBuilder(
+              supertypeConstraints.first,
+              supertypeConstraints.skip(1).toList(),
+              supertypeConstraints.first.fileUri!,
+              supertypeConstraints.first.charOffset!);
+        }
       }
-    }
 
-    if (libraryBuilder.isNonNullableByDefault) {
-      String classNameForErrors = "${name}";
-      if (supertypeConstraints != null) {
-        for (TypeBuilder supertype in supertypeConstraints) {
-          if (supertype.nullabilityBuilder.build(libraryBuilder) ==
-              Nullability.nullable) {
-            libraryBuilder.addProblem(
-                templateNullableSuperclassError
-                    .withArguments(supertype.fullNameForErrors),
-                nameOffset,
-                classNameForErrors.length,
-                uri);
+      if (libraryBuilder.isNonNullableByDefault) {
+        String classNameForErrors = "${name}";
+        if (supertypeConstraints != null) {
+          for (TypeBuilder supertype in supertypeConstraints) {
+            if (supertype.nullabilityBuilder.build(libraryBuilder) ==
+                Nullability.nullable) {
+              libraryBuilder.addProblem(
+                  templateNullableSuperclassError
+                      .withArguments(supertype.fullNameForErrors),
+                  nameOffset,
+                  classNameForErrors.length,
+                  uri);
+            }
+          }
+        }
+        if (interfaces != null) {
+          for (TypeBuilder interface in interfaces) {
+            if (interface.nullabilityBuilder.build(libraryBuilder) ==
+                Nullability.nullable) {
+              libraryBuilder.addProblem(
+                  templateNullableInterfaceError
+                      .withArguments(interface.fullNameForErrors),
+                  nameOffset,
+                  classNameForErrors.length,
+                  uri);
+            }
           }
         }
       }
-      if (interfaces != null) {
-        for (TypeBuilder interface in interfaces) {
-          if (interface.nullabilityBuilder.build(libraryBuilder) ==
-              Nullability.nullable) {
-            libraryBuilder.addProblem(
-                templateNullableInterfaceError
-                    .withArguments(interface.fullNameForErrors),
-                nameOffset,
-                classNameForErrors.length,
-                uri);
-          }
-        }
-      }
-    }
 
-    libraryBuilder.addMixinDeclaration(
-        metadata,
-        mixinDeclarationMask,
-        name as String,
-        typeVariables,
-        supertype,
-        interfaces,
-        startOffset,
-        nameOffset,
-        endToken.charOffset,
-        -1);
+      libraryBuilder.addMixinDeclaration(
+          metadata,
+          mixinDeclarationMask,
+          name as String,
+          typeVariables,
+          supertype,
+          interfaces,
+          startOffset,
+          nameOffset,
+          endToken.charOffset,
+          -1);
+    }
     libraryBuilder.setCurrentClassName(null);
+    popDeclarationContext(DeclarationContext.Mixin);
   }
 
   @override
   void beginExtensionDeclarationPrelude(Token extensionKeyword) {
     assert(checkState(extensionKeyword, [ValueKinds.MetadataListOrNull]));
     debugEvent("beginExtensionDeclaration");
+    pushDeclarationContext(DeclarationContext.Extension);
     libraryBuilder.beginNestedDeclaration(
         TypeParameterScopeKind.extensionDeclaration, "extension");
   }
@@ -983,6 +1289,7 @@ class OutlineBuilder extends StackListenerImpl {
         startOffset,
         nameOffset,
         endToken.charOffset);
+    popDeclarationContext(DeclarationContext.Extension);
   }
 
   ProcedureKind computeProcedureKind(Token? token) {
@@ -995,6 +1302,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void beginTopLevelMethod(Token lastConsumed, Token? externalToken) {
+    pushDeclarationContext(DeclarationContext.TopLevelMethod);
     libraryBuilder.beginNestedDeclaration(
         TypeParameterScopeKind.topLevelMethod, "#method",
         hasMembers: false);
@@ -1036,27 +1344,29 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(beginToken.charOffset);
     libraryBuilder
         .endNestedDeclaration(TypeParameterScopeKind.topLevelMethod, "#method")
-        .resolveTypes(typeVariables, libraryBuilder);
-    if (name is ParserRecovery) return;
-    final int startCharOffset =
-        metadata == null ? beginToken.charOffset : metadata.first.charOffset;
-    libraryBuilder.addProcedure(
-        metadata,
-        modifiers,
-        returnType,
-        name as String,
-        typeVariables,
-        formals,
-        computeProcedureKind(getOrSet),
-        startCharOffset,
-        charOffset,
-        formalsOffset,
-        endToken.charOffset,
-        nativeMethodName,
-        asyncModifier,
-        isInstanceMember: false,
-        isExtensionMember: false);
-    nativeMethodName = null;
+        .resolveNamedTypes(typeVariables, libraryBuilder);
+    if (name is! ParserRecovery) {
+      final int startCharOffset =
+          metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+      libraryBuilder.addProcedure(
+          metadata,
+          modifiers,
+          returnType,
+          name as String,
+          typeVariables,
+          formals,
+          computeProcedureKind(getOrSet),
+          startCharOffset,
+          charOffset,
+          formalsOffset,
+          endToken.charOffset,
+          nativeMethodName,
+          asyncModifier,
+          isInstanceMember: false,
+          isExtensionMember: false);
+      nativeMethodName = null;
+    }
+    popDeclarationContext(DeclarationContext.TopLevelMethod);
   }
 
   @override
@@ -1101,6 +1411,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void beginMethod(
+      DeclarationKind declarationKind,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1110,6 +1421,45 @@ class OutlineBuilder extends StackListenerImpl {
     inConstructor =
         name.lexeme == libraryBuilder.currentTypeParameterScopeBuilder.name &&
             getOrSet == null;
+    DeclarationContext declarationContext;
+    switch (declarationKind) {
+      case DeclarationKind.TopLevel:
+        assert(
+            false,
+            "Expected top level method to be handled by "
+            "`beginTopLevelMethod`.");
+        declarationContext = DeclarationContext.TopLevelMethod;
+        break;
+      case DeclarationKind.Class:
+        if (inConstructor) {
+          declarationContext = DeclarationContext.ClassConstructor;
+        } else if (staticToken != null) {
+          declarationContext = DeclarationContext.ClassStaticMethod;
+        } else {
+          declarationContext = DeclarationContext.ClassInstanceMethod;
+        }
+        break;
+      case DeclarationKind.Mixin:
+        if (inConstructor) {
+          declarationContext = DeclarationContext.MixinConstructor;
+        } else if (staticToken != null) {
+          declarationContext = DeclarationContext.MixinStaticMethod;
+        } else {
+          declarationContext = DeclarationContext.MixinInstanceMethod;
+        }
+        break;
+      case DeclarationKind.Extension:
+        if (inConstructor) {
+          declarationContext = DeclarationContext.ExtensionConstructor;
+        } else if (staticToken != null) {
+          declarationContext = DeclarationContext.ExtensionStaticMethod;
+        } else {
+          declarationContext = DeclarationContext.ExtensionInstanceMethod;
+        }
+        break;
+    }
+    pushDeclarationContext(declarationContext);
+
     List<Modifier>? modifiers;
     if (externalToken != null) {
       modifiers ??= <Modifier>[];
@@ -1140,9 +1490,15 @@ class OutlineBuilder extends StackListenerImpl {
     }
     push(varFinalOrConst?.charOffset ?? -1);
     push(modifiers ?? NullValue.Modifiers);
-    libraryBuilder.beginNestedDeclaration(
-        TypeParameterScopeKind.staticOrInstanceMethodOrConstructor, "#method",
-        hasMembers: false);
+    TypeParameterScopeKind kind;
+    if (inConstructor) {
+      kind = TypeParameterScopeKind.constructor;
+    } else if (staticToken != null) {
+      kind = TypeParameterScopeKind.staticMethod;
+    } else {
+      kind = TypeParameterScopeKind.instanceMethod;
+    }
+    libraryBuilder.beginNestedDeclaration(kind, "#method", hasMembers: false);
   }
 
   @override
@@ -1306,140 +1662,149 @@ class OutlineBuilder extends StackListenerImpl {
     int varFinalOrConstOffset = popCharOffset();
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
 
+    TypeParameterScopeKind scopeKind;
+    if (inConstructor) {
+      scopeKind = TypeParameterScopeKind.constructor;
+    } else if ((modifiers & staticMask) != 0) {
+      scopeKind = TypeParameterScopeKind.staticMethod;
+    } else {
+      scopeKind = TypeParameterScopeKind.instanceMethod;
+    }
     TypeParameterScopeBuilder declarationBuilder =
-        libraryBuilder.endNestedDeclaration(
-            TypeParameterScopeKind.staticOrInstanceMethodOrConstructor,
-            "#method");
+        libraryBuilder.endNestedDeclaration(scopeKind, "#method");
     if (name is ParserRecovery) {
       nativeMethodName = null;
       inConstructor = false;
-      declarationBuilder.resolveTypes(typeVariables, libraryBuilder);
-      return;
-    }
-
-    String? constructorName;
-    switch (methodKind) {
-      case _MethodKind.classConstructor:
-      case _MethodKind.mixinConstructor:
-      case _MethodKind.extensionConstructor:
-        constructorName = libraryBuilder.computeAndValidateConstructorName(
-                name, charOffset) ??
-            name as String?;
-        break;
-      case _MethodKind.classMethod:
-      case _MethodKind.mixinMethod:
-      case _MethodKind.extensionMethod:
-        break;
-    }
-    bool isStatic = (modifiers & staticMask) != 0;
-    if (constructorName == null &&
-        !isStatic &&
-        libraryBuilder.currentTypeParameterScopeBuilder.kind ==
-            TypeParameterScopeKind.extensionDeclaration) {
-      TypeParameterScopeBuilder extension =
-          libraryBuilder.currentTypeParameterScopeBuilder;
-      Map<TypeVariableBuilder, TypeBuilder>? substitution;
-      if (extension.typeVariables != null) {
-        // We synthesize the names of the generated [TypeParameter]s, i.e.
-        // rename 'T' to '#T'. We cannot do it on the builders because their
-        // names are used to create the scope.
-        List<TypeVariableBuilder> synthesizedTypeVariables = libraryBuilder
-            .copyTypeVariables(extension.typeVariables!, declarationBuilder,
-                isExtensionTypeParameter: true);
-        substitution = {};
-        for (int i = 0; i < synthesizedTypeVariables.length; i++) {
-          substitution[extension.typeVariables![i]] =
-              new NamedTypeBuilder.fromTypeDeclarationBuilder(
-                  synthesizedTypeVariables[i],
-                  const NullabilityBuilder.omitted());
-        }
-        if (typeVariables != null) {
-          typeVariables = synthesizedTypeVariables..addAll(typeVariables);
-        } else {
-          typeVariables = synthesizedTypeVariables;
-        }
-      }
-      List<FormalParameterBuilder> synthesizedFormals = [];
-      TypeBuilder thisType = extension.extensionThisType;
-      if (substitution != null) {
-        List<TypeBuilder> unboundTypes = [];
-        List<TypeVariableBuilder> unboundTypeVariables = [];
-        thisType = substitute(thisType, substitution,
-            unboundTypes: unboundTypes,
-            unboundTypeVariables: unboundTypeVariables)!;
-        for (TypeBuilder unboundType in unboundTypes) {
-          extension.addType(new UnresolvedType(
-              unboundType, thisType.charOffset!, thisType.fileUri!));
-        }
-        libraryBuilder.boundlessTypeVariables.addAll(unboundTypeVariables);
-      }
-      synthesizedFormals.add(new FormalParameterBuilder(
-          null, finalMask, thisType, extensionThisName, null, charOffset,
-          fileUri: uri, isExtensionThis: true));
-      if (formals != null) {
-        synthesizedFormals.addAll(formals);
-      }
-      formals = synthesizedFormals;
-    }
-
-    declarationBuilder.resolveTypes(typeVariables, libraryBuilder);
-    if (constructorName != null) {
-      if (isConst &&
-          bodyKind != MethodBody.Abstract &&
-          !libraryBuilder.enableConstFunctionsInLibrary) {
-        addProblem(messageConstConstructorWithBody, varFinalOrConstOffset, 5);
-        modifiers &= ~constMask;
-      }
-      if (returnType != null) {
-        addProblem(messageConstructorWithReturnType,
-            returnType.charOffset ?? beginToken.offset, noLength);
-        returnType = null;
-      }
-      final int startCharOffset =
-          metadata == null ? beginToken.charOffset : metadata.first.charOffset;
-      libraryBuilder.addConstructor(
-          metadata,
-          modifiers,
-          returnType,
-          name,
-          constructorName,
-          typeVariables,
-          formals,
-          startCharOffset,
-          charOffset,
-          formalsOffset,
-          endToken.charOffset,
-          nativeMethodName,
-          beginInitializers: beginInitializers,
-          forAbstractClass: inAbstractClass);
+      declarationBuilder.resolveNamedTypes(typeVariables, libraryBuilder);
     } else {
-      if (isConst) {
-        // TODO(danrubel): consider removing this
-        // because it is an error to have a const method.
-        modifiers &= ~constMask;
+      String? constructorName;
+      switch (methodKind) {
+        case _MethodKind.classConstructor:
+        case _MethodKind.mixinConstructor:
+        case _MethodKind.extensionConstructor:
+          constructorName = libraryBuilder.computeAndValidateConstructorName(
+                  name, charOffset) ??
+              name as String?;
+          break;
+        case _MethodKind.classMethod:
+        case _MethodKind.mixinMethod:
+        case _MethodKind.extensionMethod:
+          break;
       }
-      final int startCharOffset =
-          metadata == null ? beginToken.charOffset : metadata.first.charOffset;
-      bool isExtensionMember = methodKind == _MethodKind.extensionMethod;
-      libraryBuilder.addProcedure(
-          metadata,
-          modifiers,
-          returnType,
-          name as String,
-          typeVariables,
-          formals,
-          kind,
-          startCharOffset,
-          charOffset,
-          formalsOffset,
-          endToken.charOffset,
-          nativeMethodName,
-          asyncModifier,
-          isInstanceMember: !isStatic,
-          isExtensionMember: isExtensionMember);
+      bool isStatic = (modifiers & staticMask) != 0;
+      if (constructorName == null &&
+          !isStatic &&
+          libraryBuilder.currentTypeParameterScopeBuilder.kind ==
+              TypeParameterScopeKind.extensionDeclaration) {
+        TypeParameterScopeBuilder extension =
+            libraryBuilder.currentTypeParameterScopeBuilder;
+        Map<TypeVariableBuilder, TypeBuilder>? substitution;
+        if (extension.typeVariables != null) {
+          // We synthesize the names of the generated [TypeParameter]s, i.e.
+          // rename 'T' to '#T'. We cannot do it on the builders because their
+          // names are used to create the scope.
+          List<TypeVariableBuilder> synthesizedTypeVariables = libraryBuilder
+              .copyTypeVariables(extension.typeVariables!, declarationBuilder,
+                  isExtensionTypeParameter: true);
+          substitution = {};
+          for (int i = 0; i < synthesizedTypeVariables.length; i++) {
+            substitution[extension.typeVariables![i]] =
+                new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                    synthesizedTypeVariables[i],
+                    const NullabilityBuilder.omitted(),
+                    instanceTypeVariableAccess:
+                        declarationContext.instanceTypeVariableAccessState);
+          }
+          if (typeVariables != null) {
+            typeVariables = synthesizedTypeVariables..addAll(typeVariables);
+          } else {
+            typeVariables = synthesizedTypeVariables;
+          }
+        }
+        List<FormalParameterBuilder> synthesizedFormals = [];
+        TypeBuilder thisType = extension.extensionThisType;
+        if (substitution != null) {
+          List<NamedTypeBuilder> unboundTypes = [];
+          List<TypeVariableBuilder> unboundTypeVariables = [];
+          thisType = substitute(thisType, substitution,
+              unboundTypes: unboundTypes,
+              unboundTypeVariables: unboundTypeVariables)!;
+          for (NamedTypeBuilder unboundType in unboundTypes) {
+            extension.registerUnresolvedNamedType(unboundType);
+          }
+          libraryBuilder.unboundTypeVariables.addAll(unboundTypeVariables);
+        }
+        synthesizedFormals.add(new FormalParameterBuilder(
+            null, finalMask, thisType, extensionThisName, null, charOffset,
+            fileUri: uri, isExtensionThis: true));
+        if (formals != null) {
+          synthesizedFormals.addAll(formals);
+        }
+        formals = synthesizedFormals;
+      }
+
+      declarationBuilder.resolveNamedTypes(typeVariables, libraryBuilder);
+      if (constructorName != null) {
+        if (isConst &&
+            bodyKind != MethodBody.Abstract &&
+            !libraryBuilder.enableConstFunctionsInLibrary) {
+          addProblem(messageConstConstructorWithBody, varFinalOrConstOffset, 5);
+          modifiers &= ~constMask;
+        }
+        if (returnType != null) {
+          addProblem(messageConstructorWithReturnType,
+              returnType.charOffset ?? beginToken.offset, noLength);
+          returnType = null;
+        }
+        final int startCharOffset = metadata == null
+            ? beginToken.charOffset
+            : metadata.first.charOffset;
+        libraryBuilder.addConstructor(
+            metadata,
+            modifiers,
+            returnType,
+            name,
+            constructorName,
+            typeVariables,
+            formals,
+            startCharOffset,
+            charOffset,
+            formalsOffset,
+            endToken.charOffset,
+            nativeMethodName,
+            beginInitializers: beginInitializers,
+            forAbstractClass: inAbstractClass);
+      } else {
+        if (isConst) {
+          // TODO(danrubel): consider removing this
+          // because it is an error to have a const method.
+          modifiers &= ~constMask;
+        }
+        final int startCharOffset = metadata == null
+            ? beginToken.charOffset
+            : metadata.first.charOffset;
+        bool isExtensionMember = methodKind == _MethodKind.extensionMethod;
+        libraryBuilder.addProcedure(
+            metadata,
+            modifiers,
+            returnType,
+            name as String,
+            typeVariables,
+            formals,
+            kind,
+            startCharOffset,
+            charOffset,
+            formalsOffset,
+            endToken.charOffset,
+            nativeMethodName,
+            asyncModifier,
+            isInstanceMember: !isStatic,
+            isExtensionMember: isExtensionMember);
+      }
     }
     nativeMethodName = null;
     inConstructor = false;
+    popDeclarationContext();
   }
 
   @override
@@ -1475,64 +1840,65 @@ class OutlineBuilder extends StackListenerImpl {
       libraryBuilder
           .endNestedDeclaration(
               TypeParameterScopeKind.namedMixinApplication, "<syntax-error>")
-          .resolveTypes(typeVariables, libraryBuilder);
-      return;
-    }
-
-    if (libraryBuilder.isNonNullableByDefault) {
-      String classNameForErrors = "${name}";
-      MixinApplicationBuilder mixinApplicationBuilder =
-          mixinApplication as MixinApplicationBuilder;
-      TypeBuilder? supertype = mixinApplicationBuilder.supertype;
-      List<TypeBuilder> mixins = mixinApplicationBuilder.mixins;
-      if (supertype != null && supertype is! MixinApplicationBuilder) {
-        if (supertype.nullabilityBuilder.build(libraryBuilder) ==
-            Nullability.nullable) {
-          libraryBuilder.addProblem(
-              templateNullableSuperclassError
-                  .withArguments(supertype.fullNameForErrors),
-              charOffset,
-              classNameForErrors.length,
-              uri);
-        }
-      }
-      for (TypeBuilder mixin in mixins) {
-        if (mixin.nullabilityBuilder.build(libraryBuilder) ==
-            Nullability.nullable) {
-          libraryBuilder.addProblem(
-              templateNullableMixinError.withArguments(mixin.fullNameForErrors),
-              charOffset,
-              classNameForErrors.length,
-              uri);
-        }
-      }
-      if (interfaces != null) {
-        for (TypeBuilder interface in interfaces) {
-          if (interface.nullabilityBuilder.build(libraryBuilder) ==
+          .resolveNamedTypes(typeVariables, libraryBuilder);
+    } else {
+      if (libraryBuilder.isNonNullableByDefault) {
+        String classNameForErrors = "${name}";
+        MixinApplicationBuilder mixinApplicationBuilder =
+            mixinApplication as MixinApplicationBuilder;
+        TypeBuilder? supertype = mixinApplicationBuilder.supertype;
+        List<TypeBuilder> mixins = mixinApplicationBuilder.mixins;
+        if (supertype != null && supertype is! MixinApplicationBuilder) {
+          if (supertype.nullabilityBuilder.build(libraryBuilder) ==
               Nullability.nullable) {
             libraryBuilder.addProblem(
-                templateNullableInterfaceError
-                    .withArguments(interface.fullNameForErrors),
+                templateNullableSuperclassError
+                    .withArguments(supertype.fullNameForErrors),
                 charOffset,
                 classNameForErrors.length,
                 uri);
           }
         }
+        for (TypeBuilder mixin in mixins) {
+          if (mixin.nullabilityBuilder.build(libraryBuilder) ==
+              Nullability.nullable) {
+            libraryBuilder.addProblem(
+                templateNullableMixinError
+                    .withArguments(mixin.fullNameForErrors),
+                charOffset,
+                classNameForErrors.length,
+                uri);
+          }
+        }
+        if (interfaces != null) {
+          for (TypeBuilder interface in interfaces) {
+            if (interface.nullabilityBuilder.build(libraryBuilder) ==
+                Nullability.nullable) {
+              libraryBuilder.addProblem(
+                  templateNullableInterfaceError
+                      .withArguments(interface.fullNameForErrors),
+                  charOffset,
+                  classNameForErrors.length,
+                  uri);
+            }
+          }
+        }
       }
-    }
 
-    int startCharOffset = beginToken.charOffset;
-    int charEndOffset = endToken.charOffset;
-    libraryBuilder.addNamedMixinApplication(
-        metadata,
-        name as String,
-        typeVariables,
-        modifiers,
-        mixinApplication as TypeBuilder?,
-        interfaces,
-        startCharOffset,
-        charOffset,
-        charEndOffset);
+      int startCharOffset = beginToken.charOffset;
+      int charEndOffset = endToken.charOffset;
+      libraryBuilder.addNamedMixinApplication(
+          metadata,
+          name as String,
+          typeVariables,
+          modifiers,
+          mixinApplication as TypeBuilder?,
+          interfaces,
+          startCharOffset,
+          charOffset,
+          charEndOffset);
+    }
+    popDeclarationContext(DeclarationContext.NamedMixinApplication);
   }
 
   @override
@@ -1578,7 +1944,9 @@ class OutlineBuilder extends StackListenerImpl {
           name,
           libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
           arguments,
-          charOffset));
+          charOffset,
+          instanceTypeVariableAccess:
+              declarationContext.instanceTypeVariableAccessState));
     }
   }
 
@@ -1786,6 +2154,11 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void beginEnum(Token enumKeyword) {
+    pushDeclarationContext(DeclarationContext.Enum);
+  }
+
+  @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     debugEvent("Enum");
     List<EnumConstantInfo?>? enumConstantInfos =
@@ -1795,13 +2168,16 @@ class OutlineBuilder extends StackListenerImpl {
     Object? name = pop();
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(enumKeyword.charOffset);
-    if (name is ParserRecovery) return;
-    libraryBuilder.addEnum(metadata, name as String, enumConstantInfos,
-        startCharOffset, charOffset, leftBrace.endGroup!.charOffset);
+    if (name is! ParserRecovery) {
+      libraryBuilder.addEnum(metadata, name as String, enumConstantInfos,
+          startCharOffset, charOffset, leftBrace.endGroup!.charOffset);
+    }
+    popDeclarationContext(DeclarationContext.Enum);
   }
 
   @override
-  void beginFunctionTypeAlias(Token token) {
+  void beginTypedef(Token token) {
+    pushDeclarationContext(DeclarationContext.Typedef);
     libraryBuilder.beginNestedDeclaration(
         TypeParameterScopeKind.typedef, "#typedef",
         hasMembers: false);
@@ -1866,8 +2242,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endFunctionTypeAlias(
-      Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
     debugEvent("endFunctionTypeAlias");
     List<TypeVariableBuilder>? typeVariables;
     Object? name;
@@ -1888,7 +2263,8 @@ class OutlineBuilder extends StackListenerImpl {
         libraryBuilder
             .endNestedDeclaration(
                 TypeParameterScopeKind.typedef, "<syntax-error>")
-            .resolveTypes(typeVariables, libraryBuilder);
+            .resolveNamedTypes(typeVariables, libraryBuilder);
+        popDeclarationContext(DeclarationContext.Typedef);
         return;
       }
       libraryBuilder.beginNestedDeclaration(
@@ -1907,7 +2283,8 @@ class OutlineBuilder extends StackListenerImpl {
         libraryBuilder
             .endNestedDeclaration(
                 TypeParameterScopeKind.functionType, "<syntax-error>")
-            .resolveTypes(typeVariables, libraryBuilder);
+            .resolveNamedTypes(typeVariables, libraryBuilder);
+        popDeclarationContext(DeclarationContext.Typedef);
         return;
       }
       if (type is FunctionTypeBuilder &&
@@ -1937,12 +2314,64 @@ class OutlineBuilder extends StackListenerImpl {
       } else {
         // TODO(ahe): Improve this error message.
         addProblem(messageTypedefNotFunction, equals.charOffset, equals.length);
+        aliasedType = new NamedTypeBuilder.fromTypeDeclarationBuilder(
+            new InvalidTypeDeclarationBuilder(
+                "${name}",
+                messageTypedefNotType.withLocation(
+                    uri, equals.charOffset, equals.length)),
+            const NullabilityBuilder.omitted(),
+            instanceTypeVariableAccess:
+                InstanceTypeVariableAccessState.Allowed);
       }
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(typedefKeyword.charOffset);
     libraryBuilder.addFunctionTypeAlias(
         metadata, name as String, typeVariables, aliasedType, charOffset);
+    popDeclarationContext(DeclarationContext.Typedef);
+  }
+
+  @override
+  void beginFields(
+      DeclarationKind declarationKind,
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      Token lastConsumed) {
+    DeclarationContext declarationContext;
+    switch (declarationKind) {
+      case DeclarationKind.TopLevel:
+        declarationContext = DeclarationContext.TopLevelField;
+        break;
+      case DeclarationKind.Class:
+        if (staticToken != null) {
+          declarationContext = DeclarationContext.ClassStaticField;
+        } else {
+          declarationContext = DeclarationContext.ClassInstanceField;
+        }
+        break;
+      case DeclarationKind.Mixin:
+        if (staticToken != null) {
+          declarationContext = DeclarationContext.MixinStaticField;
+        } else {
+          declarationContext = DeclarationContext.MixinInstanceField;
+        }
+        break;
+      case DeclarationKind.Extension:
+        if (staticToken != null) {
+          declarationContext = DeclarationContext.ExtensionStaticField;
+        } else if (externalToken != null) {
+          declarationContext =
+              DeclarationContext.ExtensionExternalInstanceField;
+        } else {
+          declarationContext = DeclarationContext.ExtensionInstanceField;
+        }
+        break;
+    }
+    pushDeclarationContext(declarationContext);
   }
 
   @override
@@ -1979,9 +2408,11 @@ class OutlineBuilder extends StackListenerImpl {
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     checkEmpty(beginToken.charOffset);
-    if (fieldInfos == null) return;
-    libraryBuilder.addFields(
-        metadata, modifiers, /* isTopLevel = */ true, type, fieldInfos);
+    if (fieldInfos != null) {
+      libraryBuilder.addFields(
+          metadata, modifiers, /* isTopLevel = */ true, type, fieldInfos);
+    }
+    popDeclarationContext();
   }
 
   @override
@@ -2040,9 +2471,11 @@ class OutlineBuilder extends StackListenerImpl {
       modifiers &= ~constMask;
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-    if (fieldInfos == null) return;
-    libraryBuilder.addFields(
-        metadata, modifiers, /* isTopLevel = */ false, type, fieldInfos);
+    if (fieldInfos != null) {
+      libraryBuilder.addFields(
+          metadata, modifiers, /* isTopLevel = */ false, type, fieldInfos);
+    }
+    popDeclarationContext();
   }
 
   List<FieldInfo>? popFieldInfos(int count) {
@@ -2161,7 +2594,10 @@ class OutlineBuilder extends StackListenerImpl {
                 const NullabilityBuilder.omitted(),
                 null,
                 uri,
-                builder.charOffset)
+                builder.charOffset,
+                instanceTypeVariableAccess:
+                    //InstanceTypeVariableAccessState.Unexpected
+                    declarationContext.instanceTypeVariableAccessState)
               ..bind(new InvalidTypeDeclarationBuilder(
                   builder.name,
                   message.withLocation(
@@ -2212,8 +2648,24 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginFactoryMethod(
-      Token lastConsumed, Token? externalToken, Token? constToken) {
+  void beginFactoryMethod(DeclarationKind declarationKind, Token lastConsumed,
+      Token? externalToken, Token? constToken) {
+    DeclarationContext declarationContext;
+    switch (declarationKind) {
+      case DeclarationKind.TopLevel:
+        throw new UnsupportedError("Unexpected top level factory method.");
+      case DeclarationKind.Class:
+        declarationContext = DeclarationContext.ClassFactory;
+        break;
+      case DeclarationKind.Mixin:
+        declarationContext = DeclarationContext.MixinFactory;
+        break;
+      case DeclarationKind.Extension:
+        declarationContext = DeclarationContext.ExtensionFactory;
+        break;
+    }
+
+    pushDeclarationContext(declarationContext);
     inConstructor = true;
     libraryBuilder.beginNestedDeclaration(
         TypeParameterScopeKind.factoryMethod, "#factory_method",
@@ -2222,8 +2674,7 @@ class OutlineBuilder extends StackListenerImpl {
         (constToken != null ? constMask : 0));
   }
 
-  @override
-  void endClassFactoryMethod(
+  void _endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     debugEvent("ClassFactoryMethod");
     MethodBody kind = pop() as MethodBody;
@@ -2247,23 +2698,42 @@ class OutlineBuilder extends StackListenerImpl {
     if (name is ParserRecovery) {
       libraryBuilder.endNestedDeclaration(
           TypeParameterScopeKind.factoryMethod, "<syntax-error>");
-      return;
+    } else {
+      libraryBuilder.addFactoryMethod(
+        metadata,
+        modifiers,
+        name,
+        formals,
+        redirectionTarget,
+        beginToken.charOffset,
+        charOffset,
+        formalsOffset,
+        endToken.charOffset,
+        nativeMethodName,
+        asyncModifier,
+      );
     }
-    libraryBuilder.addFactoryMethod(
-      metadata,
-      modifiers,
-      name,
-      formals,
-      redirectionTarget,
-      beginToken.charOffset,
-      charOffset,
-      formalsOffset,
-      endToken.charOffset,
-      nativeMethodName,
-      asyncModifier,
-    );
     nativeMethodName = null;
     inConstructor = false;
+    popDeclarationContext();
+  }
+
+  @override
+  void endClassFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    _endFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endMixinFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    _endFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endExtensionFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    _endFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   @override
@@ -2368,9 +2838,10 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endClassOrMixinBody(
+  void endClassOrMixinOrExtensionBody(
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody");
+    popDeclarationContext();
   }
 
   @override
@@ -2411,6 +2882,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 }
 
+/// TODO(johnniwinther): Use [DeclarationContext] instead of [_MethodKind].
 enum _MethodKind {
   classConstructor,
   classMethod,

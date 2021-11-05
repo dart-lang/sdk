@@ -183,14 +183,20 @@ abstract class AbstractLspAnalysisServerTest
     httpClient = MockHttpClient();
     processRunner = MockProcessRunner();
     channel = MockLspServerChannel(debugPrintCommunication);
+
     // Create an SDK in the mock file system.
-    MockSdk(resourceProvider: resourceProvider);
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+
     pluginManager = TestPluginManager();
     server = LspAnalysisServer(
         channel,
         resourceProvider,
         serverOptions,
-        DartSdkManager(convertPath('/sdk')),
+        DartSdkManager(sdkRoot.path),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE,
         httpClient: httpClient,

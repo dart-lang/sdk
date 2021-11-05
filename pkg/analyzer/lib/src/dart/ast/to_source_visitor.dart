@@ -54,7 +54,7 @@ class ToSourceVisitor implements AstVisitor<void> {
       sink.write(', ');
       _visitNode(node.message);
     }
-    sink.write(');');
+    sink.write(')');
   }
 
   @override
@@ -565,6 +565,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNode(node.typeParameters);
     sink.write(' = ');
     _visitNode(node.type);
+    sink.write(';');
   }
 
   @override
@@ -601,6 +602,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitImplementsClause(ImplementsClause node) {
     sink.write('implements ');
     _visitNodeList(node.interfaces2, separator: ', ');
+  }
+
+  @override
+  void visitImplicitCallReference(ImplicitCallReference node) {
+    _visitNode(node.expression);
+    _visitNode(node.typeArguments);
   }
 
   @override

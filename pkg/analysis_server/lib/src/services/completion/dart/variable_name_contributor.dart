@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -11,9 +12,13 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart'
 /// A contributor that produces suggestions for variable names based on the
 /// static type of the variable.
 class VariableNameContributor extends DartCompletionContributor {
+  VariableNameContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var opType = request.opType;
 
     // Collect suggestions from the specific child [AstNode] that contains

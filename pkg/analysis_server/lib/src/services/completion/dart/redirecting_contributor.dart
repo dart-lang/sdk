@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 
@@ -11,9 +12,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 /// expressions of the form `this.^` or `super.^` in a constructor's initializer
 /// list or after an `=` in a factory constructor.
 class RedirectingContributor extends DartCompletionContributor {
+  RedirectingContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var entity = request.target.entity;
     if (entity is SimpleIdentifier) {
       var parent = entity.parent;
@@ -59,7 +64,7 @@ class RedirectingContributor extends DartCompletionContributor {
             parent.thisOrAncestorOfType<ClassOrMixinDeclaration>();
         var classElement = containingClass?.declaredElement;
         var libraryElement = request.libraryElement;
-        if (classElement == null || libraryElement == null) {
+        if (classElement == null) {
           return;
         }
         var typeSystem = libraryElement.typeSystem;

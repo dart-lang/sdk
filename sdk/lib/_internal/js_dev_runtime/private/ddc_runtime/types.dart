@@ -1188,40 +1188,47 @@ String typeName(type) => JS('', '''(() => {
 
 /// Returns true if [ft1] <: [ft2].
 @notNull
-bool _isFunctionSubtype(ft1, ft2, @notNull bool strictMode) =>
-    JS<bool>('!', '''(() => {
-  let ret1 = $ft1.returnType;
-  let ret2 = $ft2.returnType;
+bool _isFunctionSubtype(@notNull FunctionType ft1, @notNull FunctionType ft2,
+    @notNull bool strictMode) {
+  var ret1 = ft1.returnType;
+  var ret2 = ft2.returnType;
 
-  let args1 = $ft1.args;
-  let args2 = $ft2.args;
+  var args1 = ft1.args;
+  var args1Length = JS<int>('!', '#.length', args1);
+  var args2 = ft2.args;
+  var args2Length = JS<int>('!', '#.length', args2);
 
-  if (args1.length > args2.length) {
+  if (args1Length > args2Length) {
     return false;
   }
 
-  for (let i = 0; i < args1.length; ++i) {
-    if (!$_isSubtype(args2[i], args1[i], strictMode)) {
+  for (var i = 0; i < args1Length; ++i) {
+    if (!_isSubtype(
+        JS('!', '#[#]', args2, i), JS('!', '#[#]', args1, i), strictMode)) {
       return false;
     }
   }
 
-  let optionals1 = $ft1.optionals;
-  let optionals2 = $ft2.optionals;
+  var optionals1 = ft1.optionals;
+  var optionals1Length = JS<int>('!', '#.length', optionals1);
+  var optionals2 = ft2.optionals;
+  var optionals2Length = JS<int>('!', '#.length', optionals2);
 
-  if (args1.length + optionals1.length < args2.length + optionals2.length) {
+  if (args1Length + optionals1Length < args2Length + optionals2Length) {
     return false;
   }
 
-  let j = 0;
-  for (let i = args1.length; i < args2.length; ++i, ++j) {
-    if (!$_isSubtype(args2[i], optionals1[j], strictMode)) {
+  var j = 0;
+  for (var i = args1Length; i < args2Length; ++i, ++j) {
+    if (!_isSubtype(JS('!', '#[#]', args2, i), JS('!', '#[#]', optionals1, j),
+        strictMode)) {
       return false;
     }
   }
 
-  for (let i = 0; i < optionals2.length; ++i, ++j) {
-    if (!$_isSubtype(optionals2[i], optionals1[j], strictMode)) {
+  for (var i = 0; i < optionals2Length; ++i, ++j) {
+    if (!_isSubtype(JS('!', '#[#]', optionals2, i),
+        JS('!', '#[#]', optionals1, j), strictMode)) {
       return false;
     }
   }
@@ -1232,53 +1239,56 @@ bool _isFunctionSubtype(ft1, ft2, @notNull bool strictMode) =>
   //    in the superclass.
   // 3) With strict null checking disabled, we treat required named params as
   //    optional named params.
-  let named1 = $ft1.named;
-  let requiredNamed1 = $ft1.requiredNamed;
-  let named2 = $ft2.named;
-  let requiredNamed2 = $ft2.requiredNamed;
+  var named1 = ft1.named;
+  var requiredNamed1 = ft1.requiredNamed;
+  var named2 = ft2.named;
+  var requiredNamed2 = ft2.requiredNamed;
   if (!strictMode) {
     // In weak mode, treat required named params as optional named params.
-    named1 = Object.assign({}, named1, requiredNamed1);
-    named2 = Object.assign({}, named2, requiredNamed2);
-    requiredNamed1 = {};
-    requiredNamed2 = {};
+    named1 = JS('!', 'Object.assign({}, #, #)', named1, requiredNamed1);
+    named2 = JS('!', 'Object.assign({}, #, #)', named2, requiredNamed2);
+    requiredNamed1 = JS('!', '{}');
+    requiredNamed2 = JS('!', '{}');
   }
 
-  let names = $getOwnPropertyNames(requiredNamed1);
-  for (let i = 0; i < names.length; ++i) {
-    let name = names[i];
-    let n2 = requiredNamed2[name];
-    if (n2 === void 0) {
+  var names = getOwnPropertyNames(requiredNamed1);
+  var namesLength = JS<int>('!', '#.length', names);
+  for (var i = 0; i < namesLength; ++i) {
+    var name = JS('!', '#[#]', names, i);
+    var n2 = JS('!', '#[#]', requiredNamed2, name);
+    if (JS<bool>('!', '# === void 0', n2)) {
       return false;
     }
   }
-  names = $getOwnPropertyNames(named2);
-  for (let i = 0; i < names.length; ++i) {
-    let name = names[i];
-    let n1 = named1[name];
-    let n2 = named2[name];
-    if (n1 === void 0) {
+  names = getOwnPropertyNames(named2);
+  namesLength = JS<int>('!', '#.length', names);
+  for (var i = 0; i < namesLength; ++i) {
+    var name = JS('!', '#[#]', names, i);
+    var n1 = JS('!', '#[#]', named1, name);
+    var n2 = JS('!', '#[#]', named2, name);
+    if (JS<bool>('!', '# === void 0', n1)) {
       return false;
     }
-    if (!$_isSubtype(n2, n1, strictMode)) {
+    if (!_isSubtype(n2, n1, strictMode)) {
       return false;
     }
   }
-  names = $getOwnPropertyNames(requiredNamed2);
-  for (let i = 0; i < names.length; ++i) {
-    let name = names[i];
-    let n1 = named1[name] || requiredNamed1[name];
-    let n2 = requiredNamed2[name];
-    if (n1 === void 0) {
+  names = getOwnPropertyNames(requiredNamed2);
+  namesLength = JS<int>('!', '#.length', names);
+  for (var i = 0; i < namesLength; ++i) {
+    var name = JS('!', '#[#]', names, i);
+    var n1 = JS('!', '#[#] || #[#]', named1, name, requiredNamed1, name);
+    var n2 = JS('!', '#[#]', requiredNamed2, name);
+    if (JS<bool>('!', '# === void 0', n1)) {
       return false;
     }
-    if (!$_isSubtype(n2, n1, strictMode)) {
+    if (!_isSubtype(n2, n1, strictMode)) {
       return false;
     }
   }
 
-  return $_isSubtype(ret1, ret2, strictMode);
-})()''');
+  return _isSubtype(ret1, ret2, strictMode);
+}
 
 /// Number of generic function type variables encountered so far during a
 /// subtype check.
@@ -1603,7 +1613,8 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
   }
 
   // Handle non-generic functions.
-  return _isFunctionSubtype(t1, t2, strictMode);
+  return _isFunctionSubtype(JS<FunctionType>('!', '#', t1),
+      JS<FunctionType>('!', '#', t2), strictMode);
 }
 
 @notNull

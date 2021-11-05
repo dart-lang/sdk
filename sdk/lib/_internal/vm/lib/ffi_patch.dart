@@ -313,6 +313,15 @@ external void _storeDoubleUnaligned(
 external void _storePointer<S extends NativeType>(
     Object typedDataBase, int offsetInBytes, Pointer<S> value);
 
+bool _loadBool(Object typedDataBase, int offsetInBytes) =>
+    _loadUint8(typedDataBase, offsetInBytes) != 0;
+
+void _storeBool(Object typedDataBase, int offsetInBytes, bool value) =>
+    _storeUint8(typedDataBase, offsetInBytes, value ? 1 : 0);
+
+Pointer<Bool> _elementAtBool(Pointer<Bool> pointer, int index) =>
+    Pointer.fromAddress(pointer.address + 1 * index);
+
 Pointer<Int8> _elementAtInt8(Pointer<Int8> pointer, int index) =>
     Pointer.fromAddress(pointer.address + 1 * index);
 
@@ -548,6 +557,20 @@ extension DoublePointer on Pointer<Double> {
   Float64List asTypedList(int elements) => _asExternalTypedData(this, elements);
 }
 
+extension BoolPointer on Pointer<Bool> {
+  @patch
+  bool get value => _loadBool(this, 0);
+
+  @patch
+  set value(bool value) => _storeBool(this, 0, value);
+
+  @patch
+  bool operator [](int index) => _loadBool(this, index);
+
+  @patch
+  operator []=(int index, bool value) => _storeBool(this, index, value);
+}
+
 extension Int8Array on Array<Int8> {
   @patch
   int operator [](int index) {
@@ -699,6 +722,20 @@ extension DoubleArray on Array<Double> {
   operator []=(int index, double value) {
     _checkIndex(index);
     return _storeDouble(_typedDataBase, 8 * index, value);
+  }
+}
+
+extension BoolArray on Array<Bool> {
+  @patch
+  bool operator [](int index) {
+    _checkIndex(index);
+    return _loadBool(_typedDataBase, index);
+  }
+
+  @patch
+  operator []=(int index, bool value) {
+    _checkIndex(index);
+    return _storeBool(_typedDataBase, index, value);
   }
 }
 

@@ -60,12 +60,14 @@ class Zone {
   char* PrintToString(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   char* VPrint(const char* format, va_list args);
 
-  // Compute the total size of this zone. This includes wasted space that is
-  // due to internal fragmentation in the segments.
+  // Compute the total size of allocations in this zone.
   uintptr_t SizeInBytes() const;
 
-  // Computes the amount of space used in the zone.
+  // Computes the amount of space used by the zone.
   uintptr_t CapacityInBytes() const;
+
+  // Dump the current allocated sizes in the zone object.
+  void Print() const;
 
   // Structure for managing handles allocation.
   VMHandles* handles() { return &handles_; }
@@ -95,7 +97,7 @@ class Zone {
   ~Zone();  // Delete all memory associated with the zone.
 
   // Default initial chunk size.
-  static const intptr_t kInitialChunkSize = 1 * KB;
+  static const intptr_t kInitialChunkSize = 128;
 
   // Default segment size.
   static const intptr_t kSegmentSize = 64 * KB;
@@ -119,7 +121,7 @@ class Zone {
   void Link(Zone* current_zone) { previous_ = current_zone; }
 
   // Delete all objects and free all memory allocated in the zone.
-  void DeleteAll();
+  void Reset();
 
   // Does not actually free any memory. Enables templated containers like
   // BaseGrowableArray to use different allocators.
@@ -133,9 +135,6 @@ class Zone {
     }
 #endif
   }
-
-  // Dump the current allocated sizes in the zone object.
-  void DumpZoneSizes();
 
   // Overflow check (FATAL) for array length.
   template <class ElementType>
@@ -152,14 +151,14 @@ class Zone {
   // implementation is in zone.cc.
   class Segment;
 
+  // Total size of all allocations in this zone.
+  intptr_t size_ = 0;
+
   // Total size of all segments in [head_].
   intptr_t small_segment_capacity_ = 0;
 
-  // The current head segment; may be NULL.
-  Segment* head_;
-
-  // List of large segments allocated in this zone; may be NULL.
-  Segment* large_segments_;
+  // List of all segments allocated in this zone; may be NULL.
+  Segment* segments_;
 
   // Used for chaining zones in order to allow unwinding of stacks.
   Zone* previous_;
@@ -243,6 +242,7 @@ inline uword Zone::AllocUnsafe(intptr_t size) {
   if (free_size >= size) {
     result = position_;
     position_ += size;
+    size_ += size;
   } else {
     result = AllocateExpand(size);
   }
@@ -284,6 +284,7 @@ inline ElementType* Zone::Realloc(ElementType* old_data,
       if (new_end <= limit_) {
         ASSERT(new_len >= old_len);
         position_ = Utils::RoundUp(new_end, kAlignment);
+        size_ += (new_end - old_end);
         return old_data;
       }
     }

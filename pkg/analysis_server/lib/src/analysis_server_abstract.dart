@@ -253,7 +253,6 @@ abstract class AbstractAnalysisServer {
     extensionForContext.clear();
     for (var driver in driverMap.values) {
       declarationsTracker?.addContext(driver.analysisContext!);
-      driver.resetUriResolution();
     }
   }
 
@@ -332,7 +331,7 @@ abstract class AbstractAnalysisServer {
         return null;
       }
 
-      var unitElementResult = await driver.getUnitElement2(file);
+      var unitElementResult = await driver.getUnitElement(file);
       if (unitElementResult is! UnitElementResult) {
         return null;
       }
@@ -415,11 +414,10 @@ abstract class AbstractAnalysisServer {
     }
 
     return driver
-        .getResult2(path, sendCachedToStream: sendCachedToStream)
+        .getResult(path, sendCachedToStream: sendCachedToStream)
         .then((value) => value is ResolvedUnitResult ? value : null)
         .catchError((e, st) {
       instrumentationService.logException(e, st);
-      // ignore: invalid_return_type_for_catch_error
       return null;
     });
   }
@@ -461,9 +459,7 @@ abstract class AbstractAnalysisServer {
   /// Read all files, resolve all URIs, and perform required analysis in
   /// all current analysis drivers.
   void reanalyze() {
-    for (var driver in driverMap.values) {
-      driver.resetUriResolution();
-    }
+    contextManager.refresh();
   }
 
   /// Sends an error notification to the user.

@@ -7,6 +7,10 @@
 /// but don't share memory,
 /// communicating only via messages.
 ///
+/// *NOTE*: The `dart:isolate` library is currently only supported by the
+/// [Dart Native](https://dart.dev/overview#platform) platform.
+
+///
 /// To use this library in your code:
 /// ```dart
 /// import 'dart:isolate';
@@ -556,11 +560,12 @@ class Isolate {
 
   /// Terminates the current isolate synchronously.
   ///
-  /// This operations is potentially dangerous and should be used judiciously.
-  /// The isolate stops operating *immediately*. It throws if optional [message]
-  /// does not adhere to the limitation on what can be send from one isolate to
-  /// another. It also throws if a [finalMessagePort] is associated with an
-  /// isolate spawned outside of current isolate group, spawned via [spawnUri].
+  /// This operation is potentially dangerous and should be used judiciously.
+  /// The isolate stops operating *immediately*. It throws if the optional
+  /// [message] does not adhere to the limitations on what can be sent from one
+  /// isolate to another. It also throws if a [finalMessagePort] is associated
+  /// with an isolate spawned outside of current isolate group, spawned via
+  /// [spawnUri].
   ///
   /// If successful, a call to this method does not return. Pending `finally`
   /// blocks are not executed, control flow will not go back to the event loop,
@@ -574,10 +579,13 @@ class Isolate {
   /// the current isolate. The isolate terminates immediately after
   /// that [SendPort.send] call returns.
   ///
-  /// (If the port is a native port, one provided by [ReceivePort.sendPort]
-  /// or [RawReceivePort.sendPort], the system may be able to send this final
+  /// If the port is a native port -- one provided by [ReceivePort.sendPort] or
+  /// [RawReceivePort.sendPort] -- the system may be able to send this final
   /// message more efficiently than normal port communication between live
-  /// isolates.)
+  /// isolates. In these cases this final message object graph will be
+  /// reassigned to the receiving isolate without copying. Further, the
+  /// receiving isolate will in most cases be able to receive the message
+  /// in constant time.
   external static Never exit([SendPort? finalMessagePort, Object? message]);
 }
 
@@ -607,9 +615,7 @@ abstract class SendPort implements Capability {
   /// In the special circumstances when two isolates share the same code and are
   /// running in the same process (e.g. isolates created via [Isolate.spawn]),
   /// it is also possible to send object instances (which would be copied in the
-  /// process). This is currently only supported by the
-  /// [Dart Native](https://dart.dev/platforms#dart-native-vm-jit-and-aot)
-  /// platform.
+  /// process).
   ///
   /// The send happens immediately and doesn't block.  The corresponding receive
   /// port can receive the message as soon as its isolate's event loop is ready

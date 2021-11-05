@@ -358,7 +358,7 @@ Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
   return str;
 }
 
-Dart_Handle DartUtils::MakeUint8Array(const uint8_t* buffer, intptr_t len) {
+Dart_Handle DartUtils::MakeUint8Array(const void* buffer, intptr_t len) {
   Dart_Handle array = Dart_NewTypedData(Dart_TypedData_kUint8, len);
   RETURN_IF_ERROR(array);
   {

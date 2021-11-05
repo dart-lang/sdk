@@ -20,7 +20,7 @@ class bool {
   /// the result is the [defaultValue].
   ///
   /// The result is the same as would be returned by:
-  /// ```dart
+  /// ```dart template:expression
   /// (const String.fromEnvironment(name) == "true")
   ///     ? true
   ///     : (const String.fromEnvironment(name) == "false")

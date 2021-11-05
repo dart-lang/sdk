@@ -1795,6 +1795,9 @@ class EquivalenceStrategy {
     if (!checkProcedure_stubTargetReference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkProcedure_signatureType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkProcedure_fileEndOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -5145,6 +5148,12 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, Procedure node, Procedure other) {
     return visitor.checkReferences(node.stubTargetReference,
         other.stubTargetReference, 'stubTargetReference');
+  }
+
+  bool checkProcedure_signatureType(
+      EquivalenceVisitor visitor, Procedure node, Procedure other) {
+    return visitor.checkNodes(
+        node.signatureType, other.signatureType, 'signatureType');
   }
 
   bool checkProcedure_fileEndOffset(

@@ -530,7 +530,7 @@ Future expectNotNull(String code, String expectedNotNull) async {
 /// Given the Dart [code], expects all the expressions inferred to be not-null.
 Future expectAllNotNull(String code) async {
   code = '// @dart = 2.9\n$code';
-  var result = (await kernelCompile(code));
+  var result = await kernelCompile(code);
   result.component.accept(ExpectAllNotNull(result.librariesFromDill));
 }
 

@@ -11,3 +11,8 @@ class Class extends core::Object {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory.dart:8:7 -> ConstructorTearOffConstant(Class.redirect)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

@@ -34,7 +34,7 @@ import "dart:core" as core;
 typedef F<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = mai::A<Y%>;
 typedef G<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = mai::A<Y%>;
 class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[mai::A::redirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor •() → mai::A<mai::A::T%>
     ;
   constructor named(mai::A::T% a, [core::int? b]) → mai::A<mai::A::T%>
@@ -76,3 +76,7 @@ static method _#G#fact#tearOff<unrelated X extends core::Object? = dynamic, Y ex
   return mai::A::fact<mai::_#G#fact#tearOff::Y%>(a, b: b, c: c);
 static method _#G#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<mai::_#G#redirect#tearOff::Y%>
   return mai::A::_#redirect#tearOff<mai::_#G#redirect#tearOff::Y%>();
+
+constants  {
+  #C1 = constructor-tearoff mai::A::redirect
+}

@@ -57,7 +57,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   Future<SomeErrorsResult> getErrors(String path) {
     _checkConsistency();
-    return _driver.getErrors2(path);
+    return _driver.getErrors(path);
   }
 
   @Deprecated('Use getErrors() instead')
@@ -69,7 +69,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   SomeFileResult getFile(String path) {
     _checkConsistency();
-    return _driver.getFileSync2(path);
+    return _driver.getFileSync(path);
   }
 
   @Deprecated('Use getFile() instead')
@@ -81,7 +81,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   Future<SomeLibraryElementResult> getLibraryByUri(String uri) {
     _checkConsistency();
-    return _driver.getLibraryByUri2(uri);
+    return _driver.getLibraryByUri(uri);
   }
 
   @Deprecated('Use getLibraryByUri() instead')
@@ -93,7 +93,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   SomeParsedLibraryResult getParsedLibrary(String path) {
     _checkConsistency();
-    return _driver.getParsedLibrary2(path);
+    return _driver.getParsedLibrary(path);
   }
 
   @Deprecated('Use getParsedLibrary() instead')
@@ -110,7 +110,7 @@ class AnalysisSessionImpl implements AnalysisSession {
       return NotElementOfThisSessionResult();
     }
 
-    return _driver.getParsedLibraryByUri2(element.source.uri);
+    return _driver.getParsedLibraryByUri(element.source.uri);
   }
 
   @Deprecated('Use getParsedLibraryByElement() instead')
@@ -122,7 +122,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   SomeParsedUnitResult getParsedUnit(String path) {
     _checkConsistency();
-    return _driver.parseFileSync2(path);
+    return _driver.parseFileSync(path);
   }
 
   @Deprecated('Use getParsedUnit() instead')
@@ -134,7 +134,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) {
     _checkConsistency();
-    return _driver.getResolvedLibrary2(path);
+    return _driver.getResolvedLibrary(path);
   }
 
   @Deprecated('Use getResolvedLibrary() instead')
@@ -155,7 +155,7 @@ class AnalysisSessionImpl implements AnalysisSession {
       );
     }
 
-    return _driver.getResolvedLibraryByUri2(element.source.uri);
+    return _driver.getResolvedLibraryByUri(element.source.uri);
   }
 
   @Deprecated('Use getResolvedLibraryByElement() instead')
@@ -169,7 +169,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   Future<SomeResolvedUnitResult> getResolvedUnit(String path) {
     _checkConsistency();
-    return _driver.getResult2(path);
+    return _driver.getResult(path);
   }
 
   @Deprecated('Use getResolvedUnit() instead')
@@ -181,7 +181,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   @override
   Future<SomeUnitElementResult> getUnitElement(String path) {
     _checkConsistency();
-    return _driver.getUnitElement2(path);
+    return _driver.getUnitElement(path);
   }
 
   @Deprecated('Use getUnitElement() instead')

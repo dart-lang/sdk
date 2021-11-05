@@ -50,7 +50,7 @@ class P<T extends core::Object> extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class CP<T extends core::Object> extends opt::P<opt::CP::T> /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[opt::CP::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C7]/*isLegacy*/;
   const constructor _(core::Object token) → opt::CP<opt::CP::T>
     : super opt::P::_(token)
     ;
@@ -63,7 +63,7 @@ class Token<T extends core::Object> extends core::Object /*hasConstConstructor*/
     ;
 }
 class VP<T extends core::Object> extends opt::P<opt::VP::T> /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[opt::VP::forToken]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C8]/*isLegacy*/;
   const constructor _(core::Object token, opt::VP::T useValue) → opt::VP<opt::VP::T>
     : super opt::P::_(token)
     ;
@@ -72,7 +72,7 @@ class VP<T extends core::Object> extends opt::P<opt::VP::T> /*hasConstConstructo
 }
 class M extends core::Object /*hasConstConstructor*/  {
   final field core::List<opt::P<core::Object>> list;
-  const constructor •({core::List<opt::P<core::Object>> list = #C7}) → opt::M
+  const constructor •({core::List<opt::P<core::Object>> list = #C9}) → opt::M
     : opt::M::list = list, super core::Object::•()
     ;
 }
@@ -84,7 +84,9 @@ constants  {
   #C4 = opt::VP<core::Object*> {token:#C3}
   #C5 = <opt::P<core::Object*>*>[#C2, #C4]
   #C6 = opt::M {list:#C5}
-  #C7 = <opt::P<core::Object*>*>[]
+  #C7 = constructor-tearoff opt::CP::•
+  #C8 = constructor-tearoff opt::VP::forToken
+  #C9 = <opt::P<core::Object*>*>[]
 }
 
 

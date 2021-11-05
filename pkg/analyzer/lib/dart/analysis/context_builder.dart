@@ -21,7 +21,7 @@ abstract class ContextBuilder {
   /// Return an analysis context corresponding to the given [contextRoot].
   ///
   /// If a set of [declaredVariables] is provided, the values will be used to
-  /// map the the variable names found in `fromEnvironment` invocations to the
+  /// map the variable names found in `fromEnvironment` invocations to the
   /// constant value that will be returned. If none is given, then no variables
   /// will be defined.
   ///

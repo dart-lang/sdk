@@ -161,6 +161,13 @@ class BufferedSink {
     writeUint8List(bytes as Uint8List);
   }
 
+  void writeStringUtf8Iterable(Iterable<String> items) {
+    writeUInt30(items.length);
+    for (var item in items) {
+      writeStringUtf8(item);
+    }
+  }
+
   @pragma("vm:prefer-inline")
   void writeUInt30(int value) {
     assert(value >= 0 && value >> 30 == 0);

@@ -51,6 +51,9 @@
     "Dynamic access of 'isForwarding'.": 1,
     "Dynamic access of 'forwardTo'.": 1
   },
+  "pkg/compiler/lib/src/serialization/binary_sink.dart": {
+    "Dynamic access of 'index'.": 1
+  },
   "pkg/compiler/lib/src/helpers/expensive_map.dart": {
     "Dynamic access of 'length'.": 1,
     "Dynamic access of 'isEmpty'.": 1,
@@ -89,9 +92,6 @@
     "Dynamic invocation of '-'.": 1,
     "Dynamic invocation of '+'.": 1
   },
-  "pkg/compiler/lib/src/serialization/binary_sink.dart": {
-    "Dynamic access of 'index'.": 1
-  },
   "pkg/compiler/lib/src/util/enumset.dart": {
     "Dynamic access of 'index'.": 4
   },
@@ -115,7 +115,7 @@
     "Dynamic invocation of 'codeUnitAt'.": 1
   },
   "pkg/dart2js_info/lib/json_info_codec.dart": {
-    "Dynamic invocation of '[]'.": 11,
+    "Dynamic invocation of '[]'.": 12,
     "Dynamic invocation of 'forEach'.": 2,
     "Dynamic invocation of 'map'.": 2,
     "Dynamic invocation of 'compareTo'.": 1

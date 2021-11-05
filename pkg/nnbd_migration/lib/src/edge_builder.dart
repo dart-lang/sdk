@@ -1966,7 +1966,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (!declaredElement.isStatic && enclosingElement is ClassElement) {
         var overriddenElements = _inheritanceManager.getOverridden2(
             enclosingElement,
-            Name(enclosingElement.library.source.uri, declaredElement.name!));
+            Name(enclosingElement.library.source.uri, declaredElement.name));
         for (var overriddenElement
             in overriddenElements ?? <ExecutableElement>[]) {
           _handleFieldOverriddenDeclaration(
@@ -1976,7 +1976,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           var overriddenElements = _inheritanceManager.getOverridden2(
               enclosingElement,
               Name(enclosingElement.library.source.uri,
-                  declaredElement.name! + '='));
+                  declaredElement.name + '='));
           for (var overriddenElement
               in overriddenElements ?? <ExecutableElement>[]) {
             _handleFieldOverriddenDeclaration(

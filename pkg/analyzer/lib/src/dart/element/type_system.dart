@@ -312,8 +312,12 @@ class TypeSystemImpl implements TypeSystem {
         .toList();
   }
 
-  /// Given a type t, if t is an interface type with a call method defined,
-  /// return the function type for the call method, otherwise return null.
+  /// Given a type [t], if [t] is an interface type with a `call` method
+  /// defined, return the function type for the `call` method, otherwise return
+  /// `null`.
+  ///
+  /// This does not find extension methods (which are not defined on an
+  /// interface type); it is meant to find implicit call references.
   FunctionType? getCallMethodType(DartType t) {
     if (t is InterfaceType) {
       return t
@@ -685,7 +689,7 @@ class TypeSystemImpl implements TypeSystem {
       return true;
     }
 
-    // A call method tearoff
+    // A 'call' method tearoff.
     if (fromType is InterfaceType &&
         !isNullable(fromType) &&
         acceptsFunctionType(toType)) {

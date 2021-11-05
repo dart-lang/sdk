@@ -88,6 +88,7 @@ class InSummarySource extends BasicSource {
 /// The [UriResolver] that knows about sources that are served from their
 /// summaries.
 class InSummaryUriResolver extends UriResolver {
+  /// TODO(scheglov) Remove it, we don't need it.
   ResourceProvider? resourceProvider;
   final SummaryDataStore _dataStore;
 
@@ -162,7 +163,7 @@ class SummaryDataStore {
     Uint8List bytes;
     if (resourceProvider != null) {
       var file = resourceProvider.getFile(path);
-      bytes = file.readAsBytesSync() as Uint8List;
+      bytes = file.readAsBytesSync();
     } else {
       io.File file = io.File(path);
       bytes = file.readAsBytesSync();

@@ -3134,7 +3134,7 @@ class UriData {
   /// That is always either -1 or 4, depending on whether `_text` includes the
   /// `data:` scheme or not.
   ///
-  /// The first speparator ends the mime type. We don't bother with finding
+  /// The first separator ends the mime type. We don't bother with finding
   /// the '/' inside the mime type.
   ///
   /// Each two separators after that marks a parameter key and value.
@@ -3390,7 +3390,7 @@ class UriData {
   /// If the value contain non-ASCII percent escapes, they are decoded as UTF-8.
   ///
   /// Example:
-  /// ```dart
+  /// ```
   /// data:text/plain;charset=utf-8,Hello%20World!
   /// ```
   /// This data URI has the media type `text/plain;charset=utf-8`, which is the

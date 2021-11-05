@@ -1208,6 +1208,11 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (features.isNotEmpty) {
       writeWord("/*${features.join(',')}*/");
     }
+    if (node.signatureType != null) {
+      writeWord('/* signature-type:');
+      writeType(node.signatureType!);
+      writeWord('*/');
+    }
     switch (node.stubKind) {
       case ProcedureStubKind.Regular:
       case ProcedureStubKind.AbstractForwardingStub:
@@ -2844,12 +2849,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSpaced('=');
     writeWord('instantiation');
     writeSpace();
-    Constant tearOffConstant = node.tearOffConstant;
-    if (tearOffConstant is TearOffConstant) {
-      writeMemberReferenceFromReference(tearOffConstant.targetReference);
-    } else {
-      writeConstantReference(tearOffConstant);
-    }
+    writeConstantReference(node.tearOffConstant);
     writeSpace();
     writeSymbol('<');
     writeList(node.types, writeType);

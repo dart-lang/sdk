@@ -8,8 +8,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:pedantic/pedantic.dart';
-
 /// An HTTP client wrapper that times out connections and requests and
 /// automatically retries failing requests.
 class RetryTimeoutClient {

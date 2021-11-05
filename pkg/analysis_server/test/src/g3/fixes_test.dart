@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/g3/fixes.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:linter/src/rules.dart';
@@ -18,9 +19,14 @@ void main() {
 
 @reflectiveTest
 class G3FixesTest with ResourceProviderMixin {
+  Folder get sdkRoot => newFolder('/sdk');
+
   void setUp() {
     registerLintRules();
-    MockSdk(resourceProvider: resourceProvider);
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
   }
 
   Future<void> test_awaitOnlyFutures() async {
@@ -126,7 +132,7 @@ class C {
 
     var tester = LintFixTester(
       resourceProvider: resourceProvider,
-      sdkPath: convertPath(sdkRoot),
+      sdkPath: sdkRoot.path,
       packageConfigPath: null,
     );
 
@@ -157,7 +163,7 @@ class C {
 
     var tester = LintFixTester(
       resourceProvider: resourceProvider,
-      sdkPath: convertPath(sdkRoot),
+      sdkPath: sdkRoot.path,
       packageConfigPath: null,
     );
 

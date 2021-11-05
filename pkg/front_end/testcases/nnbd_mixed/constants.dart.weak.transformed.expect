@@ -82,7 +82,7 @@ static method id<T extends core::Object* = dynamic>(con::id::T* t) → con::id::
 
 constants  {
   #C1 = static-tearoff con::id
-  #C2 = instantiation con::id <core::int*>
+  #C2 = instantiation #C1 <core::int*>
   #C3 = 0
   #C4 = con::Class<core::int*> {field:#C3}
   #C5 = <core::int*>[#C3]

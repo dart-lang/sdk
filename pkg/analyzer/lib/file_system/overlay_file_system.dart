@@ -189,7 +189,7 @@ class _OverlayFile extends _OverlayResource implements File {
   }
 
   @override
-  List<int> readAsBytesSync() {
+  Uint8List readAsBytesSync() {
     String? content = provider._getOverlayContent(path);
     if (content != null) {
       return utf8.encode(content) as Uint8List;

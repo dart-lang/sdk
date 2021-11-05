@@ -35,3 +35,9 @@ static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 static method throws(() → dynamic f, {core::bool inSoundModeOnly}) → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values.dart:12:7 -> ConstructorTearOffConstant(Class1.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values.dart:19:7 -> ConstructorTearOffConstant(Class2.)
+Extra constant evaluation: evaluated: 16, effectively constant: 2

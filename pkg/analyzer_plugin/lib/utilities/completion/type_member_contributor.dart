@@ -54,30 +54,7 @@ class TypeMemberContributor implements CompletionContributor {
       DartCompletionRequest request, AstNode? entryPoint) {
     var target = CompletionTarget.forOffset(request.result.unit, request.offset,
         entryPoint: entryPoint);
-    var node = target.containingNode;
-    if (node is MethodInvocation) {
-      if (identical(node.methodName, target.entity)) {
-        return node.realTarget;
-      } else if (node.isCascaded) {
-        var operator = node.operator;
-        if (operator != null && operator.offset + 1 == target.offset) {
-          return node.realTarget;
-        }
-      }
-    }
-    if (node is PropertyAccess) {
-      if (identical(node.propertyName, target.entity)) {
-        return node.realTarget;
-      } else if (node.isCascaded && node.operator.offset + 1 == target.offset) {
-        return node.realTarget;
-      }
-    }
-    if (node is PrefixedIdentifier) {
-      if (identical(node.identifier, target.entity)) {
-        return node.prefix;
-      }
-    }
-    return null;
+    return target.dotTarget;
   }
 
   void _computeSuggestions(

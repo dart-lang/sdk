@@ -142,7 +142,7 @@ class NavigationTarget extends NavigationRegion {
       : super(offset, line, length);
 
   @override
-  int get hashCode => Object.hash(filePath.hashCode, offset, length);
+  int get hashCode => Object.hash(filePath, offset, length);
 
   @override
   bool operator ==(Object other) {

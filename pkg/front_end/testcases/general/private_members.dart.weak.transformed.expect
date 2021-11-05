@@ -13,7 +13,7 @@ abstract class _AbstractClass extends core::Object { // from org-dartlang-testca
 class _Class extends core::Object { // from org-dartlang-testcase:///private_members_part.dart
   field core::int _privateField = 1;
   field core::int _privateFinalField = 1;
-  static final field dynamic _redirecting# = <dynamic>[self::_Class::_privateRedirectingFactory]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor _privateConstructor() → self::_Class
     : super core::Object::•()
     ;
@@ -56,3 +56,7 @@ static method /* from org-dartlang-testcase:///private_members_part.dart */ _Ext
 static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|get#_privateGetter(lowered final core::int #this) → core::int
   return 42;
 static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|set#_privateSetter(lowered final core::int #this, core::int value) → void {}
+
+constants  {
+  #C1 = constructor-tearoff self::_Class::_privateRedirectingFactory
+}

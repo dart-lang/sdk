@@ -1,0 +1,190 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/implicit_super_call.dart:67:5: Error: Cannot invoke `super` because it declares 'call' to be something other than a method.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+//     super(0); // error
+//     ^
+//
+// pkg/front_end/testcases/general/implicit_super_call.dart:81:5: Error: Cannot invoke `super` because it declares 'call' to be something other than a method.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+//     super(0); // error
+//     ^
+//
+// pkg/front_end/testcases/general/implicit_super_call.dart:95:5: Error: Superclass has no method named 'call'.
+//     super(0); // error
+//     ^^^^
+//
+// pkg/front_end/testcases/general/implicit_super_call.dart:96:11: Error: Superclass has no method named 'call'.
+//     super.call(0); // error
+//           ^^^^
+//
+// pkg/front_end/testcases/general/implicit_super_call.dart:104:5: Error: Superclass has no method named 'call'.
+//     super(); // error
+//     ^^^^
+//
+// pkg/front_end/testcases/general/implicit_super_call.dart:105:11: Error: Superclass has no method named 'call'.
+//     super.call(); // error
+//           ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super1 extends core::Object {
+  synthetic constructor •() → self::Super1
+    : super core::Object::•()
+    ;
+  method call() → void {}
+}
+class Class1 extends self::Super1 {
+  synthetic constructor •() → self::Class1
+    : super self::Super1::•()
+    ;
+  method method() → void {
+    super.{self::Super1::call}();
+    super.{self::Super1::call}();
+  }
+}
+class Super2 extends core::Object {
+  synthetic constructor •() → self::Super2
+    : super core::Object::•()
+    ;
+  method call(core::int a, [core::int? b = #C1]) → core::int
+    return a;
+}
+class Class2 extends self::Super2 {
+  synthetic constructor •() → self::Class2
+    : super self::Super2::•()
+    ;
+  method method() → void {
+    super.{self::Super2::call}(0);
+    super.{self::Super2::call}(0, 1);
+    super.{self::Super2::call}(0);
+    super.{self::Super2::call}(0, 1);
+  }
+}
+class Super3 extends core::Object {
+  synthetic constructor •() → self::Super3
+    : super core::Object::•()
+    ;
+  method call(core::int a, {core::int? b = #C1, core::int? c = #C1}) → core::int
+    return a;
+}
+class Class3 extends self::Super3 {
+  synthetic constructor •() → self::Class3
+    : super self::Super3::•()
+    ;
+  method method() → void {
+    super.{self::Super3::call}(0);
+    super.{self::Super3::call}(0, b: 1);
+    super.{self::Super3::call}(0, c: 1);
+    super.{self::Super3::call}(0, b: 1, c: 2);
+    super.{self::Super3::call}(0, c: 1, b: 2);
+    super.{self::Super3::call}(0);
+    super.{self::Super3::call}(0, b: 1);
+    super.{self::Super3::call}(0, c: 1);
+    super.{self::Super3::call}(0, b: 1, c: 2);
+    super.{self::Super3::call}(0, c: 1, b: 2);
+  }
+}
+class Super4 extends core::Object {
+  synthetic constructor •() → self::Super4
+    : super core::Object::•()
+    ;
+  method call<T extends core::Object? = dynamic>(self::Super4::call::T% a) → self::Super4::call::T%
+    return a;
+}
+class Class4 extends self::Super4 {
+  synthetic constructor •() → self::Class4
+    : super self::Super4::•()
+    ;
+  method method() → void {
+    super.{self::Super4::call}<core::int>(0);
+    super.{self::Super4::call}<core::int>(0);
+    super.{self::Super4::call}<core::int>(0);
+    super.{self::Super4::call}<core::int>(0);
+  }
+}
+class Super5 extends core::Object {
+  synthetic constructor •() → self::Super5
+    : super core::Object::•()
+    ;
+  get call() → (core::int) → core::int
+    return (core::int a) → core::int => a;
+}
+class Class5 extends self::Super5 {
+  synthetic constructor •() → self::Class5
+    : super self::Super5::•()
+    ;
+  method test() → void {
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:67:5: Error: Cannot invoke `super` because it declares 'call' to be something other than a method.
+Try changing 'call' to a method or explicitly invoke 'call'.
+    super(0); // error
+    ^";
+  }
+  method method() → void {
+    super.{self::Super5::call}(0){(core::int) → core::int};
+  }
+}
+class Super6 extends core::Object {
+  field (core::int) → core::int call = (core::int a) → core::int => a;
+  synthetic constructor •() → self::Super6
+    : super core::Object::•()
+    ;
+}
+class Class6 extends self::Super6 {
+  synthetic constructor •() → self::Class6
+    : super self::Super6::•()
+    ;
+  method test() → void {
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:81:5: Error: Cannot invoke `super` because it declares 'call' to be something other than a method.
+Try changing 'call' to a method or explicitly invoke 'call'.
+    super(0); // error
+    ^";
+  }
+  method method() → void {
+    super.{self::Super6::call}(0){(core::int) → core::int};
+  }
+}
+class Super7 extends core::Object {
+  synthetic constructor •() → self::Super7
+    : super core::Object::•()
+    ;
+  set call((core::int) → core::int value) → void {}
+}
+class Class7 extends self::Super7 {
+  synthetic constructor •() → self::Class7
+    : super self::Super7::•()
+    ;
+  method test() → void {
+    super.call(0);
+    super.call(0);
+  }
+}
+class Super8 extends core::Object {
+  synthetic constructor •() → self::Super8
+    : super core::Object::•()
+    ;
+}
+class Class8 extends self::Super8 {
+  synthetic constructor •() → self::Class8
+    : super self::Super8::•()
+    ;
+  method test() → void {
+    super.call();
+    super.call();
+  }
+}
+static method main() → dynamic {
+  new self::Class1::•().{self::Class1::method}(){() → void};
+  new self::Class2::•().{self::Class2::method}(){() → void};
+  new self::Class3::•().{self::Class3::method}(){() → void};
+  new self::Class4::•().{self::Class4::method}(){() → void};
+  new self::Class5::•().{self::Class5::method}(){() → void};
+  new self::Class6::•().{self::Class6::method}(){() → void};
+}
+
+constants  {
+  #C1 = null
+}

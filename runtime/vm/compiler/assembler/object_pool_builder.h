@@ -29,7 +29,14 @@ struct ObjectPoolBuilderEntry {
     kTaggedObject,
     kImmediate,
     kNativeFunction,
-    kNativeFunctionWrapper,
+
+    // Used only during AOT snapshot serialization/deserialization.
+    // Denotes kImmediate entry with
+    //  - StubCode::SwitchableCallMiss().MonomorphicEntryPoint()
+    //  - StubCode::MegamorphicCall().MonomorphicEntryPoint()
+    // values which become known only at run time.
+    kSwitchableCallMissEntryPoint,
+    kMegamorphicCallEntryPoint,
   };
 
   using TypeBits = BitField<uint8_t, EntryType, 0, 7>;
@@ -158,9 +165,6 @@ class ObjectPoolBuilder : public ValueObject {
   intptr_t FindImmediate(uword imm);
   intptr_t FindNativeFunction(const ExternalLabel* label,
                               ObjectPoolBuilderEntry::Patchability patchable);
-  intptr_t FindNativeFunctionWrapper(
-      const ExternalLabel* label,
-      ObjectPoolBuilderEntry::Patchability patchable);
 
   intptr_t CurrentLength() const {
     return object_pool_.length() + used_from_parent_.length();

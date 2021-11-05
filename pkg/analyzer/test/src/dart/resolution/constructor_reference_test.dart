@@ -245,13 +245,39 @@ void bar() {
 }
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 52,
-          5),
+          5,
+          messageContains: ["The constructor 'A.foo'"]),
     ]);
 
     var classElement = findElement.class_('A');
     assertConstructorReference(
       findNode.constructorReference('A<int>.foo<int>;'),
       elementMatcher(classElement.getNamedConstructor('foo')!,
+          substitution: {'T': 'int'}),
+      classElement,
+      'A<int> Function()',
+    );
+  }
+
+  test_class_generic_new_typeArgs() async {
+    await assertErrorsInCode('''
+class A<T> {
+  A.new();
+}
+
+void bar() {
+  A<int>.new<int>;
+}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 52,
+          5,
+          messageContains: ["The constructor 'A.new'"]),
+    ]);
+
+    var classElement = findElement.class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('A<int>.new<int>;'),
+      elementMatcher(classElement.unnamedConstructor!,
           substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
@@ -275,6 +301,28 @@ void bar() {
     var classElement = findElement.class_('A');
     assertConstructorReference(
       findNode.constructorReference('A<int>.i;'),
+      null,
+      classElement,
+      'dynamic',
+    );
+  }
+
+  test_class_generic_nothing_hasNamedConstructor() async {
+    await assertErrorsInCode('''
+class A<T> {
+  A.foo();
+}
+
+void bar() {
+  A<int>.;
+}
+''', [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 49, 1),
+    ]);
+
+    var classElement = findElement.class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('A<int>.;'),
       null,
       classElement,
       'dynamic',
@@ -562,7 +610,8 @@ A<String> Function() bar() {
   return A.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 41, 6),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 41, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 39, 9)]),
     ]);
 
     var classElement = findElement.class_('A');

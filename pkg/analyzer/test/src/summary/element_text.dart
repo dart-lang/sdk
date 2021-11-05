@@ -46,12 +46,14 @@ void checkElementText(
   LibraryElement library,
   String expected, {
   bool withCodeRanges = false,
+  bool withDisplayName = false,
   bool withExportScope = false,
   bool withNonSynthetic = false,
 }) {
   var writer = _ElementWriter(
     selfUriStr: '${library.source.uri}',
     withCodeRanges: withCodeRanges,
+    withDisplayName: withDisplayName,
     withExportScope: withExportScope,
     withNonSynthetic: withNonSynthetic,
   );
@@ -116,6 +118,7 @@ void checkElementText(
 class _ElementWriter {
   final String? selfUriStr;
   final bool withCodeRanges;
+  final bool withDisplayName;
   final bool withExportScope;
   final bool withNonSynthetic;
   final StringBuffer buffer = StringBuffer();
@@ -125,6 +128,7 @@ class _ElementWriter {
   _ElementWriter({
     this.selfUriStr,
     required this.withCodeRanges,
+    required this.withDisplayName,
     required this.withExportScope,
     required this.withNonSynthetic,
   });
@@ -364,6 +368,7 @@ class _ElementWriter {
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);
+      _writeDisplayName(e);
 
       var periodOffset = e.periodOffset;
       var nameEnd = e.nameEnd;
@@ -396,6 +401,12 @@ class _ElementWriter {
       expect(e.nonSynthetic, same(e.enclosingElement));
     } else {
       expect(e.nameOffset, isPositive);
+    }
+  }
+
+  void _writeDisplayName(Element e) {
+    if (withDisplayName) {
+      _writelnWithIndent('displayName: ${e.displayName}');
     }
   }
 
@@ -571,7 +582,8 @@ class _ElementWriter {
   }
 
   void _writeName(Element e) {
-    var name = e.displayName;
+    // TODO(scheglov) Use 'name' everywhere.
+    var name = e is ConstructorElement ? e.name : e.displayName;
     buffer.write(name);
     buffer.write(name.isNotEmpty ? ' @' : '@');
     buffer.write(e.nameOffset);
@@ -786,7 +798,6 @@ class _ElementWriter {
       // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
       // TODO(scheglov) Remove it when we stop providing it everywhere.
       if (aliasedType is FunctionType) {
-        // ignore: deprecated_member_use_from_same_package
         expect(aliasedType.element, isNull);
       }
 

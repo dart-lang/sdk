@@ -35,12 +35,13 @@
 /// The second is an instance of [LineSplitter],
 /// which splits the data on newline boundaries.
 /// ```dart import:io
+/// const showLineNumbers = true;
 /// var lineNumber = 1;
 /// var stream = File('quotes.txt').openRead();
 ///
 /// stream.transform(utf8.decoder)
 ///       .transform(const LineSplitter())
-///       .listen((line) {
+///       .forEach((line) {
 ///         if (showLineNumbers) {
 ///           stdout.write('${lineNumber++} ');
 ///         }

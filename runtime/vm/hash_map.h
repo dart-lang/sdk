@@ -359,20 +359,20 @@ class ZoneDirectChainedHashMap
 };
 
 template <typename T>
-class PointerKeyValueTrait {
+class PointerSetKeyValueTrait {
  public:
   typedef T* Value;
   typedef T* Key;
   typedef T* Pair;
 
   static Key KeyOf(Pair kv) { return kv; }
-
   static Value ValueOf(Pair kv) { return kv; }
-
   static inline uword Hash(Key key) { return key->Hash(); }
-
   static inline bool IsKeyEqual(Pair kv, Key key) { return kv->Equals(*key); }
 };
+
+template <typename T>
+using PointerSet = DirectChainedHashMap<PointerSetKeyValueTrait<T>>;
 
 template <typename T>
 class NumbersKeyValueTrait {
@@ -408,12 +408,14 @@ class RawPointerKeyValueTrait {
   static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
 };
 
-class CStringSetKeyValueTrait : public PointerKeyValueTrait<const char> {
+class CStringSetKeyValueTrait {
  public:
-  using Key = PointerKeyValueTrait<const char>::Key;
-  using Value = PointerKeyValueTrait<const char>::Value;
-  using Pair = PointerKeyValueTrait<const char>::Pair;
+  using Key = const char*;
+  using Value = const char*;
+  using Pair = const char*;
 
+  static Key KeyOf(Pair kv) { return kv; }
+  static Value ValueOf(Pair kv) { return kv; }
   static uword Hash(Key key) {
     ASSERT(key != nullptr);
     return Utils::StringHash(key, strlen(key));

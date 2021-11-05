@@ -161,7 +161,9 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
     FLAG_use_field_guards)                                                     \
   V(PRODUCT, should_load_vmservice_library, ShouldLoadVmService,               \
     load_vmservice_library, false)                                             \
-  V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)
+  V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
+  V(NONPRODUCT, snapshot_is_dontneed_safe, SnapshotIsDontNeedSafe,             \
+    snapshot_is_dontneed_safe, false)
 
 #define BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                               \
   V(PRODUCT, copy_parent_code, CopyParentCode, copy_parent_code, false)        \
@@ -786,7 +788,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   V(NullSafetySet)                                                             \
   V(Obfuscate)                                                                 \
   V(UseFieldGuards)                                                            \
-  V(UseOsr)
+  V(UseOsr)                                                                    \
+  V(SnapshotIsDontNeedSafe)
 
   // Isolate group specific flags.
   enum FlagBits {
@@ -1332,13 +1335,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
   void set_is_kernel_isolate(bool value) {
     UpdateIsolateFlagsBit<IsKernelIsolateBit>(value);
-  }
-
-  // Whether it's possible for unoptimized code to optimize immediately on entry
-  // (can happen with random or very low optimization counter thresholds)
-  bool CanOptimizeImmediately() const {
-    return FLAG_optimization_counter_threshold < 2 ||
-           FLAG_randomize_optimization_counter;
   }
 
   const DispatchTable* dispatch_table() const {

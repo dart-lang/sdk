@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show SuggestionBuilder;
 import 'package:analyzer/dart/element/element.dart';
@@ -151,9 +152,13 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
 /// the library in which the completion is requested but outside the file in
 /// which the completion is requested.
 class LocalLibraryContributor extends DartCompletionContributor {
+  LocalLibraryContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     if (!request.includeIdentifiers) {
       return;
     }

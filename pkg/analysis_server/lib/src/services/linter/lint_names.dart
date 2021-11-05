@@ -71,6 +71,7 @@ class LintNames {
   static const String prefer_const_literals_to_create_immutables =
       'prefer_const_literals_to_create_immutables';
   static const String prefer_contains = 'prefer_contains';
+  static const String prefer_double_quotes = 'prefer_double_quotes';
   static const String prefer_equal_for_default_values =
       'prefer_equal_for_default_values';
   static const String prefer_expression_function_bodies =
@@ -104,6 +105,7 @@ class LintNames {
   static const String prefer_typing_uninitialized_variables =
       'prefer_typing_uninitialized_variables';
   static const String prefer_void_to_null = 'prefer_void_to_null';
+  static const String require_trailing_commas = 'require_trailing_commas';
   static const String sized_box_for_whitespace = 'sized_box_for_whitespace';
   static const String slash_for_doc_comments = 'slash_for_doc_comments';
   static const String sort_child_properties_last = 'sort_child_properties_last';

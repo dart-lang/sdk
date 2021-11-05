@@ -36,6 +36,8 @@ class AbstractContextTest with ResourceProviderMixin {
   String get analysisOptionsPath =>
       convertPath('/home/test/analysis_options.yaml');
 
+  Folder get sdkRoot => newFolder('/sdk');
+
   void addDotPackagesDependency(String path, String name, String rootPath) {
     var packagesFile = getFile(path);
 
@@ -68,7 +70,7 @@ class AbstractContextTest with ResourceProviderMixin {
     analysisContextCollection = AnalysisContextCollectionImpl(
       includedPaths: [convertPath('/home')],
       resourceProvider: resourceProvider,
-      sdkPath: convertPath('/sdk'),
+      sdkPath: sdkRoot.path,
     );
 
     var testPath = convertPath('/home/test');
@@ -99,7 +101,10 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   setUp() {
-    MockSdk(resourceProvider: resourceProvider);
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
 
     newFolder('/home/test');
     newDotPackagesFile('/home/test', content: '''

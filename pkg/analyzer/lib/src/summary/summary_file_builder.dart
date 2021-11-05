@@ -5,6 +5,8 @@
 @Deprecated('Use package:analyzer/dart/sdk/build_sdk_summary.dart instead')
 library summary_file_builder;
 
+import 'dart:typed_data';
+
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart' as api;
 import 'package:analyzer/file_system/file_system.dart';
 
@@ -12,7 +14,7 @@ import 'package:analyzer/file_system/file_system.dart';
 ///
 /// If [embedderYamlPath] is provided, then libraries from this file are
 /// appended to the libraries of the specified SDK.
-List<int> buildSdkSummary({
+Uint8List buildSdkSummary({
   required ResourceProvider resourceProvider,
   required String sdkPath,
   String? embedderYamlPath,

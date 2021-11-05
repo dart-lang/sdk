@@ -72,7 +72,9 @@ import 'usage_exception.dart';
 
 /// Command presenting how much each library contributes to the total code.
 class LibrarySizeCommand extends Command<void> with PrintUsageException {
+  @override
   final String name = "library_size";
+  @override
   final String description = "See breakdown of code size by library.";
 
   LibrarySizeCommand() {
@@ -80,9 +82,10 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
         help: 'YAML file specifying how libraries should be grouped.');
   }
 
+  @override
   void run() async {
     var args = argResults.rest;
-    if (args.length < 1) {
+    if (args.isEmpty) {
       usageException('Missing argument: info.data');
       print('usage: dart tool/library_size_split.dart '
           'path-to-info.json [grouping.yaml]');
@@ -93,29 +96,29 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
 
     var groupingFile = argResults['grouping'];
     var groupingText = groupingFile != null
-        ? new File(groupingFile).readAsStringSync()
+        ? File(groupingFile).readAsStringSync()
         : defaultGrouping;
     var groupingYaml = loadYaml(groupingText);
     var groups = [];
     for (var group in groupingYaml['groups']) {
-      groups.add(new _Group(
-          group['name'], new RegExp(group['regexp']), group['cluster'] ?? 0));
+      groups.add(_Group(
+          group['name'], RegExp(group['regexp']), group['cluster'] ?? 0));
     }
 
     var sizes = {};
     var allLibs = 0;
     for (LibraryInfo lib in info.libraries) {
       allLibs += lib.size;
-      groups.forEach((group) {
+      for (var group in groups) {
         var match = group.matcher.firstMatch('${lib.uri}');
         if (match != null) {
           var name = group.name;
           if (name == null && match.groupCount > 0) name = match.group(1);
-          if (name == null) name = match.group(0);
-          sizes.putIfAbsent(name, () => new _SizeEntry(name, group.cluster));
+          name ??= match.group(0);
+          sizes.putIfAbsent(name, () => _SizeEntry(name, group.cluster));
           sizes[name].size += lib.size;
         }
-      });
+      }
     }
 
     var allConstants = 0;
@@ -129,7 +132,7 @@ class LibrarySizeCommand extends Command<void> with PrintUsageException {
     var longest = 0;
     var rows = <_Row>[];
     _addRow(String label, int value) {
-      rows.add(new _Row(label, value));
+      rows.add(_Row(label, value));
       longest = max(longest, label.length);
     }
 
@@ -204,7 +207,7 @@ class _Divider extends _Row {
   const _Divider() : super('', 0);
 }
 
-_pad(value, n, {bool right: false}) {
+_pad(value, n, {bool right = false}) {
   var s = '$value';
   if (s.length >= n) return s;
   var pad = ' ' * (n - s.length);

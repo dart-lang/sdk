@@ -644,7 +644,7 @@ const Object sentinelValue = const SentinelValue(0);
 ///
 /// Example:
 ///
-/// ```dart
+/// ```dart template:none
 /// class Two<A, B> {}
 ///
 /// print(extractTypeArguments<List>(<int>[], <T>() => new Set<T>()));
@@ -658,7 +658,7 @@ const Object sentinelValue = const SentinelValue(0);
 /// The type argument T is important to choose which specific type parameter
 /// list in [instance]'s type hierarchy is being extracted. Consider:
 ///
-/// ```dart
+/// ```dart template:none
 /// class A<T> {}
 /// class B<T> {}
 ///

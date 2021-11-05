@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -367,7 +368,7 @@ class B extends A {
   }
 
   test_new() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode('''
 class A {
   A();
   A.named();
@@ -375,7 +376,10 @@ class A {
 
 /// [new A] or [new A.named]
 main() {}
-''');
+''', [
+      error(HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 38, 3),
+      error(HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 49, 3),
+    ]);
 
     assertElement(
       findNode.simple('A]'),

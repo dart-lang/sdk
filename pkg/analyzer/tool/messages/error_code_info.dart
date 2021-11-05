@@ -3,19 +3,150 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:analyzer_utilities/package_root.dart' as pkg_root;
+import 'package:path/path.dart';
+import 'package:yaml/yaml.dart' show loadYaml;
+
+/// Information about all the classes derived from `ErrorCode` that are code
+/// generated based on the contents of the analyzer and front end
+/// `messages.yaml` files.
+const List<ErrorClassInfo> errorClasses = [
+  ErrorClassInfo(
+      filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
+      name: 'AnalysisOptionsErrorCode',
+      type: 'COMPILE_TIME_ERROR',
+      severity: 'ERROR'),
+  ErrorClassInfo(
+      filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
+      name: 'AnalysisOptionsHintCode',
+      type: 'HINT',
+      severity: 'INFO'),
+  ErrorClassInfo(
+      filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
+      name: 'AnalysisOptionsWarningCode',
+      type: 'STATIC_WARNING',
+      severity: 'WARNING'),
+  ErrorClassInfo(
+      filePath: 'lib/src/error/codes.g.dart',
+      name: 'CompileTimeErrorCode',
+      superclass: 'AnalyzerErrorCode',
+      type: 'COMPILE_TIME_ERROR',
+      extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
+  ErrorClassInfo(
+      filePath: 'lib/src/error/codes.g.dart',
+      name: 'LanguageCode',
+      type: 'COMPILE_TIME_ERROR'),
+  ErrorClassInfo(
+      filePath: 'lib/src/error/codes.g.dart',
+      name: 'StaticWarningCode',
+      superclass: 'AnalyzerErrorCode',
+      type: 'STATIC_WARNING',
+      severity: 'WARNING',
+      extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
+  ErrorClassInfo(
+      filePath: 'lib/src/dart/error/ffi_code.g.dart',
+      name: 'FfiCode',
+      superclass: 'AnalyzerErrorCode',
+      type: 'COMPILE_TIME_ERROR',
+      extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
+  ErrorClassInfo(
+      filePath: 'lib/src/dart/error/hint_codes.g.dart',
+      name: 'HintCode',
+      superclass: 'AnalyzerErrorCode',
+      type: 'HINT',
+      extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
+  ErrorClassInfo(
+      filePath: 'lib/src/dart/error/syntactic_errors.g.dart',
+      name: 'ParserErrorCode',
+      type: 'SYNTACTIC_ERROR',
+      severity: 'ERROR',
+      includeCfeMessages: true),
+  ErrorClassInfo(
+      filePath: 'lib/src/manifest/manifest_warning_code.g.dart',
+      name: 'ManifestWarningCode',
+      type: 'STATIC_WARNING',
+      severity: 'WARNING'),
+  ErrorClassInfo(
+      filePath: 'lib/src/pubspec/pubspec_warning_code.g.dart',
+      name: 'PubspecWarningCode',
+      type: 'STATIC_WARNING',
+      severity: 'WARNING'),
+];
+
+/// Decoded messages from the analyzer's `messages.yaml` file.
+final Map<String, Map<String, ErrorCodeInfo>> analyzerMessages =
+    _loadAnalyzerMessages();
+
+/// The path to the `analyzer` package.
+final String analyzerPkgPath =
+    normalize(join(pkg_root.packageRoot, 'analyzer'));
+
+/// A set of tables mapping between front end and analyzer error codes.
+final CfeToAnalyzerErrorCodeTables cfeToAnalyzerErrorCodeTables =
+    CfeToAnalyzerErrorCodeTables._(frontEndMessages);
+
+/// Decoded messages from the front end's `messages.yaml` file.
+final Map<String, ErrorCodeInfo> frontEndMessages = _loadFrontEndMessages();
+
+/// The path to the `front_end` package.
+final String frontEndPkgPath =
+    normalize(join(pkg_root.packageRoot, 'front_end'));
+
+/// Pattern used by the front end to identify placeholders in error message
+/// strings.  TODO(paulberry): share this regexp (and the code for interpreting
+/// it) between the CFE and analyzer.
+final RegExp _placeholderPattern =
+    RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
+
+/// Convert a CFE template string (which uses placeholders like `#string`) to
+/// an analyzer template string (which uses placeholders like `{0}`).
+String convertTemplate(Map<String, int> placeholderToIndexMap, String entry) {
+  return entry.replaceAllMapped(_placeholderPattern,
+      (match) => '{${placeholderToIndexMap[match.group(0)!]}}');
+}
 
 /// Decodes a YAML object (obtained from `pkg/analyzer/messages.yaml`) into a
 /// two-level map of [ErrorCodeInfo], indexed first by class name and then by
 /// error name.
 Map<String, Map<String, ErrorCodeInfo>> decodeAnalyzerMessagesYaml(
-    Map<Object?, Object?> yaml) {
+    Object? yaml) {
+  Never problem(String message) {
+    throw 'Problem in pkg/analyzer/messages.yaml: $message';
+  }
+
   var result = <String, Map<String, ErrorCodeInfo>>{};
+  if (yaml is! Map<Object?, Object?>) {
+    problem('root node is not a map');
+  }
   for (var classEntry in yaml.entries) {
-    var className = classEntry.key as String;
-    for (var errorEntry
-        in (classEntry.value as Map<Object?, Object?>).entries) {
-      (result[className] ??= {})[errorEntry.key as String] =
-          ErrorCodeInfo.fromYaml(errorEntry.value as Map<Object?, Object?>);
+    var className = classEntry.key;
+    if (className is! String) {
+      problem('non-string class key ${json.encode(className)}');
+    }
+    var classValue = classEntry.value;
+    if (classValue is! Map<Object?, Object?>) {
+      problem('value associated with class key $className is not a map');
+    }
+    for (var errorEntry in classValue.entries) {
+      var errorName = errorEntry.key;
+      if (errorName is! String) {
+        problem('in class $className, non-string error key '
+            '${json.encode(errorName)}');
+      }
+      var errorValue = errorEntry.value;
+      if (errorValue is! Map<Object?, Object?>) {
+        problem('value associated with error $className.$errorName is not a '
+            'map');
+      }
+      try {
+        (result[className] ??= {})[errorName] =
+            ErrorCodeInfo.fromYaml(errorValue);
+      } catch (e) {
+        problem('while processing '
+            '$className.$errorName, $e');
+      }
     }
   }
   return result;
@@ -23,13 +154,41 @@ Map<String, Map<String, ErrorCodeInfo>> decodeAnalyzerMessagesYaml(
 
 /// Decodes a YAML object (obtained from `pkg/front_end/messages.yaml`) into a
 /// map from error name to [ErrorCodeInfo].
-Map<String, ErrorCodeInfo> decodeCfeMessagesYaml(Map<Object?, Object?> yaml) {
+Map<String, ErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
+  Never problem(String message) {
+    throw 'Problem in pkg/front_end/messages.yaml: $message';
+  }
+
   var result = <String, ErrorCodeInfo>{};
+  if (yaml is! Map<Object?, Object?>) {
+    problem('root node is not a map');
+  }
   for (var entry in yaml.entries) {
-    result[entry.key as String] =
-        ErrorCodeInfo.fromYaml(entry.value as Map<Object?, Object?>);
+    var errorName = entry.key;
+    if (errorName is! String) {
+      problem('non-string error key ${json.encode(errorName)}');
+    }
+    var errorValue = entry.value;
+    if (errorValue is! Map<Object?, Object?>) {
+      problem('value associated with error $errorName is not a map');
+    }
+    result[errorName] = ErrorCodeInfo.fromYaml(errorValue);
   }
   return result;
+}
+
+/// Loads analyzer messages from the analyzer's `messages.yaml` file.
+Map<String, Map<String, ErrorCodeInfo>> _loadAnalyzerMessages() {
+  Object? messagesYaml =
+      loadYaml(File(join(analyzerPkgPath, 'messages.yaml')).readAsStringSync());
+  return decodeAnalyzerMessagesYaml(messagesYaml);
+}
+
+/// Loads front end messages from the front end's `messages.yaml` file.
+Map<String, ErrorCodeInfo> _loadFrontEndMessages() {
+  Object? messagesYaml =
+      loadYaml(File(join(frontEndPkgPath, 'messages.yaml')).readAsStringSync());
+  return decodeCfeMessagesYaml(messagesYaml);
 }
 
 /// Data tables mapping between CFE errors and their corresponding automatically
@@ -59,7 +218,7 @@ class CfeToAnalyzerErrorCodeTables {
   /// automatically generated, and whose values are the front end error name.
   final Map<ErrorCodeInfo, String> infoToFrontEndCode = {};
 
-  CfeToAnalyzerErrorCodeTables(Map<String, ErrorCodeInfo> messages) {
+  CfeToAnalyzerErrorCodeTables._(Map<String, ErrorCodeInfo> messages) {
     for (var entry in messages.entries) {
       var errorCodeInfo = entry.value;
       var index = errorCodeInfo.index;
@@ -110,16 +269,63 @@ pkg/front_end/tool/fasta generate-messages
   }
 }
 
+/// Information about a code generated class derived from `ErrorCode`.
+class ErrorClassInfo {
+  /// A list of additional import URIs that are needed by the code generated
+  /// for this class.
+  final List<String> extraImports;
+
+  /// The file path (relative to the root of `pkg/analyzer`) of the generated
+  /// file containing this class.
+  final String filePath;
+
+  /// True if this class should contain error messages extracted from the front
+  /// end's `messages.yaml` file.
+  ///
+  /// Note: at the moment we only support extracting front end error messages to
+  /// a single error class.
+  final bool includeCfeMessages;
+
+  /// The name of this class.
+  final String name;
+
+  /// The severity of errors in this class, or `null` if the severity should be
+  /// based on the [type] of the error.
+  final String? severity;
+
+  /// The superclass of this class.
+  final String superclass;
+
+  /// The type of errors in this class.
+  final String type;
+
+  const ErrorClassInfo(
+      {this.extraImports = const [],
+      required this.filePath,
+      this.includeCfeMessages = false,
+      required this.name,
+      this.severity,
+      this.superclass = 'ErrorCode',
+      required this.type});
+
+  /// Generates the code to compute the severity of errors of this class.
+  String get severityCode {
+    var severity = this.severity;
+    if (severity == null) {
+      return '$typeCode.severity';
+    } else {
+      return 'ErrorSeverity.$severity';
+    }
+  }
+
+  /// Generates the code to compute the type of errors of this class.
+  String get typeCode => 'ErrorType.$type';
+}
+
 /// In-memory representation of error code information obtained from either a
 /// `messages.yaml` file.  Supports both the analyzer and front_end message file
 /// formats.
 class ErrorCodeInfo {
-  /// Pattern used by the front end to identify placeholders in error message
-  /// strings.  TODO(paulberry): share this regexp (and the code for interpreting
-  /// it) between the CFE and analyzer.
-  static final RegExp _placeholderPattern =
-      RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
-
   /// For error code information obtained from the CFE, the set of analyzer
   /// error codes that corresponds to this error code, if any.
   final List<String> analyzerCode;
@@ -127,13 +333,6 @@ class ErrorCodeInfo {
   /// If present, a documentation comment that should be associated with the
   /// error in code generated output.
   final String? comment;
-
-  /// `true` if this error should be copied from an error in the CFE.  The
-  /// purpose of this field is so that the documentation for the error can exist
-  /// in the analyzer's messages.yaml file but the error text can come from the
-  /// CFE's messages.yaml file.  TODO(paulberry): add support for documentation
-  /// to the CFE's messages.yaml file so that this isn't necessary.
-  final bool copyFromCfe;
 
   /// If the error code has an associated correctionMessage, the template for
   /// it.
@@ -153,9 +352,8 @@ class ErrorCodeInfo {
   /// Indicates whether this error is caused by an unresolved identifier.
   final bool isUnresolvedIdentifier;
 
-  /// The problemMessage for the error code, or `null` if [copyFromCfe] is
-  /// `true`.
-  final String? problemMessage;
+  /// The problemMessage for the error code.
+  final String problemMessage;
 
   /// If present, indicates that this error code has a special name for
   /// presentation to the user, that is potentially shared with other error
@@ -165,41 +363,47 @@ class ErrorCodeInfo {
   ErrorCodeInfo(
       {this.analyzerCode = const [],
       this.comment,
-      this.copyFromCfe = false,
       this.documentation,
       this.hasPublishedDocs = false,
       this.index,
       this.isUnresolvedIdentifier = false,
       this.sharedName,
-      this.problemMessage,
-      this.correctionMessage}) {
-    if (copyFromCfe) {
-      if (problemMessage != null) {
-        throw "Error codes marked `copyFromCfe: true` can't have a "
-            "problemMessage.";
-      }
-    } else {
-      if (problemMessage == null) {
-        throw 'Error codes must have a problemMessage unless they are marked '
-            '`copyFromCfe: true`.';
-      }
-    }
-  }
+      required this.problemMessage,
+      this.correctionMessage});
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
   ErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
       : this(
             analyzerCode: _decodeAnalyzerCode(yaml['analyzerCode']),
             comment: yaml['comment'] as String?,
-            copyFromCfe: yaml['copyFromCfe'] as bool? ?? false,
             correctionMessage: yaml['correctionMessage'] as String?,
             documentation: yaml['documentation'] as String?,
             hasPublishedDocs: yaml['hasPublishedDocs'] as bool? ?? false,
             index: yaml['index'] as int?,
             isUnresolvedIdentifier:
                 yaml['isUnresolvedIdentifier'] as bool? ?? false,
-            problemMessage: yaml['problemMessage'] as String?,
+            problemMessage: yaml['problemMessage'] as String,
             sharedName: yaml['sharedName'] as String?);
+
+  /// Given a messages.yaml entry, come up with a mapping from placeholder
+  /// patterns in its message strings to their corresponding indices.
+  Map<String, int> computePlaceholderToIndexMap() {
+    var mapping = <String, int>{};
+    for (var value in [problemMessage, correctionMessage]) {
+      if (value is! String) continue;
+      for (Match match in _placeholderPattern.allMatches(value)) {
+        // CFE supports a bunch of formatting options that analyzer doesn't;
+        // make sure none of those are used.
+        if (match.group(0) != '#${match.group(1)}') {
+          throw 'Template string ${json.encode(value)} contains unsupported '
+              'placeholder pattern ${json.encode(match.group(0))}';
+        }
+
+        mapping[match.group(0)!] ??= mapping.length;
+      }
+    }
+    return mapping;
+  }
 
   /// Generates a dart declaration for this error code, suitable for inclusion
   /// in the error class [className].  [errorCode] is the name of the error code
@@ -208,15 +412,15 @@ class ErrorCodeInfo {
     var out = StringBuffer();
     out.writeln('$className(');
     out.writeln("'${sharedName ?? errorCode}',");
-    final placeholderToIndexMap = _computePlaceholderToIndexMap();
+    final placeholderToIndexMap = computePlaceholderToIndexMap();
     out.writeln(
-        json.encode(_convertTemplate(placeholderToIndexMap, problemMessage!)) +
+        json.encode(convertTemplate(placeholderToIndexMap, problemMessage)) +
             ',');
     final correctionMessage = this.correctionMessage;
     if (correctionMessage is String) {
-      out.write('correction: ');
+      out.write('correctionMessage: ');
       out.writeln(json.encode(
-              _convertTemplate(placeholderToIndexMap, correctionMessage)) +
+              convertTemplate(placeholderToIndexMap, correctionMessage)) +
           ',');
     }
     if (hasPublishedDocs) {
@@ -254,45 +458,16 @@ class ErrorCodeInfo {
 
   /// Encodes this object into a YAML representation.
   Map<Object?, Object?> toYaml() => {
-        if (copyFromCfe) 'copyFromCfe': true,
         if (sharedName != null) 'sharedName': sharedName,
         if (analyzerCode.isNotEmpty)
           'analyzerCode': _encodeAnalyzerCode(analyzerCode),
-        if (problemMessage != null) 'problemMessage': problemMessage,
+        'problemMessage': problemMessage,
         if (correctionMessage != null) 'correctionMessage': correctionMessage,
         if (isUnresolvedIdentifier) 'isUnresolvedIdentifier': true,
         if (hasPublishedDocs) 'hasPublishedDocs': true,
         if (comment != null) 'comment': comment,
         if (documentation != null) 'documentation': documentation,
       };
-
-  /// Given a messages.yaml entry, come up with a mapping from placeholder
-  /// patterns in its message strings to their corresponding indices.
-  Map<String, int> _computePlaceholderToIndexMap() {
-    var mapping = <String, int>{};
-    for (var value in [problemMessage, correctionMessage]) {
-      if (value is! String) continue;
-      for (Match match in _placeholderPattern.allMatches(value)) {
-        // CFE supports a bunch of formatting options that we don't; make sure
-        // none of those are used.
-        if (match.group(0) != '#${match.group(1)}') {
-          throw 'Template string ${json.encode(value)} contains unsupported '
-              'placeholder pattern ${json.encode(match.group(0))}';
-        }
-
-        mapping[match.group(0)!] ??= mapping.length;
-      }
-    }
-    return mapping;
-  }
-
-  /// Convert a CFE template string (which uses placeholders like `#string`) to
-  /// an analyzer template string (which uses placeholders like `{0}`).
-  static String _convertTemplate(
-      Map<String, int> placeholderToIndexMap, String entry) {
-    return entry.replaceAllMapped(_placeholderPattern,
-        (match) => '{${placeholderToIndexMap[match.group(0)!]}}');
-  }
 
   static List<String> _decodeAnalyzerCode(Object? value) {
     if (value == null) {

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,7 +21,7 @@ class DartSdkManagerTest with ResourceProviderMixin {
     expect(manager.anySdk, isNull);
 
     SdkDescription description = SdkDescription('/c/d');
-    DartSdk sdk = MockSdk(resourceProvider: resourceProvider);
+    DartSdk sdk = _DartSdkMock();
     manager.getSdk(description, () => sdk);
 
     expect(manager.anySdk, same(sdk));
@@ -32,12 +31,12 @@ class DartSdkManagerTest with ResourceProviderMixin {
     DartSdkManager manager = DartSdkManager('/a/b/c');
 
     SdkDescription description1 = SdkDescription('/c/d');
-    DartSdk sdk1 = MockSdk(resourceProvider: resourceProvider);
+    DartSdk sdk1 = _DartSdkMock();
     DartSdk result1 = manager.getSdk(description1, () => sdk1);
     expect(result1, same(sdk1));
 
     SdkDescription description2 = SdkDescription('/e/f');
-    DartSdk sdk2 = MockSdk(resourceProvider: resourceProvider);
+    DartSdk sdk2 = _DartSdkMock();
     DartSdk result2 = manager.getSdk(description2, () => sdk2);
     expect(result2, same(sdk2));
 
@@ -49,7 +48,7 @@ class DartSdkManagerTest with ResourceProviderMixin {
     DartSdkManager manager = DartSdkManager('/a/b/c');
 
     SdkDescription description = SdkDescription('/c/d');
-    DartSdk sdk = MockSdk(resourceProvider: resourceProvider);
+    DartSdk sdk = _DartSdkMock();
     DartSdk result = manager.getSdk(description, () => sdk);
     expect(result, same(sdk));
 
@@ -81,4 +80,9 @@ class SdkDescriptionTest {
     SdkDescription right = SdkDescription(path);
     expect(left == right, isTrue);
   }
+}
+
+class _DartSdkMock implements DartSdk {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

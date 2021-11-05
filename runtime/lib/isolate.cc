@@ -205,8 +205,36 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
       ObjectPtr raw = working_set.RemoveLast();
 
       const intptr_t cid = raw->GetClassId();
+      // Keep the list in sync with the one in runtime/vm/object_graph_copy.cc
       switch (cid) {
-        // List below matches the one in raw_object_snapshot.cc
+        // Can be shared.
+        case kOneByteStringCid:
+        case kTwoByteStringCid:
+        case kExternalOneByteStringCid:
+        case kExternalTwoByteStringCid:
+        case kMintCid:
+        case kImmutableArrayCid:
+        case kNeverCid:
+        case kSentinelCid:
+        case kInt32x4Cid:
+        case kSendPortCid:
+        case kCapabilityCid:
+        case kRegExpCid:
+        case kStackTraceCid:
+          continue;
+        // Cannot be shared due to possibly being mutable boxes for unboxed
+        // fields in JIT, but can be transferred via Isolate.exit()
+        case kDoubleCid:
+        case kFloat32x4Cid:
+        case kFloat64x2Cid:
+          continue;
+
+        case kClosureCid:
+          closure ^= raw;
+          // Only context has to be checked.
+          working_set.Add(closure.context());
+          continue;
+
 #define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
   case k##type##Cid:                                                           \
     error_message =                                                            \
@@ -214,27 +242,12 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
     error_found = true;                                                        \
     break;
 
-        MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
-        MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
-        MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
-        MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
-        MESSAGE_SNAPSHOT_ILLEGAL(RegExp);
-        MESSAGE_SNAPSHOT_ILLEGAL(StackTrace);
-        MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
+          MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
+          MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
+          MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
+          MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
+          MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
 
-        case kClosureCid: {
-          closure = Closure::RawCast(raw);
-          FunctionPtr func = closure.function();
-          // We only allow closure of top level methods or static functions in a
-          // class to be sent in isolate messages.
-          if (!Function::IsImplicitStaticClosureFunction(func)) {
-            // All other closures are errors.
-            erroneous_closure_function = func;
-            error_found = true;
-            break;
-          }
-          break;
-        }
         default:
           if (cid >= kNumPredefinedCids) {
             klass = class_table->At(cid);

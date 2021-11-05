@@ -114,10 +114,6 @@ class FastaErrorReporter {
             length,
             [name]);
         return;
-      case "FUNCTION_TYPED_PARAMETER_VAR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, offset, length);
-        return;
       case "GETTER_WITH_PARAMETERS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.GETTER_WITH_PARAMETERS, offset, length);
@@ -275,10 +271,6 @@ class FastaErrorReporter {
             offset,
             length);
         return;
-      case "TYPE_PARAMETER_ON_OPERATOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR, offset, length);
-        return;
       case "UNDEFINED_CLASS":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.UNDEFINED_CLASS, offset, length);
@@ -349,7 +341,7 @@ class FastaErrorReporter {
   }
 
   void reportScannerError(
-      ScannerErrorCode errorCode, int offset, List<Object?>? arguments) {
+      ScannerErrorCode errorCode, int offset, List<Object>? arguments) {
     // TODO(danrubel): update client to pass length in addition to offset.
     int length = 1;
     errorReporter?.reportErrorForOffset(errorCode, offset, length, arguments);

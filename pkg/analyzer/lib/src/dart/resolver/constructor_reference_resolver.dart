@@ -70,7 +70,7 @@ class ConstructorReferenceResolver {
             node,
             [name.name],
           );
-        } else {
+        } else if (!name.isSynthetic) {
           _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
             node,

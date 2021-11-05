@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $runtime == dart_precompiled ]
-Language/Metadata/syntax_t10: SkipByDesign # dart:mirrors is not supported
 LibTest/io/RawDatagramSocket/join_A01_t01: Skip # https://github.com/dart-lang/co19/issues/195
 LibTest/io/RawDatagramSocket/join_A01_t02: Skip # https://github.com/dart-lang/co19/issues/195
 LibTest/io/RawDatagramSocket/join_A02_t01: Skip # https://github.com/dart-lang/co19/issues/195

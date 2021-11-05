@@ -10,7 +10,6 @@
 // TODO(paulberry): once code generation is in place, remove this script.
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
@@ -27,28 +26,13 @@ import 'error_code_info.dart';
 
 main() {
   var errorDeclarations = _findErrorDeclarations();
-  var generatedAnalyzerCodes = _computeGeneratedAnalyzerCodes();
   var errorCodesByClass = _findErrorCodesByClass();
-  _generateYaml(errorCodesByClass, errorDeclarations, generatedAnalyzerCodes);
+  _generateYaml(errorCodesByClass, errorDeclarations);
 }
 
 /// The path to the `analyzer` package.
 final String _analyzerPkgPath =
     normalize(join(pkg_root.packageRoot, 'analyzer'));
-
-/// The path to the `analyzer` package.
-final String _frontEndPkgPath =
-    normalize(join(pkg_root.packageRoot, 'front_end'));
-
-/// Computes the set of `ParserErrorCode`s that are generated based on
-/// `pkg/front_end/messages.yaml`.
-Set<String> _computeGeneratedAnalyzerCodes() {
-  Map<dynamic, dynamic> messagesYaml = loadYaml(
-      File(join(_frontEndPkgPath, 'messages.yaml')).readAsStringSync());
-  var messages = decodeCfeMessagesYaml(messagesYaml);
-  var tables = CfeToAnalyzerErrorCodeTables(messages);
-  return tables.infoToAnalyzerCode.values.toSet();
-}
 
 /// Encodes [yaml] into a string parseable as YAML.
 ///
@@ -205,10 +189,8 @@ Map<String, Map<String, VariableDeclaration>> _findErrorDeclarations() {
 /// [_findErrorCodesByClass]) and [errorDeclarations] (obtained from
 /// [_findErrorDeclarations]) into a YAML representation of the errors, and
 /// prints the resulting YAML.
-void _generateYaml(
-    Map<String, List<ErrorCode>> errorCodesByClass,
-    Map<String, Map<String, VariableDeclaration>> errorDeclarations,
-    Set<String> generatedAnalyzerCodes) {
+void _generateYaml(Map<String, List<ErrorCode>> errorCodesByClass,
+    Map<String, Map<String, VariableDeclaration>> errorDeclarations) {
   var yaml = <String, Map<String, Object?>>{};
   for (var entry in errorCodesByClass.entries) {
     var yamlCodes = <String, Object?>{};
@@ -239,27 +221,15 @@ void _generateYaml(
       var commentInfo = _extractCommentInfo(fieldDeclaration);
       var documentationComment = commentInfo.documentationComment;
       var otherComment = commentInfo.otherComment;
-      ErrorCodeInfo errorCodeInfo;
-      if (className == 'ParserErrorCode' &&
-          generatedAnalyzerCodes.contains(name)) {
-        if (uniqueNameSuffix != name) {
-          throw "Auto-generated parser error codes can't be aliased";
-        }
-        errorCodeInfo = ErrorCodeInfo(
-            copyFromCfe: true,
-            comment: documentationComment,
-            documentation: otherComment);
-      } else {
-        errorCodeInfo = ErrorCodeInfo(
-            sharedName: uniqueNameSuffix == name ? null : name,
-            problemMessage: code.message,
-            correctionMessage: code.correction,
-            isUnresolvedIdentifier: code.isUnresolvedIdentifier,
-            hasPublishedDocs: code.hasPublishedDocs,
-            comment: documentationComment,
-            documentation: otherComment);
-      }
-      yamlCodes[uniqueNameSuffix] = errorCodeInfo.toYaml();
+      yamlCodes[uniqueNameSuffix] = ErrorCodeInfo(
+              sharedName: uniqueNameSuffix == name ? null : name,
+              problemMessage: code.problemMessage,
+              correctionMessage: code.correctionMessage,
+              isUnresolvedIdentifier: code.isUnresolvedIdentifier,
+              hasPublishedDocs: code.hasPublishedDocs,
+              comment: documentationComment,
+              documentation: otherComment)
+          .toYaml();
     }
   }
   String encodedYaml = _encodeYaml(yaml);

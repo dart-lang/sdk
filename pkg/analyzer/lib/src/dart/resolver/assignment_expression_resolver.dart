@@ -128,7 +128,7 @@ class AssignmentExpressionResolver {
   /// when it returns 'void'. Or, in rare cases, when other types of expressions
   /// are void, such as identifiers.
   ///
-  /// See [StaticWarningCode.USE_OF_VOID_RESULT].
+  /// See [CompileTimeErrorCode.USE_OF_VOID_RESULT].
   /// TODO(scheglov) this is duplicate
   bool _checkForUseOfVoidResult(Expression expression) {
     if (!identical(expression.staticType, VoidTypeImpl.instance)) {
@@ -204,9 +204,10 @@ class AssignmentExpressionResolver {
     DartType assignedType;
     DartType nodeType;
 
+    var rightHandSide = node.rightHandSide;
     var operator = node.operator.type;
     if (operator == TokenType.EQ) {
-      assignedType = node.rightHandSide.typeOrThrow;
+      assignedType = rightHandSide.typeOrThrow;
       nodeType = assignedType;
     } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
       var leftType = node.readType!;
@@ -216,7 +217,7 @@ class AssignmentExpressionResolver {
         leftType = _typeSystem.promoteToNonNull(leftType);
       }
 
-      assignedType = node.rightHandSide.typeOrThrow;
+      assignedType = rightHandSide.typeOrThrow;
       nodeType = _typeSystem.getLeastUpperBound(leftType, assignedType);
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
@@ -226,7 +227,7 @@ class AssignmentExpressionResolver {
       var operatorElement = node.staticElement;
       if (operatorElement != null) {
         var leftType = node.readType!;
-        var rightType = node.rightHandSide.typeOrThrow;
+        var rightType = rightHandSide.typeOrThrow;
         assignedType = _typeSystem.refineBinaryExpressionType(
           leftType,
           operator,
@@ -241,6 +242,10 @@ class AssignmentExpressionResolver {
     }
 
     _inferenceHelper.recordStaticType(node, nodeType);
+    var callReference = _resolver.insertImplicitCallReference(rightHandSide);
+    if (callReference != rightHandSide) {
+      assignedType = callReference.typeOrThrow;
+    }
 
     // TODO(scheglov) Remove from ErrorVerifier?
     _checkForInvalidAssignment(

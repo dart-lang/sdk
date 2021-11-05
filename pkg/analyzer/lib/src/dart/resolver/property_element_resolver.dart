@@ -45,18 +45,22 @@ class PropertyElementResolver {
 
       // TODO(scheglov) Change ExtensionResolver to set `needsGetterError`.
       if (hasRead && result.getter == null && !result.isAmbiguous) {
+        // Extension overrides can only refer to named extensions, so it is safe
+        // to assume that `target.staticElement!.name` is non-`null`.
         _reportUnresolvedIndex(
           node,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          ['[]', target.staticElement!.name],
+          ['[]', target.staticElement!.name!],
         );
       }
 
       if (hasWrite && result.setter == null && !result.isAmbiguous) {
+        // Extension overrides can only refer to named extensions, so it is safe
+        // to assume that `target.staticElement!.name` is non-`null`.
         _reportUnresolvedIndex(
           node,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          ['[]=', target.staticElement!.name],
+          ['[]=', target.staticElement!.name!],
         );
       }
 
@@ -248,18 +252,6 @@ class PropertyElementResolver {
     );
   }
 
-  void _checkExtensionOverrideStaticMember(
-    SimpleIdentifier propertyName,
-    ExecutableElement? element,
-  ) {
-    if (element != null && element.isStatic) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
-        propertyName,
-      );
-    }
-  }
-
   /// If the [element] is not static, report the error on the [identifier].
   void _checkForStaticAccessToInstanceMember(
     SimpleIdentifier identifier,
@@ -272,6 +264,48 @@ class PropertyElementResolver {
       identifier,
       [identifier.name],
     );
+  }
+
+  void _checkForStaticMember(
+    Expression target,
+    SimpleIdentifier propertyName,
+    ExecutableElement? element,
+  ) {
+    if (element != null && element.isStatic) {
+      if (target is ExtensionOverride) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          propertyName,
+        );
+      } else {
+        var enclosingElement = element.enclosingElement;
+        if (enclosingElement is ExtensionElement &&
+            enclosingElement.name == null) {
+          _resolver.errorReporter.reportErrorForNode(
+              CompileTimeErrorCode
+                  .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+              propertyName,
+              [
+                propertyName.name,
+                element.kind.displayName,
+              ]);
+        } else {
+          // It is safe to assume that `enclosingElement.name` is non-`null`
+          // because it can only be `null` for extensions, and we handle that
+          // case above.
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+              propertyName, [
+            propertyName.name,
+            element.kind.displayName,
+            enclosingElement.name!,
+            enclosingElement is ClassElement && enclosingElement.isMixin
+                ? 'mixin'
+                : enclosingElement.kind.displayName,
+          ]);
+        }
+      }
+    }
   }
 
   DartType? _computeIndexContextType({
@@ -295,7 +329,7 @@ class PropertyElementResolver {
   void _reportUnresolvedIndex(
     IndexExpression node,
     ErrorCode errorCode, [
-    List<Object?> arguments = const [],
+    List<Object> arguments = const [],
   ]) {
     var leftBracket = node.leftBracket;
     var rightBracket = node.rightBracket;
@@ -417,21 +451,27 @@ class PropertyElementResolver {
         result.getter,
         result.getter?.returnType ?? _typeSystem.typeProvider.dynamicType);
 
-    if (hasRead && result.needsGetterError) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNDEFINED_GETTER,
-        propertyName,
-        [propertyName.name, targetType],
-      );
+    if (hasRead) {
+      _checkForStaticMember(target, propertyName, result.getter);
+      if (result.needsGetterError) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.UNDEFINED_GETTER,
+          propertyName,
+          [propertyName.name, targetType],
+        );
+      }
     }
 
-    if (hasWrite && result.needsSetterError) {
-      AssignmentVerifier(_definingLibrary, _errorReporter).verify(
-        node: propertyName,
-        requested: null,
-        recovery: result.getter,
-        receiverTypeObject: targetType,
-      );
+    if (hasWrite) {
+      _checkForStaticMember(target, propertyName, result.setter);
+      if (result.needsSetterError) {
+        AssignmentVerifier(_definingLibrary, _errorReporter).verify(
+          node: propertyName,
+          requested: null,
+          recovery: result.getter,
+          receiverTypeObject: targetType,
+        );
+      }
     }
 
     return PropertyElementResolverResult(
@@ -529,10 +569,13 @@ class PropertyElementResolver {
       readElement ??= extension.getMethod(memberName);
 
       if (readElement == null) {
+        // This method is only called for extension overrides, and extension
+        // overrides can only refer to named extensions.  So it is safe to
+        // assume that `extension.name` is non-`null`.
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
           propertyName,
-          [memberName, extension.name],
+          [memberName, extension.name!],
         );
       } else {
         readElement = _resolver.toLegacyElement(readElement);
@@ -546,9 +589,12 @@ class PropertyElementResolver {
 
       if (writeElement == null) {
         _errorReporter.reportErrorForNode(
+          // This method is only called for extension overrides, and extension
+          // overrides can only refer to named extensions.  So it is safe to
+          // assume that `extension.name` is non-`null`.
           CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
           propertyName,
-          [memberName, extension.name],
+          [memberName, extension.name!],
         );
       } else {
         writeElement = _resolver.toLegacyElement(writeElement);
@@ -585,26 +631,32 @@ class PropertyElementResolver {
     if (hasRead) {
       readElement = result.getter;
       if (readElement == null) {
+        // This method is only called for extension overrides, and extension
+        // overrides can only refer to named extensions.  So it is safe to
+        // assume that `element.name` is non-`null`.
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
           propertyName,
-          [memberName, element.name],
+          [memberName, element.name!],
         );
       }
-      _checkExtensionOverrideStaticMember(propertyName, readElement);
+      _checkForStaticMember(target, propertyName, readElement);
     }
 
     ExecutableElement? writeElement;
     if (hasWrite) {
       writeElement = result.setter;
       if (writeElement == null) {
+        // This method is only called for extension overrides, and extension
+        // overrides can only refer to named extensions.  So it is safe to
+        // assume that `element.name` is non-`null`.
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
           propertyName,
-          [memberName, element.name],
+          [memberName, element.name!],
         );
       }
-      _checkExtensionOverrideStaticMember(propertyName, writeElement);
+      _checkForStaticMember(target, propertyName, writeElement);
     }
 
     return PropertyElementResolverResult(
@@ -670,6 +722,7 @@ class PropertyElementResolver {
 
         if (readElement != null) {
           readElement = _resolver.toLegacyElement(readElement);
+          _checkForStaticMember(target, propertyName, readElement);
         } else {
           // We were not able to find the concrete dispatch target.
           // But we would like to give the user at least some resolution.
@@ -708,6 +761,7 @@ class PropertyElementResolver {
 
         if (writeElement != null) {
           writeElement = _resolver.toLegacyElement(writeElement);
+          _checkForStaticMember(target, propertyName, writeElement);
         } else {
           // We were not able to find the concrete dispatch target.
           // But we would like to give the user at least some resolution.

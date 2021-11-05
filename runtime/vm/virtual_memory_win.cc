@@ -241,6 +241,8 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   }
 }
 
+void VirtualMemory::DontNeed(void* address, intptr_t size) {}
+
 }  // namespace dart
 
 #endif  // defined(DART_HOST_OS_WINDOWS)

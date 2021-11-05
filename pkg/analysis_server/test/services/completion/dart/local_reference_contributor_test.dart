@@ -4,7 +4,9 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,8 +24,11 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
   bool get isNullExpectedReturnTypeConsideredDynamic => false;
 
   @override
-  DartCompletionContributor createContributor() {
-    return LocalReferenceContributor();
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) {
+    return LocalReferenceContributor(request, builder);
   }
 
   Future<void> test_ArgDefaults_function() async {
@@ -6146,6 +6151,24 @@ void f() { C<C^> c; }''');
     expect(replacementLength, 1);
     assertNotSuggested('C1');
     assertSuggestClass('C2');
+  }
+
+  Future<void> test_TypeArgumentList_functionReference() async {
+    addTestSource('''
+class A {}
+
+void foo<T>() {}
+
+void f() {
+  foo<^>;
+}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('A');
+    assertNotSuggested('Object');
   }
 
   Future<void> test_TypeParameter_classDeclaration() async {

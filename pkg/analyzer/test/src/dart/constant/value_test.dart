@@ -795,7 +795,8 @@ class DartObjectImplTest {
   void test_identical_intZero_doubleZero() {
     // Used in Flutter:
     // const bool kIsWeb = identical(0, 0.0);
-    _assertIdentical(_boolValue(true), _intValue(0), _doubleValue(0.0));
+    _assertIdentical(_boolValue(null), _intValue(0), _doubleValue(0.0));
+    _assertIdentical(_boolValue(null), _doubleValue(0.0), _intValue(0));
   }
 
   void test_identical_list_empty() {

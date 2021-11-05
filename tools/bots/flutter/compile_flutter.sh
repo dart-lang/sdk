@@ -83,7 +83,7 @@ popd  # src
 mkdir flutter_patched_sdk
 
 $checkout/tools/sdks/dart-sdk/bin/dart \
-    --packages=$checkout/.packages \
+    --packages=$checkout/.dart_tool/package_config.json \
     $checkout/pkg/front_end/tool/_fasta/compile_platform.dart \
     dart:core \
     -Ddart.vm.product=false \
@@ -97,7 +97,7 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
     vm_outline_strong.dill
 
 $checkout/tools/sdks/dart-sdk/bin/dart \
-    --packages=$checkout/.packages \
+    --packages=$checkout/.dart_tool/package_config.json \
     $checkout/pkg/front_end/tool/_fasta/compile_platform.dart \
     --nnbd-agnostic \
     --target=flutter \

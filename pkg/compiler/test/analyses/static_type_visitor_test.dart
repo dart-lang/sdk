@@ -23,10 +23,10 @@ main() {}
 
 main() {
   asyncTest(() async {
-    Compiler compiler =
-        await compilerFor(memorySourceFiles: {'main.dart': source});
-    KernelResult result =
-        await compiler.kernelLoader.load(Uri.parse('memory:main.dart'));
+    Compiler compiler = await compilerFor(
+        memorySourceFiles: {'main.dart': source},
+        entryPoint: Uri.parse('memory:main.dart'));
+    KernelResult result = await compiler.kernelLoader.load();
     ir.Component component = result.component;
     StaticTypeVisitor visitor = new Visitor(component);
     component.accept(visitor);

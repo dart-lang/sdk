@@ -226,6 +226,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
   CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
   CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+  CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY,
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC,
   CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
@@ -457,6 +458,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.URI_DOES_NOT_EXIST,
   CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED,
   CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+  CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
   CompileTimeErrorCode.USE_OF_VOID_RESULT,
   CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
   CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
@@ -480,7 +482,11 @@ const List<ErrorCode> errorCodeValues = [
   FfiCode.EMPTY_STRUCT,
   FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD,
   FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY,
-  FfiCode.FFI_NATIVE_ONLY_STATIC,
+  FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL,
+  FfiCode
+      .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
+  FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS,
+  FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
   FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER,
   FfiCode.FIELD_INITIALIZER_IN_STRUCT,
   FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT,
@@ -524,6 +530,7 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
   HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
   HintCode.DEPRECATED_MIXIN_FUNCTION,
+  HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE,
   HintCode.DIVISION_OPTIMIZATION,
   HintCode.DUPLICATE_HIDDEN_NAME,
   HintCode.DUPLICATE_IGNORE,
@@ -573,7 +580,6 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
   HintCode.INVALID_VISIBILITY_ANNOTATION,
   HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION,
-  HintCode.MISSING_JS_LIB_ANNOTATION,
   HintCode.MISSING_REQUIRED_PARAM,
   HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
   HintCode.MISSING_RETURN,
@@ -637,7 +643,6 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.UNUSED_RESULT,
   HintCode.UNUSED_RESULT_WITH_MESSAGE,
   HintCode.UNUSED_SHOWN_NAME,
-  HintCode.USE_OF_NATIVE_EXTENSION,
   LanguageCode.IMPLICIT_DYNAMIC_FIELD,
   LanguageCode.IMPLICIT_DYNAMIC_FUNCTION,
   LanguageCode.IMPLICIT_DYNAMIC_INVOKE,
@@ -968,7 +973,7 @@ class AnalysisError implements Diagnostic {
 
   /// The correction to be displayed for this error, or `null` if there is no
   /// correction information for this error.
-  String? _correction;
+  String? _correctionMessage;
 
   /// The source in which the error occurred, or `null` if unknown.
   final Source source;
@@ -982,22 +987,27 @@ class AnalysisError implements Diagnostic {
       [List<Object?>? arguments,
       List<DiagnosticMessage> contextMessages = const []])
       : _contextMessages = contextMessages {
-    String message = formatList(errorCode.message, arguments);
-    String? correctionTemplate = errorCode.correction;
+    assert(
+        (arguments ?? const []).length == errorCode.numParameters,
+        'Message $errorCode requires ${errorCode.numParameters} '
+        'argument(s), but ${(arguments ?? const []).length} argument(s) were '
+        'provided');
+    String problemMessage = formatList(errorCode.problemMessage, arguments);
+    String? correctionTemplate = errorCode.correctionMessage;
     if (correctionTemplate != null) {
-      _correction = formatList(correctionTemplate, arguments);
+      _correctionMessage = formatList(correctionTemplate, arguments);
     }
     _problemMessage = DiagnosticMessageImpl(
         filePath: source.fullName,
         length: length,
-        message: message,
+        message: problemMessage,
         offset: offset,
         url: null);
   }
 
   /// Initialize a newly created analysis error with given values.
   AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
-      String message, this._correction,
+      String message, this._correctionMessage,
       {List<DiagnosticMessage> contextMessages = const []})
       : _contextMessages = contextMessages {
     _problemMessage = DiagnosticMessageImpl(
@@ -1029,10 +1039,10 @@ class AnalysisError implements Diagnostic {
   /// Return the template used to create the correction to be displayed for this
   /// error, or `null` if there is no correction information for this error. The
   /// correction should indicate how the user can fix the error.
-  String? get correction => _correction;
+  String? get correction => _correctionMessage;
 
   @override
-  String? get correctionMessage => _correction;
+  String? get correctionMessage => _correctionMessage;
 
   @override
   int get hashCode {

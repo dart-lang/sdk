@@ -5134,25 +5134,10 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     List<HInstruction> arguments = [];
     node.expression.accept(this);
     arguments.add(pop());
-    StaticType expressionType = _getStaticType(node.expression);
-    FunctionType functionType = expressionType.type.withoutNullability;
-    bool typeArgumentsNeeded = _rtiNeed.instantiationNeedsTypeArguments(
-        functionType, node.typeArguments.length);
-    List<DartType> typeArguments = node.typeArguments
-        .map((type) => typeArgumentsNeeded
-            ? _elementMap.getDartType(type)
-            : _commonElements.dynamicType)
-        .toList();
-    registry.registerGenericInstantiation(
-        GenericInstantiation(functionType, typeArguments));
-    // TODO(johnniwinther): Can we avoid creating the instantiation object?
-    for (DartType type in typeArguments) {
-      HInstruction instruction =
-          _typeBuilder.analyzeTypeArgument(type, sourceElement);
-      arguments.add(instruction);
-    }
+
+    // A generic function instantiation is created by calling a helper function
+    // which takes the arguments.
     int typeArgumentCount = node.typeArguments.length;
-    bool targetCanThrow = false; // TODO(sra): Is this true?
     FunctionEntity target =
         _commonElements.getInstantiateFunction(typeArgumentCount);
     if (target == null) {
@@ -5163,10 +5148,36 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       stack.add(graph.addConstantNull(closedWorld));
       return;
     }
+
+    StaticType expressionType = _getStaticType(node.expression);
+    FunctionType functionType = expressionType.type.withoutNullability;
+    bool typeArgumentsNeeded = _rtiNeed.methodNeedsTypeArguments(target);
+
+    List<DartType> typeArguments = node.typeArguments
+        .map((type) => typeArgumentsNeeded
+            ? _elementMap.getDartType(type)
+            : _commonElements.dynamicType)
+        .toList();
+    registry.registerGenericInstantiation(
+        GenericInstantiation(functionType, typeArguments));
+
+    // TODO(sra): Add instantiations to SourceInformationBuilder.
+    SourceInformation sourceInformation = null;
+
+    // TODO(47484): Allow callee to have different calling convention for type
+    // arguments.
+    if (typeArgumentsNeeded) {
+      _addTypeArguments(arguments, typeArguments, sourceInformation);
+    }
+
+    bool targetCanThrow = false; // TODO(sra): Is this true?
+
+    // TODO(sra): Use [_pushStaticInvocation] to allow inlining. We don't now
+    // because inference can't tell that the call has no side-effects.
     HInstruction instruction = HInvokeStatic(
         target, arguments, _abstractValueDomain.functionType, <DartType>[],
         targetCanThrow: targetCanThrow);
-    // TODO(sra): ..sourceInformation = sourceInformation
+    instruction.sourceInformation = sourceInformation;
     instruction.sideEffects
       ..clearAllDependencies()
       ..clearAllSideEffects();

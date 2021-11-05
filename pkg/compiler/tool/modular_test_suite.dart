@@ -73,6 +73,7 @@ const codeId0 = ShardDataId(codeId, 0);
 const codeId1 = ShardDataId(codeId, 1);
 const jsId = DataId("js");
 const txtId = DataId("txt");
+const fakeRoot = 'dev-dart-app:/';
 
 String _packageConfigEntry(String name, Uri root,
     {Uri packageRoot, LanguageVersion version}) {
@@ -185,8 +186,8 @@ class SourceToDillStep implements IOModularStep {
       // When no flags are passed, we can skip compilation and reuse the
       // platform.dill created by build.py.
       if (flags.isEmpty) {
-        var platform =
-            computePlatformBinariesLocation().resolve("dart2js_platform.dill");
+        var platform = computePlatformBinariesLocation()
+            .resolve("dart2js_platform_unsound.dill");
         var destination = root.resolveUri(toUri(module, dillId));
         if (_options.verbose) {
           print('command:\ncp $platform $destination');
@@ -260,7 +261,7 @@ class ModularAnalysisStep implements IOModularStep {
       '--packages=${sdkRoot.toFilePath()}/.packages',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${toUri(module, dillId)}',
+      '${Flags.inputDill}=${toUri(module, dillId)}',
       if (dillDependencies.isNotEmpty)
         '--dill-dependencies=${dillDependencies.join(',')}',
       '--out=${toUri(module, modularUpdatedDillId)}',
@@ -330,12 +331,14 @@ class ComputeClosedWorldStep implements IOModularStep {
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${toUri(module, dillId)}',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
+      '${Flags.inputDill}=${toUri(module, dillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.dillDependencies}=${dillDependencies.join(',')}',
       if (useModularAnalysis)
         '${Flags.readModularAnalysis}=${dataDependencies.join(',')}',
       '${Flags.writeClosedWorld}=${toUri(module, closedWorldId)}',
+      Flags.noClosedWorldInData,
       '--out=${toUri(module, globalUpdatedDillId)}',
     ];
     var result =
@@ -378,7 +381,8 @@ class GlobalAnalysisStep implements IOModularStep {
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${toUri(module, globalUpdatedDillId)}',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
+      '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
       '${Flags.writeData}=${toUri(module, globalDataId)}',
@@ -430,7 +434,8 @@ class Dart2jsCodegenStep implements IOModularStep {
       '--packages=${sdkRoot.toFilePath()}/.packages',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${toUri(module, globalUpdatedDillId)}',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
+      '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
       '${Flags.readData}=${toUri(module, globalDataId)}',
@@ -482,7 +487,8 @@ class Dart2jsEmissionStep implements IOModularStep {
       '--packages=${sdkRoot.toFilePath()}/.packages',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${toUri(module, globalUpdatedDillId)}',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
+      '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
       '${Flags.readData}=${toUri(module, globalDataId)}',
@@ -529,6 +535,7 @@ class LegacyGlobalAnalysisStep implements IOModularStep {
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
@@ -580,6 +587,7 @@ class LegacyDart2jsCodegenStep implements IOModularStep {
       '--packages=${sdkRoot.toFilePath()}/.packages',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.readData}=${toUri(module, globalDataId)}',
@@ -627,6 +635,7 @@ class LegacyDart2jsEmissionStep implements IOModularStep {
       '--packages=${sdkRoot.toFilePath()}/.packages',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
       '${Flags.readData}=${toUri(module, globalDataId)}',

@@ -57,7 +57,7 @@ void VirtualMemoryCompressedHeap::Init(void* compressed_heap_region,
   // weaker property that all addresses in [base_, base_ + size_) have the same
   // same upper 32 bits, which is what we really need for compressed pointers.
   intptr_t mask = ~(kCompressedHeapAlignment - 1);
-  ASSERT((base_ & mask) == (base_ + size_ - 1 & mask));
+  ASSERT((base_ & mask) == ((base_ + size_ - 1) & mask));
   mutex_ = new Mutex(NOT_IN_PRODUCT("compressed_heap_mutex"));
 }
 

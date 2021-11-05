@@ -28,6 +28,25 @@ class ClassWithNativeFields extends NativeFieldWrapperClass1 {
   void m() {}
 }
 
+final nonCopyableClosures = <dynamic>[
+  (() {
+    final a = ClassWithNativeFields();
+    return a.m;
+  })(),
+  (() {
+    final a = ClassWithNativeFields();
+    dynamic inner() => a;
+    return inner;
+  })(),
+  (() {
+    foo(var arg) {
+      return () => arg;
+    }
+
+    return foo(ClassWithNativeFields());
+  })(),
+];
+
 final Uint8List largeExternalTypedData =
     File(Platform.resolvedExecutable).readAsBytesSync()..[0] = 42;
 final Uint8List largeInternalTypedData = Uint8List(20 * 1024 * 1024)..[0] = 42;
@@ -587,6 +606,7 @@ class SendReceiveTest extends SendReceiveTestBase {
   }
 
   Future testWeakProperty() async {
+    print('testWeakProperty');
     final key = Object();
     final expando1 = Expando();
     final expando2 = Expando();
@@ -651,24 +671,6 @@ class SendReceiveTest extends SendReceiveTestBase {
 
   Future testForbiddenClosures() async {
     print('testForbiddenClosures');
-    final nonCopyableClosures = <dynamic>[
-      (() {
-        final a = ClassWithNativeFields();
-        return a.m;
-      })(),
-      (() {
-        final a = ClassWithNativeFields();
-        dynamic inner() => a;
-        return inner;
-      })(),
-      (() {
-        foo(var arg) {
-          return () => arg;
-        }
-
-        return foo(ClassWithNativeFields());
-      })(),
-    ];
     for (final closure in nonCopyableClosures) {
       Expect.throwsArgumentError(() => sendPort.send(closure));
     }

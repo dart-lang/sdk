@@ -674,7 +674,8 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
   return instructions;
 }
 
-Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
+Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target,
+                                                  bool incompatible_arguments) {
   const Class& klass = Class::ZoneHandle(
       Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
   ASSERT(!klass.IsNull());
@@ -687,7 +688,7 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
   Fragment instructions;
 
   const Class& owner = Class::Handle(Z, target.Owner());
-  AbstractType& receiver = AbstractType::ZoneHandle();
+  auto& receiver = Instance::ZoneHandle();
   InvocationMirror::Kind kind = InvocationMirror::Kind::kMethod;
   if (target.IsImplicitGetterFunction() || target.IsGetterFunction()) {
     kind = InvocationMirror::kGetter;
@@ -696,6 +697,9 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
   }
   InvocationMirror::Level level;
   if (owner.IsTopLevel()) {
+    if (incompatible_arguments) {
+      receiver = target.UserVisibleSignature();
+    }
     level = InvocationMirror::Level::kTopLevel;
   } else {
     receiver = owner.RareType();
@@ -768,7 +772,12 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
       this, kernel_data, kernel_data_program_offset);
-  return streaming_flow_graph_builder.BuildGraph();
+  auto result = streaming_flow_graph_builder.BuildGraph();
+
+  FinalizeCoverageArray();
+  result->set_coverage_array(coverage_array());
+
+  return result;
 }
 
 Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
@@ -3959,6 +3968,48 @@ Fragment FlowGraphBuilder::UnboxTruncate(Representation to) {
   return Fragment(unbox);
 }
 
+// TODO(http://dartbug.com/47487): Support unboxed output value.
+Fragment FlowGraphBuilder::BoolToInt() {
+  // TODO(http://dartbug.com/36855) Build IfThenElseInstr, instead of letting
+  // the optimizer turn this into that.
+
+  LocalVariable* expression_temp = parsed_function_->expression_temp_var();
+
+  Fragment instructions;
+  TargetEntryInstr* is_true;
+  TargetEntryInstr* is_false;
+
+  instructions += BranchIfTrue(&is_true, &is_false);
+  JoinEntryInstr* join = BuildJoinEntry();
+
+  {
+    Fragment store_1(is_true);
+    store_1 += IntConstant(1);
+    store_1 += StoreLocal(TokenPosition::kNoSource, expression_temp);
+    store_1 += Drop();
+    store_1 += Goto(join);
+  }
+
+  {
+    Fragment store_0(is_false);
+    store_0 += IntConstant(0);
+    store_0 += StoreLocal(TokenPosition::kNoSource, expression_temp);
+    store_0 += Drop();
+    store_0 += Goto(join);
+  }
+
+  instructions = Fragment(instructions.entry, join);
+  instructions += LoadLocal(expression_temp);
+  return instructions;
+}
+
+Fragment FlowGraphBuilder::IntToBool() {
+  Fragment body;
+  body += IntConstant(0);
+  body += StrictCompare(Token::kNE_STRICT);
+  return body;
+}
+
 Fragment FlowGraphBuilder::NativeReturn(
     const compiler::ffi::CallbackMarshaller& marshaller) {
   auto* instr = new (Z)
@@ -4314,6 +4365,10 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
     }
 
     body += Box(marshaller.RepInDart(arg_index));
+
+    if (marshaller.IsBool(arg_index)) {
+      body += IntToBool();
+    }
   }
   return body;
 }
@@ -4332,6 +4387,10 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
   } else if (marshaller.IsHandle(arg_index)) {
     body += WrapHandle(api_local_scope);
   } else {
+    if (marshaller.IsBool(arg_index)) {
+      body += BoolToInt();
+    }
+
     body += UnboxTruncate(marshaller.RepInDart(arg_index));
   }
 
@@ -4388,6 +4447,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
     }
     function_body += LoadLocal(
         parsed_function_->ParameterVariable(kFirstArgumentParameterOffset + i));
+    // TODO(http://dartbug.com/47486): Support entry without checking for null.
     // Check for 'null'.
     function_body += CheckNullOptimized(
         String::ZoneHandle(

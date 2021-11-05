@@ -26,7 +26,6 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/script_ref.dart';
 import 'package:observatory/src/elements/script_inset.dart';
-import 'package:observatory/src/elements/view_footer.dart';
 
 class LibraryViewElement extends CustomElement implements Renderable {
   late RenderingScheduler<LibraryViewElement> _r;
@@ -190,8 +189,6 @@ class LibraryViewElement extends CustomElement implements Renderable {
                     queue: _r.queue)
                 .element
           ],
-          new HRElement(),
-          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

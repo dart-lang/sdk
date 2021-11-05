@@ -125,42 +125,33 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitCommentReference(covariant CommentReferenceImpl node) {
-    var identifier = node.identifier;
-    if (identifier is SimpleIdentifierImpl) {
-      var element = _resolveSimpleIdentifier(identifier);
+    var expression = node.expression;
+    if (expression is SimpleIdentifierImpl) {
+      var element = _resolveSimpleIdentifier(expression);
       if (element == null) {
-        // TODO(brianwilkerson) Report this error?
-        //        resolver.reportError(
-        //            CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
-        //            simpleIdentifier,
-        //            simpleIdentifier.getName());
-      } else {
-        if (element.library == null || element.library != _definingLibrary) {
-          // TODO(brianwilkerson) Report this error?
-        }
-        identifier.staticElement = element;
-        if (node.newKeyword != null) {
-          if (element is ClassElement) {
-            var constructor = element.unnamedConstructor;
-            if (constructor == null) {
-              // TODO(brianwilkerson) Report this error.
-            } else {
-              identifier.staticElement = constructor;
-            }
-          } else {
+        return;
+      }
+      expression.staticElement = element;
+      if (node.newKeyword != null) {
+        if (element is ClassElement) {
+          var constructor = element.unnamedConstructor;
+          if (constructor == null) {
             // TODO(brianwilkerson) Report this error.
+          } else {
+            expression.staticElement = constructor;
           }
+        } else {
+          // TODO(brianwilkerson) Report this error.
         }
       }
-    } else if (identifier is PrefixedIdentifierImpl) {
-      var prefix = identifier.prefix;
+    } else if (expression is PrefixedIdentifierImpl) {
+      var prefix = expression.prefix;
       var prefixElement = _resolveSimpleIdentifier(prefix);
       prefix.staticElement = prefixElement;
 
-      var name = identifier.identifier;
+      var name = expression.identifier;
 
       if (prefixElement == null) {
-//        resolver.reportError(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, prefix, prefix.getName());
         return;
       }
 
@@ -171,11 +162,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
         element = _resolver.toLegacyElement(element);
         name.staticElement = element;
         return;
-      }
-
-      var library = prefixElement.library;
-      if (library != _definingLibrary) {
-        // TODO(brianwilkerson) Report this error.
       }
 
       if (node.newKeyword == null) {
@@ -513,7 +499,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclarationList(VariableDeclarationList node) {
     _resolveAnnotations(node.metadata);
   }
 

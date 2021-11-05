@@ -1301,7 +1301,6 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   bool success = false;
   {
     StackZone zone(T);
-    HANDLESCOPE(T);
     // We enter an API scope here as InitializeIsolate could compile some
     // bootstrap library files which call out to a tag handler that may create
     // Api Handles when an error is encountered.
@@ -2053,7 +2052,6 @@ DART_EXPORT bool Dart_RunLoopAsync(bool errors_are_fatal,
     auto thread = Thread::Current();
     TransitionNativeToVM transition(thread);
     StackZone zone(thread);
-    HANDLESCOPE(thread);
 
     if (on_error_port != ILLEGAL_PORT) {
       const auto& port =
@@ -2077,7 +2075,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   Isolate* I = T->isolate();
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
-  API_TIMELINE_BEGIN_END_BASIC(T);
+  API_TIMELINE_BEGIN_END(T);
   TransitionNativeToVM transition(T);
   if (I->message_handler()->HandleNextMessage() != MessageHandler::kOK) {
     return Api::NewHandle(T, T->StealStickyError());
@@ -2090,7 +2088,7 @@ DART_EXPORT Dart_Handle Dart_WaitForEvent(int64_t timeout_millis) {
   Isolate* I = T->isolate();
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
-  API_TIMELINE_BEGIN_END_BASIC(T);
+  API_TIMELINE_BEGIN_END(T);
   TransitionNativeToVM transition(T);
   if (I->message_notify_callback() != NULL) {
     return Api::NewError("waitForEventSync is not supported by this embedder");

@@ -8,6 +8,12 @@ library dart2js.cmdline.options;
 
 /// Commandline flags used in `dart2js.dart` and/or `apiimpl.dart`.
 class Flags {
+  // The uri of the main script file.
+  static const String entryUri = '--entry-uri';
+
+  // The uri of the main input dill.
+  static const String inputDill = '--input-dill';
+
   static const String allowMockCompilation = '--allow-mock-compilation';
   static const String allowNativeExtensions = '--allow-native-extensions';
   static const String disableInlining = '--disable-inlining';
@@ -175,7 +181,7 @@ class Flags {
   // `--no-shipping` and `--canary` control sets of flags. For simplicity, these
   // flags live in options.dart.
   // Shipping features default to on, but can be disabled individually. All
-  // shipping features can be disabled with the the [noShipping] flag.
+  // shipping features can be disabled with the [noShipping] flag.
   static const String noShipping = '--no-shipping';
 
   // Canary features default to off, but can still be enabled individually. All

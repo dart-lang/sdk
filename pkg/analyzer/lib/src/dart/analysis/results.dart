@@ -16,9 +16,11 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   @override
   final AnalysisSession session;
 
+  @Deprecated('Use FileResult.path instead')
   @override
   final String path;
 
+  @Deprecated('Use FileResult.uri instead')
   @override
   final Uri uri;
 
@@ -63,7 +65,18 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
       : super(session, path, uri);
 
   @override
+  // TODO(scheglov) Convert into a field.
+  // ignore: deprecated_member_use_from_same_package, unnecessary_overrides
+  String get path => super.path;
+
+  @Deprecated('Check for specific Result subtypes instead')
+  @override
   ResultState get state => ResultState.VALID;
+
+  @override
+  // TODO(scheglov) Convert into a field.
+  // ignore: deprecated_member_use_from_same_package, unnecessary_overrides
+  Uri get uri => super.uri;
 }
 
 class LibraryElementResultImpl implements LibraryElementResult {
@@ -82,6 +95,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
       AnalysisSession session, String path, Uri uri, this.units)
       : super(session, path, uri);
 
+  @Deprecated('Check for specific Result subtypes instead')
   @override
   ResultState get state {
     return ResultState.VALID;
@@ -89,10 +103,6 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
 
   @override
   ElementDeclarationResult? getElementDeclaration(Element element) {
-    if (state != ResultState.VALID) {
-      throw StateError('The result is not valid: $state');
-    }
-
     if (element is CompilationUnitElement ||
         element is LibraryElement ||
         element.isSynthetic ||
@@ -136,6 +146,7 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
       this.content, LineInfo lineInfo, bool isPart, this.unit, this.errors)
       : super(session, path, uri, lineInfo, isPart);
 
+  @Deprecated('Check for specific Result subtypes instead')
   @override
   ResultState get state => ResultState.VALID;
 }
@@ -168,6 +179,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       AnalysisSession session, String path, Uri uri, this.element, this.units)
       : super(session, path, uri);
 
+  @Deprecated('Check for specific Result subtypes instead')
   @override
   ResultState get state {
     return ResultState.VALID;
@@ -178,10 +190,6 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 
   @override
   ElementDeclarationResult? getElementDeclaration(Element element) {
-    if (state != ResultState.VALID) {
-      throw StateError('The result is not valid: $state');
-    }
-
     if (element is CompilationUnitElement ||
         element is LibraryElement ||
         element.isSynthetic ||
@@ -194,13 +202,8 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       (r) => r.path == elementPath,
       orElse: () {
         var elementStr = element.getDisplayString(withNullability: true);
-        var buffer = StringBuffer();
-        buffer.write('Element (${element.runtimeType}) $elementStr');
-        buffer.writeln(' is not defined in this library.');
-        // TODO(scheglov) https://github.com/dart-lang/sdk/issues/45430
-        buffer.writeln('elementPath: $elementPath');
-        buffer.writeln('unitPaths: ${units.map((e) => e.path).toList()}');
-        throw ArgumentError('$buffer');
+        throw ArgumentError('Element (${element.runtimeType}) $elementStr is '
+            'not defined in this library.');
       },
     );
 
@@ -247,8 +250,9 @@ class ResolvedUnitResultImpl extends FileResultImpl
     return unit.declaredElement!.library;
   }
 
+  @Deprecated('Check for specific Result subtypes instead')
   @override
-  ResultState get state => exists ? ResultState.VALID : ResultState.NOT_A_FILE;
+  ResultState get state => ResultState.VALID;
 
   @override
   TypeProvider get typeProvider => libraryElement.typeProvider;
@@ -257,7 +261,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
   TypeSystemImpl get typeSystem => libraryElement.typeSystem as TypeSystemImpl;
 }
 
-class UnitElementResultImpl extends AnalysisResultImpl
+class UnitElementResultImpl extends FileResultImpl
     implements UnitElementResult {
   @override
   final String signature;
@@ -266,9 +270,10 @@ class UnitElementResultImpl extends AnalysisResultImpl
   final CompilationUnitElement element;
 
   UnitElementResultImpl(AnalysisSession session, String path, Uri uri,
-      this.signature, this.element)
-      : super(session, path, uri);
+      LineInfo lineInfo, bool isPart, this.signature, this.element)
+      : super(session, path, uri, lineInfo, isPart);
 
+  @Deprecated('Check for specific Result subtypes instead')
   @override
   ResultState get state => ResultState.VALID;
 }

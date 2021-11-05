@@ -3002,6 +3002,11 @@ Instruction* DebugStepCheckInstr::Canonicalize(FlowGraph* flow_graph) {
   return NULL;
 }
 
+Instruction* RecordCoverageInstr::Canonicalize(FlowGraph* flow_graph) {
+  ASSERT(!coverage_array_.IsNull());
+  return coverage_array_.At(coverage_index_) != Smi::New(0) ? nullptr : this;
+}
+
 Definition* BoxInstr::Canonicalize(FlowGraph* flow_graph) {
   if (input_use_list() == nullptr) {
     // Environments can accommodate any representation. No need to box.
@@ -6781,6 +6786,28 @@ LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
     locs->set_in(0, native_return_loc.AsLocation());
   }
   return locs;
+}
+
+LocationSummary* RecordCoverageInstr::MakeLocationSummary(Zone* zone,
+                                                          bool opt) const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 2;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_temp(1, Location::RequiresRegister());
+  return locs;
+}
+
+void RecordCoverageInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const auto array_temp = locs()->temp(0).reg();
+  const auto value_temp = locs()->temp(1).reg();
+
+  __ LoadObject(array_temp, coverage_array_);
+  __ LoadImmediate(value_temp, Smi::RawValue(1));
+  __ StoreFieldToOffset(value_temp, array_temp,
+                        Array::element_offset(coverage_index_),
+                        compiler::kObjectBytes);
 }
 
 #undef Z

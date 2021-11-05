@@ -75,9 +75,9 @@ This will:
     final branchName = argResults['branch'] ?? 'bump_$toUpdate';
 
     final exists = runProcessForExitCode(
-        ['git', 'show-ref', '--quiet', 'refs/head/$branchName'],
+        ['git', 'rev-parse', '--verify', branchName],
         explanation: 'Checking if branch-name exists');
-    if (exists != 0) {
+    if (exists == 0) {
       print('Branch $branchName already exist - delete it?');
       if (!prompt()) {
         print('Ok - exiting');

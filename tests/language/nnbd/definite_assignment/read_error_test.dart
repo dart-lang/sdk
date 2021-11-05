@@ -9,7 +9,7 @@
 /// tests that check that a reasonable subset of the possible control flow
 /// patterns produce the expected definite (un)-assignment behavior.
 ///
-/// This test checks the the read component of the former.  That is, it tests
+/// This test checks the read component of the former.  That is, it tests
 /// errors associated with reads of local variables based on definite
 /// assignment.
 

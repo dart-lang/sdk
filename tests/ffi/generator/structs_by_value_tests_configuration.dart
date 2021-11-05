@@ -374,6 +374,54 @@ Mixed-size union argument."""),
 Union with homogenous floats."""),
   FunctionType(List.filled(10, union16bytesFloat2), double_, """
 Union with homogenous floats."""),
+  FunctionType(
+      [
+        uint8,
+        bool_,
+        bool_,
+        bool_,
+        bool_,
+        bool_,
+        bool_,
+        bool_,
+        bool_,
+        bool_,
+        struct10bytesBool,
+        bool_,
+      ],
+      int32,
+      """
+Passing bools and a struct with bools.
+Exhausts the registers to test bools and the bool struct alignment on the
+stack."""),
+  FunctionType(
+      [
+        uint8,
+        bool_,
+        bool_,
+        bool_,
+        bool_,
+        bool_,
+        bool_,
+        bool_,
+        bool_,
+        bool_,
+        structInlineArrayBool,
+        bool_,
+      ],
+      int32,
+      """
+Passing bools and a struct with bools.
+Exhausts the registers to test bools and the bool struct alignment on the
+stack."""),
+  FunctionType(
+      [
+        uint8,
+        struct1byteBool,
+      ],
+      bool_,
+      """
+Returning a bool."""),
 ];
 
 final functionsStructReturn = [
@@ -558,6 +606,7 @@ Return big irregular struct as smoke test."""),
 ];
 
 final compounds = [
+  struct1byteBool,
   struct1byteInt,
   struct3bytesInt,
   struct3bytesInt2,
@@ -571,6 +620,7 @@ final compounds = [
   struct8BytesMixed,
   struct9bytesInt,
   struct9bytesInt2,
+  struct10bytesBool,
   struct12bytesFloat,
   struct16bytesFloat,
   struct16bytesMixed,
@@ -598,6 +648,7 @@ final compounds = [
   structNestedBigger,
   structNestedEvenBigger,
   structInlineArray,
+  structInlineArrayBool,
   structInlineArrayIrregular,
   structInlineArray100Bytes,
   structInlineArrayBig,
@@ -623,6 +674,7 @@ final compounds = [
   union16bytesFloat2,
 ];
 
+final struct1byteBool = StructType([bool_]);
 final struct1byteInt = StructType([int8]);
 final struct3bytesInt = StructType(List.filled(3, uint8));
 final struct3bytesInt2 = StructType.disambiguate([int16, int8], "2ByteAligned");
@@ -638,6 +690,7 @@ final struct8BytesMixed = StructType([float, int16, int16]);
 final struct9bytesInt = StructType(List.filled(9, uint8));
 final struct9bytesInt2 =
     StructType.disambiguate([int64, int8], "4Or8ByteAligned");
+final struct10bytesBool = StructType(List.filled(10, bool_));
 final struct12bytesFloat = StructType([float, float, float]);
 
 /// The largest homogenous float that goes into FPU registers on softfp and
@@ -715,6 +768,8 @@ final structNestedEvenBigger = StructType.override(
     "NestedIrregularEvenBigger");
 
 final structInlineArray = StructType([FixedLengthArrayType(uint8, 8)]);
+
+final structInlineArrayBool = StructType([FixedLengthArrayType(bool_, 10)]);
 
 final structInlineArrayIrregular = StructType.override(
     [FixedLengthArrayType(struct3bytesInt2, 2), uint8], "InlineArrayIrregular");

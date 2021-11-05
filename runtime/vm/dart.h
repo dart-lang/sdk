@@ -111,9 +111,10 @@ class Dart : public AllStatic {
   static uword AllocateReadOnlyHandle();
   static bool IsReadOnlyHandle(uword address);
 
-  static const char* FeaturesString(IsolateGroup* isolate_group,
-                                    bool is_vm_snapshot,
-                                    Snapshot::Kind kind);
+  // The returned string has to be free()ed.
+  static char* FeaturesString(IsolateGroup* isolate_group,
+                              bool is_vm_snapshot,
+                              Snapshot::Kind kind);
   static Snapshot::Kind vm_snapshot_kind() { return vm_snapshot_kind_; }
 
   static Dart_ThreadExitCallback thread_exit_callback() {

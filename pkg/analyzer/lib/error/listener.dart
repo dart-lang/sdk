@@ -94,7 +94,7 @@ class ErrorReporter {
   /// Report an error with the given [errorCode] and [arguments].
   /// The [node] is used to compute the location of the error.
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
+      [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
     reportErrorForOffset(
         errorCode, node.offset, node.length, arguments, messages);
   }
@@ -102,7 +102,7 @@ class ErrorReporter {
   /// Report an error with the given [errorCode] and [arguments]. The location
   /// of the error is specified by the given [offset] and [length].
   void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
-      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
+      [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
     _convertElements(arguments);
     messages ??= [];
     messages.addAll(_convertTypeNames(arguments));
@@ -113,14 +113,14 @@ class ErrorReporter {
   /// Report an error with the given [errorCode] and [arguments]. The location
   /// of the error is specified by the given [span].
   void reportErrorForSpan(ErrorCode errorCode, SourceSpan span,
-      [List<Object?>? arguments]) {
+      [List<Object>? arguments]) {
     reportErrorForOffset(errorCode, span.start.offset, span.length, arguments);
   }
 
   /// Report an error with the given [errorCode] and [arguments]. The [token] is
   /// used to compute the location of the error.
   void reportErrorForToken(ErrorCode errorCode, Token token,
-      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
+      [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
     reportErrorForOffset(
         errorCode, token.offset, token.length, arguments, messages);
   }
@@ -154,7 +154,7 @@ class ErrorReporter {
   }
 
   /// Convert all [Element]s in the [arguments] into their display strings.
-  void _convertElements(List<Object?>? arguments) {
+  void _convertElements(List<Object>? arguments) {
     if (arguments == null) {
       return;
     }

@@ -10,10 +10,268 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(
+        FunctionReferenceResolution_genericFunctionInstantiationTest);
     defineReflectiveTests(FunctionReferenceResolutionTest);
     defineReflectiveTests(
         FunctionReferenceResolutionWithoutConstructorTearoffsTest);
   });
+}
+
+@reflectiveTest
+class FunctionReferenceResolution_genericFunctionInstantiationTest
+    extends PubPackageResolutionTest {
+  test_asExpression() async {
+    await assertNoErrorsInCode('''
+void Function(int) foo(void Function<T>(T) f) {
+  return (f as dynamic) as void Function<T>(T);
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('as void Function<T>(T);'),
+        null,
+        'void Function(int)');
+  }
+
+  test_assignmentExpression() async {
+    await assertNoErrorsInCode('''
+late void Function<T>(T) g;
+void Function(int) foo(void Function<T>(T) f) {
+  return g = f;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('g = f;'), null, 'void Function(int)');
+  }
+
+  test_assignmentExpression_compound() async {
+    await assertNoErrorsInCode('''
+extension on void Function<T>(T) {
+  void Function<T>(T) operator +(int i) {
+    return this;
+  }
+}
+
+void Function(int) foo(void Function<T>(T) f) {
+  return f += 1;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('f += 1'), null, 'void Function(int)');
+  }
+
+  test_awaitExpression() async {
+    await assertNoErrorsInCode('''
+Future<void Function(int)> foo(Future<void Function<T>(T)> f) async {
+  return await f;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('await f'), null, 'void Function(int)');
+  }
+
+  test_binaryExpression() async {
+    await assertNoErrorsInCode('''
+class C {
+  void Function<T>(T) operator +(int i) {
+    return <T>(T a) {};
+  }
+}
+
+void Function(int) foo(C c) {
+  return c + 1;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('c + 1'), null, 'void Function(int)');
+  }
+
+  test_cascadeExpression() async {
+    await assertNoErrorsInCode('''
+void Function(int) foo(void Function<T>(T) f) {
+  return f..toString();
+}
+''');
+
+    assertFunctionReference(findNode.functionReference('f..toString()'), null,
+        'void Function(int)');
+  }
+
+  test_constructorReference() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C(T a);
+}
+C<int> Function(int) foo() {
+  return C.new;
+}
+''');
+
+    // TODO(srawlins): Leave the constructor reference uninstantiated, then
+    // perform generic function instantiation as a wrapping node.
+    assertConstructorReference(
+        findNode.constructorReference('C.new'),
+        findElement.unnamedConstructor('C'),
+        findElement.class_('C'),
+        'C<int> Function(int)');
+  }
+
+  test_functionExpression() async {
+    await assertNoErrorsInCode('''
+Null Function(int) foo() {
+  return <T>(T a) {};
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('<T>(T a) {};'), null, 'Null Function(int)');
+  }
+
+  test_functionExpressionInvocation() async {
+    await assertNoErrorsInCode('''
+void Function(int) foo(void Function<T>(T) Function() f) {
+  return (f)();
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('(f)()'), null, 'void Function(int)');
+  }
+
+  test_functionReference() async {
+    await assertNoErrorsInCode('''
+typedef Fn = void Function<U>(U);
+
+void Function(int) foo(Fn f) {
+  return f;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('f;'), null, 'void Function(int)');
+  }
+
+  test_implicitCallReference() async {
+    await assertNoErrorsInCode('''
+class C {
+  void call<T>(T a) {}
+}
+
+void Function(int) foo(C c) {
+  return c;
+}
+''');
+
+    assertImplicitCallReference(findNode.implicitCallReference('c;'),
+        findElement.method('call'), 'void Function(int)');
+  }
+
+  test_indexExpression() async {
+    await assertNoErrorsInCode('''
+void Function(int) foo(List<void Function<T>(T)> f) {
+  return f[0];
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('f[0];'), null, 'void Function(int)');
+  }
+
+  test_methodInvocation() async {
+    await assertNoErrorsInCode('''
+class C {
+  late void Function<T>(T) f;
+  void Function<T>(T) m() => f;
+}
+
+void Function(int) foo(C c) {
+  return c.m();
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('c.m();'), null, 'void Function(int)');
+  }
+
+  test_postfixExpression_compound() async {
+    await assertNoErrorsInCode('''
+extension on void Function<T>(T) {
+  void Function<T>(T) operator +(int i) {
+    return this;
+  }
+}
+
+void Function(int) foo(void Function<T>(T) f) {
+  return f++;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('f++'), null, 'void Function(int)');
+  }
+
+  test_prefixedIdentifier() async {
+    await assertNoErrorsInCode('''
+class C {
+  late void Function<T>(T) f;
+}
+
+void Function(int) foo(C c) {
+  return c.f;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('c.f;'), null, 'void Function(int)');
+  }
+
+  test_prefixExpression_compound() async {
+    await assertNoErrorsInCode('''
+extension on void Function<T>(T) {
+  void Function<T>(T) operator +(int i) {
+    return this;
+  }
+}
+
+void Function(int) foo(void Function<T>(T) f) {
+  return ++f;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('++f'), null, 'void Function(int)');
+  }
+
+  test_propertyAccess() async {
+    await assertNoErrorsInCode('''
+class C {
+  late void Function<T>(T) f;
+}
+
+void Function(int) foo(C c) {
+  return (c).f;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('(c).f;'), null, 'void Function(int)');
+  }
+
+  test_simpleIdentifier() async {
+    await assertNoErrorsInCode('''
+void Function(int) foo(void Function<T>(T) f) {
+  return f;
+}
+''');
+
+    assertFunctionReference(
+        findNode.functionReference('f;'), null, 'void Function(int)');
+  }
 }
 
 @reflectiveTest
@@ -338,6 +596,23 @@ extension E on A {
         reference, findElement.method('foo'), 'void Function(int)');
   }
 
+  test_extensionMethod_unknown() async {
+    await assertErrorsInCode('''
+extension on double {
+  bar() {
+    foo<int>;
+  }
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 24, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 36, 3,
+          messageContains: ["for the type 'double'"]),
+    ]);
+
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
+  }
+
   test_function_call() async {
     await assertNoErrorsInCode('''
 void foo<T>(T a) {}
@@ -427,7 +702,11 @@ extension on Function {
   static void m<T>(T t) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 40, 1),
+      error(
+          CompileTimeErrorCode
+              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+          40,
+          1),
     ]);
 
     assertFunctionReference(findNode.functionReference('foo.m<int>;'),
@@ -445,12 +724,49 @@ foo() {
 }
 ''');
 
-    // TODO(srawlins): An arbitrary expression with a static type which is
-    // callable does not necessarily have an element. However, if we implement
-    // some "implicit call tearoff" node, it would have an element referring to
-    // the `call` method.
-    var functionReference = findNode.functionReference('C()<int>;');
-    assertType(functionReference, 'int Function(int)');
+    assertImplicitCallReference(findNode.implicitCallReference('C()<int>;'),
+        findElement.method('call'), 'int Function(int)');
+  }
+
+  test_implicitCallTearoff_extensionOnNullable() async {
+    await assertNoErrorsInCode('''
+Object? v = null;
+extension E on Object? {
+  void call<R, S>(R r, S s) {}
+}
+void foo() {
+  v<int, String>;
+}
+
+''');
+
+    assertImplicitCallReference(
+        findNode.implicitCallReference('v<int, String>;'),
+        findElement.method('call'),
+        'void Function(int, String)');
+  }
+
+  test_implicitCallTearoff_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class C {
+  T call<T>(T t) => t;
+}
+C c = C();
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+bar() {
+  prefix.c<int>;
+}
+''');
+
+    assertImportPrefix(
+        findNode.simple('prefix.'), findElement.prefix('prefix'));
+    assertImplicitCallReference(
+        findNode.implicitCallReference('c<int>;'),
+        findElement.importFind('package:test/a.dart').method('call'),
+        'int Function(int)');
   }
 
   test_implicitCallTearoff_tooFewTypeArguments() async {
@@ -464,18 +780,11 @@ foo() {
 }
 ''', [
       error(
-          CompileTimeErrorCode
-              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
-          57,
-          5),
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 57, 5),
     ]);
 
-    // TODO(srawlins): An arbitrary expression with a static type which is
-    // callable does not necessarily have an element. However, if we implement
-    // some "implicit call tearoff" node, it would have an element referring to
-    // the `call` method.
-    var functionReference = findNode.functionReference('C()<int>;');
-    assertType(functionReference, 'void Function(dynamic, dynamic)');
+    assertImplicitCallReference(findNode.implicitCallReference('C()<int>;'),
+        findElement.method('call'), 'void Function(dynamic, dynamic)');
   }
 
   test_implicitCallTearoff_tooManyTypeArguments() async {
@@ -489,18 +798,11 @@ foo() {
 }
 ''', [
       error(
-          CompileTimeErrorCode
-              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
-          50,
-          5),
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 50, 5),
     ]);
 
-    // TODO(srawlins): An arbitrary expression with a static type which is
-    // callable does not necessarily have an element. However, if we implement
-    // some "implicit call tearoff" node, it would have an element referring to
-    // the `call` method.
-    var functionReference = findNode.functionReference('C()<int>;');
-    assertType(functionReference, 'int Function(int)');
+    assertImplicitCallReference(findNode.implicitCallReference('C()<int>;'),
+        findElement.method('call'), 'int Function(int)');
   }
 
   test_instanceGetter_explicitReceiver() async {
@@ -523,6 +825,23 @@ bar(A a) {
 abstract class A {
   late void Function<T>(T) foo;
 
+  bar() {
+    foo<int>;
+  }
+}
+
+''');
+
+    assertFunctionReference(findNode.functionReference('foo<int>;'),
+        findElement.getter('foo'), 'void Function(int)');
+  }
+
+  test_instanceGetter_functionTyped_inherited() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  late void Function<T>(T) foo;
+}
+abstract class B extends A {
   bar() {
     foo<int>;
   }
@@ -874,7 +1193,8 @@ class A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3,
+          messageContains: ["for the type 'A'"]),
     ]);
 
     assertFunctionReference(
@@ -1324,6 +1644,26 @@ void bar() {
 
     assertFunctionReference(findNode.functionReference('foo<int>'),
         findElement.topFunction('foo'), 'void Function(int)');
+  }
+
+  test_topLevelVariable_prefix() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+void Function<T>(T) foo = <T>(T arg) {}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as prefix;
+
+bar() {
+  prefix.foo<int>;
+}
+''');
+
+    assertImportPrefix(
+        findNode.simple('prefix.'), findElement.prefix('prefix'));
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'),
+        findElement.importFind('package:test/a.dart').topGet('foo'),
+        'void Function(int)');
   }
 
   test_topLevelVariable_prefix_unknownIdentifier() async {

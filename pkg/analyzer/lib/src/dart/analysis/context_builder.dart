@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/hint/sdk_constraint_extractor.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:cli_util/cli_util.dart';
@@ -150,8 +151,11 @@ class ContextBuilderImpl implements ContextBuilder {
     String? sdkSummaryPath,
   }) {
     if (sdkSummaryPath != null) {
-      return SummaryBasedDartSdk(sdkSummaryPath, true,
-          resourceProvider: resourceProvider);
+      var file = resourceProvider.getFile(sdkSummaryPath);
+      var bytes = file.readAsBytesSync();
+      return SummaryBasedDartSdk.forBundle(
+        PackageBundleReader(bytes),
+      );
     }
 
     var folderSdk = FolderBasedDartSdk(

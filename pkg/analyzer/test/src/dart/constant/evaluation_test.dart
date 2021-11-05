@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -19,6 +20,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantVisitorTest);
     defineReflectiveTests(ConstantVisitorWithoutNullSafetyTest);
+    defineReflectiveTests(InstanceCreationEvaluatorTest);
+    defineReflectiveTests(InstanceCreationEvaluatorWithoutNullSafetyTest);
   });
 }
 
@@ -159,6 +162,18 @@ const g = identical(foo<int>, foo);
     await resolveTestCode('''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo<int>);
+''');
+    expect(
+      _evaluateConstant('g'),
+      _boolValue(true),
+    );
+  }
+
+  test_identical_functionReference_explicitTypeArgs_sameElement_runtimeTypeEquality() async {
+    await resolveTestCode('''
+import 'dart:async';
+void foo<T>(T a) {}
+const g = identical(foo<Object>, foo<FutureOr<Object>>);
 ''');
     expect(
       _evaluateConstant('g'),
@@ -315,21 +330,6 @@ const c = identical(int, int);
       _evaluateConstant('c'),
       _boolValue(true),
     );
-  }
-
-  test_visitAsExpression_potentialConstType() async {
-    await assertNoErrorsInCode('''
-const num three = 3;
-
-class C<T extends num> {
-  final T w;
-  const C() : w = three as T;
-}
-
-void main() {
-  const C<int>().w;
-}
-''');
   }
 
   test_visitBinaryExpression_gtGtGt_negative_fewerBits() async {
@@ -557,6 +557,49 @@ const g = f;
     _assertTypeArguments(result, null);
   }
 
+  test_visitIsExpression_is_null() async {
+    await resolveTestCode('''
+const a = null;
+const b = a is A;
+class A {}
+''');
+    DartObjectImpl result = _evaluateConstant('b');
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), false);
+  }
+
+  test_visitIsExpression_is_null_nullable() async {
+    await resolveTestCode('''
+const a = null;
+const b = a is A?;
+class A {}
+''');
+    DartObjectImpl result = _evaluateConstant('b');
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), true);
+  }
+
+  test_visitIsExpression_is_null_object() async {
+    await resolveTestCode('''
+const a = null;
+const b = a is Object;
+''');
+    DartObjectImpl result = _evaluateConstant('b');
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), false);
+  }
+
+  test_visitIsExpression_isNot_null() async {
+    await resolveTestCode('''
+const a = null;
+const b = a is! A;
+class A {}
+''');
+    DartObjectImpl result = _evaluateConstant('b');
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), true);
+  }
+
   test_visitPrefixedIdentifier_genericFunction_instantiated() async {
     await resolveTestCode('''
 import '' as self;
@@ -566,7 +609,48 @@ const void Function(int) g = self.f;
     var result = _evaluateConstant('g');
     assertType(result.type, 'void Function(int)');
     assertElement(result.toFunctionValue(), findElement.topFunction('f'));
-    _assertTypeArguments(result, null);
+    _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitPrefixedIdentifier_genericFunction_instantiatedNonIdentifier() async {
+    await resolveTestCode('''
+void f<T>(T a) {}
+const b = false;
+const g1 = f;
+const g2 = f;
+const void Function(int) h = b ? g1 : g2;
+''');
+    var result = _evaluateConstant('h');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitPrefixedIdentifier_genericFunction_instantiatedPrefixed() async {
+    await resolveTestCode('''
+import '' as self;
+void f<T>(T a) {}
+const g = f;
+const void Function(int) h = self.g;
+''');
+    var result = _evaluateConstant('h');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitPropertyAccess_genericFunction_instantiated() async {
+    await resolveTestCode('''
+import '' as self;
+class C {
+  static void f<T>(T a) {}
+}
+const void Function(int) g = self.C.f;
+''');
+    var result = _evaluateConstant('g');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.method('f'));
+    _assertTypeArguments(result, ['int']);
   }
 
   test_visitSimpleIdentifier_className() async {
@@ -582,6 +666,17 @@ class C {}
   test_visitSimpleIdentifier_genericFunction_instantiated() async {
     await resolveTestCode('''
 void f<T>(T a) {}
+const void Function(int) g = f;
+''');
+    var result = _evaluateConstant('g');
+    assertType(result.type, 'void Function(int)');
+    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
+    _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitSimpleIdentifier_genericFunction_nonGeneric() async {
+    await resolveTestCode('''
+void f(int a) {}
 const void Function(int) g = f;
 ''');
     var result = _evaluateConstant('g');
@@ -841,6 +936,21 @@ const c = {1, ...{2, 3}, 4};
     DartObjectImpl result = _evaluateConstant('c');
     expect(result.type, typeProvider.setType(typeProvider.intType));
     expect(result.toSetValue()!.map((e) => e.toIntValue()), [1, 2, 3, 4]);
+  }
+
+  test_typeParameter() async {
+    await resolveTestCode('''
+class A<X> {
+  const A();
+  void m() {
+    const x = X;
+  }
+}
+''');
+    var result = _evaluateConstantLocal('x', errorCodes: [
+      CompileTimeErrorCode.INVALID_CONSTANT,
+    ]);
+    expect(result, isNull);
   }
 
   test_visitAsExpression_instanceOfSameClass() async {
@@ -1338,89 +1448,20 @@ class C {}
         errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
   }
 
-  test_visitInstanceCreationExpression_bool_fromEnvironment() async {
+  test_visitConditionalExpression_lazy_unknown_int_invalid() async {
     await resolveTestCode('''
-const a = bool.fromEnvironment('a');
-const b = bool.fromEnvironment('b', defaultValue: true);
+const c = identical(0, 0.0) ? 1 : new Object();
 ''');
-    expect(
-      _evaluateConstant('a'),
-      _boolValue(false),
-    );
-    expect(
-      _evaluateConstant('a', declaredVariables: {'a': 'true'}),
-      _boolValue(true),
-    );
-
-    expect(
-      _evaluateConstant(
-        'b',
-        declaredVariables: {'b': 'bbb'},
-        lexicalEnvironment: {'defaultValue': _boolValue(true)},
-      ),
-      _boolValue(true),
-    );
+    _evaluateConstantOrNull('c',
+        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
   }
 
-  test_visitInstanceCreationExpression_bool_hasEnvironment() async {
+  test_visitConditionalExpression_lazy_unknown_invalid_int() async {
     await resolveTestCode('''
-const a = bool.hasEnvironment('a');
+const c = identical(0, 0.0) ? 1 : new Object();
 ''');
-    expect(
-      _evaluateConstant('a'),
-      _boolValue(false),
-    );
-
-    expect(
-      _evaluateConstant('a', declaredVariables: {'a': '42'}),
-      _boolValue(true),
-    );
-  }
-
-  test_visitInstanceCreationExpression_int_fromEnvironment() async {
-    await resolveTestCode('''
-const a = int.fromEnvironment('a');
-const b = int.fromEnvironment('b', defaultValue: 42);
-''');
-    expect(
-      _evaluateConstant('a'),
-      _intValue(0),
-    );
-    expect(
-      _evaluateConstant('a', declaredVariables: {'a': '5'}),
-      _intValue(5),
-    );
-
-    expect(
-      _evaluateConstant(
-        'b',
-        declaredVariables: {'b': 'bbb'},
-        lexicalEnvironment: {'defaultValue': _intValue(42)},
-      ),
-      _intValue(42),
-    );
-  }
-
-  test_visitInstanceCreationExpression_string_fromEnvironment() async {
-    await resolveTestCode('''
-const a = String.fromEnvironment('a');
-''');
-    expect(
-      _evaluateConstant('a'),
-      DartObjectImpl(
-        typeSystem,
-        typeProvider.stringType,
-        StringState(''),
-      ),
-    );
-    expect(
-      _evaluateConstant('a', declaredVariables: {'a': 'test'}),
-      DartObjectImpl(
-        typeSystem,
-        typeProvider.stringType,
-        StringState('test'),
-      ),
-    );
+    _evaluateConstantOrNull('c',
+        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
   }
 
   test_visitIntegerLiteral() async {
@@ -1522,17 +1563,6 @@ class B {
     expect(result.toBoolValue(), false);
   }
 
-  test_visitIsExpression_is_null() async {
-    await resolveTestCode('''
-const a = null;
-const b = a is A;
-class A {}
-''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), false);
-  }
-
   test_visitIsExpression_is_null_dynamic() async {
     await resolveTestCode('''
 const a = null;
@@ -1548,17 +1578,6 @@ class A {}
     await resolveTestCode('''
 const a = null;
 const b = a is Null;
-class A {}
-''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), true);
-  }
-
-  test_visitIsExpression_is_null_object() async {
-    await resolveTestCode('''
-const a = null;
-const b = a is Object;
 class A {}
 ''');
     DartObjectImpl result = _evaluateConstant('b');
@@ -1621,17 +1640,6 @@ class A {
 class B {
   const B();
 }
-''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), true);
-  }
-
-  test_visitIsExpression_isNot_null() async {
-    await resolveTestCode('''
-const a = null;
-const b = a is! A;
-class A {}
 ''');
     DartObjectImpl result = _evaluateConstant('b');
     expect(result.type, typeProvider.boolType);
@@ -1746,7 +1754,9 @@ const b = 3;''');
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), 3);
   }
+}
 
+class ConstantVisitorTestSupport extends PubPackageResolutionTest {
   void _assertBoolValue(DartObjectImpl result, bool value) {
     expect(result.type, typeProvider.boolType);
     expect(result.toBoolValue(), value);
@@ -1755,6 +1765,24 @@ const b = 3;''');
   void _assertIntValue(DartObjectImpl result, int value) {
     expect(result.type, typeProvider.intType);
     expect(result.toIntValue(), value);
+  }
+
+  void _assertTypeArguments(DartObject value, List<String>? typeArgumentNames) {
+    var typeArguments = (value as DartObjectImpl).typeArguments;
+    if (typeArguments == null) {
+      expect(typeArguments, typeArgumentNames);
+      return;
+    }
+    expect(
+      typeArguments.map((arg) => arg.getDisplayString(withNullability: true)),
+      equals(typeArgumentNames),
+    );
+  }
+
+  /// Asserts that evaluation of [name] results in no errors, and a non-null
+  /// [DartObject].
+  void _assertValidConstant(String name) {
+    _evaluateConstant(name);
   }
 
   DartObjectImpl _boolValue(bool value) {
@@ -1772,28 +1800,6 @@ const b = 3;''');
       );
     }
     fail("Invalid boolean value used in test");
-  }
-
-  DartObjectImpl _intValue(int value) {
-    return DartObjectImpl(
-      typeSystem,
-      typeProvider.intType,
-      IntState(value),
-    );
-  }
-}
-
-class ConstantVisitorTestSupport extends PubPackageResolutionTest {
-  void _assertTypeArguments(DartObject value, List<String>? typeArgumentNames) {
-    var typeArguments = (value as DartObjectImpl).typeArguments;
-    if (typeArguments == null) {
-      expect(typeArguments, typeArgumentNames);
-      return;
-    }
-    expect(
-      typeArguments.map((arg) => arg.getDisplayString(withNullability: true)),
-      equals(typeArgumentNames),
-    );
   }
 
   DartObjectImpl _evaluateConstant(
@@ -1874,6 +1880,14 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     }
     return result;
   }
+
+  DartObjectImpl _intValue(int value) {
+    return DartObjectImpl(
+      typeSystem,
+      typeProvider.intType,
+      IntState(value),
+    );
+  }
 }
 
 @reflectiveTest
@@ -1888,4 +1902,435 @@ class A {}
     DartObjectImpl result = _evaluateConstant('b');
     expect(result.type, typeProvider.nullType);
   }
+
+  test_visitIsExpression_is_null() async {
+    await resolveTestCode('''
+const a = null;
+const b = a is A;
+class A {}
+''');
+    DartObjectImpl result = _evaluateConstant('b');
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), true);
+  }
+
+  test_visitIsExpression_is_null_object() async {
+    await resolveTestCode('''
+const a = null;
+const b = a is Object;
+''');
+    DartObjectImpl result = _evaluateConstant('b');
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), true);
+  }
+
+  test_visitIsExpression_isNot_null() async {
+    await resolveTestCode('''
+const a = null;
+const b = a is! A;
+class A {}
+''');
+    DartObjectImpl result = _evaluateConstant('b');
+    expect(result.type, typeProvider.boolType);
+    expect(result.toBoolValue(), false);
+  }
 }
+
+@reflectiveTest
+class InstanceCreationEvaluatorTest extends ConstantVisitorTestSupport
+    with InstanceCreationEvaluatorTestCases {
+  test_assertInitializer_assertIsNot_null_nullableType() async {
+    await resolveTestCode('''
+class A<T> {
+  const A() : assert(null is! T);
+}
+
+const a = const A<int?>();
+''');
+
+    _evaluateConstantOrNull(
+      'a',
+      errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
+    );
+  }
+
+  test_fieldInitializer_functionReference_withTypeParameter() async {
+    await resolveTestCode('''
+void g<U>(U a) {}
+class A<T> {
+  final void Function(T) f;
+  const A(): f = g;
+}
+const a = const A<int>();
+''');
+    var result = _evaluateConstant('a');
+    var aElement = findElement.class_('A');
+    var expectedType = aElement.instantiate(
+        typeArguments: [typeProvider.intType],
+        nullabilitySuffix: NullabilitySuffix.none);
+    expect(result.type, expectedType);
+
+    var fField = result.fields!['f']!;
+    var gElement = findElement.topFunction('g');
+    var expectedFunctionType =
+        gElement.type.instantiate([typeProvider.intType]);
+    expect(fField.type, expectedFunctionType);
+  }
+
+  test_fieldInitializer_typeParameter() async {
+    await resolveTestCode('''
+class A<T> {
+  final Object f;
+  const A(): f = T;
+}
+const a = const A<int>();
+''');
+    var result = _evaluateConstant('a');
+    var aElement = findElement.class_('A');
+    var expectedType = aElement.instantiate(
+        typeArguments: [typeProvider.intType],
+        nullabilitySuffix: NullabilitySuffix.none);
+    expect(result.type, expectedType);
+  }
+
+  test_fieldInitializer_typeParameter_implicitTypeArgs() async {
+    await resolveTestCode('''
+class A<T> {
+  final Object f;
+  const A(): f = T;
+}
+const a = const A();
+''');
+    var result = _evaluateConstant('a');
+    var aElement = findElement.class_('A');
+    var expectedType = aElement.instantiate(
+        typeArguments: [typeProvider.dynamicType],
+        nullabilitySuffix: NullabilitySuffix.none);
+    expect(result.type, expectedType);
+  }
+
+  test_fieldInitializer_typeParameter_typeAlias() async {
+    await resolveTestCode('''
+class A<T, U> {
+  final Object f, g;
+  const A(): f = T, g = U;
+}
+typedef B<S> = A<int, S>;
+const a = const B<String>();
+''');
+    var result = _evaluateConstant('a');
+    var aElement = findElement.class_('A');
+    var expectedType = aElement.instantiate(
+        typeArguments: [typeProvider.intType, typeProvider.stringType],
+        nullabilitySuffix: NullabilitySuffix.none);
+    expect(result.type, expectedType);
+  }
+
+  test_fieldInitializer_typeParameter_withoutConstructorTearoffs() async {
+    await resolveTestCode('''
+// @dart=2.12
+class A<T> {
+  final Object f;
+  const A(): f = T;
+}
+const a = const A<int>();
+''');
+    var result = _evaluateConstant('a', errorCodes: [
+      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+    ]);
+    var aElement = findElement.class_('A');
+    var expectedType = aElement.instantiate(
+        typeArguments: [typeProvider.intType],
+        nullabilitySuffix: NullabilitySuffix.none);
+    expect(result.type, expectedType);
+  }
+
+  test_fieldInitializer_visitAsExpression_potentialConstType() async {
+    await assertNoErrorsInCode('''
+const num three = 3;
+
+class C<T extends num> {
+  final T w;
+  const C() : w = three as T;
+}
+
+void main() {
+  const C<int>().w;
+}
+''');
+  }
+
+  test_redirectingConstructor_typeParameter() async {
+    await resolveTestCode('''
+class A<T> {
+  final Object f;
+  const A(): this.named(T);
+  const A.named(Object t): f = t;
+}
+const a = const A<int>();
+''');
+    var result = _evaluateConstant('a');
+    expect(result, isNotNull);
+  }
+
+  test_superInitializer_typeParameter() async {
+    await resolveTestCode('''
+class A<T> {
+  final Object f;
+  const A(Object t): f = t;
+}
+class B<T> extends A<T> {
+  const B(): super(T);
+}
+const a = const B<int>();
+''');
+    var result = _evaluateConstant('a');
+    var bElement = findElement.class_('B');
+    var expectedType = bElement.instantiate(
+        typeArguments: [typeProvider.intType],
+        nullabilitySuffix: NullabilitySuffix.none);
+    expect(result.type, expectedType);
+  }
+
+  test_superInitializer_typeParameter_superNonGeneric() async {
+    await resolveTestCode('''
+class A {
+  final Object f;
+  const A(Object t): f = t;
+}
+class B<T> extends A {
+  const B(): super(T);
+}
+const a = const B<int>();
+''');
+    var result = _evaluateConstant('a');
+    expect(result, isNotNull);
+  }
+}
+
+@reflectiveTest
+mixin InstanceCreationEvaluatorTestCases on ConstantVisitorTestSupport {
+  test_assertInitializer_assertIsNot_false() async {
+    await resolveTestCode('''
+class A {
+  const A() : assert(0 is! int);
+}
+
+const a = const A(null);
+''');
+    _evaluateConstantOrNull(
+      'a',
+      errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
+    );
+  }
+
+  test_assertInitializer_assertIsNot_true() async {
+    await resolveTestCode('''
+class A {
+  const A() : assert(0 is! String);
+}
+
+const a = const A(null);
+''');
+    _assertValidConstant('a');
+  }
+
+  test_assertInitializer_intInDoubleContext_assertIsDouble_true() async {
+    await resolveTestCode('''
+class A {
+  const A(double x): assert(x is double);
+}
+const a = const A(0);
+''');
+    _assertValidConstant('a');
+  }
+
+  test_assertInitializer_intInDoubleContext_false() async {
+    await resolveTestCode('''
+class A {
+  const A(double x): assert((x + 3) / 2 == 1.5);
+}
+const a = const A(1);
+''');
+    _evaluateConstantOrNull(
+      'a',
+      errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
+    );
+  }
+
+  test_assertInitializer_intInDoubleContext_true() async {
+    await resolveTestCode('''
+class A {
+  const A(double x): assert((x + 3) / 2 == 1.5);
+}
+const a = const A(0);
+''');
+    _assertValidConstant('a');
+  }
+
+  test_assertInitializer_simple_false() async {
+    await resolveTestCode('''
+class A {
+  const A(): assert(1 is String);
+}
+const a = const A();
+''');
+    _evaluateConstantOrNull(
+      'a',
+      errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
+    );
+  }
+
+  test_assertInitializer_simple_true() async {
+    await resolveTestCode('''
+class A {
+  const A(): assert(1 is int);
+}
+const a = const A();
+''');
+    _assertValidConstant('a');
+  }
+
+  test_assertInitializer_simpleInSuperInitializer_false() async {
+    await resolveTestCode('''
+class A {
+  const A(): assert(1 is String);
+}
+class B extends A {
+  const B() : super();
+}
+const b = const B();
+''');
+    _evaluateConstantOrNull(
+      'b',
+      errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
+    );
+  }
+
+  test_assertInitializer_simpleInSuperInitializer_true() async {
+    await resolveTestCode('''
+class A {
+  const A(): assert(1 is int);
+}
+class B extends A {
+  const B() : super();
+}
+const b = const B();
+''');
+    _assertValidConstant('b');
+  }
+
+  test_assertInitializer_usingArgument_false() async {
+    await resolveTestCode('''
+class A {
+  const A(int x): assert(x > 0);
+}
+const a = const A(0);
+''');
+    _evaluateConstantOrNull(
+      'a',
+      errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION],
+    );
+  }
+
+  test_assertInitializer_usingArgument_true() async {
+    await resolveTestCode('''
+class A {
+  const A(int x): assert(x > 0);
+}
+const a = const A(1);
+''');
+    _assertValidConstant('a');
+  }
+
+  test_bool_fromEnvironment() async {
+    await resolveTestCode('''
+const a = bool.fromEnvironment('a');
+const b = bool.fromEnvironment('b', defaultValue: true);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+    expect(
+      _evaluateConstant('a', declaredVariables: {'a': 'true'}),
+      _boolValue(true),
+    );
+
+    expect(
+      _evaluateConstant(
+        'b',
+        declaredVariables: {'b': 'bbb'},
+        lexicalEnvironment: {'defaultValue': _boolValue(true)},
+      ),
+      _boolValue(true),
+    );
+  }
+
+  test_bool_hasEnvironment() async {
+    await resolveTestCode('''
+const a = bool.hasEnvironment('a');
+''');
+    expect(
+      _evaluateConstant('a'),
+      _boolValue(false),
+    );
+
+    expect(
+      _evaluateConstant('a', declaredVariables: {'a': '42'}),
+      _boolValue(true),
+    );
+  }
+
+  test_int_fromEnvironment() async {
+    await resolveTestCode('''
+const a = int.fromEnvironment('a');
+const b = int.fromEnvironment('b', defaultValue: 42);
+''');
+    expect(
+      _evaluateConstant('a'),
+      _intValue(0),
+    );
+    expect(
+      _evaluateConstant('a', declaredVariables: {'a': '5'}),
+      _intValue(5),
+    );
+
+    expect(
+      _evaluateConstant(
+        'b',
+        declaredVariables: {'b': 'bbb'},
+        lexicalEnvironment: {'defaultValue': _intValue(42)},
+      ),
+      _intValue(42),
+    );
+  }
+
+  test_string_fromEnvironment() async {
+    await resolveTestCode('''
+const a = String.fromEnvironment('a');
+''');
+    expect(
+      _evaluateConstant('a'),
+      DartObjectImpl(
+        typeSystem,
+        typeProvider.stringType,
+        StringState(''),
+      ),
+    );
+    expect(
+      _evaluateConstant('a', declaredVariables: {'a': 'test'}),
+      DartObjectImpl(
+        typeSystem,
+        typeProvider.stringType,
+        StringState('test'),
+      ),
+    );
+  }
+}
+
+@reflectiveTest
+class InstanceCreationEvaluatorWithoutNullSafetyTest
+    extends ConstantVisitorTestSupport
+    with InstanceCreationEvaluatorTestCases, WithoutNullSafetyMixin {}

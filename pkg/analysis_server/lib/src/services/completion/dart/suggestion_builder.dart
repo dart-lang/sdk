@@ -138,6 +138,54 @@ class MemberSuggestionBuilder {
   }
 }
 
+class NewSuggestionsProcessor {
+  final SuggestionBuilder _builder;
+  final Set<protocol.CompletionSuggestion> _current = Set.identity();
+
+  NewSuggestionsProcessor._(this._builder) {
+    _current.addAll(_builder._suggestionMap.values);
+  }
+
+  /// Update suggestions added since this marker was created.
+  void setLibraryUriToImportIndex(int Function() produce) {
+    int? libraryUriToImportIndex;
+    var suggestionMap = _builder._suggestionMap;
+    for (var entry in suggestionMap.entries.toList()) {
+      var suggestion = entry.value;
+      if (!_current.contains(suggestion)) {
+        libraryUriToImportIndex ??= produce();
+        suggestionMap[entry.key] = protocol.CompletionSuggestion(
+          suggestion.kind,
+          suggestion.relevance,
+          suggestion.completion,
+          suggestion.selectionOffset,
+          suggestion.selectionLength,
+          suggestion.isDeprecated,
+          suggestion.isPotential,
+          displayText: suggestion.displayText,
+          replacementOffset: suggestion.replacementOffset,
+          replacementLength: suggestion.replacementLength,
+          docSummary: suggestion.docSummary,
+          docComplete: suggestion.docComplete,
+          declaringType: suggestion.declaringType,
+          defaultArgumentListString: suggestion.defaultArgumentListString,
+          defaultArgumentListTextRanges:
+              suggestion.defaultArgumentListTextRanges,
+          element: suggestion.element,
+          returnType: suggestion.returnType,
+          parameterNames: suggestion.parameterNames,
+          parameterTypes: suggestion.parameterTypes,
+          requiredParameterCount: suggestion.requiredParameterCount,
+          hasNamedParameters: suggestion.hasNamedParameters,
+          parameterName: suggestion.parameterName,
+          parameterType: suggestion.parameterType,
+          libraryUriToImportIndex: libraryUriToImportIndex,
+        );
+      }
+    }
+  }
+}
+
 /// An object used to build a list of suggestions in response to a single
 /// completion request.
 class SuggestionBuilder {
@@ -202,7 +250,7 @@ class SuggestionBuilder {
   String? get _containingMemberName {
     if (!_hasContainingMemberName) {
       _hasContainingMemberName = true;
-      if (request.dotTarget is SuperExpression) {
+      if (request.target.dotTarget is SuperExpression) {
         var containingMethod = request.target.containingNode
             .thisOrAncestorOfType<MethodDeclaration>();
         if (containingMethod != null) {
@@ -214,7 +262,12 @@ class SuggestionBuilder {
   }
 
   bool get _isNonNullableByDefault =>
-      request.libraryElement?.isNonNullableByDefault ?? false;
+      request.libraryElement.isNonNullableByDefault;
+
+  /// Return an object that knows which suggestions exist, and which are new.
+  NewSuggestionsProcessor markSuggestions() {
+    return NewSuggestionsProcessor._(this);
+  }
 
   /// Add a suggestion for an [accessor] declared within a class or extension.
   /// If the accessor is being invoked with a target of `super`, then the
@@ -352,10 +405,13 @@ class SuggestionBuilder {
   /// period, and hence should not include the name of the class. If the class
   /// can only be referenced using a prefix, and the class name is to be
   /// included in the completion, then the [prefix] should be provided.
-  void suggestConstructor(ConstructorElement constructor,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      bool hasClassName = false,
-      String? prefix}) {
+  void suggestConstructor(
+    ConstructorElement constructor, {
+    CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+    bool tearOff = false,
+    bool hasClassName = false,
+    String? prefix,
+  }) {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
@@ -365,8 +421,12 @@ class SuggestionBuilder {
       return;
     }
 
-    var completion = constructor.displayName;
-    if (!hasClassName && className.isNotEmpty) {
+    var completion = constructor.name;
+    if (tearOff && completion.isEmpty) {
+      completion = 'new';
+    }
+
+    if (!hasClassName) {
       if (completion.isEmpty) {
         completion = className;
       } else {
@@ -1135,7 +1195,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement!.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
 
@@ -1153,7 +1213,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement!.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
 
@@ -1170,15 +1230,12 @@ class SuggestionBuilder {
   /// If the [element] has a documentation comment, fill the [suggestion]'s
   /// documentation fields.
   void _setDocumentation(CompletionSuggestion suggestion, Element element) {
-    final request = this.request;
-    if (request is DartCompletionRequestImpl) {
-      var documentationCache = request.documentationCache;
-      var data = documentationCache?.dataFor(element);
-      if (data != null) {
-        suggestion.docComplete = data.full;
-        suggestion.docSummary = data.summary;
-        return;
-      }
+    var documentationCache = request.documentationCache;
+    var data = documentationCache?.dataFor(element);
+    if (data != null) {
+      suggestion.docComplete = data.full;
+      suggestion.docSummary = data.summary;
+      return;
     }
     var doc = DartUnitHoverComputer.computeDocumentation(
         request.dartdocDirectiveInfo, element,

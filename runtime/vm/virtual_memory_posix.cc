@@ -560,6 +560,20 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
            end_address - page_address, prot);
 }
 
+void VirtualMemory::DontNeed(void* address, intptr_t size) {
+  uword start_address = reinterpret_cast<uword>(address);
+  uword end_address = start_address + size;
+  uword page_address = Utils::RoundDown(start_address, PageSize());
+  if (madvise(reinterpret_cast<void*>(page_address), end_address - page_address,
+              MADV_DONTNEED) != 0) {
+    int error = errno;
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    FATAL("madvise error: %d (%s)", error,
+          Utils::StrError(error, error_buf, kBufferSize));
+  }
+}
+
 }  // namespace dart
 
 #endif  // defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX) ||     \

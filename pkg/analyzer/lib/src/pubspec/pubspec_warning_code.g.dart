@@ -47,7 +47,7 @@ class PubspecWarningCode extends ErrorCode {
       PubspecWarningCode(
     'ASSET_DIRECTORY_DOES_NOT_EXIST',
     "The asset directory '{0}' doesn't exist.",
-    correction:
+    correctionMessage:
         "Try creating the directory or fixing the path to the directory.",
     hasPublishedDocs: true,
   );
@@ -83,7 +83,7 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode ASSET_DOES_NOT_EXIST = PubspecWarningCode(
     'ASSET_DOES_NOT_EXIST',
     "The asset file '{0}' doesn't exist.",
-    correction: "Try creating the file or fixing the path to the file.",
+    correctionMessage: "Try creating the file or fixing the path to the file.",
     hasPublishedDocs: true,
   );
 
@@ -121,7 +121,8 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode ASSET_FIELD_NOT_LIST = PubspecWarningCode(
     'ASSET_FIELD_NOT_LIST',
     "The value of the 'asset' field is expected to be a list of relative file paths.",
-    correction: "Try converting the value to be a list of relative file paths.",
+    correctionMessage:
+        "Try converting the value to be a list of relative file paths.",
     hasPublishedDocs: true,
   );
 
@@ -161,7 +162,7 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode ASSET_NOT_STRING = PubspecWarningCode(
     'ASSET_NOT_STRING',
     "Assets are required to be file paths (strings).",
-    correction: "Try converting the value to be a string.",
+    correctionMessage: "Try converting the value to be a string.",
     hasPublishedDocs: true,
   );
 
@@ -190,7 +191,7 @@ class PubspecWarningCode extends ErrorCode {
   // Use a map as the value of the `dependencies` key:
   //
   // ```yaml
-  // %uri='pubspec.yaml'
+  // %uri="pubspec.yaml"
   // name: example
   // dependencies:
   //   meta: ^1.0.2
@@ -199,7 +200,7 @@ class PubspecWarningCode extends ErrorCode {
       PubspecWarningCode(
     'DEPENDENCIES_FIELD_NOT_MAP',
     "The value of the '{0}' field is expected to be a map.",
-    correction: "Try converting the value to be a map.",
+    correctionMessage: "Try converting the value to be a map.",
     hasPublishedDocs: true,
   );
 
@@ -234,7 +235,7 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode DEPRECATED_FIELD = PubspecWarningCode(
     'DEPRECATED_FIELD',
     "The '{0}' field is no longer used and can be removed.",
-    correction: "Try removing the field.",
+    correctionMessage: "Try removing the field.",
     hasPublishedDocs: true,
   );
 
@@ -279,7 +280,7 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode FLUTTER_FIELD_NOT_MAP = PubspecWarningCode(
     'FLUTTER_FIELD_NOT_MAP',
     "The value of the 'flutter' field is expected to be a map.",
-    correction: "Try converting the value to be a map.",
+    correctionMessage: "Try converting the value to be a map.",
     hasPublishedDocs: true,
   );
 
@@ -335,7 +336,7 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode INVALID_DEPENDENCY = PubspecWarningCode(
     'INVALID_DEPENDENCY',
     "Publishable packages can't have '{0}' dependencies.",
-    correction:
+    correctionMessage:
         "Try adding a 'publish_to: none' entry to mark the package as not for publishing or remove the {0} dependency.",
     hasPublishedDocs: true,
   );
@@ -372,7 +373,7 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode MISSING_NAME = PubspecWarningCode(
     'MISSING_NAME',
     "The 'name' field is required but missing.",
-    correction: "Try adding a field named 'name'.",
+    correctionMessage: "Try adding a field named 'name'.",
     hasPublishedDocs: true,
   );
 
@@ -406,7 +407,7 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode NAME_NOT_STRING = PubspecWarningCode(
     'NAME_NOT_STRING',
     "The value of the 'name' field is required to be a string.",
-    correction: "Try converting the value to be a string.",
+    correctionMessage: "Try converting the value to be a string.",
     hasPublishedDocs: true,
   );
 
@@ -441,7 +442,8 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode PATH_DOES_NOT_EXIST = PubspecWarningCode(
     'PATH_DOES_NOT_EXIST',
     "The path '{0}' doesn't exist.",
-    correction: "Try creating the referenced path or using a path that exists.",
+    correctionMessage:
+        "Try creating the referenced path or using a path that exists.",
     hasPublishedDocs: true,
   );
 
@@ -473,7 +475,7 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode PATH_NOT_POSIX = PubspecWarningCode(
     'PATH_NOT_POSIX',
     "The path '{0}' isn't a POSIX-style path.",
-    correction: "Try converting the value to a POSIX-style path.",
+    correctionMessage: "Try converting the value to a POSIX-style path.",
     hasPublishedDocs: true,
   );
 
@@ -515,7 +517,7 @@ class PubspecWarningCode extends ErrorCode {
       PubspecWarningCode(
     'PATH_PUBSPEC_DOES_NOT_EXIST',
     "The directory '{0}' doesn't contain a pubspec.",
-    correction:
+    correctionMessage:
         "Try creating a pubspec in the referenced directory or using a path that has a pubspec.",
     hasPublishedDocs: true,
   );
@@ -537,7 +539,7 @@ class PubspecWarningCode extends ErrorCode {
   // listed under both `dependencies` and `dev_dependencies`:
   //
   // ```yaml
-  // %uri='pubspec.yaml'
+  // %uri="pubspec.yaml"
   // name: example
   // dependencies:
   //   meta: ^1.0.2
@@ -551,7 +553,7 @@ class PubspecWarningCode extends ErrorCode {
   // if that's the only package listed there):
   //
   // ```yaml
-  // %uri='pubspec.yaml'
+  // %uri="pubspec.yaml"
   // name: example
   // dependencies:
   //   meta: ^1.0.2
@@ -560,24 +562,24 @@ class PubspecWarningCode extends ErrorCode {
       PubspecWarningCode(
     'UNNECESSARY_DEV_DEPENDENCY',
     "The dev dependency on {0} is unnecessary because there is also a normal dependency on that package.",
-    correction: "Try removing the dev dependency.",
+    correctionMessage: "Try removing the dev dependency.",
     hasPublishedDocs: true,
   );
 
   /// Initialize a newly created error code to have the given [name].
   const PubspecWarningCode(
     String name,
-    String message, {
-    String? correction,
+    String problemMessage, {
+    String? correctionMessage,
     bool hasPublishedDocs = false,
     bool isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          correction: correction,
+          correctionMessage: correctionMessage,
           hasPublishedDocs: hasPublishedDocs,
           isUnresolvedIdentifier: isUnresolvedIdentifier,
-          message: message,
           name: name,
+          problemMessage: problemMessage,
           uniqueName: 'PubspecWarningCode.${uniqueName ?? name}',
         );
 

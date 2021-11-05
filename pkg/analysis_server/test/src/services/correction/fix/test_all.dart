@@ -35,6 +35,7 @@ import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
 import 'add_switch_case_break_test.dart' as add_switch_case_break;
+import 'add_trailing_comma_test.dart' as add_trailing_comma;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'analysis_options/test_all.dart' as analysis_options;
 import 'bulk_fix_processor_test.dart' as bulk_fix_processor;
@@ -49,10 +50,13 @@ import 'convert_documentation_into_line_test.dart'
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
 import 'convert_flutter_children_test.dart' as convert_flutter_children;
 import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
+import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_quotes_test.dart' as convert_quotes;
 import 'convert_to_contains_test.dart' as convert_to_contains;
+import 'convert_to_double_quoted_string_test.dart'
+    as convert_to_double_quoted_string;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
 import 'convert_to_generic_function_syntax_test.dart'
     as convert_to_generic_function_syntax;
@@ -124,6 +128,8 @@ import 'remove_comparison_test.dart' as remove_comparison;
 import 'remove_const_test.dart' as remove_const;
 import 'remove_constructor_name_test.dart' as remove_constructor_name;
 import 'remove_dead_code_test.dart' as remove_dead_code;
+import 'remove_deprecated_new_in_comment_reference_test.dart'
+    as remove_deprecated_new_in_comment_reference;
 import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
 import 'remove_empty_catch_test.dart' as remove_empty_catch;
 import 'remove_empty_constructor_body_test.dart'
@@ -232,6 +238,7 @@ void main() {
     add_static.main();
     add_super_constructor_invocation.main();
     add_switch_case_break.main();
+    add_trailing_comma.main();
     add_type_annotation.main();
     analysis_options.main();
     bulk_fix_processor.main();
@@ -244,10 +251,12 @@ void main() {
     convert_flutter_child.main();
     convert_flutter_children.main();
     convert_for_each_to_for_loop.main();
+    convert_into_block_body.main();
     convert_into_expression_body.main();
     convert_into_is_not.main();
     convert_quotes.main();
     convert_to_contains.main();
+    convert_to_double_quoted_string.main();
     convert_to_for_element.main();
     convert_to_generic_function_syntax.main();
     convert_to_if_element.main();
@@ -314,6 +323,7 @@ void main() {
     remove_const.main();
     remove_constructor_name.main();
     remove_dead_code.main();
+    remove_deprecated_new_in_comment_reference.main();
     remove_duplicate_case.main();
     remove_empty_catch.main();
     remove_empty_constructor_body.main();

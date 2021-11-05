@@ -13,46 +13,9 @@ import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonConstantValueInInitializer);
     defineReflectiveTests(NonErrorResolverTest);
     defineReflectiveTests(NonErrorResolverWithoutNullSafetyTest);
   });
-}
-
-@reflectiveTest
-class NonConstantValueInInitializer extends PubPackageResolutionTest {
-  test_intLiteralInDoubleContext_const_exact() async {
-    await assertNoErrorsInCode(r'''
-// @dart = 2.9
-const double x = 0;
-class C {
-  const C(double y) : assert(y is double), assert(x is double);
-}
-@C(0)
-@C(-0)
-@C(0x0)
-@C(-0x0)
-void main() {
-  const C(0);
-  const C(-0);
-  const C(0x0);
-  const C(-0x0);
-}
-''');
-  }
-
-  test_isCheckInConstAssert() async {
-    await assertNoErrorsInCode(r'''
-// @dart = 2.9
-class C {
-  const C() : assert(1 is int);
-}
-
-void main() {
-  const C();
-}
-''');
-  }
 }
 
 @reflectiveTest
@@ -1049,7 +1012,7 @@ class A {
   const A(x);
 }
 main() {
-  const A(double.INFINITY);
+  const A(double.infinity);
 }
 ''');
   }
@@ -1790,26 +1753,6 @@ void main() {
 ''');
   }
 
-  test_intLiteralInDoubleContext_const() async {
-    await assertNoErrorsInCode(r'''
-class C {
-  const C(double x)
-    : assert((x + 3) / 2 == 1.5)
-    , assert(x == 0.0);
-}
-@C(0)
-@C(-0)
-@C(0x0)
-@C(-0x0)
-void main() {
-  const C(0);
-  const C(-0);
-  const C(0x0);
-  const C(-0x0);
-}
-''');
-  }
-
   test_invalidAnnotation_constantVariable_field() async {
     await assertNoErrorsInCode(r'''
 @A.C
@@ -2358,28 +2301,6 @@ class B extends A {
 ''');
   }
 
-  test_nativeConstConstructor() async {
-    await assertErrorsInCode(r'''
-import 'dart-ext:x';
-class Foo {
-  const Foo() native 'Foo_Foo';
-  const factory Foo.foo() native 'Foo_Foo_foo';
-}
-''', [
-      error(HintCode.USE_OF_NATIVE_EXTENSION, 0, 20),
-      error(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, 47, 6),
-    ]);
-  }
-
-  test_nativeFunctionBodyInNonSDKCode_function() async {
-    await assertErrorsInCode(r'''
-import 'dart-ext:x';
-int m(a) native 'string';
-''', [
-      error(HintCode.USE_OF_NATIVE_EXTENSION, 0, 20),
-    ]);
-  }
-
   test_newWithAbstractClass_factory() async {
     await assertNoErrorsInCode(r'''
 abstract class A {
@@ -2461,7 +2382,7 @@ bool f(dynamic left, right) {
 
   test_nonConstantDefaultValue_constField() async {
     await assertNoErrorsInCode(r'''
-f([a = double.INFINITY]) {
+f([a = double.infinity]) {
 }
 ''');
   }
@@ -2536,7 +2457,7 @@ class B extends A {
   test_nonConstListElement_constField() async {
     await assertNoErrorsInCode(r'''
 main() {
-  const [double.INFINITY];
+  const [double.infinity];
 }
 ''');
   }
@@ -2570,7 +2491,7 @@ f() {
   test_nonConstMapValue_constField() async {
     await assertNoErrorsInCode(r'''
 main() {
-  const {0: double.INFINITY};
+  const {0: double.infinity};
 }
 ''');
   }

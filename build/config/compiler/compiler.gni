@@ -10,4 +10,5 @@ declare_args() {
   build_with_chromium = false
   use_libfuzzer = false
   is_apple = is_ios || is_mac
+  use_thin_lto = false
 }

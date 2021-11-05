@@ -748,7 +748,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
     var identifier = node.identifier;
     if (identifier != null) {
       // The anchor and anchor edges generation are broken into two cases, the
-      // first case is "method(parameter_name) ...", where the the parameter
+      // first case is "method(parameter_name) ...", where the parameter
       // character range only includes a parameter name.  The second case is for
       // parameter declarations which are prefixed with a type, 'var', or
       // 'dynamic', as in "method(var parameter_name) ...".

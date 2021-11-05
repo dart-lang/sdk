@@ -73,7 +73,7 @@
 /// Another common use of streams is for user-generated events
 /// in a web app: The following code listens for mouse clicks on a button.
 /// ```dart import:html
-/// querySelector('#myButton').onClick.forEach((_) => print('Click.'));
+/// querySelector('#myButton')!.onClick.forEach((_) => print('Click.'));
 /// ```
 /// ## Other resources
 ///

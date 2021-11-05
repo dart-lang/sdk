@@ -208,10 +208,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// A flag indicating whether the visitor is currently within code in the SDK.
   bool _isInSystemLibrary = false;
 
-  /// A flag indicating whether the current library contains at least one import
-  /// directive with a URI that uses the "dart-ext" scheme.
-  bool _hasExtUri = false;
-
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
   ClassElementImpl? _enclosingClass;
@@ -265,7 +261,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _duplicateDefinitionVerifier =
             DuplicateDefinitionVerifier(_currentLibrary, errorReporter) {
     _isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
-    _hasExtUri = _currentLibrary.hasExtUri;
     _isInCatchClause = false;
     _isInStaticVariableDeclaration = false;
     _isInConstructorInitializer = false;
@@ -332,7 +327,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitAnnotation(Annotation node) {
     _checkForInvalidAnnotationFromDeferredLibrary(node);
-    _checkForMissingJSLibAnnotation(node);
     super.visitAnnotation(node);
   }
 
@@ -1513,9 +1507,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify that the given [expression] is not final.
   ///
-  /// See [StaticWarningCode.ASSIGNMENT_TO_CONST],
-  /// [StaticWarningCode.ASSIGNMENT_TO_FINAL], and
-  /// [StaticWarningCode.ASSIGNMENT_TO_METHOD].
+  /// See [CompileTimeErrorCode.ASSIGNMENT_TO_CONST],
+  /// [CompileTimeErrorCode.ASSIGNMENT_TO_FINAL], and
+  /// [CompileTimeErrorCode.ASSIGNMENT_TO_METHOD].
   void _checkForAssignmentToFinal(Expression expression) {
     // TODO(scheglov) Check SimpleIdentifier(s) as all other nodes.
     if (expression is! SimpleIdentifier) return;
@@ -1656,7 +1650,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the given [switchCase] is terminated with 'break', 'continue',
   /// 'return' or 'throw'.
   ///
-  /// see [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED].
+  /// see [CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED].
   void _checkForCaseBlockNotTerminated(SwitchCase switchCase) {
     NodeList<Statement> statements = switchCase.statements;
     if (statements.isEmpty) {
@@ -1698,7 +1692,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the switch cases in the given switch [statement] are
   /// terminated with 'break', 'continue', 'rethrow', 'return' or 'throw'.
   ///
-  /// See [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED].
+  /// See [CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED].
   void _checkForCaseBlocksNotTerminated(SwitchStatement statement) {
     if (_isNonNullableByDefault) return;
 
@@ -2196,9 +2190,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       awaitKeyword = parent.awaitKeyword;
     }
 
-    // Use an explicit string instead of [loopType] to remove the "<E>".
-    String loopNamedType = awaitKeyword != null ? "Stream" : "Iterable";
-
     // The object being iterated has to implement Iterable<T> for some T that
     // is assignable to the variable's type.
     // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
@@ -2213,6 +2204,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (!typeSystem.isAssignableTo(iterableType, requiredSequenceType)) {
+      // Use an explicit string instead of [loopType] to remove the "<E>".
+      String loopNamedType = awaitKeyword != null ? 'Stream' : 'Iterable';
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
         node.iterable,
@@ -2237,11 +2230,48 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (!typeSystem.isAssignableTo(sequenceElementType, variableType)) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
-        node.iterable,
-        [iterableType, loopNamedType, variableType],
-      );
+      // Use an explicit string instead of [loopType] to remove the "<E>".
+      String loopNamedType = awaitKeyword != null ? 'Stream' : 'Iterable';
+
+      // A for-in loop is specified to desugar to a different set of statements
+      // which include an assignment of the sequence element's `iterator`'s
+      // `current` value, at which point "implicit tear-off conversion" may be
+      // performed. We do not perform this desugaring; instead we allow a
+      // special assignability here.
+      var implicitCallMethod = getImplicitCallMethod(
+          sequenceElementType, variableType, node.iterable);
+      if (implicitCallMethod == null) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+          node.iterable,
+          [iterableType, loopNamedType, variableType],
+        );
+      } else {
+        var tearoffType = implicitCallMethod.type;
+        // An implicit tear-off conversion does occur on the values of the
+        // iterator, but this does not guarantee their assignability.
+
+        if (_featureSet?.isEnabled(Feature.constructor_tearoffs) ?? true) {
+          var typeArguments = typeSystem.inferFunctionTypeInstantiation(
+            variableType as FunctionType,
+            tearoffType,
+            errorReporter: errorReporter,
+            errorNode: node.iterable,
+            genericMetadataIsEnabled: true,
+          )!;
+          if (typeArguments.isNotEmpty) {
+            tearoffType = tearoffType.instantiate(typeArguments);
+          }
+        }
+
+        if (!typeSystem.isAssignableTo(tearoffType, variableType)) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+            node.iterable,
+            [iterableType, loopNamedType, variableType],
+          );
+        }
+      }
     }
 
     return true;
@@ -2275,10 +2305,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
+    // It is safe to assume that `directive.uri.stringValue` is non-`null`,
+    // because the only time it is `null` is if the URI contains a string
+    // interpolation, in which case the export would never have resolved in the
+    // first place.
     errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY,
         directive,
-        [directive.uri]);
+        [directive.uri.stringValue!]);
   }
 
   /// See [CompileTimeErrorCode.EXPORT_LEGACY_SYMBOL].
@@ -2434,7 +2468,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// variables if the list is final or const.
   ///
   /// See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
-  /// [StaticWarningCode.FINAL_NOT_INITIALIZED].
+  /// [CompileTimeErrorCode.FINAL_NOT_INITIALIZED].
   void _checkForFinalNotInitialized(VariableDeclarationList list) {
     if (_isInNativeClass || list.isSynthetic) {
       return;
@@ -2483,7 +2517,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// constructor are handled in [_checkForAllFinalInitializedErrorCodes].
   ///
   /// See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
-  /// [StaticWarningCode.FINAL_NOT_INITIALIZED].
+  /// [CompileTimeErrorCode.FINAL_NOT_INITIALIZED].
   void _checkForFinalNotInitializedInClass(List<ClassMember> members) {
     for (ClassMember classMember in members) {
       if (classMember is ConstructorDeclaration) {
@@ -2557,7 +2591,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       } else {
         errorCode = LanguageCode.IMPLICIT_DYNAMIC_VARIABLE;
       }
-      errorReporter.reportErrorForNode(errorCode, node, [id]);
+      // Parameters associated with a variable always have a name, so we can
+      // safely rely on [id] being non-`null`.
+      errorReporter.reportErrorForNode(errorCode, node, [id!]);
     }
   }
 
@@ -2614,11 +2650,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (sdkLibrary == null || !sdkLibrary.isInternal) {
       return;
     }
-
+    // The only way an import URI's `stringValue` can be `null` is if the string
+    // contained interpolations, in which case the import would have failed to
+    // resolve, and we would never reach here.  So it is safe to assume that
+    // `directive.uri.stringValue` is non-`null`.
     errorReporter.reportErrorForNode(
         CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY,
         directive.uri,
-        [directive.uri.stringValue]);
+        [directive.uri.stringValue!]);
   }
 
   /// Check that the given [typeReference] is not a type reference and that then
@@ -2660,10 +2699,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           return;
         }
       }
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
-          name,
-          [name.name, _getKind(element), element.enclosingElement.name]);
     }
   }
 
@@ -2671,12 +2706,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// given [argument]. This is used for prefix and postfix expressions where
   /// the argument value is implicit.
   ///
-  /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
+  /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void _checkForIntNotAssignable(Expression argument) {
     var staticParameterElement = argument.staticParameterElement;
     var staticParameterType = staticParameterElement?.type;
-    checkForArgumentTypeNotAssignable(argument, staticParameterType, _intType,
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    if (staticParameterType != null) {
+      checkForArgumentTypeNotAssignable(argument, staticParameterType, _intType,
+          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE);
+    }
   }
 
   /// Verify that the given [annotation] isn't defined in a deferred library.
@@ -2845,8 +2882,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the elements of the given list [literal] are subtypes of the
   /// list's static type.
   ///
-  /// See [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE], and
-  /// [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE].
+  /// See [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE].
   void _checkForListElementTypeNotAssignable(ListLiteral literal) {
     // Determine the list's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
@@ -2865,7 +2901,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _typeProvider,
       typeSystem,
       errorReporter,
-      checkForUseOfVoidResult,
+      this,
       forList: true,
       elementType: listElementType,
       featureSet: _featureSet!,
@@ -2953,7 +2989,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _typeProvider,
         typeSystem,
         errorReporter,
-        checkForUseOfVoidResult,
+        this,
         forMap: true,
         mapKeyType: keyType,
         mapValueType: valueType,
@@ -3022,15 +3058,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForMissingJSLibAnnotation(Annotation node) {
-    if (node.elementAnnotation?.isJS ?? false) {
-      if (_currentLibrary.hasJS != true) {
-        errorReporter.reportErrorForNode(
-            HintCode.MISSING_JS_LIB_ANNOTATION, node);
-      }
-    }
-  }
-
   /// Verify that the given mixin does not have an explicitly declared
   /// constructor. The [mixinName] is the node to report problem on. The
   /// [mixinElement] is the mixing to evaluate.
@@ -3095,11 +3122,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
       }
       if (!isSatisfied) {
+        // This error can only occur if [mixinName] resolved to an actual mixin,
+        // so we can safely rely on `mixinName.type` being non-`null`.
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
           mixinName.name,
           [
-            mixinName.type,
+            mixinName.type!,
             superType,
             constraint,
           ],
@@ -3184,11 +3213,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (Identifier.isPrivateName(name)) {
         Map<String, String> names =
             mixedInNames.putIfAbsent(library, () => <String, String>{});
-        if (names.containsKey(name)) {
+        var conflictingName = names[name];
+        if (conflictingName != null) {
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
               namedType,
-              [name, namedType.name.name, names[name]]);
+              [name, namedType.name.name, conflictingName]);
           return true;
         }
         names[name] = namedType.name.name;
@@ -3198,12 +3228,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           concrete: true,
         );
         if (inheritedMember != null) {
+          // Inherited members are always contained inside named elements, so we
+          // can safely assume `inheritedMember.enclosingElement.name` is
+          // non-`null`.
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
               namedType, [
             name,
             namedType.name.name,
-            inheritedMember.enclosingElement.name
+            inheritedMember.enclosingElement.name!
           ]);
           return true;
         }
@@ -3257,7 +3290,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE].
   void _checkForNativeFunctionBodyInNonSdkCode(NativeFunctionBody body) {
-    if (!_isInSystemLibrary && !_hasExtUri) {
+    if (!_isInSystemLibrary) {
       errorReporter.reportErrorForNode(
           ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, body);
     }
@@ -3270,7 +3303,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// This method assumes that the instance creation was tested to be 'new'
   /// before being called.
   ///
-  /// See [StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR].
+  /// See [CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR].
   void _checkForNewWithUndefinedConstructor(
       InstanceCreationExpression expression,
       ConstructorName constructorName,
@@ -3415,7 +3448,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the given method [declaration] of operator `[]=`, has `void`
   /// return type.
   ///
-  /// See [StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR].
+  /// See [CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR].
   void _checkForNonVoidReturnTypeForOperator(MethodDeclaration declaration) {
     // check that []= operator
     SimpleIdentifier name = declaration.name;
@@ -3436,7 +3469,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify the [namedType], used as the return type of a setter, is valid
   /// (either `null` or the type 'void').
   ///
-  /// See [StaticWarningCode.NON_VOID_RETURN_FOR_SETTER].
+  /// See [CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER].
   void _checkForNonVoidReturnTypeForSetter(TypeAnnotation? namedType) {
     if (namedType != null) {
       DartType type = namedType.typeOrThrow;
@@ -3895,8 +3928,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the elements in the given set [literal] are subtypes of the
   /// set's static type.
   ///
-  /// See [CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE], and
-  /// [StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
+  /// See [CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
   void _checkForSetElementTypeNotAssignable3(SetOrMapLiteral literal) {
     // Determine the set's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
@@ -3917,7 +3949,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _typeProvider,
         typeSystem,
         errorReporter,
-        checkForUseOfVoidResult,
+        this,
         forSet: true,
         elementType: setElementType,
         featureSet: _featureSet!,
@@ -3931,7 +3963,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Check the given [typeReference] and that the [name] is not a reference to
   /// an instance member.
   ///
-  /// See [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER].
+  /// See [CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER].
   void _checkForStaticAccessToInstanceMember(
       ClassElement? typeReference, SimpleIdentifier name) {
     // OK, in comment
@@ -3959,7 +3991,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Check that the type of the expression in the given 'switch' [statement] is
   /// assignable to the type of the 'case' members.
   ///
-  /// See [StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE].
+  /// See [CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE].
   void _checkForSwitchExpressionNotAssignable(SwitchStatement statement) {
     // For NNBD we verify runtime types of values, and subtyping.
     if (_isNonNullableByDefault) {
@@ -4025,7 +4057,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify that the [type] is not a deferred type.
   ///
-  /// See [StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS].
+  /// See [CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS].
   void _checkForTypeAnnotationDeferredClass(TypeAnnotation? type) {
     if (type is NamedType && type.isDeferred) {
       errorReporter.reportErrorForNode(
@@ -4059,10 +4091,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           }
           if (step == parameters.length) {
             var element = parameter.declaredElement!;
+            // This error can only occur if there is a bound, so we can saefly
+            // assume `element.bound` is non-`null`.
             errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
               parameter.name,
-              [element.displayName, element.bound],
+              [element.displayName, element.bound!],
             );
             break;
           }
@@ -4092,7 +4126,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT],
   /// [CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR], and
-  /// [StaticWarningCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT].
+  /// [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT].
   void _checkForUndefinedConstructorInInitializerImplicit(
       ConstructorDeclaration constructor) {
     if (_enclosingClass == null) {
@@ -4860,30 +4894,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return expression.propertyName.name;
     }
     return null;
-  }
-
-  /// Return a human-readable representation of the kind of the [element].
-  String _getKind(ExecutableElement element) {
-    if (element is MethodElement) {
-      return 'method';
-    } else if (element is PropertyAccessorElement) {
-      if (element.isSynthetic) {
-        PropertyInducingElement variable = element.variable;
-        if (variable is FieldElement) {
-          return 'field';
-        }
-        return 'variable';
-      } else if (element.isGetter) {
-        return 'getter';
-      } else {
-        return 'setter';
-      }
-    } else if (element is ConstructorElement) {
-      return 'constructor';
-    } else if (element is FunctionElement) {
-      return 'function';
-    }
-    return 'member';
   }
 
   /// Return the name of the library that defines given [element].

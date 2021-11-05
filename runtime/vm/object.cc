@@ -3897,10 +3897,7 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   forwarder.set_optimized_call_site_count(0);
 
   forwarder.InheritKernelOffsetFrom(*this);
-
-  const Array& checks = Array::Handle(zone, Array::New(1));
-  checks.SetAt(0, *this);
-  forwarder.SetForwardingChecks(checks);
+  forwarder.SetForwardingTarget(*this);
 
   return forwarder.ptr();
 }
@@ -4121,10 +4118,11 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
 }
 
 // Conventions:
-// * For throwing a NSM in a class klass we use its runtime type as receiver,
-//   i.e., klass.RareType().
-// * For throwing a NSM in a library, we just pass the null instance as
-//   receiver.
+// * For throwing a NSM in a library or top-level class (i.e., level is
+//   kTopLevel), if a method was found but was incompatible, we pass the
+//   signature of the found method as a string, otherwise the null instance.
+// * Otherwise, for throwing a NSM in a class klass we use its runtime type as
+//   receiver, i.e., klass.RareType().
 static ObjectPtr ThrowNoSuchMethod(const Instance& receiver,
                                    const String& function_name,
                                    const Array& arguments,
@@ -4134,6 +4132,8 @@ static ObjectPtr ThrowNoSuchMethod(const Instance& receiver,
   const Smi& invocation_type =
       Smi::Handle(Smi::New(InvocationMirror::EncodeType(level, kind)));
 
+  ASSERT(!receiver.IsNull() || level == InvocationMirror::Level::kTopLevel);
+  ASSERT(level != InvocationMirror::Level::kTopLevel || receiver.IsString());
   const Array& args = Array::Handle(Array::New(7));
   args.SetAt(0, receiver);
   args.SetAt(1, function_name);
@@ -7623,16 +7623,12 @@ const char* Function::KindToCString(UntaggedFunction::Kind kind) {
 
 FunctionPtr Function::ForwardingTarget() const {
   ASSERT(kind() == UntaggedFunction::kDynamicInvocationForwarder);
-  Array& checks = Array::Handle();
-  checks ^= data();
-  return Function::RawCast(checks.At(0));
+  return Function::RawCast(WeakSerializationReference::Unwrap(data()));
 }
 
-void Function::SetForwardingChecks(const Array& checks) const {
+void Function::SetForwardingTarget(const Function& target) const {
   ASSERT(kind() == UntaggedFunction::kDynamicInvocationForwarder);
-  ASSERT(checks.Length() >= 1);
-  ASSERT(Object::Handle(checks.At(0)).IsFunction());
-  set_data(checks);
+  set_data(target);
 }
 
 // This field is heavily overloaded:
@@ -7654,8 +7650,9 @@ void Function::SetForwardingChecks(const Array& checks) const {
 //   regular function:        Function for implicit closure function
 //   constructor, factory:    Function for implicit closure function
 //   ffi trampoline function: FfiTrampolineData  (Dart->C)
-//   dyn inv forwarder:       Array[0] = Function target
-//                            Array[1] = TypeArguments default type args
+//   dyn inv forwarder:       Forwarding target, a WSR pointing to it or null
+//                            (null can only occur if forwarding target was
+//                            dropped)
 void Function::set_data(const Object& value) const {
   untag()->set_data<std::memory_order_release>(value.ptr());
 }
@@ -9652,15 +9649,15 @@ void Function::SetKernelDataAndScript(const Script& script,
 ScriptPtr Function::script() const {
   // NOTE(turnidge): If you update this function, you probably want to
   // update Class::PatchFieldsAndFunctions() at the same time.
-  const Object& data = Object::Handle(this->data());
   if (IsDynamicInvocationForwarder()) {
-    const auto& forwarding_target = Function::Handle(ForwardingTarget());
-    return forwarding_target.script();
+    const Function& target = Function::Handle(ForwardingTarget());
+    return target.IsNull() ? Script::null() : target.script();
   }
   if (IsImplicitGetterOrSetter()) {
     const auto& field = Field::Handle(accessor_field());
     return field.Script();
   }
+  Object& data = Object::Handle(this->data());
   if (data.IsArray()) {
     Object& script = Object::Handle(Array::Cast(data).At(0));
     if (script.IsScript()) {
@@ -9940,25 +9937,37 @@ int32_t Function::SourceFingerprint() const {
 
 void Function::SaveICDataMap(
     const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
-    const Array& edge_counters_array) const {
+    const Array& edge_counters_array,
+    const Array& coverage_array) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  // Already installed nothing to do.
+  if (ic_data_array() != Array::null()) {
+    ASSERT(coverage_array.ptr() == GetCoverageArray());
+    return;
+  }
+
   // Compute number of ICData objects to save.
-  // Store edge counter array in the first slot.
-  intptr_t count = 1;
+  intptr_t count = 0;
   for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
     if (deopt_id_to_ic_data[i] != NULL) {
       count++;
     }
   }
-  const Array& array = Array::Handle(Array::New(count, Heap::kOld));
-  count = 1;
-  for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
+
+  // Compress sparse deopt_id_to_ic_data mapping into a linear sequence of
+  // ICData objects.
+  const Array& array = Array::Handle(
+      Array::New(ICDataArrayIndices::kFirstICData + count, Heap::kOld));
+  for (intptr_t i = 0, pos = ICDataArrayIndices::kFirstICData;
+       i < deopt_id_to_ic_data.length(); i++) {
     if (deopt_id_to_ic_data[i] != NULL) {
       ASSERT(i == deopt_id_to_ic_data[i]->deopt_id());
-      array.SetAt(count++, *deopt_id_to_ic_data[i]);
+      array.SetAt(pos++, *deopt_id_to_ic_data[i]);
     }
   }
-  array.SetAt(0, edge_counters_array);
+  array.SetAt(ICDataArrayIndices::kEdgeCounters, edge_counters_array);
+  // Preserve coverage_array which is stored early after graph construction.
+  array.SetAt(ICDataArrayIndices::kCoverageData, coverage_array);
   set_ic_data_array(array);
 #else   // DART_PRECOMPILED_RUNTIME
   UNREACHABLE();
@@ -9982,7 +9991,7 @@ void Function::RestoreICDataMap(
   }
   const intptr_t saved_length = saved_ic_data.Length();
   ASSERT(saved_length > 0);
-  if (saved_length > 1) {
+  if (saved_length > ICDataArrayIndices::kFirstICData) {
     const intptr_t restored_length =
         ICData::Cast(Object::Handle(zone, saved_ic_data.At(saved_length - 1)))
             .deopt_id() +
@@ -9991,7 +10000,7 @@ void Function::RestoreICDataMap(
     for (intptr_t i = 0; i < restored_length; i++) {
       (*deopt_id_to_ic_data)[i] = NULL;
     }
-    for (intptr_t i = 1; i < saved_length; i++) {
+    for (intptr_t i = ICDataArrayIndices::kFirstICData; i < saved_length; i++) {
       ICData& ic_data = ICData::ZoneHandle(zone);
       ic_data ^= saved_ic_data.At(i);
       if (clone_ic_data) {
@@ -10006,6 +10015,14 @@ void Function::RestoreICDataMap(
 #else   // DART_PRECOMPILED_RUNTIME
   UNREACHABLE();
 #endif  // DART_PRECOMPILED_RUNTIME
+}
+
+ArrayPtr Function::GetCoverageArray() const {
+  const Array& arr = Array::Handle(ic_data_array());
+  if (arr.IsNull()) {
+    return Array::null();
+  }
+  return Array::RawCast(arr.At(ICDataArrayIndices::kCoverageData));
 }
 
 void Function::set_ic_data_array(const Array& value) const {
@@ -10023,7 +10040,7 @@ void Function::ClearICDataArray() const {
 ICDataPtr Function::FindICData(intptr_t deopt_id) const {
   const Array& array = Array::Handle(ic_data_array());
   ICData& ic_data = ICData::Handle();
-  for (intptr_t i = 1; i < array.Length(); i++) {
+  for (intptr_t i = ICDataArrayIndices::kFirstICData; i < array.Length(); i++) {
     ic_data ^= array.At(i);
     if (ic_data.deopt_id() == deopt_id) {
       return ic_data.ptr();
@@ -10036,7 +10053,7 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
                                     ICData::DeoptReasonId reason) {
   const Array& array = Array::Handle(ic_data_array());
   ICData& ic_data = ICData::Handle();
-  for (intptr_t i = 1; i < array.Length(); i++) {
+  for (intptr_t i = ICDataArrayIndices::kFirstICData; i < array.Length(); i++) {
     ic_data ^= array.At(i);
     if (ic_data.deopt_id() == deopt_id) {
       ic_data.AddDeoptReason(reason);
@@ -13367,10 +13384,10 @@ ObjectPtr Library::InvokeGetter(const String& getter_name,
 
   if (getter.IsNull() || (respect_reflectable && !getter.is_reflectable())) {
     if (throw_nsm_if_absent) {
-      return ThrowNoSuchMethod(
-          AbstractType::Handle(Class::Handle(toplevel_class()).RareType()),
-          getter_name, Object::null_array(), Object::null_array(),
-          InvocationMirror::kTopLevel, InvocationMirror::kGetter);
+      return ThrowNoSuchMethod(Object::null_string(), getter_name,
+                               Object::null_array(), Object::null_array(),
+                               InvocationMirror::kTopLevel,
+                               InvocationMirror::kGetter);
     }
 
     // Fall through case: Indicate that we didn't find any function or field
@@ -13408,10 +13425,10 @@ ObjectPtr Library::InvokeSetter(const String& setter_name,
       const Array& args = Array::Handle(Array::New(kNumArgs));
       args.SetAt(0, value);
 
-      return ThrowNoSuchMethod(
-          AbstractType::Handle(Class::Handle(toplevel_class()).RareType()),
-          internal_setter_name, args, Object::null_array(),
-          InvocationMirror::kTopLevel, InvocationMirror::kSetter);
+      return ThrowNoSuchMethod(Object::null_string(), internal_setter_name,
+                               args, Object::null_array(),
+                               InvocationMirror::kTopLevel,
+                               InvocationMirror::kSetter);
     }
     field.SetStaticValue(value);
     return value.ptr();
@@ -13431,10 +13448,9 @@ ObjectPtr Library::InvokeSetter(const String& setter_name,
   const Array& args = Array::Handle(Array::New(kNumArgs));
   args.SetAt(0, value);
   if (setter.IsNull() || (respect_reflectable && !setter.is_reflectable())) {
-    return ThrowNoSuchMethod(
-        AbstractType::Handle(Class::Handle(toplevel_class()).RareType()),
-        internal_setter_name, args, Object::null_array(),
-        InvocationMirror::kTopLevel, InvocationMirror::kSetter);
+    return ThrowNoSuchMethod(Object::null_string(), internal_setter_name, args,
+                             Object::null_array(), InvocationMirror::kTopLevel,
+                             InvocationMirror::kSetter);
   }
 
   setter_type = setter.ParameterTypeAt(0);
@@ -13497,13 +13513,15 @@ ObjectPtr Library::Invoke(const String& function_name,
   }
 
   if (function.IsNull() ||
-      !function.AreValidArguments(args_descriptor, nullptr) ||
       (respect_reflectable && !function.is_reflectable())) {
+    return ThrowNoSuchMethod(Object::null_string(), function_name, args,
+                             arg_names, InvocationMirror::kTopLevel,
+                             InvocationMirror::kMethod);
+  }
+  if (!function.AreValidArguments(args_descriptor, nullptr)) {
     return ThrowNoSuchMethod(
-        AbstractType::Handle(zone,
-                             Class::Handle(zone, toplevel_class()).RareType()),
-        function_name, args, arg_names, InvocationMirror::kTopLevel,
-        InvocationMirror::kMethod);
+        String::Handle(function.UserVisibleSignature()), function_name, args,
+        arg_names, InvocationMirror::kTopLevel, InvocationMirror::kMethod);
   }
   // This is a static function, so we pass an empty instantiator tav.
   ASSERT(function.is_static());
@@ -14704,8 +14722,7 @@ void ObjectPool::CopyInto(compiler::ObjectPoolBuilder* builder) const {
         break;
       }
       case compiler::ObjectPoolBuilderEntry::kImmediate:
-      case compiler::ObjectPoolBuilderEntry::kNativeFunction:
-      case compiler::ObjectPoolBuilderEntry::kNativeFunctionWrapper: {
+      case compiler::ObjectPoolBuilderEntry::kNativeFunction: {
         compiler::ObjectPoolBuilderEntry entry(RawValueAt(i), type, patchable);
         builder->AddObject(entry);
         break;
@@ -14741,8 +14758,6 @@ void ObjectPool::DebugPrint() const {
       } else {
         THR_Print("0x%" Px " (native function)\n", pc);
       }
-    } else if (TypeAt(i) == EntryType::kNativeFunctionWrapper) {
-      THR_Print("0x%" Px " (native function wrapper)\n", RawValueAt(i));
     } else {
       THR_Print("0x%" Px " (raw)\n", RawValueAt(i));
     }
@@ -20695,7 +20710,7 @@ FunctionTypePtr FunctionType::ToNullability(Nullability value,
 }
 
 classid_t Type::type_class_id() const {
-  return Smi::Value(untag()->type_class_id());
+  return untag()->type_class_id_;
 }
 
 ClassPtr Type::type_class() const {
@@ -21266,7 +21281,7 @@ uword FunctionType::ComputeHash() const {
 
 void Type::set_type_class(const Class& value) const {
   ASSERT(!value.IsNull());
-  untag()->set_type_class_id(Smi::New(value.id()));
+  set_type_class_id(value.id());
 }
 
 void Type::set_arguments(const TypeArguments& value) const {
@@ -21296,6 +21311,19 @@ TypePtr Type::New(const Class& clazz,
   result.InitializeTypeTestingStubNonAtomic(
       Code::Handle(Z, TypeTestingStubGenerator::DefaultCodeForType(result)));
   return result.ptr();
+}
+
+void Type::set_type_class_id(intptr_t id) const {
+  COMPILE_ASSERT(
+      std::is_unsigned<decltype(UntaggedType::type_class_id_)>::value);
+  ASSERT(Utils::IsUint(sizeof(untag()->type_class_id_) * kBitsPerByte, id));
+  // We should never need a Type object for a top-level class.
+  ASSERT(!ClassTable::IsTopLevelCid(id));
+  // We must allow Types with kIllegalCid type class ids, because the class
+  // used for evaluating expressions inside a instance method call context
+  // from the debugger is not registered (and thus has kIllegalCid as an id).
+  ASSERT(id == kIllegalCid || !IsInternalOnlyClassId(id));
+  StoreNonPointer(&untag()->type_class_id_, id);
 }
 
 void Type::set_type_state(uint8_t state) const {

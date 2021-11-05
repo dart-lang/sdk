@@ -10,7 +10,12 @@ import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/types.dart' show Types;
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_algebra.dart'
+    show
+        FreshTypeParameters,
+        Substitution,
+        getFreshTypeParameters,
+        updateBoundNullabilities;
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
@@ -334,7 +339,9 @@ class SourceClassBuilder extends ClassBuilderImpl
           const NullabilityBuilder.omitted(),
           /* arguments = */ null,
           fileUri,
-          charOffset)
+          charOffset,
+          instanceTypeVariableAccess:
+              InstanceTypeVariableAccessState.Unexpected)
         ..bind(new InvalidTypeDeclarationBuilder(supertype.name as String,
             message.withLocation(fileUri, charOffset, noLength)));
     }
@@ -901,8 +908,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     Field field = constructorsField.field;
     ListLiteral literal = field.initializer as ListLiteral;
-    literal.expressions
-        .add(new StaticGet(constructorBuilder.member)..parent = literal);
+    literal.expressions.add(
+        new ConstructorTearOff(constructorBuilder.member)..parent = literal);
   }
 
   @override
@@ -1285,16 +1292,34 @@ class SourceClassBuilder extends ClassBuilderImpl
     } else if (declaredFunction?.typeParameters != null) {
       Map<TypeParameter, DartType> substitutionMap =
           <TypeParameter, DartType>{};
+
+      // Since the bound of `interfaceFunction!.parameter[i]` may have changed
+      // during substitution, it can affect the nullabilities of the types in
+      // the substitution map. The first parameter to
+      // [TypeParameterType.forAlphaRenaming] should be updated to account for
+      // the change.
+      List<TypeParameter> interfaceTypeParameters;
+      if (interfaceSubstitution == null) {
+        interfaceTypeParameters = interfaceFunction!.typeParameters;
+      } else {
+        FreshTypeParameters freshTypeParameters =
+            getFreshTypeParameters(interfaceFunction!.typeParameters);
+        interfaceTypeParameters = freshTypeParameters.freshTypeParameters;
+        for (TypeParameter parameter in interfaceTypeParameters) {
+          parameter.bound =
+              interfaceSubstitution.substituteType(parameter.bound);
+        }
+        updateBoundNullabilities(interfaceTypeParameters);
+      }
       for (int i = 0; i < declaredFunction!.typeParameters.length; ++i) {
-        substitutionMap[interfaceFunction!.typeParameters[i]] =
+        substitutionMap[interfaceFunction.typeParameters[i]] =
             new TypeParameterType.forAlphaRenaming(
-                interfaceFunction.typeParameters[i],
-                declaredFunction.typeParameters[i]);
+                interfaceTypeParameters[i], declaredFunction.typeParameters[i]);
       }
       Substitution substitution = Substitution.fromMap(substitutionMap);
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
         TypeParameter declaredParameter = declaredFunction.typeParameters[i];
-        TypeParameter interfaceParameter = interfaceFunction!.typeParameters[i];
+        TypeParameter interfaceParameter = interfaceFunction.typeParameters[i];
         if (!interfaceParameter.isCovariantByClass) {
           DartType declaredBound = declaredParameter.bound;
           DartType interfaceBound = interfaceParameter.bound;
@@ -1479,7 +1504,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         declaredMember.kind == ProcedureKind.Operator);
     bool seenCovariant = false;
     FunctionNode declaredFunction = declaredMember.function;
+    FunctionType? declaredSignatureType = declaredMember.signatureType;
     FunctionNode interfaceFunction = interfaceMember.function;
+    FunctionType? interfaceSignatureType = interfaceMember.signatureType;
 
     Substitution? interfaceSubstitution = _computeInterfaceSubstitution(
         types,
@@ -1553,9 +1580,17 @@ class SourceClassBuilder extends ClassBuilderImpl
           declaredFunction.positionalParameters[i];
       VariableDeclaration interfaceParameter =
           interfaceFunction.positionalParameters[i];
+      DartType declaredParameterType = declaredParameter.type;
+      if (declaredSignatureType != null) {
+        declaredParameterType = declaredSignatureType.positionalParameters[i];
+      }
+      DartType interfaceParameterType = interfaceParameter.type;
+      if (interfaceSignatureType != null) {
+        interfaceParameterType = interfaceSignatureType.positionalParameters[i];
+      }
       if (i == 0 &&
           declaredMember.name == equalsName &&
-          declaredParameter.type ==
+          declaredParameterType ==
               types.hierarchy.coreTypes.objectNonNullableRawType &&
           interfaceParameter.type is DynamicType) {
         // TODO(johnniwinther): Add check for opt-in overrides of operator ==.
@@ -1571,8 +1606,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           declaredMember,
           interfaceMember,
           interfaceMemberOrigin,
-          declaredParameter.type,
-          interfaceParameter.type,
+          declaredParameterType,
+          interfaceParameterType,
           declaredParameter.isCovariantByDeclaration ||
               interfaceParameter.isCovariantByDeclaration,
           declaredParameter,

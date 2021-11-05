@@ -171,7 +171,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a field that has the `abstract`
       modifier also has an initializer.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because `f` is marked as
       `abstract` and has an initializer:
@@ -229,7 +229,7 @@ CompileTimeErrorCode:
       referenced using `super`, but there is no concrete implementation of the
       member in the superclass chain. Abstract members can't be invoked.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `B` doesn't inherit a
       concrete implementation of `a`:
@@ -305,14 +305,13 @@ CompileTimeErrorCode:
       export 'b.dart' hide C;
       ```
   AMBIGUOUS_EXTENSION_MEMBER_ACCESS:
-    problemMessage: "A member named '{0}' is defined in extensions {1}, and none are more specific."
+    problemMessage: "A member named '{0}' is defined in {1}, and none are more specific."
     correctionMessage: Try using an extension override to specify the extension you want to be chosen.
     hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the member
-      1: the name of the first declaring extension
-      2: the name of the second declaring extension
+      1: the names of the declaring extensions
     documentation: |-
       #### Description
 
@@ -329,7 +328,7 @@ CompileTimeErrorCode:
       extended type that's more specific than the extended types of all of the
       other extensions, making the reference to the member ambiguous.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because there's no way to
       choose between the member in `E1` and the member in `E2`:
@@ -383,7 +382,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a name is referenced that is
       declared in two or more imported libraries.
 
-      #### Examples
+      #### Example
 
       Given a library (`a.dart`) that defines a class (`C` in this example):
 
@@ -463,7 +462,7 @@ CompileTimeErrorCode:
       element is neither of these, making it impossible for the analyzer to
       determine whether you are writing a map literal or a set literal.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic:
 
@@ -515,7 +514,7 @@ CompileTimeErrorCode:
       a type that allows the analyzer to decide whether you were writing a map
       literal or a set literal.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic:
 
@@ -582,7 +581,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the static type of an argument
       can't be assigned to the static type of the corresponding parameter.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because a `num` can't be
       assigned to a `String`:
@@ -742,7 +741,7 @@ CompileTimeErrorCode:
       setter, but there's no setter because the field with the same name was
       declared to be `final` or `const`.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `v` is final:
 
@@ -781,7 +780,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a local variable that was
       declared to be final is assigned after it was initialized.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `x` is final, so it
       can't have a value assigned to it after it was initialized:
@@ -818,7 +817,7 @@ CompileTimeErrorCode:
       found; there is no setter defined for the type; but there is a getter
       defined with the same name.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because there is no setter
       named `x` in `C`, but there is a getter named `x`:
@@ -920,7 +919,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the target of an assignment is a
       method.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `f` can't be assigned a
       value because it's a method:
@@ -1094,7 +1093,7 @@ CompileTimeErrorCode:
       return type that's [potentially non-nullable][] but would implicitly return
       `null` if control reached the end of the function.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because the method `m` has an
       implicit return of `null` inserted at the end of the method, but the method
@@ -1225,7 +1224,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a built-in identifier is used
       where a type name is expected.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `import` can't be used
       as a type because it's a built-in identifier:
@@ -1313,7 +1312,7 @@ CompileTimeErrorCode:
       block isn't one of the required terminators: `break`, `continue`,
       `rethrow`, `return`, or `throw`.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the `case` block ends
       with an assignment:
@@ -1511,7 +1510,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the name following the `as` in a
       cast expression is defined to be something other than a type.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `x` is a variable, not
       a type:
@@ -1646,7 +1645,7 @@ CompileTimeErrorCode:
       found that doesn't have a concrete implementation. Concrete classes aren't
       allowed to contain abstract members.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `m` is an abstract
       method but `C` isn't an abstract class:
@@ -1692,7 +1691,7 @@ CompileTimeErrorCode:
       the name of the class, so having the same name makes the reference
       ambiguous.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because the static field `foo`
       and the named constructor `foo` have the same name:
@@ -2144,7 +2143,7 @@ CompileTimeErrorCode:
       const constructor, but the constructor is defined in a class that has at
       least one non-final instance field (either directly or by inheritance).
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the field `x` isn't
       final:
@@ -2280,7 +2279,7 @@ CompileTimeErrorCode:
       known to be a constant is assigned to a variable that's declared to be a
       `const` variable.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `x` isn't declared to
       be `const`:
@@ -2363,7 +2362,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when an instance field is marked as
       being const.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `f` is an instance
       field:
@@ -2461,7 +2460,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a variable that is declared to
       be a constant doesn't have an initializer.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `c` isn't initialized:
 
@@ -2543,7 +2542,7 @@ CompileTimeErrorCode:
       operator in a constant list or set evaluates to something other than a list
       or a set.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the value of `list1` is
       `null`, which is neither a list nor a set:
@@ -2574,7 +2573,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the expression of a spread
       operator in a constant map evaluates to something other than a map.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the value of `map1` is
       `null`, which isn't a map:
@@ -2605,7 +2604,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the keyword `const` is used to
       invoke a constructor that isn't marked with `const`.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the constructor in `A`
       isn't a const constructor:
@@ -2652,7 +2651,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a const constructor is invoked
       with an argument that isn't a constant expression.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `i` isn't a constant:
 
@@ -2923,6 +2922,7 @@ CompileTimeErrorCode:
   DEFAULT_VALUE_ON_REQUIRED_PARAMETER:
     problemMessage: "Required named parameters can't have a default value."
     correctionMessage: "Try removing either the default value or the 'required' modifier."
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -2932,7 +2932,7 @@ CompileTimeErrorCode:
       a value for the parameter is always provided at the call sites, so the
       default value can never be used.
 
-      #### Examples
+      #### Example
 
       The following code generates this diagnostic:
 
@@ -3173,7 +3173,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a name is declared, and there is
       a previous declaration with the same name in the same scope.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the name `x` is
       declared twice:
@@ -3242,7 +3242,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when an invocation has two or more
       named arguments that have the same name.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because there are two arguments
       with the name `a`:
@@ -3341,7 +3341,7 @@ CompileTimeErrorCode:
       literal have the same value. The set can only contain each value once,
       which means that one of the values is unnecessary.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the string `'a'` is
       specified twice:
@@ -3374,7 +3374,7 @@ CompileTimeErrorCode:
       second value would overwrite the first value, which makes having both pairs
       pointless.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the key `1` is used
       twice:
@@ -3612,7 +3612,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the analyzer finds an
       expression, rather than a map entry, in what appears to be a map literal.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic:
 
@@ -3643,7 +3643,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when an `extends` clause contains a
       name that is declared to be something other than a class.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `f` is declared to be a
       function:
@@ -3691,7 +3691,7 @@ CompileTimeErrorCode:
       representing the type of the class. Extensions, on the other hand, don't
       define a type and can't be used as a type literal.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `E` is an extension:
 
@@ -3716,13 +3716,12 @@ CompileTimeErrorCode:
       var x = E.m();
       ```
   EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
-    problemMessage: "Extension '{0}' can't define static member '{1}' and an instance member with the same name."
+    problemMessage: "An extension can't define static member '{0}' and an instance member with the same name."
     correctionMessage: "Try renaming the member to a name that doesn't conflict."
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the extension defining the conflicting member
-      1: the name of the conflicting static member
+      0: the name of the conflicting static member
     documentation: |-
       #### Description
 
@@ -3732,7 +3731,7 @@ CompileTimeErrorCode:
       because it's unclear which member is being referenced by an unqualified use
       of the name within the body of the extension.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the name `a` is being
       used for two different members:
@@ -3767,7 +3766,7 @@ CompileTimeErrorCode:
       `Object`. Such a member can never be used because the member in `Object` is
       always found first.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `toString` is defined
       by `Object`:
@@ -3801,7 +3800,7 @@ CompileTimeErrorCode:
       classes, the static members of an extension should be accessed using the
       name of the extension, not an extension override.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `m` is static:
 
@@ -3841,7 +3840,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the argument to an extension
       override isn't assignable to the type being extended by the extension.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `3` isn't a `String`:
 
@@ -3886,7 +3885,7 @@ CompileTimeErrorCode:
       extension override syntax doesn't have any runtime semantics; it only
       controls which member is selected at compile time.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `E(i)` isn't an
       expression:
@@ -3940,7 +3939,7 @@ CompileTimeErrorCode:
       `e..m` is the value of the receiver `e`, but extension overrides aren't
       expressions and don't have a value.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `E(3)` isn't an
       expression:
@@ -3992,7 +3991,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a method or function invocation
       has more positional arguments than the method or function allows.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `f` defines 2
       parameters but is invoked with 3 arguments:
@@ -4029,7 +4028,7 @@ CompileTimeErrorCode:
       has more positional arguments than the method or function allows, but the
       method or function defines named parameters.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `f` defines 2
       positional parameters but has a named parameter that could be used for the
@@ -4324,7 +4323,7 @@ CompileTimeErrorCode:
       that has the field hasn't been created at the point at which it should be
       initialized.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because the constructor
       `C.zero`, which redirects to the constructor `C`, has a field formal
@@ -4507,7 +4506,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a final field or variable isn't
       initialized.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `x` doesn't have an
       initializer:
@@ -4561,7 +4560,7 @@ CompileTimeErrorCode:
       initialized when the instance is created, either by the field's initializer
       or by the constructor.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic:
 
@@ -4718,7 +4717,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the expression following `in` in
       a for-in loop has a type that isn't a subclass of `Iterable`.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `m` is a `Map`, and
       `Map` isn't a subclass of `Iterable`:
@@ -4797,6 +4796,7 @@ CompileTimeErrorCode:
   GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC:
     problemMessage: "A method tear-off on a receiver whose type is 'dynamic' can't have type arguments."
     correctionMessage: Specify the type of the receiver, or remove the type arguments from the method tear-off.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5031,7 +5031,7 @@ CompileTimeErrorCode:
       clause of a class or mixin declaration is defined to be something other
       than a class or mixin.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `x` is a variable
       rather than a class or mixin:
@@ -5067,7 +5067,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a single class is specified more
       than once in an `implements` clause.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `A` is in the list
       twice:
@@ -5142,7 +5142,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when it finds a reference to an
       instance member in a constructor's initializer list.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `defaultX` is an
       instance member:
@@ -5291,7 +5291,7 @@ CompileTimeErrorCode:
       is a getter and `m'` is a method.
 
       Parameters:
-      0: the name of the the instance member with inconsistent inheritance.
+      0: the name of the instance member with inconsistent inheritance.
       1: the name of the superinterface that declares the name as a getter.
       2: the name of the superinterface that declares the name as a method.
   INCONSISTENT_LANGUAGE_VERSION_OVERRIDE:
@@ -5319,7 +5319,7 @@ CompileTimeErrorCode:
       Constructors can't initialize fields that aren't declared and fields that
       are inherited from superclasses.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the initializer is
       initializing `x`, but `x` isn't a field in the class:
@@ -5434,7 +5434,7 @@ CompileTimeErrorCode:
       initialized. Constructors can't initialize fields that aren't declared and
       fields that are inherited from superclasses.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the field `x` isn't
       defined:
@@ -5498,21 +5498,22 @@ CompileTimeErrorCode:
       }
       ```
   INSTANCE_ACCESS_TO_STATIC_MEMBER:
-    problemMessage: "Static {1} '{0}' can't be accessed through an instance."
-    correctionMessage: "Try using the class '{2}' to access the {1}."
+    problemMessage: "The static {1} '{0}' can't be accessed through an instance."
+    correctionMessage: "Try using the {3} '{2}' to access the {1}."
     hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the static member
       1: the kind of the static member (field, getter, setter, or method)
-      2: the name of the defining class
+      2: the name of the static member's enclosing element
+      3: the kind of the static member's enclosing element (class, mixin, or extension)
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when an access operator is used to
       access a static member through an instance of the class.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `zero` is a static
       field, but it’s being accessed as if it were an instance field:
@@ -5540,6 +5541,14 @@ CompileTimeErrorCode:
         static int zero = 0;
       }
       ```
+  INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION:
+    sharedName: INSTANCE_ACCESS_TO_STATIC_MEMBER
+    problemMessage: "The static {1} '{0}' can't be accessed through an instance."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the static member
+      1: the kind of the static member (field, getter, setter, or method)
   INSTANCE_MEMBER_ACCESS_FROM_FACTORY:
     problemMessage: "Instance members can't be accessed from a factory constructor."
     correctionMessage: Try removing the reference to the instance member.
@@ -5556,7 +5565,7 @@ CompileTimeErrorCode:
       factory constructor, the instance isn't created before executing the body,
       so `this` can't be used to reference it.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `x` isn't in scope in
       the factory constructor:
@@ -5595,7 +5604,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a static method contains an
       unqualified reference to an instance member.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the instance field `x`
       is being referenced in a static method:
@@ -5653,7 +5662,7 @@ CompileTimeErrorCode:
       though you can't create an instance of an abstract class, abstract classes
       can declare constructors that can be invoked by subclasses.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `C` is an abstract
       class:
@@ -5706,6 +5715,7 @@ CompileTimeErrorCode:
   INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
     problemMessage: "Type aliases that expand to a type parameter can't be instantiated."
     correctionMessage: Try replacing it with a class.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5826,7 +5836,7 @@ CompileTimeErrorCode:
 
       Getters can't be used as annotations.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because the variable `v` isn't
       a `const` variable:
@@ -5887,6 +5897,7 @@ CompileTimeErrorCode:
   INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY:
     problemMessage: "Constant values from a deferred library can't be used in annotations."
     correctionMessage: "Try moving the constant from the deferred library, or removing 'deferred' from the import."
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5998,7 +6009,7 @@ CompileTimeErrorCode:
       that is assigned to a variable isn't assignable to the type of the
       variable.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the type of the
       initializer (`int`) isn't assignable to the type of the variable
@@ -6153,7 +6164,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the name of a factory
       constructor isn't the same as the name of the surrounding class.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the name of the factory
       constructor (`A`) isn't the same as the surrounding class (`C`):
@@ -6437,7 +6448,7 @@ CompileTimeErrorCode:
       * The return type of the override is assignable to the return type of the
         overridden member.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the type of the
       parameter `s` (`String`) isn't assignable to the type of the parameter `i`
@@ -6492,7 +6503,7 @@ CompileTimeErrorCode:
       only defined in the context of an instance method or a generative
       constructor.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `v` is a top-level
       variable:
@@ -6569,7 +6580,7 @@ CompileTimeErrorCode:
       This isn't allowed because the value of the type parameter (the actual type
       that will be used at runtime) can't be known at compile time.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because the type parameter `T`
       is being used as a type argument when creating a constant list:
@@ -6635,7 +6646,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a URI in a directive doesn't
       conform to the syntax of a valid URI.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `'#'` isn't a valid
       URI:
@@ -6695,7 +6706,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when an extension override is used to
       invoke a function but the extension doesn't declare a `call` method.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the extension `E`
       doesn't define a `call` method:
@@ -6741,7 +6752,7 @@ CompileTimeErrorCode:
       but the name of the function being invoked is defined to be something other
       than a function.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `Binary` is the name of
       a function type, not a function:
@@ -7037,7 +7048,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the type of an element in a list
       literal isn't assignable to the element type of the list.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `2.5` is a double, and
       the list can hold only integers:
@@ -7214,7 +7225,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a map entry (a key/value pair)
       is found in a set literal.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the literal has a map
       entry even though it's a set literal:
@@ -7256,7 +7267,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a key of a key-value pair in a
       map literal has a type that isn't assignable to the key type of the map.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `2` is an `int`, but
       the keys of the map are required to be `String`s:
@@ -7290,10 +7301,10 @@ CompileTimeErrorCode:
       #### Description
 
       The analyzer produces this diagnostic when a value of a key-value pair in a
-      map literal has a type that isn't assignable to the the value type of the
+      map literal has a type that isn't assignable to the value type of the
       map.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `2` is an `int`, but/
       the values of the map are required to be `String`s:
@@ -7358,7 +7369,7 @@ CompileTimeErrorCode:
       parameter doesn't allow the parameter to have a value of `null`, then the
       implicit default value isn't valid.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because `x` can't be `null`,
       and no non-`null` default value is specified:
@@ -7822,7 +7833,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a name in a `with` clause is
       defined to be something other than a mixin or a class.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `F` is defined to be a
       function type:
@@ -7857,7 +7868,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a type following the `on`
       keyword in a mixin declaration is neither a class nor a mixin.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `F` is neither a class
       nor a mixin:
@@ -8001,7 +8012,7 @@ CompileTimeErrorCode:
       invoked on a class that defines named constructors but the class doesn’t
       have an unnamed constructor.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `A` doesn't define an
       unnamed constructor:
@@ -8075,7 +8086,7 @@ CompileTimeErrorCode:
       more abstract members, and doesn't provide or inherit an implementation for
       at least one of those abstract members.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the class `B` doesn't
       have a concrete implementation of `m`:
@@ -8158,7 +8169,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a condition, such as an `if` or
       `while` loop, doesn't have the static type `bool`.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `x` has the static type
       `int`:
@@ -8193,7 +8204,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the first expression in an
       assert has a type other than `bool`.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the type of `p` is
       `int`, but a `bool` is required:
@@ -8224,7 +8235,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the operand of the unary
       negation operator (`!`) doesn't have the type `bool`.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `x` is an `int` when it
       must be a `bool`:
@@ -8254,7 +8265,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when one of the operands of either
       the `&&` or `||` operator doesn't have the type `bool`.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `a` isn't a Boolean
       value:
@@ -8325,7 +8336,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the expression in a `case`
       clause isn't a constant expression.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `j` isn't a constant:
 
@@ -8447,7 +8458,7 @@ CompileTimeErrorCode:
       named or positional, has a default value that isn't a compile-time
       constant.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic:
 
@@ -8544,7 +8555,7 @@ CompileTimeErrorCode:
       explicitly (because it's prefixed by the `const` keyword) or implicitly
       (because it appears in a [constant context][]).
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `x` isn't a constant,
       even though it appears in an implicitly constant list literal:
@@ -8632,7 +8643,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a key in a constant map literal
       isn't a constant value.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic beause `a` isn't a constant:
 
@@ -8668,7 +8679,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a value in a constant map
       literal isn't a constant value.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `a` isn't a constant:
 
@@ -8704,7 +8715,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a constant set literal contains
       an element that isn't a compile-time constant.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `i` isn't a constant:
 
@@ -8862,7 +8873,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when an identifier that isn't a type
       is used as a type argument.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `x` is a variable, not
       a type:
@@ -8893,7 +8904,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the identifier following the
       `on` in a `catch` clause is defined to be something other than a type.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `f` is a function, not
       a type:
@@ -9003,7 +9014,7 @@ CompileTimeErrorCode:
       - The analyzer can't prove that the local variable will be assigned before
         the reference based on the specification of [definite assignment][].
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because `x` can't have a value
       of `null`, but is referenced before a value was assigned to it:
@@ -9115,7 +9126,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a name is used as a type but
       declared to be something other than a type.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `f` is a function:
 
@@ -9129,6 +9140,7 @@ CompileTimeErrorCode:
       Replace the name with the name of a type.
   NOT_BINARY_OPERATOR:
     problemMessage: "'{0}' isn't a binary operator."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the operator that is not a binary operator.
@@ -9169,7 +9181,7 @@ CompileTimeErrorCode:
       has fewer positional arguments than the number of required positional
       parameters.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `f` declares two
       required parameters, but only one argument is provided:
@@ -9207,7 +9219,7 @@ CompileTimeErrorCode:
       - Doesn't have an initializer
       - Isn't marked as `late`
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because `x` is implicitly
       initialized to `null` when it isn't allowed to be `null`:
@@ -9290,7 +9302,7 @@ CompileTimeErrorCode:
       initialized to `null`, but the type of the field or variable doesn't allow
       it to be set to `null`, so an explicit initializer must be provided.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because the field `f` can't be
       initialized to `null`:
@@ -9349,7 +9361,7 @@ CompileTimeErrorCode:
       expression of a spread element that appears in either a list literal or a
       set literal doesn't implement the type `Iterable`.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic:
 
@@ -9378,7 +9390,7 @@ CompileTimeErrorCode:
       expression of a spread element that appears in a map literal doesn't
       implement the type `Map`.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `l` isn't a `Map`:
 
@@ -9412,7 +9424,7 @@ CompileTimeErrorCode:
       variable. To create an instance of the class, the identifier must be
       followed by an argument list.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `C` is a class, and a
       class can't be used as an annotation without invoking a `const` constructor
@@ -9812,7 +9824,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a part directive is found and
       the referenced file doesn't have a part-of directive.
 
-      #### Examples
+      #### Example
 
       Given a file (`a.dart`) containing:
 
@@ -10120,7 +10132,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a constructor redirects to
       itself, either directly or indirectly, creating an infinite loop.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because the generative
       constructors `C.a` and `C.b` each redirect to the other:
@@ -10467,7 +10479,7 @@ CompileTimeErrorCode:
       to a constructor whose return type isn't a subtype of the type that the
       factory constructor is declared to produce.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `A` isn't a subclass
       of `C`, which means that the value returned by the constructor `A()`
@@ -10532,7 +10544,7 @@ CompileTimeErrorCode:
       produces this diagnostic when the redirect is to something other than a
       constructor.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `f` is a function:
 
@@ -10609,6 +10621,7 @@ CompileTimeErrorCode:
   REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
     problemMessage: "A redirecting constructor can't redirect to a type alias that expands to a type parameter."
     correctionMessage: Try replacing it with a class.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -10662,7 +10675,7 @@ CompileTimeErrorCode:
       The analyzer also produces a context message that indicates where the
       declaration is located.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `i` is used before it
       is declared:
@@ -10811,7 +10824,7 @@ CompileTimeErrorCode:
       statement to return a value or implicitly returns a value because of using
       `=>`. In any of these cases, they should use `yield` instead of `return`.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because the method `f` is a
       generator and is using `return` to return a value:
@@ -10881,7 +10894,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a method or function returns a
       value whose type isn't assignable to the declared return type.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `f` has a return type
       of `String` but is returning an `int`:
@@ -10927,7 +10940,7 @@ CompileTimeErrorCode:
       expression isn't assignable to the return type that the closure is required
       to have.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `f` is defined to be a
       function that returns a `String`, but the closure assigned to it returns an
@@ -10955,7 +10968,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when it finds a `return` statement
       without an expression in a function that declares a return type.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the function `f` is
       expected to return an `int`, but no value is being returned:
@@ -11072,7 +11085,7 @@ CompileTimeErrorCode:
       an instance field. Instance fields don't exist on a class; they exist only
       on an instance of the class.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `x` is an instance
       field:
@@ -11192,7 +11205,7 @@ CompileTimeErrorCode:
       are all restricted in this way, to allow for more efficient
       implementations.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because `String` is used in an
       `extends` clause:
@@ -11327,7 +11340,7 @@ CompileTimeErrorCode:
       extension uses the `super` keyword . Extensions aren't classes and don't
       have superclasses, so the `super` keyword serves no purpose.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `super` can't be used
       in an extension:
@@ -11357,7 +11370,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the keyword `super` is used
       outside of a instance method.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `super` is used in a
       top-level function:
@@ -11473,6 +11486,7 @@ CompileTimeErrorCode:
   TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS:
     problemMessage: "A generative constructor of an abstract class can't be torn off."
     correctionMessage: Try tearing off a constructor of a concrete class, or a non-generative constructor.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -11670,7 +11684,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a type argument isn't the same
       as or a subclass of the bounds of the corresponding type parameter.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `String` isn't a
       subclass of `num`:
@@ -11752,7 +11766,7 @@ CompileTimeErrorCode:
       as itself or a subtype of itself or a subtype of itself isn't helpful
       because it will always be the same as itself.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because the bound of `T` is
       `T`:
@@ -11846,7 +11860,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the name following the `is` in a
       type test expression isn't defined.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the name `Srting` isn't
       defined:
@@ -11978,7 +11992,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a name that isn't defined is
       used as an annotation.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the name `undefined`
       isn't defined:
@@ -12023,7 +12037,7 @@ CompileTimeErrorCode:
       appears to be the name of a class but either isn't defined or isn't visible
       in the scope in which it's being referenced.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `Piont` isn't defined:
 
@@ -12149,7 +12163,7 @@ CompileTimeErrorCode:
       appears to be the name of an enum constant, and the name either isn't
       defined or isn't visible in the scope in which it's being referenced.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `E` doesn't define a
       constant named `c`:
@@ -12536,7 +12550,7 @@ CompileTimeErrorCode:
       appears to be the name of a function but either isn't defined or isn't
       visible in the scope in which it's being referenced.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the name `emty` isn't
       defined:
@@ -12580,7 +12594,7 @@ CompileTimeErrorCode:
       appears to be the name of a getter but either isn't defined or isn't
       visible in the scope in which it's being referenced.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `String` has no member
       named `len`:
@@ -12622,7 +12636,7 @@ CompileTimeErrorCode:
       either isn't defined or isn't visible in the scope in which it's being
       referenced.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the name `rihgt` isn't
       defined:
@@ -12688,7 +12702,7 @@ CompileTimeErrorCode:
       appears to be the name of a method but either isn't defined or isn't
       visible in the scope in which it's being referenced.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the identifier
       `removeMiddle` isn't defined:
@@ -12729,7 +12743,7 @@ CompileTimeErrorCode:
       has a named argument, but the method or function being invoked doesn't
       define a parameter with the same name.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `m` doesn't declare a
       named parameter named `a`:
@@ -12805,7 +12819,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a user-definable operator is
       invoked on an object for which the operator isn't defined.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the class `C` doesn't
       define the operator `+`:
@@ -12839,7 +12853,7 @@ CompileTimeErrorCode:
       where the prefix is valid, but the identifier isn't declared in any of the
       libraries imported using that prefix.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `dart:core` doesn't
       define anything named `a`:
@@ -12874,7 +12888,7 @@ CompileTimeErrorCode:
       appears to be the name of a setter but either isn't defined or isn't
       visible in the scope in which the identifier is being referenced.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because there isn't a setter
       named `z`:
@@ -13050,7 +13064,7 @@ CompileTimeErrorCode:
       the name is the same as a static member of the extended type or one of its
       superclasses.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `m` is a static member
       of the extended type `C`:
@@ -13113,7 +13127,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when an import, export, or part
       directive is found where the URI refers to a file that doesn't exist.
 
-      #### Examples
+      #### Example
 
       If the file `lib.dart` doesn't exist, the following code produces this
       diagnostic:
@@ -13148,7 +13162,7 @@ CompileTimeErrorCode:
       - `.pbjson.dart`
       - `.template.dart`
 
-      #### Examples
+      #### Example
 
       If the file `lib.g.dart` doesn't exist, the following code produces this
       diagnostic:
@@ -13197,6 +13211,30 @@ CompileTimeErrorCode:
 
       var zero = min(0, 0);
       ```
+  USE_OF_NATIVE_EXTENSION:
+    problemMessage: Dart native extensions are deprecated and aren’t available in Dart 2.15.
+    correctionMessage: "Try using dart:ffi for C interop."
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a library is imported using the
+      `dart-ext` scheme.
+
+      #### Example
+
+      The following code produces this diagnostic because the native library `x`
+      is being imported using a scheme of `dart-ext`:
+
+      ```dart
+      import [!'dart-ext:x'!];
+      ```
+
+      #### Common fixes
+
+      Rewrite the code to use `dart:ffi` as a way of invoking the contents of the
+      native library.
   USE_OF_VOID_RESULT:
     problemMessage: "This expression has a type of 'void' so its value can't be used."
     correctionMessage: "Try checking to see if you're using the correct API; there might be a function or call that returns void you didn't expect. Also check type parameters and variables which might also be void."
@@ -13210,7 +13248,7 @@ CompileTimeErrorCode:
       expected, such as before a member access or on the right-hand side of an
       assignment.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `f` doesn't produce an
       object on which `toString` can be invoked:
@@ -13241,7 +13279,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when the evaluation of a constant
       expression would result in a `CastException`.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the value of `x` is an
       `int`, which can't be assigned to `y` because an `int` isn't a `String`:
@@ -13304,7 +13342,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a declaration of an operator has
       the wrong number of parameters.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the operator `+` must
       have a single parameter corresponding to the right operand:
@@ -13637,7 +13675,7 @@ CompileTimeErrorCode:
       appears in a function whose body isn't marked with one of the `async*` or
       `sync*` modifiers.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because `yield` is being used
       in a function whose body doesn't have a modifier:
@@ -13739,11 +13777,12 @@ FfiCode:
     correctionMessage: "Try allocating it via allocation, or load from a 'Pointer'."
     comment: No parameters.
   EMPTY_STRUCT:
-    problemMessage: "Struct '{0}' is empty. Empty structs are undefined behavior."
-    correctionMessage: "Try adding a field to '{0}' or use a different Struct."
+    problemMessage: "The class '{0}' can’t be empty because it's a subclass of '{1}'."
+    correctionMessage: "Try adding a field to '{0}' or use a different superclass."
     comment: |-
       Parameters:
-      0: the name of the struct class
+      0: the name of the subclass
+      1: the name of the superclass
   EXTRA_ANNOTATION_ON_STRUCT_FIELD:
     problemMessage: Fields in a struct class must have exactly one annotation indicating the native type.
     correctionMessage: Try removing the extra annotation.
@@ -13752,10 +13791,28 @@ FfiCode:
     problemMessage: "'Array's must have exactly one 'Array' annotation."
     correctionMessage: Try removing the extra annotation.
     comment: No parameters.
-  FFI_NATIVE_ONLY_STATIC:
-    problemMessage: FfiNative annotations can only be used on static functions.
-    correctionMessage: Change the method to static.
+  FFI_NATIVE_MUST_BE_EXTERNAL:
+    problemMessage: FfiNative functions must be declared external.
+    correctionMessage: Add the `external` keyword to the function.
     comment: No parameters.
+  FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER:
+    problemMessage: Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.
+    correctionMessage: Pass as Handle instead.
+    comment: No parameters.
+  FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
+    problemMessage: Unexpected number of FfiNative annotation parameters. Expected {0} but has {1}.
+    correctionMessage: Make sure parameters match the function annotated.
+    comment: |-
+      Parameters:
+      0: the expected number of parameters
+      1: the actual number of parameters
+  FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER:
+    problemMessage: Unexpected number of FfiNative annotation parameters. Expected {0} but has {1}. FfiNative instance method annotation must have receiver as first argument.
+    correctionMessage: Make sure parameters match the function annotated, including an extra first parameter for the receiver.
+    comment: |-
+      Parameters:
+      0: the expected number of parameters
+      1: the actual number of parameters
   FIELD_INITIALIZER_IN_STRUCT:
     problemMessage: "Constructors in subclasses of 'Struct' and 'Union' can't have field initializers."
     correctionMessage: Try removing the field initializer and marking the field as external.
@@ -13836,8 +13893,8 @@ FfiCode:
       Parameters:
       0: the name of the function, method, or constructor having type arguments
   NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER:
-    problemMessage: "The type argument for the pointer '{0}' must be a 'NativeFunction' in order to use 'asFunction'."
-    correctionMessage: "Try changing the type argument to be a 'NativeFunction'."
+    problemMessage: "The type argument for the pointer '{0}' must be a valid 'NativeFunction' in order to use 'asFunction'."
+    correctionMessage: "Try changing the function argument in 'NativeFunction' to only use NativeTypes."
     comment: |-
       Parameters:
       0: the type that should be a valid dart:ffi native type.
@@ -13937,7 +13994,7 @@ HintCode:
       to have either a single parameter of type `Object` or two parameters of
       type `Object` and `StackTrace`.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because the closure being
       passed to `catchError` doesn't take any parameters, but the function is
@@ -14004,7 +14061,7 @@ HintCode:
       The analyzer produces this diagnostic when code is found that won't be
       executed because execution will never reach the code.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the invocation of
       `print` occurs after the function has returned:
@@ -14064,7 +14121,7 @@ HintCode:
       the thrown object is selected, and both of those forms will match any
       object, so no `catch` clauses that follow them will be selected.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic:
 
@@ -14122,7 +14179,7 @@ HintCode:
       matches anything matchable by the highlighted clause, so the highlighted
       clause will never be selected.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic:
 
@@ -14175,7 +14232,7 @@ HintCode:
       The analyzer produces this diagnostic when a deprecated library or class
       member is used in a different package.
 
-      #### Examples
+      #### Example
 
       If the method `m` in the class `C` is annotated with `@deprecated`, then
       the following code produces this diagnostic:
@@ -14212,7 +14269,7 @@ HintCode:
       The analyzer produces this diagnostic when a deprecated library member or
       class member is used in the same package in which it's declared.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `x` is deprecated:
 
@@ -14236,6 +14293,10 @@ HintCode:
       Parameters:
       0: the name of the member
       1: message details
+  DEPRECATED_NEW_IN_COMMENT_REFERENCE:
+    problemMessage: "Using the 'new' keyword in a comment reference is deprecated."
+    correctionMessage: Try referring to a constructor by its name.
+    comment: No parameters.
   DEPRECATED_MIXIN_FUNCTION:
     sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
     problemMessage: "Mixing in 'Function' is deprecated."
@@ -14339,7 +14400,7 @@ HintCode:
       because it's already included in the same `ignore` comment or because it
       appears in an `ignore-in-file` comment.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because the diagnostic named
       `unused_local_variable` is already being ignored for the whole file so it
@@ -14389,7 +14450,7 @@ HintCode:
       that is the same as an import before it in the file. The second import
       doesn’t add value and should be removed.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic:
 
@@ -14909,14 +14970,13 @@ HintCode:
       var x;
       ```
   INVALID_NON_VIRTUAL_ANNOTATION:
-    problemMessage: "The member '{0}' can't be '@nonVirtual' because it isn't a concrete instance member."
+    problemMessage: "The annotation '@nonVirtual' can only be applied to a concrete instance member."
     correctionMessage: Try removing @nonVirtual.
     comment: |-
       This hint is generated anywhere where `@nonVirtual` annotates something
       other than a non-abstract instance member in a class or mixin.
 
-      Parameters:
-      0: the name of the member
+      No Parameters.
   INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
     problemMessage: "The member '{0}' is declared non-virtual in '{1}' and can't be overridden in subclasses."
     comment: |-
@@ -14978,7 +15038,7 @@ HintCode:
       `catchError` attempts to return the value from the callback as the result
       of the future, which results in another exception being thrown.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because `future` is declared to
       return an `int` while `callback` is declared to return a `String`, and
@@ -15020,14 +15080,13 @@ HintCode:
       }
       ```
   INVALID_SEALED_ANNOTATION:
-    problemMessage: "The member '{0}' is annotated with '@sealed' but only classes can be annotated with it."
+    problemMessage: "The annotation '@sealed' can only be applied to classes."
     correctionMessage: Remove @sealed.
     comment: |-
       This hint is generated anywhere where `@sealed` annotates something other
       than a class.
 
-      Parameters:
-      0: the name of the member
+      No parameters.
   INVALID_USE_OF_INTERNAL_MEMBER:
     problemMessage: "The member '{0}' can only be used within its package."
     comment: |-
@@ -15047,6 +15106,7 @@ HintCode:
       1: the name of the defining class
   INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
     problemMessage: "The member '{0}' can only be used for overriding."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the member
@@ -15122,7 +15182,7 @@ HintCode:
       The analyzer produces this diagnostic when either the `@visibleForTemplate`
       or `@visibleForTesting` annotation is applied to a non-public declaration.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic:
 
@@ -15157,7 +15217,8 @@ HintCode:
       void f() => someFunction();
       ```
   INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
-    problemMessage: "The declaration '{0}' is annotated with 'visibleForOverriding'. Because '{0}' isn't an interface member that could be overridden, the annotation is meaningless."
+    problemMessage: "The annotation 'visibleForOverriding' can only be applied to a public instance member that can be overridden."
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -15186,12 +15247,6 @@ HintCode:
       ```dart
       class C {}
       ```
-  MISSING_JS_LIB_ANNOTATION:
-    problemMessage: The @JS() annotation can only be used if it is also declared on the library directive.
-    correctionMessage: Try adding the annotation to the library directive.
-    comment: |-
-      Generate a hint for an element that is annotated with `@JS(...)` whose
-      library declaration is not similarly annotated.
   MISSING_REQUIRED_PARAM:
     problemMessage: "The parameter '{0}' is required."
     hasPublishedDocs: true
@@ -15208,7 +15263,7 @@ HintCode:
       named parameter that is annotated as being required is invoked without
       providing a value for the parameter.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the named parameter `x`
       is required:
@@ -15263,7 +15318,7 @@ HintCode:
       throw implicitly returns `null`. This is rarely the desired behavior. The
       analyzer produces this diagnostic when it finds an implicit return.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `f` doesn't end with a
       return:
@@ -15299,7 +15354,7 @@ HintCode:
       Classes that are sealed can't be extended, implemented, mixed in, or used
       as a superclass constraint.
 
-      #### Examples
+      #### Example
 
       If the package `p` defines a sealed class:
 
@@ -15339,7 +15394,7 @@ HintCode:
       marked as being immutable using the annotation `@immutable` or if it's a
       subclass of an immutable class.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the field `x` isn't
       final:
@@ -15395,7 +15450,7 @@ HintCode:
       that is annotated as `@mustCallSuper` doesn't invoke the overridden method
       as required.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the method `m` in `B`
       doesn't invoke the overridden method `m` in `A`:
@@ -15463,7 +15518,7 @@ HintCode:
       that the constructor should be used to create a constant value whenever
       possible.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic:
 
@@ -15534,6 +15589,7 @@ HintCode:
   NULL_ARGUMENT_TO_NON_NULL_TYPE:
     problemMessage: "'{0}' shouldn't be called with a null argument for the non-nullable type argument '{1}'."
     correctionMessage: Try adding a non-null argument.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the method being invoked
@@ -15623,7 +15679,7 @@ HintCode:
       the `@override` annotation, but the member isn’t declared in any of the
       supertypes of the class.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `m` isn't declared in
       any of the supertypes of `C`:
@@ -15703,7 +15759,7 @@ HintCode:
       earlier versions, these classes weren't defined in `dart:core`, so the
       import was necessary.
 
-      #### Examples
+      #### Example
 
       Here's an example of a pubspec that defines an SDK constraint with a lower
       bound of less than 2.1.0:
@@ -15753,7 +15809,7 @@ HintCode:
       [constant context][] wasn't supported in earlier versions, so this code
       won't be able to run against earlier versions of the SDK.
 
-      #### Examples
+      #### Example
 
       Here's an example of a pubspec that defines an SDK constraint with a lower
       bound of less than 2.3.2:
@@ -15805,7 +15861,7 @@ HintCode:
       versions, so this code won't be able to run against earlier versions of the
       SDK.
 
-      #### Examples
+      #### Example
 
       Here's an example of a pubspec that defines an SDK constraint with a lower
       bound of less than 2.3.2:
@@ -15847,6 +15903,7 @@ HintCode:
   SDK_VERSION_CONSTRUCTOR_TEAROFFS:
     problemMessage: "Tearing off a constructor requires the 'constructor-tearoffs' language feature."
     correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'."
+    hasPublishedDocs: true
     comment: |-
       No parameters.
 
@@ -15912,7 +15969,7 @@ HintCode:
       in a [constant context][] wasn't supported in earlier versions, so this
       code won't be able to run against earlier versions of the SDK.
 
-      #### Examples
+      #### Example
 
       Here's an example of a pubspec that defines an SDK constraint with a lower
       bound of less than 2.3.2:
@@ -15969,7 +16026,7 @@ HintCode:
       versions, so this code won't be able to run against earlier versions of the
       SDK.
 
-      #### Examples
+      #### Example
 
       Here's an example of a pubspec that defines an SDK constraint with a lower
       bound of less than 2.6.0:
@@ -16014,6 +16071,7 @@ HintCode:
   SDK_VERSION_GT_GT_GT_OPERATOR:
     problemMessage: "The operator '>>>' wasn't supported until version 2.14.0, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -16023,7 +16081,7 @@ HintCode:
       operator wasn't supported in earlier versions, so this code won't be able
       to run against earlier versions of the SDK.
 
-      #### Examples
+      #### Example
 
       Here's an example of a pubspec that defines an SDK constraint with a lower
       bound of less than 2.14.0:
@@ -16079,7 +16137,7 @@ HintCode:
       [constant context][] wasn't supported in earlier versions, so this code
       won't be able to run against earlier versions of the SDK.
 
-      #### Examples
+      #### Example
 
       Here's an example of a pubspec that defines an SDK constraint with a lower
       bound of less than 2.3.2:
@@ -16130,7 +16188,7 @@ HintCode:
       2.12.0. This class wasn't defined in earlier versions, so this code won't
       be able to run against earlier versions of the SDK.
 
-      #### Examples
+      #### Example
 
       Here's an example of a pubspec that defines an SDK constraint with a lower
       bound of less than 2.12.0:
@@ -16178,7 +16236,7 @@ HintCode:
       literals weren't supported in earlier versions, so this code won't be able
       to run against earlier versions of the SDK.
 
-      #### Examples
+      #### Example
 
       Here's an example of a pubspec that defines an SDK constraint with a lower
       bound of less than 2.2.0:
@@ -16226,7 +16284,7 @@ HintCode:
       versions, so this code won't be able to run against earlier versions of the
       SDK.
 
-      #### Examples
+      #### Example
 
       Here's an example of a pubspec that defines an SDK constraint with a lower
       bound of less than 2.3.0:
@@ -16282,7 +16340,7 @@ HintCode:
       [constant context][] wasn't supported in earlier versions, so this code
       won't be able to run against earlier versions of the SDK.
 
-      #### Examples
+      #### Example
 
       Here's an example of a pubspec that defines an SDK constraint with a lower
       bound of less than 2.5.0:
@@ -16402,7 +16460,7 @@ HintCode:
       is `Null`, so the code is both more readable and more performant when it
       tests for `null` explicitly.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because the code is testing to
       see whether the value of `s` is `null` by using a type check:
@@ -16460,7 +16518,7 @@ HintCode:
       The analyzer produces this diagnostic when a hide combinator includes a
       name that isn't defined by the library being imported.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `dart:math` doesn't
       define the name `String`:
@@ -16483,6 +16541,7 @@ HintCode:
       ```
   UNDEFINED_REFERENCED_PARAMETER:
     problemMessage: "The parameter '{0}' is not defined by '{1}'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the undefined parameter
@@ -16531,7 +16590,7 @@ HintCode:
       The analyzer produces this diagnostic when a show combinator includes a
       name that isn't defined by the library being imported.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `dart:math` doesn't
       define the name `String`:
@@ -16569,7 +16628,7 @@ HintCode:
       The analyzer produces this diagnostic when the value being cast is already
       known to be of the type that it's being cast to.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `n` is already known to
       be an `int` as a result of the `is` test:
@@ -16602,6 +16661,7 @@ HintCode:
   UNNECESSARY_IMPORT:
     problemMessage: "The import of '{0}' is unnecessary because all of the used elements are also provided by the import of '{1}'."
     correctionMessage: Try removing the import directive.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the uri that is not necessary
@@ -16712,7 +16772,7 @@ HintCode:
       can't be `null`. Such comparisons are always either `true` or `false`, so
       they serve no purpose.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because `x` can never be
       `null`, so the comparison always evaluates to `true`:
@@ -16764,6 +16824,7 @@ HintCode:
     comment: No parameters.
   UNNECESSARY_QUESTION_MARK:
     problemMessage: "The '?' is unnecessary because '{0}' is nullable without it."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the type
@@ -16846,7 +16907,7 @@ HintCode:
       neither the exception parameter nor the optional stack trace parameter are
       used in the `catch` block.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `e` isn't referenced:
 
@@ -16886,7 +16947,7 @@ HintCode:
       The analyzer produces this diagnostic when the stack trace parameter in a
       `catch` clause isn't referenced within the body of the `catch` block.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because `stackTrace` isn't
       referenced:
@@ -16934,7 +16995,7 @@ HintCode:
       - Optional parameters of private functions for which a value is never
         passed, even when the parameter doesn't have a private name
 
-      #### Examples
+      #### Example
 
       Assuming that no code in the library references `_C`, the following code
       produces this diagnostic:
@@ -16989,7 +17050,7 @@ HintCode:
       The analyzer produces this diagnostic when a private field is declared but
       never read, even if it's written in one or more places.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the field
       `_originalValue` isn't read anywhere in the library:
@@ -17028,7 +17089,7 @@ HintCode:
       none of the names that are imported are referenced within the importing
       library.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because nothing defined in
       `dart:async` is referenced in the library:
@@ -17058,7 +17119,7 @@ HintCode:
       The analyzer produces this diagnostic when a label that isn't used is
       found.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the label `loop` isn't
       referenced anywhere in the method:
@@ -17107,7 +17168,7 @@ HintCode:
       The analyzer produces this diagnostic when a local variable is declared but
       never read, even if it's written in one or more places.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the value of `count` is
       never read:
@@ -17126,6 +17187,7 @@ HintCode:
   UNUSED_RESULT:
     problemMessage: "The value of '{0}' should be used."
     correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the annotated method, property or function
@@ -17200,6 +17262,7 @@ HintCode:
     sharedName: UNUSED_RESULT
     problemMessage: "'{0}' should be used. {1}."
     correctionMessage: Try using the result by invoking a member, passing it to a function, or returning it from this function.
+    hasPublishedDocs: true
     comment: |-
       The result of invoking a method, property, or function annotated with
       `@useResult` must be used (assigned, passed to a function as an argument,
@@ -17222,7 +17285,7 @@ HintCode:
       name that isn't used within the library. Because it isn't referenced, the
       name can be removed.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the function `max`
       isn't used:
@@ -17242,30 +17305,6 @@ HintCode:
 
       var x = min(0, 1);
       ```
-  USE_OF_NATIVE_EXTENSION:
-    problemMessage: Dart native extensions are deprecated and aren’t available in Dart 2.15.
-    correctionMessage: "Try using dart:ffi for C interop."
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a library is imported using the
-      `dart-ext` scheme.
-
-      #### Example
-
-      The following code produces this diagnostic because the native library `x`
-      is being imported using a scheme of `dart-ext`:
-
-      ```dart
-      [!import 'dart-ext:x';!]
-      int f() native 'string';
-      ```
-
-      #### Common fixes
-
-      Rewrite the code to use `dart:ffi` as a way of invoking the contents of the
-      native library.
 LanguageCode:
   IMPLICIT_DYNAMIC_FIELD:
     problemMessage: "Missing field type for '{0}'."
@@ -17335,17 +17374,9 @@ ManifestWarningCode:
       A code indicating that a specified hardware feature is not supported on
       Chrome OS.
 ParserErrorCode:
-  ABSTRACT_CLASS_MEMBER:
-    copyFromCfe: true
   ABSTRACT_ENUM:
     problemMessage: "Enums can't be declared to be 'abstract'."
     correctionMessage: "Try removing the keyword 'abstract'."
-  ABSTRACT_EXTERNAL_FIELD:
-    copyFromCfe: true
-  ABSTRACT_LATE_FIELD:
-    copyFromCfe: true
-  ABSTRACT_STATIC_FIELD:
-    copyFromCfe: true
   ABSTRACT_STATIC_METHOD:
     problemMessage: "Static methods can't be declared to be 'abstract'."
     correctionMessage: "Try removing the keyword 'abstract'."
@@ -17358,64 +17389,24 @@ ParserErrorCode:
   ABSTRACT_TYPEDEF:
     problemMessage: "Typedefs can't be declared to be 'abstract'."
     correctionMessage: "Try removing the keyword 'abstract'."
-  ANNOTATION_ON_TYPE_ARGUMENT:
-    copyFromCfe: true
-  ANNOTATION_WITH_TYPE_ARGUMENTS:
-    copyFromCfe: true
-  ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED:
-    copyFromCfe: true
   ASYNC_KEYWORD_USED_AS_IDENTIFIER:
     problemMessage: "The keywords 'await' and 'yield' can't be used as identifiers in an asynchronous or generator function."
     comment: |-
       16.32 Identifier Reference: It is a compile-time error if any of the
       identifiers async, await, or yield is used as an identifier in a function
       body marked with either async, async, or sync.
-  BINARY_OPERATOR_WRITTEN_OUT:
-    copyFromCfe: true
-  BREAK_OUTSIDE_OF_LOOP:
-    copyFromCfe: true
-  CATCH_SYNTAX:
-    copyFromCfe: true
-  CATCH_SYNTAX_EXTRA_PARAMETERS:
-    copyFromCfe: true
-  CLASS_IN_CLASS:
-    copyFromCfe: true
-  COLON_IN_PLACE_OF_IN:
-    copyFromCfe: true
-  CONFLICTING_MODIFIERS:
-    copyFromCfe: true
-  CONSTRUCTOR_WITH_RETURN_TYPE:
-    copyFromCfe: true
-  CONSTRUCTOR_WITH_TYPE_ARGUMENTS:
-    copyFromCfe: true
-  CONST_AND_FINAL:
-    copyFromCfe: true
-  CONST_CLASS:
-    copyFromCfe: true
   CONST_CONSTRUCTOR_WITH_BODY:
     problemMessage: "Const constructors can't have a body."
     correctionMessage: "Try removing either the 'const' keyword or the body."
   CONST_ENUM:
     problemMessage: "Enums can't be declared to be 'const'."
     correctionMessage: "Try removing the 'const' keyword."
-  CONST_FACTORY:
-    copyFromCfe: true
-  CONST_METHOD:
-    copyFromCfe: true
   CONST_TYPEDEF:
     problemMessage: "Type aliases can't be declared to be 'const'."
     correctionMessage: "Try removing the 'const' keyword."
-  CONTINUE_OUTSIDE_OF_LOOP:
-    copyFromCfe: true
-  CONTINUE_WITHOUT_LABEL_IN_CASE:
-    copyFromCfe: true
-  COVARIANT_AND_STATIC:
-    copyFromCfe: true
   COVARIANT_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'covariant'."
     correctionMessage: "Try removing the keyword 'covariant'."
-  COVARIANT_MEMBER:
-    copyFromCfe: true
   COVARIANT_TOP_LEVEL_DECLARATION:
     problemMessage: "Top-level declarations can't be declared to be covariant."
     correctionMessage: "Try removing the keyword 'covariant'."
@@ -17450,48 +17441,18 @@ ParserErrorCode:
       void f(void Function([int p]) g) {
       }
       ```
-  DEFERRED_AFTER_PREFIX:
-    copyFromCfe: true
-  DIRECTIVE_AFTER_DECLARATION:
-    copyFromCfe: true
-  DUPLICATED_MODIFIER:
-    copyFromCfe: true
-    comment: |-
-      Parameters:
-      0: the modifier that was duplicated
-  DUPLICATE_DEFERRED:
-    copyFromCfe: true
-  DUPLICATE_LABEL_IN_SWITCH_STATEMENT:
-    copyFromCfe: true
-    comment: |-
-      Parameters:
-      0: the label that was duplicated
-  DUPLICATE_PREFIX:
-    copyFromCfe: true
   EMPTY_ENUM_BODY:
     problemMessage: An enum must declare at least one constant name.
     correctionMessage: Try declaring a constant.
-  ENUM_IN_CLASS:
-    copyFromCfe: true
-  EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
-    copyFromCfe: true
-  EXPECTED_BODY:
-    copyFromCfe: true
   EXPECTED_CASE_OR_DEFAULT:
     problemMessage: "Expected 'case' or 'default'."
     correctionMessage: Try placing this code inside a case clause.
   EXPECTED_CLASS_MEMBER:
     problemMessage: Expected a class member.
     correctionMessage: Try placing this code inside a class member.
-  EXPECTED_ELSE_OR_COMMA:
-    copyFromCfe: true
   EXPECTED_EXECUTABLE:
     problemMessage: Expected a method, getter, setter or operator declaration.
     correctionMessage: This appears to be incomplete code. Try removing it or completing it.
-  EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD:
-    copyFromCfe: true
-  EXPECTED_INSTEAD:
-    copyFromCfe: true
   EXPECTED_LIST_OR_MAP_LITERAL:
     problemMessage: Expected a list or map literal.
     correctionMessage: Try inserting a list or map literal, or remove the type arguments.
@@ -17504,133 +17465,21 @@ ParserErrorCode:
       0: the token that was expected but not found
   EXPECTED_TYPE_NAME:
     problemMessage: Expected a type name.
-  EXPERIMENT_NOT_ENABLED:
-    copyFromCfe: true
-  EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
-    copyFromCfe: true
-  EXTENSION_DECLARES_ABSTRACT_MEMBER:
-    copyFromCfe: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an abstract declaration is
-      declared in an extension. Extensions can declare only concrete members.
-
-      #### Examples
-
-      The following code produces this diagnostic because the method `a` doesn't
-      have a body:
-
-      ```dart
-      extension E on String {
-        int [!a!]();
-      }
-      ```
-
-      #### Common fixes
-
-      Either provide an implementation for the member or remove it.
-  EXTENSION_DECLARES_CONSTRUCTOR:
-    copyFromCfe: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a constructor declaration is
-      found in an extension. It isn't valid to define a constructor because
-      extensions aren't classes, and it isn't possible to create an instance of
-      an extension.
-
-      #### Examples
-
-      The following code produces this diagnostic because there is a constructor
-      declaration in `E`:
-
-      ```dart
-      extension E on String {
-        [!E!]() : super();
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the constructor or replace it with a static method.
-  EXTENSION_DECLARES_INSTANCE_FIELD:
-    copyFromCfe: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an instance field declaration is
-      found in an extension. It isn't valid to define an instance field because
-      extensions can only add behavior, not state.
-
-      #### Examples
-
-      The following code produces this diagnostic because `s` is an instance
-      field:
-
-      ```dart
-      %language=2.9
-      extension E on String {
-        String [!s!];
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the field, make it a static field, or convert it to be a getter,
-      setter, or method.
-  EXTERNAL_CLASS:
-    copyFromCfe: true
-  EXTERNAL_CONSTRUCTOR_WITH_BODY:
-    copyFromCfe: true
-  EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER:
-    copyFromCfe: true
-  EXTERNAL_ENUM:
-    copyFromCfe: true
-  EXTERNAL_FACTORY_REDIRECTION:
-    copyFromCfe: true
-  EXTERNAL_FACTORY_WITH_BODY:
-    copyFromCfe: true
-  EXTERNAL_FIELD:
-    copyFromCfe: true
   EXTERNAL_GETTER_WITH_BODY:
     problemMessage: "External getters can't have a body."
     correctionMessage: "Try removing the body of the getter, or removing the keyword 'external'."
-  EXTERNAL_LATE_FIELD:
-    copyFromCfe: true
-  EXTERNAL_METHOD_WITH_BODY:
-    copyFromCfe: true
   EXTERNAL_OPERATOR_WITH_BODY:
     problemMessage: "External operators can't have a body."
     correctionMessage: "Try removing the body of the operator, or removing the keyword 'external'."
   EXTERNAL_SETTER_WITH_BODY:
     problemMessage: "External setters can't have a body."
     correctionMessage: "Try removing the body of the setter, or removing the keyword 'external'."
-  EXTERNAL_TYPEDEF:
-    copyFromCfe: true
-  EXTRANEOUS_MODIFIER:
-    copyFromCfe: true
-  FACTORY_TOP_LEVEL_DECLARATION:
-    copyFromCfe: true
   FACTORY_WITHOUT_BODY:
     problemMessage: "A non-redirecting 'factory' constructor must have a body."
     correctionMessage: Try adding a body to the constructor.
   FACTORY_WITH_INITIALIZERS:
     problemMessage: "A 'factory' constructor can't have initializers."
     correctionMessage: "Try removing the 'factory' keyword to make this a generative constructor, or removing the initializers."
-  FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS:
-    copyFromCfe: true
-  FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
-    copyFromCfe: true
-  FINAL_AND_COVARIANT:
-    copyFromCfe: true
-  FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER:
-    copyFromCfe: true
-  FINAL_AND_VAR:
-    copyFromCfe: true
   FINAL_CLASS:
     problemMessage: "Classes can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
@@ -17646,31 +17495,12 @@ ParserErrorCode:
   FINAL_TYPEDEF:
     problemMessage: "Typedefs can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
-  FUNCTION_TYPED_PARAMETER_VAR:
-    problemMessage: "Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type."
-    correctionMessage: Try replacing the keyword with a return type.
-  GETTER_CONSTRUCTOR:
-    copyFromCfe: true
   GETTER_IN_FUNCTION:
     problemMessage: "Getters can't be defined within methods or functions."
     correctionMessage: Try moving the getter outside the method or function, or converting the getter to a function.
   GETTER_WITH_PARAMETERS:
     problemMessage: Getters must be declared without a parameter list.
     correctionMessage: "Try removing the parameter list, or removing the keyword 'get' to define a method rather than a getter."
-  ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE:
-    copyFromCfe: true
-  IMPLEMENTS_BEFORE_EXTENDS:
-    copyFromCfe: true
-  IMPLEMENTS_BEFORE_ON:
-    copyFromCfe: true
-  IMPLEMENTS_BEFORE_WITH:
-    copyFromCfe: true
-  IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
-    copyFromCfe: true
-  INITIALIZED_VARIABLE_IN_FOR_EACH:
-    copyFromCfe: true
-  INVALID_AWAIT_IN_FOR:
-    copyFromCfe: true
   INVALID_CODE_POINT:
     problemMessage: "The escape sequence '{0}' isn't a valid code point."
     comment: |-
@@ -17678,23 +17508,12 @@ ParserErrorCode:
       0: the invalid escape sequence
   INVALID_COMMENT_REFERENCE:
     problemMessage: "Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else."
-  INVALID_CONSTRUCTOR_NAME:
-    copyFromCfe: true
   INVALID_GENERIC_FUNCTION_TYPE:
     problemMessage: Invalid generic function type.
     correctionMessage: "Try using a generic function type (returnType 'Function(' parameters ')')."
-  INVALID_HEX_ESCAPE:
-    copyFromCfe: true
-  INVALID_INITIALIZER:
-    copyFromCfe: true
   INVALID_LITERAL_IN_CONFIGURATION:
     problemMessage: "The literal in a configuration can't contain interpolation."
     correctionMessage: Try removing the interpolation expressions.
-  INVALID_OPERATOR:
-    copyFromCfe: true
-    comment: |-
-      Parameters:
-      0: the operator that is invalid
   INVALID_OPERATOR_FOR_SUPER:
     problemMessage: "The operator '{0}' can't be used with 'super'."
     comment: |-
@@ -17703,83 +17522,24 @@ ParserErrorCode:
 
       Only generated by the old parser.
       Replaced by INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER.
-  INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER:
-    copyFromCfe: true
   INVALID_STAR_AFTER_ASYNC:
     problemMessage: "The modifier 'async*' isn't allowed for an expression function body."
     correctionMessage: Try converting the body to a block.
-  INVALID_SUPER_IN_INITIALIZER:
-    copyFromCfe: true
   INVALID_SYNC:
     problemMessage: "The modifier 'sync' isn't allowed for an expression function body."
     correctionMessage: Try converting the body to a block.
-  INVALID_THIS_IN_INITIALIZER:
-    copyFromCfe: true
-  INVALID_UNICODE_ESCAPE:
-    copyFromCfe: true
-  INVALID_USE_OF_COVARIANT_IN_EXTENSION:
-    copyFromCfe: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a member declared inside an
-      extension uses the keyword `covariant` in the declaration of a parameter.
-      Extensions aren't classes and don't have subclasses, so the keyword serves
-      no purpose.
-
-      #### Examples
-
-      The following code produces this diagnostic because `i` is marked as being
-      covariant:
-
-      ```dart
-      extension E on String {
-        void a([!covariant!] int i) {}
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the `covariant` keyword:
-
-      ```dart
-      extension E on String {
-        void a(int i) {}
-      }
-      ```
-  LIBRARY_DIRECTIVE_NOT_FIRST:
-    copyFromCfe: true
-  LITERAL_WITH_CLASS:
-    copyFromCfe: true
-  LITERAL_WITH_CLASS_AND_NEW:
-    copyFromCfe: true
-  LITERAL_WITH_NEW:
-    copyFromCfe: true
   LOCAL_FUNCTION_DECLARATION_MODIFIER:
     problemMessage: "Local function declarations can't specify any modifiers."
     correctionMessage: Try removing the modifier.
-  MEMBER_WITH_CLASS_NAME:
-    copyFromCfe: true
-  MISSING_ASSIGNABLE_SELECTOR:
-    copyFromCfe: true
-  MISSING_ASSIGNMENT_IN_INITIALIZER:
-    copyFromCfe: true
-  MISSING_CATCH_OR_FINALLY:
-    copyFromCfe: true
   MISSING_CLOSING_PARENTHESIS:
     problemMessage: The closing parenthesis is missing.
     correctionMessage: Try adding the closing parenthesis.
-  MISSING_CONST_FINAL_VAR_OR_TYPE:
-    copyFromCfe: true
   MISSING_ENUM_BODY:
     problemMessage: An enum definition must have a body with at least one constant name.
     correctionMessage: Try adding a body and defining at least one constant.
   MISSING_EXPRESSION_IN_INITIALIZER:
     problemMessage: Expected an expression after the assignment operator.
     correctionMessage: Try adding the value to be assigned, or remove the assignment operator.
-  MISSING_EXPRESSION_IN_THROW:
-    copyFromCfe: true
   MISSING_FUNCTION_BODY:
     problemMessage: A function body must be provided.
     correctionMessage: Try adding a function body.
@@ -17794,10 +17554,6 @@ ParserErrorCode:
     correctionMessage: "Try adding the keyword 'get'."
   MISSING_IDENTIFIER:
     problemMessage: Expected an identifier.
-  MISSING_INITIALIZER:
-    copyFromCfe: true
-  MISSING_KEYWORD_OPERATOR:
-    copyFromCfe: true
   MISSING_METHOD_PARAMETERS:
     problemMessage: Methods must have an explicit list of parameters.
     correctionMessage: Try adding a parameter list.
@@ -17810,13 +17566,9 @@ ParserErrorCode:
   MISSING_NAME_IN_PART_OF_DIRECTIVE:
     problemMessage: Part-of directives must include a library name.
     correctionMessage: "Try adding a library name after the 'of'."
-  MISSING_PREFIX_IN_DEFERRED_IMPORT:
-    copyFromCfe: true
   MISSING_STAR_AFTER_SYNC:
     problemMessage: "The modifier 'sync' must be followed by a star ('*')."
     correctionMessage: Try removing the modifier, or add a star.
-  MISSING_STATEMENT:
-    copyFromCfe: true
   MISSING_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "There is no '{0}' to close the parameter group."
     correctionMessage: "Try inserting a '{0}' at the end of the group."
@@ -17832,24 +17584,12 @@ ParserErrorCode:
   MIXED_PARAMETER_GROUPS:
     problemMessage: "Can't have both positional and named parameters in a single parameter list."
     correctionMessage: Try choosing a single style of optional parameters.
-  MIXIN_DECLARES_CONSTRUCTOR:
-    copyFromCfe: true
-  MODIFIER_OUT_OF_ORDER:
-    copyFromCfe: true
-  MULTIPLE_EXTENDS_CLAUSES:
-    copyFromCfe: true
   MULTIPLE_IMPLEMENTS_CLAUSES:
     problemMessage: Each class or mixin definition can have at most one implements clause.
     correctionMessage: Try combining all of the implements clauses into a single clause.
-  MULTIPLE_LIBRARY_DIRECTIVES:
-    copyFromCfe: true
   MULTIPLE_NAMED_PARAMETER_GROUPS:
     problemMessage: "Can't have multiple groups of named parameters in a single parameter list."
     correctionMessage: Try combining all of the groups into a single group.
-  MULTIPLE_ON_CLAUSES:
-    copyFromCfe: true
-  MULTIPLE_PART_OF_DIRECTIVES:
-    copyFromCfe: true
   MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
     problemMessage: "Can't have multiple groups of positional parameters in a single parameter list."
     correctionMessage: Try combining all of the groups into a single group.
@@ -17859,10 +17599,6 @@ ParserErrorCode:
     comment: |-
       Parameters:
       0: the number of variables being declared
-  MULTIPLE_VARIANCE_MODIFIERS:
-    copyFromCfe: true
-  MULTIPLE_WITH_CLAUSES:
-    copyFromCfe: true
   NAMED_FUNCTION_EXPRESSION:
     problemMessage: "Function expressions can't be named."
     correctionMessage: Try removing the name, or moving the function expression to a function declaration statement.
@@ -17875,8 +17611,6 @@ ParserErrorCode:
   NATIVE_CLAUSE_IN_NON_SDK_CODE:
     problemMessage: Native clause can only be used in the SDK and code that is loaded through native extensions.
     correctionMessage: Try removing the native clause.
-  NATIVE_CLAUSE_SHOULD_BE_ANNOTATION:
-    copyFromCfe: true
   NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE:
     problemMessage: Native functions can only be declared in the SDK and code that is loaded through native extensions.
     correctionMessage: "Try removing the word 'native'."
@@ -17900,60 +17634,24 @@ ParserErrorCode:
   NORMAL_BEFORE_OPTIONAL_PARAMETERS:
     problemMessage: Normal parameters must occur before optional parameters.
     correctionMessage: Try moving all of the normal parameters before the optional parameters.
-  NULL_AWARE_CASCADE_OUT_OF_ORDER:
-    copyFromCfe: true
   POSITIONAL_AFTER_NAMED_ARGUMENT:
     problemMessage: Positional arguments must occur before named arguments.
     correctionMessage: Try moving all of the positional arguments before the named arguments.
   POSITIONAL_PARAMETER_OUTSIDE_GROUP:
     problemMessage: "Positional parameters must be enclosed in square brackets ('[' and ']')."
     correctionMessage: Try surrounding the positional parameters in square brackets.
-  PREFIX_AFTER_COMBINATOR:
-    copyFromCfe: true
-  REDIRECTING_CONSTRUCTOR_WITH_BODY:
-    copyFromCfe: true
-  REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
-    copyFromCfe: true
-  SETTER_CONSTRUCTOR:
-    copyFromCfe: true
   SETTER_IN_FUNCTION:
     problemMessage: "Setters can't be defined within methods or functions."
     correctionMessage: Try moving the setter outside the method or function.
-  STACK_OVERFLOW:
-    copyFromCfe: true
-  STATIC_CONSTRUCTOR:
-    copyFromCfe: true
   STATIC_GETTER_WITHOUT_BODY:
     problemMessage: "A 'static' getter must have a body."
     correctionMessage: "Try adding a body to the getter, or removing the keyword 'static'."
-  STATIC_OPERATOR:
-    copyFromCfe: true
   STATIC_SETTER_WITHOUT_BODY:
     problemMessage: "A 'static' setter must have a body."
     correctionMessage: "Try adding a body to the setter, or removing the keyword 'static'."
   STATIC_TOP_LEVEL_DECLARATION:
     problemMessage: "Top-level declarations can't be declared to be static."
     correctionMessage: "Try removing the keyword 'static'."
-  SWITCH_HAS_CASE_AFTER_DEFAULT_CASE:
-    copyFromCfe: true
-  SWITCH_HAS_MULTIPLE_DEFAULT_CASES:
-    copyFromCfe: true
-  TOP_LEVEL_OPERATOR:
-    copyFromCfe: true
-  TYPEDEF_IN_CLASS:
-    copyFromCfe: true
-  TYPE_ARGUMENTS_ON_TYPE_VARIABLE:
-    copyFromCfe: true
-  TYPE_BEFORE_FACTORY:
-    copyFromCfe: true
-  TYPE_PARAMETER_ON_CONSTRUCTOR:
-    copyFromCfe: true
-  TYPE_PARAMETER_ON_OPERATOR:
-    problemMessage: "Types parameters aren't allowed when defining an operator."
-    correctionMessage: Try removing the type parameters.
-    comment: |-
-      7.1.1 Operators: Type parameters are not syntactically supported on an
-      operator.
   UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "There is no '{0}' to open a parameter group."
     correctionMessage: "Try inserting the '{0}' at the appropriate location."
@@ -17966,25 +17664,15 @@ ParserErrorCode:
     comment: |-
       Parameters:
       0: the unexpected text that was found
-  VAR_AND_TYPE:
-    copyFromCfe: true
-  VAR_AS_TYPE_NAME:
-    copyFromCfe: true
   VAR_CLASS:
     problemMessage: "Classes can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var'."
   VAR_ENUM:
     problemMessage: "Enums can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var'."
-  VAR_RETURN_TYPE:
-    copyFromCfe: true
   VAR_TYPEDEF:
     problemMessage: "Typedefs can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var', or replacing it with the name of the return type."
-  VOID_WITH_TYPE_ARGUMENTS:
-    copyFromCfe: true
-  WITH_BEFORE_EXTENDS:
-    copyFromCfe: true
   WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
     problemMessage: "The default value of a positional parameter should be preceded by '='."
     correctionMessage: "Try replacing the ':' with '='."
@@ -18159,7 +17847,7 @@ PubspecWarningCode:
       Use a map as the value of the `dependencies` key:
 
       ```yaml
-      %uri='pubspec.yaml'
+      %uri="pubspec.yaml"
       name: example
       dependencies:
         meta: ^1.0.2
@@ -18471,7 +18159,7 @@ PubspecWarningCode:
       listed under both `dependencies` and `dev_dependencies`:
 
       ```yaml
-      %uri='pubspec.yaml'
+      %uri="pubspec.yaml"
       name: example
       dependencies:
         meta: ^1.0.2
@@ -18485,7 +18173,7 @@ PubspecWarningCode:
       if that's the only package listed there):
 
       ```yaml
-      %uri='pubspec.yaml'
+      %uri="pubspec.yaml"
       name: example
       dependencies:
         meta: ^1.0.2
@@ -18511,7 +18199,7 @@ StaticWarningCode:
       left-hand side has the value `null`, and because the left-hand side can't
       be `null`, the right-hand side is never evaluated.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because `x` can't be `null`:
 
@@ -18585,7 +18273,7 @@ StaticWarningCode:
       `?..`, `?[`, `?..[`, or `...?`) is used on a receiver that's known to be
       non-nullable.
 
-      #### Example
+      #### Examples
 
       The following code produces this diagnostic because `s` can't be `null`:
 
@@ -18690,7 +18378,7 @@ StaticWarningCode:
       Note that `null` is always a possible value for an enum and therefore also
       must be handled.
 
-      #### Examples
+      #### Example
 
       The following code produces this diagnostic because the enum constant `e2`
       isn't handled:

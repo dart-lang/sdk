@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -10,7 +12,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 /// Return the bytes of the unlinked API signature of the given [unit].
 ///
 /// If API signatures of two units are different, they may have different APIs.
-List<int> computeUnlinkedApiSignature(CompilationUnit unit) {
+Uint8List computeUnlinkedApiSignature(CompilationUnit unit) {
   var computer = _UnitApiSignatureComputer();
   computer.compute(unit);
   return computer.signature.toByteList();

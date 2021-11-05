@@ -124,7 +124,7 @@ LibraryBuilder? lookupLibraryBuilder(
     InternalCompilerResult compilerResult, Library library,
     {bool required: true}) {
   SourceLoader loader = compilerResult.kernelTargetForTesting!.loader;
-  LibraryBuilder? builder = loader.builders[library.importUri];
+  LibraryBuilder? builder = loader.lookupLibraryBuilder(library.importUri);
   if (builder == null && required) {
     throw new ArgumentError("DeclarationBuilder for $library not found.");
   }
@@ -137,7 +137,7 @@ TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
   SourceLibraryBuilder builder =
       lookupLibraryBuilder(compilerResult, library, required: required)
           as SourceLibraryBuilder;
-  return builder.libraryDeclaration;
+  return builder.libraryTypeParameterScopeBuilderForTesting;
 }
 
 ClassBuilder? lookupClassBuilder(
@@ -734,7 +734,7 @@ String errorsToText(List<FormattedMessage> errors, {bool useCodes: false}) {
   if (useCodes) {
     return errors.map((m) => m.code).join(',');
   } else {
-    return errors.map((m) => m.message).join(',');
+    return errors.map((m) => m.problemMessage).join(',');
   }
 }
 

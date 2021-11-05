@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/src/dart/analysis/cache.dart';
 
 /// Store of bytes associated with string keys.
@@ -17,23 +19,23 @@ import 'package:analyzer/src/dart/analysis/cache.dart';
 abstract class ByteStore {
   /// Return the bytes associated with the given [key].
   /// Return `null` if the association does not exist.
-  List<int>? get(String key);
+  Uint8List? get(String key);
 
   /// Associate the given [bytes] with the [key].
-  void put(String key, List<int> bytes);
+  void put(String key, Uint8List bytes);
 }
 
 /// [ByteStore] which stores data only in memory.
 class MemoryByteStore implements ByteStore {
-  final Map<String, List<int>> _map = {};
+  final Map<String, Uint8List> _map = {};
 
   @override
-  List<int>? get(String key) {
+  Uint8List? get(String key) {
     return _map[key];
   }
 
   @override
-  void put(String key, List<int> bytes) {
+  void put(String key, Uint8List bytes) {
     _map[key] = bytes;
   }
 }
@@ -41,18 +43,18 @@ class MemoryByteStore implements ByteStore {
 /// A wrapper around [ByteStore] which adds an in-memory LRU cache to it.
 class MemoryCachingByteStore implements ByteStore {
   final ByteStore _store;
-  final Cache<String, List<int>> _cache;
+  final Cache<String, Uint8List> _cache;
 
   MemoryCachingByteStore(this._store, int maxSizeBytes)
-      : _cache = Cache<String, List<int>>(maxSizeBytes, (v) => v.length);
+      : _cache = Cache<String, Uint8List>(maxSizeBytes, (v) => v.length);
 
   @override
-  List<int>? get(String key) {
+  Uint8List? get(String key) {
     return _cache.get(key, () => _store.get(key));
   }
 
   @override
-  void put(String key, List<int> bytes) {
+  void put(String key, Uint8List bytes) {
     _store.put(key, bytes);
     _cache.put(key, bytes);
   }
@@ -61,8 +63,8 @@ class MemoryCachingByteStore implements ByteStore {
 /// [ByteStore] which does not store any data.
 class NullByteStore implements ByteStore {
   @override
-  List<int>? get(String key) => null;
+  Uint8List? get(String key) => null;
 
   @override
-  void put(String key, List<int> bytes) {}
+  void put(String key, Uint8List bytes) {}
 }

@@ -608,14 +608,26 @@ Future<void> main([List<String> arguments = const <String>[]]) async {
           });
           await exitPort.first;
           errorPort.close();
-          bool gotError = !await errorPort.isEmpty;
+          List<dynamic> allErrors = await errorPort.toList();
+          bool gotError = allErrors.isNotEmpty;
           if (gotError) {
+            print("Suite $naming encountered ${allErrors.length} error(s).");
+            print("Errors:");
+            for (int i = 0; i < allErrors.length; i++) {
+              print("-----------");
+              print("Error #$i:");
+              print(allErrors[i]);
+            }
+            print("-----------");
             timedOutOrCrash = true;
           }
           timer.cancel();
+          int seconds = stopwatch.elapsedMilliseconds ~/ 1000;
           if (!timedOutOrCrash) {
-            int seconds = stopwatch.elapsedMilliseconds ~/ 1000;
             print("Suite $naming finished (took ${seconds} seconds)");
+          } else {
+            print("Suite $naming finished badly (see above) "
+                "(took ${seconds} seconds)");
           }
           return timedOutOrCrash;
         } finally {
@@ -626,7 +638,7 @@ Future<void> main([List<String> arguments = const <String>[]]) async {
     }
   }
   // Wait for isolates to terminate and clean up.
-  Iterable<bool> timeouts = await Future.wait(futures);
+  Iterable<bool> timeoutsOrCrashes = await Future.wait(futures);
   resultsPort.close();
   logsPort.close();
   // Write results.json and logs.json.
@@ -638,9 +650,9 @@ Future<void> main([List<String> arguments = const <String>[]]) async {
       " ${logsJsonUri.toFilePath()}");
   print("Entire run took ${totalRuntime.elapsed}.");
   // Return with exit code 1 if at least one suite timed out.
-  bool timeout = timeouts.any((timeout) => timeout);
-  if (timeout) {
-    exitCode = 1;
+  bool timedOutOrCrashed = timeoutsOrCrashes.any((timeout) => timeout);
+  if (timedOutOrCrashed) {
+    throw "Crashed or timed out. Check stdout for more details.";
   } else {
     // The testing framework (package:testing) sets the exitCode to `1` if any
     // test failed, so we reset it here to indicate that the test runner was

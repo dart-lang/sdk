@@ -50,6 +50,12 @@
 # which will be used when generating code in Analyzer for translating
 # fasta error codes to Analyzer error codes.
 #
+# Errors with an `index` can also optionally contain user-facing documentation
+# for the problem (documentation), which will be extracted to
+# `pkg/analyzer/tool/diagnostics/diagnostics.md`, as well as internal
+# documentation (comment), which will be included in the code generated for the
+# analyzer.
+#
 # In some cases a message is internal to the frontend, and no meaningful
 # analyzer code can be provided. In such cases set `frontendInternal: true`.
 #
@@ -595,9 +601,10 @@ MissingConstFinalVarOrType:
     - "class C { static f; }"
 
 FunctionTypedParameterVar:
+  index: 119
   problemMessage: "Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type."
   correctionMessage: "Try replacing the keyword with a return type."
-  analyzerCode: FUNCTION_TYPED_PARAMETER_VAR
+  analyzerCode: ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR
   script:
     - "void f(const x()) {}"
     - "void f(final x()) {}"
@@ -829,6 +836,9 @@ DuplicatedModifier:
   problemMessage: "The modifier '#lexeme' was already specified."
   correctionMessage: "Try removing all but one occurrence of the modifier."
   analyzerCode: ParserErrorCode.DUPLICATED_MODIFIER
+  comment: |-
+    Parameters:
+    0: the modifier that was duplicated
   script:
     - "class C { const const m; }"
     - "class C { external external f(); }"
@@ -972,6 +982,35 @@ ExtraneousModifierInExtension:
   correctionMessage: "Try removing '#lexeme'."
   analyzerCode: ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION
   hasPublishedDocs: true
+  comment: No parameters.
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a member declared inside an
+    extension uses the keyword `covariant` in the declaration of a parameter.
+    Extensions aren't classes and don't have subclasses, so the keyword serves
+    no purpose.
+
+    #### Example
+
+    The following code produces this diagnostic because `i` is marked as being
+    covariant:
+
+    ```dart
+    extension E on String {
+      void a([!covariant!] int i) {}
+    }
+    ```
+
+    #### Common fixes
+
+    Remove the `covariant` keyword:
+
+    ```dart
+    extension E on String {
+      void a(int i) {}
+    }
+    ```
   script:
     - "extension on String { foo(covariant String child) {} }"
 
@@ -1119,6 +1158,9 @@ DuplicateLabelInSwitchStatement:
   problemMessage: "The label '#name' was already used in this switch statement."
   correctionMessage: "Try choosing a different name for this label."
   analyzerCode: ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT
+  comment: |-
+    Parameters:
+    0: the label that was duplicated
   statement:
     - "switch (0) {l1: case 0: break; l1: case 1: break;}"
 
@@ -1685,10 +1727,6 @@ TypeNotFound:
   problemMessage: "Type '#name' not found."
   analyzerCode: UNDEFINED_CLASS
 
-NonInstanceTypeVariableUse:
-  problemMessage: "Can only use type variables in instance methods."
-  analyzerCode: TYPE_PARAMETER_REFERENCED_BY_STATIC
-
 NameNotFound:
   problemMessage: "Undefined name '#name'."
   analyzerCode: UNDEFINED_NAME
@@ -2191,6 +2229,27 @@ ExtensionDeclaresAbstractMember:
   problemMessage: "Extensions can't declare abstract members."
   correctionMessage: "Try providing an implementation for the member."
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER
+  comment: No parameters.
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when an abstract declaration is
+    declared in an extension. Extensions can declare only concrete members.
+
+    #### Example
+
+    The following code produces this diagnostic because the method `a` doesn't
+    have a body:
+
+    ```dart
+    extension E on String {
+      int [!a!]();
+    }
+    ```
+
+    #### Common fixes
+
+    Either provide an implementation for the member or remove it.
   hasPublishedDocs: true
 
 ExtensionDeclaresConstructor:
@@ -2198,6 +2257,29 @@ ExtensionDeclaresConstructor:
   problemMessage: "Extensions can't declare constructors."
   correctionMessage: "Try removing the constructor declaration."
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR
+  comment: No parameters.
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a constructor declaration is
+    found in an extension. It isn't valid to define a constructor because
+    extensions aren't classes, and it isn't possible to create an instance of
+    an extension.
+
+    #### Example
+
+    The following code produces this diagnostic because there is a constructor
+    declaration in `E`:
+
+    ```dart
+    extension E on String {
+      [!E!]() : super();
+    }
+    ```
+
+    #### Common fixes
+
+    Remove the constructor or replace it with a static method.
   hasPublishedDocs: true
 
 ExtensionDeclaresInstanceField:
@@ -2205,6 +2287,30 @@ ExtensionDeclaresInstanceField:
   problemMessage: "Extensions can't declare instance fields"
   correctionMessage: "Try removing the field declaration or making it a static field"
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD
+  comment: No parameters.
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when an instance field declaration is
+    found in an extension. It isn't valid to define an instance field because
+    extensions can only add behavior, not state.
+
+    #### Example
+
+    The following code produces this diagnostic because `s` is an instance
+    field:
+
+    ```dart
+    %language=2.9
+    extension E on String {
+      String [!s!];
+    }
+    ```
+
+    #### Common fixes
+
+    Remove the field, make it a static field, or convert it to be a getter,
+    setter, or method.
   hasPublishedDocs: true
 
 ConflictsWithConstructor:
@@ -2637,9 +2743,13 @@ OperatorWithOptionalFormals:
   problemMessage: "An operator can't have optional parameters."
 
 OperatorWithTypeParameters:
+  index: 120
   problemMessage: "Types parameters aren't allowed when defining an operator."
   correctionMessage: "Try removing the type parameters."
-  analyzerCode: TYPE_PARAMETER_ON_OPERATOR
+  analyzerCode: ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR
+  comment: |-
+    7.1.1 Operators: Type parameters are not syntactically supported on an
+    operator.
   script:
     - "class C { operator []<T>(T t) => null; }"
 
@@ -3019,6 +3129,9 @@ InvalidOperator:
   index: 39
   problemMessage: "The string '#lexeme' isn't a user-definable operator."
   analyzerCode: ParserErrorCode.INVALID_OPERATOR
+  comment: |-
+    Parameters:
+    0: the operator that is invalid
   script:
     - "class C { void operator %=(x) {} }"
 
@@ -3809,6 +3922,17 @@ ImplicitCallOfNonMethod:
   problemMessage: "Cannot invoke an instance of '#type' because it declares 'call' to be something other than a method."
   correctionMessage: "Try changing 'call' to a method or explicitly invoke 'call'."
   analyzerCode: IMPLICIT_CALL_OF_NON_METHOD
+  script: |
+    class Class { void Function() get call => () {}; }
+    method(Class c) => c();
+
+ImplicitSuperCallOfNonMethod:
+  problemMessage: "Cannot invoke `super` because it declares 'call' to be something other than a method."
+  correctionMessage: "Try changing 'call' to a method or explicitly invoke 'call'."
+  analyzerCode: IMPLICIT_CALL_OF_NON_METHOD
+  script: |
+    class Super { void Function() get call => () {}; }
+    class Class extends Super { void method() => super(); }
 
 ExpectedOneExpression:
   problemMessage: "Expected one expression, but found additional input."
@@ -4559,9 +4683,24 @@ FfiLeafCallMustNotReturnHandle:
   problemMessage: "FFI leaf call must not have Handle return type."
   external: test/ffi_test.dart
 
-FfiNativeAnnotationMustAnnotateStatic:
+FfiNativeUnexpectedNumberOfParametersWithReceiver:
   # Used by dart:ffi
-  problemMessage: "FfiNative annotations can only be used on static functions."
+  problemMessage: "Unexpected number of FfiNative annotation parameters. Expected #count but has #count2. FfiNative instance method annotation must have receiver as first argument."
+  external: test/ffi_test.dart
+
+FfiNativeUnexpectedNumberOfParameters:
+  # Used by dart:ffi
+  problemMessage: "Unexpected number of FfiNative annotation parameters. Expected #count but has #count2."
+  external: test/ffi_test.dart
+
+FfiNativeOnlyNativeFieldWrapperClassCanBePointer:
+  # Used by dart:ffi
+  problemMessage: "Only classes extending NativeFieldWrapperClass1 can be passed as Pointer."
+  external: test/ffi_test.dart
+
+FfiNativeMustBeExternal:
+  # Used by dart:ffi
+  problemMessage: "FfiNative functions must be marked external."
   external: test/ffi_test.dart
 
 SpreadTypeMismatch:
@@ -4942,6 +5081,14 @@ JsInteropIndexNotSupported:
   problemMessage: "JS interop classes do not support [] and []= operator methods."
   correctionMessage: "Try replacing with a normal method."
 
+JsInteropStaticInteropWithInstanceMembers:
+  problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
+  correctionMessage: "Try moving the instance member to a static extension."
+
+JsInteropStaticInteropWithNonStaticSupertype:
+  problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which is non-static."
+  correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
+
 JsInteropJSClassExtendsDartClass:
   problemMessage: "JS interop class '#name' cannot extend Dart class '#name2'."
   correctionMessage: "Try removing the JS interop annotation or adding it to the parent class."
@@ -4951,8 +5098,8 @@ JsInteropNamedParameters:
   correctionMessage: "Try replacing them with normal or optional parameters."
 
 JsInteropNativeClassInAnnotation:
-  problemMessage: "JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'."
-  correctionMessage: "Try making the @JS class into an @anonymous class or use js_util on the JS object."
+  problemMessage: "Non-static JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'."
+  correctionMessage: "Try replacing it with a static JS interop class using `@staticInterop` with extension methods, or use js_util to interact with the native object of type '#name2'."
 
 JsInteropNonExternalConstructor:
   problemMessage: "JS interop classes do not support non-external constructors."
@@ -5247,6 +5394,14 @@ InstantiationNonGenericFunctionType:
     f() {}
     main() => f<int>;
 
+InstantiationNullableGenericFunctionType:
+  problemMessage: "The static type of the explicit instantiation operand must be a non-null generic function type but is '#type'."
+  correctionMessage: "Try changing the operand or remove the type arguments."
+  analyzerCode: DISALLOWED_TYPE_INSTANTIATION_EXPRESSION
+  experiments: constructor-tearoffs
+  script: |
+    test(void Function<T>()? f) => f<int>;
+
 InstantiationTooFewArguments:
   problemMessage: "Too few type arguments: #count required, #count2 given."
   correctionMessage: "Try adding the missing type arguments."
@@ -5285,3 +5440,9 @@ ConstructorTearOffWithTypeArguments:
   experiments: constructor-tearoffs
   script:
     - "class C<X> { C.foo(); } bar() { C.foo<int>; }"
+
+NewAsSelector:
+  problemMessage: "'new' can only be used as a constructor reference."
+  experiments: constructor-tearoffs
+  script: |
+    method(dynamic d) => d.new;

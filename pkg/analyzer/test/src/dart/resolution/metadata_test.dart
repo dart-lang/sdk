@@ -151,6 +151,46 @@ A
 ''');
   }
 
+  test_onLocalVariable() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+void f() {
+  @A(3)
+  int? x;
+  print(x);
+}
+''');
+
+    var annotation = findNode.annotation('@A');
+    _assertResolvedNodeText(annotation, '''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 3
+        staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: self::@class::A::@constructor::•
+  name: SimpleIdentifier
+    staticElement: self::@class::A
+    staticType: null
+    token: A
+''');
+
+    final localVariable = findElement.localVar('x');
+    final annotationOnElement = localVariable.metadata.single;
+    _assertElementAnnotationValueText(annotationOnElement, '''
+A
+  a: int 3
+''');
+  }
+
   test_optIn_fromOptOut_class() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A {

@@ -143,6 +143,9 @@ class ObjectPointerVisitor;
   RW(Library, _vmservice_library)                                              \
   RW(GrowableObjectArray, libraries)                                           \
   RW(Array, libraries_map)                                                     \
+  RW(Array, uri_to_resolved_uri_map)                                           \
+  RW(Array, resolved_uri_to_uri_map)                                           \
+  RW(Smi, last_libraries_count)                                                \
   RW(Array, loading_units)                                                     \
   RW(GrowableObjectArray, closure_functions)                                   \
   RW(GrowableObjectArray, pending_classes)                                     \

@@ -2019,7 +2019,7 @@ abstract class StreamTransformer<S, T> {
   /// they are used in streams that can be listened to multiple times.
   ///
   /// ```dart
-  /// StreamController<String> controller = StreamController.broadcast()
+  /// StreamController<String> controller = StreamController.broadcast();
   /// controller.onListen = () {
   ///   scheduleMicrotask(() {
   ///     controller.addError("Bad");

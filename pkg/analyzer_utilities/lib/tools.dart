@@ -10,6 +10,7 @@ import 'package:analyzer_utilities/html.dart';
 import 'package:analyzer_utilities/text_formatter.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:path/path.dart';
+import 'package:test/test.dart';
 
 final RegExp trailingSpacesInLineRegExp = RegExp(r' +$', multiLine: true);
 final RegExp trailingWhitespaceRegExp = RegExp(r'[\n ]+$');
@@ -290,7 +291,7 @@ abstract class GeneratedContent {
       }
       var generateScript = normalize(joinAll(posix.split(generatorPath)));
       print('  $executable$packageRoot $generateScript ${args.join(" ")}');
-      exit(1);
+      fail('Error codes need to be generated');
     } else {
       print('All generated files up to date.');
     }

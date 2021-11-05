@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A<T extends core::Object* = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::•];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   static factory •<T extends core::Object* = dynamic>() → self::A<self::A::•::T*>*
     return new self::B::•<self::A::•::T*>();
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -33,3 +33,7 @@ class B<T extends core::Object* = dynamic> extends core::Object implements self:
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::A::•
+}

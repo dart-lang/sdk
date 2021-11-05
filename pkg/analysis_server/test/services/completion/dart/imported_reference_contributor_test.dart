@@ -4,7 +4,9 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,8 +24,11 @@ mixin ImportedReferenceContributorMixin on DartCompletionContributorTest {
   bool get isNullExpectedReturnTypeConsideredDynamic => false;
 
   @override
-  DartCompletionContributor createContributor() {
-    return ImportedReferenceContributor();
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) {
+    return ImportedReferenceContributor(request, builder);
   }
 }
 
@@ -4769,6 +4774,24 @@ typedef void F(^);
     expect(replacementLength, 1);
     assertSuggestClass('C1');
     assertNotSuggested('C2');
+  }
+
+  Future<void> test_TypeArgumentList_functionReference() async {
+    addTestSource('''
+class A {}
+
+void foo<T>() {}
+
+void f() {
+  foo<^>;
+}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('Object');
+    assertNotSuggested('A');
   }
 
   Future<void> test_TypeArgumentList_recursive() async {

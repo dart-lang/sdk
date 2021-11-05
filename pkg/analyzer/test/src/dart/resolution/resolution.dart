@@ -360,7 +360,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertFunctionReference(
       FunctionReference node, Element? expectedElement, String expectedType) {
-    assertElement(node, expectedElement);
+    if (expectedElement != null) {
+      assertElement(node, expectedElement);
+    }
     assertType(node, expectedType);
   }
 
@@ -382,6 +384,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     var type = typeString(setter.parameters[0].type);
     assertType(ref, type);
+  }
+
+  void assertImplicitCallReference(ImplicitCallReference node,
+      Element? expectedElement, String expectedType) {
+    assertElement(node, expectedElement);
+    assertType(node, expectedType);
   }
 
   /// In valid code [element] must be a [PrefixElement], but for invalid code
@@ -850,11 +858,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   ExpectedError error(ErrorCode code, int offset, int length,
-          {String? text,
-          Pattern? messageContains,
+          {Pattern? correctionContains,
+          String? text,
+          List<Pattern> messageContains = const [],
           List<ExpectedContextMessage> contextMessages =
               const <ExpectedContextMessage>[]}) =>
       ExpectedError(code, offset, length,
+          correctionContains: correctionContains,
           message: text,
           messageContains: messageContains,
           expectedContextMessages: contextMessages);
@@ -900,6 +910,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       }
     } else if (node is Identifier) {
       return node.staticElement;
+    } else if (node is ImplicitCallReference) {
+      return node.staticElement;
     } else if (node is IndexExpression) {
       return node.staticElement;
     } else if (node is InstanceCreationExpression) {
@@ -933,7 +945,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     path = convertPath(path);
 
     result = await resolveFile(path);
-    expect(result.state, ResultState.VALID);
 
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);

@@ -118,38 +118,21 @@ class A<T> {
 ''');
   }
 
-  test_typeParameter_ofExtension() async {
-    await _assertNeverConst(r'''
-extension E<T> on int {
-  void foo() {
-    T x;
-  }
-}
-''');
-  }
-
   test_typeParameter_ofFunction() async {
-    await _assertNeverConst(r'''
+    await _assertPotentiallyConst('''
 void foo<T>() {
   T x;
 }
 ''');
   }
 
-  test_typeParameter_ofMethod() async {
-    await _assertNeverConst(r'''
-class A {
-  void foo<T>() {
-    T x;
+  test_typeParameter_ofFunctionType() async {
+    await _assertPotentiallyConst('''
+class A<U> {
+  const A();
+  void foo() {
+    void Function<X>(X) x;
   }
-}
-''');
-  }
-
-  test_typeParameter_ofMixin() async {
-    await _assertNeverConst(r'''
-mixin M<T> {
-  T x;
 }
 ''');
   }
@@ -458,6 +441,76 @@ var x = a ? b : c;
             ]);
   }
 
+  test_constructorReference_explicitTypeArguments() async {
+    await _assertConst('''
+class A {
+  final B Function() x;
+  const A(): x = B<int>.new;
+}
+
+class B<T> {}
+''', () => findNode.constructorReference('B<int>.new'));
+  }
+
+  test_constructorReference_explicitTypeArguments_nonConst() async {
+    await _assertNotConst('''
+import '' deferred as self;
+class A {
+  Object x;
+  const A(): x = B<self.A>.new;
+}
+
+class B<T> {}
+''', () => findNode.constructorReference('B<self.A>.new'),
+        () => [findNode.typeAnnotation('self.A')]);
+  }
+
+  test_constructorReference_noTypeArguments() async {
+    await _assertConst('''
+class A {
+  final B Function() x;
+  const A(): x = B.new;
+}
+
+class B {}
+''', () => findNode.constructorReference('B.new'));
+  }
+
+  test_functionReference_explicitTypeArguments() async {
+    await _assertConst('''
+class A {
+  final int Function(int) x;
+  const A(): x = id<int>;
+}
+
+X id<X>(X x) => x;
+''', () => findNode.functionReference('id<int>'));
+  }
+
+  test_functionReference_explicitTypeArguments_nonConst() async {
+    await _assertNotConst('''
+import '' deferred as self;
+class A {
+  final int Function(int) x;
+  const A(): x = id<self.A>;
+}
+
+X id<X>(X x) => x;
+''', () => findNode.functionReference('id<self.A>'),
+        () => [findNode.typeAnnotation('self.A')]);
+  }
+
+  test_functionReference_noTypeArguments() async {
+    await _assertConst('''
+class A {
+  final int Function(int) x;
+  const A(): x = id;
+}
+
+X id<X>(X x) => x;
+''', () => findNode.simple('id;'));
+  }
+
   test_ifElement_then() async {
     await _assertConst(r'''
 const a = 0;
@@ -573,6 +626,24 @@ var x = const [a, b, 2];
         () => [findNode.simple('a,'), findNode.simple('b,')]);
   }
 
+  test_listLiteral_ofDynamic() async {
+    await _assertConst('''
+var x = const <dynamic>[];
+''', () => _xInitializer());
+  }
+
+  test_listLiteral_ofNever() async {
+    await _assertConst('''
+var x = const <Never>[];
+''', () => _xInitializer());
+  }
+
+  test_listLiteral_ofVoid() async {
+    await _assertConst('''
+var x = const <void>[];
+''', () => _xInitializer());
+  }
+
   test_listLiteral_typeArgument() async {
     await _assertConst(r'''
 var x = const <int>[0, 1, 2];
@@ -580,13 +651,14 @@ var x = const <int>[0, 1, 2];
   }
 
   test_listLiteral_typeArgument_notConstType() async {
-    await _assertNotConst(r'''
-class A<T> {
+    await _assertNotConst('''
+import '' deferred as self;
+class A {
   m() {
-    var x = const <T>[0, 1, 2];
+    var x = const <self.A>[];
   }
 }
-''', () => _xInitializer(), () => [findNode.namedType('T>[0')]);
+''', () => _xInitializer(), () => [findNode.namedType('A>[')]);
   }
 
   test_literal_bool() async {
@@ -995,13 +1067,14 @@ var x = const <int>{0, 1, 2};
   }
 
   test_setLiteral_typeArgument_notConstType() async {
-    await _assertNotConst(r'''
-class A<T> {
+    await _assertNotConst('''
+import '' deferred as self;
+class A {
   m() {
-    var x = const <T>{0, 1, 2};
+    var x = const <self.A>{};
   }
 }
-''', () => _xInitializer(), () => [findNode.namedType('T>{0')]);
+''', () => _xInitializer(), () => [findNode.namedType('A>{')]);
   }
 
   test_simpleIdentifier_class() async {
@@ -1175,6 +1248,26 @@ var x = 'a $a b';
     await _assertConst(r'''
 var x = 'a';
 ''', () => _xInitializer());
+  }
+
+  test_typeLiteral() async {
+    await _assertConst('''
+class A {
+  Type x;
+  const A(): x = List<int>;
+}
+''', () => findNode.typeLiteral('List<int>'));
+  }
+
+  test_typeLiteral_nonConst() async {
+    await _assertNotConst('''
+import '' deferred as self;
+class A {
+  Type x;
+  const A(): x = List<self.A>;
+}
+''', () => findNode.typeLiteral('List<self.A>'),
+        () => [findNode.typeAnnotation('self.A')]);
   }
 
   _assertConst(String code, AstNode Function() getNode) async {

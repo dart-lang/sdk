@@ -21,7 +21,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode ANNOTATION_ON_POINTER_FIELD = FfiCode(
     'ANNOTATION_ON_POINTER_FIELD',
     "Fields in a struct class whose type is 'Pointer' should not have any annotations.",
-    correction: "Try removing the annotation.",
+    correctionMessage: "Try removing the annotation.",
   );
 
   /**
@@ -31,7 +31,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode ARGUMENT_MUST_BE_A_CONSTANT = FfiCode(
     'ARGUMENT_MUST_BE_A_CONSTANT',
     "Argument '{0}' must be a constant.",
-    correction: "Try replacing the value with a literal or const.",
+    correctionMessage: "Try replacing the value with a literal or const.",
   );
 
   /**
@@ -40,17 +40,20 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode CREATION_OF_STRUCT_OR_UNION = FfiCode(
     'CREATION_OF_STRUCT_OR_UNION',
     "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor.",
-    correction: "Try allocating it via allocation, or load from a 'Pointer'.",
+    correctionMessage:
+        "Try allocating it via allocation, or load from a 'Pointer'.",
   );
 
   /**
    * Parameters:
-   * 0: the name of the struct class
+   * 0: the name of the subclass
+   * 1: the name of the superclass
    */
   static const FfiCode EMPTY_STRUCT = FfiCode(
     'EMPTY_STRUCT',
-    "Struct '{0}' is empty. Empty structs are undefined behavior.",
-    correction: "Try adding a field to '{0}' or use a different Struct.",
+    "The class '{0}' can’t be empty because it's a subclass of '{1}'.",
+    correctionMessage:
+        "Try adding a field to '{0}' or use a different superclass.",
   );
 
   /**
@@ -59,7 +62,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode EXTRA_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
     'EXTRA_ANNOTATION_ON_STRUCT_FIELD',
     "Fields in a struct class must have exactly one annotation indicating the native type.",
-    correction: "Try removing the extra annotation.",
+    correctionMessage: "Try removing the extra annotation.",
   );
 
   /**
@@ -68,16 +71,51 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode EXTRA_SIZE_ANNOTATION_CARRAY = FfiCode(
     'EXTRA_SIZE_ANNOTATION_CARRAY',
     "'Array's must have exactly one 'Array' annotation.",
-    correction: "Try removing the extra annotation.",
+    correctionMessage: "Try removing the extra annotation.",
   );
 
   /**
    * No parameters.
    */
-  static const FfiCode FFI_NATIVE_ONLY_STATIC = FfiCode(
-    'FFI_NATIVE_ONLY_STATIC',
-    "FfiNative annotations can only be used on static functions.",
-    correction: "Change the method to static.",
+  static const FfiCode FFI_NATIVE_MUST_BE_EXTERNAL = FfiCode(
+    'FFI_NATIVE_MUST_BE_EXTERNAL',
+    "FfiNative functions must be declared external.",
+    correctionMessage: "Add the `external` keyword to the function.",
+  );
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode
+      FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER =
+      FfiCode(
+    'FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER',
+    "Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.",
+    correctionMessage: "Pass as Handle instead.",
+  );
+
+  /**
+   * Parameters:
+   * 0: the expected number of parameters
+   * 1: the actual number of parameters
+   */
+  static const FfiCode FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS = FfiCode(
+    'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS',
+    "Unexpected number of FfiNative annotation parameters. Expected {0} but has {1}.",
+    correctionMessage: "Make sure parameters match the function annotated.",
+  );
+
+  /**
+   * Parameters:
+   * 0: the expected number of parameters
+   * 1: the actual number of parameters
+   */
+  static const FfiCode
+      FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER = FfiCode(
+    'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER',
+    "Unexpected number of FfiNative annotation parameters. Expected {0} but has {1}. FfiNative instance method annotation must have receiver as first argument.",
+    correctionMessage:
+        "Make sure parameters match the function annotated, including an extra first parameter for the receiver.",
   );
 
   /**
@@ -86,7 +124,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode FIELD_INITIALIZER_IN_STRUCT = FfiCode(
     'FIELD_INITIALIZER_IN_STRUCT',
     "Constructors in subclasses of 'Struct' and 'Union' can't have field initializers.",
-    correction:
+    correctionMessage:
         "Try removing the field initializer and marking the field as external.",
   );
 
@@ -96,7 +134,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode FIELD_IN_STRUCT_WITH_INITIALIZER = FfiCode(
     'FIELD_IN_STRUCT_WITH_INITIALIZER',
     "Fields in subclasses of 'Struct' and 'Union' can't have initializers.",
-    correction:
+    correctionMessage:
         "Try removing the initializer and marking the field as external.",
   );
 
@@ -106,7 +144,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode FIELD_MUST_BE_EXTERNAL_IN_STRUCT = FfiCode(
     'FIELD_MUST_BE_EXTERNAL_IN_STRUCT',
     "Fields of 'Struct' and 'Union' subclasses must be marked external.",
-    correction: "Try adding the 'external' modifier.",
+    correctionMessage: "Try adding the 'external' modifier.",
   );
 
   /**
@@ -116,7 +154,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode GENERIC_STRUCT_SUBCLASS = FfiCode(
     'GENERIC_STRUCT_SUBCLASS',
     "The class '{0}' can't extend 'Struct' or 'Union' because it is generic.",
-    correction: "Try removing the type parameters from '{0}'.",
+    correctionMessage: "Try removing the type parameters from '{0}'.",
   );
 
   /**
@@ -125,7 +163,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode INVALID_EXCEPTION_VALUE = FfiCode(
     'INVALID_EXCEPTION_VALUE',
     "The method 'Pointer.fromFunction' must not have an exceptional return value (the second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'.",
-    correction: "Try removing the exceptional return value.",
+    correctionMessage: "Try removing the exceptional return value.",
   );
 
   /**
@@ -135,7 +173,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode INVALID_FIELD_TYPE_IN_STRUCT = FfiCode(
     'INVALID_FIELD_TYPE_IN_STRUCT',
     "Fields in struct classes can't have the type '{0}'. They can only be declared as 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' or 'Union'.",
-    correction:
+    correctionMessage:
         "Try using 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' or 'Union'.",
   );
 
@@ -145,7 +183,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode LEAF_CALL_MUST_NOT_RETURN_HANDLE = FfiCode(
     'LEAF_CALL_MUST_NOT_RETURN_HANDLE',
     "FFI leaf call must not return a Handle.",
-    correction: "Try changing the return type to primitive or struct.",
+    correctionMessage: "Try changing the return type to primitive or struct.",
   );
 
   /**
@@ -154,7 +192,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode LEAF_CALL_MUST_NOT_TAKE_HANDLE = FfiCode(
     'LEAF_CALL_MUST_NOT_TAKE_HANDLE',
     "FFI leaf call must not take arguments of type Handle.",
-    correction: "Try changing the argument type to primitive or struct.",
+    correctionMessage: "Try changing the argument type to primitive or struct.",
   );
 
   /**
@@ -163,7 +201,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode MISMATCHED_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
     'MISMATCHED_ANNOTATION_ON_STRUCT_FIELD',
     "The annotation does not match the declared type of the field.",
-    correction:
+    correctionMessage:
         "Try using a different annotation or changing the declared type to match.",
   );
 
@@ -173,7 +211,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode MISSING_ANNOTATION_ON_STRUCT_FIELD = FfiCode(
     'MISSING_ANNOTATION_ON_STRUCT_FIELD',
     "Fields in a struct class must either have the type 'Pointer' or an annotation indicating the native type.",
-    correction: "Try adding an annotation.",
+    correctionMessage: "Try adding an annotation.",
   );
 
   /**
@@ -182,7 +220,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode MISSING_EXCEPTION_VALUE = FfiCode(
     'MISSING_EXCEPTION_VALUE',
     "The method 'Pointer.fromFunction' must have an exceptional return value (the second argument) when the return type of the function is neither 'void', 'Handle' or 'Pointer'.",
-    correction: "Try adding an exceptional return value.",
+    correctionMessage: "Try adding an exceptional return value.",
   );
 
   /**
@@ -192,7 +230,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode MISSING_FIELD_TYPE_IN_STRUCT = FfiCode(
     'MISSING_FIELD_TYPE_IN_STRUCT',
     "Fields in struct classes must have an explicitly declared type of 'int', 'double' or 'Pointer'.",
-    correction: "Try using 'int', 'double' or 'Pointer'.",
+    correctionMessage: "Try using 'int', 'double' or 'Pointer'.",
   );
 
   /**
@@ -201,7 +239,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode MISSING_SIZE_ANNOTATION_CARRAY = FfiCode(
     'MISSING_SIZE_ANNOTATION_CARRAY',
     "'Array's must have exactly one 'Array' annotation.",
-    correction: "Try adding a 'Array' annotation.",
+    correctionMessage: "Try adding a 'Array' annotation.",
   );
 
   /**
@@ -212,7 +250,8 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode MUST_BE_A_NATIVE_FUNCTION_TYPE = FfiCode(
     'MUST_BE_A_NATIVE_FUNCTION_TYPE',
     "The type '{0}' given to '{1}' must be a valid 'dart:ffi' native function type.",
-    correction: "Try changing the type to only use members for 'dart:ffi'.",
+    correctionMessage:
+        "Try changing the type to only use members for 'dart:ffi'.",
   );
 
   /**
@@ -224,7 +263,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode MUST_BE_A_SUBTYPE = FfiCode(
     'MUST_BE_A_SUBTYPE',
     "The type '{0}' must be a subtype of '{1}' for '{2}'.",
-    correction: "Try changing one or both of the type arguments.",
+    correctionMessage: "Try changing one or both of the type arguments.",
   );
 
   /**
@@ -234,7 +273,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode NON_CONSTANT_TYPE_ARGUMENT = FfiCode(
     'NON_CONSTANT_TYPE_ARGUMENT',
     "The type arguments to '{0}' must be compile time constants but type parameters are not constants.",
-    correction: "Try changing the type argument to be a constant type.",
+    correctionMessage: "Try changing the type argument to be a constant type.",
   );
 
   /**
@@ -243,8 +282,9 @@ class FfiCode extends AnalyzerErrorCode {
    */
   static const FfiCode NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER = FfiCode(
     'NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
-    "The type argument for the pointer '{0}' must be a 'NativeFunction' in order to use 'asFunction'.",
-    correction: "Try changing the type argument to be a 'NativeFunction'.",
+    "The type argument for the pointer '{0}' must be a valid 'NativeFunction' in order to use 'asFunction'.",
+    correctionMessage:
+        "Try changing the function argument in 'NativeFunction' to only use NativeTypes.",
   );
 
   /**
@@ -253,7 +293,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode NON_POSITIVE_ARRAY_DIMENSION = FfiCode(
     'NON_POSITIVE_ARRAY_DIMENSION',
     "Array dimensions must be positive numbers.",
-    correction: "Try changing the input to a positive number.",
+    correctionMessage: "Try changing the input to a positive number.",
   );
 
   /**
@@ -263,7 +303,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode NON_SIZED_TYPE_ARGUMENT = FfiCode(
     'NON_SIZED_TYPE_ARGUMENT',
     "Type arguments to '{0}' can't have the type '{1}'. They can only be declared as native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct' or 'Union'.",
-    correction:
+    correctionMessage:
         "Try using a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct' or 'Union'.",
   );
 
@@ -273,7 +313,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode PACKED_ANNOTATION = FfiCode(
     'PACKED_ANNOTATION',
     "Structs must have at most one 'Packed' annotation.",
-    correction: "Try removing extra 'Packed' annotations.",
+    correctionMessage: "Try removing extra 'Packed' annotations.",
   );
 
   /**
@@ -282,7 +322,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode PACKED_ANNOTATION_ALIGNMENT = FfiCode(
     'PACKED_ANNOTATION_ALIGNMENT',
     "Only packing to 1, 2, 4, 8, and 16 bytes is supported.",
-    correction:
+    correctionMessage:
         "Try changing the 'Packed' annotation alignment to 1, 2, 4, 8, or 16.",
   );
 
@@ -294,7 +334,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode PACKED_NESTING_NON_PACKED = FfiCode(
     'PACKED_NESTING_NON_PACKED',
     "Nesting the non-packed or less tightly packed struct '{0}' in a packed struct '{1}' is not supported.",
-    correction:
+    correctionMessage:
         "Try packing the nested struct or packing the nested struct more tightly.",
   );
 
@@ -304,7 +344,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode SIZE_ANNOTATION_DIMENSIONS = FfiCode(
     'SIZE_ANNOTATION_DIMENSIONS',
     "'Array's must have an 'Array' annotation that matches the dimensions.",
-    correction: "Try adjusting the arguments in the 'Array' annotation.",
+    correctionMessage: "Try adjusting the arguments in the 'Array' annotation.",
   );
 
   /**
@@ -315,7 +355,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_EXTENDS = FfiCode(
     'SUBTYPE_OF_FFI_CLASS',
     "The class '{0}' can't extend '{1}'.",
-    correction: "Try extending 'Struct' or 'Union'.",
+    correctionMessage: "Try extending 'Struct' or 'Union'.",
     uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_EXTENDS',
   );
 
@@ -327,7 +367,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS = FfiCode(
     'SUBTYPE_OF_FFI_CLASS',
     "The class '{0}' can't implement '{1}'.",
-    correction: "Try extending 'Struct' or 'Union'.",
+    correctionMessage: "Try extending 'Struct' or 'Union'.",
     uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS',
   );
 
@@ -339,7 +379,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_WITH = FfiCode(
     'SUBTYPE_OF_FFI_CLASS',
     "The class '{0}' can't mix in '{1}'.",
-    correction: "Try extending 'Struct' or 'Union'.",
+    correctionMessage: "Try extending 'Struct' or 'Union'.",
     uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_WITH',
   );
 
@@ -351,7 +391,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS = FfiCode(
     'SUBTYPE_OF_STRUCT_CLASS',
     "The class '{0}' can't extend '{1}' because '{1}' is a subtype of 'Struct' or 'Union'.",
-    correction: "Try extending 'Struct' or 'Union' directly.",
+    correctionMessage: "Try extending 'Struct' or 'Union' directly.",
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS',
   );
 
@@ -363,7 +403,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS = FfiCode(
     'SUBTYPE_OF_STRUCT_CLASS',
     "The class '{0}' can't implement '{1}' because '{1}' is a subtype of 'Struct' or 'Union'.",
-    correction: "Try extending 'Struct' or 'Union' directly.",
+    correctionMessage: "Try extending 'Struct' or 'Union' directly.",
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS',
   );
 
@@ -375,24 +415,24 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_WITH = FfiCode(
     'SUBTYPE_OF_STRUCT_CLASS',
     "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of 'Struct' or 'Union'.",
-    correction: "Try extending 'Struct' or 'Union' directly.",
+    correctionMessage: "Try extending 'Struct' or 'Union' directly.",
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
   );
 
   /// Initialize a newly created error code to have the given [name].
   const FfiCode(
     String name,
-    String message, {
-    String? correction,
+    String problemMessage, {
+    String? correctionMessage,
     bool hasPublishedDocs = false,
     bool isUnresolvedIdentifier = false,
     String? uniqueName,
   }) : super(
-          correction: correction,
+          correctionMessage: correctionMessage,
           hasPublishedDocs: hasPublishedDocs,
           isUnresolvedIdentifier: isUnresolvedIdentifier,
-          message: message,
           name: name,
+          problemMessage: problemMessage,
           uniqueName: 'FfiCode.${uniqueName ?? name}',
         );
 

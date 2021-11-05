@@ -16,6 +16,30 @@ main() {
 
 @reflectiveTest
 class FieldInitializerNotAssignableTest extends PubPackageResolutionTest {
+  test_implicitCallReference() async {
+    await assertNoErrorsInCode('''
+class C {
+  void call(int p) {}
+}
+class A {
+  void Function(int) x;
+  A() : x = C();
+}
+''');
+  }
+
+  test_implicitCallReference_genericFunctionInstantiation() async {
+    await assertNoErrorsInCode('''
+class C {
+  void call<T>(T p) {}
+}
+class A {
+  void Function(int) x;
+  A() : x = C();
+}
+''');
+  }
+
   test_unrelated() async {
     await assertErrorsInCode('''
 class A {

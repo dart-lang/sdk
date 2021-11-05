@@ -73,7 +73,6 @@ class GCMarker {
   intptr_t root_slices_count_;
   RelaxedAtomic<intptr_t> weak_slices_started_;
 
-  Mutex stats_mutex_;
   uintptr_t marked_bytes_;
   int64_t marked_micros_;
 
