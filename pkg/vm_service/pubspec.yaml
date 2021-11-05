@@ -21,3 +21,5 @@ dev_dependencies:
   process: ^4.0.0
   pub_semver: ^2.0.0-nullsafety.0
   test: ^1.16.0-nullsafety.13
+  test_package:
+    path: 'test/test_package'

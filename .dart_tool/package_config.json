@@ -710,6 +710,11 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "test_package",
+      "rootUri": "../pkg/vm_service/test/test_package",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "test_process",
       "rootUri": "../third_party/pkg/test_process",
       "packageUri": "lib/",
