@@ -44,8 +44,7 @@ class ReferenceNode extends NamedNode {
   Uri get uri => _uriAndPrefix.uri;
   String get prefix => _uriAndPrefix.prefix;
 
-  ReferenceNode(this._uriAndPrefix, {name})
-      : super(name ?? _uriAndPrefix.prefix);
+  ReferenceNode(String name, this._uriAndPrefix) : super(name);
 
   @override
   Map<String, dynamic> toJson() {
@@ -60,8 +59,8 @@ class ReferenceNode extends NamedNode {
     if (nodeJson['type'] != 'reference') {
       throw 'Unrecognized type for reference node: ${nodeJson['type']}.';
     }
-    return ReferenceNode(UriAndPrefix.fromJson(nodeJson['import']),
-        name: nodeJson['name']);
+    return ReferenceNode(
+        nodeJson['name'], UriAndPrefix.fromJson(nodeJson['import']));
   }
 
   @override
@@ -193,9 +192,10 @@ class ProgramSplitBuilder {
   final Map<String, NamedNode> namedNodes = {};
   ReferenceNodeNamer _referenceNodeNamer;
 
-  /// The prefix in the 'uri#prefix' string will become a key to reference this
-  /// node in other builder calls.
-  String _prefixNamer(UriAndPrefix uriAndPrefix) => uriAndPrefix.prefix;
+  /// 'uri#prefix' will become a key to reference this node in other builder
+  /// calls.
+  String _uriAndPrefixNamer(UriAndPrefix uriAndPrefix) =>
+      uriAndPrefix.toString();
 
   /// Override the default reference node namer.
   set referenceNodeNamer(ReferenceNodeNamer namer) =>
@@ -203,7 +203,16 @@ class ProgramSplitBuilder {
 
   /// Returns the [ReferenceNodeNamer] to use for naming.
   ReferenceNodeNamer get referenceNodeNamer =>
-      _referenceNodeNamer ?? _prefixNamer;
+      _referenceNodeNamer ?? _uriAndPrefixNamer;
+
+  NamedNode _addNamedNode(NamedNode node) {
+    if (namedNodes.containsKey(node.name)) {
+      throw 'Node with name ${node.name} already exists: '
+          '${namedNodes[node.name]}';
+    }
+    namedNodes[node.name] = node;
+    return node;
+  }
 
   /// Returns a [ReferenceNode] referencing [importUriAndPrefix].
   /// [ReferenceNode]s are typically created in bulk, by mapping over a list of
@@ -212,10 +221,8 @@ class ProgramSplitBuilder {
   /// [referenceNodeNamer] per [ReferenceNode].
   ReferenceNode referenceNode(String importUriAndPrefix) {
     var uriAndPrefix = UriAndPrefix.fromJson(importUriAndPrefix);
-    var referenceNode = ReferenceNode(uriAndPrefix);
     var name = referenceNodeNamer(uriAndPrefix);
-    namedNodes[name] = referenceNode;
-    return referenceNode;
+    return _addNamedNode(ReferenceNode(name, uriAndPrefix));
   }
 
   /// Creates an unnamed [RelativeOrderNode] referencing two [NamedNode]s.
@@ -226,29 +233,37 @@ class ProgramSplitBuilder {
 
   /// Creates a [CombinerNode] which can be referenced by [name] in further
   /// calls to the builder.
-  CombinerNode combinerNode(
-      String name, List<String> nodes, CombinerType type) {
-    var combinerNode = CombinerNode(name, type,
-        nodes.map((name) => namedNodes[name] as ReferenceNode).toSet());
-    namedNodes[name] = combinerNode;
-    return combinerNode;
+  CombinerNode combinerNode(String name, Set<String> nodes, CombinerType type) {
+    ReferenceNode _lookup(String nodeName) {
+      if (!namedNodes.containsKey(nodeName)) {
+        throw 'Missing reference node for $nodeName';
+      }
+      var node = namedNodes[nodeName];
+      if (node is! ReferenceNode) {
+        // TODO(joshualitt): Implement nested combiners.
+        throw '$name references node $nodeName which is not a ReferenceNode.';
+      }
+      return node as ReferenceNode;
+    }
+
+    return _addNamedNode(CombinerNode(name, type, nodes.map(_lookup).toSet()));
   }
 
   /// Creates an 'and' [CombinerNode] which can be referenced by [name] in
   /// further calls to the builder.
-  CombinerNode andNode(String name, List<String> nodes) {
+  CombinerNode andNode(String name, Set<String> nodes) {
     return combinerNode(name, nodes, CombinerType.and);
   }
 
   /// Creates a 'fuse' [CombinerNode] which can be referenced by [name] in
   /// further calls to the builder.
-  CombinerNode fuseNode(String name, List<String> nodes) {
+  CombinerNode fuseNode(String name, Set<String> nodes) {
     return combinerNode(name, nodes, CombinerType.fuse);
   }
 
   /// Creates an 'or' [CombinerNode] which can be referenced by [name] in
   /// further calls to the builder.
-  CombinerNode orNode(String name, List<String> nodes) {
+  CombinerNode orNode(String name, Set<String> nodes) {
     return combinerNode(name, nodes, CombinerType.or);
   }
 }

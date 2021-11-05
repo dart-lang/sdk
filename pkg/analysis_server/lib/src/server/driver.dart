@@ -24,7 +24,6 @@ import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
-import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
@@ -303,7 +302,6 @@ class Driver implements ServerStarter {
           dartSdkManager,
           crashReportingAttachmentsBuilder,
           instrumentationService,
-          RequestStatisticsHelper(),
           analytics,
           diagnosticServerPort,
           errorNotifier,
@@ -318,7 +316,6 @@ class Driver implements ServerStarter {
     DartSdkManager dartSdkManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService,
-    RequestStatisticsHelper requestStatistics,
     telemetry.Analytics analytics,
     int? diagnosticServerPort,
     ErrorNotifier errorNotifier,
@@ -353,7 +350,6 @@ class Driver implements ServerStarter {
         dartSdkManager,
         crashReportingAttachmentsBuilder,
         instrumentationService,
-        requestStatistics,
         diagnosticServer,
         detachableFileSystemManager);
     httpServer = HttpAnalysisServer(socketServer);

@@ -101,13 +101,13 @@ class SocketServerTest {
   static SocketServer _createSocketServer(MockServerChannel channel) {
     final errorNotifier = ErrorNotifier();
     final server = SocketServer(
-        AnalysisServerOptions(),
-        DartSdkManager(''),
-        CrashReportingAttachmentsBuilder.empty,
-        errorNotifier,
-        null,
-        null,
-        null);
+      AnalysisServerOptions(),
+      DartSdkManager(''),
+      CrashReportingAttachmentsBuilder.empty,
+      errorNotifier,
+      null,
+      null,
+    );
 
     server.createAnalysisServer(channel);
     errorNotifier.server = server.analysisServer;

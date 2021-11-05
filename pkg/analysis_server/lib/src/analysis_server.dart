@@ -40,7 +40,6 @@ import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/utilities/process.dart';
-import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -131,7 +130,6 @@ class AnalysisServer extends AbstractAnalysisServer {
     InstrumentationService instrumentationService, {
     http.Client? httpClient,
     ProcessRunner? processRunner,
-    RequestStatisticsHelper? requestStatistics,
     DiagnosticServer? diagnosticServer,
     this.detachableFileSystemManager,
     // Disable to avoid using this in unit tests.
@@ -146,7 +144,6 @@ class AnalysisServer extends AbstractAnalysisServer {
           httpClient,
           processRunner,
           NotificationManager(channel, baseResourceProvider.pathContext),
-          requestStatistics: requestStatistics,
           enableBazelWatcher: enableBazelWatcher,
         ) {
     var contextManagerCallbacks =

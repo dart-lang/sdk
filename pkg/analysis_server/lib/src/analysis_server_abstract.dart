@@ -26,8 +26,6 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/process.dart';
-import 'package:analysis_server/src/utilities/request_statistics.dart';
-import 'package:analysis_server/src/utilities/tee_string_sink.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -127,8 +125,6 @@ abstract class AbstractAnalysisServer {
   /// Performance information before initial analysis is complete.
   final ServerPerformance performanceDuringStartup = ServerPerformance();
 
-  RequestStatisticsHelper? requestStatistics;
-
   PerformanceLog? analysisPerformanceLogger;
 
   /// The set of the files that are currently priority.
@@ -155,7 +151,6 @@ abstract class AbstractAnalysisServer {
     http.Client? httpClient,
     ProcessRunner? processRunner,
     this.notificationManager, {
-    this.requestStatistics,
     bool enableBazelWatcher = false,
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
@@ -194,10 +189,6 @@ abstract class AbstractAnalysisServer {
         var path = name.substring('file:'.length);
         sink = FileStringSink(path);
       }
-    }
-    final requestStatistics = this.requestStatistics;
-    if (requestStatistics != null) {
-      sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
     }
     final analysisPerformanceLogger =
         this.analysisPerformanceLogger = PerformanceLog(sink);
