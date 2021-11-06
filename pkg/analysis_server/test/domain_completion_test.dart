@@ -21,6 +21,7 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_utilities/check/check.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1599,7 +1600,7 @@ void f() {
 
   RequestWithFutureResponse _sendTestCompletionRequest(String id, int offset) {
     var request = CompletionGetSuggestions2Params(
-      testFilePath,
+      testFilePathPlatform,
       0,
       1 << 10,
     ).toRequest(id);
@@ -2794,7 +2795,7 @@ class SuggestionsValidator {
   }
 
   void assertEmpty() {
-    expect(suggestions, isEmpty);
+    check(suggestions).isEmpty;
   }
 
   void assertLength(Object matcher) {
