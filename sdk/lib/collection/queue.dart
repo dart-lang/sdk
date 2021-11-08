@@ -18,7 +18,7 @@ part of dart.collection;
 ///
 /// Example:
 /// ```dart
-/// final Queue queue = Queue();
+/// final queue = Queue();
 ///
 /// // Queue() calls ListQueue() by default
 /// print(queue.runtimeType); // ListQueue
@@ -530,7 +530,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 ///
 /// Example:
 /// ```dart
-/// final ListQueue queue = ListQueue();
+/// final queue = ListQueue();
 /// queue.add(5);
 /// queue.addFirst(0);
 /// queue.addLast(10);
@@ -539,8 +539,8 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 ///
 /// // To check is queue empty, use isEmpty or isNotEmpty.
 /// // To check size of queue, use length
-/// final bool isEmpty = queue.isEmpty; // false
-/// final int queueSize = queue.length; // 6
+/// final isEmpty = queue.isEmpty; // false
+/// final queueSize = queue.length; // 6
 ///
 /// // To get first or last item from queue, use first or last
 /// final first = queue.first; // 0
@@ -550,7 +550,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 /// final itemAt = queue.elementAt(2); // 10
 ///
 /// // To convert queue to list type, call toList
-/// final List asList = queue.toList();
+/// final asList = queue.toList();
 /// print(asList); // [0, 5, 10, 1, 2, 3]
 ///
 /// // To remove items from queue, call remove, removeFirst or removeLast
@@ -571,19 +571,6 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 /// // To clean up data, call the clear
 /// queue.clear();
 /// print(queue); // {}
-/// ```
-///
-/// ## Constructor options for initialization:
-///
-/// [ListQueue.from] example:
-/// ```dart
-/// final ListQueue baseQueue = ListQueue()..addAll([10, 20, 30]);
-/// final ListQueue queueFrom = ListQueue.from(baseQueue);
-/// ```
-/// [ListQueue.of] example:
-/// ```dart
-/// final ListQueue baseQueue = ListQueue()..addAll([10, 20, 30]);
-/// final ListQueue queueOf = ListQueue.of(baseQueue);
 /// ```
 class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   static const int _INITIAL_CAPACITY = 8;
@@ -624,6 +611,11 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   /// Queue<SubType> subQueue =
   ///     ListQueue<SubType>.from(superQueue.whereType<SubType>());
   /// ```
+  /// Example:
+  /// ```dart
+  /// final baseQueue = ListQueue()..addAll([10, 20, 30]);
+  /// final queueFrom = ListQueue.from(baseQueue);
+  /// ```
   factory ListQueue.from(Iterable<dynamic> elements) {
     if (elements is List<dynamic>) {
       int length = elements.length;
@@ -651,6 +643,11 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   ///
   /// The elements are added to the queue, as by [addLast], in the order given
   /// by `elements.iterator`.
+  /// Example:
+  /// ```dart
+  /// final baseQueue = ListQueue()..addAll([10, 20, 30]);
+  /// final queueOf = ListQueue.of(baseQueue);
+  /// ```
   factory ListQueue.of(Iterable<E> elements) =>
       ListQueue<E>()..addAll(elements);
 
