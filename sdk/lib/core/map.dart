@@ -51,6 +51,12 @@ abstract class Map<K, V> {
   /// A `LinkedHashMap` requires the keys to implement compatible
   /// `operator==` and `hashCode`.
   /// It iterates in key insertion order.
+  /// ```dart
+  /// final Map baseMap = {1: 'A', 2: 'B', 3: 'C'};
+  /// final Map mapFrom = Map.from(baseMap);
+  /// print(mapFrom); // {1: A, 2: B, 3: C}
+  /// print(mapFrom.runtimeType); // LinkedHashMap
+  /// ```
   factory Map.from(Map other) = LinkedHashMap<K, V>.from;
 
   /// Creates a [LinkedHashMap] with the same keys and values as [other].
@@ -58,6 +64,12 @@ abstract class Map<K, V> {
   /// A `LinkedHashMap` requires the keys to implement compatible
   /// `operator==` and `hashCode`, and it allows `null` as a key.
   /// It iterates in key insertion order.
+  /// ```dart
+  /// final Map baseMap = {1: 'A', 2: 'B', 3: 'C'};
+  /// final Map mapOf = Map.of(baseMap);
+  /// print(mapOf); // {1: A, 2: B, 3: C}
+  /// print(mapOf.runtimeType); // LinkedHashMap
+  /// ```
   factory Map.of(Map<K, V> other) = LinkedHashMap<K, V>.of;
 
   /// Creates an unmodifiable hash-based map containing the entries of [other].
@@ -72,6 +84,12 @@ abstract class Map<K, V> {
   ///
   /// The resulting map behaves like the result of [Map.from],
   /// except that the map returned by this constructor is not modifiable.
+  /// ```dart
+  /// final Map baseMap = {1: 'A', 2: 'B', 3: 'C'};
+  /// final Map unmodifiableMap = Map.unmodifiable(baseMap);
+  /// print(unmodifiableMap); // {1: A, 2: B, 3: C}
+  /// print(unmodifiableMap.runtimeType); // UnmodifiableMapView
+  /// ```
   external factory Map.unmodifiable(Map<dynamic, dynamic> other);
 
   /// Creates an identity map with the default implementation, [LinkedHashMap].
@@ -100,11 +118,11 @@ abstract class Map<K, V> {
   /// The keys of `map` are the `list` values converted to strings,
   /// and the values of the `map` are the squares of the `list` values:
   /// ```dart
-  /// List<int> list = [1, 2, 3];
-  /// var map = Map<String, int>.fromIterable(list,
+  /// final List<int> list = [1, 2, 3];
+  /// final map = Map<String, int>.fromIterable(list,
   ///     key: (item) => item.toString(),
   ///     value: (item) => item * item);
-  /// // map is {"1": 1, "2": 4, "3": 9}
+  /// print(map); // {1: 1, 2: 4, 3: 9}
   /// ```
   /// If no values are specified for [key] and [value],
   /// the default is the identity function.
@@ -114,8 +132,9 @@ abstract class Map<K, V> {
   /// In the following example, the keys and corresponding values of `map`
   /// are the `list` values directly:
   /// ```dart
-  /// var map = Map<int, int>.fromIterable(list);
-  /// // map is {1: 1, 2: 2, 3: 3}
+  /// final List<int> list = [1, 2, 3];
+  /// final map = Map<int, int>.fromIterable(list);
+  /// print(map); // {1: 1, 2: 2, 3: 3}
   /// ```
   /// The keys computed by the source [iterable] do not need to be unique.
   /// The last occurrence of a key will overwrite
@@ -134,10 +153,11 @@ abstract class Map<K, V> {
   /// The map construction iterates over [keys] and [values] simultaneously,
   /// and adds an entry to the map for each pair of key and value.
   /// ```dart
-  /// List<String> letters = ['b', 'c'];
-  /// List<String> words = ['bad', 'cat'];
-  /// var map = Map.fromIterables(letters, words);
-  /// // map is {"b": "bad", "c": "cat"}
+  /// final List<String> letters = ['b', 'c'];
+  /// final List<String> words = ['bad', 'cat'];
+  /// final map = Map.fromIterables(letters, words);
+  /// print(map); // {b: bad, c: cat}
+  /// print(map.runtimeType); // LinkedHashMap
   /// ```
   /// If [keys] contains the same object multiple times,
   /// the value of the last occurrence overwrites any previous value.
@@ -183,6 +203,13 @@ abstract class Map<K, V> {
   /// ```dart
   /// <K, V>{for (var e in entries) e.key: e.value}
   /// ```
+  /// Example:
+  /// ```dart
+  /// final Map baseMap = {1: 'A', 2: 'B', 3: 'C'};
+  /// final Map mapFromEntries = Map.fromEntries(baseMap.entries);
+  /// print(mapFromEntries); // {1: A, 2: B, 3: C}
+  /// print(mapFromEntries.runtimeType); // LinkedHashMap
+  /// ```
   factory Map.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       <K, V>{}..addEntries(entries);
 
@@ -211,12 +238,22 @@ abstract class Map<K, V> {
   ///
   /// Returns true if any of the values in the map are equal to `value`
   /// according to the `==` operator.
+  /// ```dart
+  /// final Map map = {'A': 'X', 'B': 'Y', 'C': 'Z'};
+  /// final bool isAvalue = map.containsValue('A'); // false
+  /// final bool isZvalue = map.containsValue('Z'); // true
+  /// ```
   bool containsValue(Object? value);
 
   /// Whether this map contains the given [key].
   ///
   /// Returns true if any of the keys in the map are equal to `key`
   /// according to the equality used by the map.
+  /// ```dart
+  /// final Map map = {'A': 'X', 'B': 'Y', 'C': 'Z'};
+  /// final bool isAkey = map.containsKey('A'); // true
+  /// final bool isZkey = map.containsKey('Z'); // false
+  /// ```
   bool containsKey(Object? key);
 
   /// The value for the given [key], or `null` if [key] is not in the map.
@@ -248,6 +285,26 @@ abstract class Map<K, V> {
   ///
   /// The operation is equivalent to doing `this[entry.key] = entry.value`
   /// for each [MapEntry] of the iterable.
+  /// ```dart
+  /// final Map map1 = {'A': 'X', 'B': 'Y', 'C': 'Z'};
+  /// map1.addEntries([const MapEntry('E', 'AB'), const MapEntry('F', 'CD')]);
+  /// print(map1); // {A: X, B: Y, C: Z, E: AB, F: CD}
+  ///
+  /// final Map map2 = {1: 'A', 2: 'B', 3: 'C'};
+  ///
+  /// final Map customMap = {};
+  /// customMap['map1'] = map1;
+  /// customMap['map2'] = map2;
+  /// customMap['value'] = 123;
+  /// customMap['text'] = 'foo';
+  /// print(customMap);
+  /// // {
+  /// //   map1: {A: X, B: Y, C: Z, E: AB, F: CD},
+  /// //   map2: {1: A, 2: B, 3: C}
+  /// //   value: 123,
+  /// //   text: foo
+  /// // }
+  /// ```
   void addEntries(Iterable<MapEntry<K, V>> newEntries);
 
   /// Updates the value for the provided [key].
@@ -261,15 +318,35 @@ abstract class Map<K, V> {
   /// and adds the key with the returned value to the map.
   ///
   /// If the key is not present, [ifAbsent] must be provided.
+  /// ```dart
+  /// final Map<int, String> map = {1: 'A', 2: 'B', 3: 'C'};
+  /// map.update(2, (value) => 'ABCD', ifAbsent: () => 'G');
+  /// print(map); // {1: A, 2: ABCD, 3: C}
+  /// // if there is no key then ifAbsent is used
+  /// map.update(10, (value) => 'XYZ', ifAbsent: () => 'X');
+  /// print(map); // {1: A, 2: ABCD, 3: C, 10: X}
+  /// ```
   V update(K key, V update(V value), {V ifAbsent()?});
 
   /// Updates all values.
   ///
   /// Iterates over all entries in the map and updates them with the result
   /// of invoking [update].
+  /// ```dart
+  /// final Map<int, String> map = {1: 'A', 2: 'B', 3: 'C'};
+  /// map.updateAll((key, value) => 'AB');
+  /// print(map); // {1: AB, 2: AB, 3: AB}
+  /// map.updateAll((key, value) => key.toString());
+  /// print(map); // {1: 1, 2: 2, 3: 3}
+  /// ```
   void updateAll(V update(K key, V value));
 
   /// Removes all entries of this map that satisfy the given [test].
+  /// ```dart
+  /// final Map<int, String> map = {1: 'A', 2: 'B', 3: 'C'};
+  /// map.removeWhere((key, value) => key == 2);
+  /// print(map); // {1: A, 3: C}
+  /// ```
   void removeWhere(bool test(K key, V value));
 
   /// Look up the value of [key], or add a new entry if it isn't there.
@@ -278,13 +355,14 @@ abstract class Map<K, V> {
   /// Otherwise calls [ifAbsent] to get a new value, associates [key] to
   /// that value, and then returns the new value.
   /// ```dart
-  /// Map<String, int> scores = {'Bob': 36};
-  /// for (var key in ['Bob', 'Rohan', 'Sophena']) {
+  /// final Map<String, int> scores = {'Bob': 36};
+  /// for (final key in ['Bob', 'Rohan', 'Sophena']) {
   ///   scores.putIfAbsent(key, () => key.length);
   /// }
-  /// scores['Bob'];      // 36
-  /// scores['Rohan'];    //  5
-  /// scores['Sophena'];  //  7
+  /// print(scores); // {Bob: 36, Rohan: 5, Sophena: 7}
+  /// // Return value is current value and no update done if key exists on map
+  /// final int ret = scores.putIfAbsent('Sophena', () => 10);
+  /// print(ret); // 7
   /// ```
   /// Calling [ifAbsent] must not add or remove keys from the map.
   V putIfAbsent(K key, V ifAbsent());
@@ -296,6 +374,11 @@ abstract class Map<K, V> {
   /// The operation is equivalent to doing `this[key] = value` for each key
   /// and associated value in other. It iterates over [other], which must
   /// therefore not change during the iteration.
+  /// ```dart
+  /// final Map<int, String> map = {1: 'A', 2: 'B'};
+  /// map.addAll({3: 'C', 1: 'ABC'});
+  /// print(map); // {1: ABC, 2: B, 3: C}
+  /// ```
   void addAll(Map<K, V> other);
 
   /// Removes [key] and its associated value, if present, from the map.
@@ -305,16 +388,36 @@ abstract class Map<K, V> {
   ///
   /// Note that some maps allow `null` as a value,
   /// so a returned `null` value doesn't always mean that the key was absent.
+  /// ```dart
+  /// final Map<int, String> map = {1: 'A', 2: 'B', 3: 'C'};
+  /// final removedValue = map.remove(2);
+  /// print(removedValue); // B
+  /// print(map); // {1: A, 3: C}
+  /// ```
   V? remove(Object? key);
 
   /// Removes all entries from the map.
   ///
   /// After this, the map is empty.
+  /// ```dart
+  /// final Map<int, String> map = {1: 'A', 2: 'B', 3: 'C'};
+  /// map.clear();
+  /// print(map); // {}
+  /// ```
   void clear();
 
   /// Applies [action] to each key/value pair of the map.
   ///
   /// Calling `action` must not add or remove keys from the map.
+  /// ```dart
+  /// final Map<int, String> map = {1: 'A', 2: 'B', 3: 'C'};
+  /// map.forEach((key, value) {
+  ///   print('$key: $value');
+  ///   // 1: A
+  ///   // 2: B
+  ///   // 3: C
+  /// });
+  /// ```
   void forEach(void action(K key, V value));
 
   /// The keys of [this].
