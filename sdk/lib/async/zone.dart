@@ -1669,7 +1669,7 @@ class _RootZone extends _Zone {
   // Methods that can be customized by the zone specification.
 
   void handleUncaughtError(Object error, StackTrace stackTrace) {
-    _rootHandleUncaughtError(null, null, this, error, stackTrace);
+    _rootHandleError(error, stackTrace);
   }
 
   Zone fork(
