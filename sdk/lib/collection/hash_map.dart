@@ -31,7 +31,7 @@ typedef _Hasher<K> = int Function(K object);
 /// so iterating the [keys] and [values] in parallel
 /// will give matching key and value pairs. **Notice:** Manipulating item count
 /// in [forEach] is prohibited. Adding or deleting items during iteration
-/// causes an exception: _"Concurrent modification during iteration"_.
+/// throws an exception: [ConcurrentModificationError].
 ///
 /// Example:
 ///
@@ -47,8 +47,8 @@ typedef _Hasher<K> = int Function(K object);
 ///
 /// // To check is the map empty, use isEmpty or isNotEmpty
 /// // To check length of map data, use length
-/// final bool isEmpty = hashMap.isEmpty; // false
-/// final int length = hashMap.length; // 4
+/// final isEmpty = hashMap.isEmpty; // false
+/// final length = hashMap.length; // 4
 ///
 /// // The forEach iterates through all entries of a map.
 /// hashMap.forEach((key, value) {
@@ -68,7 +68,8 @@ typedef _Hasher<K> = int Function(K object);
 /// final gExists = hashMap.containsValue('G'); // false
 ///
 /// // To remove specific key-pair using key, call remove
-/// hashMap.remove(1);
+/// final removeValue = hashMap.remove(1);
+/// print(removeValue); // A
 /// print(hashMap); // {2: B, 3: C, 4: D}
 ///
 /// // To remove item(s) with a statement, call the removeWhere
@@ -90,36 +91,6 @@ typedef _Hasher<K> = int Function(K object);
 /// // To clean up data, call the clear
 /// hashMap.clear();
 /// print(hashMap); // {}
-/// ```
-/// 
-/// ## Constructor options for initialization
-///
-/// [HashMap.from] example:
-/// ```dart
-/// final Map baseMap = {1: 'A', 2: 'B', 3: 'C'};
-/// final HashMap<int, String> fromBaseMap = HashMap.from(baseMap);
-/// ```
-/// [HashMap.fromEntries] example:
-/// ```dart
-/// final Map baseMap = {3: 'A', 2: 'B', 1: 'C'};
-/// final HashMap mapFromEntries = HashMap.fromEntries(baseMap.entries);
-/// ```
-/// [HashMap.fromIterable] example:
-/// ```dart
-/// final List<int> keyList = [11, 12, 13, 14];
-/// final HashMap mapFromIterable =
-///   HashMap.fromIterable(keyList, key: (i) => i, value: (i) => i * i);
-/// ```
-/// [HashMap.fromIterables] example:
-/// ```dart
-/// final List<String> keys = ['1', '2', '3', '4'];
-/// final List<String> values = ['A', 'B', 'C', 'D'];
-/// final HashMap mapFromIterables = HashMap.fromIterables(keys, values);
-/// ```
-/// [HashMap.of] example:
-/// ```dart
-/// final Map mapIntString = {1: 'A', 2: 'B', 3: 'C'};
-/// final HashMap mapOf = HashMap.of(mapIntString);
 /// ```
 abstract class HashMap<K, V> implements Map<K, V> {
   /// Creates an unordered hash-table based [Map].
@@ -179,7 +150,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// Creates an unordered identity-based map.
   ///
   /// Effectively a shorthand for:
-  /// ```
+  /// ```dart
   /// HashMap<K, V>(equals: identical,
   ///               hashCode: identityHashCode)
   /// ```
@@ -189,6 +160,11 @@ abstract class HashMap<K, V> implements Map<K, V> {
   ///
   /// The keys must all be instances of [K] and the values of [V].
   /// The [other] map itself can have any type.
+  /// ```dart
+  /// final baseMap = {1: 'A', 2: 'B', 3: 'C'};
+  /// final fromBaseMap = HashMap.from(baseMap);
+  /// print(fromBaseMap); // {1: A, 2: B, 3: C}
+  /// ```
   factory HashMap.from(Map<dynamic, dynamic> other) {
     HashMap<K, V> result = HashMap<K, V>();
     other.forEach((dynamic k, dynamic v) {
@@ -198,6 +174,12 @@ abstract class HashMap<K, V> implements Map<K, V> {
   }
 
   /// Creates a [HashMap] that contains all key/value pairs of [other].
+  /// Example:
+  /// ```dart
+  /// final baseMap = {1: 'A', 2: 'B', 3: 'C'};
+  /// final mapOf = HashMap.of(baseMap);
+  /// print(mapOf); // {1: A, 2: B, 3: C}
+  /// ```
   factory HashMap.of(Map<K, V> other) => HashMap<K, V>()..addAll(other);
 
   /// Creates a [HashMap] where the keys and values are computed from the
@@ -211,6 +193,13 @@ abstract class HashMap<K, V> implements Map<K, V> {
   ///
   /// If no values are specified for [key] and [value] the default is the
   /// identity function.
+  /// Example:
+  /// ```dart
+  /// final keyList = [11, 12, 13, 14];
+  /// final mapFromIterable =
+  ///   HashMap.fromIterable(keyList, key: (i) => i, value: (i) => i * i);
+  /// print(mapFromIterable); // {11: 121, 12: 144, 13: 169, 14: 196}
+  /// ```
   factory HashMap.fromIterable(Iterable iterable,
       {K Function(dynamic element)? key, V Function(dynamic element)? value}) {
     HashMap<K, V> map = HashMap<K, V>();
@@ -227,6 +216,13 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// overwrites the previous value.
   ///
   /// It is an error if the two [Iterable]s don't have the same length.
+  /// Example:
+  /// ```dart
+  /// final keys = ['1', '2', '3', '4'];
+  /// final values = ['A', 'B', 'C', 'D'];
+  /// final mapFromIterables = HashMap.fromIterables(keys, values);
+  /// print(mapFromIterables); // {4: D, 1: A, 3: C, 2: B}
+  /// ```
   factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
     HashMap<K, V> map = HashMap<K, V>();
     MapBase._fillMapWithIterables(map, keys, values);
@@ -240,6 +236,13 @@ abstract class HashMap<K, V> implements Map<K, V> {
   ///
   /// If multiple [entries] have the same key,
   /// later occurrences overwrite the earlier ones.
+  ///
+  /// Example:
+  /// ```dart
+  /// final baseMap = {3: 'A', 2: 'B', 1: 'C'};
+  /// final mapFromEntries = HashMap.fromEntries(baseMap.entries);
+  /// print(mapFromEntries); // example: {1: C, 2: B, 3: A}
+  /// ```
   @Since("2.1")
   factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       HashMap<K, V>()..addEntries(entries);
