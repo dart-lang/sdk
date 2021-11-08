@@ -194,6 +194,7 @@ constexpr bool FLAG_support_il_printer = false;
   P(retain_code_objects, bool, true,                                           \
     "Serialize all code objects even if not otherwise "                        \
     "needed in the precompiled runtime.")                                      \
+  P(enable_isolate_groups, bool, true, "Enable isolate group support.")        \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
