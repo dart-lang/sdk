@@ -40,7 +40,7 @@ part of dart.core;
 ///
 /// Example of growable list:
 /// ```dart
-/// final List<String> growableList = []; // []
+/// final growableList = []; // []
 /// growableList.addAll(['A', 'B', 'C', 'D']);
 /// growableList[0] = 'G';
 /// print(growableList); // [G, B, C, D]
@@ -92,8 +92,8 @@ part of dart.core;
 /// ```
 /// Example of [List.from]:
 /// ```dart
-/// final numList = [1, 2, 3];
-/// final listFrom = List.from(numList);
+/// final numbers = [1, 2, 3];
+/// final listFrom = List.from(numbers);
 /// ```
 /// Example of [List.generate]:
 /// ```dart
@@ -102,13 +102,13 @@ part of dart.core;
 /// ```
 /// Example of [List.of]:
 /// ```dart
-/// final numList = [1, 2, 3];
-/// final listOf = List.of(numList);
+/// final numbers = [1, 2, 3];
+/// final listOf = List.of(numbers);
 /// ```
 /// Example of [List.unmodifiable]:
 /// ```dart
-/// final numList = [1, 2, 3];
-/// final unmodifiableList = List.unmodifiable(numList);
+/// final numbers = [1, 2, 3];
+/// final unmodifiableList = List.unmodifiable(numbers);
 /// ```
 abstract class List<E> implements EfficientLengthIterable<E> {
   /// Creates a list of the given length.
@@ -501,12 +501,12 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The first time an object `o` is encountered so that `o == element`,
   /// the index of `o` is returned.
   /// ```dart
-  /// final notes  = ['do', 're', 'mi', 're'];
+  /// final notes = ['do', 're', 'mi', 're'];
   /// final indexRe = notes.indexOf('re');
   /// print(indexRe); // 1
   ///
   /// const startIndex = 2;
-  /// final int indexWithStart = notes.indexOf('re', startIndex);
+  /// final indexWithStart = notes.indexOf('re', startIndex);
   /// print(indexWithStart); // 3
   /// ```
   /// Returns -1 if [element] is not found.
@@ -571,7 +571,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// ```dart
   /// final notes = ['do', 're', 'mi', 're'];
   /// const startIndex = 2;
-  /// final int index = notes.lastIndexOf('re', startIndex);
+  /// final index = notes.lastIndexOf('re', startIndex);
   /// print(index); // 1
   /// ```
   /// If [start] is not provided, this method searches from the end of the
@@ -660,7 +660,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The list must be growable.
   ///
   /// ```dart
-  /// var parts = ['head', 'shoulders', 'knees', 'toes'];
+  /// final parts = ['head', 'shoulders', 'knees', 'toes'];
   /// final retVal = parts.remove('head'); // true
   /// print(parts); // [shoulders, knees, toes]
   /// ```
@@ -695,8 +695,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The list must be growable and non-empty.
   /// ```dart
   /// final parts = ['head', 'shoulder', 'knees', 'toes'];
-  /// final retVal = parts.removeLast();
-  /// print(retVal); // toes
+  /// final retVal = parts.removeLast(); // toes
   /// print(parts); // [head, shoulder, toes]
   /// ```
   E removeLast();
@@ -750,7 +749,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// ```dart
   /// final colors = ['red', 'green', 'blue', 'orange', 'pink'];
-  /// print(colors.sublist(1)); // [green, blue, orange, pink]
+  /// print(colors.sublist(3)); // [green, blue, orange, pink]
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
@@ -773,11 +772,11 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// ends early if it reaches the end of the list early
   /// (if `end`, or even `start`, becomes greater than [length]).
   /// ```dart
-  /// final List<String> colors = ['red', 'green', 'blue', 'orange', 'pink'];
-  /// final Iterable<String> firstRange = colors.getRange(0, 3);
+  /// final colors = ['red', 'green', 'blue', 'orange', 'pink'];
+  /// final firstRange = colors.getRange(0, 3);
   /// print(firstRange.join(', ')); // red, green, blue
   ///
-  /// final Iterable<String> secondRange = colors.getRange(2, 5);
+  /// final secondRange = colors.getRange(2, 5);
   /// print(secondRange.join(', ')); // blue, orange, pink
   /// ```
   Iterable<E> getRange(int start, int end);
@@ -846,13 +845,13 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// Example:
   /// ```dart
-  /// final list = List.filled(5, -1);
-  /// print(list); // [-1, -1, -1, -1, -1]
+  /// final numbers = List.filled(5, -1);
+  /// print(numbers); // [-1, -1, -1, -1, -1]
   /// const start = 1;
   /// const end = 3;
   /// const fillValue = 4;
-  /// list.fillRange(start, end, fillValue);
-  /// print(list); // [-1, 4, 4, -1, -1]
+  /// numbers.fillRange(start, end, fillValue);
+  /// print(numbers); // [-1, 4, 4, -1, -1]
   /// ```
   void fillRange(int start, int end, [E? fillValue]);
 
@@ -898,10 +897,10 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// in numerical order.
   /// ```dart
   /// final words = ['fee', 'fi', 'fo', 'fum'];
-  /// final Map map = words.asMap();
-  /// print(map); // {0: fee, 1: fi, 2: fo, 3: fum}
-  /// print(map[0]! + map[1]!); // 'feefi';
-  /// print(map.keys.toList()); // [0, 1, 2, 3]
+  /// final resultMap = words.asMap();
+  /// print(resultMap); // {0: fee, 1: fi, 2: fo, 3: fum}
+  /// print(resultMap[0]! + resultMap[1]!); // 'feefi';
+  /// print(resultMap.keys.toList()); // [0, 1, 2, 3]
   /// ```
   Map<int, E> asMap();
 
