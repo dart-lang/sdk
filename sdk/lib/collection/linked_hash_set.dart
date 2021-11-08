@@ -68,7 +68,7 @@ part of dart.collection;
 /// print(linkedHashSet); // {A, B, C, D, E}
 ///
 /// // To remove specific value, call remove
-/// linkedHashSet.remove('A');
+/// final removedValue = linkedHashSet.remove('A'); // A
 /// print(linkedHashSet); // {B, C, D, E}
 ///
 /// // To remove value(s) with a statement, call removeWhere
@@ -82,21 +82,6 @@ part of dart.collection;
 /// // To clean up data, call clear
 /// linkedHashSet.clear();
 /// print(linkedHashSet); // {}
-/// ```
-///
-/// ## Constructor options for initialization
-///
-/// [LinkedHashSet.from] example:
-/// ```dart
-/// final LinkedHashSet<String> baseSet = LinkedHashSet();
-/// baseSet.addAll({'A', 'B', 'C'});
-/// final LinkedHashSet<String> hashSetFrom = LinkedHashSet.from(baseSet);
-/// ```
-/// [LinkedHashSet.of] example:
-/// ```dart
-/// final LinkedHashSet<String> baseSet = LinkedHashSet();
-/// baseSet.addAll({'A', 'B', 'C'});
-/// final LinkedHashSet setOf = LinkedHashSet.of(baseSet);
 /// ```
 abstract class LinkedHashSet<E> implements Set<E> {
   /// Create an insertion-ordered hash set using the provided
@@ -157,16 +142,22 @@ abstract class LinkedHashSet<E> implements Set<E> {
 
   /// Create a linked hash set containing all [elements].
   ///
-  /// Creates a linked hash set as by `new LinkedHashSet<E>()` and adds each
+  /// Creates a linked hash set as by `LinkedHashSet<E>()` and adds each
   /// element of `elements` to this set in the order they are iterated.
   ///
   /// All the [elements] should be instances of [E].
   /// The `elements` iterable itself may have any element type,
   /// so this constructor can be used to down-cast a `Set`, for example as:
-  /// ```
+  /// ```dart
   /// Set<SuperType> superSet = ...;
   /// Iterable<SuperType> tmp = superSet.where((e) => e is SubType);
   /// Set<SubType> subSet = LinkedHashSet<SubType>.from(tmp);
+  /// ```
+  /// Example:
+  /// ```dart
+  /// final baseSet = LinkedHashSet()..addAll({'A', 'B', 'C'});
+  /// final hashSetFrom = LinkedHashSet.from(baseSet);
+  /// print(hashSetFrom); // {A, B, C}
   /// ```
   factory LinkedHashSet.from(Iterable<dynamic> elements) {
     LinkedHashSet<E> result = LinkedHashSet<E>();
@@ -178,8 +169,14 @@ abstract class LinkedHashSet<E> implements Set<E> {
 
   /// Create a linked hash set from [elements].
   ///
-  /// Creates a linked hash set as by `new LinkedHashSet<E>()` and adds each
+  /// Creates a linked hash set as by `LinkedHashSet<E>()` and adds each
   /// element of `elements` to this set in the order they are iterated.
+  /// Example:
+  /// ```dart
+  /// final baseSet = LinkedHashSet()..addAll({'A', 'B', 'C'});
+  /// final LinkedHashSet setOf = LinkedHashSet.of(baseSet);
+  /// print(setOf); // {A, B, C}
+  /// ```
   factory LinkedHashSet.of(Iterable<E> elements) =>
       LinkedHashSet<E>()..addAll(elements);
 
