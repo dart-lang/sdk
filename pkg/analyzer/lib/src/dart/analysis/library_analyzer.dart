@@ -33,7 +33,6 @@ import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/language_version_override_verifier.dart';
 import 'package:analyzer/src/error/override_verifier.dart';
 import 'package:analyzer/src/error/todo_finder.dart';
-import 'package:analyzer/src/error/unicode_text_verifier.dart';
 import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -348,8 +347,6 @@ class LibraryAnalyzer {
         ),
       );
     }
-
-    UnicodeTextVerifier(errorReporter).verify(unit, file.content);
 
     unit.accept(DeadCodeVerifier(errorReporter));
 
