@@ -3389,62 +3389,6 @@ void main() {
     ]);
   }
 
-  test_unaryOperators() async {
-    await assertErrorsInCode('''
-class A {
-  A operator ~() => null;
-  A operator +(int x) => null;
-  A operator -(int x) => null;
-  A operator -() => null;
-}
-class B extends A {}
-class C extends B {}
-
-foo() => new A();
-
-test() {
-  A a = new A();
-  B b = new B();
-  var c = foo();
-  dynamic d;
-
-  ~a;
-  (~d);
-
-  !a;
-  !d;
-
-  -a;
-  (-d);
-
-  ++a;
-  --a;
-  (++d);
-  (--d);
-
-  a++;
-  a--;
-  (d++);
-  (d--);
-
-  ++b;
-  --b;
-  b++;
-  b--;
-
-  takesC(C c) => null;
-  takesC(++b);
-  takesC(--b);
-  takesC(b++);
-  takesC(b--);
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 201, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 237, 1),
-      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 280, 1),
-    ]);
-  }
-
   test_unboundTypeName() async {
     await assertErrorsInCode('''
 void main() {
