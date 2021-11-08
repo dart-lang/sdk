@@ -40,7 +40,7 @@ class C extends S {
       : //
         super(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         x = x;
         //^
         // [cfe] Can't have initializers after 'super'.
@@ -48,7 +48,7 @@ class C extends S {
       : //
         super.named(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         x = x;
         //^
         // [cfe] Can't have initializers after 'super'.
@@ -56,7 +56,7 @@ class C extends S {
       : //
         super(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         assert(x == x);
 //      ^
 // [cfe] Can't have initializers after 'super'.
@@ -64,7 +64,7 @@ class C extends S {
       : //
         super.named(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         assert(x == x);
 //      ^
 // [cfe] Can't have initializers after 'super'.
@@ -72,7 +72,7 @@ class C extends S {
       : //
         super(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         x = x,
         //^
         // [cfe] Can't have initializers after 'super'.
@@ -83,7 +83,7 @@ class C extends S {
       : //
         super.named(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         x = x,
         //^
         // [cfe] Can't have initializers after 'super'.
@@ -94,7 +94,7 @@ class C extends S {
       : x = x,
         super(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         assert(x == x);
 //      ^
 // [cfe] Can't have initializers after 'super'.
@@ -102,7 +102,7 @@ class C extends S {
       : x = x,
         super.named(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         assert(x == x);
 //      ^
 // [cfe] Can't have initializers after 'super'.
@@ -133,7 +133,7 @@ class C extends S {
       : //
         super(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         x = x;
         //^
         // [cfe] Can't have initializers after 'super'.
@@ -141,7 +141,7 @@ class C extends S {
       : //
         super.named(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         x = x;
         //^
         // [cfe] Can't have initializers after 'super'.
@@ -149,7 +149,7 @@ class C extends S {
       : //
         super(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         assert(x == x);
 //      ^
 // [cfe] Can't have initializers after 'super'.
@@ -157,7 +157,7 @@ class C extends S {
       : //
         super.named(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         assert(x == x);
 //      ^
 // [cfe] Can't have initializers after 'super'.
@@ -165,7 +165,7 @@ class C extends S {
       : //
         super(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         x = x,
         //^
         // [cfe] Can't have initializers after 'super'.
@@ -176,7 +176,7 @@ class C extends S {
       : //
         super.named(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         x = x,
         //^
         // [cfe] Can't have initializers after 'super'.
@@ -187,7 +187,7 @@ class C extends S {
       : x = x,
         super(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         assert(x == x);
 //      ^
 // [cfe] Can't have initializers after 'super'.
@@ -195,7 +195,7 @@ class C extends S {
       : x = x,
         super.named(),
 //      ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_SUPER_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.SUPER_INVOCATION_NOT_LAST
         assert(x == x);
 //      ^
 // [cfe] Can't have initializers after 'super'.

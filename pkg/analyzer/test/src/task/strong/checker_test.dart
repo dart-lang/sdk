@@ -3031,33 +3031,6 @@ void f() {
     ]);
   }
 
-  test_superCallPlacement() async {
-    await assertErrorsInCode('''
-class Base {
-  var x;
-  Base() : x = 1;
-}
-
-class Derived extends Base {
-  var y, z;
-  Derived() : y = 1, super(), z = 2;
-}
-
-class Valid extends Base {
-  var y, z;
-  Valid(): y = 1, z = 2, super();
-}
-
-class AlsoValid extends Base {
-  AlsoValid() : super();
-}
-
-main() => new Derived();
-''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 105, 5),
-    ]);
-  }
-
   test_superclassOverrideOfGrandInterface_interfaceOfAbstractSuperclass() async {
     await assertErrorsInCode('''
 class A {}

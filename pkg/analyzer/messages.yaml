@@ -6524,46 +6524,6 @@ CompileTimeErrorCode:
 
       class C {}
       ```
-  INVALID_SUPER_INVOCATION:
-    problemMessage: "The superclass call must be last in an initializer list: '{0}'."
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the initializer list of a
-      constructor contains an invocation of a constructor in the superclass, but
-      the invocation isn't the last item in the initializer list.
-
-      #### Example
-
-      The following code produces this diagnostic because the invocation of the
-      superclass' constructor isn't the last item in the initializer list:
-
-      ```dart
-      class A {
-        A(int x);
-      }
-
-      class B extends A {
-        B(int x) : [!super!](x), assert(x >= 0);
-      }
-      ```
-
-      #### Common fixes
-
-      Move the invocation of the superclass' constructor to the end of the
-      initializer list:
-
-      ```dart
-      class A {
-        A(int x);
-      }
-
-      class B extends A {
-        B(int x) : assert(x >= 0), super(x);
-      }
-      ```
   INVALID_TYPE_ARGUMENT_IN_CONST_LIST:
     sharedName: INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
     problemMessage: "Constant list literals can't include a type parameter as a type argument, such as '{0}'."
@@ -11329,6 +11289,49 @@ CompileTimeErrorCode:
       7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
       is a compile-time error if a generative constructor of class Object
       includes a superinitializer.
+  SUPER_INVOCATION_NOT_LAST:
+    previousName: INVALID_SUPER_INVOCATION
+    problemMessage: "The superconstructor call must be last in an initializer list: '{0}'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the superinitializer
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the initializer list of a
+      constructor contains an invocation of a constructor in the superclass, but
+      the invocation isn't the last item in the initializer list.
+
+      #### Example
+
+      The following code produces this diagnostic because the invocation of the
+      superclass' constructor isn't the last item in the initializer list:
+
+      ```dart
+      class A {
+        A(int x);
+      }
+
+      class B extends A {
+        B(int x) : [!super!](x), assert(x >= 0);
+      }
+      ```
+
+      #### Common fixes
+
+      Move the invocation of the superclass' constructor to the end of the
+      initializer list:
+
+      ```dart
+      class A {
+        A(int x);
+      }
+
+      class B extends A {
+        B(int x) : assert(x >= 0), super(x);
+      }
+      ```
   SUPER_IN_EXTENSION:
     problemMessage: "The 'super' keyword can't be used in an extension because an extension doesn't have a superclass."
     hasPublishedDocs: true

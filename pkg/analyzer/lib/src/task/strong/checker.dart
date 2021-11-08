@@ -235,27 +235,6 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
-  /// Check constructor declaration to ensure correct super call placement.
-  @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    node.visitChildren(this);
-
-    final init = node.initializers;
-    for (int i = 0, last = init.length - 1; i < last; i++) {
-      final initializer = init[i];
-      if (initializer is SuperConstructorInvocation) {
-        // TODO(srawlins): Don't report this when
-        //  [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR] or
-        //  [CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS] is reported for
-        //  this constructor.
-        var source = (node.root as CompilationUnit).declaredElement!.source;
-        var token = initializer.superKeyword;
-        reporter.onError(AnalysisError(source, token.offset, token.length,
-            CompileTimeErrorCode.INVALID_SUPER_INVOCATION, [initializer]));
-      }
-    }
-  }
-
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     var field = node.fieldName;
