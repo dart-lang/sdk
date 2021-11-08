@@ -13,9 +13,10 @@ part of dart.collection;
 /// does not change the iteration order,
 /// but removing the key and adding it again
 /// will make it be last in the iteration order.
+/// 
 /// **Notice:** Manipulating item count in [forEach] is prohibited. Adding or
 /// deleting items during iteration causes an exception:
-/// _"Concurrent modification during iteration"_.
+/// [ConcurrentModificationError].
 ///
 /// The keys of a `LinkedHashMap` must have consistent [Object.==]
 /// and [Object.hashCode] implementations. This means that the `==` operator
@@ -56,7 +57,8 @@ part of dart.collection;
 /// final gExists =  linkedHashMap.containsValue('G'); // false
 ///
 /// // To remove specific key-pair using key, call remove
-/// linkedHashMap.remove(1);
+/// final removedValue = linkedHashMap.remove(1);
+/// print(removedValue); // A
 /// print(linkedHashMap); // {4: D, 2: B, 3: C}
 ///
 /// // To remove item(s) with a statement, call removeWhere
@@ -78,38 +80,6 @@ part of dart.collection;
 /// // To clean up data, call clear
 /// linkedHashMap.clear();
 /// print(linkedHashMap); // {}
-/// ```
-///
-/// ## Constructor options for initialization
-///
-/// [LinkedHashMap.from] example:
-/// ```dart
-/// final Map baseMap = {1: 'A', 2: 'B', 3: 'C'};
-/// final LinkedHashMap fromBaseMap = LinkedHashMap.from(baseMap);
-/// ```
-/// [LinkedHashMap.fromEntries] example:
-/// ```dart
-/// final Map baseMap = {3: 'A', 2: 'B', 1: 'C'};
-/// final LinkedHashMap mapFromEntries =
-///   LinkedHashMap.fromEntries(baseMap.entries);
-/// ```
-/// [LinkedHashMap.fromIterable] example:
-/// ```dart
-/// final List<int> keyList = [11, 12, 13, 14];
-/// final LinkedHashMap mapFromIterable =
-///   LinkedHashMap.fromIterable(keyList, key: (i) => i, value: (i) => i * i);
-/// ```
-/// [LinkedHashMap.fromIterables] example:
-/// ```dart
-/// final List<String> keys = ['1', '2', '3', '4'];
-/// final List<String> values = ['A', 'B', 'C', 'D'];
-/// final LinkedHashMap mapFromIterables =
-///   LinkedHashMap.fromIterables(keys, values);
-/// ```
-/// [LinkedHashMap.of] example:
-/// ```dart
-/// final Map mapIntString = {3: 'A', 2: 'B', 1: 'C', 4: 'D'};
-/// final LinkedHashMap mapOf = LinkedHashMap.of(mapIntString);
 /// ```
 abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// Creates an insertion-ordered hash-table based [Map].
@@ -164,7 +134,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// Creates an insertion-ordered identity-based map.
   ///
   /// Effectively a shorthand for:
-  /// ```
+  /// ```dart
   /// LinkedHashMap<K, V>(equals: identical,
   ///                     hashCode: identityHashCode)
   /// ```
@@ -174,6 +144,12 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   ///
   /// The keys must all be instances of [K] and the values to [V].
   /// The [other] map itself can have any type.
+  /// Example:
+  /// ```dart
+  /// final baseMap = {1: 'A', 2: 'B', 3: 'C'};
+  /// final fromBaseMap = LinkedHashMap.from(baseMap);
+  /// print(fromBaseMap); // {1: A, 2: B, 3: C}
+  /// ```
   factory LinkedHashMap.from(Map<dynamic, dynamic> other) {
     LinkedHashMap<K, V> result = LinkedHashMap<K, V>();
     other.forEach((dynamic k, dynamic v) {
@@ -183,6 +159,12 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   }
 
   /// Creates a [LinkedHashMap] that contains all key value pairs of [other].
+  /// Example:
+  /// ```dart
+  /// final dataMap = {3: 'A', 2: 'B', 1: 'C', 4: 'D'};
+  /// final mapOf = LinkedHashMap.of(dataMap);
+  /// print(mapOf); // {3: A, 2: B, 1: C, 4: D}
+  /// ```
   factory LinkedHashMap.of(Map<K, V> other) =>
       LinkedHashMap<K, V>()..addAll(other);
 
@@ -197,6 +179,13 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   ///
   /// If no values are specified for [key] and [value] the default is the
   /// identity function.
+  /// Example:
+  /// ```dart
+  /// final keyList = [11, 12, 13, 14];
+  /// final mapFromIterable =
+  ///   LinkedHashMap.fromIterable(keyList, key: (i) => i, value: (i) => i * i);
+  /// print(mapFromIterable); // {11: 121, 12: 144, 13: 169, 14: 196}
+  /// ```
   factory LinkedHashMap.fromIterable(Iterable iterable,
       {K Function(dynamic element)? key, V Function(dynamic element)? value}) {
     LinkedHashMap<K, V> map = LinkedHashMap<K, V>();
@@ -213,6 +202,13 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// overwrites the previous value.
   ///
   /// It is an error if the two [Iterable]s don't have the same length.
+  /// Example:
+  /// ```dart
+  /// final keys = ['1', '2', '3', '4'];
+  /// final values = ['A', 'B', 'C', 'D'];
+  /// final mapFromIterables = LinkedHashMap.fromIterables(keys, values);
+  /// print(mapFromIterables); // {1: A, 2: B, 3: C, 4: D}
+  /// ```
   factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
     LinkedHashMap<K, V> map = LinkedHashMap<K, V>();
     MapBase._fillMapWithIterables(map, keys, values);
@@ -226,6 +222,12 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   ///
   /// If multiple [entries] have the same key,
   /// later occurrences overwrite the earlier ones.
+  /// Example:
+  /// ```dart
+  /// final dataMap = {3: 'A', 2: 'B', 1: 'C'};
+  /// final mapFromEntries = LinkedHashMap.fromEntries(dataMap.entries);
+  /// print(mapFromEntries); // {3: A, 2: B, 1: C}
+  /// ```
   @Since("2.1")
   factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       LinkedHashMap<K, V>()..addEntries(entries);
