@@ -18,11 +18,14 @@ extension StringExtension on CheckTarget<String> {
     }
   }
 
-  @useResult
-  CheckTarget<int> hasLength() {
-    return nest(
-      value.length,
-      (length) => 'has length $length',
-    );
+  @UseResult.unless(parameterDefined: 'expected')
+  CheckTarget<int> hasLength([int? expected]) {
+    var actual = value.length;
+
+    if (expected != null && actual != expected) {
+      fail('does not have length ${valueStr(expected)}');
+    }
+
+    return nest(actual, (length) => 'has length $length');
   }
 }

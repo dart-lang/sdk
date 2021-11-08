@@ -1410,11 +1410,9 @@ void _rootHandleUncaughtError(Zone? self, ZoneDelegate? parent, Zone zone,
 
 void _rootHandleError(Object error, StackTrace stackTrace) {
   _schedulePriorityAsyncCallback(() {
-    _rethrow(error, stackTrace);
+    Error.throwWithStackTrace(error, stackTrace);
   });
 }
-
-external void _rethrow(Object error, StackTrace stackTrace);
 
 R _rootRun<R>(Zone? self, ZoneDelegate? parent, Zone zone, R f()) {
   if (identical(Zone._current, zone)) return f();
@@ -1669,7 +1667,7 @@ class _RootZone extends _Zone {
   // Methods that can be customized by the zone specification.
 
   void handleUncaughtError(Object error, StackTrace stackTrace) {
-    _rootHandleUncaughtError(null, null, this, error, stackTrace);
+    _rootHandleError(error, stackTrace);
   }
 
   Zone fork(

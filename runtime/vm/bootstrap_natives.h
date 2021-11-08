@@ -160,7 +160,7 @@ namespace dart {
   V(DateTime_localTimeZoneAdjustmentInSeconds, 0)                              \
   V(AssertionError_throwNew, 3)                                                \
   V(AssertionError_throwNewSource, 4)                                          \
-  V(Async_rethrow, 2)                                                          \
+  V(Error_throwWithStackTrace, 2)                                              \
   V(StackTrace_current, 0)                                                     \
   V(TypeError_throwNew, 4)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
