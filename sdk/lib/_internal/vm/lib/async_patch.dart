@@ -245,10 +245,6 @@ class _AsyncStarStreamController<T> {
 }
 
 @patch
-@pragma("vm:external-name", "Async_rethrow")
-external void _rethrow(Object error, StackTrace stackTrace);
-
-@patch
 class _StreamImpl<T> {
   /// The closure implementing the async-generator body that is creating events
   /// for this stream.

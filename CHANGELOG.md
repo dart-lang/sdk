@@ -309,6 +309,9 @@ them, you must set the lower bound on the SDK constraint for your package to
   ready to be removed.
   Code catching the class should move to catching `Error` instead
   (or, for integers, check first for whether it's dividing by zero).
+- Add `Error.throwWithStackTrace` which can `throw` an
+  error with an existing stack trace, instead of creating
+  a new stack trace.
 
 #### `dart:io`
 
