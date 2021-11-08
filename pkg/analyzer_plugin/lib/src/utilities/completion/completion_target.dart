@@ -69,9 +69,6 @@ import 'package:analyzer/src/generated/source.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionTarget {
-  /// The compilation unit in which the completion is occurring.
-  final CompilationUnit unit;
-
   /// The offset within the source at which the completion is being requested.
   final int offset;
 
@@ -167,11 +164,10 @@ class CompletionTarget {
             var commentToken = _getContainingCommentToken(entity, offset);
             if (commentToken != null) {
               return CompletionTarget._(
-                  compilationUnit, offset, containingNode, commentToken, true);
+                  offset, containingNode, commentToken, true);
             }
             // Target found.
-            return CompletionTarget._(
-                compilationUnit, offset, containingNode, entity, false);
+            return CompletionTarget._(offset, containingNode, entity, false);
           } else {
             // Since entity is a token, we don't need to look inside it; just
             // proceed to the next entity.
@@ -198,14 +194,13 @@ class CompletionTarget {
                   _getContainingDocComment(containingNode, commentToken);
               if (docComment != null) {
                 return CompletionTarget._(
-                    compilationUnit, offset, docComment, commentToken, false);
+                    offset, docComment, commentToken, false);
               } else {
-                return CompletionTarget._(compilationUnit, offset,
-                    compilationUnit, commentToken, true);
+                return CompletionTarget._(
+                    offset, compilationUnit, commentToken, true);
               }
             }
-            return CompletionTarget._(
-                compilationUnit, offset, containingNode, entity, false);
+            return CompletionTarget._(offset, containingNode, entity, false);
           }
 
           // Otherwise, the completion target is somewhere inside the entity,
@@ -231,20 +226,18 @@ class CompletionTarget {
       var commentToken =
           _getContainingCommentToken(compilationUnit.endToken, offset);
       if (commentToken != null) {
-        return CompletionTarget._(
-            compilationUnit, offset, compilationUnit, commentToken, true);
+        return CompletionTarget._(offset, compilationUnit, commentToken, true);
       }
 
       // Since no completion target was found, we set the completion target
       // entity to null and use the entryPoint as the parent.
-      return CompletionTarget._(
-          compilationUnit, offset, entryPoint, null, false);
+      return CompletionTarget._(offset, entryPoint, null, false);
     }
   }
 
   /// Create a [CompletionTarget] holding the given [containingNode] and
   /// [entity].
-  CompletionTarget._(this.unit, this.offset, AstNode containingNode,
+  CompletionTarget._(this.offset, AstNode containingNode,
       SyntacticEntity? entity, this.isCommentText)
       : containingNode = containingNode,
         entity = entity,
