@@ -25,22 +25,22 @@ part of dart.collection;
 /// The [forEach] iterates through all entries of a set.
 /// Manipulating item count in [forEach] is prohibited. Adding or
 /// deleting items during iteration causes an exception:
-/// _"Concurrent modification during iteration"_.
+/// [ConcurrentModificationError].
 ///
 /// Example:
 ///
 /// ```dart
-/// final HashSet hashSet = HashSet();
+/// final hashSet = HashSet();
 /// hashSet.addAll({'A', 'B', 'C', 'D'});
 /// hashSet.isEmpty; // false
 /// hashSet.length; // 4
 /// print(hashSet); // {A, D, C, B}
 ///
 /// // To check is there a value item on map, call contains
-/// final bool bExists = hashSet.contains('B'); // true
+/// final bExists = hashSet.contains('B'); // true
 ///
 /// // To get element value using index, call elementAt
-/// final String elementAt = hashSet.elementAt(1);
+/// final elementAt = hashSet.elementAt(1);
 /// print(elementAt); // D
 ///
 /// // The forEach iterates through all entries of a set.
@@ -79,18 +79,6 @@ part of dart.collection;
 /// // To clean up data, call the clear
 /// hashSet.clear();
 /// print(hashSet); // {}
-/// ```
-/// ## Constructor options for initialization
-///
-/// [HashSet.from()] example:
-/// ```dart
-/// final HashSet<String> baseSet = HashSet()..addAll({'A', 'B', 'C'});
-/// final HashSet<String> hashSetFrom = HashSet.from(baseSet);
-/// ```
-/// [HashSet.of()] example:
-/// ```dart
-/// final HashSet<String> baseSet = HashSet()..addAll({'A', 'B', 'C'});
-/// final HashSet hashSetOf = HashSet.of(baseSet);
 /// ```
 abstract class HashSet<E> implements Set<E> {
   /// Create a hash set using the provided [equals] as equality.
@@ -140,7 +128,7 @@ abstract class HashSet<E> implements Set<E> {
   /// Creates an unordered identity-based set.
   ///
   /// Effectively a shorthand for:
-  /// ```
+  /// ```dart
   /// HashSet<E>(equals: identical,
   ///                hashCode: identityHashCode)
   /// ```
@@ -156,10 +144,16 @@ abstract class HashSet<E> implements Set<E> {
   /// All the [elements] should be instances of [E].
   /// The `elements` iterable itself may have any element type, so this
   /// constructor can be used to down-cast a `Set`, for example as:
-  /// ```
+  /// ```dart
   /// Set<SuperType> superSet = ...;
   /// Set<SubType> subSet =
   ///     HashSet<SubType>.from(superSet.whereType<SubType>());
+  /// ```
+  /// Example:
+  /// ```dart
+  /// final baseSet = {'A', 'B', 'C'};
+  /// final hashSetFrom = HashSet.from(baseSet);
+  /// print(hashSetFrom); // {A, C, B}
   /// ```
   factory HashSet.from(Iterable<dynamic> elements) {
     HashSet<E> result = HashSet<E>();
@@ -171,10 +165,16 @@ abstract class HashSet<E> implements Set<E> {
 
   /// Create a hash set containing all [elements].
   ///
-  /// Creates a hash set as by `new HashSet<E>()` and adds all given [elements]
+  /// Creates a hash set as by `HashSet<E>()` and adds all given [elements]
   /// to the set. The elements are added in order. If [elements] contains
   /// two entries that are equal, but not identical, then the first one is
   /// the one in the resulting set.
+  /// Example:
+  /// ```dart
+  /// final baseSet = {'A', 'B', 'C'};
+  /// final hashSetOf = HashSet.of(baseSet);
+  /// print(hashSetOf); // {A, C, B}
+  /// ```
   factory HashSet.of(Iterable<E> elements) => HashSet<E>()..addAll(elements);
 
   /// Provides an iterator that iterates over the elements of this set.
