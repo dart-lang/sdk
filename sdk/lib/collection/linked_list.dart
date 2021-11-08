@@ -44,7 +44,7 @@ part of dart.collection;
 /// }
 ///
 /// void main(){
-///   final LinkedList linkedList = LinkedList<EntryItem>();
+///   final linkedList = LinkedList<EntryItem>();
 ///   linkedList.addAll(
 ///       [EntryItem(1, 'A'), EntryItem(2, 'B'), EntryItem(3, 'C')].toList());
 ///   print(linkedList.first); // 1 : A
