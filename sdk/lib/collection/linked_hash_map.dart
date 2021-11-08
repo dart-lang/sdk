@@ -13,7 +13,7 @@ part of dart.collection;
 /// does not change the iteration order,
 /// but removing the key and adding it again
 /// will make it be last in the iteration order.
-/// 
+///
 /// **Notice:** Manipulating item count in [forEach] is prohibited. Adding or
 /// deleting items during iteration causes an exception:
 /// [ConcurrentModificationError].
