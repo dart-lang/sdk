@@ -52,8 +52,8 @@ abstract class Map<K, V> {
   /// `operator==` and `hashCode`.
   /// It iterates in key insertion order.
   /// ```dart
-  /// final Map baseMap = {1: 'A', 2: 'B', 3: 'C'};
-  /// final Map mapFrom = Map.from(baseMap);
+  /// final data = {1: 'A', 2: 'B', 3: 'C'};
+  /// final mapFrom = Map.from(data);
   /// print(mapFrom); // {1: A, 2: B, 3: C}
   /// print(mapFrom.runtimeType); // LinkedHashMap
   /// ```
@@ -65,8 +65,8 @@ abstract class Map<K, V> {
   /// `operator==` and `hashCode`, and it allows `null` as a key.
   /// It iterates in key insertion order.
   /// ```dart
-  /// final Map baseMap = {1: 'A', 2: 'B', 3: 'C'};
-  /// final Map mapOf = Map.of(baseMap);
+  /// final data = {1: 'A', 2: 'B', 3: 'C'};
+  /// final mapOf = Map.of(data);
   /// print(mapOf); // {1: A, 2: B, 3: C}
   /// print(mapOf.runtimeType); // LinkedHashMap
   /// ```
@@ -85,8 +85,8 @@ abstract class Map<K, V> {
   /// The resulting map behaves like the result of [Map.from],
   /// except that the map returned by this constructor is not modifiable.
   /// ```dart
-  /// final Map baseMap = {1: 'A', 2: 'B', 3: 'C'};
-  /// final Map unmodifiableMap = Map.unmodifiable(baseMap);
+  /// final data = {1: 'A', 2: 'B', 3: 'C'};
+  /// final unmodifiableMap = Map.unmodifiable(data);
   /// print(unmodifiableMap); // {1: A, 2: B, 3: C}
   /// print(unmodifiableMap.runtimeType); // UnmodifiableMapView
   /// ```
@@ -118,11 +118,11 @@ abstract class Map<K, V> {
   /// The keys of `map` are the `list` values converted to strings,
   /// and the values of the `map` are the squares of the `list` values:
   /// ```dart
-  /// final List<int> list = [1, 2, 3];
-  /// final map = Map<String, int>.fromIterable(list,
+  /// final list = [1, 2, 3];
+  /// final data = Map.fromIterable(list,
   ///     key: (item) => item.toString(),
   ///     value: (item) => item * item);
-  /// print(map); // {1: 1, 2: 4, 3: 9}
+  /// print(data); // {1: 1, 2: 4, 3: 9}
   /// ```
   /// If no values are specified for [key] and [value],
   /// the default is the identity function.
@@ -132,9 +132,9 @@ abstract class Map<K, V> {
   /// In the following example, the keys and corresponding values of `map`
   /// are the `list` values directly:
   /// ```dart
-  /// final List<int> list = [1, 2, 3];
-  /// final map = Map<int, int>.fromIterable(list);
-  /// print(map); // {1: 1, 2: 2, 3: 3}
+  /// final list = [1, 2, 3];
+  /// final data = Map.fromIterable(list);
+  /// print(data); // {1: 1, 2: 2, 3: 3}
   /// ```
   /// The keys computed by the source [iterable] do not need to be unique.
   /// The last occurrence of a key will overwrite
@@ -205,8 +205,8 @@ abstract class Map<K, V> {
   /// ```
   /// Example:
   /// ```dart
-  /// final Map baseMap = {1: 'A', 2: 'B', 3: 'C'};
-  /// final Map mapFromEntries = Map.fromEntries(baseMap.entries);
+  /// final baseMap = {1: 'A', 2: 'B', 3: 'C'};
+  /// final mapFromEntries = Map.fromEntries(baseMap.entries);
   /// print(mapFromEntries); // {1: A, 2: B, 3: C}
   /// print(mapFromEntries.runtimeType); // LinkedHashMap
   /// ```
@@ -239,9 +239,9 @@ abstract class Map<K, V> {
   /// Returns true if any of the values in the map are equal to `value`
   /// according to the `==` operator.
   /// ```dart
-  /// final Map map = {'A': 'X', 'B': 'Y', 'C': 'Z'};
-  /// final bool isAvalue = map.containsValue('A'); // false
-  /// final bool isZvalue = map.containsValue('Z'); // true
+  /// final data = {'A': 'X', 'B': 'Y', 'C': 'Z'};
+  /// final isA = data.containsValue('A'); // false
+  /// final isZ = data.containsValue('Z'); // true
   /// ```
   bool containsValue(Object? value);
 
@@ -250,9 +250,9 @@ abstract class Map<K, V> {
   /// Returns true if any of the keys in the map are equal to `key`
   /// according to the equality used by the map.
   /// ```dart
-  /// final Map map = {'A': 'X', 'B': 'Y', 'C': 'Z'};
-  /// final bool isAkey = map.containsKey('A'); // true
-  /// final bool isZkey = map.containsKey('Z'); // false
+  /// final data = {'A': 'X', 'B': 'Y', 'C': 'Z'};
+  /// final isA = data.containsKey('A'); // true
+  /// final isZ = data.containsKey('Z'); // false
   /// ```
   bool containsKey(Object? key);
 
@@ -286,13 +286,13 @@ abstract class Map<K, V> {
   /// The operation is equivalent to doing `this[entry.key] = entry.value`
   /// for each [MapEntry] of the iterable.
   /// ```dart
-  /// final Map map1 = {'A': 'X', 'B': 'Y', 'C': 'Z'};
+  /// final map1 = {'A': 'X', 'B': 'Y', 'C': 'Z'};
   /// map1.addEntries([const MapEntry('E', 'AB'), const MapEntry('F', 'CD')]);
   /// print(map1); // {A: X, B: Y, C: Z, E: AB, F: CD}
   ///
-  /// final Map map2 = {1: 'A', 2: 'B', 3: 'C'};
+  /// final map2 = {1: 'A', 2: 'B', 3: 'C'};
   ///
-  /// final Map customMap = {};
+  /// final customMap = {};
   /// customMap['map1'] = map1;
   /// customMap['map2'] = map2;
   /// customMap['value'] = 123;
@@ -319,12 +319,12 @@ abstract class Map<K, V> {
   ///
   /// If the key is not present, [ifAbsent] must be provided.
   /// ```dart
-  /// final Map<int, String> map = {1: 'A', 2: 'B', 3: 'C'};
-  /// map.update(2, (value) => 'ABCD', ifAbsent: () => 'G');
-  /// print(map); // {1: A, 2: ABCD, 3: C}
+  /// final data = {1: 'A', 2: 'B', 3: 'C'};
+  /// data.update(2, (value) => 'ABCD', ifAbsent: () => 'G');
+  /// print(data); // {1: A, 2: ABCD, 3: C}
   /// // if there is no key then ifAbsent is used
-  /// map.update(10, (value) => 'XYZ', ifAbsent: () => 'X');
-  /// print(map); // {1: A, 2: ABCD, 3: C, 10: X}
+  /// data.update(10, (value) => 'XYZ', ifAbsent: () => 'X');
+  /// print(data); // {1: A, 2: ABCD, 3: C, 10: X}
   /// ```
   V update(K key, V update(V value), {V ifAbsent()?});
 
@@ -333,19 +333,19 @@ abstract class Map<K, V> {
   /// Iterates over all entries in the map and updates them with the result
   /// of invoking [update].
   /// ```dart
-  /// final Map<int, String> map = {1: 'A', 2: 'B', 3: 'C'};
-  /// map.updateAll((key, value) => 'AB');
-  /// print(map); // {1: AB, 2: AB, 3: AB}
-  /// map.updateAll((key, value) => key.toString());
-  /// print(map); // {1: 1, 2: 2, 3: 3}
+  /// final data = {1: 'A', 2: 'B', 3: 'C'};
+  /// data.updateAll((key, value) => 'AB');
+  /// print(data); // {1: AB, 2: AB, 3: AB}
+  /// data.updateAll((key, value) => key.toString());
+  /// print(data); // {1: 1, 2: 2, 3: 3}
   /// ```
   void updateAll(V update(K key, V value));
 
   /// Removes all entries of this map that satisfy the given [test].
   /// ```dart
-  /// final Map<int, String> map = {1: 'A', 2: 'B', 3: 'C'};
-  /// map.removeWhere((key, value) => key == 2);
-  /// print(map); // {1: A, 3: C}
+  /// final data = {1: 'A', 2: 'B', 3: 'C'};
+  /// data.removeWhere((key, value) => key == 2);
+  /// print(data); // {1: A, 3: C}
   /// ```
   void removeWhere(bool test(K key, V value));
 
@@ -355,13 +355,13 @@ abstract class Map<K, V> {
   /// Otherwise calls [ifAbsent] to get a new value, associates [key] to
   /// that value, and then returns the new value.
   /// ```dart
-  /// final Map<String, int> scores = {'Bob': 36};
+  /// final scores = {'Bob': 36};
   /// for (final key in ['Bob', 'Rohan', 'Sophena']) {
   ///   scores.putIfAbsent(key, () => key.length);
   /// }
   /// print(scores); // {Bob: 36, Rohan: 5, Sophena: 7}
   /// // Return value is current value and no update done if key exists on map
-  /// final int ret = scores.putIfAbsent('Sophena', () => 10);
+  /// final ret = scores.putIfAbsent('Sophena', () => 10);
   /// print(ret); // 7
   /// ```
   /// Calling [ifAbsent] must not add or remove keys from the map.
@@ -375,9 +375,9 @@ abstract class Map<K, V> {
   /// and associated value in other. It iterates over [other], which must
   /// therefore not change during the iteration.
   /// ```dart
-  /// final Map<int, String> map = {1: 'A', 2: 'B'};
-  /// map.addAll({3: 'C', 1: 'ABC'});
-  /// print(map); // {1: ABC, 2: B, 3: C}
+  /// final data = {1: 'A', 2: 'B'};
+  /// data.addAll({3: 'C', 1: 'ABC'});
+  /// print(data); // {1: ABC, 2: B, 3: C}
   /// ```
   void addAll(Map<K, V> other);
 
@@ -389,10 +389,10 @@ abstract class Map<K, V> {
   /// Note that some maps allow `null` as a value,
   /// so a returned `null` value doesn't always mean that the key was absent.
   /// ```dart
-  /// final Map<int, String> map = {1: 'A', 2: 'B', 3: 'C'};
-  /// final removedValue = map.remove(2);
+  /// final data = {1: 'A', 2: 'B', 3: 'C'};
+  /// final removedValue = data.remove(2);
   /// print(removedValue); // B
-  /// print(map); // {1: A, 3: C}
+  /// print(data); // {1: A, 3: C}
   /// ```
   V? remove(Object? key);
 
@@ -400,9 +400,9 @@ abstract class Map<K, V> {
   ///
   /// After this, the map is empty.
   /// ```dart
-  /// final Map<int, String> map = {1: 'A', 2: 'B', 3: 'C'};
-  /// map.clear();
-  /// print(map); // {}
+  /// final data = {1: 'A', 2: 'B', 3: 'C'};
+  /// data.clear();
+  /// print(data); // {}
   /// ```
   void clear();
 
@@ -410,8 +410,8 @@ abstract class Map<K, V> {
   ///
   /// Calling `action` must not add or remove keys from the map.
   /// ```dart
-  /// final Map<int, String> map = {1: 'A', 2: 'B', 3: 'C'};
-  /// map.forEach((key, value) {
+  /// final data = {1: 'A', 2: 'B', 3: 'C'};
+  /// data.forEach((key, value) {
   ///   print('$key: $value');
   ///   // 1: A
   ///   // 2: B
