@@ -45,5 +45,5 @@ static method main() → dynamic {
 
 constants  {
   #C1 = static-tearoff math::max
-  #C2 = instantiation math::max <core::int*>
+  #C2 = instantiation #C1 <core::int*>
 }

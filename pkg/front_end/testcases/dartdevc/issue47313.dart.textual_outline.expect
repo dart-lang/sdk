@@ -1,0 +1,5 @@
+class A<X> {}
+
+mixin M {}
+class C<X> = A<X> with M;
+main() {}

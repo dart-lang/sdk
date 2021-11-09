@@ -5,13 +5,11 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,8 +24,11 @@ void main() {
 @reflectiveTest
 class CompletionManagerTest extends DartCompletionContributorTest {
   @override
-  DartCompletionContributor createContributor() {
-    return ImportedReferenceContributor();
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) {
+    return ImportedReferenceContributor(request, builder);
   }
 
   Future<void> test_resolveDirectives() async {
@@ -49,23 +50,16 @@ part 'test.dart';
     await resolveFile('$testPackageLibPath/b.dart');
 
     // Build the request
-    var baseRequest = CompletionRequestImpl(
-        await session.getResolvedUnit(testFile) as ResolvedUnitResult,
-        completionOffset,
-        CompletionPerformance());
-    await baseRequest.performance.runRequestOperation((performance) async {
-      var requestCompleter = Completer<DartCompletionRequest>();
-      DartCompletionRequestImpl.from(
-              performance, baseRequest, DartdocDirectiveInfo())
-          .then((DartCompletionRequest request) {
-        requestCompleter.complete(request);
-      });
-      request = await performAnalysis(200, requestCompleter);
-    });
+    var resolvedUnit =
+        await session.getResolvedUnit(testFile) as ResolvedUnitResult;
+    request = DartCompletionRequest(
+      resolvedUnit: resolvedUnit,
+      offset: completionOffset,
+    );
 
-    var directives = request.target.unit.directives;
+    var directives = resolvedUnit.unit.directives;
 
-    var imports = request.libraryElement!.imports;
+    var imports = request.libraryElement.imports;
     expect(imports, hasLength(directives.length + 1));
 
     ImportElement importNamed(String expectedUri) {

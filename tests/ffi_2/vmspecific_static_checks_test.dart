@@ -38,6 +38,7 @@ void main() {
   testFromFunctionClosure();
   testFromFunctionTearOff();
   testFromFunctionAbstract();
+  testFromFunctionFunctionExceptionValueMustBeConst();
   testLookupFunctionGeneric();
   testLookupFunctionGeneric2();
   testLookupFunctionWrongNativeFunctionSignature();
@@ -274,6 +275,12 @@ void testFromFunctionTearOff() {
 void testFromFunctionAbstract() {
   Pointer.fromFunction<Function>(//# 76: compile-time error
       testFromFunctionAbstract); //# 76: compile-time error
+}
+
+void testFromFunctionFunctionExceptionValueMustBeConst() {
+  final notAConst = 1.1;
+  Pointer<NativeFunction<NativeDoubleUnOp>> p;
+  p = Pointer.fromFunction(myTimesThree, notAConst); //# 77: compile-time error
 }
 
 void testLookupFunctionGeneric() {
@@ -714,13 +721,16 @@ class TestStruct1405 extends Struct {
 void testLookupFunctionIsLeafMustBeConst() {
   bool notAConst = false;
   DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
-  l.lookupFunction<NativeDoubleUnOp, DoubleUnOp>("timesFour", isLeaf:notAConst); //# 1500: compile-time error
+  l.lookupFunction< //# 1500: compile-time error
+          NativeDoubleUnOp, //# 1500: compile-time error
+          DoubleUnOp>("timesFour", //# 1500: compile-time error
+      isLeaf: notAConst); //# 1500: compile-time error
 }
 
 void testAsFunctionIsLeafMustBeConst() {
   bool notAConst = false;
   Pointer<NativeFunction<Int8UnOp>> p = Pointer.fromAddress(1337);
-  IntUnOp f = p.asFunction(isLeaf:notAConst); //# 1501: compile-time error
+  IntUnOp f = p.asFunction(isLeaf: notAConst); //# 1501: compile-time error
 }
 
 typedef NativeTakesHandle = Void Function(Handle);
@@ -728,12 +738,16 @@ typedef TakesHandle = void Function(Object);
 
 void testLookupFunctionTakesHandle() {
   DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
-  l.lookupFunction<NativeTakesHandle, TakesHandle>("takesHandle", isLeaf:true); //# 1502: compile-time error
+  l.lookupFunction< //# 1502: compile-time error
+          NativeTakesHandle, //# 1502: compile-time error
+          TakesHandle>("takesHandle", //# 1502: compile-time error
+      isLeaf: true); //# 1502: compile-time error
 }
 
 void testAsFunctionTakesHandle() {
-  Pointer<NativeFunction<NativeTakesHandle>> p = Pointer.fromAddress(1337); //# 1503: compile-time error
-  TakesHandle f = p.asFunction(isLeaf:true); //# 1503: compile-time error
+  Pointer<NativeFunction<NativeTakesHandle>> p = //# 1503: compile-time error
+      Pointer.fromAddress(1337); //# 1503: compile-time error
+  TakesHandle f = p.asFunction(isLeaf: true); //# 1503: compile-time error
 }
 
 typedef NativeReturnsHandle = Handle Function();
@@ -741,12 +755,16 @@ typedef ReturnsHandle = Object Function();
 
 void testLookupFunctionReturnsHandle() {
   DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
-  l.lookupFunction<NativeReturnsHandle, ReturnsHandle>("returnsHandle", isLeaf:true); //# 1504: compile-time error
+  l.lookupFunction< //# 1504: compile-time error
+          NativeReturnsHandle, //# 1504: compile-time error
+          ReturnsHandle>("returnsHandle", //# 1504: compile-time error
+      isLeaf: true); //# 1504: compile-time error
 }
 
 void testAsFunctionReturnsHandle() {
-  Pointer<NativeFunction<NativeReturnsHandle>> p = Pointer.fromAddress(1337); //# 1505: compile-time error
-  ReturnsHandle f = p.asFunction(isLeaf:true); //# 1505: compile-time error
+  Pointer<NativeFunction<NativeReturnsHandle>> p = //# 1505: compile-time error
+      Pointer.fromAddress(1337); //# 1505: compile-time error
+  ReturnsHandle f = p.asFunction(isLeaf: true); //# 1505: compile-time error
 }
 
 @Packed(1)

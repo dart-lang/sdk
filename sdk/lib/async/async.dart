@@ -32,7 +32,7 @@
 /// Many methods in the Dart libraries return `Future`s when
 /// performing tasks. For example, when binding an `HttpServer`
 /// to a host and port, the `bind()` method returns a Future.
-/// ```dart
+/// ```dart import:io
 ///  HttpServer.bind('127.0.0.1', 4444)
 ///      .then((server) => print('${server.isBroadcast}'))
 ///      .catchError(print);
@@ -60,7 +60,7 @@
 /// the stream has finished.
 /// Further functionality is provided on [Stream], implemented by calling
 /// [Stream.listen] to get the actual data.
-/// ```dart
+/// ```dart import:io import:convert
 /// Stream<List<int>> stream = File('quotes.txt').openRead();
 /// stream.transform(utf8.decoder).forEach(print);
 /// ```
@@ -72,8 +72,8 @@
 ///
 /// Another common use of streams is for user-generated events
 /// in a web app: The following code listens for mouse clicks on a button.
-/// ```dart
-/// querySelector('#myButton').onClick.forEach((_) => print('Click.'));
+/// ```dart import:html
+/// querySelector('#myButton')!.onClick.forEach((_) => print('Click.'));
 /// ```
 /// ## Other resources
 ///

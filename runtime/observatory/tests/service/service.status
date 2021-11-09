@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 # Flaky failures
+async_generator_breakpoint_test: Pass, Slow # Uses --stacktrace-every=...
 dds_log_history_size_gigantic_test: Pass, Slow # Involves processing lots of logs
 field_script_test: Pass, RuntimeError
 get_allocation_samples_test: Pass, RuntimeError # Inconsistent stack trace
@@ -22,22 +23,20 @@ process_service_test: Pass, Fail # Issue 24344
 [ $compiler == dart2analyzer ]
 developer_extension_test: SkipByDesign
 
-# The _1 versions of this test can be slow due to stress testing flags.
-[ $mode == debug ]
-async_generator_breakpoint_test: Pass, Slow
-
 # Service protocol is not supported in product mode.
 [ $mode == product ]
 *: SkipByDesign
 
 [ $system == android ]
 string_escaping_test: Skip # Issue http://dartbug.com/42094
+uri_mappings_lookup_test: SkipByDesign # Relies on file paths in the SDK.
 
 [ $system == windows ]
 *: Slow
 async_generator_breakpoint_test: Skip # Issue 29145
 dev_fs_http_put_weird_char_test: Skip # Windows disallows carriage returns in paths
 dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
+uri_mappings_lookup_test: SkipByDesign # Relies on file paths in the SDK.
 
 [ $compiler == none && $runtime == vm ]
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047

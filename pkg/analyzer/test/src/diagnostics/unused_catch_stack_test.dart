@@ -15,9 +15,6 @@ main() {
 
 @reflectiveTest
 class UnusedCatchStackTest extends PubPackageResolutionTest {
-  @override
-  bool get enableUnusedLocalVariable => true;
-
   test_on_unusedStack() async {
     await assertErrorsInCode(r'''
 main() {

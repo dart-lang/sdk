@@ -12,8 +12,8 @@ import "package:expect/expect.dart";
 
 import 'dylib_utils.dart';
 
-// Reuse struct definitions.
-import 'function_structs_by_value_generated_test.dart';
+// Reuse compound definitions.
+import 'function_structs_by_value_generated_compounds.dart';
 
 void main() {
   testSizeOfC();

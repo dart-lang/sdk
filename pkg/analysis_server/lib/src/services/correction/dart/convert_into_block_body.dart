@@ -5,71 +5,104 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+
+import '../fix.dart';
 
 class ConvertIntoBlockBody extends CorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_BLOCK_BODY;
 
   @override
-  Future<void> compute(ChangeBuilder builder) async {
-    var body = getEnclosingFunctionBody();
-    // prepare expression body
-    if (body is! ExpressionFunctionBody || body.isGenerator) {
-      return;
-    }
+  FixKind get fixKind => DartFixKind.CONVERT_INTO_BLOCK_BODY;
 
+  @override
+  Future<void> compute(ChangeBuilder builder) async {
+    final body = getEnclosingFunctionBody();
+    if (body == null || body.isGenerator) return;
+
+    List<String>? codeLines;
+
+    if (body is ExpressionFunctionBody) {
+      codeLines = _getCodeForFunctionBody(body);
+    } else if (body is EmptyFunctionBody) {
+      codeLines = _getCodeForEmptyBody(body);
+    }
+    if (codeLines == null) return;
+
+    // prepare prefix
+    var prefix = utils.getNodePrefix(body.parent!);
+    var indent = utils.getIndent(1);
+    var sourceRange = range.endEnd(body.beginToken.previous!, body);
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(sourceRange, (builder) {
+        builder.write(' ');
+        if (body.isAsynchronous) {
+          builder.write('async ');
+        }
+        builder.write('{');
+        for (var line in codeLines!) {
+          builder.write('$eol$prefix$indent');
+          builder.write(line);
+        }
+        builder.selectHere();
+        builder.write('$eol$prefix}');
+      });
+    });
+  }
+
+  List<String>? _getCodeForEmptyBody(EmptyFunctionBody body) {
+    var functionElement = _getFunctionElement(body.parent);
+    if (functionElement == null) return null;
+
+    var lines = ['// TODO: implement ${functionElement.name}'];
+
+    var returnValueType = functionElement.returnType;
+    if (!returnValueType.isVoid) {
+      lines.add('throw UnimplementedError();');
+    }
+    return lines;
+  }
+
+  List<String>? _getCodeForFunctionBody(ExpressionFunctionBody body) {
     var returnValue = body.expression;
 
     // Return expressions can be quite large, e.g. Flutter build() methods.
     // It is surprising to see this Quick Assist deep in the function body.
     if (selectionOffset >= returnValue.offset) {
-      return;
-    }
-
-    DartType? getFunctionReturnType() {
-      var parent = body.parent;
-      if (parent is MethodDeclaration) {
-        return parent.declaredElement?.returnType;
-      } else if (parent is ConstructorDeclaration) {
-        return parent.declaredElement?.returnType;
-      } else if (parent is FunctionExpression) {
-        return parent.declaredElement?.returnType;
-      }
       return null;
     }
 
-    var functionReturnType = getFunctionReturnType();
-    if (functionReturnType == null) {
-      return;
-    }
+    var functionElement = _getFunctionElement(body.parent);
+    if (functionElement == null) return null;
+
     var returnValueType = returnValue.typeOrThrow;
     var returnValueCode = utils.getNodeText(returnValue);
-    // prepare prefix
-    var prefix = utils.getNodePrefix(body.parent!);
-    var indent = utils.getIndent(1);
+    var returnCode = '';
+    if (!returnValueType.isVoid &&
+        !returnValueType.isBottom &&
+        !functionElement.returnType.isVoid) {
+      returnCode = 'return ';
+    }
+    returnCode += '$returnValueCode;';
+    return [returnCode];
+  }
 
-    await builder.addDartFileEdit(file, (builder) {
-      builder.addReplacement(range.node(body), (builder) {
-        if (body.isAsynchronous) {
-          builder.write('async ');
-        }
-        builder.write('{$eol$prefix$indent');
-        if (!returnValueType.isVoid &&
-            !returnValueType.isBottom &&
-            !functionReturnType.isVoid) {
-          builder.write('return ');
-        }
-        builder.write(returnValueCode);
-        builder.write(';');
-        builder.selectHere();
-        builder.write('$eol$prefix}');
-      });
-    });
+  ExecutableElement? _getFunctionElement(AstNode? node) {
+    if (node is MethodDeclaration) {
+      return node.declaredElement;
+    } else if (node is ConstructorDeclaration) {
+      return node.declaredElement;
+    } else if (node is FunctionExpression) {
+      return node.declaredElement;
+    }
+    return null;
   }
 
   /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.

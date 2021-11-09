@@ -100,7 +100,7 @@ static method round4() → void {
   self::ByteStream x = new self::ByteStream::•(new self::_ControllerStream::•());
   self::Stream y = [@vm.direct-call.metadata=#lib::ByteStream.super_stream] [@vm.inferred-type.metadata=!] x.{self::ByteStream::super_stream}{self::Stream};
   self::Stream z = [@vm.direct-call.metadata=#lib::StreamView._stream] [@vm.inferred-type.metadata=!] x.{self::StreamView::_stream}{self::Stream};
-  if([@vm.direct-call.metadata=dart.core::Object.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] y =={core::Object::==}{(core::Object) → core::bool} z) {
+  if([@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] y =={core::Object::==}{(core::Object) → core::bool} z) {
     [@vm.direct-call.metadata=#lib::ByteStream.super_foobar2] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar2}(){((dynamic) →? void) → dynamic};
   }
 }

@@ -4,8 +4,6 @@
 
 // @dart = 2.9
 
-library dev_compiler.test.expression_compiler;
-
 import 'package:test/test.dart';
 import 'expression_compiler_e2e_suite.dart';
 
@@ -29,6 +27,12 @@ class C {
     // Breakpoint: constructorBP
     var nop;
   }
+
+  C.named(this.field): _field = 42;
+
+  C.redirecting(int x) : this(x, 99);
+
+  factory C.factory() => C(42, 0);
 
   int methodFieldAccess(int x) {
     // Breakpoint: methodBP
@@ -57,7 +61,300 @@ main() {
 }
 ''';
 
-void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
+/// Shared tests that require a language version greater than 2.12.
+///
+/// Tests that exercise language features introduced with 2.12 or after are
+/// valid here.
+// TODO(nshahan) Merge with [runAgnosticSharedTests] after we no longer need to
+// test support for evaluation in legacy (pre-null safety) code.
+void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
+  group('Correct null safety mode used', () {
+    var source = '''
+        const soundNullSafety = !(<Null>[] is List<int>);
+        main() {
+          // Breakpoint: bp
+          print('hello world');
+        }
+        ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('in original source compilation', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'soundNullSafety',
+          expectedResult: setup.soundNullSafety.toString());
+    });
+
+    test('in expression compilation', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: '!(<Null>[] is List<int>)',
+          expectedResult: setup.soundNullSafety.toString());
+    });
+  });
+
+  group('Expression compiler tests in method:', () {
+    var source = simpleClassSource;
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('tear off default constructor', () async {
+      await driver.check(
+          breakpointId: 'methodBP',
+          expression: 'C.new.runtimeType.toString()',
+          expectedResult: '(int, int) => C');
+    });
+
+    test('call default constructor tear off', () async {
+      await driver.check(
+          breakpointId: 'methodBP',
+          expression: '(C.new)(0, 0)',
+          expectedResult: 'test.C.new {Symbol(_unusedField): 4, '
+              'Symbol(C.field): 0, Symbol(_field): 0}');
+    });
+
+    test('tear off named constructor', () async {
+      await driver.check(
+          breakpointId: 'methodBP',
+          expression: 'C.named.runtimeType.toString()',
+          expectedResult: '(int) => C');
+    });
+
+    test('call named constructor tear off', () async {
+      await driver.check(
+          breakpointId: 'methodBP',
+          expression: '(C.named)(0)',
+          expectedResult: 'test.C.named {Symbol(_unusedField): 4, '
+              'Symbol(C.field): 0, Symbol(_field): 42}');
+    });
+
+    test('tear off redirecting constructor', () async {
+      await driver.check(
+          breakpointId: 'methodBP',
+          expression: 'C.redirecting.runtimeType.toString()',
+          expectedResult: '(int) => C');
+    });
+
+    test('call redirecting constructor tear off', () async {
+      await driver.check(
+          breakpointId: 'methodBP',
+          expression: '(C.redirecting)(0)',
+          expectedResult: 'test.C.redirecting { Symbol(_unusedField): 4, '
+              'Symbol(C.field): 0, Symbol(_field): 99}');
+    });
+
+    test('tear off factory constructor', () async {
+      await driver.check(
+          breakpointId: 'methodBP',
+          expression: 'C.factory.runtimeType.toString()',
+          expectedResult: '() => C');
+    });
+
+    test('call factory constructor tear off', () async {
+      await driver.check(
+          breakpointId: 'methodBP',
+          expression: '(C.factory)()',
+          expectedResult: 'test.C.new { Symbol(_unusedField): 4, '
+              'Symbol(C.field): 42, Symbol(_field): 0}');
+    });
+  });
+
+  group('Expression compiler tests in global function:', () {
+    var source = simpleClassSource;
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('tear off default constructor', () async {
+      await driver.check(
+          breakpointId: 'globalFunctionBP',
+          expression: 'C.new.runtimeType.toString()',
+          expectedResult: '(int, int) => C');
+    });
+
+    test('call default constructor tear off', () async {
+      await driver.check(
+          breakpointId: 'globalFunctionBP',
+          expression: '(C.new)(0, 0)',
+          expectedResult: 'test.C.new {Symbol(_unusedField): 4, '
+              'Symbol(C.field): 0, Symbol(_field): 0}');
+    });
+
+    test('tear off named constructor', () async {
+      await driver.check(
+          breakpointId: 'globalFunctionBP',
+          expression: 'C.named.runtimeType.toString()',
+          expectedResult: '(int) => C');
+    });
+
+    test('call named constructor tear off', () async {
+      await driver.check(
+          breakpointId: 'globalFunctionBP',
+          expression: '(C.named)(0)',
+          expectedResult: 'test.C.named {Symbol(_unusedField): 4, '
+              'Symbol(C.field): 0, Symbol(_field): 42}');
+    });
+
+    test('tear off redirecting constructor', () async {
+      await driver.check(
+          breakpointId: 'globalFunctionBP',
+          expression: 'C.redirecting.runtimeType.toString()',
+          expectedResult: '(int) => C');
+    });
+
+    test('call redirecting constructor tear off', () async {
+      await driver.check(
+          breakpointId: 'globalFunctionBP',
+          expression: '(C.redirecting)(0)',
+          expectedResult: 'test.C.redirecting { Symbol(_unusedField): 4, '
+              'Symbol(C.field): 0, Symbol(_field): 99}');
+    });
+
+    test('tear off factory constructor', () async {
+      await driver.check(
+          breakpointId: 'globalFunctionBP',
+          expression: 'C.factory.runtimeType.toString()',
+          expectedResult: '() => C');
+    });
+
+    test('call factory constructor tear off', () async {
+      await driver.check(
+          breakpointId: 'globalFunctionBP',
+          expression: '(C.factory)()',
+          expectedResult: 'test.C.new { Symbol(_unusedField): 4, '
+              'Symbol(C.field): 42, Symbol(_field): 0}');
+    });
+  });
+
+  group('Expression compiler tests in constructor:', () {
+    var source = simpleClassSource;
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('tear off default constructor', () async {
+      await driver.check(
+          breakpointId: 'constructorBP',
+          expression: 'C.new.runtimeType.toString()',
+          expectedResult: '(int, int) => C');
+    });
+
+    test('call default constructor tear off', () async {
+      await driver.check(
+          breakpointId: 'constructorBP',
+          expression: '(C.new)(0, 0)',
+          expectedResult: 'test.C.new {Symbol(_unusedField): 4, '
+              'Symbol(C.field): 0, Symbol(_field): 0}');
+    });
+
+    test('tear off named constructor', () async {
+      await driver.check(
+          breakpointId: 'constructorBP',
+          expression: 'C.named.runtimeType.toString()',
+          expectedResult: '(int) => C');
+    });
+
+    test('call named constructor tear off', () async {
+      await driver.check(
+          breakpointId: 'constructorBP',
+          expression: '(C.named)(0)',
+          expectedResult: 'test.C.named {Symbol(_unusedField): 4, '
+              'Symbol(C.field): 0, Symbol(_field): 42}');
+    });
+
+    test('tear off redirecting constructor', () async {
+      await driver.check(
+          breakpointId: 'constructorBP',
+          expression: 'C.redirecting.runtimeType.toString()',
+          expectedResult: '(int) => C');
+    });
+
+    test('call redirecting constructor tear off', () async {
+      await driver.check(
+          breakpointId: 'constructorBP',
+          expression: '(C.redirecting)(0)',
+          expectedResult: 'test.C.redirecting { Symbol(_unusedField): 4, '
+              'Symbol(C.field): 0, Symbol(_field): 99}');
+    });
+
+    test('tear off factory constructor', () async {
+      await driver.check(
+          breakpointId: 'constructorBP',
+          expression: 'C.factory.runtimeType.toString()',
+          expectedResult: '() => C');
+    });
+
+    test('call factory constructor tear off', () async {
+      await driver.check(
+          breakpointId: 'constructorBP',
+          expression: '(C.factory)()',
+          expectedResult: 'test.C.new { Symbol(_unusedField): 4, '
+              'Symbol(C.field): 42, Symbol(_field): 0}');
+    });
+  });
+}
+
+/// Shared tests that are valid in legacy (before 2.12) and are agnostic to
+/// changes in modern versions of Dart.
+///
+/// Tests that exercise language features introduced strictly before 2.12 are
+/// valid here.
+void runAgnosticSharedTests(SetupCompilerOptions setup, TestDriver driver) {
+  group('Correct null safety mode used', () {
+    var source = '''
+        const soundNullSafety = !(<Null>[] is List<int>);
+        main() {
+          // Breakpoint: bp
+          print('hello world');
+        }
+        ''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('in original source compilation', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: 'soundNullSafety',
+          expectedResult: setup.soundNullSafety.toString());
+    });
+
+    test('in expression compilation', () async {
+      await driver.check(
+          breakpointId: 'bp',
+          expression: '!(<Null>[] is List<int>)',
+          expectedResult: setup.soundNullSafety.toString());
+    });
+  });
+
   group('Expression compiler scope collection tests', () {
     var source = simpleClassSource;
 
@@ -223,7 +520,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'bp',
           expression: 'typo',
-          expectedError: "Undefined name \'typo\'");
+          expectedError: "Undefined name 'typo'");
     });
 
     test('local', () async {

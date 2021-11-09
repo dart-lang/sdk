@@ -1,27 +1,27 @@
 [
   {
     "type": "reference",
-    "name": "s1",
+    "name": "memory:sdk/tests/web/native/main.dart#step1",
     "import": "memory:sdk/tests/web/native/main.dart#step1"
   },
   {
     "type": "reference",
-    "name": "s2",
+    "name": "memory:sdk/tests/web/native/main.dart#step2",
     "import": "memory:sdk/tests/web/native/main.dart#step2"
   },
   {
     "type": "reference",
-    "name": "s3",
+    "name": "memory:sdk/tests/web/native/main.dart#step3",
     "import": "memory:sdk/tests/web/native/main.dart#step3"
   },
   {
     "type": "order",
-    "predecessor": "s1",
-    "successor": "s2"
+    "predecessor": "memory:sdk/tests/web/native/main.dart#step1",
+    "successor": "memory:sdk/tests/web/native/main.dart#step2"
   },
   {
     "type": "order",
-    "predecessor": "s2",
-    "successor": "s3"
+    "predecessor": "memory:sdk/tests/web/native/main.dart#step2",
+    "successor": "memory:sdk/tests/web/native/main.dart#step3"
   }
 ]

@@ -54,6 +54,113 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     return results;
   }
 
+  Future<void> test_annotation() async {
+    final content = '''
+    import 'other_file.dart' as other;
+
+    @a
+    @A()
+    @A.n()
+    @B(A())
+    @other.C()
+    @other.C.n()
+    void foo() {}
+
+    class A {
+      const A();
+      const A.n();
+    }
+
+    const a = A();
+
+    class B {
+      final A a;
+      const B(this.a);
+    }
+    ''';
+
+    final otherContent = '''
+    class C {
+      const C();
+      const C.n();
+    }
+    ''';
+
+    final expectedStart = [
+      _Token('import', SemanticTokenTypes.keyword),
+      _Token("'other_file.dart'", SemanticTokenTypes.string),
+      _Token('as', SemanticTokenTypes.keyword),
+      _Token('other', SemanticTokenTypes.variable,
+          [CustomSemanticTokenModifiers.importPrefix]),
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('a', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('A', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('A', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('.', CustomSemanticTokenTypes.annotation),
+      _Token('n', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+        CustomSemanticTokenModifiers.annotation
+      ]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('B', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token('A', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.constructor]),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('other', SemanticTokenTypes.variable,
+          [CustomSemanticTokenModifiers.importPrefix]),
+      _Token('.', CustomSemanticTokenTypes.annotation),
+      _Token('C', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('@', CustomSemanticTokenTypes.annotation),
+      _Token('other', SemanticTokenTypes.variable,
+          [CustomSemanticTokenModifiers.importPrefix]),
+      _Token('.', CustomSemanticTokenTypes.annotation),
+      _Token('C', SemanticTokenTypes.class_,
+          [CustomSemanticTokenModifiers.annotation]),
+      _Token('.', CustomSemanticTokenTypes.annotation),
+      _Token('n', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.constructor,
+        CustomSemanticTokenModifiers.annotation
+      ]),
+      _Token('(', CustomSemanticTokenTypes.annotation),
+      _Token(')', CustomSemanticTokenTypes.annotation),
+      _Token('void', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.void_]),
+      _Token('foo', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static])
+    ];
+
+    final otherFilePath = join(projectFolderPath, 'lib', 'other_file.dart');
+    final otherFileUri = Uri.file(otherFilePath);
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await openFile(otherFileUri, withoutMarkers(otherContent));
+
+    final tokens = await getSemanticTokens(mainFileUri);
+    final decoded = decodeSemanticTokens(content, tokens);
+    expect(
+      // Only check the first expectedStart.length items since the test code
+      // is mostly unrelated to the annotations.
+      decoded.sublist(0, expectedStart.length),
+      equals(expectedStart),
+    );
+  }
+
   Future<void> test_class() async {
     final content = '''
     /// class docs
@@ -110,26 +217,26 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('MyClass', SemanticTokenTypes.class_,
           [CustomSemanticTokenModifiers.constructor]),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('a', SemanticTokenTypes.variable,
+      _Token('a', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token('MyClass', SemanticTokenTypes.class_,
           [CustomSemanticTokenModifiers.constructor]),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('b', SemanticTokenTypes.variable,
+      _Token('b', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token('MyClass', SemanticTokenTypes.class_,
           [CustomSemanticTokenModifiers.constructor]),
       _Token('named', SemanticTokenTypes.method,
           [CustomSemanticTokenModifiers.constructor]),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('c', SemanticTokenTypes.variable,
+      _Token('c', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token('MyClass', SemanticTokenTypes.class_,
           [CustomSemanticTokenModifiers.constructor]),
       _Token('factory', SemanticTokenTypes.method,
           [CustomSemanticTokenModifiers.constructor]),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('d', SemanticTokenTypes.variable,
+      _Token('d', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token('MyClass', SemanticTokenTypes.class_),
       _Token('named', SemanticTokenTypes.method,
@@ -166,14 +273,14 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('/// field docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('myField', SemanticTokenTypes.variable,
+      _Token('myField', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token("'FieldVal'", SemanticTokenTypes.string),
       _Token('/// static field docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('static', SemanticTokenTypes.keyword),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('myStaticField', SemanticTokenTypes.variable,
+      _Token('myStaticField', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
       _Token("'StaticFieldVal'", SemanticTokenTypes.string),
       _Token('main', SemanticTokenTypes.function,
@@ -305,7 +412,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('/// method docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('@', CustomSemanticTokenTypes.annotation),
-      _Token('override', SemanticTokenTypes.property),
+      _Token('override', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.annotation]),
       _Token('void', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.void_]),
       _Token('myMethod', SemanticTokenTypes.method,
@@ -371,7 +479,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('class', SemanticTokenTypes.keyword),
       _Token('MyClass', SemanticTokenTypes.class_),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('aaa', SemanticTokenTypes.variable,
+      _Token('aaa', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token('/// before [', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
@@ -479,7 +587,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
         plugin.HighlightRegion(plugin.HighlightRegionType.CLASS, 0, 5),
         plugin.HighlightRegion(plugin.HighlightRegionType.LITERAL_STRING, 6, 6),
         plugin.HighlightRegion(
-            plugin.HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION, 13, 8),
+            plugin.HighlightRegionType.LOCAL_VARIABLE_DECLARATION, 13, 8),
       ],
     );
     configureTestPlugin(notification: pluginResult.toNotification());
@@ -505,7 +613,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     ''';
 
     // Expect the correct tokens for the valid code before/after but don't
-    // check the the tokens for the invalid code as there are no concrete
+    // check the tokens for the invalid code as there are no concrete
     // expectations for them.
     final expected1 = [
       _Token('/// class docs', SemanticTokenTypes.comment,
@@ -579,11 +687,11 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_lastLine_code() async {
-    final content = 'String var;';
+    final content = 'String bar;';
 
     final expected = [
       _Token('String', SemanticTokenTypes.class_),
-      _Token('var', SemanticTokenTypes.variable,
+      _Token('bar', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
     ];
 
@@ -705,7 +813,7 @@ class MyTestClass {
         _Token('/// test', SemanticTokenTypes.comment,
             [SemanticTokenModifiers.documentation]),
         _Token('bool', SemanticTokenTypes.class_),
-        _Token('test$i', SemanticTokenTypes.variable,
+        _Token('test$i', SemanticTokenTypes.property,
             [SemanticTokenModifiers.declaration]),
         _Token('false', CustomSemanticTokenTypes.boolean),
       ],
@@ -927,12 +1035,12 @@ multi
       _Token('c', SemanticTokenTypes.parameter),
 
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('string1', SemanticTokenTypes.variable,
+      _Token('string1', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token("'test'", SemanticTokenTypes.string),
 
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('string2', SemanticTokenTypes.variable,
+      _Token('string2', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token(r"'test1 ", SemanticTokenTypes.string),
       _Token(r'$', CustomSemanticTokenTypes.source,
@@ -954,12 +1062,12 @@ multi
 
       // string3 is raw and should be treated as a single string.
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('string3', SemanticTokenTypes.variable,
+      _Token('string3', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token(r"r'$string1 ${string1.length}'", SemanticTokenTypes.string),
       _Token('const', SemanticTokenTypes.keyword),
 
-      _Token('string4', SemanticTokenTypes.variable,
+      _Token('string4', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token("'''\n", SemanticTokenTypes.string),
       _Token('multi\n', SemanticTokenTypes.string),
@@ -987,7 +1095,7 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
 
     final expected = [
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('string1', SemanticTokenTypes.variable,
+      _Token('string1', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token("'it", SemanticTokenTypes.string),
       _Token(r"\'", SemanticTokenTypes.string,
@@ -999,7 +1107,7 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
           [CustomSemanticTokenModifiers.escape]),
       _Token(r"'", SemanticTokenTypes.string),
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('string2', SemanticTokenTypes.variable,
+      _Token('string2', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token("'hex ", SemanticTokenTypes.string),
       _Token(r'\x12', SemanticTokenTypes.string,
@@ -1009,7 +1117,7 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
       // The 99 is not part of the escape
       _Token("99'", SemanticTokenTypes.string),
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('string3', SemanticTokenTypes.variable,
+      _Token('string3', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token("'unicode ", SemanticTokenTypes.string),
       _Token(r'\u1234', SemanticTokenTypes.string,
@@ -1044,13 +1152,20 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
     bool get abc => true;
 
     final funcTearOff = func;
+
+    void main() {
+      strings;
+      func;
+      abc;
+      funcTearOff;
+    }
     ''';
 
     final expected = [
       _Token('/// strings docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('const', SemanticTokenTypes.keyword),
-      _Token('strings', SemanticTokenTypes.variable,
+      _Token('strings', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token('String', SemanticTokenTypes.class_),
       _Token('"test"', SemanticTokenTypes.string),
@@ -1074,9 +1189,17 @@ const string3 = 'unicode \u1234\u123499\u{123456}\u{12345699}';
           [SemanticTokenModifiers.declaration]),
       _Token('true', CustomSemanticTokenTypes.boolean),
       _Token('final', SemanticTokenTypes.keyword),
-      _Token('funcTearOff', SemanticTokenTypes.variable,
+      _Token('funcTearOff', SemanticTokenTypes.property,
           [SemanticTokenModifiers.declaration]),
       _Token('func', SemanticTokenTypes.function),
+      _Token('void', SemanticTokenTypes.keyword,
+          [CustomSemanticTokenModifiers.void_]),
+      _Token('main', SemanticTokenTypes.function,
+          [SemanticTokenModifiers.declaration, SemanticTokenModifiers.static]),
+      _Token('strings', SemanticTokenTypes.property),
+      _Token('func', SemanticTokenTypes.function),
+      _Token('abc', SemanticTokenTypes.property),
+      _Token('funcTearOff', SemanticTokenTypes.property),
     ];
 
     await initialize();

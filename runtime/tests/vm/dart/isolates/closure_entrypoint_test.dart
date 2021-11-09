@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups --no-enable-fast-object-copy
-// VMOptions=--enable-isolate-groups --enable-fast-object-copy
-// VMOptions=--enable-isolate-groups --no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation
-// VMOptions=--enable-isolate-groups --enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation
+// VMOptions=--no-enable-fast-object-copy
+// VMOptions=--enable-fast-object-copy
+// VMOptions=--no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation
+// VMOptions=--enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation
 
 // The tests in this file will only succeed when isolate groups are enabled
 // (hence the VMOptions above).

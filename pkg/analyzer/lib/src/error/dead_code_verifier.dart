@@ -454,7 +454,7 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
 /// When an unreachable node is found, and [_firstDeadNode] is `null`, we
 /// set [_firstDeadNode], so start a new dead nodes interval. The dead code
 /// interval ends when [flowEnd] is invoked with a node that is the start
-/// node, or contains it. So, we end the the end of the covering control flow.
+/// node, or contains it. So, we end the end of the covering control flow.
 class NullSafetyDeadCodeVerifier {
   final TypeSystemImpl _typeSystem;
   final ErrorReporter _errorReporter;

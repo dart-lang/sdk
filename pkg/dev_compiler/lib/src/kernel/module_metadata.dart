@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-/// Module metadata format version
+/// Module metadata format version.
 ///
 /// Module reader always creates the current version but is able to read
 /// metadata files with later versions as long as the changes are backward
@@ -22,10 +20,10 @@ class ModuleMetadataVersion {
     this.patchVersion,
   );
 
-  /// Current metadata version
+  /// The current metadata version.
   ///
-  /// Version follows simple semantic versioning format 'major.minor.patch'
-  /// See https://semver.org
+  /// Version follows simple semantic versioning format 'major.minor.patch'.
+  /// See: https://semver.org
   ///
   /// TODO(annagrin): create metadata package, make version the same as the
   /// metadata package version, automate updating with the package update
@@ -34,7 +32,7 @@ class ModuleMetadataVersion {
   /// Current metadata version created by the reader
   String get version => '$majorVersion.$minorVersion.$patchVersion';
 
-  /// Is this metadata version compatible with the given version
+  /// True if this metadata version is compatible with [version].
   ///
   /// The minor and patch version changes never remove any fields that current
   /// version supports, so the reader can create current metadata version from
@@ -55,28 +53,27 @@ class ModuleMetadataVersion {
   }
 }
 
-/// Library metadata
+/// Metadata used by the debugger to describe a library.
 ///
-/// Represents library metadata used in the debugger,
-/// supports reading from and writing to json
+/// Supports reading from and writing to json.
 /// See: https://goto.google.com/dart-web-debugger-metadata
 class LibraryMetadata {
   /// Library name as defined in pubspec.yaml
   final String name;
 
-  /// Library importUri
+  /// URI used to import the library.
   ///
-  /// Example package:path/path.dart
+  /// Example: package:path/path.dart
   final String importUri;
 
-  /// Library fileUri
+  /// File URI for the library.
   ///
-  /// Example file:///path/to/path/path.dart
+  /// Example: file:///path/to/path/path.dart
   final String fileUri;
 
-  /// All file uris from the library
+  /// All file URIs (include part files) from the library.
   ///
-  /// Can be relative paths to the directory of the fileUri
+  /// Can be relative paths to the directory of the fileUri.
   final List<String> partUris;
 
   LibraryMetadata(this.name, this.importUri, this.fileUri, this.partUris);
@@ -98,37 +95,35 @@ class LibraryMetadata {
   }
 }
 
-/// Module metadata
+/// Metadata used by the debugger to describe a module.
 ///
-/// Represents module metadata used in the debugger,
-/// supports reading from and writing to json
+/// Supports reading from and writing to json.
 /// See: https://goto.google.com/dart-web-debugger-metadata
 class ModuleMetadata {
-  /// Metadata format version
-  String version;
+  /// The version of this metadata.
+  final String version;
 
-  /// Module name
+  /// Name of the js module created by the compiler.
   ///
-  /// Used as a name of the js module created by the compiler and
-  /// as key to store and load modules in the debugger and the browser
+  /// Used as a key to store and load modules in the debugger and the browser.
   final String name;
 
-  /// Name of the function enclosing the module
+  /// Name of the function enclosing the module.
   ///
-  /// Used by debugger to determine the top dart scope
+  /// Used by debugger to determine the top dart scope.
   final String closureName;
 
-  /// Source map uri
+  /// URI of the source map for this module.
   final String sourceMapUri;
 
-  /// Module uri
+  /// URI of the module.
   final String moduleUri;
 
-  /// The uri where DDC wrote a full .dill file for this module.
+  /// The URI where DDC wrote a full .dill file for this module.
   ///
-  /// Can be `null` if the module was compiled without the option to output the
-  /// .dill fle.
-  final String fullDillUri;
+  /// Will be `null` when the module was compiled without the option to output
+  /// the .dill fle.
+  final String? fullDillUri;
 
   final Map<String, LibraryMetadata> libraries = {};
 
@@ -138,22 +133,21 @@ class ModuleMetadata {
 
   ModuleMetadata(this.name, this.closureName, this.sourceMapUri, this.moduleUri,
       this.fullDillUri, this.soundNullSafety,
-      {this.version}) {
-    version ??= ModuleMetadataVersion.current.version;
-  }
+      {String? version})
+      : version = version ??= ModuleMetadataVersion.current.version;
 
-  /// Add [library] to metadata
+  /// Add [library] to this metadata.
   ///
-  /// Used for filling the metadata in the compiler or for reading from
-  /// stored metadata files.
+  /// Used for filling the metadata in the compiler or for reading from stored
+  /// metadata files.
   void addLibrary(LibraryMetadata library) {
     if (!libraries.containsKey(library.importUri)) {
       libraries[library.importUri] = library;
     } else {
-      throw ('Metadata creation error: '
+      throw 'Metadata creation error: '
           'Cannot add library $library with uri ${library.importUri}: '
           'another library "${libraries[library.importUri]}" is found '
-          'with the same uri');
+          'with the same uri';
     }
   }
 
@@ -165,9 +159,8 @@ class ModuleMetadata {
         moduleUri = json['moduleUri'] as String,
         fullDillUri = json['fullDillUri'] as String,
         soundNullSafety = json['soundNullSafety'] as bool {
-    var fileVersion = json['version'] as String;
     if (!ModuleMetadataVersion.current.isCompatibleWith(version)) {
-      throw Exception('Unsupported metadata version $fileVersion');
+      throw Exception('Unsupported metadata version $version');
     }
 
     for (var l in json['libraries'] as List<dynamic>) {

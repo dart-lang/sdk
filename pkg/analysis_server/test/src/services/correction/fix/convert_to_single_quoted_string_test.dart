@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -12,6 +13,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToSingleQuotedStringBulkTest);
+    defineReflectiveTests(ConvertToSingleQuotedStringInFileTest);
     defineReflectiveTests(ConvertToSingleQuotedStringTest);
   });
 }
@@ -29,6 +31,27 @@ void f() {
 }
 ''');
     await assertHasFix('''
+void f() {
+  print('abc');
+  print('e' + 'f' + 'g');
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ConvertToSingleQuotedStringInFileTest extends FixInFileProcessorTest {
+  Future<void> test_File() async {
+    createAnalysisOptionsFile(lints: [LintNames.prefer_single_quotes]);
+    await resolveTestCode(r'''
+void f() {
+  print("abc");
+  print("e" + "f" + "g");
+}
+''');
+    var fixes = await getFixesForFirstError();
+    expect(fixes, hasLength(1));
+    assertProduces(fixes.first, r'''
 void f() {
   print('abc');
   print('e' + 'f' + 'g');

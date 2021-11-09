@@ -2,14 +2,18 @@
 
 ### Language
 
-- **[Constructor tearoffs][]**: **BETA PREVIEW**
+The following features are new in the Dart 2.15 [language version][]. To use
+them, you must set the lower bound on the SDK constraint for your package to
+2.15 or greater (`sdk: '>=2.15.0 <3.0.0'`).
 
-  Previous Dart versions allowed a method on an instance to be passed as a
-  closure, and similarly for static methods. This is commonly referred to as
-  "closurizing" or "tearing off" a method. Constructors were not previously
-  eligible for closurization, forcing users to explicitly write wrapper
-  functions when using constructors as first class functions, as in the calls to
-  `List.map` in the following example:
+[language version]: https://dart.dev/guides/language/evolution
+
+- **[Constructor tear-offs][]**: Previous Dart versions allowed a method on an
+  instance to be passed as a closure, and similarly for static methods. This is
+  commonly referred to as "closurizing" or "tearing off" a method. Constructors
+  were not previously eligible for closurization, forcing users to explicitly
+  write wrapper functions when using constructors as first class functions, as
+  in the calls to `map()` in the following example:
 
   ```dart
   class A {
@@ -55,10 +59,10 @@
   ```
 
   Constructors for generic classes may be torn off as generic functions, or
-  instantiated at the tear off site. So in the following code, the tear off
+  instantiated at the tear-off site. So in the following code, the tear-off
   `G.new` used to initialize the variable `f` produces a generic function which
   may be used to produce an instance of `G<T>` for any type `T` provided when
-  `f` is called. The tear off `G<String>.new` used to initialize the variable
+  `f` is called. The tear-off `G<String>.new` used to initialize the variable
   `g` on the other hand produces a non-generic function which may only be used
   to produce instances of type `G<String>`.
 
@@ -76,27 +80,14 @@
   }
   ```
 
-  The new constructor tearoff feature is currently in **BETA PREVIEW**. The
-  feature is enabled in beta releases only, and is still subject to breaking
-  changes. It is not fully supported by all tools and there may be known issues
-  with the tool support. Feedback on the feature is welcome, but it is not
-  recommended that production code use the feature until it has been released in
-  a stable version.
+[constructor tear-offs]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/constructor-tearoffs/feature-specification.md
 
-  The new constructor tearoff feature is only available as part of the 2.15
-  [language version](https://dart.dev/guides/language/evolution). To use this
-  feature, you must set the lower bound on the sdk constraint for your package
-  to 2.15 or greater (if using a beta preview release, an sdk constraint of
-  `>=2.15.0-0` must be used).
-
-- **[Generic type literals][Explicit instantiation]**: **BETA PREVIEW**
-
-  Previous Dart versions allowed class names to be used as type literals. So
-  for example,`int` may be used as an expression, producing a value of type
-  `Type`. Generic classes (e.g. `List`) could be referred to by name as an
-  expression, but no type arguments could be provided and so only the `dynamic`
-  instantiation could be produced directly as an expression without using
-  indirect methods:
+- **[Generic type literals][explicit instantiation]**: Previous Dart versions
+  allowed class names to be used as type literals. So for example,`int` may be
+  used as an expression, producing a value of type `Type`. Generic classes (e.g.
+  `List`) could be referred to by name as an expression, but no type arguments
+  could be provided and so only the `dynamic` instantiation could be produced
+  directly as an expression without using indirect methods:
 
   ```dart
   // Workaround to capture generic type literals.
@@ -121,24 +112,9 @@
   }
   ```
 
-  The new generic type literal feature is currently in **BETA PREVIEW**. The
-  feature is enabled in beta releases only, and is still subject to breaking
-  changes. It is not fully supported by all tools and there may be known issues
-  with the tool support. Feedback on the feature is welcome, but it is not
-  recommended that production code use the feature until it has been released in
-  a stable version.
-
-  Generic type literals are only available as part of the 2.15 [language
-  version](https://dart.dev/guides/language/evolution). To use this feature, you
-  must set the lower bound on the sdk constraint for your package to 2.15 or
-  greater (if using a beta preview release, an sdk constraint of
-  `>=2.15.0-0` must be used).
-
-- **[Explicit generic method instantiations][Explicit instantiation]**: **BETA
-    PREVIEW**
-
-  Previous Dart versions allowed generic methods to be implicitly specialized
-  (or "instantiated") to non-generic versions when assigned to a location with a
+- **[Explicit generic method instantiations][explicit instantiation]**: Previous
+  Dart versions allowed generic methods to be implicitly specialized (or
+  "instantiated") to non-generic versions when assigned to a location with a
   compatible monomorphic type. Example:
 
   ```dart
@@ -178,24 +154,52 @@
   }
   ```
 
-  The new generic method instantation feature is currently in **BETA PREVIEW**.
-  The feature is enabled in beta releases only, and is still subject to breaking
-  changes. It is not fully supported by all tools and there may be known issues
-  with the tool support. Feedback on the feature is welcome, but it is not
-  recommended that production code use the feature until it has been released in
-  a stable version.
+[explicit instantiation]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/constructor-tearoffs/feature-specification.md#explicitly-instantiated-classes-and-functions
 
-  Explicit generic method instantiations are only available as part of the 2.15
-  [language version](https://dart.dev/guides/language/evolution). To use this
-  feature, you must set the lower bound on the sdk constraint for your package
-  to 2.15 or greater (if using a beta preview release, an sdk constraint of
-  `>=2.15.0-0` must be used).
+- **[Generic instantiation of function objects][object instantiation]**: Generic
+  function instantiation was previously restricted to function declarations. For
+  example, as soon as a function had already been torn off, it could not be
+  instantiated:
 
-  [Constructor tearoffs]:
-        https://github.com/dart-lang/language/blob/master/accepted/future-releases/constructor-tearoffs/feature-specification.md
+  ```dart
+  X id<X>(X x) => x;
 
-  [Explicit instantiation]:
-        https://github.com/dart-lang/language/blob/master/accepted/future-releases/constructor-tearoffs/feature-specification.md#explicitly-instantiated-classes-and-functions
+  void main() {
+    var fo = id; // Tear off `id`, creating a function object.
+    var c1 = fo<int>; // Compile-time error: can't instantiate `fo`.
+    int Function(int) c2 = fo; // Same compile-time error.
+    // Constants are treated the same.
+  }
+  ```
+
+  New in Dart 2.15, this restriction has been lifted, and it is now possible
+  to obtain a generic instantiation of an existing function object, both
+  explicitly and implicitly (again, this works the same for non-constants):
+
+  ```dart
+  X id<X>(X x) => x;
+  X other<X>(X x) => throw x;
+
+  void main() {
+    const fo = id; // Tear off `id`, creating a function object.
+
+    // Generic function instantiation on `fo` is no longer an error.
+    const c1 = fo<int>; // OK.
+    const int Function(int) c2 = fo; // OK.
+
+    // This also generalizes function instantiation because we can,
+    // e.g., use non-trivial expressions and go via a constructor.
+    const c3 = A(true); // OK.
+  }
+
+  class A {
+    final int Function(int) x;
+    // `(...)<T>` is now allowed, also in a `const` constructor.
+    const A(bool b): x = (b ? id : other)<int>;
+  }
+  ```
+
+[Object instantiation]: https://github.com/dart-lang/language/pull/1812
 
 - Annotations on type parameters of classes can no longer refer to class members
   without a prefix.  For example, this used to be permitted:
@@ -224,9 +228,9 @@
   f(int? i) {
     var iIsNull = i == null;
     if (!iIsNull) {
-      print(i + 1); // OK, because `i` is known to be non-null
+      print(i + 1); // OK, because `i` is known to be non-null.
     }
-  }<>
+  }
   ```
 
   Previously, the above program had a compile-time error because type promotion
@@ -235,7 +239,7 @@
   lacked an explicit type.
 
   To avoid causing problems for packages that are intended to work with older
-  versions of Dart, the fix only takes effect when the "constructor tearoffs"
+  versions of Dart, the fix only takes effect when the "constructor tear-offs"
   language feature is enabled.
 
 [#1785]: https://github.com/dart-lang/language/issues/1785
@@ -266,6 +270,18 @@
   instance variable, and it brings the implementation behavior in line with
   the specification in all other cases.
 
+- **Function object canonicalization and equality**: Several corner cases in the
+  area of function object canonicalization and function object equality have
+  been updated, such that all tools behave in the same way, and the behavior
+  matches the specification.
+
+  In particular, function objects are now equal when they are obtained by
+  generic instantiation from the same function with the same actual type
+  arguments, even when that type argument is not known at compile time.
+  When the expressions are constant then said function objects are identical.
+  Constant expressions are treated as such even when they do not occur in a
+  constant context (e.g., `var f = top;`).
+
 ### Core libraries
 
 #### `dart:async`
@@ -280,13 +296,52 @@
 - When a script is `dart run` it will always be precompiled, but with
   incremental precompilation for following runs.
 
-### `dart:core`
+#### `dart:core`
 
 - Add extension `name` getter on enum values.
 - Add `Enum.compareByIndex` helper function for comparing enum values by index.
 - Add `Enum.compareByName` helper function for comparing enum values by name.
 - Add extension methods on `Iterable<T extends Enum>`, intended for
   `SomeEnumType.values` lists, to look up values by name.
+- Deprecate `IntegerDivisionByZeroException`.
+  Makes the class also implement `Error`. Code throwing the exception will be
+  migrated to throwing an `Error` instead until the class is unused and
+  ready to be removed.
+  Code catching the class should move to catching `Error` instead
+  (or, for integers, check first for whether it's dividing by zero).
+- Add `Error.throwWithStackTrace` which can `throw` an
+  error with an existing stack trace, instead of creating
+  a new stack trace.
+
+#### `dart:io`
+
+- **Breaking Change** [#46875](https://github.com/dart-lang/sdk/issues/46875):
+  The `SecurityContext` class in `dart:io` has been updated to set the minimum
+  TLS protocol version to TLS1_2_VERSION (1.2) instead of TLS1_VERSION.
+- Add `RawSocket.sendMessage`, `RawSocket.receiveMessage` that allow passing of
+  file handle references via Unix domain sockets.
+
+#### `dart:js_util`
+
+- The `js_util` methods `setProperty`, `callMethod`, and `callConstructor` have
+  been optimized to remove checks on arguments when the checks can be elided.
+  Also, those methods, along with `getProperty` and `newObject`, now support a
+  generic type argument to specify a return type. These two changes make simple
+  `js_util` usage, like reading and writing primitive properties or calling
+  methods with simple arguments, have zero overhead.
+
+#### `dart:web_sql`
+
+- **Breaking Change** [#46316](https://github.com/dart-lang/sdk/issues/46316):
+  The WebSQL standard was abandoned more than 10
+  years ago and is not supported by many browsers. This release completely
+  deletes the `dart:web_sql` library.
+
+#### `dart:html`
+
+- **Breaking Change** [#46316](https://github.com/dart-lang/sdk/issues/46316):
+  Related to the removal of `dart:web_sql` (see above), the
+  `window.openDatabase` has been removed as well.
 
 ### Tools
 
@@ -296,6 +351,12 @@
   removed as previously announced. Its replacements are the
   `dart compile exe` and `dart compile aot-snapshot` commands, which offer the
   same functionality.
+
+- **Breaking Change**: The standalone `dartfmt` tool has been removed as
+  previously announced. Its replacement is the `dart format` command.
+
+  Note that `dart format` has [a different set of options and
+  defaults][dartfmt cli] than `dartfmt`.
 
 #### Dart VM
 
@@ -330,7 +391,14 @@
 
 #### Linter
 
-Updated the Linter to `1.12.0`, which includes changes that
+Updated the Linter to `1.14.0`, which includes changes that
+- fix `omit_local_variable_types` to not flag a local type that is
+  required for inference.
+- allow `while (true) { ... }` in `literal_only_boolean_expressions`.
+- fix `file_names` to report at the start of the file (not the entire
+  compilation unit).
+- fix `prefer_collection_literals` named typed parameter false positives.
+- improve control flow analysis for `use_build_context_synchronously`.
 - update `avoid_print` to allow `kDebugMode`-wrapped print calls.
 - fix handling of initializing formals in `prefer_final_parameters`.
 - fix `unnecessary_parenthesis` false positive with function expressions.
@@ -367,7 +435,11 @@ Updated the Linter to `1.12.0`, which includes changes that
 
 ### Pub
 
-- Adds support for token-based authorization to third party package-repositories
+- If you have analytics enabled `dart pub get` will send
+  [usage metrics](https://github.com/dart-lang/pub/blob/0035a40f25d027130c0314571da53ffafc6d973b/lib/src/solver/result.dart#L131-L175)
+  for packages from pub.dev, intended for popularity analysis.
+
+- Adds support for token-based authorization to third-party package-repositories
   with the new command `dart pub token`.
 - Credentials are no longer stored in the pub-cache, but in a platform dependent
   config directory:
@@ -375,6 +447,35 @@ Updated the Linter to `1.12.0`, which includes changes that
     is defined, otherwise `$HOME/.config/dart/pub-credentials.json`
   * On Mac OS: `$HOME/Library/Application Support/dart/pub-credentials.json`
   * On Windows: `%APPDATA%/dart/pub-credentials.json`
+- The syntax for dependencies hosted at a third-party package repository has
+  been simplified. Before you would need to write:
+
+```
+dependencies:
+  colorizer:
+    hosted:
+      name: colorizer
+      url: 'https://custom-pub-server.com'
+    version: ^1.2.3
+environment:
+  sdk: '>=2.14.0 < 3.0.0'
+```
+
+Now you can write:
+
+```
+dependencies:
+  colorizer:
+    hosted: 'https://custom-pub-server.com'
+    version: ^1.2.3
+environment:
+  sdk: '>=2.15.0 < 3.0.0'
+```
+
+This feature requires
+[language-version](https://dart.dev/guides/language/evolution#language-versioning)
+2.15 or later, e.g. the `pubspec.yaml` should have an SDK constraint of
+`>=2.15 <3.0.0`.
 
 - Detect potential leaks in `dart pub publish`.
   When publishing, pub will examine your files for potential secret keys, and
@@ -387,6 +488,38 @@ Updated the Linter to `1.12.0`, which includes changes that
 - New flag `--example` to the commands
   `dart pub get/upgrade/downgrade/add/remove` that will result in the `example/`
   folder dependencies to be updated after operating in the current directory.
+
+### Other libraries
+
+#### `package:js`
+
+- Extensions on JS interop or native `dart:html` classes can now declare
+  members as `external`. These members are equivalent to regular extension
+  members that use `js_util` to expose the underlying JavaScript.
+
+## 2.14.4 - 2021-10-14
+
+This is a patch release that fixes:
+
+- a memory leak of analyzer plugins (issue [flutter/flutter#90868][]).
+- the Dart VM sometimes loading expired certificates on Windows (issues
+  [#46370][] and [#47420][]).
+
+[flutter/flutter#90868]: https://github.com/flutter/flutter/issues/90868
+[#46370]: https://github.com/dart-lang/sdk/issues/46370
+[#47420]: https://github.com/dart-lang/sdk/issues/47420
+
+## 2.14.3 - 2021-09-30
+
+This is a patch release that fixes:
+
+- a code completion performance regression (issue
+  [flutter/flutter-intellij#5761][]).
+- debug information emitted by the Dart VM (issue [#47289][]).
+
+[flutter/flutter-intellij#5761]:
+  https://github.com/flutter/flutter-intellij/issues/5761
+[#47289]: https://github.com/dart-lang/sdk/issues/47289
 
 ## 2.14.2 - 2021-09-16
 
@@ -482,6 +615,7 @@ This is a patch release that fixes:
 
 - The `Symbol` constructor now accepts any string as argument. Symbols are equal
   if they were created from the same string.
+
 
 #### `dart:ffi`
 
@@ -933,6 +1067,9 @@ This is a patch release that fixes:
 - Add `debugName` positional parameter to `ReceivePort` and `RawReceivePort`
   constructors, a name which can be associated with the port and displayed in
   tooling.
+- Introduce `Isolate.exit([port, message])` which terminates current isolate
+  and, if `port` is specified, as a last action sends out the `message` out to
+  that `port`.
 
 #### `dart:html`
 
@@ -1124,7 +1261,7 @@ Updated the Linter to `0.1.129`, which includes:
   and a corresponding `dart pub remove` that removes dependencies.
 
 - New option `dart pub upgrade --major-versions` will update constraints in your
-  `pubspec.yaml` to match the the _resolvable_ column reported in
+  `pubspec.yaml` to match the _resolvable_ column reported in
   `dart pub outdated`. This allows users to easily upgrade to latest version for
   all dependencies where this is possible, even if such upgrade requires an
   update to the version constraint in `pubspec.yaml`.

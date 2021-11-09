@@ -11,6 +11,7 @@ int f<T>(T a) => null;
 typedef int F<R>(R a);
 
 /*spec.class: B:explicit=[int* Function(B.S*)*],implicit=[B.S],indirect,needsArgs*/
+/*prod.class: B:needsArgs*/
 class B<S> {
   F<S> c;
 

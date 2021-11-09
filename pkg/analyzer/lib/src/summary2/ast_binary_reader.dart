@@ -1075,6 +1075,7 @@ class AstBinaryReader {
       StringToken(TokenType.STRING, name, -1),
     );
     node.staticElement = _reader.readElement();
+    node.tearOffTypeArgumentTypes = _reader.readOptionalTypeList();
     _readExpressionResolution(node);
     return node;
   }

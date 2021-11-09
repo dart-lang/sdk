@@ -339,7 +339,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_NestedFunctions) {
 
       // One range compiled with one hit (helper0).
       "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":73,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[0,56],\"misses\":[]}},"
 
       // One range not compiled (helper1).
       "{\"scriptIndex\":0,\"startPos\":75,\"endPos\":86,\"compiled\":false},"
@@ -402,7 +402,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_RestrictedRange) {
 
       // One range compiled with one hit (helper0).
       "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":73,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[0,56],\"misses\":[]}},"
 
       // Nested range compiled (nestedHelper0).
       "{\"scriptIndex\":0,\"startPos\":14,\"endPos\":31,\"compiled\":true,"

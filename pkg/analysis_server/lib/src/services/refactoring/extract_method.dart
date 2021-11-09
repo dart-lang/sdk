@@ -1327,11 +1327,7 @@ class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
     if (returnType == null) {
       return type;
     } else {
-      if (returnType is InterfaceType && type is InterfaceType) {
-        return InterfaceType.getSmartLeastUpperBound(returnType, type);
-      } else {
-        return typeSystem.leastUpperBound(returnType, type);
-      }
+      return typeSystem.leastUpperBound(returnType, type);
     }
   }
 }

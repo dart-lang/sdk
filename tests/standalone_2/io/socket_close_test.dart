@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-//
 // VMOptions=
 // VMOptions=--short_socket_read
 // VMOptions=--short_socket_write

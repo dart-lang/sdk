@@ -104,7 +104,8 @@ class InterruptChecker : public ThreadPool::Task {
       barrier_->Sync();
     }
     Thread::ExitIsolateAsHelper();
-    barrier_->Exit();
+    barrier_->Sync();
+    barrier_->Release();
   }
 
  private:
@@ -125,24 +126,24 @@ const intptr_t InterruptChecker::kIterations = 10;
 // compiler and/or CPU could reorder operations to make the tasks observe the
 // round update *before* the interrupt is set.
 TEST_CASE(StackLimitInterrupts) {
-  auto heap = thread->isolate_group()->heap();
-  ThreadBarrier barrier(InterruptChecker::kTaskCount + 1, heap->barrier(),
-                        heap->barrier_done());
+  ThreadBarrier* barrier = new ThreadBarrier(InterruptChecker::kTaskCount + 1,
+                                             InterruptChecker::kTaskCount + 1);
   // Start all tasks. They will busy-wait until interrupted in the first round.
   for (intptr_t task = 0; task < InterruptChecker::kTaskCount; task++) {
-    Dart::thread_pool()->Run<InterruptChecker>(thread, &barrier);
+    Dart::thread_pool()->Run<InterruptChecker>(thread, barrier);
   }
   // Wait for all tasks to get ready for the first round.
-  barrier.Sync();
+  barrier->Sync();
   for (intptr_t i = 0; i < InterruptChecker::kIterations; ++i) {
     thread->ScheduleInterrupts(Thread::kVMInterrupt);
     // Wait for all tasks to observe the interrupt.
-    barrier.Sync();
+    barrier->Sync();
     // Continue with next round.
     uword interrupts = thread->GetAndClearInterrupts();
     EXPECT((interrupts & Thread::kVMInterrupt) != 0);
   }
-  barrier.Exit();
+  barrier->Sync();
+  barrier->Release();
 }
 
 }  // namespace dart

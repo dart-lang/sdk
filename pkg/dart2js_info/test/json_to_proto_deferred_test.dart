@@ -12,8 +12,8 @@ import 'package:test/test.dart';
 main() {
   group('json to proto conversion with deferred files', () {
     test('hello_world_deferred', () {
-      var uri = Platform.script.resolve(
-          'hello_world_deferred/hello_world_deferred.js.info.json');
+      var uri = Platform.script
+          .resolve('hello_world_deferred/hello_world_deferred.js.info.json');
       final helloWorld = File.fromUri(uri);
       final json = jsonDecode(helloWorld.readAsStringSync());
       final decoded = AllInfoJsonCodec().decode(json);

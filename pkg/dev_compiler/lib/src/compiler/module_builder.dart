@@ -5,11 +5,11 @@
 // @dart = 2.9
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:dev_compiler/src/compiler/shared_compiler.dart';
 import 'package:path/path.dart' as p;
 
 import '../js_ast/js_ast.dart';
 import 'js_names.dart';
+import 'shared_compiler.dart';
 
 /// The module format to emit.
 enum ModuleFormat {

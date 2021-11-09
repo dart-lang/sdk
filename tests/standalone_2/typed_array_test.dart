@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-//
 // Dart test program for testing native float and int arrays.  64-bit int arrays
 // are in a separate test.
 

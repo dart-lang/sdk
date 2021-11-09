@@ -143,6 +143,26 @@ class StringReference extends js.DeferredExpression implements js.AstContainer {
 
   @override
   Iterable<js.Node> get containedNodes => isFinalized ? [_value] : const [];
+
+  @override
+  String nonfinalizedDebugText() {
+    const doubleQuote = 0x22;
+    final buffer = StringBuffer('StringReference');
+    if (constant.stringValue.length <= 1000) {
+      buffer.writeCharCode(doubleQuote);
+      for (int rune in constant.stringValue.runes) {
+        if (rune >= 0x20 && rune < 0x7F && rune != doubleQuote) {
+          buffer.writeCharCode(rune);
+        } else {
+          buffer.write(r'\u{');
+          buffer.write(rune.toRadixString(16));
+          buffer.write(r'}');
+        }
+      }
+      buffer.writeCharCode(doubleQuote);
+    }
+    return '$buffer';
+  }
 }
 
 /// A [StringReferenceResource] is a deferred JavaScript statement determined

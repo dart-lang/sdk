@@ -126,15 +126,15 @@ class SourceToSummaryDillStep implements IOModularStep {
         '${toUri(sdkModule, dillId)}',
         '--exclude-non-sources',
       ],
-      ...(transitiveDependencies
+      ...transitiveDependencies
           .where((m) => !m.isSdk)
-          .expand((m) => ['--input-summary', '${toUri(m, dillId)}'])),
-      ...(sources.expand((String uri) => ['--source', uri])),
+          .expand((m) => ['--input-summary', '${toUri(m, dillId)}']),
+      ...sources.expand((String uri) => ['--source', uri]),
       // TODO(40266) After unfork of dart:_runtime only need experiment when
       // compiling SDK. For now always use the Null Safety experiment.
       '--enable-experiment',
       'non-nullable',
-      ...(flags.expand((String flag) => ['--enable-experiment', flag])),
+      ...flags.expand((String flag) => ['--enable-experiment', flag]),
     ];
 
     var result =
@@ -215,9 +215,9 @@ class DDCStep implements IOModularStep {
       '--enable-experiment',
       'non-nullable',
       for (String flag in flags) '--enable-experiment=$flag',
-      ...(transitiveDependencies
+      ...transitiveDependencies
           .where((m) => !m.isSdk)
-          .expand((m) => ['-s', '${toUri(m, dillId)}=${m.name}'])),
+          .expand((m) => ['-s', '${toUri(m, dillId)}=${m.name}']),
       '-o',
       '$output',
     ];

@@ -35,7 +35,8 @@ class B extends C  {
   int g = 0;
 }
 ''', [
-      error(HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 113, 1),
+      error(HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 113, 1,
+          messageContains: ["member 'g'", "in 'C'"]),
     ]);
   }
 
@@ -70,7 +71,8 @@ class B extends C  {
   int get g => 0;
 }
 ''', [
-      error(HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 117, 1),
+      error(HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 117, 1,
+          messageContains: ["member 'g'", "in 'C'"]),
     ]);
   }
 
@@ -228,7 +230,8 @@ class B with M {
   void f() {}
 }
 ''', [
-      error(HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 111, 1),
+      error(HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 111, 1,
+          messageContains: ["member 'f'", "in 'M'"]),
     ]);
   }
 

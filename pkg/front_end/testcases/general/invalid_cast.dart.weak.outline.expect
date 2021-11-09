@@ -39,3 +39,8 @@ static method ok() → dynamic
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///invalid_cast.dart:7:7 -> ConstructorTearOffConstant(C.fact2)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

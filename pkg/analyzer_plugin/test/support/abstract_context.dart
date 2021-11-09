@@ -44,6 +44,8 @@ class AbstractContextTest with ResourceProviderMixin {
 
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
+  Folder get sdkRoot => newFolder('/sdk');
+
   AnalysisSession get session => contextFor(testPackageRootPath).currentSession;
 
   /// The file system-specific `analysis_options.yaml` path.
@@ -101,7 +103,10 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   void setUp() {
-    MockSdk(resourceProvider: resourceProvider);
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
 
     newFolder(testPackageRootPath);
     writeTestPackageConfig();
@@ -156,7 +161,7 @@ class AbstractContextTest with ResourceProviderMixin {
       enableIndex: true,
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
-      sdkPath: convertPath('/sdk'),
+      sdkPath: sdkRoot.path,
     );
   }
 }

@@ -7,16 +7,6 @@ class AliasedElementTag {
   static const int genericFunctionElement = 1;
 }
 
-/// A `MethodInvocation` in unresolved AST might be rewritten later as
-/// another kinds of AST node. We store this rewrite with resolution data.
-class MethodInvocationRewriteTag {
-  static const int extensionOverride = 1;
-  static const int functionExpressionInvocation = 2;
-  static const int instanceCreationExpression_withName = 3;
-  static const int instanceCreationExpression_withoutName = 4;
-  static const int none = 5;
-}
-
 class Tag {
   static const int Nothing = 0;
   static const int Something = 1;

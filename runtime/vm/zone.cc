@@ -33,8 +33,6 @@ class Zone::Segment {
   // Allocate or delete individual segments.
   static Segment* New(intptr_t size, Segment* next);
   static void DeleteSegmentList(Segment* segment);
-  static void IncrementMemoryCapacity(uintptr_t size);
-  static void DecrementMemoryCapacity(uintptr_t size);
 
  private:
   Segment* next_;
@@ -107,7 +105,6 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
 
   LSAN_REGISTER_ROOT_REGION(result, sizeof(*result));
 
-  IncrementMemoryCapacity(size);
   return result;
 }
 
@@ -115,7 +112,6 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
   Segment* current = head;
   while (current != NULL) {
     intptr_t size = current->size();
-    DecrementMemoryCapacity(size);
     Segment* next = current->next();
     VirtualMemory* memory = current->memory();
 #ifdef DEBUG
@@ -141,38 +137,13 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
   }
 }
 
-void Zone::Segment::IncrementMemoryCapacity(uintptr_t size) {
-  ThreadState* current_thread = ThreadState::Current();
-  if (current_thread != NULL) {
-    current_thread->IncrementMemoryCapacity(size);
-  } else if (ApiNativeScope::Current() != NULL) {
-    // If there is no current thread, we might be inside of a native scope.
-    ApiNativeScope::IncrementNativeScopeMemoryCapacity(size);
-  }
-}
-
-void Zone::Segment::DecrementMemoryCapacity(uintptr_t size) {
-  ThreadState* current_thread = ThreadState::Current();
-  if (current_thread != NULL) {
-    current_thread->DecrementMemoryCapacity(size);
-  } else if (ApiNativeScope::Current() != NULL) {
-    // If there is no current thread, we might be inside of a native scope.
-    ApiNativeScope::DecrementNativeScopeMemoryCapacity(size);
-  }
-}
-
-// TODO(bkonyi): We need to account for the initial chunk size when a new zone
-// is created within a new thread or ApiNativeScope when calculating high
-// watermarks or memory consumption.
 Zone::Zone()
     : position_(reinterpret_cast<uword>(&buffer_)),
       limit_(position_ + kInitialChunkSize),
-      head_(NULL),
-      large_segments_(NULL),
-      previous_(NULL),
+      segments_(nullptr),
+      previous_(nullptr),
       handles_() {
   ASSERT(Utils::IsAligned(position_, kAlignment));
-  Segment::IncrementMemoryCapacity(kInitialChunkSize);
 #ifdef DEBUG
   // Zap the entire initial buffer.
   memset(&buffer_, kZapUninitializedByte, kInitialChunkSize);
@@ -181,62 +152,49 @@ Zone::Zone()
 
 Zone::~Zone() {
   if (FLAG_trace_zones) {
-    DumpZoneSizes();
+    Print();
   }
-  DeleteAll();
-  Segment::DecrementMemoryCapacity(kInitialChunkSize);
+  Segment::DeleteSegmentList(segments_);
 }
 
-void Zone::DeleteAll() {
+void Zone::Reset() {
   // Traverse the chained list of segments, zapping (in debug mode)
   // and freeing every zone segment.
-  if (head_ != NULL) {
-    Segment::DeleteSegmentList(head_);
-  }
-  if (large_segments_ != NULL) {
-    Segment::DeleteSegmentList(large_segments_);
-  }
-// Reset zone state.
+  Segment::DeleteSegmentList(segments_);
+  segments_ = nullptr;
+
 #ifdef DEBUG
   memset(&buffer_, kZapDeletedByte, kInitialChunkSize);
 #endif
   position_ = reinterpret_cast<uword>(&buffer_);
   limit_ = position_ + kInitialChunkSize;
+  size_ = 0;
   small_segment_capacity_ = 0;
-  head_ = NULL;
-  large_segments_ = NULL;
-  previous_ = NULL;
+  previous_ = nullptr;
   handles_.Reset();
 }
 
 uintptr_t Zone::SizeInBytes() const {
-  uintptr_t size = 0;
-  for (Segment* s = large_segments_; s != NULL; s = s->next()) {
-    size += s->size();
-  }
-  if (head_ == NULL) {
-    return size + (position_ - reinterpret_cast<uword>(&buffer_));
-  }
-  size += kInitialChunkSize;
-  for (Segment* s = head_->next(); s != NULL; s = s->next()) {
-    size += s->size();
-  }
-  return size + (position_ - head_->start());
+  return size_;
 }
 
 uintptr_t Zone::CapacityInBytes() const {
-  uintptr_t size = 0;
-  for (Segment* s = large_segments_; s != NULL; s = s->next()) {
-    size += s->size();
-  }
-  if (head_ == NULL) {
-    return size + kInitialChunkSize;
-  }
-  size += kInitialChunkSize;
-  for (Segment* s = head_; s != NULL; s = s->next()) {
+  uintptr_t size = kInitialChunkSize;
+  for (Segment* s = segments_; s != nullptr; s = s->next()) {
     size += s->size();
   }
   return size;
+}
+
+void Zone::Print() const {
+  intptr_t segment_size = CapacityInBytes();
+  intptr_t scoped_handle_size = handles_.ScopedHandlesCapacityInBytes();
+  intptr_t zone_handle_size = handles_.ZoneHandlesCapacityInBytes();
+  intptr_t total_size = segment_size + scoped_handle_size + zone_handle_size;
+  OS::PrintErr("Zone(%p, segments: %" Pd ", scoped_handles: %" Pd
+               ", zone_handles: %" Pd ", total: %" Pd ")\n",
+               this, segment_size, scoped_handle_size, zone_handle_size,
+               total_size);
 }
 
 uword Zone::AllocateExpand(intptr_t size) {
@@ -244,7 +202,7 @@ uword Zone::AllocateExpand(intptr_t size) {
   if (FLAG_trace_zones) {
     OS::PrintErr("*** Expanding zone 0x%" Px "\n",
                  reinterpret_cast<intptr_t>(this));
-    DumpZoneSizes();
+    Print();
   }
   // Make sure the requested size is already properly aligned and that
   // there isn't enough room in the Zone to satisfy the request.
@@ -274,13 +232,14 @@ uword Zone::AllocateExpand(intptr_t size) {
   ASSERT(next_size >= kSegmentSize);
 
   // Allocate another segment and chain it up.
-  head_ = Segment::New(next_size, head_);
+  segments_ = Segment::New(next_size, segments_);
   small_segment_capacity_ += next_size;
 
   // Recompute 'position' and 'limit' based on the new head segment.
-  uword result = Utils::RoundUp(head_->start(), kAlignment);
+  uword result = Utils::RoundUp(segments_->start(), kAlignment);
   position_ = result + size;
-  limit_ = head_->end();
+  limit_ = segments_->end();
+  size_ += size;
   ASSERT(position_ <= limit_);
   return result;
 }
@@ -295,10 +254,11 @@ uword Zone::AllocateLargeSegment(intptr_t size) {
 
   // Create a new large segment and chain it up.
   // Account for book keeping fields in size.
+  size_ += size;
   size += Utils::RoundUp(sizeof(Segment), kAlignment);
-  large_segments_ = Segment::New(size, large_segments_);
+  segments_ = Segment::New(size, segments_);
 
-  uword result = Utils::RoundUp(large_segments_->start(), kAlignment);
+  uword result = Utils::RoundUp(segments_->start(), kAlignment);
   return result;
 }
 
@@ -335,17 +295,6 @@ char* Zone::ConcatStrings(const char* a, const char* b, char join) {
   }
   strncpy(&copy[a_len], b, b_len);
   return copy;
-}
-
-void Zone::DumpZoneSizes() {
-  intptr_t size = 0;
-  for (Segment* s = large_segments_; s != NULL; s = s->next()) {
-    size += s->size();
-  }
-  OS::PrintErr("***   Zone(0x%" Px
-               ") size in bytes,"
-               " Total = %" Pd " Large Segments = %" Pd "\n",
-               reinterpret_cast<intptr_t>(this), SizeInBytes(), size);
 }
 
 void Zone::VisitObjectPointers(ObjectPointerVisitor* visitor) {

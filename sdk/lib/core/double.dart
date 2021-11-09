@@ -160,7 +160,7 @@ abstract class double extends num {
   /// and no `onError` is provided.
   ///
   /// Examples of accepted strings:
-  /// ```dart
+  /// ```
   /// "3.14"
   /// "  3.14 \xA0"
   /// "0."

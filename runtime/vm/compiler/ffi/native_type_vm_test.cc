@@ -25,6 +25,28 @@ ISOLATE_UNIT_TEST_CASE(Ffi_NativeType_Primitive_FromAbstractType) {
   EXPECT(native_type.IsPrimitive());
 }
 
+// In all calling conventions `bool` behaves as `uint8_t` when it comes to:
+// - size
+// - alignment in structs
+// - alignment on stack
+// - upper bytes in cpu registers.
+ISOLATE_UNIT_TEST_CASE(Ffi_NativeType_Bool_FromAbstractType) {
+  Zone* Z = thread->zone();
+
+  const auto& ffi_library = Library::Handle(Library::FfiLibrary());
+  const auto& bool_class = Class::Handle(GetClass(ffi_library, "Bool"));
+  const auto& bool_type = Type::Handle(bool_class.DeclarationType());
+  const auto& bool_native_type = NativeType::FromAbstractType(Z, bool_type);
+
+  const auto& uint8_native_type = *new (Z) NativePrimitiveType(kUint8);
+
+  EXPECT(bool_native_type.Equals(uint8_native_type));
+  EXPECT_EQ(1, bool_native_type.SizeInBytes());
+  EXPECT_STREQ("uint8", bool_native_type.ToCString());
+  EXPECT(bool_native_type.IsInt());
+  EXPECT(bool_native_type.IsPrimitive());
+}
+
 // Test that we construct `NativeType` correctly from `Type`.
 ISOLATE_UNIT_TEST_CASE(Ffi_NativeType_Struct_FromAbstractType) {
   Zone* Z = thread->zone();

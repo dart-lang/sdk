@@ -479,6 +479,8 @@ abstract class AstVisitor<R> {
 
   R? visitImplementsClause(ImplementsClause node);
 
+  R? visitImplicitCallReference(ImplicitCallReference node);
+
   R? visitImportDirective(ImportDirective node);
 
   R? visitIndexExpression(IndexExpression node);
@@ -977,14 +979,33 @@ abstract class Comment implements AstNode {
   List<Token> get tokens;
 }
 
+/// An interface for an [Expression] which can make up a [CommentReference].
+///
+///    commentReferableExpression ::=
+///        [ConstructorReference]
+///      | [FunctionReference]
+///      | [PrefixedIdentifier]
+///      | [PropertyAccess]
+///      | [SimpleIdentifier]
+///      | [TypeLiteral]
+///
+/// This interface should align closely with dartdoc's notion of
+/// comment-referable expressions at:
+/// https://github.com/dart-lang/dartdoc/blob/master/lib/src/comment_references/parser.dart
+abstract class CommentReferableExpression implements Expression {}
+
 /// A reference to a Dart element that is found within a documentation comment.
 ///
 ///    commentReference ::=
-///        '[' 'new'? [Identifier] ']'
+///        '[' 'new'? [CommentReferableExpression] ']'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class CommentReference implements AstNode {
+  /// The comment-referable expression being referenced.
+  CommentReferableExpression get expression;
+
   /// Return the identifier being referenced.
+  @Deprecated('Use expression instead')
   Identifier get identifier;
 
   /// Return the token representing the 'new' keyword, or `null` if there was no
@@ -1329,7 +1350,8 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
 /// produced at resolution time.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ConstructorReference implements Expression {
+abstract class ConstructorReference
+    implements Expression, CommentReferableExpression {
   /// The constructor being referenced.
   ConstructorName get constructorName;
 }
@@ -2317,7 +2339,8 @@ abstract class FunctionExpressionInvocation
 /// arguments applied to it, e.g. the expression `print` in `var x = print;`.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionReference implements Expression {
+abstract class FunctionReference
+    implements Expression, CommentReferableExpression {
   /// The function being referenced.
   ///
   /// In error-free code, this will be either a SimpleIdentifier (indicating a
@@ -2501,7 +2524,7 @@ abstract class HideCombinator implements Combinator {
 ///      | [PrefixedIdentifier]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class Identifier implements Expression {
+abstract class Identifier implements Expression, CommentReferableExpression {
   /// Return the lexical representation of the identifier.
   String get name;
 
@@ -2597,6 +2620,33 @@ abstract class ImplementsClause implements AstNode {
 
   /// Return the list of the interfaces that are being implemented.
   NodeList<NamedType> get interfaces2;
+}
+
+/// An expression representing an implicit 'call' method reference.
+///
+/// Objects of this type are not produced directly by the parser (because the
+/// parser cannot tell whether an expression refers to a callable type); they
+/// are produced at resolution time.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ImplicitCallReference implements MethodReferenceExpression {
+  /// Return the expression from which a `call` method is being referenced.
+  Expression get expression;
+
+  /// Return the element associated with the implicit 'call' reference based on
+  /// the static types.
+  @override
+  MethodElement get staticElement;
+
+  /// The type arguments being applied to the tear-off, or `null` if there are
+  /// no type arguments.
+  TypeArgumentList? get typeArguments;
+
+  /// The actual type arguments being applied to the tear-off, either explicitly
+  /// specified in [typeArguments], or inferred.
+  ///
+  /// Returns an empty list if the 'call' method does not have type parameters.
+  List<DartType> get typeArgumentTypes;
 }
 
 /// An import directive.
@@ -3192,7 +3242,7 @@ abstract class MethodInvocation
 /// An expression that implicitly makes reference to a method.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MethodReferenceExpression implements AstNode {
+abstract class MethodReferenceExpression implements Expression {
   /// Return the element associated with the expression based on the static
   /// types, or `null` if the AST structure has not been resolved, or there is
   /// no meaningful static element to return (e.g. because this is a
@@ -3559,7 +3609,8 @@ abstract class PrefixExpression
 ///        [Expression] '.' [SimpleIdentifier]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PropertyAccess implements NullShortableExpression {
+abstract class PropertyAccess
+    implements NullShortableExpression, CommentReferableExpression {
   /// Return `true` if this expression is cascaded.
   ///
   /// If it is, then the target of this expression is not stored locally but is
@@ -4260,7 +4311,7 @@ abstract class TypedLiteral implements Literal {
 /// use `.typeName.type`.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeLiteral implements Expression {
+abstract class TypeLiteral implements Expression, CommentReferableExpression {
   /// The type represented by this literal.
   NamedType get type;
 

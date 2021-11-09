@@ -75,6 +75,7 @@ class DriverOptions {
   bool strongMode = true;
 
   /// The mock SDK (to speed up testing) or `null` to use the actual SDK.
+  @Deprecated('Use createMockSdk() and set dartSdkPath')
   DartSdk? mockSdk;
 
   /// Return `true` is the parser is able to parse asserts in the initializer

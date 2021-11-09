@@ -2,16 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--enable-isolate-groups
-//
-// Validates functionality of sendAndExit.
+// Validates functionality of Isolate.exit().
 
-import 'dart:_internal' show sendAndExit;
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:nativewrappers';
 
 import "package:expect/expect.dart";
+
+import "isolates/fast_object_copy_test.dart" show nonCopyableClosures;
+
+import "isolates/fast_object_copy2_test.dart"
+    show sharableObjects, copyableClosures;
 
 doNothingWorker(data) {}
 
@@ -24,23 +26,12 @@ spawnWorker(worker, data) async {
   return await completer.future;
 }
 
-verifyCantSendAnonymousClosure() async {
-  final receivePort = ReceivePort();
-  Expect.throws(
-      () => sendAndExit(receivePort.sendPort, () {}),
-      (e) =>
-          e.toString() ==
-          'Invalid argument: "Illegal argument in isolate message : '
-              '(object is a closure - Function \'<anonymous closure>\': static.)"');
-  receivePort.close();
-}
-
 class NativeWrapperClass extends NativeFieldWrapperClass1 {}
 
 verifyCantSendNative() async {
   final receivePort = ReceivePort();
   Expect.throws(
-      () => sendAndExit(receivePort.sendPort, NativeWrapperClass()),
+      () => Isolate.exit(receivePort.sendPort, NativeWrapperClass()),
       (e) => e.toString().startsWith('Invalid argument: '
           '"Illegal argument in isolate message : '
           '(object extends NativeWrapper'));
@@ -50,40 +41,62 @@ verifyCantSendNative() async {
 verifyCantSendReceivePort() async {
   final receivePort = ReceivePort();
   Expect.throws(
-      () => sendAndExit(receivePort.sendPort, receivePort),
-      // closure is encountered first before we reach ReceivePort instance
+      () => Isolate.exit(receivePort.sendPort, receivePort),
       (e) => e.toString().startsWith(
           'Invalid argument: "Illegal argument in isolate message : '
-          '(object is a closure - Function \''));
+          '(object is a ReceivePort)\"'));
   receivePort.close();
 }
 
-verifyCantSendRegexp() async {
-  final receivePort = ReceivePort();
-  final regexp = RegExp("");
-  Expect.throws(
-      () => sendAndExit(receivePort.sendPort, regexp),
-      (e) =>
-          e.toString() ==
-          'Invalid argument: '
-              '"Illegal argument in isolate message : (object is a RegExp)"');
-  receivePort.close();
+verifyCantSendNonCopyable() async {
+  final port = ReceivePort();
+  final inbox = StreamIterator<dynamic>(port);
+  final isolate = await Isolate.spawn((SendPort sendPort) {
+    for (final closure in nonCopyableClosures) {
+      Expect.throwsArgumentError(() => Isolate.exit(sendPort, closure));
+    }
+    sendPort.send(true);
+  }, port.sendPort);
+
+  await inbox.moveNext();
+  Expect.isTrue(inbox.current);
+  port.close();
+}
+
+sendShareable(SendPort sendPort) {
+  Isolate.exit(sendPort, sharableObjects);
+}
+
+verifyCanSendShareable() async {
+  final port = ReceivePort();
+  final inbox = StreamIterator<dynamic>(port);
+  final isolate = await Isolate.spawn(sendShareable, port.sendPort);
+
+  await inbox.moveNext();
+  final result = inbox.current;
+  Expect.equals(sharableObjects.length, result.length);
+  port.close();
+}
+
+sendCopyable(SendPort sendPort) {
+  Isolate.exit(sendPort, copyableClosures);
+}
+
+verifyCanSendCopyableClosures() async {
+  final port = ReceivePort();
+  final inbox = StreamIterator<dynamic>(port);
+  final isolate = await Isolate.spawn(sendCopyable, port.sendPort);
+
+  await inbox.moveNext();
+  final result = inbox.current;
+  Expect.equals(copyableClosures.length, result.length);
+  port.close();
 }
 
 add(a, b) => a + b;
 
 worker(SendPort sendPort) async {
-  sendAndExit(sendPort, add);
-}
-
-verifyCanSendStaticMethod() async {
-  final port = ReceivePort();
-  final inbox = StreamIterator<dynamic>(port);
-  final isolate = await Isolate.spawn(worker, port.sendPort);
-
-  await inbox.moveNext();
-  Expect.equals(5, (inbox.current)(2, 3));
-  port.close();
+  Isolate.exit(sendPort, add);
 }
 
 verifyExitMessageIsPostedLast() async {
@@ -109,10 +122,9 @@ verifyExitMessageIsPostedLast() async {
 }
 
 main() async {
-  await verifyCantSendAnonymousClosure();
   await verifyCantSendNative();
   await verifyCantSendReceivePort();
-  await verifyCantSendRegexp();
-  await verifyCanSendStaticMethod();
+  await verifyCanSendShareable();
+  await verifyCanSendCopyableClosures();
   await verifyExitMessageIsPostedLast();
 }

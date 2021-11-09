@@ -21,6 +21,10 @@ class Error {
 
   @pragma("vm:entry-point")
   StackTrace? _stackTrace;
+
+  @patch
+  @pragma("vm:external-name", "Error_throwWithStackTrace")
+  external static Never _throw(Object error, StackTrace stackTrace);
 }
 
 class _AssertionError extends Error implements AssertionError {

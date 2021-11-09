@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extensions/language_issue1182.dart:11:25: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'S Function(S)'.
+// pkg/front_end/testcases/extensions/language_issue1182.dart:13:25: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'S Function(S)'.
 //     S Function(S) f = x.test;
 //                         ^
 //
@@ -14,7 +14,7 @@ class Foo<S extends core::num*> extends core::Object {
     : super core::Object::•()
     ;
   method test1(covariant-by-class self::Foo::S* x) → void {
-    (self::Foo::S*) →* self::Foo::S* f = invalid-expression "pkg/front_end/testcases/extensions/language_issue1182.dart:11:25: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'S Function(S)'.
+    (self::Foo::S*) →* self::Foo::S* f = invalid-expression "pkg/front_end/testcases/extensions/language_issue1182.dart:13:25: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'S Function(S)'.
     S Function(S) f = x.test;
                         ^" in self::Test|get#test<core::num*>(x) as{TypeError} Never;
   }

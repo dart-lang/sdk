@@ -7,6 +7,7 @@
 //
 // Unless otherwise noted, these tests cases should not result in a parse error.
 
+/// See [C.new].
 class C {
   C.new();
 

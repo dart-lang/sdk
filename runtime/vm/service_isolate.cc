@@ -438,7 +438,6 @@ class RunServiceTask : public ThreadPool::Task {
     Thread* T = Thread::Current();
     ASSERT(I == T->isolate());
     StackZone zone(T);
-    HANDLESCOPE(T);
     // Invoke main which will set up the service port.
     const Library& root_library =
         Library::Handle(Z, I->group()->object_store()->root_library());

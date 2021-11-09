@@ -717,7 +717,11 @@ String _toString(obj) {
 String str(obj) {
   if (obj == null) return "null";
   if (obj is String) return obj;
-  return _notNull(JS('!', '#[#]()', obj, extensionSymbol('toString')));
+  final result = JS('', '#[#]()', obj, extensionSymbol('toString'));
+  // TODO(40614): Declare `result` as String once non-nullability is sound.
+  if (result is String) return result;
+  // Since Dart 2.0, `null` is the only other option.
+  throw ArgumentError.value(obj, 'object', "toString method returned 'null'");
 }
 
 // TODO(jmesserly): is the argument type verified statically?

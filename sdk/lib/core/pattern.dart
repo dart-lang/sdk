@@ -50,7 +50,7 @@ abstract class Pattern {
 /// }
 /// ```
 /// The output of the example is:
-/// ```dart
+/// ```
 /// Parse
 /// my
 /// string

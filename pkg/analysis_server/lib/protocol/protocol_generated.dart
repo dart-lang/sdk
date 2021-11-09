@@ -4292,6 +4292,202 @@ class CompletionExistingImportsParams implements HasToJson {
       );
 }
 
+/// completion.getSuggestionDetails2 params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "completion": String
+///   "libraryUri": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class CompletionGetSuggestionDetails2Params implements RequestParams {
+  /// The path of the file into which this completion is being inserted.
+  String file;
+
+  /// The offset in the file where the completion will be inserted.
+  int offset;
+
+  /// The completion from the selected CompletionSuggestion. It could be a name
+  /// of a class, or a name of a constructor in form
+  /// "typeName.constructorName()", or an enumeration constant in form
+  /// "enumName.constantName", etc.
+  String completion;
+
+  /// The URI of the library to import, so that the element referenced in the
+  /// completion becomes accessible.
+  String libraryUri;
+
+  CompletionGetSuggestionDetails2Params(
+      this.file, this.offset, this.completion, this.libraryUri);
+
+  factory CompletionGetSuggestionDetails2Params.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      String file;
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'file');
+      }
+      int offset;
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
+      }
+      String completion;
+      if (json.containsKey('completion')) {
+        completion = jsonDecoder.decodeString(
+            jsonPath + '.completion', json['completion']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'completion');
+      }
+      String libraryUri;
+      if (json.containsKey('libraryUri')) {
+        libraryUri = jsonDecoder.decodeString(
+            jsonPath + '.libraryUri', json['libraryUri']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'libraryUri');
+      }
+      return CompletionGetSuggestionDetails2Params(
+          file, offset, completion, libraryUri);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, 'completion.getSuggestionDetails2 params', json);
+    }
+  }
+
+  factory CompletionGetSuggestionDetails2Params.fromRequest(Request request) {
+    return CompletionGetSuggestionDetails2Params.fromJson(
+        RequestDecoder(request), 'params', request.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['file'] = file;
+    result['offset'] = offset;
+    result['completion'] = completion;
+    result['libraryUri'] = libraryUri;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return Request(id, 'completion.getSuggestionDetails2', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionGetSuggestionDetails2Params) {
+      return file == other.file &&
+          offset == other.offset &&
+          completion == other.completion &&
+          libraryUri == other.libraryUri;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        file,
+        offset,
+        completion,
+        libraryUri,
+      );
+}
+
+/// completion.getSuggestionDetails2 result
+///
+/// {
+///   "completion": String
+///   "change": SourceChange
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class CompletionGetSuggestionDetails2Result implements ResponseResult {
+  /// The full text to insert, which possibly includes now an import prefix.
+  /// The client should insert this text, not the completion from the selected
+  /// CompletionSuggestion.
+  String completion;
+
+  /// A change for the client to apply to make the accepted completion
+  /// suggestion available. In most cases the change is to add a new import
+  /// directive to the file.
+  SourceChange change;
+
+  CompletionGetSuggestionDetails2Result(this.completion, this.change);
+
+  factory CompletionGetSuggestionDetails2Result.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      String completion;
+      if (json.containsKey('completion')) {
+        completion = jsonDecoder.decodeString(
+            jsonPath + '.completion', json['completion']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'completion');
+      }
+      SourceChange change;
+      if (json.containsKey('change')) {
+        change = SourceChange.fromJson(
+            jsonDecoder, jsonPath + '.change', json['change']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'change');
+      }
+      return CompletionGetSuggestionDetails2Result(completion, change);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, 'completion.getSuggestionDetails2 result', json);
+    }
+  }
+
+  factory CompletionGetSuggestionDetails2Result.fromResponse(
+      Response response) {
+    return CompletionGetSuggestionDetails2Result.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        'result',
+        response.result);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['completion'] = completion;
+    result['change'] = change.toJson();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionGetSuggestionDetails2Result) {
+      return completion == other.completion && change == other.change;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        completion,
+        change,
+      );
+}
+
 /// completion.getSuggestionDetails params
 ///
 /// {
@@ -4478,6 +4674,261 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
   int get hashCode => Object.hash(
         completion,
         change,
+      );
+}
+
+/// completion.getSuggestions2 params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "maxResults": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class CompletionGetSuggestions2Params implements RequestParams {
+  /// The file containing the point at which suggestions are to be made.
+  String file;
+
+  /// The offset within the file at which suggestions are to be made.
+  int offset;
+
+  /// The maximum number of suggestions to return. If the number of suggestions
+  /// after filtering is greater than the maxResults, then isIncomplete is set
+  /// to true.
+  int maxResults;
+
+  CompletionGetSuggestions2Params(this.file, this.offset, this.maxResults);
+
+  factory CompletionGetSuggestions2Params.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      String file;
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'file');
+      }
+      int offset;
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
+      }
+      int maxResults;
+      if (json.containsKey('maxResults')) {
+        maxResults =
+            jsonDecoder.decodeInt(jsonPath + '.maxResults', json['maxResults']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'maxResults');
+      }
+      return CompletionGetSuggestions2Params(file, offset, maxResults);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, 'completion.getSuggestions2 params', json);
+    }
+  }
+
+  factory CompletionGetSuggestions2Params.fromRequest(Request request) {
+    return CompletionGetSuggestions2Params.fromJson(
+        RequestDecoder(request), 'params', request.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['file'] = file;
+    result['offset'] = offset;
+    result['maxResults'] = maxResults;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return Request(id, 'completion.getSuggestions2', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionGetSuggestions2Params) {
+      return file == other.file &&
+          offset == other.offset &&
+          maxResults == other.maxResults;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        file,
+        offset,
+        maxResults,
+      );
+}
+
+/// completion.getSuggestions2 result
+///
+/// {
+///   "replacementOffset": int
+///   "replacementLength": int
+///   "suggestions": List<CompletionSuggestion>
+///   "libraryUrisToImport": List<String>
+///   "isIncomplete": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class CompletionGetSuggestions2Result implements ResponseResult {
+  /// The offset of the start of the text to be replaced. This will be
+  /// different from the offset used to request the completion suggestions if
+  /// there was a portion of an identifier before the original offset. In
+  /// particular, the replacementOffset will be the offset of the beginning of
+  /// said identifier.
+  int replacementOffset;
+
+  /// The length of the text to be replaced if the remainder of the identifier
+  /// containing the cursor is to be replaced when the suggestion is applied
+  /// (that is, the number of characters in the existing identifier).
+  int replacementLength;
+
+  /// The completion suggestions being reported. This list is filtered by the
+  /// already existing prefix, and sorted first by relevance, and (if the same)
+  /// by the suggestion text. The list will have at most maxResults items. If
+  /// the user types a new keystroke, the client is expected to either do local
+  /// filtering (when the returned list was complete), or ask the server again
+  /// (if isIncomplete was true).
+  ///
+  /// This list contains suggestions from both imported, and not yet imported
+  /// libraries. Items from not yet imported libraries will have
+  /// libraryUriToImportIndex set, which is an index into the
+  /// libraryUrisToImport in this response.
+  List<CompletionSuggestion> suggestions;
+
+  /// The list of libraries with declarations that are not yet available in the
+  /// file where completion was requested, most often because the library is
+  /// not yet imported. The declarations still might be included into the
+  /// suggestions, and the client should use getSuggestionDetails2 on selection
+  /// to make the library available in the file.
+  ///
+  /// Each item is the URI of a library, such as package:foo/bar.dart or
+  /// file:///home/me/workspace/foo/test/bar_test.dart.
+  List<String> libraryUrisToImport;
+
+  /// True if the number of suggestions after filtering was greater than the
+  /// requested maxResults.
+  bool isIncomplete;
+
+  CompletionGetSuggestions2Result(
+      this.replacementOffset,
+      this.replacementLength,
+      this.suggestions,
+      this.libraryUrisToImport,
+      this.isIncomplete);
+
+  factory CompletionGetSuggestions2Result.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      int replacementOffset;
+      if (json.containsKey('replacementOffset')) {
+        replacementOffset = jsonDecoder.decodeInt(
+            jsonPath + '.replacementOffset', json['replacementOffset']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'replacementOffset');
+      }
+      int replacementLength;
+      if (json.containsKey('replacementLength')) {
+        replacementLength = jsonDecoder.decodeInt(
+            jsonPath + '.replacementLength', json['replacementLength']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'replacementLength');
+      }
+      List<CompletionSuggestion> suggestions;
+      if (json.containsKey('suggestions')) {
+        suggestions = jsonDecoder.decodeList(
+            jsonPath + '.suggestions',
+            json['suggestions'],
+            (String jsonPath, Object? json) =>
+                CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'suggestions');
+      }
+      List<String> libraryUrisToImport;
+      if (json.containsKey('libraryUrisToImport')) {
+        libraryUrisToImport = jsonDecoder.decodeList(
+            jsonPath + '.libraryUrisToImport',
+            json['libraryUrisToImport'],
+            jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'libraryUrisToImport');
+      }
+      bool isIncomplete;
+      if (json.containsKey('isIncomplete')) {
+        isIncomplete = jsonDecoder.decodeBool(
+            jsonPath + '.isIncomplete', json['isIncomplete']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'isIncomplete');
+      }
+      return CompletionGetSuggestions2Result(replacementOffset,
+          replacementLength, suggestions, libraryUrisToImport, isIncomplete);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, 'completion.getSuggestions2 result', json);
+    }
+  }
+
+  factory CompletionGetSuggestions2Result.fromResponse(Response response) {
+    return CompletionGetSuggestions2Result.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        'result',
+        response.result);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['replacementOffset'] = replacementOffset;
+    result['replacementLength'] = replacementLength;
+    result['suggestions'] = suggestions
+        .map((CompletionSuggestion value) => value.toJson())
+        .toList();
+    result['libraryUrisToImport'] = libraryUrisToImport;
+    result['isIncomplete'] = isIncomplete;
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionGetSuggestions2Result) {
+      return replacementOffset == other.replacementOffset &&
+          replacementLength == other.replacementLength &&
+          listEqual(suggestions, other.suggestions,
+              (CompletionSuggestion a, CompletionSuggestion b) => a == b) &&
+          listEqual(libraryUrisToImport, other.libraryUrisToImport,
+              (String a, String b) => a == b) &&
+          isIncomplete == other.isIncomplete;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        replacementOffset,
+        replacementLength,
+        suggestions,
+        libraryUrisToImport,
+        isIncomplete,
       );
 }
 

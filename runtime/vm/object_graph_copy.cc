@@ -136,6 +136,7 @@ static ObjectPtr Marker() {
   return Object::unknown_constant().ptr();
 }
 
+// Keep in sync with runtime/lib/isolate.cc:ValidateMessageObject
 DART_FORCE_INLINE
 static bool CanShareObject(ObjectPtr obj, uword tags) {
   if ((tags & UntaggedObject::CanonicalBit::mask_in_place()) != 0) {
@@ -150,6 +151,7 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
   if (cid == kImmutableArrayCid) return true;
   if (cid == kNeverCid) return true;
   if (cid == kSentinelCid) return true;
+  if (cid == kStackTraceCid) return true;
 #if defined(DART_PRECOMPILED_RUNTIME)
   // In JIT mode we have field guards enabled which means
   // double/float32x4/float64x2 boxes can be mutable and we therefore cannot
@@ -590,11 +592,9 @@ class ObjectCopyBase {
       // those are the only non-abstract classes (so we avoid checking more cids
       // here that cannot happen in reality)
       HANDLE_ILLEGAL_CASE(DynamicLibrary)
-      HANDLE_ILLEGAL_CASE(Pointer)
-      HANDLE_ILLEGAL_CASE(FunctionType)
       HANDLE_ILLEGAL_CASE(MirrorReference)
+      HANDLE_ILLEGAL_CASE(Pointer)
       HANDLE_ILLEGAL_CASE(ReceivePort)
-      HANDLE_ILLEGAL_CASE(StackTrace)
       HANDLE_ILLEGAL_CASE(UserTag)
       default:
         return true;
@@ -1148,8 +1148,9 @@ class ObjectCopy : public Base {
       auto key_value_pairs = untagged_data->data();
       for (intptr_t i = 0; i < length; i += one_for_set_two_for_map) {
         ObjectPtr key = key_value_pairs[i].Decompress(Base::heap_base_);
+        const bool is_deleted_entry = key == data;
         if (key->IsHeapObject()) {
-          if (MightNeedReHashing(key)) {
+          if (!is_deleted_entry && MightNeedReHashing(key)) {
             needs_rehashing = true;
             break;
           }
@@ -1171,6 +1172,7 @@ class ObjectCopy : public Base {
     if (needs_rehashing) {
       to_untagged->hash_mask_ = Smi::New(0);
       to_untagged->index_ = TypedData::RawCast(Object::null());
+      to_untagged->deleted_keys_ = Smi::New(0);
       Base::EnqueueObjectToRehash(to);
     }
 
@@ -1185,15 +1187,15 @@ class ObjectCopy : public Base {
       Base::StoreCompressedPointersNoBarrier(
           from, to, OFFSET_OF(UntaggedLinkedHashBase, hash_mask_),
           OFFSET_OF(UntaggedLinkedHashBase, hash_mask_));
+      Base::StoreCompressedPointersNoBarrier(
+          from, to, OFFSET_OF(UntaggedLinkedHashMap, deleted_keys_),
+          OFFSET_OF(UntaggedLinkedHashMap, deleted_keys_));
     }
     Base::ForwardCompressedPointer(from, to,
                                    OFFSET_OF(UntaggedLinkedHashBase, data_));
     Base::StoreCompressedPointersNoBarrier(
         from, to, OFFSET_OF(UntaggedLinkedHashBase, used_data_),
         OFFSET_OF(UntaggedLinkedHashBase, used_data_));
-    Base::StoreCompressedPointersNoBarrier(
-        from, to, OFFSET_OF(UntaggedLinkedHashMap, deleted_keys_),
-        OFFSET_OF(UntaggedLinkedHashMap, deleted_keys_));
   }
 
   void CopyLinkedHashMap(typename Types::LinkedHashMap from,
@@ -1741,7 +1743,7 @@ class ObjectGraphCopier {
         // We use kLowMemory to force the GC to compact, which is more likely to
         // discover untracked pointers (and other issues, like incorrect class
         // table).
-        thread_->heap()->CollectAllGarbage(Heap::kLowMemory);
+        thread_->heap()->CollectAllGarbage(GCReason::kLowMemory);
       }
 
       // Fast copy failed due to

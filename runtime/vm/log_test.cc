@@ -18,26 +18,12 @@ namespace dart {
 
 static const char* test_output_ = NULL;
 
-PRINTF_ATTRIBUTE(1, 2)
-static void TestPrinter(const char* format, ...) {
-  // Measure.
-  va_list args;
-  va_start(args, format);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, args);
-  va_end(args);
-
-  // Print string to buffer.
-  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
-  va_list args2;
-  va_start(args2, format);
-  Utils::VSNPrint(buffer, (len + 1), format, args2);
-  va_end(args2);
-
+static void TestPrinter(const char* buffer) {
   if (test_output_ != NULL) {
     free(const_cast<char*>(test_output_));
     test_output_ = NULL;
   }
-  test_output_ = buffer;
+  test_output_ = strdup(buffer);
 
   // Also print to stdout to see the overall result.
   OS::PrintErr("%s", test_output_);

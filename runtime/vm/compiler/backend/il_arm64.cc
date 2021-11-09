@@ -2705,10 +2705,8 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // R3: new object end address.
   // R8: iterator which initially points to the start of the variable
   // data area to be initialized.
-  // R6: null
   if (num_elements > 0) {
     const intptr_t array_size = instance_size - sizeof(UntaggedArray);
-    __ LoadObject(R6, Object::null_object());
     __ AddImmediate(R8, AllocateArrayABI::kResultReg,
                     sizeof(UntaggedArray) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kCompressedWordSize)) {
@@ -2718,7 +2716,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
             AllocateArrayABI::kResultReg,
             compiler::Address(R8, current_offset, compiler::Address::Offset,
                               compiler::kObjectBytes),
-            R6);
+            NULL_REG);
         current_offset += kCompressedWordSize;
       }
     } else {
@@ -2730,7 +2728,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
           AllocateArrayABI::kResultReg,
           compiler::Address(R8, 0, compiler::Address::Offset,
                             compiler::kObjectBytes),
-          R6);
+          NULL_REG);
       __ AddImmediate(R8, kCompressedWordSize);
       __ b(&init_loop);
       __ Bind(&end_loop);
@@ -3964,13 +3962,12 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (ValueFitsSmi()) {
       return;
     }
-    __ cmp(out, compiler::Operand(value, LSL, 1));
+    __ cmpw(value, compiler::Operand(out, ASR, 1));
     __ b(&done, EQ);  // Jump if the sbfiz instruction didn't lose info.
   } else {
     ASSERT(from_representation() == kUnboxedUint32);
     // A 32 bit positive Smi has one tag bit and one unused sign bit,
     // leaving only 30 bits for the payload.
-    // __ ubfiz(out, value, kSmiTagSize, compiler::target::kSmiBits);
     __ LslImmediate(out, value, kSmiTagSize, compiler::kFourBytes);
     if (ValueFitsSmi()) {
       return;
@@ -5409,8 +5406,7 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ThrowErrorSlowPathCode* slow_path =
-      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  ThrowErrorSlowPathCode* slow_path = new NullErrorSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
   Register value_reg = locs()->in(0).reg();
@@ -5493,11 +5489,9 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
                       Register divisor,
                       Range* divisor_range,
                       Register tmp,
-                      Register out,
-                      intptr_t try_index)
+                      Register out)
       : ThrowErrorSlowPathCode(instruction,
-                               kIntegerDivisionByZeroExceptionRuntimeEntry,
-                               try_index),
+                               kIntegerDivisionByZeroExceptionRuntimeEntry),
         is_mod_(instruction->op_kind() == Token::kMOD),
         divisor_(divisor),
         divisor_range_(divisor_range),
@@ -5621,8 +5615,8 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
 
   // Prepare a slow path.
   Range* right_range = instruction->right()->definition()->range();
-  Int64DivideSlowPath* slow_path = new (Z) Int64DivideSlowPath(
-      instruction, right, right_range, tmp, out, compiler->CurrentTryIndex());
+  Int64DivideSlowPath* slow_path =
+      new (Z) Int64DivideSlowPath(instruction, right, right_range, tmp, out);
 
   // Handle modulo/division by zero exception on slow path.
   if (slow_path->has_divide_by_zero()) {
@@ -5851,10 +5845,9 @@ static void EmitShiftUint32ByRegister(FlowGraphCompiler* compiler,
 
 class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction, intptr_t try_index)
+  explicit ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               kArgumentErrorUnboxedInt64RuntimeEntry,
-                               try_index) {}
+                               kArgumentErrorUnboxedInt64RuntimeEntry) {}
 
   const char* name() override { return "int64 shift"; }
 
@@ -5921,8 +5914,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Jump to a slow path if shift is larger than 63 or less than 0.
     ShiftInt64OpSlowPath* slow_path = NULL;
     if (!IsShiftCountInRange()) {
-      slow_path =
-          new (Z) ShiftInt64OpSlowPath(this, compiler->CurrentTryIndex());
+      slow_path = new (Z) ShiftInt64OpSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
       __ CompareImmediate(shift, kShiftCountLimit);
       __ b(slow_path->entry_label(), HI);
@@ -5981,10 +5973,9 @@ void SpeculativeShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 class ShiftUint32OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction, intptr_t try_index)
+  explicit ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               kArgumentErrorUnboxedInt64RuntimeEntry,
-                               try_index) {}
+                               kArgumentErrorUnboxedInt64RuntimeEntry) {}
 
   const char* name() override { return "uint32 shift"; }
 
@@ -6030,8 +6021,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     // Jump to a slow path if shift count is negative.
     if (!shift_count_in_range) {
-      ShiftUint32OpSlowPath* slow_path =
-          new (Z) ShiftUint32OpSlowPath(this, compiler->CurrentTryIndex());
+      ShiftUint32OpSlowPath* slow_path = new (Z) ShiftUint32OpSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
 
       __ tbnz(slow_path->entry_label(), right, kBitsPerWord - 1);
@@ -6083,14 +6073,14 @@ void SpeculativeShiftUint32OpInstr::EmitNativeCode(
       compiler::Label* deopt =
           compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
 
-      __ tbnz(deopt, right, kBitsPerWord - 1);
+      __ tbnz(deopt, right, compiler::target::kSmiBits + 1);
     }
 
     EmitShiftUint32ByRegister(compiler, op_kind(), out, left, right);
 
     if (!shift_count_in_range) {
       // If shift value is > 31, return zero.
-      __ CompareImmediate(right, 31);
+      __ CompareImmediate(right, 31, compiler::kObjectBytes);
       __ csel(out, out, ZR, LE);
     }
   }

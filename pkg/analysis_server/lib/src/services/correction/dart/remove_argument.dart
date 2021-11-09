@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/range_factory.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -38,7 +39,8 @@ class RemoveArgument extends CorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      final sourceRange = range.nodeInList(argumentList.arguments, arg);
+      final sourceRange = range.nodeInListWithComments(
+          resolvedResult.lineInfo, argumentList.arguments, arg);
       builder.addDeletion(sourceRange);
     });
   }

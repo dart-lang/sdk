@@ -4,16 +4,13 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 // Check that Isolate.spawn is generic.
 library spawn_generic;
 
 import "dart:isolate";
 import "dart:async";
+
 import "package:async_helper/async_helper.dart";
-import "package:expect/expect.dart";
 
 void isomain(num args) {
   print(args);

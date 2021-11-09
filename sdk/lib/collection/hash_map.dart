@@ -116,7 +116,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// [K] instance.
   ///
   /// Example:
-  /// ```dart
+  /// ```dart template:expression
   /// HashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
   ///                  hashCode: (int e) => e % 5);
   /// ```
@@ -151,8 +151,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
   ///
   /// Effectively a shorthand for:
   /// ```dart
-  /// HashMap<K, V>(equals: identical,
-  ///               hashCode: identityHashCode)
+  /// HashMap<K, V>(equals: identical, hashCode: identityHashCode)
   /// ```
   external factory HashMap.identity();
 

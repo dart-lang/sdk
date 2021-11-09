@@ -67,8 +67,8 @@ constants  {
   #C9 = 2
   #C10 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C9, dimension2:#C9, dimension3:#C9, dimension4:#C6, dimension5:#C6, dimensions:#C6}
   #C11 = 0
-  #C12 = <core::int*>[#C11, #C11, #C11]
-  #C13 = <core::int*>[#C3, #C3, #C3]
+  #C12 = <core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
+  #C13 = <core::int*>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]
   #C14 = <core::int*>[#C9, #C9]
   #C15 = "vm:prefer-inline"
   #C16 = core::pragma {name:#C15, options:#C6}

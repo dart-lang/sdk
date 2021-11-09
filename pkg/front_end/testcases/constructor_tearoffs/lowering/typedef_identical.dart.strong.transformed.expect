@@ -84,7 +84,7 @@ import "dart:core" as core;
 typedef F<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = typ::A<Y%>;
 typedef G<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = typ::A<Y%>;
 class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[typ::A::redirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C11]/*isLegacy*/;
   constructor •() → typ::A<typ::A::T%>
     : super core::Object::•()
     ;
@@ -108,10 +108,10 @@ static field <unrelated X extends core::Object? = dynamic, Y extends core::Objec
 static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, [core::int?]) → typ::A<Y%> F_named_lib = #C6;
 static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, {b: core::int?, c: core::int}) → typ::A<Y%> F_fact_lib = #C7;
 static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> F_redirect_lib = #C8;
-static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> G_new_lib = #C11;
-static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, [core::int?]) → typ::A<Y%> G_named_lib = #C12;
-static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, {b: core::int?, c: core::int}) → typ::A<Y%> G_fact_lib = #C13;
-static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> G_redirect_lib = #C14;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> G_new_lib = #C12;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, [core::int?]) → typ::A<Y%> G_named_lib = #C13;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, {b: core::int?, c: core::int}) → typ::A<Y%> G_fact_lib = #C14;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> G_redirect_lib = #C15;
 static method _#F#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#F#new#tearOff::Y%>
   return new typ::A::•<typ::_#F#new#tearOff::Y%>();
 static method _#F#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#F#named#tearOff::Y% a, [core::int? b = #C9]) → typ::A<typ::_#F#named#tearOff::Y%>
@@ -140,8 +140,9 @@ constants  {
   #C8 = static-tearoff typ::_#F#redirect#tearOff
   #C9 = null
   #C10 = 42
-  #C11 = static-tearoff typ::_#G#new#tearOff
-  #C12 = static-tearoff typ::_#G#named#tearOff
-  #C13 = static-tearoff typ::_#G#fact#tearOff
-  #C14 = static-tearoff typ::_#G#redirect#tearOff
+  #C11 = constructor-tearoff typ::A::redirect
+  #C12 = static-tearoff typ::_#G#new#tearOff
+  #C13 = static-tearoff typ::_#G#named#tearOff
+  #C14 = static-tearoff typ::_#G#fact#tearOff
+  #C15 = static-tearoff typ::_#G#redirect#tearOff
 }

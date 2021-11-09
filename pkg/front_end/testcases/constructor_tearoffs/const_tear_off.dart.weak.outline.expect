@@ -38,15 +38,16 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///const_tear_off.dart:5:7 -> ConstructorTearOffConstant(A.redirect)
 Evaluated: ConstructorTearOff @ org-dartlang-testcase:///const_tear_off.dart:14:11 -> ConstructorTearOffConstant(A.)
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:15:11 -> InstantiationConstant(A.<int*>)
-Evaluated: StaticTearOff @ org-dartlang-testcase:///const_tear_off.dart:16:11 -> StaticTearOffConstant(A.fact)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///const_tear_off.dart:16:11 -> ConstructorTearOffConstant(A.fact)
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:17:11 -> InstantiationConstant(A.fact<int*>)
 Evaluated: RedirectingFactoryTearOff @ org-dartlang-testcase:///const_tear_off.dart:18:11 -> RedirectingFactoryTearOffConstant(A.redirect)
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:19:11 -> InstantiationConstant(A.redirect<int*>)
 Evaluated: ConstructorTearOff @ org-dartlang-testcase:///const_tear_off.dart:20:11 -> ConstructorTearOffConstant(A.)
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:21:11 -> InstantiationConstant(A.<int*>)
-Evaluated: StaticTearOff @ org-dartlang-testcase:///const_tear_off.dart:22:11 -> StaticTearOffConstant(A.fact)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///const_tear_off.dart:22:11 -> ConstructorTearOffConstant(A.fact)
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:23:11 -> InstantiationConstant(A.fact<int*>)
 Evaluated: RedirectingFactoryTearOff @ org-dartlang-testcase:///const_tear_off.dart:24:11 -> RedirectingFactoryTearOffConstant(A.redirect)
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:25:11 -> InstantiationConstant(A.redirect<int*>)
@@ -56,4 +57,4 @@ Evaluated: TypedefTearOff @ org-dartlang-testcase:///const_tear_off.dart:28:11 -
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:29:11 -> InstantiationConstant(A.fact<int*>)
 Evaluated: TypedefTearOff @ org-dartlang-testcase:///const_tear_off.dart:30:11 -> TypedefTearOffConstant(<T>A.redirect<int>)
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:31:11 -> InstantiationConstant(A.redirect<int*>)
-Extra constant evaluation: evaluated: 21, effectively constant: 18
+Extra constant evaluation: evaluated: 21, effectively constant: 19

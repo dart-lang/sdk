@@ -6,9 +6,9 @@ import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as binary;
 
 Future<AllInfo> infoFromFile(String fileName) async {
-  var file = new File(fileName);
+  var file = File(fileName);
   if (fileName.endsWith('.json')) {
-    return new AllInfoJsonCodec().decode(jsonDecode(await file.readAsString()));
+    return AllInfoJsonCodec().decode(jsonDecode(await file.readAsString()));
   } else {
     return binary.decode(file.readAsBytesSync());
   }

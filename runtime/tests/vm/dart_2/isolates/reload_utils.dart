@@ -125,7 +125,6 @@ Future<Reloader> launchOn(String file, {bool verbose: false}) async {
     '--enable-vm-service:0',
     '--disable-dart-dev',
     '--disable-service-auth-codes',
-    '--enable-isolate-groups',
     file
   ];
   final env = Platform.environment;

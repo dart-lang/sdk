@@ -42,7 +42,7 @@ void V8SnapshotProfileWriter::SetObjectTypeAndName(const ObjectId& object_id,
   const intptr_t type_index = node_types_.Add(type);
   if (info->type != kInvalidString && info->type != type_index) {
     FATAL("Attempting to assign mismatching type %s to node %s", type,
-          info->ToCString(nullptr, zone_));
+          info->ToCString(this, zone_));
   }
   info->type = type_index;
   // Don't overwrite any existing name.

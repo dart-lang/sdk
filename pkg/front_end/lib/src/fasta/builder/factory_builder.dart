@@ -16,7 +16,7 @@ import '../kernel/kernel_helper.dart';
 import '../kernel/redirecting_factory_body.dart'
     show getRedirectingFactoryBody, RedirectingFactoryBody;
 
-import '../loader.dart' show Loader;
+import '../source/source_loader.dart' show SourceLoader;
 
 import '../messages.dart'
     show messageConstFactoryRedirectionToNonConst, noLength;
@@ -66,6 +66,7 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
       this.charOpenParenOffset,
       int charEndOffset,
       Reference? procedureReference,
+      Reference? tearOffReference,
       AsyncMarker asyncModifier,
       NameScheme nameScheme,
       {String? nativeMethodName})
@@ -79,8 +80,8 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault,
-        _factoryTearOff = createFactoryTearOffProcedure(
-            name, libraryBuilder, libraryBuilder.fileUri, charOffset),
+        _factoryTearOff = createFactoryTearOffProcedure(name, libraryBuilder,
+            libraryBuilder.fileUri, charOffset, tearOffReference),
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             libraryBuilder, charOffset, nativeMethodName) {
     this.asyncModifier = asyncModifier;
@@ -199,7 +200,7 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
       throw new UnsupportedError('${runtimeType}.localSetters');
 
   @override
-  void becomeNative(Loader loader) {
+  void becomeNative(SourceLoader loader) {
     _procedureInternal.isExternal = true;
     super.becomeNative(loader);
   }
@@ -273,6 +274,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       int charOpenParenOffset,
       int charEndOffset,
       Reference? procedureReference,
+      Reference? tearOffReference,
       NameScheme nameScheme,
       String? nativeMethodName,
       this.redirectionTarget)
@@ -289,6 +291,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             charOpenParenOffset,
             charEndOffset,
             procedureReference,
+            tearOffReference,
             AsyncMarker.Sync,
             nameScheme,
             nativeMethodName: nativeMethodName);
@@ -401,7 +404,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         unhandled("${targetBuilder.runtimeType}", "buildOutlineExpressions",
             charOffset, fileUri);
       }
-      Arguments targetInvocationArguments;
+      ArgumentsImpl targetInvocationArguments;
       {
         List<Expression> positionalArguments = <Expression>[];
         for (VariableDeclaration parameter

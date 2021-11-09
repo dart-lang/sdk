@@ -393,6 +393,39 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     }
   }
 
+  Future<void> test_sort() async {
+    const content = '''
+    import 'package:flutter/widgets.dart';
+
+    build() => Contai^ner(child: Container());
+    ''';
+
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
+      workspaceCapabilities:
+          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final names = codeActions.map(
+      (e) => e.map((command) => command.title, (action) => action.title),
+    );
+
+    expect(
+      names,
+      containsAllInOrder([
+        // Check the ordering for two well-known assists that should always be
+        // sorted this way.
+        // https://github.com/Dart-Code/Dart-Code/issues/3646
+        'Wrap with widget...',
+        'Remove this widget',
+      ]),
+    );
+  }
+
   List<TextDocumentEdit> _extractTextDocumentEdits(
           Either2<
                   List<TextDocumentEdit>,

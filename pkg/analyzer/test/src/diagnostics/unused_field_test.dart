@@ -15,9 +15,6 @@ main() {
 
 @reflectiveTest
 class UnusedFieldTest extends PubPackageResolutionTest {
-  @override
-  bool get enableUnusedElement => true;
-
   test_isUsed_argument() async {
     await assertNoErrorsInCode(r'''
 class A {

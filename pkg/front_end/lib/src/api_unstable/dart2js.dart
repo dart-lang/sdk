@@ -12,6 +12,9 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show StringToken;
 
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show LibrariesSpecification;
+
 import 'package:kernel/kernel.dart' show Component;
 
 import 'package:kernel/ast.dart' as ir;
@@ -28,8 +31,6 @@ import '../api_prototype/file_system.dart' show FileSystem, NullFileSystem;
 import '../api_prototype/kernel_generator.dart' show CompilerResult;
 
 import '../base/processed_options.dart' show ProcessedOptions;
-
-import '../base/libraries_specification.dart' show LibrariesSpecification;
 
 import '../base/nnbd_mode.dart' show NnbdMode;
 

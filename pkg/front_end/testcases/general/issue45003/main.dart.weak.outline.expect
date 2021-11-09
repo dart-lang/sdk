@@ -44,4 +44,5 @@ class Bar<T extends core::Object? = dynamic> extends foo::Foo /*hasConstConstruc
 
 Extra constant evaluation status:
 Evaluated: SetLiteral @ org-dartlang-testcase:///main.dart:7:27 -> SetConstant(const <Foo*>{const Bar<dynamic>{}})
-Extra constant evaluation: evaluated: 4, effectively constant: 1
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///foo_lib.dart:9:16 -> ConstructorTearOffConstant(Foo.bar)
+Extra constant evaluation: evaluated: 4, effectively constant: 2

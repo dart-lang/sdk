@@ -848,7 +848,9 @@ class InstanceMessageDeserializationCluster
  public:
   explicit InstanceMessageDeserializationCluster(bool is_canonical)
       : MessageDeserializationCluster("Instance", is_canonical),
-        cls_(Class::Handle()) {}
+        cls_(Class::Handle()),
+        field_stores_(GrowableObjectArray::Handle(GrowableObjectArray::New())) {
+  }
   ~InstanceMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
@@ -897,7 +899,8 @@ class InstanceMessageDeserializationCluster
           field ^= field_map.At(offset >> kCompressedWordSizeLog2);
           ASSERT(!field.IsNull());
           ASSERT(field.HostOffset() == offset);
-          field.RecordStore(value);
+          field_stores_.Add(field);
+          field_stores_.Add(value);
         }
 #endif
       }
@@ -926,11 +929,21 @@ class InstanceMessageDeserializationCluster
       }
       return DartLibraryCalls::RehashObjectsInDartCore(d->thread(), expandos);
     }
+
+    Field& field = Field::Handle(d->zone());
+    Object& value = Object::Handle(d->zone());
+    for (int i = 0; i < field_stores_.Length(); i += 2) {
+      field ^= field_stores_.At(i);
+      value = field_stores_.At(i + 1);
+      field.RecordStore(value);
+    }
+
     return nullptr;
   }
 
  private:
   Class& cls_;
+  GrowableObjectArray& field_stores_;
 };
 
 class TypeMessageSerializationCluster : public MessageSerializationCluster {
@@ -3110,6 +3123,8 @@ void MessageSerializer::Trace(Object* object) {
         IllegalObject(*object, chars);
       }
     }
+
+    // Keep the list in sync with the one in lib/isolate.cc
 #define ILLEGAL(type)                                                          \
   if (cid == k##type##Cid) {                                                   \
     IllegalObject(*object,                                                     \

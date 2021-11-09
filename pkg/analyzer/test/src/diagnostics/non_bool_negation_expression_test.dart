@@ -26,6 +26,24 @@ f() {
       error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 9, 2),
     ]);
   }
+
+  test_nonBool_implicitCast_fromLiteral() async {
+    await assertErrorsInCode('''
+f() {
+  ![1, 2, 3];
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 9, 9),
+    ]);
+  }
+
+  test_nonBool_implicitCast_fromSupertype() async {
+    await assertNoErrorsInCode('''
+f(Object o) {
+  !o;
+}
+''');
+  }
 }
 
 @reflectiveTest

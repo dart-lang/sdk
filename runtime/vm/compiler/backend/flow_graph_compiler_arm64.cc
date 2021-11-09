@@ -360,13 +360,11 @@ void FlowGraphCompiler::EmitPrologue() {
     }
 
     __ Comment("Initialize spill slots");
-    if (num_locals > 1 || (num_locals == 1 && args_desc_slot == -1)) {
-      __ LoadObject(R0, Object::null_object());
-    }
     for (intptr_t i = 0; i < num_locals; ++i) {
       const intptr_t slot_index =
           compiler::target::frame_layout.FrameSlotForVariableIndex(-i);
-      Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : R0;
+      Register value_reg =
+          slot_index == args_desc_slot ? ARGS_DESC_REG : NULL_REG;
       __ StoreToOffset(value_reg, FP, slot_index * kWordSize);
     }
   }

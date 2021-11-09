@@ -5,6 +5,7 @@
 
 import argparse
 import os
+import platform
 import subprocess
 import sys
 import time
@@ -66,7 +67,39 @@ def ToCommandLine(gn_args):
     return [merge(x, y) for x, y in gn_args.items()]
 
 
+# Runs true if the currently executing python interpreter is running under
+# Rosetta. I.e., python3 is an x64 executable and we're on an arm64 Mac.
+def IsRosetta():
+    if platform.system() == 'Darwin':
+        p = subprocess.Popen(['sysctl', '-in', 'sysctl.proc_translated'],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT)
+        output, _ = p.communicate()
+        return output.decode('utf-8').strip() == '1'
+    return False
+
+
 def HostCpuForArch(arch):
+    # Check for Rosetta before checking platform.machine(), as the latter
+    # returns 'x86_64' when running under Rosetta.
+    if IsRosetta():
+        if arch in ['x64', 'x64c']:
+            # Without this case, we would try to build with
+            #   host_cpu="arm64"
+            #   target_cpu="x64"
+            #   dart_target_arch="x64"
+            # Which requires the VM to use an x64 simulator in the host
+            # arm64 binaries, and this simulator is unimplemented.
+            return 'x64'
+        else:
+            return 'arm64'
+
+    m = platform.machine()
+    if m == 'aarch64' or m == 'arm64':
+        return 'arm64'
+    if m == 'armv7l' or m == 'armv6l':
+        return 'arm'
+
     if arch in ['ia32', 'arm', 'armv6', 'simarm', 'simarmv6', 'simarm_x64']:
         return 'x86'
     if arch in [
@@ -179,6 +212,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
 
     # Use tcmalloc only when targeting Linux and when not using ASAN.
     gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
+                                    (gn_args['target_cpu'] != 'arm') and
                                     sanitizer == 'none')
 
     if gn_args['target_os'] == 'linux':
@@ -341,7 +375,7 @@ def ProcessOptions(args):
                     % (os_name, arch))
                 return False
         elif os_name == 'fuchsia':
-            if HOST_OS != 'linux':
+            if not HOST_OS in ['linux', 'macos']:
                 print(
                     "Cross-compilation to %s is not supported on host os %s." %
                     (os_name, HOST_OS))

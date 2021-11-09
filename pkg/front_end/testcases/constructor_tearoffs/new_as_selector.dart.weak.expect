@@ -1,0 +1,261 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:8:5: Error: 'new' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// int new = 87; // error
+//     ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:15:7: Error: 'new' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+//   int new = 42; // error
+//       ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:29:16: Error: 'new' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+//   external int new; // error
+//                ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:21:10: Error: 'new' can only be used as a constructor reference.
+//     this.new; // error
+//          ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:22:10: Error: 'new' can only be used as a constructor reference.
+//     this.new(); // error
+//          ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:23:10: Error: 'new' can only be used as a constructor reference.
+//     this.new<int>(); // error
+//          ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:24:10: Error: 'new' can only be used as a constructor reference.
+//     this.new = 87; // error
+//          ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:34:24: Error: 'new' can only be used as a constructor reference.
+// method(dynamic d) => d.new; // error
+//                        ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:37:11: Error: 'new' can only be used as a constructor reference.
+//   new C().new; // error
+//           ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:38:11: Error: 'new' can only be used as a constructor reference.
+//   new C().new(); // error
+//           ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:39:11: Error: 'new' can only be used as a constructor reference.
+//   new C().new = 87; // error
+//           ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:41:5: Error: 'new' can only be used as a constructor reference.
+//   c.new; // error
+//     ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:42:5: Error: 'new' can only be used as a constructor reference.
+//   c.new = 87; // error
+//     ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:44:7: Error: 'new' can only be used as a constructor reference.
+//   foo.new; // error
+//       ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:45:7: Error: 'new' can only be used as a constructor reference.
+//   foo.new(); // error
+//       ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:46:7: Error: 'new' can only be used as a constructor reference.
+//   foo.new<int>(); // error
+//       ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:47:8: Error: 'new' can only be used as a constructor reference.
+//   foo?.new; // error
+//        ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:48:8: Error: 'new' can only be used as a constructor reference.
+//   foo?.new(); // error
+//        ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:49:8: Error: 'new' can only be used as a constructor reference.
+//   foo?.new<int>(); // error
+//        ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:50:8: Error: 'new' can only be used as a constructor reference.
+//   foo..new; // error
+//        ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:51:8: Error: 'new' can only be used as a constructor reference.
+//   foo..new(); // error
+//        ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:52:8: Error: 'new' can only be used as a constructor reference.
+//   foo..new<int>(); // error
+//        ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:53:9: Error: 'new' can only be used as a constructor reference.
+//   (foo).new; // error
+//         ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:54:9: Error: 'new' can only be used as a constructor reference.
+//   (foo).new(); // error
+//         ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:55:9: Error: 'new' can only be used as a constructor reference.
+//   (foo).new<int>(); // error
+//         ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:56:11: Error: 'new' can only be used as a constructor reference.
+//   prefix1.new; // error
+//           ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:57:11: Error: 'new' can only be used as a constructor reference.
+//   prefix1.new(); // error
+//           ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:58:11: Error: 'new' can only be used as a constructor reference.
+//   prefix1.new<int>(); // error
+//           ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:59:13: Error: 'new' can only be used as a constructor reference.
+//   prefix2.c.new; // error
+//             ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:60:13: Error: 'new' can only be used as a constructor reference.
+//   prefix2.c.new(); // error
+//             ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:61:13: Error: 'new' can only be used as a constructor reference.
+//   prefix2.c.new<int>(); // error
+//             ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:62:8: Error: 'new' can only be used as a constructor reference.
+//   E(0).new; // error
+//        ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:63:8: Error: 'new' can only be used as a constructor reference.
+//   E(0).new(); // error
+//        ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:64:8: Error: 'new' can only be used as a constructor reference.
+//   E(0).new<int>(); // error
+//        ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:65:3: Error: Undefined name 'unresolved'.
+//   unresolved.new; // error
+//   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:65:14: Error: 'new' can only be used as a constructor reference.
+//   unresolved.new; // error
+//              ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:66:3: Error: Undefined name 'unresolved'.
+//   unresolved.new(); // error
+//   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:66:14: Error: 'new' can only be used as a constructor reference.
+//   unresolved.new(); // error
+//              ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:67:3: Error: Undefined name 'unresolved'.
+//   unresolved.new<int>(); // error
+//   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:67:14: Error: 'new' can only be used as a constructor reference.
+//   unresolved.new<int>(); // error
+//              ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///new_as_selector.dart" as prefix1;
+import "org-dartlang-testcase:///new_as_selector.dart" deferred as prefix2 hide E;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+}
+class C extends self::Super {
+  field core::int new = 42;
+  constructor •() → self::C
+    : super self::Super::•()
+    ;
+  constructor named() → self::C
+    : this self::C::•()
+    ;
+  method method() → dynamic {
+    this.{self::C::new}{core::int};
+    self::E|call<dynamic>(this.{self::C::new}{core::int});
+    self::E|call<core::int>(this.{self::C::new}{core::int});
+    this.{self::C::new} = 87;
+  }
+}
+extension E on core::int {
+  get new = self::E|get#new;
+  set new = self::E|set#new;
+  method call = self::E|call;
+  tearoff call = self::E|get#call;
+}
+static field core::int new = 87;
+static field self::C c = new self::C::•();
+external static method E|get#new(core::int #this) → core::int;
+external static method E|set#new(core::int #this, core::int #externalFieldValue) → void;
+static method E|call<T extends core::Object? = dynamic>(lowered final core::int #this) → dynamic {}
+static method E|get#call(lowered final core::int #this) → <T extends core::Object? = dynamic>() → dynamic
+  return <T extends core::Object? = dynamic>() → dynamic => self::E|call<T%>(#this);
+static method method(dynamic d) → dynamic
+  return d{dynamic}.new;
+static method test() → dynamic {
+  new self::C::•().{self::C::new}{core::int};
+  self::E|call<dynamic>(new self::C::•().{self::C::new}{core::int});
+  new self::C::•().{self::C::new} = 87;
+  self::C c = new self::C::•();
+  c.{self::C::new}{core::int};
+  c.{self::C::new} = 87;
+  dynamic foo;
+  foo{dynamic}.new;
+  foo{dynamic}.new();
+  foo{dynamic}.new<core::int>();
+  let final dynamic #t1 = foo in #t1 == null ?{dynamic} null : #t1{dynamic}.new;
+  let final dynamic #t2 = foo in #t2 == null ?{dynamic} null : #t2{dynamic}.new();
+  let final dynamic #t3 = foo in #t3 == null ?{dynamic} null : #t3{dynamic}.new<core::int>();
+  let final dynamic #t4 = foo in block {
+    #t4{dynamic}.new;
+  } =>#t4;
+  let final dynamic #t5 = foo in block {
+    #t5{dynamic}.new();
+  } =>#t5;
+  let final dynamic #t6 = foo in block {
+    #t6{dynamic}.new<core::int>();
+  } =>#t6;
+  foo{dynamic}.new;
+  foo{dynamic}.new();
+  foo{dynamic}.new<core::int>();
+  self::new;
+  self::E|call<dynamic>(self::new);
+  self::E|call<core::int>(self::new);
+  let final dynamic #t7 = CheckLibraryIsLoaded(prefix2) in self::c.{self::C::new}{core::int};
+  let final dynamic #t8 = CheckLibraryIsLoaded(prefix2) in self::E|call<dynamic>(self::c.{self::C::new}{core::int});
+  let final dynamic #t9 = CheckLibraryIsLoaded(prefix2) in self::E|call<core::int>(self::c.{self::C::new}{core::int});
+  self::E|get#new(0);
+  self::E|call<dynamic>(self::E|get#new(0));
+  self::E|call<core::int>(self::E|get#new(0));
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:65:3: Error: Undefined name 'unresolved'.
+  unresolved.new; // error
+  ^^^^^^^^^^"{<invalid>}.new;
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:66:3: Error: Undefined name 'unresolved'.
+  unresolved.new(); // error
+  ^^^^^^^^^^"{dynamic}.new();
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:67:3: Error: Undefined name 'unresolved'.
+  unresolved.new<int>(); // error
+  ^^^^^^^^^^"{dynamic}.new<core::int>();
+}
+static method main() → dynamic {
+  #C1;
+  new self::C::•();
+}
+
+constants  {
+  #C1 = constructor-tearoff self::C::•
+}

@@ -61,7 +61,7 @@ class StringBuffer {
 
   @patch
   void write(Object? obj) {
-    String str = obj.toString();
+    String str = "$obj";
     if (str.isEmpty) return;
     _consumeBuffer();
     _addPart(str);

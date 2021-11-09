@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 // Dart test program for testing that errors thrown from isolates are
 // processed correctly and don't result in crashes.
 
@@ -16,9 +13,9 @@ import "package:async_helper/async_helper.dart";
 
 class TestClass {
   TestClass.named(num this.fld1)
-  // Should cause a compilation error (for the spawned isolate). It is a
-  // runtime error for the test.
-    : fld2 = this.fld1 // //# 01: compile-time error
+      // Should cause a compilation error (for the spawned isolate). It is a
+      // runtime error for the test.
+      : fld2 = this.fld1 // //# 01: compile-time error
   ;
   late num fld1;
   late num fld2;

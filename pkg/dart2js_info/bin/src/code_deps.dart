@@ -37,16 +37,20 @@ import 'package:dart2js_info/src/util.dart';
 import 'usage_exception.dart';
 
 class CodeDepsCommand extends Command<void> with PrintUsageException {
+  @override
   final String name = "code_deps";
+  @override
   final String description = "";
 
   CodeDepsCommand() {
-    addSubcommand(new _SomePathQuery());
+    addSubcommand(_SomePathQuery());
   }
 }
 
 class _SomePathQuery extends Command<void> with PrintUsageException {
+  @override
   final String name = "some_path";
+  @override
   final String description = "find a call-graph path between two elements.";
 
   @override
@@ -62,9 +66,9 @@ class _SomePathQuery extends Command<void> with PrintUsageException {
     var graph = graphFromInfo(info);
 
     var source = info.functions
-        .firstWhere(_longNameMatcher(new RegExp(args[1])), orElse: () => null);
+        .firstWhere(_longNameMatcher(RegExp(args[1])), orElse: () => null);
     var target = info.functions
-        .firstWhere(_longNameMatcher(new RegExp(args[2])), orElse: () => null);
+        .firstWhere(_longNameMatcher(RegExp(args[2])), orElse: () => null);
     print('query: some_path');
     if (source == null) {
       usageException("source '${args[1]}' not found in '${args[0]}'");
@@ -74,7 +78,7 @@ class _SomePathQuery extends Command<void> with PrintUsageException {
       usageException("target '${args[2]}' not found in '${args[0]}'");
     }
     print('target: ${longName(target)}');
-    var path = new SomePathQuery(source, target).run(graph);
+    var path = SomePathQuery(source, target).run(graph);
     if (path.isEmpty) {
       print('result: no path found');
     } else {
@@ -103,12 +107,12 @@ class SomePathQuery {
 
   List<Info> run(Graph<Info> graph) {
     var seen = <Info, Info>{source: null};
-    var queue = new Queue<Info>();
+    var queue = Queue<Info>();
     queue.addLast(source);
     while (queue.isNotEmpty) {
       var node = queue.removeFirst();
       if (identical(node, target)) {
-        var result = new Queue<Info>();
+        var result = Queue<Info>();
         while (node != null) {
           result.addFirst(node);
           node = seen[node];
@@ -125,7 +129,7 @@ class SomePathQuery {
   }
 }
 
-typedef bool LongNameMatcher(FunctionInfo info);
+typedef LongNameMatcher = bool Function(FunctionInfo info);
 
 LongNameMatcher _longNameMatcher(RegExp regexp) =>
     (e) => regexp.hasMatch(longName(e));

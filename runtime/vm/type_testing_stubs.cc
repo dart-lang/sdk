@@ -181,6 +181,14 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
       if (!code.IsNull()) {
         return code.ptr();
       }
+      const Error& error = Error::Handle(Thread::Current()->StealStickyError());
+      if (!error.IsNull()) {
+        if (error.ptr() == Object::out_of_memory_error().ptr()) {
+          Exceptions::ThrowOOM();
+        } else {
+          UNREACHABLE();
+        }
+      }
 
       // Fall back to default.
 #else
@@ -220,6 +228,9 @@ static CodePtr RetryCompilationWithFarBranches(
       if (error.ptr() == Object::branch_offset_error().ptr()) {
         ASSERT(!use_far_branches);
         use_far_branches = true;
+      } else if (error.ptr() == Object::out_of_memory_error().ptr()) {
+        thread->set_sticky_error(error);
+        return Code::null();
       } else {
         UNREACHABLE();
       }
@@ -985,18 +996,6 @@ static void UnwrapAbstractType(compiler::Assembler* assembler,
   }
 }
 
-// src must contain a TypePtr. Assumes dst != src. May affect flags.
-static void LoadTypeClassId(compiler::Assembler* assembler,
-                            Register dst,
-                            Register src) {
-  ASSERT(src != dst);
-  __ EnsureHasClassIdInDEBUG(kTypeCid, src, dst);
-  __ LoadCompressedSmi(
-      dst, compiler::FieldAddress(
-               src, compiler::target::Type::type_class_id_offset()));
-  __ SmiUntag(dst);
-}
-
 void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
     compiler::Assembler* assembler,
     HierarchyInfo* hi,
@@ -1041,8 +1040,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
   UnwrapAbstractType(assembler, TTSInternalRegs::kSuperTypeArgumentReg,
                      TTSInternalRegs::kScratchReg, /*is_type=*/nullptr,
                      &check_subtype_type_class_ids);
-  LoadTypeClassId(assembler, TTSInternalRegs::kScratchReg,
-                  TTSInternalRegs::kSuperTypeArgumentReg);
+  __ LoadTypeClassId(TTSInternalRegs::kScratchReg,
+                     TTSInternalRegs::kSuperTypeArgumentReg);
   __ CompareImmediate(TTSInternalRegs::kScratchReg, kDynamicCid);
   __ BranchIf(EQUAL, &is_subtype);
   __ CompareImmediate(TTSInternalRegs::kScratchReg, kVoidCid);
@@ -1079,8 +1078,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
   UnwrapAbstractType(assembler, TTSInternalRegs::kSubTypeArgumentReg,
                      TTSInternalRegs::kScratchReg, /*is_type=*/nullptr,
                      check_failed);
-  LoadTypeClassId(assembler, TTSInternalRegs::kScratchReg,
-                  TTSInternalRegs::kSubTypeArgumentReg);
+  __ LoadTypeClassId(TTSInternalRegs::kScratchReg,
+                     TTSInternalRegs::kSubTypeArgumentReg);
   __ CompareImmediate(TTSInternalRegs::kScratchReg, kNeverCid);
   __ BranchIf(EQUAL, &is_subtype);
   __ CompareImmediate(TTSInternalRegs::kScratchReg, kNullCid);
@@ -1175,8 +1174,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
 
   // No further checks needed for non-nullable object.
   if (!type.IsObjectType()) {
-    LoadTypeClassId(assembler, TTSInternalRegs::kScratchReg,
-                    TTSInternalRegs::kSubTypeArgumentReg);
+    __ LoadTypeClassId(TTSInternalRegs::kScratchReg,
+                       TTSInternalRegs::kSubTypeArgumentReg);
 
     const bool null_is_assignable = Instance::NullIsAssignableTo(type);
     // Check bottom types.

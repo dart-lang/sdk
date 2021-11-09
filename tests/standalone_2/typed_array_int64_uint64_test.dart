@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-//
 // Dart test program for testing native typed arrays, int64 and uint64 only.
 
 // Library tag to be able to run in html test framework.

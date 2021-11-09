@@ -1425,7 +1425,7 @@ class Namer extends ModularNamer {
     return StringBackedName(name);
   }
 
-  String operatorNameToIdentifier(String name) {
+  static String operatorNameToIdentifier(String name) {
     if (name == null) return null;
     if (name == '==') {
       return r'$eq';

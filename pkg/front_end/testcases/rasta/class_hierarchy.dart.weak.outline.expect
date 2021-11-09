@@ -91,3 +91,8 @@ class D extends core::Object {
 }
 static method main() → void
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///class_hierarchy.dart:11:7 -> ConstructorTearOffConstant(D.)
+Extra constant evaluation: evaluated: 2, effectively constant: 1

@@ -146,7 +146,6 @@ main() {
         Expect.equals(res, f(arg));
       }
     }
-    Expect.throws(() => divBy0(4),
-        (e) => e is IntegerDivisionByZeroException || e is UnsupportedError);
+    Expect.throws<UnsupportedError>(() => divBy0(4));
   }
 }

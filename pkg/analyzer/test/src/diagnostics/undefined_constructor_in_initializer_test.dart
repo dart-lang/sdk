@@ -22,7 +22,8 @@ class B extends A {
   B() : super.named();
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER, 39, 13),
+      error(CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER, 39, 13,
+          messageContains: ["class 'A'", "named 'named'"]),
     ]);
   }
 

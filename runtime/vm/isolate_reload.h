@@ -13,6 +13,7 @@
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
+#include "vm/heap/become.h"
 #include "vm/log.h"
 #include "vm/object.h"
 
@@ -68,23 +69,14 @@ class InstanceMorpher : public ZoneAllocated {
                   ZoneGrowableArray<intptr_t>* new_fields_offsets);
   virtual ~InstanceMorpher() {}
 
-  // Called on each instance that needs to be morphed.
-  InstancePtr Morph(const Instance& instance) const;
-
   // Adds an object to be morphed.
   void AddObject(ObjectPtr object);
 
   // Create the morphed objects based on the before() list.
-  void CreateMorphedCopies();
+  void CreateMorphedCopies(Become* become);
 
   // Append the morper info to JSON array.
   void AppendTo(JSONArray* array);
-
-  // Returns the list of objects that need to be morphed.
-  const GrowableArray<const Instance*>* before() const { return &before_; }
-
-  // Returns the list of morphed objects (matches order in before()).
-  const GrowableArray<const Instance*>* after() const { return &after_; }
 
   // Returns the cid associated with the from_ and to_ class.
   intptr_t cid() const { return cid_; }
@@ -100,7 +92,6 @@ class InstanceMorpher : public ZoneAllocated {
   ZoneGrowableArray<intptr_t>* new_fields_offsets_;
 
   GrowableArray<const Instance*> before_;
-  GrowableArray<const Instance*> after_;
 };
 
 class ReasonForCancelling : public ZoneAllocated {
@@ -220,10 +211,8 @@ class IsolateGroupReloadContext {
 
   void CheckpointSharedClassTable();
 
-  void MorphInstancesPhase1Allocate(ObjectLocator* locator,
-                                    const Array& before,
-                                    const Array& after);
-  void MorphInstancesPhase2Become(const Array& before, const Array& after);
+  void MorphInstancesPhase1Allocate(ObjectLocator* locator, Become* become);
+  void MorphInstancesPhase2Become(Become* become);
 
   void ForEachIsolate(std::function<void(Isolate*)> callback);
 
@@ -401,8 +390,9 @@ class ProgramReloadContext {
                          const Library& original);
   void AddStaticFieldMapping(const Field& old_field, const Field& new_field);
   void AddBecomeMapping(const Object& old, const Object& neu);
-  void AddEnumBecomeMapping(const Object& old, const Object& neu);
   void RebuildDirectSubclasses();
+
+  Become become_;
 
   ObjectPtr* from() {
     return reinterpret_cast<ObjectPtr*>(&old_classes_set_storage_);
@@ -412,8 +402,6 @@ class ProgramReloadContext {
   ArrayPtr removed_class_set_storage_;
   ArrayPtr old_libraries_set_storage_;
   ArrayPtr library_map_storage_;
-  ArrayPtr become_map_storage_;
-  GrowableObjectArrayPtr become_enum_mappings_;
   LibraryPtr saved_root_library_;
   GrowableObjectArrayPtr saved_libraries_;
   ObjectPtr* to() { return reinterpret_cast<ObjectPtr*>(&saved_libraries_); }

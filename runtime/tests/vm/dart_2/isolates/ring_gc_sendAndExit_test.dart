@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups --disable-heap-verification
+// VMOptions=--disable-heap-verification
 
 import 'dart:math' as math;
 
@@ -26,7 +26,7 @@ main(args) async {
   final ring = await Ring.create(numIsolates);
 
   // Let each node produce a tree, send it to it's neighbour and let it return
-  // the one it received (via sendAndExit).
+  // the one it received (via Isolate.exit()).
   final results = await ring.runAndClose((int id) => Worker(id));
   Expect.equals(numIsolates, results.length);
 

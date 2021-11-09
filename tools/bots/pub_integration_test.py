@@ -31,7 +31,7 @@ def Main():
 
     (options, args) = parser.parse_args()
 
-    arch = 'XARM64' if options.arch == 'arm64' else 'X64'
+    arch = 'ARM64' if options.arch == 'arm64' else 'X64'
     mode = ('Debug' if options.mode == 'debug' else 'Release')
 
     out_dir = 'xcodebuild' if sys.platform == 'darwin' else 'out'

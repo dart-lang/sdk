@@ -132,9 +132,9 @@ constants  {
   #C1 = constructor-tearoff self::A::foo1
   #C2 = constructor-tearoff self::A::foo2
   #C3 = constructor-tearoff self::A::•
-  #C4 = instantiation self::A::• <core::int>
-  #C5 = instantiation self::A::foo1 <core::int>
-  #C6 = instantiation self::A::foo2 <core::int>
-  #C7 = static-tearoff self::A::bar1
-  #C8 = instantiation self::A::bar1 <core::int>
+  #C4 = instantiation #C3 <core::int>
+  #C5 = instantiation #C1 <core::int>
+  #C6 = instantiation #C2 <core::int>
+  #C7 = constructor-tearoff self::A::bar1
+  #C8 = instantiation #C7 <core::int>
 }

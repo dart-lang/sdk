@@ -61,9 +61,9 @@ class TestCompiler extends CompilerImpl {
   }
 
   @override
-  Future<bool> run(Uri uri) {
+  Future<bool> run() {
     test('Compiler.run');
-    return super.run(uri);
+    return super.run();
   }
 
   test(String marker) {
@@ -161,7 +161,7 @@ Future testExitCode(
       // handler = (uri, begin, end, message, kind) {};
       Compiler compiler = new TestCompiler(compilerInput, compilerOutput,
           compilerDiagnostics, compilerOptions, marker, type, onTest);
-      return compiler.run(compilerOptions.entryPoint).then((bool success) {
+      return compiler.run().then((bool success) {
         return new api.CompilationResult(compiler, isSuccess: success);
       });
     }

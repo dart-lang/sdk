@@ -1,0 +1,58 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:8:5: Error: 'new' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// int new = 87; // error
+//     ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:15:7: Error: 'new' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+//   int new = 42; // error
+//       ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/new_as_selector.dart:29:16: Error: 'new' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+//   external int new; // error
+//                ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///new_as_selector.dart" as prefix1;
+import "org-dartlang-testcase:///new_as_selector.dart" deferred as prefix2 hide E;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+}
+class C extends self::Super {
+  field core::int new;
+  constructor •() → self::C
+    ;
+  constructor named() → self::C
+    ;
+  method method() → dynamic
+    ;
+}
+extension E on core::int {
+  get new = self::E|get#new;
+  set new = self::E|set#new;
+  method call = self::E|call;
+  tearoff call = self::E|get#call;
+}
+static field core::int new;
+static field self::C c;
+external static method E|get#new(core::int #this) → core::int;
+external static method E|set#new(core::int #this, core::int #externalFieldValue) → void;
+static method E|call<T extends core::Object? = dynamic>(lowered final core::int #this) → dynamic
+  ;
+static method E|get#call(lowered final core::int #this) → <T extends core::Object? = dynamic>() → dynamic
+  return <T extends core::Object? = dynamic>() → dynamic => self::E|call<T%>(#this);
+static method method(dynamic d) → dynamic
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

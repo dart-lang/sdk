@@ -11,13 +11,10 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceNewWithConst extends CorrectionProducer {
   @override
-  // TODO(brianwilkerson) This fix can produce changes that are inconsistent
-  //  with the `unnecessary_const` lint. Fix it and then enable it for both
-  //  uses.
-  bool get canBeAppliedInBulk => false;
+  bool get canBeAppliedInBulk => true;
 
   @override
-  bool get canBeAppliedToFile => false;
+  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_NEW_WITH_CONST;

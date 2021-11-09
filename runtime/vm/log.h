@@ -22,11 +22,11 @@ class LogBlock;
 
 #define THR_VPrint(format, args) Log::Current()->VPrint(format, args)
 
-typedef void (*LogPrinter)(const char* str, ...) PRINTF_ATTRIBUTE(1, 2);
+typedef void (*LogPrinter)(const char* data);
 
 class Log {
  public:
-  explicit Log(LogPrinter printer = OS::PrintErr);
+  explicit Log(LogPrinter printer = nullptr);
   ~Log();
 
   static Log* Current();

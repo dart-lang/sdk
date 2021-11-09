@@ -61,10 +61,6 @@ void ThreadInterruptSignalHandler(int signal, siginfo_t* info, void* context_) {
 #endif
 }  // namespace
 
-bool ThreadInterrupter::IsDebuggerAttached() {
-  return false;
-}
-
 void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
     OS::PrintErr("ThreadInterrupter interrupting %p\n",

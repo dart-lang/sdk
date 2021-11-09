@@ -15,6 +15,25 @@ main() {
 
 @reflectiveTest
 class InstanceAccessToStaticMemberTest extends PubPackageResolutionTest {
+  test_class_method() async {
+    await assertErrorsInCode('''
+class C {
+  static void a() {}
+}
+
+f(C c) {
+  c.a();
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 47, 1,
+          correctionContains: "class 'C'"),
+    ]);
+    assertElement(
+      findNode.methodInvocation('a();'),
+      findElement.method('a'),
+    );
+  }
+
   test_extension_getter() async {
     await assertErrorsInCode('''
 class C {}
@@ -28,7 +47,33 @@ f(C c) {
   g(c).a;
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 92, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 92, 1,
+          correctionContains: "extension 'E'"),
+    ]);
+    assertElement(
+      findNode.simple('a;'),
+      findElement.getter('a'),
+    );
+  }
+
+  test_extension_getter_unnamed() async {
+    await assertErrorsInCode('''
+class C {}
+
+extension on C {
+  static int get a => 0;
+}
+
+C g(C c) => C();
+f(C c) {
+  g(c).a;
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+          90,
+          1),
     ]);
     assertElement(
       findNode.simple('a;'),
@@ -48,12 +93,56 @@ f(C c) {
   c.a();
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1,
+          correctionContains: "extension 'E'"),
     ]);
     assertElement(
       findNode.methodInvocation('a();'),
       findElement.method('a'),
     );
+  }
+
+  test_extension_method_unnamed() async {
+    await assertErrorsInCode('''
+class C {}
+
+extension on C {
+  static void a() {}
+}
+
+f(C c) {
+  c.a();
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+          66,
+          1),
+    ]);
+    assertElement(
+      findNode.methodInvocation('a();'),
+      findElement.method('a'),
+    );
+  }
+
+  test_extension_referring_to_class_member() async {
+    await assertErrorsInCode('''
+class C {
+  static void m() {}
+}
+extension on int {
+  foo(C c) {
+    c.m(); // ERROR
+  }
+}
+test(int i) {
+  i.foo(C());
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 71, 1,
+          correctionContains: "class 'C'"),
+    ]);
   }
 
   test_extension_setter() async {
@@ -98,7 +187,53 @@ f(A a) {
   a.m;
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 41, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 41, 1,
+          correctionContains: "class 'A'"),
+    ]);
+  }
+
+  test_method_reference_extension() async {
+    await assertErrorsInCode(r'''
+extension E on int {
+  static m<T>() {}
+}
+f(int a) {
+  a.m<int>;
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 57, 1,
+          correctionContains: "extension 'E'"),
+    ]);
+  }
+
+  test_method_reference_extension_unnamed() async {
+    await assertErrorsInCode(r'''
+extension on int {
+  static m<T>() {}
+}
+f(int a) {
+  a.m<int>;
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+          55,
+          1),
+    ]);
+  }
+
+  test_method_reference_mixin() async {
+    await assertErrorsInCode(r'''
+mixin A {
+  static m() {}
+}
+f(A a) {
+  a.m;
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 41, 1,
+          correctionContains: "mixin 'A'"),
     ]);
   }
 
@@ -111,8 +246,42 @@ f(A a) {
   a.m<int>;
 }
 ''', [
-      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1,
+          correctionContains: "class 'A'"),
     ]);
+  }
+
+  test_method_reference_typeInstantiation_mixin() async {
+    await assertErrorsInCode(r'''
+mixin A {
+  static m<T>() {}
+}
+f(A a) {
+  a.m<int>;
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1,
+          correctionContains: "mixin 'A'"),
+    ]);
+  }
+
+  test_mixin_method() async {
+    await assertErrorsInCode('''
+mixin A {
+  static void a() {}
+}
+
+f(A a) {
+  a.a();
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 47, 1,
+          correctionContains: "mixin 'A'"),
+    ]);
+    assertElement(
+      findNode.methodInvocation('a();'),
+      findElement.method('a'),
+    );
   }
 
   test_propertyAccess_field() async {

@@ -101,7 +101,7 @@ template("kernel_service_dill") {
           # consuming/producing kernel.
           "-Dsdk_hash=$sdk_hash",
 
-          "--packages=" + scheme + ":///.packages",
+          "--packages=" + scheme + ":///.dart_tool/package_config.json",
           "--platform=" + rebase_path("$root_out_dir/vm_platform_strong.dill"),
           "--filesystem-root=" + rebase_path("../../"),
           "--filesystem-scheme=" + scheme,

@@ -478,7 +478,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       _recordTokenType(context, node);
     }
 
-    recordDataForCommentReference('CommentReference (name)', node.identifier);
+    recordDataForCommentReference('CommentReference (name)', node.expression);
     super.visitCommentReference(node);
   }
 

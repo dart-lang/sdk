@@ -1451,12 +1451,13 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   String get displayName {
-    final linkedData = this.linkedData;
-    if (linkedData != null) {
-      return linkedData.reference.name;
+    var className = enclosingElement.name;
+    var name = this.name;
+    if (name.isNotEmpty) {
+      return '$className.$name';
+    } else {
+      return className;
     }
-
-    return super.displayName;
   }
 
   @override
@@ -3786,15 +3787,9 @@ class LibraryElementImpl extends _ExistingElementImpl
     return _exports;
   }
 
+  @Deprecated('Support for dart-ext is replaced with FFI')
   @override
-  bool get hasExtUri {
-    return hasModifier(Modifier.HAS_EXT_URI);
-  }
-
-  /// Set whether this library has an import of a "dart-ext" URI.
-  set hasExtUri(bool hasExtUri) {
-    setModifier(Modifier.HAS_EXT_URI, hasExtUri);
-  }
+  bool get hasExtUri => false;
 
   @Deprecated('Not useful for clients')
   @override
@@ -4193,12 +4188,17 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /// this variable is not a subject of type inference, or there was no error.
   TopLevelInferenceError? typeInferenceError;
 
+  /// If this method is a synthetic element which is based on another method
+  /// with some modifications (such as making some parameters covariant),
+  /// this field contains the base method.
+  MethodElement? prototype;
+
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
   MethodElementImpl(String name, int offset) : super(name, offset);
 
   @override
-  MethodElement get declaration => this;
+  MethodElement get declaration => prototype ?? this;
 
   @override
   String get displayName {
@@ -4354,47 +4354,42 @@ class Modifier implements Comparable<Modifier> {
   /// Indicates that the pseudo-modifier 'get' was applied to the element.
   static const Modifier GETTER = Modifier('GETTER', 11);
 
-  /// A flag used for libraries indicating that the defining compilation unit
-  /// contains at least one import directive whose URI uses the "dart-ext"
-  /// scheme.
-  static const Modifier HAS_EXT_URI = Modifier('HAS_EXT_URI', 12);
-
   /// A flag used for libraries indicating that the variable has an explicit
   /// initializer.
-  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 13);
+  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 12);
 
   /// A flag used for fields and top-level variables that have implicit type,
   /// and specify when the type has been inferred.
-  static const Modifier HAS_TYPE_INFERRED = Modifier('HAS_TYPE_INFERRED', 14);
+  static const Modifier HAS_TYPE_INFERRED = Modifier('HAS_TYPE_INFERRED', 13);
 
   /// A flag used for libraries indicating that the defining compilation unit
   /// has a `part of` directive, meaning that this unit should be a part,
   /// but is used as a library.
   static const Modifier HAS_PART_OF_DIRECTIVE =
-      Modifier('HAS_PART_OF_DIRECTIVE', 15);
+      Modifier('HAS_PART_OF_DIRECTIVE', 14);
 
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 16);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 15);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 17);
+  static const Modifier LATE = Modifier('LATE', 16);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 18);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 17);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 19);
+  static const Modifier SETTER = Modifier('SETTER', 18);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 20);
+  static const Modifier STATIC = Modifier('STATIC', 19);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 21);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 20);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -4409,7 +4404,6 @@ class Modifier implements Comparable<Modifier> {
     FINAL,
     GENERATOR,
     GETTER,
-    HAS_EXT_URI,
     HAS_INITIALIZER,
     HAS_PART_OF_DIRECTIVE,
     IMPLICIT_TYPE,
@@ -4999,6 +4993,11 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   @override
   late PropertyInducingElement variable;
 
+  /// If this method is a synthetic element which is based on another method
+  /// with some modifications (such as making some parameters covariant),
+  /// this field contains the base method.
+  PropertyAccessorElement? prototype;
+
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
   PropertyAccessorElementImpl(String name, int offset) : super(name, offset);
@@ -5031,7 +5030,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  PropertyAccessorElement get declaration => this;
+  PropertyAccessorElement get declaration => prototype ?? this;
 
   @override
   String get identifier {
@@ -5482,6 +5481,34 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   @override
   CompilationUnitElement get enclosingElement =>
       super.enclosingElement as CompilationUnitElement;
+
+  /// Returns whether this alias is a "proper rename" of [aliasedClass], as
+  /// defined in the constructor-tearoffs specification.
+  bool get isProperRename {
+    var aliasedType_ = aliasedType;
+    if (aliasedType_ is! InterfaceType) {
+      return false;
+    }
+    var aliasedClass = aliasedType_.element;
+    var typeArguments = aliasedType_.typeArguments;
+    var typeParameterCount = typeParameters.length;
+    if (typeParameterCount != aliasedClass.typeParameters.length) {
+      return false;
+    }
+    for (var i = 0; i < typeParameterCount; i++) {
+      var bound = typeParameters[i].bound ?? library.typeProvider.dynamicType;
+      var aliasedBound = aliasedClass.typeParameters[i].bound ??
+          library.typeProvider.dynamicType;
+      if (!library.typeSystem.isSubtypeOf(bound, aliasedBound) ||
+          !library.typeSystem.isSubtypeOf(aliasedBound, bound)) {
+        return false;
+      }
+      if (typeParameters[i] != typeArguments[i].element) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   ElementKind get kind {

@@ -101,6 +101,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
           graph.asyncElementType,
           sourceInformationBuilder.buildAsyncBody(),
           sourceInformationBuilder.buildAsyncExit());
+      _codegen.tracer
+          .traceJavaScriptText('JavaScript.rewrite', result.debugPrint);
     }
     if (result.sourceInformation == null) {
       result = result.withSourceInformation(

@@ -725,7 +725,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionBody(
   } else if (has_body) {
     body += BuildStatement();
   } else if (dart_function.is_external()) {
-    body += ThrowNoSuchMethodError(dart_function);
+    body +=
+        ThrowNoSuchMethodError(dart_function, /*incompatible_arguments=*/false);
   }
 
   if (body.is_open()) {
@@ -1535,8 +1536,10 @@ Fragment StreamingFlowGraphBuilder::RethrowException(TokenPosition position,
 }
 
 Fragment StreamingFlowGraphBuilder::ThrowNoSuchMethodError(
-    const Function& target) {
-  return flow_graph_builder_->ThrowNoSuchMethodError(target);
+    const Function& target,
+    bool incompatible_arguments) {
+  return flow_graph_builder_->ThrowNoSuchMethodError(target,
+                                                     incompatible_arguments);
 }
 
 Fragment StreamingFlowGraphBuilder::Constant(const Object& value) {
@@ -1571,7 +1574,9 @@ Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                intptr_t argument_count,
                                                ICData::RebindRule rebind_rule) {
   if (!target.AreValidArgumentCounts(0, argument_count, 0, nullptr)) {
-    return flow_graph_builder_->ThrowNoSuchMethodError(target);
+    return flow_graph_builder_->ThrowNoSuchMethodError(
+        target,
+        /*incompatible_arguments=*/true);
   }
   return flow_graph_builder_->StaticCall(position, target, argument_count,
                                          rebind_rule);
@@ -1588,7 +1593,9 @@ Fragment StreamingFlowGraphBuilder::StaticCall(
     bool use_unchecked_entry) {
   if (!target.AreValidArguments(type_args_count, argument_count, argument_names,
                                 nullptr)) {
-    return flow_graph_builder_->ThrowNoSuchMethodError(target);
+    return flow_graph_builder_->ThrowNoSuchMethodError(
+        target,
+        /*incompatible_arguments=*/true);
   }
   return flow_graph_builder_->StaticCall(
       position, target, argument_count, argument_names, rebind_rule,
@@ -4862,17 +4869,28 @@ Fragment StreamingFlowGraphBuilder::BuildReturnStatement() {
 
   if (instructions.is_open()) {
     if (inside_try_finally) {
-      ASSERT(scopes()->finally_return_variable != NULL);
+      LocalVariable* const finally_return_variable =
+          scopes()->finally_return_variable;
+      ASSERT(finally_return_variable != nullptr);
       const Function& function = parsed_function()->function();
       if (NeedsDebugStepCheck(function, position)) {
         instructions += DebugStepCheck(position);
       }
-      instructions += StoreLocal(position, scopes()->finally_return_variable);
+      instructions += StoreLocal(position, finally_return_variable);
       instructions += Drop();
-      instructions += TranslateFinallyFinalizers(NULL, -1);
+      const intptr_t target_context_depth =
+          finally_return_variable->is_captured()
+              ? finally_return_variable->owner()->context_level()
+              : -1;
+      instructions += TranslateFinallyFinalizers(nullptr, target_context_depth);
       if (instructions.is_open()) {
-        instructions += LoadLocal(scopes()->finally_return_variable);
+        const intptr_t saved_context_depth = B->context_depth_;
+        if (finally_return_variable->is_captured()) {
+          B->context_depth_ = target_context_depth;
+        }
+        instructions += LoadLocal(finally_return_variable);
         instructions += Return(TokenPosition::kNoSource);
+        B->context_depth_ = saved_context_depth;
       }
     } else {
       instructions += Return(position);

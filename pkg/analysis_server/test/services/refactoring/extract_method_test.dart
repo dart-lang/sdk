@@ -2806,7 +2806,7 @@ f(bool b) {
 // end
 }
 
-List<dynamic> res(bool b) {
+List<Object> res(bool b) {
   if (b) {
     print(true);
     return <int>[];

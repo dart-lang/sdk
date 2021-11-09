@@ -203,30 +203,6 @@ FlowGraphCompiler::FlowGraphCompiler(
   ArchSpecificInitialization();
 }
 
-bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
-  // The `field.is_non_nullable_integer()` is set in the kernel loader and can
-  // only be set if we consume a AOT kernel (annotated with inferred types).
-  ASSERT(!field.is_non_nullable_integer() || FLAG_precompiled_mode);
-  const bool valid_class =
-      ((SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
-       (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
-       (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid)) ||
-       field.is_non_nullable_integer());
-  return field.is_unboxing_candidate() && !field.is_nullable() && valid_class;
-}
-
-bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
-  if (FLAG_precompiled_mode) {
-    // kernel_loader.cc:ReadInferredType sets the guarded cid for fields based
-    // on inferred types from TFA (if available). The guarded cid is therefore
-    // proven to be correct.
-    return IsUnboxedField(field);
-  }
-  return field.is_unboxing_candidate() &&
-         (FlowGraphCompiler::IsUnboxedField(field) ||
-          (field.guarded_cid() == kIllegalCid));
-}
-
 void FlowGraphCompiler::InitCompiler() {
   compressed_stackmaps_builder_ =
       new (zone()) CompressedStackMapsBuilder(zone());
@@ -1621,8 +1597,10 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
       blocked_registers[loc.reg()] = true;
     } else if (loc.IsFpuRegister()) {
       // Check that a register is not specified twice in the summary.
-      ASSERT(!blocked_fpu_registers[loc.fpu_reg()]);
-      blocked_fpu_registers[loc.fpu_reg()] = true;
+      const FpuRegister fpu_reg = loc.fpu_reg();
+      ASSERT((fpu_reg >= 0) && (fpu_reg < kNumberOfFpuRegisters));
+      ASSERT(!blocked_fpu_registers[fpu_reg]);
+      blocked_fpu_registers[fpu_reg] = true;
     }
   }
 
@@ -1634,8 +1612,10 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
       blocked_registers[loc.reg()] = true;
     } else if (loc.IsFpuRegister()) {
       // Check that a register is not specified twice in the summary.
-      ASSERT(!blocked_fpu_registers[loc.fpu_reg()]);
-      blocked_fpu_registers[loc.fpu_reg()] = true;
+      const FpuRegister fpu_reg = loc.fpu_reg();
+      ASSERT((fpu_reg >= 0) && (fpu_reg < kNumberOfFpuRegisters));
+      ASSERT(!blocked_fpu_registers[fpu_reg]);
+      blocked_fpu_registers[fpu_reg] = true;
     }
   }
 
@@ -2516,8 +2496,15 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateInlineInstanceof(
     const AbstractType& type,
     compiler::Label* is_instance_lbl,
     compiler::Label* is_not_instance_lbl) {
+  ASSERT(!type.IsTopTypeForInstanceOf());
   __ Comment("InlineInstanceof");
-
+  if (type.IsObjectType()) {  // Must be non-nullable.
+    __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
+    // All non-null objects are instances of non-nullable Object.
+    __ BranchIf(NOT_EQUAL, is_instance_lbl);
+    __ Jump(is_not_instance_lbl);
+    return SubtypeTestCache::null();  // No need for an STC.
+  }
   if (type.IsFunctionType()) {
     return GenerateFunctionTypeTest(source, type, is_instance_lbl,
                                     is_not_instance_lbl);
@@ -2573,6 +2560,11 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     const Class& type_class,
     compiler::Label* is_instance_lbl,
     compiler::Label* is_not_instance_lbl) {
+  // If the type being tested is non-nullable Object, we are in NNBD strong
+  // mode, since top types do not reach here. In this case, testing the
+  // superclass of a null instance yields a wrong result (as the Null class
+  // extends Object).
+  ASSERT(!type_class.IsObjectClass());
   __ Comment("Subtype1TestCacheLookup");
 #if defined(DEBUG)
   compiler::Label ok;
@@ -2580,43 +2572,40 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   __ Breakpoint();
   __ Bind(&ok);
 #endif
-  // Check immediate superclass equality. If type_class is Object, then testing
-  // supertype may yield a wrong result for Null in NNBD strong mode (because
-  // Null also extends Object).
-  if (!type_class.IsObjectClass() ||
-      !IsolateGroup::Current()->use_strict_null_safety_checks()) {
-    // We don't use TypeTestABI::kScratchReg for the first scratch register as
-    // it is not defined on IA32. Instead, we use the subtype test cache
-    // register, as it is clobbered by the subtype test cache stub call anyway.
-    const Register kScratch1Reg = TypeTestABI::kSubtypeTestCacheReg;
+  // We don't use TypeTestABI::kScratchReg for the first scratch register as
+  // it is not defined on IA32. Instead, we use the subtype test cache
+  // register, as it is clobbered by the subtype test cache stub call anyway.
+  const Register kScratch1Reg = TypeTestABI::kSubtypeTestCacheReg;
 #if defined(TARGET_ARCH_IA32)
-    // We don't use TypeTestABI::kScratchReg as it is not defined on IA32.
-    // Instead, we pick another TypeTestABI register and push/pop it around
-    // the uses of the second scratch register.
-    const Register kScratch2Reg = TypeTestABI::kDstTypeReg;
-    __ PushRegister(kScratch2Reg);
+  // We don't use TypeTestABI::kScratchReg as it is not defined on IA32.
+  // Instead, we pick another TypeTestABI register and push/pop it around
+  // the uses of the second scratch register.
+  const Register kScratch2Reg = TypeTestABI::kDstTypeReg;
+  __ PushRegister(kScratch2Reg);
 #else
-    // We can use TypeTestABI::kScratchReg for the second scratch register, as
-    // IA32 is handled separately.
-    const Register kScratch2Reg = TypeTestABI::kScratchReg;
+  // We can use TypeTestABI::kScratchReg for the second scratch register, as
+  // IA32 is handled separately.
+  const Register kScratch2Reg = TypeTestABI::kScratchReg;
 #endif
-    static_assert(kScratch1Reg != kScratch2Reg,
-                  "Scratch registers must be distinct");
-    __ LoadClassId(kScratch2Reg, TypeTestABI::kInstanceReg);
-    __ LoadClassById(kScratch1Reg, kScratch2Reg);
+  static_assert(kScratch1Reg != kScratch2Reg,
+                "Scratch registers must be distinct");
+  // Check immediate superclass equality.
+  __ LoadClassId(kScratch2Reg, TypeTestABI::kInstanceReg);
+  __ LoadClassById(kScratch1Reg, kScratch2Reg);
 #if defined(TARGET_ARCH_IA32)
-    // kScratch2 is no longer used, so restore it.
-    __ PopRegister(kScratch2Reg);
+  // kScratch2 is no longer used, so restore it.
+  __ PopRegister(kScratch2Reg);
 #endif
-    __ LoadCompressedFieldFromOffset(
-        kScratch1Reg, kScratch1Reg,
-        compiler::target::Class::super_type_offset());
-    __ LoadCompressedFieldFromOffset(
-        kScratch1Reg, kScratch1Reg,
-        compiler::target::Type::type_class_id_offset());
-    __ CompareImmediate(kScratch1Reg, Smi::RawValue(type_class.id()));
-    __ BranchIf(EQUAL, is_instance_lbl);
-  }
+  __ LoadCompressedFieldFromOffset(
+      kScratch1Reg, kScratch1Reg, compiler::target::Class::super_type_offset());
+  // Check for a null super type. Instances whose class has a null super type
+  // can only be an instance of top types or of non-nullable Object, but this
+  // method is not called for those types, so the object cannot be an instance.
+  __ CompareObject(kScratch1Reg, Object::null_object());
+  __ BranchIf(EQUAL, is_not_instance_lbl);
+  __ LoadTypeClassId(kScratch1Reg, kScratch1Reg);
+  __ CompareImmediate(kScratch1Reg, type_class.id());
+  __ BranchIf(EQUAL, is_instance_lbl);
 
   return GenerateCallSubtypeTestStub(kTestTypeOneArg, is_instance_lbl,
                                      is_not_instance_lbl);
@@ -3229,7 +3218,6 @@ void FlowGraphCompiler::FrameStateClear() {
 #define __ compiler->assembler()->
 
 void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
-  RELEASE_ASSERT(try_index_ == compiler->CurrentTryIndex());
   if (compiler::Assembler::EmittingComments()) {
     __ Comment("slow path %s operation", name());
   }

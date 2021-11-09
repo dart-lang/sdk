@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -19,8 +20,13 @@ main() {
 
 @reflectiveTest
 class AnalysisContextCollectionTest with ResourceProviderMixin {
+  Folder get sdkRoot => newFolder('/sdk');
+
   void setUp() {
-    MockSdk(resourceProvider: resourceProvider);
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
     registerLintRules();
   }
 
@@ -168,7 +174,7 @@ linter:
     return AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       includedPaths: includedPaths,
-      sdkPath: convertPath(sdkRoot),
+      sdkPath: sdkRoot.path,
     );
   }
 }

@@ -12,7 +12,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class FooBase<Tf extends core::Object* = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::FooBase::•];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   abstract get x() → core::int*;
   static factory •<Tf extends core::Object* = dynamic>(core::int* x) → self::FooBase<self::FooBase::•::Tf*>*
     return invalid-expression "pkg/front_end/testcases/general/redirecting_factory.dart:7:28: Error: The constructor function type 'Foo<Tf> Function(int)' isn't a subtype of 'FooBase<Tf> Function(int)'.
@@ -32,7 +32,7 @@ abstract class FooBase<Tf extends core::Object* = dynamic> extends core::Object 
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class Foo<T extends core::Object* = dynamic> extends core::Object implements self::FooBase<dynamic> {
-  static final field dynamic _redirecting# = <dynamic>[self::Foo::•];
+  static final field dynamic _redirecting# = <dynamic>[#C2];
   static factory •<T extends core::Object* = dynamic>(core::int* x) → self::Foo<self::Foo::•::T*>*
     return new self::Bar::•<core::String*, self::Foo::•::T*>(x);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -86,7 +86,7 @@ class Builder<X extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class SimpleCase<A extends core::Object* = dynamic, B extends core::Object* = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::SimpleCase::•];
+  static final field dynamic _redirecting# = <dynamic>[#C3];
   static factory •<A extends core::Object* = dynamic, B extends core::Object* = dynamic>() → self::SimpleCase<self::SimpleCase::•::A*, self::SimpleCase::•::B*>*
     return self::SimpleCaseImpl::•<self::SimpleCase::•::A*, self::SimpleCase::•::B*>();
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -101,7 +101,7 @@ class SimpleCase<A extends core::Object* = dynamic, B extends core::Object* = dy
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class SimpleCaseImpl<Ai extends core::Object* = dynamic, Bi extends core::Object* = dynamic> extends core::Object implements self::SimpleCase<self::SimpleCaseImpl::Ai*, self::SimpleCaseImpl::Bi*> {
-  static final field dynamic _redirecting# = <dynamic>[self::SimpleCaseImpl::•];
+  static final field dynamic _redirecting# = <dynamic>[#C4];
   static factory •<Ai extends core::Object* = dynamic, Bi extends core::Object* = dynamic>() → self::SimpleCaseImpl<self::SimpleCaseImpl::•::Ai*, self::SimpleCaseImpl::•::Bi*>*
     return new self::SimpleCaseImpl2::•<self::SimpleCaseImpl::•::Ai*, self::SimpleCaseImpl::•::Bi*>();
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -173,4 +173,11 @@ static method main() → dynamic {
                            ^".{self::FooBase::x}{core::int*});
   new self::SimpleCaseImpl2::•<core::int*, core::double*>();
   new self::Mix::•<core::double*>();
+}
+
+constants  {
+  #C1 = constructor-tearoff self::FooBase::•
+  #C2 = constructor-tearoff self::Foo::•
+  #C3 = constructor-tearoff self::SimpleCase::•
+  #C4 = constructor-tearoff self::SimpleCaseImpl::•
 }

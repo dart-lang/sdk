@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -248,6 +249,110 @@ void f() {
     }
   }
 
+  Future<void> test_constructorReference_named() async {
+    addTestFile('''
+class A<T> {
+  /// doc aaa
+  /// doc bbb
+  A.named();
+}
+
+void f() {
+  A<double>.named;
+}
+''');
+    var hover = await prepareHover('named;');
+    // element
+    expect(hover.containingLibraryName, 'bin/test.dart');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.dartdoc, 'doc aaa\ndoc bbb');
+    expect(hover.elementDescription, 'A<double> A.named()');
+    expect(hover.elementKind, 'constructor');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_constructorReference_unnamed_declared() async {
+    addTestFile('''
+class A<T> {
+  /// doc aaa
+  /// doc bbb
+  A();
+}
+
+void f() {
+  A<double>.new;
+}
+''');
+    var hover = await prepareHover('new;');
+    // element
+    expect(hover.containingLibraryName, 'bin/test.dart');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.dartdoc, 'doc aaa\ndoc bbb');
+    expect(hover.elementDescription, 'A<double> A()');
+    expect(hover.elementKind, 'constructor');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_constructorReference_unnamed_declared_new() async {
+    addTestFile('''
+class A<T> {
+  /// doc aaa
+  /// doc bbb
+  A.new();
+}
+
+void f() {
+  A<double>.new;
+}
+''');
+    var hover = await prepareHover('new;');
+    // element
+    expect(hover.containingLibraryName, 'bin/test.dart');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.dartdoc, 'doc aaa\ndoc bbb');
+    expect(hover.elementDescription, 'A<double> A()');
+    expect(hover.elementKind, 'constructor');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_constructorReference_unnamed_synthetic() async {
+    addTestFile('''
+class A<T> {}
+
+void f() {
+  A<double>.new;
+}
+''');
+    var hover = await prepareHover('new;');
+    // element
+    expect(hover.containingLibraryName, 'bin/test.dart');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, 'A<double> A()');
+    expect(hover.elementKind, 'constructor');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
   Future<void> test_dartdoc_block() async {
     addTestFile('''
 /**
@@ -394,6 +499,85 @@ List<String> fff(int a, [String b = 'b']) {
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
     expect(
         hover.elementDescription, "List<String> fff(int a, [String b = 'b'])");
+    expect(hover.elementKind, 'function');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_functionReference_classMethod_instance() async {
+    addTestFile('''
+class A<T> {
+  /// doc aaa
+  /// doc bbb
+  int foo<U>(T t, U u) => 0;
+}
+
+void f(A<int> a) {
+  a.foo<double>;
+}
+''');
+    var hover = await prepareHover('foo<double>');
+    // element
+    expect(hover.containingLibraryName, 'bin/test.dart');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
+    expect(hover.elementDescription, 'int foo<U>(int t, U u)');
+    expect(hover.elementKind, 'method');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_functionReference_classMethod_static() async {
+    addTestFile('''
+class A<T> {
+  /// doc aaa
+  /// doc bbb
+  static int foo<U>(U u) => 0;
+}
+
+void f() {
+  A.foo<double>;
+}
+''');
+    var hover = await prepareHover('foo<double>');
+    // element
+    expect(hover.containingLibraryName, 'bin/test.dart');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
+    expect(hover.elementDescription, 'int foo<U>(U u)');
+    expect(hover.elementKind, 'method');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
+  Future<void> test_functionReference_topLevelFunction() async {
+    addTestFile('''
+/// doc aaa
+/// doc bbb
+int foo<T>(T a) => 0;
+
+void f() {
+  foo<double>;
+}
+''');
+    var hover = await prepareHover('foo<double>');
+    // element
+    expect(hover.containingLibraryName, 'bin/test.dart');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
+    expect(hover.elementDescription, 'int foo<T>(T a)');
     expect(hover.elementKind, 'function');
     // types
     expect(hover.staticType, isNull);
@@ -684,7 +868,6 @@ void f() {
   }
 
   Future<void> test_nonNullable() async {
-    createAnalysisOptionsFile(experiments: ['non-nullable']);
     addTestFile('''
 int? f(double? a) => null;
 

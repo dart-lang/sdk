@@ -1,4 +1,10 @@
-# Changelog
+## 0.4.5-dev
+
+- Require Dart >= 2.14
+
+## 0.4.4
+
+- Added handling of dynamic tables for testing.
 
 ## 0.4.3
 

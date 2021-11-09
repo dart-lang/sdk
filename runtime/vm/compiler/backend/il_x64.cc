@@ -92,7 +92,7 @@ void LoadIndexedUnsafeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // No addressing mode will ignore the upper bits. Cannot use the shorter `orl`
   // to clear the upper bits as this instructions uses negative indices as part
   // of FP-relative loads.
-  // TODO(compressed-pointers): Can we guarentee the index is already
+  // TODO(compressed-pointers): Can we guarantee the index is already
   // sign-extended if always comes for an args-descriptor load?
   __ movsxd(index, index);
 #endif
@@ -123,7 +123,7 @@ DEFINE_BACKEND(StoreIndexedUnsafe,
   // No addressing mode will ignore the upper bits. Cannot use the shorter `orl`
   // to clear the upper bits as this instructions uses negative indices as part
   // of FP-relative stores.
-  // TODO(compressed-pointers): Can we guarentee the index is already
+  // TODO(compressed-pointers): Can we guarantee the index is already
   // sign-extended if always comes for an args-descriptor load?
   __ movsxd(index, index);
 #endif
@@ -5823,8 +5823,7 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ThrowErrorSlowPathCode* slow_path =
-      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  ThrowErrorSlowPathCode* slow_path = new NullErrorSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
   Register value_reg = locs()->in(0).reg();
@@ -5944,11 +5943,9 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
  public:
   Int64DivideSlowPath(BinaryInt64OpInstr* instruction,
                       Register divisor,
-                      Range* divisor_range,
-                      intptr_t try_index)
+                      Range* divisor_range)
       : ThrowErrorSlowPathCode(instruction,
-                               kIntegerDivisionByZeroExceptionRuntimeEntry,
-                               try_index),
+                               kIntegerDivisionByZeroExceptionRuntimeEntry),
         is_mod_(instruction->op_kind() == Token::kMOD),
         divisor_(divisor),
         divisor_range_(divisor_range),
@@ -6105,8 +6102,8 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
 
   // Prepare a slow path.
   Range* right_range = instruction->right()->definition()->range();
-  Int64DivideSlowPath* slow_path = new (Z) Int64DivideSlowPath(
-      instruction, right, right_range, compiler->CurrentTryIndex());
+  Int64DivideSlowPath* slow_path =
+      new (Z) Int64DivideSlowPath(instruction, right, right_range);
 
   // Handle modulo/division by zero exception on slow path.
   if (slow_path->has_divide_by_zero()) {
@@ -6372,10 +6369,9 @@ static void EmitShiftUint32ByRCX(FlowGraphCompiler* compiler,
 
 class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction, intptr_t try_index)
+  explicit ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               kArgumentErrorUnboxedInt64RuntimeEntry,
-                               try_index) {}
+                               kArgumentErrorUnboxedInt64RuntimeEntry) {}
 
   const char* name() override { return "int64 shift"; }
 
@@ -6442,8 +6438,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Jump to a slow path if shift count is > 63 or negative.
     ShiftInt64OpSlowPath* slow_path = NULL;
     if (!IsShiftCountInRange()) {
-      slow_path =
-          new (Z) ShiftInt64OpSlowPath(this, compiler->CurrentTryIndex());
+      slow_path = new (Z) ShiftInt64OpSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
 
       __ cmpq(RCX, compiler::Immediate(kShiftCountLimit));
@@ -6500,10 +6495,9 @@ void SpeculativeShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 class ShiftUint32OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction, intptr_t try_index)
+  explicit ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               kArgumentErrorUnboxedInt64RuntimeEntry,
-                               try_index) {}
+                               kArgumentErrorUnboxedInt64RuntimeEntry) {}
 
   const char* name() override { return "uint32 shift"; }
 
@@ -6559,8 +6553,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Jump to a slow path if shift count is > 31 or negative.
     ShiftUint32OpSlowPath* slow_path = NULL;
     if (!IsShiftCountInRange(kUint32ShiftCountLimit)) {
-      slow_path =
-          new (Z) ShiftUint32OpSlowPath(this, compiler->CurrentTryIndex());
+      slow_path = new (Z) ShiftUint32OpSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
 
       __ cmpq(RCX, compiler::Immediate(kUint32ShiftCountLimit));
@@ -6608,12 +6601,12 @@ void SpeculativeShiftUint32OpInstr::EmitNativeCode(
         compiler::Label* deopt =
             compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
 
-        __ testq(RCX, RCX);
+        __ OBJ(test)(RCX, RCX);
         __ j(LESS, deopt);
       }
 
       compiler::Label cont;
-      __ cmpq(RCX, compiler::Immediate(kUint32ShiftCountLimit));
+      __ OBJ(cmp)(RCX, compiler::Immediate(kUint32ShiftCountLimit));
       __ j(LESS_EQUAL, &cont);
 
       __ xorl(left, left);

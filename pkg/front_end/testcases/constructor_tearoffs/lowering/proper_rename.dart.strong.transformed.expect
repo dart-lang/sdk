@@ -89,20 +89,20 @@ static method _#I3#new#tearOff<T extends core::int>() → self::D<self::_#I3#new
 constants  {
   #C1 = static-tearoff self::A::_#new#tearOff
   #C2 = static-tearoff self::B::_#new#tearOff
-  #C3 = instantiation self::B::_#new#tearOff <dynamic>
-  #C4 = instantiation self::B::_#new#tearOff <core::int>
+  #C3 = instantiation #C2 <dynamic>
+  #C4 = instantiation #C2 <core::int>
   #C5 = static-tearoff self::_#G3#new#tearOff
   #C6 = static-tearoff self::C::_#new#tearOff
-  #C7 = instantiation self::C::_#new#tearOff <dynamic, dynamic>
-  #C8 = instantiation self::C::_#new#tearOff <core::int, core::String>
+  #C7 = instantiation #C6 <dynamic, dynamic>
+  #C8 = instantiation #C6 <core::int, core::String>
   #C9 = static-tearoff self::_#H2#new#tearOff
-  #C10 = instantiation self::C::_#new#tearOff <core::int, core::int>
+  #C10 = instantiation #C6 <core::int, core::int>
   #C11 = static-tearoff self::_#H4#new#tearOff
-  #C12 = instantiation self::C::_#new#tearOff <core::String, core::int>
+  #C12 = instantiation #C6 <core::String, core::int>
   #C13 = static-tearoff self::_#H5#new#tearOff
   #C14 = static-tearoff self::_#H6#new#tearOff
   #C15 = static-tearoff self::D::_#new#tearOff
-  #C16 = instantiation self::D::_#new#tearOff <core::num>
-  #C17 = instantiation self::D::_#new#tearOff <core::int>
+  #C16 = instantiation #C15 <core::num>
+  #C17 = instantiation #C15 <core::int>
   #C18 = static-tearoff self::_#I3#new#tearOff
 }

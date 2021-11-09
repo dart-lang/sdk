@@ -17,6 +17,14 @@ class AddMissingRequiredArgument extends CorrectionProducer {
   String _missingParameterName = '';
 
   @override
+  // Not a stand-alone fix; requires follow-up actions.
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  // Not a stand-alone fix; requires follow-up actions.
+  bool get canBeAppliedToFile => false;
+
+  @override
   List<Object> get fixArguments => [_missingParameterName];
 
   @override

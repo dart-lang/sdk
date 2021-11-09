@@ -1,0 +1,18 @@
+class List {}
+
+class Object {}
+
+class String {}
+
+class _Enum {}
+
+class int {}
+
+enum E {
+  int,
+  Object,
+  String,
+  _Enum,
+  List,
+}
+main() {}

@@ -18,7 +18,7 @@ import "org-dartlang-testcase:///bar_lib.dart";
 export "org-dartlang-testcase:///bar_lib.dart";
 
 abstract class Foo extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[foo::Foo::bar]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C3]/*isLegacy*/;
   const constructor •() → foo::Foo
     : super core::Object::•()
     ;
@@ -42,6 +42,7 @@ class Bar<T extends core::Object? = dynamic> extends foo::Foo /*hasConstConstruc
 constants  {
   #C1 = bar::Bar<dynamic> {}
   #C2 = <foo::Foo*>{#C1}
+  #C3 = constructor-tearoff foo::Foo::bar
 }
 
 

@@ -347,7 +347,10 @@ FfiFieldNoAnnotation/analyzerCode: Fail
 FfiFieldNull/analyzerCode: Fail
 FfiLeafCallMustNotReturnHandle/analyzerCode: Fail
 FfiLeafCallMustNotTakeHandle/analyzerCode: Fail
-FfiNativeAnnotationMustAnnotateStatic/analyzerCode: Fail
+FfiNativeMustBeExternal/analyzerCode: Fail
+FfiNativeOnlyNativeFieldWrapperClassCanBePointer/analyzerCode: Fail
+FfiNativeUnexpectedNumberOfParameters/analyzerCode: Fail
+FfiNativeUnexpectedNumberOfParametersWithReceiver/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
 FfiPackedAnnotation/analyzerCode: Fail
 FfiPackedAnnotationAlignment/analyzerCode: Fail
@@ -419,7 +422,6 @@ ImplementsNever/analyzerCode: Fail # Feature not yet in analyzer.
 ImplementsNever/example: Fail # Feature not yet enabled by default.
 ImplementsVoid/analyzerCode: Fail # Feature not yet in analyzer.
 ImplementsVoid/example: Fail # Feature not yet enabled by default.
-ImplicitCallOfNonMethod/example: Fail
 ImplicitMixinOverride/analyzerCode: Fail
 ImplicitMixinOverride/example: Fail
 ImplicitReturnNull/analyzerCode: Fail
@@ -523,6 +525,10 @@ JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
 JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropIndexNotSupported/example: Fail # Web compiler specific
+JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
+JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/example: Fail # Web compiler specific
 JsInteropNamedParameters/analyzerCode: Fail # Web compiler specific
@@ -604,6 +610,7 @@ NeverValueError/analyzerCode: Fail
 NeverValueError/example: Fail
 NeverValueWarning/analyzerCode: Fail
 NeverValueWarning/example: Fail
+NewAsSelector/analyzerCode: Fail
 NoFormals/example: Fail
 NoSuchNamedParameter/example: Fail
 NoUnnamedConstructorInObject/analyzerCode: Fail

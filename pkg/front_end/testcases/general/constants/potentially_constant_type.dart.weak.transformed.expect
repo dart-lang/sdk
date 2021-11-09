@@ -651,11 +651,11 @@ constants  {
   #C24 = static-tearoff self3::id
   #C25 = constructor-tearoff self3::Class::•
   #C26 = <self3::Class<invalid-type>*>[]
-  #C27 = instantiation self3::Class::• <core::int*>
+  #C27 = instantiation #C25 <core::int*>
   #C28 = TypeLiteralConstant(self3::Class<invalid-type>*)
-  #C29 = instantiation self3::id <invalid-type>
-  #C30 = instantiation self3::Class::• <invalid-type>
-  #C31 = instantiation self3::id <self3::Class<invalid-type>*>
+  #C29 = instantiation #C24 <invalid-type>
+  #C30 = instantiation #C25 <invalid-type>
+  #C31 = instantiation #C24 <self3::Class<invalid-type>*>
   #C32 = <core::Type*>[#C28]
   #C33 = <(invalid-type) →* invalid-type>[#C29]
   #C34 = <self3::Class<invalid-type>*>[#C8]

@@ -17,11 +17,14 @@ import 'usage_exception.dart';
 
 /// Converts a dump-info file emitted by dart2js to the proto format
 class ToProtoCommand extends Command<void> with PrintUsageException {
+  @override
   final String name = "to_proto";
+  @override
   final String description = "Convert any info file to proto format.";
 
+  @override
   void run() async {
-    if (argResults.rest.length < 1) {
+    if (argResults.rest.isEmpty) {
       usageException('Missing argument: <input-info>');
       exit(1);
     }
@@ -29,9 +32,9 @@ class ToProtoCommand extends Command<void> with PrintUsageException {
     String filename = argResults.rest[0];
     final info = await infoFromFile(filename);
     if (argResults['inject-text']) injectText(info);
-    final proto = new AllInfoProtoCodec().encode(info);
+    final proto = AllInfoProtoCodec().encode(info);
     String outputFilename = argResults['out'] ?? '$filename.pb';
-    final outputFile = new File(outputFilename);
+    final outputFile = File(outputFilename);
     await outputFile.writeAsBytes(proto.writeToBuffer(), mode: FileMode.write);
   }
 }

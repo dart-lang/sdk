@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -12,9 +13,13 @@ import 'package:path/path.dart' show posix;
 /// A contributor that produces suggestions based on the content of the file
 /// system to complete within URIs in import, export and part directives.
 class UriContributor extends DartCompletionContributor {
+  UriContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var visitor = _UriSuggestionBuilder(request, builder);
     request.target.containingNode.accept(visitor);
   }
@@ -52,7 +57,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
             // Quoted empty string
             visitSimpleStringLiteral(uri);
           } else {
-            var data = request.sourceContents!;
+            var data = request.content;
             if (end == data.length) {
               var ch = data[end - 1];
               if (ch != '"' && ch != "'") {
@@ -64,7 +69,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
           }
         }
       } else if (offset == start && offset == end) {
-        var data = request.sourceContents!;
+        var data = request.content;
         if (end == data.length) {
           var ch = data[end - 1];
           if (ch == '"' || ch == "'") {

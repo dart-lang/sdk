@@ -155,8 +155,6 @@ class FlowGraph : public ZoneAllocated {
 
   static Representation ReturnRepresentationOf(const Function& function);
 
-  static Representation UnboxedFieldRepresentationOf(const Field& field);
-
   // The number of variables (or boxes) inside the functions frame - meaning
   // below the frame pointer.  This does not include the expression stack.
   intptr_t num_stack_locals() const {
@@ -506,6 +504,9 @@ class FlowGraph : public ZoneAllocated {
 
   void CreateCommonConstants();
 
+  const Array& coverage_array() const { return *coverage_array_; }
+  void set_coverage_array(const Array& array) { coverage_array_ = &array; }
+
  private:
   friend class FlowGraphCompiler;  // TODO(ajcbik): restructure
   friend class FlowGraphChecker;
@@ -629,6 +630,8 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t inlining_id_;
   bool should_print_;
+
+  const Array* coverage_array_ = &Array::empty_array();
 };
 
 class LivenessAnalysis : public ValueObject {

@@ -11,6 +11,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedImport extends CorrectionProducer {
   @override
+  // Bulk application is supported by a distinct import cleanup fix phase.
   bool get canBeAppliedInBulk => false;
 
   @override
