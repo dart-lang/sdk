@@ -107,9 +107,9 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
 ///
 /// Example:
 /// ```dart import:typed_data
-/// const AsciiEncoder asciiEncoder = AsciiEncoder();
-/// const String sample = 'Dart';
-/// final Uint8List asciiValues = asciiEncoder.convert(sample);
+/// const asciiEncoder = AsciiEncoder();
+/// const sample = 'Dart';
+/// final asciiValues = asciiEncoder.convert(sample);
 /// print(asciiValues); // [68, 97, 114, 116]
 /// ```
 class AsciiEncoder extends _UnicodeSubsetEncoder {
@@ -207,24 +207,24 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
 ///
 /// Example:
 /// ```dart
-/// const AsciiDecoder asciiDecoder = AsciiDecoder();
-/// final List<int> asciiValues = [68, 97, 114, 116];
-/// final String result = asciiDecoder.convert(asciiValues);
+/// const asciiDecoder = AsciiDecoder();
+/// final asciiValues = [68, 97, 114, 116];
+/// final result = asciiDecoder.convert(asciiValues);
 /// print(result); // Dart
 /// ```
+/// Throws a [FormatException] if [bytes] contains values that are not
+/// in the range 0 .. 127, and [allowInvalid] is `false` (the default).
 ///
-/// If `bytes` contains values that are not in the range 0 .. 127, the decoder
-/// throws [FormatException].
-///
-/// If `allowInvalid` is set to true,
-/// the decoder replaces the invalid bytes with the character `U+FFFD` �.
+/// If [allowInvalid] is true, any byte outside the range 0..127 is replaced
+/// by the Unicode invalid character, U+FFFD ('�').
 ///
 /// Example with `allowInvalid` set to true:
 /// ```dart
-/// const AsciiDecoder asciiDecoder = AsciiDecoder(allowInvalid: true);
-/// final List<int> asciiValues = [68, 97, 114, 116, 20, 0xFF];
-/// final String result = asciiDecoder.convert(asciiValues);
+/// const asciiDecoder = AsciiDecoder(allowInvalid: true);
+/// final asciiValues = [68, 97, 114, 116, 20, 0xFF];
+/// final result = asciiDecoder.convert(asciiValues);
 /// print(result); // Dart �
+/// print(result.codeUnits.last.toRadixString(16)); // fffd
 /// ```
 class AsciiDecoder extends _UnicodeSubsetDecoder {
   const AsciiDecoder({bool allowInvalid = false})
