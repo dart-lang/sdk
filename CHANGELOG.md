@@ -323,9 +323,12 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 #### `dart:js_util`
 
-- The `js_util` methods `getProperty`, `setProperty`, `callMethod`,
-  `callConstructor`, and `newObject` now support a generic type argument
-  to specify the return type.
+- The `js_util` methods `setProperty`, `callMethod`, and `callConstructor` have
+  been optimized to remove checks on arguments when the checks can be elided.
+  Also, those methods, along with `getProperty` and `newObject`, now support a
+  generic type argument to specify a return type. These two changes make simple
+  `js_util` usage, like reading and writing primitive properties or calling
+  methods with simple arguments, have zero overhead.
 
 #### `dart:web_sql`
 
@@ -485,6 +488,14 @@ This feature requires
 - New flag `--example` to the commands
   `dart pub get/upgrade/downgrade/add/remove` that will result in the `example/`
   folder dependencies to be updated after operating in the current directory.
+
+### Other libraries
+
+#### `package:js`
+
+- Extensions on JS interop or native `dart:html` classes can now declare
+  members as `external`. These members are equivalent to regular extension
+  members that use `js_util` to expose the underlying JavaScript.
 
 ## 2.14.4 - 2021-10-14
 
