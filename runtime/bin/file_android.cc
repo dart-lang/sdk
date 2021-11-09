@@ -210,6 +210,10 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
   return NULL;
 }
 
+File* File::OpenFD(int fd) {
+  return new File(new FileHandle(fd));
+}
+
 File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   NamespaceScope ns(namespc, name);
   // Report errors for non-regular files.

@@ -33,12 +33,17 @@ abstract class Info {
 // TODO(sigmund): add more:
 //  - inputSize: bytes used in the Dart source program
 abstract class BasicInfo implements Info {
+  @override
   final InfoKind kind;
 
+  @override
   String coverageId;
+  @override
   int size;
+  @override
   Info parent;
 
+  @override
   String name;
 
   /// If using deferred libraries, where the element associated with this info
@@ -49,6 +54,7 @@ abstract class BasicInfo implements Info {
 
   BasicInfo.internal(this.kind);
 
+  @override
   String toString() => '$kind $name [$size]';
 }
 
@@ -76,6 +82,9 @@ class AllInfo {
 
   /// Information about each class (in any library).
   List<ClassInfo> classes = <ClassInfo>[];
+
+  /// Information about each class type (in any library).
+  List<ClassTypeInfo> classTypes = <ClassTypeInfo>[];
 
   /// Information about fields (in any class).
   List<FieldInfo> fields = <FieldInfo>[];
@@ -180,6 +189,9 @@ class LibraryInfo extends BasicInfo {
   /// Classes defined within the library.
   List<ClassInfo> classes = <ClassInfo>[];
 
+  /// Class types defined within the library.
+  List<ClassTypeInfo> classTypes = <ClassTypeInfo>[];
+
   /// Typedefs defined within the library.
   List<TypedefInfo> typedefs = <TypedefInfo>[];
 
@@ -189,13 +201,17 @@ class LibraryInfo extends BasicInfo {
 
   /// Whether there is any information recorded for this library.
   bool get isEmpty =>
-      topLevelFunctions.isEmpty && topLevelVariables.isEmpty && classes.isEmpty;
+      topLevelFunctions.isEmpty &&
+      topLevelVariables.isEmpty &&
+      classes.isEmpty &&
+      classTypes.isEmpty;
 
   LibraryInfo(String name, this.uri, OutputUnitInfo outputUnit, int size)
       : super(InfoKind.library, name, outputUnit, size, null);
 
   LibraryInfo.internal() : super.internal(InfoKind.library);
 
+  @override
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitLibrary(this);
 }
 
@@ -213,6 +229,7 @@ class OutputUnitInfo extends BasicInfo {
 
   OutputUnitInfo.internal() : super.internal(InfoKind.outputUnit);
 
+  @override
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitOutput(this);
 }
 
@@ -231,12 +248,26 @@ class ClassInfo extends BasicInfo {
   List<FieldInfo> fields = <FieldInfo>[];
 
   ClassInfo(
-      {String name, this.isAbstract, OutputUnitInfo outputUnit, int size: 0})
+      {String name, this.isAbstract, OutputUnitInfo outputUnit, int size = 0})
       : super(InfoKind.clazz, name, outputUnit, size, null);
 
   ClassInfo.internal() : super.internal(InfoKind.clazz);
 
+  @override
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitClass(this);
+}
+
+/// Information about a class type element. [ClassTypeInfo] is distinct from
+/// [ClassInfo] because a class and its type may end up in different output
+/// units.
+class ClassTypeInfo extends BasicInfo {
+  ClassTypeInfo({String name, OutputUnitInfo outputUnit, int size = 0})
+      : super(InfoKind.classType, name, outputUnit, size, null);
+
+  ClassTypeInfo.internal() : super.internal(InfoKind.classType);
+
+  @override
+  T accept<T>(InfoVisitor<T> visitor) => visitor.visitClassType(this);
 }
 
 /// A code span of generated code. A [CodeSpan] object is associated with a
@@ -263,11 +294,12 @@ class ConstantInfo extends BasicInfo {
   List<CodeSpan> code;
 
   // TODO(sigmund): Add coverage support to constants?
-  ConstantInfo({int size: 0, this.code, OutputUnitInfo outputUnit})
+  ConstantInfo({int size = 0, this.code, OutputUnitInfo outputUnit})
       : super(InfoKind.constant, null, outputUnit, size, null);
 
   ConstantInfo.internal() : super.internal(InfoKind.constant);
 
+  @override
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitConstant(this);
 }
 
@@ -294,7 +326,7 @@ class FieldInfo extends BasicInfo with CodeInfo {
   FieldInfo(
       {String name,
       String coverageId,
-      int size: 0,
+      int size = 0,
       this.type,
       this.inferredType,
       this.closures,
@@ -305,6 +337,7 @@ class FieldInfo extends BasicInfo with CodeInfo {
 
   FieldInfo.internal() : super.internal(InfoKind.field);
 
+  @override
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitField(this);
 }
 
@@ -318,6 +351,7 @@ class TypedefInfo extends BasicInfo {
 
   TypedefInfo.internal() : super.internal(InfoKind.typedef);
 
+  @override
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitTypedef(this);
 }
 
@@ -363,7 +397,7 @@ class FunctionInfo extends BasicInfo with CodeInfo {
       {String name,
       String coverageId,
       OutputUnitInfo outputUnit,
-      int size: 0,
+      int size = 0,
       this.functionKind,
       this.modifiers,
       this.closures,
@@ -378,6 +412,7 @@ class FunctionInfo extends BasicInfo with CodeInfo {
 
   FunctionInfo.internal() : super.internal(InfoKind.function);
 
+  @override
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitFunction(this);
 }
 
@@ -387,11 +422,12 @@ class ClosureInfo extends BasicInfo {
   FunctionInfo function;
 
   ClosureInfo(
-      {String name, OutputUnitInfo outputUnit, int size: 0, this.function})
+      {String name, OutputUnitInfo outputUnit, int size = 0, this.function})
       : super(InfoKind.closure, name, outputUnit, size, null);
 
   ClosureInfo.internal() : super.internal(InfoKind.closure);
 
+  @override
   T accept<T>(InfoVisitor<T> visitor) => visitor.visitClosure(this);
 }
 
@@ -425,16 +461,17 @@ class FunctionModifiers {
   final bool isExternal;
 
   FunctionModifiers(
-      {this.isStatic: false,
-      this.isConst: false,
-      this.isFactory: false,
-      this.isExternal: false});
+      {this.isStatic = false,
+      this.isConst = false,
+      this.isFactory = false,
+      this.isExternal = false});
 }
 
 /// Possible values of the `kind` field in the serialized infos.
 enum InfoKind {
   library,
   clazz,
+  classType,
   function,
   field,
   constant,
@@ -449,6 +486,8 @@ String kindToString(InfoKind kind) {
       return 'library';
     case InfoKind.clazz:
       return 'class';
+    case InfoKind.classType:
+      return 'classType';
     case InfoKind.function:
       return 'function';
     case InfoKind.field:
@@ -472,6 +511,8 @@ InfoKind kindFromString(String kind) {
       return InfoKind.library;
     case 'class':
       return InfoKind.clazz;
+    case 'classType':
+      return InfoKind.classType;
     case 'function':
       return InfoKind.function;
     case 'field':
@@ -495,6 +536,7 @@ abstract class InfoVisitor<T> {
   T visitProgram(ProgramInfo info);
   T visitLibrary(LibraryInfo info);
   T visitClass(ClassInfo info);
+  T visitClassType(ClassTypeInfo info);
   T visitField(FieldInfo info);
   T visitConstant(ConstantInfo info);
   T visitFunction(FunctionInfo info);
@@ -509,7 +551,8 @@ abstract class InfoVisitor<T> {
 /// visitAll contains references to functions, this visitor only recurses to
 /// visit libraries, then from each library we visit functions and classes, and
 /// so on.
-class RecursiveInfoVisitor extends InfoVisitor<Null> {
+class RecursiveInfoVisitor extends InfoVisitor<void> {
+  @override
   visitAll(AllInfo info) {
     // Note: we don't visit functions, fields, classes, and typedefs because
     // they are reachable from the library info.
@@ -517,32 +560,45 @@ class RecursiveInfoVisitor extends InfoVisitor<Null> {
     info.constants.forEach(visitConstant);
   }
 
+  @override
   visitProgram(ProgramInfo info) {}
 
+  @override
   visitLibrary(LibraryInfo info) {
     info.topLevelFunctions.forEach(visitFunction);
     info.topLevelVariables.forEach(visitField);
     info.classes.forEach(visitClass);
+    info.classTypes.forEach(visitClassType);
     info.typedefs.forEach(visitTypedef);
   }
 
+  @override
   visitClass(ClassInfo info) {
     info.functions.forEach(visitFunction);
     info.fields.forEach(visitField);
   }
 
+  @override
+  visitClassType(ClassTypeInfo info) {}
+
+  @override
   visitField(FieldInfo info) {
     info.closures.forEach(visitClosure);
   }
 
+  @override
   visitConstant(ConstantInfo info) {}
 
+  @override
   visitFunction(FunctionInfo info) {
     info.closures.forEach(visitClosure);
   }
 
+  @override
   visitTypedef(TypedefInfo info) {}
+  @override
   visitOutput(OutputUnitInfo info) {}
+  @override
   visitClosure(ClosureInfo info) {
     visitFunction(info.function);
   }

@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups --disable-heap-verification
+// VMOptions=--disable-heap-verification
 
 import 'dart:async';
 import 'dart:math' as math;

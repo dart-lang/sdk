@@ -14,6 +14,8 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show LanguageVersionToken, Token;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show LibraryInfo;
 import 'package:_fe_analyzer_shared/src/util/options.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
@@ -40,9 +42,6 @@ import 'package:front_end/src/api_prototype/file_system.dart'
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
-
-import 'package:front_end/src/base/libraries_specification.dart'
-    show LibraryInfo;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -72,6 +71,8 @@ import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
+
+import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 
 import 'package:front_end/src/fasta/messages.dart' show LocatedMessage;
 
@@ -107,6 +108,8 @@ import 'package:kernel/ast.dart'
         Version,
         Visitor,
         VisitorVoidMixin;
+
+import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -227,6 +230,7 @@ const Option<bool> noVerifyCmd =
 
 const List<Option> folderOptionsSpecification = [
   Options.enableExperiment,
+  Options.enableUnscheduledExperiments,
   Options.forceLateLoweringSentinel,
   overwriteCurrentSdkVersion,
   Options.forceLateLowering,
@@ -261,6 +265,7 @@ final Expectation semiFuzzCrash = staticExpectationSet["SemiFuzzCrash"];
 /// test folders.
 class FolderOptions {
   final Map<ExperimentalFlag, bool> _explicitExperimentalFlags;
+  final bool? enableUnscheduledExperiments;
   final int? forceLateLowerings;
   final bool? forceLateLoweringSentinel;
   final bool? forceStaticFieldLowering;
@@ -273,7 +278,8 @@ class FolderOptions {
   final String? overwriteCurrentSdkVersion;
 
   FolderOptions(this._explicitExperimentalFlags,
-      {this.forceLateLowerings,
+      {this.enableUnscheduledExperiments,
+      this.forceLateLowerings,
       this.forceLateLoweringSentinel,
       this.forceStaticFieldLowering,
       this.forceNoExplicitGetterCalls,
@@ -441,6 +447,7 @@ class FastaContext extends ChainContext with MatchContext {
   FolderOptions _computeFolderOptions(Directory directory) {
     FolderOptions? folderOptions = _folderOptions[directory.uri];
     if (folderOptions == null) {
+      bool? enableUnscheduledExperiments;
       int? forceLateLowering;
       bool? forceLateLoweringSentinel;
       bool? forceStaticFieldLowering;
@@ -452,6 +459,7 @@ class FastaContext extends ChainContext with MatchContext {
       String target = "vm";
       if (directory.uri == baseUri) {
         folderOptions = new FolderOptions({},
+            enableUnscheduledExperiments: enableUnscheduledExperiments,
             forceLateLowerings: forceLateLowering,
             forceLateLoweringSentinel: forceLateLoweringSentinel,
             forceStaticFieldLowering: forceStaticFieldLowering,
@@ -473,6 +481,8 @@ class FastaContext extends ChainContext with MatchContext {
               Options.enableExperiment.read(parsedOptions) ?? <String>[];
           String overwriteCurrentSdkVersionArgument =
               overwriteCurrentSdkVersion.read(parsedOptions);
+          enableUnscheduledExperiments =
+              Options.enableUnscheduledExperiments.read(parsedOptions);
           forceLateLoweringSentinel =
               Options.forceLateLoweringSentinel.read(parsedOptions);
           forceLateLowering = Options.forceLateLowering.read(parsedOptions);
@@ -499,6 +509,7 @@ class FastaContext extends ChainContext with MatchContext {
                   onError: (String message) => throw new ArgumentError(message),
                   onWarning: (String message) =>
                       throw new ArgumentError(message)),
+              enableUnscheduledExperiments: enableUnscheduledExperiments,
               forceLateLowerings: forceLateLowering,
               forceLateLoweringSentinel: forceLateLoweringSentinel,
               forceStaticFieldLowering: forceStaticFieldLowering,
@@ -541,6 +552,8 @@ class FastaContext extends ChainContext with MatchContext {
         }
         ..sdkRoot = sdk
         ..packagesFileUri = uriConfiguration.packageConfigUri ?? packages
+        ..enableUnscheduledExperiments =
+            folderOptions.enableUnscheduledExperiments ?? false
         ..environmentDefines = folderOptions.defines
         ..explicitExperimentalFlags = folderOptions
             .computeExplicitExperimentalFlags(explicitExperimentalFlags)
@@ -1094,6 +1107,8 @@ CompilationSetup createCompilationSetup(
       ..onDiagnostic = (DiagnosticMessage message) {
         errors.add(message.plainTextFormatted);
       }
+      ..enableUnscheduledExperiments =
+          folderOptions.enableUnscheduledExperiments ?? false
       ..environmentDefines = folderOptions.defines
       ..explicitExperimentalFlags = experimentalFlags
       ..nnbdMode = nnbdMode
@@ -1102,6 +1117,7 @@ CompilationSetup createCompilationSetup(
       ..experimentEnabledVersionForTesting = experimentEnabledVersion
       ..experimentReleasedVersionForTesting = experimentReleasedVersion
       ..skipPlatformVerification = true
+      ..omitPlatform = true
       ..target = createTarget(folderOptions, context);
     if (folderOptions.overwriteCurrentSdkVersion != null) {
       compilerOptions.currentSdkVersion =
@@ -1192,6 +1208,10 @@ class FuzzCompiles
         new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
     final Component component = await incrementalCompiler.computeDelta();
+    if (!canSerialize(component)) {
+      return new Result<ComponentResult>(result, semiFuzzFailure,
+          "Couldn't serialize initial component for fuzzing");
+    }
 
     final Set<Uri> userLibraries =
         createUserLibrariesImportUriSet(component, uriTranslator);
@@ -1219,6 +1239,10 @@ class FuzzCompiles
       incrementalCompiler.invalidate(importUri);
       final Component newComponent =
           await incrementalCompiler.computeDelta(fullComponent: true);
+      if (!canSerialize(newComponent)) {
+        return new Result<ComponentResult>(
+            result, semiFuzzFailure, "Couldn't serialize fuzzed component");
+      }
 
       final Set<Uri> newUserLibraries =
           createUserLibrariesImportUriSet(newComponent, uriTranslator);
@@ -1273,6 +1297,17 @@ class FuzzCompiles
     return null;
   }
 
+  bool canSerialize(Component component) {
+    ByteSink byteSink = new ByteSink();
+    try {
+      new BinaryPrinter(byteSink).writeComponentFile(component);
+      return true;
+    } catch (e, st) {
+      print("Can't serialize, got '$e' from $st");
+      return false;
+    }
+  }
+
   /// Perform a number of compilations where each user-file is in turn sorted
   /// in both ascending and descending order (i.e. the procedures and classes
   /// etc are sorted).
@@ -1294,7 +1329,11 @@ class FuzzCompiles
     IncrementalCompiler incrementalCompiler =
         new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
-    await incrementalCompiler.computeDelta();
+    Component initialComponent = await incrementalCompiler.computeDelta();
+    if (!canSerialize(initialComponent)) {
+      return new Result<ComponentResult>(result, semiFuzzFailure,
+          "Couldn't serialize initial component for fuzzing");
+    }
 
     final bool expectErrors = compilationSetup.errors.isNotEmpty;
     List<Iterable<String>> originalErrors =
@@ -1304,7 +1343,7 @@ class FuzzCompiles
     // Create lookup-table from file uri to whatever.
     Map<Uri, LibraryBuilder> builders = {};
     for (LibraryBuilder builder
-        in incrementalCompiler.userCode!.loader.builders.values) {
+        in incrementalCompiler.userCode!.loader.libraryBuilders) {
       if (builder.importUri.scheme == "dart" && !builder.isSynthetic) continue;
       builders[builder.fileUri] = builder;
       for (LibraryPart part in builder.library.parts) {
@@ -1353,7 +1392,11 @@ class FuzzCompiles
         incrementalCompiler = new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
         try {
-          await incrementalCompiler.computeDelta();
+          Component component = await incrementalCompiler.computeDelta();
+          if (!canSerialize(component)) {
+            return new Result<ComponentResult>(
+                result, semiFuzzFailure, "Couldn't serialize fuzzed component");
+          }
         } catch (e, st) {
           return new Result<ComponentResult>(
               result,
@@ -1626,8 +1669,8 @@ class FuzzAstVisitorSorter extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitTypedef(DirectParserASTContentFunctionTypeAliasEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitTypedef(DirectParserASTContentTypedefEnd node, Token startInclusive,
+      Token endInclusive) {
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 }
@@ -1895,7 +1938,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
     sourceTarget.setEntryPoints(entryPoints);
-    await dillTarget.buildOutlines();
+    dillTarget.buildOutlines();
     return sourceTarget;
   }
 }

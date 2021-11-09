@@ -5,15 +5,20 @@
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 
 /// A contributor that produces suggestions based on the members of a library
 /// when the completion is in a show or hide combinator of an import or export.
 class CombinatorContributor extends DartCompletionContributor {
+  CombinatorContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var node = request.target.containingNode;
     if (node is! Combinator) {
       return;

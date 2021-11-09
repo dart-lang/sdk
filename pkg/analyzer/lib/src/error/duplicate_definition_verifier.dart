@@ -112,7 +112,7 @@ class DuplicateDefinitionVerifier {
               _errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
                 identifier,
-                [node.declaredElement!.name, name],
+                [name],
               );
             }
           }
@@ -126,7 +126,7 @@ class DuplicateDefinitionVerifier {
             _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
               identifier,
-              [node.declaredElement!.name, name],
+              [name],
             );
           }
         }

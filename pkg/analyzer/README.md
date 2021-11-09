@@ -70,7 +70,7 @@ For more information, see the docs for
 
 Many tools embed this library, such as:
 
-* [dartfmt] - a formatter for Dart code
+* [dart format] - a formatter for Dart code
 * [dartdoc] - a documentation generator for Dart code
 * [Dart Analysis Server][analysis_sever] - a stateful server that supports IDEs and editors
 
@@ -102,7 +102,7 @@ See the [LICENSE] file.
 [lintrules]: https://dart-lang.github.io/linter/lints/
 [glob]: https://pub.dev/packages/glob
 [LICENSE]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/LICENSE
-[dartfmt]: https://github.com/dart-lang/dart_style
+[dart format]: https://github.com/dart-lang/dart_style
 [dartdoc]: https://github.com/dart-lang/dartdoc
 [analysis_sever]: https://github.com/dart-lang/sdk/tree/main/pkg/analysis_server
 [custom_analysis]: https://dart.dev/guides/language/analysis-options

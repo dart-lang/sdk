@@ -652,6 +652,16 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType? visitConstructorName(ConstructorName node) {
+    return _visitParent(node);
+  }
+
+  @override
+  DartType? visitConstructorReference(ConstructorReference node) {
+    return _visitParent(node);
+  }
+
+  @override
   DartType? visitDefaultFormalParameter(DefaultFormalParameter node) {
     var separator = node.separator;
     if (separator != null && separator.end <= offset) {

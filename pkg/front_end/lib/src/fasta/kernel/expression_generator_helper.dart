@@ -11,9 +11,10 @@ import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/formal_parameter_builder.dart';
+import '../builder/named_type_builder.dart';
 import '../builder/prefix_builder.dart';
+import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
-import '../builder/unresolved_type.dart';
 
 import '../constant_context.dart' show ConstantContext;
 import '../fasta_codes.dart' show LocatedMessage;
@@ -40,6 +41,14 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   ConstantContext get constantContext;
 
+  bool get isDeclarationInstanceContext;
+
+  /// Whether instance type variables can be accessed.
+  ///
+  /// This is used when creating [NamedTypeBuilder]s within
+  /// [ExpressionGenerator]s.
+  InstanceTypeVariableAccessState get instanceTypeVariableAccessState;
+
   Forest get forest;
 
   Constructor? lookupConstructor(Name name, {bool isSuper: false});
@@ -54,12 +63,14 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   bool get enableConstructorTearOffsInLibrary;
 
+  bool get enableNamedArgumentsAnywhereInLibrary;
+
   Expression_Generator_Builder scopeLookup(
       Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder? prefix});
 
   Expression_Generator_Initializer finishSend(Object receiver,
-      List<UnresolvedType>? typeArguments, Arguments arguments, int offset,
+      List<TypeBuilder>? typeArguments, ArgumentsImpl arguments, int offset,
       {bool isTypeArgumentsInForest = false});
 
   Initializer buildInvalidInitializer(Expression expression,
@@ -96,8 +107,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   LocatedMessage? checkArgumentsForFunction(FunctionNode function,
       Arguments arguments, int offset, List<TypeParameter> typeParameters);
 
-  StaticGet makeStaticGet(Member readTarget, Token token);
-
   Expression wrapInDeferredCheck(
       Expression expression, PrefixBuilder prefix, int charOffset);
 
@@ -105,9 +114,12 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression buildMethodInvocation(
       Expression receiver, Name name, Arguments arguments, int offset,
+      {bool isConstantExpression: false, bool isNullAware: false});
+
+  Expression buildSuperInvocation(Name name, Arguments arguments, int offset,
       {bool isConstantExpression: false,
       bool isNullAware: false,
-      bool isSuper: false});
+      bool isImplicitCall: false});
 
   Expression buildConstructorInvocation(
       TypeDeclarationBuilder type,
@@ -115,14 +127,14 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Token nameLastToken,
       Arguments? arguments,
       String name,
-      List<UnresolvedType>? typeArguments,
+      List<TypeBuilder>? typeArguments,
       int charOffset,
       Constness constness,
       {bool isTypeArgumentsInForest = false,
       TypeDeclarationBuilder? typeAliasBuilder,
       required UnresolvedKind unresolvedKind});
 
-  UnresolvedType validateTypeVariableUse(UnresolvedType unresolved,
+  TypeBuilder validateTypeVariableUse(TypeBuilder typeBuilder,
       {required bool allowPotentiallyConstantType});
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
@@ -145,13 +157,13 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression evaluateArgumentsBefore(
       Arguments arguments, Expression expression);
 
-  DartType buildDartType(UnresolvedType unresolvedType,
+  DartType buildDartType(TypeBuilder typeBuilder,
       {required bool allowPotentiallyConstantType});
 
-  DartType buildTypeLiteralDartType(UnresolvedType unresolvedType,
+  DartType buildTypeLiteralDartType(TypeBuilder typeBuilder,
       {required bool allowPotentiallyConstantType});
 
-  List<DartType> buildDartTypeArguments(List<UnresolvedType>? unresolvedTypes,
+  List<DartType> buildDartTypeArguments(List<TypeBuilder>? typeArguments,
       {required bool allowPotentiallyConstantType});
 
   void reportDuplicatedDeclaration(
@@ -194,7 +206,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   /// creating the instantiation and invocation.
   Expression createInstantiationAndInvocation(
       Expression Function() receiverFunction,
-      List<UnresolvedType>? typeArguments,
+      List<TypeBuilder>? typeArguments,
       String className,
       String constructorName,
       Arguments arguments,

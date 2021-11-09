@@ -11,9 +11,32 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveUnnecessaryCastBulkTest);
     defineReflectiveTests(RemoveUnnecessaryCastMultiTest);
     defineReflectiveTests(RemoveUnnecessaryCastTest);
   });
+}
+
+@reflectiveTest
+class RemoveUnnecessaryCastBulkTest extends BulkFixProcessorTest {
+  Future<void> test_assignment() async {
+    await resolveTestCode('''
+void f(Object p) {
+  if (p is String) {
+    var v = (p as String) as String;
+    print(v);
+  }
+}
+''');
+    await assertHasFix('''
+void f(Object p) {
+  if (p is String) {
+    var v = p;
+    print(v);
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -25,7 +48,7 @@ class RemoveUnnecessaryCastMultiTest extends FixProcessorTest {
     await resolveTestCode('''
 void f(Object p, Object q) {
   if (p is String) {
-    String v = ((p as String));
+    var v = (p as String) as String;
     print(v);
   }
   if (q is int) {
@@ -37,7 +60,7 @@ void f(Object p, Object q) {
     await assertHasFixAllFix(HintCode.UNNECESSARY_CAST, '''
 void f(Object p, Object q) {
   if (p is String) {
-    String v = p;
+    var v = p;
     print(v);
   }
   if (q is int) {

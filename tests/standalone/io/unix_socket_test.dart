@@ -8,6 +8,8 @@ import 'dart:io';
 
 import 'package:expect/expect.dart';
 
+import 'test_utils.dart' show withTempDir;
+
 Future testAddress(String name) async {
   var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
   var server = await ServerSocket.bind(address, 0);
@@ -435,18 +437,401 @@ Future testHttpServer(String name) async {
   await httpServer.close();
 }
 
-// Create socket in temp directory
-Future withTempDir(String prefix, Future<void> test(Directory dir)) async {
-  var tempDir = Directory.systemTemp.createTempSync(prefix);
-  try {
-    await test(tempDir);
-  } finally {
-    tempDir.deleteSync(recursive: true);
+Future testFileMessage(String tempDirPath) async {
+  if (!Platform.isLinux && !Platform.isAndroid) {
+    return;
   }
+
+  final completer = Completer<bool>();
+
+  final address =
+      InternetAddress('$tempDirPath/sock', type: InternetAddressType.unix);
+  final server = await RawServerSocket.bind(address, 0, shared: false);
+
+  server.listen((RawSocket socket) async {
+    print('server started a socket $socket');
+    socket.listen((e) {
+      if (e == RawSocketEvent.read) {
+        final SocketMessage? message = socket.readMessage();
+        if (message == null) {
+          return;
+        }
+        print('server received message $message');
+        final String messageData = String.fromCharCodes(message.data);
+        print('server received messageData $messageData');
+        if (messageData == 'EmptyMessage') {
+          Expect.equals('EmptyMessage'.length, message.data.length);
+          Expect.isTrue(message.controlMessages.isEmpty);
+          return;
+        }
+        Expect.equals('Hello', messageData);
+        Expect.equals('Hello'.length, message.data.length);
+        Expect.equals(1, message.controlMessages.length);
+        final SocketControlMessage controlMessage = message.controlMessages[0];
+        final handles = controlMessage.extractHandles();
+        Expect.isNotNull(handles);
+        Expect.equals(1, handles.length);
+        final receivedFile = handles[0].toFile();
+        receivedFile.writeStringSync('Hello, server!\n');
+        print("server has written to the $receivedFile file");
+        socket.write('abc'.codeUnits);
+      } else if (e == RawSocketEvent.readClosed) {
+        print('server socket got readClosed');
+        socket.close();
+        server.close();
+      }
+    });
+  });
+
+  final file = File('$tempDirPath/myfile.txt');
+  final randomAccessFile = file.openSync(mode: FileMode.write);
+  // Send a message with sample file.
+  final socket = await RawSocket.connect(address, 0);
+  socket.listen((e) {
+    if (e == RawSocketEvent.write) {
+      randomAccessFile.writeStringSync('Hello, client!\n');
+      socket.sendMessage(<SocketControlMessage>[
+        SocketControlMessage.fromHandles(
+            <ResourceHandle>[ResourceHandle.fromFile(randomAccessFile)])
+      ], 'Hello'.codeUnits);
+      print('client sent a message');
+      socket.sendMessage(<SocketControlMessage>[], 'EmptyMessage'.codeUnits);
+      print('client sent a message without control data');
+    } else if (e == RawSocketEvent.read) {
+      final data = socket.read();
+      if (data == null) {
+        return;
+      }
+      Expect.equals('abc', String.fromCharCodes(data));
+      Expect.equals(
+          'Hello, client!\nHello, server!\n', file.readAsStringSync());
+      socket.close();
+      completer.complete(true);
+    }
+  });
+
+  return completer.future;
 }
 
-void main() async {
-  try {
+Future testTooLargeControlMessage(String tempDirPath) async {
+  if (!Platform.isLinux && !Platform.isAndroid) {
+    return;
+  }
+  final completer = Completer<bool>();
+  final address =
+      InternetAddress('$tempDirPath/sock', type: InternetAddressType.unix);
+  final server = await RawServerSocket.bind(address, 0, shared: false);
+
+  server.listen((RawSocket socket) async {
+    print('server started a socket $socket');
+    socket.listen((e) {
+      if (e == RawSocketEvent.read) {
+        throw "Server should not receive request from the client";
+      } else if (e == RawSocketEvent.readClosed) {
+        socket.close();
+        server.close();
+      }
+    });
+  });
+
+  final file = File('$tempDirPath/myfile.txt');
+  final randomAccessFile = file.openSync(mode: FileMode.write);
+  // Send a message with sample file.
+  final socket = await RawSocket.connect(address, 0);
+
+  runZonedGuarded(
+      () => socket.listen((e) {
+            if (e == RawSocketEvent.write) {
+              randomAccessFile.writeStringSync('Hello, client!\n');
+              const int largeHandleCount = 1024;
+              final manyResourceHandles = List<ResourceHandle>.filled(
+                  largeHandleCount, ResourceHandle.fromFile(randomAccessFile));
+              socket.sendMessage(<SocketControlMessage>[
+                SocketControlMessage.fromHandles(manyResourceHandles)
+              ], 'Hello'.codeUnits);
+              server.close();
+              socket.close();
+            }
+          }), (e, st) {
+    print('Got expected unhandled exception $e $st');
+    Expect.equals(true, e is SocketException);
+    completer.complete(true);
+  });
+
+  return completer.future;
+}
+
+Future testFileMessageWithShortRead(String tempDirPath) async {
+  if (!Platform.isLinux && !Platform.isAndroid) {
+    return;
+  }
+
+  final completer = Completer<bool>();
+
+  final address =
+      InternetAddress('$tempDirPath/sock', type: InternetAddressType.unix);
+  final server = await RawServerSocket.bind(address, 0, shared: false);
+
+  server.listen((RawSocket socket) async {
+    print('server started a socket $socket');
+    socket.listen((e) {
+      if (e == RawSocketEvent.read) {
+        Expect.throws(
+            () => socket.readMessage(0),
+            (e) =>
+                e is ArgumentError &&
+                e.toString().contains('Illegal length 0'));
+        final SocketMessage? message = socket.readMessage(/*count=*/ 1);
+        if (message == null) {
+          return;
+        }
+        print('server received message $message');
+        final String messageData = String.fromCharCodes(message.data);
+        print('messageData: $messageData');
+        if (messageData[0] == 'H') {
+          Expect.equals(1, message.controlMessages.length);
+          final SocketControlMessage controlMessage =
+              message.controlMessages[0];
+          final handles = controlMessage.extractHandles();
+          Expect.isNotNull(handles);
+          Expect.equals(1, handles.length);
+          final handlesAgain = controlMessage.extractHandles();
+          Expect.isNotNull(handlesAgain);
+          Expect.equals(1, handlesAgain.length);
+          handles[0].toFile().writeStringSync('Hello, server!\n');
+          socket.write('abc'.codeUnits);
+        } else {
+          Expect.equals('i', messageData[0]);
+          Expect.equals(0, message.controlMessages.length);
+        }
+      } else if (e == RawSocketEvent.readClosed) {
+        print('server socket got readClosed');
+        socket.close();
+        server.close();
+      }
+    });
+  });
+
+  final file = File('$tempDirPath/myfile.txt');
+  final randomAccessFile = file.openSync(mode: FileMode.write);
+  // Send a message with sample file.
+  final socket = await RawSocket.connect(address, 0);
+  socket.listen((e) {
+    if (e == RawSocketEvent.write) {
+      randomAccessFile.writeStringSync('Hello, client!\n');
+      socket.sendMessage(<SocketControlMessage>[
+        SocketControlMessage.fromHandles(
+            <ResourceHandle>[ResourceHandle.fromFile(randomAccessFile)])
+      ], 'Hi'.codeUnits);
+      print('client sent a message');
+    } else if (e == RawSocketEvent.read) {
+      final data = socket.read();
+      if (data == null) {
+        return;
+      }
+      Expect.equals('abc', String.fromCharCodes(data));
+      Expect.equals(
+          'Hello, client!\nHello, server!\n', file.readAsStringSync());
+      socket.close();
+      completer.complete(true);
+    }
+  });
+
+  return completer.future;
+}
+
+Future<RawServerSocket> createTestServer() async {
+  final server = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
+  return server
+    ..listen((client) {
+      String receivedData = "";
+
+      client.writeEventsEnabled = false;
+      client.listen((event) {
+        switch (event) {
+          case RawSocketEvent.READ:
+            assert(client.available() > 0);
+            final buffer = client.read(200)!;
+            receivedData += String.fromCharCodes(buffer);
+            break;
+          case RawSocketEvent.READ_CLOSED:
+            client.close();
+            server.close();
+            break;
+          case RawSocketEvent.CLOSED:
+            Expect.equals(
+                "Hello, client 1!\nHello, client 2!\nHello, server!\n",
+                receivedData);
+            break;
+          default:
+            throw "Unexpected event $event";
+        }
+      }, onError: (e) {
+        print("client ERROR $e");
+      });
+    });
+}
+
+Future testSocketMessage(String uniqueName) async {
+  if (!Platform.isLinux && !Platform.isAndroid) {
+    return;
+  }
+
+  final address =
+      InternetAddress('$uniqueName/sock', type: InternetAddressType.unix);
+  final server = await RawServerSocket.bind(address, 0, shared: false);
+
+  server.listen((RawSocket socket) async {
+    socket.listen((e) {
+      switch (e) {
+        case RawSocketEvent.read:
+          final SocketMessage? message = socket.readMessage();
+          if (message == null) {
+            return;
+          }
+          Expect.equals('Hello', String.fromCharCodes(message.data));
+          Expect.equals(1, message.controlMessages.length);
+          final SocketControlMessage controlMessage =
+              message.controlMessages[0];
+          final handles = controlMessage.extractHandles();
+          Expect.isNotNull(handles);
+          Expect.equals(1, handles.length);
+          final receivedSocket = handles[0].toRawSocket();
+          receivedSocket.write('Hello, server!\n'.codeUnits);
+          socket.write('server replied'.codeUnits);
+          receivedSocket.close();
+          break;
+        case RawSocketEvent.readClosed:
+          socket.close();
+          server.close();
+          break;
+      }
+    });
+  });
+
+  final RawServerSocket testServer = await createTestServer();
+  final testSocket = await RawSocket.connect("127.0.0.1", testServer.port);
+
+  // Send a message with opened [testSocket] socket.
+  final socket = await RawSocket.connect(address, 0);
+  socket.listen((e) {
+    switch (e) {
+      case RawSocketEvent.write:
+        testSocket.write('Hello, client 1!\n'.codeUnits);
+        socket.sendMessage(<SocketControlMessage>[
+          SocketControlMessage.fromHandles(
+              <ResourceHandle>[ResourceHandle.fromRawSocket(testSocket)])
+        ], 'Hello'.codeUnits);
+        testSocket.write('Hello, client 2!\n'.codeUnits);
+        break;
+      case RawSocketEvent.read:
+        final data = socket.read();
+        if (data == null) {
+          return;
+        }
+
+        final dataString = String.fromCharCodes(data);
+        Expect.equals('server replied', dataString);
+        socket.close();
+        testSocket.close();
+        testServer.close();
+    }
+  });
+}
+
+Future testStdioMessage(String tempDirPath, {bool caller: false}) async {
+  if (!Platform.isLinux && !Platform.isAndroid) {
+    return;
+  }
+  if (caller) {
+    final process = await Process.start(Platform.resolvedExecutable,
+        <String>[Platform.script.toFilePath(), '--start-stdio-message-test']);
+    String processStdout = "";
+    String processStderr = "";
+    process.stdout.transform(utf8.decoder).listen((line) {
+      processStdout += line;
+      print('stdout:>$line<');
+    });
+    process.stderr.transform(utf8.decoder).listen((line) {
+      processStderr += line;
+      print('stderr:>$line<');
+    });
+    process.stdin.writeln('Caller wrote to stdin');
+
+    Expect.equals(0, await process.exitCode);
+    Expect.equals("client sent a message\nHello, server!\n", processStdout);
+    Expect.equals(
+        "client wrote to stderr\nHello, server too!\n", processStderr);
+    return;
+  }
+
+  final address =
+      InternetAddress('$tempDirPath/sock', type: InternetAddressType.unix);
+  final server = await RawServerSocket.bind(address, 0, shared: false);
+
+  server.listen((RawSocket socket) async {
+    socket.listen((e) {
+      if (e == RawSocketEvent.read) {
+        final SocketMessage? message = socket.readMessage();
+        if (message == null) {
+          return;
+        }
+        Expect.equals('Hello', String.fromCharCodes(message.data));
+        Expect.equals(message.controlMessages.length, 1);
+        final SocketControlMessage controlMessage = message.controlMessages[0];
+        final handles = controlMessage.extractHandles();
+        Expect.isNotNull(handles);
+        Expect.equals(3, handles.length);
+        final receivedStdin = handles[0].toFile();
+        final receivedString = String.fromCharCodes(receivedStdin.readSync(32));
+        Expect.equals('Caller wrote to stdin\n', receivedString);
+        final receivedStdout = handles[1].toFile();
+        receivedStdout.writeStringSync('Hello, server!\n');
+        final receivedStderr = handles[2].toFile();
+        receivedStderr.writeStringSync('Hello, server too!\n');
+        socket.write('abc'.codeUnits);
+      } else if (e == RawSocketEvent.readClosed) {
+        socket.close();
+        server.close();
+      }
+    });
+  });
+
+  final file = File('$tempDirPath/myfile.txt');
+  final randomAccessFile = file.openSync(mode: FileMode.write);
+  // Send a message with sample file.
+  var socket = await RawSocket.connect(address, 0);
+  socket.listen((e) {
+    if (e == RawSocketEvent.write) {
+      socket.sendMessage(<SocketControlMessage>[
+        SocketControlMessage.fromHandles(<ResourceHandle>[
+          ResourceHandle.fromStdin(stdin),
+          ResourceHandle.fromStdout(stdout),
+          ResourceHandle.fromStdout(stderr)
+        ])
+      ], 'Hello'.codeUnits);
+      stdout.writeln('client sent a message');
+      stderr.writeln('client wrote to stderr');
+    } else if (e == RawSocketEvent.read) {
+      final data = socket.read();
+      if (data == null) {
+        return;
+      }
+      Expect.equals('abc', String.fromCharCodes(data));
+      socket.close();
+    }
+  });
+}
+
+void main(List<String> args) async {
+  runZonedGuarded(() async {
+    if (args.length > 0 && args[0] == '--start-stdio-message-test') {
+      await withTempDir('unix_socket_test', (Directory dir) async {
+        await testStdioMessage('${dir.path}', caller: false);
+      });
+      return;
+    }
+
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testAddress('${dir.path}');
     });
@@ -477,12 +862,27 @@ void main() async {
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testShortAbstractAddress(dir.uri.pathSegments.last);
     });
-  } catch (e) {
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testFileMessage('${dir.path}');
+    });
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testFileMessageWithShortRead('${dir.path}');
+    });
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testTooLargeControlMessage('${dir.path}');
+    });
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testSocketMessage('${dir.path}');
+    });
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testStdioMessage('${dir.path}', caller: true);
+    });
+  }, (e, st) {
     if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {
       Expect.fail("Unexpected exception $e is thrown");
     } else {
       Expect.isTrue(e is SocketException);
       Expect.isTrue(e.toString().contains('not available'));
     }
-  }
+  });
 }

@@ -81,5 +81,7 @@ class M extends core::Object /*hasConstConstructor*/  {
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:15:14 -> ListConstant(const <P<Object*>*>[const CP<Object*>{P.token: Class*}, const VP<Object*>{P.token: const XToken{}}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:20:11 -> InstanceConstant(const M{M.list: const <P<Object*>*>[const CP<Object*>{P.token: Class*}, const VP<Object*>{P.token: const XToken{}}]})
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:11:7 -> ConstructorTearOffConstant(CP.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:21:7 -> ConstructorTearOffConstant(VP.forToken)
 Evaluated: ListLiteral @ org-dartlang-testcase:///opt_in_lib.dart:36:24 -> ListConstant(const <P<Object*>*>[])
-Extra constant evaluation: evaluated: 16, effectively constant: 3
+Extra constant evaluation: evaluated: 16, effectively constant: 5

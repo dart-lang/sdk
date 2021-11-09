@@ -574,8 +574,8 @@ class C {}
     var reference = parseCommentReference('new a.b', 7)!;
     expectNotNullIfNoErrors(reference);
     assertNoErrors();
-    expect(reference.identifier, isPrefixedIdentifier);
-    var prefixedIdentifier = reference.identifier as PrefixedIdentifier;
+    expect(reference.expression, isPrefixedIdentifier);
+    var prefixedIdentifier = reference.expression as PrefixedIdentifier;
     SimpleIdentifier prefix = prefixedIdentifier.prefix;
     expect(prefix.token, isNotNull);
     expect(prefix.name, "a");
@@ -592,8 +592,8 @@ class C {}
     var reference = parseCommentReference('new a', 5)!;
     expectNotNullIfNoErrors(reference);
     assertNoErrors();
-    expect(reference.identifier, isSimpleIdentifier);
-    var identifier = reference.identifier as SimpleIdentifier;
+    expect(reference.expression, isSimpleIdentifier);
+    var identifier = reference.expression as SimpleIdentifier;
     expect(identifier.token, isNotNull);
     expect(identifier.name, "a");
     expect(identifier.offset, 9);
@@ -604,8 +604,8 @@ class C {}
     var reference = parseCommentReference('operator ==', 5)!;
     expectNotNullIfNoErrors(reference);
     assertNoErrors();
-    expect(reference.identifier, isSimpleIdentifier);
-    var identifier = reference.identifier as SimpleIdentifier;
+    expect(reference.expression, isSimpleIdentifier);
+    var identifier = reference.expression as SimpleIdentifier;
     expect(identifier.token, isNotNull);
     expect(identifier.name, "==");
     expect(identifier.offset, 14);
@@ -616,8 +616,8 @@ class C {}
     var reference = parseCommentReference('Object.operator==', 7)!;
     expectNotNullIfNoErrors(reference);
     assertNoErrors();
-    expect(reference.identifier, isPrefixedIdentifier);
-    var prefixedIdentifier = reference.identifier as PrefixedIdentifier;
+    expect(reference.expression, isPrefixedIdentifier);
+    var prefixedIdentifier = reference.expression as PrefixedIdentifier;
     SimpleIdentifier prefix = prefixedIdentifier.prefix;
     expect(prefix.token, isNotNull);
     expect(prefix.name, "Object");
@@ -634,8 +634,8 @@ class C {}
     var reference = parseCommentReference('==', 5)!;
     expectNotNullIfNoErrors(reference);
     assertNoErrors();
-    expect(reference.identifier, isSimpleIdentifier);
-    var identifier = reference.identifier as SimpleIdentifier;
+    expect(reference.expression, isSimpleIdentifier);
+    var identifier = reference.expression as SimpleIdentifier;
     expect(identifier.token, isNotNull);
     expect(identifier.name, "==");
     expect(identifier.offset, 5);
@@ -646,8 +646,8 @@ class C {}
     var reference = parseCommentReference('Object.==', 7)!;
     expectNotNullIfNoErrors(reference);
     assertNoErrors();
-    expect(reference.identifier, isPrefixedIdentifier);
-    var prefixedIdentifier = reference.identifier as PrefixedIdentifier;
+    expect(reference.expression, isPrefixedIdentifier);
+    var prefixedIdentifier = reference.expression as PrefixedIdentifier;
     SimpleIdentifier prefix = prefixedIdentifier.prefix;
     expect(prefix.token, isNotNull);
     expect(prefix.name, "Object");
@@ -664,8 +664,8 @@ class C {}
     var reference = parseCommentReference('a.b', 7)!;
     expectNotNullIfNoErrors(reference);
     assertNoErrors();
-    expect(reference.identifier, isPrefixedIdentifier);
-    var prefixedIdentifier = reference.identifier as PrefixedIdentifier;
+    expect(reference.expression, isPrefixedIdentifier);
+    var prefixedIdentifier = reference.expression as PrefixedIdentifier;
     SimpleIdentifier prefix = prefixedIdentifier.prefix;
     expect(prefix.token, isNotNull);
     expect(prefix.name, "a");
@@ -682,8 +682,8 @@ class C {}
     var reference = parseCommentReference('a', 5)!;
     expectNotNullIfNoErrors(reference);
     assertNoErrors();
-    expect(reference.identifier, isSimpleIdentifier);
-    var identifier = reference.identifier as SimpleIdentifier;
+    expect(reference.expression, isSimpleIdentifier);
+    var identifier = reference.expression as SimpleIdentifier;
     expect(identifier.token, isNotNull);
     expect(identifier.name, "a");
     expect(identifier.offset, 5);
@@ -694,8 +694,8 @@ class C {}
     var reference = parseCommentReference('', 5)!;
     expectNotNullIfNoErrors(reference);
     assertNoErrors();
-    expect(reference.identifier, isSimpleIdentifier);
-    var identifier = reference.identifier as SimpleIdentifier;
+    expect(reference.expression, isSimpleIdentifier);
+    var identifier = reference.expression as SimpleIdentifier;
     expect(identifier, isNotNull);
     expect(identifier.isSynthetic, isTrue);
     expect(identifier.token, isNotNull);
@@ -715,7 +715,7 @@ class C {}
     var reference = parseCommentReference('this', 5)!;
     expectNotNullIfNoErrors(reference);
     assertNoErrors();
-    var identifier = reference.identifier as SimpleIdentifier;
+    var identifier = reference.expression as SimpleIdentifier;
     expect(identifier.token, isNotNull);
     expect(identifier.name, "a");
     expect(identifier.offset, 5);
@@ -731,7 +731,7 @@ class C {}
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
+    expect(reference.expression, isNotNull);
     expect(reference.offset, 5);
   }
 
@@ -750,7 +750,8 @@ abstract class Foo {}
 
     expectReference(int index, String expectedText, int expectedOffset) {
       CommentReference reference = references[index];
-      expect(reference.identifier.name, expectedText);
+      var identifier = reference.expression as Identifier;
+      expect(identifier.name, expectedText);
       expect(reference.offset, expectedOffset);
     }
 
@@ -780,7 +781,8 @@ abstract class Foo {}
 
     expectReference(int index, String expectedText, int expectedOffset) {
       CommentReference reference = references[index];
-      expect(reference.identifier.name, expectedText);
+      var identifier = reference.expression as Identifier;
+      expect(identifier.name, expectedText);
       expect(reference.offset, expectedOffset);
     }
 
@@ -802,18 +804,18 @@ abstract class Foo {}
     {
       CommentReference reference = references[0];
       expect(reference, isNotNull);
-      expect(reference.identifier, isNotNull);
+      expect(reference.expression, isNotNull);
       expect(reference.offset, 12);
-      Token referenceToken = reference.identifier.beginToken;
+      Token referenceToken = reference.expression.beginToken;
       expect(referenceToken.offset, 12);
       expect(referenceToken.lexeme, 'a');
     }
     {
       CommentReference reference = references[1];
       expect(reference, isNotNull);
-      expect(reference.identifier, isNotNull);
+      expect(reference.expression, isNotNull);
       expect(reference.offset, 20);
-      Token referenceToken = reference.identifier.beginToken;
+      Token referenceToken = reference.expression.beginToken;
       expect(referenceToken.offset, 20);
       expect(referenceToken.lexeme, 'bb');
     }
@@ -829,11 +831,12 @@ abstract class Foo {}
     assertNoErrors();
     expect(references, hasLength(1));
     CommentReference reference = references[0];
-    Token referenceToken = reference.identifier.beginToken;
+    Token referenceToken = reference.expression.beginToken;
     expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
-    expect(reference.identifier.isSynthetic, isTrue);
-    expect(reference.identifier.name, "");
+    expect(reference.expression, isNotNull);
+    var identifier = reference.expression as Identifier;
+    expect(identifier.isSynthetic, isTrue);
+    expect(identifier.name, "");
     // Should end with EOF token.
     Token nextToken = referenceToken.next!;
     expect(nextToken, isNotNull);
@@ -850,12 +853,13 @@ abstract class Foo {}
     assertNoErrors();
     expect(references, hasLength(1));
     CommentReference reference = references[0];
-    Token referenceToken = reference.identifier.beginToken;
+    Token referenceToken = reference.expression.beginToken;
     expect(reference, isNotNull);
     expect(referenceToken, same(reference.beginToken));
-    expect(reference.identifier, isNotNull);
-    expect(reference.identifier.isSynthetic, isFalse);
-    expect(reference.identifier.name, "namePrefix");
+    expect(reference.expression, isNotNull);
+    var identifier = reference.expression as Identifier;
+    expect(identifier.isSynthetic, isFalse);
+    expect(identifier.name, "namePrefix");
     // Should end with EOF token.
     Token nextToken = referenceToken.next!;
     expect(nextToken, isNotNull);
@@ -875,15 +879,15 @@ abstract class Foo {}
     expect(references, hasLength(3));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
+    expect(reference.expression, isNotNull);
     expect(reference.offset, 12);
     reference = references[1];
     expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
+    expect(reference.expression, isNotNull);
     expect(reference.offset, 20);
     reference = references[2];
     expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
+    expect(reference.expression, isNotNull);
     expect(reference.offset, 35);
   }
 
@@ -925,7 +929,7 @@ abstract class Foo {}
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
+    expect(reference.expression, isNotNull);
     expect(reference.offset, 24);
   }
 
@@ -941,7 +945,7 @@ abstract class Foo {}
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
+    expect(reference.expression, isNotNull);
     expect(reference.offset, 16);
   }
 
@@ -1011,7 +1015,7 @@ abstract class Foo {}
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
+    expect(reference.expression, isNotNull);
     expect(reference.offset, 27);
   }
 
@@ -1035,7 +1039,7 @@ abstract class Foo {}
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
+    expect(reference.expression, isNotNull);
     expect(reference.offset, 74);
   }
 
@@ -1051,7 +1055,7 @@ abstract class Foo {}
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
+    expect(reference.expression, isNotNull);
     expect(reference.offset, 35);
   }
 
@@ -1075,7 +1079,7 @@ abstract class Foo {}
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
+    expect(reference.expression, isNotNull);
     expect(reference.offset, 54);
   }
 
@@ -1091,7 +1095,7 @@ abstract class Foo {}
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
+    expect(reference.expression, isNotNull);
     expect(reference.offset, 15);
   }
 
@@ -1107,7 +1111,7 @@ abstract class Foo {}
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
+    expect(reference.expression, isNotNull);
     expect(reference.offset, 44);
   }
 

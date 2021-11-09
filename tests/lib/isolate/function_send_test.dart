@@ -2,19 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups --no-enable-fast-object-copy
-// VMOptions=--enable-isolate-groups --enable-fast-object-copy
-// VMOptions=--no-enable-isolate-groups
+// VMOptions=--no-enable-fast-object-copy
+// VMOptions=--enable-fast-object-copy
 
 import "dart:isolate";
-import "dart:io";
 import "dart:async";
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-
-final bool isolateGroupsEnabled =
-    Platform.executableArguments.contains('--enable-isolate-groups');
 
 void toplevel(port, message) {
   port.send("toplevel:$message");
@@ -65,37 +60,16 @@ void main() {
   // Sendables are top-level functions and static functions only.
   testSendable("toplevel", toplevel);
   testSendable("static", C.staticFunc);
-  // Unsendables are any closure - instance methods or function expression.
-  var c = new C();
-  testUnsendable("instance method", c.instanceMethod);
-  testUnsendable("static context expression", createFuncToplevel());
-  testUnsendable("static context expression", C.createFuncStatic());
-  testUnsendable("initializer context expression", c.initializer);
-  testUnsendable("constructor context expression", c.body);
-  testUnsendable("instance method context expression", c.createFuncMember());
 
   // The result of `toplevel.call` and `staticFunc.call` may or may not be
   // identical to `toplevel` and `staticFunc` respectively. If they are not
   // equal, they may or may not be considered toplevel/static functions anyway,
   // and therefore sendable. The VM and dart2js currently disagree on whether
   // `toplevel` and `toplevel.call` are identical, both allow them to be sent.
-  // If this is ever specified to something else, use:
-  //     testUnsendable("toplevel.call", toplevel.call);
-  //     testUnsendable("static.call", C.staticFunc.call);
-  // instead.
   // These two tests should be considered canaries for accidental behavior
   // change rather than requirements.
   testSendable("toplevel", toplevel.call);
   testSendable("static", C.staticFunc.call);
-
-  // Callable objects are sendable if general objects are (VM yes, dart2js no).
-  // It's unspecified whether arbitrary objects can be sent. If it is specified,
-  // add a test that `new Callable()` is either sendable or unsendable.
-
-  // The call method of a callable object is a closure holding the object,
-  // not a top-level or static function, so it should be blocked, just as
-  // a normal method.
-  testUnsendable("callable object", new Callable().call);
 
   asyncEnd();
   return;
@@ -177,51 +151,6 @@ Future<SendPort> callPort() {
 
 void _call(initPort) {
   initPort.send(singleMessagePort(callFunc));
-}
-
-void testUnsendable(name, func) {
-  // Isolate group support does allow sending closures.
-  if (isolateGroupsEnabled) return;
-
-  asyncStart();
-  Isolate.spawn(nop, func).then<void>((v) => throw "allowed spawn direct?",
-      onError: (e, s) {
-    asyncEnd();
-  });
-  asyncStart();
-  Isolate.spawn(nop, [func]).then<void>((v) => throw "allowed spawn wrapped?",
-      onError: (e, s) {
-    asyncEnd();
-  });
-
-  asyncStart();
-  var noReply = new RawReceivePort((_) {
-    throw "Unexpected message: $_";
-  });
-  Expect.throws(() {
-    noReply.sendPort.send(func);
-  }, (_) => true, "send direct");
-  Expect.throws(() {
-    noReply.sendPort.send([func]);
-  }, (_) => true, "send wrapped");
-  scheduleMicrotask(() {
-    noReply.close();
-    asyncEnd();
-  });
-
-  // Try sending through other isolate.
-  asyncStart();
-  echoPort((v) {
-    Expect.equals(0, v);
-  }).then((p) {
-    try {
-      p.send(func);
-    } finally {
-      p.send(0); //   Closes echo port.
-    }
-  }).then<void>((p) => throw "unreachable 2", onError: (e, s) {
-    asyncEnd();
-  });
 }
 
 void nop(_) {}

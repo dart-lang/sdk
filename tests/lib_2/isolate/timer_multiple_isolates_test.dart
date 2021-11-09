@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 library timer_multiple_isolates_test;
 
 import 'dart:isolate';

@@ -79,6 +79,7 @@ class AnalysisServerBenchmarkTest extends AbstractBenchmarkTest {
   Future<void> setUp(List<String> roots) async {
     await _test.setUp();
     await _test.subscribeToStatusNotifications();
+    await _test.subscribeToAvailableSuggestions();
     await _test.sendAnalysisSetAnalysisRoots(roots, []);
   }
 
@@ -126,6 +127,16 @@ class AnalysisServerMemoryUsageTest
 
   /// After every test, the server is stopped.
   Future shutdown() async => await shutdownIfNeeded();
+
+  /// Enable using available suggestions during completion.
+  Future<void> subscribeToAvailableSuggestions() async {
+    await server.send(
+      'completion.setSubscriptions',
+      CompletionSetSubscriptionsParams(
+        [CompletionService.AVAILABLE_SUGGESTION_SETS],
+      ).toJson(),
+    );
+  }
 
   /// Enable [ServerService.STATUS] notifications so that [analysisFinished]
   /// can be used.

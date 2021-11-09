@@ -590,6 +590,22 @@ class _SnapshotClass implements SnapshotClass {
       this._graph, this._cid, this.name, this.libName, this.libUri);
 }
 
+class _SyntheticSnapshotClass implements SnapshotClass {
+  final _SyntheticSnapshotObject _node;
+  _SyntheticSnapshotClass(this._node);
+
+  String get name => _node.description;
+  String get qualifiedName => _node.description;
+
+  int get shallowSize => _node.shallowSize;
+  int get externalSize => _node.externalSize;
+  int get internalSize => _node.internalSize;
+  int get ownedSize => 0;
+
+  int get instanceCount => 1;
+  Iterable<SnapshotObject> get instances => <SnapshotObject>[_node];
+}
+
 /// The analyzed graph from a heap snapshot.
 abstract class SnapshotGraph {
   String get description;
@@ -674,19 +690,19 @@ class _SnapshotGraph implements SnapshotGraph {
     var mlive = mergedRoot;
 
     capacity._description = "Capacity + External";
-    capacity._klass = live.klass;
-    capacity._internalSize = _capacity!;
-    capacity._externalSize = _totalExternalSize!;
-    capacity._retainedSize = capacity._internalSize + capacity._externalSize;
+    capacity._klass = new _SyntheticSnapshotClass(capacity);
+    capacity._internalSize = 0; // No shallow size.
+    capacity._externalSize = 0; // No shallow size.
+    capacity._retainedSize = _capacity! + _totalExternalSize!;
     capacity._successors = <SnapshotObject>[live, uncollected, fragmentation];
     capacity._predecessors = <SnapshotObject>[];
     capacity._children = <SnapshotObject>[live, uncollected, fragmentation];
 
     mcapacity._description = "Capacity + External";
-    mcapacity._klass = mlive.klass;
-    mcapacity._internalSize = _capacity!;
-    mcapacity._externalSize = _totalExternalSize!;
-    mcapacity._retainedSize = mcapacity._internalSize + mcapacity._externalSize;
+    mcapacity._klass = capacity._klass;
+    mcapacity._internalSize = 0; // No shallow size.
+    mcapacity._externalSize = 0; // No shallow size.
+    mcapacity._retainedSize = _capacity! + _totalExternalSize!;
     mcapacity._children = <SnapshotMergedDominator>[
       mlive,
       muncollected,
@@ -695,7 +711,7 @@ class _SnapshotGraph implements SnapshotGraph {
     mcapacity._objects = <SnapshotObject>[capacity];
 
     uncollected._description = "Uncollected Garbage";
-    uncollected._klass = live.klass;
+    uncollected._klass = new _SyntheticSnapshotClass(uncollected);
     uncollected._internalSize = _totalInternalSize! - _liveInternalSize!;
     uncollected._externalSize = _totalExternalSize! - _liveExternalSize!;
     uncollected._retainedSize =
@@ -706,7 +722,7 @@ class _SnapshotGraph implements SnapshotGraph {
     uncollected._children = <SnapshotObject>[];
 
     muncollected._description = "Uncollected Garbage";
-    muncollected._klass = mlive.klass;
+    muncollected._klass = uncollected._klass;
     muncollected._internalSize = _totalInternalSize! - _liveInternalSize!;
     muncollected._externalSize = _totalExternalSize! - _liveExternalSize!;
     muncollected._retainedSize =
@@ -716,7 +732,7 @@ class _SnapshotGraph implements SnapshotGraph {
     muncollected._objects = <SnapshotObject>[uncollected];
 
     fragmentation._description = "Free";
-    fragmentation._klass = live.klass;
+    fragmentation._klass = new _SyntheticSnapshotClass(fragmentation);
     fragmentation._internalSize = _capacity! - _totalInternalSize!;
     fragmentation._externalSize = 0;
     fragmentation._retainedSize = fragmentation._internalSize;
@@ -726,7 +742,7 @@ class _SnapshotGraph implements SnapshotGraph {
     fragmentation._children = <SnapshotObject>[];
 
     mfragmentation._description = "Free";
-    mfragmentation._klass = mlive.klass;
+    mfragmentation._klass = fragmentation._klass;
     mfragmentation._internalSize = _capacity! - _totalInternalSize!;
     mfragmentation._externalSize = 0;
     mfragmentation._retainedSize = mfragmentation._internalSize;

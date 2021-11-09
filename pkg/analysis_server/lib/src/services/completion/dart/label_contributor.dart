@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
-    show DartCompletionRequestImpl;
+    show DartCompletionRequest;
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
@@ -14,10 +14,14 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
 /// scope. More concretely, this class produces completions in `break` and
 /// `continue` statements.
 class LabelContributor extends DartCompletionContributor {
+  LabelContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
-    var optype = (request as DartCompletionRequestImpl).opType;
+  Future<void> computeSuggestions() async {
+    var optype = request.opType;
 
     // Collect suggestions from the specific child [AstNode] that contains
     // the completion offset and all of its parents recursively.

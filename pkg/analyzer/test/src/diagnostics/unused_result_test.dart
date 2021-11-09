@@ -549,7 +549,7 @@ class C {
 }
 ''', [
       error(HintCode.UNUSED_RESULT, 131, 2,
-          messageContains: "'m1' should be used."),
+          messageContains: ["'m1' should be used."]),
     ]);
   }
 
@@ -607,6 +607,36 @@ int foo() => 0;
 void main() {
   var x = foo()..toString(); // OK
   print(x);
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/47473
+  test_topLevelFunction_result_assigned_if() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+String foo() => '';
+
+String f(bool b) {
+  var f = '';
+  if (b) f = foo();
+  return f;
+}
+''');
+  }
+
+  test_topLevelFunction_result_awaited_future_passed() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+Future<List<String>> load() async => [];
+
+void f() async {
+  var l = [];
+  l.add(await load());
 }
 ''');
   }

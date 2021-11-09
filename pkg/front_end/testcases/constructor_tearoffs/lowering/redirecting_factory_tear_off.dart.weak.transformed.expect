@@ -46,7 +46,7 @@ import self as self;
 import "dart:core" as core;
 
 class Class1 extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class1::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor _() → self::Class1
     : super core::Object::•()
     ;
@@ -58,7 +58,7 @@ class Class1 extends core::Object {
     return new self::Class1::_();
 }
 class Class2 extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class2::named]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
   constructor __() → self::Class2
     : super core::Object::•()
     ;
@@ -75,7 +75,7 @@ class Class2 extends core::Object {
 }
 class Class3 extends core::Object {
   final field core::int field;
-  static final field dynamic _redirecting# = <dynamic>[self::Class3::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C3]/*isLegacy*/;
   constructor _(core::int field) → self::Class3
     : self::Class3::field = field, super core::Object::•()
     ;
@@ -88,44 +88,44 @@ class Class3 extends core::Object {
 }
 class Class4 extends core::Object {
   final field core::int? field;
-  static final field dynamic _redirecting# = <dynamic>[self::Class4::•]/*isLegacy*/;
-  constructor _([core::int? field = #C1]) → self::Class4
+  static final field dynamic _redirecting# = <dynamic>[#C4]/*isLegacy*/;
+  constructor _([core::int? field = #C5]) → self::Class4
     : self::Class4::field = field, super core::Object::•()
     ;
-  static method _#_#tearOff([core::int? field = #C1]) → self::Class4
+  static method _#_#tearOff([core::int? field = #C5]) → self::Class4
     return new self::Class4::_(field);
-  static factory •([core::int? field = #C1]) → self::Class4
+  static factory •([core::int? field = #C5]) → self::Class4
     return new self::Class4::_(field);
-  static method _#new#tearOff([core::int? field = #C1]) → self::Class4
+  static method _#new#tearOff([core::int? field = #C5]) → self::Class4
     return new self::Class4::_(field);
 }
 class Class5 extends core::Object {
   final field core::int field1;
   final field core::int? field2;
-  static final field dynamic _redirecting# = <dynamic>[self::Class5::•]/*isLegacy*/;
-  constructor _(core::int field1, [core::int? field2 = #C1]) → self::Class5
+  static final field dynamic _redirecting# = <dynamic>[#C6]/*isLegacy*/;
+  constructor _(core::int field1, [core::int? field2 = #C5]) → self::Class5
     : self::Class5::field1 = field1, self::Class5::field2 = field2, super core::Object::•()
     ;
-  static method _#_#tearOff(core::int field1, [core::int? field2 = #C1]) → self::Class5
+  static method _#_#tearOff(core::int field1, [core::int? field2 = #C5]) → self::Class5
     return new self::Class5::_(field1, field2);
-  static factory •(core::int field1, [core::int? field2 = #C1]) → self::Class5
+  static factory •(core::int field1, [core::int? field2 = #C5]) → self::Class5
     return new self::Class5::_(field1, field2);
-  static method _#new#tearOff(core::int field1, [core::int? field2 = #C1]) → self::Class5
+  static method _#new#tearOff(core::int field1, [core::int? field2 = #C5]) → self::Class5
     return new self::Class5::_(field1, field2);
 }
 class Class6 extends core::Object {
   final field core::int field1;
   final field core::int? field2;
   final field core::int field3;
-  static final field dynamic _redirecting# = <dynamic>[self::Class6::•]/*isLegacy*/;
-  constructor _(core::int field1, {core::int? field2 = #C1, required core::int field3 = #C1}) → self::Class6
+  static final field dynamic _redirecting# = <dynamic>[#C7]/*isLegacy*/;
+  constructor _(core::int field1, {core::int? field2 = #C5, required core::int field3 = #C5}) → self::Class6
     : self::Class6::field1 = field1, self::Class6::field2 = field2, self::Class6::field3 = field3, super core::Object::•()
     ;
-  static method _#_#tearOff(core::int field1, {core::int? field2 = #C1, required core::int field3 = #C1}) → self::Class6
+  static method _#_#tearOff(core::int field1, {core::int? field2 = #C5, required core::int field3 = #C5}) → self::Class6
     return new self::Class6::_(field1, field2: field2, field3: field3);
-  static factory •(core::int field1, {core::int? field2 = #C1, required core::int field3 = #C1}) → self::Class6
+  static factory •(core::int field1, {core::int? field2 = #C5, required core::int field3 = #C5}) → self::Class6
     return new self::Class6::_(field1, field2: field2, field3: field3);
-  static method _#new#tearOff(core::int field1, {core::int? field2 = #C1, required core::int field3 = #C1}) → self::Class6
+  static method _#new#tearOff(core::int field1, {core::int? field2 = #C5, required core::int field3 = #C5}) → self::Class6
     return new self::Class6::_(field1, field2: field2, field3: field3);
 }
 class Class7a extends core::Object implements self::Class7b {
@@ -136,7 +136,7 @@ class Class7a extends core::Object implements self::Class7b {
     return new self::Class7a::•();
 }
 class Class7b extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class7b::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C8]/*isLegacy*/;
   static factory •() → self::Class7b
     return new self::Class7a::•();
   static method _#new#tearOff() → self::Class7b
@@ -154,7 +154,7 @@ class Class8a<T extends core::Object? = dynamic> extends core::Object implements
     return self::Class8a::fact<self::Class8a::_#fact#tearOff::T%>();
 }
 class Class8b<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class8b::•, self::Class8b::fact]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C9, #C10]/*isLegacy*/;
   static factory •<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::•::T%>
     return new self::Class8a::•<self::Class8b::•::T%>();
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::_#new#tearOff::T%>
@@ -171,23 +171,23 @@ static method main() → dynamic {
   self::testArgs();
 }
 static method testNoArgs() → dynamic {
-  () → self::Class1 f1a = #C2;
+  () → self::Class1 f1a = #C11;
   self::Class1 c1a = f1a(){() → self::Class1};
   self::expect(true, c1a is{ForNonNullableByDefault} self::Class1);
-  dynamic f1b = #C2;
+  dynamic f1b = #C11;
   dynamic c1b = f1b{dynamic}.call();
   self::expect(true, c1b is{ForNonNullableByDefault} self::Class1);
   self::expect(true, core::identical(f1a, f1b));
-  () → self::Class2 f2a = #C3;
+  () → self::Class2 f2a = #C12;
   self::Class2 c2a = f2a(){() → self::Class2};
   self::expect(true, c2a is{ForNonNullableByDefault} self::Class2);
-  dynamic f2b = #C3;
+  dynamic f2b = #C12;
   dynamic c2b = f2b{dynamic}.call();
   self::expect(true, c2b is{ForNonNullableByDefault} self::Class2);
   self::expect(true, core::identical(f2a, f2b));
 }
 static method testArgs() → dynamic {
-  (core::int) → self::Class3 f3a = #C4;
+  (core::int) → self::Class3 f3a = #C13;
   self::Class3 c3a = f3a(42){(core::int) → self::Class3};
   self::expect(42, c3a.{self::Class3::field}{core::int});
   () → Null {
@@ -199,12 +199,12 @@ Try removing the extra positional arguments.
     f3a(42, 87); // error
        ^" in f3a{<inapplicable>}.(42, 87);
   };
-  dynamic f3b = #C4;
+  dynamic f3b = #C13;
   dynamic c3b = f3b{dynamic}.call(87);
   self::expect(87, c3b{dynamic}.field);
   self::throws(() → dynamic => f3b{dynamic}.call());
   self::throws(() → dynamic => f3b{dynamic}.call(42, 87));
-  ([core::int?]) → self::Class4 f4a = #C5;
+  ([core::int?]) → self::Class4 f4a = #C14;
   self::Class4 c4a = f4a(){([core::int?]) → self::Class4};
   self::expect(null, c4a.{self::Class4::field}{core::int?});
   self::Class4 c4b = f4a(42){([core::int?]) → self::Class4};
@@ -215,9 +215,9 @@ Try removing the extra positional arguments.
     f4a(42, 87); // error
        ^" in f4a{<inapplicable>}.(42, 87);
   };
-  dynamic f4b = #C5;
+  dynamic f4b = #C14;
   self::throws(() → dynamic => f4b{dynamic}.call(42, 87));
-  (core::int, [core::int?]) → self::Class5 f5a = #C6;
+  (core::int, [core::int?]) → self::Class5 f5a = #C15;
   self::Class5 c5a = f5a(42){(core::int, [core::int?]) → self::Class5};
   self::expect(42, c5a.{self::Class5::field1}{core::int});
   self::expect(null, c5a.{self::Class5::field2}{core::int?});
@@ -233,10 +233,10 @@ Try removing the extra positional arguments.
     f5a(42, 87, 123); // error
        ^" in f5a{<inapplicable>}.(42, 87, 123);
   };
-  dynamic f5b = #C6;
+  dynamic f5b = #C15;
   self::throws(() → dynamic => f5b{dynamic}.call());
   self::throws(() → dynamic => f5b{dynamic}.call(42, 87, 123));
-  (core::int, {field2: core::int?, required field3: core::int}) → self::Class6 f6a = #C7;
+  (core::int, {field2: core::int?, required field3: core::int}) → self::Class6 f6a = #C16;
   self::Class6 c6a = f6a(42, field3: 87){(core::int, {field2: core::int?, required field3: core::int}) → self::Class6};
   self::expect(42, c6a.{self::Class6::field1}{core::int});
   self::expect(null, c6a.{self::Class6::field2}{core::int?});
@@ -264,16 +264,16 @@ Try removing the extra positional arguments.
   self::expect(87, c6c.{self::Class6::field1}{core::int});
   self::expect(123, c6c.{self::Class6::field2}{core::int?});
   self::expect(42, c6c.{self::Class6::field3}{core::int});
-  dynamic f6b = #C7;
+  dynamic f6b = #C16;
   self::throws(() → dynamic => f6b{dynamic}.call());
   self::throws(() → dynamic => f6b{dynamic}.call(42), inSoundModeOnly: true);
   self::throws(() → dynamic => f6b{dynamic}.call(42, 87), inSoundModeOnly: true);
   self::throws(() → dynamic => f6b{dynamic}.call(field1: 87, field2: 87));
-  () → self::Class7b f7a = #C8;
+  () → self::Class7b f7a = #C17;
   self::Class7b c7a = f7a(){() → self::Class7b};
   self::expect(true, c7a is{ForNonNullableByDefault} self::Class7a);
   self::expect(true, c7a is{ForNonNullableByDefault} self::Class7b);
-  <T extends core::Object? = dynamic>() → self::Class8b<T%> f8a = #C9;
+  <T extends core::Object? = dynamic>() → self::Class8b<T%> f8a = #C18;
   self::Class8b<dynamic> c8a = f8a<dynamic>(){() → self::Class8b<dynamic>};
   self::expect(true, c8a is{ForNonNullableByDefault} self::Class8a<dynamic>);
   self::expect(true, c8a is{ForNonNullableByDefault} self::Class8b<dynamic>);
@@ -281,7 +281,7 @@ Try removing the extra positional arguments.
   self::expect(true, c8b is{ForNonNullableByDefault} self::Class8a<core::int>);
   self::expect(true, c8b is{ForNonNullableByDefault} self::Class8b<core::int>);
   self::expect(false, c8b is{ForNonNullableByDefault} self::Class8b<core::String>);
-  <T extends core::Object? = dynamic>() → self::Class8b<T%> f8b = #C10;
+  <T extends core::Object? = dynamic>() → self::Class8b<T%> f8b = #C19;
   self::Class8b<dynamic> c8c = f8b<dynamic>(){() → self::Class8b<dynamic>};
   self::expect(true, c8c is{ForNonNullableByDefault} self::Class8a<dynamic>);
   self::expect(true, c8c is{ForNonNullableByDefault} self::Class8b<dynamic>);
@@ -294,7 +294,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
-static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C11}) → dynamic {
+static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C20}) → dynamic {
   try {
     f(){() → dynamic};
   }
@@ -309,15 +309,24 @@ static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C11}) → 
 }
 
 constants  {
-  #C1 = null
-  #C2 = static-tearoff self::Class1::_#new#tearOff
-  #C3 = static-tearoff self::Class2::_#named#tearOff
-  #C4 = static-tearoff self::Class3::_#new#tearOff
-  #C5 = static-tearoff self::Class4::_#new#tearOff
-  #C6 = static-tearoff self::Class5::_#new#tearOff
-  #C7 = static-tearoff self::Class6::_#new#tearOff
-  #C8 = static-tearoff self::Class7b::_#new#tearOff
-  #C9 = static-tearoff self::Class8b::_#new#tearOff
-  #C10 = static-tearoff self::Class8b::_#fact#tearOff
-  #C11 = false
+  #C1 = constructor-tearoff self::Class1::•
+  #C2 = constructor-tearoff self::Class2::named
+  #C3 = constructor-tearoff self::Class3::•
+  #C4 = constructor-tearoff self::Class4::•
+  #C5 = null
+  #C6 = constructor-tearoff self::Class5::•
+  #C7 = constructor-tearoff self::Class6::•
+  #C8 = constructor-tearoff self::Class7b::•
+  #C9 = constructor-tearoff self::Class8b::•
+  #C10 = constructor-tearoff self::Class8b::fact
+  #C11 = static-tearoff self::Class1::_#new#tearOff
+  #C12 = static-tearoff self::Class2::_#named#tearOff
+  #C13 = static-tearoff self::Class3::_#new#tearOff
+  #C14 = static-tearoff self::Class4::_#new#tearOff
+  #C15 = static-tearoff self::Class5::_#new#tearOff
+  #C16 = static-tearoff self::Class6::_#new#tearOff
+  #C17 = static-tearoff self::Class7b::_#new#tearOff
+  #C18 = static-tearoff self::Class8b::_#new#tearOff
+  #C19 = static-tearoff self::Class8b::_#fact#tearOff
+  #C20 = false
 }

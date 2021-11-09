@@ -466,20 +466,6 @@ char* Flags::ProcessCommandLineFlags(int number_of_vm_flags,
     PrintFlags();
   }
 
-  // TODO(dartbug.com/36097): Support for isolate groups in JIT mode is
-  // in-development. We will start with very conservative settings. As we make
-  // more of our compiler, runtime as well as generated code re-entrant we'll
-  // graudally remove those restrictions.
-
-#if !defined(DART_PRCOMPILED_RUNTIME)
-  if (!FLAG_precompiled_mode && FLAG_enable_isolate_groups) {
-    // Our compiler should not make rely on a global field being initialized at
-    // compile-time, since that compiled code might be re-used in another
-    // isolate that has not yet initialized the global field.
-    FLAG_fields_may_be_reset = true;
-  }
-#endif  // !defined(DART_PRCOMPILED_RUNTIME)
-
   initialized_ = true;
   return NULL;
 }

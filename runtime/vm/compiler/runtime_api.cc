@@ -369,6 +369,12 @@ const word UntaggedObject::kTagBitsSizeTagPos =
 const word UntaggedAbstractType::kTypeStateFinalizedInstantiated =
     dart::UntaggedAbstractType::kFinalizedInstantiated;
 
+const bool UntaggedType::kTypeClassIdIsSigned =
+    std::is_signed<decltype(dart::UntaggedType::type_class_id_)>::value;
+
+const word UntaggedType::kTypeClassIdBitSize =
+    sizeof(dart::UntaggedType::type_class_id_) * kBitsPerByte;
+
 const word UntaggedObject::kBarrierOverlapShift =
     dart::UntaggedObject::kBarrierOverlapShift;
 

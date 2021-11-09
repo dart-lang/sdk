@@ -211,6 +211,11 @@ class TestFile extends _TestFileBase {
       throw FormatException('Unknown feature "$name" in test $filePath');
     });
 
+    var ilMatches = filePath.endsWith('_il_test.dart')
+        ? _parseStringOption(filePath, contents, r'MatchIL\[AOT\]',
+            allowMultiple: true)
+        : const <String>[];
+
     // VM options.
     var vmOptions = <List<String>>[];
     var matches = _vmOptionsRegExp.allMatches(contents);
@@ -335,7 +340,8 @@ class TestFile extends _TestFileBase {
         vmOptions: vmOptions,
         sharedObjects: sharedObjects,
         otherResources: otherResources,
-        experiments: experiments);
+        experiments: experiments,
+        ilMatches: ilMatches);
   }
 
   /// A special fake test file for representing a VM unit test written in C++.
@@ -357,6 +363,7 @@ class TestFile extends _TestFileBase {
         sharedObjects = [],
         otherResources = [],
         experiments = [],
+        ilMatches = [],
         super(null, null, []);
 
   TestFile._(Path suiteDirectory, Path path, List<StaticError> expectedErrors,
@@ -376,7 +383,8 @@ class TestFile extends _TestFileBase {
       this.vmOptions,
       this.sharedObjects,
       this.otherResources,
-      this.experiments})
+      this.experiments,
+      this.ilMatches = const <String>[]})
       : super(suiteDirectory, path, expectedErrors) {
     assert(!isMultitest || dartOptions.isEmpty);
   }
@@ -402,6 +410,9 @@ class TestFile extends _TestFileBase {
   /// If the current configuration does not support one or more of these
   /// requirements, the test is implicitly skipped.
   final List<Feature> requirements;
+
+  /// List of functions which will have their IL verified (in AOT mode).
+  final List<String> ilMatches;
 
   final List<String> sharedOptions;
   final List<String> dartOptions;
@@ -482,6 +493,7 @@ class _MultitestFile extends _TestFileBase implements TestFile {
   String get packages => _origin.packages;
 
   List<Feature> get requirements => _origin.requirements;
+  List<String> get ilMatches => _origin.ilMatches;
   List<String> get dart2jsOptions => _origin.dart2jsOptions;
   List<String> get dartOptions => _origin.dartOptions;
   List<String> get ddcOptions => _origin.ddcOptions;

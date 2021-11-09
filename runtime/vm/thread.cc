@@ -435,10 +435,7 @@ ErrorPtr Thread::HandleInterrupts() {
   if ((interrupt_bits & kVMInterrupt) != 0) {
     CheckForSafepoint();
     if (isolate_group()->store_buffer()->Overflowed()) {
-      if (FLAG_verbose_gc) {
-        OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
-      }
-      heap()->CollectGarbage(Heap::kNew);
+      heap()->CollectGarbage(GCType::kScavenge, GCReason::kStoreBuffer);
     }
 
 #if !defined(PRODUCT)
@@ -466,10 +463,7 @@ ErrorPtr Thread::HandleInterrupts() {
             "\tisolate:    %s\n",
             isolate()->name());
       }
-      NoSafepointScope no_safepoint;
-      ErrorPtr error = Thread::Current()->StealStickyError();
-      ASSERT(error->IsUnwindError());
-      return error;
+      return StealStickyError();
     }
   }
   return Error::null();

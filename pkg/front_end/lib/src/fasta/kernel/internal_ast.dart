@@ -491,6 +491,8 @@ class ArgumentsImpl extends Arguments {
 
   int _explicitTypeArgumentCount;
 
+  List<Object?>? argumentsOriginalOrder;
+
   ArgumentsImpl.internal(
       {required List<Expression> positional,
       required List<DartType>? types,
@@ -504,10 +506,13 @@ class ArgumentsImpl extends Arguments {
             explicitExtensionTypeArgumentCount,
         this._extensionTypeArgumentOffset = extensionTypeArgumentOffset,
         this._explicitTypeArgumentCount = explicitTypeArgumentCount,
+        this.argumentsOriginalOrder = null,
         super(positional, types: types, named: named);
 
   ArgumentsImpl(List<Expression> positional,
-      {List<DartType>? types, List<NamedExpression>? named})
+      {List<DartType>? types,
+      List<NamedExpression>? named,
+      this.argumentsOriginalOrder})
       : _explicitTypeArgumentCount = types?.length ?? 0,
         _extensionTypeParameterCount = 0,
         _explicitExtensionTypeArgumentCount = 0,
@@ -521,7 +526,8 @@ class ArgumentsImpl extends Arguments {
       int? extensionTypeArgumentOffset,
       List<DartType> typeArguments = const <DartType>[],
       List<Expression> positionalArguments = const <Expression>[],
-      List<NamedExpression> namedArguments = const <NamedExpression>[]})
+      List<NamedExpression> namedArguments = const <NamedExpression>[],
+      this.argumentsOriginalOrder})
       : _extensionTypeParameterCount = extensionTypeParameterCount,
         _explicitExtensionTypeArgumentCount = extensionTypeArguments.length,
         _explicitTypeArgumentCount = typeArguments.length,
@@ -885,7 +891,7 @@ class InvalidSuperInitializerJudgment extends LocalInitializer
       : super(variable);
 
   @override
-  void acceptInference(InferenceVisitor visitor) {
+  InitializerInferenceResult acceptInference(InferenceVisitor visitor) {
     return visitor.visitInvalidSuperInitializerJudgment(this);
   }
 
@@ -976,7 +982,7 @@ class IfNullExpression extends InternalExpression {
 abstract class InitializerJudgment implements Initializer {
   /// Performs type inference for whatever concrete type of
   /// [InitializerJudgment] this is.
-  void acceptInference(InferenceVisitor visitor);
+  InitializerInferenceResult acceptInference(InferenceVisitor visitor);
 }
 
 Expression? checkWebIntLiteralsErrorIfUnexact(
@@ -1083,7 +1089,7 @@ class ShadowInvalidInitializer extends LocalInitializer
   ShadowInvalidInitializer(VariableDeclaration variable) : super(variable);
 
   @override
-  void acceptInference(InferenceVisitor visitor) {
+  InitializerInferenceResult acceptInference(InferenceVisitor visitor) {
     return visitor.visitShadowInvalidInitializer(this);
   }
 
@@ -1108,7 +1114,7 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   }
 
   @override
-  void acceptInference(InferenceVisitor visitor) {
+  InitializerInferenceResult acceptInference(InferenceVisitor visitor) {
     return visitor.visitShadowInvalidFieldInitializer(this);
   }
 

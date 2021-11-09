@@ -59,8 +59,8 @@ class InheritedReferenceContributor
     CompletionTarget? target,
     OpType? optype,
   }) async {
-    target ??= CompletionTarget.forOffset(request.result.unit, request.offset,
-        entryPoint: entryPoint);
+    entryPoint ??= request.result.unit;
+    target ??= CompletionTarget.forOffset(entryPoint, request.offset);
     optype ??= OpType.forCompletion(target, request.offset);
     if (!optype.includeIdentifiers) {
       return;

@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef MyList<T extends core::num> = core::List<T>;
+static method main() → dynamic
+  ;
+static method test() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

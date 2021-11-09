@@ -9,7 +9,7 @@
 /// tests that check that a reasonable subset of the possible control flow
 /// patterns produce the expected definite (un)-assignment behavior.
 ///
-/// This test checks the the write component of the former.  That is, it tests
+/// This test checks the write component of the former.  That is, it tests
 /// errors associated with writes of local variables based on definite
 /// assignment.
 

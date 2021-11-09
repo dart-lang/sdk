@@ -100,7 +100,7 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   }
 
   Set<String> _convertVars(Iterable<PromotableElement> x) =>
-      x.map((e) => e.name!).toSet();
+      x.map((e) => e.name).toSet();
 
   void _handlePossibleTopLevelDeclaration(
       AstNode node, void Function() callback) {

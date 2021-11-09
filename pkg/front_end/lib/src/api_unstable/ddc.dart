@@ -64,8 +64,15 @@ export '../fasta/compiler_context.dart' show CompilerContext;
 
 export '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 
+export '../fasta/kernel/constructor_tearoff_lowering.dart'
+    show isTearOffLowering;
+
 export '../fasta/kernel/redirecting_factory_body.dart'
-    show RedirectingFactoryBody, isRedirectingFactoryField, redirectingName;
+    show
+        getRedirectingFactories,
+        RedirectingFactoryBody,
+        isRedirectingFactoryField,
+        redirectingName;
 
 export '../fasta/type_inference/type_schema_environment.dart'
     show TypeSchemaEnvironment;

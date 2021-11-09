@@ -24,15 +24,15 @@ abstract class _HashFieldBase {
   // least one unoccupied entry.
   // NOTE: When maps are deserialized, their _index and _hashMask is regenerated
   // eagerly by _regenerateIndex.
-  Uint32List _index = _initialIndex;
+  Uint32List _index = _uninitializedIndex;
 
   // Cached in-place mask for the hash pattern component.
-  int _hashMask = 0;
+  int _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
 
   // Fixed-length list of keys (set) or key/value at even/odd indices (map).
   //
   // Can be either a mutable or immutable list.
-  List _data = _initialData;
+  List _data = _uninitializedData;
 
   // Length of _data that is used (i.e., keys + values for a map).
   int _usedData = 0;
@@ -126,12 +126,15 @@ abstract class _HashVMImmutableBase extends _HashVMBase {
 // TODO(koda): Consider moving field comments to _HashFieldBase.
 abstract class _HashBase implements _HashVMBase {
   // The number of bits used for each component is determined by table size.
-  // The length of _index is twice the number of entries in _data, and both
-  // are doubled when _data is full. Thus, _index will have a max load factor
-  // of 1/2, which enables one more bit to be used for the hash.
+  // If initialized, the length of _index is (at least) twice the number of
+  // entries in _data, and both are doubled when _data is full. Thus, _index
+  // will have a max load factor of 1/2, which enables one more bit to be used
+  // for the hash.
   // TODO(koda): Consider growing _data by factor sqrt(2), twice as often.
   static const int _INITIAL_INDEX_BITS = 2;
   static const int _INITIAL_INDEX_SIZE = 1 << (_INITIAL_INDEX_BITS + 1);
+  static const int _UNINITIALIZED_INDEX_SIZE = 1;
+  static const int _UNINITIALIZED_HASH_MASK = 0;
 
   // Unused and deleted entries are marked by 0 and 1, respectively.
   static const int _UNUSED_PAIR = 0;
@@ -142,6 +145,11 @@ abstract class _HashBase implements _HashVMBase {
   // as unsigned words.
   // Keep consistent with IndexSizeToHashMask in runtime/vm/object.h.
   static int _indexSizeToHashMask(int indexSize) {
+    assert(indexSize >= _INITIAL_INDEX_SIZE ||
+        indexSize == _UNINITIALIZED_INDEX_SIZE);
+    if (indexSize == _UNINITIALIZED_INDEX_SIZE) {
+      return _UNINITIALIZED_HASH_MASK;
+    }
     int indexBits = indexSize.bitLength - 2;
     return internal.has63BitSmis
         ? (1 << (32 - indexBits)) - 1
@@ -203,11 +211,11 @@ class _OperatorEqualsAndCanonicalHashCode {
   bool _equals(e1, e2) => e1 == e2;
 }
 
-final _initialIndex = new Uint32List(1);
+final _uninitializedIndex = new Uint32List(_HashBase._UNINITIALIZED_INDEX_SIZE);
 // Note: not const. Const arrays are made immutable by having a different class
 // than regular arrays that throws on element assignment. We want the data field
 // in maps and sets to be monomorphic.
-final _initialData = new List.filled(0, null);
+final _uninitializedData = new List.filled(0, null);
 
 // VM-internalized implementation of a default-constructed LinkedHashMap.
 @pragma("vm:entry-point")
@@ -219,9 +227,9 @@ class _InternalLinkedHashMap<K, V> extends _HashVMBase
         _OperatorEqualsAndHashCode
     implements LinkedHashMap<K, V> {
   _InternalLinkedHashMap() {
-    _index = _initialIndex;
-    _hashMask = 0;
-    _data = _initialData;
+    _index = _uninitializedIndex;
+    _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
+    _data = _uninitializedData;
     _usedData = 0;
     _deletedKeys = 0;
   }
@@ -324,7 +332,11 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
 
   void clear() {
     if (!isEmpty) {
-      _init(_HashBase._INITIAL_INDEX_SIZE, _hashMask, null, 0);
+      _index = _uninitializedIndex;
+      _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
+      _data = _uninitializedData;
+      _usedData = 0;
+      _deletedKeys = 0;
     }
   }
 
@@ -354,11 +366,13 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
 
   // This method is called by [_rehashObjects] (see above).
   void _regenerateIndex() {
-    _index = _data.length == 0 ? _initialIndex : new Uint32List(_data.length);
-    assert(_hashMask == 0);
+    _index =
+        _data.length == 0 ? _uninitializedIndex : new Uint32List(_data.length);
+    assert(_hashMask == _HashBase._UNINITIALIZED_HASH_MASK);
     _hashMask = _HashBase._indexSizeToHashMask(_index.length);
     final int tmpUsed = _usedData;
     _usedData = 0;
+    _deletedKeys = 0;
     for (int i = 0; i < tmpUsed; i += 2) {
       final key = _data[i];
       if (!_HashBase._isDeleted(_data, key)) {
@@ -655,7 +669,11 @@ abstract class _LinkedHashSetMixin<E> implements _HashBase {
 
   void clear() {
     if (!isEmpty) {
-      _init(_HashBase._INITIAL_INDEX_SIZE, _hashMask, null, 0);
+      _index = _uninitializedIndex;
+      _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
+      _data = _uninitializedData;
+      _usedData = 0;
+      _deletedKeys = 0;
     }
   }
 
@@ -773,8 +791,10 @@ abstract class _LinkedHashSetMixin<E> implements _HashBase {
 
   // This method is called by [_rehashObjects] (see above).
   void _regenerateIndex() {
-    _index = _data.length == 0 ? _initialIndex : new Uint32List(_data.length);
-    assert(_hashMask == 0);
+    final size =
+        _roundUpToPowerOfTwo(max(_data.length, _HashBase._INITIAL_INDEX_SIZE));
+    _index = _data.length == 0 ? _uninitializedIndex : new Uint32List(size);
+    assert(_hashMask == _HashBase._UNINITIALIZED_HASH_MASK);
     _hashMask = _HashBase._indexSizeToHashMask(_index.length);
     _rehash();
   }
@@ -790,9 +810,9 @@ class _CompactLinkedHashSet<E> extends _HashVMBase
         _OperatorEqualsAndHashCode
     implements LinkedHashSet<E> {
   _CompactLinkedHashSet() {
-    _index = _initialIndex;
-    _hashMask = 0;
-    _data = _initialData;
+    _index = _uninitializedIndex;
+    _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
+    _data = _uninitializedData;
     _usedData = 0;
     _deletedKeys = 0;
   }

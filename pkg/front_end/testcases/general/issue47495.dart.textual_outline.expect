@@ -1,0 +1,7 @@
+// @dart = 2.9
+class S {}
+class M {}
+typedef SAlias = S;
+typedef MAlias = M;
+class C = SAlias with MAlias;
+main() {}

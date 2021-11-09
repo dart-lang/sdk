@@ -68,8 +68,15 @@ class FeatureOptions {
   /// Whether to use optimized holders.
   FeatureOption newHolders = FeatureOption('new-holders');
 
+  /// Whether to generate code compliant with Content Security Policy.
+  FeatureOption useContentSecurityPolicy = FeatureOption('csp');
+
   /// [FeatureOption]s which default to enabled.
-  late final List<FeatureOption> shipping = [legacyJavaScript, newHolders];
+  late final List<FeatureOption> shipping = [
+    legacyJavaScript,
+    newHolders,
+    useContentSecurityPolicy
+  ];
 
   /// [FeatureOption]s which default to disabled.
   late final List<FeatureOption> canary = [];
@@ -136,7 +143,13 @@ abstract class DiagnosticOptions {
 /// as few as possible.
 class CompilerOptions implements DiagnosticOptions {
   /// The entry point of the application that is being compiled.
-  Uri? entryPoint;
+  Uri? entryUri;
+
+  /// The input dill to compile.
+  Uri? inputDillUri;
+
+  /// Returns the compilation target specified by these options.
+  Uri? get compilationTarget => inputDillUri ?? entryUri;
 
   /// Location of the package configuration file.
   ///
@@ -165,7 +178,7 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Location from which serialized inference data is read.
   ///
-  /// If this is set, the [entryPoint] is expected to be a .dill file and the
+  /// If this is set, the [entryUri] is expected to be a .dill file and the
   /// frontend work is skipped.
   Uri? readDataUri;
 
@@ -181,7 +194,7 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Location from which the serialized closed world is read.
   ///
-  /// If this is set, the [entryPoint] is expected to be a .dill file and the
+  /// If this is set, the [entryUri] is expected to be a .dill file and the
   /// frontend work is skipped.
   Uri? readClosedWorldUri;
 
@@ -436,9 +449,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is an internal configuration option derived from other flags.
   late CheckPolicy defaultIndexBoundsCheckPolicy;
 
-  /// Whether to generate code compliant with content security policy (CSP).
-  bool useContentSecurityPolicy = false;
-
   /// When obfuscating for minification, whether to use the frequency of a name
   /// as an heuristic to pick shorter names.
   bool useFrequencyNamer = true;
@@ -559,6 +569,8 @@ class CompilerOptions implements DiagnosticOptions {
     // sdk with the correct flags.
     platformBinaries ??= fe.computePlatformBinariesLocation();
     return CompilerOptions()
+      ..entryUri = _extractUriOption(options, '${Flags.entryUri}=')
+      ..inputDillUri = _extractUriOption(options, '${Flags.inputDill}=')
       ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
       ..benchmarkingProduction =
@@ -626,8 +638,6 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.laxRuntimeTypeToString)
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
-      ..useContentSecurityPolicy =
-          _hasOption(options, Flags.useContentSecurityPolicy)
       ..useFrequencyNamer =
           !_hasOption(options, Flags.noFrequencyBasedMinification)
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
@@ -709,7 +719,6 @@ class CompilerOptions implements DiagnosticOptions {
     if (benchmarkingExperiment) {
       // Set flags implied by '--benchmarking-x'.
       // TODO(sra): Use this for some null safety variant.
-      useContentSecurityPolicy = true;
       features.forceCanary();
     }
 

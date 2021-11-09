@@ -73,10 +73,10 @@ main() {
         out: 'out.js', readClosedWorld: 'foo.dill.world');
     await test([Flags.readClosedWorld, 'foo.dill', '--out=foo.js'],
         out: 'foo.js', readClosedWorld: 'foo.dill.world');
-    await test(['${Flags.readClosedWorld}=out.world', 'foo.world'],
+    await test(['${Flags.readClosedWorld}=out.world', 'foo.dill'],
         out: 'out.js', readClosedWorld: 'out.world');
     await test(
-        ['${Flags.readClosedWorld}=out.world', 'foo.world', '--out=foo.js'],
+        ['${Flags.readClosedWorld}=out.world', 'foo.dill', '--out=foo.js'],
         out: 'foo.js', readClosedWorld: 'out.world');
     await test(
       [Flags.readClosedWorld, Flags.writeData, 'foo.dill'],

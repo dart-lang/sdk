@@ -206,7 +206,7 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
     buf.writeln(
         '<tr><th>Time</th><th>Results</th><th>Source</th><th>Snippet</th></tr>');
     for (var completion in completions) {
-      var shortName = pathContext.basename(completion.path ?? '<missing path>');
+      var shortName = pathContext.basename(completion.path);
       buf.writeln('<tr>'
           '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
           '<td class="right">${completion.suggestionCountStr}</td>'
@@ -243,7 +243,7 @@ class AstPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    var result = await driver.getResult2(filePath);
+    var result = await driver.getResult(filePath);
     if (result is ResolvedUnitResult) {
       var writer = AstWriter(buf);
       result.unit.accept(writer);
@@ -833,7 +833,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    var result = await driver.getResult2(filePath);
+    var result = await driver.getResult(filePath);
     CompilationUnitElement? compilationUnitElement;
     if (result is ResolvedUnitResult) {
       compilationUnitElement = result.unit.declaredElement;
@@ -949,7 +949,7 @@ class FeedbackPage extends DiagnosticPage {
 
     p('Other data to include:');
     ul([
-      "the IDE you are using and it's version${ideText.isEmpty ? '' : ' ($ideText)'}",
+      "the IDE you are using and its version${ideText.isEmpty ? '' : ' ($ideText)'}",
       'the Dart SDK version (<code>${escape(_sdkVersion)}</code>)',
       'your operating system (<code>${escape(Platform.operatingSystem)}</code>)',
     ], (line) => buf.writeln(line));
@@ -994,7 +994,7 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
     h3('Current registrations');
     p('Showing the LSP method name and the registration params sent to the '
         'client.');
-    prettyJson(server.capabilitiesComputer.currentRegistrations);
+    prettyJson(server.capabilitiesComputer.currentRegistrations.toList());
   }
 }
 

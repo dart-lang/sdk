@@ -760,7 +760,7 @@ class TypeCheckingVisitor
       checkUnresolvedInvocation(currentThisType!, node);
       return handleDynamicCall(currentThisType!, node.arguments);
     } else {
-      return handleCall(node.arguments, target.getterType,
+      return handleCall(node.arguments, target.superGetterType,
           receiver: getSuperReceiverType(target));
     }
   }
@@ -773,7 +773,7 @@ class TypeCheckingVisitor
       return const DynamicType();
     } else {
       Substitution receiver = getSuperReceiverType(target);
-      return receiver.substituteType(target.getterType);
+      return receiver.substituteType(target.superGetterType);
     }
   }
 
@@ -784,7 +784,7 @@ class TypeCheckingVisitor
     if (target != null) {
       Substitution receiver = getSuperReceiverType(target);
       checkAssignable(node.value, value,
-          receiver.substituteType(target.setterType, contravariant: true));
+          receiver.substituteType(target.superSetterType, contravariant: true));
     } else {
       checkUnresolvedInvocation(currentThisType!, node);
     }

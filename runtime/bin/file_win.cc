@@ -896,7 +896,7 @@ const char* File::LinkTarget(Namespace* namespc,
 
 void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
   const char* prefixed_name = PrefixLongFilePath(name);
-  File::Type type = GetType(namespc, prefixed_name, false);
+  File::Type type = GetType(namespc, prefixed_name, true);
   data[kType] = type;
   if (type != kDoesNotExist) {
     struct _stat64 st;
@@ -935,18 +935,29 @@ time_t File::LastModified(Namespace* namespc, const char* name) {
 bool File::SetLastAccessed(Namespace* namespc,
                            const char* name,
                            int64_t millis) {
-  // First get the current times.
   struct __stat64 st;
   Utf8ToWideScope system_name(PrefixLongFilePath(name));
-  if (!StatHelper(system_name.wide(), &st)) {
+  if (!StatHelper(system_name.wide(), &st)) {  // Checks that it is a file.
     return false;
   }
 
-  // Set the new time:
-  struct __utimbuf64 times;
-  times.actime = millis / kMillisecondsPerSecond;
-  times.modtime = st.st_mtime;
-  return _wutime64(system_name.wide(), &times) == 0;
+  // _utime and related functions set the access and modification times of the
+  // affected file. Even if the specified modification time is not changed
+  // from the current value, _utime will trigger a file modification event
+  // (e.g. ReadDirectoryChangesW will report the file as modified).
+  //
+  // So set the file access time directly using SetFileTime.
+  FILETIME at = GetFiletimeFromMillis(millis);
+  HANDLE file_handle =
+      CreateFileW(system_name.wide(), FILE_WRITE_ATTRIBUTES,
+                  FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                  nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+  if (file_handle == INVALID_HANDLE_VALUE) {
+    return false;
+  }
+  bool result = SetFileTime(file_handle, nullptr, &at, nullptr);
+  CloseHandle(file_handle);
+  return result;
 }
 
 bool File::SetLastModified(Namespace* namespc,

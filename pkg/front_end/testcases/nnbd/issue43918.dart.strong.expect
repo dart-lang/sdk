@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   static factory •<T extends core::Object? = dynamic>(self::A::•::T% value) → self::A<self::A::•::T%>
     return new self::_A::•<self::A::•::T%>(value);
 }
@@ -13,7 +13,7 @@ class _A<T extends core::Object? = dynamic> extends core::Object implements self
     ;
 }
 abstract class B<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::B::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
   static factory •<T extends core::Object? = dynamic>(core::int value) → self::B<self::B::•::T%>
     return new self::_B::•<self::B::•::T%>(value);
 }
@@ -23,3 +23,8 @@ class _B<T extends core::Object? = dynamic> extends core::Object implements self
     ;
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::A::•
+  #C2 = constructor-tearoff self::B::•
+}

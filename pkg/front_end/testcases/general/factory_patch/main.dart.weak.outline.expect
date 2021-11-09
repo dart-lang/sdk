@@ -35,4 +35,5 @@ Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:6:49 -> Instance
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:27 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:22:17 -> InstanceConstant(const _Patch{})
-Extra constant evaluation: evaluated: 9, effectively constant: 4
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///origin_lib.dart:5:7 -> ConstructorTearOffConstant(Class.redirect)
+Extra constant evaluation: evaluated: 9, effectively constant: 5

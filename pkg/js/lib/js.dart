@@ -25,6 +25,10 @@ class _Anonymous {
   const _Anonymous();
 }
 
+// class _StaticInterop {
+//   const _StaticInterop();
+// }
+
 /// An annotation that indicates a [JS] annotated class is structural and does
 /// not have a known JavaScript prototype.
 ///
@@ -33,3 +37,13 @@ class _Anonymous {
 /// desugars to creating a JavaScript object literal with name-value pairs
 /// corresponding to the parameter names and values.
 const _Anonymous anonymous = _Anonymous();
+
+/// [staticInterop] enables the [JS] annotated class to be treated as a "static"
+/// interop class.
+///
+/// These classes allow interop with native types, like the ones in `dart:html`.
+/// These classes should not contain any instance members, inherited or
+/// otherwise, and should instead use static extension members.
+// TODO(47324, 47325): Uncomment these annotations once erasure and subtyping
+// are ready.
+// const _StaticInterop staticInterop = _StaticInterop();

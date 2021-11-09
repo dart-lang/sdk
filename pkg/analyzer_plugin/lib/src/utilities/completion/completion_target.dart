@@ -69,9 +69,6 @@ import 'package:analyzer/src/generated/source.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 class CompletionTarget {
-  /// The compilation unit in which the completion is occurring.
-  final CompilationUnit unit;
-
   /// The offset within the source at which the completion is being requested.
   final int offset;
 
@@ -122,14 +119,8 @@ class CompletionTarget {
   ParameterElement? _parameterElement;
 
   /// Compute the appropriate [CompletionTarget] for the given [offset] within
-  /// the [compilationUnit].
-  ///
-  /// Optionally, start the search from within [entryPoint] instead of using
-  /// the [compilationUnit], which is useful for analyzing ASTs that have no
-  /// [compilationUnit] such as dart expressions within angular templates.
-  factory CompletionTarget.forOffset(
-      CompilationUnit compilationUnit, int offset,
-      {AstNode? entryPoint}) {
+  /// the [entryPoint].
+  factory CompletionTarget.forOffset(AstNode entryPoint, int offset) {
     // The precise algorithm is as follows. We perform a depth-first search of
     // all edges in the parse tree (both those that point to AST nodes and
     // those that point to tokens), visiting parents before children. The
@@ -144,7 +135,6 @@ class CompletionTarget {
     // prune the search to the point where no recursion is necessary; at each
     // step in the process we know exactly which child node we need to proceed
     // to.
-    entryPoint ??= compilationUnit;
     var containingNode = entryPoint;
     outerLoop:
     while (true) {
@@ -167,11 +157,10 @@ class CompletionTarget {
             var commentToken = _getContainingCommentToken(entity, offset);
             if (commentToken != null) {
               return CompletionTarget._(
-                  compilationUnit, offset, containingNode, commentToken, true);
+                  offset, containingNode, commentToken, true);
             }
             // Target found.
-            return CompletionTarget._(
-                compilationUnit, offset, containingNode, entity, false);
+            return CompletionTarget._(offset, containingNode, entity, false);
           } else {
             // Since entity is a token, we don't need to look inside it; just
             // proceed to the next entity.
@@ -198,14 +187,13 @@ class CompletionTarget {
                   _getContainingDocComment(containingNode, commentToken);
               if (docComment != null) {
                 return CompletionTarget._(
-                    compilationUnit, offset, docComment, commentToken, false);
+                    offset, docComment, commentToken, false);
               } else {
-                return CompletionTarget._(compilationUnit, offset,
-                    compilationUnit, commentToken, true);
+                return CompletionTarget._(
+                    offset, entryPoint, commentToken, true);
               }
             }
-            return CompletionTarget._(
-                compilationUnit, offset, containingNode, entity, false);
+            return CompletionTarget._(offset, containingNode, entity, false);
           }
 
           // Otherwise, the completion target is somewhere inside the entity,
@@ -228,28 +216,53 @@ class CompletionTarget {
       assert(identical(containingNode, entryPoint));
 
       // Check for comments on the EOF token (trailing comments in a file).
-      var commentToken =
-          _getContainingCommentToken(compilationUnit.endToken, offset);
-      if (commentToken != null) {
-        return CompletionTarget._(
-            compilationUnit, offset, compilationUnit, commentToken, true);
+      if (entryPoint is CompilationUnit) {
+        var commentToken =
+            _getContainingCommentToken(entryPoint.endToken, offset);
+        if (commentToken != null) {
+          return CompletionTarget._(offset, entryPoint, commentToken, true);
+        }
       }
 
       // Since no completion target was found, we set the completion target
       // entity to null and use the entryPoint as the parent.
-      return CompletionTarget._(
-          compilationUnit, offset, entryPoint, null, false);
+      return CompletionTarget._(offset, entryPoint, null, false);
     }
   }
 
   /// Create a [CompletionTarget] holding the given [containingNode] and
   /// [entity].
-  CompletionTarget._(this.unit, this.offset, AstNode containingNode,
+  CompletionTarget._(this.offset, AstNode containingNode,
       SyntacticEntity? entity, this.isCommentText)
       : containingNode = containingNode,
         entity = entity,
         argIndex = _computeArgIndex(containingNode, entity),
         droppedToken = _computeDroppedToken(containingNode, entity, offset);
+
+  /// Return the expression to the left of the "dot" or "dot dot",
+  /// or `null` if this is not a "dot" completion (e.g. `{ foo^; }`).
+  Expression? get dotTarget {
+    var node = containingNode;
+    if (node is MethodInvocation) {
+      if (identical(node.methodName, entity)) {
+        return node.realTarget;
+      } else if (node.isCascaded && node.operator!.offset + 1 == offset) {
+        return node.realTarget;
+      }
+    }
+    if (node is PropertyAccess) {
+      if (identical(node.propertyName, entity)) {
+        return node.realTarget;
+      } else if (node.isCascaded && node.operator.offset + 1 == offset) {
+        return node.realTarget;
+      }
+    }
+    if (node is PrefixedIdentifier) {
+      if (identical(node.identifier, entity)) {
+        return node.prefix;
+      }
+    }
+  }
 
   /// If the target is an argument in an argument list, and the invocation is
   /// resolved, return the invoked [ExecutableElement].

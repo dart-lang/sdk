@@ -502,6 +502,48 @@ class Socket {
 }
 
 @patch
+class SocketControlMessage {
+  @patch
+  factory SocketControlMessage.fromHandles(List<ResourceHandle> handles) {
+    throw UnsupportedError("SocketControlMessage constructor");
+  }
+}
+
+@patch
+class ResourceHandle {
+  @patch
+  factory ResourceHandle.fromFile(RandomAccessFile file) {
+    throw UnsupportedError("ResourceHandle.fromFile constructor");
+  }
+
+  @patch
+  factory ResourceHandle.fromSocket(Socket socket) {
+    throw UnsupportedError("ResourceHandle.fromSocket constructor");
+  }
+
+  @patch
+  factory ResourceHandle.fromRawSocket(RawSocket rawSocket) {
+    throw UnsupportedError("ResourceHandle.fromRawSocket constructor");
+  }
+
+  @patch
+  factory ResourceHandle.fromRawDatagramSocket(
+      RawDatagramSocket rawDatagramSocket) {
+    throw UnsupportedError("ResourceHandle.fromRawDatagramSocket constructor");
+  }
+
+  @patch
+  factory ResourceHandle.fromStdin(Stdin stdin) {
+    throw UnsupportedError("ResourceHandle.fromStdin constructor");
+  }
+
+  @patch
+  factory ResourceHandle.fromStdout(Stdout stdout) {
+    throw UnsupportedError("ResourceHandle.fromStdout constructor");
+  }
+}
+
+@patch
 class SecureSocket {
   @patch
   factory SecureSocket._(RawSecureSocket rawSocket) {

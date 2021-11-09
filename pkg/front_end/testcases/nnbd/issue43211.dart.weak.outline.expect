@@ -149,3 +149,8 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue43211.dart:35:7 -> ConstructorTearOffConstant(C.redirect)
+Extra constant evaluation: evaluated: 14, effectively constant: 1

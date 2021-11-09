@@ -172,6 +172,12 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstructorReference(ConstructorReference node) {
+    _runSubscriptions(node, registry._forConstructorReference);
+    super.visitConstructorReference(node);
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     _runSubscriptions(node, registry._forContinueStatement);
     super.visitContinueStatement(node);
@@ -795,6 +801,7 @@ class NodeLintRegistry {
   final List<_Subscription<ConstructorFieldInitializer>>
       _forConstructorFieldInitializer = [];
   final List<_Subscription<ConstructorName>> _forConstructorName = [];
+  final List<_Subscription<ConstructorReference>> _forConstructorReference = [];
   final List<_Subscription<ContinueStatement>> _forContinueStatement = [];
   final List<_Subscription<DeclaredIdentifier>> _forDeclaredIdentifier = [];
   final List<_Subscription<DefaultFormalParameter>> _forDefaultFormalParameter =
@@ -1018,6 +1025,11 @@ class NodeLintRegistry {
 
   void addConstructorName(LintRule linter, AstVisitor visitor) {
     _forConstructorName.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addConstructorReference(LintRule linter, AstVisitor visitor) {
+    _forConstructorReference
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addContinueStatement(LintRule linter, AstVisitor visitor) {

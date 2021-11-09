@@ -380,6 +380,18 @@
           omitted if the parameterName field is omitted.
         </p>
       </field>
+      <field name="libraryUriToImportIndex" experimental="true" optional="true">
+        <ref>int</ref>
+        <p>
+          The index in the list of libraries that could be imported to make
+          this suggestion accessible in the file where completion was requested.
+          The server provides this list of libraries together with suggestions,
+          so that information about the library can be shared for multiple
+          suggestions. This field is omitted if the library is  already
+          imported, so that the suggestion can be inserted as is, or if
+          <tt>getSuggestions</tt> was used rather than <tt>getSuggestions2</tt>.
+        </p>
+      </field>
     </object>
   </type>
   <type name="CompletionSuggestionKind">

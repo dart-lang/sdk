@@ -205,8 +205,36 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
       ObjectPtr raw = working_set.RemoveLast();
 
       const intptr_t cid = raw->GetClassId();
+      // Keep the list in sync with the one in runtime/vm/object_graph_copy.cc
       switch (cid) {
-        // List below matches the one in raw_object_snapshot.cc
+        // Can be shared.
+        case kOneByteStringCid:
+        case kTwoByteStringCid:
+        case kExternalOneByteStringCid:
+        case kExternalTwoByteStringCid:
+        case kMintCid:
+        case kImmutableArrayCid:
+        case kNeverCid:
+        case kSentinelCid:
+        case kInt32x4Cid:
+        case kSendPortCid:
+        case kCapabilityCid:
+        case kRegExpCid:
+        case kStackTraceCid:
+          continue;
+        // Cannot be shared due to possibly being mutable boxes for unboxed
+        // fields in JIT, but can be transferred via Isolate.exit()
+        case kDoubleCid:
+        case kFloat32x4Cid:
+        case kFloat64x2Cid:
+          continue;
+
+        case kClosureCid:
+          closure ^= raw;
+          // Only context has to be checked.
+          working_set.Add(closure.context());
+          continue;
+
 #define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
   case k##type##Cid:                                                           \
     error_message =                                                            \
@@ -214,27 +242,12 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
     error_found = true;                                                        \
     break;
 
-        MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
-        MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
-        MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
-        MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
-        MESSAGE_SNAPSHOT_ILLEGAL(RegExp);
-        MESSAGE_SNAPSHOT_ILLEGAL(StackTrace);
-        MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
+          MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
+          MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
+          MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
+          MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
+          MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
 
-        case kClosureCid: {
-          closure = Closure::RawCast(raw);
-          FunctionPtr func = closure.function();
-          // We only allow closure of top level methods or static functions in a
-          // class to be sent in isolate messages.
-          if (!Function::IsImplicitStaticClosureFunction(func)) {
-            // All other closures are errors.
-            erroneous_closure_function = func;
-            error_found = true;
-            break;
-          }
-          break;
-        }
         default:
           if (cid >= kNumPredefinedCids) {
             klass = class_table->At(cid);
@@ -272,38 +285,37 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
   return obj.ptr();
 }
 
-DEFINE_NATIVE_ENTRY(SendPortImpl_sendAndExitInternal_, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
-  if (!PortMap::IsReceiverInThisIsolateGroup(port.Id(), isolate->group())) {
-    const auto& error =
-        String::Handle(String::New("sendAndExit is only supported across "
-                                   "isolates spawned via spawnFunction."));
-    Exceptions::ThrowArgumentError(error);
-    UNREACHABLE();
-  }
+DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
+  GET_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
+  if (!port.IsNull()) {
+    GET_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
+    if (!PortMap::IsReceiverInThisIsolateGroup(port.Id(), isolate->group())) {
+      const auto& error =
+          String::Handle(String::New("exit with final message is only allowed "
+                                     "for isolates in one isolate group."));
+      Exceptions::ThrowArgumentError(error);
+      UNREACHABLE();
+    }
 
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
-
-  Object& validated_result = Object::Handle(zone);
-  const Object& msg_obj = Object::Handle(zone, obj.ptr());
-  validated_result = ValidateMessageObject(zone, isolate, msg_obj);
-  // msg_array = [
-  //     <message>,
-  //     <collection-lib-objects-to-rehash>,
-  //     <core-lib-objects-to-rehash>,
-  // ]
-  const Array& msg_array = Array::Handle(zone, Array::New(3));
-  msg_array.SetAt(0, msg_obj);
-  if (validated_result.IsUnhandledException()) {
-    Exceptions::PropagateError(Error::Cast(validated_result));
-    UNREACHABLE();
+    Object& validated_result = Object::Handle(zone);
+    const Object& msg_obj = Object::Handle(zone, obj.ptr());
+    validated_result = ValidateMessageObject(zone, isolate, msg_obj);
+    // msg_array = [
+    //     <message>,
+    //     <collection-lib-objects-to-rehash>,
+    //     <core-lib-objects-to-rehash>,
+    // ]
+    const Array& msg_array = Array::Handle(zone, Array::New(3));
+    msg_array.SetAt(0, msg_obj);
+    if (validated_result.IsUnhandledException()) {
+      Exceptions::PropagateError(Error::Cast(validated_result));
+      UNREACHABLE();
+    }
+    PersistentHandle* handle =
+        isolate->group()->api_state()->AllocatePersistentHandle();
+    handle->set_ptr(msg_array);
+    isolate->bequeath(std::unique_ptr<Bequest>(new Bequest(handle, port.Id())));
   }
-  PersistentHandle* handle =
-      isolate->group()->api_state()->AllocatePersistentHandle();
-  handle->set_ptr(msg_array);
-  isolate->bequeath(std::unique_ptr<Bequest>(new Bequest(handle, port.Id())));
-  // TODO(aam): Ensure there are no dart api calls after this point as we want
-  // to ensure that validated message won't get tampered with.
   Isolate::KillIfExists(isolate, Isolate::LibMsgId::kKillMsg);
   // Drain interrupts before running so any IMMEDIATE operations on the current
   // isolate happen synchronously.

@@ -16,7 +16,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
   int charOffset = token.charOffset;
   // TODO(paulberry,ahe): why is endOffset sometimes null?
   int endOffset = token.endOffset ?? charOffset;
-  void _makeError(ScannerErrorCode errorCode, List<Object?>? arguments) {
+  void _makeError(ScannerErrorCode errorCode, List<Object>? arguments) {
     if (_isAtEnd(token, charOffset)) {
       // Analyzer never generates an error message past the end of the input,
       // since such an error would not be visible in an editor.
@@ -56,7 +56,9 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       return _makeError(ScannerErrorCode.MISSING_HEX_DIGIT, null);
 
     case "ILLEGAL_CHARACTER":
-      return _makeError(ScannerErrorCode.ILLEGAL_CHARACTER, [token.character]);
+      // We can safely assume `token.character` is non-`null` because this error
+      // is only reported when there is a character associated with the token.
+      return _makeError(ScannerErrorCode.ILLEGAL_CHARACTER, [token.character!]);
 
     case "UNSUPPORTED_OPERATOR":
       return _makeError(ScannerErrorCode.UNSUPPORTED_OPERATOR,
@@ -111,7 +113,7 @@ bool _isAtEnd(Token token, int charOffset) {
  * The [arguments] are any arguments needed to complete the error message.
  */
 typedef ReportError(
-    ScannerErrorCode errorCode, int offset, List<Object?>? arguments);
+    ScannerErrorCode errorCode, int offset, List<Object>? arguments);
 
 /**
  * The error codes used for errors detected by the scanner.
@@ -155,7 +157,7 @@ class ScannerErrorCode extends ErrorCode {
           'UNEXPECTED_DOLLAR_IN_STRING',
           "A '\$' has special meaning inside a string, and must be followed by "
               "an identifier or an expression in curly braces ({}).",
-          correction: "Try adding a backslash (\\) to escape the '\$'.");
+          correctionMessage: "Try adding a backslash (\\) to escape the '\$'.");
 
   /**
    * Parameters:
@@ -167,7 +169,7 @@ class ScannerErrorCode extends ErrorCode {
   static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
       const ScannerErrorCode(
           'UNTERMINATED_MULTI_LINE_COMMENT', "Unterminated multi-line comment.",
-          correction: "Try terminating the comment with '*/', or "
+          correctionMessage: "Try terminating the comment with '*/', or "
               "removing any unbalanced occurrences of '/*'"
               " (because comments nest in Dart).");
 
@@ -177,14 +179,15 @@ class ScannerErrorCode extends ErrorCode {
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [message]
+   * associated with the error will be created from the given [problemMessage]
    * template. The correction associated with the error will be created from the
-   * given [correction] template.
+   * given [correctionMessage] template.
    */
-  const ScannerErrorCode(String name, String message, {String? correction})
+  const ScannerErrorCode(String name, String problemMessage,
+      {String? correctionMessage})
       : super(
-          correction: correction,
-          message: message,
+          correctionMessage: correctionMessage,
+          problemMessage: problemMessage,
           name: name,
           uniqueName: 'ScannerErrorCode.$name',
         );

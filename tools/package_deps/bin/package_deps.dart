@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart' as yaml;
 
@@ -85,33 +86,58 @@ void main(List<String> arguments) {
   }
 
   if (validateFailure) {
-    exit(1);
+    exitCode = 1;
   }
 }
 
 class Package implements Comparable<Package> {
   final String dir;
+  final _regularDependencies = <String>{};
+  final _devDependencies = <String>{};
+  final _declaredPubDeps = <PubDep>[];
+  final _declaredDevPubDeps = <PubDep>[];
+  final _declaredOverridePubDeps = <PubDep>[];
+
+  late final String _packageName;
+  late final Set<String> _declaredDependencies;
+  late final Set<String> _declaredDevDependencies;
+  late final Set<String> _declaredOverrideDependencies;
+  late final bool _publishToNone;
 
   Package(this.dir) {
-    _parsePubspec();
+    var pubspec = File(path.join(dir, 'pubspec.yaml'));
+    var doc = yaml.loadYamlDocument(pubspec.readAsStringSync());
+    dynamic docContents = doc.contents.value;
+    _packageName = docContents['name'];
+    _publishToNone = docContents['publish_to'] == 'none';
+
+    Set<String> process(String section, List<PubDep> target) {
+      if (docContents[section] != null) {
+        final value = Set<String>.from(docContents[section].keys);
+
+        var deps = docContents[section];
+        for (var package in deps.keys) {
+          target.add(PubDep.parse(package, deps[package]));
+        }
+
+        return value;
+      } else {
+        return {};
+      }
+    }
+
+    _declaredDependencies = process('dependencies', _declaredPubDeps);
+    _declaredDevDependencies = process('dev_dependencies', _declaredDevPubDeps);
+    _declaredOverrideDependencies =
+        process('dependency_overrides', _declaredOverridePubDeps);
   }
 
   String get dirName => path.basename(dir);
-  final Set<String> _regularDependencies = {};
-  final Set<String> _devDependencies = {};
-  String _packageName;
-
   String get packageName => _packageName;
-  Set<String> _declaredDependencies;
-  List<PubDep> _declaredPubDeps;
-  Set<String> _declaredDevDependencies;
-  List<PubDep> _declaredDevPubDeps;
 
   List<String> get regularDependencies => _regularDependencies.toList()..sort();
 
   List<String> get devDependencies => _devDependencies.toList()..sort();
-
-  bool _publishToNone;
 
   bool get publishable => !_publishToNone;
 
@@ -158,40 +184,6 @@ class Package implements Comparable<Package> {
       } else {
         _devDependencies.addAll(importedPackages);
       }
-    }
-  }
-
-  void _parsePubspec() {
-    var pubspec = File(path.join(dir, 'pubspec.yaml'));
-    var doc = yaml.loadYamlDocument(pubspec.readAsStringSync());
-    dynamic docContents = doc.contents.value;
-    _packageName = docContents['name'];
-    _publishToNone = docContents['publish_to'] == 'none';
-
-    _declaredPubDeps = [];
-    if (docContents['dependencies'] != null) {
-      _declaredDependencies =
-          Set<String>.from(docContents['dependencies'].keys);
-
-      var deps = docContents['dependencies'];
-      for (var package in deps.keys) {
-        _declaredPubDeps.add(PubDep.parse(package, deps[package]));
-      }
-    } else {
-      _declaredDependencies = {};
-    }
-
-    _declaredDevPubDeps = [];
-    if (docContents['dev_dependencies'] != null) {
-      _declaredDevDependencies =
-          Set<String>.from(docContents['dev_dependencies'].keys);
-
-      var deps = docContents['dev_dependencies'];
-      for (var package in deps.keys) {
-        _declaredDevPubDeps.add(PubDep.parse(package, deps[package]));
-      }
-    } else {
-      _declaredDevDependencies = {};
     }
   }
 
@@ -300,6 +292,13 @@ class Package implements Comparable<Package> {
     if (!publishable) {
       for (PubDep dep in [..._declaredPubDeps, ..._declaredDevPubDeps]) {
         if (pkgPackages.contains(dep.name) && dep is! PathPubDep) {
+          // check to see if there is a dependency_override to a path dependency
+          final override = _declaredOverridePubDeps
+              .singleWhereOrNull((element) => element.name == dep.name);
+          if (override != null && override is PathPubDep) {
+            continue;
+          }
+
           out('  Prefer a relative path dep for pkg/ packages:');
           out('    $dep');
           fail = true;
@@ -368,13 +367,13 @@ class Package implements Comparable<Package> {
 
       var match = importRegex1.firstMatch(line);
       if (match != null) {
-        results.add(match.group(2));
+        results.add(match.group(2)!);
         continue;
       }
 
       match = importRegex2.firstMatch(line);
       if (match != null) {
-        results.add(match.group(2));
+        results.add(match.group(2)!);
         continue;
       }
     }
@@ -418,9 +417,9 @@ class SdkDeps {
       var testedPkgDep = testedPkgRegExp.firstMatch(line);
 
       if (pkgDep != null) {
-        pkgs.add(pkgDep.group(1));
+        pkgs.add(pkgDep.group(1)!);
       } else if (testedPkgDep != null) {
-        testedPkgs.add(testedPkgDep.group(1));
+        testedPkgs.add(testedPkgDep.group(1)!);
       }
     }
 

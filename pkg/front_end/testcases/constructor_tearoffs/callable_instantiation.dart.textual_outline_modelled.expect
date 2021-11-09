@@ -1,0 +1,75 @@
+import 'dart:async';
+
+Class? c2;
+Class c1 = Class();
+Function f3 = () {};
+FutureOr<Class> f2 = Class();
+GetterCall c3 = GetterCall();
+Never n = throw '';
+String a = '';
+bool c = true;
+
+class Class {
+  call<T>() {}
+}
+
+class GetterCall {
+  void Function<T>() get call => <T>() {};
+}
+
+double b = 0.5;
+dynamic d = null;
+
+extension Ambiguous1 on String {
+  call<T>() {}
+}
+
+extension Ambiguous2 on String {
+  call<T>() {}
+}
+
+extension Extension on int {
+  call<T>() {}
+}
+
+extension ExtensionGetter on double {
+  void Function<T>() get call => <T>() {};
+}
+
+extension ExtensionSetter on bool {
+  set call(void Function<T>() value) {}
+}
+
+int? i2 = null;
+int i1 = 0;
+main() {}
+method<T extends Class, S extends int>(Class c, int i, T t, S s) {}
+test<T extends Class?, S extends int>(
+    Class? c1,
+    GetterCall c2,
+    int? i,
+    T t1,
+    T? t2,
+    S? s,
+    void Function<T>()? f1,
+    Never n,
+    dynamic d,
+    String a,
+    double b,
+    bool c,
+    FutureOr<Class> f2,
+    Function f3) {}
+var topLevel1 = c1<int>;
+var topLevel10 = b<int>;
+var topLevel11 = c<int>;
+var topLevel12 = f2<int>;
+var topLevel13 = f3<int>;
+var topLevel2 = i1<int>;
+var topLevel3 = c2<int>;
+var topLevel4 = c3<int>;
+var topLevel5 = i2<int>;
+var topLevel6 = f1<int>;
+var topLevel7 = n<int>;
+var topLevel8 = d<int>;
+var topLevel9 = a<int>;
+void Function<T>()? f1 = null;

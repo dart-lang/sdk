@@ -29,6 +29,27 @@ class SpaceUsage {
   }
 };
 
+enum class GCType {
+  kScavenge,
+  kStartConcurrentMark,
+  kMarkSweep,
+  kMarkCompact,
+};
+
+enum class GCReason {
+  kNewSpace,     // New space is full.
+  kStoreBuffer,  // Store buffer is too big.
+  kPromotion,    // Old space limit crossed after a scavenge.
+  kOldSpace,     // Old space limit crossed.
+  kFinalize,     // Concurrent marking finished.
+  kFull,         // Heap::CollectAllGarbage
+  kExternal,     // Dart_NewFinalizableHandle Dart_NewWeakPersistentHandle
+  kIdle,         // Dart_NotifyIdle
+  kLowMemory,    // Dart_NotifyLowMemory
+  kDebugging,    // service request, etc.
+  kSendAndExit,  // SendPort.sendAndExit
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_HEAP_SPACES_H_

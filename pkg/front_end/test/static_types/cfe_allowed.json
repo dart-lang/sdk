@@ -1,5 +1,5 @@
 {
-  "pkg/front_end/lib/src/base/libraries_specification.dart": {
+  "pkg/_fe_analyzer_shared/lib/src/util/libraries_specification.dart": {
     "Dynamic invocation of 'toList'.": 1,
     "Dynamic invocation of 'map'.": 1,
     "Dynamic invocation of '[]='.": 1

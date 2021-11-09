@@ -42,6 +42,14 @@ class C {
     ]);
   }
 
+  test_invalid_extension_unnamed() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+@visibleForOverriding
+extension on double {}
+''', [error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21)]);
+  }
+
   test_invalid_extensionMember() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -89,7 +97,6 @@ import 'package:meta/meta.dart';
 import 'package:meta/meta.dart';
 @visibleForOverriding var a = 1, b;
 ''', [
-      error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21),
       error(HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21),
     ]);
   }

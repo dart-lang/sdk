@@ -128,11 +128,11 @@ class SourceToSummaryDillStep implements IOModularStep {
         '${toUri(sdkModule, dillId)}',
         '--exclude-non-sources',
       ],
-      ...(transitiveDependencies
+      ...transitiveDependencies
           .where((m) => !m.isSdk)
-          .expand((m) => ['--input-summary', '${toUri(m, dillId)}'])),
-      ...(sources.expand((String uri) => ['--source', uri])),
-      ...(flags.expand((String flag) => ['--enable-experiment', flag])),
+          .expand((m) => ['--input-summary', '${toUri(m, dillId)}']),
+      ...sources.expand((String uri) => ['--source', uri]),
+      ...flags.expand((String flag) => ['--enable-experiment', flag]),
     ];
 
     var result =
@@ -211,9 +211,9 @@ class DDCStep implements IOModularStep {
       ...sources,
       ...extraArgs,
       for (String flag in flags) '--enable-experiment=$flag',
-      ...(transitiveDependencies
+      ...transitiveDependencies
           .where((m) => !m.isSdk)
-          .expand((m) => ['-s', '${toUri(m, dillId)}=${m.name}'])),
+          .expand((m) => ['-s', '${toUri(m, dillId)}=${m.name}']),
       '-o',
       '$output',
     ];

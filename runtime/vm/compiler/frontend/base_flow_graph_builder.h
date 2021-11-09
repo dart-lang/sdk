@@ -159,7 +159,15 @@ class BaseFlowGraphBuilder {
         saved_args_desc_array_(
             has_saved_args_desc_array()
                 ? Array::ZoneHandle(zone_, function_.saved_args_desc())
-                : Object::null_array()) {}
+                : Object::null_array()),
+        coverage_array_(
+            Array::ZoneHandle(parsed_function->function().GetCoverageArray())) {
+  }
+
+  const Array& coverage_array() const { return coverage_array_; }
+
+  intptr_t GetCoverageIndexFor(TokenPosition token_pos);
+  void FinalizeCoverageArray();
 
   Fragment LoadField(const Field& field, bool calls_initializer);
   Fragment LoadNativeField(const Slot& native_field,
@@ -495,6 +503,9 @@ class BaseFlowGraphBuilder {
 
   const bool inlining_unchecked_entry_;
   const Array& saved_args_desc_array_;
+
+  GrowableArray<TokenPosition> coverage_array_positions_;
+  Array& coverage_array_;
 
   friend class StreamingFlowGraphBuilder;
 

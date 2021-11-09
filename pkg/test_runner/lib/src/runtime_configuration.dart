@@ -59,9 +59,6 @@ abstract class RuntimeConfiguration {
           );
         }
         break;
-
-      case Runtime.selfCheck:
-        return SelfCheckRuntimeConfiguration();
     }
     throw "unreachable";
   }
@@ -428,37 +425,6 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
     return [
       VMCommand(FuchsiaEmulator.fsshTool, runtimeArgs, environmentOverrides)
     ];
-  }
-}
-
-class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
-  final List<String> selfCheckers = <String>[];
-
-  SelfCheckRuntimeConfiguration() {
-    searchForSelfCheckers();
-  }
-
-  void searchForSelfCheckers() {
-    var pkg = Repository.uri.resolve('pkg');
-    for (var entry in Directory.fromUri(pkg).listSync(recursive: true)) {
-      if (entry is File && entry.path.endsWith('_self_check.dart')) {
-        selfCheckers.add(entry.path);
-      }
-    }
-  }
-
-  List<Command> computeRuntimeCommands(
-      CommandArtifact artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      List<String> extraLibs,
-      bool isCrashExpected) {
-    var executable = dartVmBinaryFileName;
-    return selfCheckers
-        .map((String tester) => VMBatchCommand(
-            executable, tester, arguments, environmentOverrides,
-            checked: _configuration.isChecked))
-        .toList();
   }
 }
 

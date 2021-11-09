@@ -13,7 +13,7 @@ class CommandLineProblem {
   CommandLineProblem.deprecated(String message)
       : this(templateUnspecified.withArguments(message));
 
-  String toString() => message.message;
+  String toString() => message.problemMessage;
 }
 
 class ParsedOptions {

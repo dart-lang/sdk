@@ -11,8 +11,8 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import 'package:ffi/ffi.dart';
 
-// Reuse struct definitions.
-import 'function_structs_by_value_generated_test.dart';
+// Reuse compound definitions.
+import 'function_structs_by_value_generated_compounds.dart';
 
 void main() {
   testSizeOf();

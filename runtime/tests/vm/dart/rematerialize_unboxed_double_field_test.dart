@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--deterministic --optimization-counter-threshold=10 --unbox-numeric-fields
+// VMOptions=--deterministic --optimization-counter-threshold=100 --unbox-numeric-fields
 
 import 'package:expect/expect.dart';
 
@@ -29,9 +29,9 @@ void foo(sink) {
 
 void main(List<String> args) {
   var c = C();
-  for (var i = 0; i < 100; i++) c.d = 2.0;
+  for (var i = 0; i < 200; i++) c.d = 2.0;
 
-  for (var i = 0; i < 100; i++) {
+  for (var i = 0; i < 200; i++) {
     foo(NoopSink());
   }
 

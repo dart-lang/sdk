@@ -38,22 +38,22 @@ class G<Y, Z> {
 main() {
   dynamic d = (int x, int y) => x + y;
   Expect.isTrue(d is A<int>);
-  Expect.equals((d as A<int>)(1, 2), 3);
+  Expect.equals((d as A<int>)(1, 2), 3); // Promotes `d` to `A<int>`.
 
   Expect.isFalse(d is B);
   Expect.throws(() => d as B);
 
-  d = <S>(S x, S y) => x is String ? x : y;
-  Expect.isFalse(d is A);
+  d = <S>(S x, S y) => x is String ? x : y; // Instantiates function literal.
+  Expect.isFalse(d is A); // `A<int>` is not a subtype of `A<dynamic>`.
   Expect.throws(() => d as A);
 
+  d = (<S>(S x, S y) => x is String ? x : y) as dynamic; // No instantiation.
   Expect.isTrue(d is B);
-  // TODO(jmesserly): Analyzer incorrectly rejects this form:
-  // Expect.equals((d as B)<int>(1, 2), 2);
+  Expect.equals((d as B)<int>(1, 2), 2);
+
   B b = d;
   Expect.equals(b<int>(1, 2), 2);
   Expect.equals(b<String>('a', 'b'), 'a');
-
 
   new G<int, String>().test();
   new G<String, String>().test();

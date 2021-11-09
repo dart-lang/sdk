@@ -133,11 +133,6 @@ ie10:
 ie11:
 chromeOnAndroid:  Run JavaScript in the specified browser.
 
-self_check:       Pass each test or its compiled output to every file under
-                  `pkg` whose name ends with `_self_check.dart`. Each test is
-                  given to the self_check tester as a filename on stdin using
-                  the batch-mode protocol.
-
 none:             No runtime, compile only.''',
         abbr: 'r',
         values: Runtime.names),
@@ -268,9 +263,7 @@ Allowed values are: legacy, weak, strong''',
     _Option('output_directory',
         'The name of the output directory for storing log files.',
         defaultsTo: "logs", hide: true),
-    _Option.bool('noBatch', 'Do not run tests in batch mode.', hide: true),
-    _Option.bool('dart2js_batch', 'Run dart2js tests in batch mode.',
-        hide: true),
+    _Option.bool('no_batch', 'Do not run tests in batch mode.', hide: true),
     _Option.bool('write_debug_log',
         'Don\'t write debug messages to stdout but rather to a logfile.',
         hide: true),
@@ -342,15 +335,6 @@ Babel options JSON.''',
         'exclude_suite',
         '''Exclude suites from default selector, only works when no selector
 has been specified on the command line.''',
-        hide: true),
-    _Option.bool(
-        'skip_compilation',
-        '''
-Skip the compilation step, using the compilation artifacts left in
-the output folder from a previous run. This flag will often cause
-false positives and negatives, but can be useful for quick and
-dirty offline testing when not making changes that affect the
-compiler.''',
         hide: true),
     _Option.bool('print_passing_stdout',
         'Print the stdout of passing, as well as failing, tests.',
@@ -758,8 +742,7 @@ compiler.''',
           build: data["build"] as bool,
           testList: data["test_list_contents"] as List<String>,
           repeat: data["repeat"] as int,
-          batch: !(data["noBatch"] as bool),
-          batchDart2JS: data["dart2js_batch"] as bool,
+          batch: !(data["no_batch"] as bool),
           copyCoreDumps: data["copy_coredumps"] as bool,
           rr: data["rr"] as bool,
           isVerbose: data["verbose"] as bool,
@@ -772,7 +755,6 @@ compiler.''',
           reportFailures: data["report_failures"] as bool,
           reportInJson: data["report_in_json"] as bool,
           resetBrowser: data["reset_browser_configuration"] as bool,
-          skipCompilation: data["skip_compilation"] as bool,
           writeDebugLog: data["write_debug_log"] as bool,
           writeResults: data["write_results"] as bool,
           writeLogs: data["write_logs"] as bool,

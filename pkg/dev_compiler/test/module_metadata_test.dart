@@ -2,19 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:dev_compiler/src/kernel/module_metadata.dart';
 import 'package:test/test.dart';
 
-// Test creating, reading and writing debugger metadata
+/// Test creating, reading and writing debugger metadata.
 void main() {
   group('Module metadata', () {
-    Directory tempDir;
-    File file;
+    late Directory tempDir;
+    late File file;
 
     setUpAll(() {
       var systemTempDir = Directory.systemTemp;
@@ -28,16 +26,16 @@ void main() {
     });
 
     test('create, write, and read', () async {
-      // create metadata
+      // Create metadata.
       var version = ModuleMetadataVersion.current.version;
       var module = createMetadata(version);
       testMetadataFields(module, version);
 
-      // write metadata
+      // Write metadata.
       file.writeAsBytesSync(utf8.encode(json.encode(module)));
       expect(file.existsSync(), true);
 
-      // read metadata
+      // Read metadata.
       var moduleJson = json.decode(utf8.decode(file.readAsBytesSync()));
       var newModule =
           ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
@@ -45,7 +43,7 @@ void main() {
     });
 
     test('read later backward-compatible patch version', () async {
-      // create metadata with next patch version
+      // Create metadata with next patch version.
       var version = ModuleMetadataVersion(
               ModuleMetadataVersion.current.majorVersion,
               ModuleMetadataVersion.current.minorVersion,
@@ -54,11 +52,11 @@ void main() {
 
       var module = createMetadata(version);
 
-      // write metadata
+      // Write metadata.
       file.writeAsBytesSync(utf8.encode(json.encode(module)));
       expect(file.existsSync(), true);
 
-      // read metadata
+      // Read metadata.
       var moduleJson = json.decode(utf8.decode(file.readAsBytesSync()));
       var newModule =
           ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
@@ -66,7 +64,7 @@ void main() {
     });
 
     test('read later backward-compatible minor version', () async {
-      // create metadata with next minor version
+      // Create metadata with next minor version.
       var version = ModuleMetadataVersion(
               ModuleMetadataVersion.current.majorVersion,
               ModuleMetadataVersion.current.minorVersion + 1,
@@ -74,11 +72,11 @@ void main() {
           .version;
       var module = createMetadata(version);
 
-      // write metadata
+      // Write metadata.
       file.writeAsBytesSync(utf8.encode(json.encode(module)));
       expect(file.existsSync(), true);
 
-      // read metadata
+      // Read metadata.
       var moduleJson = json.decode(utf8.decode(file.readAsBytesSync()));
       var newModule =
           ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
@@ -86,7 +84,7 @@ void main() {
     });
 
     test('fail to read later non-backward-compatible major version', () async {
-      // create metadata with next minor version
+      // Create metadata with next minor version.
       var version = ModuleMetadataVersion(
               ModuleMetadataVersion.current.majorVersion + 1,
               ModuleMetadataVersion.current.minorVersion + 1,
@@ -94,13 +92,13 @@ void main() {
           .version;
       var module = createMetadata(version);
 
-      // write metadata
+      // Write metadata.
       file.writeAsBytesSync(utf8.encode(json.encode(module)));
       expect(file.existsSync(), true);
 
-      // try read metadata, expect to fail
+      // Try read metadata, expect to fail.
       var moduleJson = json.decode(utf8.decode(file.readAsBytesSync()));
-      ModuleMetadata newModule;
+      ModuleMetadata? newModule;
       try {
         newModule = ModuleMetadata.fromJson(moduleJson as Map<String, dynamic>);
       } catch (e) {
@@ -120,7 +118,7 @@ ModuleMetadata createMetadata(String version) => ModuleMetadata(
       'file:///source/library/lib/test.dart', ['src/test2.dart']));
 
 void testMetadataFields(ModuleMetadata module, String version) {
-  // reader always creates current metadata version
+  // Reader always creates current metadata version.
   expect(module.version, version);
   expect(module.name, 'module');
   expect(module.closureName, 'closure');
@@ -130,8 +128,7 @@ void testMetadataFields(ModuleMetadata module, String version) {
   expect(module.soundNullSafety, true);
 
   var libUri = module.libraries.keys.first;
-  var lib = module.libraries[libUri];
-
+  var lib = module.libraries[libUri]!;
   expect(libUri, 'package:library/test.dart');
   expect(lib.name, 'library');
   expect(lib.importUri, 'package:library/test.dart');

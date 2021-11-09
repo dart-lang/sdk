@@ -1126,6 +1126,7 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
       if (!obj.IsSmi()) return Error::null();
       const intptr_t priority = Smi::Cast(obj).Value();
       if (priority == Isolate::kImmediateAction) {
+        Thread::Current()->StartUnwindError();
         obj = message.At(2);
         if (I->VerifyTerminateCapability(obj)) {
           // We will kill the current isolate by returning an UnwindError.
@@ -1382,17 +1383,6 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       }
     }
   } else {
-#ifndef PRODUCT
-    if (!Isolate::IsSystemIsolate(I)) {
-      // Mark all the user isolates as using a simplified timeline page of
-      // Observatory. The internal isolates will be filtered out from
-      // the Timeline due to absence of this argument. We still send them in
-      // order to maintain the original behavior of the full timeline and allow
-      // the developer to download complete dump files.
-      tbes.SetNumArguments(2);
-      tbes.CopyArgument(1, "mode", "basic");
-    }
-#endif
     const Object& msg_handler = Object::Handle(
         zone, DartLibraryCalls::HandleMessage(message->dest_port(), msg));
     if (msg_handler.IsError()) {
@@ -2898,6 +2888,10 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
   if (source()->loaded_blobs_ != nullptr) {
     visitor->VisitPointer(
         reinterpret_cast<ObjectPtr*>(&(source()->loaded_blobs_)));
+  }
+
+  if (become() != nullptr) {
+    become()->VisitObjectPointers(visitor);
   }
 }
 

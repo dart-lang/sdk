@@ -106,6 +106,11 @@ class Isolate {
   void removeErrorListener(SendPort port) {
     throw new UnsupportedError("Isolate.removeErrorListener");
   }
+
+  @patch
+  static Never exit([SendPort? finalMessagePort, Object? message]) {
+    throw new UnsupportedError("Isolate.exit");
+  }
 }
 
 @patch

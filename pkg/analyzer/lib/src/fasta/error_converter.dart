@@ -114,10 +114,6 @@ class FastaErrorReporter {
             length,
             [name]);
         return;
-      case "FUNCTION_TYPED_PARAMETER_VAR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, offset, length);
-        return;
       case "GETTER_WITH_PARAMETERS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.GETTER_WITH_PARAMETERS, offset, length);
@@ -195,10 +191,6 @@ class FastaErrorReporter {
         _reportByCode(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, message,
             offset, length);
         return;
-      case "INVALID_SUPER_INVOCATION":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_SUPER_INVOCATION, offset, length);
-        return;
       case "MISSING_DIGIT":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_DIGIT, offset, length);
@@ -269,15 +261,15 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.RETURN_IN_GENERATOR, offset, length);
         return;
+      case "SUPER_INVOCATION_NOT_LAST":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST, offset, length);
+        return;
       case "SUPER_IN_REDIRECTING_CONSTRUCTOR":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
             offset,
             length);
-        return;
-      case "TYPE_PARAMETER_ON_OPERATOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR, offset, length);
         return;
       case "UNDEFINED_CLASS":
         errorReporter?.reportErrorForOffset(
@@ -349,7 +341,7 @@ class FastaErrorReporter {
   }
 
   void reportScannerError(
-      ScannerErrorCode errorCode, int offset, List<Object?>? arguments) {
+      ScannerErrorCode errorCode, int offset, List<Object>? arguments) {
     // TODO(danrubel): update client to pass length in addition to offset.
     int length = 1;
     errorReporter?.reportErrorForOffset(errorCode, offset, length, arguments);

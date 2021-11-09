@@ -14,6 +14,14 @@ class RemoveNameFromCombinator extends CorrectionProducer {
   String _combinatorKind = '';
 
   @override
+  // Not predictably the correct action.
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  // Not predictably the correct action.
+  bool get canBeAppliedToFile => false;
+
+  @override
   List<Object> get fixArguments => [_combinatorKind];
 
   @override

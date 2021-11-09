@@ -3,18 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:args/command_runner.dart';
 
+import 'package:args/command_runner.dart';
 import 'package:dart2js_info/info.dart';
-import 'package:dart2js_info/src/util.dart';
 import 'package:dart2js_info/src/io.dart';
+import 'package:dart2js_info/src/util.dart';
 
 import 'inject_text.dart';
 import 'usage_exception.dart';
 
 /// Shows the contents of an info file as text.
 class ShowCommand extends Command<void> with PrintUsageException {
+  @override
   final String name = "show";
+  @override
   final String description = "Show a text representation of the info file.";
 
   ShowCommand() {
@@ -28,8 +30,9 @@ class ShowCommand extends Command<void> with PrintUsageException {
             'option can be used to embed the text directly in the output.');
   }
 
+  @override
   void run() async {
-    if (argResults.rest.length < 1) {
+    if (argResults.rest.isEmpty) {
       usageException('Missing argument: <input-info>');
     }
 
@@ -37,13 +40,13 @@ class ShowCommand extends Command<void> with PrintUsageException {
     AllInfo info = await infoFromFile(filename);
     if (argResults['inject-text']) injectText(info);
 
-    var buffer = new StringBuffer();
-    info.accept(new TextPrinter(buffer, argResults['inject-text']));
+    var buffer = StringBuffer();
+    info.accept(TextPrinter(buffer, argResults['inject-text']));
     var outputPath = argResults['out'];
     if (outputPath == null) {
       print(buffer);
     } else {
-      new File(outputPath).writeAsStringSync('$buffer');
+      File(outputPath).writeAsStringSync('$buffer');
     }
   }
 }
@@ -65,13 +68,14 @@ class TextPrinter implements InfoVisitor<void> {
     buffer.writeln(s.replaceAll('\n', '\n$_textIndent'));
   }
 
-  void _writeBlock(String s, void f()) {
-    _writeIndented("$s");
+  void _writeBlock(String s, void Function() f) {
+    _writeIndented(s);
     _indent++;
     f();
     _indent--;
   }
 
+  @override
   void visitAll(AllInfo info) {
     _writeBlock("Summary data", () => visitProgram(info.program));
     buffer.writeln();
@@ -87,6 +91,7 @@ class TextPrinter implements InfoVisitor<void> {
     _writeBlock("Output units", () => info.outputUnits.forEach(visitOutput));
   }
 
+  @override
   void visitProgram(ProgramInfo info) {
     _writeIndented('main: ${longName(info.entrypoint, useLibraryUri: true)}');
     _writeIndented('size: ${info.size}');
@@ -109,6 +114,7 @@ class TextPrinter implements InfoVisitor<void> {
     return "${(size / (1024 * 1024)).toStringAsFixed(2)} Mb ($size b)";
   }
 
+  @override
   void visitLibrary(LibraryInfo info) {
     _writeBlock('${info.uri}: ${_size(info.size)}', () {
       if (info.topLevelFunctions.isNotEmpty) {
@@ -124,6 +130,9 @@ class TextPrinter implements InfoVisitor<void> {
       if (info.classes.isNotEmpty) {
         _writeBlock('Classes', () => info.classes.forEach(visitClass));
       }
+      if (info.classTypes.isNotEmpty) {
+        _writeBlock('Classes', () => info.classTypes.forEach(visitClassType));
+      }
       if (info.typedefs.isNotEmpty) {
         _writeBlock("Typedefs", () => info.typedefs.forEach(visitTypedef));
         buffer.writeln();
@@ -132,6 +141,7 @@ class TextPrinter implements InfoVisitor<void> {
     });
   }
 
+  @override
   void visitClass(ClassInfo info) {
     _writeBlock(
         '${info.name}: ${_size(info.size)} [${info.outputUnit.filename}]', () {
@@ -145,6 +155,14 @@ class TextPrinter implements InfoVisitor<void> {
     });
   }
 
+  @override
+  void visitClassType(ClassTypeInfo info) {
+    _writeBlock(
+        '${info.name}: ${_size(info.size)} [${info.outputUnit.filename}]',
+        () {});
+  }
+
+  @override
   void visitField(FieldInfo info) {
     _writeBlock('${info.type} ${info.name}: ${_size(info.size)}', () {
       _writeIndented('inferred type: ${info.inferredType}');
@@ -158,6 +176,7 @@ class TextPrinter implements InfoVisitor<void> {
     });
   }
 
+  @override
   void visitFunction(FunctionInfo info) {
     var outputUnitFile = '';
     if (info.functionKind == FunctionInfo.TOP_LEVEL_FUNCTION_KIND) {
@@ -168,7 +187,7 @@ class TextPrinter implements InfoVisitor<void> {
     _writeBlock(
         '${info.returnType} ${info.name}($params): ${_size(info.size)}$outputUnitFile',
         () {
-      String params = info.parameters.map((p) => "${p.type}").join(', ');
+      String params = info.parameters.map((p) => p.type).join(', ');
       _writeIndented('declared type: ${info.type}');
       _writeIndented(
           'inferred type: ${info.inferredReturnType} Function($params)');
@@ -188,14 +207,17 @@ class TextPrinter implements InfoVisitor<void> {
     _writeIndented('- ${longName(info.target, useLibraryUri: true)} $mask');
   }
 
+  @override
   void visitTypedef(TypedefInfo info) {
     _writeIndented('${info.name}: ${info.type}');
   }
 
+  @override
   void visitClosure(ClosureInfo info) {
-    _writeBlock('${info.name}', () => visitFunction(info.function));
+    _writeBlock(info.name, () => visitFunction(info.function));
   }
 
+  @override
   void visitConstant(ConstantInfo info) {
     _writeBlock('${_size(info.size)}:', () => _writeCode(info.code));
   }
@@ -204,6 +226,7 @@ class TextPrinter implements InfoVisitor<void> {
     _writeIndented(code.map((c) => c.text).join('\n'));
   }
 
+  @override
   void visitOutput(OutputUnitInfo info) {
     _writeIndented('${info.filename}: ${_size(info.size)}');
   }

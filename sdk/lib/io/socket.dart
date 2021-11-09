@@ -615,6 +615,23 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   /// is returned.
   Uint8List? read([int? len]);
 
+  /// Reads a message containing up to [count] bytes from the socket.
+  ///
+  /// This function differs from [read] in that it will also return any
+  /// [SocketControlMessage] that have been sent.
+  ///
+  /// This function is non-blocking and will only return data
+  /// if data is available.
+  /// The number of bytes read can be less then [count] if fewer bytes are
+  /// available for immediate reading.
+  /// Length of data buffer in [SocketMessage] indicates number of bytes read.
+  ///
+  /// Returns `null` if no data is available.
+  ///
+  /// Unsupported by [RawSecureSocket].
+  @Since("2.15")
+  SocketMessage? readMessage([int? count]);
+
   /// Writes up to [count] bytes of the buffer from [offset] buffer offset to
   /// the socket.
   ///
@@ -625,6 +642,35 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   /// The default value for [offset] is 0, and the default value for [count] is
   /// `buffer.length - offset`.
   int write(List<int> buffer, [int offset = 0, int? count]);
+
+  /// Writes socket control messages and data bytes to the socket.
+  ///
+  /// Writes [controlMessages] and up to [count] bytes of [data],
+  /// starting at [offset], to the socket. If [count] is not provided,
+  /// as many bytes as possible are written. Use [write] instead if no control
+  /// messages are required to be sent.
+  ///
+  /// When sent control messages are received, they are retained until the
+  /// next call to [readMessage], where all currently available control messages
+  /// are provided as part of the returned [SocketMessage].
+  /// Calling [read] will read only data bytes, and will not affect control
+  /// messages.
+  ///
+  /// The [count] must be positive (greater than zero).
+  ///
+  /// Returns the number of bytes written, which cannot be greater than
+  /// [count], nor greater than `data.length - offset`.
+  /// Return value of zero indicates that control messages were not sent.
+  ///
+  /// This function is non-blocking and will only write data
+  /// if buffer space is available in the socket.
+  ///
+  /// Throws an [OSError] if message could not be sent out.
+  ///
+  /// Unsupported by [RawSecureSocket].
+  @Since("2.15")
+  int sendMessage(List<SocketControlMessage> controlMessages, List<int> data,
+      [int offset = 0, int? count]);
 
   /// The port used by this socket.
   ///
@@ -823,6 +869,125 @@ class Datagram {
   int port;
 
   Datagram(this.data, this.address, this.port);
+}
+
+/// A wrappper around OS resource handle so it can be passed via Socket
+/// as part of [SocketMessage].
+abstract class ResourceHandle {
+  /// Creates wrapper around opened file.
+  external factory ResourceHandle.fromFile(RandomAccessFile file);
+
+  /// Creates wrapper around opened socket.
+  external factory ResourceHandle.fromSocket(Socket socket);
+
+  /// Creates wrapper around opened raw socket.
+  external factory ResourceHandle.fromRawSocket(RawSocket socket);
+
+  /// Creates wrapper around opened raw datagram socket.
+  external factory ResourceHandle.fromRawDatagramSocket(
+      RawDatagramSocket socket);
+
+  /// Creates wrapper around current stdin.
+  external factory ResourceHandle.fromStdin(Stdin stdin);
+
+  /// Creates wrapper around current stdout.
+  external factory ResourceHandle.fromStdout(Stdout stdout);
+
+  /// Extracts opened file from resource handle.
+  ///
+  /// This can also be used when receiving stdin and stdout handles.
+  ///
+  /// If this resource handle is not a file or stdio handle, the behavior of the
+  /// returned [RandomAccessFile] is completely unspecified.
+  /// Be very careful to avoid using a handle incorrectly.
+  RandomAccessFile toFile();
+
+  /// Extracts opened socket from resource handle.
+  ///
+  /// If this resource handle is not a socket handle, the behavior of the
+  /// returned [Socket] is completely unspecified.
+  /// Be very careful to avoid using a handle incorrectly.
+  Socket toSocket();
+
+  /// Extracts opened raw socket from resource handle.
+  ///
+  /// If this resource handle is not a socket handle, the behavior of the
+  /// returned [RawSocket] is completely unspecified.
+  /// Be very careful to avoid using a handle incorrectly.
+  RawSocket toRawSocket();
+
+  /// Extracts opened raw datagram socket from resource handle.
+  ///
+  /// If this resource handle is not a datagram socket handle, the behavior of
+  /// the returned [RawDatagramSocket] is completely unspecified.
+  /// Be very careful to avoid using a handle incorrectly.
+  RawDatagramSocket toRawDatagramSocket();
+}
+
+/// Control message part of the [SocketMessage] received by a call to
+/// [RawSocket.readMessage].
+///
+/// Control messages could carry different information including
+/// [ResourceHandle]. If [ResourceHandle]s are availabe as part of this message,
+/// they can be extracted via [extractHandles].
+abstract class SocketControlMessage {
+  /// Creates a control message containing the provided [handles].
+  ///
+  /// This is used by the sender when it sends handles across the socket.
+  /// Receiver can extract the handles from the message using [extractHandles].
+  external factory SocketControlMessage.fromHandles(
+      List<ResourceHandle> handles);
+
+  /// Extracts the list of handles embedded in this message.
+  ///
+  /// This method must only be used to extract handles from messages
+  /// received on a socket. It must not be used on a socket control
+  /// message that is created locally, and has not been sent using
+  /// [RawSocket.sendMessage].
+  ///
+  /// This method must only be called once.
+  /// Calling it multiple times may cause duplicated handles with unspecified
+  /// behavior.
+  List<ResourceHandle> extractHandles();
+
+  /// A platform specific value used to determine the kind of control message.
+  ///
+  /// Together with [type], these two integers identify the kind of control
+  /// message in a platform specific way.
+  /// For example, on Linux certain combinations of these values indicate
+  /// that this is a control message that carries [ResourceHandle]s.
+  int get level;
+
+  /// A platform specific value used to determine the kind of control message.
+  ///
+  /// Together with [level], these two integers identify the kind of control
+  /// message in a platform specific way.
+  /// For example, on Linux certain combinations of these values indicate
+  /// that this is a control message that carries [ResourceHandle]s.
+  int get type;
+
+  /// Actual bytes that were passed as part of the control message by the
+  /// underlying platform.
+  ///
+  /// The bytes are interpreted differently depending on the [level] and
+  /// [type]. These actual bytes can be used to inspect and interpret
+  /// non-handle-carrying messages.
+  Uint8List get data;
+}
+
+/// A socket message received by a [RawDatagramSocket].
+///
+/// A socket message consists of [data] bytes and [controlMessages].
+class SocketMessage {
+  /// The actual bytes of the message.
+  final Uint8List data;
+
+  /// The control messages sent as part of this socket message.
+  ///
+  /// This list can be empty.
+  final List<SocketControlMessage> controlMessages;
+
+  SocketMessage(this.data, this.controlMessages);
 }
 
 /// An unbuffered interface to a UDP socket.

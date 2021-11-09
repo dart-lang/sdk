@@ -216,8 +216,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      LibraryBuilder library, List<TypeBuilder>? arguments) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
@@ -237,7 +236,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       return unhandled(
           templateTypeArgumentMismatch
               .withArguments(typeVariablesCount)
-              .message,
+              .problemMessage,
           "buildTypeArguments",
           -1,
           null);
@@ -320,9 +319,16 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           }
           Name targetName =
               new Name(constructorName, declaration.library.library);
+          Reference? tearOffReference;
+          if (library.referencesFromIndexed != null) {
+            tearOffReference = library.referencesFromIndexed!
+                .lookupGetterReference(typedefTearOffName(name, constructorName,
+                    library.referencesFromIndexed!.library));
+          }
+
           Procedure tearOff = tearOffs![targetName] =
               createTypedefTearOffProcedure(name, constructorName, library,
-                  target.fileUri, target.fileOffset);
+                  target.fileUri, target.fileOffset, tearOffReference);
           _tearOffDependencies![tearOff] = target;
 
           buildTypedefTearOffProcedure(tearOff, target, declaration.cls,

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -360,14 +362,18 @@ class FileTest extends OverlayTestSupport {
 
   test_writeAsBytesSync_withoutOverlay() {
     File file = _file(exists: true);
-    file.writeAsBytesSync(<int>[99, 99]);
-    expect(file.readAsBytesSync(), <int>[99, 99]);
+    var bytes = Uint8List.fromList([99, 99]);
+    file.writeAsBytesSync(bytes);
+    expect(file.readAsBytesSync(), bytes);
   }
 
   test_writeAsBytesSync_withOverlay() {
     File file = _file(exists: true, withOverlay: true);
-    expect(() => file.writeAsBytesSync(<int>[99, 99]),
-        throwsA(_isFileSystemException));
+    var bytes = Uint8List.fromList([99, 99]);
+    expect(
+      () => file.writeAsBytesSync(bytes),
+      throwsA(_isFileSystemException),
+    );
   }
 
   test_writeAsStringSync_withoutOverlay() {

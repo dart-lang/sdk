@@ -54,9 +54,54 @@ class KernelLoaderTask extends CompilerTask {
 
   @override
   String get name => 'kernel loader';
+  Library findEntryLibrary(Component component, Uri entryUri) {
+    var entryLibrary = component.libraries
+        .firstWhere((l) => l.fileUri == entryUri, orElse: () => null);
+    if (entryLibrary == null) {
+      throw ArgumentError('Entry uri $entryUri not found in dill.');
+    }
+    return entryLibrary;
+  }
+
+  ir.Reference findMainMethod(Library entryLibrary) {
+    var mainMethod = entryLibrary.procedures
+        .firstWhere((p) => p.name.text == 'main', orElse: () => null);
+
+    // In some cases, a main method is defined in another file, and then
+    // exported. In these cases, we search for the main method in
+    // [additionalExports].
+    ir.Reference mainMethodReference;
+    if (mainMethod == null) {
+      mainMethodReference = entryLibrary.additionalExports.firstWhere(
+          (p) => p.canonicalName.name == 'main',
+          orElse: () => null);
+    } else {
+      mainMethodReference = mainMethod.reference;
+    }
+    if (mainMethodReference == null) {
+      throw ArgumentError(
+          'Entry uri ${entryLibrary.fileUri} has no main method.');
+    }
+    return mainMethodReference;
+  }
+
+  Set<Library> computeRequiredLibraries(Library entryLibrary) {
+    var toVisit = [entryLibrary];
+    var visited = <Library>{entryLibrary};
+    while (toVisit.isNotEmpty) {
+      var library = toVisit.removeLast();
+      for (var dependency in library.dependencies) {
+        var target = dependency.targetLibrary;
+        if (visited.add(target)) {
+          toVisit.add(target);
+        }
+      }
+    }
+    return visited;
+  }
 
   /// Loads an entire Kernel [Component] from a file on disk.
-  Future<KernelResult> load(Uri resolvedUri) {
+  Future<KernelResult> load() {
     return measure(() async {
       String targetName =
           _options.compileForServer ? "dart2js_server" : "dart2js";
@@ -64,14 +109,11 @@ class KernelLoaderTask extends CompilerTask {
       // We defer selecting the platform until we've resolved the null safety
       // mode.
       String getPlatformFilename() {
-        String platform = targetName;
-        if (!_options.useLegacySubtyping) {
-          platform += "_nnbd_strong";
-        }
-        platform += "_platform.dill";
-        return platform;
+        String unsoundMarker = _options.useLegacySubtyping ? "_unsound" : "";
+        return "${targetName}_platform$unsoundMarker.dill";
       }
 
+      var resolvedUri = _options.compilationTarget;
       ir.Component component;
       List<Uri> moduleLibraries = const [];
       var isDill = resolvedUri.path.endsWith('.dill') ||
@@ -98,6 +140,16 @@ class KernelLoaderTask extends CompilerTask {
         }
 
         await read(resolvedUri);
+
+        // If an entryUri is supplied, we use it to manually select the main
+        // method.
+        Library entryLibrary;
+        if (_options.entryUri != null) {
+          entryLibrary = findEntryLibrary(component, _options.entryUri);
+          var mainMethod = findMainMethod(entryLibrary);
+          component.setMainMethodAndMode(mainMethod, true, component.mode);
+        }
+
         if (_options.modularMode) {
           moduleLibraries =
               component.libraries.map((lib) => lib.importUri).toList();
@@ -129,11 +181,29 @@ class KernelLoaderTask extends CompilerTask {
           // brittle.
           if (platformUri != resolvedUri) await read(platformUri);
         }
+
+        // Concatenate dills, trim the resulting monolithic dill, and then
+        // reset the main method.
+        var mainMethod = component.mainMethodName;
+        var mainMode = component.mode;
         if (_options.dillDependencies != null) {
           for (Uri dependency in _options.dillDependencies) {
             await read(dependency);
           }
         }
+        if (entryLibrary != null) {
+          var requiredLibraries = computeRequiredLibraries(entryLibrary);
+          for (var library in component.libraries) {
+            if (library.importUri.scheme == 'dart') {
+              requiredLibraries.add(library);
+            }
+          }
+          component = ir.Component(
+              libraries: requiredLibraries.toList(),
+              uriToSource: component.uriToSource,
+              nameRoot: component.root);
+        }
+        component.setMainMethodAndMode(mainMethod, true, mainMode);
 
         // This is not expected to be null when creating a whole-program .dill
         // file, but needs to be checked for modular inputs.

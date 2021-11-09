@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Note that this library violates the formatting provided by `dartfmt` in
+// Note that this library violates the formatting provided by `dart format` in
 // a few locations, to verify that `"""...""""z"` can be parsed as two
-// consecutive strings, `dartfmt` will insert whitespace before `"z"`.
+// consecutive strings, `dart format` will insert whitespace before `"z"`.
 
 import 'package:expect/expect.dart';
 

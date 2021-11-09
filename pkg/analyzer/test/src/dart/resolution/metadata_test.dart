@@ -128,7 +128,7 @@ Annotation
           rightParenthesis: )
         constructorName: ConstructorName
           staticElement: self::@class::A::@constructor::•
-          type: TypeName
+          type: NamedType
             name: SimpleIdentifier
               staticElement: self::@class::A
               staticType: null
@@ -148,6 +148,46 @@ Annotation
 A
   f: A
     f: int 0
+''');
+  }
+
+  test_onLocalVariable() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+void f() {
+  @A(3)
+  int? x;
+  print(x);
+}
+''');
+
+    var annotation = findNode.annotation('@A');
+    _assertResolvedNodeText(annotation, '''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 3
+        staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: self::@class::A::@constructor::•
+  name: SimpleIdentifier
+    staticElement: self::@class::A
+    staticType: null
+    token: A
+''');
+
+    final localVariable = findElement.localVar('x');
+    final annotationOnElement = localVariable.metadata.single;
+    _assertElementAnnotationValueText(annotationOnElement, '''
+A
+  a: int 3
 ''');
   }
 
@@ -764,7 +804,7 @@ Annotation
     token: A
   typeArguments: TypeArgumentList
     arguments
-      TypeName
+      NamedType
         name: SimpleIdentifier
           staticElement: dart:core::@class::int
           staticType: null
@@ -815,7 +855,7 @@ Annotation
     token: A
   typeArguments: TypeArgumentList
     arguments
-      TypeName
+      NamedType
         name: SimpleIdentifier
           staticElement: dart:core::@class::int
           staticType: null
@@ -1162,7 +1202,7 @@ Annotation
     token: B
   typeArguments: TypeArgumentList
     arguments
-      TypeName
+      NamedType
         name: SimpleIdentifier
           staticElement: dart:core::@class::int
           staticType: null
@@ -1475,7 +1515,7 @@ Annotation
     staticType: null
   typeArguments: TypeArgumentList
     arguments
-      TypeName
+      NamedType
         name: SimpleIdentifier
           staticElement: dart:core::@class::int
           staticType: null
@@ -1540,7 +1580,7 @@ Annotation
     staticType: null
   typeArguments: TypeArgumentList
     arguments
-      TypeName
+      NamedType
         name: SimpleIdentifier
           staticElement: dart:core::@class::int
           staticType: null
@@ -1639,7 +1679,7 @@ Annotation
     token: B
   typeArguments: TypeArgumentList
     arguments
-      TypeName
+      NamedType
         name: SimpleIdentifier
           staticElement: dart:core::@class::int
           staticType: null
@@ -1704,7 +1744,7 @@ Annotation
     token: B
   typeArguments: TypeArgumentList
     arguments
-      TypeName
+      NamedType
         name: SimpleIdentifier
           staticElement: dart:core::@class::int
           staticType: null
@@ -1871,7 +1911,7 @@ Annotation
     token: B
   typeArguments: TypeArgumentList
     arguments
-      TypeName
+      NamedType
         name: SimpleIdentifier
           staticElement: dart:core::@class::int
           staticType: null
@@ -1925,7 +1965,7 @@ Annotation
     token: B
   typeArguments: TypeArgumentList
     arguments
-      TypeName
+      NamedType
         name: SimpleIdentifier
           staticElement: dart:core::@class::int
           staticType: null

@@ -11,6 +11,7 @@ int f<T>(T a) => null;
 typedef int F<R>(R a);
 
 /*spec.member: method:implicit=[method.S],indirect,needsArgs*/
+/*prod.member: method:needsArgs*/
 method<S>() {
   F<S> c;
 

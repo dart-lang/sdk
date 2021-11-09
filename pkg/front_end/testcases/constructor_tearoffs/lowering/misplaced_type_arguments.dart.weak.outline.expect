@@ -34,3 +34,8 @@ static method _#B#fact#tearOff<T extends core::num>() → self::A<self::_#B#fact
   return self::A::fact<self::_#B#fact#tearOff::T>();
 static method _#B#redirect#tearOff<T extends core::num>() → self::A<self::_#B#redirect#tearOff::T>
   return self::A::_#redirect#tearOff<self::_#B#redirect#tearOff::T>();
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///misplaced_type_arguments.dart:5:7 -> ConstructorTearOffConstant(A.redirect)
+Extra constant evaluation: evaluated: 11, effectively constant: 1

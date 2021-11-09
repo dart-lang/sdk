@@ -230,7 +230,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     InterfaceType superclassType = interfaceTypeStar(superclass);
     ClassElement subclass = ElementFactory.classElement("B", superclassType);
     Expression node = AstTestFactory.asExpression(
-        AstTestFactory.thisExpression(), AstTestFactory.typeName(subclass));
+        AstTestFactory.thisExpression(), AstTestFactory.namedType(subclass));
     expect(_analyze(node, superclassType), interfaceTypeStar(subclass));
     _listener.assertNoErrors();
   }
@@ -315,7 +315,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     InstanceCreationExpression node =
         AstTestFactory.instanceCreationExpression2(
             null,
-            AstTestFactory.typeName(classElement),
+            AstTestFactory.namedType(classElement),
             [AstTestFactory.identifier3(constructorName)]);
     expect(_analyze(node), interfaceTypeStar(classElement));
     _listener.assertNoErrors();
@@ -328,8 +328,8 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(elementC, null);
     elementC.constructors = <ConstructorElement>[constructor];
-    var typeName =
-        AstTestFactory.typeName(elementC, [AstTestFactory.typeName(elementI)]);
+    var typeName = AstTestFactory.namedType(
+        elementC, [AstTestFactory.namedType(elementI)]);
     typeName.type = interfaceTypeStar(elementC,
         typeArguments: [interfaceTypeStar(elementI)]);
     InstanceCreationExpression node =
@@ -349,7 +349,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     classElement.constructors = <ConstructorElement>[constructor];
     InstanceCreationExpression node =
         AstTestFactory.instanceCreationExpression2(
-            null, AstTestFactory.typeName(classElement));
+            null, AstTestFactory.namedType(classElement));
     expect(_analyze(node), interfaceTypeStar(classElement));
     _listener.assertNoErrors();
   }
@@ -365,7 +365,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   void test_visitIsExpression_negated() {
     // a is! String
     Expression node = AstTestFactory.isExpression(
-        _resolvedString("a"), true, AstTestFactory.typeName4("String"));
+        _resolvedString("a"), true, AstTestFactory.namedType4("String"));
     expect(_analyze(node), same(_typeProvider.boolType));
     _listener.assertNoErrors();
   }
@@ -373,7 +373,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   void test_visitIsExpression_notNegated() {
     // a is String
     Expression node = AstTestFactory.isExpression(
-        _resolvedString("a"), false, AstTestFactory.typeName4("String"));
+        _resolvedString("a"), false, AstTestFactory.namedType4("String"));
     expect(_analyze(node), same(_typeProvider.boolType));
     _listener.assertNoErrors();
   }

@@ -3,7 +3,7 @@
 "ignored_2":"for details. All rights reserved. Use of this source code is governed by a",
 "ignored_3":"BSD-style license that can be found in the LICENSE.md file.",
 
-  "packages": "../../.packages",
+  "packages": "../../.dart_tool/package_config.json",
   "analyze": {
     "options": "analysis_options.yaml",
     "uris": [

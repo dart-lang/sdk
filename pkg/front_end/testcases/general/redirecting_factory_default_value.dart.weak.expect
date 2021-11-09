@@ -12,8 +12,8 @@ import "dart:core" as core;
 
 class A extends core::Object {
   final field core::int field;
-  static final field dynamic _redirecting# = <dynamic>[self::A::redirect]/*isLegacy*/;
-  constructor •([core::int field = #C1]) → self::A
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor •([core::int field = #C2]) → self::A
     : self::A::field = field, super core::Object::•()
     ;
   static factory redirect([core::int field]) → self::A
@@ -31,5 +31,6 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 }
 
 constants  {
-  #C1 = 42
+  #C1 = constructor-tearoff self::A::redirect
+  #C2 = 42
 }

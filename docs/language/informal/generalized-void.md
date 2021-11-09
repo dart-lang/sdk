@@ -208,7 +208,7 @@ the type void is treated as being the built-in class `Object`.
 
 *Dart 1.x does not support generic function types dynamically, because they
 are erased to regular function types during compilation. Hence there is no
-need to specify the the typing relations for generic function types. In
+need to specify the typing relations for generic function types. In
 Dart 2, the subtype relationship for generic function types follows from
 the rule that the type void is treated as `Object`.*
 

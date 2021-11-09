@@ -135,7 +135,7 @@ class ByteStreamServerChannelTest {
     errorStream = errorStreamController.stream;
     var doneCompleter = Completer();
     doneFuture = doneCompleter.future;
-    channel.listen((Request request) {
+    channel.requests.listen((Request request) {
       requestStreamController.add(request);
     }, onError: (error) {
       errorStreamController.add(error);

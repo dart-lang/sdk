@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -12,8 +13,15 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddTypeAnnotationTest);
+    defineReflectiveTests(AlwaysSpecifyTypesBulkTest);
+    defineReflectiveTests(AlwaysSpecifyTypesInFileTest);
     defineReflectiveTests(AlwaysSpecifyTypesLintTest);
+    defineReflectiveTests(PreferTypingUninitializedVariablesBulkTest);
+    defineReflectiveTests(PreferTypingUninitializedVariablesInFileTest);
     defineReflectiveTests(PreferTypingUninitializedVariablesLintTest);
+    defineReflectiveTests(TypeAnnotatePublicAPIsBulkTest);
+    defineReflectiveTests(TypeAnnotatePublicAPIsInFileTest);
+    defineReflectiveTests(TypeAnnotatePublicAPIsLintTest);
   });
 }
 
@@ -52,6 +60,48 @@ class A {
 }
 
 @reflectiveTest
+class AlwaysSpecifyTypesBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.always_specify_types;
+
+  Future<void> test_bulk() async {
+    await resolveTestCode('''
+final a = 0;
+class A {
+  final b = 1;
+}
+''');
+    await assertHasFix('''
+final int a = 0;
+class A {
+  final int b = 1;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AlwaysSpecifyTypesInFileTest extends FixInFileProcessorTest {
+  Future<void> test_File() async {
+    createAnalysisOptionsFile(lints: [LintNames.always_specify_types]);
+    await resolveTestCode(r'''
+final a = 0;
+class A {
+  final b = 1;
+}
+''');
+    var fixes = await getFixesForFirstError();
+    expect(fixes, hasLength(1));
+    assertProduces(fixes.first, r'''
+final int a = 0;
+class A {
+  final int b = 1;
+}
+''');
+  }
+}
+
+@reflectiveTest
 class AlwaysSpecifyTypesLintTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.ADD_TYPE_ANNOTATION;
@@ -70,6 +120,62 @@ class A {
     await assertHasFix('''
 class A {
   final int f = 0;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class PreferTypingUninitializedVariablesBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_typing_uninitialized_variables;
+
+  Future<void> test_bulk() async {
+    await resolveTestCode('''
+void f() {
+  var a, b;
+  a = 0;
+  b = 1;
+  print(a);
+  print(b);
+}
+''');
+    await assertHasFix('''
+void f() {
+  int a, b;
+  a = 0;
+  b = 1;
+  print(a);
+  print(b);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class PreferTypingUninitializedVariablesInFileTest
+    extends FixInFileProcessorTest {
+  Future<void> test_File() async {
+    createAnalysisOptionsFile(
+        lints: [LintNames.prefer_typing_uninitialized_variables]);
+    await resolveTestCode(r'''
+void f() {
+  var a, b;
+  a = 0;
+  b = 1;
+  print(a);
+  print(b);
+}
+''');
+    var fixes = await getFixesForFirstError();
+    expect(fixes, hasLength(1));
+    assertProduces(fixes.first, r'''
+void f() {
+  int a, b;
+  a = 0;
+  b = 1;
+  print(a);
+  print(b);
 }
 ''');
   }
@@ -99,6 +205,54 @@ void f() {
   l = 0;
   print(l);
 }
+''');
+  }
+}
+
+@reflectiveTest
+class TypeAnnotatePublicAPIsBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.type_annotate_public_apis;
+
+  Future<void> test_bulk() async {
+    await resolveTestCode('''
+var a = '', b = '';
+''');
+    await assertHasFix('''
+String a = '', b = '';
+''');
+  }
+}
+
+@reflectiveTest
+class TypeAnnotatePublicAPIsInFileTest extends FixInFileProcessorTest {
+  Future<void> test_File() async {
+    createAnalysisOptionsFile(lints: [LintNames.type_annotate_public_apis]);
+    await resolveTestCode(r'''
+var a = '', b = '';
+''');
+    var fixes = await getFixesForFirstError();
+    expect(fixes, hasLength(1));
+    assertProduces(fixes.first, r'''
+String a = '', b = '';
+''');
+  }
+}
+
+@reflectiveTest
+class TypeAnnotatePublicAPIsLintTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_TYPE_ANNOTATION;
+
+  @override
+  String get lintCode => LintNames.type_annotate_public_apis;
+
+  Future<void> test_local() async {
+    await resolveTestCode('''
+var a = '';
+''');
+    await assertHasFix('''
+String a = '';
 ''');
   }
 }

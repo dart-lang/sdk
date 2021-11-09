@@ -5473,7 +5473,7 @@ enum NativeType {
   kUint8,
   kUint16,
   kUint32,
-  kUnit64,
+  kUint64,
   kIntptr,
   kFloat,
   kDouble,
@@ -5488,7 +5488,7 @@ const nonSizeAlignment = <Abi, Map<NativeType, int>>{
   Abi.wordSize32Align32: {
     NativeType.kDouble: 4,
     NativeType.kInt64: 4,
-    NativeType.kUnit64: 4
+    NativeType.kUint64: 4
   },
   Abi.wordSize32Align64: {},
 };
@@ -5498,7 +5498,7 @@ final nonSizeAlignmentNonConst = <Abi, Map<NativeType, int>>{
   Abi.wordSize32Align32: {
     NativeType.kDouble: 4,
     NativeType.kInt64: 4,
-    NativeType.kUnit64: 4
+    NativeType.kUint64: 4
   },
   Abi.wordSize32Align64: {},
 };

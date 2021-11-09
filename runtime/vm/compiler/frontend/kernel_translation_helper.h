@@ -532,6 +532,7 @@ class ProcedureHelper {
     kName,
     kAnnotations,
     kStubTarget,
+    kSignatureType,
     kFunction,
     kEnd,
   };

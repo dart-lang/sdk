@@ -36,7 +36,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
 
     var result = await server.getResolvedUnit(file);
 
-    if (result == null || result.state != ResultState.VALID) {
+    if (result == null) {
       server.sendResponse(Response.getErrorsInvalidFile(request));
       return;
     }
@@ -89,7 +89,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     // Prepare the resolved unit.
     //
     var result = await server.getResolvedUnit(file);
-    if (result == null || result.state != ResultState.VALID) {
+    if (result == null) {
       server.sendResponse(Response.getImportedElementsInvalidFile(request));
       return;
     }
@@ -163,7 +163,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       //
       var allResults = <AnalysisNavigationParams>[];
       var result = await server.getResolvedUnit(file);
-      if (result != null && result.state == ResultState.VALID) {
+      if (result != null) {
         var unit = result.unit;
         var collector = NavigationCollectorImpl();
         computeDartNavigation(
@@ -229,7 +229,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     // Prepare the resolved units.
     var result = await server.getResolvedUnit(file);
 
-    if (result == null || result.state != ResultState.VALID) {
+    if (result == null || !result.exists) {
       server.sendResponse(Response.getSignatureInvalidFile(request));
       return;
     }

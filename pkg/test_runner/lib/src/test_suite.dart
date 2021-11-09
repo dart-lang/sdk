@@ -811,9 +811,7 @@ class StandardTestSuite extends TestSuite {
 
     var compilationArtifact = compilerConfiguration.computeCompilationArtifact(
         tempDir, compileTimeArguments, environmentOverrides);
-    if (!configuration.skipCompilation) {
-      commands.addAll(compilationArtifact.commands);
-    }
+    commands.addAll(compilationArtifact.commands);
 
     if ((testFile.hasCompileError || testFile.isStaticErrorTest) &&
         compilerConfiguration.hasCompiler &&

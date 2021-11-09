@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -37,8 +38,6 @@ main() {
 
 @reflectiveTest
 class FileSystemStateTest with ResourceProviderMixin {
-  late final MockSdk sdk;
-
   final ByteStore byteStore = MemoryByteStore();
   final FileContentOverlay contentOverlay = FileContentOverlay();
 
@@ -52,7 +51,13 @@ class FileSystemStateTest with ResourceProviderMixin {
 
   void setUp() {
     logger = PerformanceLog(logBuffer);
-    sdk = MockSdk(resourceProvider: resourceProvider);
+
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+    var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
 
     var packageMap = <String, List<Folder>>{
       'aaa': [getFolder('/aaa/lib')],
@@ -619,7 +624,7 @@ class C {
     expect(file.unlinked2, isNotNull);
 
     // Make the unlinked unit in the byte store zero-length, damaged.
-    byteStore.put(file.test.unlinkedKey, <int>[]);
+    byteStore.put(file.test.unlinkedKey, Uint8List(0));
 
     // Refresh should not fail, zero bytes in the store are ignored.
     file.refresh();

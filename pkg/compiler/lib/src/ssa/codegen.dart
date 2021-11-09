@@ -95,13 +95,18 @@ class SsaCodeGeneratorTask extends CompilerTask {
       CodegenRegistry registry,
       ModularNamer namer,
       ModularEmitter emitter) {
+    js.Expression code;
     if (member.isField) {
-      return generateLazyInitializer(
+      code = generateLazyInitializer(
           member, graph, codegen, closedWorld, registry, namer, emitter);
     } else {
-      return generateMethod(
+      code = generateMethod(
           member, graph, codegen, closedWorld, registry, namer, emitter);
     }
+    if (code != null) {
+      codegen.tracer.traceJavaScriptText('JavaScript', code.debugPrint);
+    }
+    return code;
   }
 
   js.Expression generateLazyInitializer(
@@ -113,7 +118,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
       ModularNamer namer,
       ModularEmitter emitter) {
     return measure(() {
-      codegen.tracer.traceGraph("codegen", graph);
       SourceInformation sourceInformation = sourceInformationStrategy
           .createBuilderForContext(field)
           .buildDeclaration(field);
@@ -129,6 +133,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           closedWorld,
           registry);
       codeGenerator.visitGraph(graph);
+      codegen.tracer.traceGraph("codegen", graph);
       return js.Fun(codeGenerator.parameters, codeGenerator.body)
           .withSourceInformation(sourceInformation);
     });

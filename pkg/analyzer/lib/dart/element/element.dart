@@ -689,7 +689,7 @@ abstract class Element implements AnalysisTarget {
   /// presented to users.
   ///
   /// If [withNullability] is `true`, then [NullabilitySuffix.question] and
-  /// [NullabilitySuffix.star] in types will be be represented as `?` and `*`.
+  /// [NullabilitySuffix.star] in types will be represented as `?` and `*`.
   /// [NullabilitySuffix.none] does not have any explicit presentation.
   ///
   /// If [withNullability] is `false`, nullability suffixes will not be
@@ -1331,6 +1331,7 @@ abstract class LibraryElement implements _ExistingElement {
 
   /// Return `true` if the defining compilation unit of this library contains at
   /// least one import directive whose URI uses the "dart-ext" scheme.
+  @Deprecated('Support for dart-ext is replaced with FFI')
   bool get hasExtUri;
 
   /// Return `true` if this library defines a top-level function named
@@ -1619,7 +1620,11 @@ abstract class PrefixElement implements _ExistingElement {
 /// variable or a parameter.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PromotableElement implements LocalElement, VariableElement {}
+abstract class PromotableElement implements LocalElement, VariableElement {
+  // Promotable elements are guaranteed to have a name.
+  @override
+  String get name;
+}
 
 /// A getter or a setter. Note that explicitly defined property accessors
 /// implicitly define a synthetic field. Symmetrically, synthetic accessors are
@@ -1884,6 +1889,9 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   /// > declaration and includes the modifier static. A library variable is
   /// > implicitly static.
   bool get isStatic;
+
+  @override
+  String get name;
 
   /// Return the declared type of this variable.
   DartType get type;
