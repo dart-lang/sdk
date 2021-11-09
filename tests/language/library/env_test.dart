@@ -47,10 +47,6 @@ main() {
         expectedResult,
         const bool.fromEnvironment("dart.library.web_gl",
             defaultValue: NOT_PRESENT));
-    Expect.equals(
-        expectedResult,
-        const bool.fromEnvironment("dart.library.web_sql",
-            defaultValue: NOT_PRESENT));
   }
 
   bool? hasIoSupport;

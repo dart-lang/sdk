@@ -7,20 +7,20 @@ import "org-dartlang-testcase:///typedef_from_lib.dart";
 part typedef_from_part.dart;
 typedef B<S extends core::Object? = dynamic> = self::Class<S%, core::int>;
 class Class<S extends core::Object? = dynamic, T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class::redirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor •(self::Class::S% a, self::Class::T% b) → self::Class<self::Class::S%, self::Class::T%>
     : super core::Object::•()
     ;
-  constructor named(self::Class::S% a, [self::Class::T? b = #C1, core::int c = #C2]) → self::Class<self::Class::S%, self::Class::T%>
+  constructor named(self::Class::S% a, [self::Class::T? b = #C2, core::int c = #C3]) → self::Class<self::Class::S%, self::Class::T%>
     : super core::Object::•()
     ;
   static method _#new#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::_#new#tearOff::S% a, self::Class::_#new#tearOff::T% b) → self::Class<self::Class::_#new#tearOff::S%, self::Class::_#new#tearOff::T%>
     return new self::Class::•<self::Class::_#new#tearOff::S%, self::Class::_#new#tearOff::T%>(a, b);
-  static method _#named#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::_#named#tearOff::S% a, [self::Class::_#named#tearOff::T? b = #C1, core::int c = #C2]) → self::Class<self::Class::_#named#tearOff::S%, self::Class::_#named#tearOff::T%>
+  static method _#named#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::_#named#tearOff::S% a, [self::Class::_#named#tearOff::T? b = #C2, core::int c = #C3]) → self::Class<self::Class::_#named#tearOff::S%, self::Class::_#named#tearOff::T%>
     return new self::Class::named<self::Class::_#named#tearOff::S%, self::Class::_#named#tearOff::T%>(a, b, c);
-  static factory fact<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::fact::S% a, {self::Class::fact::T? b = #C1, core::int c = #C2}) → self::Class<self::Class::fact::S%, self::Class::fact::T%>
+  static factory fact<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::fact::S% a, {self::Class::fact::T? b = #C2, core::int c = #C3}) → self::Class<self::Class::fact::S%, self::Class::fact::T%>
     return new self::Class::named<self::Class::fact::S%, self::Class::fact::T%>(a, b, c);
-  static method _#fact#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::_#fact#tearOff::S% a, {self::Class::_#fact#tearOff::T? b = #C1, core::int c = #C2}) → self::Class<self::Class::_#fact#tearOff::S%, self::Class::_#fact#tearOff::T%>
+  static method _#fact#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::_#fact#tearOff::S% a, {self::Class::_#fact#tearOff::T? b = #C2, core::int c = #C3}) → self::Class<self::Class::_#fact#tearOff::S%, self::Class::_#fact#tearOff::T%>
     return self::Class::fact<self::Class::_#fact#tearOff::S%, self::Class::_#fact#tearOff::T%>(a, b: b, c: c);
   static factory redirect<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::redirect::S% a) → self::Class<self::Class::redirect::S%, self::Class::redirect::T%>
     return new self::Class::named<self::Class::redirect::S%, self::Class::redirect::T%>(a);
@@ -28,10 +28,10 @@ class Class<S extends core::Object? = dynamic, T extends core::Object? = dynamic
     return new self::Class::named<self::Class::_#redirect#tearOff::S%, self::Class::_#redirect#tearOff::T%>(a);
 }
 static method main() → dynamic {
-  <T extends core::Object? = dynamic>(T%, core::String) → self::Class<T%, core::String> aNew = #C3;
-  <T extends core::Object? = dynamic>(T%, [core::String?, core::int]) → self::Class<T%, core::String> aNamed = #C4;
-  <T extends core::Object? = dynamic>(T%, {b: core::String?, c: core::int}) → self::Class<T%, core::String> aFact = #C5;
-  <T extends core::Object? = dynamic>(T%) → self::Class<T%, core::String> aRedirect = #C6;
+  <T extends core::Object? = dynamic>(T%, core::String) → self::Class<T%, core::String> aNew = #C4;
+  <T extends core::Object? = dynamic>(T%, [core::String?, core::int]) → self::Class<T%, core::String> aNamed = #C5;
+  <T extends core::Object? = dynamic>(T%, {b: core::String?, c: core::int}) → self::Class<T%, core::String> aFact = #C6;
+  <T extends core::Object? = dynamic>(T%) → self::Class<T%, core::String> aRedirect = #C7;
   aNew<core::String>("", ""){(core::String, core::String) → self::Class<core::String, core::String>};
   aNew<core::int>(0, ""){(core::int, core::String) → self::Class<core::int, core::String>};
   aNamed<core::String>(""){(core::String, [core::String?, core::int]) → self::Class<core::String, core::String>};
@@ -56,10 +56,10 @@ static method main() → dynamic {
   aFactInst(true, c: 87){(core::bool, {b: core::String?, c: core::int}) → self::Class<core::bool, core::String>};
   aFactInst(false, c: 87, b: ""){(core::bool, {b: core::String?, c: core::int}) → self::Class<core::bool, core::String>};
   aRedirectInst(true){(core::bool) → self::Class<core::bool, core::String>};
-  <S extends core::Object? = dynamic>(S%, core::int) → self::Class<S%, core::int> bNew = #C7;
-  <S extends core::Object? = dynamic>(S%, [core::int?, core::int]) → self::Class<S%, core::int> bNamed = #C8;
-  <S extends core::Object? = dynamic>(S%, {b: core::int?, c: core::int}) → self::Class<S%, core::int> bFact = #C9;
-  <S extends core::Object? = dynamic>(S%) → self::Class<S%, core::int> bRedirect = #C10;
+  <S extends core::Object? = dynamic>(S%, core::int) → self::Class<S%, core::int> bNew = #C8;
+  <S extends core::Object? = dynamic>(S%, [core::int?, core::int]) → self::Class<S%, core::int> bNamed = #C9;
+  <S extends core::Object? = dynamic>(S%, {b: core::int?, c: core::int}) → self::Class<S%, core::int> bFact = #C10;
+  <S extends core::Object? = dynamic>(S%) → self::Class<S%, core::int> bRedirect = #C11;
   bNew<core::String>("", 0){(core::String, core::int) → self::Class<core::String, core::int>};
   bNew<core::int>(0, 0){(core::int, core::int) → self::Class<core::int, core::int>};
   bNamed<core::String>(""){(core::String, [core::int?, core::int]) → self::Class<core::String, core::int>};
@@ -87,9 +87,9 @@ static method main() → dynamic {
 }
 static method _#B#new#tearOff<S extends core::Object? = dynamic>(self::_#B#new#tearOff::S% a, core::int b) → self::Class<self::_#B#new#tearOff::S%, core::int>
   return new self::Class::•<self::_#B#new#tearOff::S%, core::int>(a, b);
-static method _#B#named#tearOff<S extends core::Object? = dynamic>(self::_#B#named#tearOff::S% a, [core::int? b = #C1, core::int c = #C2]) → self::Class<self::_#B#named#tearOff::S%, core::int>
+static method _#B#named#tearOff<S extends core::Object? = dynamic>(self::_#B#named#tearOff::S% a, [core::int? b = #C2, core::int c = #C3]) → self::Class<self::_#B#named#tearOff::S%, core::int>
   return new self::Class::named<self::_#B#named#tearOff::S%, core::int>(a, b, c);
-static method _#B#fact#tearOff<S extends core::Object? = dynamic>(self::_#B#fact#tearOff::S% a, {core::int? b = #C1, core::int c = #C2}) → self::Class<self::_#B#fact#tearOff::S%, core::int>
+static method _#B#fact#tearOff<S extends core::Object? = dynamic>(self::_#B#fact#tearOff::S% a, {core::int? b = #C2, core::int c = #C3}) → self::Class<self::_#B#fact#tearOff::S%, core::int>
   return self::Class::fact<self::_#B#fact#tearOff::S%, core::int>(a, b: b, c: c);
 static method _#B#redirect#tearOff<S extends core::Object? = dynamic>(self::_#B#redirect#tearOff::S% a) → self::Class<self::_#B#redirect#tearOff::S%, core::int>
   return self::Class::_#redirect#tearOff<self::_#B#redirect#tearOff::S%, core::int>(a);
@@ -104,22 +104,23 @@ import "org-dartlang-testcase:///typedef_from.dart";
 typedef A<T extends core::Object? = dynamic> = self::Class<T%, core::String>;
 static method /* from org-dartlang-testcase:///typedef_from.dart */ _#A#new#tearOff<T extends core::Object? = dynamic>(self2::_#A#new#tearOff::T% a, core::String b) → self::Class<self2::_#A#new#tearOff::T%, core::String>
   return new self::Class::•<self2::_#A#new#tearOff::T%, core::String>(a, b);
-static method /* from org-dartlang-testcase:///typedef_from.dart */ _#A#named#tearOff<T extends core::Object? = dynamic>(self2::_#A#named#tearOff::T% a, [core::String? b = #C1, core::int c = #C2]) → self::Class<self2::_#A#named#tearOff::T%, core::String>
+static method /* from org-dartlang-testcase:///typedef_from.dart */ _#A#named#tearOff<T extends core::Object? = dynamic>(self2::_#A#named#tearOff::T% a, [core::String? b = #C2, core::int c = #C3]) → self::Class<self2::_#A#named#tearOff::T%, core::String>
   return new self::Class::named<self2::_#A#named#tearOff::T%, core::String>(a, b, c);
-static method /* from org-dartlang-testcase:///typedef_from.dart */ _#A#fact#tearOff<T extends core::Object? = dynamic>(self2::_#A#fact#tearOff::T% a, {core::String? b = #C1, core::int c = #C2}) → self::Class<self2::_#A#fact#tearOff::T%, core::String>
+static method /* from org-dartlang-testcase:///typedef_from.dart */ _#A#fact#tearOff<T extends core::Object? = dynamic>(self2::_#A#fact#tearOff::T% a, {core::String? b = #C2, core::int c = #C3}) → self::Class<self2::_#A#fact#tearOff::T%, core::String>
   return self::Class::fact<self2::_#A#fact#tearOff::T%, core::String>(a, b: b, c: c);
 static method /* from org-dartlang-testcase:///typedef_from.dart */ _#A#redirect#tearOff<T extends core::Object? = dynamic>(self2::_#A#redirect#tearOff::T% a) → self::Class<self2::_#A#redirect#tearOff::T%, core::String>
   return self::Class::_#redirect#tearOff<self2::_#A#redirect#tearOff::T%, core::String>(a);
 
 constants  {
-  #C1 = null
-  #C2 = 42
-  #C3 = static-tearoff self2::_#A#new#tearOff
-  #C4 = static-tearoff self2::_#A#named#tearOff
-  #C5 = static-tearoff self2::_#A#fact#tearOff
-  #C6 = static-tearoff self2::_#A#redirect#tearOff
-  #C7 = static-tearoff self::_#B#new#tearOff
-  #C8 = static-tearoff self::_#B#named#tearOff
-  #C9 = static-tearoff self::_#B#fact#tearOff
-  #C10 = static-tearoff self::_#B#redirect#tearOff
+  #C1 = constructor-tearoff self::Class::redirect
+  #C2 = null
+  #C3 = 42
+  #C4 = static-tearoff self2::_#A#new#tearOff
+  #C5 = static-tearoff self2::_#A#named#tearOff
+  #C6 = static-tearoff self2::_#A#fact#tearOff
+  #C7 = static-tearoff self2::_#A#redirect#tearOff
+  #C8 = static-tearoff self::_#B#new#tearOff
+  #C9 = static-tearoff self::_#B#named#tearOff
+  #C10 = static-tearoff self::_#B#fact#tearOff
+  #C11 = static-tearoff self::_#B#redirect#tearOff
 }

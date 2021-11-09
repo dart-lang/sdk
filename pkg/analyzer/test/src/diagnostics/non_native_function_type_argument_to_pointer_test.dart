@@ -58,7 +58,7 @@ class C<T extends Function> {
   }
 }
 ''', [
-      error(FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER, 138, 1),
+      error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 125, 1),
     ]);
   }
 }

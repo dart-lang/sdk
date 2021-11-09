@@ -8,12 +8,14 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -249,15 +251,15 @@ class TypeArgumentsVerifier {
       // Type has explicit type arguments.
       return;
     }
-    if (_isMissingTypeArguments(
-        node, node.typeOrThrow, node.name.staticElement, null)) {
+    var type = node.typeOrThrow;
+    if (_isMissingTypeArguments(node, type, node.name.staticElement, null)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
       if (unwrappedParent is AsExpression || unwrappedParent is IsExpression) {
         // Do not report a "Strict raw type" error in this case; too noisy.
         // See https://github.com/dart-lang/language/blob/master/resources/type-system/strict-raw-types.md#conditions-for-a-raw-type-hint
       } else {
         _errorReporter
-            .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [node.type]);
+            .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [type]);
       }
     }
   }
@@ -265,18 +267,21 @@ class TypeArgumentsVerifier {
   /// Verify that the type arguments in the given [namedType] are all within
   /// their bounds.
   void _checkForTypeArgumentNotMatchingBounds(NamedType namedType) {
-    var type = namedType.type;
+    final type = namedType.type;
     if (type == null) {
       return;
     }
 
-    List<TypeParameterElement> typeParameters;
-    List<DartType> typeArguments;
-    var alias = type.alias;
+    final List<TypeParameterElement> typeParameters;
+    final String elementName;
+    final List<DartType> typeArguments;
+    final alias = type.alias;
     if (alias != null) {
+      elementName = alias.element.name;
       typeParameters = alias.element.typeParameters;
       typeArguments = alias.typeArguments;
     } else if (type is InterfaceType) {
+      elementName = type.element.name;
       typeParameters = type.element.typeParameters;
       typeArguments = type.typeArguments;
     } else {
@@ -289,7 +294,7 @@ class TypeArgumentsVerifier {
 
     // Check for regular-bounded.
     List<_TypeArgumentIssue>? issues;
-    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    final substitution = Substitution.fromPairs(typeParameters, typeArguments);
     for (var i = 0; i < typeArguments.length; i++) {
       var typeParameter = typeParameters[i];
       var typeArgument = typeArguments[i];
@@ -325,6 +330,49 @@ class TypeArgumentsVerifier {
       return;
     }
 
+    List<DiagnosticMessage>? buildContextMessages({
+      List<DartType>? invertedTypeArguments,
+    }) {
+      final messages = <DiagnosticMessage>[];
+
+      void addMessage(String message) {
+        messages.add(
+          DiagnosticMessageImpl(
+            filePath: _errorReporter.source.fullName,
+            length: namedType.length,
+            message: message,
+            offset: namedType.offset,
+            url: null,
+          ),
+        );
+      }
+
+      String typeArgumentsToString(List<DartType> typeArguments) {
+        return typeArguments
+            .map((e) => e.getDisplayString(withNullability: true))
+            .join(', ');
+      }
+
+      if (namedType.typeArguments == null) {
+        var typeStr = '$elementName<${typeArgumentsToString(typeArguments)}>';
+        addMessage(
+          "The raw type was instantiated as '$typeStr', "
+          "and is not regular-bounded.",
+        );
+      }
+
+      if (invertedTypeArguments != null) {
+        var invertedTypeStr =
+            '$elementName<${typeArgumentsToString(invertedTypeArguments)}>';
+        addMessage(
+          "The inverted type '$invertedTypeStr' is also not regular-bounded, "
+          "so the type is not well-bounded.",
+        );
+      }
+
+      return messages.isNotEmpty ? messages : null;
+    }
+
     // If not allowed to be super-bounded, report issues.
     if (!_shouldAllowSuperBoundedTypes(namedType)) {
       for (var issue in issues) {
@@ -332,27 +380,32 @@ class TypeArgumentsVerifier {
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           _typeArgumentErrorNode(namedType, issue.index),
           [issue.argument, issue.parameter.name, issue.parameterBound],
+          buildContextMessages(),
         );
       }
       return;
     }
 
     // Prepare type arguments for checking for super-bounded.
-    type = _typeSystem.replaceTopAndBottom(type);
-    alias = type.alias;
-    if (alias != null) {
-      typeArguments = alias.typeArguments;
-    } else if (type is InterfaceType) {
-      typeArguments = type.typeArguments;
+    final invertedType = _typeSystem.replaceTopAndBottom(type);
+    final List<DartType> invertedTypeArguments;
+    final invertedAlias = invertedType.alias;
+    if (invertedAlias != null) {
+      invertedTypeArguments = invertedAlias.typeArguments;
+    } else if (invertedType is InterfaceType) {
+      invertedTypeArguments = invertedType.typeArguments;
     } else {
       return;
     }
 
     // Check for super-bounded.
-    substitution = Substitution.fromPairs(typeParameters, typeArguments);
-    for (var i = 0; i < typeArguments.length; i++) {
+    final invertedSubstitution = Substitution.fromPairs(
+      typeParameters,
+      invertedTypeArguments,
+    );
+    for (var i = 0; i < invertedTypeArguments.length; i++) {
       var typeParameter = typeParameters[i];
-      var typeArgument = typeArguments[i];
+      var typeArgument = invertedTypeArguments[i];
 
       var bound = typeParameter.bound;
       if (bound == null) {
@@ -360,13 +413,16 @@ class TypeArgumentsVerifier {
       }
 
       bound = _libraryElement.toLegacyTypeIfOptOut(bound);
-      bound = substitution.substituteType(bound);
+      bound = invertedSubstitution.substituteType(bound);
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           _typeArgumentErrorNode(namedType, i),
           [typeArgument, typeParameter.name, bound],
+          buildContextMessages(
+            invertedTypeArguments: invertedTypeArguments,
+          ),
         );
       }
     }
@@ -443,7 +499,8 @@ class TypeArgumentsVerifier {
       NodeList<TypeAnnotation> arguments, ErrorCode errorCode) {
     for (TypeAnnotation type in arguments) {
       if (type is NamedType && type.type is TypeParameterType) {
-        _errorReporter.reportErrorForNode(errorCode, type, [type.name]);
+        _errorReporter
+            .reportErrorForNode(errorCode, type, [type.name.toSource()]);
       }
     }
   }

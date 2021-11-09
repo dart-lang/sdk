@@ -121,7 +121,7 @@ class A {
     // create notification Element
     var element = convertElement(engineElement, withNullability: true);
     expect(element.kind, ElementKind.CONSTRUCTOR);
-    expect(element.name, 'myConstructor');
+    expect(element.name, 'A.myConstructor');
     expect(element.typeParameters, isNull);
     {
       var location = element.location!;

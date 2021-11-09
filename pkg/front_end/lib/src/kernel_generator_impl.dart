@@ -29,7 +29,7 @@ import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
 
 import 'fasta/kernel/verifier.dart' show verifyComponent;
 
-import 'fasta/loader.dart' show Loader;
+import 'fasta/source/source_loader.dart' show SourceLoader;
 
 import 'fasta/uri_translator.dart' show UriTranslator;
 
@@ -67,7 +67,7 @@ Future<CompilerResult> generateKernelInternal(
   options.reportNullSafetyCompilationModeInfo();
   FileSystem fs = options.fileSystem;
 
-  Loader? sourceLoader;
+  SourceLoader? sourceLoader;
   return withCrashReporting<CompilerResult>(() async {
     UriTranslator uriTranslator = await options.getUriTranslator();
 
@@ -77,7 +77,7 @@ Future<CompilerResult> generateKernelInternal(
     List<Component> loadedComponents = <Component>[];
 
     Component? sdkSummary = await options.loadSdkSummary(null);
-    // By using the nameRoot of the the summary, we enable sharing the
+    // By using the nameRoot of the summary, we enable sharing the
     // sdkSummary between multiple invocations.
     CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
     if (sdkSummary != null) {
@@ -90,7 +90,7 @@ Future<CompilerResult> generateKernelInternal(
       dillTarget.loader.appendLibraries(additionalDill);
     }
 
-    await dillTarget.buildOutlines();
+    dillTarget.buildOutlines();
 
     KernelTarget kernelTarget =
         new KernelTarget(fs, false, dillTarget, uriTranslator);
@@ -114,7 +114,7 @@ Future<CompilerResult> generateKernelInternal(
       // Create the requested component ("truncating" or not).
       //
       // Note: we don't pass the library argument to the constructor to
-      // preserve the the libraries parent pointer (it should continue to point
+      // preserve the libraries parent pointer (it should continue to point
       // to the component within KernelTarget).
       Component trimmedSummaryComponent =
           new Component(nameRoot: summaryComponent.root)

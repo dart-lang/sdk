@@ -33,6 +33,7 @@ import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/server/debounce_requests.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
@@ -55,6 +56,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
@@ -115,6 +117,12 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   final DetachableFileSystemManager? detachableFileSystemManager;
 
+  /// The broadcast stream of requests that were discarded because there
+  /// was another request that made this one irrelevant.
+  @visibleForTesting
+  final StreamController<Request> discardedRequests =
+      StreamController.broadcast(sync: true);
+
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].
   ///
@@ -161,10 +169,14 @@ class AnalysisServer extends AbstractAnalysisServer {
         performance = performanceAfterStartup = ServerPerformance();
       });
     });
-    var notification =
-        ServerConnectedParams(PROTOCOL_VERSION, io.pid).toNotification();
-    channel.sendNotification(notification);
-    channel.listen(handleRequest, onDone: done, onError: error);
+    channel.sendNotification(
+      ServerConnectedParams(
+        options.reportProtocolVersion ?? PROTOCOL_VERSION,
+        io.pid,
+      ).toNotification(),
+    );
+    debounceRequests(channel, discardedRequests)
+        .listen(handleRequest, onDone: done, onError: error);
     handlers = <server.RequestHandler>[
       ServerDomainHandler(this),
       AnalysisDomainHandler(this),
@@ -635,6 +647,9 @@ class AnalysisServerOptions {
 
   /// The set of enabled features.
   FeatureSet featureSet = FeatureSet();
+
+  /// If set, this string will be reported as the protocol version.
+  String? reportProtocolVersion;
 }
 
 class ServerContextManagerCallbacks extends ContextManagerCallbacks {

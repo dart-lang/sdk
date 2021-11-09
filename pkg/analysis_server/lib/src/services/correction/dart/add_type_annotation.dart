@@ -19,6 +19,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddTypeAnnotation extends CorrectionProducer {
   @override
+  bool canBeAppliedInBulk;
+
+  @override
+  bool canBeAppliedToFile;
+
+  AddTypeAnnotation(bool multi)
+      : canBeAppliedInBulk = multi,
+        canBeAppliedToFile = multi;
+
+  @override
   AssistKind get assistKind => DartAssistKind.ADD_TYPE_ANNOTATION;
 
   @override
@@ -180,7 +190,11 @@ class AddTypeAnnotation extends CorrectionProducer {
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static AddTypeAnnotation newInstance() => AddTypeAnnotation();
+  static AddTypeAnnotation newInstance() => AddTypeAnnotation(false);
+
+  /// Return an instance of this class that can apply bulk and in-file fixes.
+  /// Used as a tear-off in `FixProcessor`.
+  static AddTypeAnnotation newInstanceBulkFixable() => AddTypeAnnotation(true);
 }
 
 class _AssignedTypeCollector extends RecursiveAstVisitor<void> {

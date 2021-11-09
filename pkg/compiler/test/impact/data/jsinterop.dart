@@ -43,8 +43,7 @@ class JsInteropClass {
     native:OverconstrainedError,
     native:PositionError,
     native:SensorErrorEvent,
-    native:SpeechRecognitionError,
-    native:SqlError]
+    native:SpeechRecognitionError]
   */
   @JS()
   external double method();

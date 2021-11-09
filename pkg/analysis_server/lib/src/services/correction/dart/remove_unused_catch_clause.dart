@@ -11,7 +11,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedCatchClause extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_CATCH_CLAUSE;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_UNUSED_CATCH_CLAUSE_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

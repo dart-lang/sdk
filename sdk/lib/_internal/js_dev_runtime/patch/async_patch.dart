@@ -195,11 +195,6 @@ class Timer {
   }
 }
 
-@patch
-void _rethrow(Object error, StackTrace stackTrace) {
-  JS('', 'throw #', dart.createErrorWithStack(error, stackTrace));
-}
-
 /// Used by the compiler to implement `async*` functions.
 ///
 /// This is inspired by _AsyncStarStreamController in dart-lang/sdk's

@@ -71,8 +71,8 @@ class ExtensionMethodsDeclarationWithoutNullSafetyTest
     extends PubPackageResolutionTest with WithoutNullSafetyMixin {
   @override
   List<MockSdkLibrary> get additionalMockSdkLibraries => [
-        MockSdkLibrary([
-          MockSdkLibraryUnit('dart:test1', 'test1/test1.dart', r'''
+        MockSdkLibrary('test1', [
+          MockSdkLibraryUnit('test1/test1.dart', r'''
 extension E on Object {
   int get a => 1;
 }
@@ -80,8 +80,8 @@ extension E on Object {
 class A {}
 '''),
         ]),
-        MockSdkLibrary([
-          MockSdkLibraryUnit('dart:test2', 'test2/test2.dart', r'''
+        MockSdkLibrary('test2', [
+          MockSdkLibraryUnit('test2/test2.dart', r'''
 extension E on Object {
   int get a => 1;
 }
@@ -1773,6 +1773,32 @@ extension E on C {
     assertType(invocation, 'int');
   }
 
+  test_instance_getter_asSetter() async {
+    await assertErrorsInCode('''
+extension E1 on int {
+  int get foo => 0;
+}
+
+extension E2 on int {
+  int get foo => 0;
+  void f() {
+    foo = 0;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 104, 3),
+    ]);
+    assertAssignment(
+      findNode.assignment('foo = 0'),
+      readElement: null,
+      readType: null,
+      writeElement: findElement.getter('foo', of: 'E2'),
+      writeType: 'dynamic',
+      operatorElement: null,
+      type: 'int',
+    );
+  }
+
   test_instance_getter_fromInstance() async {
     await assertNoErrorsInCode('''
 class C {
@@ -1976,6 +2002,28 @@ extension E on C {
 ''');
     var prefix = findNode.prefix('-this');
     assertElement(prefix, findElement.method('unary-', of: 'E'));
+  }
+
+  test_instance_setter_asGetter() async {
+    await assertErrorsInCode('''
+extension E1 on int {
+  set foo(int _) {}
+}
+
+extension E2 on int {
+  set foo(int _) {}
+  void f() {
+    foo;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 104, 3),
+    ]);
+    assertSimpleIdentifier(
+      findNode.simple('foo;'),
+      element: null,
+      type: 'dynamic',
+    );
   }
 
   test_instance_setter_fromInstance() async {

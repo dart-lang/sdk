@@ -178,9 +178,6 @@ external void reachabilityFence(Object object);
 @pragma("vm:external-name", "Internal_nativeEffect")
 external void _nativeEffect(Object object);
 
-@pragma("vm:external-name", "SendPortImpl_sendAndExitInternal_")
-external void sendAndExit(SendPort sendPort, var message);
-
 // Collection of functions which should only be used for testing purposes.
 abstract class VMInternalsForTesting {
   // This function can be used by tests to enforce garbage collection.

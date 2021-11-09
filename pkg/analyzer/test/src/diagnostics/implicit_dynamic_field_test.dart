@@ -49,7 +49,8 @@ class C {
   final f = (<dynamic>[])[0];
 }
 ''', [
-      error(LanguageCode.IMPLICIT_DYNAMIC_FIELD, 18, 20),
+      error(LanguageCode.IMPLICIT_DYNAMIC_FIELD, 18, 20,
+          messageContains: ["'f'"]),
     ]);
   }
 

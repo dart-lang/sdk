@@ -69,7 +69,7 @@ class B {
 }
 ''', [
       error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 106, 5,
-          messageContains: "'v'"),
+          messageContains: ["'v'"]),
     ]);
   }
 
@@ -223,7 +223,8 @@ class A{
   final f = '';
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 5, messageContains: "'f'"),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 5,
+          messageContains: ["'f'"]),
     ]);
   }
 
@@ -251,7 +252,8 @@ String top = v;
 @doNotStore
 String get v => '';
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 1, messageContains: "'v'"),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 1,
+          messageContains: ["'v'"]),
     ]);
   }
 
@@ -266,7 +268,8 @@ class A{
   String v() => '';
 }
 ''', [
-      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 7, messageContains: "'v'"),
+      error(HintCode.ASSIGNMENT_OF_DO_NOT_STORE, 47, 7,
+          messageContains: ["'v'"]),
     ]);
   }
 

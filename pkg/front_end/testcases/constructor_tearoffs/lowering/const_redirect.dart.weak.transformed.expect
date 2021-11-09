@@ -24,7 +24,7 @@ class Class extends core::Object {
     return new self::Class::•(constants: constants);
 }
 abstract class Const extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Const::impl]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C4]/*isLegacy*/;
   static factory impl() → self::Const
     return new self::_ConstImpl::•<dynamic>();
   static method _#impl#tearOff() → self::Const
@@ -45,6 +45,7 @@ constants  {
   #C1 = self::_ConstImpl<dynamic> {}
   #C2 = self::_ConstImpl<core::String*> {}
   #C3 = <self::Const*>[#C1, #C1, #C2]
+  #C4 = constructor-tearoff self::Const::impl
 }
 
 

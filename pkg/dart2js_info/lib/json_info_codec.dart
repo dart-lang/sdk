@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Converters and codecs for converting between JSON and [Info] classes.
-
 import 'dart:collection';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'src/util.dart';
+
 import 'info.dart';
+import 'src/util.dart';
 
 List<String> _toSortedSerializedIds(
         Iterable<Info> infos, Id Function(Info) getId) =>
@@ -18,13 +18,14 @@ List<String> _toSortedSerializedIds(
 // TODO(sigmund): add unit tests.
 class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   // Using `MashMap` here because it's faster than the default `LinkedHashMap`.
-  final Map<String, Info> registry = new HashMap<String, Info>();
+  final Map<String, Info> registry = HashMap<String, Info>();
 
-  AllInfo convert(Map<String, dynamic> json) {
+  @override
+  AllInfo convert(Map<String, dynamic> input) {
     registry.clear();
 
-    var result = new AllInfo();
-    var elements = json['elements'];
+    var result = AllInfo();
+    var elements = input['elements'];
     // TODO(srawlins): Since only the Map values are being extracted below,
     // replace `as` with `cast` when `cast` becomes available in Dart 2.0:
     //
@@ -33,6 +34,8 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         (elements['library'] as Map).values.map((l) => parseLibrary(l)));
     result.classes
         .addAll((elements['class'] as Map).values.map((c) => parseClass(c)));
+    result.classTypes.addAll(
+        (elements['classType'] as Map).values.map((c) => parseClassType(c)));
     result.functions.addAll(
         (elements['function'] as Map).values.map((f) => parseFunction(f)));
 
@@ -48,29 +51,29 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     result.constants.addAll(
         (elements['constant'] as Map).values.map((c) => parseConstant(c)));
 
-    json['holding'].forEach((k, deps) {
+    input['holding'].forEach((k, deps) {
       CodeInfo src = registry[k];
       assert(src != null);
       for (var dep in deps) {
         var target = registry[dep['id']];
         assert(target != null);
-        src.uses.add(new DependencyInfo(target, dep['mask']));
+        src.uses.add(DependencyInfo(target, dep['mask']));
       }
     });
 
-    json['dependencies']?.forEach((String k, dependencies) {
+    input['dependencies']?.forEach((String k, dependencies) {
       List<String> deps = dependencies;
       result.dependencies[registry[k]] = deps.map((d) => registry[d]).toList();
     });
 
     result.outputUnits
-        .addAll((json['outputUnits'] as List).map((o) => parseOutputUnit(o)));
+        .addAll((input['outputUnits'] as List).map((o) => parseOutputUnit(o)));
 
-    result.program = parseProgram(json['program']);
+    result.program = parseProgram(input['program']);
 
-    if (json['deferredFiles'] != null) {
+    if (input['deferredFiles'] != null) {
       final deferredFilesMap =
-          (json['deferredFiles'] as Map).cast<String, Map<String, dynamic>>();
+          (input['deferredFiles'] as Map).cast<String, Map<String, dynamic>>();
       for (final library in deferredFilesMap.values) {
         if (library['imports'] != null) {
           // The importMap needs to be typed as <String, List<String>>, but the
@@ -114,6 +117,8 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         result.topLevelVariables.add(child);
       } else if (child is ClassInfo) {
         result.classes.add(child);
+      } else if (child is ClassTypeInfo) {
+        result.classTypes.add(child);
       } else {
         assert(child is TypedefInfo);
         result.typedefs.add(child);
@@ -139,6 +144,16 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         result.fields.add(child);
       }
     }
+    return result;
+  }
+
+  ClassTypeInfo parseClassType(Map json) {
+    ClassTypeInfo result = parseId(json['id']);
+    result
+      ..name = json['name']
+      ..parent = parseId(json['parent'])
+      ..outputUnit = parseId(json['outputUnit'])
+      ..size = json['size'];
     return result;
   }
 
@@ -178,7 +193,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   }
 
   ProgramInfo parseProgram(Map json) {
-    var programInfo = new ProgramInfo()
+    var programInfo = ProgramInfo()
       ..entrypoint = parseId(json['entrypoint'])
       ..size = json['size']
       ..compilationMoment = DateTime.parse(json['compilationMoment'])
@@ -197,7 +212,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     } else {
       assert(compilationDuration is int);
       programInfo.compilationDuration =
-          new Duration(microseconds: compilationDuration);
+          Duration(microseconds: compilationDuration);
     }
 
     var toJsonDuration = json['toJsonDuration'];
@@ -205,7 +220,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       programInfo.toJsonDuration = _parseDuration(toJsonDuration);
     } else {
       assert(toJsonDuration is int);
-      programInfo.toJsonDuration = new Duration(microseconds: toJsonDuration);
+      programInfo.toJsonDuration = Duration(microseconds: toJsonDuration);
     }
 
     var dumpInfoDuration = json['dumpInfoDuration'];
@@ -213,8 +228,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       programInfo.dumpInfoDuration = _parseDuration(dumpInfoDuration);
     } else {
       assert(dumpInfoDuration is int);
-      programInfo.dumpInfoDuration =
-          new Duration(microseconds: dumpInfoDuration);
+      programInfo.dumpInfoDuration = Duration(microseconds: dumpInfoDuration);
     }
 
     return programInfo;
@@ -223,7 +237,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   /// Parse a string formatted as "XX:YY:ZZ.ZZZZZ" into a [Duration].
   Duration _parseDuration(String duration) {
     if (!duration.contains(':')) {
-      return new Duration(milliseconds: int.parse(duration));
+      return Duration(milliseconds: int.parse(duration));
     }
     var parts = duration.split(':');
     var hours = double.parse(parts[0]);
@@ -235,7 +249,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     var totalMillis = secondsInMillis * seconds +
         minutesInMillis * minutes +
         hoursInMillis * hours;
-    return new Duration(milliseconds: totalMillis.round());
+    return Duration(milliseconds: totalMillis.round());
   }
 
   FunctionInfo parseFunction(Map json) {
@@ -254,18 +268,17 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       ..code = parseCode(json['code'])
       ..sideEffects = json['sideEffects']
       ..inlinedCount = json['inlinedCount']
-      ..modifiers =
-          parseModifiers(new Map<String, bool>.from(json['modifiers']))
+      ..modifiers = parseModifiers(Map<String, bool>.from(json['modifiers']))
       ..closures = (json['children'] as List)
           .map<ClosureInfo>((c) => parseId(c))
           .toList();
   }
 
   ParameterInfo parseParameter(Map json) =>
-      new ParameterInfo(json['name'], json['type'], json['declaredType']);
+      ParameterInfo(json['name'], json['type'], json['declaredType']);
 
   FunctionModifiers parseModifiers(Map<String, bool> json) {
-    return new FunctionModifiers(
+    return FunctionModifiers(
         isStatic: json['static'] == true,
         isConst: json['const'] == true,
         isFactory: json['factory'] == true,
@@ -289,21 +302,23 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     }
     return registry.putIfAbsent(serializedId, () {
       if (serializedId.startsWith('function/')) {
-        return new FunctionInfo.internal();
+        return FunctionInfo.internal();
       } else if (serializedId.startsWith('closure/')) {
-        return new ClosureInfo.internal();
+        return ClosureInfo.internal();
       } else if (serializedId.startsWith('library/')) {
-        return new LibraryInfo.internal();
+        return LibraryInfo.internal();
       } else if (serializedId.startsWith('class/')) {
-        return new ClassInfo.internal();
+        return ClassInfo.internal();
+      } else if (serializedId.startsWith('classType/')) {
+        return ClassTypeInfo.internal();
       } else if (serializedId.startsWith('field/')) {
-        return new FieldInfo.internal();
+        return FieldInfo.internal();
       } else if (serializedId.startsWith('constant/')) {
-        return new ConstantInfo.internal();
+        return ConstantInfo.internal();
       } else if (serializedId.startsWith('typedef/')) {
-        return new TypedefInfo.internal();
+        return TypedefInfo.internal();
       } else if (serializedId.startsWith('outputUnit/')) {
-        return new OutputUnitInfo.internal();
+        return OutputUnitInfo.internal();
       }
       assert(false);
       return null;
@@ -313,13 +328,13 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   List<CodeSpan> parseCode(dynamic json) {
     // backwards compatibility with format 5.1:
     if (json is String) {
-      return [new CodeSpan(start: null, end: null, text: json)];
+      return [CodeSpan(start: null, end: null, text: json)];
     }
 
     if (json is List) {
       return json.map((dynamic value) {
         Map<String, dynamic> jsonCode = value;
-        return new CodeSpan(
+        return CodeSpan(
             start: jsonCode['start'],
             end: jsonCode['end'],
             text: jsonCode['text']);
@@ -334,10 +349,10 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     implements InfoVisitor<Map> {
   /// Whether to generate json compatible with format 5.1
   final bool isBackwardCompatible;
-  final Map<Info, Id> ids = new HashMap<Info, Id>();
-  final Set<int> usedIds = new Set<int>();
+  final Map<Info, Id> ids = HashMap<Info, Id>();
+  final Set<int> usedIds = <int>{};
 
-  AllInfoToJsonConverter({this.isBackwardCompatible: false});
+  AllInfoToJsonConverter({this.isBackwardCompatible = false});
 
   Id idFor(Info info) {
     var serializedId = ids[info];
@@ -365,17 +380,18 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     while (!usedIds.add(id)) {
       id++;
     }
-    serializedId = new Id(info.kind, '$id');
+    serializedId = Id(info.kind, '$id');
     return ids[info] = serializedId;
   }
 
-  Map convert(AllInfo info) => info.accept(this);
+  @override
+  Map convert(AllInfo input) => input.accept(this);
 
   Map _visitList(List<Info> infos) {
     // Using SplayTree to maintain a consistent order of keys
-    var map = new SplayTreeMap<String, Map>(compareNatural);
+    var map = SplayTreeMap<String, Map>(compareNatural);
     for (var info in infos) {
-      map['${idFor(info).id}'] = info.accept(this);
+      map[idFor(info).id] = info.accept(this);
     }
     return map;
   }
@@ -383,6 +399,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   Map _visitAllInfoElements(AllInfo info) {
     var jsonLibraries = _visitList(info.libraries);
     var jsonClasses = _visitList(info.classes);
+    var jsonClassTypes = _visitList(info.classTypes);
     var jsonFunctions = _visitList(info.functions);
     var jsonTypedefs = _visitList(info.typedefs);
     var jsonFields = _visitList(info.fields);
@@ -391,6 +408,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     return {
       'library': jsonLibraries,
       'class': jsonClasses,
+      'classType': jsonClassTypes,
       'function': jsonFunctions,
       'typedef': jsonTypedefs,
       'field': jsonFields,
@@ -403,7 +421,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       {'id': idFor(info.target).serializedId, 'mask': info.mask};
 
   Map _visitAllInfoHolding(AllInfo allInfo) {
-    var map = new SplayTreeMap<String, List>(compareNatural);
+    var map = SplayTreeMap<String, List>(compareNatural);
     void helper(CodeInfo info) {
       if (info.uses.isEmpty) return;
       map[idFor(info).serializedId] = info.uses
@@ -418,13 +436,14 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   }
 
   Map _visitAllInfoDependencies(AllInfo allInfo) {
-    var map = new SplayTreeMap<String, List>(compareNatural);
+    var map = SplayTreeMap<String, List>(compareNatural);
     allInfo.dependencies.forEach((k, v) {
       map[idFor(k).serializedId] = _toSortedSerializedIds(v, idFor);
     });
     return map;
   }
 
+  @override
   Map visitAll(AllInfo info) {
     var elements = _visitAllInfoElements(info);
     var jsonHolding = _visitAllInfoHolding(info);
@@ -441,6 +460,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     };
   }
 
+  @override
   Map visitProgram(ProgramInfo info) {
     return {
       'entrypoint': idFor(info.entrypoint).serializedId,
@@ -476,6 +496,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     return res;
   }
 
+  @override
   Map visitLibrary(LibraryInfo info) {
     return _visitBasicInfo(info)
       ..addAll(<String, Object>{
@@ -484,6 +505,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
               info.topLevelFunctions,
               info.topLevelVariables,
               info.classes,
+              info.classTypes,
               info.typedefs
             ].expand((i) => i),
             idFor),
@@ -491,6 +513,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       });
   }
 
+  @override
   Map visitClass(ClassInfo info) {
     return _visitBasicInfo(info)
       ..addAll(<String, Object>{
@@ -501,6 +524,12 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       });
   }
 
+  @override
+  Map visitClassType(ClassTypeInfo info) {
+    return _visitBasicInfo(info);
+  }
+
+  @override
   Map visitField(FieldInfo info) {
     var result = _visitBasicInfo(info)
       ..addAll(<String, Object>{
@@ -518,6 +547,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     return result;
   }
 
+  @override
   Map visitConstant(ConstantInfo info) => _visitBasicInfo(info)
     ..addAll(<String, Object>{'code': _serializeCode(info.code)});
 
@@ -538,6 +568,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   Map _visitParameterInfo(ParameterInfo info) =>
       {'name': info.name, 'type': info.type, 'declaredType': info.declaredType};
 
+  @override
   Map visitFunction(FunctionInfo info) {
     return _visitBasicInfo(info)
       ..addAll(<String, Object>{
@@ -556,13 +587,16 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       });
   }
 
+  @override
   Map visitClosure(ClosureInfo info) {
     return _visitBasicInfo(info)
       ..addAll(<String, Object>{'function': idFor(info.function).serializedId});
   }
 
+  @override
   visitTypedef(TypedefInfo info) => _visitBasicInfo(info)..['type'] = info.type;
 
+  @override
   visitOutput(OutputUnitInfo info) => _visitBasicInfo(info)
     ..['filename'] = info.filename
     ..['imports'] = info.imports;
@@ -582,12 +616,14 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
 }
 
 class AllInfoJsonCodec extends Codec<AllInfo, Map> {
+  @override
   final Converter<AllInfo, Map> encoder;
-  final Converter<Map, AllInfo> decoder = new JsonToAllInfoConverter();
+  @override
+  final Converter<Map, AllInfo> decoder = JsonToAllInfoConverter();
 
-  AllInfoJsonCodec({bool isBackwardCompatible: false})
-      : encoder = new AllInfoToJsonConverter(
-            isBackwardCompatible: isBackwardCompatible);
+  AllInfoJsonCodec({bool isBackwardCompatible = false})
+      : encoder =
+            AllInfoToJsonConverter(isBackwardCompatible: isBackwardCompatible);
 }
 
 class Id {

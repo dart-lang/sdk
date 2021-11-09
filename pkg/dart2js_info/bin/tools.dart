@@ -20,20 +20,20 @@ import 'src/text_print.dart';
 
 /// Entrypoint to run all dart2js_info tools.
 void main(args) {
-  var commandRunner = new CommandRunner("dart2js_info",
+  var commandRunner = CommandRunner("dart2js_info",
       "collection of tools to digest the output of dart2js's --dump-info")
-    ..addCommand(new CodeDepsCommand())
-    ..addCommand(new CoverageLogServerCommand())
-    ..addCommand(new DebugCommand())
-    ..addCommand(new DiffCommand())
-    ..addCommand(new DeferredLibraryCheck())
-    ..addCommand(new DeferredLibrarySize())
-    ..addCommand(new DeferredLibraryLayout())
-    ..addCommand(new ConvertCommand())
-    ..addCommand(new FunctionSizeCommand())
-    ..addCommand(new LibrarySizeCommand())
-    ..addCommand(new LiveCodeAnalysisCommand())
-    ..addCommand(new ShowInferredTypesCommand())
-    ..addCommand(new ShowCommand());
+    ..addCommand(CodeDepsCommand())
+    ..addCommand(CoverageLogServerCommand())
+    ..addCommand(DebugCommand())
+    ..addCommand(DiffCommand())
+    ..addCommand(DeferredLibraryCheck())
+    ..addCommand(DeferredLibrarySize())
+    ..addCommand(DeferredLibraryLayout())
+    ..addCommand(ConvertCommand())
+    ..addCommand(FunctionSizeCommand())
+    ..addCommand(LibrarySizeCommand())
+    ..addCommand(LiveCodeAnalysisCommand())
+    ..addCommand(ShowInferredTypesCommand())
+    ..addCommand(ShowCommand());
   commandRunner.run(args);
 }

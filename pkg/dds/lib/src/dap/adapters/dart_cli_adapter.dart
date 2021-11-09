@@ -40,9 +40,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
           enableDds: enableDds,
           enableAuthCodes: enableAuthCodes,
           logger: logger,
-        ) {
-    channel.closed.then((_) => shutdown());
-  }
+        );
 
   /// Whether the VM Service closing should be used as a signal to terminate the
   /// debug session.

@@ -143,3 +143,9 @@ abstract class Mixin extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///qualified_part.dart:7:7 -> ConstructorTearOffConstant(C.b)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///qualified_lib.dart:9:7 -> ConstructorTearOffConstant(C.b)
+Extra constant evaluation: evaluated: 7, effectively constant: 2

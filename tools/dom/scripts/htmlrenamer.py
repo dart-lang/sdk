@@ -146,6 +146,7 @@ _removed_html_interfaces = [
     'CSSValue',
     'Counter',
     'DOMFileSystemSync',  # Workers
+    'DatabaseCallback',  # WebSql was removed
     'DatabaseSync',  # Workers
     'DirectoryEntrySync',  # Workers
     'DirectoryReaderSync',  # Workers
@@ -527,7 +528,6 @@ private_html_members = monitored.Set(
         'Window.getComputedStyle',
         'Window.clearInterval',
         'Window.clearTimeout',
-        'Window.openDatabase',
         # TODO(tll): These have been converted from int to double in Chrome 39 for
         #            subpixel precision.  Special case for backward compatibility.
         'Window.pageXOffset',
@@ -704,6 +704,7 @@ removed_html_members = monitored.Set(
         'Window.createImageBitmap',
         'Window.get:frames',
         'Window.get:length',
+        'Window.openDatabase',
         'Window.on:beforeUnload',
         'Window.on:webkitTransitionEnd',
         'Window.pagePopupController',

@@ -101,7 +101,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// [K] instance.
   ///
   /// Example:
-  /// ```dart
+  /// ```dart template:expression
   /// LinkedHashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
   ///                        hashCode: (int e) => e % 5);
   /// ```
@@ -134,7 +134,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// Creates an insertion-ordered identity-based map.
   ///
   /// Effectively a shorthand for:
-  /// ```dart
+  /// ```dart template:expression
   /// LinkedHashMap<K, V>(equals: identical,
   ///                     hashCode: identityHashCode)
   /// ```

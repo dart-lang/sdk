@@ -31,7 +31,9 @@ import 'package:shelf/shelf_io.dart' as shelf;
 import 'usage_exception.dart';
 
 class CoverageLogServerCommand extends Command<void> with PrintUsageException {
+  @override
   final String name = 'coverage_server';
+  @override
   final String description = 'Server to gather code coverage data';
 
   CoverageLogServerCommand() {
@@ -46,30 +48,29 @@ class CoverageLogServerCommand extends Command<void> with PrintUsageException {
               ' into the .js file',
           defaultsTo: '')
       ..addOption('out',
-          abbr: 'o',
-          help: 'output log file',
-          defaultsTo: _DEFAULT_OUT_TEMPLATE);
+          abbr: 'o', help: 'output log file', defaultsTo: _defaultOutTemplate);
   }
 
+  @override
   void run() async {
     if (argResults.rest.isEmpty) {
       usageException('Missing arguments: <dart2js-out-file> [<html-file>]');
     }
 
     var jsPath = argResults.rest[0];
-    var htmlPath = null;
+    String htmlPath;
     if (argResults.rest.length > 1) {
       htmlPath = argResults.rest[1];
     }
     var outPath = argResults['out'];
-    if (outPath == _DEFAULT_OUT_TEMPLATE) outPath = '$jsPath.coverage.json';
-    var server = new _Server(argResults['host'], int.parse(argResults['port']),
+    if (outPath == _defaultOutTemplate) outPath = '$jsPath.coverage.json';
+    var server = _Server(argResults['host'], int.parse(argResults['port']),
         jsPath, htmlPath, outPath, argResults['uri-prefix']);
     await server.run();
   }
 }
 
-const _DEFAULT_OUT_TEMPLATE = '<dart2js-out-file>.coverage.json';
+const _defaultOutTemplate = '<dart2js-out-file>.coverage.json';
 
 class _Server {
   /// Server hostname, typically `localhost`,  but can be `0.0.0.0`.
@@ -102,12 +103,11 @@ class _Server {
   /// against dump-info data.
   Map data = {};
 
-  String get _serializedData => new JsonEncoder.withIndent(' ').convert(data);
+  String get _serializedData => JsonEncoder.withIndent(' ').convert(data);
 
-  _Server(this.hostname, this.port, String jsPath, this.htmlPath, this.outPath,
+  _Server(this.hostname, this.port, this.jsPath, this.htmlPath, this.outPath,
       String prefix)
-      : jsPath = jsPath,
-        jsCode = _adjustRequestUrl(new File(jsPath).readAsStringSync(), prefix),
+      : jsCode = _adjustRequestUrl(File(jsPath).readAsStringSync(), prefix),
         prefix = _normalize(prefix);
 
   run() async {
@@ -135,29 +135,29 @@ class _Server {
         urlPath == _expectedPath(baseHtmlName)) {
       var contents = htmlPath == null
           ? '<html><script src="$baseJsName"></script>'
-          : await new File(htmlPath).readAsString();
-      return new shelf.Response.ok(contents, headers: HTML_HEADERS);
+          : await File(htmlPath).readAsString();
+      return shelf.Response.ok(contents, headers: _htmlHeaders);
     }
 
     if (urlPath == _expectedPath(baseJsName)) {
-      return new shelf.Response.ok(jsCode, headers: JS_HEADERS);
+      return shelf.Response.ok(jsCode, headers: _jsHeaders);
     }
 
     // Handle POST requests to record coverage data, and GET requests to display
     // the currently coverage results.
     if (urlPath == _expectedPath('coverage')) {
       if (request.method == 'GET') {
-        return new shelf.Response.ok(_serializedData, headers: TEXT_HEADERS);
+        return shelf.Response.ok(_serializedData, headers: _textHeaders);
       }
 
       if (request.method == 'POST') {
         _record(jsonDecode(await request.readAsString()));
-        return new shelf.Response.ok("Thanks!");
+        return shelf.Response.ok("Thanks!");
       }
     }
 
     // Any other request is not supported.
-    return new shelf.Response.notFound('Not found: "$urlPath"');
+    return shelf.Response.notFound('Not found: "$urlPath"');
   }
 
   _record(List entries) {
@@ -174,8 +174,8 @@ class _Server {
   _enqueueSave() async {
     if (!_savePending) {
       _savePending = true;
-      await new Future.delayed(new Duration(seconds: 3));
-      await new File(outPath).writeAsString(_serializedData);
+      await Future.delayed(Duration(seconds: 3));
+      await File(outPath).writeAsString(_serializedData);
       var diff = data.length - _total;
       print(diff == 0
           ? ' - no new element covered'
@@ -215,6 +215,6 @@ _adjustRequestUrl(String code, String prefix) {
   return '$hook$code';
 }
 
-const HTML_HEADERS = const {'content-type': 'text/html'};
-const JS_HEADERS = const {'content-type': 'text/javascript'};
-const TEXT_HEADERS = const {'content-type': 'text/plain'};
+const _htmlHeaders = {'content-type': 'text/html'};
+const _jsHeaders = {'content-type': 'text/javascript'};
+const _textHeaders = {'content-type': 'text/plain'};

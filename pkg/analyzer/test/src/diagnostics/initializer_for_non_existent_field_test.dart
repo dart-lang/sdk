@@ -24,7 +24,20 @@ class A {
 }
 A a = const A();
 ''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 24, 9),
+      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 24, 9,
+          messageContains: ["'x'"]),
+    ]);
+  }
+
+  test_getter() async {
+    await assertErrorsInCode('''
+class A {
+  int get x => 0;
+  A() : x = 0;
+}
+''', [
+      error(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD, 36, 5,
+          messageContains: ["'x'"]),
     ]);
   }
 

@@ -12,7 +12,46 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertIntoExpressionBodyTest);
+    defineReflectiveTests(ConvertIntoExpressionBodyBulkTest);
   });
+}
+
+@reflectiveTest
+class ConvertIntoExpressionBodyBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_expression_function_bodies;
+
+  Future<void> test_singleFile() async {
+    // See the discussion in https://dart-review.googlesource.com/c/sdk/+/217521
+    // for the nested closure case (var f = () ...).
+    // Note this is another place where multiple passes will improve results.
+    await resolveTestCode('''
+class A {
+  mmm() async {
+    return 42;
+  }
+  int nnn() {
+    return mmm() + 1;
+  }
+}
+
+var f = () {
+  return () {
+    return 3;
+  };
+};
+''');
+    await assertHasFix('''
+class A {
+  mmm() async => 42;
+  int nnn() => mmm() + 1;
+}
+
+var f = () => () {
+    return 3;
+  };
+''');
+  }
 }
 
 @reflectiveTest

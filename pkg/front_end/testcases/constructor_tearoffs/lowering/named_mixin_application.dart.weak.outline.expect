@@ -1,0 +1,75 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    ;
+  abstract get field() → core::int;
+}
+class Class<T extends core::Object? = dynamic> extends core::Object implements self::Interface {
+  field core::int field;
+  static final field dynamic _redirecting# = <dynamic>[self::Class::redirectingFactory]/*isLegacy*/;
+  constructor •([core::int field]) → self::Class<self::Class::T%>
+    ;
+  constructor named(core::int field) → self::Class<self::Class::T%>
+    ;
+  constructor redirectingGenerative(core::int field) → self::Class<self::Class::T%>
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>([core::int field]) → self::Class<self::Class::_#new#tearOff::T%>
+    return new self::Class::•<self::Class::_#new#tearOff::T%>(field);
+  static method _#named#tearOff<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::_#named#tearOff::T%>
+    return new self::Class::named<self::Class::_#named#tearOff::T%>(field);
+  static method _#redirectingGenerative#tearOff<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::_#redirectingGenerative#tearOff::T%>
+    return new self::Class::redirectingGenerative<self::Class::_#redirectingGenerative#tearOff::T%>(field);
+  static factory fact<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::fact::T%>
+    ;
+  static method _#fact#tearOff<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::_#fact#tearOff::T%>
+    return self::Class::fact<self::Class::_#fact#tearOff::T%>(field);
+  static factory redirectingFactory<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::redirectingFactory::T%>
+    return new self::Class::•<self::Class::redirectingFactory::T%>(field);
+  static method _#redirectingFactory#tearOff<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::_#redirectingFactory#tearOff::T%>
+    return new self::Class::•<self::Class::_#redirectingFactory#tearOff::T%>(field);
+}
+abstract class Mixin<S extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+}
+class NamedMixinApplication<T extends core::Object? = dynamic, S extends core::Object? = dynamic> = self::Class<self::NamedMixinApplication::T%> with self::Mixin<self::NamedMixinApplication::S%> {
+  synthetic constructor •([core::int field]) → self::NamedMixinApplication<self::NamedMixinApplication::T%, self::NamedMixinApplication::S%>
+    : super self::Class::•(field)
+    ;
+  synthetic constructor named(core::int field) → self::NamedMixinApplication<self::NamedMixinApplication::T%, self::NamedMixinApplication::S%>
+    : super self::Class::named(field)
+    ;
+  synthetic constructor redirectingGenerative(core::int field) → self::NamedMixinApplication<self::NamedMixinApplication::T%, self::NamedMixinApplication::S%>
+    : super self::Class::redirectingGenerative(field)
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic, S extends core::Object? = dynamic>([core::int field]) → self::NamedMixinApplication<self::NamedMixinApplication::_#new#tearOff::T%, self::NamedMixinApplication::_#new#tearOff::S%>
+    return new self::NamedMixinApplication::•<self::NamedMixinApplication::_#new#tearOff::T%, self::NamedMixinApplication::_#new#tearOff::S%>(field);
+  static method _#named#tearOff<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(core::int field) → self::NamedMixinApplication<self::NamedMixinApplication::_#named#tearOff::T%, self::NamedMixinApplication::_#named#tearOff::S%>
+    return new self::NamedMixinApplication::named<self::NamedMixinApplication::_#named#tearOff::T%, self::NamedMixinApplication::_#named#tearOff::S%>(field);
+  static method _#redirectingGenerative#tearOff<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(core::int field) → self::NamedMixinApplication<self::NamedMixinApplication::_#redirectingGenerative#tearOff::T%, self::NamedMixinApplication::_#redirectingGenerative#tearOff::S%>
+    return new self::NamedMixinApplication::redirectingGenerative<self::NamedMixinApplication::_#redirectingGenerative#tearOff::T%, self::NamedMixinApplication::_#redirectingGenerative#tearOff::S%>(field);
+}
+abstract class AbstractNamedMixinApplication<T extends core::Object? = dynamic, S extends core::Object? = dynamic> = self::Class<self::AbstractNamedMixinApplication::T%> with self::Mixin<self::AbstractNamedMixinApplication::S%> {
+  synthetic constructor •([core::int field]) → self::AbstractNamedMixinApplication<self::AbstractNamedMixinApplication::T%, self::AbstractNamedMixinApplication::S%>
+    : super self::Class::•(field)
+    ;
+  synthetic constructor named(core::int field) → self::AbstractNamedMixinApplication<self::AbstractNamedMixinApplication::T%, self::AbstractNamedMixinApplication::S%>
+    : super self::Class::named(field)
+    ;
+  synthetic constructor redirectingGenerative(core::int field) → self::AbstractNamedMixinApplication<self::AbstractNamedMixinApplication::T%, self::AbstractNamedMixinApplication::S%>
+    : super self::Class::redirectingGenerative(field)
+    ;
+}
+static field <T extends core::Object? = dynamic, S extends core::Object? = dynamic>([core::int]) → self::NamedMixinApplication<T%, S%> f1;
+static field <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(core::int) → self::NamedMixinApplication<T%, S%> f2;
+static field <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(core::int) → self::NamedMixinApplication<T%, S%> f3;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///named_mixin_application.dart:9:7 -> ConstructorTearOffConstant(Class.redirectingFactory)
+Extra constant evaluation: evaluated: 26, effectively constant: 1

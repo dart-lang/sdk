@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 import 'dart:isolate';
 
 // This test ensures that the VM can kill the spawned isolate during VM

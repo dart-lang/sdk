@@ -26,10 +26,10 @@ If you're making changes to dart2js, it most likely involves the scanner or pars
 
 ```
 # Unit tests for dart2js
-./tools/test.py --dart2js-batch --time -pcolor --report -aia32 -mrelease --checked dart2js
+./tools/test.py --time -pcolor --report -aia32 -mrelease --checked dart2js
 
 # Language and co19, dart2js.
-./tools/test.py --dart2js-batch --time -pcolor --report -aia32 -mrelease -cdart2js -rd8 language co19
+./tools/test.py --time -pcolor --report -aia32 -mrelease -cdart2js -rd8 language co19
 ```
 
 ## Testing the Dart VM

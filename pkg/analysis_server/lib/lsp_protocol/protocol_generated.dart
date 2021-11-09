@@ -17475,7 +17475,7 @@ class LocationLink implements ToJsonable {
   final Range targetRange;
 
   /// The range that should be selected and revealed when this link is being
-  /// followed, e.g the name of a function. Must be contained by the the
+  /// followed, e.g the name of a function. Must be contained by the
   /// `targetRange`. See also `DocumentSymbol#range`
   final Range targetSelectionRange;
 

@@ -1359,7 +1359,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       type ??= findIn(Uris.dart_svg);
       type ??= findIn(Uris.dart_web_audio);
       type ??= findIn(Uris.dart_web_gl);
-      type ??= findIn(Uris.dart_web_sql);
       type ??= findIn(Uris.dart_indexed_db);
       type ??= findIn(Uris.dart_typed_data);
       type ??= findIn(Uris.dart__rti);

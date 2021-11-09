@@ -4,12 +4,10 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
+import "dart:isolate";
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import "dart:isolate";
 
 enum Foo { BAR, BAZ }
 

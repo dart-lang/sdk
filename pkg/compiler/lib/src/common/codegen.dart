@@ -23,6 +23,7 @@ import '../js_backend/deferred_holder_expression.dart'
 import '../js_backend/string_reference.dart' show StringReference;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/code_emitter_task.dart' show Emitter;
+import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/type_recipe.dart' show TypeRecipe;
 import '../native/behavior.dart';
 import '../serialization/serialization.dart';
@@ -720,32 +721,35 @@ class ModularName extends js.Name implements js.AstContainer {
     sink.end(tag);
   }
 
+  @override
+  bool get isFinalized => _value != null;
+
   js.Name get value {
-    assert(_value != null, 'value not set for $this');
+    assert(isFinalized, 'value not set for $this');
     return _value;
   }
 
   void set value(js.Name node) {
-    assert(_value == null);
+    assert(!isFinalized);
     assert(node != null);
     _value = node.withSourceInformation(sourceInformation);
   }
 
   @override
   String get key {
-    assert(_value != null);
+    assert(isFinalized);
     return _value.key;
   }
 
   @override
   String get name {
-    assert(_value != null, 'value not set for $this');
+    assert(isFinalized, 'value not set for $this');
     return _value.name;
   }
 
   @override
   bool get allowRename {
-    assert(_value != null, 'value not set for $this');
+    assert(isFinalized, 'value not set for $this');
     return _value.allowRename;
   }
 
@@ -771,6 +775,98 @@ class ModularName extends js.Name implements js.AstContainer {
   @override
   String toString() =>
       'ModularName(kind=$kind, data=$data, value=${_value?.key})';
+
+  @override
+  String nonfinalizedDebugText() {
+    switch (kind) {
+      case ModularNameKind.rtiField:
+        return r'ModularName"$ti"';
+      case ModularNameKind.instanceField:
+        return 'ModularName"field:${(data as Entity).name}"';
+      case ModularNameKind.instanceMethod:
+        return 'ModularName"${_instanceMethodName(data)}"';
+      case ModularNameKind.methodProperty:
+        return 'ModularName"methodProperty:${(data as Entity).name}"';
+      case ModularNameKind.operatorIs:
+        return 'ModularName"is:${_className(data)}"';
+      case ModularNameKind.className:
+        return 'ModularName"class:${_className(data)}"';
+      case ModularNameKind.globalPropertyNameForClass:
+        return 'ModularName"classref:${_className(data)}"';
+      case ModularNameKind.aliasedSuperMember:
+        MemberEntity member = (data as MemberEntity);
+        String className = _className(member.enclosingClass);
+        String invocationName = Namer.operatorNameToIdentifier(member.name);
+        final description = "$className.$invocationName";
+        return 'ModularName"alias:$description"';
+      case ModularNameKind.staticClosure:
+        return 'ModularName"closure:${_qualifiedStaticName(data)}"';
+      case ModularNameKind.lazyInitializer:
+        return 'ModularName"lazy:${(data as MemberEntity).name}"';
+      case ModularNameKind.globalPropertyNameForMember:
+        MemberEntity member = data as MemberEntity;
+        return 'ModularName"ref:${_qualifiedStaticName(member)}"';
+      case ModularNameKind.invocation:
+        return 'ModularName"selector:${_selectorText(data as Selector)}"';
+      case ModularNameKind.nameForOneShotInterceptor:
+        return 'ModularName"oneshot:${_selectorText(data as Selector)}"';
+      case ModularNameKind.globalNameForInterfaceTypeVariable:
+        break;
+      case ModularNameKind.nameForGetInterceptor:
+        return 'ModularName"getInterceptor"';
+      case ModularNameKind.asName:
+        return 'ModularName"asName:$data"';
+    }
+    return super.nonfinalizedDebugText();
+  }
+
+  String _className(ClassEntity cls) {
+    return cls.name.replaceAll('&', '_');
+  }
+
+  String _qualifiedStaticName(MemberEntity member) {
+    if (member.isConstructor || member.isStatic) {
+      return '${_className(member.enclosingClass)}.${member.name}';
+    }
+    return member.name;
+  }
+
+  String _instanceMethodInvocationName(MemberEntity member) {
+    String invocationName = Namer.operatorNameToIdentifier(member.name);
+    if (member.isGetter) invocationName = r'get$' + invocationName;
+    if (member.isSetter) invocationName = r'set$' + invocationName;
+    return invocationName;
+  }
+
+  String _instanceMethodName(MemberEntity member) {
+    if (member is ConstructorBodyEntity) {
+      return 'constructorBody:${_qualifiedStaticName(member.constructor)}';
+    }
+    if (member is JGeneratorBody) {
+      MemberEntity function = member.function;
+      return 'generatorBody:'
+          '${_className(function.enclosingClass)}.'
+          '${_instanceMethodInvocationName(function)}';
+    }
+    return 'instanceMethod:${_instanceMethodInvocationName(member)}';
+  }
+
+  String _selectorText(Selector selector) {
+    // Approximation to unminified selector.
+    if (selector.isGetter) return r'get$' + selector.name;
+    if (selector.isSetter) return r'set$' + selector.name;
+    if (selector.isOperator || selector.isIndex || selector.isIndexSet) {
+      return Namer.operatorNameToIdentifier(selector.name);
+    }
+    List<String> parts = [
+      selector.name,
+      if (selector.callStructure.typeArgumentCount > 0)
+        '${selector.callStructure.typeArgumentCount}',
+      '${selector.callStructure.argumentCount}',
+      ...selector.callStructure.getOrderedNamedArguments()
+    ];
+    return parts.join(r'$');
+  }
 }
 
 enum ModularExpressionKind {
@@ -819,13 +915,16 @@ class ModularExpression extends js.DeferredExpression
   }
 
   @override
+  bool get isFinalized => _value != null;
+
+  @override
   js.Expression get value {
-    assert(_value != null);
+    assert(isFinalized);
     return _value;
   }
 
   void set value(js.Expression node) {
-    assert(_value == null);
+    assert(!isFinalized);
     assert(node != null);
     _value = node.withSourceInformation(sourceInformation);
   }
@@ -862,6 +961,17 @@ class ModularExpression extends js.DeferredExpression
     }
     sb.write(',value=$_value)');
     return sb.toString();
+  }
+
+  @override
+  String nonfinalizedDebugText() {
+    switch (kind) {
+      case ModularExpressionKind.constant:
+        return 'ModularExpression"<constant>"';
+      case ModularExpressionKind.embeddedGlobalAccess:
+        return 'ModularExpression"init.$data"';
+    }
+    return super.nonfinalizedDebugText();
   }
 }
 

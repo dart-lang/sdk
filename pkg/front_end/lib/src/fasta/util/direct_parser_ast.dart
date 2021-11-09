@@ -70,7 +70,7 @@ class DirectParserASTContentVisitor {
   void accept(DirectParserASTContent node) {
     if (node is DirectParserASTContentCompilationUnitEnd ||
         node is DirectParserASTContentTopLevelDeclarationEnd ||
-        node is DirectParserASTContentClassOrMixinBodyEnd ||
+        node is DirectParserASTContentClassOrMixinOrExtensionBodyEnd ||
         node is DirectParserASTContentMemberEnd) {
       visitChildren(node);
       return;
@@ -99,8 +99,8 @@ class DirectParserASTContentVisitor {
       visitMetadataStar(metadata);
       return;
     }
-    if (node is DirectParserASTContentFunctionTypeAliasEnd) {
-      DirectParserASTContentFunctionTypeAliasEnd typedefDecl = node;
+    if (node is DirectParserASTContentTypedefEnd) {
+      DirectParserASTContentTypedefEnd typedefDecl = node;
       visitTypedef(
           typedefDecl, typedefDecl.typedefKeyword, typedefDecl.endToken);
       return;
@@ -253,8 +253,8 @@ class DirectParserASTContentVisitor {
       Token endInclusive) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitTypedef(DirectParserASTContentFunctionTypeAliasEnd node,
-      Token startInclusive, Token endInclusive) {}
+  void visitTypedef(DirectParserASTContentTypedefEnd node, Token startInclusive,
+      Token endInclusive) {}
 
   /// Note: Implementers can call visitChildren on this node.
   void visitMetadataStar(DirectParserASTContentMetadataStarEnd node) {
@@ -364,7 +364,8 @@ extension GeneralASTContentExtension on DirectParserASTContent {
       return false;
     }
     if (children!.first
-        is! DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin) {
+        // ignore: lines_longer_than_80_chars
+        is! DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin) {
       return false;
     }
     if (children!.last is! DirectParserASTContentClassDeclarationEnd) {
@@ -447,16 +448,16 @@ extension GeneralASTContentExtension on DirectParserASTContent {
         is! DirectParserASTContentUncategorizedTopLevelDeclarationBegin) {
       return false;
     }
-    if (children!.last is! DirectParserASTContentFunctionTypeAliasEnd) {
+    if (children!.last is! DirectParserASTContentTypedefEnd) {
       return false;
     }
 
     return true;
   }
 
-  DirectParserASTContentFunctionTypeAliasEnd asTypedef() {
+  DirectParserASTContentTypedefEnd asTypedef() {
     if (!isTypedef()) throw "Not typedef";
-    return children!.last as DirectParserASTContentFunctionTypeAliasEnd;
+    return children!.last as DirectParserASTContentTypedefEnd;
   }
 
   bool isScript() {
@@ -541,7 +542,8 @@ extension GeneralASTContentExtension on DirectParserASTContent {
       return false;
     }
     if (children!.first
-        is! DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin) {
+        // ignore: lines_longer_than_80_chars
+        is! DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin) {
       return false;
     }
     if (children!.last is! DirectParserASTContentMixinDeclarationEnd) {
@@ -561,7 +563,8 @@ extension GeneralASTContentExtension on DirectParserASTContent {
       return false;
     }
     if (children!.first
-        is! DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin) {
+        // ignore: lines_longer_than_80_chars
+        is! DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin) {
       return false;
     }
     if (children!.last is! DirectParserASTContentNamedMixinApplicationEnd) {
@@ -849,9 +852,12 @@ extension TopLevelDeclarationExtension
 
 extension MixinDeclarationExtension
     on DirectParserASTContentMixinDeclarationEnd {
-  DirectParserASTContentClassOrMixinBodyEnd getClassOrMixinBody() {
+  DirectParserASTContentClassOrMixinOrExtensionBodyEnd
+      getClassOrMixinOrExtensionBody() {
     for (DirectParserASTContent child in children!) {
-      if (child is DirectParserASTContentClassOrMixinBodyEnd) return child;
+      if (child is DirectParserASTContentClassOrMixinOrExtensionBodyEnd) {
+        return child;
+      }
     }
     throw "Not found.";
   }
@@ -859,9 +865,12 @@ extension MixinDeclarationExtension
 
 extension ClassDeclarationExtension
     on DirectParserASTContentClassDeclarationEnd {
-  DirectParserASTContentClassOrMixinBodyEnd getClassOrMixinBody() {
+  DirectParserASTContentClassOrMixinOrExtensionBodyEnd
+      getClassOrMixinOrExtensionBody() {
     for (DirectParserASTContent child in children!) {
-      if (child is DirectParserASTContentClassOrMixinBodyEnd) return child;
+      if (child is DirectParserASTContentClassOrMixinOrExtensionBodyEnd) {
+        return child;
+      }
     }
     throw "Not found.";
   }
@@ -893,7 +902,7 @@ extension ClassDeclarationExtension
 }
 
 extension ClassOrMixinBodyExtension
-    on DirectParserASTContentClassOrMixinBodyEnd {
+    on DirectParserASTContentClassOrMixinOrExtensionBodyEnd {
   List<DirectParserASTContentMemberEnd> getMembers() {
     List<DirectParserASTContentMemberEnd> members = [];
     for (DirectParserASTContent child in children!) {
@@ -1213,7 +1222,7 @@ class DirectParserASTListener extends AbstractDirectParserASTListener {
           // Exact match.
         } else if (end == "TopLevelDeclaration" &&
             (begin == "ExtensionDeclarationPrelude" ||
-                begin == "ClassOrNamedMixinApplicationPrelude" ||
+                begin == "ClassOrMixinOrNamedMixinApplicationPrelude" ||
                 begin == "TopLevelMember" ||
                 begin == "UncategorizedTopLevelDeclaration")) {
           // endTopLevelDeclaration is started by one of

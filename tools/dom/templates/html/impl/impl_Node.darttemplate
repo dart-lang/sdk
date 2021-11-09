@@ -220,13 +220,13 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   }
 
   /**
-   * Inserts all of the nodes into this node directly before refChild.
+   * Inserts all of the nodes into this node directly before child.
    *
    * See also:
    *
    * * [insertBefore]
    */
-  void insertAllBefore(Iterable<Node> newNodes, Node refChild) {
+  void insertAllBefore(Iterable<Node> newNodes, Node child) {
     if (newNodes is _ChildNodeListLazy) {
       _ChildNodeListLazy otherList = newNodes;
       if (identical(otherList._this, this)) {
@@ -235,11 +235,11 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
       // Optimized route for copying between nodes.
       for (var i = 0, len = otherList.length; i < len; ++i) {
-        this.insertBefore(otherList._this.firstChild$NULLASSERT, refChild);
+        this.insertBefore(otherList._this.firstChild$NULLASSERT, child);
       }
     } else {
       for (var node in newNodes) {
-        this.insertBefore(node, refChild);
+        this.insertBefore(node, child);
       }
     }
   }

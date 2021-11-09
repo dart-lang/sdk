@@ -346,7 +346,7 @@ void main() async {
 
 Future<void> visitLibraryAtUri(AnalysisSession session, String uri) async {
   final libPath = session.uriConverter.uriToPath(Uri.parse(uri));
-  var result = await session.getResolvedLibrary2(libPath!);
+  var result = await session.getResolvedLibrary(libPath!);
   if (result is ResolvedLibraryResult) {
     visitLibrary(result.element);
   } else {

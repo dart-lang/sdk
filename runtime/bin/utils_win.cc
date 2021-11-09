@@ -16,6 +16,23 @@
 namespace dart {
 namespace bin {
 
+// The offset between a `FILETIME` epoch (January 1, 1601 UTC) and a Unix
+// epoch (January 1, 1970 UTC) measured in 100ns intervals.
+//
+// See https://docs.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
+static const int64_t kFileTimeEpoch = 116444736000000000LL;
+
+// Although win32 uses 64-bit integers for representing timestamps,
+// these are packed into a FILETIME structure. The FILETIME
+// structure is just a struct representing a 64-bit integer. The
+// TimeStamp union allows access to both a FILETIME and an integer
+// representation of the timestamp. The Windows timestamp is in
+// 100-nanosecond intervals since January 1, 1601.
+union TimeStamp {
+  FILETIME ft_;
+  int64_t t_;
+};
+
 void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
   DWORD message_size = FormatMessageW(
       FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, code,
@@ -29,6 +46,12 @@ void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length) {
   }
   // Ensure string termination.
   buffer[buffer_length - 1] = 0;
+}
+
+FILETIME GetFiletimeFromMillis(int64_t millis) {
+  static const int64_t kTimeScaler = 10000;  // 100 ns to ms.
+  TimeStamp t = {.t_ = millis * kTimeScaler + kFileTimeEpoch};
+  return t.ft_;
 }
 
 OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
@@ -165,24 +188,12 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return true;
 }
 
-// Although win32 uses 64-bit integers for representing timestamps,
-// these are packed into a FILETIME structure. The FILETIME
-// structure is just a struct representing a 64-bit integer. The
-// TimeStamp union allows access to both a FILETIME and an integer
-// representation of the timestamp. The Windows timestamp is in
-// 100-nanosecond intervals since January 1, 1601.
-union TimeStamp {
-  FILETIME ft_;
-  int64_t t_;
-};
-
 static int64_t GetCurrentTimeMicros() {
-  static const int64_t kTimeEpoc = 116444736000000000LL;
   static const int64_t kTimeScaler = 10;  // 100 ns to us.
 
   TimeStamp time;
   GetSystemTimeAsFileTime(&time.ft_);
-  return (time.t_ - kTimeEpoc) / kTimeScaler;
+  return (time.t_ - kFileTimeEpoch) / kTimeScaler;
 }
 
 static int64_t qpc_ticks_per_second = 0;

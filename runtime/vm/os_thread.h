@@ -305,8 +305,9 @@ class OSThread : public BaseThread {
 
   friend class IsolateGroup;  // to access set_thread(Thread*).
   friend class OSThreadIterator;
-  friend class ThreadInterrupterWin;
   friend class ThreadInterrupterFuchsia;
+  friend class ThreadInterrupterMacOS;
+  friend class ThreadInterrupterWin;
   friend class ThreadPool;  // to access owning_thread_pool_worker_
 };
 

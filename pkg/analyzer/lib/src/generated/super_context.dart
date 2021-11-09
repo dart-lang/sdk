@@ -37,7 +37,7 @@ class SuperContext {
         return node.factoryKeyword == null
             ? SuperContext.valid
             : SuperContext.static;
-      } else if (node is ConstructorFieldInitializer) {
+      } else if (node is ConstructorInitializer) {
         return SuperContext.static;
       } else if (node is FieldDeclaration) {
         return node.staticKeyword == null && node.fields.lateKeyword != null

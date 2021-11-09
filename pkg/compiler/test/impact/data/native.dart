@@ -29,7 +29,7 @@ main() {
  type=[inst:JSNull,inst:JSString,native:bool,native:int]
 */
 testJSCall() => foreign.JS(
-    'int|bool|NativeUint8List|Rectangle|IdbFactory|SqlDatabase|TypedData|ContextAttributes',
+    'int|bool|NativeUint8List|Rectangle|IdbFactory|TypedData|ContextAttributes',
     '#',
     null);
 

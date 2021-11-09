@@ -499,39 +499,6 @@ class VMCommand extends ProcessCommand {
       VMCommandOutput(this, exitCode, timedOut, stdout, stderr, time, pid);
 }
 
-class VMBatchCommand extends ProcessCommand implements VMCommand {
-  final String dartFile;
-  final bool checked;
-
-  VMBatchCommand(String executable, this.dartFile, List<String> arguments,
-      Map<String, String> environmentOverrides,
-      {this.checked = true, int index = 0})
-      : super('vm-batch', executable, arguments, environmentOverrides, null,
-            index);
-
-  VMBatchCommand indexedCopy(int index) =>
-      VMBatchCommand(executable, dartFile, arguments, environmentOverrides,
-          checked: checked, index: index);
-
-  @override
-  List<String> get batchArguments =>
-      checked ? ['--checked', dartFile] : [dartFile];
-
-  @override
-  bool _equal(VMBatchCommand other) {
-    return super._equal(other) &&
-        dartFile == other.dartFile &&
-        checked == other.checked;
-  }
-
-  @override
-  void _buildHashCode(HashCodeBuilder builder) {
-    super._buildHashCode(builder);
-    builder.addJson(dartFile);
-    builder.addJson(checked);
-  }
-}
-
 // Run a VM test under RR, and copy the trace if it crashes. Using a helper
 // script like the precompiler does not work because the RR traces are large
 // and we must diligently erase them for non-crashes even if the test times

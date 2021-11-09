@@ -277,6 +277,7 @@ class _ServiceTesterRunner {
         vm = await vmServiceConnectUri(serviceWebsocketAddress);
         print('Done loading VM');
         isolate = await getFirstIsolate(vm);
+        print('Got first isolate');
       });
     });
 
@@ -326,18 +327,23 @@ class _ServiceTesterRunner {
     Completer<dynamic>? completer = Completer();
     late StreamSubscription subscription;
     subscription = service.onIsolateEvent.listen((Event event) async {
+      print('Isolate event: $event');
       if (completer == null) {
         await subscription.cancel();
         return;
       }
       if (event.kind == EventKind.kIsolateRunnable) {
+        print(event.isolate!.name);
         vm = await service.getVM();
-        assert(vmIsolates.isNotEmpty);
+        //assert(vmIsolates.isNotEmpty);
         await subscription.cancel();
-        completer!.complete(vmIsolates.first);
+        await service.streamCancel(EventStreams.kIsolate);
+        completer!.complete(event.isolate!);
         completer = null;
       }
     });
+
+    await service.streamListen(EventStreams.kIsolate);
 
     // The isolate may have started before we subscribed.
     vm = await service.getVM();

@@ -2019,7 +2019,7 @@ abstract class StreamTransformer<S, T> {
   /// they are used in streams that can be listened to multiple times.
   ///
   /// ```dart
-  /// StreamController<String> controller = StreamController.broadcast()
+  /// StreamController<String> controller = StreamController.broadcast();
   /// controller.onListen = () {
   ///   scheduleMicrotask(() {
   ///     controller.addError("Bad");
@@ -2059,7 +2059,7 @@ abstract class StreamTransformer<S, T> {
   /// [StreamTransformer.bind] API and can be used when the transformation is
   /// available as a stream-to-stream function.
   ///
-  /// ```dart
+  /// ```dart import:convert
   /// final splitDecoded = StreamTransformer<List<int>, String>.fromBind(
   ///     (stream) => stream.transform(utf8.decoder).transform(LineSplitter()));
   /// ```

@@ -94,9 +94,9 @@ static method main() → dynamic {}
 
 constants  {
   #C1 = constructor-tearoff self::A::foo
-  #C2 = instantiation self::A::foo <core::int*>
+  #C2 = instantiation #C1 <core::int*>
   #C3 = constructor-tearoff self::A::•
-  #C4 = instantiation self::A::• <core::int*>
-  #C5 = static-tearoff self::A::bar
-  #C6 = instantiation self::A::bar <core::int*>
+  #C4 = instantiation #C3 <core::int*>
+  #C5 = constructor-tearoff self::A::bar
+  #C6 = instantiation #C5 <core::int*>
 }

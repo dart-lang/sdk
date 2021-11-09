@@ -1,0 +1,78 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef B = self::A;
+class A extends core::Object {
+  constructor •(core::int x, core::int y, {required core::int z = #C1}) → self::A
+    : super core::Object::•()
+    ;
+  static factory foo(core::int x, core::int y, {required core::int z = #C1}) → self::A
+    return new self::A::•(x, y, z: z);
+  get property() → (core::int, core::int, {required z: core::int}) → void
+    return throw 42;
+  method bar(core::int x, core::int y, {required core::int z = #C1}) → void {}
+}
+class Test extends self::A {
+  constructor •() → self::Test
+    : super self::A::•(1, 2, z: 3)
+    ;
+  method test() → dynamic {
+    super.{self::A::bar}(1, 2, z: 3);
+    let final core::int #t1 = 1 in let final core::int #t2 = 2 in super.{self::A::bar}(#t1, 3, z: #t2);
+    let final core::int #t3 = 1 in super.{self::A::bar}(2, 3, z: #t3);
+  }
+}
+extension E on self::A {
+  method method1 = self::E|method1;
+  tearoff method1 = self::E|get#method1;
+  method method2 = self::E|method2;
+  tearoff method2 = self::E|get#method2;
+}
+static method foo(core::int x, core::int y, {required core::int z = #C1}) → dynamic {}
+static method E|method1(lowered final self::A #this) → dynamic {
+  let final self::A #t4 = #this in let final core::int #t5 = 1 in self::E|method2(#t4, 2, foo: #t5);
+}
+static method E|get#method1(lowered final self::A #this) → () → dynamic
+  return () → dynamic => self::E|method1(#this);
+static method E|method2(lowered final self::A #this, core::int bar, {core::int? foo = #C1}) → dynamic {}
+static method E|get#method2(lowered final self::A #this) → (core::int, {foo: core::int?}) → dynamic
+  return (core::int bar, {core::int? foo = #C1}) → dynamic => self::E|method2(#this, bar, foo: foo);
+static method test(dynamic d, core::Function f, self::A a) → dynamic {
+  function local(core::int x, core::int y, {required core::int z = #C1}) → void {}
+  self::foo(1, 2, z: 3);
+  let final core::int #t6 = 1 in let final core::int #t7 = 2 in self::foo(#t6, 3, z: #t7);
+  let final core::int #t8 = 1 in self::foo(2, 3, z: #t8);
+  self::A::foo(1, 2, z: 3);
+  let final core::int #t9 = 1 in let final core::int #t10 = 2 in self::A::foo(#t9, 3, z: #t10);
+  let final core::int #t11 = 1 in self::A::foo(2, 3, z: #t11);
+  self::A::foo(1, 2, z: 3);
+  let final core::int #t12 = 1 in let final core::int #t13 = 2 in self::A::foo(#t12, 3, z: #t13);
+  let final core::int #t14 = 1 in self::A::foo(2, 3, z: #t14);
+  new self::A::•(1, 2, z: 3);
+  let final core::int #t15 = 1 in let final core::int #t16 = 2 in new self::A::•(#t15, 3, z: #t16);
+  let final core::int #t17 = 1 in new self::A::•(2, 3, z: #t17);
+  new self::A::•(1, 2, z: 3);
+  let final core::int #t18 = 1 in let final core::int #t19 = 2 in new self::A::•(#t18, 3, z: #t19);
+  let final core::int #t20 = 1 in new self::A::•(2, 3, z: #t20);
+  d{dynamic}.call(1, 2, z: 3);
+  let final core::int #t21 = 1 in let final core::int #t22 = 2 in d{dynamic}.call(#t21, 3, z: #t22);
+  let final core::int #t23 = 1 in d{dynamic}.call(2, 3, z: #t23);
+  f(1, 2, z: 3);
+  let final core::int #t24 = 1 in let final core::int #t25 = 2 in f(#t24, 3, z: #t25);
+  let final core::int #t26 = 1 in f(2, 3, z: #t26);
+  let final self::A #t27 = a in let final core::int #t28 = 1 in let final core::int #t29 = 2 in let final core::int #t30 = 3 in #t27.{self::A::property}{(core::int, core::int, {required z: core::int}) → void}(#t28, #t29, z: #t30){(core::int, core::int, {required z: core::int}) → void};
+  let final self::A #t31 = a in let final core::int #t32 = 1 in let final core::int #t33 = 2 in let final core::int #t34 = 3 in #t31.{self::A::property}{(core::int, core::int, {required z: core::int}) → void}(#t32, #t34, z: #t33){(core::int, core::int, {required z: core::int}) → void};
+  let final self::A #t35 = a in let final core::int #t36 = 1 in let final core::int #t37 = 2 in let final core::int #t38 = 3 in #t35.{self::A::property}{(core::int, core::int, {required z: core::int}) → void}(#t37, #t38, z: #t36){(core::int, core::int, {required z: core::int}) → void};
+  a.{self::A::bar}(1, 2, z: 3){(core::int, core::int, {required z: core::int}) → void};
+  let final self::A #t39 = a in let final core::int #t40 = 1 in let final core::int #t41 = 2 in #t39.{self::A::bar}(#t40, 3, z: #t41){(core::int, core::int, {required z: core::int}) → void};
+  let final self::A #t42 = a in let final core::int #t43 = 1 in #t42.{self::A::bar}(2, 3, z: #t43){(core::int, core::int, {required z: core::int}) → void};
+  local(1, 2, z: 3){(core::int, core::int, {required z: core::int}) → void};
+  let final core::int #t44 = 1 in let final core::int #t45 = 2 in local(#t44, 3, z: #t45){(core::int, core::int, {required z: core::int}) → void};
+  let final core::int #t46 = 1 in local(2, 3, z: #t46){(core::int, core::int, {required z: core::int}) → void};
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

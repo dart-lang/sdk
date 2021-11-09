@@ -73,7 +73,7 @@ abstract class ErrorToken extends SimpleToken {
   int get length => 1;
 
   String get lexeme {
-    String errorMsg = assertionMessage.message;
+    String errorMsg = assertionMessage.problemMessage;
 
     // Attempt to include the location which is calling the parser
     // in an effort to debug https://github.com/dart-lang/sdk/issues/37528

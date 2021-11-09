@@ -101,6 +101,9 @@ class Driver implements ServerStarter {
   /// The path to the package config file override.
   static const String PACKAGES_FILE = 'packages';
 
+  /// The forced protocol version that the server will report to the client.
+  static const String REPORT_PROTOCOL_VERSION = 'report-protocol-version';
+
   /// The name of the flag specifying the server protocol to use.
   static const String SERVER_PROTOCOL = 'protocol';
   static const String PROTOCOL_ANALYZER = 'analyzer';
@@ -160,6 +163,8 @@ class Driver implements ServerStarter {
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     analysisServerOptions.packagesFile = results[PACKAGES_FILE];
+    analysisServerOptions.reportProtocolVersion =
+        results[REPORT_PROTOCOL_VERSION];
 
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
     var sdkConfig = SdkConfiguration.readFromSdk();
@@ -688,6 +693,14 @@ class Driver implements ServerStarter {
         defaultsTo: false,
         negatable: false,
         hide: true);
+    parser.addOption(
+      REPORT_PROTOCOL_VERSION,
+      valueHelp: 'version',
+      help: 'The protocol version that the server will report to the client, '
+          'can be used to temporary enabling features that we expect to be '
+          'available in future versions.',
+      hide: true,
+    );
 
     //
     // Hidden; these are deprecated and no longer read from.

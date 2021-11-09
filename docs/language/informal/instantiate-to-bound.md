@@ -8,7 +8,7 @@
 
 Based on [this description](https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397) by leafp@.
 
-**This document** is an informal specification of the the instantiate to
+**This document** is an informal specification of the instantiate to
 bound mechanism in Dart 2. The feature described here, *instantiate to
 bound*, makes it possible to omit some or all actual type arguments in some
 types using generic classes. The missing type arguments will be added

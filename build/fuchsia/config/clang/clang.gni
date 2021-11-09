@@ -3,5 +3,5 @@
 # found in the LICENSE file.
 
 declare_args() {
-  clang_base_path = "//buildtools/linux-x64/clang"
+  clang_base_path = "//buildtools/${host_os}-x64/clang"
 }

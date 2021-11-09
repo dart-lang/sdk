@@ -817,7 +817,7 @@ abstract class Zone {
   /// Equivalent to:
   /// ```dart
   /// ZoneCallback registered = this.registerUnaryCallback(callback);
-  /// return (arg) => thin.runUnary(registered, arg);
+  /// return (arg) => this.runUnary(registered, arg);
   /// ```
   ZoneUnaryCallback<R, T> bindUnaryCallback<R, T>(R callback(T argument));
 
@@ -827,7 +827,7 @@ abstract class Zone {
   /// Equivalent to:
   /// ```dart
   /// ZoneCallback registered = registerBinaryCallback(callback);
-  /// return (arg1, arg2) => thin.runBinary(registered, arg1, arg2);
+  /// return (arg1, arg2) => this.runBinary(registered, arg1, arg2);
   /// ```
   ZoneBinaryCallback<R, T1, T2> bindBinaryCallback<R, T1, T2>(
       R callback(T1 argument1, T2 argument2));
@@ -1410,11 +1410,9 @@ void _rootHandleUncaughtError(Zone? self, ZoneDelegate? parent, Zone zone,
 
 void _rootHandleError(Object error, StackTrace stackTrace) {
   _schedulePriorityAsyncCallback(() {
-    _rethrow(error, stackTrace);
+    Error.throwWithStackTrace(error, stackTrace);
   });
 }
-
-external void _rethrow(Object error, StackTrace stackTrace);
 
 R _rootRun<R>(Zone? self, ZoneDelegate? parent, Zone zone, R f()) {
   if (identical(Zone._current, zone)) return f();
@@ -1669,7 +1667,7 @@ class _RootZone extends _Zone {
   // Methods that can be customized by the zone specification.
 
   void handleUncaughtError(Object error, StackTrace stackTrace) {
-    _rootHandleUncaughtError(null, null, this, error, stackTrace);
+    _rootHandleError(error, stackTrace);
   }
 
   Zone fork(

@@ -1,0 +1,130 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Super<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Super<self::Super::T%>
+    ;
+  method method1(core::int a) → void
+    ;
+  method method2({core::int? a}) → void
+    ;
+  method method3(core::int a) → void
+    ;
+  method method4(core::num a) → void
+    ;
+  method method5({core::int? a}) → void
+    ;
+  method method6({core::num? a}) → void
+    ;
+  method method7(covariant-by-class core::List<self::Super::T%> a) → void
+    ;
+  method method8({covariant-by-class core::List<self::Super::T%>? a}) → void
+    ;
+  method method9(covariant-by-class core::List<self::Super::T%> a) → void
+    ;
+  method method10(covariant-by-class core::Iterable<self::Super::T%> a) → void
+    ;
+  method method11({covariant-by-class core::List<self::Super::T%>? a}) → void
+    ;
+  method method12({covariant-by-class core::Iterable<self::Super::T%>? a}) → void
+    ;
+  set setter1(core::int a) → void
+    ;
+  set setter2(core::num a) → void
+    ;
+  set setter3(covariant-by-class core::List<self::Super::T%> a) → void
+    ;
+  set setter4(covariant-by-class core::Iterable<self::Super::T%> a) → void
+    ;
+}
+class Interface<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Interface<self::Interface::T%>
+    ;
+  method method1(covariant-by-declaration core::num a) → void
+    ;
+  method method2({covariant-by-declaration core::num? a}) → void
+    ;
+  method method7(covariant-by-declaration covariant-by-class core::Iterable<self::Interface::T%> a) → void
+    ;
+  method method8({covariant-by-declaration covariant-by-class core::Iterable<self::Interface::T%>? a}) → void
+    ;
+  set setter1(covariant-by-declaration core::num a) → void
+    ;
+  set setter3(covariant-by-declaration covariant-by-class core::Iterable<self::Interface::T%> a) → void
+    ;
+}
+abstract class Class<T extends core::Object? = dynamic> extends self::Super<self::Class::T%> implements self::Interface<self::Class::T%> {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    ;
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::num) → void */ method3(covariant-by-declaration core::int a) → void
+    return super.{self::Super::method3}(a);
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::int) → void */ method4(covariant-by-declaration core::num a) → void
+    return super.{self::Super::method4}(a);
+  forwarding-stub forwarding-semi-stub method /* signature-type: ({a: core::num?}) → void */ method5({covariant-by-declaration core::int? a}) → void
+    return super.{self::Super::method5}(a: a);
+  forwarding-stub forwarding-semi-stub method /* signature-type: ({a: core::int?}) → void */ method6({covariant-by-declaration core::num? a}) → void
+    return super.{self::Super::method6}(a: a);
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::Iterable<self::Class::T%>) → void */ method9(covariant-by-declaration covariant-by-class core::List<self::Class::T%> a) → void
+    return super.{self::Super::method9}(a);
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::List<self::Class::T%>) → void */ method10(covariant-by-declaration covariant-by-class core::Iterable<self::Class::T%> a) → void
+    return super.{self::Super::method10}(a);
+  forwarding-stub forwarding-semi-stub method /* signature-type: ({a: core::Iterable<self::Class::T%>?}) → void */ method11({covariant-by-declaration covariant-by-class core::List<self::Class::T%>? a}) → void
+    return super.{self::Super::method11}(a: a);
+  forwarding-stub forwarding-semi-stub method /* signature-type: ({a: core::List<self::Class::T%>?}) → void */ method12({covariant-by-declaration covariant-by-class core::Iterable<self::Class::T%>? a}) → void
+    return super.{self::Super::method12}(a: a);
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::int) → void */ setter2(covariant-by-declaration core::num a) → void
+    return super.{self::Super::setter2} = a;
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::List<self::Class::T%>) → void */ setter4(covariant-by-declaration covariant-by-class core::Iterable<self::Class::T%> a) → void
+    return super.{self::Super::setter4} = a;
+  forwarding-stub method method1(covariant-by-declaration core::num a) → void
+    return super.{self::Super::method1}(a as core::int);
+  forwarding-stub method method2({covariant-by-declaration core::num? a}) → void
+    return super.{self::Super::method2}(a: a as core::int?);
+  forwarding-stub method method7(covariant-by-declaration covariant-by-class core::Iterable<self::Class::T%> a) → void
+    return super.{self::Super::method7}(a as core::List<self::Class::T%>);
+  forwarding-stub method method8({covariant-by-declaration covariant-by-class core::Iterable<self::Class::T%>? a}) → void
+    return super.{self::Super::method8}(a: a as core::List<self::Class::T%>?);
+  forwarding-stub set setter1(covariant-by-declaration core::num a) → void
+    return super.{self::Super::setter1} = a as core::int;
+  forwarding-stub set setter3(covariant-by-declaration covariant-by-class core::Iterable<self::Class::T%> a) → void
+    return super.{self::Super::setter3} = a as core::List<self::Class::T%>;
+}
+class Subclass<T extends core::Object? = dynamic> extends self::Class<self::Subclass::T%> {
+  synthetic constructor •() → self::Subclass<self::Subclass::T%>
+    ;
+  method method1(covariant-by-declaration core::num a) → void
+    ;
+  method method2({covariant-by-declaration core::num? a}) → void
+    ;
+  method method3(covariant-by-declaration core::num a) → void
+    ;
+  method method4(covariant-by-declaration core::num a) → void
+    ;
+  method method5({covariant-by-declaration core::num? a}) → void
+    ;
+  method method6({covariant-by-declaration core::num? a}) → void
+    ;
+  method method7(covariant-by-declaration covariant-by-class core::Iterable<self::Subclass::T%> a) → void
+    ;
+  method method8({covariant-by-declaration covariant-by-class core::Iterable<self::Subclass::T%>? a}) → void
+    ;
+  method method9(covariant-by-declaration covariant-by-class core::Iterable<self::Subclass::T%> a) → void
+    ;
+  method method10(covariant-by-declaration covariant-by-class core::Iterable<self::Subclass::T%> a) → void
+    ;
+  method method11({covariant-by-declaration covariant-by-class core::Iterable<self::Subclass::T%>? a}) → void
+    ;
+  method method12({covariant-by-declaration covariant-by-class core::Iterable<self::Subclass::T%>? a}) → void
+    ;
+  set setter1(covariant-by-declaration core::num a) → void
+    ;
+  set setter2(covariant-by-declaration core::num a) → void
+    ;
+  set setter3(covariant-by-declaration covariant-by-class core::Iterable<self::Subclass::T%> a) → void
+    ;
+  set setter4(covariant-by-declaration covariant-by-class core::Iterable<self::Subclass::T%> a) → void
+    ;
+}
+static method main() → dynamic
+  ;

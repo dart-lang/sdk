@@ -1166,6 +1166,10 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       }
       if (++next_read_ == field) return;
       FALL_THROUGH;
+    case kSignatureType:
+      helper_->SkipOptionalDartType();  // read signature type.
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
     case kFunction:
       helper_->SkipFunctionNode();  // read function node.
       if (++next_read_ == field) return;

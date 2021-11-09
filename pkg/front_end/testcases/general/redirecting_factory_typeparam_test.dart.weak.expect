@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A<T extends core::Object* = dynamic, S extends core::Object* = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::redir];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   constructor •(self::A::T* t, self::A::S* s) → self::A<self::A::T*, self::A::S*>*
     : super core::Object::•()
     ;
@@ -22,4 +22,8 @@ class A<T extends core::Object* = dynamic, S extends core::Object* = dynamic> ex
 }
 static method main() → dynamic {
   new self::A::•<core::int*, core::String*>(42, "foobar");
+}
+
+constants  {
+  #C1 = constructor-tearoff self::A::redir
 }

@@ -25,3 +25,8 @@ class B extends self::A {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_constructor.dart:5:7 -> ConstructorTearOffConstant(A.fisk)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

@@ -36,7 +36,6 @@ declare_args() {
 # ......dart.lib (import library for VM native extensions on Windows)
 # ......dartaotruntime or dartaotruntime.exe (executable)
 # ......dartdoc
-# ......dartfmt
 # ......dart2js
 # ......dartanalyzer
 # ......dartdevc
@@ -50,7 +49,6 @@ declare_args() {
 # ........dartdev.dill
 # ........dartdevc.dart.snapshot
 # ........dartdoc.dart.snapshot
-# ........dartfmt.dart.snapshot
 # ........dds.dart.snapshot
 # ........frontend_server.dart.snapshot
 # ........gen_kernel.dart.snapshot (if not on ia32)
@@ -70,9 +68,9 @@ declare_args() {
 # ......_internal/
 # ........strong.sum
 # ........dart2js_platform.dill
+# ........dart2js_platform_unsound.dill
 # ........dart2js_server_platform.dill
-# ........dart2js_platform_strong.dill
-# ........dart2js_server_platform_strong.dill
+# ........dart2js_server_platform_unsound.dill
 # ........vm_platform_strong.dill
 # ........dev_compiler/
 # ......async/
@@ -94,7 +92,6 @@ declare_args() {
 # Scripts that go under bin/
 _platform_sdk_scripts = [
   "dartanalyzer",
-  "dartfmt",
   "pub",
 ]
 
@@ -102,7 +99,6 @@ _full_sdk_scripts = [
   "dart2js",
   "dartanalyzer",
   "dartdevc",
-  "dartfmt",
   "pub",
 ]
 
@@ -126,10 +122,6 @@ _platform_sdk_snapshots = [
   [
     "dartdoc",
     "../utils/dartdoc",
-  ],
-  [
-    "dartfmt",
-    "../utils/dartfmt",
   ],
   [
     "dds",
@@ -521,16 +513,16 @@ copy("copy_dart2js_dill_files") {
   visibility = [ ":create_full_sdk" ]
   deps = [
     ":copy_libraries",
-    "../utils/compiler:compile_dart2js_nnbd_strong_platform",
     "../utils/compiler:compile_dart2js_platform",
-    "../utils/compiler:compile_dart2js_server_nnbd_strong_platform",
+    "../utils/compiler:compile_dart2js_platform_unsound",
     "../utils/compiler:compile_dart2js_server_platform",
+    "../utils/compiler:compile_dart2js_server_platform_unsound",
   ]
   sources = [
-    "$root_out_dir/dart2js_nnbd_strong_platform.dill",
     "$root_out_dir/dart2js_platform.dill",
-    "$root_out_dir/dart2js_server_nnbd_strong_platform.dill",
+    "$root_out_dir/dart2js_platform_unsound.dill",
     "$root_out_dir/dart2js_server_platform.dill",
+    "$root_out_dir/dart2js_server_platform_unsound.dill",
   ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]

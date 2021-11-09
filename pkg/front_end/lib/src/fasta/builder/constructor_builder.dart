@@ -22,7 +22,7 @@ import '../kernel/utils.dart'
     show isRedirectingGenerativeConstructorImplementation;
 import '../kernel/kernel_helper.dart' show SynthesizedFunctionNode;
 
-import '../loader.dart' show Loader;
+import '../source/source_loader.dart' show SourceLoader;
 
 import '../messages.dart'
     show
@@ -37,6 +37,7 @@ import '../messages.dart'
 import '../source/source_class_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../type_inference/type_schema.dart';
+import '../type_inference/type_inferrer.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 
 import 'builder.dart';
@@ -68,8 +69,8 @@ abstract class ConstructorBuilder implements FunctionBuilder {
   void injectInvalidInitializer(Message message, int charOffset, int length,
       ExpressionGeneratorHelper helper);
 
-  void addInitializer(
-      Initializer initializer, ExpressionGeneratorHelper helper);
+  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
+      {required InitializerInferenceResult? inferenceResult});
 
   void prepareInitializers();
 
@@ -90,7 +91,7 @@ abstract class ConstructorBuilder implements FunctionBuilder {
   Set<FieldBuilder>? takeInitializedFields();
 }
 
-class ConstructorBuilderImpl extends FunctionBuilderImpl
+class SourceConstructorBuilder extends FunctionBuilderImpl
     implements ConstructorBuilder {
   final Constructor _constructor;
   final Procedure? _constructorTearOff;
@@ -114,7 +115,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   @override
   Constructor get actualConstructor => _constructor;
 
-  ConstructorBuilderImpl(
+  SourceConstructorBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
       TypeBuilder? returnType,
@@ -126,25 +127,34 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
-      Member? referenceFrom,
+      Reference? constructorReference,
+      Reference? tearOffReference,
       {String? nativeMethodName,
       required bool forAbstractClassOrEnum})
       : _constructor = new Constructor(new FunctionNode(null),
             name: new Name(name, compilationUnit.library),
             fileUri: compilationUnit.fileUri,
-            reference: referenceFrom?.reference)
+            reference: constructorReference)
           ..startFileOffset = startCharOffset
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault,
         _constructorTearOff = createConstructorTearOffProcedure(
-            name, compilationUnit, compilationUnit.fileUri, charOffset,
+            name,
+            compilationUnit,
+            compilationUnit.fileUri,
+            charOffset,
+            tearOffReference,
             forAbstractClassOrEnum: forAbstractClassOrEnum),
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
   @override
   SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
+
+  @override
+  SourceClassBuilder get classBuilder =>
+      super.classBuilder as SourceClassBuilder;
 
   @override
   Member? get readTarget => _constructorTearOff ?? _constructor;
@@ -213,7 +223,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
 
       if (_constructorTearOff != null) {
         buildConstructorTearOffProcedure(_constructorTearOff!, _constructor,
-            classBuilder!.cls, libraryBuilder);
+            classBuilder.cls, libraryBuilder);
       }
 
       _hasBeenBuilt = true;
@@ -243,7 +253,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
         if (formal.type == null && formal.isInitializingFormal) {
-          formal.finalizeInitializingFormal(classBuilder!);
+          formal.finalizeInitializingFormal(classBuilder);
         }
       }
     }
@@ -270,7 +280,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     if (isConst && beginInitializers != null) {
       BodyBuilder bodyBuilder = library.loader
           .createBodyBuilderForOutlineExpression(
-              library, classBuilder!, this, classBuilder!.scope, fileUri);
+              library, classBuilder, this, classBuilder.scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.required;
       bodyBuilder.parseInitializers(beginInitializers!);
       bodyBuilder.performBacklogComputations(delayedActionPerformers);
@@ -287,7 +297,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     // According to the specification §9.3 the return type of a constructor
     // function is its enclosing class.
     super.buildFunction(library);
-    Class enclosingClass = classBuilder!.cls;
+    Class enclosingClass = classBuilder.cls;
     List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
       TypeParameter typeParameter = enclosingClass.typeParameters[i];
@@ -319,8 +329,8 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
-  void addInitializer(
-      Initializer initializer, ExpressionGeneratorHelper helper) {
+  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
+      {required InitializerInferenceResult? inferenceResult}) {
     List<Initializer> initializers = _constructor.initializers;
     if (initializer is SuperInitializer) {
       if (superInitializer != null) {
@@ -333,6 +343,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
             "super".length,
             helper);
       } else {
+        inferenceResult?.applyResult(initializers, _constructor);
         initializers.add(initializer..parent = _constructor);
         superInitializer = initializer;
       }
@@ -364,9 +375,11 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
           error.parent = _constructor;
           initializers[i] = error;
         }
+        inferenceResult?.applyResult(initializers, _constructor);
         initializers.add(initializer..parent = _constructor);
         redirectingInitializer = initializer;
       } else {
+        inferenceResult?.applyResult(initializers, _constructor);
         initializers.add(initializer..parent = _constructor);
         redirectingInitializer = initializer;
       }
@@ -382,6 +395,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       injectInvalidInitializer(messageSuperInitializerNotLast,
           initializer.fileOffset, noLength, helper);
     } else {
+      inferenceResult?.applyResult(initializers, _constructor);
       initializers.add(initializer..parent = _constructor);
     }
   }
@@ -426,14 +440,14 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   }
 
   @override
-  void becomeNative(Loader loader) {
+  void becomeNative(SourceLoader loader) {
     _constructor.isExternal = true;
     super.becomeNative(loader);
   }
 
   @override
   void applyPatch(Builder patch) {
-    if (patch is ConstructorBuilderImpl) {
+    if (patch is SourceConstructorBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
         dataForTesting?.patchForTesting = patch;

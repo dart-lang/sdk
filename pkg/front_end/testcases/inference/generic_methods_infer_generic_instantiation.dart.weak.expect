@@ -177,13 +177,13 @@ static method main() → dynamic {}
 
 constants  {
   #C1 = static-tearoff math::max
-  #C2 = instantiation math::max <core::int*>
-  #C3 = instantiation math::max <core::double*>
-  #C4 = instantiation math::max <core::num*>
-  #C5 = instantiation math::max <core::Object*>
+  #C2 = instantiation #C1 <core::int*>
+  #C3 = instantiation #C1 <core::double*>
+  #C4 = instantiation #C1 <core::num*>
+  #C5 = instantiation #C1 <core::Object*>
   #C6 = static-tearoff math::min
-  #C7 = instantiation math::min <core::int*>
-  #C8 = instantiation math::min <core::double*>
-  #C9 = instantiation math::min <core::num*>
-  #C10 = instantiation math::min <core::Object*>
+  #C7 = instantiation #C6 <core::int*>
+  #C8 = instantiation #C6 <core::double*>
+  #C9 = instantiation #C6 <core::num*>
+  #C10 = instantiation #C6 <core::Object*>
 }

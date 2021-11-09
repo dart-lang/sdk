@@ -2,29 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
 import 'dart:convert';
+import 'dart:typed_data';
 
 /// Interface for deserialization.
 // TODO(sigmund): share this with pkg:compiler/src/serialization/*
 abstract class DataSource {
   /// Reads a reference to an [E] value from this data source. If the value has
   /// not yet been deserialized, [f] is called to deserialize the value itself.
-  E readCached<E>(E f());
+  E readCached<E>(E Function() f);
 
   /// Reads a potentially `null` [E] value from this data source, calling [f] to
   /// read the non-null value from the data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeValueOrNull].
-  E readValueOrNull<E>(E f());
+  E readValueOrNull<E>(E Function() f);
 
   /// Reads a list of [E] values from this data source. If [emptyAsNull] is
   /// `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeList].
-  List<E> readList<E>(E f(), {bool emptyAsNull: false});
+  List<E> readList<E>(E Function() f, {bool emptyAsNull = false});
 
   /// Reads a boolean value from this data source.
   bool readBool();
@@ -53,7 +53,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeStrings].
-  List<String> readStrings({bool emptyAsNull: false});
+  List<String> readStrings({bool emptyAsNull = false});
 
   /// Reads a map from string values to [V] values from this data source,
   /// calling [f] to read each value from the data source. If [emptyAsNull] is
@@ -61,7 +61,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeStringMap].
-  Map<String, V> readStringMap<V>(V f(), {bool emptyAsNull: false});
+  Map<String, V> readStringMap<V>(V Function() f, {bool emptyAsNull = false});
 
   /// Reads an enum value from the list of enum [values] from this data source.
   ///
@@ -81,7 +81,7 @@ abstract class DataSource {
 /// Mixin that implements all convenience methods of [DataSource].
 abstract class DataSourceMixin implements DataSource {
   @override
-  E readValueOrNull<E>(E f()) {
+  E readValueOrNull<E>(E Function() f) {
     bool hasValue = readBool();
     if (hasValue) {
       return f();
@@ -90,14 +90,10 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<E> readList<E>(E f(), {bool emptyAsNull: false}) {
+  List<E> readList<E>(E Function() f, {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>(count);
-    for (int i = 0; i < count; i++) {
-      list[i] = f();
-    }
-    return list;
+    return List.generate(count, (i) => f());
   }
 
   @override
@@ -119,18 +115,14 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  List<String> readStrings({bool emptyAsNull: false}) {
+  List<String> readStrings({bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<String> list = new List<String>(count);
-    for (int i = 0; i < count; i++) {
-      list[i] = readString();
-    }
-    return list;
+    return List.generate(count, (index) => readString());
   }
 
   @override
-  Map<String, V> readStringMap<V>(V f(), {bool emptyAsNull: false}) {
+  Map<String, V> readStringMap<V>(V Function() f, {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     Map<String, V> map = {};
@@ -147,7 +139,7 @@ abstract class DataSourceMixin implements DataSource {
 class IndexedSource<E> {
   final int Function() _readInt;
   final List<E> _cache = [];
-  final Set<int> _pending = new Set();
+  final Set<int> _pending = {};
 
   IndexedSource(this._readInt);
 
@@ -155,7 +147,7 @@ class IndexedSource<E> {
   ///
   /// If the value hasn't yet been read, [readValue] is called to deserialize
   /// the value itself.
-  E read(E readValue()) {
+  E read(E Function() readValue) {
     int index = _readInt();
     if (_pending.contains(index)) throw "serialization cycles not supported";
     if (index >= _cache.length) {
@@ -177,17 +169,17 @@ abstract class AbstractDataSource extends DataSourceMixin
     implements DataSource {
   IndexedSource<String> _stringIndex;
   IndexedSource<Uri> _uriIndex;
-  Map<Type, IndexedSource> _generalCaches = {};
+  final Map<Type, IndexedSource> _generalCaches = {};
 
   AbstractDataSource() {
-    _stringIndex = new IndexedSource<String>(_readIntInternal);
-    _uriIndex = new IndexedSource<Uri>(_readIntInternal);
+    _stringIndex = IndexedSource<String>(_readIntInternal);
+    _uriIndex = IndexedSource<Uri>(_readIntInternal);
   }
 
   @override
-  E readCached<E>(E f()) {
+  E readCached<E>(E Function() f) {
     IndexedSource source =
-        _generalCaches[E] ??= new IndexedSource<E>(_readIntInternal);
+        _generalCaches[E] ??= IndexedSource<E>(_readIntInternal);
     return source.read(f);
   }
 
@@ -254,7 +246,7 @@ class BinarySource extends AbstractDataSource {
   @override
   String _readStringInternal() {
     int length = _readIntInternal();
-    List<int> bytes = new Uint8List(length);
+    List<int> bytes = Uint8List(length);
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
     _byteOffset += bytes.length;
     return utf8.decode(bytes);

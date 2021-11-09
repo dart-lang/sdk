@@ -81,7 +81,7 @@ namespace dart {
   V(::, _toClampedUint8, ConvertIntToClampedUint8, 0x00fc4650)                 \
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
     CopyRangeFromUint8ListToOneByteString, 0x0df019c5)                         \
-  V(_StringBase, _interpolate, StringBaseInterpolate, 0xea1eafca)              \
+  V(_StringBase, _interpolate, StringBaseInterpolate, 0xfc28bc84)              \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x97728b46)             \
   V(_Double, _add, DoubleAdd, 0xea666327)                                      \
   V(_Double, _sub, DoubleSub, 0x28474c2e)                                      \

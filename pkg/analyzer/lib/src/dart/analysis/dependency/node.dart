@@ -22,7 +22,7 @@ class ClassMemberReference {
   final int hashCode;
 
   ClassMemberReference(this.target, this.name)
-      : hashCode = Object.hash(target.hashCode, name.hashCode);
+      : hashCode = Object.hash(target, name);
 
   @override
   bool operator ==(Object other) {
@@ -46,11 +46,11 @@ class ClassMemberReference {
 
 /// The dependencies of the API or implementation portion of a node.
 class Dependencies {
-  static final none = Dependencies([], [], [], [], [], []);
+  static final none = Dependencies(Uint8List(0), [], [], [], [], []);
 
   /// The token signature of this portion of the node. It depends on all
   /// tokens that might affect the node API or implementation resolution.
-  final List<int> tokenSignature;
+  final Uint8List tokenSignature;
 
   /// The names that appear unprefixed in this portion of the node, and are
   /// not defined locally in the node. Locally defined names themselves
@@ -87,7 +87,7 @@ class Dependencies {
   /// The transitive signature of this portion of the node, computed using
   /// the [tokenSignature] of this node, and API signatures of the
   /// [referencedNodes].
-  List<int>? transitiveSignature;
+  Uint8List? transitiveSignature;
 
   Dependencies(
       this.tokenSignature,
@@ -120,7 +120,7 @@ class LibraryQualifiedName {
 
   factory LibraryQualifiedName(Uri libraryUri, String name) {
     var isPrivate = name.startsWith('_');
-    var hashCode = Object.hash(libraryUri.hashCode, name.hashCode);
+    var hashCode = Object.hash(libraryUri, name);
     return LibraryQualifiedName._internal(
         libraryUri, name, isPrivate, hashCode);
   }

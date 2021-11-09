@@ -121,7 +121,7 @@ class NewPage {
     ASSERT(owner_ == nullptr);
     uword result = top_;
     uword new_top = result + size;
-    if (LIKELY(new_top < end_)) {
+    if (LIKELY(new_top <= end_)) {
       top_ = new_top;
       return result;
     }
@@ -168,6 +168,7 @@ class NewPage {
 class SemiSpace {
  public:
   static void Init();
+  static void DrainCache();
   static void Cleanup();
   static intptr_t CachedSize();
 
@@ -276,10 +277,10 @@ class Scavenger {
   void AbandonRemainingTLABForDebugging(Thread* thread);
 
   // Collect the garbage in this scavenger.
-  void Scavenge();
+  void Scavenge(GCReason reason);
 
   // Promote all live objects.
-  void Evacuate();
+  void Evacuate(GCReason reason);
 
   int64_t UsedInWords() const {
     MutexLocker ml(&space_lock_);
@@ -365,11 +366,6 @@ class Scavenger {
     kIterateStoreBuffers = 3,
     kProcessToSpace = 4,
     kIterateWeaks = 5,
-    // Data
-    kStoreBufferEntries = 0,
-    kDataUnused1 = 1,
-    kDataUnused2 = 2,
-    kToKBAfterStoreBuffer = 3
   };
 
   uword TryAllocateFromTLAB(Thread* thread, intptr_t size) {
@@ -389,7 +385,7 @@ class Scavenger {
   }
   void TryAllocateNewTLAB(Thread* thread, intptr_t size);
 
-  SemiSpace* Prologue();
+  SemiSpace* Prologue(GCReason reason);
   intptr_t ParallelScavenge(SemiSpace* from);
   intptr_t SerialScavenge(SemiSpace* from);
   void ReverseScavenge(SemiSpace** from);
@@ -413,7 +409,7 @@ class Scavenger {
 
   void MournWeakTables();
 
-  intptr_t NewSizeInWords(intptr_t old_size_in_words) const;
+  intptr_t NewSizeInWords(intptr_t old_size_in_words, GCReason reason) const;
 
   Heap* heap_;
 

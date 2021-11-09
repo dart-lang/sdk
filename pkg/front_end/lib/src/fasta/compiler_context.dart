@@ -100,9 +100,11 @@ class CompilerContext {
     if (context == null) {
       // Note: we throw directly and don't use internalProblem, because
       // internalProblem depends on having a compiler context available.
-      String message = messageInternalProblemMissingContext.message;
-      String tip = messageInternalProblemMissingContext.tip!;
-      throw "Internal problem: $message\nTip: $tip";
+      String problemMessage =
+          messageInternalProblemMissingContext.problemMessage;
+      String correctionMessage =
+          messageInternalProblemMissingContext.correctionMessage!;
+      throw "Internal problem: $problemMessage\nTip: $correctionMessage";
     }
     return context;
   }

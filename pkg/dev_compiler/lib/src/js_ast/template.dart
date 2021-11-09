@@ -4,9 +4,10 @@
 
 // @dart = 2.9
 
-// ignore_for_file: slash_for_doc_comments, omit_local_variable_types
 // ignore_for_file: always_declare_return_types, prefer_collection_literals
+// ignore_for_file: avoid_returning_null_for_void
 // ignore_for_file: prefer_single_quotes, prefer_generic_function_type_aliases
+// ignore_for_file: slash_for_doc_comments, omit_local_variable_types
 // ignore_for_file: unnecessary_this
 
 part of js_ast;

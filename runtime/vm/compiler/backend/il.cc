@@ -894,17 +894,17 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
 
 bool LoadFieldInstr::IsUnboxedDartFieldLoad() const {
   return slot().representation() == kTagged && slot().IsDartField() &&
-         FlowGraphCompiler::IsUnboxedField(slot().field());
+         slot().IsUnboxed();
 }
 
 bool LoadFieldInstr::IsPotentialUnboxedDartFieldLoad() const {
   return slot().representation() == kTagged && slot().IsDartField() &&
-         FlowGraphCompiler::IsPotentialUnboxedField(slot().field());
+         slot().IsPotentialUnboxed();
 }
 
 Representation LoadFieldInstr::representation() const {
   if (IsUnboxedDartFieldLoad() && CompilerState::Current().is_optimizing()) {
-    return FlowGraph::UnboxedFieldRepresentationOf(slot().field());
+    return slot().UnboxedRepresentation();
   }
   return slot().representation();
 }
@@ -963,12 +963,12 @@ void AllocateTypedDataInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 bool StoreInstanceFieldInstr::IsUnboxedDartFieldStore() const {
   return slot().representation() == kTagged && slot().IsDartField() &&
-         FlowGraphCompiler::IsUnboxedField(slot().field());
+         slot().IsUnboxed();
 }
 
 bool StoreInstanceFieldInstr::IsPotentialUnboxedDartFieldStore() const {
   return slot().representation() == kTagged && slot().IsDartField() &&
-         FlowGraphCompiler::IsPotentialUnboxedField(slot().field());
+         slot().IsPotentialUnboxed();
 }
 
 Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
@@ -979,7 +979,7 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
     return kTagged;
   }
   if (IsUnboxedDartFieldStore() && CompilerState::Current().is_optimizing()) {
-    return FlowGraph::UnboxedFieldRepresentationOf(slot().field());
+    return slot().UnboxedRepresentation();
   }
   return slot().representation();
 }
@@ -1075,45 +1075,6 @@ bool LoadFieldInstr::AttributesEqual(const Instruction& other) const {
 bool LoadStaticFieldInstr::AttributesEqual(const Instruction& other) const {
   ASSERT(AllowsCSE());
   return field().ptr() == other.AsLoadStaticField()->field().ptr();
-}
-
-bool LoadStaticFieldInstr::IsFieldInitialized(Object* field_value) const {
-  if (FLAG_fields_may_be_reset) {
-    return false;
-  }
-
-  // Since new isolates will be spawned, the JITed code cannot depend on whether
-  // global field was initialized when running with --enable-isolate-groups.
-  if (FLAG_enable_isolate_groups) return false;
-
-  const Field& field = this->field();
-  Isolate* only_isolate = IsolateGroup::Current()->FirstIsolate();
-  if (only_isolate == nullptr) {
-    // This can happen if background compiler executes this code but the mutator
-    // is being shutdown and the isolate was already unregistered from the group
-    // (and is trying to stop this BG compiler).
-    if (field_value != nullptr) {
-      *field_value = Object::sentinel().ptr();
-    }
-    return false;
-  }
-  if (field_value == nullptr) {
-    field_value = &Object::Handle();
-  }
-  *field_value = only_isolate->field_table()->At(field.field_id());
-  return (field_value->ptr() != Object::sentinel().ptr()) &&
-         (field_value->ptr() != Object::transition_sentinel().ptr());
-}
-
-Definition* LoadStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
-  // When precompiling, the fact that a field is currently initialized does not
-  // make it safe to omit code that checks if the field needs initialization
-  // because the field will be reset so it starts uninitialized in the process
-  // running the precompiled code. We must be prepared to reinitialize fields.
-  if (calls_initializer() && IsFieldInitialized()) {
-    set_calls_initializer(false);
-  }
-  return this;
 }
 
 ConstantInstr::ConstantInstr(const Object& value,
@@ -3002,6 +2963,11 @@ Instruction* DebugStepCheckInstr::Canonicalize(FlowGraph* flow_graph) {
   return NULL;
 }
 
+Instruction* RecordCoverageInstr::Canonicalize(FlowGraph* flow_graph) {
+  ASSERT(!coverage_array_.IsNull());
+  return coverage_array_.At(coverage_index_) != Smi::New(0) ? nullptr : this;
+}
+
 Definition* BoxInstr::Canonicalize(FlowGraph* flow_graph) {
   if (input_use_list() == nullptr) {
     // Environments can accommodate any representation. No need to box.
@@ -4227,7 +4193,7 @@ void LoadFieldInstr::EmitNativeCodeForInitializerCall(
 
   if (throw_exception_on_initialization()) {
     ThrowErrorSlowPathCode* slow_path =
-        new LateInitializationErrorSlowPath(this, compiler->CurrentTryIndex());
+        new LateInitializationErrorSlowPath(this);
     compiler->AddSlowPathCode(slow_path);
 
     const Register result_reg = locs()->out(0).reg();
@@ -5516,8 +5482,7 @@ void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(representation() == RequiredInputRepresentation(kIndexPos));
   ASSERT(representation() == RequiredInputRepresentation(kLengthPos));
 
-  RangeErrorSlowPath* slow_path =
-      new RangeErrorSlowPath(this, compiler->CurrentTryIndex());
+  RangeErrorSlowPath* slow_path = new RangeErrorSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
   Location length_loc = locs()->in(kLengthPos);
   Location index_loc = locs()->in(kIndexPos);
@@ -6180,7 +6145,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
 }
 
 bool Utf8ScanInstr::IsScanFlagsUnboxed() const {
-  return FlowGraphCompiler::IsUnboxedField(scan_flags_field_.field());
+  return scan_flags_field_.IsUnboxed();
 }
 
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
@@ -6781,6 +6746,28 @@ LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
     locs->set_in(0, native_return_loc.AsLocation());
   }
   return locs;
+}
+
+LocationSummary* RecordCoverageInstr::MakeLocationSummary(Zone* zone,
+                                                          bool opt) const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 2;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_temp(1, Location::RequiresRegister());
+  return locs;
+}
+
+void RecordCoverageInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const auto array_temp = locs()->temp(0).reg();
+  const auto value_temp = locs()->temp(1).reg();
+
+  __ LoadObject(array_temp, coverage_array_);
+  __ LoadImmediate(value_temp, Smi::RawValue(1));
+  __ StoreFieldToOffset(value_temp, array_temp,
+                        Array::element_offset(coverage_index_),
+                        compiler::kObjectBytes);
 }
 
 #undef Z

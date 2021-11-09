@@ -146,10 +146,12 @@ class PrefixExpressionResolver {
         var element = operand.extensionName.staticElement as ExtensionElement;
         var member = element.getMethod(methodName);
         if (member == null) {
+          // Extension overrides always refer to named extensions, so we can
+          // safely assume `element.name` is non-`null`.
           _errorReporter.reportErrorForToken(
               CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
               node.operator,
-              [methodName, element.name]);
+              [methodName, element.name!]);
         }
         node.staticElement = member;
         return;

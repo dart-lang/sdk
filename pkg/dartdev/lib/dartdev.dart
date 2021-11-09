@@ -116,16 +116,20 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(CompileCommand(verbose: verbose));
     addCommand(DevToolsCommand(
       verbose: verbose,
-      // TODO(devoncarew): Un-hide this command after a stabilization period
-      // likely before the next stable release (before Dart 2.15).
-      hidden: !verbose,
       customDevToolsPath: sdk.devToolsBinaries,
     ));
     addCommand(FixCommand(verbose: verbose));
     addCommand(FormatCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
     addCommand(MigrateCommand(verbose: verbose));
-    addCommand(pubCommand());
+    addCommand(
+      pubCommand(
+        analytics: PubAnalytics(
+          () => analytics,
+          dependencyKindCustomDimensionName: dependencyKindCustomDimensionName,
+        ),
+      ),
+    );
     addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand());
   }
@@ -209,7 +213,10 @@ class DartdevRunner extends CommandRunner<int> {
     final path = commandNames.join('/');
     // Send the screen view to analytics
     unawaited(
-      analytics.sendScreenView(path),
+      analytics.sendScreenView(path, parameters:
+          // Starts a new analytics session.
+          // https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#sc
+          {'sc': 'start'}),
     );
 
     // The exit code for the dartdev process; null indicates that it has not been

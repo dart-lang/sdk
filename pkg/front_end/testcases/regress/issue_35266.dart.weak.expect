@@ -17,7 +17,7 @@ import self as self;
 import "dart:core" as core;
 
 class B<T extends core::Object* = dynamic> extends self::C<self::B::T*> {
-  static final field dynamic _redirecting# = <dynamic>[self::B::foo];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   constructor •() → self::B<self::B::T*>*
     : super self::C::•()
     ;
@@ -25,7 +25,7 @@ class B<T extends core::Object* = dynamic> extends self::C<self::B::T*> {
     return new self::B::•<self::B::foo::T*>();
 }
 class C<K extends core::Object* = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::C::bar];
+  static final field dynamic _redirecting# = <dynamic>[#C2];
   constructor •() → self::C<self::C::K*>*
     : super core::Object::•()
     ;
@@ -48,4 +48,9 @@ static method main() → dynamic {
   invalid-expression "pkg/front_end/testcases/regress/issue_35266.dart:13:21: Error: Can't use 'B.foo' because it is declared more than once.
   factory C.bar() = B<K>.foo;
                     ^";
+}
+
+constants  {
+  #C1 = constructor-tearoff self::B::foo
+  #C2 = constructor-tearoff self::C::bar
 }

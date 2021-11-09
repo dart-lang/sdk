@@ -4,13 +4,9 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 // Regression test for faulty encoding of `Isolate.resolvePackageUri` by
 // dart2js.
 
-import 'dart:async';
 import 'dart:isolate';
 
 main() {

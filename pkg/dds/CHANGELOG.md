@@ -1,3 +1,9 @@
+# 2.1.4
+- A new library `package:dds/dap.dart` exposes classes required to build a custom DAP
+  debug-adapter on top of the base Dart DAP functionality in DDS.
+  For more details on DAP support in Dart see
+  [this README](https://github.com/dart-lang/sdk/blob/main/pkg/dds/tool/dap/README.md).
+
 # 2.1.3
 - Ensure cancelling multiple historical streams with the same name doesn't cause an
   asynchronous `StateError` to be thrown.

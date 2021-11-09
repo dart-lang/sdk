@@ -3508,8 +3508,10 @@ void test() {
 class C<T0 extends List<T1>, T1 extends List<T0>> {}
 class D extends C {}
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 69, 1),
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 69, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 69, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 69, 1)]),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 69, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 69, 1)]),
     ]);
   }
 
@@ -3523,8 +3525,9 @@ void test() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 73, 1),
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 81, 1),
       error(CompileTimeErrorCode.COULD_NOT_INFER, 81, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 81, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 81, 1)]),
     ]);
     _assertLocalVarType('c', 'C<List<dynamic>, List<List<dynamic>>>');
   }
@@ -3560,7 +3563,11 @@ typedef T F<T>(T x);
 class C<T extends F<T>> {}
 C c;
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1,
+          contextMessages: [
+            message('/home/test/lib/test.dart', 48, 1),
+            message('/home/test/lib/test.dart', 48, 1)
+          ]),
     ]);
     _assertTopVarType('c', 'C<dynamic Function(dynamic)>');
   }

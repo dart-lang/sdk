@@ -343,7 +343,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   void visitCommentReference(CommentReference node) {
     _visitChildren(node, {
       'newKeyword': node.newKeyword,
-      'identifier': node.identifier,
+      'expression': node.expression,
     });
     super.visitCommentReference(node);
   }

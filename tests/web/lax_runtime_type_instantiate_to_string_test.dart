@@ -14,7 +14,10 @@ main() {
     // `true` if non-minified.
     // The signature of `id` is not otherwise needed so the instantiation
     // wrapper doesn't have a function type.
-    Expect.equals("Instantiation1<dynamic>", toString);
+    // The type parameter is present since it is required because `==`
+    // distinguishes instantiations of the same generic function with different
+    // types.
+    Expect.equals("Instantiation1<int>", toString);
   }
   print(toString);
 }

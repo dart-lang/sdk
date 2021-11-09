@@ -36,6 +36,9 @@ class MockServerChannel implements ServerCommunicationChannel {
   MockServerChannel();
 
   @override
+  Stream<Request> get requests => requestController.stream;
+
+  @override
   void close() {
     _closed = true;
   }
@@ -43,13 +46,6 @@ class MockServerChannel implements ServerCommunicationChannel {
   void expectMsgCount({responseCount = 0, notificationCount = 0}) {
     expect(responsesReceived, hasLength(responseCount));
     expect(notificationsReceived, hasLength(notificationCount));
-  }
-
-  @override
-  void listen(void Function(Request request) onRequest,
-      {Function? onError, void Function()? onDone}) {
-    requestController.stream
-        .listen(onRequest, onError: onError, onDone: onDone);
   }
 
   @override

@@ -1,0 +1,79 @@
+# Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+# Try to mess up the hierarchy.
+
+type: newworld
+target: DDC
+worlds:
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    sources:
+      main.dart: |
+        import "lib1.dart";
+        import "lib2.dart";
+        import "lib3.dart";
+
+        main() {
+          Foo foo = new Bar();
+          lib3Method(foo);
+        }
+      lib1.dart: |
+        class Foo {
+          void fooMethod() {
+            // Not filled out.
+          }
+        }
+      lib2.dart: |
+        import "lib1.dart";
+        class Bar extends Foo {
+          void barMethod() {
+            // Not filled out.
+          }
+        }
+      lib3.dart: |
+        import "lib1.dart";
+        import "lib2.dart";
+        void lib3Method(Foo foo) {
+          var f = Bar.new;
+          Foo bar = f();
+          bool equal = foo == bar;
+          print("foo == bar = $equal");
+        }
+    expectedLibraryCount: 4
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - lib1.dart
+    sources:
+      lib1.dart: |
+        class Foo {
+          void fooMethod() {
+            print("fooMethod");
+          }
+        }
+    expectedLibraryCount: 4
+    expectsRebuildBodiesOnly: true
+  - entry: main.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - lib3.dart
+    sources:
+      lib3.dart: |
+        import "lib1.dart";
+        import "lib2.dart";
+        void lib3Method(Foo foo) {
+          var f = Bar.new;
+          Foo bar = f();
+          bool equal = foo == bar;
+          print("foo == bar = $equal");
+          print("Done!");
+        }
+    expectedLibraryCount: 4
+    expectsRebuildBodiesOnly: true

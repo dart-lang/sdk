@@ -590,9 +590,9 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
 
   Future<void> test_already_migrated_field() async {
     await analyze('''
-double f() => double.NAN;
+double f() => double.nan;
 ''');
-    var nanElement = typeProvider.doubleType.element.getField('NAN')!;
+    var nanElement = typeProvider.doubleType.element.getField('nan')!;
     assertEdge(variables!.decoratedElementType(nanElement).node,
         decoratedTypeAnnotation('double f').node,
         hard: false);
@@ -5367,7 +5367,7 @@ void g() {
   Future<void>
       test_methodInvocation_typeParameter_inferred_inGenericClass() async {
     // this creates an edge case because the typeArguments are not equal in
-    // length the the typeFormals of the calleeType, due to the enclosing
+    // length the typeFormals of the calleeType, due to the enclosing
     // generic class.
     await analyze('''
 class C<T> {
@@ -5393,7 +5393,7 @@ class C<T> {
   Future<void>
       test_methodInvocation_typeParameter_inferred_inGenericExtreme() async {
     // this creates an edge case because the typeArguments are not equal in
-    // length the the typeFormals of the calleeType, due to the enclosing
+    // length the typeFormals of the calleeType, due to the enclosing
     // generic class/functions.
     await analyze('''
 class C<T> {

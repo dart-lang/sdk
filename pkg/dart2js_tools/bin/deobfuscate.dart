@@ -10,7 +10,7 @@ import 'package:dart2js_tools/src/name_decoder.dart';
 import 'package:dart2js_tools/src/util.dart';
 import 'package:dart2js_tools/src/trace_decoder.dart';
 
-/// Script that deobuscates a stack-trace given in a text file.
+/// Script that deobfuscates a stack-trace given in a text file.
 ///
 /// To run this script you need 3 or more files:
 ///
@@ -47,24 +47,24 @@ main(List<String> args) {
   var sb = new StringBuffer();
   try {
     String obfuscatedTrace = new File(args[0]).readAsStringSync();
-    String error = extractErrorMessage(obfuscatedTrace);
+    String? error = extractErrorMessage(obfuscatedTrace);
     var provider = new CachingFileProvider(logger: Logger());
     StackDeobfuscationResult result =
         deobfuscateStack(obfuscatedTrace, provider);
     Frame firstFrame = result.original.frames.first;
-    String translatedError =
+    String? translatedError =
         translate(error, provider.mappingFor(firstFrame.uri));
     if (translatedError == null) translatedError = '<no error message found>';
     printPadded(translatedError, error, sb);
     int longest =
-        result.deobfuscated.frames.fold(0, (m, f) => max(f.member.length, m));
+        result.deobfuscated.frames.fold(0, (m, f) => max(f.member!.length, m));
     for (var originalFrame in result.original.frames) {
       var deobfuscatedFrames = result.frameMap[originalFrame];
       if (deobfuscatedFrames == null) {
         printPadded('no mapping', '${originalFrame.location}', sb);
       } else {
         for (var frame in deobfuscatedFrames) {
-          printPadded('${frame.member.padRight(longest)} ${frame.location}',
+          printPadded('${frame.member!.padRight(longest)} ${frame.location}',
               '${originalFrame.location}', sb);
         }
       }
@@ -77,7 +77,7 @@ main(List<String> args) {
 final green = stdout.hasTerminal ? '\x1b[32m' : '';
 final none = stdout.hasTerminal ? '\x1b[0m' : '';
 
-printPadded(String mapping, String original, sb) {
+printPadded(String mapping, String? original, sb) {
   var len = mapping.length;
   var s = mapping.indexOf('\n');
   if (s >= 0) len -= s + 1;

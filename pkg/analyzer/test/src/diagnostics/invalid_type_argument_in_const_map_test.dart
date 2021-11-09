@@ -23,7 +23,8 @@ class A<E> {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP, 39, 1),
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP, 39, 1,
+          messageContains: ["'E'"]),
     ]);
   }
 
@@ -45,7 +46,8 @@ class A<E> {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP, 47, 1),
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP, 47, 1,
+          messageContains: ["'E'"]),
     ]);
   }
 }

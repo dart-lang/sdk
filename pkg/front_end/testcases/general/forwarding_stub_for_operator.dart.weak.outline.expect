@@ -68,7 +68,7 @@ class D extends core::Object {
 class E extends self::D {
   synthetic constructor •() → self::E*
     ;
-  forwarding-stub forwarding-semi-stub operator +(covariant-by-declaration core::int* e) → dynamic
+  forwarding-stub forwarding-semi-stub operator /* signature-type: (core::int*) →* dynamic */ +(covariant-by-declaration dynamic e) → dynamic
     return super.{self::D::+}(e);
 }
 static method main() → dynamic

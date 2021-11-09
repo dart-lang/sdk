@@ -18,3 +18,9 @@ class B extends core::Object implements self::A {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue45051.dart:5:7 -> ConstructorTearOffConstant(A.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue45051.dart:5:7 -> ConstructorTearOffConstant(A.named)
+Extra constant evaluation: evaluated: 5, effectively constant: 2

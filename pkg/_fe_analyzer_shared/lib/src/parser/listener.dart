@@ -100,25 +100,26 @@ class Listener implements UnescapeErrorListener {
   /// Handle the start of the body of a class, mixin or extension declaration
   /// beginning at [token]. The actual kind of declaration is indicated by
   /// [kind].
-  void beginClassOrMixinBody(DeclarationKind kind, Token token) {}
+  void beginClassOrMixinOrExtensionBody(DeclarationKind kind, Token token) {}
 
   /// Handle the end of the body of a class, mixin or extension declaration.
   /// The only substructures are the class, mixin or extension members.
   ///
   /// The actual kind of declaration is indicated by [kind].
-  void endClassOrMixinBody(
+  void endClassOrMixinOrExtensionBody(
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
-    logEvent("ClassOrMixinBody");
+    logEvent("ClassOrMixinOrExtensionBody");
   }
 
-  /// Called before parsing a class or named mixin application.
+  /// Called before parsing a class declaration, mixin declaration, or named
+  /// mixin application.
   ///
   /// At this point only the `class` or `mixin` keyword have been seen,
   /// so we know a declaration is coming but not its name or type
   /// parameter declarations.
   ///
   /// Ended by [endTopLevelDeclaration].
-  void beginClassOrNamedMixinApplicationPrelude(Token token) {}
+  void beginClassOrMixinOrNamedMixinApplicationPrelude(Token token) {}
 
   /// Handle the beginning of a class declaration.
   /// [begin] may be the same as [name], or may point to modifiers
@@ -337,8 +338,8 @@ class Listener implements UnescapeErrorListener {
 
   /// Note that this is ended by [endClassFactoryMethod],
   /// [endMixinFactoryMethod] or [endExtensionFactoryMethod].
-  void beginFactoryMethod(
-      Token lastConsumed, Token? externalToken, Token? constToken) {}
+  void beginFactoryMethod(DeclarationKind declarationKind, Token lastConsumed,
+      Token? externalToken, Token? constToken) {}
 
   void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
@@ -587,7 +588,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("FunctionName");
   }
 
-  void beginFunctionTypeAlias(Token token) {}
+  void beginTypedef(Token token) {}
 
   /// Handle the end of a typedef declaration.
   ///
@@ -603,8 +604,7 @@ class Listener implements UnescapeErrorListener {
   /// - Name (identifier)
   /// - Alias type variables
   /// - Type (FunctionTypeAnnotation)
-  void endFunctionTypeAlias(
-      Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
     logEvent("FunctionTypeAlias");
   }
 
@@ -743,7 +743,7 @@ class Listener implements UnescapeErrorListener {
 
   void beginImplicitCreationExpression(Token token) {}
 
-  void endImplicitCreationExpression(Token token) {
+  void endImplicitCreationExpression(Token token, Token openAngleBracket) {
     logEvent("ImplicitCreationExpression");
   }
 
@@ -881,6 +881,7 @@ class Listener implements UnescapeErrorListener {
   /// [endExtensionConstructor], [endExtensionMethod], [endMixinConstructor] or
   /// [endMixinMethod].
   void beginMethod(
+      DeclarationKind declarationKind,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1119,13 +1120,13 @@ class Listener implements UnescapeErrorListener {
   ///
   /// Normally listeners should probably override
   /// [endClassDeclaration], [endNamedMixinApplication], [endEnum],
-  /// [endFunctionTypeAlias], [endLibraryName], [endImport], [endExport],
+  /// [endTypedef], [endLibraryName], [endImport], [endExport],
   /// [endPart], [endPartOf], [endTopLevelFields], or [endTopLevelMethod]
   /// instead.
   ///
   /// Started by one of [beginExtensionDeclarationPrelude],
-  /// [beginClassOrNamedMixinApplicationPrelude], [beginTopLevelMember] or
-  /// [beginUncategorizedTopLevelDeclaration].
+  /// [beginClassOrMixinOrNamedMixinApplicationPrelude], [beginTopLevelMember]
+  /// or [beginUncategorizedTopLevelDeclaration].
   void endTopLevelDeclaration(Token nextToken) {
     logEvent("TopLevelDeclaration");
   }
@@ -1150,7 +1151,15 @@ class Listener implements UnescapeErrorListener {
   /// Marks the beginning of a fields declaration.
   /// Note that this is ended with [endTopLevelFields], [endClassFields],
   /// [endMixinFields] or [endExtensionFields].
-  void beginFields(Token lastConsumed) {}
+  void beginFields(
+      DeclarationKind declarationKind,
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      Token lastConsumed) {}
 
   /// Handle the end of a top level variable declaration.  Substructures:
   /// - Metadata

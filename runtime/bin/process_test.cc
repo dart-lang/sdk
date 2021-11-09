@@ -6,6 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Force .lib-file creation on Windows, make ninja happy with zero-build.
+#if defined(_WIN32)
+extern "C" __declspec(dllexport) void dummy() {}
+#endif
+
 #if defined(__has_feature)
 #if __has_feature(undefined_behavior_sanitizer)
 __attribute__((no_sanitize("undefined")))

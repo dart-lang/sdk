@@ -10,11 +10,10 @@ import 'util.dart' show FileProvider;
 
 /// Search backwards in [sources] for a function declaration that includes the
 /// [start] offset.
-TargetEntry findEnclosingFunction(FileProvider provider, Uri uri, int start) {
+TargetEntry? findEnclosingFunction(FileProvider provider, Uri uri, int start) {
   String sources = provider.sourcesFor(uri);
-  if (sources == null) return null;
   SourceFile file = provider.fileFor(uri);
-  SingleMapping mapping = provider.mappingFor(uri).sourceMap;
+  SingleMapping mapping = provider.mappingFor(uri)!.sourceMap;
   var index = start;
   while (true) {
     index = nextDeclarationCandidate(sources, index);
@@ -22,7 +21,7 @@ TargetEntry findEnclosingFunction(FileProvider provider, Uri uri, int start) {
     var line = file.getLine(index);
     var lineEntry = findLine(mapping, line);
     var column = file.getColumn(index);
-    TargetEntry result = findColumn(line, column, lineEntry);
+    TargetEntry? result = findColumn(line, column, lineEntry);
     // If the name entry doesn't start exactly at the column corresponding to
     // `index`, we must be in the middle of a string or code that uses the word
     // "function", but that doesn't have a corresponding mapping. In those
@@ -61,7 +60,7 @@ int nextDeclarationCandidate(String sources, int start) {
 /// number is lower or equal to [line].
 ///
 /// Copied from [SingleMapping._findLine].
-TargetLineEntry findLine(SingleMapping sourceMap, int line) {
+TargetLineEntry? findLine(SingleMapping sourceMap, int line) {
   int index = binarySearch(sourceMap.lines, (e) => e.line > line);
   return (index <= 0) ? null : sourceMap.lines[index - 1];
 }
@@ -73,7 +72,7 @@ TargetLineEntry findLine(SingleMapping sourceMap, int line) {
 /// the very last entry on that line.
 ///
 /// Copied from [SingleMapping._findColumn].
-TargetEntry findColumn(int line, int column, TargetLineEntry lineEntry) {
+TargetEntry? findColumn(int line, int column, TargetLineEntry? lineEntry) {
   if (lineEntry == null || lineEntry.entries.length == 0) return null;
   if (lineEntry.line != line) return lineEntry.entries.last;
   var entries = lineEntry.entries;

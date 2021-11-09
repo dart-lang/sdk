@@ -18,6 +18,9 @@ namespace bin {
 
 void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length);
 
+// Convert from milliseconds since the Unix epoch to a FILETIME.
+FILETIME GetFiletimeFromMillis(int64_t millis);
+
 // These string utility functions return strings that have been allocated with
 // Dart_ScopeAllocate(). They should be used only when we are inside an API
 // scope. If a string returned by one of these functions must persist beyond
