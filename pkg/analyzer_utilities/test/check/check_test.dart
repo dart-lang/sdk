@@ -150,7 +150,7 @@ void main() {
     group('type', () {
       test('isA', () {
         check(0).isA<int>();
-        _fails(() => check(0.0 as dynamic).isA<int>());
+        _fails(() => check('abc' as dynamic).isA<int>());
       });
     });
   });
