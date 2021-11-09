@@ -77,9 +77,9 @@ class Utf8Codec extends Encoding {
 ///
 /// Example:
 /// ```dart
-/// const Utf8Encoder utf8Encoder = Utf8Encoder();
-/// const String sample = 'Îñţérñåţîöñåļîžåţîờñ';
-/// final List<int> encodedSample = utf8Encoder.convert(sample);
+/// final utf8Encoder = utf8.encoder;
+/// const sample = 'Îñţérñåţîöñåļîžåţîờñ';
+/// final encodedSample = utf8Encoder.convert(sample);
 /// print(encodedSample);
 /// ```
 class Utf8Encoder extends Converter<String, List<int>> {
@@ -296,26 +296,26 @@ class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
 ///
 /// Example:
 /// ```dart
-/// const Utf8Decoder utf8Decoder = Utf8Decoder();
-/// const List<int> encodedBytes = [
+/// final utf8Decoder = utf8.decoder;
+/// const encodedBytes = [
 ///   195, 142, 195, 177, 197, 163, 195, 169, 114, 195, 177, 195, 165, 197,
 ///   163, 195, 174, 195, 182, 195, 177, 195, 165, 196, 188, 195, 174, 197,
 ///   190, 195, 165, 197, 163, 195, 174, 225, 187, 157, 195, 177];
 ///
-/// final String decodedBytes = utf8Decoder.convert(encodedBytes);
+/// final decodedBytes = utf8Decoder.convert(encodedBytes);
 /// print(decodedBytes); // Îñţérñåţîöñåļîžåţîờñ
 /// ```
-/// If encoded data contains invalid values, the decoder
-/// throws a [FormatException]
+/// Throws a [FormatException] if the encoded input contains
+/// invalid UTF-8 byte sequences and [allowMalformed] is `false` (the default).
 ///
-/// If `allowMalformed` is set to true,
-/// the decoder replaces the invalid bytes with the character `U+FFFD` �.
+/// If [allowMalformed] is `true`, invalid byte sequences are converted into
+/// one or more Unicode replacement characters, U+FFFD ('�').
 ///
 /// Example with `allowMalformed` set to true:
 /// ```dart
-/// const Utf8Decoder utf8Decoder = Utf8Decoder(allowMalformed: true);
-/// const List<int> encodedBytes = [0xFF];
-/// final String decodedBytes = utf8Decoder.convert(encodedBytes);
+/// const utf8Decoder = Utf8Decoder(allowMalformed: true);
+/// const encodedBytes = [0xFF];
+/// final decodedBytes = utf8Decoder.convert(encodedBytes);
 /// print(decodedBytes); // �
 /// ```
 class Utf8Decoder extends Converter<List<int>, String> {
