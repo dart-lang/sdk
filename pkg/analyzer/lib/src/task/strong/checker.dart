@@ -82,21 +82,14 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void checkAssignment(Expression expr, DartType to) {
-    checkForCast(expr, from: expr.typeOrThrow, to: to);
+    _checkImplicitCast(expr, from: expr.typeOrThrow, to: to);
   }
-
-  /// Analyzer checks boolean conversions, but we need to check too, because
-  /// it uses the default assignability rules that allow `dynamic` and `Object`
-  /// to be assigned to bool with no message.
-  void checkBoolean(Expression expr) =>
-      checkAssignment(expr, typeProvider.boolType);
 
   void checkCollectionElement(
       CollectionElement? element, DartType expectedType) {
     if (element is ForElement) {
       checkCollectionElement(element.body, expectedType);
     } else if (element is IfElement) {
-      checkBoolean(element.condition);
       checkCollectionElement(element.thenElement, expectedType);
       checkCollectionElement(element.elseElement, expectedType);
     } else if (element is Expression) {
@@ -120,24 +113,11 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  void checkForCast(
-    Expression expr, {
-    required DartType from,
-    required DartType to,
-  }) {
-    if (expr is ParenthesizedExpression) {
-      checkForCast(expr.expression, from: from, to: to);
-    } else {
-      _checkImplicitCast(expr, from: from, to: to);
-    }
-  }
-
   void checkMapElement(CollectionElement? element, DartType expectedKeyType,
       DartType expectedValueType) {
     if (element is ForElement) {
       checkMapElement(element.body, expectedKeyType, expectedValueType);
     } else if (element is IfElement) {
-      checkBoolean(element.condition);
       checkMapElement(element.thenElement, expectedKeyType, expectedValueType);
       checkMapElement(element.elseElement, expectedKeyType, expectedValueType);
     } else if (element is MapLiteralEntry) {
@@ -178,41 +158,14 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    var left = node.leftHandSide;
-    var right = node.rightHandSide;
     Token operator = node.operator;
     TokenType operatorType = operator.type;
     if (operatorType == TokenType.EQ ||
         operatorType == TokenType.QUESTION_QUESTION_EQ) {
-      checkForCast(right, from: right.typeOrThrow, to: node.writeType!);
-    } else if (operatorType == TokenType.AMPERSAND_AMPERSAND_EQ ||
-        operatorType == TokenType.BAR_BAR_EQ) {
-      checkBoolean(left);
-      checkBoolean(right);
+      var right = node.rightHandSide;
+      _checkImplicitCast(right, from: right.typeOrThrow, to: node.writeType!);
     } else {
       _checkCompoundAssignment(node);
-    }
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitBinaryExpression(BinaryExpression node) {
-    var op = node.operator;
-    if (!op.isUserDefinableOperator) {
-      switch (op.type) {
-        case TokenType.AMPERSAND_AMPERSAND:
-        case TokenType.BAR_BAR:
-          checkBoolean(node.leftOperand);
-          checkBoolean(node.rightOperand);
-          break;
-        case TokenType.BANG_EQ:
-        case TokenType.BANG_EQ_EQ:
-        case TokenType.EQ_EQ_EQ:
-        case TokenType.QUESTION_QUESTION:
-          break;
-        default:
-          assert(false);
-      }
     }
     node.visitChildren(this);
   }
@@ -231,29 +184,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    checkBoolean(node.condition);
     node.visitChildren(this);
-  }
-
-  /// Check constructor declaration to ensure correct super call placement.
-  @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    node.visitChildren(this);
-
-    final init = node.initializers;
-    for (int i = 0, last = init.length - 1; i < last; i++) {
-      final initializer = init[i];
-      if (initializer is SuperConstructorInvocation) {
-        // TODO(srawlins): Don't report this when
-        //  [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR] or
-        //  [CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS] is reported for
-        //  this constructor.
-        var source = (node.root as CompilationUnit).declaredElement!.source;
-        var token = initializer.superKeyword;
-        reporter.onError(AnalysisError(source, token.offset, token.length,
-            CompileTimeErrorCode.INVALID_SUPER_INVOCATION, [initializer]));
-      }
-    }
   }
 
   @override
@@ -281,12 +212,6 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
-  void visitDoStatement(DoStatement node) {
-    checkBoolean(node.condition);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _checkReturnOrYield(node.expression, node);
     node.visitChildren(this);
@@ -305,32 +230,8 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   @override
-  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    var condition = node.condition;
-    if (condition != null) {
-      checkBoolean(condition);
-    }
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitForPartsWithExpression(ForPartsWithExpression node) {
-    var condition = node.condition;
-    if (condition != null) {
-      checkBoolean(condition);
-    }
-    node.visitChildren(this);
-  }
-
-  @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _checkFunctionApplication(node);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitIfStatement(IfStatement node) {
-    checkBoolean(node.condition);
     node.visitChildren(this);
   }
 
@@ -403,11 +304,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    if (node.operator.type == TokenType.BANG) {
-      checkBoolean(node.operand);
-    } else {
-      _checkUnary(node, node.operand, node.operator, node.staticElement);
-    }
+    _checkUnary(node, node.operand, node.operator, node.staticElement);
     node.visitChildren(this);
   }
 
@@ -523,18 +420,12 @@ class CodeChecker extends RecursiveAstVisitor {
       for (VariableDeclaration variable in node.variables) {
         var initializer = variable.initializer;
         if (initializer != null) {
-          checkForCast(initializer,
+          _checkImplicitCast(initializer,
               from: initializer.typeOrThrow, to: type.typeOrThrow);
         }
       }
     }
 
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitWhileStatement(WhileStatement node) {
-    checkBoolean(node.condition);
     node.visitChildren(this);
   }
 
@@ -591,11 +482,10 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  /// Given an expression [expr] of type [fromType], returns true if an implicit
-  /// downcast is required, false if it is not, or null if the types are
-  /// unrelated.
-  bool? _checkFunctionTypeCasts(
-      Expression expr, FunctionType to, DartType fromType) {
+  /// Returns true if an implicit downcast is required to assign an expression
+  /// of type [fromType] to type [to], false if it is not, or null if the
+  /// types are unrelated.
+  bool? _checkFunctionTypeCasts(FunctionType to, DartType fromType) {
     bool callTearoff = false;
     FunctionType? from;
     if (fromType is FunctionType) {
@@ -640,6 +530,7 @@ class CodeChecker extends RecursiveAstVisitor {
       return;
     }
 
+    expr = expr.unParenthesized;
     if (_needsImplicitCast(expr, to: to, from: from) == true) {
       _recordImplicitCast(expr, to,
           from: from,
@@ -796,7 +687,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (from.isVoid) return null;
 
     if (to is FunctionType) {
-      var needsCast = _checkFunctionTypeCasts(expr, to, from);
+      var needsCast = _checkFunctionTypeCasts(to, from);
       if (needsCast != null) return needsCast;
     }
 

@@ -69,7 +69,8 @@ class AssistKind {
   /// for example to allow key-binding specific fixes (or groups of).
   final String id;
 
-  /// The priority of this kind of assist for the kind of error being addressed.
+  /// The priority of this kind of assist for the kind of error being addressed
+  /// where a higher integer value indicates a higher priority and relevance.
   final int priority;
 
   /// A human-readable description of the changes that will be applied by this

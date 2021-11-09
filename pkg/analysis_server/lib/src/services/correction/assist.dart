@@ -73,7 +73,7 @@ class DartAssistKind {
   );
   static const CONVERT_INTO_ASYNC_BODY = AssistKind(
     'dart.assist.convert.bodyToAsync',
-    29,
+    31,
     'Convert to async function body',
   );
   static const CONVERT_INTO_BLOCK_BODY = AssistKind(
@@ -222,77 +222,77 @@ class DartAssistKind {
   // Flutter wrap specific assists
   static const FLUTTER_WRAP_GENERIC = AssistKind(
     'dart.assist.flutter.wrap.generic',
-    31,
+    29,
     'Wrap with widget...',
   );
 
   static const FLUTTER_WRAP_BUILDER = AssistKind(
     'dart.assist.flutter.wrap.builder',
-    32,
+    28,
     'Wrap with Builder',
   );
   static const FLUTTER_WRAP_CENTER = AssistKind(
     'dart.assist.flutter.wrap.center',
-    32,
+    28,
     'Wrap with Center',
   );
   static const FLUTTER_WRAP_COLUMN = AssistKind(
     'dart.assist.flutter.wrap.column',
-    32,
+    28,
     'Wrap with Column',
   );
   static const FLUTTER_WRAP_CONTAINER = AssistKind(
     'dart.assist.flutter.wrap.container',
-    32,
+    28,
     'Wrap with Container',
   );
   static const FLUTTER_WRAP_PADDING = AssistKind(
     'dart.assist.flutter.wrap.padding',
-    32,
+    28,
     'Wrap with Padding',
   );
   static const FLUTTER_WRAP_ROW = AssistKind(
     'dart.assist.flutter.wrap.row',
-    32,
+    28,
     'Wrap with Row',
   );
   static const FLUTTER_WRAP_SIZED_BOX = AssistKind(
     'dart.assist.flutter.wrap.sizedBox',
-    32,
+    28,
     'Wrap with SizedBox',
   );
   static const FLUTTER_WRAP_STREAM_BUILDER = AssistKind(
     'dart.assist.flutter.wrap.streamBuilder',
-    32,
+    28,
     'Wrap with StreamBuilder',
   );
 
   // Flutter re-order assists
   static const FLUTTER_SWAP_WITH_CHILD = AssistKind(
     'dart.assist.flutter.swap.withChild',
-    33,
+    27,
     'Swap with child',
   );
   static const FLUTTER_SWAP_WITH_PARENT = AssistKind(
     'dart.assist.flutter.swap.withParent',
-    33,
+    27,
     'Swap with parent',
   );
   static const FLUTTER_MOVE_DOWN = AssistKind(
     'dart.assist.flutter.move.down',
-    34,
+    26,
     'Move widget down',
   );
   static const FLUTTER_MOVE_UP = AssistKind(
     'dart.assist.flutter.move.up',
-    34,
+    26,
     'Move widget up',
   );
 
   // Flutter remove assist
   static const FLUTTER_REMOVE_WIDGET = AssistKind(
     'dart.assist.flutter.removeWidget',
-    35,
+    25,
     'Remove this widget',
   );
 
@@ -334,7 +334,7 @@ class DartAssistKind {
   static const REMOVE_TYPE_ANNOTATION = AssistKind(
     // todo (pq): unify w/ fix
     'dart.assist.remove.typeAnnotation',
-    29,
+    31,
     'Remove type annotation',
   );
   static const REPLACE_CONDITIONAL_WITH_IF_ELSE = AssistKind(
@@ -374,47 +374,47 @@ class DartAssistKind {
   );
   static const SURROUND_WITH_BLOCK = AssistKind(
     'dart.assist.surround.block',
-    22,
+    38,
     'Surround with block',
   );
   static const SURROUND_WITH_DO_WHILE = AssistKind(
     'dart.assist.surround.doWhile',
-    27,
+    33,
     "Surround with 'do-while'",
   );
   static const SURROUND_WITH_FOR = AssistKind(
     'dart.assist.surround.forEach',
-    26,
+    34,
     "Surround with 'for'",
   );
   static const SURROUND_WITH_FOR_IN = AssistKind(
     'dart.assist.surround.forIn',
-    25,
+    35,
     "Surround with 'for-in'",
   );
   static const SURROUND_WITH_IF = AssistKind(
     'dart.assist.surround.if',
-    23,
+    37,
     "Surround with 'if'",
   );
   static const SURROUND_WITH_SET_STATE = AssistKind(
     'dart.assist.surround.setState',
-    27,
+    33,
     "Surround with 'setState'",
   );
   static const SURROUND_WITH_TRY_CATCH = AssistKind(
     'dart.assist.surround.tryCatch',
-    28,
+    32,
     "Surround with 'try-catch'",
   );
   static const SURROUND_WITH_TRY_FINALLY = AssistKind(
     'dart.assist.surround.tryFinally',
-    29,
+    31,
     "Surround with 'try-finally'",
   );
   static const SURROUND_WITH_WHILE = AssistKind(
     'dart.assist.surround.while',
-    24,
+    36,
     "Surround with 'while'",
   );
   static const USE_CURLY_BRACES = AssistKind(

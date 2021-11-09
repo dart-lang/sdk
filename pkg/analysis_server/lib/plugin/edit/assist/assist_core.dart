@@ -15,7 +15,9 @@ class Assist {
   /// Assists with the same relevance are sorted alphabetically.
   static final Comparator<Assist> SORT_BY_RELEVANCE = (Assist a, Assist b) {
     if (a.kind.priority != b.kind.priority) {
-      return a.kind.priority - b.kind.priority;
+      // A higher priority indicates a higher relevance
+      // and should be sorted before a lower priority.
+      return b.kind.priority - a.kind.priority;
     }
     return a.change.message.compareTo(b.change.message);
   };

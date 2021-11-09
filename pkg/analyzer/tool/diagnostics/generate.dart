@@ -71,9 +71,9 @@ class DiagnosticInformation {
     sink.writeln('### ${name.toLowerCase()}');
     for (var previousName in previousNames) {
       sink.writeln();
-      sink.writeln(
-          '<a id="${previousName.toLowerCase()}" aria-hidden="true"></a>'
-          '_(Previously known as `$previousName`)_');
+      var previousInLowerCase = previousName.toLowerCase();
+      sink.writeln('<a id="$previousInLowerCase" aria-hidden="true"></a>'
+          '_(Previously known as `$previousInLowerCase`)_');
     }
     for (String message in messages) {
       sink.writeln();

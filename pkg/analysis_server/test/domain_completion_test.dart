@@ -22,12 +22,14 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_utilities/check/check.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'domain_completion_util.dart';
 import 'mocks.dart';
 import 'src/plugin/plugin_manager_test.dart';
+import 'utils/change_check.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -43,30 +45,31 @@ class CompletionDomainHandlerGetSuggestionDetails2Test
   Future<void> test_alreadyImported() async {
     await _configureWithWorkspaceRoot();
 
-    var validator = await _getTestCodeDetails('''
+    var details = await _getTestCodeDetails('''
 import 'dart:math';
 void f() {
   Rand^
 }
 ''', completion: 'Random', libraryUri: 'dart:math');
-    validator
-      ..hasCompletion('Random')
-      ..hasChange().assertNoFileEdits();
+    check(details)
+      ..completion.isEqualTo('Random')
+      ..change.edits.isEmpty;
   }
 
   Future<void> test_import_dart() async {
     await _configureWithWorkspaceRoot();
 
-    var validator = await _getTestCodeDetails('''
+    var details = await _getTestCodeDetails('''
 void f() {
   R^
 }
 ''', completion: 'Random', libraryUri: 'dart:math');
-    validator
-      ..hasCompletion('Random')
-      ..hasChange()
+    check(details)
+      ..completion.isEqualTo('Random')
+      ..change
           .hasFileEdit(testFilePathPlatform)
-          .whenApplied(testFileContent, r'''
+          .appliedTo(testFileContent)
+          .isEqualTo(r'''
 import 'dart:math';
 
 void f() {
@@ -94,16 +97,17 @@ class Test {}
 
     await _configureWithWorkspaceRoot();
 
-    var validator = await _getTestCodeDetails('''
+    var details = await _getTestCodeDetails('''
 void f() {
   T^
 }
 ''', completion: 'Test', libraryUri: 'package:aaa/a.dart');
-    validator
-      ..hasCompletion('Test')
-      ..hasChange()
+    check(details)
+      ..completion.isEqualTo('Test')
+      ..change
           .hasFileEdit(testFilePathPlatform)
-          .whenApplied(testFileContent, r'''
+          .appliedTo(testFileContent)
+          .isEqualTo(r'''
 import 'package:aaa/a.dart';
 
 void f() {
@@ -119,16 +123,17 @@ class Test {}
 
     await _configureWithWorkspaceRoot();
 
-    var validator = await _getTestCodeDetails('''
+    var details = await _getTestCodeDetails('''
 void f() {
   T^
 }
 ''', completion: 'Test', libraryUri: 'package:test/a.dart');
-    validator
-      ..hasCompletion('Test')
-      ..hasChange()
+    check(details)
+      ..completion.isEqualTo('Test')
+      ..change
           .hasFileEdit(testFilePathPlatform)
-          .whenApplied(testFileContent, r'''
+          .appliedTo(testFileContent)
+          .isEqualTo(r'''
 import 'package:test/a.dart';
 
 void f() {
@@ -160,7 +165,7 @@ void f() {
     expect(response.error?.code, RequestErrorCode.INVALID_FILE_PATH_FORMAT);
   }
 
-  Future<GetSuggestionDetails2Validator> _getCodeDetails({
+  Future<CompletionGetSuggestionDetails2Result> _getCodeDetails({
     required String path,
     required String content,
     required String completion,
@@ -184,7 +189,7 @@ void f() {
     );
   }
 
-  Future<GetSuggestionDetails2Validator> _getDetails({
+  Future<CompletionGetSuggestionDetails2Result> _getDetails({
     required String path,
     required int completionOffset,
     required String completion,
@@ -198,11 +203,10 @@ void f() {
     ).toRequest('0');
 
     var response = await _handleSuccessfulRequest(request);
-    var result = CompletionGetSuggestionDetails2Result.fromResponse(response);
-    return GetSuggestionDetails2Validator(result);
+    return CompletionGetSuggestionDetails2Result.fromResponse(response);
   }
 
-  Future<GetSuggestionDetails2Validator> _getTestCodeDetails(
+  Future<CompletionGetSuggestionDetails2Result> _getTestCodeDetails(
     String content, {
     required String completion,
     required String libraryUri,
@@ -2548,20 +2552,6 @@ class CompletionGetSuggestions2ResponseValidator {
   }
 }
 
-class GetSuggestionDetails2Validator {
-  final CompletionGetSuggestionDetails2Result result;
-
-  GetSuggestionDetails2Validator(this.result);
-
-  SourceChangeValidator hasChange() {
-    return SourceChangeValidator(result.change);
-  }
-
-  void hasCompletion(Object completion) {
-    expect(result.completion, completion);
-  }
-}
-
 class PubPackageAnalysisServerTest with ResourceProviderMixin {
   late final MockServerChannel serverChannel;
   late final AnalysisServer server;
@@ -2739,32 +2729,6 @@ class SingleSuggestionValidator {
   }
 }
 
-class SourceChangeValidator {
-  final SourceChange change;
-
-  SourceChangeValidator(this.change);
-
-  void assertNoFileEdits() {
-    expect(change.edits, isEmpty);
-  }
-
-  SourceFileEditValidator hasFileEdit(String path) {
-    var edit = change.edits.singleWhere((e) => e.file == path);
-    return SourceFileEditValidator(edit);
-  }
-}
-
-class SourceFileEditValidator {
-  final SourceFileEdit edit;
-
-  SourceFileEditValidator(this.edit);
-
-  void whenApplied(String applyTo, Object expected) {
-    var actual = SourceEdit.applySequence(applyTo, edit.edits);
-    expect(actual, expected);
-  }
-}
-
 class SuggestionsValidator {
   final List<CompletionSuggestion> suggestions;
   final List<String>? libraryUrisToImport;
@@ -2851,5 +2815,23 @@ class SuggestionsValidator {
 
   SuggestionsValidator withKindIdentifier() {
     return withKind(CompletionSuggestionKind.IDENTIFIER);
+  }
+}
+
+extension on CheckTarget<CompletionGetSuggestionDetails2Result> {
+  @useResult
+  CheckTarget<String> get completion {
+    return nest(
+      value.completion,
+      (selected) => 'has completion ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<SourceChange> get change {
+    return nest(
+      value.change,
+      (selected) => 'has change ${valueStr(selected)}',
+    );
   }
 }
