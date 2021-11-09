@@ -95,8 +95,8 @@ class Latin1Encoder extends _UnicodeSubsetEncoder {
 /// Throws a [FormatException] if the encoded input contains values that are
 /// not in the range 0 .. 255 and [allowInvalid] is false ( the default ).
 ///
-/// If [allowInvalid] is true, invalid byte sequences are converted
-/// into one or more Unicode replacement characters U+FFFD (�).
+/// If [allowInvalid] is true, invalid bytes are converted
+/// to Unicode Replacement character U+FFFD (�).
 ///
 /// Example with `allowInvalid` set to true:
 /// ```dart
