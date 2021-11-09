@@ -119,14 +119,8 @@ class CompletionTarget {
   ParameterElement? _parameterElement;
 
   /// Compute the appropriate [CompletionTarget] for the given [offset] within
-  /// the [compilationUnit].
-  ///
-  /// Optionally, start the search from within [entryPoint] instead of using
-  /// the [compilationUnit], which is useful for analyzing ASTs that have no
-  /// [compilationUnit] such as dart expressions within angular templates.
-  factory CompletionTarget.forOffset(
-      CompilationUnit compilationUnit, int offset,
-      {AstNode? entryPoint}) {
+  /// the [entryPoint].
+  factory CompletionTarget.forOffset(AstNode entryPoint, int offset) {
     // The precise algorithm is as follows. We perform a depth-first search of
     // all edges in the parse tree (both those that point to AST nodes and
     // those that point to tokens), visiting parents before children. The
@@ -141,7 +135,6 @@ class CompletionTarget {
     // prune the search to the point where no recursion is necessary; at each
     // step in the process we know exactly which child node we need to proceed
     // to.
-    entryPoint ??= compilationUnit;
     var containingNode = entryPoint;
     outerLoop:
     while (true) {
@@ -197,7 +190,7 @@ class CompletionTarget {
                     offset, docComment, commentToken, false);
               } else {
                 return CompletionTarget._(
-                    offset, compilationUnit, commentToken, true);
+                    offset, entryPoint, commentToken, true);
               }
             }
             return CompletionTarget._(offset, containingNode, entity, false);
@@ -223,10 +216,12 @@ class CompletionTarget {
       assert(identical(containingNode, entryPoint));
 
       // Check for comments on the EOF token (trailing comments in a file).
-      var commentToken =
-          _getContainingCommentToken(compilationUnit.endToken, offset);
-      if (commentToken != null) {
-        return CompletionTarget._(offset, compilationUnit, commentToken, true);
+      if (entryPoint is CompilationUnit) {
+        var commentToken =
+            _getContainingCommentToken(entryPoint.endToken, offset);
+        if (commentToken != null) {
+          return CompletionTarget._(offset, entryPoint, commentToken, true);
+        }
       }
 
       // Since no completion target was found, we set the completion target
