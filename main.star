@@ -100,9 +100,11 @@ NORMAL = 50  # Used for post-submit builds.
 HIGH = 30  # Used for try-jobs.
 HIGHEST = 25  # Used for shards in the recipes, included here for completeness.
 
+NO_ANDROID = {"custom_vars": {"download_android_deps": False}}
 CHROME = {"custom_vars": {"download_chrome": True}}
 FIREFOX = {"custom_vars": {"download_firefox": True}}
 JS_ENGINES = {"custom_vars": {"checkout_javascript_engines": True}}
+SLOW_SHARDS = {"shard_timeout": (90 * time.minute) // time.second}
 
 def to_location_regexp(paths):
     return [".+/[+]/%s" % path for path in paths]
@@ -118,6 +120,30 @@ def windows():
 
 def linux():
     return {"os": "Linux"}
+
+def union(x, y):
+    """ Creates a new dict with the values from both passed dictionaries
+
+    If both dicts contain the same keys, their values are assumed to be dicts
+    and merged. Values in y's sub-dicts will overwrite values in x's sub-dicts.
+
+    Args:
+        x (dict): A dict.
+        y (dict): Another dict.
+
+    Returns:
+        dict: The merged dict.
+    """
+    z = {}
+    z.update(x)
+    for k in y.keys():
+        v = z.get(k)
+        if v:
+            v = dict(v, **y[k])
+            z[k] = v
+        else:
+            z[k] = y[k]
+    return z
 
 # https://chrome-infra-auth.appspot.com/auth/groups/project-dart-ci-task-accounts
 CI_ACCOUNTS_GROUP = "project-dart-ci-task-accounts"
@@ -942,7 +968,7 @@ dart_vm_nightly_builder(
     "vm-kernel-nnbd-linux-debug-ia32",
     category = "vm|nnbd|jit|d3",
     channels = ["try"],
-    properties = {"shard_timeout": (90 * time.minute) // time.second},
+    properties = SLOW_SHARDS,
 )
 dart_vm_nightly_builder(
     "vm-kernel-nnbd-linux-release-ia32",
@@ -963,14 +989,14 @@ dart_vm_nightly_builder(
     "vm-kernel-nnbd-mac-debug-arm64",
     category = "vm|nnbd|jit|m1d",
     channels = ["try"],
-    properties = {"shard_timeout": (90 * time.minute) // time.second},
+    properties = union(NO_ANDROID, SLOW_SHARDS),
     dimensions = mac(cpu = "arm64"),
 )
 dart_vm_nightly_builder(
     "vm-kernel-nnbd-mac-debug-x64",
     category = "vm|nnbd|jit|md",
     channels = ["try"],
-    properties = {"shard_timeout": (90 * time.minute) // time.second},
+    properties = SLOW_SHARDS,
     dimensions = mac(),
 )
 dart_vm_extra_builder(
@@ -978,6 +1004,7 @@ dart_vm_extra_builder(
     category = "vm|nnbd|jit|m1r",
     channels = ["try"],
     dimensions = mac(cpu = "arm64"),
+    properties = NO_ANDROID,
 )
 dart_vm_nightly_builder(
     "vm-kernel-nnbd-mac-release-x64",
@@ -995,7 +1022,7 @@ dart_vm_nightly_builder(
     "vm-kernel-nnbd-win-debug-x64",
     category = "vm|nnbd|jit|wd",
     channels = ["try"],
-    properties = {"shard_timeout": (90 * time.minute) // time.second},
+    properties = SLOW_SHARDS,
     dimensions = windows(),
 )
 dart_vm_nightly_builder(
@@ -1024,7 +1051,7 @@ nightly_builder(
     "vm-kernel-precomp-nnbd-linux-debug-x64",
     category = "vm|nnbd|aot|d",
     channels = ["try"],
-    properties = {"shard_timeout": (90 * time.minute) // time.second},
+    properties = SLOW_SHARDS,
 )
 nightly_builder(
     "vm-kernel-precomp-nnbd-linux-release-simarm64",
@@ -1036,14 +1063,14 @@ dart_vm_extra_builder(
     category = "vm|nnbd|aot|m1",
     channels = ["try"],
     dimensions = mac(cpu = "arm64"),
-    properties = {"shard_timeout": (90 * time.minute) // time.second},
+    properties = union(NO_ANDROID, SLOW_SHARDS),
 )
 nightly_builder(
     "vm-kernel-precomp-nnbd-mac-release-simarm64",
     category = "vm|nnbd|aot|ma6",
     channels = ["try"],
     dimensions = mac(),
-    properties = {"shard_timeout": (90 * time.minute) // time.second},
+    properties = SLOW_SHARDS,
 )
 nightly_builder(
     "vm-kernel-precomp-nnbd-win-release-x64",
@@ -1056,7 +1083,7 @@ nightly_builder(
 dart_vm_extra_builder(
     "app-kernel-linux-debug-x64",
     category = "vm|app-kernel|d64",
-    properties = {"shard_timeout": (90 * time.minute) // time.second},
+    properties = SLOW_SHARDS,
 )
 dart_vm_nightly_builder(
     "app-kernel-linux-product-x64",
@@ -1119,6 +1146,7 @@ dart_ci_sandbox_builder(
     category = "vm|kernel|m1r",
     channels = ["try", "dev"],
     dimensions = mac(cpu = "arm64"),
+    properties = NO_ANDROID,
 )
 dart_vm_nightly_builder(
     "vm-kernel-win-debug-ia32",
@@ -1177,7 +1205,7 @@ dart_vm_extra_builder(
 dart_vm_extra_builder(
     "vm-kernel-precomp-linux-debug-simarm_x64",
     category = "vm|kernel-precomp|adx",
-    properties = {"shard_timeout": (90 * time.minute) // time.second},
+    properties = SLOW_SHARDS,
 )
 dart_vm_extra_builder(
     "vm-kernel-precomp-linux-release-simarm_x64",
@@ -1197,7 +1225,7 @@ dart_vm_nightly_builder(
     "cross-vm-precomp-linux-release-arm64",
     category = "vm|kernel-precomp|cra",
     channels = [],
-    properties = {"shard_timeout": (90 * time.minute) // time.second},
+    properties = SLOW_SHARDS,
 )
 dart_vm_nightly_builder(
     "vm-kernel-precomp-dwarf-linux-product-x64",
@@ -1209,12 +1237,12 @@ dart_vm_nightly_builder(
 dart_vm_extra_builder(
     "vm-kernel-precomp-android-release-arm_x64",
     category = "vm|kernel-precomp|android|a32",
-    properties = {"shard_timeout": (90 * time.minute) // time.second},
+    properties = SLOW_SHARDS,
 )
 dart_vm_extra_builder(
     "vm-kernel-precomp-android-release-arm64c",
     category = "vm|kernel-precomp|android|a64",
-    properties = {"shard_timeout": (90 * time.minute) // time.second},
+    properties = SLOW_SHARDS,
 )
 
 # vm|product
@@ -1376,7 +1404,7 @@ dart_ci_sandbox_builder(
     category = "pkg|m1",
     channels = ["try"],
     dimensions = mac(cpu = "arm64"),
-    properties = CHROME,
+    properties = union(CHROME, NO_ANDROID),
 )
 dart_ci_sandbox_builder(
     "pkg-win-release",
@@ -1542,6 +1570,7 @@ dart_ci_builder(
     category = "sdk|m1",
     channels = CHANNELS,
     dimensions = mac(cpu = "arm64"),
+    properties = NO_ANDROID,
 )
 
 dart_ci_builder(
