@@ -203,7 +203,7 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
   Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
 }
 
-/// Converts ASCII bytes to strings.
+/// Converts ASCII bytes to string.
 ///
 /// Example:
 /// ```dart
@@ -215,8 +215,8 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
 /// Throws a [FormatException] if [bytes] contains values that are not
 /// in the range 0 .. 127, and [allowInvalid] is `false` (the default).
 ///
-/// If [allowInvalid] is true, any byte outside the range 0..127 is replaced
-/// by the Unicode invalid character, U+FFFD ('�').
+/// If [allowInvalid] is `true`, any byte outside the range 0..127 is replaced
+/// by the Unicode replacement character, U+FFFD ('�').
 ///
 /// Example with `allowInvalid` set to true:
 /// ```dart
