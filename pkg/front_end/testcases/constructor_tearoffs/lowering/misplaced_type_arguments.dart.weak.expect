@@ -47,7 +47,7 @@ import "dart:core" as core;
 
 typedef B<T extends core::num> = self::A<T>;
 class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::redirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor •() → self::A<self::A::T%>
     : super core::Object::•()
     ;
@@ -110,3 +110,7 @@ static method _#B#fact#tearOff<T extends core::num>() → self::A<self::_#B#fact
   return self::A::fact<self::_#B#fact#tearOff::T>();
 static method _#B#redirect#tearOff<T extends core::num>() → self::A<self::_#B#redirect#tearOff::T>
   return self::A::_#redirect#tearOff<self::_#B#redirect#tearOff::T>();
+
+constants  {
+  #C1 = constructor-tearoff self::A::redirect
+}

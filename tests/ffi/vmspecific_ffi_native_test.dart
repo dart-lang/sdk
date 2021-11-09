@@ -23,9 +23,6 @@ final setFfiNativeResolverForTest =
     nativeLib.lookupFunction<Void Function(Handle), void Function(Object)>(
         'SetFfiNativeResolverForTest');
 
-final triggerGC = nativeLib
-    .lookupFunction<Void Function(IntPtr), void Function(int)>('TriggerGC');
-
 @FfiNative<Handle Function(Handle, IntPtr, IntPtr)>(
     'Dart_SetNativeInstanceField')
 external Object setNativeInstanceField(Object obj, int index, int ptr);
@@ -51,18 +48,40 @@ class Classy {
 
 // For automatic transform of NativeFieldWrapperClass1 to Pointer.
 
-// Sets the native (dummy) resource and the object's finalizer.
-@FfiNative<Void Function(Handle, IntPtr)>('SetSharedResource')
-external void setSharedResource(NativeFieldWrapperClass1 obj, int value);
-// Return the native (dummy) resource.
-@FfiNative<IntPtr Function()>('GetSharedResource')
-external int getSharedResource();
-
 class ClassWithNativeField extends NativeFieldWrapperClass1 {
   ClassWithNativeField(int value) {
     setNativeInstanceField(this, 0, value);
-    setSharedResource(this, value);
   }
+
+  // Instance methods implicitly pass a 'self' reference as the first argument.
+  // Passed as Pointer if the native function takes that (and the class can be
+  // converted).
+  @FfiNative<IntPtr Function(Pointer<Void>, IntPtr)>('AddPtrAndInt')
+  external int addSelfPtrAndIntMethod(int x);
+
+  // Instance methods implicitly pass a 'self' reference as the first argument.
+  // Passed as Handle if the native function takes that.
+  @FfiNative<IntPtr Function(Handle, IntPtr)>('AddHandleFieldAndInt')
+  external int addSelfHandleFieldAndIntMethod(int x);
+
+  @FfiNative<IntPtr Function(Pointer<Void>, Pointer<Void>)>('AddPtrAndPtr')
+  external int addSelfPtrAndPtrMethod(ClassWithNativeField other);
+
+  @FfiNative<IntPtr Function(Handle, Pointer<Void>)>('AddHandleFieldAndPtr')
+  external int addSelfHandleFieldAndPtrMethod(ClassWithNativeField other);
+
+  @FfiNative<IntPtr Function(Handle, Handle)>('AddHandleFieldAndHandleField')
+  external int addSelfHandleFieldAndHandleFieldMethod(
+      ClassWithNativeField other);
+
+  @FfiNative<IntPtr Function(Pointer<Void>, Handle)>('AddPtrAndHandleField')
+  external int addselfPtrAndHandleFieldMethod(ClassWithNativeField other);
+}
+
+class ClassWithoutNativeField {
+  // Instance methods implicitly pass their handle as the first arg.
+  @FfiNative<IntPtr Function(Handle, IntPtr)>('ReturnIntPtrMethod')
+  external int returnIntPtrMethod(int x);
 }
 
 // Native function takes a Handle, so a Handle is passed as-is.
@@ -78,12 +97,6 @@ external int passAsPointerAndValue(NativeFieldWrapperClass1 obj, int value);
 // Pass Pointer automatically, and return value.
 @FfiNative<IntPtr Function(IntPtr, Pointer<Void>)>('PassAsValueAndPointer')
 external int passAsValueAndPointer(int value, NativeFieldWrapperClass1 obj);
-
-// Helper to embed triggerGC(..) as an expression.
-int triggerGCWrap() {
-  triggerGC(0);
-  return 0;
-}
 
 // Helpers for testing argumnent evaluation order is preserved.
 int state = 0;
@@ -117,27 +130,37 @@ void main() {
   // Test that objects extending NativeFieldWrapperClass1 can be passed to
   // FfiNative functions that take Pointer.
   // Such objects should automatically be converted and pass as Pointer.
-  final cwnf = ClassWithNativeField(123456);
-  Expect.equals(123456, passAsHandle(cwnf));
-  Expect.equals(123456, passAsPointer(cwnf));
-
-  // Test that the transform to wrap NativeFieldWrapperClass1 objects in
-  // _getNativeField(..) doesn't violate the original argument's liveness.
-  Expect.equals(
-      314159,
-      passAsPointerAndValue(
-          // 1: Locally alloc. instance.
-          // If this gets wrapped in another call the instance does not live
-          // past the return of the wrapper call.
-          ClassWithNativeField(314159),
-          // 2: Force GC, to collect the above if it isn't being kept alive.
-          // 3: Check that the underlying (dummy) resource hasn't been
-          // "collected" (i.e. reset to 0).
-          triggerGCWrap() + getSharedResource()));
+  {
+    final cwnf = ClassWithNativeField(123456);
+    Expect.equals(123456, passAsHandle(cwnf));
+    Expect.equals(123456, passAsPointer(cwnf));
+  }
 
   // Test that the order of argument evaluation is being preserved through the
   // transform wrapping NativeFieldWrapperClass1 objects.
   state = 0;
   passAsValueAndPointer(setState(7), StateSetter(3));
   Expect.equals(3, state);
+
+  // Test transforms of instance methods.
+  Expect.equals(234, ClassWithoutNativeField().returnIntPtrMethod(234));
+  Expect.equals(1012, ClassWithNativeField(12).addSelfPtrAndIntMethod(1000));
+  Expect.equals(
+      2021, ClassWithNativeField(21).addSelfHandleFieldAndIntMethod(2000));
+  Expect.equals(
+      3031,
+      ClassWithNativeField(31)
+          .addSelfPtrAndPtrMethod(ClassWithNativeField(3000)));
+  Expect.equals(
+      4041,
+      ClassWithNativeField(41)
+          .addSelfHandleFieldAndPtrMethod(ClassWithNativeField(4000)));
+  Expect.equals(
+      5051,
+      ClassWithNativeField(51)
+          .addSelfHandleFieldAndHandleFieldMethod(ClassWithNativeField(5000)));
+  Expect.equals(
+      6061,
+      ClassWithNativeField(61)
+          .addselfPtrAndHandleFieldMethod(ClassWithNativeField(6000)));
 }

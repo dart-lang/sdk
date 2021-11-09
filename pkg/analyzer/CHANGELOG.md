@@ -1,4 +1,22 @@
-## 2.4.0-dev
+## 2.8.0-dev
+* Deprecations and renames for `getXyz` methods in `AnalysisDriver`.
+* Removed uppercase named constants from `double` in mock SDK.
+* Deprecated `path` and `uri` from `AnalysisResult`.
+
+## 2.7.0
+* Updated `ConstructorElement.displayName` to either `Class` or `Class.constructor`.
+* Deprecated `InterfaceType.getSmartLeastUpperBound`, use `TypeSystem.leastUpperBound` instead.
+* Deprecated `MockSdk`, use `createMockSdk` and `FolderBasedDartSdk` instead.
+
+## 2.6.0
+* Deprecated `AnalysisResult.state`, check for specific valid or invalid subtypes.
+* Deprecated `ResultState`.
+* Deprecated `LibraryElement.hasExtUri`, FFI should be used instead.
+
+## 2.5.0
+* Updated `MockSdk` to include more declarations.
+
+## 2.4.0
 * Deprecated `ResourceProvider.getModificationTimes()`.
 * Deprecated `MemoryResourceProvider.newDummyLink()`.
 * Deprecated `MemoryResourceProvider.updateFile()`.

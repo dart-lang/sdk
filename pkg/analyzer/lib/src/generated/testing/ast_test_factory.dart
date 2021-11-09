@@ -1100,6 +1100,42 @@ class AstTestFactory {
               : TokenFactory.tokenFromType(TokenType.COLON),
           expression);
 
+  /// Create a type name whose name has been resolved to the given [element] and
+  /// whose type has been resolved to the type of the given element.
+  ///
+  /// <b>Note:</b> This method does not correctly handle class elements that
+  /// have type parameters.
+  static NamedTypeImpl namedType(ClassElement element,
+      [List<TypeAnnotation>? arguments]) {
+    var name = identifier3(element.name);
+    name.staticElement = element;
+    var typeName = namedType3(name, arguments);
+    typeName.type = element.instantiate(
+      typeArguments: List.filled(
+        element.typeParameters.length,
+        DynamicTypeImpl.instance,
+      ),
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+    return typeName;
+  }
+
+  static NamedTypeImpl namedType3(Identifier name,
+          [List<TypeAnnotation>? arguments]) =>
+      astFactory.namedType(
+        name: name,
+        typeArguments: typeArgumentList(arguments),
+      );
+
+  static NamedTypeImpl namedType4(String name,
+          [List<TypeAnnotation>? arguments, bool question = false]) =>
+      astFactory.namedType(
+        name: identifier3(name),
+        typeArguments: typeArgumentList(arguments),
+        question:
+            question ? TokenFactory.tokenFromType(TokenType.QUESTION) : null,
+      );
+
   static NativeClauseImpl nativeClause(String nativeCode) =>
       astFactory.nativeClause(
           TokenFactory.tokenFromString("native"), string2(nativeCode));
@@ -1421,42 +1457,6 @@ class AstTestFactory {
     return astFactory.typeArgumentList(TokenFactory.tokenFromType(TokenType.LT),
         types, TokenFactory.tokenFromType(TokenType.GT));
   }
-
-  /// Create a type name whose name has been resolved to the given [element] and
-  /// whose type has been resolved to the type of the given element.
-  ///
-  /// <b>Note:</b> This method does not correctly handle class elements that
-  /// have type parameters.
-  static TypeNameImpl typeName(ClassElement element,
-      [List<TypeAnnotation>? arguments]) {
-    var name = identifier3(element.name);
-    name.staticElement = element;
-    var typeName = typeName3(name, arguments);
-    typeName.type = element.instantiate(
-      typeArguments: List.filled(
-        element.typeParameters.length,
-        DynamicTypeImpl.instance,
-      ),
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    return typeName;
-  }
-
-  static TypeNameImpl typeName3(Identifier name,
-          [List<TypeAnnotation>? arguments]) =>
-      astFactory.namedType(
-        name: name,
-        typeArguments: typeArgumentList(arguments),
-      );
-
-  static TypeNameImpl typeName4(String name,
-          [List<TypeAnnotation>? arguments, bool question = false]) =>
-      astFactory.namedType(
-        name: identifier3(name),
-        typeArguments: typeArgumentList(arguments),
-        question:
-            question ? TokenFactory.tokenFromType(TokenType.QUESTION) : null,
-      );
 
   static TypeParameterImpl typeParameter(String name) =>
       astFactory.typeParameter(null, null, identifier3(name), null, null);

@@ -844,7 +844,6 @@ void Service::PostError(const String& method_name,
                         const Error& error) {
   Thread* T = Thread::Current();
   StackZone zone(T);
-  HANDLESCOPE(T);
   JSONStream js;
   js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(), id, method_name,
            parameter_keys, parameter_values);
@@ -865,7 +864,6 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
 
   {
     StackZone zone(T);
-    HANDLESCOPE(T);
 
     Instance& reply_port = Instance::Handle(Z);
     Instance& seq = String::Handle(Z);
@@ -3227,7 +3225,6 @@ static void GetInstances(Thread* thread, JSONStream* js) {
 
   // Ensure the array and handles created below are promptly destroyed.
   StackZone zone(thread);
-  HANDLESCOPE(thread);
 
   ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), limit);
   GetInstancesVisitor visitor(&storage, limit);
@@ -3278,7 +3275,6 @@ static void GetInstancesAsArray(Thread* thread, JSONStream* js) {
   Array& instances = Array::Handle();
   {
     StackZone zone(thread);
-    HANDLESCOPE(thread);
 
     ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), 1024);
     GetInstancesVisitor visitor(&storage, kSmiMax);
@@ -3306,7 +3302,6 @@ static const MethodParameter* const get_ports_params[] = {
 static void GetPorts(Thread* thread, JSONStream* js) {
   // Ensure the array and handles created below are promptly destroyed.
   StackZone zone(thread);
-  HANDLESCOPE(thread);
   const GrowableObjectArray& ports = GrowableObjectArray::Handle(
       GrowableObjectArray::RawCast(DartLibraryCalls::LookupOpenPorts()));
   JSONObject jsobj(js);
@@ -4228,7 +4223,7 @@ static const MethodParameter* const collect_all_garbage_params[] = {
 
 static void CollectAllGarbage(Thread* thread, JSONStream* js) {
   auto heap = thread->isolate_group()->heap();
-  heap->CollectAllGarbage(Heap::kDebugging);
+  heap->CollectAllGarbage(GCReason::kDebugging);
   PrintSuccess(js);
 }
 
@@ -4241,12 +4236,14 @@ static void GetHeapMap(Thread* thread, JSONStream* js) {
   auto isolate_group = thread->isolate_group();
   if (js->HasParam("gc")) {
     if (js->ParamIs("gc", "scavenge")) {
-      isolate_group->heap()->CollectGarbage(Heap::kScavenge, Heap::kDebugging);
+      isolate_group->heap()->CollectGarbage(GCType::kScavenge,
+                                            GCReason::kDebugging);
     } else if (js->ParamIs("gc", "mark-sweep")) {
-      isolate_group->heap()->CollectGarbage(Heap::kMarkSweep, Heap::kDebugging);
+      isolate_group->heap()->CollectGarbage(GCType::kMarkSweep,
+                                            GCReason::kDebugging);
     } else if (js->ParamIs("gc", "mark-compact")) {
-      isolate_group->heap()->CollectGarbage(Heap::kMarkCompact,
-                                            Heap::kDebugging);
+      isolate_group->heap()->CollectGarbage(GCType::kMarkCompact,
+                                            GCReason::kDebugging);
     } else {
       PrintInvalidParamError(js, "gc");
       return;
@@ -4887,9 +4884,15 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty("operatingSystem", OS::Name());
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("version", Version::String());
+#if defined(DART_PRECOMPILED_RUNTIME)
+  Snapshot::Kind kind = Snapshot::kFullAOT;
+#else
+  Snapshot::Kind kind = Snapshot::kFullJIT;
+#endif
+  char* features_string = Dart::FeaturesString(nullptr, true, kind);
+  jsobj.AddProperty("_features", features_string);
+  free(features_string);
   jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
-  jsobj.AddProperty64("_nativeZoneMemoryUsage",
-                      ApiNativeScope::current_memory_usage());
   jsobj.AddProperty64("pid", OS::ProcessId());
   jsobj.AddPropertyTimeMillis(
       "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
@@ -4943,6 +4946,159 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
 
 static void GetVM(Thread* thread, JSONStream* js) {
   Service::PrintJSONForVM(js, false);
+}
+
+static intptr_t ParseJSONArray(Thread* thread,
+                               const char* str,
+                               const GrowableObjectArray& elements) {
+  ASSERT(str != nullptr);
+  ASSERT(thread != nullptr);
+  Zone* zone = thread->zone();
+  intptr_t n = strlen(str);
+  if (n < 2) {
+    return -1;
+  }
+  intptr_t start = 1;
+  while (start < n) {
+    intptr_t end = start;
+    while ((str[end + 1] != ',') && (str[end + 1] != ']')) {
+      end++;
+    }
+    if (end == start) {
+      // Empty element
+      break;
+    }
+    String& element = String::Handle(
+        zone, String::FromUTF8(reinterpret_cast<const uint8_t*>(&str[start]),
+                               end - start + 1));
+    elements.Add(element);
+    start = end + 3;
+  }
+  return 0;
+}
+
+class UriMappingTraits {
+ public:
+  static const char* Name() { return "UriMappingTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    const String& a_str = String::Cast(a);
+    const String& b_str = String::Cast(b);
+
+    ASSERT(a_str.HasHash() && b_str.HasHash());
+    return a_str.Equals(b_str);
+  }
+
+  static uword Hash(const Object& key) { return String::Cast(key).Hash(); }
+
+  static ObjectPtr NewKey(const String& str) { return str.ptr(); }
+};
+
+typedef UnorderedHashMap<UriMappingTraits> UriMapping;
+
+static void PopulateUriMappings(Thread* thread) {
+  Zone* zone = thread->zone();
+  auto object_store = thread->isolate_group()->object_store();
+  UriMapping uri_to_resolved_uri(HashTables::New<UriMapping>(16, Heap::kOld));
+  UriMapping resolved_uri_to_uri(HashTables::New<UriMapping>(16, Heap::kOld));
+
+  const auto& libs =
+      GrowableObjectArray::Handle(zone, object_store->libraries());
+  intptr_t num_libs = libs.Length();
+
+  Library& lib = Library::Handle(zone);
+  Script& script = Script::Handle(zone);
+  Array& scripts = Array::Handle(zone);
+  String& uri = String::Handle(zone);
+  String& resolved_uri = String::Handle(zone);
+
+  for (intptr_t i = 0; i < num_libs; ++i) {
+    lib ^= libs.At(i);
+    scripts ^= lib.LoadedScripts();
+    intptr_t num_scripts = scripts.Length();
+    for (intptr_t j = 0; j < num_scripts; ++j) {
+      script ^= scripts.At(j);
+      uri ^= script.url();
+      resolved_uri ^= script.resolved_url();
+      uri_to_resolved_uri.UpdateOrInsert(uri, resolved_uri);
+      resolved_uri_to_uri.UpdateOrInsert(resolved_uri, uri);
+    }
+  }
+
+  object_store->set_uri_to_resolved_uri_map(uri_to_resolved_uri.Release());
+  object_store->set_resolved_uri_to_uri_map(resolved_uri_to_uri.Release());
+  Smi& count = Smi::Handle(zone, Smi::New(num_libs));
+  object_store->set_last_libraries_count(count);
+}
+
+static void LookupScriptUrisImpl(Thread* thread,
+                                 JSONStream* js,
+                                 bool lookup_resolved) {
+  Zone* zone = thread->zone();
+  auto object_store = thread->isolate_group()->object_store();
+
+  const auto& libs =
+      GrowableObjectArray::Handle(zone, object_store->libraries());
+  Smi& last_libraries_count =
+      Smi::Handle(zone, object_store->last_libraries_count());
+  if ((object_store->uri_to_resolved_uri_map() == Array::null()) ||
+      (object_store->resolved_uri_to_uri_map() == Array::null()) ||
+      (last_libraries_count.Value() != libs.Length())) {
+    PopulateUriMappings(thread);
+  }
+  const char* uris_arg = js->LookupParam("uris");
+  if (uris_arg == nullptr) {
+    PrintMissingParamError(js, "uris");
+    return;
+  }
+
+  const GrowableObjectArray& uris =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  intptr_t uris_length = ParseJSONArray(thread, uris_arg, uris);
+  if (uris_length < 0) {
+    PrintInvalidParamError(js, "uris");
+    return;
+  }
+
+  UriMapping map(lookup_resolved ? object_store->uri_to_resolved_uri_map()
+                                 : object_store->resolved_uri_to_uri_map());
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "UriList");
+
+  {
+    JSONArray uris_array(&jsobj, "uris");
+    String& uri = String::Handle(zone);
+    String& res = String::Handle(zone);
+    for (intptr_t i = 0; i < uris.Length(); ++i) {
+      uri ^= uris.At(i);
+      res ^= map.GetOrNull(uri);
+      if (res.IsNull()) {
+        uris_array.AddValueNull();
+      } else {
+        uris_array.AddValue(res.ToCString());
+      }
+    }
+  }
+  map.Release();
+}
+
+static const MethodParameter* const lookup_resolved_package_uris_params[] = {
+    ISOLATE_PARAMETER,
+    nullptr,
+};
+
+static void LookupResolvedPackageUris(Thread* thread, JSONStream* js) {
+  LookupScriptUrisImpl(thread, js, true);
+}
+
+static const MethodParameter* const lookup_package_uris_params[] = {
+    ISOLATE_PARAMETER,
+    nullptr,
+};
+
+static void LookupPackageUris(Thread* thread, JSONStream* js) {
+  LookupScriptUrisImpl(thread, js, false);
 }
 
 static const char* const exception_pause_mode_names[] = {
@@ -5356,6 +5512,10 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_reachable_size_params },
   { "_getRetainedSize", GetRetainedSize,
     get_retained_size_params },
+  { "lookupResolvedPackageUris", LookupResolvedPackageUris,
+    lookup_resolved_package_uris_params },
+  { "lookupPackageUris", LookupPackageUris,
+    lookup_package_uris_params },
   { "getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
   { "getScripts", GetScripts,

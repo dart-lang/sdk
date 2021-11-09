@@ -15,11 +15,11 @@ main() {
   for (int i = -30; i < 30; i++) {
     Expect.equals(i % 256, foo(i));
     Expect.equals(i % -256, boo(i));
-    Expect.throws(() => hoo(i), (e) => e is IntegerDivisionByZeroException);
+    Expect.throws(() => hoo(i), (e) => e is UnsupportedError);
 
     Expect.equals(i ~/ 254 + i % 254, fooTwo(i));
     Expect.equals(i ~/ -254 + i % -254, booTwo(i));
-    Expect.throws(() => hooTwo(i), (e) => e is IntegerDivisionByZeroException);
+    Expect.throws(() => hooTwo(i), (e) => e is UnsupportedError);
     if (i > 0) {
       Expect.equals(i % 10, noDom(i));
     } else {
@@ -37,8 +37,8 @@ main() {
       Expect.equals(i ~/ i + i % i, fooTwo2(i));
     }
   }
-  Expect.throws(() => foo2(0), (e) => e is IntegerDivisionByZeroException);
-  Expect.throws(() => fooTwo2(0), (e) => e is IntegerDivisionByZeroException);
+  Expect.throws(() => foo2(0), (e) => e is UnsupportedError);
+  Expect.throws(() => fooTwo2(0), (e) => e is UnsupportedError);
 }
 
 foo(i) => i % 256; // This will get optimized to AND instruction.

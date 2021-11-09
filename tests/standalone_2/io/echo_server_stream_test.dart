@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-//
 // Echo server test program to test socket streams.
 //
 // VMOptions=

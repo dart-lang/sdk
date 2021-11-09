@@ -11,7 +11,6 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
@@ -53,7 +52,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
 
     final result = await server.getResolvedUnit(path);
     final unit = result?.unit;
-    if (result?.state == ResultState.VALID && unit != null) {
+    if (unit != null) {
       computeDartNavigation(
           server.resourceProvider, collector, unit, offset, 0);
       collector.createRegions();

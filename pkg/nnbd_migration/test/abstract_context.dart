@@ -41,6 +41,8 @@ class AbstractContextTest with ResourceProviderMixin {
 
   String get homePath => '/home';
 
+  Folder get sdkRoot => newFolder('/sdk');
+
   AnalysisSession get session => driver!.currentSession;
 
   String get testsPath => '$homePath/tests';
@@ -164,7 +166,10 @@ export 'package:test_core/test_core.dart';
     setupResourceProvider();
     overlayResourceProvider = OverlayResourceProvider(resourceProvider);
 
-    MockSdk(resourceProvider: resourceProvider);
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
 
     newFolder(testsPath);
     newFile('$testsPath/.packages', content: '''
@@ -217,7 +222,7 @@ environment:
       includedPaths: [convertPath(homePath)],
       enableIndex: true,
       resourceProvider: overlayResourceProvider,
-      sdkPath: convertPath('/sdk'),
+      sdkPath: sdkRoot.path,
     );
 
     _driver = getDriver(convertPath(testsPath));

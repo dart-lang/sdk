@@ -167,6 +167,10 @@ class ForwardingNode {
       superTarget = superTarget.memberSignatureOrigin ?? superTarget;
     }
     procedure.isAbstract = false;
+    FunctionType signatureType = procedure.function
+        .computeFunctionType(procedure.enclosingLibrary.nonNullable);
+    bool isForwardingSemiStub = isForwardingStub && !procedure.isSynthetic;
+    bool needsSignatureType = false;
     Expression superCall;
     // ignore: unnecessary_null_comparison
     assert(superTarget != null,
@@ -197,15 +201,22 @@ class ForwardingNode {
           Expression expression = new VariableGet(parameter)
             ..fileOffset = fileOffset;
           DartType superParameterType = type.positionalParameters[index];
-          if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
-              parameter.type,
-              superParameterType,
-              _combinedMemberSignature
-                      .classBuilder.library.isNonNullableByDefault
-                  ? SubtypeCheckMode.withNullabilities
-                  : SubtypeCheckMode.ignoringNullabilities)) {
-            expression = new AsExpression(expression, superParameterType)
-              ..fileOffset = fileOffset;
+          if (isForwardingSemiStub) {
+            if (parameter.type != superParameterType) {
+              parameter.type = superParameterType;
+              needsSignatureType = true;
+            }
+          } else {
+            if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
+                parameter.type,
+                superParameterType,
+                _combinedMemberSignature
+                        .classBuilder.library.isNonNullableByDefault
+                    ? SubtypeCheckMode.withNullabilities
+                    : SubtypeCheckMode.ignoringNullabilities)) {
+              expression = new AsExpression(expression, superParameterType)
+                ..fileOffset = fileOffset;
+            }
           }
           return expression;
         }, growable: true);
@@ -219,15 +230,22 @@ class ForwardingNode {
               .singleWhere(
                   (NamedType namedType) => namedType.name == parameter.name)
               .type;
-          if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
-              parameter.type,
-              superParameterType,
-              _combinedMemberSignature
-                      .classBuilder.library.isNonNullableByDefault
-                  ? SubtypeCheckMode.withNullabilities
-                  : SubtypeCheckMode.ignoringNullabilities)) {
-            expression = new AsExpression(expression, superParameterType)
-              ..fileOffset = fileOffset;
+          if (isForwardingSemiStub) {
+            if (parameter.type != superParameterType) {
+              parameter.type = superParameterType;
+              needsSignatureType = true;
+            }
+          } else {
+            if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
+                parameter.type,
+                superParameterType,
+                _combinedMemberSignature
+                        .classBuilder.library.isNonNullableByDefault
+                    ? SubtypeCheckMode.withNullabilities
+                    : SubtypeCheckMode.ignoringNullabilities)) {
+              expression = new AsExpression(expression, superParameterType)
+                ..fileOffset = fileOffset;
+            }
           }
           return new NamedExpression(parameter.name!, expression);
         }, growable: true);
@@ -251,14 +269,22 @@ class ForwardingNode {
         int fileOffset = parameter.fileOffset;
         Expression expression = new VariableGet(parameter)
           ..fileOffset = fileOffset;
-        if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
-            parameter.type,
-            superParameterType,
-            _combinedMemberSignature.classBuilder.library.isNonNullableByDefault
-                ? SubtypeCheckMode.withNullabilities
-                : SubtypeCheckMode.ignoringNullabilities)) {
-          expression = new AsExpression(expression, superParameterType)
-            ..fileOffset = fileOffset;
+        if (isForwardingSemiStub) {
+          if (parameter.type != superParameterType) {
+            parameter.type = superParameterType;
+            needsSignatureType = true;
+          }
+        } else {
+          if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
+              parameter.type,
+              superParameterType,
+              _combinedMemberSignature
+                      .classBuilder.library.isNonNullableByDefault
+                  ? SubtypeCheckMode.withNullabilities
+                  : SubtypeCheckMode.ignoringNullabilities)) {
+            expression = new AsExpression(expression, superParameterType)
+              ..fileOffset = fileOffset;
+          }
         }
         superCall = new SuperPropertySet(name, expression, superTarget);
         break;
@@ -273,5 +299,8 @@ class ForwardingNode {
         ? ProcedureStubKind.ConcreteForwardingStub
         : ProcedureStubKind.ConcreteMixinStub;
     procedure.stubTarget = superTarget;
+    if (needsSignatureType) {
+      procedure.signatureType = signatureType;
+    }
   }
 }

@@ -95,7 +95,6 @@ class AnalysisServer {
 
     _process = await startDartProcess(sdk, command);
     // This callback hookup can't throw.
-    // ignore: unawaited_futures
     _process.exitCode.whenComplete(() => _process = null);
 
     final Stream<String> errorStream = _process.stderr
@@ -110,7 +109,6 @@ class AnalysisServer {
 
     _streamController('server.error').stream.listen(_handleServerError);
 
-    // ignore: unawaited_futures
     _sendCommand('server.setSubscriptions', params: <String, dynamic>{
       'subscriptions': <String>['STATUS'],
     });
@@ -136,7 +134,6 @@ class AnalysisServer {
       }
     });
 
-    // ignore: unawaited_futures
     _sendCommand('analysis.setAnalysisRoots', params: <String, dynamic>{
       'included': analysisRootPaths,
       'excluded': <String>[]

@@ -639,6 +639,20 @@ abstract class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_await_null() async {
+    var content = '''
+Future<int> test() async {
+  return await null;
+}
+''';
+    var expected = '''
+Future<int?> test() async {
+  return await null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void>
       test_back_propagation_stops_at_implicitly_typed_variables() async {
     var content = '''
@@ -3305,6 +3319,114 @@ g(bool b, int? j) {
   if (b) {
     f(j!);
   }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_constructor() async {
+    var content = '''
+class C {
+  external C(dynamic Function(dynamic) callback);
+  static Object g(Object Function(Object) callback) => C(callback);
+}
+''';
+    var expected = '''
+class C {
+  external C(dynamic Function(dynamic) callback);
+  static Object g(Object Function(Object?) callback) => C(callback);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_function() async {
+    var content = '''
+external dynamic f();
+Object g() => f();
+''';
+    var expected = '''
+external dynamic f();
+Object? g() => f();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_function_implicit_return() async {
+    var content = '''
+external f();
+Object g() => f();
+''';
+    var expected = '''
+external f();
+Object? g() => f();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_function_implicit_variance() async {
+    var content = '''
+external void f(callback(x));
+void g(Object Function(Object) callback) => f(callback);
+''';
+    var expected = '''
+external void f(callback(x));
+void g(Object Function(Object?) callback) => f(callback);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_function_implicit_variance_complex() async {
+    var content = '''
+external void f(callback(x()));
+void g(Object Function(Object Function()) callback) => f(callback);
+''';
+    var expected = '''
+external void f(callback(x()));
+void g(Object Function(Object? Function()) callback) => f(callback);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_function_variance() async {
+    var content = '''
+external void f(dynamic Function(dynamic) callback);
+void g(Object Function(Object) callback) => f(callback);
+''';
+    var expected = '''
+external void f(dynamic Function(dynamic) callback);
+void g(Object Function(Object?) callback) => f(callback);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_method() async {
+    var content = '''
+class C {
+  external dynamic f();
+  Object g() => f();
+}
+''';
+    var expected = '''
+class C {
+  external dynamic f();
+  Object? g() => f();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_method_implicit() async {
+    var content = '''
+class C {
+  external f();
+  Object g() => f();
+}
+''';
+    var expected = '''
+class C {
+  external f();
+  Object? g() => f();
 }
 ''';
     await _checkSingleFileChanges(content, expected);

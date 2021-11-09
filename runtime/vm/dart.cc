@@ -1064,9 +1064,9 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   return Error::null();
 }
 
-const char* Dart::FeaturesString(IsolateGroup* isolate_group,
-                                 bool is_vm_isolate,
-                                 Snapshot::Kind kind) {
+char* Dart::FeaturesString(IsolateGroup* isolate_group,
+                           bool is_vm_isolate,
+                           Snapshot::Kind kind) {
   TextBuffer buffer(64);
 
 // Different fields are included for DEBUG/RELEASE/PRODUCT.
@@ -1091,7 +1091,7 @@ const char* Dart::FeaturesString(IsolateGroup* isolate_group,
   do {                                                                         \
     const bool value =                                                         \
         isolate_group != nullptr ? isolate_group->name() : flag;               \
-    ADD_FLAG(#name, value);                                                    \
+    ADD_FLAG(name, value);                                                     \
   } while (0);
 
   if (Snapshot::IncludesCode(kind)) {
@@ -1134,7 +1134,9 @@ const char* Dart::FeaturesString(IsolateGroup* isolate_group,
 #error What architecture?
 #endif
 #if defined(DART_COMPRESSED_POINTERS)
-    buffer.AddString(" compressed");
+    buffer.AddString(" compressed-pointers");
+#else
+    buffer.AddString(" no-compressed-pointers");
 #endif
   }
 

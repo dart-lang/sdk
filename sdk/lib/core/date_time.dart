@@ -264,7 +264,7 @@ class DateTime implements Comparable<DateTime> {
   /// them as overflows into the next larger component.
   /// For example, "2020-01-42" will be parsed as 2020-02-11, because
   /// the last valid date in that month is 2020-01-31, so 42 days is
-  /// interprted as 31 days of that month plus 11 days into the next month.
+  /// interpreted as 31 days of that month plus 11 days into the next month.
   ///
   /// To detect and reject invalid component values, use
   /// [DateFormat.parseStrict](https://pub.dev/documentation/intl/latest/intl/DateFormat/parseStrict.html)
@@ -472,7 +472,7 @@ class DateTime implements Comparable<DateTime> {
   /// Returns [this] if it is already in the local time zone.
   /// Otherwise this method is equivalent to:
   ///
-  /// ```dart
+  /// ```dart template:expression
   /// DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch,
   ///                                     isUtc: false)
   /// ```
@@ -488,7 +488,7 @@ class DateTime implements Comparable<DateTime> {
   /// Returns [this] if it is already in UTC.
   /// Otherwise this method is equivalent to:
   ///
-  /// ```dart
+  /// ```dart template:expression
   /// DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch,
   ///                                     isUtc: true)
   /// ```

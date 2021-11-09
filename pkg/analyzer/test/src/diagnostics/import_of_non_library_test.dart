@@ -25,7 +25,8 @@ library lib;
 import 'lib1.dart' deferred as p;
 var a = new p.A();
 ''', [
-      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 20, 11),
+      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 20, 11,
+          messageContains: ["library 'lib1.dart' "]),
     ]);
   }
 
@@ -39,7 +40,8 @@ library lib;
 import 'part.dart';
 A a = A();
 ''', [
-      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 20, 11),
+      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 20, 11,
+          messageContains: ["library 'part.dart' "]),
     ]);
   }
 }

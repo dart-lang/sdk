@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -43,9 +44,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Element get dynamicElement => typeProvider.dynamicType.element!;
 
-  bool get enableUnusedElement => false;
-
-  bool get enableUnusedLocalVariable => false;
+  FeatureSet get featureSet => result.libraryElement.featureSet;
 
   ClassElement get futureElement => typeProvider.futureElement;
 
@@ -151,13 +150,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertConstructorElement(
-      ConstructorElement? expected, ConstructorElement? actual) {
-    if (expected is ConstructorMember && actual is ConstructorMember) {
-      expect(expected.declaration, same(actual.declaration));
+  void assertConstructorElement(ConstructorElement? actual, Object? expected) {
+    if (actual is ConstructorMember && expected is ConstructorMember) {
+      expect(actual.declaration, same(expected.declaration));
       // TODO(brianwilkerson) Compare the type arguments of the two members.
     } else {
-      expect(expected, same(actual));
+      assertElement(actual, expected);
     }
   }
 
@@ -169,12 +167,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     PrefixElement? expectedPrefix,
     Element? expectedTypeNameElement,
   }) {
-    var actualConstructorElement = getNodeElement(node) as ConstructorElement?;
     var actualConstructorName = node.constructorName.name;
     if (actualConstructorName != null) {
       assertConstructorElement(
         actualConstructorName.staticElement as ConstructorElement?,
-        actualConstructorElement,
+        expectedConstructorElement,
       );
     }
 
@@ -183,8 +180,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     var namedType = node.constructorName.type2;
     expectedTypeNameElement ??= expectedClassElement;
-    assertNamedType(namedType, expectedTypeNameElement, null,
-        expectedPrefix: expectedPrefix);
+    assertNamedType(
+      namedType, expectedTypeNameElement,
+      // The [NamedType] child node of the [ConstructorName] should not have a
+      // static type.
+      null,
+      expectedPrefix: expectedPrefix,
+    );
   }
 
   void assertConstructors(ClassElement class_, List<String> expected) {
@@ -361,7 +363,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertFunctionReference(
       FunctionReference node, Element? expectedElement, String expectedType) {
-    assertElement(node, expectedElement);
+    if (expectedElement != null) {
+      assertElement(node, expectedElement);
+    }
     assertType(node, expectedType);
   }
 
@@ -383,6 +387,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     var type = typeString(setter.parameters[0].type);
     assertType(ref, type);
+  }
+
+  void assertImplicitCallReference(ImplicitCallReference node,
+      Element? expectedElement, String expectedType) {
+    assertElement(node, expectedElement);
+    assertType(node, expectedType);
   }
 
   /// In valid code [element] must be a [PrefixElement], but for invalid code
@@ -851,11 +861,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   ExpectedError error(ErrorCode code, int offset, int length,
-          {String? text,
-          Pattern? messageContains,
+          {Pattern? correctionContains,
+          String? text,
+          List<Pattern> messageContains = const [],
           List<ExpectedContextMessage> contextMessages =
               const <ExpectedContextMessage>[]}) =>
       ExpectedError(code, offset, length,
+          correctionContains: correctionContains,
           message: text,
           messageContains: messageContains,
           expectedContextMessages: contextMessages);
@@ -901,6 +913,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       }
     } else if (node is Identifier) {
       return node.staticElement;
+    } else if (node is ImplicitCallReference) {
+      return node.staticElement;
     } else if (node is IndexExpression) {
       return node.staticElement;
     } else if (node is InstanceCreationExpression) {
@@ -934,7 +948,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     path = convertPath(path);
 
     result = await resolveFile(path);
-    expect(result.state, ResultState.VALID);
 
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);

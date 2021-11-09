@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 import 'package:collection/collection.dart';
-import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 
@@ -244,18 +243,6 @@ bool isUnsupportedFactoryConstructor(Procedure node) {
     }
   }
   return false;
-}
-
-/// Returns the redirecting factory constructors for the enclosing class,
-/// if the field [f] is storing that information, otherwise returns `null`.
-Iterable<Member>? getRedirectingFactories(Field f) {
-  // TODO(jmesserly): this relies on implementation details in Kernel
-  if (isRedirectingFactoryField(f)) {
-    assert(f.isStatic);
-    var list = f.initializer as ListLiteral;
-    return list.expressions.map((e) => (e as StaticGet).target);
-  }
-  return null;
 }
 
 /// Gets the real supertype of [c] and the list of [mixins] in reverse

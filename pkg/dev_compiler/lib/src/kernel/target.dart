@@ -45,7 +45,6 @@ const sdkLibraryEnvironmentDefines = {
   'dart.library.ui': 'false',
   'dart.library.web_audio': 'true',
   'dart.library.web_gl': 'true',
-  'dart.library.web_sql': 'true',
 };
 
 /// A kernel [Target] to configure the Dart Front End for dartdevc.
@@ -114,7 +113,6 @@ class DevCompilerTarget extends Target {
         'dart:svg',
         'dart:web_audio',
         'dart:web_gl',
-        'dart:web_sql'
       ];
 
   // The libraries required to be indexed via CoreTypes.
@@ -130,7 +128,6 @@ class DevCompilerTarget extends Target {
         'dart:svg',
         'dart:web_audio',
         'dart:web_gl',
-        'dart:web_sql',
         'dart:_foreign_helper',
         'dart:_interceptors',
         'dart:_js_helper',

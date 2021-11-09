@@ -36,19 +36,12 @@ var timerLoad2 = Stopwatch();
 ///
 /// Currently this is implemented as a wrapper around [AnalysisContext].
 class LibraryContext {
-  static const _maxLinkedDataInBytes = 64 * 1024 * 1024;
-
   final LibraryContextTestView testView;
   final PerformanceLog logger;
   final ByteStore byteStore;
   final AnalysisSessionImpl analysisSession;
   final SummaryDataStore? externalSummaries;
   final SummaryDataStore store = SummaryDataStore([]);
-
-  /// The size of the linked data that is loaded by this context.
-  /// When it reaches [_maxLinkedDataInBytes] the whole context is thrown away.
-  /// We use it as an approximation for the heap size of elements.
-  final int _linkedDataInBytes = 0;
 
   late final AnalysisContextImpl analysisContext;
   late LinkedElementFactory elementFactory;
@@ -117,12 +110,12 @@ class LibraryContext {
       var unitsInformativeBytes = <Uri, Uint8List>{};
       for (var library in cycle.libraries) {
         for (var file in library.libraryFiles) {
-          unitsInformativeBytes[file.uri] = file.getInformativeBytes();
+          unitsInformativeBytes[file.uri] = file.unlinked2.informativeBytes;
         }
       }
 
-      var resolutionKey = cycle.transitiveSignature! + '.linked_bundle';
-      var resolutionBytes = byteStore.get(resolutionKey) as Uint8List?;
+      var resolutionKey = cycle.transitiveSignature + '.linked_bundle';
+      var resolutionBytes = byteStore.get(resolutionKey);
 
       if (resolutionBytes == null) {
         librariesLinkedTimer.start();
@@ -175,7 +168,7 @@ class LibraryContext {
         link2.LinkResult linkResult;
         try {
           timerLinking.start();
-          linkResult = link2.link(elementFactory, inputLibraries, true);
+          linkResult = link2.link(elementFactory, inputLibraries);
           librariesLinked += cycle.libraries.length;
           counterLinkedLibraries += inputLibraries.length;
           timerLinking.stop();
@@ -222,15 +215,6 @@ class LibraryContext {
     _createElementFactoryTypeProvider();
 
     timerLoad2.stop();
-  }
-
-  /// Return `true` if this context grew too large, and should be recreated.
-  ///
-  /// It might have been used to analyze libraries that we don't need anymore,
-  /// and because loading libraries is not very expensive (but not free), the
-  /// simplest way to get rid of the garbage is to throw away everything.
-  bool pack() {
-    return _linkedDataInBytes > _maxLinkedDataInBytes;
   }
 
   void _createElementFactory() {

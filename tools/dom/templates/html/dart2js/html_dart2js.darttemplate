@@ -39,7 +39,6 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_audio' show AudioBuffer, AudioTrack, AudioTrackList;
 import 'dart:web_gl' as gl;
 import 'dart:web_gl' show RenderingContext,RenderingContext2;
-import 'dart:web_sql';
 import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
     JSName, Native, Returns,

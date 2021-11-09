@@ -4,9 +4,10 @@
 
 // @dart = 2.9
 
-// ignore_for_file: slash_for_doc_comments, unnecessary_new
 // ignore_for_file: always_declare_return_types, prefer_single_quotes
+// ignore_for_file: non_constant_identifier_names
 // ignore_for_file: prefer_collection_literals, omit_local_variable_types
+// ignore_for_file: slash_for_doc_comments, unnecessary_new
 // ignore_for_file: unnecessary_brace_in_string_interps
 
 // Utilities for building JS ASTs at runtime.  Contains a builder class

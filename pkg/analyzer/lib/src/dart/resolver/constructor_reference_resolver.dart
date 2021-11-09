@@ -70,7 +70,7 @@ class ConstructorReferenceResolver {
             node,
             [name.name],
           );
-        } else {
+        } else if (!name.isSynthetic) {
           _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
             node,
@@ -123,6 +123,7 @@ class ConstructorReferenceResolver {
         constructorName.staticElement = constructorElement.declaration;
         constructorName.name?.staticElement = constructorElement.declaration;
         node.staticType = inferred;
+        // The NamedType child of `constructorName` doesn't have a static type.
         constructorName.type2.type = null;
       }
     } else {
@@ -132,6 +133,7 @@ class ConstructorReferenceResolver {
       } else {
         node.staticType = constructorElement.type;
       }
+      // The NamedType child of `constructorName` doesn't have a static type.
       constructorName.type2.type = null;
     }
   }

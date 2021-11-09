@@ -640,7 +640,7 @@ abstract class _StringBase implements String {
     if (replacement == null) throw new ArgumentError.notNull("replacement");
 
     int startIndex = 0;
-    // String fragments that replace the the prefix [this] up to [startIndex].
+    // String fragments that replace the prefix [this] up to [startIndex].
     List matches = [];
     int length = 0; // Length of all fragments.
     int replacementLength = replacement.length;
@@ -829,8 +829,9 @@ abstract class _StringBase implements String {
   static String _interpolateSingle(Object? o) {
     if (o is String) return o;
     final s = o.toString();
+    // TODO(40614): Remove once non-nullability is sound.
     if (s is! String) {
-      throw new ArgumentError(s);
+      throw _interpolationError(o, s);
     }
     return s;
   }
@@ -855,15 +856,17 @@ abstract class _StringBase implements String {
         totalLength += s.length;
         i++;
       } else if (s is! String) {
-        throw new ArgumentError(s);
+        // TODO(40614): Remove once non-nullability is sound.
+        throw _interpolationError(e, s);
       } else {
         // Handle remaining elements without checking for one-byte-ness.
         while (++i < numValues) {
           final e = values[i];
           final s = e.toString();
           values[i] = s;
+          // TODO(40614): Remove once non-nullability is sound.
           if (s is! String) {
-            throw new ArgumentError(s);
+            throw _interpolationError(e, s);
           }
         }
         return _concatRangeNative(values, 0, numValues);
@@ -871,6 +874,12 @@ abstract class _StringBase implements String {
     }
     // All strings were one-byte strings.
     return _OneByteString._concatAll(values, totalLength);
+  }
+
+  static ArgumentError _interpolationError(Object? o, Object? result) {
+    // Since Dart 2.0, [result] can only be null.
+    return new ArgumentError.value(
+        o, "object", "toString method returned 'null'");
   }
 
   Iterable<Match> allMatches(String string, [int start = 0]) {

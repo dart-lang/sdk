@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'utils.dart';
 
+const bool_ = FundamentalType(PrimitiveType.bool_);
 const int8 = FundamentalType(PrimitiveType.int8);
 const int16 = FundamentalType(PrimitiveType.int16);
 const int32 = FundamentalType(PrimitiveType.int32);
@@ -19,6 +20,7 @@ const float = FundamentalType(PrimitiveType.float);
 const double_ = FundamentalType(PrimitiveType.double_);
 
 enum PrimitiveType {
+  bool_,
   int8,
   int16,
   int32,
@@ -33,6 +35,7 @@ enum PrimitiveType {
 }
 
 const primitiveNames = [
+  "bool",
   "int8",
   "int16",
   "int32",
@@ -47,7 +50,7 @@ const primitiveNames = [
 ];
 
 const intptrSize = -1;
-const primitiveSizesInBytes = [1, 2, 4, 8, 1, 2, 4, 8, intptrSize, 4, 8];
+const primitiveSizesInBytes = [1, 1, 2, 4, 8, 1, 2, 4, 8, intptrSize, 4, 8];
 
 abstract class CType {
   String get cType;
@@ -67,6 +70,9 @@ abstract class CType {
   /// All members have a integer type.
   bool get isOnlyInteger;
 
+  /// All members have a bool type.
+  bool get isOnlyBool;
+
   String toString() => dartCType;
 
   const CType();
@@ -77,12 +83,15 @@ class FundamentalType extends CType {
 
   const FundamentalType(this.primitive);
 
+  bool get isBool => primitive == PrimitiveType.bool_;
   bool get isFloatingPoint =>
       primitive == PrimitiveType.float || primitive == PrimitiveType.double_;
-  bool get isInteger => !isFloatingPoint;
+  bool get isInteger => !isFloatingPoint && !isBool;
   bool get isOnlyFloatingPoint => isFloatingPoint;
   bool get isOnlyInteger => isInteger;
+  bool get isOnlyBool => isBool;
   bool get isUnsigned =>
+      primitive == PrimitiveType.bool_ ||
       primitive == PrimitiveType.uint8 ||
       primitive == PrimitiveType.uint16 ||
       primitive == PrimitiveType.uint32 ||
@@ -93,7 +102,13 @@ class FundamentalType extends CType {
 
   String get cType => "${name}${isInteger ? "_t" : ""}";
   String get dartCType => name.upperCaseFirst();
-  String get dartType => isInteger ? "int" : "double";
+  String get dartType {
+    if (isInteger) return 'int';
+    if (isOnlyFloatingPoint) return 'double';
+    if (isBool) return 'bool';
+    throw 'Unknown type $primitive';
+  }
+
   String get dartStructFieldAnnotation => "@${dartCType}()";
   bool get hasSize => primitive != PrimitiveType.intptr;
   int get size {
@@ -118,6 +133,7 @@ class PointerType extends CType {
 
   bool get isOnlyFloatingPoint => false;
   bool get isOnlyInteger => true;
+  bool get isOnlyBool => false;
 }
 
 /// Used to give [StructType] fields and [FunctionType] arguments names.
@@ -186,11 +202,11 @@ abstract class CompositeType extends CType {
   String get dartSuperClass;
 
   bool get isOnlyFloatingPoint =>
-      !memberTypes.map((e) => e.isOnlyFloatingPoint).contains(false);
-  bool get isOnlyInteger =>
-      !memberTypes.map((e) => e.isOnlyInteger).contains(false);
+      memberTypes.every((e) => e.isOnlyFloatingPoint);
+  bool get isOnlyInteger => memberTypes.every((e) => e.isOnlyInteger);
+  bool get isOnlyBool => memberTypes.every((e) => e.isOnlyBool);
 
-  bool get isMixed => !isOnlyInteger && !isOnlyFloatingPoint;
+  bool get isMixed => !isOnlyInteger && !isOnlyFloatingPoint && !isOnlyBool;
 
   bool get hasNestedStructs =>
       members.map((e) => e.type is StructType).contains(true);
@@ -219,8 +235,7 @@ class StructType extends CompositeType {
   String get cKeyword => "struct";
   String get dartSuperClass => "Struct";
 
-  bool get hasSize =>
-      !memberTypes.map((e) => e.hasSize).contains(false) && !hasPadding;
+  bool get hasSize => memberTypes.every((e) => e.hasSize) && !hasPadding;
   int get size => memberTypes.fold(0, (int acc, e) => acc + e.size);
 
   bool get hasPacking => packing != null;
@@ -273,6 +288,8 @@ class StructType extends CompositeType {
       result += "Float";
     } else if (isOnlyInteger) {
       result += "Int";
+    } else if (isOnlyBool) {
+      result += "Bool";
     } else {
       result += "Mixed";
     }
@@ -287,7 +304,7 @@ class UnionType extends CompositeType {
   String get cKeyword => "union";
   String get dartSuperClass => "Union";
 
-  bool get hasSize => !memberTypes.map((e) => e.hasSize).contains(false);
+  bool get hasSize => memberTypes.every((e) => e.hasSize);
   int get size => memberTypes.fold(0, (int acc, e) => math.max(acc, e.size));
 
   String get name {
@@ -364,6 +381,7 @@ class FixedLengthArrayType extends CType {
 
   bool get isOnlyFloatingPoint => elementType.isOnlyFloatingPoint;
   bool get isOnlyInteger => elementType.isOnlyInteger;
+  bool get isOnlyBool => elementType.isOnlyBool;
 }
 
 class FunctionType extends CType {
@@ -396,6 +414,7 @@ class FunctionType extends CType {
 
   bool get isOnlyFloatingPoint => throw "Not implemented";
   bool get isOnlyInteger => throw "Not implemented";
+  bool get isOnlyBool => throw "Not implemented";
 
   /// Group consecutive [arguments] by same type.
   ///

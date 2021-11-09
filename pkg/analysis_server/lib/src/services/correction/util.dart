@@ -210,9 +210,7 @@ String getElementKindName(Element element) {
 /// Returns the name to display in the UI for the given [Element].
 String getElementQualifiedName(Element element) {
   var kind = element.kind;
-  if (kind == ElementKind.CONSTRUCTOR ||
-      kind == ElementKind.FIELD ||
-      kind == ElementKind.METHOD) {
+  if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
     return '${element.enclosingElement!.displayName}.${element.displayName}';
   } else if (kind == ElementKind.LIBRARY) {
     // Libraries may not have names, so use a path relative to the context root.

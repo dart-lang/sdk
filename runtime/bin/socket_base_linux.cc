@@ -99,6 +99,75 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
   return read_bytes;
 }
 
+bool SocketControlMessage::is_file_descriptors_control_message() {
+  return level_ == SOL_SOCKET && type_ == SCM_RIGHTS;
+}
+
+// /proc/sys/net/core/optmem_max is corresponding kernel setting.
+const size_t kMaxSocketMessageControlLength = 2048;
+
+// if return value is positive or zero - it's number of messages read
+// if it's negative - it's error code
+intptr_t SocketBase::ReceiveMessage(intptr_t fd,
+                                    void* buffer,
+                                    int64_t* p_buffer_num_bytes,
+                                    SocketControlMessage** p_messages,
+                                    SocketOpKind sync,
+                                    OSError* p_oserror) {
+  ASSERT(fd >= 0);
+  ASSERT(p_messages != nullptr);
+  ASSERT(p_buffer_num_bytes != nullptr);
+
+  struct iovec iov[1];
+  memset(iov, 0, sizeof(iov));
+  iov[0].iov_base = buffer;
+  iov[0].iov_len = *p_buffer_num_bytes;
+
+  struct msghdr msg;
+  memset(&msg, 0, sizeof(msg));
+  msg.msg_iov = iov;
+  msg.msg_iovlen = 1;  // number of elements in iov
+  uint8_t control_buffer[kMaxSocketMessageControlLength];
+  msg.msg_control = control_buffer;
+  msg.msg_controllen = sizeof(control_buffer);
+
+  ssize_t read_bytes = TEMP_FAILURE_RETRY(recvmsg(fd, &msg, MSG_CMSG_CLOEXEC));
+  if ((sync == kAsync) && (read_bytes == -1) && (errno == EWOULDBLOCK)) {
+    // If the read would block we need to retry and therefore return 0
+    // as the number of bytes read.
+    return 0;
+  }
+  if (read_bytes < 0) {
+    p_oserror->Reload();
+    return read_bytes;
+  }
+  *p_buffer_num_bytes = read_bytes;
+
+  struct cmsghdr* cmsg = CMSG_FIRSTHDR(&msg);
+  size_t num_messages = 0;
+  while (cmsg != nullptr) {
+    num_messages++;
+    cmsg = CMSG_NXTHDR(&msg, cmsg);
+  }
+  (*p_messages) = reinterpret_cast<SocketControlMessage*>(
+      Dart_ScopeAllocate(sizeof(SocketControlMessage) * num_messages));
+  SocketControlMessage* control_message = *p_messages;
+  for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != nullptr;
+       cmsg = CMSG_NXTHDR(&msg, cmsg), control_message++) {
+    void* data = CMSG_DATA(cmsg);
+    size_t data_length = cmsg->cmsg_len - (reinterpret_cast<uint8_t*>(data) -
+                                           reinterpret_cast<uint8_t*>(cmsg));
+    void* copied_data = Dart_ScopeAllocate(data_length);
+    ASSERT(copied_data != nullptr);
+    memmove(copied_data, data, data_length);
+    ASSERT(cmsg->cmsg_level == SOL_SOCKET);
+    ASSERT(cmsg->cmsg_type == SCM_RIGHTS);
+    new (control_message) SocketControlMessage(
+        cmsg->cmsg_level, cmsg->cmsg_type, copied_data, data_length);
+  }
+  return num_messages;
+}
+
 bool SocketBase::AvailableDatagram(intptr_t fd,
                                    void* buffer,
                                    intptr_t num_bytes) {
@@ -141,6 +210,84 @@ intptr_t SocketBase::SendTo(intptr_t fd,
   return written_bytes;
 }
 
+intptr_t SocketBase::SendMessage(intptr_t fd,
+                                 void* buffer,
+                                 size_t num_bytes,
+                                 SocketControlMessage* messages,
+                                 intptr_t num_messages,
+                                 SocketOpKind sync,
+                                 OSError* p_oserror) {
+  ASSERT(fd >= 0);
+
+  struct iovec iov = {
+      .iov_base = buffer,
+      .iov_len = num_bytes,
+  };
+
+  struct msghdr msg;
+  memset(&msg, 0, sizeof(msg));
+  msg.msg_iov = &iov;
+  msg.msg_iovlen = 1;
+
+  if (messages != nullptr && num_messages > 0) {
+    SocketControlMessage* message = messages;
+    size_t total_length = 0;
+    for (intptr_t i = 0; i < num_messages; i++, message++) {
+      total_length += CMSG_SPACE(message->data_length());
+    }
+
+    uint8_t* control_buffer =
+        reinterpret_cast<uint8_t*>(Dart_ScopeAllocate(total_length));
+    memset(control_buffer, 0, total_length);
+    msg.msg_control = control_buffer;
+    msg.msg_controllen = total_length;
+
+    struct cmsghdr* cmsg = CMSG_FIRSTHDR(&msg);
+    message = messages;
+    for (intptr_t i = 0; i < num_messages;
+         i++, message++, cmsg = CMSG_NXTHDR(&msg, cmsg)) {
+      ASSERT(message->is_file_descriptors_control_message());
+      cmsg->cmsg_level = SOL_SOCKET;
+      cmsg->cmsg_type = SCM_RIGHTS;
+
+      intptr_t data_length = message->data_length();
+      cmsg->cmsg_len = CMSG_LEN(data_length);
+      memmove(CMSG_DATA(cmsg), message->data(), data_length);
+    }
+    msg.msg_controllen = total_length;
+  }
+
+  ssize_t written_bytes = TEMP_FAILURE_RETRY(sendmsg(fd, &msg, 0));
+  ASSERT(EAGAIN == EWOULDBLOCK);
+  if ((sync == kAsync) && (written_bytes == -1) && (errno == EWOULDBLOCK)) {
+    // If the would block we need to retry and therefore return 0 as
+    // the number of bytes written.
+    written_bytes = 0;
+  }
+  if (written_bytes < 0) {
+    p_oserror->Reload();
+  }
+
+  return written_bytes;
+}
+
+bool SocketBase::GetSocketName(intptr_t fd, SocketAddress* p_sa) {
+  ASSERT(fd >= 0);
+  ASSERT(p_sa != nullptr);
+  RawAddr raw;
+  socklen_t size = sizeof(raw);
+  if (NO_RETRY_EXPECTED(getsockname(fd, &raw.addr, &size))) {
+    return false;
+  }
+
+  // sockaddr_un contains sa_family_t sun_family and char[] sun_path.
+  // If size is the size of sa_family_t, this is an unnamed socket and
+  // sun_path contains garbage.
+  new (p_sa) SocketAddress(&raw.addr,
+                           /*unnamed_unix_socket=*/size == sizeof(sa_family_t));
+  return true;
+}
+
 intptr_t SocketBase::GetPort(intptr_t fd) {
   ASSERT(fd >= 0);
   RawAddr raw;
@@ -158,12 +305,12 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
   if (NO_RETRY_EXPECTED(getpeername(fd, &raw.addr, &size))) {
     return NULL;
   }
-  // sockaddr_un contains sa_family_t sun_familty and char[] sun_path.
-  // If size is the size of sa_familty_t, this is an unnamed socket and
+  // sockaddr_un contains sa_family_t sun_family and char[] sun_path.
+  // If size is the size of sa_family_t, this is an unnamed socket and
   // sun_path contains garbage.
   if (size == sizeof(sa_family_t)) {
     *port = 0;
-    return new SocketAddress(&raw.addr, true);
+    return new SocketAddress(&raw.addr, /*unnamed_unix_socket=*/true);
   }
   *port = SocketAddress::GetAddrPort(raw);
   return new SocketAddress(&raw.addr);

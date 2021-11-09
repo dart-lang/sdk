@@ -19,10 +19,7 @@ main() {
       path.join(sdkDir, 'pkg', 'vm', 'tool', 'gen_kernel$_batchSuffix');
   Expect.isTrue(File(genKernel).existsSync(),
       "Can't locate gen_kernel$_batchSuffix on this platform");
-  // Currently gen_snapshot is only in buildDir/clang_x64 on Mac ARM64.
-  final genSnapshot = Platform.isMacOS && buildDir.endsWith('XARM64')
-      ? path.join(buildDir, 'clang_x64', 'gen_snapshot$_execSuffix')
-      : path.join(buildDir, 'gen_snapshot$_execSuffix');
+  final genSnapshot = path.join(buildDir, 'gen_snapshot$_execSuffix');
   Expect.isTrue(File(genSnapshot).existsSync(),
       "Can't locate gen_snapshot$_execSuffix on this platform");
 

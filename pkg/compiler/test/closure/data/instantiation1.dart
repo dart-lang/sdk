@@ -13,8 +13,7 @@ class B<S> {
   /*member: B.method:hasThis*/
   method() {
     return
-        /*spec.fields=[this],free=[this],hasThis*/
-        /*prod.hasThis*/
+        /*fields=[this],free=[this],hasThis*/
         () {
       F<S> c = f;
       return c;

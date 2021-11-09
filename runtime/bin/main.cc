@@ -222,7 +222,7 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
     if (Dart_IsError(result)) goto failed;
   } else {
     result = DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
-    if (Dart_IsError(result)) return result != nullptr;
+    if (Dart_IsError(result)) goto failed;
 
     if (isolate_group_data->kernel_buffer().get() != nullptr) {
       // Various core-library parts will send requests to the Loader to resolve
@@ -431,8 +431,9 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
   AppSnapshot* app_snapshot = NULL;
   // Kernel isolate uses an app snapshot or uses the dill file.
   if ((kernel_snapshot_uri != NULL) &&
-      (app_snapshot = Snapshot::TryReadAppSnapshot(kernel_snapshot_uri)) !=
-          NULL) {
+      (app_snapshot = Snapshot::TryReadAppSnapshot(
+           kernel_snapshot_uri, /*force_load_elf_from_memory=*/false,
+           /*decode_uri=*/false)) != nullptr) {
     const uint8_t* isolate_snapshot_data = NULL;
     const uint8_t* isolate_snapshot_instructions = NULL;
     const uint8_t* ignore_vm_snapshot_data;
@@ -603,8 +604,9 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
   AppSnapshot* app_snapshot = nullptr;
   bool isolate_run_app_snapshot = true;
   if (dartdev_path.get() != nullptr &&
-      (app_snapshot = Snapshot::TryReadAppSnapshot(dartdev_path.get())) !=
-          nullptr) {
+      (app_snapshot = Snapshot::TryReadAppSnapshot(
+           dartdev_path.get(), /*force_load_elf_from_memory=*/false,
+           /*decode_uri=*/false)) != nullptr) {
     const uint8_t* isolate_snapshot_data = NULL;
     const uint8_t* isolate_snapshot_instructions = NULL;
     const uint8_t* ignore_vm_snapshot_data;
@@ -613,8 +615,8 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
         &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
         &isolate_snapshot_data, &isolate_snapshot_instructions);
     isolate_group_data =
-        new IsolateGroupData(dartdev_path.get(), packages_config, app_snapshot,
-                             isolate_run_app_snapshot);
+        new IsolateGroupData(DART_DEV_ISOLATE_NAME, packages_config,
+                             app_snapshot, isolate_run_app_snapshot);
     isolate_data = new IsolateData(isolate_group_data);
     isolate = Dart_CreateIsolateGroup(
         DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, isolate_snapshot_data,
@@ -642,7 +644,7 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
       uint8_t* application_kernel_buffer = NULL;
       intptr_t application_kernel_buffer_size = 0;
       dfe.ReadScript(dartdev_path.get(), &application_kernel_buffer,
-                     &application_kernel_buffer_size);
+                     &application_kernel_buffer_size, /*decode_uri=*/false);
       isolate_group_data->SetKernelBufferNewlyOwned(
           application_kernel_buffer, application_kernel_buffer_size);
 
@@ -825,6 +827,20 @@ static Dart_Isolate CreateIsolateGroupAndSetup(const char* script_uri,
   ASSERT(flags != NULL);
   ASSERT(flags->version == DART_FLAGS_CURRENT_VERSION);
   ASSERT(package_root == nullptr);
+
+  bool dontneed_safe = true;
+#if defined(DART_HOST_OS_LINUX)
+  // This would also be true in Linux, except that Google3 overrides the default
+  // ELF interpreter to one that apparently doesn't create proper mappings.
+  dontneed_safe = false;
+#elif defined(DEBUG)
+  // If the snapshot isn't file-backed, madvise(DONT_NEED) is destructive.
+  if (Options::force_load_elf_from_memory()) {
+    dontneed_safe = false;
+  }
+#endif
+  flags->snapshot_is_dontneed_safe = dontneed_safe;
+
   int exit_code = 0;
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
   if (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0) {
@@ -944,6 +960,18 @@ void RunMainIsolate(const char* script_name,
   Dart_IsolateFlags flags;
   Dart_IsolateFlagsInitialize(&flags);
   flags.is_system_isolate = Options::mark_main_isolate_as_system_isolate();
+  bool dontneed_safe = true;
+#if defined(DART_HOST_OS_LINUX)
+  // This would also be true in Linux, except that Google3 overrides the default
+  // ELF interpreter to one that apparently doesn't create proper mappings.
+  dontneed_safe = false;
+#elif defined(DEBUG)
+  // If the snapshot isn't file-backed, madvise(DONT_NEED) is destructive.
+  if (Options::force_load_elf_from_memory()) {
+    dontneed_safe = false;
+  }
+#endif
+  flags.snapshot_is_dontneed_safe = dontneed_safe;
 
   Dart_Isolate isolate = CreateIsolateGroupAndSetupHelper(
       /* is_main_isolate */ true, script_name, "main",
@@ -1211,9 +1239,6 @@ void main(int argc, char** argv) {
     try_load_snapshots_lambda();
   }
 
-  if (Options::gen_snapshot_kind() == kAppJIT) {
-    vm_options.AddArgument("--fields_may_be_reset");
-  }
 #if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");
 #endif

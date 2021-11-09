@@ -88,31 +88,4 @@ part 'unknown.dart';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 18, 14),
     ]);
   }
-
-  test_valid_dll() async {
-    newFile("$testPackageLibPath/lib.dll");
-    await assertErrorsInCode('''
-import 'dart-ext:lib';
-''', [
-      error(HintCode.USE_OF_NATIVE_EXTENSION, 0, 22),
-    ]);
-  }
-
-  test_valid_dylib() async {
-    newFile("$testPackageLibPath/lib.dylib");
-    await assertErrorsInCode('''
-import 'dart-ext:lib';
-''', [
-      error(HintCode.USE_OF_NATIVE_EXTENSION, 0, 22),
-    ]);
-  }
-
-  test_valid_so() async {
-    newFile("$testPackageLibPath/lib.so");
-    await assertErrorsInCode('''
-import 'dart-ext:lib';
-''', [
-      error(HintCode.USE_OF_NATIVE_EXTENSION, 0, 22),
-    ]);
-  }
 }

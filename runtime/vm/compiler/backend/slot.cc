@@ -43,7 +43,7 @@ class SlotCache : public ZoneAllocated {
       : zone_(thread->zone()), fields_(thread->zone()) {}
 
   Zone* const zone_;
-  DirectChainedHashMap<PointerKeyValueTrait<const Slot> > fields_;
+  PointerSet<const Slot> fields_;
 };
 
 #define NATIVE_SLOT_NAME(C, F) Kind::k##C##_##F
@@ -331,6 +331,58 @@ const Slot& Slot::GetArrayElementSlot(Thread* thread,
   return SlotCache::Instance(thread).Canonicalize(slot);
 }
 
+FieldGuardState::FieldGuardState(const Field& field)
+    : state_(GuardedCidBits::encode(field.guarded_cid()) |
+             IsNonNullableIntegerBit::encode(field.is_non_nullable_integer()) |
+             IsUnboxingCandidateBit::encode(field.is_unboxing_candidate()) |
+             IsNullableBit::encode(field.is_nullable())) {}
+
+bool FieldGuardState::IsUnboxed() const {
+  ASSERT(!is_non_nullable_integer() || FLAG_precompiled_mode);
+  const bool valid_class = ((FlowGraphCompiler::SupportsUnboxedDoubles() &&
+                             (guarded_cid() == kDoubleCid)) ||
+                            (FlowGraphCompiler::SupportsUnboxedSimd128() &&
+                             (guarded_cid() == kFloat32x4Cid)) ||
+                            (FlowGraphCompiler::SupportsUnboxedSimd128() &&
+                             (guarded_cid() == kFloat64x2Cid)) ||
+                            is_non_nullable_integer());
+  return is_unboxing_candidate() && !is_nullable() && valid_class;
+}
+
+bool FieldGuardState::IsPotentialUnboxed() const {
+  if (FLAG_precompiled_mode) {
+    // kernel_loader.cc:ReadInferredType sets the guarded cid for fields based
+    // on inferred types from TFA (if available). The guarded cid is therefore
+    // proven to be correct.
+    return IsUnboxed();
+  }
+
+  return is_unboxing_candidate() &&
+         (IsUnboxed() || (guarded_cid() == kIllegalCid));
+}
+
+bool Slot::IsUnboxed() const {
+  return field_guard_state().IsUnboxed();
+}
+
+bool Slot::IsPotentialUnboxed() const {
+  return field_guard_state().IsPotentialUnboxed();
+}
+
+Representation Slot::UnboxedRepresentation() const {
+  switch (field_guard_state().guarded_cid()) {
+    case kDoubleCid:
+      return kUnboxedDouble;
+    case kFloat32x4Cid:
+      return kUnboxedFloat32x4;
+    case kFloat64x2Cid:
+      return kUnboxedFloat64x2;
+    default:
+      RELEASE_ASSERT(field_guard_state().is_non_nullable_integer());
+      return kUnboxedInt64;
+  }
+}
+
 const Slot& Slot::Get(const Field& field,
                       const ParsedFunction* parsed_function) {
   Thread* thread = Thread::Current();
@@ -354,16 +406,18 @@ const Slot& Slot::Get(const Field& field,
     is_nullable = false;
   }
 
+  FieldGuardState field_guard_state(field);
+
   bool used_guarded_state = false;
-  if (field.guarded_cid() != kIllegalCid &&
-      field.guarded_cid() != kDynamicCid) {
+  if (field_guard_state.guarded_cid() != kIllegalCid &&
+      field_guard_state.guarded_cid() != kDynamicCid) {
     // Use guarded state if it is more precise then what we already have.
     if (nullable_cid == kDynamicCid) {
-      nullable_cid = field.guarded_cid();
+      nullable_cid = field_guard_state.guarded_cid();
       used_guarded_state = true;
     }
 
-    if (is_nullable && !field.is_nullable()) {
+    if (is_nullable && !field_guard_state.is_nullable()) {
       is_nullable = false;
       used_guarded_state = true;
     }
@@ -377,10 +431,10 @@ const Slot& Slot::Get(const Field& field,
     used_guarded_state = false;
   }
 
-  if (field.is_non_nullable_integer()) {
+  if (field_guard_state.is_non_nullable_integer()) {
     ASSERT(FLAG_precompiled_mode);
     is_nullable = false;
-    if (FlowGraphCompiler::IsUnboxedField(field)) {
+    if (field_guard_state.IsUnboxed()) {
       rep = kUnboxedInt64;
     }
   }
@@ -397,7 +451,7 @@ const Slot& Slot::Get(const Field& field,
           IsSentinelVisibleBit::encode(field.is_late() && field.is_final() &&
                                        !field.has_initializer()),
       nullable_cid, compiler::target::Field::OffsetOf(field), &field, &type,
-      rep));
+      rep, field_guard_state));
 
   // If properties of this slot were based on the guarded state make sure
   // to add the field to the list of guarded fields. Note that during background

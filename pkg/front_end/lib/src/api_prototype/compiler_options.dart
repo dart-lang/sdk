@@ -55,8 +55,8 @@ class CompilerOptions {
   ///
   /// A libraries specification file is a JSON file that describes how to map
   /// `dart:*` libraries to URIs in the underlying [fileSystem].  See
-  /// `package:front_end/src/base/libraries_specification.dart` for details on
-  /// the format.
+  /// `package:_fe_analyzer_shared/src/util/libraries_specification.dart` for
+  /// details on the format.
   ///
   /// If a value is not specified and `compileSdk = true`, the compiler will
   /// infer at a default location under [sdkRoot], typically under
@@ -125,6 +125,8 @@ class CompilerOptions {
   AllowedExperimentalFlags? allowedExperimentalFlagsForTesting;
   Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting;
   Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting;
+
+  bool enableUnscheduledExperiments = false;
 
   /// Environment map used when evaluating `bool.fromEnvironment`,
   /// `int.fromEnvironment` and `String.fromEnvironment` during constant
@@ -357,6 +359,9 @@ class CompilerOptions {
     if (currentSdkVersion != other.currentSdkVersion) return false;
     if (emitDeps != other.emitDeps) return false;
     if (!equalSets(invocationModes, other.invocationModes)) return false;
+    if (enableUnscheduledExperiments != other.enableUnscheduledExperiments) {
+      return false;
+    }
 
     return true;
   }

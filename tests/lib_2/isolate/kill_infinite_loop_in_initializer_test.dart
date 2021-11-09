@@ -4,15 +4,10 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 // Regression test against out-of-band messages being blocked during lazy
 // static field initialization.
 
 import "dart:isolate";
-import "dart:async";
-import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
 dynamic staticFieldWithBadInitializer = badInitializer();

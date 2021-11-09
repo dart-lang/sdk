@@ -27,7 +27,6 @@ import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
-import '../builder/unresolved_type.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -217,24 +216,25 @@ abstract class Generator {
   /// If the invocation has explicit type arguments
   /// [buildTypeWithResolvedArguments] called instead.
   Expression_Generator_Initializer doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false});
 
   Expression_Generator buildSelectorAccess(
-      Selector send, int operatorOffset, bool isNullAware) {
-    if (send is InvocationSelector) {
-      return _helper.buildMethodInvocation(buildSimpleRead(), send.name,
-          send.arguments, offsetForToken(send.token),
+      Selector selector, int operatorOffset, bool isNullAware) {
+    selector.reportNewAsSelector();
+    if (selector is InvocationSelector) {
+      return _helper.buildMethodInvocation(buildSimpleRead(), selector.name,
+          selector.arguments, offsetForToken(selector.token),
           isNullAware: isNullAware,
-          isConstantExpression: send.isPotentiallyConstant);
+          isConstantExpression: selector.isPotentiallyConstant);
     } else {
       if (_helper.constantContext != ConstantContext.none &&
-          send.name != lengthName) {
+          selector.name != lengthName) {
         _helper.addProblem(
             messageNotAConstantExpression, fileOffset, token.length);
       }
-      return PropertyAccessGenerator.make(
-          _helper, send.token, buildSimpleRead(), send.name, isNullAware);
+      return PropertyAccessGenerator.make(_helper, selector.token,
+          buildSimpleRead(), selector.name, isNullAware);
     }
   }
 
@@ -258,7 +258,7 @@ abstract class Generator {
   }
 
   Expression_Generator applyTypeArguments(
-      int fileOffset, List<UnresolvedType>? typeArguments) {
+      int fileOffset, List<TypeBuilder>? typeArguments) {
     return new Instantiation(
         buildSimpleRead(),
         _helper.buildDartTypeArguments(typeArguments,
@@ -272,7 +272,7 @@ abstract class Generator {
   /// The type arguments have not been resolved and should be resolved to
   /// create a [TypeBuilder] for a valid type.
   TypeBuilder buildTypeWithResolvedArguments(
-      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {required bool allowPotentiallyConstantType}) {
     // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
     NamedTypeBuilder result = new NamedTypeBuilder(
@@ -280,7 +280,8 @@ abstract class Generator {
         nullabilityBuilder,
         /* arguments = */ null,
         /* fileUri = */ null,
-        /* charOffset = */ null);
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: _helper.instanceTypeVariableAccessState);
     Message message = templateNotAType.withArguments(token.lexeme);
     _helper.libraryBuilder
         .addProblem(message, fileOffset, lengthForToken(token), _uri);
@@ -294,7 +295,7 @@ abstract class Generator {
   }
 
   Expression invokeConstructor(
-      List<UnresolvedType>? typeArguments,
+      List<TypeBuilder>? typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -412,7 +413,7 @@ class VariableUseGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return _helper.forest.createExpressionInvocation(
         adjustForImplicitCall(_plainNameForRead, offset),
@@ -474,7 +475,7 @@ class PropertyAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return _helper.buildMethodInvocation(receiver, name, arguments, offset);
   }
@@ -704,7 +705,7 @@ class ThisPropertyAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return _helper.buildMethodInvocation(
         _forest.createThisExpression(fileOffset), name, arguments, offset);
@@ -812,7 +813,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return unsupported("doInvocation", offset, _uri);
   }
@@ -919,7 +920,7 @@ class SuperPropertyAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     if (_helper.constantContext != ConstantContext.none) {
       // TODO(brianwilkerson) Fix the length
@@ -1082,7 +1083,7 @@ class IndexedAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return _helper.forest.createExpressionInvocation(
         arguments.fileOffset, buildSimpleRead(), arguments);
@@ -1205,7 +1206,7 @@ class ThisIndexedAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return _helper.forest
         .createExpressionInvocation(offset, buildSimpleRead(), arguments);
@@ -1310,7 +1311,7 @@ class SuperIndexedAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return _helper.forest
         .createExpressionInvocation(offset, buildSimpleRead(), arguments);
@@ -1437,11 +1438,16 @@ class StaticAccessGenerator extends Generator {
 
   Expression _createRead() {
     Expression read;
+    Member? readTarget = this.readTarget;
     if (readTarget == null) {
       read = _makeInvalidRead(UnresolvedKind.Getter);
     } else {
       _reportNonNullableInNullAwareWarningIfNeeded();
-      read = _helper.makeStaticGet(readTarget!, token);
+      if (readTarget is Procedure && readTarget.kind == ProcedureKind.Method) {
+        read = _helper.forest.createStaticTearOff(fileOffset, readTarget);
+      } else {
+        read = _helper.forest.createStaticGet(fileOffset, readTarget);
+      }
     }
     return read;
   }
@@ -1501,7 +1507,7 @@ class StaticAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     if (_helper.constantContext != ConstantContext.none &&
         !_helper.isIdentical(readTarget) &&
@@ -1774,7 +1780,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false}) {
     if (invokeTarget != null) {
       return _helper.buildExtensionMethodInvocation(
@@ -1789,7 +1795,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
               extensionTypeArguments: _createExtensionTypeArguments(),
               typeArguments: arguments.types,
               positionalArguments: arguments.positional,
-              namedArguments: arguments.named),
+              namedArguments: arguments.named,
+              argumentsOriginalOrder: arguments.argumentsOriginalOrder),
           isTearOff: false);
     } else {
       return _helper.forest.createExpressionInvocation(
@@ -2183,7 +2190,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     VariableDeclarationImpl? receiverVariable;
     Expression receiverExpression = receiver;
@@ -2504,7 +2511,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return _helper.forest
         .createExpressionInvocation(offset, buildSimpleRead(), arguments);
@@ -2641,17 +2648,18 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   @override
   Expression_Generator buildSelectorAccess(
-      Selector send, int operatorOffset, bool isNullAware) {
+      Selector selector, int operatorOffset, bool isNullAware) {
+    selector.reportNewAsSelector();
     if (_helper.constantContext != ConstantContext.none) {
       _helper.addProblem(
           messageNotAConstantExpression, fileOffset, token.length);
     }
-    Generator generator =
-        _createInstanceAccess(send.token, send.name, isNullAware: isNullAware);
-    if (send.arguments != null) {
-      return generator.doInvocation(
-          offsetForToken(send.token), send.typeArguments, send.arguments!,
-          isTypeArgumentsInForest: send.isTypeArgumentsInForest);
+    Generator generator = _createInstanceAccess(selector.token, selector.name,
+        isNullAware: isNullAware);
+    if (selector.arguments != null) {
+      return generator.doInvocation(offsetForToken(selector.token),
+          selector.typeArguments, selector.arguments! as ArgumentsImpl,
+          isTypeArgumentsInForest: selector.isTypeArgumentsInForest);
     } else {
       return generator;
     }
@@ -2676,7 +2684,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   @override
   Expression_Generator_Initializer doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false}) {
     Generator generator = _createInstanceAccess(token, callName);
     return generator.doInvocation(offset, typeArguments, arguments,
@@ -2790,7 +2798,7 @@ class LoadLibraryGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     if (_forest.argumentsPositional(arguments).length > 0 ||
         _forest.argumentsNamed(arguments).length > 0) {
@@ -2877,9 +2885,10 @@ class DeferredAccessGenerator extends Generator {
 
   @override
   Expression_Generator buildSelectorAccess(
-      Selector send, int operatorOffset, bool isNullAware) {
-    Object propertyAccess =
-        suffixGenerator.buildSelectorAccess(send, operatorOffset, isNullAware);
+      Selector selector, int operatorOffset, bool isNullAware) {
+    selector.reportNewAsSelector();
+    Object propertyAccess = suffixGenerator.buildSelectorAccess(
+        selector, operatorOffset, isNullAware);
     if (propertyAccess is Generator) {
       return new DeferredAccessGenerator(
           _helper, token, prefixGenerator, propertyAccess);
@@ -2900,7 +2909,7 @@ class DeferredAccessGenerator extends Generator {
 
   @override
   TypeBuilder buildTypeWithResolvedArguments(
-      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {required bool allowPotentiallyConstantType}) {
     String name = "${prefixGenerator._plainNameForRead}."
         "${suffixGenerator._plainNameForRead}";
@@ -2917,7 +2926,7 @@ class DeferredAccessGenerator extends Generator {
       int charOffset = offsetForToken(prefixGenerator.token);
       message = templateDeferredTypeAnnotation
           .withArguments(
-              _helper.buildDartType(new UnresolvedType(type, charOffset, _uri),
+              _helper.buildDartType(type,
                   allowPotentiallyConstantType: allowPotentiallyConstantType),
               prefixGenerator._plainNameForRead,
               _helper.libraryBuilder.isNonNullableByDefault)
@@ -2926,7 +2935,8 @@ class DeferredAccessGenerator extends Generator {
     }
     // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
     NamedTypeBuilder result = new NamedTypeBuilder(name, nullabilityBuilder,
-        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null);
+        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     _helper.libraryBuilder.addProblem(
         message.messageObject, message.charOffset, message.length, message.uri);
     result.bind(result.buildInvalidTypeDeclarationBuilder(message));
@@ -2935,7 +2945,7 @@ class DeferredAccessGenerator extends Generator {
 
   @override
   Expression_Generator_Initializer doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false}) {
     Object suffix = suffixGenerator.doInvocation(
         offset, typeArguments, arguments,
@@ -2951,7 +2961,7 @@ class DeferredAccessGenerator extends Generator {
 
   @override
   Expression invokeConstructor(
-      List<UnresolvedType>? typeArguments,
+      List<TypeBuilder>? typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -3005,7 +3015,7 @@ class DeferredAccessGenerator extends Generator {
 ///
 class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
   final TypeDeclarationBuilder declaration;
-  List<UnresolvedType>? typeArguments;
+  List<TypeBuilder>? typeArguments;
 
   @override
   final String targetName;
@@ -3028,7 +3038,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
 
   @override
   TypeBuilder buildTypeWithResolvedArguments(
-      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {required bool allowPotentiallyConstantType}) {
     if (declaration.isExtension && !_helper.enableExtensionTypesInLibrary) {
       // Extension declarations cannot be used as types.
@@ -3055,20 +3065,19 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
     if (arguments != null) {
       argumentBuilders =
           new List<TypeBuilder>.generate(arguments.length, (int i) {
-        return _helper
-            .validateTypeVariableUse(arguments![i],
-                allowPotentiallyConstantType: allowPotentiallyConstantType)
-            .builder;
+        return _helper.validateTypeVariableUse(arguments![i],
+            allowPotentiallyConstantType: allowPotentiallyConstantType);
       }, growable: false);
     }
     return new NamedTypeBuilder(
-        targetName, nullabilityBuilder, argumentBuilders, _uri, fileOffset)
+        targetName, nullabilityBuilder, argumentBuilders, _uri, fileOffset,
+        instanceTypeVariableAccess: _helper.instanceTypeVariableAccessState)
       ..bind(declaration);
   }
 
   @override
   Expression invokeConstructor(
-      List<UnresolvedType>? typeArguments,
+      List<TypeBuilder>? typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -3107,13 +3116,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         _expression = _forest.createTypeLiteral(
             offsetForToken(token),
             _helper.buildTypeLiteralDartType(
-                new UnresolvedType(
-                    buildTypeWithResolvedArguments(
-                        _helper.libraryBuilder.nonNullableBuilder,
-                        typeArguments,
-                        allowPotentiallyConstantType: true),
-                    fileOffset,
-                    _uri),
+                buildTypeWithResolvedArguments(
+                    _helper.libraryBuilder.nonNullableBuilder, typeArguments,
+                    allowPotentiallyConstantType: true),
                 allowPotentiallyConstantType:
                     _helper.enableConstructorTearOffsInLibrary));
       }
@@ -3126,7 +3131,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       Selector send, int operatorOffset, bool isNullAware) {
     int nameOffset = offsetForToken(send.token);
     Name name = send.name;
-    Arguments? arguments = send.arguments;
+    ArgumentsImpl? arguments = send.arguments as ArgumentsImpl?;
 
     TypeDeclarationBuilder? declarationBuilder = declaration;
     TypeAliasBuilder? aliasBuilder;
@@ -3143,10 +3148,8 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           _helper.enableConstructorTearOffsInLibrary &&
           declarationBuilder is ClassBuilder;
       List<TypeBuilder>? aliasedTypeArguments = typeArguments
-          ?.map((unknownType) => _helper
-              .validateTypeVariableUse(unknownType,
-                  allowPotentiallyConstantType: isConstructorTearOff)
-              .builder)
+          ?.map((unknownType) => _helper.validateTypeVariableUse(unknownType,
+              allowPotentiallyConstantType: isConstructorTearOff))
           .toList();
       if (aliasedTypeArguments != null &&
           aliasedTypeArguments.length != aliasBuilder.typeVariablesCount) {
@@ -3179,7 +3182,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             for (TypeVariableBuilder typeVariable
                 in aliasBuilder.typeVariables!) {
               aliasedTypeArguments.add(new NamedTypeBuilder(typeVariable.name,
-                  const NullabilityBuilder.omitted(), null, _uri, fileOffset)
+                  const NullabilityBuilder.omitted(), null, _uri, fileOffset,
+                  instanceTypeVariableAccess:
+                      _helper.instanceTypeVariableAccessState)
                 ..bind(typeVariable));
             }
           }
@@ -3221,6 +3226,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               if (tearOff.isRedirectingFactory) {
                 tearOffExpression = _helper.forest
                     .createRedirectingFactoryTearOff(token.charOffset, tearOff);
+              } else if (tearOff.isFactory) {
+                tearOffExpression = _helper.forest
+                    .createConstructorTearOff(token.charOffset, tearOff);
               } else {
                 tearOffExpression = _helper.forest
                     .createStaticTearOff(token.charOffset, tearOff);
@@ -3264,8 +3272,13 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     aliasBuilder.findConstructorOrFactory(
                         name.text, nameOffset, _uri, _helper.libraryBuilder);
                 if (tearOffLowering != null) {
-                  return _helper.forest
-                      .createStaticTearOff(token.charOffset, tearOffLowering);
+                  if (tearOffLowering.isFactory) {
+                    return _helper.forest.createConstructorTearOff(
+                        token.charOffset, tearOffLowering);
+                  } else {
+                    return _helper.forest
+                        .createStaticTearOff(token.charOffset, tearOffLowering);
+                  }
                 }
                 FreshTypeParameters freshTypeParameters =
                     getFreshTypeParameters(aliasBuilder.typedef.typeParameters);
@@ -3361,7 +3374,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
 
   @override
   Expression_Generator_Builder doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     if (declaration.isExtension) {
       ExtensionBuilder extensionBuilder = declaration as ExtensionBuilder;
@@ -3398,7 +3411,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
 
   @override
   Expression_Generator applyTypeArguments(
-      int fileOffset, List<UnresolvedType>? typeArguments) {
+      int fileOffset, List<TypeBuilder>? typeArguments) {
     return new TypeUseGenerator(_helper, token, declaration, targetName)
       ..typeArguments = typeArguments;
   }
@@ -3545,7 +3558,7 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
 
   @override
   Expression_Generator_Initializer doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return _helper.forest.createExpressionInvocation(
         adjustForImplicitCall(targetName, offset), _createRead(), arguments);
@@ -3600,7 +3613,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   @override
   Expression_Generator_Initializer doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return buildError(arguments,
         charOffset: offset, kind: UnresolvedKind.Method);
@@ -3676,7 +3689,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   @override
   Expression invokeConstructor(
-      List<UnresolvedType>? typeArguments,
+      List<TypeBuilder>? typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -3728,7 +3741,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
 
   @override
   Expression doInvocation(
-      int charOffset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int charOffset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return buildError(arguments,
         charOffset: charOffset, kind: UnresolvedKind.Method);
@@ -3805,7 +3818,7 @@ abstract class ContextAwareGenerator extends Generator {
 
   @override
   Never doInvocation(
-      int charOffset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int charOffset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return unhandled("${runtimeType}", "doInvocation", charOffset, _uri);
   }
@@ -4051,7 +4064,7 @@ class PrefixUseGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return _helper.wrapInLocatedProblem(
         _helper.evaluateArgumentsBefore(
@@ -4062,14 +4075,15 @@ class PrefixUseGenerator extends Generator {
 
   @override
   Expression_Generator buildSelectorAccess(
-      Selector send, int operatorOffset, bool isNullAware) {
-    assert(send.name.text == send.token.lexeme,
-        "'${send.name.text}' != ${send.token.lexeme}");
-    Object result = qualifiedLookup(send.token);
-    if (send is InvocationSelector) {
-      result = _helper.finishSend(
-          result, send.typeArguments, send.arguments, send.fileOffset,
-          isTypeArgumentsInForest: send.isTypeArgumentsInForest);
+      Selector selector, int operatorOffset, bool isNullAware) {
+    assert(selector.name.text == selector.token.lexeme,
+        "'${selector.name.text}' != ${selector.token.lexeme}");
+    selector.reportNewAsSelector();
+    Object result = qualifiedLookup(selector.token);
+    if (selector is InvocationSelector) {
+      result = _helper.finishSend(result, selector.typeArguments,
+          selector.arguments as ArgumentsImpl, selector.fileOffset,
+          isTypeArgumentsInForest: selector.isTypeArgumentsInForest);
     }
     if (isNullAware) {
       result = _helper.wrapInLocatedProblem(
@@ -4154,7 +4168,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return _helper.buildUnresolvedError(_forest.createNullLiteral(offset),
         _plainNameForRead, arguments, fileOffset,
@@ -4163,7 +4177,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
 
   @override
   TypeBuilder buildTypeWithResolvedArguments(
-      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {required bool allowPotentiallyConstantType}) {
     Template<Message Function(String, String)> template = isUnresolved
         ? templateUnresolvedPrefixInTypeAnnotation
@@ -4174,7 +4188,8 @@ class UnexpectedQualifiedUseGenerator extends Generator {
         nullabilityBuilder,
         /* arguments = */ null,
         /* fileUri = */ null,
-        /* charOffset = */ null);
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     Message message =
         template.withArguments(prefixGenerator.token.lexeme, token.lexeme);
     _helper.libraryBuilder.addProblem(
@@ -4275,7 +4290,7 @@ class ParserErrorGenerator extends Generator {
 
   @override
   Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return buildProblem();
   }
@@ -4288,7 +4303,7 @@ class ParserErrorGenerator extends Generator {
 
   @override
   TypeBuilder buildTypeWithResolvedArguments(
-      NullabilityBuilder nullabilityBuilder, List<UnresolvedType>? arguments,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {required bool allowPotentiallyConstantType}) {
     // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
     NamedTypeBuilder result = new NamedTypeBuilder(
@@ -4296,7 +4311,8 @@ class ParserErrorGenerator extends Generator {
         nullabilityBuilder,
         /* arguments = */ null,
         /* fileUri = */ null,
-        /* charOffset = */ null);
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     _helper.libraryBuilder.addProblem(message, fileOffset, noLength, _uri);
     result.bind(result.buildInvalidTypeDeclarationBuilder(
         message.withLocation(_uri, fileOffset, noLength)));
@@ -4310,7 +4326,7 @@ class ParserErrorGenerator extends Generator {
 
   @override
   Expression invokeConstructor(
-      List<UnresolvedType>? typeArguments,
+      List<TypeBuilder>? typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -4443,32 +4459,37 @@ class ThisAccessGenerator extends Generator {
 
   @override
   Expression_Generator buildSelectorAccess(
-      Selector send, int operatorOffset, bool isNullAware) {
-    Name name = send.name;
-    Arguments? arguments = send.arguments;
-    int offset = offsetForToken(send.token);
-    if (isInitializer && send is InvocationSelector) {
+      Selector selector, int operatorOffset, bool isNullAware) {
+    Name name = selector.name;
+    Arguments? arguments = selector.arguments;
+    int offset = offsetForToken(selector.token);
+    if (isInitializer && selector is InvocationSelector) {
       if (isNullAware) {
         _helper.addProblem(
             messageInvalidUseOfNullAwareAccess, operatorOffset, 2);
       }
       return buildConstructorInitializer(offset, name, arguments!);
     }
+    selector.reportNewAsSelector();
     if (inFieldInitializer && !inLateFieldInitializer && !isInitializer) {
       return buildFieldInitializerError(null);
     }
-    if (send is InvocationSelector) {
+    if (selector is InvocationSelector) {
       // Notice that 'this' or 'super' can't be null. So we can ignore the
       // value of [isNullAware].
       if (isNullAware) {
         _reportNonNullableInNullAwareWarningIfNeeded();
       }
-      return _helper.buildMethodInvocation(
-          _forest.createThisExpression(fileOffset),
-          name,
-          send.arguments,
-          offsetForToken(send.token),
-          isSuper: isSuper);
+      if (isSuper) {
+        return _helper.buildSuperInvocation(
+            name, selector.arguments, offsetForToken(selector.token));
+      } else {
+        return _helper.buildMethodInvocation(
+            _forest.createThisExpression(fileOffset),
+            name,
+            selector.arguments,
+            offsetForToken(selector.token));
+      }
     } else {
       if (isSuper) {
         Member? getter = _helper.lookupInstanceMember(name, isSuper: isSuper);
@@ -4477,7 +4498,7 @@ class ThisAccessGenerator extends Generator {
         return new SuperPropertyAccessGenerator(
             _helper,
             // TODO(ahe): This is not the 'super' token.
-            send.token,
+            selector.token,
             name,
             getter,
             setter);
@@ -4485,7 +4506,7 @@ class ThisAccessGenerator extends Generator {
         return new ThisPropertyAccessGenerator(
             _helper,
             // TODO(ahe): This is not the 'this' token.
-            send.token,
+            selector.token,
             name,
             thisOffset: fileOffset,
             isNullAware: isNullAware);
@@ -4495,12 +4516,13 @@ class ThisAccessGenerator extends Generator {
 
   @override
   Expression_Generator_Initializer doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+      int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     if (isInitializer) {
       return buildConstructorInitializer(offset, new Name(""), arguments);
     } else if (isSuper) {
-      return _helper.buildProblem(messageSuperAsExpression, offset, noLength);
+      return _helper.buildSuperInvocation(Name.callName, arguments, offset,
+          isImplicitCall: true);
     } else {
       return _helper.forest.createExpressionInvocation(
           offset, _forest.createThisExpression(fileOffset), arguments);
@@ -4514,12 +4536,8 @@ class ThisAccessGenerator extends Generator {
     assert(isNot != null);
     if (isSuper) {
       int offset = offsetForToken(token);
-      Expression result = _helper.buildMethodInvocation(
-          _forest.createThisExpression(fileOffset),
-          equalsName,
-          _forest.createArguments(offset, <Expression>[right]),
-          offset,
-          isSuper: true);
+      Expression result = _helper.buildSuperInvocation(equalsName,
+          _forest.createArguments(offset, <Expression>[right]), offset);
       if (isNot) {
         result = _forest.createNot(offset, result);
       }
@@ -4533,12 +4551,8 @@ class ThisAccessGenerator extends Generator {
       Token token, Name binaryName, Expression right) {
     if (isSuper) {
       int offset = offsetForToken(token);
-      return _helper.buildMethodInvocation(
-          _forest.createThisExpression(fileOffset),
-          binaryName,
-          _forest.createArguments(offset, <Expression>[right]),
-          offset,
-          isSuper: true);
+      return _helper.buildSuperInvocation(binaryName,
+          _forest.createArguments(offset, <Expression>[right]), offset);
     }
     return super.buildBinaryOperation(token, binaryName, right);
   }
@@ -4547,12 +4561,8 @@ class ThisAccessGenerator extends Generator {
   Expression_Generator buildUnaryOperation(Token token, Name unaryName) {
     if (isSuper) {
       int offset = offsetForToken(token);
-      return _helper.buildMethodInvocation(
-          _forest.createThisExpression(fileOffset),
-          unaryName,
-          _forest.createArgumentsEmpty(offset),
-          offset,
-          isSuper: true);
+      return _helper.buildSuperInvocation(
+          unaryName, _forest.createArgumentsEmpty(offset), offset);
     }
     return super.buildUnaryOperation(token, unaryName);
   }
@@ -4696,7 +4706,7 @@ class IncompleteErrorGenerator extends ErroneousExpressionGenerator {
 
   @override
   Generator doInvocation(
-          int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
+          int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
           {bool isTypeArgumentsInForest = false}) =>
       this;
 
@@ -4741,31 +4751,32 @@ class ParenthesizedExpressionGenerator extends AbstractReadOnlyAccessGenerator {
   String get targetName => '';
 
   @override
-  Expression buildSimpleRead() => expression;
+  Expression buildSimpleRead() => _createRead();
 
   @override
   Expression _createRead() =>
-      _helper.forest.createParenthesized(fileOffset, expression);
+      _helper.forest.createParenthesized(expression.fileOffset, expression);
 
   @override
   String get _debugName => "ParenthesizedExpressionGenerator";
 
   @override
   Expression_Generator buildSelectorAccess(
-      Selector send, int operatorOffset, bool isNullAware) {
-    if (send is InvocationSelector) {
-      return _helper.buildMethodInvocation(
-          _createRead(), send.name, send.arguments, offsetForToken(send.token),
+      Selector selector, int operatorOffset, bool isNullAware) {
+    selector.reportNewAsSelector();
+    if (selector is InvocationSelector) {
+      return _helper.buildMethodInvocation(_createRead(), selector.name,
+          selector.arguments, offsetForToken(selector.token),
           isNullAware: isNullAware,
-          isConstantExpression: send.isPotentiallyConstant);
+          isConstantExpression: selector.isPotentiallyConstant);
     } else {
       if (_helper.constantContext != ConstantContext.none &&
-          send.name != lengthName) {
+          selector.name != lengthName) {
         _helper.addProblem(
             messageNotAConstantExpression, fileOffset, token.length);
       }
       return PropertyAccessGenerator.make(
-          _helper, send.token, _createRead(), send.name, isNullAware);
+          _helper, selector.token, _createRead(), selector.name, isNullAware);
     }
   }
 }
@@ -4812,7 +4823,7 @@ abstract class Selector {
   Expression_Generator withReceiver(Object? receiver, int operatorOffset,
       {bool isNullAware: false});
 
-  List<UnresolvedType>? get typeArguments => null;
+  List<TypeBuilder>? get typeArguments => null;
 
   bool get isTypeArgumentsInForest => true;
 
@@ -4822,6 +4833,14 @@ abstract class Selector {
   String get _debugName;
 
   void printOn(StringSink sink);
+
+  /// Report an error if the selector name "new" when the constructor-tearoff
+  /// feature is enabled.
+  void reportNewAsSelector() {
+    if (name.text == 'new' && _helper.enableConstructorTearOffsInLibrary) {
+      _helper.addProblem(messageNewAsSelector, fileOffset, name.text.length);
+    }
+  }
 
   @override
   String toString() {
@@ -4849,7 +4868,7 @@ class InvocationSelector extends Selector {
   final Name name;
 
   @override
-  final List<UnresolvedType>? typeArguments;
+  final List<TypeBuilder>? typeArguments;
 
   @override
   final bool isTypeArgumentsInForest;
@@ -4876,6 +4895,7 @@ class InvocationSelector extends Selector {
     if (receiver is Generator) {
       return receiver.buildSelectorAccess(this, operatorOffset, isNullAware);
     }
+    reportNewAsSelector();
     return _helper.buildMethodInvocation(
         _helper.toValue(receiver), name, arguments, fileOffset,
         isNullAware: isNullAware);
@@ -4918,6 +4938,7 @@ class PropertySelector extends Selector {
     if (receiver is Generator) {
       return receiver.buildSelectorAccess(this, operatorOffset, isNullAware);
     }
+    reportNewAsSelector();
     return PropertyAccessGenerator.make(
         _helper, token, _helper.toValue(receiver), name, isNullAware);
   }

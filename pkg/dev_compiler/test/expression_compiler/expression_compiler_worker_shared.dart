@@ -19,7 +19,6 @@ import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:path/path.dart' as p;
-import 'package:pedantic/pedantic.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:test/test.dart';
@@ -1008,7 +1007,7 @@ class DDCKernelGenerator {
       if (config.soundNullSafety) '--sound-null-safety',
       if (!config.soundNullSafety) '--no-sound-null-safety',
       '--modules',
-      '${config.moduleFormat}',
+      config.moduleFormat,
     ];
 
     var exitCode = await runProcess(dart, args, config.rootPath);
@@ -1037,7 +1036,7 @@ class DDCKernelGenerator {
       if (config.soundNullSafety) '--sound-null-safety',
       if (!config.soundNullSafety) '--no-sound-null-safety',
       '--modules',
-      '${config.moduleFormat}',
+      config.moduleFormat,
     ];
 
     exitCode = await runProcess(dart, args, config.rootPath);
@@ -1069,7 +1068,7 @@ class DDCKernelGenerator {
       if (config.soundNullSafety) '--sound-null-safety',
       if (!config.soundNullSafety) '--no-sound-null-safety',
       '--modules',
-      '${config.moduleFormat}',
+      config.moduleFormat,
     ];
 
     exitCode = await runProcess(dart, args, config.rootPath);
@@ -1104,7 +1103,7 @@ class DDCKernelGenerator {
       if (config.soundNullSafety) '--sound-null-safety',
       if (!config.soundNullSafety) '--no-sound-null-safety',
       '--modules',
-      '${config.moduleFormat}',
+      config.moduleFormat,
     ];
 
     return await runProcess(dart, args, config.rootPath);

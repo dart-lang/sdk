@@ -84,7 +84,7 @@ import "dart:core" as core;
 typedef F<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = mai::A<Y%>;
 typedef G<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = mai::A<Y%>;
 class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[mai::A::redirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C11]/*isLegacy*/;
   constructor •() → mai::A<mai::A::T%>
     : super core::Object::•()
     ;
@@ -108,10 +108,10 @@ static field dynamic F_new_lib = #C5;
 static field dynamic F_named_lib = #C6;
 static field dynamic F_fact_lib = #C7;
 static field dynamic F_redirect_lib = #C8;
-static field dynamic G_new_lib = #C11;
-static field dynamic G_named_lib = #C12;
-static field dynamic G_fact_lib = #C13;
-static field dynamic G_redirect_lib = #C14;
+static field dynamic G_new_lib = #C12;
+static field dynamic G_named_lib = #C13;
+static field dynamic G_fact_lib = #C14;
+static field dynamic G_redirect_lib = #C15;
 static method _#F#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<mai::_#F#new#tearOff::Y%>
   return new mai::A::•<mai::_#F#new#tearOff::Y%>();
 static method _#F#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(mai::_#F#named#tearOff::Y% a, [core::int? b = #C9]) → mai::A<mai::_#F#named#tearOff::Y%>
@@ -140,8 +140,9 @@ constants  {
   #C8 = static-tearoff mai::_#F#redirect#tearOff
   #C9 = null
   #C10 = 42
-  #C11 = static-tearoff mai::_#G#new#tearOff
-  #C12 = static-tearoff mai::_#G#named#tearOff
-  #C13 = static-tearoff mai::_#G#fact#tearOff
-  #C14 = static-tearoff mai::_#G#redirect#tearOff
+  #C11 = constructor-tearoff mai::A::redirect
+  #C12 = static-tearoff mai::_#G#new#tearOff
+  #C13 = static-tearoff mai::_#G#named#tearOff
+  #C14 = static-tearoff mai::_#G#fact#tearOff
+  #C15 = static-tearoff mai::_#G#redirect#tearOff
 }

@@ -66,7 +66,6 @@ Future<void> main() async {
 const Set<Code> ignoredCodes = {
   codeInvalidAssignmentError,
   codeTypeVariableInStaticContext,
-  codeNonInstanceTypeVariableUse,
   codeExtensionDeclaresInstanceField,
   codeExtraneousModifier,
 };

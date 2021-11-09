@@ -4,7 +4,10 @@
 
 // CHANGES:
 //
-// v0.17 Correct `uri` to allow multi-line strings (raw and non-raw).
+// v0.18 Add support for enhanced `enum` declarations.
+//
+// v0.17 (58d917e7573c359580ade43845004dbbc62220d5) Correct `uri` to allow
+// multi-line strings (raw and non-raw).
 //
 // v0.16 (284695f1937c262523a9a11b9084213f889c83e0) Correct instance variable
 // declaration syntax such that `covariant late final` is allowed.
@@ -484,11 +487,15 @@ mixinApplication
     ;
 
 enumType
-    :    ENUM typeIdentifier LBRACE enumEntry (',' enumEntry)* (',')? RBRACE
+    :    ENUM typeIdentifier typeParameters? mixins? interfaces? LBRACE
+         enumEntry (',' enumEntry)* (',')?
+         (';' (metadata classMemberDefinition)*)?
+         RBRACE
     ;
 
 enumEntry
-    :    metadata identifier
+    :    metadata identifier argumentPart?
+    |    metadata identifier typeArguments? '.' identifier arguments
     ;
 
 typeParameter

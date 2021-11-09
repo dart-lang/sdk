@@ -108,7 +108,7 @@ Future<CompilationResult> runCompiler(
   if (beforeRun != null) {
     beforeRun(compiler);
   }
-  bool isSuccess = await compiler.run(entryPoint);
+  bool isSuccess = await compiler.run();
   fe.InitializedCompilerState compilerState = kernelInitializedCompilerState =
       compiler.kernelLoader.initializedCompilerState;
   return new CompilationResult(compiler,
@@ -169,7 +169,7 @@ CompilerImpl compilerFor(
 
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
       librariesSpecificationUri: librariesSpecificationUri)
-    ..entryPoint = entryPoint
+    ..entryUri = entryPoint
     ..environment = {}
     ..packageConfig = packageConfig;
   compilerOptions.kernelInitializedCompilerState =

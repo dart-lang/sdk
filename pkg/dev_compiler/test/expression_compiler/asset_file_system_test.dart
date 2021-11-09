@@ -208,17 +208,17 @@ void main() async {
         () async {
       var entity = fileSystem.entityForUri(Uri.parse(_existingFile));
 
-      var elapsedReadAsString = () async {
+      Future<int> elapsedReadAsString() async {
         var stopwatch = Stopwatch()..start();
         await expectLater(entity.readAsString(), isNotNull);
         return stopwatch.elapsedMilliseconds;
-      };
+      }
 
-      var elapsedReadAsBytesAndDecode = () async {
+      Future<int> elapsedReadAsBytesAndDecode() async {
         var stopwatch = Stopwatch()..start();
         await expectLater(utf8.decode(await entity.readAsBytes()), isNotNull);
         return stopwatch.elapsedMilliseconds;
-      };
+      }
 
       await expectLater(await elapsedReadAsString(),
           lessThan(await elapsedReadAsBytesAndDecode()));

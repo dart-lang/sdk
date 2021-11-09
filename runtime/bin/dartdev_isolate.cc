@@ -26,7 +26,7 @@
       Dart_CloseNativePort(send_port_id);                                      \
     }                                                                          \
     Dart_ExitScope();                                                          \
-    Dart_ExitIsolate();                                                        \
+    Dart_ShutdownIsolate();                                                    \
     return;                                                                    \
   }
 
@@ -237,7 +237,7 @@ void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
     ProcessError("Unable to find 'main' in root library 'dartdev'",
                  kErrorExitCode);
     Dart_ExitScope();
-    Dart_ExitIsolate();
+    Dart_ShutdownIsolate();
     return;
   }
 

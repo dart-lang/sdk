@@ -647,6 +647,7 @@ abstract class _RandomAccessFileOps {
   external factory _RandomAccessFileOps(int pointer);
 
   int getPointer();
+  int get fd;
   int close();
   readByte();
   read(int bytes);
@@ -661,6 +662,7 @@ abstract class _RandomAccessFileOps {
   lock(int lock, int start, int end);
 }
 
+@pragma("vm:entry-point")
 class _RandomAccessFile implements RandomAccessFile {
   static bool _connectedResourceHandler = false;
 
@@ -671,6 +673,7 @@ class _RandomAccessFile implements RandomAccessFile {
   late _FileResourceInfo _resourceInfo;
   _RandomAccessFileOps _ops;
 
+  @pragma("vm:entry-point")
   _RandomAccessFile(int pointer, this.path)
       : _ops = new _RandomAccessFileOps(pointer) {
     _resourceInfo = new _FileResourceInfo(this);
@@ -1050,6 +1053,8 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   bool closed = false;
+
+  int get fd => _ops.fd;
 
   // WARNING:
   // Calling this function will increase the reference count on the native

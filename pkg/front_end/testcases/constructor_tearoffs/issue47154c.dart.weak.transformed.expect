@@ -32,7 +32,7 @@ constants  {
   #C2 = 1
   #C3 = <core::int*>[#C2]
   #C4 = self::A<core::int*> {x:#C3}
-  #C5 = instantiation self::m <core::String*>
+  #C5 = instantiation #C1 <core::String*>
   #C6 = self::B<core::String*> {f:#C5}
   #C7 = self::C<core::String*> {f:#C5}
 }

@@ -46,6 +46,8 @@ class VirtualMemory {
   static void Protect(void* address, intptr_t size, Protection mode);
   void Protect(Protection mode) { return Protect(address(), size(), mode); }
 
+  static void DontNeed(void* address, intptr_t size);
+
   // Reserves and commits a virtual memory segment with size. If a segment of
   // the requested size cannot be allocated, NULL is returned.
   static VirtualMemory* Allocate(intptr_t size,

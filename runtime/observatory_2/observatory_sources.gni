@@ -139,7 +139,6 @@ observatory_sources = [
   "lib/src/elements/unknown_ref.dart",
   "lib/src/elements/unlinkedcall_ref.dart",
   "lib/src/elements/unlinkedcall_view.dart",
-  "lib/src/elements/view_footer.dart",
   "lib/src/elements/vm_connect.dart",
   "lib/src/elements/vm_connect_target.dart",
   "lib/src/elements/vm_view.dart",

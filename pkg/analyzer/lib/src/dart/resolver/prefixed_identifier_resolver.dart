@@ -83,8 +83,15 @@ class PrefixedIdentifierResolver {
       type = result.functionTypeCallType!;
     }
 
-    type = _inferenceHelper.inferTearOff(node, identifier, type);
-
+    if (!_resolver.isConstructorTearoffsEnabled) {
+      // Only perform a generic function instantiation on a [PrefixedIdentifier]
+      // in pre-constructor-tearoffs code. In constructor-tearoffs-enabled code,
+      // generic function instantiation is performed at assignability check
+      // sites.
+      // TODO(srawlins): Switch all resolution to use the latter method, in a
+      // breaking change release.
+      type = _inferenceHelper.inferTearOff(node, identifier, type);
+    }
     _recordStaticType(identifier, type);
     _recordStaticType(node, type);
   }

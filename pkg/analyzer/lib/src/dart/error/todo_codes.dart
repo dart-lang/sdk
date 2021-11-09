@@ -83,7 +83,7 @@ class TodoCode extends ErrorCode {
    */
   const TodoCode(String name)
       : super(
-          message: "{0}",
+          problemMessage: "{0}",
           name: name,
           uniqueName: 'TodoCode.$name',
         );

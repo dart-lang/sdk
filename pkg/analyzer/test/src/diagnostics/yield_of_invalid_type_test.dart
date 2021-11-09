@@ -39,7 +39,6 @@ int f() async* {
 }
 ''', [
       error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 3),
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 25, 1),
     ]);
   }
 
@@ -58,7 +57,6 @@ Iterable<int> f() async* {
 }
 ''', [
       error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 13),
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 35, 1),
     ]);
   }
 
@@ -140,7 +138,6 @@ int f() sync* {
 }
 ''', [
       error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 3),
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 24, 1),
     ]);
   }
 
@@ -198,7 +195,6 @@ Stream<int> f() sync* {
 }
 ''', [
       error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 11),
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 32, 1),
     ]);
   }
 
@@ -246,7 +242,7 @@ f() async* {
   yield* 0;
 }
 ''', [
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 22, 1),
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 22, 1),
     ]);
   }
 
@@ -257,7 +253,7 @@ f() async* {
   yield* a;
 }
 ''', [
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 41, 1),
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 41, 1),
     ]);
   }
 
@@ -268,7 +264,7 @@ Stream<int> f() async* {
   yield* a;
 }
 ''', [
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 53, 1),
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 53, 1),
     ]);
   }
 
@@ -279,7 +275,7 @@ Stream<int> f() async* {
   yield* a;
 }
 ''', [
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 56, 1),
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 56, 1),
     ]);
   }
 
@@ -303,7 +299,7 @@ Stream<int> f() async* {
 Stream g() => throw 0;
 ''',
         expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 34, 3),
+          error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 34, 3),
         ], legacy: []));
   }
 
@@ -335,7 +331,7 @@ Stream<int> f() async* {
 
 Stream<String> g() => throw 0;
 ''', [
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 34, 3),
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 34, 3),
     ]);
   }
 
@@ -375,7 +371,7 @@ f() sync* {
   yield* 0;
 }
 ''', [
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 21, 1),
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 21, 1),
     ]);
   }
 
@@ -388,7 +384,7 @@ main() {
   f;
 }
 ''', [
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 41, 1),
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 41, 1),
     ]);
   }
 
@@ -412,7 +408,7 @@ Iterable<int> f() sync* {
 Iterable g() => throw 0;
 ''',
         expectedErrorsByNullability(nullable: [
-          error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 35, 3),
+          error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 35, 3),
         ], legacy: []));
   }
 
@@ -444,7 +440,7 @@ Iterable<int> f() sync* {
 
 Iterable<String> g() => throw 0;
 ''', [
-      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 35, 3),
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 35, 3),
     ]);
   }
 }

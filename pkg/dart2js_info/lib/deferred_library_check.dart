@@ -42,8 +42,8 @@ import 'info.dart';
 
 List<ManifestComplianceFailure> checkDeferredLibraryManifest(
     AllInfo info, Map manifest) {
-  var includedPackages = new Map<String, Set<String>>();
-  var excludedPackages = new Map<String, Set<String>>();
+  var includedPackages = <String, Set<String>>{};
+  var excludedPackages = <String, Set<String>>{};
   for (var part in manifest.keys) {
     for (var package in manifest[part]['include'] ?? []) {
       (includedPackages[part] ??= {}).add(package);
@@ -59,16 +59,20 @@ List<ManifestComplianceFailure> checkDeferredLibraryManifest(
   // the outputUnits whose list of 'imports' contains a single import. If the
   // part is shared, it will have more than one import since it will include the
   // imports of all the top-level deferred parts that will load the shared part.
-  List<String> validParts = ['main']..addAll(info.outputUnits
-      .where((unit) => unit.imports.length == 1)
-      .map((unit) => unit.imports.single));
-  List<String> mentionedParts = []
-    ..addAll(includedPackages.keys)
-    ..addAll(excludedPackages.keys);
+  List<String> validParts = [
+    'main',
+    ...info.outputUnits
+        .where((unit) => unit.imports.length == 1)
+        .map((unit) => unit.imports.single)
+  ];
+  List<String> mentionedParts = [
+    ...includedPackages.keys,
+    ...excludedPackages.keys
+  ];
   var partNameFailures = <_InvalidPartName>[];
   for (var part in mentionedParts) {
     if (!validParts.contains(part)) {
-      partNameFailures.add(new _InvalidPartName(part, validParts));
+      partNameFailures.add(_InvalidPartName(part, validParts));
     }
   }
   if (partNameFailures.isNotEmpty) {
@@ -79,7 +83,7 @@ List<ManifestComplianceFailure> checkDeferredLibraryManifest(
     for (var values in includedPackages.values) ...values,
     for (var values in excludedPackages.values) ...values
   };
-  var actualIncludedPackages = new Map<String, Set<String>>();
+  var actualIncludedPackages = <String, Set<String>>{};
 
   var failures = <ManifestComplianceFailure>[];
 
@@ -98,8 +102,7 @@ List<ManifestComplianceFailure> checkDeferredLibraryManifest(
       for (var part in containingParts) {
         (actualIncludedPackages[part] ??= {}).add(packageName);
         if (excludedPackages[part].contains(packageName)) {
-          failures
-              .add(new _PartContainedExcludedPackage(part, packageName, info));
+          failures.add(_PartContainedExcludedPackage(part, packageName, info));
         }
       }
     }
@@ -112,7 +115,7 @@ List<ManifestComplianceFailure> checkDeferredLibraryManifest(
     for (var package in packages) {
       if (!actualIncludedPackages.containsKey(part) ||
           !actualIncludedPackages[part].contains(package)) {
-        failures.add(new _PartDidNotContainPackage(part, package));
+        failures.add(_PartDidNotContainPackage(part, package));
       }
     }
   });
@@ -146,6 +149,7 @@ class _InvalidPartName extends ManifestComplianceFailure {
   final List<String> validPartNames;
   const _InvalidPartName(this.part, this.validPartNames);
 
+  @override
   String toString() {
     return 'Manifest file declares invalid part "$part". '
         'Valid part names are: $validPartNames';
@@ -158,6 +162,7 @@ class _PartContainedExcludedPackage extends ManifestComplianceFailure {
   final BasicInfo info;
   const _PartContainedExcludedPackage(this.part, this.package, this.info);
 
+  @override
   String toString() {
     return 'Part "$part" was specified to exclude package "$package" but it '
         'actually contains ${kindToString(info.kind)} "${info.name}" which '
@@ -170,6 +175,7 @@ class _PartDidNotContainPackage extends ManifestComplianceFailure {
   final String package;
   const _PartDidNotContainPackage(this.part, this.package);
 
+  @override
   String toString() {
     return 'Part "$part" was specified to include package "$package" but it '
         'does not contain any elements from that package.';

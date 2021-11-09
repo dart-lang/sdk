@@ -73,7 +73,8 @@ class SummaryDataReader {
   }
 
   String readStringReference() {
-    return _stringTable[readUInt30()];
+    var index = readUInt30();
+    return stringOfIndex(index);
   }
 
   List<String> readStringReferenceList() {
@@ -83,6 +84,20 @@ class SummaryDataReader {
   String readStringUtf8() {
     var bytes = readUint8List();
     return utf8.decode(bytes);
+  }
+
+  List<String> readStringUtf8List() {
+    return readTypedList(readStringUtf8);
+  }
+
+  Set<String> readStringUtf8Set() {
+    var length = readUInt30();
+    var result = <String>{};
+    for (var i = 0; i < length; i++) {
+      var item = readStringUtf8();
+      result.add(item);
+    }
+    return result;
   }
 
   List<T> readTypedList<T>(T Function() read) {

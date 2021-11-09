@@ -40,8 +40,8 @@ Future<int> _runProcess(
 
 /// benchmarks:
 ///   - analysis-flutter-analyze
-class FlutterAnalyzeBenchmark extends Benchmark {
-  late Directory flutterDir;
+class FlutterAnalyzeBenchmark extends Benchmark implements FlutterBenchmark {
+  late final String flutterRepositoryPath;
 
   FlutterAnalyzeBenchmark()
       : super(
@@ -54,43 +54,6 @@ class FlutterAnalyzeBenchmark extends Benchmark {
 
   @override
   int get maxIterations => 3;
-
-  @override
-  bool get needsSetup => true;
-
-  @override
-  Future oneTimeCleanup() {
-    try {
-      flutterDir.deleteSync(recursive: true);
-    } on FileSystemException catch (e) {
-      print(e);
-    }
-
-    return Future.value();
-  }
-
-  @override
-  Future oneTimeSetup() async {
-    flutterDir = Directory.systemTemp.createTempSync('flutter');
-
-    // git clone https://github.com/flutter/flutter $flutterDir
-    await _runProcess('git', [
-      'clone',
-      'https://github.com/flutter/flutter',
-      path.canonicalize(flutterDir.path)
-    ]);
-
-    var flutterTool = path.join(flutterDir.path, 'bin', 'flutter');
-
-    // flutter --version
-    await _runProcess(flutterTool, ['--version'], cwd: flutterDir.path);
-
-    // flutter precache
-    await _runProcess(flutterTool, ['precache'], cwd: flutterDir.path);
-
-    // flutter update-packages
-    await _runProcess(flutterTool, ['update-packages'], cwd: flutterDir.path);
-  }
 
   @override
   Future<BenchMarkResult> run({
@@ -114,7 +77,7 @@ class FlutterAnalyzeBenchmark extends Benchmark {
         '--dart-sdk',
         dartSdkPath,
       ],
-      cwd: flutterDir.path,
+      cwd: flutterRepositoryPath,
       failOnError: false,
     );
 

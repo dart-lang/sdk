@@ -267,8 +267,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endFunctionTypeAlias(
-      Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
     debugEvent("FunctionTypeAlias");
 
     if (equals == null) pop(); // endToken
@@ -868,7 +867,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void beginClassOrMixinBody(DeclarationKind kind, Token token) {
+  void beginClassOrMixinOrExtensionBody(DeclarationKind kind, Token token) {
     assert(checkState(token, [
       ValueKinds.Token,
       ValueKinds.NameOrParserRecovery,
@@ -890,7 +889,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endClassOrMixinBody(
+  void endClassOrMixinOrExtensionBody(
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody");
     currentDeclaration = null;

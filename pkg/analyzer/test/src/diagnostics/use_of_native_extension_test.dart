@@ -19,8 +19,7 @@ class UseOfNativeExtensionTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 export 'dart-ext:x';
 ''', [
-      error(HintCode.USE_OF_NATIVE_EXTENSION, 0, 20),
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 12),
+      error(CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION, 7, 12),
     ]);
   }
 
@@ -28,8 +27,7 @@ export 'dart-ext:x';
     await assertErrorsInCode(r'''
 import 'dart-ext:x';
 ''', [
-      // TODO(srawlins): Why does this file not have a URI_DOES_NOT_EXIST error?
-      error(HintCode.USE_OF_NATIVE_EXTENSION, 0, 20),
+      error(CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION, 7, 12),
     ]);
   }
 }

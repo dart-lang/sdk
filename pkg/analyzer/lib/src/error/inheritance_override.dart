@@ -621,13 +621,17 @@ class _ClassVerifier {
     var name = conflict.name;
 
     if (conflict is GetterMethodConflict) {
+      // Members that participate in inheritance are always enclosed in named
+      // elements so it is safe to assume that
+      // `conflict.getter.enclosingElement.name` and
+      // `conflict.method.enclosingElement.name` are both non-`null`.
       reporter.reportErrorForNode(
         CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
         node,
         [
           name.name,
-          conflict.getter.enclosingElement.name,
-          conflict.method.enclosingElement.name
+          conflict.getter.enclosingElement.name!,
+          conflict.method.enclosingElement.name!
         ],
       );
     } else if (conflict is CandidatesConflict) {

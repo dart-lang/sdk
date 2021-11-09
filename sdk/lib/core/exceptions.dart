@@ -166,8 +166,11 @@ class FormatException implements Exception {
 
 // Exception thrown when doing integer division with a zero divisor.
 // TODO(30743): Should be removed, and division by zero should just throw an
-// [ArgumentError].
-class IntegerDivisionByZeroException implements Exception {
+// [UnsupportedError].
+@Deprecated("Use UnsupportedError instead")
+class IntegerDivisionByZeroException implements Exception, UnsupportedError {
+  String? get message => "Division resulted in non-finite value";
+  StackTrace? get stackTrace => null;
   @pragma("vm:entry-point")
   const IntegerDivisionByZeroException();
   String toString() => "IntegerDivisionByZeroException";

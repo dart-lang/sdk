@@ -263,6 +263,21 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
     coverage[0] = kCoverageMiss;
   }
 
+  auto update_coverage = [&](TokenPosition token_pos, bool was_executed) {
+    if (!token_pos.IsWithin(begin_pos, end_pos)) {
+      return;
+    }
+
+    const intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
+    if (was_executed) {
+      coverage[token_offset] = kCoverageHit;
+    } else {
+      if (coverage[token_offset] == kCoverageNone) {
+        coverage[token_offset] = kCoverageMiss;
+      }
+    }
+  };
+
   PcDescriptors::Iterator iter(
       descriptors,
       UntaggedPcDescriptors::kIcCall | UntaggedPcDescriptors::kUnoptStaticCall);
@@ -272,19 +287,19 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
     if (ic_data != NULL) {
       const TokenPosition& token_pos = iter.TokenPos();
-      if (!token_pos.IsWithin(begin_pos, end_pos)) {
-        // Does not correspond to a valid source position.
-        continue;
-      }
-      intptr_t count = ic_data->AggregateCount();
-      intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
-      if (count > 0) {
-        coverage[token_offset] = kCoverageHit;
-      } else {
-        if (coverage[token_offset] == kCoverageNone) {
-          coverage[token_offset] = kCoverageMiss;
-        }
-      }
+      update_coverage(token_pos, ic_data->AggregateCount() > 0);
+    }
+  }
+
+  // Merge the coverage from coverage_array attached to the function.
+  const Array& coverage_array = Array::Handle(function.GetCoverageArray());
+  if (!coverage_array.IsNull()) {
+    for (intptr_t i = 0; i < coverage_array.Length(); i += 2) {
+      const TokenPosition token_pos = TokenPosition::Deserialize(
+          Smi::Value(Smi::RawCast(coverage_array.At(i))));
+      const bool was_executed =
+          Smi::Value(Smi::RawCast(coverage_array.At(i + 1))) != 0;
+      update_coverage(token_pos, was_executed);
     }
   }
 

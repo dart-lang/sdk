@@ -648,6 +648,25 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([file1]));
   }
 
+  Future<void> test_onlyAnalyzeProjectsWithOpenFiles_fullyInitializes() async {
+    // Ensure when we use onlyAnalyzeProjectsWithOpenFiles that we still
+    // fully initialize (eg. capabilities are registered).
+    projectFolderPath = convertPath('/home/empty');
+
+    await expectRequest(
+      Method.client_registerCapability,
+      () => initialize(
+        rootUri: projectFolderUri,
+        initializationOptions: {'onlyAnalyzeProjectsWithOpenFiles': true},
+        // Enable some dynamic registrations, else registerCapability will not
+        // be called.
+        textDocumentCapabilities:
+            withAllSupportedTextDocumentDynamicRegistrations(
+                emptyTextDocumentClientCapabilities),
+      ),
+    );
+  }
+
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_multipleFiles() async {
     final file1 = join(projectFolderPath, 'file1.dart');
     final file1Uri = Uri.file(file1);

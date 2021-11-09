@@ -17,14 +17,18 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.constructor_tearoffs: ExperimentalFeatures.constructor_tearoffs,
   EnableString.control_flow_collections:
       ExperimentalFeatures.control_flow_collections,
+  EnableString.enhanced_enums: ExperimentalFeatures.enhanced_enums,
   EnableString.extension_methods: ExperimentalFeatures.extension_methods,
   EnableString.extension_types: ExperimentalFeatures.extension_types,
   EnableString.generic_metadata: ExperimentalFeatures.generic_metadata,
+  EnableString.named_arguments_anywhere:
+      ExperimentalFeatures.named_arguments_anywhere,
   EnableString.non_nullable: ExperimentalFeatures.non_nullable,
   EnableString.nonfunction_type_aliases:
       ExperimentalFeatures.nonfunction_type_aliases,
   EnableString.set_literals: ExperimentalFeatures.set_literals,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
+  EnableString.super_parameters: ExperimentalFeatures.super_parameters,
   EnableString.test_experiment: ExperimentalFeatures.test_experiment,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
   EnableString.value_class: ExperimentalFeatures.value_class,
@@ -46,6 +50,9 @@ class EnableString {
   /// String to enable the experiment "control-flow-collections"
   static const String control_flow_collections = 'control-flow-collections';
 
+  /// String to enable the experiment "enhanced-enums"
+  static const String enhanced_enums = 'enhanced-enums';
+
   /// String to enable the experiment "extension-methods"
   static const String extension_methods = 'extension-methods';
 
@@ -54,6 +61,9 @@ class EnableString {
 
   /// String to enable the experiment "generic-metadata"
   static const String generic_metadata = 'generic-metadata';
+
+  /// String to enable the experiment "named-arguments-anywhere"
+  static const String named_arguments_anywhere = 'named-arguments-anywhere';
 
   /// String to enable the experiment "non-nullable"
   static const String non_nullable = 'non-nullable';
@@ -66,6 +76,9 @@ class EnableString {
 
   /// String to enable the experiment "spread-collections"
   static const String spread_collections = 'spread-collections';
+
+  /// String to enable the experiment "super-parameters"
+  static const String super_parameters = 'super-parameters';
 
   /// String to enable the experiment "test-experiment"
   static const String test_experiment = 'test-experiment';
@@ -123,8 +136,18 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.0.0'),
   );
 
-  static final extension_methods = ExperimentalFeature(
+  static final enhanced_enums = ExperimentalFeature(
     index: 4,
+    enableString: EnableString.enhanced_enums,
+    isEnabledByDefault: IsEnabledByDefault.enhanced_enums,
+    isExpired: IsExpired.enhanced_enums,
+    documentation: 'Enhanced Enums',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final extension_methods = ExperimentalFeature(
+    index: 5,
     enableString: EnableString.extension_methods,
     isEnabledByDefault: IsEnabledByDefault.extension_methods,
     isExpired: IsExpired.extension_methods,
@@ -134,7 +157,7 @@ class ExperimentalFeatures {
   );
 
   static final extension_types = ExperimentalFeature(
-    index: 5,
+    index: 6,
     enableString: EnableString.extension_types,
     isEnabledByDefault: IsEnabledByDefault.extension_types,
     isExpired: IsExpired.extension_types,
@@ -144,7 +167,7 @@ class ExperimentalFeatures {
   );
 
   static final generic_metadata = ExperimentalFeature(
-    index: 6,
+    index: 7,
     enableString: EnableString.generic_metadata,
     isEnabledByDefault: IsEnabledByDefault.generic_metadata,
     isExpired: IsExpired.generic_metadata,
@@ -154,8 +177,18 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.14.0'),
   );
 
+  static final named_arguments_anywhere = ExperimentalFeature(
+    index: 8,
+    enableString: EnableString.named_arguments_anywhere,
+    isEnabledByDefault: IsEnabledByDefault.named_arguments_anywhere,
+    isExpired: IsExpired.named_arguments_anywhere,
+    documentation: 'Named Arguments Anywhere',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
   static final non_nullable = ExperimentalFeature(
-    index: 7,
+    index: 9,
     enableString: EnableString.non_nullable,
     isEnabledByDefault: IsEnabledByDefault.non_nullable,
     isExpired: IsExpired.non_nullable,
@@ -165,7 +198,7 @@ class ExperimentalFeatures {
   );
 
   static final nonfunction_type_aliases = ExperimentalFeature(
-    index: 8,
+    index: 10,
     enableString: EnableString.nonfunction_type_aliases,
     isEnabledByDefault: IsEnabledByDefault.nonfunction_type_aliases,
     isExpired: IsExpired.nonfunction_type_aliases,
@@ -175,7 +208,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 9,
+    index: 11,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -185,7 +218,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 10,
+    index: 12,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -194,8 +227,18 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.0.0'),
   );
 
+  static final super_parameters = ExperimentalFeature(
+    index: 13,
+    enableString: EnableString.super_parameters,
+    isEnabledByDefault: IsEnabledByDefault.super_parameters,
+    isExpired: IsExpired.super_parameters,
+    documentation: 'Super-Initializer Parameters',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
   static final test_experiment = ExperimentalFeature(
-    index: 11,
+    index: 14,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -206,7 +249,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 12,
+    index: 15,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -216,7 +259,7 @@ class ExperimentalFeatures {
   );
 
   static final value_class = ExperimentalFeature(
-    index: 13,
+    index: 16,
     enableString: EnableString.value_class,
     isEnabledByDefault: IsEnabledByDefault.value_class,
     isExpired: IsExpired.value_class,
@@ -226,7 +269,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 14,
+    index: 17,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -251,6 +294,9 @@ class IsEnabledByDefault {
   /// Default state of the experiment "control-flow-collections"
   static const bool control_flow_collections = true;
 
+  /// Default state of the experiment "enhanced-enums"
+  static const bool enhanced_enums = false;
+
   /// Default state of the experiment "extension-methods"
   static const bool extension_methods = true;
 
@@ -259,6 +305,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "generic-metadata"
   static const bool generic_metadata = true;
+
+  /// Default state of the experiment "named-arguments-anywhere"
+  static const bool named_arguments_anywhere = false;
 
   /// Default state of the experiment "non-nullable"
   static const bool non_nullable = true;
@@ -271,6 +320,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "spread-collections"
   static const bool spread_collections = true;
+
+  /// Default state of the experiment "super-parameters"
+  static const bool super_parameters = false;
 
   /// Default state of the experiment "test-experiment"
   static const bool test_experiment = false;
@@ -301,6 +353,9 @@ class IsExpired {
   /// Expiration status of the experiment "control-flow-collections"
   static const bool control_flow_collections = true;
 
+  /// Expiration status of the experiment "enhanced-enums"
+  static const bool enhanced_enums = false;
+
   /// Expiration status of the experiment "extension-methods"
   static const bool extension_methods = false;
 
@@ -309,6 +364,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "generic-metadata"
   static const bool generic_metadata = false;
+
+  /// Expiration status of the experiment "named-arguments-anywhere"
+  static const bool named_arguments_anywhere = false;
 
   /// Expiration status of the experiment "non-nullable"
   static const bool non_nullable = false;
@@ -321,6 +379,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "spread-collections"
   static const bool spread_collections = true;
+
+  /// Expiration status of the experiment "super-parameters"
+  static const bool super_parameters = false;
 
   /// Expiration status of the experiment "test-experiment"
   static const bool test_experiment = false;
@@ -351,6 +412,9 @@ mixin _CurrentState {
   bool get control_flow_collections =>
       isEnabled(ExperimentalFeatures.control_flow_collections);
 
+  /// Current state for the flag "enhanced-enums"
+  bool get enhanced_enums => isEnabled(ExperimentalFeatures.enhanced_enums);
+
   /// Current state for the flag "extension-methods"
   bool get extension_methods =>
       isEnabled(ExperimentalFeatures.extension_methods);
@@ -360,6 +424,10 @@ mixin _CurrentState {
 
   /// Current state for the flag "generic-metadata"
   bool get generic_metadata => isEnabled(ExperimentalFeatures.generic_metadata);
+
+  /// Current state for the flag "named-arguments-anywhere"
+  bool get named_arguments_anywhere =>
+      isEnabled(ExperimentalFeatures.named_arguments_anywhere);
 
   /// Current state for the flag "non-nullable"
   bool get non_nullable => isEnabled(ExperimentalFeatures.non_nullable);
@@ -374,6 +442,9 @@ mixin _CurrentState {
   /// Current state for the flag "spread-collections"
   bool get spread_collections =>
       isEnabled(ExperimentalFeatures.spread_collections);
+
+  /// Current state for the flag "super-parameters"
+  bool get super_parameters => isEnabled(ExperimentalFeatures.super_parameters);
 
   /// Current state for the flag "test-experiment"
   bool get test_experiment => isEnabled(ExperimentalFeatures.test_experiment);

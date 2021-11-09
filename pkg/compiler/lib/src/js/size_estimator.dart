@@ -843,6 +843,13 @@ class SizeEstimator implements NodeVisitor {
     out("=>");
     int closingPosition;
     Node body = fun.body;
+    // Simplify arrow functions that return a single expression.
+    if (fun.implicitReturnAllowed && body is Block) {
+      final statement = unwrapBlockIfSingleStatement(body);
+      if (statement is Return) {
+        body = statement.value;
+      }
+    }
     if (body is Block) {
       closingPosition = blockOut(body);
     } else {
@@ -854,7 +861,7 @@ class SizeEstimator implements NodeVisitor {
       visitNestedExpression(body, ASSIGNMENT,
           newInForInit: false, newAtStatementBegin: false);
       if (needsParens) out(")");
-      closingPosition = charCount - 1;
+      closingPosition = charCount;
     }
     return closingPosition;
   }

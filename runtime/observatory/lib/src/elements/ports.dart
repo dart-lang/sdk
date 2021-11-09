@@ -16,7 +16,6 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
-import 'package:observatory/src/elements/view_footer.dart';
 
 class PortsElement extends CustomElement implements Renderable {
   late RenderingScheduler<PortsElement> _r;
@@ -101,7 +100,6 @@ class PortsElement extends CustomElement implements Renderable {
           new BRElement(),
           new DivElement()..children = _createList(),
         ],
-      new ViewFooterElement(queue: _r.queue).element
     ];
   }
 

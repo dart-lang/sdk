@@ -122,8 +122,8 @@ class ClassTypeAliasTest extends ParserTestCase {
                 "A",
                 null,
                 null,
-                AstTestFactory.typeName4('B'),
-                AstTestFactory.withClause([AstTestFactory.typeName4('M')]),
+                AstTestFactory.namedType4('B'),
+                AstTestFactory.withClause([AstTestFactory.namedType4('M')]),
                 null)
             .isAbstract,
         isFalse);
@@ -132,8 +132,8 @@ class ClassTypeAliasTest extends ParserTestCase {
                 "B",
                 null,
                 Keyword.ABSTRACT,
-                AstTestFactory.typeName4('A'),
-                AstTestFactory.withClause([AstTestFactory.typeName4('M')]),
+                AstTestFactory.namedType4('A'),
+                AstTestFactory.withClause([AstTestFactory.namedType4('M')]),
                 null)
             .isAbstract,
         isTrue);
@@ -1142,7 +1142,7 @@ class SimpleIdentifierTest extends ParserTestCase {
 
   void test_isQualified_inConstructorName() {
     ConstructorName constructor = AstTestFactory.constructorName(
-        AstTestFactory.typeName4('MyClass'), "test");
+        AstTestFactory.namedType4('MyClass'), "test");
     SimpleIdentifier name = constructor.name!;
     expect(name.isQualified, isTrue);
   }

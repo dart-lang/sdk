@@ -63,7 +63,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[self::C::good];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   const constructor constant() → self::C*
     : super core::Object::•()
     ;
@@ -98,17 +98,18 @@ a b(c) = d;
          ^";
 static method main() → dynamic {
   self::C* c = null;
-  core::print(#C1);
+  core::print(#C2);
   core::print(invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:27:15: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
   print(const C.missingFactoryKeyword());
               ^");
-  core::print(#C1);
+  core::print(#C2);
   core::print(new self::C::constant().{self::C::notEvenAConstructor}(null){(dynamic) →* self::C*});
 }
 
 constants  {
-  #C1 = self::C {}
+  #C1 = constructor-tearoff self::C::good
+  #C2 = self::C {}
 }
 
 

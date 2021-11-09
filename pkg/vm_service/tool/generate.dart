@@ -46,9 +46,9 @@ Future _generateDart(String appDirPath, List<Node> nodes) async {
   dart.api.parse(nodes);
   dart.api.generate(generator);
   outputFile.writeAsStringSync(generator.toString());
-  ProcessResult result = Process.runSync('dartfmt', ['-w', outDirPath]);
+  ProcessResult result = Process.runSync('dart', ['format', outDirPath]);
   if (result.exitCode != 0) {
-    print('dartfmt: ${result.stdout}\n${result.stderr}');
+    print('dart format: ${result.stdout}\n${result.stderr}');
     throw result.exitCode;
   }
 
@@ -103,9 +103,9 @@ Future _generateAsserts(String appDirPath, List<Node> nodes) async {
   dart.api.parse(nodes);
   dart.api.generateAsserts(generator);
   outputFile.writeAsStringSync(generator.toString());
-  ProcessResult result = Process.runSync('dartfmt', ['-w', outDirPath]);
+  ProcessResult result = Process.runSync('dart', ['format', outDirPath]);
   if (result.exitCode != 0) {
-    print('dartfmt: ${result.stdout}\n${result.stderr}');
+    print('dart format: ${result.stdout}\n${result.stderr}');
     throw result.exitCode;
   }
 

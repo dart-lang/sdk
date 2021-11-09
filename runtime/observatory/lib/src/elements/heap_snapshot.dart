@@ -73,45 +73,6 @@ const diffModes = [
   HeapSnapshotTreeMode.classesTableDiff,
 ];
 
-abstract class DiffTreeMap<T> extends TreeMap<T> {
-  int getSizeA(T node);
-  int getSizeB(T node);
-
-  // We need to sum gains and losses separately because they both contribute
-  // area to the tree map tiles, i.e., losses don't have negative area in the
-  // visualization. For this reason, common is not necessarily
-  // max(sizeA,sizeB)-min(sizeA,sizeB), gain is not necessarily
-  // abs(sizeB-sizeA), etc.
-  int getGain(T node);
-  int getLoss(T node);
-  int getCommon(T node);
-
-  String getName(T node);
-  String getType(T node);
-
-  int getArea(T node) => getCommon(node) + getGain(node) + getLoss(node);
-  String getLabel(T node) {
-    var name = getName(node);
-    var sizeA = Utils.formatSize(getSizeA(node));
-    var sizeB = Utils.formatSize(getSizeB(node));
-    return "$name [$sizeA → $sizeB]";
-  }
-
-  String getBackground(T node) {
-    int l = getLoss(node);
-    int c = getCommon(node);
-    int g = getGain(node);
-    int a = l + c + g;
-    if (a == 0) {
-      return "white";
-    }
-    // Stripes of green, white and red whose areas are poritional to loss, common and gain.
-    String stop1 = (l / a * 100).toString();
-    String stop2 = ((l + c) / a * 100).toString();
-    return "linear-gradient(to right, #66FF99 $stop1%, white $stop1% $stop2%, #FF6680 $stop2%)";
-  }
-}
-
 class DominatorTreeMap extends NormalTreeMap<SnapshotObject> {
   HeapSnapshotElement element;
   DominatorTreeMap(this.element);
@@ -831,7 +792,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         break;
       case HeapSnapshotTreeMode.mergedDominatorTreeDiff:
         var root = MergedDominatorDiff.from(
-            _snapshotA!.mergedRoot, _snapshotB!.mergedRoot);
+            _snapshotA!.extendedMergedRoot, _snapshotB!.extendedMergedRoot);
         _tree = new VirtualTreeElement(_createMergedDominatorDiff,
             _updateMergedDominatorDiff, _getChildrenMergedDominatorDiff,
             items: _getChildrenMergedDominatorDiff(root), queue: _r.queue);
@@ -855,7 +816,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
       case HeapSnapshotTreeMode.mergedDominatorTreeMapDiff:
         if (mergedDiffSelection == null) {
           mergedDiffSelection = MergedDominatorDiff.from(
-              _snapshotA!.mergedRoot, _snapshotB!.mergedRoot);
+              _snapshotA!.extendedMergedRoot, _snapshotB!.extendedMergedRoot);
         }
         _createTreeMap(
             report, new MergedDominatorDiffTreeMap(this), mergedDiffSelection);

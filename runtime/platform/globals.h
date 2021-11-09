@@ -558,6 +558,9 @@ constexpr intptr_t RoundWordsToMB(intptr_t size_in_words) {
 constexpr intptr_t RoundWordsToGB(intptr_t size_in_words) {
   return (size_in_words + (GBInWords >> 1)) >> GBInWordsLog2;
 }
+constexpr double WordsToMB(intptr_t size_in_words) {
+  return static_cast<double>(size_in_words) / MBInWords;
+}
 
 constexpr intptr_t kIntptrOne = 1;
 constexpr intptr_t kIntptrMin = (kIntptrOne << (kBitsPerWord - 1));

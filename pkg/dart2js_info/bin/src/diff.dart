@@ -13,7 +13,9 @@ import 'usage_exception.dart';
 
 /// A command that computes the diff between two info files.
 class DiffCommand extends Command<void> with PrintUsageException {
+  @override
   final String name = "diff";
+  @override
   final String description =
       "See code size differences between two dump-info files.";
 
@@ -23,6 +25,7 @@ class DiffCommand extends Command<void> with PrintUsageException {
         help: "Show only a summary and hide details of each library");
   }
 
+  @override
   void run() async {
     var args = argResults.rest;
     if (args.length < 2) {

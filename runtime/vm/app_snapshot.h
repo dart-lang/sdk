@@ -805,7 +805,6 @@ class FullSnapshotReader {
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
 
   ApiErrorPtr ConvertToApiError(char* message);
-  void PatchGlobalObjectPool();
   void InitializeBSS();
 
   Snapshot::Kind kind_;

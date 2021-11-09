@@ -138,10 +138,11 @@ class JsUtilOptimizer extends Transformer {
         Arguments([
           VariableGet(function.positionalParameters.first),
           StringLiteral(_getExtensionMemberName(node))
+        ], types: [
+          function.returnType
         ]))
       ..fileOffset = node.fileOffset;
-    return ReturnStatement(
-        AsExpression(getPropertyInvocation, function.returnType));
+    return ReturnStatement(getPropertyInvocation);
   }
 
   /// Returns a new function body for the given [node] external setter.
@@ -151,16 +152,18 @@ class JsUtilOptimizer extends Transformer {
   ReturnStatement _getExternalSetterBody(Procedure node) {
     var function = node.function;
     assert(function.positionalParameters.length == 2);
+    var value = function.positionalParameters.last;
     var setPropertyInvocation = StaticInvocation(
         _setPropertyTarget,
         Arguments([
           VariableGet(function.positionalParameters.first),
           StringLiteral(_getExtensionMemberName(node)),
-          VariableGet(function.positionalParameters.last)
+          VariableGet(value)
+        ], types: [
+          value.type
         ]))
       ..fileOffset = node.fileOffset;
-    return ReturnStatement(AsExpression(
-        _lowerSetProperty(setPropertyInvocation), function.returnType));
+    return ReturnStatement(_lowerSetProperty(setPropertyInvocation));
   }
 
   /// Returns a new function body for the given [node] external method.
@@ -178,10 +181,11 @@ class JsUtilOptimizer extends Transformer {
               .sublist(1)
               .map((argument) => VariableGet(argument))
               .toList())
+        ], types: [
+          function.returnType
         ]))
       ..fileOffset = node.fileOffset;
-    return ReturnStatement(AsExpression(
-        _lowerCallMethod(callMethodInvocation), function.returnType));
+    return ReturnStatement(_lowerCallMethod(callMethodInvocation));
   }
 
   /// Returns the extension member name.
@@ -224,7 +228,6 @@ class JsUtilOptimizer extends Transformer {
   /// Removing the checks allows further inlining by the compilers.
   StaticInvocation _lowerSetProperty(StaticInvocation node) {
     Arguments arguments = node.arguments;
-    assert(arguments.types.isEmpty);
     assert(arguments.positional.length == 3);
     assert(arguments.named.isEmpty);
 
@@ -244,7 +247,6 @@ class JsUtilOptimizer extends Transformer {
   /// Removing the checks allows further inlining by the compilers.
   StaticInvocation _lowerCallMethod(StaticInvocation node) {
     Arguments arguments = node.arguments;
-    assert(arguments.types.isEmpty);
     assert(arguments.positional.length == 3);
     assert(arguments.named.isEmpty);
 
@@ -260,7 +262,6 @@ class JsUtilOptimizer extends Transformer {
   /// Removing the checks allows further inlining by the compilers.
   StaticInvocation _lowerCallConstructor(StaticInvocation node) {
     Arguments arguments = node.arguments;
-    assert(arguments.types.isEmpty);
     assert(arguments.positional.length == 2);
     assert(arguments.named.isEmpty);
 
@@ -283,8 +284,13 @@ class JsUtilOptimizer extends Transformer {
     // Lower arguments in a List.empty factory call.
     if (argumentsList is StaticInvocation &&
         argumentsList.target == _listEmptyFactory) {
-      return _createCallUncheckedNode(callUncheckedTargets, [],
-          originalArguments, node.fileOffset, node.arguments.fileOffset);
+      return _createCallUncheckedNode(
+          callUncheckedTargets,
+          node.arguments.types,
+          [],
+          originalArguments,
+          node.fileOffset,
+          node.arguments.fileOffset);
     }
 
     // Lower arguments in other kinds of Lists.
@@ -323,6 +329,7 @@ class JsUtilOptimizer extends Transformer {
 
     return _createCallUncheckedNode(
         callUncheckedTargets,
+        node.arguments.types,
         callUncheckedArguments,
         originalArguments,
         node.fileOffset,
@@ -333,6 +340,7 @@ class JsUtilOptimizer extends Transformer {
   /// with the given 0-4 arguments.
   StaticInvocation _createCallUncheckedNode(
       List<Procedure> callUncheckedTargets,
+      List<DartType> callUncheckedTypes,
       List<Expression> callUncheckedArguments,
       List<Expression> originalArguments,
       int nodeFileOffset,
@@ -342,7 +350,7 @@ class JsUtilOptimizer extends Transformer {
         callUncheckedTargets[callUncheckedArguments.length],
         Arguments(
           [...originalArguments, ...callUncheckedArguments],
-          types: [],
+          types: callUncheckedTypes,
         )..fileOffset = argumentsFileOffset)
       ..fileOffset = nodeFileOffset;
   }

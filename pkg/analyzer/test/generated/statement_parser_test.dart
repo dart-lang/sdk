@@ -1079,7 +1079,7 @@ main() {
   }
 
   void test_parseNonLabeledStatement_typeCast() {
-    var statement = parseStatement('double.NAN as num;') as ExpressionStatement;
+    var statement = parseStatement('double.nan as num;') as ExpressionStatement;
     assertNoErrors();
     expect(statement.expression, isNotNull);
   }

@@ -471,7 +471,7 @@ void PageSpace::EvaluateConcurrentMarking(GrowthPolicy growth_policy) {
       Thread* thread = Thread::Current();
       if (thread->CanCollectGarbage()) {
         heap_->CheckFinishConcurrentMarking(thread);
-        heap_->CheckStartConcurrentMarking(thread, Heap::kOldSpace);
+        heap_->CheckStartConcurrentMarking(thread, GCReason::kOldSpace);
       }
     }
   }
@@ -1526,7 +1526,6 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   ASSERT(end >= start);
   history_.AddGarbageCollectionTime(start, end);
   const int gc_time_fraction = history_.GarbageCollectionTimeFraction();
-  heap_->RecordData(PageSpace::kGCTimeFraction, gc_time_fraction);
 
   // Assume garbage increases linearly with allocation:
   // G = kA, and estimate k from the previous cycle.
@@ -1544,7 +1543,6 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
         1.0, garbage / static_cast<double>(allocated_since_previous_gc));
 
     const int garbage_ratio = static_cast<int>(k * 100);
-    heap_->RecordData(PageSpace::kGarbageRatio, garbage_ratio);
 
     // Define GC to be 'worthwhile' iff at least fraction t of heap is garbage.
     double t = 1.0 - desired_utilization_;
@@ -1595,10 +1593,8 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       }
     }
   } else {
-    heap_->RecordData(PageSpace::kGarbageRatio, 100);
     grow_heap = 0;
   }
-  heap_->RecordData(PageSpace::kPageGrowth, grow_heap);
   last_usage_ = after;
 
   intptr_t max_capacity_in_words = heap_->old_space()->max_capacity_in_words_;
@@ -1688,7 +1684,7 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
   }
 #endif
 
-  if (FLAG_log_growth) {
+  if (FLAG_log_growth || FLAG_verbose_gc) {
     THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd "kB, reason=%s\n",
               heap_->isolate_group()->source()->name,
               hard_gc_threshold_in_words_ / KBInWords,

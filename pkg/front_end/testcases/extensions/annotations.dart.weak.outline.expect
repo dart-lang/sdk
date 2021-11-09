@@ -43,9 +43,9 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:6:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:9:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:14:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:17:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:21:2 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:8:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:11:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:16:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:19:4 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:23:2 -> InstanceConstant(const pragma{pragma.name: "dart2js:noInline", pragma.options: null})
 Extra constant evaluation: evaluated: 8, effectively constant: 5

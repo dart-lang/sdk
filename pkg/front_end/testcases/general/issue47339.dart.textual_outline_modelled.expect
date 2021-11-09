@@ -1,0 +1,17 @@
+class Foo {
+  const Foo.named();
+  const factory Foo.namedFactory() = Foo.named;
+}
+
+class FooGeneric<X> {
+  const FooGeneric.named();
+  const factory FooGeneric.namedFactory() = FooGeneric.named;
+}
+
+const Bar bar = Bar.named();
+const Bar bar2 = Bar.namedFactory();
+const BarGeneric<int> barGeneric = BarGeneric.named();
+const BarGeneric<int> barGeneric2 = BarGeneric.namedFactory();
+main() {}
+typedef Bar = Foo;
+typedef BarGeneric<X> = FooGeneric<X>;

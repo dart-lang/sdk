@@ -69,6 +69,10 @@ class Double extends _NativeDouble {}
 
 @patch
 @pragma("vm:entry-point")
+abstract class Bool extends NativeType {}
+
+@patch
+@pragma("vm:entry-point")
 abstract class Void extends NativeType {}
 
 @patch

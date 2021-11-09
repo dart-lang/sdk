@@ -312,7 +312,7 @@ class HumanErrorFormatter extends ErrorFormatter {
     for (var message in error.contextMessages) {
       var session = result.session.analysisContext;
       if (session is DriverBasedAnalysisContext) {
-        var fileResult = session.driver.getFileSync2(message.filePath);
+        var fileResult = session.driver.getFileSync(message.filePath);
         if (fileResult is FileResult) {
           var lineInfo = fileResult?.lineInfo;
           var location = lineInfo.getLocation(message.offset);

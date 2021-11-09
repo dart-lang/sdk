@@ -9,9 +9,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:async/async.dart';
-import 'package:dev_compiler/src/kernel/retry_timeout_client.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:pedantic/pedantic.dart';
+
+import 'retry_timeout_client.dart';
 
 /// A wrapper around asset server that redirects file read requests
 /// to http get requests to the asset server.

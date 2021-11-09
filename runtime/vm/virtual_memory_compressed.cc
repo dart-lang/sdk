@@ -53,11 +53,11 @@ void VirtualMemoryCompressedHeap::Init(void* compressed_heap_region,
   ASSERT(Utils::IsAligned(base_, kCompressedHeapPageSize));
   ASSERT(Utils::IsAligned(size_, kCompressedHeapPageSize));
   // base_ is not necessarily 4GB-aligned, because on some systems we can't make
-  // a large enough reservation to guarentee it. Instead, we have only the
+  // a large enough reservation to guarantee it. Instead, we have only the
   // weaker property that all addresses in [base_, base_ + size_) have the same
   // same upper 32 bits, which is what we really need for compressed pointers.
   intptr_t mask = ~(kCompressedHeapAlignment - 1);
-  ASSERT((base_ & mask) == (base_ + size_ - 1 & mask));
+  ASSERT((base_ & mask) == ((base_ + size_ - 1) & mask));
   mutex_ = new Mutex(NOT_IN_PRODUCT("compressed_heap_mutex"));
 }
 

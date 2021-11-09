@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
@@ -29,7 +31,7 @@ abstract class File implements Resource {
 
   /// Synchronously read the entire file contents as a list of bytes.
   /// Throws a [FileSystemException] if the operation fails.
-  List<int> readAsBytesSync();
+  Uint8List readAsBytesSync();
 
   /// Synchronously read the entire file contents as a [String].
   /// Throws [FileSystemException] if the file does not exist.

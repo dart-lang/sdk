@@ -8,7 +8,6 @@ library dart2js_info.bin.deferred_library_layout;
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/src/io.dart';
 
@@ -16,12 +15,15 @@ import 'usage_exception.dart';
 
 /// This tool reports how code is divided among deferred chunks.
 class DeferredLibraryLayout extends Command<void> with PrintUsageException {
+  @override
   final String name = "deferred_layout";
+  @override
   final String description = "Show how code is divided among deferred parts.";
 
+  @override
   void run() async {
     var args = argResults.rest;
-    if (args.length < 1) {
+    if (args.isEmpty) {
       usageException('Missing argument: info.data');
     }
     await _showLayout(args.first);
@@ -37,7 +39,7 @@ _showLayout(String file) async {
     var unit = info.outputUnit;
     var lib = _libOf(info);
     if (lib == null) return;
-    libToHunks.putIfAbsent(lib, () => new Set()).add(unit);
+    libToHunks.putIfAbsent(lib, () => <OutputUnitInfo>{}).add(unit);
     hunkMembers
         .putIfAbsent(unit, () => {})
         .putIfAbsent(lib, () => [])
@@ -46,6 +48,7 @@ _showLayout(String file) async {
 
   info.functions.forEach(register);
   info.classes.forEach(register);
+  info.classTypes.forEach(register);
   info.fields.forEach(register);
   info.closures.forEach(register);
 

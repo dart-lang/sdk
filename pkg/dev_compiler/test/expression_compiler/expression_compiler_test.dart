@@ -218,7 +218,7 @@ class TestDriver {
   String _normalize(String text) {
     return text
         .replaceAll(RegExp('\'.*foo.dart\''), '\'foo.dart\'')
-        .replaceAll(RegExp('\".*foo.dart\"'), '\'foo.dart\'');
+        .replaceAll(RegExp('".*foo.dart"'), '\'foo.dart\'');
   }
 
   Matcher _matches(String text) {
@@ -281,7 +281,7 @@ void main() {
                 expression: 'Directory.systemTemp',
                 expectedResult: '''
             (function() {
-              const dart_sdk = ${options.loadModule}(\'dart_sdk\');
+              const dart_sdk = ${options.loadModule}('dart_sdk');
               const io = dart_sdk.io;
               return io.Directory.systemTemp;
             }(
@@ -296,7 +296,7 @@ void main() {
                 expression: 'p.Directory.systemTemp',
                 expectedResult: '''
             (function() {
-              const dart_sdk = ${options.loadModule}(\'dart_sdk\');
+              const dart_sdk = ${options.loadModule}('dart_sdk');
               const io = dart_sdk.io;
               return io.Directory.systemTemp;
             }(
@@ -313,7 +313,7 @@ void main() {
                 expression: 'p.utf8.decoder',
                 expectedResult: '''
             (function() {
-              const dart_sdk = ${options.loadModule}(\'dart_sdk\');
+              const dart_sdk = ${options.loadModule}('dart_sdk');
               const convert = dart_sdk.convert;
               return convert.utf8.decoder;
             }(
@@ -543,7 +543,7 @@ void main() {
                 expression: 'Directory.systemTemp',
                 expectedResult: '''
             (function() {
-              const dart_sdk = ${options.loadModule}(\'dart_sdk\');
+              const dart_sdk = ${options.loadModule}('dart_sdk');
               const io = dart_sdk.io;
               return io.Directory.systemTemp;
             }(
@@ -558,7 +558,7 @@ void main() {
                 expression: 'p.Directory.systemTemp',
                 expectedResult: '''
             (function() {
-              const dart_sdk = ${options.loadModule}(\'dart_sdk\');
+              const dart_sdk = ${options.loadModule}('dart_sdk');
               const io = dart_sdk.io;
               return io.Directory.systemTemp;
             }(
@@ -575,7 +575,7 @@ void main() {
                 expression: 'p.utf8.decoder',
                 expectedResult: '''
             (function() {
-              const dart_sdk = ${options.loadModule}(\'dart_sdk\');
+              const dart_sdk = ${options.loadModule}('dart_sdk');
               const convert = dart_sdk.convert;
               return convert.utf8.decoder;
             }(

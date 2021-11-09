@@ -252,4 +252,54 @@ ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_Regress43786) {
   EXPECT(store_into_phi->ShouldEmitStoreBarrier());
 }
 
+ISOLATE_UNIT_TEST_CASE(IRTest_WriteBarrierElimination_LoadLateField) {
+  DEBUG_ONLY(
+      SetFlagScope<bool> sfs(&FLAG_trace_write_barrier_elimination, true));
+  const char* kScript = R"(
+    class A {
+      late var x = new B();
+    }
+
+    class B {
+    }
+
+    class C {
+      C(this.a, this.b);
+      A a;
+      B b;
+    }
+
+    foo(A a) => C(a, a.x);
+
+    main() { foo(A()); }
+    )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+
+  Invoke(root_library, "main");
+
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  StoreInstanceFieldInstr* store1 = nullptr;
+  StoreInstanceFieldInstr* store2 = nullptr;
+
+  ILMatcher cursor(flow_graph, entry);
+  RELEASE_ASSERT(cursor.TryMatch(
+      {
+          kMatchAndMoveAllocateObject,
+          kMatchAndMoveLoadField,
+          {kMatchAndMoveStoreInstanceField, &store1},
+          {kMatchAndMoveStoreInstanceField, &store2},
+      },
+      kMoveGlob));
+
+  EXPECT(store1->ShouldEmitStoreBarrier());
+  EXPECT(store2->ShouldEmitStoreBarrier());
+}
+
 }  // namespace dart

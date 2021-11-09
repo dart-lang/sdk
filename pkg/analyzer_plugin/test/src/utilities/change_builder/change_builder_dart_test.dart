@@ -1106,6 +1106,25 @@ class A {}
     expect(edit.replacement, equalsIgnoringWhitespace('(int i, String s)'));
   }
 
+  Future<void> test_writeParameters_requiredTypes() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'void f(e) {}';
+    addSource(path, content);
+    var unit = (await resolveFile(path)).unit;
+    var f = unit.declarations[0] as FunctionDeclaration;
+    var parameters = f.functionExpression.parameters;
+    var elements = parameters?.parameters.map((p) => p.declaredElement!);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameters(elements!, requiredTypes: true);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equals('(dynamic e)'));
+  }
+
   Future<void> test_writeParametersMatchingArguments_named() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = '''

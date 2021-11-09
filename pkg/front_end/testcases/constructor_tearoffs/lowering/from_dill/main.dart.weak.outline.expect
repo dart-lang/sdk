@@ -23,7 +23,7 @@ class Class1 extends core::Object {
     return new self2::Class1::•();
 }
 class Class2 extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self2::Class2::redirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor named() → self2::Class2
     ;
   static method _#named#tearOff() → self2::Class2
@@ -41,7 +41,7 @@ class Class3 extends core::Object {
     return new self2::Class3::•(field);
 }
 class Class4<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self2::Class4::redirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
   constructor _() → self2::Class4<self2::Class4::T%>
     ;
   static method _#_#tearOff<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::_#_#tearOff::T%>
@@ -64,4 +64,9 @@ class Class5<T extends core::num> extends core::Object {
     ;
   static method _#new#tearOff<T extends core::num>() → self2::Class5<self2::Class5::_#new#tearOff::T>
     return self2::Class5::•<self2::Class5::_#new#tearOff::T>();
+}
+
+constants  {
+  #C1 = constructor-tearoff self2::Class2::redirect
+  #C2 = constructor-tearoff self2::Class4::redirect
 }

@@ -104,18 +104,8 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
 
   Future<List<CompletionSuggestion>> getSuggestions() async {
     if (supportsAvailableSuggestions) {
-      // todo (pq): consider moving
-      const internalLibs = [
-        'dart:async2',
-        'dart:_interceptors',
-        'dart:_internal',
-      ];
-      for (var lib in driver.sdk.sdkLibraries) {
-        var uri = lib.shortName;
-        if (!internalLibs.contains(uri)) {
-          await driver.waitForSetWithUri(uri);
-        }
-      }
+      await driver.waitForSetWithUri('dart:core');
+      await driver.waitForSetWithUri('dart:async');
     }
 
     suggestions = await driver.getSuggestions();

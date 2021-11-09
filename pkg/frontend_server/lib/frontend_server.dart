@@ -111,6 +111,13 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
           'initialize from, but it can be overwritten here.',
       defaultsTo: null,
       hide: true)
+  ..addFlag('assume-initialize-from-dill-up-to-date',
+      help: 'Normally the dill used for initializing is checked against the '
+          "files it was compiled against. If we somehow know that it's "
+          'up-to-date we can skip it safely. Under normal circumstances this '
+          "isn't safe though.",
+      defaultsTo: false,
+      hide: true)
   ..addMultiOption('define',
       abbr: 'D',
       help: 'The values for the environment constants (e.g. -Dkey=value).',
@@ -357,6 +364,7 @@ class FrontendCompiler implements CompilerInterface {
   String _kernelBinaryFilenameIncremental;
   String _kernelBinaryFilenameFull;
   String _initializeFromDill;
+  bool _assumeInitializeFromDillUpToDate;
 
   Set<Uri> previouslyReportedDependencies = Set<Uri>();
 
@@ -412,6 +420,8 @@ class FrontendCompiler implements CompilerInterface {
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
     _initializeFromDill =
         _options['initialize-from-dill'] ?? _kernelBinaryFilenameFull;
+    _assumeInitializeFromDillUpToDate =
+        _options['assume-initialize-from-dill-up-to-date'] ?? false;
     _printIncrementalDependencies = _options['print-incremental-dependencies'];
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
@@ -706,6 +716,7 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   Future<Null> invalidateIfInitializingFromDill() async {
+    if (_assumeInitializeFromDillUpToDate) return null;
     if (_kernelBinaryFilename != _kernelBinaryFilenameFull) return null;
     // If the generator is initialized, it's not going to initialize from dill
     // again anyway, so there's no reason to spend time invalidating what should

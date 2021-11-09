@@ -1309,7 +1309,7 @@ worlds:
         shouldCompile = true;
         what = "enum";
       } else if (child.isTypedef()) {
-        DirectParserASTContentFunctionTypeAliasEnd decl = child.asTypedef();
+        DirectParserASTContentTypedefEnd decl = child.asTypedef();
         helper.replacements.add(new _Replacement(
             decl.typedefKeyword.offset - 1, decl.endToken.offset + 1));
         shouldCompile = true;
@@ -1371,8 +1371,8 @@ worlds:
           if (child.isClass()) {
             // Also try to remove all content of the class.
             DirectParserASTContentClassDeclarationEnd decl = child.asClass();
-            DirectParserASTContentClassOrMixinBodyEnd body =
-                decl.getClassOrMixinBody();
+            DirectParserASTContentClassOrMixinOrExtensionBodyEnd body =
+                decl.getClassOrMixinOrExtensionBody();
             if (body.beginToken.offset + 2 < body.endToken.offset) {
               helper.replacements.add(new _Replacement(
                   body.beginToken.offset, body.endToken.offset));
@@ -1500,8 +1500,8 @@ worlds:
             // Also try to remove all content of the mixin.
             DirectParserASTContentMixinDeclarationEnd decl =
                 child.asMixinDeclaration();
-            DirectParserASTContentClassOrMixinBodyEnd body =
-                decl.getClassOrMixinBody();
+            DirectParserASTContentClassOrMixinOrExtensionBodyEnd body =
+                decl.getClassOrMixinOrExtensionBody();
             if (body.beginToken.offset + 2 < body.endToken.offset) {
               helper.replacements.add(new _Replacement(
                   body.beginToken.offset, body.endToken.offset));
@@ -1767,7 +1767,8 @@ worlds:
 
   bool _knownByCompiler(Uri uri) {
     LibraryBuilder? libraryBuilder = _latestCrashingIncrementalCompiler!
-        .userCode!.loader.builders[_getImportUri(uri)];
+        .userCode!.loader
+        .lookupLibraryBuilder(_getImportUri(uri));
     if (libraryBuilder != null) {
       return true;
     }
@@ -1785,13 +1786,14 @@ worlds:
   bool _isUriNnbd(Uri uri, {bool crashOnFail: true}) {
     Uri asImportUri = _getImportUri(uri);
     LibraryBuilder? libraryBuilder = _latestCrashingIncrementalCompiler!
-        .userCode!.loader.builders[asImportUri];
+        .userCode!.loader
+        .lookupLibraryBuilder(asImportUri);
     if (libraryBuilder != null) {
       return libraryBuilder.isNonNullableByDefault;
     }
     print("Couldn't lookup $uri");
     for (LibraryBuilder libraryBuilder in _latestCrashingIncrementalCompiler!
-        .userCode!.loader.builders.values) {
+        .userCode!.loader.libraryBuilders) {
       if (libraryBuilder.importUri == uri) {
         print("Found $uri as ${libraryBuilder.importUri} (!= ${asImportUri})");
         return libraryBuilder.isNonNullableByDefault;

@@ -10,7 +10,7 @@ typedef int F<R>(R a);
 
 method<S>() {
   return
-      /*spec.fields=[S],free=[S]*/
+      /*fields=[S],free=[S]*/
       () {
     F<S> c = f;
     return c;

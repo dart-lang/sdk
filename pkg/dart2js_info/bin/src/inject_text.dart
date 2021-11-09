@@ -14,22 +14,28 @@ import 'package:dart2js_info/info.dart';
 void injectText(AllInfo info) {
   // Fill the text of each code span. The binary form produced by dart2js
   // produces code spans, but excludes the orignal text
-  info.functions.forEach((f) {
-    f.code.forEach((span) => _fillSpan(span, f.outputUnit));
-  });
-  info.fields.forEach((f) {
-    f.code.forEach((span) => _fillSpan(span, f.outputUnit));
-  });
-  info.constants.forEach((c) {
-    c.code.forEach((span) => _fillSpan(span, c.outputUnit));
-  });
+  for (var f in info.functions) {
+    for (var span in f.code) {
+      _fillSpan(span, f.outputUnit);
+    }
+  }
+  for (var f in info.fields) {
+    for (var span in f.code) {
+      _fillSpan(span, f.outputUnit);
+    }
+  }
+  for (var c in info.constants) {
+    for (var span in c.code) {
+      _fillSpan(span, c.outputUnit);
+    }
+  }
 }
 
 Map<String, String> _cache = {};
 
 _getContents(OutputUnitInfo unit) => _cache.putIfAbsent(unit.filename, () {
       var uri = Uri.base.resolve(unit.filename);
-      return new File.fromUri(uri).readAsStringSync();
+      return File.fromUri(uri).readAsStringSync();
     });
 
 _fillSpan(CodeSpan span, OutputUnitInfo unit) {

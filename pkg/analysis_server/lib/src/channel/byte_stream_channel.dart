@@ -73,7 +73,6 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
 /// standard input and standard output) to communicate with clients.
 class ByteStreamServerChannel implements ServerCommunicationChannel {
   final Stream _input;
-
   final IOSink _output;
 
   /// The instrumentation service that is to be used by this analysis server.
@@ -87,6 +86,20 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
 
   /// True if [close] has been called.
   bool _closeRequested = false;
+
+  @override
+  late final Stream<Request> requests = _input
+      .transform(const Utf8Decoder())
+      .transform(const LineSplitter())
+      .transform(
+        StreamTransformer.fromHandlers(
+          handleData: _readRequest,
+          handleDone: (sink) {
+            close();
+            sink.close();
+          },
+        ),
+      );
 
   ByteStreamServerChannel(
       this._input, this._output, this._instrumentationService,
@@ -107,17 +120,6 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
       assert(!_closed.isCompleted);
       _closed.complete();
     }
-  }
-
-  @override
-  void listen(void Function(Request request) onRequest,
-      {Function? onError, void Function()? onDone}) {
-    _input.transform(const Utf8Decoder()).transform(LineSplitter()).listen(
-        (String data) => _readRequest(data, onRequest),
-        onError: onError, onDone: () {
-      close();
-      onDone?.call();
-    });
   }
 
   @override
@@ -159,7 +161,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
 
   /// Read a request from the given [data] and use the given function to handle
   /// the request.
-  void _readRequest(String data, void Function(Request request) onRequest) {
+  void _readRequest(String data, Sink<Request> sink) {
     // Ignore any further requests after the communication channel is closed.
     if (_closed.isCompleted) {
       return;
@@ -173,6 +175,6 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
       return;
     }
     _requestStatistics?.addRequest(request);
-    onRequest(request);
+    sink.add(request);
   }
 }

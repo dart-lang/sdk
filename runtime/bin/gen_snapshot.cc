@@ -879,7 +879,6 @@ int main(int argc, char** argv) {
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
   } else if ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT)) {
-    vm_options.AddArgument("--fields_may_be_reset");
 #if !defined(TARGET_ARCH_IA32)
     vm_options.AddArgument("--link_natives_lazily");
 #endif

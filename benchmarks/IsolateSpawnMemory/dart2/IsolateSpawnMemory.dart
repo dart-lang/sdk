@@ -160,16 +160,6 @@ Future<void> main() async {
 }
 
 // Returns the set of isolate groups for which we should count the heap usage.
-//
-// We have two cases
-//
-//   a) --enable-isolate-groups: All isolates will be within the same isolate
-//   group.
-//
-//   b) --no-enable-isolate-groups: All isolates will be within their own,
-//   separate isolate group.
-//
-// In both cases we want to sum up the heap sizes of all isolate groups.
 Future<List<String>> getGroupIds(vm_service.VmService vmService) async {
   final groupIds = <String>{};
   final vm = await vmService.getVM();

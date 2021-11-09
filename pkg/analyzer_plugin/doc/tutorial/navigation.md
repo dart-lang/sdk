@@ -7,7 +7,7 @@ location at which an identifier is defined.
 
 Navigation information can be requested both by an `analysis.getNavigation`
 request and by a subscription. If the server has subscribed for navigation
-information in some set of files, the the plugin should send the information in
+information in some set of files, the plugin should send the information in
 an `analysis.navigation` notification whenever the information needs to be
 updated.
 

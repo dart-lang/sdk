@@ -6,7 +6,10 @@ environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
+  _fe_analyzer_shared: any
   kernel:
     path: ../kernel
+
+dependency_overrides:
+  _fe_analyzer_shared:
+    path: ../_fe_analyzer_shared

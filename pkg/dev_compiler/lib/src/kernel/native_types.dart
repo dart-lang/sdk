@@ -71,7 +71,6 @@ class NativeTypeSet {
     _addPendingExtensionTypes(sdk.getLibrary('dart:svg'));
     _addPendingExtensionTypes(sdk.getLibrary('dart:web_audio'));
     _addPendingExtensionTypes(sdk.getLibrary('dart:web_gl'));
-    _addPendingExtensionTypes(sdk.getLibrary('dart:web_sql'));
 
     // For testing purposes only, we add extension types outside the Dart SDK.
     // These are only allowed for native tests (see allowedNativeTest).

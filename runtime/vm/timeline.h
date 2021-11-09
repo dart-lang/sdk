@@ -499,15 +499,10 @@ class TimelineEvent {
 
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)                            \
   TimelineBeginEndScope tbes(thread, Timeline::GetGCStream(), name);
-#define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)                      \
-  TIMELINE_FUNCTION_GC_DURATION(thread, name)                                  \
-  tbes.SetNumArguments(1);                                                     \
-  tbes.CopyArgument(0, "mode", "basic");
 #else
 #define TIMELINE_DURATION(thread, stream, name)
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)
-#define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)
 #endif  // !PRODUCT
 
 // See |TimelineBeginEndScope|.

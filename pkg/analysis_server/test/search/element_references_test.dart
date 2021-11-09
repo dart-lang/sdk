@@ -95,30 +95,32 @@ f(x) {
   Future<void> test_constructor_unnamed() async {
     addTestFile('''
 /// [new A] 1
+/// [A.new] 2
 class A {
   A() {}
-  A.other() : this(); // 2
+  A.other() : this(); // 3
 }
 
 class B extends A {
-  B() : super(); // 3
-  factory B.other() = A; // 4
+  B() : super(); // 4
+  factory B.other() = A; // 5
 }
 
 void f() {
-  A(); // 5
-  A.new; // 6
+  A(); // 6
+  A.new; // 7
 }
 ''');
     await findElementReferences('A() {}', false);
     expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
-    expect(results, hasLength(6));
+    expect(results, hasLength(7));
     assertHasResult(SearchResultKind.REFERENCE, '] 1', 0);
-    assertHasResult(SearchResultKind.INVOCATION, '(); // 2', 0);
+    assertHasResult(SearchResultKind.REFERENCE, '.new] 2', 4);
     assertHasResult(SearchResultKind.INVOCATION, '(); // 3', 0);
-    assertHasResult(SearchResultKind.REFERENCE, '; // 4', 0);
-    assertHasResult(SearchResultKind.INVOCATION, '(); // 5', 0);
-    assertHasResult(SearchResultKind.REFERENCE, '.new; // 6', 4);
+    assertHasResult(SearchResultKind.INVOCATION, '(); // 4', 0);
+    assertHasResult(SearchResultKind.REFERENCE, '; // 5', 0);
+    assertHasResult(SearchResultKind.INVOCATION, '(); // 6', 0);
+    assertHasResult(SearchResultKind.REFERENCE, '.new; // 7', 4);
   }
 
   Future<void> test_constructor_unnamed_potential() async {

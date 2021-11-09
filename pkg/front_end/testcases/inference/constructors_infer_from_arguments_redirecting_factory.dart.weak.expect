@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class C<T extends core::Object* = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::C::•];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   abstract get t() → self::C::T*;
   abstract set t(covariant-by-class self::C::T* x) → void;
   static factory •<T extends core::Object* = dynamic>(self::C::•::T* t) → self::C<self::C::•::T*>*
@@ -37,4 +37,8 @@ class CImpl<T extends core::Object* = dynamic> extends core::Object implements s
 }
 static method main() → dynamic {
   self::C<core::int*>* x = new self::CImpl::•<core::int*>(42);
+}
+
+constants  {
+  #C1 = constructor-tearoff self::C::•
 }

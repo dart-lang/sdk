@@ -1,0 +1,8 @@
+bar(int x) {}
+
+class A {
+  int get foo => throw 42;
+}
+
+main() {}
+test(A? a) {}

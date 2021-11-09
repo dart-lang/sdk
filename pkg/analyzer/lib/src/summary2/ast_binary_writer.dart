@@ -663,6 +663,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeStringReference(node.name);
 
     _sink.writeElement(node.staticElement);
+    _sink.writeOptionalTypeList(node.tearOffTypeArgumentTypes);
 
     _storeExpression(node);
   }
