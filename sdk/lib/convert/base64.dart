@@ -226,10 +226,9 @@ class Base64Codec extends Codec<List<int>, String> {
 ///
 /// Example:
 /// ```dart
-/// const Base64Encoder base64Encoder = Base64Encoder();
-/// const String sample = 'Dart is open source';
-/// final List<int> input = sample.codeUnits;
-/// final String encodedSample = base64Encoder.convert(input);
+/// final base64Encoder = base64.encoder;
+/// const sample = 'Dart is open source';
+/// final encodedSample = base64Encoder.convert(sample.codeUnits);
 /// print(encodedSample); // RGFydCBpcyBvcGVuIHNvdXJjZQ==
 /// ```
 class Base64Encoder extends Converter<List<int>, String> {
@@ -479,13 +478,13 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
 ///
 /// The encoding is required to be properly padded.
 ///
-/// Throws a [FormatException] if the input is not valid base64 data
+/// Throws a [FormatException] if the input is not valid base64 data.
 ///
 /// Example:
 /// ```dart
-/// const Base64Decoder base64Decoder = Base64Decoder();
-/// const String base64Bytes = 'RGFydCBpcyBvcGVuIHNvdXJjZQ==';
-/// final List<int> decodedBytes = base64Decoder.convert(base64Bytes);
+/// final base64Decoder = base64.decoder;
+/// const base64Bytes = 'RGFydCBpcyBvcGVuIHNvdXJjZQ==';
+/// final decodedBytes = base64Decoder.convert(base64Bytes);
 /// // decodedBytes: [68, 97, 114, 116, 32, 105, 115, 32, 111, 112, 101, 110,
 /// // 32, 115, 111, 117, 114, 99, 101]
 ///
