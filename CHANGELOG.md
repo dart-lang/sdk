@@ -1,3 +1,17 @@
+## 2.16.0
+
+### Tools
+
+#### Dart command line
+
+- **Breaking Change** [#46100][]: The standalone `dartanalyzer` tool has been
+  marked deprecated as previously announced.
+  Its replacement is the `dart analyze` command.
+  Should you find any issues, or missing features, in the replacement
+  command, kindly file [an issue]][].
+
+[an issue]: https://github.com/dart-lang/sdk/issues/new
+
 ## 2.15.0
 
 ### Language
