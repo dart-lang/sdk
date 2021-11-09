@@ -244,6 +244,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Add 'break' everywhere in file",
   );
+  static const ADD_TRAILING_COMMA = FixKind(
+    'dart.fix.add.trailingComma',
+    DartFixKindPriority.DEFAULT,
+    'Add trailing comma',
+  );
+  static const ADD_TRAILING_COMMA_MULTI = FixKind(
+    'dart.fix.add.trailingComma.multi',
+    DartFixKindPriority.IN_FILE,
+    'Add trailing commas everywhere in file',
+  );
   static const ADD_TYPE_ANNOTATION = FixKind(
     'dart.fix.add.typeAnnotation',
     DartFixKindPriority.DEFAULT,
@@ -289,6 +299,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Convert to child:',
   );
+  static const CONVERT_INTO_BLOCK_BODY = FixKind(
+    'dart.fix.convert.bodyToBlock',
+    DartFixKindPriority.DEFAULT,
+    'Convert to block body',
+  );
   static const CONVERT_FOR_EACH_TO_FOR_LOOP = FixKind(
     'dart.fix.convert.toForLoop',
     DartFixKindPriority.DEFAULT,
@@ -309,6 +324,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Convert to expression bodies everywhere in file',
   );
+  static const CONVERT_QUOTES = FixKind(
+    'dart.fix.convert.quotes',
+    DartFixKindPriority.DEFAULT,
+    'Convert the quotes and remove escapes',
+  );
+  static const CONVERT_QUOTES_MULTI = FixKind(
+    'dart.fix.convert.quotes.multi',
+    DartFixKindPriority.IN_FILE,
+    'Convert the quotes and remove escapes everywhere in file',
+  );
   static const CONVERT_TO_CONTAINS = FixKind(
     'dart.fix.convert.toContains',
     DartFixKindPriority.DEFAULT,
@@ -318,6 +343,16 @@ class DartFixKind {
     'dart.fix.convert.toContains.multi',
     DartFixKindPriority.IN_FILE,
     "Convert to using 'contains' everywhere in file",
+  );
+  static const CONVERT_TO_DOUBLE_QUOTED_STRING = FixKind(
+    'dart.fix.convert.toDoubleQuotedString',
+    DartFixKindPriority.DEFAULT,
+    'Convert to double quoted string',
+  );
+  static const CONVERT_TO_DOUBLE_QUOTED_STRING_MULTI = FixKind(
+    'dart.fix.convert.toDoubleQuotedString.multi',
+    DartFixKindPriority.IN_FILE,
+    'Convert to double quoted strings everywhere in file',
   );
   static const CONVERT_TO_FOR_ELEMENT = FixKind(
     'dart.fix.convert.toForElement',
@@ -671,6 +706,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Make field '{0}' not final",
   );
+  static const MAKE_FIELD_PUBLIC = FixKind(
+    'dart.fix.makeFieldPublic',
+    DartFixKindPriority.DEFAULT,
+    "Make field '{0}' public",
+  );
   static const MAKE_FINAL = FixKind(
     'dart.fix.makeFinal',
     DartFixKindPriority.DEFAULT,
@@ -784,6 +824,16 @@ class DartFixKind {
     'dart.fix.remove.deadCode',
     DartFixKindPriority.DEFAULT,
     'Remove dead code',
+  );
+  static const REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE = FixKind(
+    'dart.fix.remove.deprecatedNewInCommentReference',
+    DartFixKindPriority.DEFAULT,
+    'Remove deprecated new keyword',
+  );
+  static const REMOVE_DEPRECATED_NEW_IN_COMMENT_REFERENCE_MULTI = FixKind(
+    'dart.fix.remove.deprecatedNewInCommentReference.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove deprecated new keyword in file',
   );
   static const REMOVE_DUPLICATE_CASE = FixKind(
     'dart.fix.remove.duplicateCase',
@@ -1009,6 +1059,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove all unnecessary parentheses in file',
   );
+  static const REMOVE_UNNECESSARY_RAW_STRING = FixKind(
+    'dart.fix.remove.unnecessaryRawString',
+    DartFixKindPriority.DEFAULT,
+    "Remove unnecessary 'r' in string",
+  );
+  static const REMOVE_UNNECESSARY_RAW_STRING_MULTI = FixKind(
+    'dart.fix.remove.unnecessaryRawString.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove unnecessary 'r' in strings in file",
+  );
   static const REMOVE_UNNECESSARY_STRING_ESCAPE = FixKind(
     'dart.fix.remove.unnecessaryStringEscape',
     DartFixKindPriority.DEFAULT,
@@ -1016,7 +1076,7 @@ class DartFixKind {
   );
   static const REMOVE_UNNECESSARY_STRING_ESCAPE_MULTI = FixKind(
     'dart.fix.remove.unnecessaryStringEscape.multi',
-    DartFixKindPriority.DEFAULT,
+    DartFixKindPriority.IN_FILE,
     "Remove unnecessary '\\' in strings in file",
   );
   static const REMOVE_UNNECESSARY_STRING_INTERPOLATION = FixKind(
@@ -1034,10 +1094,20 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Remove unused 'catch' clause",
   );
+  static const REMOVE_UNUSED_CATCH_CLAUSE_MULTI = FixKind(
+    'dart.fix.remove.unusedCatchClause.multi',
+    DartFixKindPriority.IN_FILE,
+    "Remove unused 'catch' clauses in file",
+  );
   static const REMOVE_UNUSED_CATCH_STACK = FixKind(
     'dart.fix.remove.unusedCatchStack',
     DartFixKindPriority.DEFAULT,
     'Remove unused stack trace variable',
+  );
+  static const REMOVE_UNUSED_CATCH_STACK_MULTI = FixKind(
+    'dart.fix.remove.unusedCatchStack.multi',
+    DartFixKindPriority.IN_FILE,
+    'Remove unused stack trace variables in file',
   );
   static const REMOVE_UNUSED_ELEMENT = FixKind(
     'dart.fix.remove.unusedElement',
@@ -1171,7 +1241,7 @@ class DartFixKind {
   );
   static const REPLACE_NULL_WITH_VOID_MULTI = FixKind(
     'dart.fix.replace.nullWithVoid.multi',
-    DartFixKindPriority.DEFAULT,
+    DartFixKindPriority.IN_FILE,
     "Replace 'Null' with 'void' everywhere in file",
   );
   static const REPLACE_RETURN_TYPE = FixKind(
@@ -1191,7 +1261,7 @@ class DartFixKind {
   );
   static const REPLACE_CONTAINER_WITH_SIZED_BOX_MULTI = FixKind(
     'dart.fix.replace.containerWithSizedBox.multi',
-    DartFixKindPriority.DEFAULT,
+    DartFixKindPriority.IN_FILE,
     "Replace with 'SizedBox' everywhere in file",
   );
   static const REPLACE_VAR_WITH_DYNAMIC = FixKind(
@@ -1335,6 +1405,11 @@ class DartFixKind {
     'dart.fix.use.effectiveIntegerDivision',
     DartFixKindPriority.DEFAULT,
     'Use effective integer division ~/',
+  );
+  static const USE_EFFECTIVE_INTEGER_DIVISION_MULTI = FixKind(
+    'dart.fix.use.effectiveIntegerDivision.multi',
+    DartFixKindPriority.IN_FILE,
+    'Use effective integer division ~/ everywhere in file',
   );
   static const USE_EQ_EQ_NULL = FixKind(
     'dart.fix.use.eqEqNull',

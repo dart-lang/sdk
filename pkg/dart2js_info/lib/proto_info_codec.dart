@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Converters and codecs for converting between Protobuf and [Info] classes.
-
 import 'dart:convert';
+
 import 'package:fixnum/fixnum.dart';
 
 import 'info.dart';
@@ -14,18 +14,19 @@ import 'src/util.dart';
 export 'src/proto/info.pb.dart';
 
 class ProtoToAllInfoConverter extends Converter<AllInfoPB, AllInfo> {
-  AllInfo convert(AllInfoPB info) {
+  @override
+  AllInfo convert(AllInfoPB input) {
     // TODO(lorenvs): Implement this conversion. It is unlikely to to be used
     // by production code since the goal of the proto codec is to consume this
     // information from other languages. However, it is useful for roundtrip
     // testing, so we should support it.
-    throw new UnimplementedError('ProtoToAllInfoConverter is not implemented');
+    throw UnimplementedError('ProtoToAllInfoConverter is not implemented');
   }
 }
 
 class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   final Map<Info, Id> ids = {};
-  final Set<int> usedIds = new Set<int>();
+  final Set<int> usedIds = <int>{};
 
   Id idFor(Info info) {
     if (info == null) return null;
@@ -51,14 +52,15 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
     while (!usedIds.add(id)) {
       id++;
     }
-    serializedId = new Id(info.kind, id);
+    serializedId = Id(info.kind, id);
     return ids[info] = serializedId;
   }
 
-  AllInfoPB convert(AllInfo info) => _convertToAllInfoPB(info);
+  @override
+  AllInfoPB convert(AllInfo input) => _convertToAllInfoPB(input);
 
   DependencyInfoPB _convertToDependencyInfoPB(DependencyInfo info) {
-    var result = new DependencyInfoPB()
+    var result = DependencyInfoPB()
       ..targetId = idFor(info.target)?.serializedId;
     if (info.mask != null) {
       result.mask = info.mask;
@@ -67,14 +69,14 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   }
 
   static ParameterInfoPB _convertToParameterInfoPB(ParameterInfo info) {
-    return new ParameterInfoPB()
+    return ParameterInfoPB()
       ..name = info.name
       ..type = info.type
       ..declaredType = info.declaredType;
   }
 
   LibraryInfoPB _convertToLibraryInfoPB(LibraryInfo info) {
-    final proto = new LibraryInfoPB()..uri = info.uri.toString();
+    final proto = LibraryInfoPB()..uri = info.uri.toString();
 
     proto.childrenIds
         .addAll(info.topLevelFunctions.map((func) => idFor(func).serializedId));
@@ -82,6 +84,8 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
         info.topLevelVariables.map((field) => idFor(field).serializedId));
     proto.childrenIds
         .addAll(info.classes.map((clazz) => idFor(clazz).serializedId));
+    proto.childrenIds.addAll(
+        info.classTypes.map((classType) => idFor(classType).serializedId));
     proto.childrenIds
         .addAll(info.typedefs.map((def) => idFor(def).serializedId));
 
@@ -89,7 +93,7 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   }
 
   ClassInfoPB _convertToClassInfoPB(ClassInfo info) {
-    final proto = new ClassInfoPB()..isAbstract = info.isAbstract;
+    final proto = ClassInfoPB()..isAbstract = info.isAbstract;
 
     proto.childrenIds
         .addAll(info.functions.map((func) => idFor(func).serializedId));
@@ -99,9 +103,13 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
     return proto;
   }
 
+  ClassTypeInfoPB _convertToClassTypeInfoPB(ClassTypeInfo info) {
+    return ClassTypeInfoPB();
+  }
+
   static FunctionModifiersPB _convertToFunctionModifiers(
       FunctionModifiers modifiers) {
-    return new FunctionModifiersPB()
+    return FunctionModifiersPB()
       ..isStatic = modifiers.isStatic
       ..isConst = modifiers.isConst
       ..isFactory = modifiers.isFactory
@@ -109,7 +117,7 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   }
 
   FunctionInfoPB _convertToFunctionInfoPB(FunctionInfo info) {
-    final proto = new FunctionInfoPB()
+    final proto = FunctionInfoPB()
       ..functionModifiers = _convertToFunctionModifiers(info.modifiers)
       ..inlinedCount = info.inlinedCount ?? 0;
 
@@ -137,7 +145,7 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   }
 
   FieldInfoPB _convertToFieldInfoPB(FieldInfo info) {
-    final proto = new FieldInfoPB()
+    final proto = FieldInfoPB()
       ..type = info.type
       ..inferredType = info.inferredType
       ..isConst = info.isConst;
@@ -157,25 +165,25 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   }
 
   static ConstantInfoPB _convertToConstantInfoPB(ConstantInfo info) {
-    return new ConstantInfoPB()..code = info.code.map((c) => c.text).join('\n');
+    return ConstantInfoPB()..code = info.code.map((c) => c.text).join('\n');
   }
 
   static OutputUnitInfoPB _convertToOutputUnitInfoPB(OutputUnitInfo info) {
-    final proto = new OutputUnitInfoPB();
+    final proto = OutputUnitInfoPB();
     proto.imports.addAll(info.imports.where((import) => import != null));
     return proto;
   }
 
   static TypedefInfoPB _convertToTypedefInfoPB(TypedefInfo info) {
-    return new TypedefInfoPB()..type = info.type;
+    return TypedefInfoPB()..type = info.type;
   }
 
   ClosureInfoPB _convertToClosureInfoPB(ClosureInfo info) {
-    return new ClosureInfoPB()..functionId = idFor(info.function).serializedId;
+    return ClosureInfoPB()..functionId = idFor(info.function).serializedId;
   }
 
   InfoPB _convertToInfoPB(Info info) {
-    final proto = new InfoPB()
+    final proto = InfoPB()
       ..id = idFor(info).id
       ..serializedId = idFor(info).serializedId
       ..size = info.size;
@@ -207,6 +215,8 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
       proto.libraryInfo = _convertToLibraryInfoPB(info);
     } else if (info is ClassInfo) {
       proto.classInfo = _convertToClassInfoPB(info);
+    } else if (info is ClassTypeInfo) {
+      proto.classTypeInfo = _convertToClassTypeInfoPB(info);
     } else if (info is FunctionInfo) {
       proto.functionInfo = _convertToFunctionInfoPB(info);
     } else if (info is FieldInfo) {
@@ -225,14 +235,13 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   }
 
   ProgramInfoPB _convertToProgramInfoPB(ProgramInfo info) {
-    var result = new ProgramInfoPB()
+    var result = ProgramInfoPB()
       ..entrypointId = idFor(info.entrypoint).serializedId
       ..size = info.size
-      ..compilationMoment =
-          new Int64(info.compilationMoment.microsecondsSinceEpoch)
-      ..compilationDuration = new Int64(info.compilationDuration.inMicroseconds)
-      ..toProtoDuration = new Int64(info.toJsonDuration.inMicroseconds)
-      ..dumpInfoDuration = new Int64(info.dumpInfoDuration.inMicroseconds)
+      ..compilationMoment = Int64(info.compilationMoment.microsecondsSinceEpoch)
+      ..compilationDuration = Int64(info.compilationDuration.inMicroseconds)
+      ..toProtoDuration = Int64(info.toJsonDuration.inMicroseconds)
+      ..dumpInfoDuration = Int64(info.dumpInfoDuration.inMicroseconds)
       ..noSuchMethodEnabled = info.noSuchMethodEnabled ?? false
       ..isRuntimeTypeUsed = info.isRuntimeTypeUsed ?? false
       ..isIsolateUsed = info.isIsolateInUse ?? false
@@ -257,13 +266,13 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
 
   static LibraryDeferredImportsPB _convertToLibraryDeferredImportsPB(
       String libraryUri, Map<String, dynamic> fields) {
-    final proto = new LibraryDeferredImportsPB()
+    final proto = LibraryDeferredImportsPB()
       ..libraryUri = libraryUri
       ..libraryName = fields['name'] ?? '<unnamed>';
 
     Map<String, List<String>> imports = fields['imports'];
     imports.forEach((prefix, files) {
-      final import = new DeferredImportPB()..prefix = prefix;
+      final import = DeferredImportPB()..prefix = prefix;
       import.files.addAll(files);
       proto.imports.add(import);
     });
@@ -272,11 +281,11 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
   }
 
   AllInfoPB _convertToAllInfoPB(AllInfo info) {
-    final proto = new AllInfoPB()
-      ..program = _convertToProgramInfoPB(info.program);
+    final proto = AllInfoPB()..program = _convertToProgramInfoPB(info.program);
 
     proto.allInfos.addEntries(_convertToAllInfosEntries(info.libraries));
     proto.allInfos.addEntries(_convertToAllInfosEntries(info.classes));
+    proto.allInfos.addEntries(_convertToAllInfosEntries(info.classTypes));
     proto.allInfos.addEntries(_convertToAllInfosEntries(info.functions));
     proto.allInfos.addEntries(_convertToAllInfosEntries(info.fields));
     proto.allInfos.addEntries(_convertToAllInfosEntries(info.constants));
@@ -298,8 +307,10 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
 /// This codec is still experimental, and will likely crash on certain output
 /// from dart2js.
 class AllInfoProtoCodec extends Codec<AllInfo, AllInfoPB> {
-  final Converter<AllInfo, AllInfoPB> encoder = new AllInfoToProtoConverter();
-  final Converter<AllInfoPB, AllInfo> decoder = new ProtoToAllInfoConverter();
+  @override
+  final Converter<AllInfo, AllInfoPB> encoder = AllInfoToProtoConverter();
+  @override
+  final Converter<AllInfoPB, AllInfo> decoder = ProtoToAllInfoConverter();
 }
 
 class Id {

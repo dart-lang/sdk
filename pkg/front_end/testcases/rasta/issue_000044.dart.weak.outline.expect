@@ -54,3 +54,8 @@ static method b(dynamic c) → invalid-type
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_000044.dart:9:7 -> ConstructorTearOffConstant(C.good)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

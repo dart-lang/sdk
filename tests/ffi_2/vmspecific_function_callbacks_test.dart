@@ -7,8 +7,6 @@
 // Dart test program for testing dart:ffi function pointers with callbacks.
 //
 // SharedObjects=ffi_test_functions
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
 // VMOptions=--stacktrace-every=100
 // VMOptions=--use-slow-path
 // VMOptions=--use-slow-path --stacktrace-every=100

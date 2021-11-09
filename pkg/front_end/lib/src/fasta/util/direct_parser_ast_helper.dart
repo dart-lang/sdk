@@ -155,9 +155,9 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   @override
-  void beginClassOrMixinBody(DeclarationKind kind, Token token) {
-    DirectParserASTContentClassOrMixinBodyBegin data =
-        new DirectParserASTContentClassOrMixinBodyBegin(
+  void beginClassOrMixinOrExtensionBody(DeclarationKind kind, Token token) {
+    DirectParserASTContentClassOrMixinOrExtensionBodyBegin data =
+        new DirectParserASTContentClassOrMixinOrExtensionBodyBegin(
             DirectParserASTType.BEGIN,
             kind: kind,
             token: token);
@@ -165,10 +165,11 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   @override
-  void endClassOrMixinBody(
+  void endClassOrMixinOrExtensionBody(
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
-    DirectParserASTContentClassOrMixinBodyEnd data =
-        new DirectParserASTContentClassOrMixinBodyEnd(DirectParserASTType.END,
+    DirectParserASTContentClassOrMixinOrExtensionBodyEnd data =
+        new DirectParserASTContentClassOrMixinOrExtensionBodyEnd(
+            DirectParserASTType.END,
             kind: kind,
             memberCount: memberCount,
             beginToken: beginToken,
@@ -177,9 +178,9 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   @override
-  void beginClassOrNamedMixinApplicationPrelude(Token token) {
-    DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin data =
-        new DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin(
+  void beginClassOrMixinOrNamedMixinApplicationPrelude(Token token) {
+    DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin data =
+        new DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin(
             DirectParserASTType.BEGIN,
             token: token);
     seen(data);
@@ -526,10 +527,11 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   @override
-  void beginFactoryMethod(
-      Token lastConsumed, Token? externalToken, Token? constToken) {
+  void beginFactoryMethod(DeclarationKind declarationKind, Token lastConsumed,
+      Token? externalToken, Token? constToken) {
     DirectParserASTContentFactoryMethodBegin data =
         new DirectParserASTContentFactoryMethodBegin(DirectParserASTType.BEGIN,
+            declarationKind: declarationKind,
             lastConsumed: lastConsumed,
             externalToken: externalToken,
             constToken: constToken);
@@ -929,19 +931,17 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   @override
-  void beginFunctionTypeAlias(Token token) {
-    DirectParserASTContentFunctionTypeAliasBegin data =
-        new DirectParserASTContentFunctionTypeAliasBegin(
-            DirectParserASTType.BEGIN,
+  void beginTypedef(Token token) {
+    DirectParserASTContentTypedefBegin data =
+        new DirectParserASTContentTypedefBegin(DirectParserASTType.BEGIN,
             token: token);
     seen(data);
   }
 
   @override
-  void endFunctionTypeAlias(
-      Token typedefKeyword, Token? equals, Token endToken) {
-    DirectParserASTContentFunctionTypeAliasEnd data =
-        new DirectParserASTContentFunctionTypeAliasEnd(DirectParserASTType.END,
+  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+    DirectParserASTContentTypedefEnd data =
+        new DirectParserASTContentTypedefEnd(DirectParserASTType.END,
             typedefKeyword: typedefKeyword, equals: equals, endToken: endToken);
     seen(data);
   }
@@ -1172,11 +1172,12 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   @override
-  void endImplicitCreationExpression(Token token) {
+  void endImplicitCreationExpression(Token token, Token openAngleBracket) {
     DirectParserASTContentImplicitCreationExpressionEnd data =
         new DirectParserASTContentImplicitCreationExpressionEnd(
             DirectParserASTType.END,
-            token: token);
+            token: token,
+            openAngleBracket: openAngleBracket);
     seen(data);
   }
 
@@ -1431,6 +1432,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
 
   @override
   void beginMethod(
+      DeclarationKind declarationKind,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1439,6 +1441,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
       Token name) {
     DirectParserASTContentMethodBegin data =
         new DirectParserASTContentMethodBegin(DirectParserASTType.BEGIN,
+            declarationKind: declarationKind,
             externalToken: externalToken,
             staticToken: staticToken,
             covariantToken: covariantToken,
@@ -1834,9 +1837,24 @@ abstract class AbstractDirectParserASTListener implements Listener {
   }
 
   @override
-  void beginFields(Token lastConsumed) {
+  void beginFields(
+      DeclarationKind declarationKind,
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      Token lastConsumed) {
     DirectParserASTContentFieldsBegin data =
         new DirectParserASTContentFieldsBegin(DirectParserASTType.BEGIN,
+            declarationKind: declarationKind,
+            abstractToken: abstractToken,
+            externalToken: externalToken,
+            staticToken: staticToken,
+            covariantToken: covariantToken,
+            lateToken: lateToken,
+            varFinalOrConst: varFinalOrConst,
             lastConsumed: lastConsumed);
     seen(data);
   }
@@ -3080,14 +3098,16 @@ class DirectParserASTContentCaseExpressionEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentClassOrMixinBodyBegin
+class DirectParserASTContentClassOrMixinOrExtensionBodyBegin
     extends DirectParserASTContent {
   final DeclarationKind kind;
   final Token token;
 
-  DirectParserASTContentClassOrMixinBodyBegin(DirectParserASTType type,
-      {required this.kind, required this.token})
-      : super("ClassOrMixinBody", type);
+  DirectParserASTContentClassOrMixinOrExtensionBodyBegin(
+      DirectParserASTType type,
+      {required this.kind,
+      required this.token})
+      : super("ClassOrMixinOrExtensionBody", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -3096,18 +3116,19 @@ class DirectParserASTContentClassOrMixinBodyBegin
       };
 }
 
-class DirectParserASTContentClassOrMixinBodyEnd extends DirectParserASTContent {
+class DirectParserASTContentClassOrMixinOrExtensionBodyEnd
+    extends DirectParserASTContent {
   final DeclarationKind kind;
   final int memberCount;
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentClassOrMixinBodyEnd(DirectParserASTType type,
+  DirectParserASTContentClassOrMixinOrExtensionBodyEnd(DirectParserASTType type,
       {required this.kind,
       required this.memberCount,
       required this.beginToken,
       required this.endToken})
-      : super("ClassOrMixinBody", type);
+      : super("ClassOrMixinOrExtensionBody", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -3118,14 +3139,14 @@ class DirectParserASTContentClassOrMixinBodyEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin
+class DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin
     extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin(
+  DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin(
       DirectParserASTType type,
       {required this.token})
-      : super("ClassOrNamedMixinApplicationPrelude", type);
+      : super("ClassOrMixinOrNamedMixinApplicationPrelude", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -3694,16 +3715,21 @@ class DirectParserASTContentExpressionStatementHandle
 }
 
 class DirectParserASTContentFactoryMethodBegin extends DirectParserASTContent {
+  final DeclarationKind declarationKind;
   final Token lastConsumed;
   final Token? externalToken;
   final Token? constToken;
 
   DirectParserASTContentFactoryMethodBegin(DirectParserASTType type,
-      {required this.lastConsumed, this.externalToken, this.constToken})
+      {required this.declarationKind,
+      required this.lastConsumed,
+      this.externalToken,
+      this.constToken})
       : super("FactoryMethod", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "declarationKind": declarationKind,
         "lastConsumed": lastConsumed,
         "externalToken": externalToken,
         "constToken": constToken,
@@ -4353,13 +4379,12 @@ class DirectParserASTContentFunctionNameEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentFunctionTypeAliasBegin
-    extends DirectParserASTContent {
+class DirectParserASTContentTypedefBegin extends DirectParserASTContent {
   final Token token;
 
-  DirectParserASTContentFunctionTypeAliasBegin(DirectParserASTType type,
+  DirectParserASTContentTypedefBegin(DirectParserASTType type,
       {required this.token})
-      : super("FunctionTypeAlias", type);
+      : super("Typedef", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -4367,15 +4392,14 @@ class DirectParserASTContentFunctionTypeAliasBegin
       };
 }
 
-class DirectParserASTContentFunctionTypeAliasEnd
-    extends DirectParserASTContent {
+class DirectParserASTContentTypedefEnd extends DirectParserASTContent {
   final Token typedefKeyword;
   final Token? equals;
   final Token endToken;
 
-  DirectParserASTContentFunctionTypeAliasEnd(DirectParserASTType type,
+  DirectParserASTContentTypedefEnd(DirectParserASTType type,
       {required this.typedefKeyword, this.equals, required this.endToken})
-      : super("FunctionTypeAlias", type);
+      : super("Typedef", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -4759,14 +4783,16 @@ class DirectParserASTContentImplicitCreationExpressionBegin
 class DirectParserASTContentImplicitCreationExpressionEnd
     extends DirectParserASTContent {
   final Token token;
+  final Token openAngleBracket;
 
   DirectParserASTContentImplicitCreationExpressionEnd(DirectParserASTType type,
-      {required this.token})
+      {required this.token, required this.openAngleBracket})
       : super("ImplicitCreationExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
+        "openAngleBracket": openAngleBracket,
       };
 }
 
@@ -5166,6 +5192,7 @@ class DirectParserASTContentMemberEnd extends DirectParserASTContent {
 }
 
 class DirectParserASTContentMethodBegin extends DirectParserASTContent {
+  final DeclarationKind declarationKind;
   final Token? externalToken;
   final Token? staticToken;
   final Token? covariantToken;
@@ -5174,7 +5201,8 @@ class DirectParserASTContentMethodBegin extends DirectParserASTContent {
   final Token name;
 
   DirectParserASTContentMethodBegin(DirectParserASTType type,
-      {this.externalToken,
+      {required this.declarationKind,
+      this.externalToken,
       this.staticToken,
       this.covariantToken,
       this.varFinalOrConst,
@@ -5184,6 +5212,7 @@ class DirectParserASTContentMethodBegin extends DirectParserASTContent {
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "declarationKind": declarationKind,
         "externalToken": externalToken,
         "staticToken": staticToken,
         "covariantToken": covariantToken,
@@ -5858,14 +5887,35 @@ class DirectParserASTContentTopLevelMemberBegin extends DirectParserASTContent {
 }
 
 class DirectParserASTContentFieldsBegin extends DirectParserASTContent {
+  final DeclarationKind declarationKind;
+  final Token? abstractToken;
+  final Token? externalToken;
+  final Token? staticToken;
+  final Token? covariantToken;
+  final Token? lateToken;
+  final Token? varFinalOrConst;
   final Token lastConsumed;
 
   DirectParserASTContentFieldsBegin(DirectParserASTType type,
-      {required this.lastConsumed})
+      {required this.declarationKind,
+      this.abstractToken,
+      this.externalToken,
+      this.staticToken,
+      this.covariantToken,
+      this.lateToken,
+      this.varFinalOrConst,
+      required this.lastConsumed})
       : super("Fields", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+        "declarationKind": declarationKind,
+        "abstractToken": abstractToken,
+        "externalToken": externalToken,
+        "staticToken": staticToken,
+        "covariantToken": covariantToken,
+        "lateToken": lateToken,
+        "varFinalOrConst": varFinalOrConst,
         "lastConsumed": lastConsumed,
       };
 }

@@ -16,12 +16,10 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveComparison extends CorrectionProducer {
   @override
-  bool canBeAppliedInBulk;
+  bool get canBeAppliedInBulk => true;
 
   @override
-  bool canBeAppliedToFile;
-
-  RemoveComparison(this.canBeAppliedInBulk, this.canBeAppliedToFile);
+  bool get canBeAppliedToFile => true;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_COMPARISON;
@@ -122,10 +120,5 @@ class RemoveComparison extends CorrectionProducer {
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveComparison newInstance() => RemoveComparison(false, false);
-
-  /// Return an instance of this class that can apply bulk and in-file fixes.
-  /// Used as a tear-off in `FixProcessor`.
-  static RemoveComparison newInstanceBulkFixable() =>
-      RemoveComparison(true, true);
+  static RemoveComparison newInstance() => RemoveComparison();
 }

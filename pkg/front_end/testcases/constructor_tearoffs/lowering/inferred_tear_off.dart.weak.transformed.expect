@@ -56,7 +56,7 @@ constants  {
   #C4 = static-tearoff self::_#G#new#tearOff
   #C5 = static-tearoff self::A::_#named#tearOff
   #C6 = static-tearoff self::B::_#named#tearOff
-  #C7 = instantiation self::B::_#named#tearOff <core::int*>
+  #C7 = instantiation #C6 <core::int*>
   #C8 = static-tearoff self::_#F#named#tearOff
-  #C9 = instantiation self::B::_#named#tearOff <dynamic>
+  #C9 = instantiation #C6 <dynamic>
 }

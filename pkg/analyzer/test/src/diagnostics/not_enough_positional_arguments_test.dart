@@ -29,6 +29,21 @@ main() {
     ]);
   }
 
+  test_const_namedArgument_insteadOfRequiredPositional() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(int p);
+}
+main() {
+  const A(p: 0);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 41, 13),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 48, 6),
+      error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 49, 1),
+    ]);
+  }
+
   test_const_super() async {
     await assertErrorsInCode(r'''
 class A {

@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,8 +20,11 @@ void main() {
 @reflectiveTest
 class LibraryMemberContributorTest extends DartCompletionContributorTest {
   @override
-  DartCompletionContributor createContributor() {
-    return LibraryMemberContributor();
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) {
+    return LibraryMemberContributor(request, builder);
   }
 
   Future<void> test_extension() async {
@@ -219,7 +224,7 @@ main() {
   }
 
   Future<void> test_PrefixedIdentifier_library_typesOnly() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType
     newFile('$testPackageLibPath/b.dart', content: '''
         lib B;
         var T1;
@@ -252,7 +257,7 @@ main() {
   }
 
   Future<void> test_PrefixedIdentifier_library_typesOnly2() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType
     newFile('$testPackageLibPath/b.dart', content: '''
         lib B;
         var T1;

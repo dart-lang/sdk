@@ -32,3 +32,8 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///abstract_instantiation.dart:7:16 -> ConstructorTearOffConstant(B.)
+Extra constant evaluation: evaluated: 2, effectively constant: 1

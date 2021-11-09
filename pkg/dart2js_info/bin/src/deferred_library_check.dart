@@ -47,10 +47,13 @@ import 'usage_exception.dart';
 
 /// A command that computes the diff between two info files.
 class DeferredLibraryCheck extends Command<void> with PrintUsageException {
+  @override
   final String name = "deferred_check";
+  @override
   final String description =
       "Verify that deferred libraries are split as expected";
 
+  @override
   void run() async {
     var args = argResults.rest;
     if (args.length < 2) {
@@ -66,6 +69,6 @@ class DeferredLibraryCheck extends Command<void> with PrintUsageException {
 }
 
 Future manifestFromFile(String fileName) async {
-  var file = await new File(fileName).readAsString();
+  var file = await File(fileName).readAsString();
   return loadYaml(file);
 }

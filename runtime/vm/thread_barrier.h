@@ -46,71 +46,55 @@ namespace dart {
 //
 class ThreadBarrier {
  public:
-  explicit ThreadBarrier(intptr_t num_threads,
-                         Monitor* monitor,
-                         Monitor* done_monitor)
-      : num_threads_(num_threads),
-        monitor_(monitor),
-        remaining_(num_threads),
-        parity_(false),
-        done_monitor_(done_monitor),
-        done_(false) {
-    ASSERT(remaining_ > 0);
+  explicit ThreadBarrier(intptr_t num_threads, intptr_t initial = 0)
+      : ref_count_(num_threads),
+        monitor_(),
+        participating_(initial),
+        remaining_(initial),
+        generation_(0) {}
+
+  bool TryEnter() {
+    MonitorLocker ml(&monitor_);
+    if (generation_ != 0) {
+      return false;
+    }
+    remaining_++;
+    participating_++;
+    return true;
   }
 
   void Sync() {
-    MonitorLocker ml(monitor_);
-    ASSERT(remaining_ > 0);
-    if (--remaining_ > 0) {
-      // I'm not last to arrive; wait until next round.
-      bool old_parity = parity_;
-      while (parity_ == old_parity) {
+    MonitorLocker ml(&monitor_);
+    const intptr_t g = generation_;
+    remaining_--;
+    if (remaining_ == 0) {
+      // I'm last, advance to the next generation and wake the others.
+      generation_++;
+      remaining_ = participating_;
+      ml.NotifyAll();
+    } else {
+      // Waiting for others.
+      while (g == generation_) {
         ml.Wait();
       }
-    } else {
-      // Last one to arrive initiates the next round.
-      remaining_ = num_threads_;
-      parity_ = !parity_;
-      // Tell everyone else about the new round.
-      ml.NotifyAll();
     }
   }
 
-  void Exit() {
-    bool last = false;
-    {
-      MonitorLocker ml(monitor_);
-      ASSERT(remaining_ > 0);
-      last = (--remaining_ == 0);
+  void Release() {
+    intptr_t old = ref_count_.fetch_sub(1, std::memory_order_acq_rel);
+    ASSERT(old > 0);
+    if (old == 1) {
+      delete this;
     }
-    if (last) {
-      // Last one to exit sets done_.
-      MonitorLocker ml(done_monitor_);
-      ASSERT(!done_);
-      done_ = true;
-      // Tell the destructor in case it's already waiting.
-      ml.Notify();
-    }
-  }
-
-  ~ThreadBarrier() {
-    MonitorLocker ml(done_monitor_);
-    // Wait for everyone to exit before destroying the monitors.
-    while (!done_) {
-      ml.Wait();
-    }
-    ASSERT(remaining_ == 0);
   }
 
  private:
-  const intptr_t num_threads_;
+  std::atomic<intptr_t> ref_count_;
 
-  Monitor* monitor_;
+  Monitor monitor_;
+  intptr_t participating_;
   intptr_t remaining_;
-  bool parity_;
-
-  Monitor* done_monitor_;  // TODO(koda): Try to optimize this away.
-  bool done_;
+  intptr_t generation_;
 
   DISALLOW_COPY_AND_ASSIGN(ThreadBarrier);
 };

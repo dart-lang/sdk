@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 // Dart test program for testing that isolates can spawn other isolates.
 
 library NestedSpawnTest;

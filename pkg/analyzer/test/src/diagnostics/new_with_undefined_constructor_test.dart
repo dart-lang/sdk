@@ -30,7 +30,8 @@ f() {
   new A();
 }
 ''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 38, 1),
+      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 38, 1,
+          messageContains: ["'A'"]),
     ]);
   }
 
@@ -44,6 +45,24 @@ f() {
 }
 ''', [
       error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 34, 1),
+    ]);
+  }
+
+  test_default_prefixed() async {
+    newFile('$testPackageLibPath/lib1.dart', content: '''
+class A {
+  A.name() {}
+}
+''');
+    await assertErrorsInCode('''
+import 'lib1.dart' as lib1;
+
+f() {
+  new lib1.A();
+}
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 41, 6,
+          messageContains: ["'lib1.A'"]),
     ]);
   }
 
@@ -102,7 +121,25 @@ f() {
   new A.name();
 }
 ''', [
-      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 35, 4),
+      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 35, 4,
+          messageContains: ["class 'A'", "named 'name'"]),
+    ]);
+  }
+
+  test_named_prefixed() async {
+    newFile('$testPackageLibPath/lib1.dart', content: '''
+class A {
+  A() {}
+}
+''');
+    await assertErrorsInCode('''
+import 'lib1.dart' as lib1;
+f() {
+  new lib1.A.name();
+}
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 47, 4,
+          messageContains: ["class 'lib1.A'", "named 'name'"]),
     ]);
   }
 

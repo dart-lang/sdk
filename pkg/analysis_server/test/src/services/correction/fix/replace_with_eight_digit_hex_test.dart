@@ -12,7 +12,37 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithEightDigitHexTest);
+    defineReflectiveTests(ReplaceWithEightDigitHexBulkTest);
   });
+}
+
+@reflectiveTest
+class ReplaceWithEightDigitHexBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.use_full_hex_values_for_flutter_colors;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+library dart.ui;
+
+var c = Color(1);
+var c2 = Color(0x000001);
+
+class Color {
+  Color(int value);
+}
+''');
+    await assertHasFix('''
+library dart.ui;
+
+var c = Color(0x00000001);
+var c2 = Color(0x00000001);
+
+class Color {
+  Color(int value);
+}
+''');
+  }
 }
 
 @reflectiveTest

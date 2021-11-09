@@ -291,7 +291,7 @@ void main(List<String> args) async {
         ),
       );
 
-      // Step in and expect stopping in the the other package.
+      // Step in and expect stopping in the other package.
       await Future.wait([
         client.expectStop('step', sourceName: '$otherPackageUri'),
         client.stepIn(stop.threadId!),

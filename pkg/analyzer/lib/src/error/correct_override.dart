@@ -52,14 +52,17 @@ class CorrectOverrideHelper {
   }) {
     var isCorrect = isCorrectOverrideOf(superMember: superMember);
     if (!isCorrect) {
+      // Elements enclosing members that can participate in overrides are always
+      // named, so we can safely assume `_thisMember.enclosingElement.name` and
+      // `superMember.enclosingElement.name` are non-`null`.
       errorReporter.reportErrorForNode(
         errorCode ?? CompileTimeErrorCode.INVALID_OVERRIDE,
         errorNode,
         [
           _thisMember.name,
-          _thisMember.enclosingElement.name,
+          _thisMember.enclosingElement.name!,
           _thisMember.type,
-          superMember.enclosingElement.name,
+          superMember.enclosingElement.name!,
           superMember.type,
         ],
       );
@@ -123,14 +126,18 @@ class CovariantParametersVerifier {
         if (!_typeSystem.isSubtypeOf(superType, thisType) &&
             !_typeSystem.isSubtypeOf(thisType, superType)) {
           var superMember = superParameter.member;
+          // Elements enclosing members that can participate in overrides are
+          // always named, so we can safely assume
+          // `_thisMember.enclosingElement.name` and
+          // `superMember.enclosingElement.name` are non-`null`.
           errorReporter.reportErrorForNode(
             CompileTimeErrorCode.INVALID_OVERRIDE,
             errorNode,
             [
               _thisMember.name,
-              _thisMember.enclosingElement.name,
+              _thisMember.enclosingElement.name!,
               _thisMember.type,
-              superMember.enclosingElement.name,
+              superMember.enclosingElement.name!,
               superMember.type,
             ],
           );

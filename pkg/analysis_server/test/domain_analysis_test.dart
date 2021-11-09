@@ -1437,13 +1437,19 @@ class AnalysisTestHelper with ResourceProviderMixin {
     projectPath = convertPath('/project');
     testFile = convertPath('/project/bin/test.dart');
     serverChannel = MockServerChannel();
+
     // Create an SDK in the mock file system.
-    MockSdk(resourceProvider: resourceProvider);
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+
     server = AnalysisServer(
         serverChannel,
         resourceProvider,
         AnalysisServerOptions(),
-        DartSdkManager(convertPath('/sdk')),
+        DartSdkManager(sdkRoot.path),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
     handler = AnalysisDomainHandler(server);

@@ -72,3 +72,17 @@ class Class5<T extends dynamic> extends core::Object /*hasConstConstructor*/  {
 }
 static method testOptIn() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:5:7 -> ConstructorTearOffConstant(Class1.redirect)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:5:7 -> ConstructorTearOffConstant(Class1.constRedirect)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:13:7 -> ConstructorTearOffConstant(Class2.redirect)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:13:7 -> ConstructorTearOffConstant(Class2.constRedirect)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:21:7 -> ConstructorTearOffConstant(Class3.redirect)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:21:7 -> ConstructorTearOffConstant(Class3.constRedirect)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:29:7 -> ConstructorTearOffConstant(Class4.redirect)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:29:7 -> ConstructorTearOffConstant(Class4.constRedirect)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:37:7 -> ConstructorTearOffConstant(Class5.redirect)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:37:7 -> ConstructorTearOffConstant(Class5.constRedirect)
+Extra constant evaluation: evaluated: 25, effectively constant: 10

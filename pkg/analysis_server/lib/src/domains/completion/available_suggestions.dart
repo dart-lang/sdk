@@ -3,29 +3,29 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 
-/// Compute which suggestion sets should be included into completion inside
-/// the given [resolvedUnit] of a file.  Depending on the file path, it might
+/// Compute which suggestion sets should be included into completion for
+/// the given completion [request].  Depending on the file path, it might
 /// include different sets, e.g. inside the `lib/` directory of a `Pub` package
 /// only regular dependencies can be referenced, but `test/` can reference
 /// both regular and "dev" dependencies.
 void computeIncludedSetList(
   DeclarationsTracker tracker,
-  ResolvedUnitResult resolvedUnit,
+  DartCompletionRequest request,
   List<protocol.IncludedSuggestionSet> includedSetList,
   Set<String> includedElementNames,
 ) {
-  var analysisContext = resolvedUnit.session.analysisContext;
-  var context = tracker.getContext(analysisContext);
+  var context = tracker.getContext(request.analysisContext);
   if (context == null) return;
 
-  var librariesObject = context.getLibraries(resolvedUnit.path);
+  var librariesObject = context.getLibraries(request.path);
 
-  var importedUriSet = resolvedUnit.libraryElement.importedLibraries
+  var importedUriSet = request.libraryElement.importedLibraries
       .map((importedLibrary) => importedLibrary.source.uri)
       .toSet();
 
@@ -48,7 +48,7 @@ void computeIncludedSetList(
       protocol.IncludedSuggestionSet(
         library.id,
         relevance,
-        displayUri: _getRelativeFileUri(resolvedUnit, library.uri),
+        displayUri: _getRelativeFileUri(request, library.uri),
       ),
     );
 
@@ -172,11 +172,11 @@ protocol.ElementKind protocolElementKind(DeclarationKind kind) {
 }
 
 /// Computes the best URI to import [what] into the [unit] library.
-String? _getRelativeFileUri(ResolvedUnitResult unit, Uri what) {
+String? _getRelativeFileUri(DartCompletionRequest request, Uri what) {
   if (what.scheme == 'file') {
-    var pathContext = unit.session.resourceProvider.pathContext;
+    var pathContext = request.analysisSession.resourceProvider.pathContext;
 
-    var libraryPath = unit.libraryElement.source.fullName;
+    var libraryPath = request.libraryElement.source.fullName;
     var libraryFolder = pathContext.dirname(libraryPath);
 
     var whatPath = pathContext.fromUri(what);

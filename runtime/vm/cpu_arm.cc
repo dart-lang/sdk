@@ -83,12 +83,11 @@ void CPU::FlushICache(uword start, uword size) {
 // https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man3/sys_icache_invalidate.3.html
 #if defined(DART_HOST_OS_IOS)
   sys_icache_invalidate(reinterpret_cast<void*>(start), size);
-#elif defined(__linux__) && !defined(ANDROID)
-  extern void __clear_cache(char*, char*);
+#elif defined(DART_HOST_OS_LINUX)
   char* beg = reinterpret_cast<char*>(start);
   char* end = reinterpret_cast<char*>(start + size);
-  ::__clear_cache(beg, end);
-#elif defined(ANDROID)
+  __builtin___clear_cache(beg, end);
+#elif defined(DART_HOST_OS_ANDROID)
   cacheflush(start, start + size, 0);
 #else
 #error FlushICache only tested/supported on Linux, Android and iOS

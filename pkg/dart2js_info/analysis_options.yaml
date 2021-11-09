@@ -1,0 +1,6 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    # Until the protobuf package generates the right code - or the right ignores
+    constant_identifier_names: ignore

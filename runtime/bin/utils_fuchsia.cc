@@ -41,28 +41,24 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
 const char* StringUtils::ConsoleStringToUtf8(const char* str,
                                              intptr_t len,
                                              intptr_t* result_len) {
-  UNIMPLEMENTED();
   return NULL;
 }
 
 const char* StringUtils::Utf8ToConsoleString(const char* utf8,
                                              intptr_t len,
                                              intptr_t* result_len) {
-  UNIMPLEMENTED();
   return NULL;
 }
 
 char* StringUtils::ConsoleStringToUtf8(char* str,
                                        intptr_t len,
                                        intptr_t* result_len) {
-  UNIMPLEMENTED();
   return NULL;
 }
 
 char* StringUtils::Utf8ToConsoleString(char* utf8,
                                        intptr_t len,
                                        intptr_t* result_len) {
-  UNIMPLEMENTED();
   return NULL;
 }
 

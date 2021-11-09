@@ -322,11 +322,7 @@ static void GenerateTypeIsTopTypeForSubtyping(Assembler* assembler,
   // instantiation may result in a top type.
   // Function types cannot be top types.
   __ BranchIf(NOT_EQUAL, &done);
-  __ LoadCompressedField(
-      scratch2_reg,
-      compiler::FieldAddress(scratch1_reg,
-                             compiler::target::Type::type_class_id_offset()));
-  __ SmiUntag(scratch2_reg);
+  __ LoadTypeClassId(scratch2_reg, scratch1_reg);
   __ CompareImmediate(scratch2_reg, kDynamicCid);
   __ BranchIf(EQUAL, &is_top_type, compiler::Assembler::kNearJump);
   __ CompareImmediate(scratch2_reg, kVoidCid);
@@ -443,11 +439,7 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     // FutureOr is a special case because it may have the non-nullable bit set,
     // but FutureOr<T> functions as the union of T and Future<T>, so it must be
     // unwrapped to see if T is nullable.
-    __ LoadCompressedField(
-        kScratchReg,
-        compiler::FieldAddress(kCurrentTypeReg,
-                               compiler::target::Type::type_class_id_offset()));
-    __ SmiUntag(kScratchReg);
+    __ LoadTypeClassId(kScratchReg, kCurrentTypeReg);
     __ CompareImmediate(kScratchReg, kFutureOrCid);
     __ BranchIf(NOT_EQUAL, &done);
     __ LoadCompressedField(

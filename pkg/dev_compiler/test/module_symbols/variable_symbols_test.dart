@@ -96,7 +96,9 @@ void main() async {
         final source = '''
           ${options.dartLangComment}
 
-          class A {}
+          class A {
+            const A();
+          }
           const localVariable = A();
           ''';
         setUpAll(() async {

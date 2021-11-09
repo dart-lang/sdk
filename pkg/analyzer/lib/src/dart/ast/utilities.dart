@@ -272,7 +272,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitCommentReference(CommentReference node) {
     CommentReference other = _other as CommentReference;
     return isEqualTokens(node.newKeyword, other.newKeyword) &&
-        isEqualNodes(node.identifier, other.identifier);
+        isEqualNodes(node.expression, other.expression);
   }
 
   @override
@@ -720,6 +720,13 @@ class AstComparator implements AstVisitor<bool> {
     ImplementsClause other = _other as ImplementsClause;
     return isEqualTokens(node.implementsKeyword, other.implementsKeyword) &&
         _isEqualNodeLists(node.interfaces2, other.interfaces2);
+  }
+
+  @override
+  bool visitImplicitCallReference(ImplicitCallReference node) {
+    ImplicitCallReference other = _other as ImplicitCallReference;
+    return isEqualNodes(node.expression, other.expression) &&
+        isEqualNodes(node.typeArguments, other.typeArguments);
   }
 
   @override
@@ -1789,8 +1796,8 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitCommentReference(covariant CommentReferenceImpl node) {
-    if (identical(node.identifier, _oldNode)) {
-      node.identifier = _newNode as Identifier;
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Identifier;
       return true;
     }
     return visitNode(node);
@@ -2345,6 +2352,18 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitImplicitCallReference(covariant ImplicitCallReferenceImpl node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as ExpressionImpl;
+      return true;
+    } else if (identical(node.typeArguments, _oldNode)) {
+      node.typeArguments = _newNode as TypeArgumentListImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitImportDirective(covariant ImportDirectiveImpl node) {
     if (identical(node.prefix, _oldNode)) {
       node.prefix = _newNode as SimpleIdentifier;
@@ -2534,7 +2553,7 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
-  bool? visitNamedType(covariant TypeNameImpl node) {
+  bool? visitNamedType(covariant NamedTypeImpl node) {
     if (identical(node.name, _oldNode)) {
       node.name = _newNode as Identifier;
       return true;
@@ -2864,14 +2883,14 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitTypeLiteral(covariant TypeLiteralImpl node) {
     if (identical(node.type, _oldNode)) {
-      node.typeName = _newNode as TypeNameImpl;
+      node.typeName = _newNode as NamedTypeImpl;
       return true;
     }
     return visitNode(node);
   }
 
   @override
-  bool visitTypeName(covariant TypeNameImpl node) {
+  bool visitTypeName(covariant NamedTypeImpl node) {
     throw StateError('Should not be invoked');
   }
 
@@ -2985,11 +3004,15 @@ class NodeReplacer implements AstVisitor<bool> {
   ///
   /// Throws an [ArgumentError] if either node is `null`, if the old node does
   /// not have a parent node, or if the AST structure has been corrupted.
-  static bool replace(AstNode oldNode, AstNode newNode) {
+  ///
+  /// If [newNode] is the parent of [oldNode] already (because [newNode] became
+  /// the parent of [oldNode] in its constructor), this action will loop
+  /// infinitely; pass [oldNode]'s previous parent as [parent] to avoid this.
+  static bool replace(AstNode oldNode, AstNode newNode, {AstNode? parent}) {
     if (identical(oldNode, newNode)) {
       return true;
     }
-    var parent = oldNode.parent;
+    parent ??= oldNode.parent;
     if (parent == null) {
       throw ArgumentError("The old node is not a child of another node");
     }

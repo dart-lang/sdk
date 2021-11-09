@@ -142,11 +142,19 @@ abstract class num implements Comparable<num> {
 
   /// Truncating division operator.
   ///
-  /// If either operand is a [double] then the result of the truncating division
-  /// `a ~/ b` is equivalent to `(a / b).truncate().toInt()`.
+  /// Performs truncating division of this number by [other].
+  /// Truncating division is division where a fractional result
+  /// is converted to an integer by rounding towards zero.
   ///
-  /// If both operands are [int]s then `a ~/ b` performs the truncating
-  /// integer division.
+  /// If both operands are [int]s then [other] must not be zero.
+  /// Then `a ~/ b` corresponds to `a.remainder(b)`
+  /// such that `a == (a ~/ b) * b + a.remainder(b)`.
+  ///
+  /// If either operand is a [double] then the other operand is converted
+  /// to a double before performing the division and truncation of the result.
+  /// Then `a ~/ b` is equivalent to `(a / b).truncate()`.
+  /// This means that the intermediate result of the double division
+  /// must be a finite integer (not an infinity or [double.nan]).
   int operator ~/(num other);
 
   /// The negation of this value.
@@ -214,7 +222,7 @@ abstract class num implements Comparable<num> {
   /// a finite double or an infinite double ([double.infinity]
   /// or [double.negativeInfinity]).
   ///
-  /// All numbers satisfy exacly one of of [isInfinite], [isFinite]
+  /// All numbers satisfy exactly one of [isInfinite], [isFinite]
   /// and `isNaN`.
   bool get isNaN;
 
@@ -229,7 +237,7 @@ abstract class num implements Comparable<num> {
   ///
   /// Only satisfied by [double.infinity] and [double.negativeInfinity].
   ///
-  /// All numbers satisfy exacly one of of `isInfinite`, [isFinite]
+  /// All numbers satisfy exactly one of `isInfinite`, [isFinite]
   /// and [isNaN].
   bool get isInfinite;
 
@@ -238,7 +246,7 @@ abstract class num implements Comparable<num> {
   /// The only non-finite numbers are NaN values, positive infinity, and
   /// negative infinity. All integers are finite.
   ///
-  /// All numbers satisfy exacly one of of [isInfinite], `isFinite`
+  /// All numbers satisfy exactly one of [isInfinite], `isFinite`
   /// and [isNaN].
   bool get isFinite;
 
@@ -296,7 +304,7 @@ abstract class num implements Comparable<num> {
 
   /// The least integer no smaller than `this`.
   ///
-  /// Rounds fractional values towards positive infinitiy.
+  /// Rounds fractional values towards positive infinity.
   ///
   /// The number must be finite (see [isFinite]).
   ///

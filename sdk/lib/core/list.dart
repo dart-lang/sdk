@@ -896,11 +896,9 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// as values. The `Map.keys` [Iterable] iterates the indices of this list
   /// in numerical order.
   /// ```dart
-  /// final words = ['fee', 'fi', 'fo', 'fum'];
-  /// final resultMap = words.asMap();
-  /// print(resultMap); // {0: fee, 1: fi, 2: fo, 3: fum}
-  /// print(resultMap[0]! + resultMap[1]!); // 'feefi';
-  /// print(resultMap.keys.toList()); // [0, 1, 2, 3]
+  /// var words = ['fee', 'fi', 'fo', 'fum'];
+  /// var map = words.asMap();  // {0: fee, 1: fi, 2: fo, 3: fum}
+  /// map.keys.toList(); // [0, 1, 2, 3]
   /// ```
   Map<int, E> asMap();
 

@@ -699,7 +699,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       var properties = _Properties();
       properties.addNode('function', node.function);
       properties.addNode('typeArguments', node.typeArguments);
-      properties.addTypeList('typeArgumentTypes', node.typeArgumentTypes!);
+      properties.addTypeList('typeArgumentTypes', node.typeArgumentTypes);
       _addExpression(properties, node);
       _writeProperties(properties);
     });
@@ -1036,8 +1036,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     _writeNextCodeLine(node);
-    // TODO(scheglov) Change to NamedType.
-    _writeln('TypeName');
+    _writeln('NamedType');
     _withIndent(() {
       _writeNode('name', node.name);
       _writeType('type', node.type);
@@ -1253,9 +1252,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SimpleIdentifier');
     _withIndent(() {
-      _writeElement('staticElement', node.staticElement);
-      _writeType('staticType', node.staticType);
-      _writeToken('token', node.token);
+      var properties = _Properties();
+      properties.addElement('staticElement', node.staticElement);
+      properties.addType('staticType', node.staticType);
+      properties.addTypeList(
+        'tearOffTypeArgumentTypes',
+        node.tearOffTypeArgumentTypes,
+      );
+      properties.addToken('token', node.token);
+      _writeProperties(properties);
     });
   }
 
@@ -1433,8 +1438,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('TypeLiteral');
     _withIndent(() {
       var properties = _Properties();
-      // TODO(scheglov) Change to 'type'.
-      properties.addNode('typeName', node.type);
+      properties.addNode('type', node.type);
       _addExpression(properties, node);
       _writeProperties(properties);
     });
@@ -1683,7 +1687,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     properties.addNode('argumentList', node.argumentList);
     properties.addType('staticInvokeType', node.staticInvokeType);
     properties.addNode('typeArguments', node.typeArguments);
-    properties.addTypeList('typeArgumentTypes', node.typeArgumentTypes!);
+    properties.addTypeList('typeArgumentTypes', node.typeArgumentTypes);
     _addExpression(properties, node);
   }
 
@@ -1987,8 +1991,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writelnWithIndent('$name: $typeStr');
   }
 
-  void _writeTypeList(String name, List<DartType> types) {
-    if (types.isNotEmpty) {
+  void _writeTypeList(String name, List<DartType>? types) {
+    if (types != null && types.isNotEmpty) {
       _writelnWithIndent(name);
       _withIndent(() {
         for (var type in types) {
@@ -2108,7 +2112,7 @@ class _Properties {
     );
   }
 
-  void addTypeList(String name, List<DartType> types) {
+  void addTypeList(String name, List<DartType>? types) {
     properties.add(
       _TypeListProperty(name, types),
     );
@@ -2168,7 +2172,7 @@ class _TokenProperty extends _Property {
 }
 
 class _TypeListProperty extends _Property {
-  final List<DartType> types;
+  final List<DartType>? types;
 
   _TypeListProperty(String name, this.types) : super(name);
 

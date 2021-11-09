@@ -22,6 +22,7 @@ var denylist = [
 
   // Don't exit the test pre-maturely.
   'dart.io.exit',
+  'dart.isolate.Isolate.exit',
 
   // Don't change the exit code, which may fool the test harness.
   'dart.io.exitCode',

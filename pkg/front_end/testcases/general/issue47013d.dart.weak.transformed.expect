@@ -23,8 +23,8 @@ class B extends self::A {
   synthetic constructor •() → self::B
     : super self::A::•()
     ;
-  forwarding-stub forwarding-semi-stub method m(covariant-by-declaration core::int i, covariant-by-declaration core::num n) → void
-    return super.{self::A::m}(i, n as core::int);
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::int, core::num) → void */ m(covariant-by-declaration core::num i, covariant-by-declaration core::int n) → void
+    return super.{self::A::m}(i, n);
 }
 static method main() → dynamic {
   self::B b = new self::B::•();

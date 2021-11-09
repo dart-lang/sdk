@@ -260,8 +260,8 @@ if (is_posix) {
 }
 if (is_fuchsia) {
   _native_compiler_configs += [
-    "//third_party/fuchsia/sdk/linux/build/config:compiler",
-    "//third_party/fuchsia/sdk/linux/build/config:runtime_library",
+    "//third_party/fuchsia/sdk/${host_os}/build/config:compiler",
+    "//third_party/fuchsia/sdk/${host_os}/build/config:runtime_library",
   ]
 }
 
@@ -405,10 +405,16 @@ if (is_win) {
   host_toolchain = "//build/toolchain/mac:clang_$host_cpu"
   set_default_toolchain("//build/toolchain/mac:clang_$current_cpu")
 } else if (is_fuchsia) {
-  assert(host_os == "linux")
   assert(host_cpu == "x64")
-  host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
-  set_default_toolchain("//build/toolchain/fuchsia")
+  if (host_os == "linux") {
+    host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
+    set_default_toolchain("//build/toolchain/fuchsia")
+  } else if (host_os == "mac") {
+    host_toolchain = "//build/toolchain/mac:clang_$host_cpu"
+    set_default_toolchain("//build/toolchain/fuchsia")
+  } else {
+    assert(false, "Unknown host for fuchsia cross compile")
+  }
 }
 
 # ==============================================================================

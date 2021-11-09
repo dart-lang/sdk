@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    ;
+}
+extension _extension#0 on self::Foo {
+  static field bar = self::_extension#0|bar;
+  static field doubleBar = self::_extension#0|doubleBar;
+}
+static const field core::int _extension#0|bar = 1;
+static const field core::int _extension#0|doubleBar = self::_extension#0|bar.{core::num::*}(2){(core::num) → core::int};
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue47345.dart:11:32 -> IntConstant(2)
+Extra constant evaluation: evaluated: 1, effectively constant: 1

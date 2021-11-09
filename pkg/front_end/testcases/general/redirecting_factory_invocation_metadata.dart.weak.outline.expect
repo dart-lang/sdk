@@ -80,6 +80,7 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:85:2 -> InstanceConstant(const Const{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:86:24 -> InstanceConstant(const Const{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:17:2 -> InstanceConstant(const Const{})
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:18:7 -> ConstructorTearOffConstant(Const.)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:46:14 -> InstanceConstant(const Const{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:56:4 -> InstanceConstant(const Const{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:59:4 -> InstanceConstant(const Const{})
@@ -98,4 +99,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:109:12 -> InstanceConstant(const Const{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:23:2 -> InstanceConstant(const Const{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:90:4 -> InstanceConstant(const Const{})
-Extra constant evaluation: evaluated: 41, effectively constant: 28
+Extra constant evaluation: evaluated: 41, effectively constant: 29

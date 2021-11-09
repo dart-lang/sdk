@@ -25,14 +25,14 @@ class AssignmentVerifier {
   /// element, which is definitely not a valid write target. We want to report
   /// a good error about this.
   ///
-  /// The [receiverTypeObject] might be a [DartType] or [String], and when
-  /// it is not `null`, we report [CompileTimeErrorCode.UNDEFINED_SETTER]
-  /// instead of a more generic [CompileTimeErrorCode.UNDEFINED_IDENTIFIER].
+  /// When the [receiverType] is not `null`, we report
+  /// [CompileTimeErrorCode.UNDEFINED_SETTER] instead of a more generic
+  /// [CompileTimeErrorCode.UNDEFINED_IDENTIFIER].
   void verify({
     required SimpleIdentifier node,
     required Element? requested,
     required Element? recovery,
-    required Object? receiverTypeObject,
+    required DartType? receiverType,
   }) {
     if (requested != null) {
       if (requested is VariableElement) {
@@ -106,11 +106,11 @@ class AssignmentVerifier {
       if (node.isSynthetic) {
         return;
       }
-      if (receiverTypeObject != null) {
+      if (receiverType != null) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_SETTER,
           node,
-          [node.name, receiverTypeObject],
+          [node.name, receiverType],
         );
       } else {
         _errorReporter.reportErrorForNode(

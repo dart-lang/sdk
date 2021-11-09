@@ -857,10 +857,16 @@ class JsNameConstantValue extends ConstantValue {
   ConstantValueKind get kind => ConstantValueKind.JS_NAME;
 
   @override
-  String toDartText(DartTypes dartTypes) => 'js_name(${name})';
+  String toDartText(DartTypes dartTypes) {
+    if (name.isFinalized) 'js_name(${name})';
+    return 'js_name(name.nonfinalizedDebugText())';
+  }
 
   @override
-  String toStructuredText(DartTypes dartTypes) => 'JsNameConstant(${name})';
+  String toStructuredText(DartTypes dartTypes) {
+    if (name.isFinalized) return 'JsNameConstant(${name})';
+    return 'JsNameConstant(name.nonfinalizedDebugText())';
+  }
 }
 
 /// A constant used as the dummy receiver value for intercepted calls with

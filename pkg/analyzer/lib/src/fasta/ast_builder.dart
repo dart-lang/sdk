@@ -26,6 +26,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageOperatorWithTypeParameters,
+        messagePositionalAfterNamedArgument,
         templateDuplicateLabelInSwitchStatement,
         templateExpectedButGot,
         templateExpectedIdentifier,
@@ -143,8 +144,11 @@ class AstBuilder extends StackListener {
   /// `true` if constructor tearoffs are enabled
   final bool enableConstructorTearoffs;
 
-  /// `true` if extension types are enabled;
+  /// `true` if extension types are enabled
   final bool enableExtensionTypes;
+
+  /// `true` if named arguments anywhere are enabled
+  final bool enableNamedArgumentsAnywhere;
 
   final FeatureSet _featureSet;
 
@@ -164,6 +168,8 @@ class AstBuilder extends StackListener {
         enableConstructorTearoffs =
             _featureSet.isEnabled(Feature.constructor_tearoffs),
         enableExtensionTypes = _featureSet.isEnabled(Feature.extension_types),
+        enableNamedArgumentsAnywhere =
+            _featureSet.isEnabled(Feature.named_arguments_anywhere),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -268,8 +274,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginFactoryMethod(
-      Token lastConsumed, Token? externalToken, Token? constToken) {
+  void beginFactoryMethod(DeclarationKind declarationKind, Token lastConsumed,
+      Token? externalToken, Token? constToken) {
     push(_Modifiers()
       ..externalKeyword = externalToken
       ..finalConstOrVarKeyword = constToken);
@@ -310,6 +316,7 @@ class AstBuilder extends StackListener {
 
   @override
   void beginMethod(
+      DeclarationKind declarationKind,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -576,6 +583,20 @@ class AstBuilder extends StackListener {
     var expressions = popTypedList2<Expression>(count);
     ArgumentList arguments =
         ast.argumentList(leftParenthesis, expressions, rightParenthesis);
+
+    if (!enableNamedArgumentsAnywhere) {
+      bool hasSeenNamedArgument = false;
+      for (Expression expression in expressions) {
+        if (expression is NamedExpression) {
+          hasSeenNamedArgument = true;
+        } else if (hasSeenNamedArgument) {
+          // Positional argument after named argument.
+          handleRecoverableError(messagePositionalAfterNamedArgument,
+              expression.beginToken, expression.endToken);
+        }
+      }
+    }
+
     push(ast.methodInvocation(
         null, null, _tmpSimpleIdentifier(), null, arguments));
   }
@@ -995,7 +1016,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endClassOrMixinBody(DeclarationKind kind, int memberCount,
+  void endClassOrMixinOrExtensionBody(DeclarationKind kind, int memberCount,
       Token leftBracket, Token rightBracket) {
     // TODO(danrubel): consider renaming endClassOrMixinBody
     // to endClassOrMixinOrExtensionBody
@@ -1574,45 +1595,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFunctionTypeAlias(
-      Token typedefKeyword, Token? equals, Token semicolon) {
-    assert(optional('typedef', typedefKeyword));
-    assert(optionalOrNull('=', equals));
-    assert(optional(';', semicolon));
-    debugEvent("FunctionTypeAlias");
-
-    if (equals == null) {
-      var parameters = pop() as FormalParameterList;
-      var typeParameters = pop() as TypeParameterList?;
-      var name = pop() as SimpleIdentifier;
-      var returnType = pop() as TypeAnnotation?;
-      var metadata = pop() as List<Annotation>?;
-      var comment = _findComment(metadata, typedefKeyword);
-      declarations.add(ast.functionTypeAlias(comment, metadata, typedefKeyword,
-          returnType, name, typeParameters, parameters, semicolon));
-    } else {
-      var type = pop() as TypeAnnotation;
-      var templateParameters = pop() as TypeParameterList?;
-      var name = pop() as SimpleIdentifier;
-      var metadata = pop() as List<Annotation>?;
-      var comment = _findComment(metadata, typedefKeyword);
-      if (type is! GenericFunctionType && !enableNonFunctionTypeAliases) {
-        var feature = Feature.nonfunction_type_aliases;
-        handleRecoverableError(
-          templateExperimentNotEnabled.withArguments(
-            feature.enableString,
-            _versionAsString(ExperimentStatus.currentVersion),
-          ),
-          equals,
-          equals,
-        );
-      }
-      declarations.add(ast.genericTypeAlias(comment, metadata, typedefKeyword,
-          name, templateParameters, equals, type, semicolon));
-    }
-  }
-
-  @override
   void endFunctionTypedFormalParameter(Token nameToken, Token? question) {
     debugEvent("FunctionTypedFormalParameter");
     if (!enableNonNullable) {
@@ -1682,7 +1664,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endImplicitCreationExpression(Token token) {
+  void endImplicitCreationExpression(Token token, Token openAngleBracket) {
     debugEvent("ImplicitCreationExpression");
 
     _handleInstanceCreation(null);
@@ -2313,6 +2295,44 @@ class AstBuilder extends StackListener {
 
     var arguments = popTypedList2<TypeAnnotation>(count);
     push(ast.typeArgumentList(leftBracket, arguments, rightBracket));
+  }
+
+  @override
+  void endTypedef(Token typedefKeyword, Token? equals, Token semicolon) {
+    assert(optional('typedef', typedefKeyword));
+    assert(optionalOrNull('=', equals));
+    assert(optional(';', semicolon));
+    debugEvent("FunctionTypeAlias");
+
+    if (equals == null) {
+      var parameters = pop() as FormalParameterList;
+      var typeParameters = pop() as TypeParameterList?;
+      var name = pop() as SimpleIdentifier;
+      var returnType = pop() as TypeAnnotation?;
+      var metadata = pop() as List<Annotation>?;
+      var comment = _findComment(metadata, typedefKeyword);
+      declarations.add(ast.functionTypeAlias(comment, metadata, typedefKeyword,
+          returnType, name, typeParameters, parameters, semicolon));
+    } else {
+      var type = pop() as TypeAnnotation;
+      var templateParameters = pop() as TypeParameterList?;
+      var name = pop() as SimpleIdentifier;
+      var metadata = pop() as List<Annotation>?;
+      var comment = _findComment(metadata, typedefKeyword);
+      if (type is! GenericFunctionType && !enableNonFunctionTypeAliases) {
+        var feature = Feature.nonfunction_type_aliases;
+        handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          equals,
+          equals,
+        );
+      }
+      declarations.add(ast.genericTypeAlias(comment, metadata, typedefKeyword,
+          name, templateParameters, equals, type, semicolon));
+    }
   }
 
   @override
@@ -3416,7 +3436,7 @@ class AstBuilder extends StackListener {
     if (message == messageNativeClauseShouldBeAnnotation && allowNativeClause) {
       return;
     }
-    debugEvent("Error: ${message.message}");
+    debugEvent("Error: ${message.problemMessage}");
     if (message.code.analyzerCodes == null && startToken is ErrorToken) {
       translateErrorToken(startToken, errorReporter.reportScannerError);
     } else {
@@ -3728,7 +3748,7 @@ class AstBuilder extends StackListener {
 
   @override
   Never internalProblem(Message message, int charOffset, Uri uri) {
-    throw UnsupportedError(message.message);
+    throw UnsupportedError(message.problemMessage);
   }
 
   /// Return `true` if [token] is either `null` or is the symbol or keyword

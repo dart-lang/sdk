@@ -220,10 +220,10 @@ DEFINE_NATIVE_ENTRY(AbstractClassInstantiationError_throwNew, 0, 2) {
 }
 
 // Rethrow an error with a stacktrace.
-DEFINE_NATIVE_ENTRY(Async_rethrow, 0, 2) {
+DEFINE_NATIVE_ENTRY(Error_throwWithStackTrace, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, error, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, stacktrace, arguments->NativeArgAt(1));
-  Exceptions::ReThrow(thread, error, stacktrace);
+  Exceptions::ThrowWithStackTrace(thread, error, stacktrace);
   return Object::null();
 }
 

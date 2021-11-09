@@ -19,6 +19,7 @@ class FixProcessorMapTest {
     'avoid_types_on_closure_parameters',
     'empty_statements',
     'prefer_collection_literals',
+    'prefer_const_constructors',
     'prefer_inlined_adds',
   ];
 

@@ -1,0 +1,99 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "test_lib.dart" as tes;
+
+import "org-dartlang-testcase:///test_lib.dart";
+
+static method main() → dynamic {
+  tes::test();
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in/test_lib.dart:10:27: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
+//   int j = sub.mixinMethod(null);
+//                           ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in/test_lib.dart:10:15: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+//   int j = sub.mixinMethod(null);
+//               ^
+//
+// pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in/test_lib.dart:12:25: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+//   sub.mixinField2 = sub.mixinField1;
+//                         ^
+//
+import self as tes;
+import "opt_out_lib.dart" as opt;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///opt_out_lib.dart";
+
+static method test() → dynamic {
+  opt::SubClass sub = new opt::SubClass::•();
+  core::int i = sub.{opt::_SubClass&Class&Mixin::classMethod}(null){(core::int*) →* core::int*};
+  core::int j = invalid-expression "pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in/test_lib.dart:10:15: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+  int j = sub.mixinMethod(null);
+              ^" in sub.{opt::_SubClass&Class&Mixin::mixinMethod}(invalid-expression "pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in/test_lib.dart:10:27: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
+  int j = sub.mixinMethod(null);
+                          ^" in null as{TypeError,ForNonNullableByDefault} core::int){(core::int) →* core::int?} as{TypeError,ForNonNullableByDefault} core::int;
+  sub.{opt::_SubClass&Class&Mixin::classField2} = sub.{opt::_SubClass&Class&Mixin::classField1}{core::int*};
+  sub.{opt::_SubClass&Class&Mixin::mixinField2} = invalid-expression "pkg/front_end/testcases/nnbd_mixed/mixin_from_opt_in/test_lib.dart:12:25: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+  sub.mixinField2 = sub.mixinField1;
+                        ^" in sub.{opt::_SubClass&Class&Mixin::mixinField1}{core::int?} as{TypeError,ForNonNullableByDefault} core::int;
+}
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int? classField1 = null;
+  field core::int classField2 = 0;
+  synthetic constructor •() → self2::Class
+    : super core::Object::•()
+    ;
+  method classMethod(core::int i) → core::int? {}
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  field core::int? mixinField1 = null;
+  field core::int mixinField2 = 0;
+  method mixinMethod(core::int i) → core::int? {}
+}
+
+library;
+import self as opt;
+import "opt_in_lib.dart" as self2;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///opt_in_lib.dart";
+
+abstract class _SubClass&Class&Mixin extends self2::Class implements self2::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  field core::int? mixinField1 = null /*isNonNullableByDefault, from org-dartlang-testcase:///opt_in_lib.dart */;
+  field core::int mixinField2 = 0 /*isNonNullableByDefault, from org-dartlang-testcase:///opt_in_lib.dart */;
+  synthetic constructor •() → opt::_SubClass&Class&Mixin*
+    : super self2::Class::•()
+    ;
+  abstract member-signature get classField1() → core::int*; -> self2::Class::classField1
+  abstract member-signature get classField2() → core::int*; -> self2::Class::classField2
+  method /*isNonNullableByDefault, from org-dartlang-testcase:///opt_in_lib.dart */ mixinMethod(core::int i) → core::int? {}
+  abstract member-signature method classMethod(core::int* i) → core::int*; -> self2::Class::classMethod
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature set classField1(core::int* value) → void; -> self2::Class::classField1
+  abstract member-signature set classField2(core::int* value) → void; -> self2::Class::classField2
+}
+class SubClass extends opt::_SubClass&Class&Mixin {
+  synthetic constructor •() → opt::SubClass*
+    : super opt::_SubClass&Class&Mixin::•()
+    ;
+}

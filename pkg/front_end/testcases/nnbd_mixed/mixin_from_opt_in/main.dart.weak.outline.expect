@@ -1,0 +1,70 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "org-dartlang-testcase:///test_lib.dart";
+
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+
+import "org-dartlang-testcase:///opt_out_lib.dart";
+
+static method test() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self3;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int? classField1;
+  field core::int classField2;
+  synthetic constructor •() → self3::Class
+    ;
+  method classMethod(core::int i) → core::int?
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  field core::int? mixinField1;
+  field core::int mixinField2;
+  method mixinMethod(core::int i) → core::int?
+    ;
+}
+
+library;
+import self as self4;
+import "opt_in_lib.dart" as self3;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///opt_in_lib.dart";
+
+abstract class _SubClass&Class&Mixin extends self3::Class implements self3::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  field core::int? mixinField1 /*isNonNullableByDefault, from org-dartlang-testcase:///opt_in_lib.dart */;
+  field core::int mixinField2 /*isNonNullableByDefault, from org-dartlang-testcase:///opt_in_lib.dart */;
+  synthetic constructor •() → self4::_SubClass&Class&Mixin*
+    : super self3::Class::•()
+    ;
+  abstract member-signature get classField1() → core::int*; -> self3::Class::classField1
+  abstract member-signature get classField2() → core::int*; -> self3::Class::classField2
+  method /*isNonNullableByDefault, from org-dartlang-testcase:///opt_in_lib.dart */ mixinMethod(core::int i) → core::int?
+    ;
+  abstract member-signature method classMethod(core::int* i) → core::int*; -> self3::Class::classMethod
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature set classField1(core::int* value) → void; -> self3::Class::classField1
+  abstract member-signature set classField2(core::int* value) → void; -> self3::Class::classField2
+}
+class SubClass extends self4::_SubClass&Class&Mixin {
+  synthetic constructor •() → self4::SubClass*
+    ;
+}

@@ -43,7 +43,6 @@ main() {
           'testDone',
           'testStart',
           'error',
-          'print',
           'testDone',
         ]),
       );
@@ -59,15 +58,14 @@ main() {
           testFile.path,
           noDebug: true,
           cwd: dap.testAppDir.path,
+          args: ['--chain-stack-traces'], // to suppress warnings in the output
         ),
       );
 
       // Check the printed output shows that the run finished, and it's exit
       // code (which is 1 due to the failing test).
       final output = outputEvents.output.map((e) => e.output).join();
-      expectLines(output, [
-        'Exited (1).',
-      ]);
+      expectLines(output, simpleTestProgramExpectedOutput);
 
       expectStandardSimpleTestResults(outputEvents);
     });
@@ -86,7 +84,7 @@ main() {
           // if it wants to run a subset of tests.
           args: [
             '--plain-name',
-            'passing',
+            'passing test',
           ],
         ),
       );
@@ -96,8 +94,8 @@ main() {
           .map((e) => (e['test'] as Map<String, Object?>)['name'])
           .toList();
 
-      expect(testsNames, contains('group passing'));
-      expect(testsNames, isNot(contains('group failing')));
+      expect(testsNames, contains('group 1 passing test'));
+      expect(testsNames, isNot(contains('group 1 failing test')));
     });
 
     test('can hit and resume from a breakpoint', () async {
@@ -108,13 +106,12 @@ main() {
       // Collect output and test events while running the script.
       final outputEvents = await client.collectTestOutput(
         // When launching, hit a breakpoint and resume.
-        start: () => client
-            .hitBreakpoint(
-              testFile,
-              breakpointLine,
-              cwd: dap.testAppDir.path,
-            )
-            .then((stop) => client.continue_(stop.threadId!)),
+        start: () => client.hitBreakpoint(
+          testFile,
+          breakpointLine,
+          cwd: dap.testAppDir.path,
+          args: ['--chain-stack-traces'], // to suppress warnings in the output
+        ).then((stop) => client.continue_(stop.threadId!)),
       );
 
       // Check the usual output and test events to ensure breaking/resuming did
@@ -123,7 +120,7 @@ main() {
           .map((e) => e.output)
           .skipWhile(dapVmServiceBannerPattern.hasMatch)
           .join();
-      expectLines(output, ['Exited (1).']);
+      expectLines(output, simpleTestProgramExpectedOutput);
       expectStandardSimpleTestResults(outputEvents);
     });
 

@@ -1,0 +1,75 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "org-dartlang-testcase:///test_lib.dart";
+
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+
+import "org-dartlang-testcase:///opt_out_lib.dart";
+
+static method test() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self3;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int? classField1;
+  field core::int classField2;
+  synthetic constructor •() → self3::Class
+    ;
+  method classMethod(core::int i) → core::int?
+    ;
+  static method _#new#tearOff() → self3::Class
+    return new self3::Class::•();
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  field core::int? mixinField1;
+  field core::int mixinField2;
+  method mixinMethod(core::int i) → core::int?
+    ;
+}
+
+library;
+import self as self4;
+import "opt_in_lib.dart" as self3;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///opt_in_lib.dart";
+
+abstract class _SubClass&Class&Mixin = self3::Class with self3::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self4::_SubClass&Class&Mixin*
+    : super self3::Class::•()
+    ;
+  mixin-super-stub get mixinField1() → core::int*
+    return super.{self3::Mixin::mixinField1};
+  mixin-super-stub set mixinField1(core::int* value) → void
+    return super.{self3::Mixin::mixinField1} = value;
+  mixin-super-stub get mixinField2() → core::int*
+    return super.{self3::Mixin::mixinField2};
+  mixin-super-stub set mixinField2(core::int* value) → void
+    return super.{self3::Mixin::mixinField2} = value;
+  abstract member-signature get classField1() → core::int*; -> self3::Class::classField1
+  abstract member-signature set classField1(core::int* value) → void; -> self3::Class::classField1
+  abstract member-signature get classField2() → core::int*; -> self3::Class::classField2
+  abstract member-signature set classField2(core::int* value) → void; -> self3::Class::classField2
+  mixin-super-stub method mixinMethod(core::int* i) → core::int*
+    return super.{self3::Mixin::mixinMethod}(i);
+  abstract member-signature method classMethod(core::int* i) → core::int*; -> self3::Class::classMethod
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class SubClass extends self4::_SubClass&Class&Mixin {
+  synthetic constructor •() → self4::SubClass*
+    ;
+  static method _#new#tearOff() → self4::SubClass*
+    return new self4::SubClass::•();
+}

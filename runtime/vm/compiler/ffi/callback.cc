@@ -52,7 +52,8 @@ FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
   //
   // Exceptional return values currently cannot be pointers because we don't
   // have constant pointers.
-  ASSERT(exceptional_return.IsNull() || exceptional_return.IsNumber());
+  ASSERT(exceptional_return.IsNull() || exceptional_return.IsNumber() ||
+         exceptional_return.IsBool());
   if (!exceptional_return.IsSmi() && exceptional_return.IsNew()) {
     function.SetFfiCallbackExceptionalReturn(Instance::Handle(
         zone, exceptional_return.CopyShallowToOldSpace(thread)));

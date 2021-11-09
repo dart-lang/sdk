@@ -101,8 +101,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
 
   @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
     if (arguments != null) {
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri? fileUri = null; // TODO(ahe): Provide these.
@@ -129,7 +128,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
       nullability = nullabilityBuilder.build(library);
     }
     TypeParameterType type =
-        buildTypesWithBuiltArguments(library, nullability, null);
+        buildTypeWithBuiltArguments(library, nullability, null);
     if (needsPostUpdate) {
       if (library is SourceLibraryBuilder) {
         library.registerPendingNullability(fileUri!, charOffset, type);
@@ -146,7 +145,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
   }
 
   @override
-  TypeParameterType buildTypesWithBuiltArguments(LibraryBuilder library,
+  TypeParameterType buildTypeWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType>? arguments) {
     if (arguments != null) {
       int charOffset = -1; // TODO(ahe): Provide these.
@@ -158,12 +157,6 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
           fileUri);
     }
     return new TypeParameterType(parameter, nullability);
-  }
-
-  TypeBuilder asTypeBuilder() {
-    return new NamedTypeBuilder(
-        name, const NullabilityBuilder.omitted(), null, fileUri, charOffset)
-      ..bind(this);
   }
 
   void finish(
@@ -193,7 +186,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
   }
 
   TypeVariableBuilder clone(
-      List<TypeBuilder> newTypes,
+      List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
     // TODO(dmitryas): Figure out if using [charOffset] here is a good idea.

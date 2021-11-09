@@ -79,9 +79,10 @@ class _RandomAccessFileOpsImpl extends NativeFieldWrapperClass1
 
   @pragma("vm:external-name", "File_SetPointer")
   external void _setPointer(int pointer);
-
   @pragma("vm:external-name", "File_GetPointer")
   external int getPointer();
+  @pragma("vm:external-name", "File_GetFD")
+  external int get fd;
   @pragma("vm:external-name", "File_Close")
   external int close();
   @pragma("vm:external-name", "File_ReadByte")

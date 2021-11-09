@@ -2,31 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/atomic.h"
-
-#include "vm/cpu.h"
-#include "vm/os.h"
 #include "vm/version.h"
+
+#include "vm/globals.h"
 
 namespace dart {
 
-// We use acquire-release semantics to ensure initializing stores to the string
-// are visible when the string becomes visible.
-static AcqRelAtomic<const char*> formatted_version = nullptr;
-
 const char* Version::String() {
-  if (formatted_version.load() == nullptr) {
-    const char* os = OS::Name();
-    const char* arch = CPU::Id();
-    char* version_string =
-        OS::SCreate(nullptr, "%s on \"%s_%s\"", str_, os, arch);
-    const char* expect_old_is_null = nullptr;
-    if (!formatted_version.compare_exchange_strong(expect_old_is_null,
-                                                   version_string)) {
-      free(version_string);
-    }
-  }
-  return formatted_version.load();
+  return str_;
 }
 
 const char* Version::SnapshotString() {
@@ -42,7 +25,42 @@ const char* Version::SdkHash() {
 }
 
 const char* Version::snapshot_hash_ = "{{SNAPSHOT_HASH}}";
-const char* Version::str_ = "{{VERSION_STR}} ({{CHANNEL}}) ({{COMMIT_TIME}})";
+const char* Version::str_ =
+    "{{VERSION_STR}} ({{CHANNEL}}) ({{COMMIT_TIME}})"
+    " on \""
+#if defined(DART_HOST_OS_ANDROID)
+    "android"
+#elif defined(DART_HOST_OS_FUCHSIA)
+    "fuchsia"
+#elif defined(DART_HOST_OS_LINUX)
+    "linux"
+#elif defined(DART_HOST_OS_MACOS)
+#if DART_HOST_OS_IOS
+    "ios"
+#else
+    "macos"
+#endif
+#elif defined(DART_HOST_OS_WINDOWS)
+    "windows"
+#else
+#error Unknown OS
+#endif
+    "_"
+#if defined(USING_SIMULATOR)
+    "sim"
+#endif
+#if defined(TARGET_ARCH_IA32)
+    "ia32"
+#elif defined(TARGET_ARCH_X64)
+    "x64"
+#elif defined(TARGET_ARCH_ARM)
+    "arm"
+#elif defined(TARGET_ARCH_ARM64)
+    "arm64"
+#else
+#error Unknown arch
+#endif
+    "\"";
 const char* Version::commit_ = "{{VERSION_STR}}";
 const char* Version::git_short_hash_ = "{{GIT_HASH}}";
 

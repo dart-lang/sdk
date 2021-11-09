@@ -511,7 +511,7 @@ class PositionTraceListener extends TraceListener
   /// code using [kind] to determine what information to use.
   ///
   /// For most nodes the start position of the source information is used.
-  /// For instance a return expression points to the the start position of the
+  /// For instance a return expression points to the start position of the
   /// source information, typically the start of the return statement that
   /// created the JavaScript return node:
   ///

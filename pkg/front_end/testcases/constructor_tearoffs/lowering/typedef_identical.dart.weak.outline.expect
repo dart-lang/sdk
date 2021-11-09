@@ -76,3 +76,8 @@ static method _#G#fact#tearOff<unrelated X extends core::Object? = dynamic, Y ex
   return typ::A::fact<typ::_#G#fact#tearOff::Y%>(a, b: b, c: c);
 static method _#G#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#G#redirect#tearOff::Y%>
   return typ::A::_#redirect#tearOff<typ::_#G#redirect#tearOff::Y%>();
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///typedef_identical_lib.dart:5:7 -> ConstructorTearOffConstant(A.redirect)
+Extra constant evaluation: evaluated: 39, effectively constant: 1

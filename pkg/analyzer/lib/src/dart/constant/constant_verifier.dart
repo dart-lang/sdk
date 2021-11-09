@@ -73,8 +73,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               _currentLibrary.featureSet.isEnabled(Feature.non_nullable),
         );
 
-  bool get _isNonNullableByDefault => _currentLibrary.isNonNullableByDefault;
-
   @override
   void visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
@@ -173,6 +171,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         _evaluationEngine.evaluateConstructorCall(
             _currentLibrary,
             node,
+            constructor.returnType.typeArguments,
             node.argumentList.arguments,
             constructor,
             constantVisitor,
@@ -259,7 +258,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    if (_isNonNullableByDefault) {
+    if (_currentLibrary.isNonNullableByDefault) {
       _validateSwitchStatement_nullSafety(node);
     } else {
       _validateSwitchStatement_legacy(node);
@@ -342,9 +341,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   /// @return `true` if given [Type] implements operator <i>==</i>, and it is
   ///         not <i>int</i> or <i>String</i>.
-  bool _implementsEqualsWhenNotAllowed(DartType? type) {
+  bool _implementsEqualsWhenNotAllowed(DartType type) {
     // ignore int or String
-    if (type == null || type.isDartCoreInt || type.isDartCoreString) {
+    if (type.isDartCoreInt || type.isDartCoreString) {
       return false;
     } else if (type.isDartCoreDouble) {
       return true;
@@ -374,7 +373,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ///        consists of a reference to a deferred library
   void _reportErrorIfFromDeferredLibrary(
       Expression expression, ErrorCode errorCode,
-      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
+      [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
     DeferredLibraryReferenceDetector referenceDetector =
         DeferredLibraryReferenceDetector();
     expression.accept(referenceDetector);
@@ -424,7 +423,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void _reportNotPotentialConstants(AstNode node) {
     var notPotentiallyConstants = getNotPotentiallyConstants(
       node,
-      isNonNullableByDefault: _isNonNullableByDefault,
+      featureSet: _currentLibrary.featureSet,
     );
     if (notPotentiallyConstants.isEmpty) return;
 
@@ -447,7 +446,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// Check if the object [obj] matches the type [type] according to runtime
   /// type checking rules.
   bool _runtimeTypeMatch(DartObjectImpl obj, DartType type) {
-    return _evaluationEngine.runtimeTypeMatch(_currentLibrary, obj, type);
+    return _currentLibrary.typeSystem.runtimeTypeMatch(obj, type);
   }
 
   /// Validate that the given expression is a compile time constant. Return the
@@ -629,7 +628,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (_implementsEqualsWhenNotAllowed(firstType)) {
+    if (firstType != null && _implementsEqualsWhenNotAllowed(firstType)) {
       _errorReporter.reportErrorForToken(
         CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
         node.switchKeyword,
@@ -773,7 +772,7 @@ class _ConstLiteralVerifier {
   bool _reportNotPotentialConstants(AstNode node) {
     var notPotentiallyConstants = getNotPotentiallyConstants(
       node,
-      isNonNullableByDefault: verifier._isNonNullableByDefault,
+      featureSet: verifier._currentLibrary.featureSet,
     );
     if (notPotentiallyConstants.isEmpty) return true;
 

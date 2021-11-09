@@ -315,11 +315,8 @@ class DoubleToIntegerSlowPath
 class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
  public:
   ThrowErrorSlowPathCode(Instruction* instruction,
-                         const RuntimeEntry& runtime_entry,
-                         intptr_t try_index)
-      : TemplateSlowPathCode(instruction),
-        runtime_entry_(runtime_entry),
-        try_index_(try_index) {}
+                         const RuntimeEntry& runtime_entry)
+      : TemplateSlowPathCode(instruction), runtime_entry_(runtime_entry) {}
 
   // This name appears in disassembly.
   virtual const char* name() = 0;
@@ -341,15 +338,14 @@ class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
 
  private:
   const RuntimeEntry& runtime_entry_;
-  const intptr_t try_index_;
 };
 
 class NullErrorSlowPath : public ThrowErrorSlowPathCode {
  public:
-  NullErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
+  explicit NullErrorSlowPath(CheckNullInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               GetRuntimeEntry(instruction->exception_type()),
-                               try_index) {}
+                               GetRuntimeEntry(instruction->exception_type())) {
+  }
 
   CheckNullInstr::ExceptionType exception_type() const {
     return instruction()->AsCheckNull()->exception_type();
@@ -376,10 +372,8 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
 
 class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
  public:
-  RangeErrorSlowPath(GenericCheckBoundInstr* instruction, intptr_t try_index)
-      : ThrowErrorSlowPathCode(instruction,
-                               kRangeErrorRuntimeEntry,
-                               try_index) {}
+  explicit RangeErrorSlowPath(GenericCheckBoundInstr* instruction)
+      : ThrowErrorSlowPathCode(instruction, kRangeErrorRuntimeEntry) {}
   virtual const char* name() { return "check bound"; }
 
   virtual intptr_t GetNumberOfArgumentsForRuntimeCall() {
@@ -394,11 +388,9 @@ class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
 
 class LateInitializationErrorSlowPath : public ThrowErrorSlowPathCode {
  public:
-  LateInitializationErrorSlowPath(LoadFieldInstr* instruction,
-                                  intptr_t try_index)
+  explicit LateInitializationErrorSlowPath(LoadFieldInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               kLateFieldNotInitializedErrorRuntimeEntry,
-                               try_index) {}
+                               kLateFieldNotInitializedErrorRuntimeEntry) {}
   virtual const char* name() { return "late initialization error"; }
 
   virtual intptr_t GetNumberOfArgumentsForRuntimeCall() {
@@ -472,9 +464,6 @@ class FlowGraphCompiler : public ValueObject {
   static bool SupportsUnboxedSimd128();
   static bool SupportsHardwareDivision();
   static bool CanConvertInt64ToDouble();
-
-  static bool IsUnboxedField(const Field& field);
-  static bool IsPotentialUnboxedField(const Field& field);
 
   // Accessors.
   compiler::Assembler* assembler() const { return assembler_; }

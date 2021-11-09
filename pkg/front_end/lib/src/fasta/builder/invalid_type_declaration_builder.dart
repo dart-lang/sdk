@@ -34,14 +34,13 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
 
   @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
-    return buildTypesWithBuiltArguments(library, null, null);
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
+    return buildTypeWithBuiltArguments(library, null, null);
   }
 
   /// [Arguments] have already been built.
   @override
-  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
       Nullability? nullability, List<DartType>? arguments) {
     if (!suppressMessage) {
       library.addProblem(message.messageObject, message.charOffset,

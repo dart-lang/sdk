@@ -930,10 +930,6 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantStaticFieldInitialization) {
     }
   )";
 
-  // Make sure static field initialization is not removed because
-  // field is already initialized.
-  SetFlagScope<bool> sfs(&FLAG_fields_may_be_reset, true);
-
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
   Invoke(root_library, "main");
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
@@ -978,10 +974,6 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallAfterIf) {
       foo(true);
     }
   )";
-
-  // Make sure static field initialization is not removed because
-  // field is already initialized.
-  SetFlagScope<bool> sfs(&FLAG_fields_may_be_reset, true);
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
   Invoke(root_library, "main");

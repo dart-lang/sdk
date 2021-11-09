@@ -128,10 +128,10 @@ constants  {
   #C9 = ffi::_FfiStructLayout {fieldTypes:#C8, packing:#C4}
   #C10 = core::pragma {name:#C1, options:#C9}
   #C11 = 0
-  #C12 = <core::int*>[#C11, #C11, #C11]
-  #C13 = 8
-  #C14 = 4
-  #C15 = <core::int*>[#C13, #C14, #C14]
+  #C12 = <core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
+  #C13 = 4
+  #C14 = 8
+  #C15 = <core::int*>[#C13, #C14, #C13, #C14, #C14, #C14, #C13, #C14, #C14, #C13, #C14, #C13, #C14, #C14, #C14, #C14, #C13, #C14]
   #C16 = static-tearoff self::useStruct3
   #C17 = static-tearoff self::returnStruct7
   #C18 = 1

@@ -1085,20 +1085,116 @@ function(l) {
       switch (__goto) {
         case 0:
           // Function start
-          __goto = 2;
-          return awaitHelper(l, body);
         case 2:
+          // switch
+          __goto = 7;
+          return awaitHelper(l, body);
+        case 7:
           // returning from await.
           switch (__result) {
             case 1:
-              print(1);
+              // goto case
+              __goto = 4;
               break;
             case 2:
-              print(1);
+              // goto case
+              __goto = 5;
+              break;
             default:
-              print(2);
+              // goto default
+              __goto = 6;
               break;
           }
+          break;
+        case 4:
+          // case
+          print(1);
+          // goto after switch
+          __goto = 3;
+          break;
+        case 5:
+          // case
+          print(1);
+        case 6:
+          // default
+          print(2);
+          // goto after switch
+          __goto = 3;
+          break;
+        case 3:
+          // after switch
+          // implicit return
+          return returnHelper(null, __completer);
+      }
+  });
+  return startHelper(body, __completer);
+}""");
+
+  testAsyncTransform("""
+  // This example is like #47566
+  function(b, l) async {
+    print("start");
+    if (b) {
+      switch(await l) {
+        case 1:
+          print(1);
+          break;
+        default:
+          print(2);
+          break;
+      }
+    }
+    print("end");
+  }""", """
+function(b, l) {
+  var __goto = 0,
+    __completer = NewCompleter(CompleterType);
+  var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
+    if (__errorCode === 1)
+      return rethrowHelper(__result, __completer);
+    while (true)
+      switch (__goto) {
+        case 0:
+          // Function start
+          print("start");
+          __goto = b ? 2 : 3;
+          break;
+        case 2:
+          // then
+        case 4:
+          // switch
+          __goto = 8;
+          return awaitHelper(l, body);
+        case 8:
+          // returning from await.
+          switch (__result) {
+            case 1:
+              // goto case
+              __goto = 6;
+              break;
+            default:
+              // goto default
+              __goto = 7;
+              break;
+          }
+          break;
+        case 6:
+          // case
+          print(1);
+          // goto after switch
+          __goto = 5;
+          break;
+        case 7:
+          // default
+          print(2);
+          // goto after switch
+          __goto = 5;
+          break;
+        case 5:
+          // after switch
+        case 3:
+          // join
+          print("end");
           // implicit return
           return returnHelper(null, __completer);
       }

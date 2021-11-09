@@ -201,13 +201,16 @@ abstract class DartEditBuilder implements EditBuilder {
   ///
   /// If [isRequiredNamed] is `true` then either the keyword `required` or the
   /// annotation `@required` will be included in the parameter declaration.
+  ///
+  /// If [isRequiredType] is `true` then the type is always written.
   void writeParameter(String name,
       {bool isCovariant,
       bool isRequiredNamed,
       ExecutableElement? methodBeingCopied,
       String? nameGroupName,
       DartType? type,
-      String? typeGroupName});
+      String? typeGroupName,
+      bool isRequiredType});
 
   /// Write the code for a parameter that would match the given [argument]. The
   /// name of the parameter will be generated based on the type of the argument,
@@ -223,8 +226,10 @@ abstract class DartEditBuilder implements EditBuilder {
   /// If a [methodBeingCopied] is provided, then type parameters defined by that
   /// method are assumed to be part of what is being written and hence valid
   /// types.
+  ///
+  /// If [requiredTypes] is `true`, then the types are always written.
   void writeParameters(Iterable<ParameterElement> parameters,
-      {ExecutableElement? methodBeingCopied});
+      {ExecutableElement? methodBeingCopied, bool requiredTypes});
 
   /// Write the code for a list of parameters that would match the given list of
   /// [arguments]. The surrounding parentheses are *not* written.

@@ -31,3 +31,8 @@ class B<T extends core::Object* = dynamic> extends self::A /*hasConstConstructor
 }
 static method main() → void
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirection_type_arguments.dart:10:7 -> ConstructorTearOffConstant(A.)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

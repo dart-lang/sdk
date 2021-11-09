@@ -35,7 +35,6 @@ import 'package:kernel/target/targets.dart';
 import '../fasta_codes.dart';
 
 import 'constant_int_folder.dart';
-import 'constructor_tearoff_lowering.dart';
 
 part 'constant_collection_builders.dart';
 
@@ -701,34 +700,6 @@ class ConstantsTransformer extends RemovingTransformer {
     if (expression is ConstantExpression) {
       if (result.typeArguments.every(isInstantiated)) {
         return evaluateAndTransformWithContext(node, result);
-      } else if (enableConstructorTearOff) {
-        Constant constant = expression.constant;
-        if (constant is TypedefTearOffConstant) {
-          Substitution substitution =
-              Substitution.fromPairs(constant.parameters, node.typeArguments);
-          return new Instantiation(
-              new ConstantExpression(constant.tearOffConstant,
-                  constant.tearOffConstant.getType(_staticTypeContext!))
-                ..fileOffset = expression.fileOffset,
-              constant.types.map(substitution.substituteType).toList());
-        } else {
-          LoweredTypedefTearOff? loweredTypedefTearOff =
-              LoweredTypedefTearOff.fromConstant(constant);
-          if (loweredTypedefTearOff != null) {
-            Constant tearOffConstant = constantEvaluator
-                .canonicalize(loweredTypedefTearOff.targetTearOffConstant);
-            Substitution substitution = Substitution.fromPairs(
-                loweredTypedefTearOff.typedefTearOff.function.typeParameters,
-                node.typeArguments);
-            return new Instantiation(
-                new ConstantExpression(tearOffConstant,
-                    tearOffConstant.getType(_staticTypeContext!))
-                  ..fileOffset = expression.fileOffset,
-                loweredTypedefTearOff.typeArguments
-                    .map(substitution.substituteType)
-                    .toList());
-          }
-        }
       }
     }
     return node;
@@ -1066,7 +1037,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           errorReporter.report(locatedMessageActualError);
         }
         return new UnevaluatedConstant(
-            new InvalidExpression(result.message.message));
+            new InvalidExpression(result.message.problemMessage));
       }
       if (result is _AbortDueToThrowConstant) {
         final Object value = result.throwValue;
@@ -1090,7 +1061,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               createLocatedMessage(node, messageConstEvalStartingPoint);
           errorReporter.report(locatedMessage, contextMessages);
         }
-        return new UnevaluatedConstant(new InvalidExpression(message.message));
+        return new UnevaluatedConstant(
+            new InvalidExpression(message.problemMessage));
       }
       if (result is _AbortDueToInvalidExpressionConstant) {
         return new UnevaluatedConstant(
@@ -3363,29 +3335,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         // ignore: unnecessary_null_comparison
         assert(types != null);
 
-        List<DartType> typeArguments = types;
-        if (constant is TypedefTearOffConstant) {
-          Substitution substitution =
-              Substitution.fromPairs(constant.parameters, typeArguments);
-          typeArguments =
-              constant.types.map(substitution.substituteType).toList();
-          constant = constant.tearOffConstant;
-        } else {
-          LoweredTypedefTearOff? loweredTypedefTearOff =
-              LoweredTypedefTearOff.fromConstant(constant);
-          if (loweredTypedefTearOff != null) {
-            constant =
-                canonicalize(loweredTypedefTearOff.targetTearOffConstant);
-            Substitution substitution = Substitution.fromPairs(
-                loweredTypedefTearOff.typedefTearOff.function.typeParameters,
-                node.typeArguments);
-            typeArguments = loweredTypedefTearOff.typeArguments
-                .map(substitution.substituteType)
-                .toList();
-          }
-        }
         return canonicalize(
-            new InstantiationConstant(constant, convertTypes(typeArguments)));
+            new InstantiationConstant(constant, convertTypes(types)));
       } else {
         // Probably unreachable.
         return createEvaluationErrorConstant(
@@ -3597,10 +3548,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     final DartType result = env.substituteType(type);
 
     if (!isInstantiated(result)) {
-      _gotError = createEvaluationErrorConstant(
-          node,
-          templateConstEvalFreeTypeParameter.withArguments(
-              type, isNonNullableByDefault));
+      // TODO(johnniwinther): Maybe we should always report this in the body
+      // builder. Currently we report some, because we need to handle
+      // potentially constant types, but we should be able to handle all (or
+      // none) in the body builder.
+      _gotError = createExpressionErrorConstant(
+          node, messageTypeVariableInConstantContext);
       return null;
     }
 
@@ -4534,7 +4487,7 @@ class SimpleErrorReporter implements ErrorReporter {
   }
 
   void _report(LocatedMessage message) {
-    reportMessage(message.uri, message.charOffset, message.message);
+    reportMessage(message.uri, message.charOffset, message.problemMessage);
   }
 
   void reportMessage(Uri? uri, int offset, String message) {

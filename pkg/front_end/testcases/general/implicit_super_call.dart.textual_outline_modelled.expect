@@ -1,0 +1,65 @@
+class Class1 extends Super1 {
+  void method() {}
+}
+
+class Class2 extends Super2 {
+  void method() {}
+}
+
+class Class3 extends Super3 {
+  void method() {}
+}
+
+class Class4 extends Super4 {
+  void method() {}
+}
+
+class Class5 extends Super5 {
+  void method() {}
+  void test() {}
+}
+
+class Class6 extends Super6 {
+  void method() {}
+  void test() {}
+}
+
+class Class7 extends Super7 {
+  void test() {}
+}
+
+class Class8 extends Super8 {
+  void test() {}
+}
+
+class Super1 {
+  void call() {}
+}
+
+class Super2 {
+  int call(int a, [int? b]) => a;
+}
+
+class Super3 {
+  int call(int a, {int? b, int? c}) => a;
+}
+
+class Super4 {
+  T call<T>(T a) => a;
+}
+
+class Super5 {
+  int Function(int) get call => (int a) => a;
+}
+
+class Super6 {
+  int Function(int) call = (int a) => a;
+}
+
+class Super7 {
+  void set call(int Function(int) value) {}
+}
+
+class Super8 {}
+
+main() {}

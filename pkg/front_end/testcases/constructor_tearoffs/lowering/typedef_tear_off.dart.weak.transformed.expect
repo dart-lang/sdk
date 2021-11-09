@@ -319,11 +319,11 @@ constants  {
   #C1 = static-tearoff self::A::_#new#tearOff
   #C2 = static-tearoff self::_#DA2#new#tearOff
   #C3 = static-tearoff self::B::_#new#tearOff
-  #C4 = instantiation self::B::_#new#tearOff <core::String*>
+  #C4 = instantiation #C3 <core::String*>
   #C5 = static-tearoff self::B::_#foo#tearOff
-  #C6 = instantiation self::B::_#foo#tearOff <core::String*>
+  #C6 = instantiation #C5 <core::String*>
   #C7 = static-tearoff self::B::_#bar#tearOff
-  #C8 = instantiation self::B::_#bar#tearOff <core::String*>
+  #C8 = instantiation #C7 <core::String*>
   #C9 = static-tearoff self::_#DB2#new#tearOff
   #C10 = static-tearoff self::_#DB3#new#tearOff
   #C11 = false

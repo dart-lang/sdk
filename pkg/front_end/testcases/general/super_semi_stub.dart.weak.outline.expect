@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+  method method(core::num a) → void
+    ;
+  set setter(core::num a) → void
+    ;
+}
+class Class extends self::Super {
+  synthetic constructor •() → self::Class
+    ;
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::int) → void */ method(covariant-by-declaration core::num a) → void
+    return super.{self::Super::method}(a);
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::int) → void */ setter(covariant-by-declaration core::num a) → void
+    return super.{self::Super::setter} = a;
+}
+class Subclass extends self::Class {
+  synthetic constructor •() → self::Subclass
+    ;
+  method method(covariant-by-declaration core::int a) → void
+    ;
+  set setter(covariant-by-declaration core::int a) → void
+    ;
+}
+static method test(self::Subclass sub) → dynamic
+  ;
+static method main() → dynamic
+  ;

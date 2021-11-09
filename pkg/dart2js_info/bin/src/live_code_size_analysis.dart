@@ -47,7 +47,9 @@ import 'function_size_analysis.dart';
 import 'usage_exception.dart';
 
 class LiveCodeAnalysisCommand extends Command<void> with PrintUsageException {
+  @override
   final String name = "coverage_analysis";
+  @override
   final String description = "Analyze coverage data collected via the"
       " 'coverage_server' command";
 
@@ -56,6 +58,7 @@ class LiveCodeAnalysisCommand extends Command<void> with PrintUsageException {
         abbr: 'v', negatable: false, help: 'Show verbose details.');
   }
 
+  @override
   void run() async {
     var args = argResults.rest;
     if (args.length < 2) {
@@ -67,7 +70,7 @@ class LiveCodeAnalysisCommand extends Command<void> with PrintUsageException {
 
 _liveCodeAnalysis(infoFile, coverageFile, bool verbose) async {
   var info = await infoFromFile(infoFile);
-  var coverage = jsonDecode(new File(coverageFile).readAsStringSync());
+  var coverage = jsonDecode(File(coverageFile).readAsStringSync());
 
   int realTotal = info.program.size;
   int totalLib = info.libraries.fold(0, (n, lib) => n + lib.size);

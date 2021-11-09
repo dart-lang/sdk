@@ -29,7 +29,8 @@ void CallSiteResetter::ZeroEdgeCounters(const Function& function) {
     return;
   }
   ASSERT(ic_data_array_.Length() > 0);
-  edge_counters_ ^= ic_data_array_.At(0);
+  edge_counters_ ^=
+      ic_data_array_.At(Function::ICDataArrayIndices::kEdgeCounters);
   if (edge_counters_.IsNull()) {
     return;
   }
@@ -98,7 +99,7 @@ static void FindICData(const Array& ic_data_array,
                        ICData* ic_data) {
   // ic_data_array is sorted because of how it is constructed in
   // Function::SaveICDataMap.
-  intptr_t lo = 1;
+  intptr_t lo = Function::ICDataArrayIndices::kFirstICData;
   intptr_t hi = ic_data_array.Length() - 1;
   while (lo <= hi) {
     intptr_t mid = (hi - lo + 1) / 2 + lo;
@@ -397,7 +398,7 @@ void Class::ReplaceEnum(ProgramReloadContext* reload_context,
                    enum_ident.ToCString());
         bool removed = enum_map.Remove(enum_ident);
         ASSERT(removed);
-        reload_context->AddEnumBecomeMapping(old_enum_value, enum_value);
+        reload_context->AddBecomeMapping(old_enum_value, enum_value);
       }
     }
     enums_deleted = enum_map.NumOccupied() > 0;
@@ -409,13 +410,13 @@ void Class::ReplaceEnum(ProgramReloadContext* reload_context,
   // Map the old E.values array to the new E.values array.
   ASSERT(!old_enum_values.IsNull());
   ASSERT(!enum_values.IsNull());
-  reload_context->AddEnumBecomeMapping(old_enum_values, enum_values);
+  reload_context->AddBecomeMapping(old_enum_values, enum_values);
 
   // Map the old E._deleted_enum_sentinel to the new E._deleted_enum_sentinel.
   ASSERT(!old_deleted_enum_sentinel.IsNull());
   ASSERT(!deleted_enum_sentinel.IsNull());
-  reload_context->AddEnumBecomeMapping(old_deleted_enum_sentinel,
-                                       deleted_enum_sentinel);
+  reload_context->AddBecomeMapping(old_deleted_enum_sentinel,
+                                   deleted_enum_sentinel);
 
   if (enums_deleted) {
     // Map all deleted enums to the deleted enum sentinel value.
@@ -432,8 +433,7 @@ void Class::ReplaceEnum(ProgramReloadContext* reload_context,
       ASSERT(!enum_ident.IsNull());
       old_enum_value ^= enum_map.GetOrNull(enum_ident);
       VTIR_Print("Element `%s` was deleted\n", enum_ident.ToCString());
-      reload_context->AddEnumBecomeMapping(old_enum_value,
-                                           deleted_enum_sentinel);
+      reload_context->AddBecomeMapping(old_enum_value, deleted_enum_sentinel);
     }
     enum_map.Release();
   }

@@ -478,11 +478,22 @@ class ApiReader {
   /// Child elements can occur in any order.
   TypeObjectField typeObjectFieldFromHtml(dom.Element html, String context) {
     checkName(html, 'field', context);
+
     var name = html.attributes['name'];
-    context = '$context.${name ?? 'field'}';
+    if (name == null) {
+      throw Exception('$context: name not specified');
+    }
+
+    context = '$context.$name';
     checkAttributes(html, ['name'], context,
-        optionalAttributes: ['optional', 'value', 'deprecated']);
+        optionalAttributes: [
+          'optional',
+          'value',
+          'deprecated',
+          'experimental'
+        ]);
     var deprecated = html.attributes['deprecated'] == 'true';
+    var experimental = html.attributes['experimental'] == 'true';
     var optional = false;
     var optionalString = html.attributes['optional'];
     if (optionalString != null) {
@@ -500,8 +511,11 @@ class ApiReader {
     }
     var value = html.attributes['value'];
     var type = processContentsAsType(html, context);
-    return TypeObjectField(name!, type, html,
-        optional: optional, value: value, deprecated: deprecated);
+    return TypeObjectField(name, type, html,
+        optional: optional,
+        value: value,
+        deprecated: deprecated,
+        experimental: experimental);
   }
 
   /// Create a [TypeObject] from an HTML description.

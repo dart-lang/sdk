@@ -2,11 +2,11 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/override_setter_with_field.dart:10:7: Error: The field 'B.x' has type 'int', which does not match the corresponding type, 'Object', in the overridden setter, 'A.x'.
+// pkg/front_end/testcases/general/override_setter_with_field.dart:12:7: Error: The field 'B.x' has type 'int', which does not match the corresponding type, 'Object', in the overridden setter, 'A.x'.
 //  - 'Object' is from 'dart:core'.
 //   int x;
 //       ^
-// pkg/front_end/testcases/general/override_setter_with_field.dart:6:12: Context: This is the overridden method ('x').
+// pkg/front_end/testcases/general/override_setter_with_field.dart:8:12: Context: This is the overridden method ('x').
 //   void set x(Object y);
 //            ^
 //

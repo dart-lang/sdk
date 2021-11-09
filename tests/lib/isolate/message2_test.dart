@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups --no-enable-fast-object-copy
-// VMOptions=--enable-isolate-groups --enable-fast-object-copy
-// VMOptions=--no-enable-isolate-groups
+// VMOptions=--no-enable-fast-object-copy
+// VMOptions=--enable-fast-object-copy
 
 // Dart test program for testing serialization of messages.
 // VMOptions=--enable_type_checks --enable_asserts

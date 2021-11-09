@@ -11,7 +11,6 @@ import 'package:pedantic/pedantic.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../logging.dart';
-import '../protocol_common.dart';
 import '../protocol_stream.dart';
 import '../stream_transformers.dart';
 import 'dart.dart';
@@ -20,7 +19,7 @@ import 'mixins.dart';
 /// A DAP Debug Adapter for running and debugging Dart test scripts.
 class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
         DartAttachRequestArguments>
-    with PidTracker, VmServiceInfoFileUtils, PackageConfigUtils {
+    with PidTracker, VmServiceInfoFileUtils, PackageConfigUtils, TestAdapter {
   Process? _process;
 
   @override
@@ -41,9 +40,7 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
           enableDds: enableDds,
           enableAuthCodes: enableAuthCodes,
           logger: logger,
-        ) {
-    channel.closed.then((_) => shutdown());
-  }
+        );
 
   /// Whether the VM Service closing should be used as a signal to terminate the
   /// debug session.
@@ -180,7 +177,7 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     // package:test to have captured output and sent it in "print" events).
     try {
       final payload = jsonDecode(data);
-      sendEvent(RawEventBody(payload), eventType: 'dart.testNotification');
+      sendTestEvents(payload);
     } catch (e) {
       sendOutput('stdout', data);
     }

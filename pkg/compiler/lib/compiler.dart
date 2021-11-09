@@ -97,7 +97,7 @@ Future<CompilationResult> compile(Uri script, Uri librariesSpecificationUri,
     Uri packageConfig]) {
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
       librariesSpecificationUri: librariesSpecificationUri)
-    ..entryPoint = script
+    ..entryUri = script
     ..packageConfig = packageConfig
     ..environment = environment;
 

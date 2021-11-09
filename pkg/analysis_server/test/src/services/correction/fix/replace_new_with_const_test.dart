@@ -21,23 +21,75 @@ class ReplaceNewWithConstBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.prefer_const_constructors;
 
-  /// Disabled in BulkFixProcessor.
-  @failingTest
   Future<void> test_singleFile() async {
     await resolveTestCode(r'''
-class C {
-  const C();
+class A {
+  const A();
 }
 main() {
-  print('${new C()} ${new C()}');
+  var a = new A();
+  var b = new A();
 }
 ''');
     await assertHasFix(r'''
-class C {
-  const C();
+class A {
+  const A();
 }
 main() {
-  print('${const C()} ${const C()}');
+  var a = const A();
+  var b = const A();
+}
+''');
+  }
+
+  Future<void> test_singleFile_incomplete_promotableNew() async {
+    await resolveTestCode(r'''
+class A {
+  const A({A? parent});
+  const A.a();
+}
+main() {
+  var a = new A(
+    parent: new A(),
+  );
+}
+''');
+    // The outer new should get promoted to const on a future fix pass.
+    await assertHasFix(r'''
+class A {
+  const A({A? parent});
+  const A.a();
+}
+main() {
+  var a = new A(
+    parent: const A(),
+  );
+}
+''');
+  }
+
+  Future<void> test_singleFile_incomplete_unnecessaryConst() async {
+    await resolveTestCode(r'''
+class A {
+  const A({A? parent});
+  const A.a();
+}
+main() {
+  var b = new A(
+    parent: const A.a(),
+  );
+}
+''');
+    // The inner const is unnecessary and should get removed on a future fix pass.
+    await assertHasFix(r'''
+class A {
+  const A({A? parent});
+  const A.a();
+}
+main() {
+  var b = const A(
+    parent: const A.a(),
+  );
 }
 ''');
   }

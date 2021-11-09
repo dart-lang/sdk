@@ -203,6 +203,7 @@ template("build_gen_snapshot") {
       frameworks = [
         "CoreFoundation.framework",
         "CoreServices.framework",
+        "Foundation.framework",
       ]
     }
 
@@ -336,6 +337,12 @@ template("build_gen_snapshot_dart_io") {
       "io_natives.cc",
       "io_natives.h",
     ]
+    if (is_ios || is_mac) {
+      sources += [
+        "platform_macos_cocoa.h",
+        "platform_macos_cocoa.mm",
+      ]
+    }
 
     include_dirs = [
       "..",
@@ -412,6 +419,7 @@ template("dart_io") {
       frameworks = [
         "CoreFoundation.framework",
         "Security.framework",
+        "Foundation.framework",
       ]
 
       if (is_mac) {
@@ -437,6 +445,12 @@ template("dart_io") {
                  "io_natives.cc",
                  "io_natives.h",
                ] + extra_sources
+    if (is_ios || is_mac) {
+      sources += [
+        "platform_macos_cocoa.h",
+        "platform_macos_cocoa.mm",
+      ]
+    }
 
     if (is_linux || is_win || is_fuchsia) {
       if (dart_use_fallback_root_certificates) {
@@ -720,18 +734,6 @@ template("dart_executable") {
       configs += [ "..:dart_product_config" ]
     } else {
       configs += [ "..:dart_maybe_product_config" ]
-    }
-    if (target_os != current_os && target_os == "fuchsia") {
-      # We already have these in the standalone build, but Fuchsia doesn't
-      # have them. They are needed for running Fuchsia binaries built for the
-      # host.
-      if (is_linux) {
-        # TODO(liama): Commenting this line out because it causes problems for
-        # --os=fuchsia. If no one complains, remove it.
-        # configs += [ "../../build/config/gcc:executable_ldconfig" ]
-      } else if (is_mac) {
-        configs += [ "../../build/config/mac:mac_dynamic_flags" ]
-      }
     }
 
     deps = [

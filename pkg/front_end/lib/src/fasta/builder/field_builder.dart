@@ -409,10 +409,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
   /// Builds the core AST structures for this field as needed for the outline.
   void build(SourceLibraryBuilder libraryBuilder) {
     if (type != null) {
-      // notInstanceContext is set to true for extension fields as they
-      // ultimately become static.
-      fieldType = type!.build(libraryBuilder,
-          nonInstanceContext: isStatic || (isExtensionMember && !isExternal));
+      fieldType = type!.build(libraryBuilder);
     }
     _fieldEncoding.build(libraryBuilder, this);
   }
@@ -426,8 +423,14 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     _fieldEncoding.completeSignature(coreTypes);
 
     for (Annotatable annotatable in _fieldEncoding.annotatables) {
-      MetadataBuilder.buildAnnotations(annotatable, metadata, library,
-          classBuilder, this, fileUri, classBuilder?.scope ?? library.scope);
+      MetadataBuilder.buildAnnotations(
+          annotatable,
+          metadata,
+          library,
+          declarationBuilder,
+          this,
+          fileUri,
+          declarationBuilder?.scope ?? library.scope);
     }
 
     // For modular compilation we need to include initializers of all const
@@ -439,10 +442,10 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
                 isClassMember &&
                 classBuilder!.declaresConstConstructor)) &&
         _constInitializerToken != null) {
-      Scope scope = classBuilder?.scope ?? library.scope;
+      Scope scope = declarationBuilder?.scope ?? library.scope;
       BodyBuilder bodyBuilder = library.loader
           .createBodyBuilderForOutlineExpression(
-              library, classBuilder, this, scope, fileUri);
+              library, declarationBuilder, this, scope, fileUri);
       bodyBuilder.constantContext =
           isConst ? ConstantContext.inferred : ConstantContext.required;
       Expression initializer = bodyBuilder.typeInferrer.inferFieldInitializer(

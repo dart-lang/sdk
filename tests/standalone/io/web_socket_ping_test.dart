@@ -9,7 +9,7 @@
 
 library dart._http;
 
-import "dart:async";
+import "dart:convert";
 import "dart:io";
 import "dart:math";
 import "dart:typed_data";
@@ -31,7 +31,7 @@ void testPing(int totalConnections) {
       String? key = request.headers.value("Sec-WebSocket-Key");
       _SHA1 sha1 = new _SHA1();
       sha1.add("$key$webSocketGUID".codeUnits);
-      String accept = _CryptoUtils.bytesToBase64(sha1.close());
+      String accept = base64Encode(sha1.close());
       response.headers.add("Sec-WebSocket-Accept", accept);
       response.headers.contentLength = 0;
       response.detachSocket().then((socket) {

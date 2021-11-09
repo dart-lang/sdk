@@ -15,7 +15,7 @@
  * The first message should have [is_first_message] set, the last message
  * should have [is_done] set. Status updates should have [is_status_update] set.
  *
- * The [message_content] can be be any content. In our case it will a list of
+ * The [message_content] can be any content. In our case it will a list of
  * events encoded in JSON. See the next comment further down about what an event
  * is.
  */

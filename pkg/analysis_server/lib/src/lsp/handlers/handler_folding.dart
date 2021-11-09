@@ -9,7 +9,6 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 
 class FoldingHandler
@@ -32,8 +31,8 @@ class FoldingHandler
       LineInfo? lineInfo;
 
       final unit = server.getParsedUnit(path);
-      if (unit?.state == ResultState.VALID) {
-        lineInfo = unit!.lineInfo;
+      if (unit != null) {
+        lineInfo = unit.lineInfo;
 
         final regions = DartUnitFoldingComputer(lineInfo, unit.unit).compute();
         partialResults.insert(0, regions);

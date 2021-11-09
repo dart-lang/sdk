@@ -23,3 +23,9 @@ class A extends core::Object {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_chain_test.dart:10:7 -> ConstructorTearOffConstant(A.first)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_chain_test.dart:10:7 -> ConstructorTearOffConstant(A.second)
+Extra constant evaluation: evaluated: 5, effectively constant: 2

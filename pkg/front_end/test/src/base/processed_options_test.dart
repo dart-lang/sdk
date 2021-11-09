@@ -323,7 +323,7 @@ class ProcessedOptionsTest {
   }
 
   Future<void> test_getUriTranslator_noPackages() async {
-    var errors = [];
+    var errors = <DiagnosticMessage>[];
     // .packages file should be ignored.
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///.packages'))
@@ -335,7 +335,7 @@ class ProcessedOptionsTest {
     var processed = new ProcessedOptions(options: raw);
     var uriTranslator = await processed.getUriTranslator();
     expect(uriTranslator.packages.packages, isEmpty);
-    expect(errors.single.message,
+    expect((errors.single as FormattedMessage).problemMessage,
         startsWith(_stringPrefixOf(templateCantReadFile)));
   }
 
@@ -343,13 +343,14 @@ class ProcessedOptionsTest {
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
-    var errors = [];
+    var errors = <DiagnosticMessage>[];
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
       ..onDiagnostic = errors.add;
     var options = new ProcessedOptions(options: raw);
     var result = await options.validateOptions();
-    expect(errors.single.message, messageMissingInput.message);
+    expect((errors.single as FormattedMessage).problemMessage,
+        messageMissingInput.problemMessage);
     expect(result, isFalse);
   }
 
@@ -397,7 +398,7 @@ class ProcessedOptionsTest {
         .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
     var sdkRoot = Uri.parse('org-dartlang-test:///sdk/root');
-    var errors = [];
+    var errors = <DiagnosticMessage>[];
     var raw = new CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = fileSystem
@@ -405,7 +406,7 @@ class ProcessedOptionsTest {
     var options =
         new ProcessedOptions(options: raw, inputs: [Uri.parse('foo.dart')]);
     expect(await options.validateOptions(), isFalse);
-    expect(errors.first.message,
+    expect((errors.first as FormattedMessage).problemMessage,
         startsWith(_stringPrefixOf(templateSdkRootNotFound)));
   }
 
@@ -433,7 +434,7 @@ class ProcessedOptionsTest {
         .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
     var sdkSummary = Uri.parse('org-dartlang-test:///sdk/root/outline.dill');
-    var errors = [];
+    var errors = <DiagnosticMessage>[];
     var raw = new CompilerOptions()
       ..sdkSummary = sdkSummary
       ..fileSystem = fileSystem
@@ -441,7 +442,7 @@ class ProcessedOptionsTest {
     var options =
         new ProcessedOptions(options: raw, inputs: [Uri.parse('foo.dart')]);
     expect(await options.validateOptions(), isFalse);
-    expect(errors.single.message,
+    expect((errors.single as FormattedMessage).problemMessage,
         startsWith(_stringPrefixOf(templateSdkSummaryNotFound)));
   }
 
@@ -474,7 +475,7 @@ class ProcessedOptionsTest {
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
-    var errors = [];
+    var errors = <DiagnosticMessage>[];
     var raw = new CompilerOptions()
       ..sdkSummary = sdkSummary
       ..fileSystem = fileSystem
@@ -482,14 +483,14 @@ class ProcessedOptionsTest {
     var options =
         new ProcessedOptions(options: raw, inputs: [Uri.parse('foo.dart')]);
     expect(await options.validateOptions(), isFalse);
-    expect(errors.single.message,
+    expect((errors.single as FormattedMessage).problemMessage,
         startsWith(_stringPrefixOf(templateSdkSummaryNotFound)));
   }
 
   /// Returns the longest prefix of the text in a message template that doesn't
   /// mention a template argument.
   String _stringPrefixOf(Template template) {
-    var messageTemplate = template.messageTemplate;
+    var messageTemplate = template.problemMessageTemplate;
     var index = messageTemplate.indexOf('#');
     var prefix = messageTemplate.substring(0, index - 1);
 

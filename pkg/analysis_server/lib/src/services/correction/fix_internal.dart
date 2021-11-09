@@ -29,6 +29,7 @@ import 'package:analysis_server/src/services/correction/dart/add_return_type.dar
 import 'package:analysis_server/src/services/correction/dart/add_static.dart';
 import 'package:analysis_server/src/services/correction/dart/add_super_constructor_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/add_switch_case_break.dart';
+import 'package:analysis_server/src/services/correction/dart/add_trailing_comma.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/change_argument_name.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to.dart';
@@ -40,6 +41,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_conditional
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_child.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_flutter_children.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_into_block_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_into_is_not.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
@@ -86,6 +88,7 @@ import 'package:analysis_server/src/services/correction/dart/insert_semicolon.da
 import 'package:analysis_server/src/services/correction/dart/make_class_abstract.dart';
 import 'package:analysis_server/src/services/correction/dart/make_conditional_on_debug_mode.dart';
 import 'package:analysis_server/src/services/correction/dart/make_field_not_final.dart';
+import 'package:analysis_server/src/services/correction/dart/make_field_public.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_return_type_nullable.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
@@ -93,6 +96,7 @@ import 'package:analysis_server/src/services/correction/dart/make_variable_nulla
 import 'package:analysis_server/src/services/correction/dart/move_type_arguments_to_class.dart';
 import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/qualify_reference.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_abstract.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
@@ -101,6 +105,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_constructor_name.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_code.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_deprecated_new_in_comment_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_duplicate_case.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_constructor_body.dart';
@@ -123,6 +128,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_type_argumen
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_parentheses.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_raw_string.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_string_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_string_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused.dart';
@@ -179,8 +185,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 
-import 'dart/remove_abstract.dart';
-
 /// A function that can be executed to create a multi-correction producer.
 typedef MultiProducerGenerator = MultiCorrectionProducer Function();
 
@@ -225,15 +229,15 @@ class FixInFileProcessor {
       dartFixContext: context,
       diagnostic: error,
       resolvedResult: resolveResult,
-      selectionOffset: context.error.offset,
-      selectionLength: context.error.length,
+      selectionOffset: error.offset,
+      selectionLength: error.length,
       workspace: workspace,
     );
     if (correctionContext == null) {
       return const <Fix>[];
     }
 
-    var generators = _getGenerators(error.errorCode, correctionContext);
+    var generators = _getGenerators(error.errorCode);
 
     var fixes = <Fix>[];
     for (var generator in generators) {
@@ -305,8 +309,7 @@ class FixInFileProcessor {
     }
   }
 
-  List<ProducerGenerator> _getGenerators(
-      ErrorCode errorCode, CorrectionProducerContext context) {
+  List<ProducerGenerator> _getGenerators(ErrorCode errorCode) {
     if (errorCode is LintCode) {
       return FixProcessor.lintProducerMap[errorCode.name] ?? [];
     } else {
@@ -324,15 +327,13 @@ class FixProcessor extends BaseProcessor {
   /// are in the [nonLintProducerMap].
   static final Map<String, List<ProducerGenerator>> lintProducerMap = {
     LintNames.always_declare_return_types: [
-      // TODO(brianwilkerson) Consider applying in bulk.
       AddReturnType.newInstance,
     ],
     LintNames.always_require_non_null_named_parameters: [
       AddRequired.newInstance,
     ],
     LintNames.always_specify_types: [
-      // TODO(brianwilkerson) Consider applying in bulk.
-      AddTypeAnnotation.newInstance,
+      AddTypeAnnotation.newInstanceBulkFixable,
     ],
     LintNames.annotate_overrides: [
       AddOverride.newInstance,
@@ -343,6 +344,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.avoid_empty_else: [
       RemoveEmptyElse.newInstance,
     ],
+    LintNames.avoid_escaping_inner_quotes: [
+      ConvertQuotes.newInstance,
+    ],
     LintNames.avoid_function_literals_in_foreach_calls: [
       ConvertForEachToForLoop.newInstance,
     ],
@@ -350,7 +354,7 @@ class FixProcessor extends BaseProcessor {
       RemoveInitializer.newInstance,
     ],
     LintNames.avoid_null_checks_in_equality_operators: [
-      RemoveComparison.newInstanceBulkFixable,
+      RemoveComparison.newInstance,
     ],
     LintNames.avoid_print: [
       MakeConditionalOnDebugMode.newInstance,
@@ -388,7 +392,6 @@ class FixProcessor extends BaseProcessor {
       RemoveTypeAnnotation.newInstance,
     ],
     LintNames.avoid_unused_constructor_parameters: [
-      // TODO(brianwilkerson) Consider applying in bulk.
       RemoveUnusedParameter.newInstance,
     ],
     LintNames.avoid_unnecessary_containers: [
@@ -464,11 +467,13 @@ class FixProcessor extends BaseProcessor {
     LintNames.prefer_contains: [
       ConvertToContains.newInstance,
     ],
+    LintNames.prefer_double_quotes: [
+      ConvertToDoubleQuotes.newInstance,
+    ],
     LintNames.prefer_equal_for_default_values: [
       ReplaceColonWithEquals.newInstance,
     ],
     LintNames.prefer_expression_function_bodies: [
-      // TODO(brianwilkerson) Consider applying in bulk.
       ConvertToExpressionFunctionBody.newInstance,
     ],
     LintNames.prefer_final_fields: [
@@ -512,7 +517,6 @@ class FixProcessor extends BaseProcessor {
       ConvertToIntLiteral.newInstance,
     ],
     LintNames.prefer_interpolation_to_compose_strings: [
-      // TODO(brianwilkerson) Consider applying in bulk.
       ReplaceWithInterpolation.newInstance,
     ],
     LintNames.prefer_is_not_operator: [
@@ -534,7 +538,7 @@ class FixProcessor extends BaseProcessor {
       ConvertAddAllToSpread.newInstance,
     ],
     LintNames.prefer_typing_uninitialized_variables: [
-      AddTypeAnnotation.newInstance,
+      AddTypeAnnotation.newInstanceBulkFixable,
     ],
     LintNames.prefer_void_to_null: [
       ReplaceNullWithVoid.newInstance,
@@ -548,9 +552,11 @@ class FixProcessor extends BaseProcessor {
     LintNames.sort_child_properties_last: [
       SortChildPropertyLast.newInstance,
     ],
+    LintNames.require_trailing_commas: [
+      AddTrailingComma.newInstance,
+    ],
     LintNames.type_annotate_public_apis: [
-      // TODO(brianwilkerson) Consider applying in bulk.
-      AddTypeAnnotation.newInstance,
+      AddTypeAnnotation.newInstanceBulkFixable,
     ],
     LintNames.type_init_formals: [
       RemoveTypeAnnotation.newInstance,
@@ -570,6 +576,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_final: [
       ReplaceFinalWithVar.newInstance,
     ],
+    LintNames.unnecessary_getters_setters: [
+      MakeFieldPublic.newInstance,
+    ],
     LintNames.unnecessary_lambdas: [
       ReplaceWithTearOff.newInstance,
     ],
@@ -588,6 +597,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_parenthesis: [
       RemoveUnnecessaryParentheses.newInstance,
     ],
+    LintNames.unnecessary_raw_strings: [
+      RemoveUnnecessaryRawString.newInstance,
+    ],
     LintNames.unnecessary_string_escapes: [
       RemoveUnnecessaryStringEscape.newInstance,
     ],
@@ -598,7 +610,6 @@ class FixProcessor extends BaseProcessor {
       RemoveThisExpression.newInstance,
     ],
     LintNames.use_full_hex_values_for_flutter_colors: [
-      // TODO(brianwilkerson) Consider applying in bulk.
       ReplaceWithEightDigitHex.newInstance,
     ],
     LintNames.use_function_type_syntax_for_parameters: [
@@ -721,6 +732,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.UNDEFINED_OPERATOR: [
       ImportLibrary.forExtensionMember,
     ],
+    CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME: [
+      DataDriven.newInstance,
+    ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
       DataDriven.newInstance,
       // TODO(brianwilkerson) Support ImportLibrary for non-extension members.
@@ -783,7 +797,7 @@ class FixProcessor extends BaseProcessor {
       CreateMixin.newInstance,
     ],
     CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER: [
-      CreateMissingOverrides.newInstance,
+      ConvertIntoBlockBody.newInstance,
       CreateNoSuchMethod.newInstance,
       MakeClassAbstract.newInstance,
     ],
@@ -1081,6 +1095,9 @@ class FixProcessor extends BaseProcessor {
       //  a place where it can be reached (when possible).
       RemoveDeadCode.newInstance,
     ],
+    HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
+      RemoveDeprecatedNewInCommentReference.newInstance,
+    ],
     HintCode.DIVISION_OPTIMIZATION: [
       UseEffectiveIntegerDivision.newInstance,
     ],
@@ -1184,6 +1201,9 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNNECESSARY_CAST: [
       RemoveUnnecessaryCast.newInstance,
     ],
+    HintCode.UNNECESSARY_IMPORT: [
+      RemoveUnusedImport.newInstance,
+    ],
 //    HintCode.UNNECESSARY_NO_SUCH_METHOD: [
 // TODO(brianwilkerson) Add a fix to remove the method.
 //    ],
@@ -1234,6 +1254,9 @@ class FixProcessor extends BaseProcessor {
     ],
     ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE: [
       AddTypeAnnotation.newInstance,
+    ],
+    ParserErrorCode.MISSING_FUNCTION_BODY: [
+      ConvertIntoBlockBody.newInstance,
     ],
     ParserErrorCode.VAR_AS_TYPE_NAME: [
       ReplaceVarWithDynamic.newInstance,

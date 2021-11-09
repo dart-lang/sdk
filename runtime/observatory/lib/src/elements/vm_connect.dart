@@ -13,7 +13,6 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
-import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/src/elements/vm_connect_target.dart';
 
 class VMConnectElement extends CustomElement implements Renderable {
@@ -114,7 +113,6 @@ class VMConnectElement extends CustomElement implements Renderable {
               new DivElement()..classes = ['flex-item-20-percent'],
             ],
         ],
-      new ViewFooterElement(queue: _r.queue).element
     ];
   }
 

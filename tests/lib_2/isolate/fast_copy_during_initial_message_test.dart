@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups --enable-fast-object-copy
+// VMOptions=--enable-fast-object-copy
 
 import "dart:isolate";
 

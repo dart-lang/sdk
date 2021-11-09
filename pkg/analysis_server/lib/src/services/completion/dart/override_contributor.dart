@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -10,10 +11,14 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart'
 
 /// A completion contributor used to suggest replacing partial identifiers
 /// inside a class declaration with templates for inherited members.
-class OverrideContributor implements DartCompletionContributor {
+class OverrideContributor extends DartCompletionContributor {
+  OverrideContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var targetId = _getTargetId(request.target);
     if (targetId == null) {
       return;

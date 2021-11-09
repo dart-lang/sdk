@@ -30,6 +30,10 @@ dynamic assertDynamic(dynamic obj) {
   return obj;
 }
 
+List<dynamic> assertListOfDynamic(List<dynamic> list) {
+  return list;
+}
+
 List<int> assertListOfInt(List<int> list) {
   for (int elem in list) {
     assertInt(elem);
@@ -1143,6 +1147,12 @@ vms.TypeParameters assertTypeParameters(vms.TypeParameters obj) {
 vms.UnresolvedSourceLocation assertUnresolvedSourceLocation(
     vms.UnresolvedSourceLocation obj) {
   assertNotNull(obj);
+  return obj;
+}
+
+vms.UriList assertUriList(vms.UriList obj) {
+  assertNotNull(obj);
+  assertListOfDynamic(obj.uris!);
   return obj;
 }
 

@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 import "dart:async";
 import "dart:io";
 import "dart:convert" show json;
@@ -986,8 +983,7 @@ class Configuration {
         "  config: $config\n"
         "  main  : $mainFile\n"
         "  args  : ${args.map((x) => '"$x"').join(" ")}\n"
-        ") : expect {\n${expect.keys.map((k) =>
-           '  "$k"'.padRight(6) + ":${json.encode(expect[k])}\n").join()}"
+        ") : expect {\n${expect.keys.map((k) => '  "$k"'.padRight(6) + ":${json.encode(expect[k])}\n").join()}"
         "}";
   }
 }

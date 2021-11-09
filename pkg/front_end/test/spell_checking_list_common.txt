@@ -488,6 +488,7 @@ closure
 closures
 clue
 code
+coincides
 coinductively
 collapses
 collect
@@ -1397,6 +1398,7 @@ hint
 historically
 hoist
 hoisted
+hoisting
 hold
 holder
 holding
@@ -2413,6 +2415,7 @@ reasoning
 reasons
 reassign
 rebase
+recalculates
 receive
 receiver
 recent
@@ -2574,6 +2577,7 @@ resume
 resynthesize
 retain
 retained
+retains
 rethrow
 rethrowing
 retired
@@ -3218,6 +3222,7 @@ unrelated
 unresolved
 unsafe
 unsatisfied
+unscheduled
 unserializable
 unsigned
 unsized

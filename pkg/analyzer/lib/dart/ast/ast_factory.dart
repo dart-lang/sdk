@@ -5,6 +5,8 @@
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /// A collection of factory methods which may be used to create concrete
@@ -156,7 +158,8 @@ abstract class AstFactory {
 
   /// Returns a newly created reference to a Dart element. The [newKeyword]
   /// can be `null` if the reference is not to a constructor.
-  CommentReference commentReference(Token? newKeyword, Identifier identifier);
+  CommentReference commentReference(
+      Token? newKeyword, CommentReferableExpression expression);
 
   /// Returns a newly created compilation unit to have the given directives and
   /// declarations.  The [scriptTag] can be `null` (or omitted) if there is no
@@ -579,6 +582,17 @@ abstract class AstFactory {
   /// Returns a newly created implements clause.
   ImplementsClause implementsClause(
       Token implementsKeyword, List<NamedType> interfaces);
+
+  /// Returns a newly created implicit call reference.
+  ///
+  /// The [typeArguments] can be `null` if there are no type arguments being
+  /// applied to the reference.
+  ImplicitCallReference implicitCallReference({
+    required Expression expression,
+    required MethodElement staticElement,
+    required TypeArgumentList? typeArguments,
+    required List<DartType> typeArgumentTypes,
+  });
 
   /// Returns a newly created import directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the function does not have the

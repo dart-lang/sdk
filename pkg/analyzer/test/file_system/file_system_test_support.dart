@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart' as path;
@@ -203,8 +205,8 @@ mixin FileTestMixin implements FileSystemTestSupport {
   }
 
   test_lengthSync_existing() {
-    File file = getFile(exists: true);
-    List<int> bytes = <int>[1, 2, 3, 4, 5];
+    var file = getFile(exists: true);
+    var bytes = Uint8List.fromList([1, 2, 3, 4, 5]);
     file.writeAsBytesSync(bytes);
 
     expect(file.lengthSync, bytes.length);
@@ -393,8 +395,9 @@ mixin FileTestMixin implements FileSystemTestSupport {
   test_writeAsBytesSync_existing() {
     File file = getFile(exists: true);
 
-    file.writeAsBytesSync(<int>[99, 99]);
-    expect(file.readAsBytesSync(), <int>[99, 99]);
+    var bytes = Uint8List.fromList([99, 99]);
+    file.writeAsBytesSync(bytes);
+    expect(file.readAsBytesSync(), bytes);
   }
 
   test_writeAsBytesSync_notExisting();

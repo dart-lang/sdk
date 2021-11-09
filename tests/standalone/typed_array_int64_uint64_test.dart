@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-//
 // Dart test program for testing native typed arrays, int64 and uint64 only.
 
 // Library tag to be able to run in html test framework.

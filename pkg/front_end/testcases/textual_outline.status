@@ -25,6 +25,7 @@ const_functions/const_functions_const_ctor_error: FormatterCrash
 const_functions/const_functions_const_factory: FormatterCrash
 constructor_tearoffs/issue46133: FormatterCrash
 constructor_tearoffs/issue47075: FormatterCrash
+constructor_tearoffs/new_as_selector: FormatterCrash
 dart2js/late_fields: FormatterCrash
 dart2js/late_statics: FormatterCrash
 extension_types/basic_show: FormatterCrash
@@ -39,6 +40,7 @@ extension_types/simple_setter_resolution: FormatterCrash
 extension_types/simple_show_and_hide: FormatterCrash
 extension_types/simple_show_hide: FormatterCrash
 extension_types/simple_show_hide_conflicts: FormatterCrash
+extension_types/type_variable_in_static_context: FormatterCrash
 extension_types/various_hide_elements: FormatterCrash
 extension_types/various_show_elements: FormatterCrash
 extensions/extension_constructor: FormatterCrash
@@ -85,12 +87,15 @@ general/issue42997: FormatterCrash
 general/issue43363: FormatterCrash
 general/issue45490: FormatterCrash
 general/issue45700.crash: FormatterCrash
+general/issue47495: FormatterCrash
 general/many_errors: FormatterCrash
 general/missing_prefix_name: FormatterCrash
+general/new_as_selector: FormatterCrash
 general/null_aware_super: FormatterCrash
 general/null_safety_invalid_experiment: FormatterCrash
 general/null_safety_invalid_experiment_and_language_version: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
+general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: FormatterCrash
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: FormatterCrash
@@ -129,6 +134,7 @@ late_lowering/override: FormatterCrash
 late_lowering/override_getter_setter: FormatterCrash
 late_lowering/skip_late_final_uninitialized_instance_fields/main: FormatterCrash
 late_lowering/uninitialized_non_nullable_late_fields: FormatterCrash
+named_arguments_anywhere/redirecting_constructor_initializers: FormatterCrash
 nnbd/abstract_field_errors: FormatterCrash
 nnbd/covariant_late_field: FormatterCrash
 nnbd/duplicates_instance: FormatterCrash

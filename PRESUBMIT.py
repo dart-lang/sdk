@@ -127,8 +127,8 @@ def _CheckDartFormat(input_api, output_api):
 
     def HasFormatErrors(filename: str = None, contents: str = None):
         # Don't look for formatting errors in multitests. Since those are very
-        # sensitive to whitespace, many cannot be formatted with dartfmt without
-        # breaking them.
+        # sensitive to whitespace, many cannot be reformatted without breaking
+        # them.
         if filename and filename.endswith('_test.dart'):
             with open(filename) as f:
                 contents = f.read()
@@ -179,7 +179,7 @@ def _CheckDartFormat(input_api, output_api):
             lineSep = " ^\n"
         return [
             output_api.PresubmitError(
-                'File output does not match dartfmt.\n'
+                'File output does not match dart format.\n'
                 'Fix these issues with:\n'
                 '%s format %s%s' %
                 (dart, lineSep, lineSep.join(unformatted_files)))

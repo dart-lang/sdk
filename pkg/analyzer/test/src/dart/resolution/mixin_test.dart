@@ -120,7 +120,7 @@ const a = 0;
 mixin M {}
 ''');
 
-    var aRef = findNode.commentReference('a]').identifier;
+    var aRef = findNode.commentReference('a]').expression;
     assertElement(aRef, findElement.topGet('a'));
     assertTypeNull(aRef);
   }

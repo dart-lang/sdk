@@ -113,7 +113,7 @@ class AnalyzerImpl {
   /// Fills [errorsResults] using [files].
   Future<void> prepareErrors() async {
     for (var path in files) {
-      var errorsResult = await analysisDriver.getErrors2(path);
+      var errorsResult = await analysisDriver.getErrors(path);
       if (errorsResult is ErrorsResult) {
         errorsResults.add(errorsResult);
       }
@@ -209,7 +209,7 @@ class AnalyzerImpl {
     var libraryPath = libraryFile.path;
     analysisDriver.priorityFiles = [libraryPath];
     var elementResult =
-        await analysisDriver.getUnitElement2(libraryPath) as UnitElementResult;
+        await analysisDriver.getUnitElement(libraryPath) as UnitElementResult;
     return elementResult.element.library;
   }
 

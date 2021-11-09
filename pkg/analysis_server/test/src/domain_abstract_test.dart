@@ -32,7 +32,8 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
   Future<void> test_waitForResponses_empty_timeout() async {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
     var futures = <PluginInfo, Future<plugin.Response>>{};
-    var responses = await handler.waitForResponses(futures, timeout: 250);
+    var responses = await handler.waitForResponses(futures,
+        timeout: const Duration(milliseconds: 250));
     expect(responses, isEmpty);
   }
 
@@ -79,7 +80,8 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
       plugin2: Future.value(response2),
       plugin3: Future.delayed(Duration(milliseconds: 500), () => response3)
     };
-    var responses = await handler.waitForResponses(futures, timeout: 50);
+    var responses = await handler.waitForResponses(futures,
+        timeout: const Duration(milliseconds: 50));
     expect(responses, unorderedEquals([response2]));
   }
 

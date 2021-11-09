@@ -168,6 +168,29 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_functionTypedParameter_dynamic() async {
+    await resolveTestCode('''
+abstract class A {
+  void m(bool test(e));
+}
+
+class B extends A {
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  void m(bool test(e));
+}
+
+class B extends A {
+  @override
+  void m(bool Function(dynamic e) test) {
+    // TODO: implement m
+  }
+}
+''');
+  }
+
   Future<void> test_functionTypedParameter_nullable() async {
     await resolveTestCode('''
 abstract class A {

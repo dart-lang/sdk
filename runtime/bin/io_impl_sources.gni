@@ -109,7 +109,4 @@ io_impl_sources = [
   "typed_data_utils.h",
 ]
 
-io_impl_tests = [
-  "platform_macos_test.cc",
-  "secure_socket_utils_test.cc",
-]
+io_impl_tests = [ "secure_socket_utils_test.cc" ]

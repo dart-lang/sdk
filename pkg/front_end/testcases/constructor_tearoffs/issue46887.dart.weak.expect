@@ -20,5 +20,5 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 constants  {
   #C1 = null
   #C2 = static-tearoff self::a
-  #C3 = instantiation self::a <core::int*, core::String*>
+  #C3 = instantiation #C2 <core::int*, core::String*>
 }

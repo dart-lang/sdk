@@ -44,6 +44,7 @@ import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'js_model/js_world.dart';
 import 'js_model/locals.dart';
+import 'kernel/front_end_adapter.dart' show CompilerFileSystem;
 import 'kernel/kernel_strategy.dart';
 import 'kernel/loader.dart' show KernelLoaderTask, KernelResult;
 import 'null_compiler_output.dart' show NullCompilerOutput;
@@ -90,6 +91,7 @@ abstract class Compiler {
 
   final List<CodeLocation> _userCodeLocations = <CodeLocation>[];
 
+  ir.Component componentForTesting;
   JClosedWorld backendClosedWorldForTesting;
   DataSourceIndices closedWorldIndicesForTesting;
 
@@ -218,16 +220,16 @@ abstract class Compiler {
   bool get disableTypeInference =>
       options.disableTypeInference || compilationFailed;
 
-  // Compiles the dart script at [uri].
+  // Compiles the dart program as specified in [options].
   //
   // The resulting future will complete with true if the compilation
   // succeeded.
-  Future<bool> run(Uri uri) => selfTask.measureSubtask("run", () {
+  Future<bool> run() => selfTask.measureSubtask("run", () {
         measurer.startWallClock();
 
-        return Future.sync(() => runInternal(uri))
+        return Future.sync(() => runInternal())
             .catchError((error, StackTrace stackTrace) =>
-                _reporter.onError(uri, error, stackTrace))
+                _reporter.onError(options.compilationTarget, error, stackTrace))
             .whenComplete(() {
           measurer.stopWallClock();
         }).then((_) {
@@ -245,15 +247,19 @@ abstract class Compiler {
     return options.readClosedWorldUri != null && options.readDataUri != null;
   }
 
-  Future runInternal(Uri uri) async {
+  Future runInternal() async {
     clearState();
-    assert(uri != null);
-    reporter.log('Compiling $uri (${options.buildId})');
+    var compilationTarget = options.compilationTarget;
+    assert(compilationTarget != null);
+    reporter.log('Compiling $compilationTarget (${options.buildId})');
 
     if (options.readProgramSplit != null) {
+      var constraintUri = options.readProgramSplit;
       var constraintParser = psc.Parser();
-      programSplitConstraintsData =
-          await constraintParser.read(provider, options.readProgramSplit);
+      var programSplitJson = await CompilerFileSystem(provider)
+          .entityForUri(constraintUri)
+          .readAsString();
+      programSplitConstraintsData = constraintParser.read(programSplitJson);
     }
 
     if (onlyPerformGlobalTypeInference) {
@@ -267,17 +273,19 @@ abstract class Compiler {
       }
       GlobalTypeInferenceResults globalTypeInferenceResults =
           performGlobalTypeInference(closedWorldAndIndices.closedWorld);
+      var indices = closedWorldAndIndices.indices;
       if (options.writeDataUri != null) {
         if (options.noClosedWorldInData) {
           serializationTask.serializeGlobalTypeInference(
-              globalTypeInferenceResults, closedWorldAndIndices.indices);
+              globalTypeInferenceResults, indices);
         } else {
           serializationTask
               .serializeGlobalTypeInferenceLegacy(globalTypeInferenceResults);
         }
         return;
       }
-      await generateJavaScriptCode(globalTypeInferenceResults);
+      await generateJavaScriptCode(globalTypeInferenceResults,
+          indices: indices);
     } else if (onlyPerformCodegen) {
       GlobalTypeInferenceResults globalTypeInferenceResults;
       ir.Component component =
@@ -291,7 +299,8 @@ abstract class Compiler {
               abstractValueStrategy,
               component,
               closedWorldAndIndices);
-      await generateJavaScriptCode(globalTypeInferenceResults);
+      await generateJavaScriptCode(globalTypeInferenceResults,
+          indices: closedWorldAndIndices.indices);
     } else if (options.readDataUri != null) {
       // TODO(joshualitt) delete and clean up after google3 roll
       var globalTypeInferenceResults =
@@ -299,11 +308,14 @@ abstract class Compiler {
               environment, abstractValueStrategy);
       await generateJavaScriptCode(globalTypeInferenceResults);
     } else {
-      KernelResult result = await kernelLoader.load(uri);
+      KernelResult result = await kernelLoader.load();
       reporter.log("Kernel load complete");
       if (result == null) return;
       if (compilationFailed) {
         return;
+      }
+      if (retainDataForTesting) {
+        componentForTesting = result.component;
       }
       if (options.cfeOnly) return;
 
@@ -324,7 +336,8 @@ abstract class Compiler {
   }
 
   void generateJavaScriptCode(
-      GlobalTypeInferenceResults globalTypeInferenceResults) async {
+      GlobalTypeInferenceResults globalTypeInferenceResults,
+      {DataSourceIndices indices}) async {
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
     backendStrategy.registerJClosedWorld(closedWorld);
     phase = PHASE_COMPILING;
@@ -333,8 +346,8 @@ abstract class Compiler {
 
     if (options.readCodegenUri != null) {
       CodegenResults codegenResults =
-          await serializationTask.deserializeCodegen(
-              backendStrategy, globalTypeInferenceResults, codegenInputs);
+          await serializationTask.deserializeCodegen(backendStrategy,
+              globalTypeInferenceResults, codegenInputs, indices);
       reporter.log('Compiling methods');
       runCodegenEnqueuer(codegenResults);
     } else {
@@ -344,7 +357,8 @@ abstract class Compiler {
           codegenInputs,
           backendStrategy.functionCompiler);
       if (options.writeCodegenUri != null) {
-        serializationTask.serializeCodegen(backendStrategy, codegenResults);
+        serializationTask.serializeCodegen(
+            backendStrategy, codegenResults, indices);
       } else {
         runCodegenEnqueuer(codegenResults);
       }

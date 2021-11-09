@@ -169,7 +169,8 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
       description.cache.firstToken = scanner.tokenize();
       description.cache.lineStarts = scanner.lineStarts;
 
-      Uri dotPackages = description.uri.resolve(".packages");
+      Uri dotPackages =
+          description.uri.resolve(".dart_tool/package_config.json");
       while (true) {
         if (new File.fromUri(dotPackages).existsSync()) {
           break;
@@ -178,7 +179,8 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
         if (dotPackages.pathSegments.length < Uri.base.pathSegments.length) {
           break;
         }
-        dotPackages = dotPackages.resolve("../.packages");
+        dotPackages =
+            dotPackages.resolve("../../.dart_tool/package_config.json");
       }
 
       File dotPackagesFile = new File.fromUri(dotPackages);

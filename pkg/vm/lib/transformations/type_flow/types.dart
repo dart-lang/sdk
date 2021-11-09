@@ -166,7 +166,7 @@ abstract class Type extends TypeExpr {
   factory Type.nullable(Type t) => new NullableType(t);
 
   /// Create a type representing arbitrary nullable object (`dynamic`).
-  factory Type.nullableAny() => new NullableType(const AnyType());
+  factory Type.nullableAny() => const NullableType(const AnyType());
 
   Class? getConcreteClass(TypeHierarchy typeHierarchy) => null;
 
@@ -253,9 +253,7 @@ class EmptyType extends Type {
 class NullableType extends Type {
   final Type baseType;
 
-  NullableType(this.baseType) {
-    assert(baseType is! NullableType);
-  }
+  const NullableType(this.baseType) : assert(baseType is! NullableType);
 
   @override
   int get hashCode => (baseType.hashCode + 31) & kHashMask;

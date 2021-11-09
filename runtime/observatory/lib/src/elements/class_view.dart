@@ -30,7 +30,6 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/source_inset.dart';
 import 'package:observatory/src/elements/source_link.dart';
-import 'package:observatory/src/elements/view_footer.dart';
 
 class ClassViewElement extends CustomElement implements Renderable {
   late RenderingScheduler<ClassViewElement> _r;
@@ -257,8 +256,6 @@ class ClassViewElement extends CustomElement implements Renderable {
                         .element
                   ]
                 : const [],
-          new HRElement(),
-          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

@@ -26,7 +26,7 @@ import self as self;
 import "dart:core" as core;
 
 class A<X extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::baz]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor foo() → self::A<self::A::X%>
     : super core::Object::•() {}
   static factory bar<X extends core::Object? = dynamic>() → self::A<self::A::bar::X%>
@@ -35,7 +35,6 @@ class A<X extends core::Object? = dynamic> extends core::Object {
     return self::A::bar<self::A::baz::X%>();
 }
 static method test() → dynamic {
-  #C1;
   #C2;
   #C3;
   #C4;
@@ -43,6 +42,7 @@ static method test() → dynamic {
   #C6;
   #C7;
   #C8;
+  #C9;
   invalid-expression "pkg/front_end/testcases/constructor_tearoffs/issue46890.dart:22:14: Error: A constructor tear-off can't have type arguments after the constructor name.
 Try removing the type arguments or placing them after the class name.
   List.filled<int>; // Error.
@@ -63,12 +63,13 @@ Try removing the type arguments or placing them after the class name.
 static method main() → dynamic {}
 
 constants  {
-  #C1 = static-tearoff core::List::filled
-  #C2 = constructor-tearoff self::A::foo
-  #C3 = static-tearoff self::A::bar
-  #C4 = redirecting-factory-tearoff self::A::baz
-  #C5 = instantiation core::List::filled <core::int*>
-  #C6 = instantiation self::A::foo <core::int*>
-  #C7 = instantiation self::A::bar <core::int*>
-  #C8 = instantiation self::A::baz <core::int*>
+  #C1 = constructor-tearoff self::A::baz
+  #C2 = constructor-tearoff core::List::filled
+  #C3 = constructor-tearoff self::A::foo
+  #C4 = constructor-tearoff self::A::bar
+  #C5 = redirecting-factory-tearoff self::A::baz
+  #C6 = instantiation #C2 <core::int*>
+  #C7 = instantiation #C3 <core::int*>
+  #C8 = instantiation #C4 <core::int*>
+  #C9 = instantiation #C5 <core::int*>
 }

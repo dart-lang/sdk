@@ -22,7 +22,7 @@ class S<T> extends Struct {
   external Pointer notEmpty;
 }
 ''', [
-      error(FfiCode.GENERIC_STRUCT_SUBCLASS, 25, 1),
+      error(FfiCode.GENERIC_STRUCT_SUBCLASS, 25, 1, messageContains: ["'S'"]),
     ]);
   }
 
@@ -33,7 +33,7 @@ class S<T> extends Union {
   external Pointer notEmpty;
 }
 ''', [
-      error(FfiCode.GENERIC_STRUCT_SUBCLASS, 25, 1),
+      error(FfiCode.GENERIC_STRUCT_SUBCLASS, 25, 1, messageContains: ["'S'"]),
     ]);
   }
 

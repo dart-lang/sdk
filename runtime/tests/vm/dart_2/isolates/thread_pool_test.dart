@@ -5,7 +5,7 @@
 // @dart = 2.9
 
 // SharedObjects=ffi_test_functions
-// VMOptions=--enable-isolate-groups --disable-heap-verification
+// VMOptions=--disable-heap-verification
 
 import 'dart:async';
 import 'dart:ffi';

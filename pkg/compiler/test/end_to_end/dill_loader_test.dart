@@ -13,9 +13,7 @@ import 'package:compiler/src/elements/entities.dart'
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:compiler/src/kernel/loader.dart';
 import 'package:expect/expect.dart';
-import 'package:front_end/src/api_prototype/front_end.dart';
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
+import 'package:front_end/src/api_unstable/dart2js.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
@@ -23,14 +21,14 @@ import 'package:kernel/target/targets.dart' show TargetFlags;
 /// than just string source files.
 main() {
   asyncTest(() async {
-    String filename = 'tests/corelib_2/list_literal_test.dart';
+    String filename = 'tests/corelib/list_literal_test.dart';
     Uri uri = Uri.base.resolve(filename);
-    DiagnosticCollector diagnostics = new DiagnosticCollector();
-    OutputCollector output = new OutputCollector();
-    Uri entryPoint = Uri.parse('memory:main.dill');
+    DiagnosticCollector diagnostics = DiagnosticCollector();
+    OutputCollector output = OutputCollector();
 
-    var options = new CompilerOptions()
-      ..target = new Dart2jsTarget("dart2js", new TargetFlags())
+    var options = CompilerOptions()
+      ..target = Dart2jsTarget("dart2js", TargetFlags(enableNullSafety: true))
+      ..nnbdMode = NnbdMode.Strong
       ..packagesFileUri = Uri.base.resolve('.packages')
       ..additionalDills = <Uri>[
         computePlatformBinariesLocation().resolve("dart2js_platform.dill"),
@@ -41,12 +39,12 @@ main() {
     List<int> kernelBinary =
         serializeComponent((await kernelForProgram(uri, options)).component);
     CompilerImpl compiler = compilerFor(
-        entryPoint: entryPoint,
+        entryPoint: uri,
         memorySourceFiles: {'main.dill': kernelBinary},
         diagnosticHandler: diagnostics,
         outputProvider: output);
     await compiler.setupSdk();
-    KernelResult result = await compiler.kernelLoader.load(entryPoint);
+    KernelResult result = await compiler.kernelLoader.load();
     compiler.frontendStrategy.registerLoadedLibraries(result);
 
     Expect.equals(0, diagnostics.errors.length);

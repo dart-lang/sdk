@@ -259,34 +259,6 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
   List<int> get usedNames;
 }
 
-/// Information about an unlinked unit.
-@TopLevel('ADUU')
-abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
-  factory AnalysisDriverUnlinkedUnit.fromBuffer(List<int> buffer) =>
-      generated.readAnalysisDriverUnlinkedUnit(buffer);
-
-  /// List of class member names defined by the unit.
-  @Id(2)
-  List<String> get definedClassMemberNames;
-
-  /// List of top-level names defined by the unit.
-  @Id(1)
-  List<String> get definedTopLevelNames;
-
-  /// List of external names referenced by the unit.
-  @Id(0)
-  List<String> get referencedNames;
-
-  /// List of names which are used in `extends`, `with` or `implements` clauses
-  /// in the file. Import prefixes and type arguments are not included.
-  @Id(3)
-  List<String> get subtypedNames;
-
-  /// Unlinked information for the unit.
-  @Id(4)
-  UnlinkedUnit2? get unit2;
-}
-
 /// Information about a single declaration.
 abstract class AvailableDeclaration extends base.SummaryClass {
   @Id(0)
@@ -463,22 +435,6 @@ abstract class CiderUnitErrors extends base.SummaryClass {
   List<int> get signature;
 }
 
-/// Information about a compilation unit, contains the content hash
-/// and unlinked summary.
-@TopLevel('CUUN')
-abstract class CiderUnlinkedUnit extends base.SummaryClass {
-  factory CiderUnlinkedUnit.fromBuffer(List<int> buffer) =>
-      generated.readCiderUnlinkedUnit(buffer);
-
-  /// The hash signature of the contents of the file.
-  @Id(0)
-  List<int> get contentDigest;
-
-  /// Unlinked summary of the compilation unit.
-  @Id(1)
-  UnlinkedUnit2? get unlinkedUnit;
-}
-
 abstract class DiagnosticMessage extends base.SummaryClass {
   /// The absolute and normalized path of the file associated with this message.
   @Id(0)
@@ -614,78 +570,4 @@ abstract class PackageBundle extends base.SummaryClass {
   /// The version 2 of the summary.
   @Id(0)
   int get fake;
-}
-
-/// Unlinked summary information about a namespace directive.
-abstract class UnlinkedNamespaceDirective extends base.SummaryClass {
-  /// The configurations that control which library will actually be used.
-  @Id(0)
-  List<UnlinkedNamespaceDirectiveConfiguration> get configurations;
-
-  /// The URI referenced by this directive, nad used by default when none
-  /// of the [configurations] matches.
-  @Id(1)
-  String get uri;
-}
-
-/// Unlinked summary information about a namespace directive configuration.
-abstract class UnlinkedNamespaceDirectiveConfiguration
-    extends base.SummaryClass {
-  /// The name of the declared variable used in the condition.
-  @Id(0)
-  String get name;
-
-  /// The URI to be used if the condition is true.
-  @Id(2)
-  String get uri;
-
-  /// The value to which the value of the declared variable will be compared,
-  /// or the empty string if the condition does not include an equality test.
-  @Id(1)
-  String get value;
-}
-
-/// Unlinked summary information about a compilation unit.
-@TopLevel('UUN2')
-abstract class UnlinkedUnit2 extends base.SummaryClass {
-  factory UnlinkedUnit2.fromBuffer(List<int> buffer) =>
-      generated.readUnlinkedUnit2(buffer);
-
-  /// The MD5 hash signature of the API portion of this unit. It depends on all
-  /// tokens that might affect APIs of declarations in the unit.
-  @Id(0)
-  List<int> get apiSignature;
-
-  /// URIs of `export` directives.
-  @Id(1)
-  List<UnlinkedNamespaceDirective> get exports;
-
-  /// Is `true` if the unit contains a `library` directive.
-  @Id(6)
-  bool get hasLibraryDirective;
-
-  /// Is `true` if the unit contains a `part of` directive.
-  @Id(3)
-  bool get hasPartOfDirective;
-
-  /// URIs of `import` directives.
-  @Id(2)
-  List<UnlinkedNamespaceDirective> get imports;
-
-  /// Offsets of the first character of each line in the source code.
-  @informative
-  @Id(5)
-  List<int> get lineStarts;
-
-  /// The library name of the `part of my.name;` directive.
-  @Id(8)
-  String get partOfName;
-
-  /// URI of the `part of 'uri';` directive.
-  @Id(7)
-  String get partOfUri;
-
-  /// URIs of `part` directives.
-  @Id(4)
-  List<String> get parts;
 }

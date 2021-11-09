@@ -60,7 +60,7 @@ abstract class FutureOr<T> {
 /// To perform an asynchronous computation, you use an `async` function
 /// which always produces a future.
 /// Inside such an asynchronous function, you can use the `await` operation
-/// to delay execution until another asyncronous computation has a result.
+/// to delay execution until another asynchronous computation has a result.
 /// While execution of the awaiting function is delayed,
 /// the program is not blocked, and can continue doing other things.
 ///
@@ -738,11 +738,11 @@ abstract class Future<T> {
   ///
   /// This method is equivalent to:
   /// ```dart
-  /// Future<T> whenComplete(action()) {
+  /// Future<T> whenComplete(action() {
   ///   return this.then((v) {
   ///     var f2 = action();
   ///     if (f2 is Future) return f2.then((_) => v);
-  ///     return v
+  ///     return v;
   ///   }, onError: (e) {
   ///     var f2 = action();
   ///     if (f2 is Future) return f2.then((_) { throw e; });

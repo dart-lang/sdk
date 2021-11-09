@@ -6,7 +6,7 @@ import "package:expect/expect.dart" as exp;
 import "package:expect/expect.dart";
 
 abstract class A<T extends core::Object* = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::•];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   constructor empty() → self::A<self::A::T*>*
     : super core::Object::•()
     ;
@@ -24,7 +24,7 @@ abstract class A<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class B<U extends core::Object* = dynamic, W extends core::Object* = dynamic> extends self::A<self::B::U*> {
-  static final field dynamic _redirecting# = <dynamic>[self::B::•];
+  static final field dynamic _redirecting# = <dynamic>[#C2];
   constructor empty() → self::B<self::B::U*, self::B::W*>*
     : super self::A::empty()
     ;
@@ -40,4 +40,9 @@ class C<V extends core::Object* = dynamic, S extends core::Object* = dynamic, R 
 }
 static method main() → dynamic {
   exp::Expect::equals("${new self::C::•<core::int*, core::List<core::int*>*, core::Map<core::int*, core::List<core::int*>*>*>()}", "int,List<int>,Map<int, List<int>>");
+}
+
+constants  {
+  #C1 = constructor-tearoff self::A::•
+  #C2 = constructor-tearoff self::B::•
 }

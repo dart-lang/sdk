@@ -7,19 +7,16 @@ library fasta.procedure_builder;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
-import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
-
 import '../identifiers.dart';
 import '../scope.dart';
 
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/kernel_helper.dart';
 
-import '../loader.dart' show Loader;
+import '../source/source_loader.dart' show SourceLoader;
 
 import '../messages.dart'
     show
-        messageNonInstanceTypeVariableUse,
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         messagePatchNonExternal,
@@ -129,7 +126,7 @@ abstract class FunctionBuilder implements MemberBuilder {
   /// members.
   List<TypeParameter>? get extensionTypeParameters;
 
-  void becomeNative(Loader loader);
+  void becomeNative(SourceLoader loader);
 
   bool checkPatch(FunctionBuilder patch);
 
@@ -354,8 +351,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
     }
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
-        VariableDeclaration parameter = formal.build(library, 0,
-            nonInstanceContext: !isConstructor && !isDeclarationInstanceMember);
+        VariableDeclaration parameter = formal.build(library, 0);
         if (needsCheckVisitor != null) {
           if (parameter.type.accept(needsCheckVisitor)) {
             parameter.isCovariantByClass = true;
@@ -399,48 +395,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       function.requiredParameterCount = 1;
     }
     if (returnType != null) {
-      function.returnType = returnType!.build(library,
-          nonInstanceContext: !isConstructor && !isDeclarationInstanceMember);
-    }
-    if (!isConstructor && !isDeclarationInstanceMember) {
-      List<TypeParameter>? typeParameters;
-      if (parent is ClassBuilder) {
-        ClassBuilder enclosingClassBuilder = parent as ClassBuilder;
-        typeParameters = enclosingClassBuilder.cls.typeParameters;
-      } else if (parent is ExtensionBuilder) {
-        ExtensionBuilder enclosingExtensionBuilder = parent as ExtensionBuilder;
-        typeParameters = enclosingExtensionBuilder.extension.typeParameters;
-      }
-
-      if (typeParameters != null && typeParameters.isNotEmpty) {
-        Map<TypeParameter, DartType>? substitution;
-        DartType removeTypeVariables(DartType type) {
-          if (substitution == null) {
-            substitution = <TypeParameter, DartType>{};
-            for (TypeParameter parameter in typeParameters!) {
-              substitution![parameter] = const DynamicType();
-            }
-          }
-          library.addProblem(
-              messageNonInstanceTypeVariableUse, charOffset, noLength, fileUri);
-          return substitute(type, substitution!);
-        }
-
-        Set<TypeParameter> set = typeParameters.toSet();
-        for (VariableDeclaration parameter in function.positionalParameters) {
-          if (containsTypeVariable(parameter.type, set)) {
-            parameter.type = removeTypeVariables(parameter.type);
-          }
-        }
-        for (VariableDeclaration parameter in function.namedParameters) {
-          if (containsTypeVariable(parameter.type, set)) {
-            parameter.type = removeTypeVariables(parameter.type);
-          }
-        }
-        if (containsTypeVariable(function.returnType, set)) {
-          function.returnType = removeTypeVariables(function.returnType);
-        }
-      }
+      function.returnType = returnType!.build(library);
     }
     if (isExtensionInstanceMember) {
       ExtensionBuilder extensionBuilder = parent as ExtensionBuilder;
@@ -526,7 +481,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   Member build(SourceLibraryBuilder library);
 
   @override
-  void becomeNative(Loader loader) {
+  void becomeNative(SourceLoader loader) {
     MemberBuilder constructor = loader.getNativeAnnotation();
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeMethodName!)]);

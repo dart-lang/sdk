@@ -19,6 +19,14 @@ class AddAsync extends CorrectionProducer {
   AddAsync(this.isForMissingReturn);
 
   @override
+  // Not predictably the correct action.
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  // Not predictably the correct action.
+  bool get canBeAppliedToFile => false;
+
+  @override
   FixKind get fixKind => DartFixKind.ADD_ASYNC;
 
   @override

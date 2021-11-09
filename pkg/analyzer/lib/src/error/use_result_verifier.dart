@@ -149,11 +149,15 @@ class UseResultVerifier {
       return parent.target == node;
     }
 
-    if (parent is ParenthesizedExpression || parent is ConditionalExpression) {
+    if (parent is ParenthesizedExpression ||
+        parent is ConditionalExpression ||
+        parent is AwaitExpression) {
       return _isUsed(parent);
     }
 
     return parent is ArgumentList ||
+        // Node should always be RHS so no need to check for a property assignment.
+        parent is AssignmentExpression ||
         parent is VariableDeclaration ||
         parent is MethodInvocation ||
         parent is PropertyAccess ||
