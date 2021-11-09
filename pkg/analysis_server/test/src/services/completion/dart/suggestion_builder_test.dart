@@ -27,7 +27,7 @@ class ContextTypeTest extends AbstractSingleUnitTest {
   }
 
   Future<CompletionSuggestion> forTopLevelFunction(String functionName) async {
-    var request = DartCompletionRequest(
+    var request = DartCompletionRequest.forResolvedUnit(
       resolvedUnit: testAnalysisResult,
       offset: 0,
     );

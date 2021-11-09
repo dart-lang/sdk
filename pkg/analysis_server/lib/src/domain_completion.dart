@@ -329,7 +329,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         );
         performanceList.add(completionPerformance);
 
-        var completionRequest = DartCompletionRequest(
+        var completionRequest = DartCompletionRequest.forResolvedUnit(
           resolvedUnit: resolvedUnit,
           offset: offset,
           dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
@@ -527,7 +527,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           return;
         }
 
-        var completionRequest = DartCompletionRequest(
+        var completionRequest = DartCompletionRequest.forResolvedUnit(
           resolvedUnit: resolvedUnit,
           offset: offset,
           dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
