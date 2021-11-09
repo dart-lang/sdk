@@ -12,7 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 List<Element> getChildren(Element parent, [String? name]) {
   var children = <Element>[];
   visitChildren(parent, (Element element) {
-    if (name == null || element.displayName == name) {
+    if (name == null || _getBaseName(element) == name) {
       children.add(element);
     }
     return false;
@@ -204,4 +204,12 @@ Element getSyntheticAccessorVariable(Element element) {
     }
   }
   return element;
+}
+
+String? _getBaseName(Element element) {
+  if (element is PropertyAccessorElement && element.isSetter) {
+    var name = element.name;
+    return name.substring(0, name.length - 1);
+  }
+  return element.name;
 }

@@ -12,7 +12,29 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveUnusedParameterTest);
+    defineReflectiveTests(RemoveUnusedParameterBulkTest);
   });
+}
+
+@reflectiveTest
+class RemoveUnusedParameterBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.avoid_unused_constructor_parameters;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class C {
+  int y;
+  C({int x = 0, this.y = 0, int z = 0});
+}
+''');
+    await assertHasFix('''
+class C {
+  int y;
+  C({this.y = 0});
+}
+''');
+  }
 }
 
 @reflectiveTest

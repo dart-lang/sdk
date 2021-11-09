@@ -72,7 +72,7 @@ class _AddInvocation extends CorrectionProducer {
   List<Object> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');
-    var constructorName = _constructor.displayName;
+    var constructorName = _constructor.name;
     if (constructorName.isNotEmpty) {
       buffer.write('.');
       buffer.write(constructorName);
@@ -86,7 +86,7 @@ class _AddInvocation extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var constructorName = _constructor.displayName;
+    var constructorName = _constructor.name;
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(_insertOffset, (builder) {
         builder.write(_prefix);

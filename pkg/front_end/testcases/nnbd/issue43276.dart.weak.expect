@@ -16,14 +16,14 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::C::redirect]/*isLegacy*/;
-  constructor gen({core::int i = #C1}) → self::C
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor gen({core::int i = #C2}) → self::C
     : super core::Object::•()
     ;
-  static factory fact({core::int i = #C1}) → self::C {
+  static factory fact({core::int i = #C2}) → self::C {
     return new self::C::gen();
   }
-  static factory redirect({core::int i = #C1}) → self::C
+  static factory redirect({core::int i = #C2}) → self::C
     return new self::C::gen(i: i);
 }
 class D extends core::Object {
@@ -34,5 +34,6 @@ class D extends core::Object {
 static method main() → dynamic {}
 
 constants  {
-  #C1 = null
+  #C1 = constructor-tearoff self::C::redirect
+  #C2 = null
 }

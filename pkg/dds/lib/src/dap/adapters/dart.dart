@@ -361,6 +361,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     this.enableAuthCodes = true,
     this.logger,
   }) : super(channel) {
+    channel.closed.then((_) => shutdown());
+
     _isolateManager = IsolateManager(this);
     _converter = ProtocolConverter(this);
   }
@@ -1664,10 +1666,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
-  void _logTraffic(String data) {
-    logger?.call(data);
+  void _logTraffic(String message) {
+    logger?.call(message);
     if (sendLogsToClient) {
-      sendEvent(RawEventBody(data), eventType: 'dart.log');
+      sendEvent(RawEventBody({"message": message}), eventType: 'dart.log');
     }
   }
 
@@ -1727,10 +1729,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// Clients may not know about all debug options, so anything not included
   /// in the map will not be updated by this method.
   Future<void> _updateDebugOptions(Map<String, Object?> args) async {
-    // TODO(dantup): Document this - it's a public API we expect to be used
-    //   by editors that can support it (although it will require custom
-    //   code as it's there's no DAP standard for this, or the settings it
-    //   toggles).
     if (args.containsKey('debugSdkLibraries')) {
       _isolateManager.debugSdkLibraries = args['debugSdkLibraries'] as bool;
     }

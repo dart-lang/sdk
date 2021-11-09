@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -20,21 +19,11 @@ typedef SuggestionsFilter = int? Function(DartType dartType, int relevance);
 /// suggestions should be made based upon the type of node in which the
 /// suggestions were requested.
 class OpType {
-  /// The [TypeSystem] used during resolution of the current unit.
-  TypeSystem? _typeSystem;
-
   /// Indicates whether constructor suggestions should be included.
   bool includeConstructorSuggestions = false;
 
   /// Indicates whether type names should be suggested.
   bool includeTypeNameSuggestions = false;
-
-  /// If [includeTypeNameSuggestions] is set to true, then this function may
-  /// be set to a non-default function to filter out potential suggestions
-  /// (null) based on their static [DartType], or change the relative relevance
-  /// by returning a higher or lower relevance.
-  SuggestionsFilter typeNameSuggestionsFilter =
-      (DartType _, int relevance) => relevance;
 
   /// Indicates whether setters along with methods and functions that
   /// have a [void] return type should be suggested.
@@ -76,10 +65,6 @@ class OpType {
   /// An representation of the location at which completion was requested.
   String? completionLocation;
 
-  /// The type that is required by the context in which the completion was
-  /// activated, or `null` if there is no such type, or it cannot be determined.
-  DartType? _requiredType;
-
   /// Determine the suggestions that should be made based upon the given
   /// [CompletionTarget] and [offset].
   factory OpType.forCompletion(CompletionTarget target, int offset) {
@@ -89,8 +74,6 @@ class OpType {
     if (target.isDoubleOrIntLiteral()) {
       return optype;
     }
-
-    optype._typeSystem = target.unit.declaredElement?.library.typeSystem;
 
     var targetNode = target.containingNode;
     targetNode.accept(_OpTypeAstVisitor(optype, target.entity, offset));
@@ -111,15 +94,8 @@ class OpType {
 
     // If a value should be suggested, suggest also constructors.
     if (optype.includeReturnValueSuggestions) {
-      // Careful: in angular plugin, `target.unit` may be null!
-      var unitElement = target.unit.declaredElement;
-      if (unitElement != null) {
-        optype.includeConstructorSuggestions = true;
-      }
+      optype.includeConstructorSuggestions = true;
     }
-
-    // Compute the type required by the context and set filters.
-    optype._computeRequiredTypeAndFilters(target);
 
     return optype;
   }
@@ -141,59 +117,6 @@ class OpType {
       !includeTypeNameSuggestions &&
       !includeReturnValueSuggestions &&
       !includeVoidReturnSuggestions;
-
-  /// Try to determine the required context type, and configure filters.
-  void _computeRequiredTypeAndFilters(CompletionTarget target) {
-    var entity = target.entity;
-    AstNode? node = target.containingNode;
-
-    if (node is InstanceCreationExpression &&
-        node.keyword != null &&
-        node.constructorName == entity) {
-      entity = node;
-      node = node.parent;
-    }
-
-    if (node is AssignmentExpression &&
-        node.operator.type == TokenType.EQ &&
-        node.rightHandSide == entity) {
-      _requiredType = node.leftHandSide.staticType;
-    } else if (node is BinaryExpression &&
-        node.operator.type == TokenType.EQ_EQ &&
-        node.rightOperand == entity) {
-      _requiredType = node.leftOperand.staticType;
-    } else if (node is NamedExpression && node.expression == entity) {
-      _requiredType = node.staticParameterElement?.type;
-    } else if (node is SwitchCase && node.expression == entity) {
-      var parent = node.parent;
-      if (parent is SwitchStatement) {
-        _requiredType = parent.expression.staticType;
-      }
-    } else if (node is VariableDeclaration && node.initializer == entity) {
-      _requiredType = node.declaredElement?.type;
-    } else if (entity is Expression && entity.staticParameterElement != null) {
-      _requiredType = entity.staticParameterElement?.type;
-    }
-
-    var requiredType = _requiredType;
-    if (requiredType == null) {
-      return;
-    }
-    if (requiredType.isDynamic || requiredType.isDartCoreObject) {
-      _requiredType = null;
-      return;
-    }
-  }
-
-  /// Return `true` if the [leftType] is a subtype of the [rightType].
-  bool _isSubtypeOf(DartType leftType, DartType rightType) {
-    var typeSystem = _typeSystem;
-    if (typeSystem == null) {
-      return false;
-    }
-
-    return typeSystem.isSubtypeOf(leftType, rightType);
-  }
 
   /// Return the statement before [entity]
   /// where [entity] can be a statement or the `}` closing the given block.
@@ -246,6 +169,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
+    final entity = this.entity;
     var parent = node.parent;
     List<ParameterElement>? parameters;
     if (parent is InstanceCreationExpression) {
@@ -303,8 +227,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         } else {
           index = node.arguments.length - 1;
         }
+      } else if (entity is Expression) {
+        index = node.arguments.indexOf(entity);
       } else {
-        index = node.arguments.indexOf(entity as Expression);
+        return;
       }
       if (0 <= index && index < parameters.length) {
         var param = parameters[index];
@@ -331,17 +257,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (identical(entity, node.type)) {
       optype.completionLocation = 'AsExpression_type';
       optype.includeTypeNameSuggestions = true;
-      optype.typeNameSuggestionsFilter = (DartType dartType, int relevance) {
-        var staticType = node.expression.staticType;
-        if (staticType != null &&
-            (staticType.isDynamic ||
-                (optype._isSubtypeOf(dartType, staticType) &&
-                    dartType != staticType))) {
-          return relevance;
-        } else {
-          return null;
-        }
-      };
     }
   }
 
@@ -649,7 +564,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (identical(entity, node.superclass2)) {
       optype.completionLocation = 'ExtendsClause_superclass';
       optype.includeTypeNameSuggestions = true;
-      optype.typeNameSuggestionsFilter = _nonMixinClasses;
     }
   }
 
@@ -944,17 +858,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (identical(entity, node.type)) {
       optype.completionLocation = 'IsExpression_type';
       optype.includeTypeNameSuggestions = true;
-      optype.typeNameSuggestionsFilter = (DartType dartType, int relevance) {
-        var staticType = node.expression.staticType;
-        if (staticType != null &&
-            (staticType.isDynamic ||
-                (optype._isSubtypeOf(dartType, staticType) &&
-                    dartType != staticType))) {
-          return relevance;
-        } else {
-          return null;
-        }
-      };
     }
   }
 
@@ -1468,18 +1371,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       }
     }
     return false;
-  }
-
-  /// A filter used to disable everything except classes (such as functions and
-  /// mixins).
-  int? _nonMixinClasses(DartType type, int relevance) {
-    if (type is InterfaceType) {
-      if (type.element.isMixin) {
-        return null;
-      }
-      return relevance;
-    }
-    return null;
   }
 
   static bool _isParameterOfGenericFunctionType(FormalParameter node) {

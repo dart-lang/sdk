@@ -166,7 +166,8 @@ class AnalysisErrorTest {
   void test_fromEngine_lint() {
     engineError = MockAnalysisError(
       source: source,
-      errorCode: LintCode('my_lint', 'my message', correction: 'correction'),
+      errorCode:
+          LintCode('my_lint', 'my message', correctionMessage: 'correction'),
       offset: 10,
       length: 20,
       message: 'my message',
@@ -390,8 +391,8 @@ class MockErrorCode implements engine.ErrorCode {
       this.url});
 
   @override
-  String get correction {
-    throw StateError('Unexpected invocation of correction');
+  String get correctionMessage {
+    throw StateError('Unexpected invocation of correctionMessage');
   }
 
   @override
@@ -404,14 +405,17 @@ class MockErrorCode implements engine.ErrorCode {
   bool get isUnresolvedIdentifier => false;
 
   @override
-  String get message {
-    throw StateError('Unexpected invocation of message');
+  String get problemMessage {
+    throw StateError('Unexpected invocation of problemMessage');
   }
 
   @override
   String get uniqueName {
     throw StateError('Unexpected invocation of uniqueName');
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _ResolvedUnitResultImplMock implements engine.ResolvedUnitResultImpl {

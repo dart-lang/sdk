@@ -838,6 +838,48 @@ class C extends B {
     );
   }
 
+  test_getMember_method_covariantByDeclaration_inherited() async {
+    await resolveTestCode('''
+abstract class A {
+  void foo(covariant num a);
+}
+
+abstract class B extends A {
+  void foo(int a);
+}
+''');
+    var member = manager.getMember2(
+      findElement.classOrMixin('B'),
+      Name(null, 'foo'),
+    )!;
+    // TODO(scheglov) It would be nice to use `_assertGetMember`.
+    // But we need a way to check covariance.
+    // Maybe check the element display string, not the type.
+    expect(member.parameters[0].isCovariant, isTrue);
+  }
+
+  test_getMember_method_covariantByDeclaration_merged() async {
+    await resolveTestCode('''
+class A {
+  void foo(covariant num a) {}
+}
+
+class B {
+  void foo(int a) {}
+}
+
+class C extends B implements A {}
+''');
+    var member = manager.getMember2(
+      findElement.classOrMixin('C'),
+      Name(null, 'foo'),
+      concrete: true,
+    )!;
+    // TODO(scheglov) It would be nice to use `_assertGetMember`.
+    expect(member.declaration, same(findElement.method('foo', of: 'B')));
+    expect(member.parameters[0].isCovariant, isTrue);
+  }
+
   test_getMember_preferLatest_mixin() async {
     await resolveTestCode('''
 class A {
@@ -907,6 +949,48 @@ class X extends A implements I {
       name: 'foo',
       expected: 'X.foo: void Function()',
     );
+  }
+
+  test_getMember_setter_covariantByDeclaration_inherited() async {
+    await resolveTestCode('''
+abstract class A {
+  set foo(covariant num a);
+}
+
+abstract class B extends A {
+  set foo(int a);
+}
+''');
+    var member = manager.getMember2(
+      findElement.classOrMixin('B'),
+      Name(null, 'foo='),
+    )!;
+    // TODO(scheglov) It would be nice to use `_assertGetMember`.
+    // But we need a way to check covariance.
+    // Maybe check the element display string, not the type.
+    expect(member.parameters[0].isCovariant, isTrue);
+  }
+
+  test_getMember_setter_covariantByDeclaration_merged() async {
+    await resolveTestCode('''
+class A {
+  set foo(covariant num a) {}
+}
+
+class B {
+  set foo(int a) {}
+}
+
+class C extends B implements A {}
+''');
+    var member = manager.getMember2(
+      findElement.classOrMixin('C'),
+      Name(null, 'foo='),
+      concrete: true,
+    )!;
+    // TODO(scheglov) It would be nice to use `_assertGetMember`.
+    expect(member.declaration, same(findElement.setter('foo', of: 'B')));
+    expect(member.parameters[0].isCovariant, isTrue);
   }
 
   test_getMember_super_abstract() async {

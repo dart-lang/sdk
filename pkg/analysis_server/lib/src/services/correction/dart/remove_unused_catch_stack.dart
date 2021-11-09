@@ -11,7 +11,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedCatchStack extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_CATCH_STACK;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_UNUSED_CATCH_STACK_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

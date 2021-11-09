@@ -10,6 +10,7 @@ import 'package:analyzer_utilities/html.dart';
 import 'package:analyzer_utilities/text_formatter.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:path/path.dart';
+import 'package:test/test.dart';
 
 final RegExp trailingSpacesInLineRegExp = RegExp(r' +$', multiLine: true);
 final RegExp trailingWhitespaceRegExp = RegExp(r'[\n ]+$');
@@ -228,10 +229,14 @@ class DartFormat {
   }
 
   static String formatText(String text) {
-    var file = File(join(Directory.systemTemp.path, 'gen.dart'));
+    var tmpDir = Directory.systemTemp.createTempSync('format');
+    var file = File(join(tmpDir.path, 'gen.dart'));
     file.writeAsStringSync(text);
     formatFile(file);
-    return file.readAsStringSync();
+    var result = file.readAsStringSync();
+    file.deleteSync();
+    tmpDir.deleteSync();
+    return result;
   }
 
   static void _throwIfExitCode(ProcessResult result) {
@@ -286,7 +291,7 @@ abstract class GeneratedContent {
       }
       var generateScript = normalize(joinAll(posix.split(generatorPath)));
       print('  $executable$packageRoot $generateScript ${args.join(" ")}');
-      exit(1);
+      fail('Error codes need to be generated');
     } else {
       print('All generated files up to date.');
     }

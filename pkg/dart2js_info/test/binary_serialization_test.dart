@@ -12,15 +12,17 @@ import 'package:test/test.dart';
 class ByteSink implements Sink<List<int>> {
   BytesBuilder builder = BytesBuilder();
 
+  @override
   add(List<int> data) => builder.add(data);
+  @override
   close() {}
 }
 
 main() {
   group('json to proto conversion with deferred files', () {
     test('hello_world_deferred', () {
-      var uri = Platform.script.resolve(
-          'hello_world_deferred/hello_world_deferred.js.info.json');
+      var uri = Platform.script
+          .resolve('hello_world_deferred/hello_world_deferred.js.info.json');
       var helloWorld = File.fromUri(uri);
       var contents = helloWorld.readAsStringSync();
       var json = jsonDecode(contents);

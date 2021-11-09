@@ -646,7 +646,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Thread* thread) {
   class NormalizeAndDedupCompressedStackMapsVisitor
       : public CodeVisitor,
         public Dedupper<CompressedStackMaps,
-                        PointerKeyValueTrait<const CompressedStackMaps>> {
+                        PointerSetKeyValueTrait<const CompressedStackMaps>> {
    public:
     NormalizeAndDedupCompressedStackMapsVisitor(Zone* zone,
                                                 IsolateGroup* isolate_group)
@@ -1504,7 +1504,6 @@ class ProgramHashVisitor : public CodeVisitor {
 
 uint32_t ProgramVisitor::Hash(Thread* thread) {
   StackZone stack_zone(thread);
-  HANDLESCOPE(thread);
   Zone* zone = thread->zone();
 
   ProgramHashVisitor visitor(zone);

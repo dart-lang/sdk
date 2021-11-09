@@ -4,12 +4,11 @@
 
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, RuntimeCompletionExpression, SourceEdit;
-import 'package:analysis_server/src/services/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class RuntimeCompletionComputer {
@@ -26,7 +25,7 @@ class RuntimeCompletionComputer {
       this.code, this.offset, this.contextPath, this.contextOffset);
 
   Future<RuntimeCompletionResult> compute() async {
-    var contextResult = await analysisDriver.getResult2(contextPath);
+    var contextResult = await analysisDriver.getResult(contextPath);
     if (contextResult is! ResolvedUnitResult) {
       return RuntimeCompletionResult([], []);
     }
@@ -64,28 +63,22 @@ class RuntimeCompletionComputer {
     // Update the context file content to include the code being completed.
     // Then resolve it, and restore the file to its initial state.
     var targetResult = await _withContextFileContent(targetCode, () async {
-      return await analysisDriver.getResult2(contextPath);
+      return await analysisDriver.getResult(contextPath);
     });
     if (targetResult is! ResolvedUnitResult) {
       return RuntimeCompletionResult([], []);
     }
 
-    var contributor = DartCompletionManager(
-        // dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(targetResult)
-        );
-    var request = CompletionRequestImpl(
-      targetResult,
-      targetOffset,
-      CompletionPerformance(),
+    var dartRequest = DartCompletionRequest(
+      resolvedUnit: targetResult,
+      offset: targetOffset,
     );
 
-    var suggestions = await request.performance.runRequestOperation(
-      (performance) async {
-        return await contributor.computeSuggestions(
-          performance,
-          request,
-        );
-      },
+    var suggestions = await DartCompletionManager(
+      budget: CompletionBudget(CompletionBudget.defaultDuration),
+    ).computeSuggestions(
+      dartRequest,
+      OperationPerformanceImpl('<root>'),
     );
 
     // Remove completions with synthetic import prefixes.

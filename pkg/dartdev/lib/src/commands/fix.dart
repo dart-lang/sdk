@@ -100,7 +100,6 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     await server.start();
 
     EditBulkFixesResult fixes;
-    //ignore: unawaited_futures
     server.onExit.then((int exitCode) {
       if (fixes == null && exitCode != 0) {
         progress?.cancel();

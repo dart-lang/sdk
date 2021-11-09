@@ -19,6 +19,7 @@ extension_types/simple_method_resolution: ExpectationFileMismatchSerialized # Ex
 extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
+extension_types/type_variable_in_static_context: ExpectationFileMismatchSerialized # Expected.
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError
@@ -73,6 +74,8 @@ general/error_recovery/issue_39958_04: RuntimeError
 general/error_recovery/yield_not_in_generator: RuntimeError
 general/expressions: RuntimeError
 general/getter_vs_setter_type: TypeCheckError
+general/implement_semi_stub: TypeCheckError
+general/implicit_super_call: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
@@ -103,6 +106,7 @@ general/override_setter_with_field: TypeCheckError
 general/redirecting_factory: RuntimeError
 general/redirecting_factory_invocation_in_invalid: TypeCheckError
 general/spread_collection: RuntimeError # Should be fixed as part of implementing spread collection support
+general/super_semi_stub: TypeCheckError
 general/type_parameter_type_named_int: RuntimeError
 general/type_variable_as_super: RuntimeError
 general/unsound_promotion: TypeCheckError
@@ -131,6 +135,7 @@ inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
+named_arguments_anywhere/redirecting_constructor_initializers: Crash # Issue 47524.
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue42603: TypeCheckError
@@ -149,6 +154,7 @@ nnbd_mixed/inheritance_from_opt_in: TypeCheckError
 nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
+nnbd_mixed/mixin_from_opt_in/main: RuntimeError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError

@@ -10,4 +10,4 @@ else
 fi
 
 protoc --proto_path="." --dart_out=lib/src/proto info.proto
-dartfmt -w lib/src/proto
+dart format lib/src/proto

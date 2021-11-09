@@ -6,9 +6,6 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
-dart2js/late_statics: SemiFuzzFailure # dartbug.com/45854
-dart2js/late_from_dill/main: SemiFuzzFailure # dartbug.com/45854, see also https://dart-review.googlesource.com/c/sdk/+/213768
-
 constructor_tearoffs/call_instantiation: TypeCheckError
 constructor_tearoffs/lowering/invalid_redirect: VerificationError
 extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
@@ -22,6 +19,7 @@ extension_types/simple_method_resolution: ExpectationFileMismatchSerialized # Ex
 extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
+extension_types/type_variable_in_static_context: ExpectationFileMismatchSerialized # Expected.
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError

@@ -44,5 +44,9 @@ static method main() → void
 
 
 Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47036.dart:11:7 -> ConstructorTearOffConstant(Settings.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47036.dart:17:7 -> ConstructorTearOffConstant(Sidebar.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47036.dart:21:16 -> ConstructorTearOffConstant(_SSettings.)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47036.dart:26:44 -> InstanceConstant(const _$_SSidebar{})
-Extra constant evaluation: evaluated: 17, effectively constant: 1
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47036.dart:31:16 -> ConstructorTearOffConstant(_SSidebar.)
+Extra constant evaluation: evaluated: 17, effectively constant: 5

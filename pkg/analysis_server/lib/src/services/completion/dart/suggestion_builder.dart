@@ -25,6 +25,16 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
+/// Wrapper around a potentially nullable value.
+///
+/// When the wrapper instance is provided for a property, the property
+/// value is replaced, even if the value to set is `null` itself.
+class CopyWithValue<T> {
+  final T value;
+
+  CopyWithValue(this.value);
+}
+
 /// This class provides suggestions based upon the visible instance members in
 /// an interface type.
 class MemberSuggestionBuilder {
@@ -164,6 +174,9 @@ class SuggestionBuilder {
   /// suggestions, or `null` if no notification should occur.
   final SuggestionListener? listener;
 
+  /// The function to be invoked when a new suggestion is added.
+  void Function(protocol.CompletionSuggestion)? suggestionAdded;
+
   /// A map from a completion identifier to a completion suggestion.
   final Map<String, CompletionSuggestion> _suggestionMap =
       <String, CompletionSuggestion>{};
@@ -202,7 +215,7 @@ class SuggestionBuilder {
   String? get _containingMemberName {
     if (!_hasContainingMemberName) {
       _hasContainingMemberName = true;
-      if (request.dotTarget is SuperExpression) {
+      if (request.target.dotTarget is SuperExpression) {
         var containingMethod = request.target.containingNode
             .thisOrAncestorOfType<MethodDeclaration>();
         if (containingMethod != null) {
@@ -214,7 +227,7 @@ class SuggestionBuilder {
   }
 
   bool get _isNonNullableByDefault =>
-      request.libraryElement?.isNonNullableByDefault ?? false;
+      request.libraryElement.isNonNullableByDefault;
 
   /// Add a suggestion for an [accessor] declared within a class or extension.
   /// If the accessor is being invoked with a target of `super`, then the
@@ -352,10 +365,13 @@ class SuggestionBuilder {
   /// period, and hence should not include the name of the class. If the class
   /// can only be referenced using a prefix, and the class name is to be
   /// included in the completion, then the [prefix] should be provided.
-  void suggestConstructor(ConstructorElement constructor,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      bool hasClassName = false,
-      String? prefix}) {
+  void suggestConstructor(
+    ConstructorElement constructor, {
+    CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+    bool tearOff = false,
+    bool hasClassName = false,
+    String? prefix,
+  }) {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
@@ -365,8 +381,12 @@ class SuggestionBuilder {
       return;
     }
 
-    var completion = constructor.displayName;
-    if (!hasClassName && className.isNotEmpty) {
+    var completion = constructor.name;
+    if (tearOff && completion.isEmpty) {
+      completion = 'new';
+    }
+
+    if (!hasClassName) {
       if (completion.isEmpty) {
         completion = className;
       } else {
@@ -718,8 +738,8 @@ class SuggestionBuilder {
   Future<void> suggestOverride(SimpleIdentifier targetId,
       ExecutableElement element, bool invokeSuper) async {
     var displayTextBuffer = StringBuffer();
-    var builder = ChangeBuilder(session: request.result.session);
-    await builder.addDartFileEdit(request.result.path, (builder) {
+    var builder = ChangeBuilder(session: request.analysisSession);
+    await builder.addDartFileEdit(request.path, (builder) {
       builder.addReplacement(range.node(targetId), (builder) {
         builder.writeOverride(
           element,
@@ -919,10 +939,9 @@ class SuggestionBuilder {
         key = '$key()';
       }
       listener?.builtSuggestion(suggestion);
-      if (laterReplacesEarlier) {
+      if (laterReplacesEarlier || !_suggestionMap.containsKey(key)) {
         _suggestionMap[key] = suggestion;
-      } else {
-        _suggestionMap.putIfAbsent(key, () => suggestion);
+        suggestionAdded?.call(suggestion);
       }
     }
   }
@@ -1135,7 +1154,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement!.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
 
@@ -1153,7 +1172,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement!.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
 
@@ -1170,15 +1189,12 @@ class SuggestionBuilder {
   /// If the [element] has a documentation comment, fill the [suggestion]'s
   /// documentation fields.
   void _setDocumentation(CompletionSuggestion suggestion, Element element) {
-    final request = this.request;
-    if (request is DartCompletionRequestImpl) {
-      var documentationCache = request.documentationCache;
-      var data = documentationCache?.dataFor(element);
-      if (data != null) {
-        suggestion.docComplete = data.full;
-        suggestion.docSummary = data.summary;
-        return;
-      }
+    var documentationCache = request.documentationCache;
+    var data = documentationCache?.dataFor(element);
+    if (data != null) {
+      suggestion.docComplete = data.full;
+      suggestion.docSummary = data.summary;
+      return;
     }
     var doc = DartUnitHoverComputer.computeDocumentation(
         request.dartdocDirectiveInfo, element,
@@ -1255,5 +1271,47 @@ class _CompletionSuggestionInputs {
         other.elementKind == elementKind &&
         other.kind == kind &&
         other.prefix == prefix;
+  }
+}
+
+extension CompletionSuggestionExtension on CompletionSuggestion {
+  CompletionSuggestion copyWith({
+    CopyWithValue<int?>? libraryUriToImportIndex,
+  }) {
+    return protocol.CompletionSuggestion(
+      kind,
+      relevance,
+      completion,
+      selectionOffset,
+      selectionLength,
+      isDeprecated,
+      isPotential,
+      displayText: displayText,
+      replacementOffset: replacementOffset,
+      replacementLength: replacementLength,
+      docSummary: docSummary,
+      docComplete: docComplete,
+      declaringType: declaringType,
+      defaultArgumentListString: defaultArgumentListString,
+      defaultArgumentListTextRanges: defaultArgumentListTextRanges,
+      element: element,
+      returnType: returnType,
+      parameterNames: parameterNames,
+      parameterTypes: parameterTypes,
+      requiredParameterCount: requiredParameterCount,
+      hasNamedParameters: hasNamedParameters,
+      parameterName: parameterName,
+      parameterType: parameterType,
+      libraryUriToImportIndex: libraryUriToImportIndex.orElse(
+        this.libraryUriToImportIndex,
+      ),
+    );
+  }
+}
+
+extension _CopyWithValueExtension<T> on CopyWithValue<T>? {
+  T orElse(T defaultValue) {
+    final self = this;
+    return self != null ? self.value : defaultValue;
   }
 }

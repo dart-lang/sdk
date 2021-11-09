@@ -47,3 +47,8 @@ class Supertype extends core::Object {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_35259.dart:5:7 -> ConstructorTearOffConstant(Supertype.)
+Extra constant evaluation: evaluated: 2, effectively constant: 1

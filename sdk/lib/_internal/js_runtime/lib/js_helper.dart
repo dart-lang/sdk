@@ -131,9 +131,12 @@ String S(value) {
   } else if (value == null) {
     return 'null';
   }
-  var res = value.toString();
-  if (res is! String) throw argumentErrorValue(value);
-  return res;
+  var result = value.toString();
+  if (result is! String) {
+    throw ArgumentError.value(
+        value, 'object', "toString method returned 'null'");
+  }
+  return result;
 }
 
 // Called from generated code.

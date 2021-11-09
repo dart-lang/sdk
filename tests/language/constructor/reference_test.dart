@@ -97,8 +97,7 @@ main() {
   Foo.bar<int>.baz();
 //       ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
-//             ^
-// [cfe] The method 'baz' isn't defined for the class 'Foo<int> Function()'.
+// [cfe] A constructor tear-off can't have type arguments after the constructor name.
   Foo.bar.baz<int>();
 //        ^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD

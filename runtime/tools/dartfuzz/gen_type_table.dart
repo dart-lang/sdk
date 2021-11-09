@@ -8,7 +8,7 @@
 //   dart gen_type_table.dart > dartfuzz_type_table.dart
 //
 // Reformat:
-//   tools/sdks/dart-sdk/bin/dartfmt -w \
+//   tools/sdks/dart-sdk/bin/dart format \
 //   runtime/tools/dartfuzz/dartfuzz_type_table.dart
 //
 // Then send out modified dartfuzz_type_table.dart for review together
@@ -1340,7 +1340,7 @@ Future<void> getDataTypes(Set<InterfaceType> allTypes, String? dartTop) async {
 Future<void> visitLibraryAtUri(
     AnalysisSession session, String uri, Set<InterfaceType> allTypes) async {
   var libPath = session.uriConverter.uriToPath(Uri.parse(uri));
-  var result = await session.getResolvedLibrary2(libPath!);
+  var result = await session.getResolvedLibrary(libPath!);
   if (result is ResolvedLibraryResult) {
     visitLibrary(result.element, allTypes);
   } else {

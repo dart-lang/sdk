@@ -43,6 +43,9 @@ additionalExports = (ffi::nullptr,
   ffi::AllocatorAlloc,
   ffi::Array,
   ffi::ArrayArray,
+  ffi::Bool,
+  ffi::BoolArray,
+  ffi::BoolPointer,
   ffi::DartRepresentationOf,
   ffi::Dart_CObject,
   ffi::Double,
@@ -113,6 +116,9 @@ additionalExports = (ffi::nullptr,
   ffi::AllocatorAlloc,
   ffi::Array,
   ffi::ArrayArray,
+  ffi::Bool,
+  ffi::BoolArray,
+  ffi::BoolPointer,
   ffi::DartRepresentationOf,
   ffi::Dart_CObject,
   ffi::Double,
@@ -222,26 +228,26 @@ constants  {
   #C7 = dart.core::pragma {name:#C1, options:#C6}
   #C8 = dart.ffi::Uint8 {}
   #C9 = 0
-  #C10 = <dart.core::int*>[#C9, #C9, #C9]
+  #C10 = <dart.core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
   #C11 = dart.ffi::Uint64 {}
   #C12 = 8
   #C13 = 4
-  #C14 = <dart.core::int*>[#C12, #C13, #C12]
+  #C14 = <dart.core::int*>[#C12, #C12, #C13, #C12, #C12, #C12, #C13, #C12, #C12, #C12, #C12, #C13, #C12, #C12, #C12, #C12, #C12, #C12]
   #C15 = 16
   #C16 = 12
-  #C17 = <dart.core::int*>[#C15, #C16, #C15]
+  #C17 = <dart.core::int*>[#C15, #C15, #C16, #C15, #C15, #C15, #C16, #C15, #C15, #C15, #C15, #C16, #C15, #C15, #C15, #C15, #C15, #C15]
   #C18 = "vm:prefer-inline"
   #C19 = dart.core::pragma {name:#C18, options:#C5}
   #C20 = 24
-  #C21 = <dart.core::int*>[#C20, #C15, #C20]
+  #C21 = <dart.core::int*>[#C20, #C20, #C15, #C20, #C20, #C20, #C15, #C20, #C20, #C20, #C20, #C15, #C20, #C20, #C20, #C20, #C20, #C20]
   #C22 = TypeLiteralConstant(lib::Y)
   #C23 = <dart.core::Type>[#C22, #C22, #C2]
   #C24 = dart.ffi::_FfiStructLayout {fieldTypes:#C23, packing:#C5}
   #C25 = dart.core::pragma {name:#C1, options:#C24}
   #C26 = 48
   #C27 = 32
-  #C28 = <dart.core::int*>[#C26, #C27, #C26]
+  #C28 = <dart.core::int*>[#C26, #C26, #C27, #C26, #C26, #C26, #C27, #C26, #C26, #C26, #C26, #C27, #C26, #C26, #C26, #C26, #C26, #C26]
   #C29 = 56
   #C30 = 36
-  #C31 = <dart.core::int*>[#C29, #C30, #C29]
+  #C31 = <dart.core::int*>[#C29, #C29, #C30, #C29, #C29, #C29, #C30, #C29, #C29, #C29, #C29, #C30, #C29, #C29, #C29, #C29, #C29, #C29]
 }

@@ -13,8 +13,6 @@ import 'dart:typed_data';
 import 'package:benchmark_harness/benchmark_harness.dart' show BenchmarkBase;
 import 'package:meta/meta.dart';
 
-import 'runtime/tests/vm/dart/export_sendAndExit_helper.dart' show sendAndExit;
-
 class JsonDecodingBenchmark {
   JsonDecodingBenchmark(this.name,
       {@required this.sample,
@@ -83,7 +81,7 @@ Future<Map> decodeJson(bool useSendAndExit, Uint8List encodedJson) async {
 Future<void> jsonDecodingIsolate(JsonDecodeRequest request) async {
   final result = json.decode(utf8.decode(request.encodedJson));
   if (request.useSendAndExit) {
-    sendAndExit(request.sendPort, result);
+    Isolate.exit(request.sendPort, result);
   } else {
     request.sendPort.send(result);
   }

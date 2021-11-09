@@ -8,12 +8,14 @@ import 'dart:math' as math;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer_utilities/package_root.dart';
 import 'package:args/command_runner.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
 import 'perf/benchmarks_impl.dart';
 import 'perf/flutter_analyze_benchmark.dart';
+import 'perf/flutter_completion_benchmark.dart';
 
 Future main(List<String> args) async {
   var benchmarks = <Benchmark>[
@@ -22,19 +24,21 @@ Future main(List<String> args) async {
     AnalysisBenchmark(ServerBenchmark.das),
     AnalysisBenchmark(ServerBenchmark.lsp),
     FlutterAnalyzeBenchmark(),
+    FlutterCompletionBenchmark.das,
+    FlutterCompletionBenchmark.lsp,
   ];
 
-  var runner =
-      CommandRunner('benchmark', 'A benchmark runner for the analysis server.');
+  var runner = CommandRunner(
+    'benchmark',
+    'A benchmark runner for the analysis server.',
+  );
   runner.addCommand(ListCommand(benchmarks));
   runner.addCommand(RunCommand(benchmarks));
   runner.run(args);
 }
 
 String get analysisServerSrcPath {
-  var script = Platform.script.toFilePath(windows: Platform.isWindows);
-  var pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
-  return path.join(pkgPath, 'analysis_server');
+  return path.join(packageRoot, 'analysis_server');
 }
 
 void deleteServerCache() {
@@ -42,18 +46,14 @@ void deleteServerCache() {
   ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
   var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
   try {
-    if (stateLocation != null && stateLocation.exists) {
-      stateLocation.delete();
-    }
+    stateLocation?.delete();
   } catch (e) {
     // ignore any exception
   }
 }
 
 List<String> getProjectRoots({bool quick = false}) {
-  var script = Platform.script.toFilePath(windows: Platform.isWindows);
-  var pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
-  return <String>[path.join(pkgPath, quick ? 'meta' : 'analysis_server')];
+  return [path.join(packageRoot, quick ? 'meta' : 'analysis_server')];
 }
 
 abstract class Benchmark {
@@ -65,7 +65,7 @@ abstract class Benchmark {
   final String kind;
 
   Benchmark(this.id, this.description,
-      {this.enabled = true, this.kind = 'cpu'});
+      {this.enabled = true, required this.kind});
 
   int get maxIterations => 0;
 
@@ -154,6 +154,13 @@ class CompoundBenchMarkResult extends BenchMarkResult {
   String toString() => '${toJson()}';
 }
 
+/// This interface is implemented by benchmarks that need to know the location
+/// of the Flutter repository.
+abstract class FlutterBenchmark {
+  /// Must be called exactly one time.
+  set flutterRepositoryPath(String path);
+}
+
 class ListCommand extends Command {
   final List<Benchmark> benchmarks;
 
@@ -190,6 +197,8 @@ class RunCommand extends Command {
   final List<Benchmark> benchmarks;
 
   RunCommand(this.benchmarks) {
+    argParser.addOption('flutter-repository',
+        help: 'The absolute normalized path of the Flutter repository.');
     argParser.addFlag('quick',
         negatable: false,
         help: 'Run a quick version of the benchmark. This is not useful for '
@@ -220,6 +229,7 @@ class RunCommand extends Command {
 
     var benchmarkId = argResults!.rest.first;
     var repeatCount = int.parse(argResults!['repeat'] as String);
+    var flutterRepository = argResults!['flutter-repository'] as String?;
     var quick = argResults!['quick'];
     var verbose = argResults!['verbose'];
 
@@ -228,6 +238,17 @@ class RunCommand extends Command {
       print("Benchmark '$benchmarkId' not found.");
       exit(1);
     });
+
+    if (benchmark is FlutterBenchmark) {
+      if (flutterRepository != null) {
+        (benchmark as FlutterBenchmark).flutterRepositoryPath =
+            flutterRepository;
+      } else {
+        print('The option --flutter-repository is required to '
+            "run '$benchmarkId'.");
+        exit(1);
+      }
+    }
 
     var actualIterations = repeatCount;
     if (benchmark.maxIterations > 0) {

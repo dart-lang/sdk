@@ -414,14 +414,6 @@ intptr_t ObjectPoolBuilder::FindNativeFunction(
       label->address(), ObjectPoolBuilderEntry::kNativeFunction, patchable));
 }
 
-intptr_t ObjectPoolBuilder::FindNativeFunctionWrapper(
-    const ExternalLabel* label,
-    ObjectPoolBuilderEntry::Patchability patchable) {
-  return FindObject(ObjectPoolBuilderEntry(
-      label->address(), ObjectPoolBuilderEntry::kNativeFunctionWrapper,
-      patchable));
-}
-
 bool ObjectPoolBuilder::TryCommitToParent() {
   ASSERT(parent_ != nullptr);
   if (parent_->CurrentLength() != base_index_) {

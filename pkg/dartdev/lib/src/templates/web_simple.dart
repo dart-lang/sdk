@@ -48,8 +48,8 @@ ${common.sdkConstraint}
 #   path: ^1.7.0
 
 dev_dependencies:
-  build_runner: ^1.10.0
-  build_web_compilers: ^2.11.0
+  build_runner: ^2.1.4
+  build_web_compilers: ^3.2.1
   lints: ^1.0.0
 ''';
 

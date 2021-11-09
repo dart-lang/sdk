@@ -159,21 +159,31 @@ class MemoryResourceProvider implements ResourceProvider {
     return link;
   }
 
-  File newFile(String path, String content, [int? stamp]) {
-    var bytes = utf8.encode(content);
+  File newFile(
+    String path,
+    String content, [
+    @Deprecated('This parameter is not used and will be removed') int? stamp,
+  ]) {
+    var bytes = utf8.encode(content) as Uint8List;
+    // ignore: deprecated_member_use_from_same_package
     return newFileWithBytes(path, bytes, stamp);
   }
 
-  File newFileWithBytes(String path, List<int> bytes, [int? stamp]) {
+  File newFileWithBytes(
+    String path,
+    List<int> bytes, [
+    @Deprecated('This parameter is not used and will be removed') int? stamp,
+  ]) {
     _ensureAbsoluteAndNormalized(path);
+    bytes = bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
 
     var parentPath = pathContext.dirname(path);
     var parentData = _newFolder(parentPath);
     _addToParentFolderData(parentData, path);
 
     _pathToData[path] = _FileData(
-      bytes: Uint8List.fromList(bytes),
-      timeStamp: stamp ?? nextStamp++,
+      bytes: bytes,
+      timeStamp: nextStamp++,
     );
     _notifyWatchers(path, ChangeType.ADD);
 
@@ -322,13 +332,13 @@ class MemoryResourceProvider implements ResourceProvider {
     return result;
   }
 
-  void _setFileContent(String path, List<int> bytes) {
+  void _setFileContent(String path, Uint8List bytes) {
     var parentPath = pathContext.dirname(path);
     var parentData = _newFolder(parentPath);
     _addToParentFolderData(parentData, path);
 
     _pathToData[path] = _FileData(
-      bytes: Uint8List.fromList(bytes),
+      bytes: bytes,
       timeStamp: nextStamp++,
     );
     _notifyWatchers(path, ChangeType.MODIFY);
@@ -511,12 +521,13 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   void writeAsBytesSync(List<int> bytes) {
+    bytes = bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
     provider._setFileContent(path, bytes);
   }
 
   @override
   void writeAsStringSync(String content) {
-    var bytes = utf8.encode(content);
+    var bytes = utf8.encode(content) as Uint8List;
     writeAsBytesSync(bytes);
   }
 }

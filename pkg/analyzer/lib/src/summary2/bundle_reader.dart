@@ -63,7 +63,6 @@ class BundleReader {
     });
 
     for (var libraryHeader in libraryHeaderList) {
-      _reader.offset = libraryHeader.offset;
       var uriStr = libraryHeader.uriStr;
       var reference = elementFactory.rootReference.getChild(uriStr);
       libraryMap[uriStr] = LibraryReader._(
@@ -73,7 +72,7 @@ class BundleReader {
         baseResolutionOffset: baseResolutionOffset,
         referenceReader: referenceReader,
         reference: reference,
-        offset: _reader.offset,
+        offset: libraryHeader.offset,
         classMembersLengths: libraryHeader.classMembersLengths,
       );
     }

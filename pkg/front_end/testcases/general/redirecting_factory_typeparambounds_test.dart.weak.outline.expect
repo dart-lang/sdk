@@ -39,3 +39,8 @@ class A<T extends core::Object* = dynamic, S extends self::A::T* = dynamic> exte
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_typeparambounds_test.dart:16:7 -> ConstructorTearOffConstant(A.redir)
+Extra constant evaluation: evaluated: 5, effectively constant: 1

@@ -65,11 +65,11 @@ enum NullValue {
   Token,
   Type,
   TypeArguments,
+  TypeBuilder,
   TypeBuilderList,
   TypeList,
   TypeVariable,
   TypeVariables,
-  UnresolvedType,
   VarFinalOrConstToken,
   WithClause,
 }
@@ -96,7 +96,8 @@ abstract class StackListener extends Listener {
         // If offset is available report and internal problem to show the
         // parsed code in the output.
         throw internalProblem(
-            new Message(const Code<String>('Internal error'), message: message),
+            new Message(const Code<String>('Internal error'),
+                problemMessage: message),
             token.charOffset,
             uri);
       } else {
@@ -198,7 +199,8 @@ abstract class StackListener extends Listener {
         // If offset is available report and internal problem to show the
         // parsed code in the output.
         throw internalProblem(
-            new Message(const Code<String>('Internal error'), message: message),
+            new Message(const Code<String>('Internal error'),
+                problemMessage: message),
             token.charOffset,
             uri);
       } else {
@@ -375,7 +377,7 @@ abstract class StackListener extends Listener {
   @override
   void handleNoType(Token lastConsumed) {
     debugEvent("NoType");
-    push(NullValue.UnresolvedType);
+    push(NullValue.TypeBuilder);
   }
 
   @override
@@ -480,7 +482,7 @@ abstract class StackListener extends Listener {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    debugEvent("Error: ${message.message}");
+    debugEvent("Error: ${message.problemMessage}");
     if (isIgnoredError(message.code, startToken)) return;
     addProblem(
         message, startToken.charOffset, lengthOfSpan(startToken, endToken));

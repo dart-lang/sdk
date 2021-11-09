@@ -9,6 +9,7 @@ environment:
 # NOTE: `pub get / pub upgrade` are generally not needed when working on this
 # package. The `.packages` file in the repository root will be used by default.
 dependencies:
+  _fe_analyzer_shared: any
   # Published packages - repo version ensured via dependency_overrides
   collection: any
   crypto: any
@@ -20,8 +21,6 @@ dependencies:
     path: ../kernel
 
   # Unpublished packages that can be used via path dependency
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
   _js_interop_checks:
     path: ../_js_interop_checks
   js_ast:

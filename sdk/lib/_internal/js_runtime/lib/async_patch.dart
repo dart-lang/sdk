@@ -704,10 +704,3 @@ class _SyncStarIterable<T> extends IterableBase<T> {
   Iterator<T> get iterator =>
       new _SyncStarIterator<T>(JS('', '#()', _outerHelper));
 }
-
-@patch
-void _rethrow(Object error, StackTrace stackTrace) {
-  error = wrapException(error);
-  JS('void', '#.stack = #', error, stackTrace.toString());
-  JS('void', 'throw #', error);
-}

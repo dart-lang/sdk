@@ -479,7 +479,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitCommentReference(CommentReference node) {
-    _recordDataForNode('CommentReference_identifier', node.identifier);
+    _recordDataForNode('CommentReference_expression', node.expression);
     super.visitCommentReference(node);
   }
 

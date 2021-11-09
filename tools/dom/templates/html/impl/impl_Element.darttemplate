@@ -645,7 +645,7 @@ $endif
   }
 
   @pragma('dart2js:tryInline')
-  void setAttribute(String name, String value) {
+  void setAttribute(String name, Object value) {
 $if NNBD
     // TODO(41258): Delete these assertions after forcing strong mode.
 $endif
@@ -656,7 +656,7 @@ $endif
   }
 
   @pragma('dart2js:tryInline')
-  void setAttributeNS(String$NULLABLE namespaceURI, String name, String value) {
+  void setAttributeNS(String$NULLABLE namespaceURI, String name, Object value) {
 $if NNBD
     // TODO(41258): Delete these assertions after forcing strong mode.
 $endif
@@ -984,7 +984,7 @@ $endif
   /**
    * Scrolls this element into view.
    *
-   * Only one of of the alignment options may be specified at a time.
+   * Only one of the alignment options may be specified at a time.
    *
    * If no options are specified then this will attempt to scroll the minimum
    * amount needed to bring the element into view.

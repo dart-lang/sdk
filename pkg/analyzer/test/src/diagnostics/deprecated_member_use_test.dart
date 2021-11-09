@@ -205,7 +205,7 @@ library a;
 import 'package:aaa/a.dart';
 ''', [
       error(HintCode.DEPRECATED_MEMBER_USE, 24, 28,
-          messageContains: 'package:aaa/a.dart'),
+          messageContains: ['package:aaa/a.dart']),
     ]);
   }
 

@@ -25,13 +25,13 @@ abstract class Graph<N> {
   /// of nodes. The nodes in each strongly connected components only have edges
   /// that point to nodes in the same component or earlier components.
   List<List<N>> computeTopologicalSort() {
-    _SccFinder<N> finder = new _SccFinder<N>(this);
+    _SccFinder<N> finder = _SccFinder<N>(this);
     return finder.computeTopologicalSort();
   }
 
   /// Whether [source] can transitively reach [target].
   bool containsPath(N source, N target) {
-    Set<N> seen = new Set<N>();
+    Set<N> seen = <N>{};
     bool helper(N node) {
       if (identical(node, target)) return true;
       if (!seen.add(node)) return false;
@@ -43,7 +43,7 @@ abstract class Graph<N> {
 
   /// Returns all nodes reachable from [root] in post order.
   Iterable<N> postOrder(N root) sync* {
-    var seen = new Set<N>();
+    var seen = <N>{};
     Iterable<N> helper(N n) sync* {
       if (!seen.add(n)) return;
       for (var x in targetsOf(n)) {
@@ -57,7 +57,7 @@ abstract class Graph<N> {
 
   /// Returns an iterable of all nodes reachable from [root] in preorder.
   Iterable<N> preOrder(N root) sync* {
-    var seen = new Set<N>();
+    var seen = <N>{};
     var stack = <N>[root];
     while (stack.isNotEmpty) {
       var next = stack.removeLast();
@@ -74,7 +74,7 @@ abstract class Graph<N> {
   /// the node itself will be returned.
   List<N> findCycleContaining(N node) {
     assert(node != null);
-    _SccFinder<N> finder = new _SccFinder<N>(this);
+    _SccFinder<N> finder = _SccFinder<N>(this);
     return finder._componentContaining(node);
   }
 
@@ -103,8 +103,8 @@ abstract class Graph<N> {
   /// Internally we compute dominators using (Cooper, Harvey, and Kennedy's
   /// algorithm)[http://www.cs.rice.edu/~keith/EMBED/dom.pdf].
   Graph<N> dominatorTree(N root) {
-    var iDom = (new _DominatorFinder(this)..run(root)).immediateDominators;
-    var graph = new EdgeListGraph<N>();
+    var iDom = (_DominatorFinder(this)..run(root)).immediateDominators;
+    var graph = EdgeListGraph<N>();
     for (N node in iDom.keys) {
       if (node != root) graph.addEdge(iDom[node], node);
     }
@@ -114,18 +114,23 @@ abstract class Graph<N> {
 
 class EdgeListGraph<N> extends Graph<N> {
   /// Edges in the graph.
-  Map<N, Set<N>> _edges = new Map<N, Set<N>>();
+  final Map<N, Set<N>> _edges = <N, Set<N>>{};
 
   /// The reverse of _edges.
-  Map<N, Set<N>> _revEdges = new Map<N, Set<N>>();
+  final Map<N, Set<N>> _revEdges = <N, Set<N>>{};
 
+  @override
   Iterable<N> get nodes => _edges.keys;
+  @override
   bool get isEmpty => _edges.isEmpty;
+  @override
   int get nodeCount => _edges.length;
 
-  final _empty = new Set<N>();
+  final _empty = <N>{};
 
+  @override
   Iterable<N> targetsOf(N source) => _edges[source] ?? _empty;
+  @override
   Iterable<N> sourcesOf(N source) => _revEdges[source] ?? _empty;
 
   void addEdge(N source, N target) {
@@ -139,8 +144,8 @@ class EdgeListGraph<N> extends Graph<N> {
 
   void addNode(N node) {
     assert(node != null);
-    _edges.putIfAbsent(node, () => new Set<N>());
-    _revEdges.putIfAbsent(node, () => new Set<N>());
+    _edges.putIfAbsent(node, () => <N>{});
+    _revEdges.putIfAbsent(node, () => <N>{});
   }
 
   /// Remove the edge from the given [source] node to the given [target] node.
@@ -200,15 +205,15 @@ class _SccFinder<N> {
   int _index = 0;
 
   /// Nodes that are being visited in order to identify components.
-  List<N> _stack = new List<N>();
+  final List<N> _stack = <N>[];
 
   /// Information associated with each node.
-  Map<N, _NodeInfo<N>> _info = <N, _NodeInfo<N>>{};
+  final Map<N, _NodeInfo<N>> _info = <N, _NodeInfo<N>>{};
 
   /// All strongly connected components found, in topological sort order (each
   /// node in a strongly connected component only has edges that point to nodes
   /// in the same component or earlier components).
-  List<List<N>> _allComponents = new List<List<N>>();
+  final List<List<N>> _allComponents = <List<N>>[];
 
   _SccFinder(this._graph);
 
@@ -246,7 +251,7 @@ class _SccFinder<N> {
   /// component.
   _NodeInfo<N> _strongConnect(N v) {
     // Set the depth index for v to the smallest unused index
-    var vInfo = new _NodeInfo<N>(_index++);
+    var vInfo = _NodeInfo<N>(_index++);
     _info[v] = vInfo;
     _push(v);
 
@@ -264,7 +269,7 @@ class _SccFinder<N> {
 
     // If v is a root node, pop the stack and generate an SCC
     if (vInfo.lowlink == vInfo.index) {
-      var component = new List<N>();
+      var component = <N>[];
       N w;
       do {
         w = _pop();

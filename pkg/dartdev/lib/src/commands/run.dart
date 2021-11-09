@@ -228,31 +228,18 @@ class RunCommand extends DartdevCommand {
       }
     }
 
-    String path;
-    String packagesConfigOverride;
-
     try {
-      final filename = maybeUriToFilename(mainCommand);
-      if (File(filename).existsSync()) {
-        // TODO(sigurdm): getExecutableForCommand is able to figure this out,
-        // but does not return a package config override.
-        path = filename;
-        packagesConfigOverride = null;
-      } else {
-        path = await getExecutableForCommand(mainCommand);
-        packagesConfigOverride =
-            join(current, '.dart_tool', 'package_config.json');
-      }
+      final executable = await getExecutableForCommand(mainCommand);
+      VmInteropHandler.run(
+        executable.executable,
+        runArgs,
+        packageConfigOverride: executable.packageConfig,
+      );
+      return 0;
     } on CommandResolutionFailedException catch (e) {
       log.stderr(e.message);
       return errorExitCode;
     }
-    VmInteropHandler.run(
-      path,
-      runArgs,
-      packageConfigOverride: packagesConfigOverride,
-    );
-    return 0;
   }
 }
 

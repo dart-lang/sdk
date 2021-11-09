@@ -612,6 +612,15 @@ class CompletionSuggestion implements HasToJson {
   /// if the parameterName field is omitted.
   String? parameterType;
 
+  /// The index in the list of libraries that could be imported to make this
+  /// suggestion accessible in the file where completion was requested. The
+  /// server provides this list of libraries together with suggestions, so that
+  /// information about the library can be shared for multiple suggestions.
+  /// This field is omitted if the library is already imported, so that the
+  /// suggestion can be inserted as is, or if getSuggestions was used rather
+  /// than getSuggestions2.
+  int? libraryUriToImportIndex;
+
   CompletionSuggestion(
       this.kind,
       this.relevance,
@@ -635,7 +644,8 @@ class CompletionSuggestion implements HasToJson {
       this.requiredParameterCount,
       this.hasNamedParameters,
       this.parameterName,
-      this.parameterType});
+      this.parameterType,
+      this.libraryUriToImportIndex});
 
   factory CompletionSuggestion.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -774,6 +784,12 @@ class CompletionSuggestion implements HasToJson {
         parameterType = jsonDecoder.decodeString(
             jsonPath + '.parameterType', json['parameterType']);
       }
+      int? libraryUriToImportIndex;
+      if (json.containsKey('libraryUriToImportIndex')) {
+        libraryUriToImportIndex = jsonDecoder.decodeInt(
+            jsonPath + '.libraryUriToImportIndex',
+            json['libraryUriToImportIndex']);
+      }
       return CompletionSuggestion(kind, relevance, completion, selectionOffset,
           selectionLength, isDeprecated, isPotential,
           displayText: displayText,
@@ -791,7 +807,8 @@ class CompletionSuggestion implements HasToJson {
           requiredParameterCount: requiredParameterCount,
           hasNamedParameters: hasNamedParameters,
           parameterName: parameterName,
-          parameterType: parameterType);
+          parameterType: parameterType,
+          libraryUriToImportIndex: libraryUriToImportIndex);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'CompletionSuggestion', json);
     }
@@ -871,6 +888,10 @@ class CompletionSuggestion implements HasToJson {
     if (parameterType != null) {
       result['parameterType'] = parameterType;
     }
+    var libraryUriToImportIndex = this.libraryUriToImportIndex;
+    if (libraryUriToImportIndex != null) {
+      result['libraryUriToImportIndex'] = libraryUriToImportIndex;
+    }
     return result;
   }
 
@@ -905,7 +926,8 @@ class CompletionSuggestion implements HasToJson {
           requiredParameterCount == other.requiredParameterCount &&
           hasNamedParameters == other.hasNamedParameters &&
           parameterName == other.parameterName &&
-          parameterType == other.parameterType;
+          parameterType == other.parameterType &&
+          libraryUriToImportIndex == other.libraryUriToImportIndex;
     }
     return false;
   }
@@ -935,6 +957,7 @@ class CompletionSuggestion implements HasToJson {
         hasNamedParameters,
         parameterName,
         parameterType,
+        libraryUriToImportIndex,
       ]);
 }
 

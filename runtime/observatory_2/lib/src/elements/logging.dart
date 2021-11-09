@@ -19,7 +19,6 @@ import 'package:observatory_2/src/elements/nav/notify.dart';
 import 'package:observatory_2/src/elements/nav/refresh.dart';
 import 'package:observatory_2/src/elements/nav/top_menu.dart';
 import 'package:observatory_2/src/elements/nav/vm_menu.dart';
-import 'package:observatory_2/src/elements/view_footer.dart';
 
 class LoggingPageElement extends CustomElement implements Renderable {
   RenderingScheduler<LoggingPageElement> _r;

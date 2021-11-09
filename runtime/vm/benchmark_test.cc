@@ -48,7 +48,6 @@ BENCHMARK(CorelibCompileAll) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
-  HANDLESCOPE(thread);
   Timer timer;
   timer.Start();
   const Error& error =
@@ -413,7 +412,6 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
 
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
-  HANDLESCOPE(thread);
 
   Api::CheckAndFinalizePendingClasses(thread);
 
@@ -451,7 +449,6 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
 
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
-  HANDLESCOPE(thread);
 
   Api::CheckAndFinalizePendingClasses(thread);
 
@@ -496,7 +493,6 @@ BENCHMARK(EnterExitIsolate) {
   {
     TransitionNativeToVM transition(thread);
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Api::CheckAndFinalizePendingClasses(thread);
   }
   Dart_Isolate isolate = Dart_CurrentIsolate();
@@ -514,7 +510,6 @@ BENCHMARK(EnterExitIsolate) {
 BENCHMARK(SerializeNull) {
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
-  HANDLESCOPE(thread);
   const Object& null_object = Object::Handle();
   const intptr_t kLoopCount = 1000000;
   Timer timer;
@@ -536,7 +531,6 @@ BENCHMARK(SerializeNull) {
 BENCHMARK(SerializeSmi) {
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
-  HANDLESCOPE(thread);
   const Integer& smi_object = Integer::Handle(Smi::New(42));
   const intptr_t kLoopCount = 1000000;
   Timer timer;
@@ -558,7 +552,6 @@ BENCHMARK(SerializeSmi) {
 BENCHMARK(SimpleMessage) {
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
-  HANDLESCOPE(thread);
   const Array& array_object = Array::Handle(Array::New(2));
   array_object.SetAt(0, Integer::Handle(Smi::New(42)));
   array_object.SetAt(1, Object::Handle());
@@ -592,7 +585,6 @@ BENCHMARK(LargeMap) {
   EXPECT_VALID(h_result);
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
-  HANDLESCOPE(thread);
   Instance& map = Instance::Handle();
   map ^= Api::UnwrapHandle(h_result);
   const intptr_t kLoopCount = 100;

@@ -34,6 +34,8 @@ dependencies:
   usage: any
 
 dev_dependencies:
+  expect:
+    path: ../expect
   lints: any
   pub_semver: any
   test: any

@@ -31,7 +31,7 @@ main() {
   bool d = false;
   try {
     x = foo();
-  } on IntegerDivisionByZeroException catch (e) {
+  } on UnsupportedError catch (e) {
     d = true;
   }
   Expect.equals(x, 0);

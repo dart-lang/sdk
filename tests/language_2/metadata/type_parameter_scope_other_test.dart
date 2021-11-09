@@ -16,7 +16,7 @@ class Annotation {
 class Class<T, @Annotation(T) U> {}
 //                         ^
 // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [cfe] Type variables can't be used in static members.
+// [cfe] Type variables can't be used as constants.
 
 void function<T, @Annotation(T) U>() {}
 //                           ^
@@ -26,7 +26,7 @@ void function<T, @Annotation(T) U>() {}
 extension Extension<T, @Annotation(T) U> on Map<T, U> {}
 //                                 ^
 // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [cfe] Type variables can't be used in static members.
+// [cfe] Type variables can't be used as constants.
 
 class C {
   void method<T, @Annotation(T) U>() {}
@@ -38,7 +38,7 @@ class C {
 mixin Mixin<T, @Annotation(T) U> {}
 //                         ^
 // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [cfe] Type variables can't be used in static members.
+// [cfe] Type variables can't be used as constants.
 
 typedef void Typedef1<T, @Annotation(T) U>(T t, U u);
 //                                   ^

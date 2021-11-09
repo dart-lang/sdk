@@ -13,7 +13,7 @@ prebuilt_dart2js_action("build_observatory") {
 
   # dart2js produces a .deps file, but it is not in a format that is understood
   # by ninja, so we explicitly list all the sources here.
-  inputs = [ "../../.packages" ] + observatory_sources
+  inputs = [ "../../.dart_tool/package_config.json" ] + observatory_sources
 
   output = "$target_gen_dir/observatory/web/main.dart.js"
   outputs = [ output ]
@@ -24,7 +24,7 @@ prebuilt_dart2js_action("build_observatory") {
   args = [
     "-o",
     rebase_path(output),
-    "--packages=" + rebase_path("../../.packages"),
+    "--packages=" + rebase_path("../../.dart_tool/package_config.json"),
   ]
   if (is_debug) {
     args += [ "--enable-asserts" ]

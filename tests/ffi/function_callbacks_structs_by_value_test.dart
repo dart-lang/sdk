@@ -11,8 +11,12 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
+import 'dylib_utils.dart';
+
 // Reuse the struct classes.
-import 'function_structs_by_value_generated_test.dart';
+import 'function_structs_by_value_generated_compounds.dart';
+
+final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 void main() {
   for (int i = 0; i < 10; i++) {

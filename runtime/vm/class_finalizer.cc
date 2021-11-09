@@ -206,6 +206,7 @@ bool ClassFinalizer::ProcessPendingClasses() {
 #if defined(DEBUG)
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
+      // Recognized a new class, but forgot to add @pragma('vm:entrypoint')?
       ASSERT(cls.is_declaration_loaded());
     }
 #endif
@@ -1497,11 +1498,7 @@ class CidRewriteVisitor : public ObjectVisitor {
           Map(param->untag()->parameterized_class_id_);
     } else if (obj->IsType()) {
       TypePtr type = Type::RawCast(obj);
-      ObjectPtr id = type->untag()->type_class_id();
-      if (!id->IsHeapObject()) {
-        type->untag()->set_type_class_id(
-            Smi::New(Map(Smi::Value(Smi::RawCast(id)))));
-      }
+      type->untag()->type_class_id_ = Map(type->untag()->type_class_id_);
     } else {
       intptr_t old_cid = obj->GetClassId();
       intptr_t new_cid = Map(old_cid);
@@ -1731,7 +1728,6 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
   auto const isolate_group = thread->isolate_group();
   SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
   StackZone stack_zone(thread);
-  HANDLESCOPE(thread);
   auto const zone = thread->zone();
 
   class ClearCodeVisitor : public FunctionVisitor {

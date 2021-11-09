@@ -12,12 +12,13 @@ import 'package:analyzer/error/error.dart';
 class LintCode extends ErrorCode {
   const LintCode(
     String name,
-    String message, {
-    String? correction,
+    String problemMessage, {
+    @Deprecated('Use correctionMessage instead') String? correction,
+    String? correctionMessage,
     String? uniqueName,
   }) : super(
-          correction: correction,
-          message: message,
+          correctionMessage: correctionMessage ?? correction,
+          problemMessage: problemMessage,
           name: name,
           uniqueName: uniqueName ?? 'LintCode.$name',
         );
@@ -27,6 +28,9 @@ class LintCode extends ErrorCode {
 
   @override
   int get hashCode => uniqueName.hashCode;
+
+  @Deprecated('Use problemMessage instead')
+  String get message => problemMessage;
 
   @override
   ErrorType get type => ErrorType.LINT;
@@ -44,10 +48,11 @@ class LintCode extends ErrorCode {
 /// The primary difference from [LintCode]s is that these codes cannot be
 /// suppressed with `// ignore:` or `// ignore_for_file:` comments.
 class SecurityLintCode extends LintCode {
-  const SecurityLintCode(String name, String message,
-      {String? uniqueName, String? correction})
-      : super(name, message,
-            uniqueName: uniqueName ?? 'LintCode.$name', correction: correction);
+  const SecurityLintCode(String name, String problemMessage,
+      {String? uniqueName, String? correctionMessage})
+      : super(name, problemMessage,
+            uniqueName: uniqueName ?? 'LintCode.$name',
+            correctionMessage: correctionMessage);
 
   @override
   bool get isIgnorable => false;

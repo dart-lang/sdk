@@ -52,7 +52,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 
 constants  {
   #C1 = constructor-tearoff self::A::•
-  #C2 = instantiation self::A::• <core::int*>
+  #C2 = instantiation #C1 <core::int*>
 }
 
 Extra constant evaluation status:

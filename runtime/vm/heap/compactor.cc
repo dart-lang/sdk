@@ -239,22 +239,23 @@ void GCCompactor::Compact(OldPage* pages,
   }
 
   {
-    ThreadBarrier barrier(num_tasks, heap_->barrier(), heap_->barrier_done());
+    ThreadBarrier* barrier = new ThreadBarrier(num_tasks, num_tasks);
     RelaxedAtomic<intptr_t> next_forwarding_task = {0};
 
     for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
       if (task_index < (num_tasks - 1)) {
         // Begin compacting on a helper thread.
         Dart::thread_pool()->Run<CompactorTask>(
-            thread()->isolate_group(), this, &barrier, &next_forwarding_task,
+            thread()->isolate_group(), this, barrier, &next_forwarding_task,
             heads[task_index], &tails[task_index], freelist);
       } else {
         // Last worker is the main thread.
-        CompactorTask task(thread()->isolate_group(), this, &barrier,
+        CompactorTask task(thread()->isolate_group(), this, barrier,
                            &next_forwarding_task, heads[task_index],
                            &tails[task_index], freelist);
         task.RunEnteredIsolateGroup();
-        barrier.Exit();
+        barrier->Sync();
+        barrier->Release();
       }
     }
   }
@@ -338,7 +339,8 @@ void CompactorTask::Run() {
   Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
 
   // This task is done. Notify the original thread.
-  barrier_->Exit();
+  barrier_->Sync();
+  barrier_->Release();
 }
 
 void CompactorTask::RunEnteredIsolateGroup() {
@@ -434,8 +436,6 @@ void CompactorTask::RunEnteredIsolateGroup() {
           more_forwarding_tasks = false;
       }
     }
-
-    barrier_->Sync();
   }
 }
 

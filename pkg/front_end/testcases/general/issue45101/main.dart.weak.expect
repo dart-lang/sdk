@@ -31,7 +31,7 @@ class _ArraySize<T extends core::Object* = dynamic> extends core::Object impleme
 @#C1
 @#C4
 class Array<T extends core::Object* = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self2::Array::•];
+  static final field dynamic _redirecting# = <dynamic>[#C5];
   @#C1
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object* = dynamic>(core::int* foo) → self2::Array<self2::Array::•::T*>*
     return new self2::_ArraySize::•<self2::Array::•::T*>(foo);
@@ -52,6 +52,7 @@ constants  {
   #C2 = "vm:entry-point"
   #C3 = null
   #C4 = core::pragma {name:#C2, options:#C3}
+  #C5 = constructor-tearoff self2::Array::•
 }
 
 

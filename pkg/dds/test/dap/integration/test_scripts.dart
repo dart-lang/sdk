@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:test/test.dart';
+
 /// A marker used in some test scripts/tests for where to set breakpoints.
 const breakpointMarker = '// BREAKPOINT';
 
@@ -106,16 +108,32 @@ const simpleTestProgram = '''
   import 'package:test/test.dart';
 
   void main() {
-    group('group', () {
-      test('passing', () {
+    group('group 1', () {
+      test('passing test', () {
         expect(1, equals(1)); $breakpointMarker
       });
-      test('failing', () {
+      test('failing test', () {
         expect(1, equals(2));
       });
     });
   }
 ''';
+
+/// Matches for the expected output of [simpleTestProgram].
+final simpleTestProgramExpectedOutput = [
+  // First test
+  '✓ group 1 passing test',
+  // Second test
+  'Expected: <2>',
+  '  Actual: <1>',
+  // These lines contain paths, so just check the non-path parts.
+  allOf(startsWith('package:test_api'), endsWith('expect')),
+  endsWith('main.<fn>.<fn>'),
+  '✖ group 1 failing test',
+  // Exit
+  '',
+  'Exited (1).',
+];
 
 /// A simple Dart script that throws in user code.
 const simpleThrowingProgram = r'''

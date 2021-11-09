@@ -45,6 +45,10 @@ abstract class JavaScriptPrintingContext {
   /// [enterNode] is called in post-traversal order.
   void exitNode(
       Node node, int startPosition, int endPosition, int closingPosition) {}
+
+  /// Should return `true` if the printing tolerates unfinalized deferred AST
+  /// nodes.
+  bool get isDebugContext => false;
 }
 
 /// A simple implementation of [JavaScriptPrintingContext] suitable for tests.
@@ -58,9 +62,13 @@ class SimpleJavaScriptPrintingContext extends JavaScriptPrintingContext {
   String getText() => buffer.toString();
 }
 
+class _DebugJavaScriptPrintingContext extends SimpleJavaScriptPrintingContext {
+  bool get isDebugContext => true;
+}
+
 String DebugPrint(Node node, {bool utf8 = false}) {
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions(utf8: utf8);
-  SimpleJavaScriptPrintingContext context = SimpleJavaScriptPrintingContext();
+  SimpleJavaScriptPrintingContext context = _DebugJavaScriptPrintingContext();
   Printer printer = Printer(options, context);
   printer.visit(node);
   return context.getText();
@@ -72,6 +80,7 @@ class Printer implements NodeVisitor {
   final bool shouldCompressOutput;
   final DanglingElseVisitor danglingElseVisitor;
   final LocalNamer localNamer;
+  final bool isDebugContext;
 
   int _charCount = 0;
   bool inForInit = false;
@@ -90,6 +99,7 @@ class Printer implements NodeVisitor {
   Printer(JavaScriptPrintingOptions options, JavaScriptPrintingContext context)
       : options = options,
         context = context,
+        isDebugContext = context.isDebugContext,
         shouldCompressOutput = options.shouldCompressOutput,
         danglingElseVisitor = DanglingElseVisitor(context),
         localNamer = determineRenamer(
@@ -220,7 +230,9 @@ class Printer implements NodeVisitor {
   void startNode(Node node) {
     currentNode = EnterExitNode(currentNode, node);
     if (node is DeferredExpression) {
-      startNode(node.value);
+      if (!isDebugContext || node.isFinalized) {
+        startNode(node.value);
+      }
     }
   }
 
@@ -230,7 +242,9 @@ class Printer implements NodeVisitor {
 
   void endNode(Node node) {
     if (node is DeferredExpression) {
-      endNode(node.value);
+      if (!isDebugContext || node.isFinalized) {
+        endNode(node.value);
+      }
     }
     assert(currentNode.node == node);
     currentNode = currentNode.exitNode(context, _charCount);
@@ -257,6 +271,12 @@ class Printer implements NodeVisitor {
 
   void visitAll(List<Node> nodes) {
     nodes.forEach(visit);
+  }
+
+  Node _undefer(Node node) {
+    if (isDebugContext && !node.isFinalized) return node;
+    if (node is DeferredExpression) return _undefer(node.value);
+    return node;
   }
 
   @override
@@ -657,10 +677,12 @@ class Printer implements NodeVisitor {
 
   visitNestedExpression(Expression node, int requiredPrecedence,
       {bool newInForInit, bool newAtStatementBegin}) {
+    int precedenceLevel =
+        (isDebugContext && !node.isFinalized) ? CALL : node.precedenceLevel;
     bool needsParentheses =
         // a - (b + c).
         (requiredPrecedence != EXPRESSION &&
-                node.precedenceLevel < requiredPrecedence) ||
+                precedenceLevel < requiredPrecedence) ||
             // for (a = (x in o); ... ; ... ) { ... }
             (newInForInit && node is Binary && node.op == "in") ||
             // (function() { ... })().
@@ -720,9 +742,10 @@ class Printer implements NodeVisitor {
     }
   }
 
-  static bool _isSmallInitialization(Node node) {
+  bool _isSmallInitialization(Node node) {
     if (node is VariableInitialization) {
-      Node value = undefer(node.value);
+      if (node.value == null) return true;
+      Node value = _undefer(node.value);
       if (value == null) return true;
       if (value is This) return true;
       if (value is LiteralNull) return true;
@@ -755,8 +778,9 @@ class Printer implements NodeVisitor {
     /// `++a` and `a += b` in the face of [DeferredExpression]s we detect the
     /// pattern of the undeferred assignment.
     String op = assignment.op;
-    Node leftHandSide = undefer(assignment.leftHandSide);
-    Node rightHandSide = undefer(assignment.value);
+    Node leftHandSide = _undefer(assignment.leftHandSide);
+    Node value = assignment.value;
+    Node rightHandSide = value == null ? value : _undefer(value);
     if ((op == '+' || op == '-') &&
         leftHandSide is VariableUse &&
         rightHandSide is LiteralNumber &&
@@ -768,8 +792,8 @@ class Printer implements NodeVisitor {
     if (!assignment.isCompound &&
         leftHandSide is VariableUse &&
         rightHandSide is Binary) {
-      Node rLeft = undefer(rightHandSide.left);
-      Node rRight = undefer(rightHandSide.right);
+      Node rLeft = _undefer(rightHandSide.left);
+      Node rRight = _undefer(rightHandSide.right);
       String op = rightHandSide.op;
       if (op == '+' ||
           op == '-' ||
@@ -804,12 +828,12 @@ class Printer implements NodeVisitor {
     }
     visitNestedExpression(assignment.leftHandSide, CALL,
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
-    if (assignment.value != null) {
+    if (value != null) {
       spaceOut();
       if (op != null) out(op);
       out("=");
       spaceOut();
-      visitNestedExpression(assignment.value, ASSIGNMENT,
+      visitNestedExpression(value, ASSIGNMENT,
           newInForInit: inForInit, newAtStatementBegin: false);
     }
   }
@@ -1045,15 +1069,23 @@ class Printer implements NodeVisitor {
     visitNestedExpression(access.receiver, CALL,
         newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
 
-    Node selector = undefer(access.selector);
+    Node selector = _undefer(access.selector);
+    if (isDebugContext && !selector.isFinalized) {
+      _dotString(
+          access.selector, access.receiver, selector.nonfinalizedDebugText(),
+          assumeValid: true);
+      return;
+    }
     if (selector is LiteralString) {
       _dotString(access.selector, access.receiver, selector.value);
       return;
-    } else if (selector is StringConcatenation) {
+    }
+    if (selector is StringConcatenation) {
       _dotString(access.selector, access.receiver,
-          _StringContentsCollector().collect(selector));
+          _StringContentsCollector(isDebugContext).collect(selector));
       return;
-    } else if (selector is Name) {
+    }
+    if (selector is Name) {
       _dotString(access.selector, access.receiver, selector.name);
       return;
     }
@@ -1064,9 +1096,10 @@ class Printer implements NodeVisitor {
     out(']');
   }
 
-  void _dotString(Node selector, Node receiver, String selectorValue) {
-    if (isValidJavaScriptId(selectorValue)) {
-      if (undefer(receiver) is LiteralNumber &&
+  void _dotString(Node selector, Node receiver, String selectorValue,
+      {bool assumeValid = false}) {
+    if (assumeValid || isValidJavaScriptId(selectorValue)) {
+      if (_undefer(receiver) is LiteralNumber &&
           lastCharCode != charCodes.$CLOSE_PAREN) {
         out(' ', isWhitespace: true);
       }
@@ -1128,6 +1161,15 @@ class Printer implements NodeVisitor {
     spaceOut();
     int closingPosition;
     Node body = fun.body;
+    // Simplify arrow functions that return a single expression.
+    // Note that this can result in some sourcemapped positions disappearing
+    // around the elided Return. See http://dartbug.com/47354
+    if (fun.implicitReturnAllowed && body is Block) {
+      final statement = unwrapBlockIfSingleStatement(body);
+      if (statement is Return) {
+        body = statement.value;
+      }
+    }
     if (body is Block) {
       closingPosition =
           blockOut(body, shouldIndent: false, needsNewline: false);
@@ -1140,7 +1182,7 @@ class Printer implements NodeVisitor {
       visitNestedExpression(body, ASSIGNMENT,
           newInForInit: false, newAtStatementBegin: false);
       if (needsParens) out(")");
-      closingPosition = _charCount - 1;
+      closingPosition = _charCount;
     }
     localNamer.leaveScope();
     return closingPosition;
@@ -1148,6 +1190,10 @@ class Printer implements NodeVisitor {
 
   @override
   visitDeferredExpression(DeferredExpression node) {
+    if (isDebugContext && !node.isFinalized) {
+      out(node.nonfinalizedDebugText());
+      return;
+    }
     // Continue printing with the expression value.
     assert(node.precedenceLevel == node.value.precedenceLevel);
     node.value.accept(this);
@@ -1185,12 +1231,16 @@ class Printer implements NodeVisitor {
 
   @override
   void visitLiteralString(LiteralString node) {
+    if (isDebugContext && !node.isFinalized) {
+      _handleString(node.nonfinalizedDebugText());
+      return;
+    }
     _handleString(node.value);
   }
 
   @override
   visitStringConcatenation(StringConcatenation node) {
-    _handleString(_StringContentsCollector().collect(node));
+    _handleString(_StringContentsCollector(isDebugContext).collect(node));
   }
 
   void _handleString(String value) {
@@ -1208,6 +1258,10 @@ class Printer implements NodeVisitor {
 
   @override
   visitName(Name node) {
+    if (isDebugContext && !node.isFinalized) {
+      out(node.nonfinalizedDebugText());
+      return;
+    }
     out(node.name);
   }
 
@@ -1333,7 +1387,7 @@ class Printer implements NodeVisitor {
 
   void propertyNameOut(Property node) {
     startNode(node.name);
-    Node name = undefer(node.name);
+    Node name = _undefer(node.name);
     if (name is LiteralString) {
       _outPropertyName(name.value);
     } else if (name is Name) {
@@ -1424,6 +1478,9 @@ class Printer implements NodeVisitor {
 
 class _StringContentsCollector extends BaseVisitor<void> {
   final StringBuffer _buffer = StringBuffer();
+  final bool isDebugContext;
+
+  _StringContentsCollector(this.isDebugContext);
 
   String collect(Node node) {
     node.accept(this);
@@ -1441,17 +1498,29 @@ class _StringContentsCollector extends BaseVisitor<void> {
 
   @override
   void visitLiteralString(LiteralString node) {
-    _add(node.value);
+    if (isDebugContext && !node.isFinalized) {
+      _add(node.nonfinalizedDebugText());
+    } else {
+      _add(node.value);
+    }
   }
 
   @override
   void visitLiteralNumber(LiteralNumber node) {
-    _add(node.value);
+    if (isDebugContext && !node.isFinalized) {
+      _add(node.nonfinalizedDebugText());
+    } else {
+      _add(node.value);
+    }
   }
 
   @override
   void visitName(Name node) {
-    _add(node.name);
+    if (isDebugContext && !node.isFinalized) {
+      _add(node.nonfinalizedDebugText());
+    } else {
+      _add(node.name);
+    }
   }
 
   @override
@@ -1599,6 +1668,8 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   bool visitFunctionDeclaration(FunctionDeclaration node) => false;
   bool visitLabeledStatement(LabeledStatement node) => node.body.accept(this);
   bool visitLiteralStatement(LiteralStatement node) => true;
+
+  bool visitDartYield(DartYield node) => false;
 
   bool visitExpression(Expression node) => false;
 }

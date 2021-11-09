@@ -90,7 +90,7 @@ static method id<T extends core::Object? = dynamic>(con::id::T% t) → con::id::
 constants  {
   #C1 = TypeLiteralConstant(core::Object)
   #C2 = static-tearoff con::id
-  #C3 = instantiation con::id <core::int>
+  #C3 = instantiation #C2 <core::int>
   #C4 = 0
   #C5 = con::Class<core::int> {field:#C4}
   #C6 = TypeLiteralConstant((dynamic) → dynamic)

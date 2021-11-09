@@ -383,6 +383,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitImplementsClause(ImplementsClause node) => visitNode(node);
 
   @override
+  R? visitImplicitCallReference(ImplicitCallReference node) => visitNode(node);
+
+  @override
   R? visitImportDirective(ImportDirective node) =>
       visitNamespaceDirective(node);
 
@@ -1035,6 +1038,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitImplicitCallReference(ImplicitCallReference node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitImportDirective(ImportDirective node) {
     node.visitChildren(this);
     return null;
@@ -1624,6 +1633,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitImplementsClause(ImplementsClause node) => null;
 
   @override
+  R? visitImplicitCallReference(ImplicitCallReference node) => null;
+
+  @override
   R? visitImportDirective(ImportDirective node) => null;
 
   @override
@@ -2030,6 +2042,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitImplementsClause(ImplementsClause node) => _throw(node);
+
+  @override
+  R? visitImplicitCallReference(ImplicitCallReference node) => _throw(node);
 
   @override
   R? visitImportDirective(ImportDirective node) => _throw(node);
@@ -2769,6 +2784,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitImplicitCallReference(ImplicitCallReference node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitImplicitCallReference(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitImportDirective(ImportDirective node) {
     stopwatch.start();
     T? result = _baseVisitor.visitImportDirective(node);
@@ -3496,6 +3519,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitImplementsClause(ImplementsClause node) => visitNode(node);
+
+  @override
+  R? visitImplicitCallReference(ImplicitCallReference node) => visitNode(node);
 
   @override
   R? visitImportDirective(ImportDirective node) => visitNode(node);

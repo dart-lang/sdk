@@ -21,3 +21,10 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_constructors.dart:5:7 -> ConstructorTearOffConstant(A.redirectingFactory)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_constructors.dart:5:7 -> ConstructorTearOffConstant(A.redirectingFactoryChild)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_constructors.dart:5:7 -> ConstructorTearOffConstant(A.redirectingTwice)
+Extra constant evaluation: evaluated: 7, effectively constant: 3

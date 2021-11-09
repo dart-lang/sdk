@@ -37,6 +37,7 @@ futureor
 guides
 h
 https
+interact
 interop
 intervening
 js_util
@@ -48,6 +49,7 @@ name.#name
 name.stack
 nameokempty
 native('native
+nativefieldwrapperclass
 natively
 nativetype
 nnbd
@@ -65,6 +67,7 @@ re
 sdksummary
 solutions
 stacktrace
+staticinterop
 stringokempty
 struct<#name
 structs

@@ -74,6 +74,32 @@ f(dynamic a) {
 ''');
   }
 
+  test_declaredVariable_implicitCallReference() async {
+    await assertNoErrorsInCode('''
+class C {
+  void call() {}
+}
+void foo(C c) {
+  for (void Function() f in [c]) {
+    f;
+  }
+}
+''');
+  }
+
+  test_declaredVariable_implicitCallReference_genericFunctionInstantiation() async {
+    await assertNoErrorsInCode('''
+class C {
+  void call<T>(T p) {}
+}
+void foo(C c) {
+  for (void Function(int) f in [c]) {
+    f;
+  }
+}
+''');
+  }
+
   test_declaredVariable_interfaceTypeTypedef_ok() async {
     await assertNoErrorsInCode('''
 typedef S = String;
@@ -117,6 +143,50 @@ f() {
 }
 ''', [
       error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
+    ]);
+  }
+
+  test_implicitCallReference() async {
+    await assertNoErrorsInCode('''
+class C {
+  void call(int a) {}
+}
+void foo(Iterable<C> iterable) {
+  void Function(int) f;
+  for (f in iterable) {
+    f;
+  }
+}
+''');
+  }
+
+  test_implicitCallReference_genericFunctionInstantiation() async {
+    await assertNoErrorsInCode('''
+class C {
+  void call<T>(T p) {}
+}
+void foo(Iterable<C> iterable) {
+  void Function(int) f;
+  for (f in iterable) {
+    f;
+  }
+}
+''');
+  }
+
+  test_implicitCallReference_unassignableFunctionType() async {
+    await assertErrorsInCode('''
+class C {
+  void call(int a) {}
+}
+void foo(Iterable<C> iterable) {
+  void Function(String) f;
+  for (f in iterable) {
+    f;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 106, 8),
     ]);
   }
 }

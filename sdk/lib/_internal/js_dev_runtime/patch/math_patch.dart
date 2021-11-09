@@ -67,14 +67,14 @@ const int _POW2_32 = 0x100000000;
 
 @patch
 class Random {
-  static Random? _secureRandom;
+  static final Random _secureRandom = _JSSecureRandom();
 
   @patch
   factory Random([int? seed]) =>
       (seed == null) ? const _JSRandom() : _Random(seed);
 
   @patch
-  factory Random.secure() => _secureRandom ??= _JSSecureRandom();
+  factory Random.secure() => _secureRandom;
 }
 
 class _JSRandom implements Random {

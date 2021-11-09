@@ -33,7 +33,9 @@ server calls. This file is validated by `coverage_test.dart`.
 - [ ] completion.availableSuggestions
 - [ ] completion.existingImports
 - [ ] completion.getSuggestionDetails
+- [ ] completion.getSuggestionDetails2
 - [x] completion.getSuggestions
+- [ ] completion.getSuggestions2
 - [ ] completion.registerLibraryPaths
 - [ ] completion.results
 - [ ] completion.setSubscriptions

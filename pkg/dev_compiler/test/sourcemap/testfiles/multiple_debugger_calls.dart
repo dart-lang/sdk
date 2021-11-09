@@ -30,4 +30,4 @@ void main() {
   foo(/*s:8*/ debugger());
 }
 
-void foo(bool _) => null;
+void foo(bool _) {}

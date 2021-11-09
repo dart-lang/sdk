@@ -19,8 +19,8 @@ static method main() → dynamic {
 
 constants  {
   #C1 = static-tearoff self::C::_#new#tearOff
-  #C2 = instantiation self::C::_#new#tearOff <core::int*>
-  #C3 = instantiation self::C::_#new#tearOff <core::String*>
+  #C2 = instantiation #C1 <core::int*>
+  #C3 = instantiation #C1 <core::String*>
 }
 
 Extra constant evaluation status:

@@ -89,11 +89,11 @@ class CompilerImpl extends Compiler {
   }
 
   @override
-  Future<bool> run(Uri uri) {
+  Future<bool> run() {
     Duration setupDuration = measurer.elapsedWallClock;
     return selfTask.measureSubtask("impl.run", () {
       return setupSdk().then((_) {
-        return super.run(uri);
+        return super.run();
       }).then((bool success) {
         if (options.verbose) {
           StringBuffer timings = StringBuffer();

@@ -14,3 +14,8 @@ static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_default_value.dart:5:7 -> ConstructorTearOffConstant(A.redirect)
+Extra constant evaluation: evaluated: 4, effectively constant: 1

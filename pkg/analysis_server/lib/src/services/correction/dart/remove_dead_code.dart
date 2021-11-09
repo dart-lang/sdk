@@ -12,6 +12,14 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveDeadCode extends CorrectionProducer {
   @override
+  // Not predictably the correct action.
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  // Not predictably the correct action.
+  bool get canBeAppliedToFile => false;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_DEAD_CODE;
 
   @override

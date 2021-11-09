@@ -11,13 +11,15 @@ import 'usage_exception.dart';
 
 /// This tool reports how code is divided among deferred chunks.
 class ConvertCommand extends Command<void> with PrintUsageException {
+  @override
   final String name = "convert";
+  @override
   final String description = "Convert between info formats.";
 
   ConvertCommand() {
-    _addSubcommand(new ToJsonCommand());
-    _addSubcommand(new ToBinaryCommand());
-    _addSubcommand(new ToProtoCommand());
+    _addSubcommand(ToJsonCommand());
+    _addSubcommand(ToBinaryCommand());
+    _addSubcommand(ToProtoCommand());
   }
 
   _addSubcommand(Command<void> command) {

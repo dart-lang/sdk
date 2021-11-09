@@ -86,8 +86,11 @@ static void* ThreadStart(void* data_ptr) {
   uword parameter = data->parameter();
   delete data;
 
-  // Set the thread name.
-  pthread_setname_np(pthread_self(), name);
+  // Set the thread name. There is 16 bytes limit on the name (including \0).
+  // pthread_setname_np ignores names that are too long rather than truncating.
+  char truncated_name[16];
+  snprintf(truncated_name, sizeof(truncated_name), "%s", name);
+  pthread_setname_np(pthread_self(), truncated_name);
 
   // Call the supplied thread start function handing it its parameters.
   function(parameter);

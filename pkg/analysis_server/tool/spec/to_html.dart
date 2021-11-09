@@ -754,6 +754,7 @@ class TypeVisitor extends HierarchicalApiVisitor
     writeln('{');
     indent(() {
       for (var field in typeObject.fields) {
+        if (field.experimental) continue;
         write('"');
         if (fieldsToBold.contains(field.name)) {
           b(() {

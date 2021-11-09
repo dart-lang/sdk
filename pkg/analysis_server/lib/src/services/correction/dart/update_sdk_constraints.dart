@@ -19,6 +19,14 @@ class UpdateSdkConstraints extends CorrectionProducer {
   UpdateSdkConstraints(this._minimumVersion);
 
   @override
+  // Too nuanced to do unattended.
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  // Not applicable (there can only be one constraint per file).
+  bool get canBeAppliedToFile => false;
+
+  @override
   FixKind get fixKind => DartFixKind.UPDATE_SDK_CONSTRAINTS;
 
   @override

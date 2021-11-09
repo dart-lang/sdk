@@ -701,8 +701,9 @@ abstract class CombinedMemberSignatureBase<T> {
       } else if (member.isSetter) {
         type = member.setterType;
       } else {
-        type = member.function
-            .computeFunctionType(classBuilder.cls.enclosingLibrary.nonNullable);
+        // TODO(johnniwinther): Why do we need the specific nullability here?
+        type = member.getterType.withDeclaredNullability(
+            classBuilder.cls.enclosingLibrary.nonNullable);
       }
     } else if (member is Field) {
       type = member.type;

@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,8 +20,11 @@ void main() {
 @reflectiveTest
 class StaticMemberContributorTest extends DartCompletionContributorTest {
   @override
-  DartCompletionContributor createContributor() {
-    return StaticMemberContributor();
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) {
+    return StaticMemberContributor(request, builder);
   }
 
   Future<void> test_class_static_notPrivate() async {
@@ -170,8 +175,50 @@ main() {
 ''');
     await computeSuggestions();
 
-    assertSuggestConstructor('foo', elementName: 'foo');
-    assertSuggestConstructor('bar', elementName: 'bar');
+    assertSuggestConstructor('foo', elementName: 'A.foo');
+    assertSuggestConstructor('bar', elementName: 'A.bar');
+  }
+
+  Future<void>
+      test_implicitCreation_functionContextType_matchingReturnType() async {
+    addSource('/home/test/lib/a.dart', '''
+class A {
+  A.foo();
+  A.bar();
+}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {
+  A Function() v = A.^;
+}
+''');
+    await computeSuggestions();
+
+    assertNotSuggested('foo');
+    assertNotSuggested('bar');
+  }
+
+  Future<void>
+      test_implicitCreation_functionContextType_notMatchingReturnType() async {
+    addSource('/home/test/lib/a.dart', '''
+class A {
+  A.foo();
+  A.bar();
+}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {
+  int Function() v = A.^;
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('foo', elementName: 'A.foo');
+    assertSuggestConstructor('bar', elementName: 'A.bar');
   }
 
   Future<void> test_keyword() async {
@@ -399,7 +446,7 @@ void f() {
     assertSuggestSetter('publicSetter');
     assertSuggestConstructor(
       'publicConstructor',
-      elementName: 'publicConstructor',
+      elementName: 'A.publicConstructor',
     );
   }
 

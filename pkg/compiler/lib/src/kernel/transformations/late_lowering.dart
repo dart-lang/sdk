@@ -42,10 +42,6 @@ class LateLowering {
   // pair).
   final Map<Field, Field> _backingInstanceFields = {};
 
-  // TODO(fishythefish): Remove this when [FieldInitializer] maintains a correct
-  // [Reference] to its [Field].
-  final Map<Procedure, Field> _getterToField = {};
-
   Member? _contextMember;
 
   LateLowering(this._coreTypes, CompilerOptions? _options)
@@ -151,7 +147,6 @@ class LateLowering {
     assert(_variableCells.isEmpty);
     _fieldCells.clear();
     _backingInstanceFields.clear();
-    _getterToField.clear();
   }
 
   void enterFunction() {
@@ -364,17 +359,19 @@ class LateLowering {
     Uri fileUri = field.fileUri;
     Name name = field.name;
     String nameText = name.text;
+    Name mangledName = _mangleFieldName(field);
     DartType type = field.type;
     Expression? initializer = field.initializer;
     Class enclosingClass = field.enclosingClass!;
 
-    Name mangledName = _mangleFieldName(field);
+    field.fieldReference.canonicalName?.unbind();
     Field backingField = Field.mutable(mangledName,
         type: type,
         initializer: StaticInvocation(_coreTypes.createSentinelMethod,
             Arguments(const [], types: [type])..fileOffset = fileOffset)
           ..fileOffset = fileOffset,
-        fileUri: fileUri)
+        fileUri: fileUri,
+        fieldReference: field.fieldReference)
       ..fileOffset = fileOffset
       ..isNonNullableByDefault = true
       ..isInternalImplementation = true;
@@ -485,7 +482,6 @@ class LateLowering {
       ..fileOffset = fileOffset
       ..isNonNullableByDefault = true;
     enclosingClass.addProcedure(getter);
-    _getterToField[getter] = backingField;
 
     VariableDeclaration setterValue = VariableDeclaration('value', type: type)
       ..fileOffset = fileOffset;
@@ -551,26 +547,5 @@ class LateLowering {
     if (_shouldLowerInstanceField(field)) return _backingInstanceField(field);
 
     return field;
-  }
-
-  TreeNode transformFieldInitializer(
-      FieldInitializer initializer, Member contextMember) {
-    _contextMember = contextMember;
-
-    // If the [Field] has been lowered, we can't use `node.field` to retrieve it
-    // because the `getterReference` of the original field now points to the new
-    // getter for the backing field.
-    // TODO(fishythefish): Clean this up when [FieldInitializer] maintains a
-    // correct [Reference] to its [Field].
-    NamedNode node = initializer.fieldReference.node!;
-    Field backingField;
-    if (node is Field) {
-      if (!_shouldLowerInstanceField(node)) return initializer;
-      backingField = _backingInstanceField(node);
-    } else {
-      backingField = _getterToField[node]!;
-    }
-    return FieldInitializer(backingField, initializer.value)
-      ..fileOffset = initializer.fileOffset;
   }
 }

@@ -131,11 +131,6 @@ void main() {
   print(ZLibOption.STRATEGY_DEFAULT);
   print(ZLIB);
   print(GZIP);
-  print(FileMode.READ);
-  print(FileMode.WRITE);
-  print(FileMode.APPEND);
-  print(FileMode.WRITE_ONLY);
-  print(FileMode.WRITE_ONLY_APPEND);
   print(FileLock.SHARED);
   print(FileLock.EXCLUSIVE);
   print(FileLock.BLOCKING_SHARED);

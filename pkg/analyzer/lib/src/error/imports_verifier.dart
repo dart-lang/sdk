@@ -388,8 +388,12 @@ class ImportsVerifier {
         }
       }
       StringLiteral uri = unusedImport.uri;
+      // We can safely assume that `uri.stringValue` is non-`null`, because the
+      // only way for it to be `null` is if the import contains a string
+      // interpolation, in which case the import wouldn't have resolved and
+      // would not have been included in [_unusedImports].
       errorReporter
-          .reportErrorForNode(HintCode.UNUSED_IMPORT, uri, [uri.stringValue]);
+          .reportErrorForNode(HintCode.UNUSED_IMPORT, uri, [uri.stringValue!]);
     }
   }
 
@@ -650,8 +654,13 @@ class _UnnecessaryImportsVerifier {
         if (otherElementSet.containsAll(importElementSet)) {
           if (otherElementSet.length > importElementSet.length) {
             StringLiteral uri = importDirective.uri;
+            // The only way an import URI's `stringValue` can be `null` is if
+            // the string contained interpolations, in which case the import
+            // would have failed to resolve, and we would never reach here.  So
+            // it is safe to assume that `uri.stringValue` and
+            // `otherImport.uri.stringValue` are both non-`null`.
             errorReporter.reportErrorForNode(HintCode.UNNECESSARY_IMPORT, uri,
-                [uri.stringValue, otherImport.uri.stringValue]);
+                [uri.stringValue!, otherImport.uri.stringValue!]);
             // Break out of the loop of "other imports" to prevent reporting
             // UNNECESSARY_IMPORT on [importDirective] multiple times.
             break;

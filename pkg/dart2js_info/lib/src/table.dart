@@ -28,7 +28,7 @@ class Table {
   List<List> rows = [];
 
   /// Columns to skip, for example, if they are all zero entries.
-  List<bool> _skipped = <bool>[];
+  final List<bool> _skipped = <bool>[];
 
   /// Whether we started adding entries. Indicates that no more columns can be
   /// added.
@@ -39,14 +39,16 @@ class Table {
 
   /// Add a column with the given [name].
   void declareColumn(String name,
-      {bool abbreviate: false, String color: _NO_COLOR}) {
+      {bool abbreviate = false, String color = _noColor}) {
     assert(!_sealed);
     var headerName = name;
     if (abbreviate) {
       // abbreviate the header by using only the initials of each word
       headerName =
           name.split(' ').map((s) => s.substring(0, 1).toUpperCase()).join('');
-      while (abbreviations[headerName] != null) headerName = "$headerName'";
+      while (abbreviations[headerName] != null) {
+        headerName = "$headerName'";
+      }
       abbreviations[headerName] = name;
     }
     widths.add(max(5, headerName.length + 1));
@@ -94,11 +96,12 @@ class Table {
 
   /// Generates a string representation of the table to print on a terminal.
   // TODO(sigmund): add also a .csv format
+  @override
   String toString() {
-    var sb = new StringBuffer();
+    var sb = StringBuffer();
     sb.write('\n');
     for (var row in rows) {
-      var lastColor = _NO_COLOR;
+      var lastColor = _noColor;
       for (int i = 0; i < _totalColumns; i++) {
         if (_skipped[i]) continue;
         var entry = row[i];
@@ -111,7 +114,7 @@ class Table {
         sb.write(
             i == 0 ? entry.padRight(widths[i]) : entry.padLeft(widths[i] + 1));
       }
-      if (lastColor != _NO_COLOR) sb.write(_NO_COLOR);
+      if (lastColor != _noColor) sb.write(_noColor);
       sb.write('\n');
     }
     sb.write('\nWhere:\n');
@@ -123,4 +126,4 @@ class Table {
   }
 }
 
-const _NO_COLOR = "\x1b[0m";
+const _noColor = "\x1b[0m";

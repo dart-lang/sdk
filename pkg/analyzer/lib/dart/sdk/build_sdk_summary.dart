@@ -106,7 +106,7 @@ class _Builder {
       Reference.root(),
     );
 
-    var linkResult = link(elementFactory, inputLibraries, false);
+    var linkResult = link(elementFactory, inputLibraries);
 
     var bundleBuilder = PackageBundleBuilder();
     for (var library in inputLibraries) {

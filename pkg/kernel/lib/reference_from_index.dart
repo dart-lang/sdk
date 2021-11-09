@@ -9,7 +9,6 @@ import "ast.dart"
         Extension,
         Field,
         Library,
-        Member,
         Name,
         Procedure,
         ProcedureKind,
@@ -116,19 +115,19 @@ class IndexedLibrary extends IndexedContainer {
 
 class IndexedClass extends IndexedContainer {
   final Class cls;
-  final Map<Name, Member> _constructors = new Map<Name, Member>();
+  final Map<Name, Reference> _constructors = new Map<Name, Reference>();
   @override
   final Library library;
 
   IndexedClass._(this.cls, this.library) {
     for (int i = 0; i < cls.constructors.length; i++) {
       Constructor constructor = cls.constructors[i];
-      _constructors[constructor.name] = constructor;
+      _constructors[constructor.name] = constructor.reference;
     }
     for (int i = 0; i < cls.procedures.length; i++) {
       Procedure procedure = cls.procedures[i];
       if (procedure.isFactory) {
-        _constructors[procedure.name] = procedure;
+        _constructors[procedure.name] = procedure.reference;
       } else {
         _addProcedure(procedure);
       }
@@ -136,5 +135,5 @@ class IndexedClass extends IndexedContainer {
     _addFields(cls.fields);
   }
 
-  Member? lookupConstructor(Name name) => _constructors[name];
+  Reference? lookupConstructorReference(Name name) => _constructors[name];
 }

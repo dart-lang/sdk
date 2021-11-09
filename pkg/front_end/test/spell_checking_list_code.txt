@@ -317,6 +317,7 @@ dep
 deps
 dereferenced
 dereferencing
+deregister
 descent
 deserializer
 deserializers
@@ -395,6 +396,7 @@ enforced
 enforces
 enforcing
 engineered
+enhanced
 enters
 enumerates
 env
@@ -1075,6 +1077,7 @@ rightmost
 risk
 rn
 rnystrom
+robust
 role
 room
 rooted

@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 // Example of spawning an isolate from a function.
 library spawn_tests;
 

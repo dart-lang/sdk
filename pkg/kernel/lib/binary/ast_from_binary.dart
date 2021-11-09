@@ -1702,6 +1702,7 @@ class BinaryBuilder {
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
     Reference? stubTargetReference = readNullableMemberReference();
+    FunctionType? signatureType = readDartTypeOption() as FunctionType?;
     FunctionNode function = readFunctionNode(
         lazyLoadBody: !readFunctionNodeNow, outerEndOffset: endOffset);
     if (node == null) {
@@ -1724,6 +1725,7 @@ class BinaryBuilder {
     node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
     node.stubKind = stubKind;
     node.stubTargetReference = stubTargetReference;
+    node.signatureType = signatureType;
 
     assert((node.stubKind == ProcedureStubKind.ConcreteForwardingStub &&
             node.stubTargetReference != null) ||

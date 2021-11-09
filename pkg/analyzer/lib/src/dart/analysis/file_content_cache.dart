@@ -42,7 +42,7 @@ abstract class FileContentCache {
   void invalidateAll() {}
 
   FileContent _read(String path) {
-    List<int> contentBytes;
+    Uint8List contentBytes;
     String content;
     bool exists;
     try {

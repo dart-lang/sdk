@@ -1,0 +1,84 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  method call<T extends core::Object? = dynamic>() → dynamic
+    ;
+}
+class GetterCall extends core::Object {
+  synthetic constructor •() → self::GetterCall
+    ;
+  get call() → <T extends core::Object? = dynamic>() → void
+    ;
+}
+extension Extension on core::int {
+  method call = self::Extension|call;
+  tearoff call = self::Extension|get#call;
+}
+extension ExtensionGetter on core::double {
+  get call = self::ExtensionGetter|get#call;
+}
+extension ExtensionSetter on core::bool {
+  set call = self::ExtensionSetter|set#call;
+}
+extension Ambiguous1 on core::String {
+  method call = self::Ambiguous1|call;
+  tearoff call = self::Ambiguous1|get#call;
+}
+extension Ambiguous2 on core::String {
+  method call = self::Ambiguous2|call;
+  tearoff call = self::Ambiguous2|get#call;
+}
+static field self::Class c1;
+static field self::Class? c2;
+static field self::GetterCall c3;
+static field core::int i1;
+static field core::int? i2;
+static field <T extends core::Object? = dynamic>() →? void f1;
+static field Never n;
+static field dynamic d;
+static field core::String a;
+static field core::double b;
+static field core::bool c;
+static field FutureOr<self::Class>f2;
+static field core::Function f3;
+static field () → dynamic topLevel1;
+static field () → dynamic topLevel2;
+static field invalid-type topLevel3;
+static field invalid-type topLevel4;
+static field invalid-type topLevel5;
+static field invalid-type topLevel6;
+static field invalid-type topLevel7;
+static field invalid-type topLevel8;
+static field invalid-type topLevel9;
+static field invalid-type topLevel10;
+static field invalid-type topLevel11;
+static field invalid-type topLevel12;
+static field invalid-type topLevel13;
+static method method<T extends self::Class, S extends core::int>(self::Class c, core::int i, self::method::T t, self::method::S s) → dynamic
+  ;
+static method test<T extends self::Class?, S extends core::int>(self::Class? c1, self::GetterCall c2, core::int? i, self::test::T% t1, self::test::T? t2, self::test::S? s, <T extends core::Object? = dynamic>() →? void f1, Never n, dynamic d, core::String a, core::double b, core::bool c, FutureOr<self::Class>f2, core::Function f3) → dynamic
+  ;
+static method Extension|call<T extends core::Object? = dynamic>(lowered final core::int #this) → dynamic
+  ;
+static method Extension|get#call(lowered final core::int #this) → <T extends core::Object? = dynamic>() → dynamic
+  return <T extends core::Object? = dynamic>() → dynamic => self::Extension|call<T%>(#this);
+static method ExtensionGetter|get#call(lowered final core::double #this) → <T extends core::Object? = dynamic>() → void
+  ;
+static method ExtensionSetter|set#call(lowered final core::bool #this, <T extends core::Object? = dynamic>() → void value) → void
+  ;
+static method Ambiguous1|call<T extends core::Object? = dynamic>(lowered final core::String #this) → dynamic
+  ;
+static method Ambiguous1|get#call(lowered final core::String #this) → <T extends core::Object? = dynamic>() → dynamic
+  return <T extends core::Object? = dynamic>() → dynamic => self::Ambiguous1|call<T%>(#this);
+static method Ambiguous2|call<T extends core::Object? = dynamic>(lowered final core::String #this) → dynamic
+  ;
+static method Ambiguous2|get#call(lowered final core::String #this) → <T extends core::Object? = dynamic>() → dynamic
+  return <T extends core::Object? = dynamic>() → dynamic => self::Ambiguous2|call<T%>(#this);
+static method main() → dynamic
+  ;

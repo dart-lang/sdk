@@ -42,6 +42,7 @@ import 'field_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
+import 'named_type_builder.dart';
 import 'type_builder.dart';
 import 'variable_builder.dart';
 
@@ -128,11 +129,9 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   String get fullNameForErrors => name;
 
   VariableDeclaration build(
-      SourceLibraryBuilder library, int functionNestingLevel,
-      {bool? nonInstanceContext}) {
+      SourceLibraryBuilder library, int functionNestingLevel) {
     if (variable == null) {
-      DartType? builtType =
-          type?.build(library, nonInstanceContext: nonInstanceContext);
+      DartType? builtType = type?.build(library);
       if (!library.isNonNullableByDefault && builtType != null) {
         builtType = legacyErasure(builtType);
       }
@@ -152,7 +151,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   }
 
   FormalParameterBuilder clone(
-      List<TypeBuilder> newTypes,
+      List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
     // TODO(dmitryas):  It's not clear how [metadata] is used currently, and

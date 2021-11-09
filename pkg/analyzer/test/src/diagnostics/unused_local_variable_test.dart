@@ -15,9 +15,6 @@ main() {
 
 @reflectiveTest
 class UnusedLocalVariableTest extends PubPackageResolutionTest {
-  @override
-  bool get enableUnusedLocalVariable => true;
-
   test_inFor_underscore_ignored() async {
     await assertNoErrorsInCode(r'''
 main() {

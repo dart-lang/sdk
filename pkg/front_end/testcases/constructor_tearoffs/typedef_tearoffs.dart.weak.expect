@@ -125,17 +125,17 @@ static method main() → dynamic {}
 
 constants  {
   #C1 = constructor-tearoff self::A::•
-  #C2 = instantiation self::A::• <>
+  #C2 = instantiation #C1 <>
   #C3 = constructor-tearoff self::B::•
-  #C4 = instantiation self::B::• <core::String*>
+  #C4 = instantiation #C3 <core::String*>
   #C5 = constructor-tearoff self::B::foo
-  #C6 = instantiation self::B::foo <core::String*>
-  #C7 = static-tearoff self::B::bar
-  #C8 = instantiation self::B::bar <core::String*>
-  #C9 = instantiation self::B::• <core::num*>
-  #C10 = instantiation self::B::foo <core::num*>
-  #C11 = instantiation self::B::bar <core::num*>
+  #C6 = instantiation #C5 <core::String*>
+  #C7 = constructor-tearoff self::B::bar
+  #C8 = instantiation #C7 <core::String*>
+  #C9 = instantiation #C3 <core::num*>
+  #C10 = instantiation #C5 <core::num*>
+  #C11 = instantiation #C7 <core::num*>
   #C12 = typedef-tearoff <X extends core::num>.(#C3<X>)
   #C13 = typedef-tearoff <X extends core::num, unrelated Y extends core::String>.(#C3<X>)
-  #C14 = instantiation self::B::• <Never*>
+  #C14 = instantiation #C3 <Never*>
 }

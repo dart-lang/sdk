@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:args/args.dart';
-import 'package:path/path.dart';
 import 'package:pub/pub.dart';
 
 import '../core.dart';
@@ -32,15 +31,16 @@ class TestCommand extends DartdevCommand {
     try {
       final testExecutable = await getExecutableForCommand('test:test');
       log.trace('dart $testExecutable ${argResults.rest.join(' ')}');
-      VmInteropHandler.run(testExecutable, argResults.rest,
-          packageConfigOverride:
-              join(current, '.dart_tool', 'package_config.json'));
+      VmInteropHandler.run(testExecutable.executable, argResults.rest,
+          packageConfigOverride: testExecutable.packageConfig);
       return 0;
     } on CommandResolutionFailedException catch (e) {
       if (project.hasPubspecFile) {
         print(e.message);
-        print('You need to add a dev_dependency on package:test.');
-        print('Try running `dart pub add --dev test`.');
+        if (e.issue == CommandResolutionIssue.packageNotFound) {
+          print('You need to add a dev_dependency on package:test.');
+          print('Try running `dart pub add --dev test`.');
+        }
       } else {
         print(
             'No pubspec.yaml file found - run this command in your project folder.');

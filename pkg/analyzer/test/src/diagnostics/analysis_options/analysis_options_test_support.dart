@@ -19,11 +19,13 @@ class AbstractAnalysisOptionsTest {
   }
 
   ExpectedError error(ErrorCode code, int offset, int length,
-          {String? text,
-          Pattern? messageContains,
+          {Pattern? correctionContains,
+          String? text,
+          List<Pattern> messageContains = const [],
           List<ExpectedContextMessage> contextMessages =
               const <ExpectedContextMessage>[]}) =>
       ExpectedError(code, offset, length,
+          correctionContains: correctionContains,
           message: text,
           messageContains: messageContains,
           expectedContextMessages: contextMessages);

@@ -1651,10 +1651,14 @@ class TestParser extends Parser {
 
   @override
   Token parseImplicitCreationExpression(
-      Token token, TypeParamOrArgInfo typeArg) {
-    doPrint('parseImplicitCreationExpression(' '$token, ' '$typeArg)');
+      Token token, Token openAngleBracket, TypeParamOrArgInfo typeArg) {
+    doPrint('parseImplicitCreationExpression('
+        '$token, '
+        '$openAngleBracket, '
+        '$typeArg)');
     indent++;
-    var result = super.parseImplicitCreationExpression(token, typeArg);
+    var result =
+        super.parseImplicitCreationExpression(token, openAngleBracket, typeArg);
     indent--;
     return result;
   }

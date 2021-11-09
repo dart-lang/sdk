@@ -162,4 +162,16 @@ main() {
 }
 ''');
   }
+
+  Future<void> test_unnecessaryImport() async {
+    await resolveTestCode('''
+import 'dart:async';
+import 'dart:async' show Completer;
+f(FutureOr<int> a, Completer<int> b) {}
+''');
+    await assertHasFix('''
+import 'dart:async';
+f(FutureOr<int> a, Completer<int> b) {}
+''');
+  }
 }

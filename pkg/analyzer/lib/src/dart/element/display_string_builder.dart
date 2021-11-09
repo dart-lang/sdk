@@ -57,11 +57,7 @@ class ElementDisplayStringBuilder {
     _writeType(element.returnType);
     _write(' ');
 
-    _write(element.enclosingElement.displayName);
-    if (element.displayName.isNotEmpty) {
-      _write('.');
-      _write(element.displayName);
-    }
+    _write(element.displayName);
 
     _writeFormalParameters(
       element.parameters,

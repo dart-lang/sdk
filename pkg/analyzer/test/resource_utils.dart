@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -62,7 +64,7 @@ class TestPathTranslator {
   File newFile(String posixPath, String content) =>
       _provider.newFile(posixToOSPath(posixPath), content);
 
-  File newFileWithBytes(String posixPath, List<int> bytes) =>
+  File newFileWithBytes(String posixPath, Uint8List bytes) =>
       _provider.newFileWithBytes(posixToOSPath(posixPath), bytes);
 
   Folder newFolder(String posixPath) =>

@@ -1,0 +1,243 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/implement_semi_stub.dart:52:23: Error: The parameter 'a' of the method 'Class1.method1' has type 'double', which does not match the corresponding type, 'int', in the overridden method, 'Class.method1'.
+// Change to a supertype of 'int', or, for a covariant parameter, a subtype.
+//   void method1(double a) {} // error
+//                       ^
+// pkg/front_end/testcases/general/implement_semi_stub.dart:39:8: Context: This is the overridden method ('method1').
+//   void method1(covariant int a);
+//        ^
+//
+// pkg/front_end/testcases/general/implement_semi_stub.dart:53:23: Error: The parameter 'b' of the method 'Class1.method2' has type 'double', which does not match the corresponding type, 'int', in the overridden method, 'Super.method2'.
+// Change to a supertype of 'int', or, for a covariant parameter, a subtype.
+//   void method2(double b) {} // error
+//                       ^
+// pkg/front_end/testcases/general/implement_semi_stub.dart:7:8: Context: This is the overridden method ('method2').
+//   void method2(int b) {}
+//        ^
+//
+// pkg/front_end/testcases/general/implement_semi_stub.dart:54:23: Error: The parameter 'a' of the method 'Class1.method3' has type 'double', which does not match the corresponding type, 'int', in the overridden method, 'Class.method3'.
+// Change to a supertype of 'int', or, for a covariant parameter, a subtype.
+//   void method3(double a, double b) {} // error
+//                       ^
+// pkg/front_end/testcases/general/implement_semi_stub.dart:41:8: Context: This is the overridden method ('method3').
+//   void method3(covariant int a, num b);
+//        ^
+//
+// pkg/front_end/testcases/general/implement_semi_stub.dart:54:33: Error: The parameter 'b' of the method 'Class1.method3' has type 'double', which does not match the corresponding type, 'int', in the overridden method, 'Super.method3'.
+// Change to a supertype of 'int', or, for a covariant parameter, a subtype.
+//   void method3(double a, double b) {} // error
+//                                 ^
+// pkg/front_end/testcases/general/implement_semi_stub.dart:8:8: Context: This is the overridden method ('method3').
+//   void method3(num a, int b) {}
+//        ^
+//
+// pkg/front_end/testcases/general/implement_semi_stub.dart:55:33: Error: The parameter 'a' of the method 'Class1.method4' has type 'double', which does not match the corresponding type, 'num', in the overridden method, 'Super.method4'.
+// Change to a supertype of 'num', or, for a covariant parameter, a subtype.
+//   void method4({required double a}) {} // error
+//                                 ^
+// pkg/front_end/testcases/general/implement_semi_stub.dart:9:8: Context: This is the overridden method ('method4').
+//   void method4({required num a}) {}
+//        ^
+//
+// pkg/front_end/testcases/general/implement_semi_stub.dart:56:33: Error: The parameter 'b' of the method 'Class1.method5' has type 'double', which does not match the corresponding type, 'int', in the overridden method, 'Super.method5'.
+// Change to a supertype of 'int', or, for a covariant parameter, a subtype.
+//   void method5({required double b}) {} // error
+//                                 ^
+// pkg/front_end/testcases/general/implement_semi_stub.dart:10:8: Context: This is the overridden method ('method5').
+//   void method5({required int b}) {}
+//        ^
+//
+// pkg/front_end/testcases/general/implement_semi_stub.dart:58:23: Error: The parameter 'a' of the method 'Class1.method7' has type 'Set<T>', which does not match the corresponding type, 'List<T>', in the overridden method, 'Class.method7'.
+//  - 'Set' is from 'dart:core'.
+//  - 'List' is from 'dart:core'.
+// Change to a supertype of 'List<T>', or, for a covariant parameter, a subtype.
+//   void method7(Set<T> a) {} // error
+//                       ^
+// pkg/front_end/testcases/general/implement_semi_stub.dart:42:8: Context: This is the overridden method ('method7').
+//   void method7(covariant List<T> a);
+//        ^
+//
+// pkg/front_end/testcases/general/implement_semi_stub.dart:59:23: Error: The parameter 'b' of the method 'Class1.method8' has type 'Set<T>', which does not match the corresponding type, 'List<T>', in the overridden method, 'Super.method8'.
+//  - 'Set' is from 'dart:core'.
+//  - 'List' is from 'dart:core'.
+// Change to a supertype of 'List<T>', or, for a covariant parameter, a subtype.
+//   void method8(Set<T> b) {} // error
+//                       ^
+// pkg/front_end/testcases/general/implement_semi_stub.dart:13:8: Context: This is the overridden method ('method8').
+//   void method8(List<T> b) {}
+//        ^
+//
+// pkg/front_end/testcases/general/implement_semi_stub.dart:60:23: Error: The parameter 'a' of the method 'Class1.method9' has type 'Set<T>', which does not match the corresponding type, 'List<T>', in the overridden method, 'Class.method9'.
+//  - 'Set' is from 'dart:core'.
+//  - 'List' is from 'dart:core'.
+// Change to a supertype of 'List<T>', or, for a covariant parameter, a subtype.
+//   void method9(Set<T> a, Set<T> b) {} // error
+//                       ^
+// pkg/front_end/testcases/general/implement_semi_stub.dart:44:8: Context: This is the overridden method ('method9').
+//   void method9(covariant List<T> a, Iterable<T> b);
+//        ^
+//
+// pkg/front_end/testcases/general/implement_semi_stub.dart:60:33: Error: The parameter 'b' of the method 'Class1.method9' has type 'Set<T>', which does not match the corresponding type, 'List<T>', in the overridden method, 'Super.method9'.
+//  - 'Set' is from 'dart:core'.
+//  - 'List' is from 'dart:core'.
+// Change to a supertype of 'List<T>', or, for a covariant parameter, a subtype.
+//   void method9(Set<T> a, Set<T> b) {} // error
+//                                 ^
+// pkg/front_end/testcases/general/implement_semi_stub.dart:14:8: Context: This is the overridden method ('method9').
+//   void method9(Iterable<T> a, List<T> b) {}
+//        ^
+//
+// pkg/front_end/testcases/general/implement_semi_stub.dart:61:34: Error: The parameter 'a' of the method 'Class1.method10' has type 'Set<T>', which does not match the corresponding type, 'Iterable<T>', in the overridden method, 'Super.method10'.
+//  - 'Set' is from 'dart:core'.
+//  - 'Iterable' is from 'dart:core'.
+// Change to a supertype of 'Iterable<T>', or, for a covariant parameter, a subtype.
+//   void method10({required Set<T> a}) {} // error
+//                                  ^
+// pkg/front_end/testcases/general/implement_semi_stub.dart:15:8: Context: This is the overridden method ('method10').
+//   void method10({required Iterable<T> a}) {}
+//        ^
+//
+// pkg/front_end/testcases/general/implement_semi_stub.dart:62:34: Error: The parameter 'b' of the method 'Class1.method11' has type 'Set<T>', which does not match the corresponding type, 'List<T>', in the overridden method, 'Super.method11'.
+//  - 'Set' is from 'dart:core'.
+//  - 'List' is from 'dart:core'.
+// Change to a supertype of 'List<T>', or, for a covariant parameter, a subtype.
+//   void method11({required Set<T> b}) {} // error
+//                                  ^
+// pkg/front_end/testcases/general/implement_semi_stub.dart:16:8: Context: This is the overridden method ('method11').
+//   void method11({required List<T> b}) {}
+//        ^
+//
+// pkg/front_end/testcases/general/implement_semi_stub.dart:64:27: Error: The parameter 'a' of the method 'Class1.setter1' has type 'double', which does not match the corresponding type, 'int', in the overridden method, 'Class.setter1'.
+// Change to a supertype of 'int', or, for a covariant parameter, a subtype.
+//   void set setter1(double a) {} // error
+//                           ^
+// pkg/front_end/testcases/general/implement_semi_stub.dart:45:12: Context: This is the overridden method ('setter1').
+//   void set setter1(covariant int a);
+//            ^
+//
+// pkg/front_end/testcases/general/implement_semi_stub.dart:66:27: Error: The parameter 'a' of the method 'Class1.setter3' has type 'Set<T>', which does not match the corresponding type, 'List<T>', in the overridden method, 'Class.setter3'.
+//  - 'Set' is from 'dart:core'.
+//  - 'List' is from 'dart:core'.
+// Change to a supertype of 'List<T>', or, for a covariant parameter, a subtype.
+//   void set setter3(Set<T> a) {} // error
+//                           ^
+// pkg/front_end/testcases/general/implement_semi_stub.dart:47:12: Context: This is the overridden method ('setter3').
+//   void set setter3(covariant List<T> a);
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Super<self::Super::T%>
+    ;
+  method method1(core::num a) → void
+    ;
+  method method2(core::int b) → void
+    ;
+  method method3(core::num a, core::int b) → void
+    ;
+  method method4({required core::num a}) → void
+    ;
+  method method5({required core::int b}) → void
+    ;
+  method method7(covariant-by-class core::Iterable<self::Super::T%> a) → void
+    ;
+  method method8(covariant-by-class core::List<self::Super::T%> b) → void
+    ;
+  method method9(covariant-by-class core::Iterable<self::Super::T%> a, covariant-by-class core::List<self::Super::T%> b) → void
+    ;
+  method method10({required covariant-by-class core::Iterable<self::Super::T%> a}) → void
+    ;
+  method method11({required covariant-by-class core::List<self::Super::T%> b}) → void
+    ;
+  set setter1(core::num a) → void
+    ;
+  set setter3(covariant-by-class core::Iterable<self::Super::T%> a) → void
+    ;
+}
+abstract class Interface<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Interface<self::Interface::T%>
+    ;
+  method method2(covariant-by-declaration core::num b) → void
+    ;
+  method method3(core::num a, covariant-by-declaration core::num b) → void
+    ;
+  method method5({required core::int b}) → void
+    ;
+  method method8(covariant-by-declaration covariant-by-class core::Iterable<self::Interface::T%> b) → void
+    ;
+  method method9(covariant-by-class core::Iterable<self::Interface::T%> a, covariant-by-declaration covariant-by-class core::Iterable<self::Interface::T%> b) → void
+    ;
+  method method11({required covariant-by-class core::List<self::Interface::T%> b}) → void
+    ;
+}
+class Class<T extends core::Object? = dynamic> extends self::Super<self::Class::T%> implements self::Interface<self::Class::T%> {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    ;
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::int) → void */ method1(covariant-by-declaration core::num a) → void
+    return super.{self::Super::method1}(a);
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::num) → void */ method2(covariant-by-declaration core::int b) → void
+    return super.{self::Super::method2}(b);
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::int, core::num) → void */ method3(covariant-by-declaration core::num a, covariant-by-declaration core::int b) → void
+    return super.{self::Super::method3}(a, b);
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::List<self::Class::T%>) → void */ method7(covariant-by-declaration covariant-by-class core::Iterable<self::Class::T%> a) → void
+    return super.{self::Super::method7}(a);
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::Iterable<self::Class::T%>) → void */ method8(covariant-by-declaration covariant-by-class core::List<self::Class::T%> b) → void
+    return super.{self::Super::method8}(b);
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::List<self::Class::T%>, core::Iterable<self::Class::T%>) → void */ method9(covariant-by-declaration covariant-by-class core::Iterable<self::Class::T%> a, covariant-by-declaration covariant-by-class core::List<self::Class::T%> b) → void
+    return super.{self::Super::method9}(a, b);
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::int) → void */ setter1(covariant-by-declaration core::num a) → void
+    return super.{self::Super::setter1} = a;
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::List<self::Class::T%>) → void */ setter3(covariant-by-declaration covariant-by-class core::Iterable<self::Class::T%> a) → void
+    return super.{self::Super::setter3} = a;
+}
+class Class1<T extends core::Object? = dynamic> extends core::Object implements self::Class<self::Class1::T%> {
+  synthetic constructor •() → self::Class1<self::Class1::T%>
+    ;
+  method method1(covariant-by-declaration core::double a) → void
+    ;
+  method method2(covariant-by-declaration core::double b) → void
+    ;
+  method method3(covariant-by-declaration core::double a, covariant-by-declaration core::double b) → void
+    ;
+  method method4({required core::double a}) → void
+    ;
+  method method5({required core::double b}) → void
+    ;
+  method method7(covariant-by-declaration covariant-by-class core::Set<self::Class1::T%> a) → void
+    ;
+  method method8(covariant-by-declaration covariant-by-class core::Set<self::Class1::T%> b) → void
+    ;
+  method method9(covariant-by-declaration covariant-by-class core::Set<self::Class1::T%> a, covariant-by-declaration covariant-by-class core::Set<self::Class1::T%> b) → void
+    ;
+  method method10({required covariant-by-class core::Set<self::Class1::T%> a}) → void
+    ;
+  method method11({required covariant-by-class core::Set<self::Class1::T%> b}) → void
+    ;
+  set setter1(covariant-by-declaration core::double a) → void
+    ;
+  set setter3(covariant-by-declaration covariant-by-class core::Set<self::Class1::T%> a) → void
+    ;
+}
+abstract class Interface2<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Interface2<self::Interface2::T%>
+    ;
+  abstract method method1(core::int a) → void;
+  abstract method method2(core::int b) → void;
+  abstract method method3(core::int a, core::int b) → void;
+  abstract method method7(covariant-by-class core::List<self::Interface2::T%> a) → void;
+  abstract method method8(covariant-by-class core::List<self::Interface2::T%> b) → void;
+  abstract method method9(covariant-by-class core::List<self::Interface2::T%> a, covariant-by-class core::List<self::Interface2::T%> b) → void;
+  abstract set setter1(core::int a) → void;
+  abstract set setter3(covariant-by-class core::List<self::Interface2::T%> a) → void;
+}
+abstract class Class2<T extends core::Object? = dynamic> extends core::Object implements self::Class<self::Class2::T%>, self::Interface2<self::Class2::T%> {
+  synthetic constructor •() → self::Class2<self::Class2::T%>
+    ;
+}
+static method main() → dynamic
+  ;

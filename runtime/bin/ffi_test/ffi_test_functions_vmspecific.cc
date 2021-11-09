@@ -1112,21 +1112,63 @@ intptr_t PassAsValueAndPointer(intptr_t value, void* ptr) {
   return reinterpret_cast<intptr_t>(value);
 }
 
-// We're using this to keep track of whether the finalizer has been called.
-static intptr_t shared_resource = 0;
+intptr_t* AllocateResource(intptr_t value) {
+  return new intptr_t(value);
+}
+
+void DeleteResource(intptr_t* resource) {
+  delete resource;
+}
+
+intptr_t GetResourceValue(intptr_t* resource) {
+  return *resource;
+}
 
 void DummyResourceFinalizer(void* isolate_peer, void* peer) {
-  shared_resource = 0;
+  *reinterpret_cast<intptr_t*>(peer) = 0;
 }
 
-void SetSharedResource(Dart_Handle handle, intptr_t value) {
-  Dart_NewFinalizableHandle(handle, nullptr, sizeof(Dart_FinalizableHandle),
+void SetResourceFinalizer(Dart_Handle handle, intptr_t* resource) {
+  Dart_NewFinalizableHandle(handle, resource, sizeof(Dart_FinalizableHandle),
                             DummyResourceFinalizer);
-  shared_resource = value;
 }
 
-intptr_t GetSharedResource() {
-  return shared_resource;
+intptr_t AddPtrAndInt(void* self, intptr_t x) {
+  return reinterpret_cast<intptr_t>(self) + x;
+}
+
+intptr_t AddHandleFieldAndInt(Dart_Handle self, intptr_t x) {
+  intptr_t field = 0;
+  ENSURE(!Dart_IsError(Dart_GetNativeInstanceField(self, 0, &field)));
+  return field + x;
+}
+
+intptr_t AddPtrAndPtr(void* self, void* other) {
+  return reinterpret_cast<intptr_t>(self) + reinterpret_cast<intptr_t>(other);
+}
+
+intptr_t AddHandleFieldAndPtr(Dart_Handle self, void* other) {
+  intptr_t field = 0;
+  ENSURE(!Dart_IsError(Dart_GetNativeInstanceField(self, 0, &field)));
+  return field + reinterpret_cast<intptr_t>(other);
+}
+
+intptr_t AddHandleFieldAndHandleField(Dart_Handle self, Dart_Handle other) {
+  intptr_t field1 = 0;
+  ENSURE(!Dart_IsError(Dart_GetNativeInstanceField(self, 0, &field1)));
+  intptr_t field2 = 0;
+  ENSURE(!Dart_IsError(Dart_GetNativeInstanceField(other, 0, &field2)));
+  return field1 + field2;
+}
+
+intptr_t AddPtrAndHandleField(void* self, Dart_Handle other) {
+  intptr_t field = 0;
+  ENSURE(!Dart_IsError(Dart_GetNativeInstanceField(other, 0, &field)));
+  return reinterpret_cast<intptr_t>(self) + field;
+}
+
+intptr_t ReturnIntPtrMethod(Dart_Handle self, intptr_t value) {
+  return value;
 }
 
 static void* FfiNativeResolver(const char* name, uintptr_t args_n) {
@@ -1151,11 +1193,38 @@ static void* FfiNativeResolver(const char* name, uintptr_t args_n) {
   if (strcmp(name, "PassAsValueAndPointer") == 0 && args_n == 2) {
     return reinterpret_cast<void*>(PassAsValueAndPointer);
   }
-  if (strcmp(name, "SetSharedResource") == 0 && args_n == 2) {
-    return reinterpret_cast<void*>(SetSharedResource);
+  if (strcmp(name, "AllocateResource") == 0 && args_n == 1) {
+    return reinterpret_cast<void*>(AllocateResource);
   }
-  if (strcmp(name, "GetSharedResource") == 0 && args_n == 0) {
-    return reinterpret_cast<void*>(GetSharedResource);
+  if (strcmp(name, "DeleteResource") == 0 && args_n == 1) {
+    return reinterpret_cast<void*>(DeleteResource);
+  }
+  if (strcmp(name, "GetResourceValue") == 0 && args_n == 1) {
+    return reinterpret_cast<void*>(GetResourceValue);
+  }
+  if (strcmp(name, "SetResourceFinalizer") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(SetResourceFinalizer);
+  }
+  if (strcmp(name, "AddPtrAndInt") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(AddPtrAndInt);
+  }
+  if (strcmp(name, "AddHandleFieldAndInt") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(AddHandleFieldAndInt);
+  }
+  if (strcmp(name, "AddPtrAndPtr") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(AddPtrAndPtr);
+  }
+  if (strcmp(name, "AddHandleFieldAndPtr") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(AddHandleFieldAndPtr);
+  }
+  if (strcmp(name, "AddHandleFieldAndHandleField") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(AddHandleFieldAndHandleField);
+  }
+  if (strcmp(name, "AddPtrAndHandleField") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(AddPtrAndHandleField);
+  }
+  if (strcmp(name, "ReturnIntPtrMethod") == 0 && args_n == 2) {
+    return reinterpret_cast<void*>(ReturnIntPtrMethod);
   }
   // This should be unreachable in tests.
   ENSURE(false);

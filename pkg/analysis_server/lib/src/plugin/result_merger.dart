@@ -361,10 +361,10 @@ class ResultMerger {
     }
     var elementMap = <Element, Set<int>>{};
     for (var partialResults in partialResultList) {
-      for (var occurances in partialResults) {
-        var element = occurances.element;
+      for (var occurrences in partialResults) {
+        var element = occurrences.element;
         var offsets = elementMap.putIfAbsent(element, () => HashSet<int>());
-        offsets.addAll(occurances.offsets);
+        offsets.addAll(occurrences.offsets);
       }
     }
     var mergedOccurrences = <Occurrences>[];

@@ -55,6 +55,11 @@ class Tracer extends TracerUtil {
     }
   }
 
+  void traceJavaScriptText(String name, String Function() getText) {
+    if (!traceActive) return;
+    HTracer(output, closedWorld).traceJavaScriptText(name, getText());
+  }
+
   void close() {
     if (output != null) {
       output.close();

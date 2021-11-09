@@ -451,6 +451,12 @@ class UntaggedAbstractType : public AllStatic {
   static const word kTypeStateFinalizedInstantiated;
 };
 
+class UntaggedType : public AllStatic {
+ public:
+  static const bool kTypeClassIdIsSigned;
+  static const word kTypeClassIdBitSize;
+};
+
 class Object : public AllStatic {
  public:
   // Offset of the tags word.

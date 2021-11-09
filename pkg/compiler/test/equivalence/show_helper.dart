@@ -52,7 +52,7 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
     options.add(Flags.omitImplicitChecks);
   }
   Dart2jsCompiledData<T> data = await computeData<T>(
-      entryPoint, const {}, dataComputer,
+      file, entryPoint, const {}, dataComputer,
       options: options,
       testFrontend: dataComputer.testFrontend,
       forUserLibrariesOnly: false,

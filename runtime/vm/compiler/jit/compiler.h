@@ -76,6 +76,15 @@ class Compiler : public AllStatic {
   // The result for a function may change if debugging gets turned on/off.
   static bool CanOptimizeFunction(Thread* thread, const Function& function);
 
+#if !defined(PRODUCT)
+  // Whether it's possible for unoptimized code to optimize immediately on entry
+  // (can happen with random or very low optimization counter thresholds)
+  static bool CanOptimizeImmediately() {
+    return FLAG_optimization_counter_threshold < 2 ||
+           FLAG_randomize_optimization_counter;
+  }
+#endif
+
   // Generates code for given function without optimization and sets its code
   // field.
   //
@@ -149,13 +158,10 @@ class BackgroundCompiler {
 
   IsolateGroup* isolate_group_;
 
-  Monitor queue_monitor_;  // Controls access to the queue.
+  Monitor monitor_;  // Controls access to the queue and running state.
   BackgroundCompilationQueue* function_queue_;
-
-  Monitor done_monitor_;    // Notify/wait that the thread is done.
   bool running_;            // While true, will try to read queue and compile.
   bool done_;               // True if the thread is done.
-
   int16_t disabled_depth_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BackgroundCompiler);

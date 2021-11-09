@@ -102,10 +102,10 @@
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/dart",
       "out/ReleaseIA32/dart2js_platform.dill",
-      "out/ReleaseIA32/dart2js_platform_strong.dill",
+      "out/ReleaseIA32/dart2js_platform_unsound.dill",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart2js_platform.dill",
-      "out/ReleaseX64/dart2js_platform_strong.dill",
+      "out/ReleaseX64/dart2js_platform_unsound.dill",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -143,18 +143,17 @@
       "tools/",
       "xcodebuild/ReleaseIA32/dart",
       "xcodebuild/ReleaseIA32/dart2js_platform.dill",
-      "xcodebuild/ReleaseIA32/dart2js_platform_strong.dill",
+      "xcodebuild/ReleaseIA32/dart2js_platform_unsound.dill",
       "xcodebuild/ReleaseX64/dart",
       "xcodebuild/ReleaseX64/dart2js_platform.dill",
-      "xcodebuild/ReleaseX64/dart2js_platform_strong.dill"
+      "xcodebuild/ReleaseX64/dart2js_platform_unsound.dill"
     ],
     "web_platform_hostasserts_nnbd": [
       ".packages",
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart2js_platform.dill",
-      "out/ReleaseX64/dart2js_nnbd_strong_platform.dill",
-      "out/ReleaseX64/dart2js_platform_strong.dill",
+      "out/ReleaseX64/dart2js_platform_unsound.dill",
       "pkg/",
       "runtime/tests/",
       "samples-dev/",
@@ -184,8 +183,7 @@
       "tools/",
       "xcodebuild/ReleaseX64/dart",
       "xcodebuild/ReleaseX64/dart2js_platform.dill",
-      "xcodebuild/ReleaseX64/dart2js_nnbd_strong_platform.dill",
-      "xcodebuild/ReleaseX64/dart2js_platform_strong.dill"
+      "xcodebuild/ReleaseX64/dart2js_platform_unsound.dill"
     ],
     "front-end": [
       ".packages",
@@ -314,9 +312,11 @@
       "xcodebuild/DebugX64/",
       "xcodebuild/DebugX64C/",
       "xcodebuild/DebugXARM64/",
+      "xcodebuild/DebugARM64/",
       "xcodebuild/ProductX64/",
       "xcodebuild/ProductX64C/",
       "xcodebuild/ProductXARM64/",
+      "xcodebuild/ProductARM64/",
       "xcodebuild/ReleaseIA32/",
       "xcodebuild/ReleaseSIMARM/",
       "xcodebuild/ReleaseSIMARM64/",
@@ -324,6 +324,7 @@
       "xcodebuild/ReleaseX64/",
       "xcodebuild/ReleaseX64C/",
       "xcodebuild/ReleaseXARM64/",
+      "xcodebuild/ReleaseARM64/",
       "pkg/",
       "samples/",
       "samples_2/",
@@ -567,17 +568,17 @@
     },
     "dart2js-win-ie11": {
       "options": {
-        "use-sdk": true,
-        "babel": "{\"presets\":[\"es2015\"]}"
+        "babel": "{\"presets\":[\"es2015\"]}",
+        "use-sdk": true
       }
     },
     "dart2js-win-ie11-unsound": {
       "options": {
-        "use-sdk": true,
         "babel": "{\"presets\":[\"es2015\"]}",
         "dart2js-options": [
           "--no-sound-null-safety"
-        ]
+        ],
+        "use-sdk": true
       }
     },
     "dart2js-win-edge": {
@@ -2469,7 +2470,7 @@
             "pkg//compiler/"
           ],
           "shards": 3,
-          "fileset": "web_platform"
+          "fileset": "web_platform_nnbd"
         }
       ]
     },
@@ -2492,7 +2493,6 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
-            "--dart2js-batch",
             "--exclude_suite=observatory_ui"
           ],
           "shards": 6,
@@ -2502,7 +2502,6 @@
           "name": "dart2js co19_2 tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
-            "--dart2js-batch",
             "co19_2"
           ],
           "shards": 6,
@@ -2512,7 +2511,6 @@
           "name": "dart2js package tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
-            "--dart2js-batch",
             "pkg"
           ]
         },
@@ -2520,7 +2518,6 @@
           "name": "dart2js observatory-ui tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8-unsound",
-            "--dart2js-batch",
             "observatory_ui"
           ]
         },
@@ -2528,7 +2525,6 @@
           "name": "dart2js extra tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
-            "--dart2js-batch",
             "web_2"
           ]
         }
@@ -2560,7 +2556,6 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-${system}-${runtime}",
-            "--dart2js-batch",
             "--reset-browser-configuration",
             "--exclude_suite=observatory_ui"
           ],
@@ -2571,7 +2566,6 @@
           "name": "dart2js co19_2 tests",
           "arguments": [
             "-ndart2js-${system}-${runtime}",
-            "--dart2js-batch",
             "--reset-browser-configuration",
             "co19_2"
           ],
@@ -2582,7 +2576,6 @@
           "name": "dart2js package tests",
           "arguments": [
             "-ndart2js-${system}-${runtime}",
-            "--dart2js-batch",
             "--reset-browser-configuration",
             "pkg"
           ]
@@ -2591,7 +2584,6 @@
           "name": "dart2js observatory-ui tests",
           "arguments": [
             "-ndart2js-${system}-${runtime}-unsound",
-            "--dart2js-batch",
             "--reset-browser-configuration",
             "observatory_ui"
           ]
@@ -2600,7 +2592,6 @@
           "name": "dart2js extra tests",
           "arguments": [
             "-ndart2js-${system}-${runtime}",
-            "--dart2js-batch",
             "--reset-browser-configuration",
             "web_2"
           ]
@@ -2626,7 +2617,6 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-minified-linux-d8",
-            "--dart2js-batch",
             "--exclude_suite=observatory_ui"
           ],
           "shards": 6,
@@ -2636,7 +2626,6 @@
           "name": "dart2js package tests",
           "arguments": [
             "-ndart2js-minified-linux-d8",
-            "--dart2js-batch",
             "pkg"
           ]
         },
@@ -2644,7 +2633,6 @@
           "name": "dart2js observatory-ui tests",
           "arguments": [
             "-ndart2js-minified-linux-d8-unsound",
-            "--dart2js-batch",
             "observatory_ui"
           ]
         },
@@ -2652,7 +2640,6 @@
           "name": "dart2js extra tests",
           "arguments": [
             "-ndart2js-minified-linux-d8",
-            "--dart2js-batch",
             "web_2"
           ]
         },
@@ -2660,7 +2647,6 @@
           "name": "dart2js production tests",
           "arguments": [
             "-ndart2js-production-linux-d8",
-            "--dart2js-batch",
             "--exclude_suite=observatory_ui"
           ],
           "shards": 6,
@@ -2670,7 +2656,6 @@
           "name": "dart2js production extra tests",
           "arguments": [
             "-ndart2js-production-linux-d8",
-            "--dart2js-batch",
             "web_2"
           ]
         },
@@ -2678,7 +2663,6 @@
           "name": "dart2js -O0 smoke tests",
           "arguments": [
             "-ndart2js-o0-linux-d8",
-            "--dart2js-batch",
             "web_2"
           ]
         },
@@ -2686,7 +2670,6 @@
           "name": "dart2js --canary smoke tests",
           "arguments": [
             "-ndart2js-modern-linux-d8",
-            "--dart2js-batch",
             "web_2"
           ]
         },
@@ -2694,7 +2677,6 @@
           "name": "dart2js d8 fragment merging tests",
           "arguments": [
             "-ndart2js-minified-hostasserts-weak-max-fragments-linux-x64-d8",
-            "--dart2js-batch",
             "web/deferred/"
           ],
           "shards": 1,
@@ -2721,7 +2703,6 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome",
-            "--dart2js-batch",
             "--reset-browser-configuration",
             "--exclude_suite=observatory_ui"
           ],
@@ -2732,7 +2713,6 @@
           "name": "dart2js package tests",
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome",
-            "--dart2js-batch",
             "--reset-browser-configuration",
             "pkg"
           ]
@@ -2741,7 +2721,6 @@
           "name": "dart2js observatory-ui tests",
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome-unsound",
-            "--dart2js-batch",
             "--reset-browser-configuration",
             "observatory_ui"
           ]
@@ -2750,7 +2729,6 @@
           "name": "dart2js extra tests",
           "arguments": [
             "-ndart2js-minified-csp-linux-chrome",
-            "--dart2js-batch",
             "web_2"
           ]
         },
@@ -2758,7 +2736,6 @@
           "name": "dart2js d8 fragment merging tests",
           "arguments": [
             "-ndart2js-minified-csp-max-fragments-linux-chrome",
-            "--dart2js-batch",
             "web/deferred/"
           ]
         }
@@ -2784,7 +2761,6 @@
           "name": "dart2js nnbd weak d8 tests",
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-d8",
-            "--dart2js-batch",
             "language",
             "corelib"
           ],
@@ -2795,7 +2771,6 @@
           "name": "dart2js nnbd weak d8 fragment merging tests",
           "arguments": [
             "-ndart2js-hostasserts-weak-max-fragments-linux-x64-d8",
-            "--dart2js-batch",
             "web/deferred/"
           ],
           "shards": 1,
@@ -2805,7 +2780,6 @@
           "name": "dart2js nnbd weak chrome tests",
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-chrome",
-            "--dart2js-batch",
             "web"
           ],
           "shards": 3,
@@ -2815,7 +2789,6 @@
           "name": "dart2js nnbd weak lib tests",
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-chrome",
-            "--dart2js-batch",
             "lib"
           ],
           "shards": 3,
@@ -2825,7 +2798,6 @@
           "name": "dart2js nnbd weak co19 tests",
           "arguments": [
             "-ndart2js-hostasserts-weak-linux-x64-chrome",
-            "--dart2js-batch",
             "co19"
           ],
           "shards": 6,
@@ -2835,7 +2807,6 @@
           "name": "dart2js nnbd strong d8 tests",
           "arguments": [
             "-ndart2js-hostasserts-strong-linux-x64-d8",
-            "--dart2js-batch",
             "language",
             "corelib"
           ],
@@ -2846,7 +2817,6 @@
           "name": "dart2js nnbd strong d8 fragment merging tests",
           "arguments": [
             "-ndart2js-hostasserts-strong-max-fragments-linux-x64-d8",
-            "--dart2js-batch",
             "web/deferred/"
           ],
           "shards": 1,
@@ -2856,7 +2826,6 @@
           "name": "dart2js nnbd strong chrome tests",
           "arguments": [
             "-ndart2js-hostasserts-strong-linux-x64-chrome",
-            "--dart2js-batch",
             "web"
           ],
           "shards": 3,
@@ -2866,7 +2835,6 @@
           "name": "dart2js nnbd strong lib tests",
           "arguments": [
             "-ndart2js-hostasserts-strong-linux-x64-chrome",
-            "--dart2js-batch",
             "lib"
           ],
           "shards": 3,
@@ -2876,7 +2844,6 @@
           "name": "dart2js nnbd strong co19 tests",
           "arguments": [
             "-ndart2js-hostasserts-strong-linux-x64-chrome",
-            "--dart2js-batch",
             "co19"
           ],
           "shards": 6,
@@ -2936,7 +2903,7 @@
             "create_sdk"
           ],
           "environment": {
-            "DART_GN_ARGS": "mac_use_goma_rbe=true dart_snapshot_kind=\"app-jit\""
+            "DART_GN_ARGS": "mac_use_goma_rbe=true"
           }
         },
         {
@@ -2962,6 +2929,7 @@
           "arguments": [
             "--arch=ia32,x64",
             "--mode=release",
+            "--check-clean",
             "create_sdk",
             "runtime"
           ]
@@ -3249,6 +3217,15 @@
           ]
         },
         {
+          "name": "analyze pkg/dart2js_info",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--fatal-infos",
+            "pkg/dart2js_info"
+          ]
+        },
+        {
           "name": "analyze pkg/dart2js_tools",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
@@ -3328,6 +3305,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "analyze",
+            "--fatal-infos",
             "pkg/native_stack_traces"
           ]
         },
@@ -3495,6 +3473,21 @@
           ]
         },
         {
+          "name": "validate SDK API doc code samples",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "tools/verify_docs/bin/verify_docs.dart",
+            "sdk/lib/_http",
+            "sdk/lib/_internal",
+            "sdk/lib/cli",
+            "sdk/lib/convert",
+            "sdk/lib/ffi",
+            "sdk/lib/js",
+            "sdk/lib/math",
+            "sdk/lib/mirrors"
+          ]
+        },
+        {
           "name": "validate SDK API data-driven fixes",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
@@ -3637,7 +3630,7 @@
             "create_sdk",
             "runtime",
             "dart2js_platform.dill",
-            "dart2js_nnbd_strong_platform.dill",
+            "dart2js_platform_unsound.dill",
             "kernel-service.dart.snapshot"
           ]
         },
@@ -3673,7 +3666,7 @@
             "gen_snapshot",
             "dart_precompiled_runtime",
             "dart2js_platform.dill",
-            "dart2js_nnbd_strong_platform.dill",
+            "dart2js_platform_unsound.dill",
             "kernel-service.dart.snapshot",
             "dartdevc_test"
           ]
@@ -3912,9 +3905,11 @@
         },
         {
           "name": "Run Isolate Stress Tests",
-          "script": "out/ReleaseX64/dart",
+          "script": "tools/run_with_coredumps_enabled.py",
           "arguments": [
-            "runtime/tests/concurrency/run_stress_test_shards.dart"
+            "out/ReleaseX64/dart",
+            "runtime/tests/concurrency/run_stress_test_shards.dart",
+            "--copy-coredumps"
           ],
           "shards": 10,
           "fileset": "vm-kernel"

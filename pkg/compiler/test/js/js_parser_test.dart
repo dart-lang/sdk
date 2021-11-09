@@ -18,6 +18,32 @@ testExpression(String expression, [String expect = ""]) {
   }
 }
 
+/// Tests an arrow expression with implicit returns allowed and disallowed.
+///
+/// Only checks the immediate, outermost arrow function.
+testArrowFunction(String arrowExpression,
+    [String implicitReturnExpect = "", String noImplicitReturnExpect = ""]) {
+  jsAst.ArrowFunction fun = js(arrowExpression);
+  jsAst.ArrowFunction implicitReturnFun = jsAst.ArrowFunction(
+      fun.params, fun.body,
+      asyncModifier: fun.asyncModifier, implicitReturnAllowed: true);
+  jsAst.ArrowFunction noImplicitReturnFun = jsAst.ArrowFunction(
+      fun.params, fun.body,
+      asyncModifier: fun.asyncModifier, implicitReturnAllowed: false);
+  String implicitReturnText =
+      jsAst.prettyPrint(implicitReturnFun, allowVariableMinification: false);
+  String noImplicitReturnText =
+      jsAst.prettyPrint(noImplicitReturnFun, allowVariableMinification: false);
+  String comparison =
+      implicitReturnExpect == "" ? arrowExpression : implicitReturnExpect;
+  Expect.stringEquals(comparison, implicitReturnText);
+  if (noImplicitReturnExpect == "") {
+    Expect.stringEquals(comparison, noImplicitReturnText);
+  } else {
+    Expect.stringEquals(noImplicitReturnExpect, noImplicitReturnText);
+  }
+}
+
 testError(String expression, [String expect = ""]) {
   bool doCheck(exception) {
     final exceptionText = '$exception';
@@ -193,13 +219,17 @@ void main() {
   testExpression("a = b = c");
   testExpression("var a = b = c");
   // Arrow functions.
-  testExpression("(x) => x", "x => x");
-  testExpression("(x, y) => {\n  return x + y;\n}");
-  testExpression("() => 42");
-  testExpression('() => ({foo: "bar"})');
-  testExpression("() => {}", """
+  testArrowFunction("(x) => x", "x => x");
+  testArrowFunction(
+      "(x) => {\n  return x;\n}", "x => x", "x => {\n  return x;\n}");
+  testArrowFunction("(x, y) => {\n  return x + y;\n}", "(x, y) => x + y",
+      "(x, y) => {\n  return x + y;\n}");
+  testArrowFunction("() => 42");
+  testArrowFunction('() => ({foo: "bar"})');
+  testArrowFunction("() => {}", """
 () => {
 }""");
+  // Arrow function invocation.
   testExpression("(() => 1)()");
   testExpression("((x) => x)(y)", "(x => x)(y)");
   testExpression("(() => {x = 1;})()", """

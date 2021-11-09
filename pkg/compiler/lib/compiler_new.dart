@@ -190,7 +190,7 @@ Future<CompilationResult> compile(
 
   CompilerImpl compiler = new CompilerImpl(
       compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
-  return compiler.run(compilerOptions.entryPoint).then((bool success) {
+  return compiler.run().then((bool success) {
     return new CompilationResult(compiler,
         isSuccess: success,
         kernelInitializedCompilerState:
