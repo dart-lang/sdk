@@ -7152,46 +7152,6 @@ void f(Future<String> future, String Function(dynamic, StackTrace) callback) {
 }
 {% endprettify %}
 
-### invalid_super_invocation
-
-_The superclass call must be last in an initializer list: '{0}'._
-
-#### Description
-
-The analyzer produces this diagnostic when the initializer list of a
-constructor contains an invocation of a constructor in the superclass, but
-the invocation isn't the last item in the initializer list.
-
-#### Example
-
-The following code produces this diagnostic because the invocation of the
-superclass' constructor isn't the last item in the initializer list:
-
-{% prettify dart tag=pre+code %}
-class A {
-  A(int x);
-}
-
-class B extends A {
-  B(int x) : [!super!](x), assert(x >= 0);
-}
-{% endprettify %}
-
-#### Common fixes
-
-Move the invocation of the superclass' constructor to the end of the
-initializer list:
-
-{% prettify dart tag=pre+code %}
-class A {
-  A(int x);
-}
-
-class B extends A {
-  B(int x) : assert(x >= 0), super(x);
-}
-{% endprettify %}
-
 ### invalid_type_argument_in_const_literal
 
 _Constant list literals can't include a type parameter as a type argument, such
@@ -12846,6 +12806,48 @@ typedef T<S> = S;
 class C extends Object {}
 {% endprettify %}
 
+### super_invocation_not_last
+
+<a id="invalid_super_invocation" aria-hidden="true"></a>_(Previously known as `invalid_super_invocation`)_
+
+_The superconstructor call must be last in an initializer list: '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the initializer list of a
+constructor contains an invocation of a constructor in the superclass, but
+the invocation isn't the last item in the initializer list.
+
+#### Example
+
+The following code produces this diagnostic because the invocation of the
+superclass' constructor isn't the last item in the initializer list:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B(int x) : [!super!](x), assert(x >= 0);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Move the invocation of the superclass' constructor to the end of the
+initializer list:
+
+{% prettify dart tag=pre+code %}
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B(int x) : assert(x >= 0), super(x);
+}
+{% endprettify %}
+
 ### super_in_extension
 
 _The 'super' keyword can't be used in an extension because an extension doesn't
@@ -14435,7 +14437,7 @@ var x = min(0, 1);
 
 ### undefined_super_member
 
-<a id="undefined_super_method" aria-hidden="true"></a>_(Previously known as `UNDEFINED_SUPER_METHOD`)_
+<a id="undefined_super_method" aria-hidden="true"></a>_(Previously known as `undefined_super_method`)_
 
 _The getter '{0}' isn't defined in a superclass of '{1}'._
 

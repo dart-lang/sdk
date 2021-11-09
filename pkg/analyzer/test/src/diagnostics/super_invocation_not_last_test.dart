@@ -9,19 +9,19 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InvalidSuperInvocationTest);
+    defineReflectiveTests(SuperInvocationNotLastTest);
   });
 }
 
 @reflectiveTest
-class InvalidSuperInvocationTest extends PubPackageResolutionTest {
+class SuperInvocationNotLastTest extends PubPackageResolutionTest {
   test_superBeforeAssert() async {
     await assertErrorsInCode(r'''
 class A {
   A(int? x) : super(), assert(x != null);
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 24, 5),
+      error(CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST, 24, 5),
     ]);
   }
 
@@ -32,7 +32,16 @@ class A {
   A() : super(), x = 1;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 33, 5),
+      error(CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST, 33, 5),
     ]);
+  }
+
+  test_superIsLast() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int x;
+  A() : x = 1, super();
+}
+''');
   }
 }

@@ -517,7 +517,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       _constructorFieldsVerifier.verify(node);
       _checkForRedirectingConstructorErrorCodes(node);
-      _checkForMultipleSuperInitializers(node);
+      _checkForConflictingInitializerErrorCodes(node);
       _checkForRecursiveConstructorRedirect(node, element);
       if (!_checkForRecursiveFactoryRedirect(node, element)) {
         _checkForAllRedirectConstructorErrorCodes(node);
@@ -1845,6 +1845,99 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       } else {
         throw UnimplementedError('${error.runtimeType}');
       }
+    }
+  }
+
+  /// Check that the given constructor [declaration] has a valid combination of
+  /// redirecting constructor invocation(s), super constructor invocation(s),
+  /// field initializers, and assert initializers.
+  void _checkForConflictingInitializerErrorCodes(
+      ConstructorDeclaration declaration) {
+    // Count and check each redirecting initializer.
+    var redirectingInitializerCount = 0;
+    var superInitializerCount = 0;
+    late SuperConstructorInvocation superInitializer;
+    for (ConstructorInitializer initializer in declaration.initializers) {
+      if (initializer is RedirectingConstructorInvocation) {
+        if (redirectingInitializerCount > 0) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
+              initializer);
+        }
+        if (declaration.factoryKeyword == null) {
+          RedirectingConstructorInvocation invocation = initializer;
+          var redirectingElement = invocation.staticElement;
+          if (redirectingElement == null) {
+            String enclosingNamedType = _enclosingClass!.displayName;
+            String constructorStrName = enclosingNamedType;
+            if (invocation.constructorName != null) {
+              constructorStrName += ".${invocation.constructorName!.name}";
+            }
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
+                invocation,
+                [constructorStrName, enclosingNamedType]);
+          } else {
+            if (redirectingElement.isFactory) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode
+                      .REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR,
+                  initializer);
+            }
+          }
+        }
+        // [declaration] is a redirecting constructor via a redirecting
+        // initializer.
+        _checkForRedirectToNonConstConstructor(
+          declaration.declaredElement!,
+          initializer.staticElement,
+          initializer.constructorName ?? initializer.thisKeyword,
+        );
+        redirectingInitializerCount++;
+      } else if (initializer is SuperConstructorInvocation) {
+        if (superInitializerCount == 1) {
+          // Only report the second (first illegal) superinitializer.
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, initializer);
+        }
+        superInitializer = initializer;
+        superInitializerCount++;
+      }
+    }
+    // Check for initializers which are illegal when alongside a redirecting
+    // initializer.
+    if (redirectingInitializerCount > 0) {
+      for (ConstructorInitializer initializer in declaration.initializers) {
+        if (initializer is SuperConstructorInvocation) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
+              initializer);
+        }
+        if (initializer is ConstructorFieldInitializer) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+              initializer);
+        }
+        if (initializer is AssertInitializer) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR,
+              initializer);
+        }
+      }
+    }
+    if (redirectingInitializerCount == 0 &&
+        superInitializerCount == 1 &&
+        superInitializer != declaration.initializers.last) {
+      var superNamedType = _enclosingClass!.supertype!.element.displayName;
+      var constructorStrName = superNamedType;
+      var constructorName = superInitializer.constructorName;
+      if (constructorName != null) {
+        constructorStrName += '.${constructorName.name}';
+      }
+      errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST,
+          superInitializer.superKeyword,
+          [constructorStrName]);
     }
   }
 
@@ -3270,22 +3363,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Verify that the given [constructor] has at most one 'super' initializer.
-  ///
-  /// See [CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS].
-  void _checkForMultipleSuperInitializers(ConstructorDeclaration constructor) {
-    bool hasSuperInitializer = false;
-    for (ConstructorInitializer initializer in constructor.initializers) {
-      if (initializer is SuperConstructorInvocation) {
-        if (hasSuperInitializer) {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, initializer);
-        }
-        hasSuperInitializer = true;
-      }
-    }
-  }
-
   /// Checks to ensure that the given native function [body] is in SDK code.
   ///
   /// See [ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE].
@@ -3728,112 +3805,44 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     return true;
   }
 
-  /// Check that the given constructor [declaration] has a valid combination of
-  /// redirected constructor invocation(s), super constructor invocations and
-  /// field initializers.
-  ///
-  /// See [CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR],
-  /// [CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR],
-  /// [CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR],
-  /// [CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS],
-  /// [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR], and
-  /// [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR].
+  /// Check that the given constructor [declaration] has a valid redirected
+  /// constructor.
   void _checkForRedirectingConstructorErrorCodes(
       ConstructorDeclaration declaration) {
-    // Check for default values in the parameters
+    // Check for default values in the parameters.
     var redirectedConstructor = declaration.redirectedConstructor;
-    if (redirectedConstructor != null) {
-      for (FormalParameter parameter in declaration.parameters.parameters) {
-        if (parameter is DefaultFormalParameter &&
-            parameter.defaultValue != null) {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode
-                  .DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
-              parameter.identifier!);
-        }
-      }
-      var redirectedElement = redirectedConstructor.staticElement;
-      _checkForRedirectToNonConstConstructor(
-        declaration.declaredElement!,
-        redirectedElement,
-        redirectedConstructor,
-      );
-      var redirectedClass = redirectedElement?.enclosingElement;
-      if (redirectedClass is ClassElement &&
-          redirectedClass.isAbstract &&
-          redirectedElement != null &&
-          !redirectedElement.isFactory) {
-        String enclosingNamedType = _enclosingClass!.displayName;
-        String constructorStrName = enclosingNamedType;
-        if (declaration.name != null) {
-          constructorStrName += ".${declaration.name!.name}";
-        }
+    if (redirectedConstructor == null) {
+      return;
+    }
+    for (FormalParameter parameter in declaration.parameters.parameters) {
+      if (parameter is DefaultFormalParameter &&
+          parameter.defaultValue != null) {
         errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR,
-            redirectedConstructor,
-            [constructorStrName, redirectedClass.name]);
+            CompileTimeErrorCode
+                .DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
+            parameter.identifier!);
       }
     }
-    // check if there are redirected invocations
-    int numRedirections = 0;
-    for (ConstructorInitializer initializer in declaration.initializers) {
-      if (initializer is RedirectingConstructorInvocation) {
-        if (numRedirections > 0) {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
-              initializer);
-        }
-        if (declaration.factoryKeyword == null) {
-          RedirectingConstructorInvocation invocation = initializer;
-          var redirectingElement = invocation.staticElement;
-          if (redirectingElement == null) {
-            String enclosingNamedType = _enclosingClass!.displayName;
-            String constructorStrName = enclosingNamedType;
-            if (invocation.constructorName != null) {
-              constructorStrName += ".${invocation.constructorName!.name}";
-            }
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
-                invocation,
-                [constructorStrName, enclosingNamedType]);
-          } else {
-            if (redirectingElement.isFactory) {
-              errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode
-                      .REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR,
-                  initializer);
-            }
-          }
-        }
-        // [declaration] is a redirecting constructor via a redirecting
-        // initializer.
-        _checkForRedirectToNonConstConstructor(
-          declaration.declaredElement!,
-          initializer.staticElement,
-          initializer.constructorName ?? initializer.thisKeyword,
-        );
-        numRedirections++;
+    var redirectedElement = redirectedConstructor.staticElement;
+    _checkForRedirectToNonConstConstructor(
+      declaration.declaredElement!,
+      redirectedElement,
+      redirectedConstructor,
+    );
+    var redirectedClass = redirectedElement?.enclosingElement;
+    if (redirectedClass is ClassElement &&
+        redirectedClass.isAbstract &&
+        redirectedElement != null &&
+        !redirectedElement.isFactory) {
+      String enclosingNamedType = _enclosingClass!.displayName;
+      String constructorStrName = enclosingNamedType;
+      if (declaration.name != null) {
+        constructorStrName += ".${declaration.name!.name}";
       }
-    }
-    // check for other initializers
-    if (numRedirections > 0) {
-      for (ConstructorInitializer initializer in declaration.initializers) {
-        if (initializer is SuperConstructorInvocation) {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
-              initializer);
-        }
-        if (initializer is ConstructorFieldInitializer) {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
-              initializer);
-        }
-        if (initializer is AssertInitializer) {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR,
-              initializer);
-        }
-      }
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR,
+          redirectedConstructor,
+          [constructorStrName, redirectedClass.name]);
     }
   }
 
