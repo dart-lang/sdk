@@ -11,21 +11,21 @@ const int _CR = 13;
 /// A [StreamTransformer] that splits a [String] into individual lines.
 ///
 /// A line is terminated by either:
-/// * a CR, carriage return:`\r, U+000D, 0x0D`
-/// * a LF, line feed:`\n, U+000A, 0x0A` (unix line break)
-/// * a CR+LF sequence (DOS line ending)
-/// * a final non-empty line can be ended by the end of the string
+/// * a CR, carriage return: U+000D ('\r')
+/// * a LF, line feed (Unix line break): U+000A ('\n') or
+/// * a CR+LF sequence (DOS/Windows line break), and
+/// * a final non-empty line can be ended by the end of the input.
 ///
-/// The returned lines do not contain the line terminators.
+/// The resulting lines do not contain the line terminators.
 ///
 /// Example:
 /// ```dart
-/// const LineSplitter ls = LineSplitter();
-/// const String sampleText =
+/// const splitter = LineSplitter();
+/// const sampleText =
 ///     'Dart is: \r an object-oriented \n class-based \n garbage-collected '
 ///     '\r\n language with C-style syntax \r\n';
 ///
-/// final List<String> sampleTextLines = ls.convert(sampleText);
+/// final sampleTextLines = splitter.convert(sampleText);
 /// for (var i = 0; i < sampleTextLines.length; i++) {
 ///   print('$i: ${sampleTextLines[i]}');
 /// }
