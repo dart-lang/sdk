@@ -1,0 +1,39 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef MyList<T extends core::num> = core::List<T>;
+static method main() → dynamic {}
+static method test() → dynamic {
+  self::expect(true, #C1);
+  self::expect(false, #C2);
+  self::expect(true, core::identical(#C4, #C4));
+  self::expect(false, core::identical(#C4, #C6));
+  (core::int, core::num, {growable: core::bool}) → core::List<core::num> v1 = #C4;
+  (core::int, core::num, {growable: core::bool}) → core::List<core::num> v2 = #C4;
+  (core::int, core::num, {growable: core::bool}) → core::List<core::num> v3 = #C6;
+  core::bool v4 = core::identical(v1, v2);
+  core::bool v5 = core::identical(v1, v3);
+  self::expect(true, v4);
+  self::expect(false, v5);
+  self::expect(true, core::identical(v1, v2));
+  self::expect(false, core::identical(v1, v3));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = true
+  #C2 = false
+  #C3 = constructor-tearoff core::List::filled
+  #C4 = instantiation #C3 <core::num>
+  #C5 = typedef-tearoff <T extends core::num>.(#C3<T>)
+  #C6 = instantiation #C5 <core::num>
+}
+
+Extra constant evaluation status:
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue47462.dart:20:16 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue47462.dart:21:17 -> BoolConstant(false)
+Extra constant evaluation: evaluated: 32, effectively constant: 2

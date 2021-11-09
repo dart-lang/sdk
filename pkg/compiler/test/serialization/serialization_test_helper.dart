@@ -152,12 +152,13 @@ runTest(
   File(closedWorldFileUri.path).writeAsBytesSync(closedWorldBytes);
   OutputCollector collector3b = new OutputCollector();
   CompilationResult result3b = await runCompiler(
-      entryPoint: dillFileUri,
+      entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       packageConfig: packageConfig,
       librariesSpecificationUri: librariesSpecificationUri,
       options: commonOptions +
           [
+            '${Flags.inputDill}=$dillFileUri',
             '${Flags.readClosedWorld}=$closedWorldFileUri',
             '${Flags.writeData}=global.data'
           ],

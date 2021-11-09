@@ -1422,3 +1422,60 @@ Nullability _defaultNullabilityForTypeParameterType(TypeParameter parameter,
       ? TypeParameterType.computeNullabilityFromBound(parameter)
       : Nullability.legacy;
 }
+
+/// Recalculates and updates nullabilities of the bounds in [typeParameters].
+///
+/// The procedure is intended to be used on type parameters that are in the
+/// scope of another declaration with type parameters. After a substitution
+/// involving the outer type parameters is performed, some potentially nullable
+/// bounds of the inner parameters can change to non-nullable. Since type
+/// parameters can depend on each other, the occurrences of those with changed
+/// nullabilities need to be updated in the bounds of the entire type parameter
+/// set.
+void updateBoundNullabilities(List<TypeParameter> typeParameters) {
+  if (typeParameters.isEmpty) return;
+  List<bool> visited =
+      new List<bool>.filled(typeParameters.length, false, growable: false);
+  for (int parameterIndex = 0;
+      parameterIndex < typeParameters.length;
+      parameterIndex++) {
+    _updateBoundNullabilities(typeParameters, visited, parameterIndex);
+  }
+}
+
+void _updateBoundNullabilities(
+    List<TypeParameter> typeParameters, List<bool> visited, int startIndex) {
+  if (visited[startIndex]) return;
+  visited[startIndex] = true;
+
+  TypeParameter parameter = typeParameters[startIndex];
+  DartType bound = parameter.bound;
+  while (bound is FutureOrType) {
+    bound = bound.typeArgument;
+  }
+  if (bound is TypeParameterType) {
+    int nextIndex = typeParameters.indexOf(bound.parameter);
+    if (nextIndex != -1) {
+      _updateBoundNullabilities(typeParameters, visited, nextIndex);
+      Nullability updatedNullability =
+          TypeParameterType.computeNullabilityFromBound(
+              typeParameters[nextIndex]);
+      if (bound.declaredNullability != updatedNullability) {
+        parameter.bound = _updateNestedFutureOrNullability(
+            parameter.bound, updatedNullability);
+      }
+    }
+  }
+}
+
+DartType _updateNestedFutureOrNullability(
+    DartType typeToUpdate, Nullability updatedNullability) {
+  if (typeToUpdate is FutureOrType) {
+    return new FutureOrType(
+        _updateNestedFutureOrNullability(
+            typeToUpdate.typeArgument, updatedNullability),
+        typeToUpdate.declaredNullability);
+  } else {
+    return typeToUpdate.withDeclaredNullability(updatedNullability);
+  }
+}

@@ -66,7 +66,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
       : searchEngine = workspace.searchEngine,
         _element = element,
         elementKindName = element.kind.displayName,
-        oldName = _getDisplayName(element);
+        oldName = _getOldName(element);
 
   Element get element => _element;
 
@@ -111,8 +111,10 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   /// Adds individual edits to [change].
   Future<void> fillChange();
 
-  static String _getDisplayName(Element element) {
-    if (element is ImportElement) {
+  static String _getOldName(Element element) {
+    if (element is ConstructorElement) {
+      return element.name;
+    } else if (element is ImportElement) {
       var prefix = element.prefix;
       if (prefix != null) {
         return prefix.displayName;

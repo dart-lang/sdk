@@ -93,11 +93,11 @@ static method main() → void {
 
 constants  {
   #C1 = static-tearoff self::C::stat
-  #C2 = instantiation self::C::stat <core::int>
+  #C2 = instantiation #C1 <core::int>
   #C3 = static-tearoff self::M::mstat
-  #C4 = instantiation self::M::mstat <core::int>
+  #C4 = instantiation #C3 <core::int>
   #C5 = static-tearoff self::Ext|estat
-  #C6 = instantiation self::Ext|estat <core::int>
+  #C6 = instantiation #C5 <core::int>
   #C7 = TypeLiteralConstant(core::List<core::int>)
   #C8 = TypeLiteralConstant(core::List<core::List<core::int>>)
 }

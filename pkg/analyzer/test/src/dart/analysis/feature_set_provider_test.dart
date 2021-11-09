@@ -9,6 +9,7 @@ import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -25,14 +26,19 @@ main() {
 
 @reflectiveTest
 class FeatureSetProviderTest with ResourceProviderMixin {
-  late final MockSdk mockSdk;
   late SourceFactory sourceFactory;
   late FeatureSetProvider provider;
+
+  Folder get sdkRoot => newFolder('/sdk');
 
   void setUp() {
     newFile('/test/lib/test.dart', content: '');
 
-    mockSdk = MockSdk(resourceProvider: resourceProvider);
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+
     _createSourceFactory();
   }
 
@@ -430,7 +436,9 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       resolvers.add(packageUriResolver);
     }
     resolvers.addAll([
-      DartUriResolver(mockSdk),
+      DartUriResolver(
+        FolderBasedDartSdk(resourceProvider, sdkRoot),
+      ),
       ResourceUriResolver(resourceProvider),
     ]);
     sourceFactory = SourceFactoryImpl(resolvers);

@@ -4,12 +4,8 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:cli';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';

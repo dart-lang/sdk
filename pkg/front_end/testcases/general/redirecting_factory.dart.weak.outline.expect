@@ -156,3 +156,11 @@ class Mix<M extends core::Object* = dynamic> = self::Base<self::Mix::M*> with se
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory.dart:5:16 -> ConstructorTearOffConstant(FooBase.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory.dart:10:16 -> ConstructorTearOffConstant(Foo.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory.dart:27:7 -> ConstructorTearOffConstant(SimpleCase.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory.dart:31:7 -> ConstructorTearOffConstant(SimpleCaseImpl.)
+Extra constant evaluation: evaluated: 12, effectively constant: 4

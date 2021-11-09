@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
+
 import 'customized_codes.dart';
 
 /// An error code associated with an [AnalysisError].
@@ -9,6 +11,9 @@ import 'customized_codes.dart';
 /// Generally, messages should follow the [Guide for Writing
 /// Diagnostics](../fasta/diagnostics.md).
 abstract class ErrorCode {
+  /// Regular expression for identifying positional arguments in error messages.
+  static final RegExp _positionalArgumentRegExp = new RegExp(r'{(\d+)\}');
+
   /**
    * The name of the error code.
    */
@@ -19,9 +24,9 @@ abstract class ErrorCode {
    */
   final String uniqueName;
 
-  final String _message;
+  final String _problemMessage;
 
-  final String? _correction;
+  final String? _correctionMessage;
 
   /**
    * Return `true` if diagnostics with this code have documentation for them
@@ -36,30 +41,34 @@ abstract class ErrorCode {
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [message]
+   * associated with the error will be created from the given [problemMessage]
    * template. The correction associated with the error will be created from the
-   * given [correction] template.
+   * given [correctionMessage] template.
    */
   const ErrorCode({
-    String? correction,
+    String? correctionMessage,
     this.hasPublishedDocs = false,
     this.isUnresolvedIdentifier: false,
-    required String message,
     required this.name,
+    @Deprecated('Please use problemMessage') String? message,
+    String? problemMessage,
     required this.uniqueName,
-  })  : _correction = correction,
-        _message = message,
+  })  : _correctionMessage = correctionMessage,
+        _problemMessage = problemMessage ?? message ?? 'NO MESSAGE',
         // ignore: unnecessary_null_comparison
         assert(hasPublishedDocs != null),
         // ignore: unnecessary_null_comparison
-        assert(isUnresolvedIdentifier != null);
+        assert(isUnresolvedIdentifier != null),
+        assert((message == null) != (problemMessage == null),
+            'Either problemMessage or message must be provided (not both)');
 
   /**
    * The template used to create the correction to be displayed for this error,
    * or `null` if there is no correction information for this error. The
    * correction should indicate how the user can fix the error.
    */
-  String? get correction => customizedCorrections[uniqueName] ?? _correction;
+  String? get correctionMessage =>
+      customizedCorrections[uniqueName] ?? _correctionMessage;
 
   /**
    * The severity of the error.
@@ -71,10 +80,26 @@ abstract class ErrorCode {
   bool get isIgnorable => errorSeverity != ErrorSeverity.ERROR;
 
   /**
-   * The template used to create the message to be displayed for this error. The
-   * message should indicate what is wrong and why it is wrong.
+   * The template used to create the problem message to be displayed for this
+   * error. The problem message should indicate what is wrong and why it is
+   * wrong.
    */
-  String get message => customizedMessages[uniqueName] ?? _message;
+  String get problemMessage =>
+      customizedMessages[uniqueName] ?? _problemMessage;
+
+  int get numParameters {
+    int result = 0;
+    String? correctionMessage = _correctionMessage;
+    for (String s in [
+      _problemMessage,
+      if (correctionMessage != null) correctionMessage
+    ]) {
+      for (RegExpMatch match in _positionalArgumentRegExp.allMatches(s)) {
+        result = max(result, int.parse(match.group(1)!) + 1);
+      }
+    }
+    return result;
+  }
 
   /**
    * The type of the error.

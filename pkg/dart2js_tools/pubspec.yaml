@@ -6,8 +6,8 @@ description: >
   information, deobfuscation of stack-traces and minified names.
 dependencies:
   path: any
-  source_maps: ^0.10.7
+  source_maps: ^0.10.10
   source_span: any
   stack_trace: ^1.9.3
 environment:
-  sdk: '>=2.3.0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'

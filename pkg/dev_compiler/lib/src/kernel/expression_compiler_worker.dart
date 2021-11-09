@@ -11,9 +11,6 @@ import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:dev_compiler/dev_compiler.dart';
-import 'package:dev_compiler/src/kernel/target.dart'
-    show sdkLibraryEnvironmentDefines;
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/ast.dart' show Component, Library;
@@ -24,9 +21,11 @@ import 'package:kernel/src/tool/find_referenced_libraries.dart'
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:meta/meta.dart';
 
+import '../../dev_compiler.dart';
 import '../compiler/js_names.dart';
 import 'asset_file_system.dart';
 import 'command.dart';
+import 'target.dart' show sdkLibraryEnvironmentDefines;
 
 /// The service that handles expression compilation requests from
 /// the debugger.

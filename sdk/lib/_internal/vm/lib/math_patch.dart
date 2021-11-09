@@ -206,6 +206,8 @@ external double _log(double x);
 // TODO(iposva): Handle patch methods within a patch class correctly.
 @patch
 class Random {
+  static final Random _secureRandom = _SecureRandom();
+
   @patch
   factory Random([int? seed]) {
     var state = _Random._setupSeed((seed == null) ? _Random._nextSeed() : seed);
@@ -218,9 +220,7 @@ class Random {
   }
 
   @patch
-  factory Random.secure() {
-    return new _SecureRandom();
-  }
+  factory Random.secure() => _secureRandom;
 }
 
 class _Random implements Random {

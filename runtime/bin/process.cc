@@ -319,8 +319,8 @@ void FUNCTION_NAME(SystemEncodingToString)(Dart_NativeArguments args) {
   char* str = StringUtils::ConsoleStringToUtf8(reinterpret_cast<char*>(buffer),
                                                bytes_length, &len);
   if (str == NULL) {
-    Dart_ThrowException(
-        DartUtils::NewInternalError("SystemEncodingToString failed"));
+    Dart_ThrowException(DartUtils::NewDartUnsupportedError(
+        "SystemEncodingToString not supported on this operating system"));
   }
   result = Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(str), len);
   ThrowIfError(result);
@@ -338,8 +338,8 @@ void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
   const char* system_string =
       StringUtils::Utf8ToConsoleString(utf8, utf8_len, &system_len);
   if (system_string == NULL) {
-    Dart_ThrowException(
-        DartUtils::NewInternalError("StringToSystemEncoding failed"));
+    Dart_ThrowException(DartUtils::NewDartUnsupportedError(
+        "StringToSystemEncoding not supported on this operating system"));
   }
   uint8_t* buffer = NULL;
   Dart_Handle external_array = IOBuffer::Allocate(system_len, &buffer);

@@ -83,6 +83,9 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
     codePositionListener.onPositions(
         node, startPosition, endPosition, closingPosition);
   }
+
+  @override
+  bool get isDebugContext => false;
 }
 
 /// Interface for ast nodes that encapsulate an ast that needs to be

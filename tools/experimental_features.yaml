@@ -122,6 +122,15 @@ features:
   const-functions:
     help: "Allow more of the Dart language to be executed in const expressions."
 
+  enhanced-enums:
+    help: "Enhanced Enums"
+
+  named-arguments-anywhere:
+    help: "Named Arguments Anywhere"
+
+  super-parameters:
+    help: "Super-Initializer Parameters"
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

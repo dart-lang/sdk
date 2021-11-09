@@ -207,6 +207,11 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
     return buffer;
   }
 
+  /// The builder for the enclosing class or extension, if any.
+  DeclarationBuilder? get declarationBuilder =>
+      parent is DeclarationBuilder ? parent as DeclarationBuilder : null;
+
+  /// The builder for the enclosing class, if any.
   ClassBuilder? get classBuilder =>
       parent is ClassBuilder ? parent as ClassBuilder : null;
 }

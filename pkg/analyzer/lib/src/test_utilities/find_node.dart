@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 
 class FindNode {
   final String content;
@@ -14,6 +15,16 @@ class FindNode {
   LibraryDirective get libraryDirective {
     return unit.directives.singleWhere((d) => d is LibraryDirective)
         as LibraryDirective;
+  }
+
+  List<MethodInvocation> get methodInvocations {
+    var result = <MethodInvocation>[];
+    unit.accept(
+      FunctionAstVisitor(
+        methodInvocation: result.add,
+      ),
+    );
+    return result;
   }
 
   Annotation annotation(String search) {
@@ -190,6 +201,10 @@ class FindNode {
 
   IfStatement ifStatement(String search) {
     return _node(search, (n) => n is IfStatement);
+  }
+
+  ImplicitCallReference implicitCallReference(String search) {
+    return _node(search, (n) => n is ImplicitCallReference);
   }
 
   ImportDirective import(String search) {

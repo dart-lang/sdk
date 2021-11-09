@@ -22,11 +22,11 @@ main(List<String> args) {
   var mapping = provider.mappingFor(uri);
   var starts = functionStarts(provider.sourcesFor(uri));
   var file = provider.fileFor(uri);
-  var frames = mapping.frames;
+  var frames = mapping!.frames;
   var offsets = frames.keys.toList()..sort();
   var sb = new StringBuffer();
   int depth = 0;
-  int lastFunctionStart = null;
+  int? lastFunctionStart = null;
   for (var offset in offsets) {
     int functionStart = nextFunctionStart(starts, offset, lastFunctionStart);
     if (lastFunctionStart == null || functionStart > lastFunctionStart) {
@@ -43,7 +43,7 @@ main(List<String> args) {
     var pad = ' ' * offsetPrefix.length;
     sb.write(offsetPrefix);
     bool first = true;
-    for (var frame in frames[offset]) {
+    for (var frame in frames[offset]!) {
       if (!first) sb.write('$pad');
       sb.write(' $frame\n');
       first = false;
@@ -75,7 +75,7 @@ List<int> functionStarts(String sources) {
   return result;
 }
 
-int nextFunctionStart(List<int> starts, int offset, int last) {
+int nextFunctionStart(List<int> starts, int offset, int? last) {
   int j = last ?? 0;
   for (; j < starts.length && starts[j] <= offset; j++);
   return j - 1;

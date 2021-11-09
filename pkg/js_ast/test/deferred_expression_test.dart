@@ -127,6 +127,9 @@ class _Context implements JavaScriptPrintingContext {
   Map<Node, _Position> exitPositions = {};
 
   @override
+  bool get isDebugContext => false;
+
+  @override
   void emit(String string) {
     sb.write(string);
   }

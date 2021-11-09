@@ -9,28 +9,28 @@ class Default extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class Settings extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Settings::•]/*isLegacy*/;
-  static factory •({@#C2 self::Sidebar sidebar = #C3}) → self::Settings
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  static factory •({@#C3 self::Sidebar sidebar = #C4}) → self::Settings
     return self::_SSettings::•(sidebar: sidebar);
 }
 class Sidebar extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Sidebar::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C5]/*isLegacy*/;
   static factory •() → self::Sidebar
     return self::_SSidebar::•();
 }
 abstract class _SSettings extends core::Object implements self::Settings {
-  static final field dynamic _redirecting# = <dynamic>[self::_SSettings::•]/*isLegacy*/;
-  static factory •({self::Sidebar sidebar = #C3}) → self::_SSettings
+  static final field dynamic _redirecting# = <dynamic>[#C6]/*isLegacy*/;
+  static factory •({self::Sidebar sidebar = #C4}) → self::_SSettings
     return new self::_$_SSettings::•(sidebar: sidebar);
 }
 class _$_SSettings extends core::Object implements self::_SSettings /*hasConstConstructor*/  {
   final field self::Sidebar sidebar;
-  const constructor •({self::Sidebar sidebar = #C1}) → self::_$_SSettings
+  const constructor •({self::Sidebar sidebar = #C2}) → self::_$_SSettings
     : self::_$_SSettings::sidebar = sidebar, super core::Object::•()
     ;
 }
 abstract class _SSidebar extends core::Object implements self::Sidebar {
-  static final field dynamic _redirecting# = <dynamic>[self::_SSidebar::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C7]/*isLegacy*/;
   static factory •() → self::_SSidebar
     return new self::_$_SSidebar::•();
 }
@@ -42,9 +42,13 @@ class _$_SSidebar extends core::Object implements self::_SSidebar /*hasConstCons
 static method main() → void {}
 
 constants  {
-  #C1 = self::_$_SSidebar {}
-  #C2 = self::Default {defaultValue:#C1}
-  #C3 = null
+  #C1 = constructor-tearoff self::Settings::•
+  #C2 = self::_$_SSidebar {}
+  #C3 = self::Default {defaultValue:#C2}
+  #C4 = null
+  #C5 = constructor-tearoff self::Sidebar::•
+  #C6 = constructor-tearoff self::_SSettings::•
+  #C7 = constructor-tearoff self::_SSidebar::•
 }
 
 

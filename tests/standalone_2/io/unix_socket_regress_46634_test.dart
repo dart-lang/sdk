@@ -5,7 +5,8 @@
 // @dart = 2.9
 import 'dart:io';
 
-import 'unix_socket_test.dart' show withTempDir, testListenCloseListenClose;
+import 'test_utils.dart' show withTempDir;
+import 'unix_socket_test.dart' show testListenCloseListenClose;
 
 void main() async {
   if (!Platform.isMacOS && !Platform.isLinux && !Platform.isAndroid) {

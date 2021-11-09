@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
 
-import 'unix_socket_test.dart' show withTempDir;
+import 'test_utils.dart' show withTempDir;
 
 main() async {
   await withTempDir('issue_30687', (Directory tempDir) async {

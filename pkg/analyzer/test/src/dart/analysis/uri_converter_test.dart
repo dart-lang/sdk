@@ -8,6 +8,7 @@ import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -30,8 +31,16 @@ class DriverBasedUriConverterTest with ResourceProviderMixin {
     Folder barFolder = newFolder('/packages/bar/lib');
     Folder fooFolder = newFolder('/packages/foo/lib');
 
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+
     SourceFactory sourceFactory = SourceFactory([
-      DartUriResolver(MockSdk(resourceProvider: resourceProvider)),
+      DartUriResolver(
+        FolderBasedDartSdk(resourceProvider, sdkRoot),
+      ),
       PackageMapUriResolver(resourceProvider, {
         'foo': [fooFolder],
         'bar': [barFolder],

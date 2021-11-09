@@ -90,3 +90,8 @@ class E4 extends core::Object {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///explicit_new_as_unnamed.dart:41:7 -> ConstructorTearOffConstant(E4.)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

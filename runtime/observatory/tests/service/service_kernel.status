@@ -75,6 +75,7 @@ client_resume_approvals_reload_test: SkipByDesign # Debugger is disabled in AOT 
 code_test: SkipByDesign # Debugger is disabled in AOT mode.
 column_breakpoint_test: SkipByDesign # Debugger is disabled in AOT mode.
 complex_reload_test: SkipByDesign # Debugger is disabled in AOT mode.
+coverage_closure_call_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
 coverage_const_field_async_closure_test: SkipByDesign # Debugger is disabled in AOT mode.
 coverage_leaf_function_test: SkipByDesign # Debugger is disabled in AOT mode.
 coverage_optimized_function_test: SkipByDesign # Debugger is disabled in AOT mode.

@@ -128,7 +128,6 @@ class AnalyzeCommand extends DartdevCommand {
 
     bool analysisFinished = false;
 
-    // ignore: unawaited_futures
     server.onExit.then((int exitCode) {
       if (!analysisFinished) {
         io.exitCode = exitCode;

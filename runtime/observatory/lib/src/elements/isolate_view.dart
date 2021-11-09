@@ -27,7 +27,6 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/script_inset.dart';
 import 'package:observatory/src/elements/source_inset.dart';
-import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/utils.dart';
 
 class IsolateViewElement extends CustomElement implements Renderable {
@@ -305,8 +304,6 @@ class IsolateViewElement extends CustomElement implements Renderable {
                         .element
                   ]
                 : const [],
-          new HRElement(),
-          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

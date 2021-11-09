@@ -363,7 +363,7 @@ template("dart_action") {
 #    The arguments to pass to the Dart script.
 #
 #  packages (optional):
-#    The un-rebased path to the .packages file.
+#    The un-rebased path to the package_config.json file.
 #
 #  Forwarded to action() with the usual meaning:
 #    depfile

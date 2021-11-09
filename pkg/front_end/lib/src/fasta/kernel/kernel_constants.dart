@@ -8,21 +8,21 @@ import '../builder/library_builder.dart';
 
 import '../fasta_codes.dart' show LocatedMessage;
 
-import '../loader.dart' show Loader;
+import '../source/source_loader.dart' show SourceLoader;
 
 import 'constant_evaluator.dart' show ErrorReporter;
 
 class KernelConstantErrorReporter extends ErrorReporter {
-  final Loader loader;
+  final SourceLoader loader;
 
   KernelConstantErrorReporter(this.loader);
 
   @override
   void report(LocatedMessage message, [List<LocatedMessage>? context]) {
     // Try to find library.
-    LibraryBuilder? builder = loader.builders[message.uri];
+    LibraryBuilder? builder = loader.lookupLibraryBuilder(message.uri!);
     if (builder == null) {
-      for (LibraryBuilder candidate in loader.builders.values) {
+      for (LibraryBuilder candidate in loader.libraryBuilders) {
         if (candidate.fileUri == message.uri) {
           // Found it.
           builder = candidate;

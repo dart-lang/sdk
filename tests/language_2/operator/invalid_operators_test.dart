@@ -497,97 +497,97 @@ class Operators7 {
   //       ^
   // [cfe] Declared type variables of 'Operators7.==' doesn't match those on overridden method 'Object.=='.
   //         ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //          ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator ><T>(a) => true;
   //        ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //         ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator <=<T>(a) => true;
   //         ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //          ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator >=<T>(a) => true;
   //         ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //          ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator -<T>() => true;
   //        ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //         ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator -<T>(a) => true;
   //        ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //         ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator +<T>(a) => true;
   //        ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //         ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator /<T>(a) => true;
   //        ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //         ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator ~/<T>(a) => true;
   //         ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //          ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator *<T>(a) => true;
   //        ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //         ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator %<T>(a) => true;
   //        ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //         ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator |<T>(a) => true;
   //        ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //         ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator ^<T>(a) => true;
   //        ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //         ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator &<T>(a) => true;
   //        ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //         ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator <<<T>(a) => true;
   //         ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //          ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator >><T>(a) => true;
   //         ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //          ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator []=<T>(a, b) => true;
   //          ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //           ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator []<T>(a) => true;
   //         ^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //          ^
   // [cfe] Types parameters aren't allowed when defining an operator.
   operator ~<T, S>() => true;
   //        ^^^^^^
-  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETERS_ON_OPERATOR
+  // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
   //         ^
   // [cfe] Types parameters aren't allowed when defining an operator.
 }

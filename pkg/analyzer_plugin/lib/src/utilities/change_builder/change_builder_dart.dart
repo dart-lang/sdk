@@ -516,12 +516,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       ExecutableElement? methodBeingCopied,
       String? nameGroupName,
       DartType? type,
-      String? typeGroupName}) {
+      String? typeGroupName,
+      bool isRequiredType = false}) {
     bool writeType() {
       if (typeGroupName != null) {
         late bool hasType;
         addLinkedEdit(typeGroupName, (DartLinkedEditBuilder builder) {
-          hasType = _writeType(type, methodBeingCopied: methodBeingCopied);
+          hasType = _writeType(type,
+              methodBeingCopied: methodBeingCopied, required: isRequiredType);
           builder.addSuperTypesAsSuggestions(type);
         });
         return hasType;
@@ -596,7 +598,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameters(Iterable<ParameterElement> parameters,
-      {ExecutableElement? methodBeingCopied}) {
+      {ExecutableElement? methodBeingCopied, bool requiredTypes = false}) {
     var parameterNames = <String>{};
     for (var i = 0; i < parameters.length; i++) {
       var name = parameters.elementAt(i).name;
@@ -639,7 +641,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           methodBeingCopied: methodBeingCopied,
           nameGroupName: parameter.isNamed ? null : '${groupPrefix}PARAM$i',
           type: parameter.type,
-          typeGroupName: '${groupPrefix}TYPE$i');
+          typeGroupName: '${groupPrefix}TYPE$i',
+          isRequiredType: requiredTypes);
       // default value
       var defaultCode = parameter.defaultValueCode;
       if (defaultCode != null) {
@@ -1233,7 +1236,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write('Function');
       writeTypeParameters(type.typeFormals,
           methodBeingCopied: methodBeingCopied);
-      writeParameters(type.parameters, methodBeingCopied: methodBeingCopied);
+      writeParameters(type.parameters,
+          methodBeingCopied: methodBeingCopied, requiredTypes: true);
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
         write('?');
       }

@@ -82,7 +82,7 @@ void f(Null a, bool b) async {
   var v = {...?a, if (b) throw 0: throw 0};
 }
 ''', [
-      error(HintCode.DEAD_CODE, 99, 9),
+      error(HintCode.DEAD_CODE, 99, 7),
     ]);
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }
@@ -107,7 +107,7 @@ void f<T extends Null>(T a, bool b) async {
   var v = {...?a, if (b) throw 0: throw 0};
 }
 ''', [
-      error(HintCode.DEAD_CODE, 112, 9),
+      error(HintCode.DEAD_CODE, 112, 7),
     ]);
     assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
   }

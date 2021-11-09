@@ -18,12 +18,12 @@ class StringEditBuffer {
 
   StringEditBuffer(this.original);
 
-  bool get hasEdits => _edits.length > 0;
+  bool get hasEdits => _edits.isNotEmpty;
 
   /// Edit the original text, replacing text on the range [begin] and
   /// exclusive [end] with the [replacement] string.
   void replace(int begin, int end, String replacement, [int sortId]) {
-    _edits.add(new _StringEdit(begin, end, replacement, sortId));
+    _edits.add(_StringEdit(begin, end, replacement, sortId));
   }
 
   /// Insert [string] at [offset].
@@ -43,9 +43,10 @@ class StringEditBuffer {
   ///
   /// Throws [UnsupportedError] if the edits were overlapping. If no edits were
   /// made, the original string will be returned.
+  @override
   String toString() {
-    var sb = new StringBuffer();
-    if (_edits.length == 0) return original;
+    var sb = StringBuffer();
+    if (_edits.isEmpty) return original;
 
     // Sort edits by start location.
     _edits.sort();
@@ -53,7 +54,7 @@ class StringEditBuffer {
     int consumed = 0;
     for (var edit in _edits) {
       if (consumed > edit.begin) {
-        sb = new StringBuffer();
+        sb = StringBuffer();
         sb.write('overlapping edits. Insert at offset ');
         sb.write(edit.begin);
         sb.write(' but have consumed ');
@@ -63,7 +64,7 @@ class StringEditBuffer {
           sb.write('\n    ');
           sb.write(e);
         }
-        throw new UnsupportedError(sb.toString());
+        throw UnsupportedError(sb.toString());
       }
 
       // Add characters from the original string between this edit and the last
@@ -94,14 +95,15 @@ class _StringEdit implements Comparable<_StringEdit> {
   // String to insert
   final String string;
 
-  _StringEdit(int begin, this.end, this.string, [int sortId])
-      : begin = begin,
-        sortId = sortId == null ? begin : sortId;
+  _StringEdit(this.begin, this.end, this.string, [int sortId])
+      : sortId = sortId ?? begin;
 
   int get length => end - begin;
 
+  @override
   String toString() => '(Edit @ $begin,$end: "$string")';
 
+  @override
   int compareTo(_StringEdit other) {
     int diff = begin - other.begin;
     if (diff != 0) return diff;

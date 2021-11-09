@@ -1,0 +1,17 @@
+class Class<T> {
+  static A<A<T>>? method4<S extends A<A<T>>>(A<A<T>> arg) {}
+  static A<B<T>>? method6<S extends A<B<T>>>(A<B<T>> arg) {}
+  static A<T>? method3<S extends A<T>>(A<T> arg) {}
+  static B<T>? method5<S extends B<T>>(B<T> arg) {}
+  static Class<Class<T>>? method2<S extends Class<Class<T>>>(
+      Class<Class<T>> arg) {}
+  static Class<T>? method1<S extends Class<T>>(Class<T> arg) {}
+  static T? method0<S extends T>(T arg) {}
+  static void Function<S extends T>()?
+      method7<U extends void Function<S extends T>()>(
+          void Function<S extends T>() arg) {}
+}
+
+main() {}
+typedef A<T> = Class<T>;
+typedef B<T extends num> = Class<T>;

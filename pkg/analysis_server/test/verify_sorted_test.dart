@@ -85,7 +85,6 @@ void buildTestsForAnalyzer() {
     packagePath: 'analyzer',
     excludedPaths: [
       'lib/src/context/packages.dart',
-      'lib/src/dart/error/syntactic_errors.g.dart',
       'lib/src/summary/format.dart',
       'test/generated/test_all.dart',
     ],

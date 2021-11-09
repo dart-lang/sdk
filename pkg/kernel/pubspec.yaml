@@ -7,9 +7,9 @@ publish_to: none
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
-dependencies:
+
 dev_dependencies:
-  args: '>=0.13.4 <2.0.0'
+  args: ^2.0.0
   expect:
     path: ../expect
   front_end:

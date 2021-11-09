@@ -5,167 +5,20 @@
 part of dart._http;
 
 class _CryptoUtils {
-  static const int PAD = 61; // '='
-  static const int CR = 13; // '\r'
-  static const int LF = 10; // '\n'
-  static const int LINE_LENGTH = 76;
-
-  static const String _encodeTable =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-  static const String _encodeTableUrlSafe =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-
-  // Lookup table used for finding Base 64 alphabet index of a given byte.
-  // -2 : Outside Base 64 alphabet.
-  // -1 : '\r' or '\n'
-  //  0 : = (Padding character).
-  // >0 : Base 64 alphabet index of given byte.
-  static const List<int> _decodeTable = const [
-    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -2, -2, -1, -2, -2, //
-    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
-    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, 62, -2, 62, -2, 63, //
-    52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -2, -2, -2, 00, -2, -2, //
-    -2, 00, 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, //
-    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -2, -2, -2, -2, 63, //
-    -2, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, //
-    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -2, -2, -2, -2, -2, //
-    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
-    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
-    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
-    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
-    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
-    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
-    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, //
-    -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2
-  ];
-
-  static Random _rng = new Random.secure();
-
   static Uint8List getRandomBytes(int count) {
-    final Uint8List result = new Uint8List(count);
+    final Uint8List result = Uint8List(count);
     for (int i = 0; i < count; i++) {
-      result[i] = _rng.nextInt(0xff);
+      result[i] = Random.secure().nextInt(0xff);
     }
     return result;
   }
 
   static String bytesToHex(List<int> bytes) {
-    var result = new StringBuffer();
+    var result = StringBuffer();
     for (var part in bytes) {
       result.write('${part < 16 ? '0' : ''}${part.toRadixString(16)}');
     }
     return result.toString();
-  }
-
-  static String bytesToBase64(List<int> bytes,
-      [bool urlSafe = false, bool addLineSeparator = false]) {
-    int len = bytes.length;
-    if (len == 0) {
-      return "";
-    }
-    final String lookup = urlSafe ? _encodeTableUrlSafe : _encodeTable;
-    // Size of 24 bit chunks.
-    final int remainderLength = len.remainder(3) as int;
-    final int chunkLength = len - remainderLength;
-    // Size of base output.
-    int outputLen = ((len ~/ 3) * 4) + ((remainderLength > 0) ? 4 : 0);
-    // Add extra for line separators.
-    if (addLineSeparator) {
-      outputLen += ((outputLen - 1) ~/ LINE_LENGTH) << 1;
-    }
-    List<int> out = new List<int>.filled(outputLen, 0);
-
-    // Encode 24 bit chunks.
-    int j = 0, i = 0, c = 0;
-    while (i < chunkLength) {
-      int x = ((bytes[i++] << 16) & 0xFFFFFF) |
-          ((bytes[i++] << 8) & 0xFFFFFF) |
-          bytes[i++];
-      out[j++] = lookup.codeUnitAt(x >> 18);
-      out[j++] = lookup.codeUnitAt((x >> 12) & 0x3F);
-      out[j++] = lookup.codeUnitAt((x >> 6) & 0x3F);
-      out[j++] = lookup.codeUnitAt(x & 0x3f);
-      // Add optional line separator for each 76 char output.
-      if (addLineSeparator && ++c == 19 && j < outputLen - 2) {
-        out[j++] = CR;
-        out[j++] = LF;
-        c = 0;
-      }
-    }
-
-    // If input length if not a multiple of 3, encode remaining bytes and
-    // add padding.
-    if (remainderLength == 1) {
-      int x = bytes[i];
-      out[j++] = lookup.codeUnitAt(x >> 2);
-      out[j++] = lookup.codeUnitAt((x << 4) & 0x3F);
-      out[j++] = PAD;
-      out[j++] = PAD;
-    } else if (remainderLength == 2) {
-      int x = bytes[i];
-      int y = bytes[i + 1];
-      out[j++] = lookup.codeUnitAt(x >> 2);
-      out[j++] = lookup.codeUnitAt(((x << 4) | (y >> 4)) & 0x3F);
-      out[j++] = lookup.codeUnitAt((y << 2) & 0x3F);
-      out[j++] = PAD;
-    }
-
-    return new String.fromCharCodes(out);
-  }
-
-  static List<int> base64StringToBytes(String input,
-      [bool ignoreInvalidCharacters = true]) {
-    int len = input.length;
-    if (len == 0) {
-      return new List<int>.empty();
-    }
-
-    // Count '\r', '\n' and illegal characters, For illegal characters,
-    // if [ignoreInvalidCharacters] is false, throw an exception.
-    int extrasLen = 0;
-    for (int i = 0; i < len; i++) {
-      int c = _decodeTable[input.codeUnitAt(i)];
-      if (c < 0) {
-        extrasLen++;
-        if (c == -2 && !ignoreInvalidCharacters) {
-          throw new FormatException('Invalid character: ${input[i]}');
-        }
-      }
-    }
-
-    if ((len - extrasLen) % 4 != 0) {
-      throw new FormatException('''Size of Base 64 characters in Input
-          must be a multiple of 4. Input: $input''');
-    }
-
-    // Count pad characters, ignore illegal characters at the end.
-    int padLength = 0;
-    for (int i = len - 1; i >= 0; i--) {
-      int currentCodeUnit = input.codeUnitAt(i);
-      if (_decodeTable[currentCodeUnit] > 0) break;
-      if (currentCodeUnit == PAD) padLength++;
-    }
-    int outputLen = (((len - extrasLen) * 6) >> 3) - padLength;
-    List<int> out = new List<int>.filled(outputLen, 0);
-
-    for (int i = 0, o = 0; o < outputLen;) {
-      // Accumulate 4 valid 6 bit Base 64 characters into an int.
-      int x = 0;
-      for (int j = 4; j > 0;) {
-        int c = _decodeTable[input.codeUnitAt(i++)];
-        if (c >= 0) {
-          x = ((x << 6) & 0xFFFFFF) | c;
-          j--;
-        }
-      }
-      out[o++] = x >> 16;
-      if (o < outputLen) {
-        out[o++] = (x >> 8) & 0xFF;
-        if (o < outputLen) out[o++] = x & 0xFF;
-      }
-    }
-    return out;
   }
 }
 
@@ -183,20 +36,19 @@ abstract class _HashBase {
   final bool _bigEndianWords;
   int _lengthInBytes = 0;
   List<int> _pendingData;
-  List<int> _currentChunk;
-  List<int> _h;
+  final Uint32List _currentChunk;
+  final Uint32List _h;
   bool _digestCalled = false;
 
   _HashBase(this._chunkSizeInWords, int digestSizeInWords, this._bigEndianWords)
       : _pendingData = [],
-        _currentChunk = new List.filled(_chunkSizeInWords, 0),
-        _h = new List.filled(digestSizeInWords, 0);
+        _currentChunk = Uint32List(_chunkSizeInWords),
+        _h = Uint32List(digestSizeInWords);
 
   // Update the hasher with more data.
-  add(List<int> data) {
+  void add(List<int> data) {
     if (_digestCalled) {
-      throw new StateError(
-          'Hash update method called after digest was retrieved');
+      throw StateError('Hash update method called after digest was retrieved');
     }
     _lengthInBytes += data.length;
     _pendingData.addAll(data);
@@ -211,7 +63,7 @@ abstract class _HashBase {
     _digestCalled = true;
     _finalizeData();
     _iterate();
-    assert(_pendingData.length == 0);
+    assert(_pendingData.isEmpty);
     return _resultAsBytes();
   }
 
@@ -220,15 +72,12 @@ abstract class _HashBase {
     return _chunkSizeInWords * _BYTES_PER_WORD;
   }
 
-  // Create a fresh instance of this Hash.
-  newInstance();
-
   // One round of the hash computation.
-  _updateHash(List<int> m);
+  _updateHash(Uint32List m);
 
   // Helper methods.
-  _add32(x, y) => (x + y) & _MASK_32;
-  _roundUp(val, n) => (val + n - 1) & -n;
+  int _add32(int x, int y) => (x + y) & _MASK_32;
+  int _roundUp(int val, int n) => (val + n - 1) & -n;
 
   // Rotate left limiting to unsigned 32-bit values.
   int _rotl32(int val, int shift) {
@@ -247,7 +96,7 @@ abstract class _HashBase {
   }
 
   // Converts a list of bytes to a chunk of 32-bit words.
-  _bytesToChunk(List<int> data, int dataIndex) {
+  void _bytesToChunk(List<int> data, int dataIndex) {
     assert((data.length - dataIndex) >= (_chunkSizeInWords * _BYTES_PER_WORD));
 
     for (var wordIndex = 0; wordIndex < _chunkSizeInWords; wordIndex++) {
@@ -266,7 +115,7 @@ abstract class _HashBase {
 
   // Convert a 32-bit word to four bytes.
   List<int> _wordToBytes(int word) {
-    List<int> bytes = new List.filled(_BYTES_PER_WORD, 0);
+    List<int> bytes = List.filled(_BYTES_PER_WORD, 0);
     bytes[0] = (word >> (_bigEndianWords ? 24 : 0)) & _MASK_8;
     bytes[1] = (word >> (_bigEndianWords ? 16 : 8)) & _MASK_8;
     bytes[2] = (word >> (_bigEndianWords ? 8 : 16)) & _MASK_8;
@@ -276,7 +125,7 @@ abstract class _HashBase {
 
   // Iterate through data updating the hash computation for each
   // chunk.
-  _iterate() {
+  void _iterate() {
     var len = _pendingData.length;
     var chunkSizeInBytes = _chunkSizeInWords * _BYTES_PER_WORD;
     if (len >= chunkSizeInBytes) {
@@ -291,7 +140,7 @@ abstract class _HashBase {
 
   // Finalize the data. Add a 1 bit to the end of the message. Expand with
   // 0 bits and add the length of the message.
-  _finalizeData() {
+  void _finalizeData() {
     _pendingData.add(0x80);
     var contentsLength = _lengthInBytes + 9;
     var chunkSizeInBytes = _chunkSizeInWords * _BYTES_PER_WORD;
@@ -321,12 +170,7 @@ class _MD5 extends _HashBase {
     _h[3] = 0x10325476;
   }
 
-  // Returns a new instance of this Hash.
-  _MD5 newInstance() {
-    return new _MD5();
-  }
-
-  static const _k = const [
+  static const _k = [
     0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee, 0xf57c0faf, 0x4787c62a, //
     0xa8304613, 0xfd469501, 0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be, //
     0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821, 0xf61e2562, 0xc040b340, //
@@ -340,7 +184,7 @@ class _MD5 extends _HashBase {
     0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
   ];
 
-  static const _r = const [
+  static const _r = [
     7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, //
     20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 4, 11, 16, 23, 4, 11, //
     16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 6, 10, 15, 21, 6, 10, 15, 21, 6, //
@@ -349,7 +193,7 @@ class _MD5 extends _HashBase {
 
   // Compute one iteration of the MD5 algorithm with a chunk of
   // 16 32-bit pieces.
-  void _updateHash(List<int> m) {
+  void _updateHash(Uint32List m) {
     assert(m.length == 16);
 
     var a = _h[0];
@@ -357,8 +201,8 @@ class _MD5 extends _HashBase {
     var c = _h[2];
     var d = _h[3];
 
-    var t0;
-    var t1;
+    int t0;
+    int t1;
 
     for (var i = 0; i < 64; i++) {
       if (i < 16) {
@@ -392,7 +236,7 @@ class _MD5 extends _HashBase {
 
 // The SHA1 hasher is used to compute an SHA1 message digest.
 class _SHA1 extends _HashBase {
-  List<int> _w;
+  final List<int> _w;
 
   // Construct a SHA1 hasher object.
   _SHA1()
@@ -405,14 +249,9 @@ class _SHA1 extends _HashBase {
     _h[4] = 0xC3D2E1F0;
   }
 
-  // Returns a new instance of this Hash.
-  _SHA1 newInstance() {
-    return new _SHA1();
-  }
-
   // Compute one iteration of the SHA1 algorithm with a chunk of
   // 16 32-bit pieces.
-  void _updateHash(List<int> m) {
+  void _updateHash(Uint32List m) {
     assert(m.length == 16);
 
     var a = _h[0];

@@ -630,7 +630,7 @@ constants  {
   #C19 = self::ClassWithTypeArguments<core::int*, core::int*, core::int*> {}
   #C20 = self::ClassWithTypeArguments<dynamic, dynamic, dynamic> {}
   #C21 = static-tearoff self::id1
-  #C22 = instantiation self::id1 <core::int*>
+  #C22 = instantiation #C21 <core::int*>
 }
 
 

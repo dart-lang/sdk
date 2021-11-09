@@ -164,7 +164,7 @@ abstract class DartType {
   /// to users in contexts such as error messages.
   ///
   /// If [withNullability] is `true`, then [NullabilitySuffix.question] and
-  /// [NullabilitySuffix.star] will be be represented as `?` and `*`.
+  /// [NullabilitySuffix.star] will be represented as `?` and `*`.
   /// [NullabilitySuffix.none] does not have any explicit presentation.
   ///
   /// If [withNullability] is `false`, nullability suffixes will not be
@@ -555,7 +555,7 @@ abstract class InterfaceType implements ParameterizedType {
   /// arguments, attempts to find a compatible set of type arguments.
   ///
   /// Otherwise, returns the same result as [DartType.getLeastUpperBound].
-  // TODO(brianwilkerson) This needs to be deprecated and moved to TypeSystem.
+  @Deprecated('Use TypeSystem.leastUpperBound instead')
   static InterfaceType getSmartLeastUpperBound(
           InterfaceType first, InterfaceType second) =>
       InterfaceTypeImpl.getSmartLeastUpperBound(first, second);

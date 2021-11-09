@@ -1,0 +1,41 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef B = self::A;
+class A extends core::Object {
+  constructor •(core::int x, core::int y, {required core::int z}) → self::A
+    ;
+  static factory foo(core::int x, core::int y, {required core::int z}) → self::A
+    ;
+  get property() → (core::int, core::int, {required z: core::int}) → void
+    ;
+  method bar(core::int x, core::int y, {required core::int z}) → void
+    ;
+}
+class Test extends self::A {
+  constructor •() → self::Test
+    ;
+  method test() → dynamic
+    ;
+}
+extension E on self::A {
+  method method1 = self::E|method1;
+  tearoff method1 = self::E|get#method1;
+  method method2 = self::E|method2;
+  tearoff method2 = self::E|get#method2;
+}
+static method foo(core::int x, core::int y, {required core::int z}) → dynamic
+  ;
+static method E|method1(lowered final self::A #this) → dynamic
+  ;
+static method E|get#method1(lowered final self::A #this) → () → dynamic
+  return () → dynamic => self::E|method1(#this);
+static method E|method2(lowered final self::A #this, core::int bar, {core::int? foo}) → dynamic
+  ;
+static method E|get#method2(lowered final self::A #this) → (core::int, {foo: core::int?}) → dynamic
+  return (core::int bar, {core::int? foo}) → dynamic => self::E|method2(#this, bar, foo: foo);
+static method test(dynamic d, core::Function f, self::A a) → dynamic
+  ;
+static method main() → dynamic
+  ;

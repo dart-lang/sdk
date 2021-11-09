@@ -29,3 +29,8 @@ static method main() → dynamic
   ;
 static method _#ImplAlias#new#tearOff<T extends core::num>() → self::_ConstImpl<self::_#ImplAlias#new#tearOff::T>
   return new self::_ConstImpl::•<self::_#ImplAlias#new#tearOff::T>();
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///const_redirect.dart:21:16 -> ConstructorTearOffConstant(Const.impl)
+Extra constant evaluation: evaluated: 8, effectively constant: 1

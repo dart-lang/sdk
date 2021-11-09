@@ -109,6 +109,7 @@ class ObjectPointerVisitor;
   V(ExternalOneByteString, "_ExternalOneByteString")                           \
   V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
   V(FallThroughError, "FallThroughError")                                      \
+  V(FfiBool, "Bool")                                                           \
   V(FfiCallback, "_FfiCallback")                                               \
   V(FfiDouble, "Double")                                                       \
   V(FfiDynamicLibrary, "DynamicLibrary")                                       \

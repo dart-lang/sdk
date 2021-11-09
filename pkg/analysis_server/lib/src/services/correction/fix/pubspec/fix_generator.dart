@@ -122,7 +122,6 @@ class PubspecFixGenerator {
   /// Add a fix whose edits were built by the [builder] that has the given
   /// [kind]. If [args] are provided, they will be used to fill in the message
   /// for the fix.
-  // ignore: unused_element
   void _addFixFromBuilder(ChangeBuilder builder, FixKind kind, {List? args}) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {

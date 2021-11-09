@@ -77,7 +77,7 @@ class B extends A {
     ]);
   }
 
-  test_constructorFieldInitializer() async {
+  test_constructorInitializer_field() async {
     await assertErrorsInCode(r'''
 class A {
   m() {}
@@ -88,6 +88,37 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 62, 5),
+    ]);
+  }
+
+  test_constructorInitializer_super() async {
+    await assertErrorsInCode(r'''
+class S {
+  final int f;
+  S(this.f);
+}
+
+class C extends S {
+  C() : super(super.f);
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 75, 5),
+    ]);
+  }
+
+  test_constructorInitializer_this() async {
+    await assertErrorsInCode(r'''
+class S {
+  final int f;
+  S(this.f);
+}
+
+class C extends S {
+  C() : this.other(super.f);
+  C.other(int a) : super(a);
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 80, 5),
     ]);
   }
 

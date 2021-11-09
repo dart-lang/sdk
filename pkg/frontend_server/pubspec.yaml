@@ -7,7 +7,7 @@ environment:
   sdk: "^2.7.0"
 
 dependencies:
-  args: ^1.4.4
+  args: ^2.0.0
   build_integration:
     path: ../build_integration
   compiler:
@@ -18,7 +18,7 @@ dependencies:
     path: ../front_end
   kernel:
     path: ../kernel
-  package_config: ^1.9.0
+  package_config: ^2.0.0
   path: any
   usage: any
   vm:

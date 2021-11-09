@@ -316,14 +316,16 @@ class CompileCommand extends DartdevCommand {
     addSubcommand(CompileJSCommand(verbose: verbose));
     addSubcommand(CompileSnapshotCommand(
       commandName: CompileSnapshotCommand.jitSnapshotCmdName,
-      help: 'to a JIT snapshot.',
+      help: 'to a JIT snapshot.\n'
+          'To run the snapshot use: dart run <JIT file>',
       fileExt: 'jit',
       formatName: 'app-jit',
       verbose: verbose,
     ));
     addSubcommand(CompileSnapshotCommand(
       commandName: CompileSnapshotCommand.kernelCmdName,
-      help: 'to a kernel snapshot.',
+      help: 'to a kernel snapshot.\n'
+          'To run the snapshot use: dart run <kernel file>',
       fileExt: 'dill',
       formatName: 'kernel',
       verbose: verbose,
@@ -336,7 +338,8 @@ class CompileCommand extends DartdevCommand {
     ));
     addSubcommand(CompileNativeCommand(
       commandName: CompileNativeCommand.aotSnapshotCmdName,
-      help: 'to an AOT snapshot.',
+      help: 'to an AOT snapshot.\n'
+          'To run the snapshot use: dartaotruntime <AOT snapshot file>',
       format: 'aot',
       verbose: verbose,
     ));

@@ -317,5 +317,5 @@ constants  {
   #C2 = TypeLiteralConstant(self::Class<dynamic>)
   #C3 = TypeLiteralConstant(core::int)
   #C4 = constructor-tearoff self::Class::named
-  #C5 = instantiation self::Class::named <core::int>
+  #C5 = instantiation #C4 <core::int>
 }

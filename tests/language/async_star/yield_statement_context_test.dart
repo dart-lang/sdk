@@ -51,7 +51,7 @@ void main() {
 
   test('two labels on same line', () {
     f() async* {
-      // DO NOT RUN dartfmt on this file. The labels should be on the same.
+      // DO NOT RUN dart format on this file. The labels should be on the same.
       // line. Originally VM issue #2238.
       label1: label2: yield 0;
     }

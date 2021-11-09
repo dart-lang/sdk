@@ -6,6 +6,8 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -197,15 +199,16 @@ class AstFactoryImpl extends AstFactory {
           typeParameters as TypeParameterListImpl?,
           equals,
           abstractKeyword,
-          superclass as TypeNameImpl,
+          superclass as NamedTypeImpl,
           withClause as WithClauseImpl,
           implementsClause as ImplementsClauseImpl?,
           semicolon);
 
   @override
   CommentReferenceImpl commentReference(
-          Token? newKeyword, Identifier identifier) =>
-      CommentReferenceImpl(newKeyword, identifier as IdentifierImpl);
+          Token? newKeyword, CommentReferableExpression expression) =>
+      CommentReferenceImpl(
+          newKeyword, expression as CommentReferableExpressionImpl);
 
   @override
   CompilationUnitImpl compilationUnit(
@@ -298,7 +301,7 @@ class AstFactoryImpl extends AstFactory {
   ConstructorNameImpl constructorName(
           NamedType type, Token? period, SimpleIdentifier? name) =>
       ConstructorNameImpl(
-          type as TypeNameImpl, period, name as SimpleIdentifierImpl?);
+          type as NamedTypeImpl, period, name as SimpleIdentifierImpl?);
 
   @override
   ConstructorReferenceImpl constructorReference(
@@ -434,7 +437,7 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   ExtendsClauseImpl extendsClause(Token extendsKeyword, NamedType superclass) =>
-      ExtendsClauseImpl(extendsKeyword, superclass as TypeNameImpl);
+      ExtendsClauseImpl(extendsKeyword, superclass as NamedTypeImpl);
 
   @override
   ExtensionDeclarationImpl extensionDeclaration(
@@ -786,6 +789,18 @@ class AstFactoryImpl extends AstFactory {
       ImplementsClauseImpl(implementsKeyword, interfaces);
 
   @override
+  ImplicitCallReferenceImpl implicitCallReference({
+    required Expression expression,
+    required MethodElement staticElement,
+    required TypeArgumentList? typeArguments,
+    required List<DartType> typeArgumentTypes,
+  }) =>
+      ImplicitCallReferenceImpl(expression as ExpressionImpl,
+          staticElement: staticElement,
+          typeArguments: typeArguments as TypeArgumentListImpl?,
+          typeArgumentTypes: typeArgumentTypes);
+
+  @override
   ImportDirectiveImpl importDirective(
           Comment? comment,
           List<Annotation>? metadata,
@@ -980,12 +995,12 @@ class AstFactoryImpl extends AstFactory {
       NamedExpressionImpl(name as LabelImpl, expression as ExpressionImpl);
 
   @override
-  TypeNameImpl namedType({
+  NamedTypeImpl namedType({
     required Identifier name,
     TypeArgumentList? typeArguments,
     Token? question,
   }) =>
-      TypeNameImpl(
+      NamedTypeImpl(
           name as IdentifierImpl, typeArguments as TypeArgumentListImpl?,
           question: question);
 
@@ -1242,13 +1257,13 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   TypeLiteralImpl typeLiteral({required NamedType typeName}) =>
-      TypeLiteralImpl(typeName as TypeNameImpl);
+      TypeLiteralImpl(typeName as NamedTypeImpl);
 
   @Deprecated('Use namedType() instead')
   @override
-  TypeNameImpl typeName(Identifier name, TypeArgumentList? typeArguments,
+  NamedTypeImpl typeName(Identifier name, TypeArgumentList? typeArguments,
           {Token? question}) =>
-      TypeNameImpl(
+      NamedTypeImpl(
           name as IdentifierImpl, typeArguments as TypeArgumentListImpl?,
           question: question);
 

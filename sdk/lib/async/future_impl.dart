@@ -243,7 +243,7 @@ class _Future<T> implements Future<T> {
 
   /// The future has been completed with an error result.
   ///
-  /// [_resultOrListeners] contains an [AsyncEror]
+  /// [_resultOrListeners] contains an [AsyncError]
   /// holding the error and stack trace.
   static const int _stateError = 16;
 

@@ -35,6 +35,8 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   late final ContextBuilderImpl contextBuilder;
   late final ContextRoot contextRoot;
 
+  Folder get sdkRoot => newFolder('/sdk');
+
   void assertEquals(DeclaredVariables actual, DeclaredVariables expected) {
     Iterable<String> actualNames = actual.variableNames;
     Iterable<String> expectedNames = expected.variableNames;
@@ -45,6 +47,11 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   }
 
   void setUp() {
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+
     var folder = newFolder('/home/test');
     contextBuilder = ContextBuilderImpl(resourceProvider: resourceProvider);
     var workspace = BasicWorkspace.find(resourceProvider, {}, folder.path);
@@ -52,8 +59,6 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   }
 
   void test_analysisOptions_invalid() {
-    MockSdk(resourceProvider: resourceProvider);
-
     var projectPath = convertPath('/home/test');
     newAnalysisOptionsYamlFile(projectPath, content: ';');
 
@@ -63,8 +68,6 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   }
 
   void test_analysisOptions_languageOptions() {
-    MockSdk(resourceProvider: resourceProvider);
-
     var projectPath = convertPath('/home/test');
     newAnalysisOptionsYamlFile(
       projectPath,
@@ -82,8 +85,6 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   }
 
   void test_analysisOptions_sdkVersionConstraint_hasPubspec_hasSdk() {
-    MockSdk(resourceProvider: resourceProvider);
-
     var projectPath = convertPath('/home/test');
     newPubspecYamlFile(projectPath, '''
 environment:
@@ -96,8 +97,6 @@ environment:
   }
 
   void test_analysisOptions_sdkVersionConstraint_noPubspec() {
-    MockSdk(resourceProvider: resourceProvider);
-
     var projectPath = convertPath('/home/test');
     newFile('$projectPath/lib/a.dart');
 
@@ -107,13 +106,12 @@ environment:
   }
 
   test_createContext_declaredVariables() {
-    MockSdk(resourceProvider: resourceProvider);
     DeclaredVariables declaredVariables =
         DeclaredVariables.fromMap({'foo': 'true'});
     var context = contextBuilder.createContext(
       contextRoot: contextRoot,
       declaredVariables: declaredVariables,
-      sdkPath: resourceProvider.convertPath(sdkRoot),
+      sdkPath: sdkRoot.path,
     );
     expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
@@ -123,54 +121,51 @@ environment:
   test_createContext_declaredVariables_sdkPath() {
     DeclaredVariables declaredVariables =
         DeclaredVariables.fromMap({'bar': 'true'});
-    MockSdk sdk = MockSdk(resourceProvider: resourceProvider);
     var context = contextBuilder.createContext(
       contextRoot: contextRoot,
       declaredVariables: declaredVariables,
-      sdkPath: resourceProvider.convertPath(sdkRoot),
+      sdkPath: sdkRoot.path,
     );
     expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     assertEquals(context.driver.declaredVariables, declaredVariables);
-    expect(context.driver.sourceFactory.dartSdk!.mapDartUri('dart:core'),
-        sdk.mapDartUri('dart:core'));
+    expect(
+      context.driver.sourceFactory.dartSdk!.mapDartUri('dart:core')!.fullName,
+      sdkRoot.getChildAssumingFile('lib/core/core.dart').path,
+    );
   }
 
   test_createContext_defaults() {
-    MockSdk(resourceProvider: resourceProvider);
     AnalysisContext context = contextBuilder.createContext(
       contextRoot: contextRoot,
-      sdkPath: resourceProvider.convertPath(sdkRoot),
+      sdkPath: sdkRoot.path,
     );
     expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
   }
 
   test_createContext_sdkPath() {
-    MockSdk sdk = MockSdk(resourceProvider: resourceProvider);
     var context = contextBuilder.createContext(
       contextRoot: contextRoot,
-      sdkPath: resourceProvider.convertPath(sdkRoot),
+      sdkPath: sdkRoot.path,
     );
     expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
-    expect(context.driver.sourceFactory.dartSdk!.mapDartUri('dart:core'),
-        sdk.mapDartUri('dart:core'));
+    expect(
+      context.driver.sourceFactory.dartSdk!.mapDartUri('dart:core')!.fullName,
+      sdkRoot.getChildAssumingFile('lib/core/core.dart').path,
+    );
   }
 
   test_createContext_sdkRoot() {
-    MockSdk(resourceProvider: resourceProvider);
     var context = contextBuilder.createContext(
-        contextRoot: contextRoot,
-        sdkPath: resourceProvider.convertPath(sdkRoot));
+        contextRoot: contextRoot, sdkPath: sdkRoot.path);
     expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
-    expect(context.sdkRoot?.path, resourceProvider.convertPath(sdkRoot));
+    expect(context.sdkRoot, sdkRoot);
   }
 
   void test_sourceFactory_bazelWorkspace() {
-    MockSdk(resourceProvider: resourceProvider);
-
     var projectPath = convertPath('/workspace/my/module');
     newFile('/workspace/WORKSPACE');
     newFolder('/workspace/bazel-bin');
@@ -190,8 +185,6 @@ environment:
   }
 
   void test_sourceFactory_pubWorkspace() {
-    MockSdk(resourceProvider: resourceProvider);
-
     var projectPath = convertPath('/home/my');
     newFile('/home/my/pubspec.yaml');
 
@@ -218,7 +211,7 @@ environment:
       resourceProvider: resourceProvider,
     ).createContext(
       contextRoot: roots.single,
-      sdkPath: convertPath(sdkRoot),
+      sdkPath: sdkRoot.path,
     );
   }
 

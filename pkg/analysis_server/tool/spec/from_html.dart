@@ -529,7 +529,7 @@ class ApiReader {
       throw Exception('$context: name not specified');
     }
 
-    context = '$context.$name}';
+    context = '$context.$name';
     checkAttributes(html, ['name'], context,
         optionalAttributes: [
           'optional',

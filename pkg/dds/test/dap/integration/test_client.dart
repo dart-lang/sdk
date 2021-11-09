@@ -227,6 +227,7 @@ class DapTestClient {
     bool? debugExternalPackageLibraries,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
+    bool? sendLogsToClient,
   }) {
     return sendRequest(
       DartLaunchRequestArguments(
@@ -243,7 +244,7 @@ class DapTestClient {
         // When running out of process, VM Service traffic won't be available
         // to the client-side logger, so force logging on which sends VM Service
         // traffic in a custom event.
-        sendLogsToClient: captureVmServiceTraffic,
+        sendLogsToClient: sendLogsToClient ?? captureVmServiceTraffic,
       ),
       // We can't automatically pick the command when using a custom type
       // (DartLaunchRequestArguments).
@@ -484,6 +485,7 @@ extension DapTestClientExtension on DapTestClient {
     int line, {
     String? condition,
     String? cwd,
+    List<String>? args,
     Future<Response> Function()? launch,
   }) async {
     final stop = expectStop('breakpoint', file: file, line: line);
@@ -496,7 +498,7 @@ extension DapTestClientExtension on DapTestClient {
           breakpoints: [SourceBreakpoint(line: line, condition: condition)],
         ),
       ),
-      launch?.call() ?? this.launch(file.path, cwd: cwd),
+      launch?.call() ?? this.launch(file.path, cwd: cwd, args: args),
     ], eagerError: true);
 
     return stop;

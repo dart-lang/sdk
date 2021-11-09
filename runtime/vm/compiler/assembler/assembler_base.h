@@ -732,6 +732,18 @@ class AssemblerBase : public StackResource {
   // can be accessed without checking the class id first.
   virtual void CompareTypeNullabilityWith(Register type, int8_t value) = 0;
 
+  void LoadTypeClassId(Register dst, Register src) {
+#if !defined(TARGET_ARCH_IA32)
+    EnsureHasClassIdInDEBUG(kTypeCid, src, TMP);
+#endif
+    ASSERT(!compiler::target::UntaggedType::kTypeClassIdIsSigned);
+    ASSERT_EQUAL(compiler::target::UntaggedType::kTypeClassIdBitSize,
+                 kBitsPerInt16);
+    LoadFieldFromOffset(dst, src,
+                        compiler::target::Type::type_class_id_offset(),
+                        kUnsignedTwoBytes);
+  }
+
   virtual void EnsureHasClassIdInDEBUG(intptr_t cid,
                                        Register src,
                                        Register scratch,

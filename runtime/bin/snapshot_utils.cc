@@ -330,13 +330,19 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
-                                          bool force_load_elf_from_memory) {
-  auto decoded_path = File::UriToPath(script_uri);
-  if (decoded_path == nullptr) {
-    return nullptr;
+                                          bool force_load_elf_from_memory,
+                                          bool decode_uri) {
+  Utils::CStringUniquePtr decoded_path(nullptr, std::free);
+  const char* script_name = nullptr;
+  if (decode_uri) {
+    decoded_path = File::UriToPath(script_uri);
+    if (decoded_path == nullptr) {
+      return nullptr;
+    }
+    script_name = decoded_path.get();
+  } else {
+    script_name = script_uri;
   }
-
-  const char* script_name = decoded_path.get();
   if (File::GetType(nullptr, script_name, true) != File::kIsFile) {
     // If 'script_name' refers to a pipe, don't read to check for an app
     // snapshot since we cannot rewind if it isn't (and couldn't mmap it in

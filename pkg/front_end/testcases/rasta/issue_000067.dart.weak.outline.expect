@@ -40,3 +40,9 @@ class D extends self::C {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_000067.dart:7:7 -> ConstructorTearOffConstant(A.foo)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_000067.dart:13:7 -> ConstructorTearOffConstant(C.bar)
+Extra constant evaluation: evaluated: 6, effectively constant: 2

@@ -5,6 +5,7 @@
 import 'package:test/test.dart';
 
 import 'test_client.dart';
+import 'test_scripts.dart';
 import 'test_support.dart';
 
 main() {
@@ -15,6 +16,33 @@ main() {
   tearDown(() => dap.tearDown());
 
   group('debug mode', () {
+    test('sends dart.log events when sendLogsToClient=true', () async {
+      final testFile = dap.createTestFile(simpleArgPrintingProgram);
+
+      final logOutputs = dap.client
+          .events('dart.log')
+          .map((event) => event.body as Map<String, Object?>)
+          .map((body) => body['message'] as String);
+
+      await Future.wait([
+        expectLater(
+          logOutputs,
+          // Check for a known VM Service packet.
+          emitsThrough(
+            contains('"method":"streamListen","params":{"streamId":"Debug"}'),
+          ),
+        ),
+        dap.client.start(
+          file: testFile,
+          launch: () => dap.client.launch(
+            testFile.path,
+            sendLogsToClient: true,
+          ),
+        ),
+      ]);
+      await dap.client.terminate();
+    });
+
     test('prints messages from dart:developer log()', () async {
       final testFile = dap.createTestFile(r'''
 import 'dart:developer';

@@ -20,22 +20,22 @@ abstract class DataSink {
 
   /// Writes a reference to [value] to this data sink. If [value] has not yet
   /// been serialized, [f] is called to serialize the value itself.
-  void writeCached<E>(E value, void f(E value));
+  void writeCached<E>(E value, void Function(E value) f);
 
   /// Writes the potentially `null` [value] to this data sink. If [value] is
   /// non-null [f] is called to write the non-null value to the data sink.
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readValueOrNull].
-  void writeValueOrNull<E>(E value, void f(E value));
+  void writeValueOrNull<E>(E value, void Function(E value) f);
 
   /// Writes the [values] to this data sink calling [f] to write each value to
   /// the data sink. If [allowNull] is `true`, [values] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readList].
-  void writeList<E>(Iterable<E> values, void f(E value),
-      {bool allowNull: false});
+  void writeList<E>(Iterable<E> values, void Function(E value) f,
+      {bool allowNull = false});
 
   /// Writes the boolean [value] to this data sink.
   void writeBool(bool value);
@@ -63,7 +63,7 @@ abstract class DataSink {
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readStrings].
-  void writeStrings(Iterable<String> values, {bool allowNull: false});
+  void writeStrings(Iterable<String> values, {bool allowNull = false});
 
   /// Writes the [map] from string to [V] values to this data sink, calling [f]
   /// to write each value to the data sink. If [allowNull] is `true`, [map] is
@@ -71,8 +71,8 @@ abstract class DataSink {
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readStringMap].
-  void writeStringMap<V>(Map<String, V> map, void f(V value),
-      {bool allowNull: false});
+  void writeStringMap<V>(Map<String, V> map, void Function(V value) f,
+      {bool allowNull = false});
 
   /// Writes the enum value [value] to this data sink.
   // TODO(johnniwinther): Change the signature to
@@ -103,7 +103,7 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeStrings(Iterable<String> values, {bool allowNull: false}) {
+  void writeStrings(Iterable<String> values, {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -116,8 +116,8 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeStringMap<V>(Map<String, V> map, void f(V value),
-      {bool allowNull: false}) {
+  void writeStringMap<V>(Map<String, V> map, void Function(V value) f,
+      {bool allowNull = false}) {
     if (map == null) {
       assert(allowNull);
       writeInt(0);
@@ -131,8 +131,8 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeList<E>(Iterable<E> values, void f(E value),
-      {bool allowNull: false}) {
+  void writeList<E>(Iterable<E> values, void Function(E value) f,
+      {bool allowNull = false}) {
     if (values == null) {
       assert(allowNull);
       writeInt(0);
@@ -143,7 +143,7 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeValueOrNull<E>(E value, void f(E value)) {
+  void writeValueOrNull<E>(E value, void Function(E value) f) {
     writeBool(value != null);
     if (value != null) {
       f(value);
@@ -162,7 +162,7 @@ class IndexedSink<E> {
   ///
   /// If [value] has not been canonicalized yet, [writeValue] is called to
   /// serialize the [value] itself.
-  void write(E value, void writeValue(E value)) {
+  void write(E value, void Function(E value) writeValue) {
     int index = _cache[value];
     if (index == null) {
       index = _cache.length;
@@ -180,17 +180,16 @@ class IndexedSink<E> {
 abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   IndexedSink<String> _stringIndex;
   IndexedSink<Uri> _uriIndex;
-  Map<Type, IndexedSink> _generalCaches = {};
+  final Map<Type, IndexedSink> _generalCaches = {};
 
   AbstractDataSink() {
-    _stringIndex = new IndexedSink<String>(_writeIntInternal);
-    _uriIndex = new IndexedSink<Uri>(_writeIntInternal);
+    _stringIndex = IndexedSink<String>(_writeIntInternal);
+    _uriIndex = IndexedSink<Uri>(_writeIntInternal);
   }
 
   @override
-  void writeCached<E>(E value, void f(E value)) {
-    IndexedSink sink =
-        _generalCaches[E] ??= new IndexedSink<E>(_writeIntInternal);
+  void writeCached<E>(E value, void Function(E value) f) {
+    IndexedSink sink = _generalCaches[E] ??= IndexedSink<E>(_writeIntInternal);
     sink.write(value, (v) => f(v));
   }
 
@@ -254,7 +253,7 @@ class BinarySink extends AbstractDataSink {
   BufferedSink _bufferedSink;
   int _length = 0;
 
-  BinarySink(this.sink) : _bufferedSink = new BufferedSink(sink);
+  BinarySink(this.sink) : _bufferedSink = BufferedSink(sink);
 
   @override
   void _writeUriInternal(Uri value) {
@@ -290,6 +289,7 @@ class BinarySink extends AbstractDataSink {
     _writeIntInternal(value.index);
   }
 
+  @override
   void close() {
     _bufferedSink.flushAndDestroy();
     _bufferedSink = null;
@@ -297,6 +297,7 @@ class BinarySink extends AbstractDataSink {
   }
 
   /// Returns the number of bytes written to this data sink.
+  @override
   int get length => _length;
 }
 
@@ -304,15 +305,15 @@ class BinarySink extends AbstractDataSink {
 // TODO(sigmund): share with the implementation in
 // package:kernel/binary/ast_to_binary.dart
 class BufferedSink {
-  static const int SIZE = 100000;
-  static const int SAFE_SIZE = SIZE - 5;
-  static const int SMALL = 10000;
+  static const int _size = 100000;
+  static const int _safeSize = _size - 5;
+  static const int _small = 10000;
   final Sink<List<int>> _sink;
-  Uint8List _buffer = new Uint8List(SIZE);
+  Uint8List _buffer = Uint8List(_size);
   int length = 0;
   int flushedLength = 0;
 
-  Float64List _doubleBuffer = new Float64List(1);
+  final Float64List _doubleBuffer = Float64List(1);
   Uint8List _doubleBufferUint8;
 
   int get offset => length + flushedLength;
@@ -330,16 +331,16 @@ class BufferedSink {
 
   void addByte(int byte) {
     _buffer[length++] = byte;
-    if (length == SIZE) {
+    if (length == _size) {
       _sink.add(_buffer);
-      _buffer = new Uint8List(SIZE);
+      _buffer = Uint8List(_size);
       length = 0;
-      flushedLength += SIZE;
+      flushedLength += _size;
     }
   }
 
   void addByte2(int byte1, int byte2) {
-    if (length < SAFE_SIZE) {
+    if (length < _safeSize) {
       _buffer[length++] = byte1;
       _buffer[length++] = byte2;
     } else {
@@ -349,7 +350,7 @@ class BufferedSink {
   }
 
   void addByte4(int byte1, int byte2, int byte3, int byte4) {
-    if (length < SAFE_SIZE) {
+    if (length < _safeSize) {
       _buffer[length++] = byte1;
       _buffer[length++] = byte2;
       _buffer[length++] = byte3;
@@ -365,22 +366,22 @@ class BufferedSink {
   void addBytes(List<int> bytes) {
     // Avoid copying a large buffer into the another large buffer. Also, if
     // the bytes buffer is too large to fit in our own buffer, just emit both.
-    if (length + bytes.length < SIZE &&
-        (bytes.length < SMALL || length < SMALL)) {
+    if (length + bytes.length < _size &&
+        (bytes.length < _small || length < _small)) {
       _buffer.setRange(length, length + bytes.length, bytes);
       length += bytes.length;
-    } else if (bytes.length < SMALL) {
+    } else if (bytes.length < _small) {
       // Flush as much as we can in the current buffer.
-      _buffer.setRange(length, SIZE, bytes);
+      _buffer.setRange(length, _size, bytes);
       _sink.add(_buffer);
       // Copy over the remainder into a new buffer. It is guaranteed to fit
       // because the input byte array is small.
-      int alreadyEmitted = SIZE - length;
+      int alreadyEmitted = _size - length;
       int remainder = bytes.length - alreadyEmitted;
-      _buffer = new Uint8List(SIZE);
+      _buffer = Uint8List(_size);
       _buffer.setRange(0, remainder, bytes, alreadyEmitted);
       length = remainder;
-      flushedLength += SIZE;
+      flushedLength += _size;
     } else {
       flush();
       _sink.add(bytes);
@@ -390,7 +391,7 @@ class BufferedSink {
 
   void flush() {
     _sink.add(_buffer.sublist(0, length));
-    _buffer = new Uint8List(SIZE);
+    _buffer = Uint8List(_size);
     flushedLength += length;
     length = 0;
   }

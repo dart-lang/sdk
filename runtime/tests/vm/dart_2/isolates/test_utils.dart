@@ -8,8 +8,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'internal.dart';
-
 export '../../../../../benchmarks/IsolateFibonacci/dart2/IsolateFibonacci.dart'
   show fibonacciRecursive;
 
@@ -104,7 +102,7 @@ class Ring {
         case Command.kRunAndClose:
           final RingElement re = args[1];
           final SendPort nextNeighbor = args[2];
-          port.sendAndExit(await re.run(nextNeighbor, siData));
+          Isolate.exit(port, await re.run(nextNeighbor, siData));
           break;
         case Command.kClose:
           port.send('done');

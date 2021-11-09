@@ -222,26 +222,6 @@ $!MEMBERS
     _moveTo(p.x.toInt(), p.y.toInt());
   }
 
-  @JSName('openDatabase')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Creates('SqlDatabase')
-  @deprecated
-  SqlDatabase openDatabase(
-      String name, String version, String displayName, int estimatedSize,
-      [DatabaseCallback$NULLABLE creationCallback]) {
-    var db;
-    if (creationCallback == null)
-      db = _openDatabase(name, version, displayName, estimatedSize);
-    else
-      db = _openDatabase(
-        name, version, displayName, estimatedSize, creationCallback);
-
-    applyExtension('Database', db);
-
-    return db;
-  }
-
   int get pageXOffset => JS<num>('num', '#.pageXOffset', this).round();
 
   int get pageYOffset => JS<num>('num', '#.pageYOffset', this).round();

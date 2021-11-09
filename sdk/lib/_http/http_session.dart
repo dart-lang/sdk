@@ -13,16 +13,16 @@ class _HttpSession implements HttpSession {
   bool _destroyed = false;
   bool _isNew = true;
   DateTime _lastSeen;
-  Function? _timeoutCallback;
-  _HttpSessionManager _sessionManager;
+  void Function()? _timeoutCallback;
+  final _HttpSessionManager _sessionManager;
   // Pointers in timeout queue.
   _HttpSession? _prev;
   _HttpSession? _next;
   final String id;
 
-  final Map _data = new HashMap();
+  final Map _data = HashMap();
 
-  _HttpSession(this._sessionManager, this.id) : _lastSeen = new DateTime.now();
+  _HttpSession(this._sessionManager, this.id) : _lastSeen = DateTime.now();
 
   void destroy() {
     assert(!_destroyed);
@@ -34,7 +34,7 @@ class _HttpSession implements HttpSession {
   // Mark the session as seen. This will reset the timeout and move the node to
   // the end of the timeout queue.
   void _markSeen() {
-    _lastSeen = new DateTime.now();
+    _lastSeen = DateTime.now();
     _sessionManager._bumpToEnd(this);
   }
 
@@ -42,7 +42,7 @@ class _HttpSession implements HttpSession {
 
   bool get isNew => _isNew;
 
-  void set onTimeout(void callback()?) {
+  void set onTimeout(void Function()? callback) {
     _timeoutCallback = callback;
   }
 
@@ -79,7 +79,7 @@ class _HttpSession implements HttpSession {
   }
 
   Map<K, V> cast<K, V>() => _data.cast<K, V>();
-  update(key, update(value), {ifAbsent()?}) =>
+  update(key, update(value), {Function()? ifAbsent}) =>
       _data.update(key, update, ifAbsent: ifAbsent);
 
   void updateAll(update(key, value)) {
@@ -101,7 +101,7 @@ class _HttpSession implements HttpSession {
 //  * In a map, mapping from ID to HttpSession.
 //  * In a linked list, used as a timeout queue.
 class _HttpSessionManager {
-  Map<String, _HttpSession> _sessions;
+  final Map<String, _HttpSession> _sessions;
   int _sessionTimeout = 20 * 60; // 20 mins.
   _HttpSession? _head;
   _HttpSession? _tail;
@@ -124,7 +124,7 @@ class _HttpSessionManager {
     while (_sessions.containsKey(id)) {
       id = createSessionId();
     }
-    var session = _sessions[id] = new _HttpSession(this, id);
+    var session = _sessions[id] = _HttpSession(this, id);
     _addToTimeoutQueue(session);
     return session;
   }
@@ -187,9 +187,9 @@ class _HttpSessionManager {
     assert(_timer == null);
     var head = _head;
     if (head != null) {
-      int seconds = new DateTime.now().difference(head.lastSeen).inSeconds;
-      _timer = new Timer(
-          new Duration(seconds: _sessionTimeout - seconds), _timerTimeout);
+      int seconds = DateTime.now().difference(head.lastSeen).inSeconds;
+      _timer =
+          Timer(Duration(seconds: _sessionTimeout - seconds), _timerTimeout);
     }
   }
 

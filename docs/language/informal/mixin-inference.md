@@ -123,7 +123,7 @@ set exists, then it is an error.  Note that for well-formed programs, the only
 free type variables in the `Ti` must by definition be drawn from the type
 parameters to the enclosing class of the mixin application. Hence it follows
 both that the `Ti` are well-formed types in the scope of the mixin application,
-and that the the `Xi` do not occur free in the `Ti` since we have assumed that
+and that the `Xi` do not occur free in the `Ti` since we have assumed that
 classes are suitably renamed to avoid capture.
 
 Let `[X0 extends B0, ..., Xj extends Bj]` be a set of type variable bounds such

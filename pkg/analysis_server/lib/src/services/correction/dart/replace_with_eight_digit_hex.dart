@@ -14,6 +14,12 @@ class ReplaceWithEightDigitHex extends CorrectionProducer {
   String _replacement = '';
 
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   List<Object> get fixArguments => [_replacement];
 
   @override

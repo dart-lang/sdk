@@ -15,10 +15,8 @@ valid_source_locations_test: Pass, Slow # Generally slow, even in release-x64.
 [ $arch == arm ]
 process_service_test: Pass, Fail # Issue 24344
 
-# Test uses service API and relies on correct class names
 [ $builder_tag == obfuscated ]
-dominator_tree_vm_test: SkipByDesign
-dominator_tree_vm_with_double_field_test: SkipByDesign
+*: SkipByDesign # Responses full of obfuscated names
 
 # Tests with known analyzer issues
 [ $compiler == dart2analyzer ]
@@ -34,12 +32,14 @@ async_generator_breakpoint_test: Pass, Slow
 
 [ $system == android ]
 string_escaping_test: Skip # Issue http://dartbug.com/42094
+uri_mappings_lookup_test: SkipByDesign # Relies on file paths in the SDK.
 
 [ $system == windows ]
 *: Slow
 async_generator_breakpoint_test: Skip # Issue 29145
 dev_fs_http_put_weird_char_test: Skip # Windows disallows carriage returns in paths
 dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
+uri_mappings_lookup_test: SkipByDesign # Relies on file paths in the SDK.
 
 [ $compiler == none && $runtime == vm ]
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047

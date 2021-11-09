@@ -178,8 +178,7 @@ InstanceMorpher::InstanceMorpher(
       shared_class_table_(shared_class_table),
       mapping_(mapping),
       new_fields_offsets_(new_fields_offsets),
-      before_(zone, 16),
-      after_(zone, 16) {}
+      before_(zone, 16) {}
 
 void InstanceMorpher::AddObject(ObjectPtr object) {
   ASSERT(object->GetClassId() == cid_);
@@ -187,65 +186,65 @@ void InstanceMorpher::AddObject(ObjectPtr object) {
   before_.Add(&instance);
 }
 
-InstancePtr InstanceMorpher::Morph(const Instance& instance) const {
-  // Code can reference constants / canonical objects either directly in the
-  // instruction stream (ia32) or via an object pool.
-  //
-  // We have the following invariants:
-  //
-  //    a) Those canonical objects don't change state (i.e. are not mutable):
-  //       our optimizer can e.g. execute loads of such constants at
-  //       compile-time.
-  //
-  //       => We ensure that const-classes with live constants cannot be
-  //          reloaded to become non-const classes (see Class::CheckReload).
-  //
-  //    b) Those canonical objects live in old space: e.g. on ia32 the scavenger
-  //       does not make the RX pages writable and therefore cannot update
-  //       pointers embedded in the instruction stream.
-  //
-  // In order to maintain these invariants we ensure to always morph canonical
-  // objects to old space.
-  const bool is_canonical = instance.IsCanonical();
-  const Heap::Space space = is_canonical ? Heap::kOld : Heap::kNew;
-  const auto& result = Instance::Handle(
-      Z, Instance::NewFromCidAndSize(shared_class_table_, cid_, space));
+void InstanceMorpher::CreateMorphedCopies(Become* become) {
+  Instance& after = Instance::Handle(Z);
+  Object& value = Object::Handle(Z);
+  for (intptr_t i = 0; i < before_.length(); i++) {
+    const Instance& before = *before_.At(i);
 
-  // We preserve the canonical bit of the object, since this object is present
-  // in the class's constants.
-  if (is_canonical) {
-    result.SetCanonical();
-  }
+    // Code can reference constants / canonical objects either directly in the
+    // instruction stream (ia32) or via an object pool.
+    //
+    // We have the following invariants:
+    //
+    //    a) Those canonical objects don't change state (i.e. are not mutable):
+    //       our optimizer can e.g. execute loads of such constants at
+    //       compile-time.
+    //
+    //       => We ensure that const-classes with live constants cannot be
+    //          reloaded to become non-const classes (see Class::CheckReload).
+    //
+    //    b) Those canonical objects live in old space: e.g. on ia32 the
+    //       scavenger does not make the RX pages writable and therefore cannot
+    //       update pointers embedded in the instruction stream.
+    //
+    // In order to maintain these invariants we ensure to always morph canonical
+    // objects to old space.
+    const bool is_canonical = before.IsCanonical();
+    const Heap::Space space = is_canonical ? Heap::kOld : Heap::kNew;
+    after = Instance::NewFromCidAndSize(shared_class_table_, cid_, space);
+
+    // We preserve the canonical bit of the object, since this object is present
+    // in the class's constants.
+    if (is_canonical) {
+      after.SetCanonical();
+    }
 #if defined(HASH_IN_OBJECT_HEADER)
-  const uint32_t hash = Object::GetCachedHash(instance.ptr());
-  Object::SetCachedHashIfNotSet(result.ptr(), hash);
+    const uint32_t hash = Object::GetCachedHash(before.ptr());
+    Object::SetCachedHashIfNotSet(after.ptr(), hash);
 #endif
 
-  // Morph the context from instance to result using mapping_.
-  Object& value = Object::Handle(Z);
-  for (intptr_t i = 0; i < mapping_->length(); i += 2) {
-    intptr_t from_offset = mapping_->At(i);
-    intptr_t to_offset = mapping_->At(i + 1);
-    ASSERT(from_offset > 0);
-    ASSERT(to_offset > 0);
-    value = instance.RawGetFieldAtOffset(from_offset);
-    result.RawSetFieldAtOffset(to_offset, value);
-  }
+    // Morph the context from [before] to [after] using mapping_.
+    for (intptr_t i = 0; i < mapping_->length(); i += 2) {
+      intptr_t from_offset = mapping_->At(i);
+      intptr_t to_offset = mapping_->At(i + 1);
+      ASSERT(from_offset > 0);
+      ASSERT(to_offset > 0);
+      value = before.RawGetFieldAtOffset(from_offset);
+      after.RawSetFieldAtOffset(to_offset, value);
+    }
 
-  for (intptr_t i = 0; i < new_fields_offsets_->length(); i++) {
-    const intptr_t field_offset = new_fields_offsets_->At(i);
-    result.RawSetFieldAtOffset(field_offset, Object::sentinel());
-  }
+    for (intptr_t i = 0; i < new_fields_offsets_->length(); i++) {
+      const intptr_t field_offset = new_fields_offsets_->At(i);
+      after.RawSetFieldAtOffset(field_offset, Object::sentinel());
+    }
 
-  // Convert the instance into a filler object.
-  Become::MakeDummyObject(instance);
-  return result.ptr();
-}
+    // Convert the old instance into a filler object. We will switch to the new
+    // class table before the next heap walk, so there must be no instances of
+    // any class with the old size.
+    Become::MakeDummyObject(before);
 
-void InstanceMorpher::CreateMorphedCopies() {
-  for (intptr_t i = 0; i < before_.length(); i++) {
-    const Instance& copy = Instance::Handle(Z, Morph(*before_.At(i)));
-    after_.Add(&copy);
+    become->Add(before, after);
   }
 }
 
@@ -372,34 +371,6 @@ class LibraryMapTraits {
   static uword Hash(const Object& obj) { return Library::Cast(obj).UrlHash(); }
 };
 
-class BecomeMapTraits {
- public:
-  static bool ReportStats() { return false; }
-  static const char* Name() { return "BecomeMapTraits"; }
-
-  static bool IsMatch(const Object& a, const Object& b) {
-    return a.ptr() == b.ptr();
-  }
-
-  static uword Hash(const Object& obj) {
-    if (obj.IsLibrary()) {
-      return Library::Cast(obj).UrlHash();
-    } else if (obj.IsClass()) {
-      return String::HashRawSymbol(Class::Cast(obj).Name());
-    } else if (obj.IsField()) {
-      return String::HashRawSymbol(Field::Cast(obj).name());
-    } else if (obj.IsClosure()) {
-      return String::HashRawSymbol(
-          Function::Handle(Closure::Cast(obj).function()).name());
-    } else if (obj.IsLibraryPrefix()) {
-      return String::HashRawSymbol(LibraryPrefix::Cast(obj).name());
-    } else {
-      FATAL1("Unexpected type in become: %s\n", obj.ToCString());
-    }
-    return 0;
-  }
-};
-
 bool ProgramReloadContext::IsSameClass(const Class& a, const Class& b) {
   // TODO(turnidge): We need to look at generic type arguments for
   // synthetic mixin classes.  Their names are not necessarily unique
@@ -461,8 +432,6 @@ ProgramReloadContext::ProgramReloadContext(
       removed_class_set_storage_(Array::null()),
       old_libraries_set_storage_(Array::null()),
       library_map_storage_(Array::null()),
-      become_map_storage_(Array::null()),
-      become_enum_mappings_(GrowableObjectArray::null()),
       saved_root_library_(Library::null()),
       saved_libraries_(GrowableObjectArray::null()) {
   // NOTE: DO NOT ALLOCATE ANY RAW OBJECTS HERE. The ProgramReloadContext is not
@@ -700,7 +669,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // We use kLowMemory to force the GC to compact, which is more likely to
     // discover untracked pointers (and other issues, like incorrect class
     // table).
-    heap->CollectAllGarbage(Heap::kLowMemory);
+    heap->CollectAllGarbage(GCReason::kLowMemory);
   }
 
   // Copy the size table for isolate group & class tables for each isolate.
@@ -714,7 +683,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // We use kLowMemory to force the GC to compact, which is more likely to
     // discover untracked pointers (and other issues, like incorrect class
     // table).
-    heap->CollectAllGarbage(Heap::kLowMemory);
+    heap->CollectAllGarbage(GCReason::kLowMemory);
   }
 
   // We synchronously load the hot-reload kernel diff (which includes changed
@@ -745,7 +714,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       // We use kLowMemory to force the GC to compact, which is more likely to
       // discover untracked pointers (and other issues, like incorrect class
       // table).
-      heap->CollectAllGarbage(Heap::kLowMemory);
+      heap->CollectAllGarbage(GCReason::kLowMemory);
     }
 
     // If we use the CFE and performed a compilation, we need to notify that
@@ -776,7 +745,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
           // We use kLowMemory to force the GC to compact, which is more likely
           // to discover untracked pointers (and other issues, like incorrect
           // class table).
-          heap->CollectAllGarbage(Heap::kLowMemory);
+          heap->CollectAllGarbage(GCReason::kLowMemory);
         }
         const intptr_t count = locator.count();
         if (count > 0) {
@@ -793,10 +762,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
           // active.
           ASSERT(HasNoTasks(heap));
 
-          const Array& before = Array::Handle(Z, Array::New(count));
-          const Array& after = Array::Handle(Z, Array::New(count));
-
-          MorphInstancesPhase1Allocate(&locator, before, after);
+          MorphInstancesPhase1Allocate(&locator, IG->become());
           {
             // Apply the new class table before "become". Become will replace
             // all the instances of the old size with forwarding corpses, then
@@ -811,7 +777,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
             IG->program_reload_context()->DiscardSavedClassTable(
                 /*is_rollback=*/false);
           }
-          MorphInstancesPhase2Become(before, after);
+          MorphInstancesPhase2Become(IG->become());
 
           discard_class_tables = false;
         }
@@ -820,7 +786,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
           // We use kLowMemory to force the GC to compact, which is more likely
           // to discover untracked pointers (and other issues, like incorrect
           // class table).
-          heap->CollectAllGarbage(Heap::kLowMemory);
+          heap->CollectAllGarbage(GCReason::kLowMemory);
         }
       }
       if (discard_class_tables) {
@@ -863,6 +829,11 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     ReportReasonsForCancelling();
     success = false;
   }
+
+  Array& null_array = Array::Handle(Z);
+  // Invalidate the URI mapping caches.
+  IG->object_store()->set_uri_to_resolved_uri_map(null_array);
+  IG->object_store()->set_resolved_uri_to_uri_map(null_array);
 
   // Re-queue any shutdown requests so they can inform each isolate's own thread
   // to shut down.
@@ -1044,10 +1015,6 @@ void ProgramReloadContext::ReloadPhase1AllocateStorageMapsAndCheckpoint() {
       HashTables::New<UnorderedHashSet<LibraryMapTraits> >(4);
   library_map_storage_ =
       HashTables::New<UnorderedHashMap<LibraryMapTraits> >(4);
-  become_map_storage_ = HashTables::New<UnorderedHashMap<BecomeMapTraits> >(4);
-  // Keep a separate array for enum mappings to avoid having to invoke
-  // hashCode on the instances.
-  become_enum_mappings_ = GrowableObjectArray::New(Heap::kOld);
 
   // While reloading everything we do must be reversible so that we can abort
   // safely if the reload fails. This function stashes things to the side and
@@ -1639,39 +1606,7 @@ void ProgramReloadContext::CommitBeforeInstanceMorphing() {
 }
 
 void ProgramReloadContext::CommitAfterInstanceMorphing() {
-  {
-    const GrowableObjectArray& become_enum_mappings =
-        GrowableObjectArray::Handle(become_enum_mappings_);
-    UnorderedHashMap<BecomeMapTraits> become_map(become_map_storage_);
-    intptr_t replacement_count =
-        become_map.NumOccupied() + become_enum_mappings.Length() / 2;
-    const Array& before =
-        Array::Handle(Array::New(replacement_count, Heap::kOld));
-    const Array& after =
-        Array::Handle(Array::New(replacement_count, Heap::kOld));
-    Object& obj = Object::Handle();
-    intptr_t replacement_index = 0;
-    UnorderedHashMap<BecomeMapTraits>::Iterator it(&become_map);
-    while (it.MoveNext()) {
-      const intptr_t entry = it.Current();
-      obj = become_map.GetKey(entry);
-      before.SetAt(replacement_index, obj);
-      obj = become_map.GetPayload(entry, 0);
-      after.SetAt(replacement_index, obj);
-      replacement_index++;
-    }
-    for (intptr_t i = 0; i < become_enum_mappings.Length(); i += 2) {
-      obj = become_enum_mappings.At(i);
-      before.SetAt(replacement_index, obj);
-      obj = become_enum_mappings.At(i + 1);
-      after.SetAt(replacement_index, obj);
-      replacement_index++;
-    }
-    ASSERT(replacement_index == replacement_count);
-    become_map.Release();
-
-    Become::ElementsForwardIdentity(before, after);
-  }
+  become_.Forward();
 
   // Rehash constants map for all classes. Constants are hashed by content, and
   // content may have changed from fields being added or removed.
@@ -1747,8 +1682,7 @@ void IsolateGroupReloadContext::ReportReasonsForCancelling() {
 
 void IsolateGroupReloadContext::MorphInstancesPhase1Allocate(
     ObjectLocator* locator,
-    const Array& before,
-    const Array& after) {
+    Become* become) {
   ASSERT(HasInstanceMorphers());
 
   if (FLAG_trace_reload) {
@@ -1764,27 +1698,14 @@ void IsolateGroupReloadContext::MorphInstancesPhase1Allocate(
             (count > 1) ? "s" : "");
 
   for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
-    instance_morphers_.At(i)->CreateMorphedCopies();
+    instance_morphers_.At(i)->CreateMorphedCopies(become);
   }
-
-  // Create the inputs for Become.
-  intptr_t index = 0;
-  for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
-    InstanceMorpher* morpher = instance_morphers_.At(i);
-    for (intptr_t j = 0; j < morpher->before()->length(); j++) {
-      before.SetAt(index, *morpher->before()->At(j));
-      after.SetAt(index, *morpher->after()->At(j));
-      index++;
-    }
-  }
-  ASSERT(index == count);
 }
 
-void IsolateGroupReloadContext::MorphInstancesPhase2Become(const Array& before,
-                                                           const Array& after) {
+void IsolateGroupReloadContext::MorphInstancesPhase2Become(Become* become) {
   ASSERT(HasInstanceMorphers());
 
-  Become::ElementsForwardIdentity(before, after);
+  become->Forward();
   // The heap now contains only instances with the new size. Ordinary GC is safe
   // again.
 }
@@ -2550,26 +2471,12 @@ void ProgramReloadContext::AddStaticFieldMapping(const Field& old_field,
                                                  const Field& new_field) {
   ASSERT(old_field.is_static());
   ASSERT(new_field.is_static());
-
   AddBecomeMapping(old_field, new_field);
 }
 
 void ProgramReloadContext::AddBecomeMapping(const Object& old,
                                             const Object& neu) {
-  ASSERT(become_map_storage_ != Array::null());
-  UnorderedHashMap<BecomeMapTraits> become_map(become_map_storage_);
-  bool update = become_map.UpdateOrInsert(old, neu);
-  ASSERT(!update);
-  become_map_storage_ = become_map.Release().ptr();
-}
-
-void ProgramReloadContext::AddEnumBecomeMapping(const Object& old,
-                                                const Object& neu) {
-  const GrowableObjectArray& become_enum_mappings =
-      GrowableObjectArray::Handle(become_enum_mappings_);
-  become_enum_mappings.Add(old);
-  become_enum_mappings.Add(neu);
-  ASSERT((become_enum_mappings.Length() % 2) == 0);
+  become_.Add(old, neu);
 }
 
 void ProgramReloadContext::RebuildDirectSubclasses() {

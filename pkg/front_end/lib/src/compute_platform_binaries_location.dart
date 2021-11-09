@@ -41,9 +41,9 @@ String? computePlatformDillName(
     case 'dart2js':
       switch (nnbdMode) {
         case NnbdMode.Strong:
-          return 'dart2js_nnbd_strong_platform.dill';
-        case NnbdMode.Weak:
           return 'dart2js_platform.dill';
+        case NnbdMode.Weak:
+          return 'dart2js_platform_unsound.dill';
         case NnbdMode.Agnostic:
           break;
       }
@@ -51,9 +51,9 @@ String? computePlatformDillName(
     case 'dart2js_server':
       switch (nnbdMode) {
         case NnbdMode.Strong:
-          return 'dart2js_server_nnbd_strong_platform.dill';
-        case NnbdMode.Weak:
           return 'dart2js_server_platform.dill';
+        case NnbdMode.Weak:
+          return 'dart2js_server_platform_unsound.dill';
         case NnbdMode.Agnostic:
           break;
       }

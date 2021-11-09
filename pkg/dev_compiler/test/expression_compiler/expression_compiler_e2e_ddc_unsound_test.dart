@@ -4,8 +4,6 @@
 
 // @dart = 2.9
 
-library dev_compiler.test.expression_compiler;
-
 import 'package:dev_compiler/dev_compiler.dart' show ModuleFormat;
 import 'package:test/test.dart';
 import 'expression_compiler_e2e_shared.dart';
@@ -21,8 +19,11 @@ void main() async {
 
     group('(DDC module system)', () {
       var setup = SetupCompilerOptions(
-          soundNullSafety: false, moduleFormat: ModuleFormat.ddc);
-      runSharedTests(setup, driver);
+          soundNullSafety: false,
+          legacyCode: false,
+          moduleFormat: ModuleFormat.ddc);
+      runAgnosticSharedTests(setup, driver);
+      runNullSafeSharedTests(setup, driver);
     });
   });
 }

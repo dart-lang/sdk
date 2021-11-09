@@ -19,6 +19,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropNonExternalConstructor,
         messageJsInteropNonExternalMember,
         templateJsInteropDartClassExtendsJSClass,
+        templateJsInteropStaticInteropWithInstanceMembers,
+        templateJsInteropStaticInteropWithNonStaticSupertype,
         templateJsInteropJSClassExtendsDartClass,
         templateJsInteropNativeClassInAnnotation;
 
@@ -30,6 +32,7 @@ class JsInteropChecks extends RecursiveVisitor {
   final Map<String, Class> _nativeClasses;
   bool _classHasJSAnnotation = false;
   bool _classHasAnonymousAnnotation = false;
+  bool _classHasStaticInteropAnnotation = false;
   bool _libraryHasJSAnnotation = false;
   Map<Reference, Extension>? _libraryExtensionsIndex;
 
@@ -99,6 +102,7 @@ class JsInteropChecks extends RecursiveVisitor {
   void visitClass(Class cls) {
     _classHasJSAnnotation = hasJSInteropAnnotation(cls);
     _classHasAnonymousAnnotation = hasAnonymousAnnotation(cls);
+    _classHasStaticInteropAnnotation = hasStaticInteropAnnotation(cls);
     var superclass = cls.superclass;
     if (superclass != null && superclass != _coreTypes.objectClass) {
       var superHasJSAnnotation = hasJSInteropAnnotation(superclass);
@@ -116,11 +120,35 @@ class JsInteropChecks extends RecursiveVisitor {
             cls.fileOffset,
             cls.name.length,
             cls.fileUri);
+      } else if (_classHasStaticInteropAnnotation) {
+        if (!hasStaticInteropAnnotation(superclass)) {
+          _diagnosticsReporter.report(
+              templateJsInteropStaticInteropWithNonStaticSupertype
+                  .withArguments(cls.name, superclass.name),
+              cls.fileOffset,
+              cls.name.length,
+              cls.fileUri);
+        }
+      }
+    }
+    // Validate that superinterfaces are all annotated as static as well. Note
+    // that mixins are already disallowed and therefore are not checked here.
+    if (_classHasStaticInteropAnnotation) {
+      for (var supertype in cls.implementedTypes) {
+        if (!hasStaticInteropAnnotation(supertype.classNode)) {
+          _diagnosticsReporter.report(
+              templateJsInteropStaticInteropWithNonStaticSupertype
+                  .withArguments(cls.name, supertype.classNode.name),
+              cls.fileOffset,
+              cls.name.length,
+              cls.fileUri);
+        }
       }
     }
     // Since this is a breaking check, it is language-versioned.
     if (cls.enclosingLibrary.languageVersion >= Version(2, 13) &&
         _classHasJSAnnotation &&
+        !_classHasStaticInteropAnnotation &&
         !_classHasAnonymousAnnotation &&
         _libraryIsGlobalNamespace) {
       var jsClass = getJSName(cls);
@@ -221,6 +249,30 @@ class JsInteropChecks extends RecursiveVisitor {
         _checkNoNamedParameters(procedure.function);
       }
     }
+
+    if (_classHasStaticInteropAnnotation &&
+        procedure.isInstanceMember &&
+        !procedure.isFactory) {
+      _diagnosticsReporter.report(
+          templateJsInteropStaticInteropWithInstanceMembers
+              .withArguments(procedure.enclosingClass!.name),
+          procedure.fileOffset,
+          procedure.name.text.length,
+          procedure.fileUri);
+    }
+  }
+
+  @override
+  void visitField(Field field) {
+    if (_classHasStaticInteropAnnotation && field.isInstanceMember) {
+      _diagnosticsReporter.report(
+          templateJsInteropStaticInteropWithInstanceMembers
+              .withArguments(field.enclosingClass!.name),
+          field.fileOffset,
+          field.name.text.length,
+          field.fileUri);
+    }
+    super.visitField(field);
   }
 
   @override

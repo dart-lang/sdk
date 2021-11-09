@@ -282,6 +282,12 @@ class Error {
 
   @patch
   StackTrace? get stackTrace => dart.stackTraceForError(this);
+
+  @patch
+  static Never _throw(Object error, StackTrace stackTrace) {
+    JS("", "throw #", dart.createErrorWithStack(error, stackTrace));
+    throw "unreachable";
+  }
 }
 
 @patch
@@ -592,9 +598,7 @@ class String {
   }
 
   static String _stringFromJSArray(
-      /*=JSArray<int>*/ list,
-      int start,
-      int? endOrNull) {
+      /*=JSArray<int>*/ list, int start, int? endOrNull) {
     int len = list.length;
     int end = RangeError.checkValidRange(start, endOrNull, len);
     if (start > 0 || end < len) {

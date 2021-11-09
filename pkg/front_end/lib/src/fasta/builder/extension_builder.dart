@@ -83,15 +83,13 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
 
   @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
     if (library is SourceLibraryBuilder &&
         library.enableExtensionTypesInLibrary) {
-      return buildTypesWithBuiltArguments(
+      return buildTypeWithBuiltArguments(
           library,
           nullabilityBuilder.build(library),
-          buildTypeArguments(library, arguments,
-              nonInstanceContext: nonInstanceContext));
+          _buildTypeArguments(library, arguments));
     } else {
       throw new UnsupportedError("ExtensionBuilder.buildType is not supported"
           "in library '${library.importUri}'.");
@@ -99,7 +97,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
     if (library is SourceLibraryBuilder &&
         library.enableExtensionTypesInLibrary) {
@@ -114,9 +112,8 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   @override
   int get typeVariablesCount => typeParameters?.length ?? 0;
 
-  List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+  List<DartType> _buildTypeArguments(
+      LibraryBuilder library, List<TypeBuilder>? arguments) {
     if (arguments == null && typeParameters == null) {
       return <DartType>[];
     }
@@ -137,7 +134,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
       return unhandled(
           templateTypeArgumentMismatch
               .withArguments(typeVariablesCount)
-              .message,
+              .problemMessage,
           "buildTypeArguments",
           -1,
           null);

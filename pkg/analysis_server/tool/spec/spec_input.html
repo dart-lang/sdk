@@ -1455,6 +1455,100 @@
       </field>
     </result>
   </request>
+  <request method="getSuggestions2" experimental="true">
+    <p>
+      Request that completion suggestions for the given offset in the given
+      file be returned. The suggestions will be filtered using fuzzy matching
+      with the already existing prefix.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the point at which suggestions are to be made.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset within the file at which suggestions are to be made.
+        </p>
+      </field>
+      <field name="maxResults">
+        <ref>int</ref>
+        <p>
+          The maximum number of suggestions to return. If the number of
+          suggestions after filtering is greater than the <tt>maxResults</tt>,
+          then <tt>isIncomplete</tt> is set to <tt>true</tt>.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="replacementOffset">
+        <ref>int</ref>
+        <p>
+          The offset of the start of the text to be  replaced. This will be
+          different from the offset used  to request the completion suggestions
+          if there was a portion of an identifier before the original offset.
+          In particular, the replacementOffset will be the offset of the
+          beginning of said identifier.
+        </p>
+      </field>
+      <field name="replacementLength">
+        <ref>int</ref>
+        <p>
+          The length of the text to be replaced if the remainder of the
+          identifier containing the cursor is to be replaced when the
+          suggestion is applied (that is, the number of characters in the
+          existing identifier).
+        </p>
+      </field>
+      <field name="suggestions">
+        <list>
+          <ref>CompletionSuggestion</ref>
+        </list>
+        <p>
+          The completion suggestions being reported. This list is filtered
+          by the already existing prefix, and sorted first by relevance,
+          and (if the same) by the suggestion text. The list will have at
+          most <tt>maxResults</tt> items. If the user types a new keystroke,
+          the client is expected to either do local filtering (when the
+          returned list was complete), or ask the server again (if
+          <tt>isIncomplete</tt> was <tt>true</tt>).
+        </p>
+        <p>
+          This list contains suggestions from both imported, and not yet
+          imported libraries. Items from not yet imported libraries will
+          have <tt>libraryUriToImportIndex</tt> set, which is an index into
+          the <tt>libraryUrisToImport</tt> in this response.
+        </p>
+      </field>
+      <field name="libraryUrisToImport">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          The list of libraries with declarations that are not yet available
+          in the file where completion was requested, most often because
+          the library is not yet imported. The declarations still might be
+          included into the <tt>suggestions</tt>, and the client should use
+          <tt>getSuggestionDetails2</tt> on selection to make the library
+          available in the file.
+        </p>
+        <p>
+          Each item is the URI of a library, such as <tt>package:foo/bar.dart</tt>
+          or <tt>file:///home/me/workspace/foo/test/bar_test.dart</tt>.
+        </p>
+      </field>
+      <field name="isIncomplete">
+        <ref>bool</ref>
+        <p>
+          True if the number of suggestions after filtering was greater than
+          the requested <tt>maxResults</tt>.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="setSubscriptions">
     <p>
       Subscribe for completion services. All previous subscriptions are
@@ -1547,6 +1641,66 @@
           A change for the client to apply in case the library containing
           the accepted completion suggestion needs to be imported. The field
           will be omitted if there are no additional changes that need to be made.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="getSuggestionDetails2" experimental="true">
+    <p>
+      Clients must make this request when the user has selected a completion
+      suggestion with the <tt>libraryUriToImportIndex</tt> field set.
+      The server will respond with the text to insert, as well as any
+      <tt>SourceChange</tt> that needs to be applied in case the completion
+      requires an additional import to be  added. The text to insert might be
+      different from the original suggestion to include an import prefix if the
+      library will be imported with a prefix to avoid shadowing
+      conflicts in the file.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The path of the file into which this completion is being inserted.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset in the file where the completion will be inserted.
+        </p>
+      </field>
+      <field name="completion">
+        <ref>String</ref>
+        <p>
+          The <tt>completion</tt> from the selected
+          <tt>CompletionSuggestion</tt>.  It could be a name of a class, or a
+          name of a constructor in form "typeName.constructorName()", or an
+          enumeration constant in form "enumName.constantName", etc.
+        </p>
+      </field>
+      <field name="libraryUri">
+        <ref>String</ref>
+        <p>
+          The URI of the library to import, so that the element referenced
+          in the <tt>completion</tt> becomes accessible.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="completion">
+        <ref>String</ref>
+        <p>
+          The full text to insert, which possibly includes now an import prefix.
+          The client should insert this text, not the <tt>completion</tt> from
+          the selected <tt>CompletionSuggestion</tt>.
+        </p>
+      </field>
+      <field name="change">
+        <ref>SourceChange</ref>
+        <p>
+          A change for the client to apply to make the accepted completion
+          suggestion available. In most cases the change is to add a new
+          import directive to the file.
         </p>
       </field>
     </result>

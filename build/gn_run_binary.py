@@ -45,12 +45,9 @@ def main(argv):
         return 1
 
     # Unless the path is absolute, this script is designed to run binaries
-    # produced by the current build. We always prefix it with "./" to avoid
-    # picking up system versions that might also be on the path.
-    if os.path.isabs(argv[2]):
-        path = argv[2]
-    else:
-        path = './' + argv[2]
+    # produced by the current build, which is the current working directory when
+    # this script is run.
+    path = os.path.abspath(argv[2])
 
     if not os.path.isfile(path):
         print("Binary not found: " + path)

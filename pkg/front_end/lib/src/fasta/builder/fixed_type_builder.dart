@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart';
 import '../problems.dart';
 import '../source/source_library_builder.dart';
 import 'library_builder.dart';
+import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 
@@ -21,7 +22,7 @@ class FixedTypeBuilder extends TypeBuilder {
 
   @override
   TypeBuilder clone(
-      List<TypeBuilder> newTypes,
+      List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
     return this;
@@ -47,8 +48,7 @@ class FixedTypeBuilder extends TypeBuilder {
   }
 
   @override
-  DartType build(LibraryBuilder library,
-      {TypedefType? origin, bool? nonInstanceContext}) {
+  DartType build(LibraryBuilder library, {TypedefType? origin}) {
     return type;
   }
 

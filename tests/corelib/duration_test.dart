@@ -205,7 +205,7 @@ main() {
   Expect.equals(-3600000000, d.inMicroseconds);
   d = d1 * 0;
   Expect.equals(0, d.inMicroseconds);
-  Expect.throws(() => d1 ~/ 0, (e) => e is IntegerDivisionByZeroException);
+  Expect.throws(() => d1 ~/ 0, (e) => e is UnsupportedError);
 
   d = new Duration(microseconds: 0);
   Expect.isTrue(d < new Duration(microseconds: 1));

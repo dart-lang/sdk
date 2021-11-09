@@ -37,3 +37,24 @@ Future throws(Function f, bool check(Object exception)) async {
   }
   Expect.fail('Did not throw');
 }
+
+// Create a temporary directory and delete it when the test function exits.
+Future withTempDir(String prefix, Future<void> test(Directory dir)) async {
+  final tempDir = Directory.systemTemp.createTempSync(prefix);
+  try {
+    await runZonedGuarded(() => test(tempDir), (e, st) {
+      try {
+        tempDir.deleteSync(recursive: true);
+      } catch (_) {
+        // ignore errors
+      }
+      throw e;
+    });
+  } finally {
+    try {
+      tempDir.deleteSync(recursive: true);
+    } catch (_) {
+      // ignore errors
+    }
+  }
+}

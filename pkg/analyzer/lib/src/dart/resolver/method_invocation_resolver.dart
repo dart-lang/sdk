@@ -218,27 +218,45 @@ class MethodInvocationResolver {
     ExecutableElement element,
     bool nullReceiver,
   ) {
-    if (_resolver.enclosingExtension != null) {
+    var enclosingElement = element.enclosingElement;
+    if (nullReceiver) {
+      if (_resolver.enclosingExtension != null) {
+        _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
+          nameNode,
+          [enclosingElement.displayName],
+        );
+      } else {
+        _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          nameNode,
+          [enclosingElement.displayName],
+        );
+      }
+    } else if (enclosingElement is ExtensionElement &&
+        enclosingElement.name == null) {
       _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode
-            .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
-        nameNode,
-        [element.enclosingElement.displayName],
-      );
-    } else if (nullReceiver) {
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-        nameNode,
-        [element.enclosingElement.displayName],
-      );
+          CompileTimeErrorCode
+              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+          nameNode,
+          [
+            nameNode.name,
+            element.kind.displayName,
+          ]);
     } else {
+      // It is safe to assume that `enclosingElement.name` is non-`null` because
+      // it can only be `null` for extensions, and we handle that case above.
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
         nameNode,
         [
           nameNode.name,
           element.kind.displayName,
-          element.enclosingElement.displayName,
+          enclosingElement.name!,
+          enclosingElement is ClassElement && enclosingElement.isMixin
+              ? 'mixin'
+              : enclosingElement.kind.displayName,
         ],
       );
     }
@@ -375,10 +393,12 @@ class MethodInvocationResolver {
     }
 
     _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
+    // This method is only called for named extensions, so we know that
+    // `extension.name` is non-`null`.
     _resolver.errorReporter.reportErrorForNode(
       CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
       nameNode,
-      [name, extension.name],
+      [name, extension.name!],
     );
   }
 
@@ -393,10 +413,12 @@ class MethodInvocationResolver {
 
     if (member == null) {
       _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
+      // Extension overrides always refer to named extensions, so we can safely
+      // assume `override.staticElement!.name` is non-`null`.
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
         nameNode,
-        [name, override.staticElement!.name],
+        [name, override.staticElement!.name!],
       );
       return;
     }

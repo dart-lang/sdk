@@ -61,7 +61,7 @@ static method main() → void {
   });
   self::E e = new self::F::•();
   let final core::int #t3 = [@vm.direct-call.metadata=#lib::F.bar] [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] e.{self::E::bar}{core::int} in exp::Expect::equals();
-  exp::Expect::isTrue(![@vm.inferred-type.metadata=dart.core::bool] core::identical(#C2, #C4));
+  exp::Expect::isTrue(!core::identical(#C2, #C4));
   [@vm.direct-call.metadata=#lib::I.foo] [@vm.inferred-type.metadata=!? (skip check)] new self::I::•().{self::I::foo}(){() → dynamic};
   5;
 }

@@ -21,7 +21,6 @@ io/https_unauthorized_test: Skip
 io/named_pipe_script_test: Skip
 io/namespace_test: Skip # Issue 33168
 io/platform_resolved_executable_test: Skip
-io/platform_test: RuntimeError # Expects to be running from 'dart' instead of 'dart_precompiled_runtime'
 io/print_sync_test: Skip
 io/process_check_arguments_test: Skip
 io/process_detached_test: Skip

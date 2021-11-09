@@ -299,6 +299,21 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   }
 }
 
+void VirtualMemory::DontNeed(void* address, intptr_t size) {
+  uword start_address = reinterpret_cast<uword>(address);
+  uword end_address = start_address + size;
+  uword page_address = Utils::RoundDown(start_address, PageSize());
+  zx_status_t status = zx_vmar_op_range(
+      getVmarForAddress(reinterpret_cast<uword>(address)), ZX_VMAR_OP_DONT_NEED,
+      page_address, end_address - page_address, nullptr, 0);
+  LOG_INFO("zx_vmar_op_range(DONTNEED, 0x%lx, 0x%lx)\n", page_address,
+           end_address - page_address);
+  if (status != ZX_OK) {
+    FATAL("zx_vmar_op_range(DONTNEED, 0x%lx, 0x%lx) failed: %s\n", page_address,
+          end_address - page_address, zx_status_get_string(status));
+  }
+}
+
 }  // namespace dart
 
 #endif  // defined(DART_HOST_OS_FUCHSIA)

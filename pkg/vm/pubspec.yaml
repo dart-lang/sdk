@@ -7,7 +7,7 @@ environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
-  args: ^1.4.4
+  args: ^2.0.0
   build_integration:
     path: ../build_integration
   crypto: any
@@ -25,7 +25,3 @@ dev_dependencies:
   path: any
   test: any
   web_socket_channel: any
-
-dependency_overrides:
-  front_end:
-    path: ../front_end

@@ -6,7 +6,8 @@ library fasta.uri_translator;
 
 import 'package:package_config/package_config.dart';
 
-import '../base/libraries_specification.dart' show TargetLibrariesSpecification;
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
+    show TargetLibrariesSpecification;
 import 'compiler_context.dart' show CompilerContext;
 import 'fasta_codes.dart';
 

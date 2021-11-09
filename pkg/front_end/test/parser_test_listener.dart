@@ -172,19 +172,19 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginClassOrMixinBody(DeclarationKind kind, Token token) {
+  void beginClassOrMixinOrExtensionBody(DeclarationKind kind, Token token) {
     seen(token);
-    doPrint('beginClassOrMixinBody(' '$kind, ' '$token)');
+    doPrint('beginClassOrMixinOrExtensionBody(' '$kind, ' '$token)');
     indent++;
   }
 
   @override
-  void endClassOrMixinBody(
+  void endClassOrMixinOrExtensionBody(
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     indent--;
     seen(beginToken);
     seen(endToken);
-    doPrint('endClassOrMixinBody('
+    doPrint('endClassOrMixinOrExtensionBody('
         '$kind, '
         '$memberCount, '
         '$beginToken, '
@@ -192,9 +192,9 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginClassOrNamedMixinApplicationPrelude(Token token) {
+  void beginClassOrMixinOrNamedMixinApplicationPrelude(Token token) {
     seen(token);
-    doPrint('beginClassOrNamedMixinApplicationPrelude(' '$token)');
+    doPrint('beginClassOrMixinOrNamedMixinApplicationPrelude(' '$token)');
     indent++;
   }
 
@@ -485,12 +485,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginFactoryMethod(
-      Token lastConsumed, Token? externalToken, Token? constToken) {
+  void beginFactoryMethod(DeclarationKind declarationKind, Token lastConsumed,
+      Token? externalToken, Token? constToken) {
     seen(lastConsumed);
     seen(externalToken);
     seen(constToken);
     doPrint('beginFactoryMethod('
+        '$declarationKind, '
         '$lastConsumed, '
         '$externalToken, '
         '$constToken)');
@@ -879,21 +880,19 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginFunctionTypeAlias(Token token) {
+  void beginTypedef(Token token) {
     seen(token);
-    doPrint('beginFunctionTypeAlias(' '$token)');
+    doPrint('beginTypedef(' '$token)');
     indent++;
   }
 
   @override
-  void endFunctionTypeAlias(
-      Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
     indent--;
     seen(typedefKeyword);
     seen(equals);
     seen(endToken);
-    doPrint(
-        'endFunctionTypeAlias(' '$typedefKeyword, ' '$equals, ' '$endToken)');
+    doPrint('endTypedef(' '$typedefKeyword, ' '$equals, ' '$endToken)');
   }
 
   @override
@@ -1087,10 +1086,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endImplicitCreationExpression(Token token) {
+  void endImplicitCreationExpression(Token token, Token openAngleBracket) {
     indent--;
     seen(token);
-    doPrint('endImplicitCreationExpression(' '$token)');
+    seen(openAngleBracket);
+    doPrint('endImplicitCreationExpression(' '$token, ' '$openAngleBracket)');
   }
 
   @override
@@ -1288,6 +1288,7 @@ class ParserTestListener implements Listener {
 
   @override
   void beginMethod(
+      DeclarationKind declarationKind,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -1301,6 +1302,7 @@ class ParserTestListener implements Listener {
     seen(getOrSet);
     seen(name);
     doPrint('beginMethod('
+        '$declarationKind, '
         '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
@@ -1668,9 +1670,31 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginFields(Token lastConsumed) {
+  void beginFields(
+      DeclarationKind declarationKind,
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      Token lastConsumed) {
+    seen(abstractToken);
+    seen(externalToken);
+    seen(staticToken);
+    seen(covariantToken);
+    seen(lateToken);
+    seen(varFinalOrConst);
     seen(lastConsumed);
-    doPrint('beginFields(' '$lastConsumed)');
+    doPrint('beginFields('
+        '$declarationKind, '
+        '$abstractToken, '
+        '$externalToken, '
+        '$staticToken, '
+        '$covariantToken, '
+        '$lateToken, '
+        '$varFinalOrConst, '
+        '$lastConsumed)');
     indent++;
   }
 

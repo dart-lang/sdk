@@ -9,10 +9,15 @@ import 'package:kernel/kernel.dart';
 bool hasJSInteropAnnotation(Annotatable a) =>
     a.annotations.any(_isPublicJSAnnotation);
 
-/// Returns true iff the node has an `@anonymous(...)` annotation from
-/// `package:js` or from the internal `dart:_js_annotations`.
+/// Returns true iff the node has an `@anonymous` annotation from `package:js`
+/// or from the internal `dart:_js_annotations`.
 bool hasAnonymousAnnotation(Annotatable a) =>
     a.annotations.any(_isAnonymousAnnotation);
+
+/// Returns true iff the node has an `@staticInterop` annotation from
+/// `package:js` or from the internal `dart:_js_annotations`.
+bool hasStaticInteropAnnotation(Annotatable a) =>
+    a.annotations.any(_isStaticInteropAnnotation);
 
 /// If [a] has a `@JS('...')` annotation, returns the value inside the
 /// parentheses.
@@ -52,26 +57,26 @@ final _packageJs = Uri.parse('package:js/js.dart');
 final _internalJs = Uri.parse('dart:_js_annotations');
 final _jsHelper = Uri.parse('dart:_js_helper');
 
-/// Returns true if [value] is the `JS` annotation from `package:js` or from
-/// `dart:_js_annotations`.
-bool _isPublicJSAnnotation(Expression value) {
+/// Returns true if [value] is the interop annotation whose class is
+/// [annotationClassName] from `package:js` or from `dart:_js_annotations`.
+bool _isInteropAnnotation(Expression value, String annotationClassName) {
   var c = _annotationClass(value);
   return c != null &&
-      c.name == 'JS' &&
+      c.name == annotationClassName &&
       (c.enclosingLibrary.importUri == _packageJs ||
           c.enclosingLibrary.importUri == _internalJs);
 }
 
-/// Returns true if [value] is the `anyonymous` annotation from `package:js` or
-/// from `dart:_js_annotations`.
-bool _isAnonymousAnnotation(Expression value) {
-  var c = _annotationClass(value);
-  return c != null &&
-      c.name == '_Anonymous' &&
-      (c.enclosingLibrary.importUri == _packageJs ||
-          c.enclosingLibrary.importUri == _internalJs);
-}
+bool _isPublicJSAnnotation(Expression value) =>
+    _isInteropAnnotation(value, 'JS');
 
+bool _isAnonymousAnnotation(Expression value) =>
+    _isInteropAnnotation(value, '_Anonymous');
+
+bool _isStaticInteropAnnotation(Expression value) =>
+    _isInteropAnnotation(value, '_StaticInterop');
+
+/// Returns true if [value] is the `Native` annotation from `dart:_js_helper`.
 bool _isNativeAnnotation(Expression value) {
   var c = _annotationClass(value);
   return c != null &&
@@ -85,6 +90,7 @@ bool _isNativeAnnotation(Expression value) {
 ///
 /// - `@JS()` would return the "JS" class in "package:js".
 /// - `@anonymous` would return the "_Anonymous" class in "package:js".
+/// - `@staticInterop` would return the "_StaticInterop" class in "package:js".
 /// - `@Native` would return the "Native" class in "dart:_js_helper".
 ///
 /// This function works regardless of whether the CFE is evaluating constants,

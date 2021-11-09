@@ -306,7 +306,7 @@ void main() {
     ]);
     await _resolveFile('$testPackageRootPath/lib2.dart', [
       error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 40, 12,
-          messageContains: 'A.forTesting'),
+          messageContains: ['A.forTesting']),
     ]);
   }
 

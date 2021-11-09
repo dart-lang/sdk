@@ -63,7 +63,11 @@ void BlockScheduler::AssignEdgeWeights(FlowGraph* flow_graph) {
     return;
   }
   Array& edge_counters = Array::Handle();
-  edge_counters ^= ic_data_array.At(0);
+  edge_counters ^=
+      ic_data_array.At(Function::ICDataArrayIndices::kEdgeCounters);
+  if (edge_counters.IsNull()) {
+    return;
+  }
 
   auto graph_entry = flow_graph->graph_entry();
   BlockEntryInstr* entry = graph_entry->normal_entry();

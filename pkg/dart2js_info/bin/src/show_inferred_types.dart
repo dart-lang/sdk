@@ -15,7 +15,9 @@ import 'package:dart2js_info/src/io.dart';
 import 'usage_exception.dart';
 
 class ShowInferredTypesCommand extends Command<void> with PrintUsageException {
+  @override
   final String name = "show_inferred";
+  @override
   final String description = "Show data inferred by dart2js global inference";
 
   ShowInferredTypesCommand() {
@@ -23,6 +25,7 @@ class ShowInferredTypesCommand extends Command<void> with PrintUsageException {
         abbr: 'l', negatable: false, help: 'Show long qualified names.');
   }
 
+  @override
   void run() async {
     var args = argResults.rest;
     if (args.length < 2) {
@@ -35,7 +38,7 @@ class ShowInferredTypesCommand extends Command<void> with PrintUsageException {
 
 _showInferredTypes(String infoFile, String pattern, bool showLongName) async {
   var info = await infoFromFile(infoFile);
-  var nameRegExp = new RegExp(pattern);
+  var nameRegExp = RegExp(pattern);
   matches(e) => nameRegExp.hasMatch(longName(e));
 
   bool noResults = true;

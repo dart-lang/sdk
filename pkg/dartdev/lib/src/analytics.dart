@@ -121,6 +121,7 @@ class DartdevAnalytics extends AnalyticsImpl {
           IOPostHandler(),
           applicationName: appName,
           applicationVersion: getDartVersion(),
+          batchingDelay: Duration(),
         );
 
   @override

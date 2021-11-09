@@ -59,12 +59,12 @@ class A {
       expect(name1!.staticElement, isClassElement);
       expect(name1.staticElement!.displayName, 'A');
       expect(name2!.staticElement, isConstructorElement);
-      expect(name2.staticElement!.displayName, 'named');
+      expect(name2.staticElement!.displayName, 'A.named');
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
         expect(annotationElement, same(name2.staticElement));
         expect(annotationElement.enclosingElement, name1.staticElement);
-        expect(annotationElement.displayName, 'named');
+        expect(annotationElement.displayName, 'A.named');
         expect(annotationElement.parameters, isEmpty);
       } else {
         fail('Expected "annotationElement" is ConstructorElement, '
@@ -86,11 +86,11 @@ class A {
       expect(name2!.staticElement, isClassElement);
       expect(name2.staticElement!.displayName, 'A');
       expect(name3!.staticElement, isConstructorElement);
-      expect(name3.staticElement!.displayName, 'named');
+      expect(name3.staticElement!.displayName, 'A.named');
       if (annotationElement is ConstructorElement) {
         expect(annotationElement, same(name3.staticElement));
         expect(annotationElement.enclosingElement, name2.staticElement);
-        expect(annotationElement.displayName, 'named');
+        expect(annotationElement.displayName, 'A.named');
         expect(annotationElement.parameters, isEmpty);
       } else {
         fail('Expected "annotationElement" is ConstructorElement, '
@@ -139,7 +139,7 @@ class A {
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
         expect(annotationElement.enclosingElement, name2.staticElement);
-        expect(annotationElement.displayName, '');
+        expect(annotationElement.displayName, 'A');
         expect(annotationElement.parameters, isEmpty);
       } else {
         fail('Expected "annotationElement" is ConstructorElement, '
@@ -186,7 +186,7 @@ class A {
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
         expect(annotationElement.enclosingElement, name1.staticElement);
-        expect(annotationElement.displayName, '');
+        expect(annotationElement.displayName, 'A');
         expect(annotationElement.parameters, isEmpty);
       } else {
         fail('Expected "annotationElement" is ConstructorElement, '
@@ -259,7 +259,7 @@ class C {}
       validator(name.prefix, name.identifier, annotation.constructorName,
           annotationElement);
     } else {
-      fail('Uknown "name": ${name.runtimeType} $name');
+      fail('Unknown "name": ${name.runtimeType} $name');
     }
   }
 }
@@ -444,7 +444,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
     ConstructorName name = AstTestFactory.constructorName(
-        AstTestFactory.typeName(classA), constructorName);
+        AstTestFactory.namedType(classA), constructorName);
     _resolveNode(name);
     expect(name.staticElement, same(constructor));
     _listener.assertNoErrors();
@@ -458,7 +458,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
     ConstructorName name = AstTestFactory.constructorName(
-        AstTestFactory.typeName(classA), constructorName);
+        AstTestFactory.namedType(classA), constructorName);
     _resolveNode(name);
     expect(name.staticElement, same(constructor));
     _listener.assertNoErrors();
@@ -573,7 +573,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
     var name = AstTestFactory.constructorName(
-        AstTestFactory.typeName(classA), constructorName);
+        AstTestFactory.namedType(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation =
         AstTestFactory.instanceCreationExpression(Keyword.NEW, name);
@@ -588,7 +588,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
     var name = AstTestFactory.constructorName(
-        AstTestFactory.typeName(classA), constructorName);
+        AstTestFactory.namedType(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation =
         AstTestFactory.instanceCreationExpression(Keyword.NEW, name);
@@ -607,7 +607,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     constructor.parameters = <ParameterElement>[parameter];
     classA.constructors = <ConstructorElement>[constructor];
     var name = AstTestFactory.constructorName(
-        AstTestFactory.typeName(classA), constructorName);
+        AstTestFactory.namedType(classA), constructorName);
     name.staticElement = constructor;
     InstanceCreationExpression creation =
         AstTestFactory.instanceCreationExpression(Keyword.NEW, name, [

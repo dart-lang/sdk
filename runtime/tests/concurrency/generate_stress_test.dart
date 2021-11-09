@@ -17,7 +17,7 @@ final generatedNnbdTest =
 final Map testMap = json.decode(File(stressTestListJson).readAsStringSync());
 final testFiles = testMap['non-nnbd'].cast<String>();
 final testFilesNnbd = testMap['nnbd'].cast<String>();
-final dartfmt = 'tools/sdks/dart-sdk/bin/dartfmt';
+final dart = 'tools/sdks/dart-sdk/bin/dart';
 
 main(List<String> args) async {
   File(generatedNnbdTest)
@@ -188,7 +188,7 @@ main() async {
 
 Future<String> format(String generatedSource) async {
   try {
-    final result = await Process.start(dartfmt, []);
+    final result = await Process.start(dart, ['format']);
     result.stdin.writeln(generatedSource);
 
     final results = await Future.wait([
@@ -200,13 +200,14 @@ Future<String> format(String generatedSource) async {
 
     final exitCode = results[3] as int;
     if (exitCode != 0) {
-      print('Note: Failed to format source code. Dartfmt exited non-0.');
+      print('Note: Failed to format source code. Dart format exited non-0.');
       return generatedSource;
     }
     final stdout = results[1] as String;
     final stderr = results[2] as String;
     if (stderr.trim().length != 0) {
-      print('Note: Failed to format source code. Dartfmt had stderr: $stderr');
+      print('Note: Failed to format source code. Dart format had stderr: '
+          '$stderr');
       return generatedSource;
     }
     return stdout;

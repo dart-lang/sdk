@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnnecessaryCast extends CorrectionProducer {
   @override
-  bool get canBeAppliedInBulk => false;
+  bool get canBeAppliedInBulk => true;
 
   @override
   bool get canBeAppliedToFile => true;

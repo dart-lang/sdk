@@ -707,6 +707,82 @@ TEST_CASE(DartAPI_UnhandleExceptionError) {
   EXPECT_STREQ(kRegularString, exception_cstr);
 }
 
+void JustPropagateErrorNative(Dart_NativeArguments args) {
+  Dart_Handle closure = Dart_GetNativeArgument(args, 0);
+  EXPECT(Dart_IsClosure(closure));
+  Dart_Handle result = Dart_InvokeClosure(closure, 0, NULL);
+  EXPECT(Dart_IsError(result));
+  Dart_PropagateError(result);
+  UNREACHABLE();
+}
+
+static Dart_NativeFunction JustPropagateError_lookup(Dart_Handle name,
+                                                     int argument_count,
+                                                     bool* auto_setup_scope) {
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = true;
+  return JustPropagateErrorNative;
+}
+
+TEST_CASE(DartAPI_EnsureUnwindErrorHandled_WhenKilled) {
+  const char* kScriptChars = R"(
+import 'dart:isolate';
+
+exitRightNow() {
+  Isolate.current.kill(priority: Isolate.immediate);
+}
+
+@pragma("vm:external-name", "Test_nativeFunc")
+external void nativeFunc(closure);
+
+void Func1() {
+  nativeFunc(() => exitRightNow());
+}
+)";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, &JustPropagateError_lookup);
+  Dart_Handle result;
+
+  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT_SUBSTRING("isolate terminated by Isolate.kill", Dart_GetError(result));
+
+  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT_SUBSTRING("No api calls are allowed while unwind is in progress",
+                   Dart_GetError(result));
+}
+
+TEST_CASE(DartAPI_EnsureUnwindErrorHandled_WhenSendAndExit) {
+  const char* kScriptChars = R"(
+import 'dart:isolate';
+
+sendAndExitNow() {
+  final receivePort = ReceivePort();
+  Isolate.exit(receivePort.sendPort, true);
+}
+
+@pragma("vm:external-name", "Test_nativeFunc")
+external void nativeFunc(closure);
+
+void Func1() {
+  nativeFunc(() => sendAndExitNow());
+}
+)";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, &JustPropagateError_lookup);
+  Dart_Handle result;
+
+  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT_SUBSTRING("isolate terminated by Isolate.kill", Dart_GetError(result));
+
+  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT_SUBSTRING("No api calls are allowed while unwind is in progress",
+                   Dart_GetError(result));
+}
+
 // Should we propagate the error via Dart_SetReturnValue?
 static bool use_set_return = false;
 
@@ -3052,7 +3128,6 @@ VM_UNIT_TEST_CASE(DartAPI_PersistentHandles) {
   {
     TransitionNativeToVM transition(thread);
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
       str ^= PersistentHandle::Cast(handles[i])->ptr();
@@ -4475,7 +4550,6 @@ VM_UNIT_TEST_CASE(DartAPI_LocalHandles) {
   {
     TransitionNativeToVM transition1(thread);
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Smi& val = Smi::Handle();
     TransitionVMToNative transition2(thread);
 
@@ -4543,9 +4617,11 @@ VM_UNIT_TEST_CASE(DartAPI_LocalZoneMemory) {
   Thread* thread = Thread::Current();
   EXPECT(thread != NULL);
   ApiLocalScope* scope = thread->api_top_scope();
+  EXPECT_EQ(0, thread->ZoneSizeInBytes());
   {
     // Start a new scope and allocate some memory.
     Dart_EnterScope();
+    EXPECT_EQ(0, thread->ZoneSizeInBytes());
     for (int i = 0; i < 100; i++) {
       Dart_ScopeAllocate(16);
     }

@@ -154,7 +154,18 @@ class SubtypeOfFfiClassInImplementsTest extends PubPackageResolutionTest {
 import 'dart:ffi';
 class C implements Double {}
 ''', [
-      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6,
+          messageContains: ["class 'C'", "implement 'Double'"]),
+    ]);
+  }
+
+  test_Double_prefixed() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi' as ffi;
+class C implements ffi.Double {}
+''', [
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 45, 10,
+          messageContains: ["class 'C'", "implement 'ffi.Double'"]),
     ]);
   }
 
@@ -285,7 +296,20 @@ class C with Double {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 6),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 6),
-      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 6,
+          messageContains: ["class 'C'", "mix in 'Double'"]),
+    ]);
+  }
+
+  test_Double_prefixed() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi' as ffi;
+class C with ffi.Double {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 39, 10),
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 39, 10),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 39, 10,
+          messageContains: ["class 'C'", "mix in 'ffi.Double'"]),
     ]);
   }
 

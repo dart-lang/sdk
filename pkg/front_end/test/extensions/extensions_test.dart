@@ -89,11 +89,11 @@ class ExtensionsDataComputer extends DataComputer<Features> {
       Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     for (FormattedMessage error in errors) {
-      if (error.message.contains(',')) {
+      if (error.problemMessage.contains(',')) {
         // TODO(johnniwinther): Support escaping of , in Features.
         features.addElement(Tags.errors, error.code);
       } else {
-        features.addElement(Tags.errors, error.message);
+        features.addElement(Tags.errors, error.problemMessage);
       }
     }
     return features;

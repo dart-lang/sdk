@@ -2031,8 +2031,81 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
     node.parent = this;
   }
 
+  /// Returns the type of this member when accessed as a getter.
+  ///
+  /// For a field, this is the field type. For a getter, this is the return
+  /// type. For a method or constructor, this is the tear off type.
+  ///
+  /// For a setter, this is undefined. Currently, non-nullable `Never` is
+  /// returned.
+  // TODO(johnniwinther): Should we use `InvalidType` for the undefined cases?
   DartType get getterType;
+
+  /// Returns the type of this member when access as a getter on a super class.
+  ///
+  /// This is in most cases the same as for [getterType].
+  ///
+  /// An exception is for forwarding semi stubs:
+  ///
+  ///    class Super {
+  ///      void method(num a) {}
+  ///    }
+  ///    class Class extends Super {
+  ///      void method(covariant int a);
+  ///    }
+  ///    class Subclass extends Class {
+  ///      void method(int a) {
+  ///        super.method; // Type `void Function(num)`.
+  ///        Class().method; // Type `void Function(int)`.
+  ///      }
+  ///    }
+  ///
+  /// Here, `Class.method` is turned into a forwarding semi stub
+  ///
+  ///     void method(covariant num a) => super.method(a);
+  ///
+  /// with [signatureType] `void Function(int)`. When `Class.method` is used
+  /// as the target of a super get, it has getter type `void Function(num)` and
+  /// as the target of an instance get, it has getter type `void Function(int)`.
+  DartType get superGetterType => getterType;
+
+  /// Returns the type of this member when accessed as a setter.
+  ///
+  /// For an assignable field, this is the field type. For a setter this is the
+  /// parameter type.
+  ///
+  /// For other members, including unassignable fields, this is undefined.
+  /// Currently, non-nullable `Never` is returned.
+  // TODO(johnniwinther): Should we use `InvalidType` for the undefined cases?
   DartType get setterType;
+
+  /// Returns the type of this member when access as a setter on a super class.
+  ///
+  /// This is in most cases the same as for [setterType].
+  ///
+  /// An exception is for forwarding semi stubs:
+  ///
+  ///    class Super {
+  ///      void set setter(num a) {}
+  ///    }
+  ///    class Class extends Super {
+  ///      void set setter(covariant int a);
+  ///    }
+  ///    class Subclass extends Class {
+  ///      void set setter(int a) {
+  ///        super.setter = 0.5; // Valid.
+  ///        Class().setter = 0.5; // Invalid.
+  ///      }
+  ///    }
+  ///
+  /// Here, `Class.setter` is turned into a forwarding semi stub
+  ///
+  ///     void set setter(covariant num a) => super.setter = a;
+  ///
+  /// with [signatureType] `void Function(int)`. When `Class.setter` is used
+  /// as the target of a super set, it has setter type `num` and as the target
+  /// of an instance set, it has setter type `int`.
+  DartType get superSetterType => setterType;
 
   bool get containsSuperCalls {
     return transformerFlags & TransformerFlag.superCalls != 0;
@@ -2436,6 +2509,7 @@ class Constructor extends Member {
     }
   }
 
+  // TODO(johnniwinther): Provide the tear off type here.
   @override
   DartType get getterType => const NeverType.nonNullable();
 
@@ -2597,7 +2671,8 @@ class RedirectingFactory extends Member {
   }
 
   @override
-  DartType get getterType => const NeverType.nonNullable();
+  DartType get getterType =>
+      function.computeFunctionType(enclosingLibrary.nonNullable);
 
   @override
   DartType get setterType => const NeverType.nonNullable();
@@ -2851,6 +2926,31 @@ class Procedure extends Member {
   ProcedureStubKind stubKind;
   Reference? stubTargetReference;
 
+  /// The interface member signature type of this procedure.
+  ///
+  /// Normally this is derived from the parameter types and return type of
+  /// [function]. In rare cases, the interface member signature type is
+  /// different from the class member type, in which case the interface member
+  /// signature type is stored here.
+  ///
+  /// For instance
+  ///
+  ///   class Super {
+  ///     void method(num a) {}
+  ///   }
+  ///   class Class extends Super {
+  ///     void method(covariant int a);
+  ///   }
+  ///
+  /// Here the member `Class.method` is turned into a forwarding semi stub to
+  /// ensure that arguments passed to `Super.method` are checked as covariant.
+  /// Since `Super.method` allows `num` as argument, the inserted covariant
+  /// check must be against `num` and not `int`, and the parameter type of the
+  /// forwarding semi stub must be changed to `num`. Still, the interface of
+  /// `Class` requires that `Class.method` is `void Function(int)`, so for this,
+  /// it is stored explicitly as the [signatureType] on the procedure.
+  FunctionType? signatureType;
+
   Procedure(Name name, ProcedureKind kind, FunctionNode function,
       {bool isAbstract: false,
       bool isStatic: false,
@@ -3081,6 +3181,9 @@ class Procedure extends Member {
       function = v.transform(function);
       function.parent = this;
     }
+    if (signatureType != null) {
+      signatureType = v.visitDartType(signatureType!) as FunctionType;
+    }
   }
 
   @override
@@ -3091,10 +3194,27 @@ class Procedure extends Member {
       function = v.transform(function);
       function.parent = this;
     }
+    if (signatureType != null) {
+      DartType newSignatureType =
+          v.visitDartType(signatureType!, dummyDartType);
+      if (identical(newSignatureType, dummyDartType)) {
+        signatureType = null;
+      } else {
+        signatureType = newSignatureType as FunctionType;
+      }
+    }
   }
 
   @override
   DartType get getterType {
+    return isGetter
+        ? (signatureType?.returnType ?? function.returnType)
+        : (signatureType ??
+            function.computeFunctionType(enclosingLibrary.nonNullable));
+  }
+
+  @override
+  DartType get superGetterType {
     return isGetter
         ? function.returnType
         : function.computeFunctionType(enclosingLibrary.nonNullable);
@@ -3102,6 +3222,14 @@ class Procedure extends Member {
 
   @override
   DartType get setterType {
+    return isSetter
+        ? (signatureType?.positionalParameters[0] ??
+            function.positionalParameters[0].type)
+        : const NeverType.nonNullable();
+  }
+
+  @override
+  DartType get superSetterType {
     return isSetter
         ? function.positionalParameters[0].type
         : const NeverType.nonNullable();
@@ -4793,7 +4921,8 @@ class StaticGet extends Expression {
   Reference targetReference;
 
   StaticGet(Member target)
-      : this.byReference(getNonNullableMemberReferenceGetter(target));
+      : assert(target is Field || (target is Procedure && target.isGetter)),
+        this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   StaticGet.byReference(this.targetReference);
 
@@ -4841,7 +4970,10 @@ class StaticTearOff extends Expression {
   Reference targetReference;
 
   StaticTearOff(Procedure target)
-      : this.byReference(getNonNullableMemberReferenceGetter(target));
+      : assert(target.isStatic, "Unexpected static tear off target: $target"),
+        assert(target.kind == ProcedureKind.Method,
+            "Unexpected static tear off target: $target"),
+        this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   StaticTearOff.byReference(this.targetReference);
 
@@ -8491,8 +8623,9 @@ class ConstructorTearOff extends Expression {
   Reference targetReference;
 
   ConstructorTearOff(Member target)
-      : assert(target is Constructor ||
-            (target is Procedure && target.kind == ProcedureKind.Factory)),
+      : assert(
+            target is Constructor || (target is Procedure && target.isFactory),
+            "Unexpected constructor tear off target: $target"),
         this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   ConstructorTearOff.byReference(this.targetReference);
@@ -13042,10 +13175,11 @@ class StaticTearOffConstant extends Constant implements TearOffConstant {
   @override
   final Reference targetReference;
 
-  StaticTearOffConstant(Procedure procedure)
-      : targetReference = procedure.reference {
-    assert(procedure.isStatic);
-  }
+  StaticTearOffConstant(Procedure target)
+      : assert(target.isStatic),
+        assert(target.kind == ProcedureKind.Method,
+            "Unexpected static tear off target: $target"),
+        targetReference = target.reference;
 
   StaticTearOffConstant.byReference(this.targetReference);
 
@@ -13103,8 +13237,9 @@ class ConstructorTearOffConstant extends Constant implements TearOffConstant {
   final Reference targetReference;
 
   ConstructorTearOffConstant(Member target)
-      : assert(target is Constructor ||
-            (target is Procedure && target.kind == ProcedureKind.Factory)),
+      : assert(
+            target is Constructor || (target is Procedure && target.isFactory),
+            "Unexpected constructor tear off target: $target"),
         this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   ConstructorTearOffConstant.byReference(this.targetReference);

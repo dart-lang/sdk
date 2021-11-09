@@ -52,3 +52,8 @@ static method /* from org-dartlang-testcase:///typedef_from.dart */ _#A#fact#tea
   return self::Class::fact<self2::_#A#fact#tearOff::T%, core::String>(a, b: b, c: c);
 static method /* from org-dartlang-testcase:///typedef_from.dart */ _#A#redirect#tearOff<T extends core::Object? = dynamic>(self2::_#A#redirect#tearOff::T% a) → self::Class<self2::_#A#redirect#tearOff::T%, core::String>
   return self::Class::_#redirect#tearOff<self2::_#A#redirect#tearOff::T%, core::String>(a);
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///typedef_from.dart:75:7 -> ConstructorTearOffConstant(Class.redirect)
+Extra constant evaluation: evaluated: 43, effectively constant: 1

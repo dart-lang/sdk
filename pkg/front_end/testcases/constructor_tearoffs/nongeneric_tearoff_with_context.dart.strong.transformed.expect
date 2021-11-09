@@ -57,5 +57,5 @@ constants  {
   #C1 = constructor-tearoff self::A::foo1
   #C2 = constructor-tearoff self::A::foo2
   #C3 = constructor-tearoff self::A::•
-  #C4 = static-tearoff self::A::bar1
+  #C4 = constructor-tearoff self::A::bar1
 }

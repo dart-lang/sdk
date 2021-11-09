@@ -56,9 +56,12 @@ main(List<String> args) async {
     }
     if (priorResult != null) {
       result['previous_result'] = priorResult['result'];
+      result['changed'] = !(result['result'] == result['previous_result'] &&
+          result['flaky'] == result['previous_flaky'] &&
+          result['expected'] == priorResult['expected']);
+    } else {
+      result['changed'] = true;
     }
-    result['changed'] = (result['result'] != result['previous_result'] ||
-        result['flaky'] != result['previous_flaky']);
   }
   final sink = new File(newResultsPath).openWrite();
   final sorted = results.keys.toList()..sort();

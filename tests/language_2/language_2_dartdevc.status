@@ -16,6 +16,9 @@ variance/*: SkipByDesign # Analyzer DDC is expected to be turned down before rel
 [ $compiler == dartdevk && !$checked ]
 assert/initializer_const_error2_test/*: SkipByDesign # DDC does not support non-checked mode.
 
+[ ($compiler == dartdevc || $compiler == dartdevk) && ($runtime == ff || $runtime == firefox) ]
+async/return_throw_test: Skip # Flaky but not enough to be detected. Re-enable pending a decision on the correct behavior. https://github.com/dart-lang/sdk/issues/44395
+
 [ $compiler == dartdevc || $compiler == dartdevk ]
 async_star/throw_in_catch_test: Skip # Times out. Issue 29920
 external_abstract_fields/external_fields_test: SkipByDesign # Non-JS-interop external members are not supported

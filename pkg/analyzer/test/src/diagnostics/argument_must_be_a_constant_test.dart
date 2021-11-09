@@ -62,6 +62,20 @@ doThings(bool isLeaf) {
     ]);
   }
 
+  test_FromFunctionExceptionReturn() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+typedef NativeDoubleUnOp = Double Function(Double);
+double myTimesThree(double d) => d * 3;
+void testFromFunctionFunctionExceptionValueMustBeConst() {
+  final notAConst = 1.1;
+  Pointer.fromFunction<NativeDoubleUnOp>(myTimesThree, notAConst);
+}
+''', [
+      error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 250, 9),
+    ]);
+  }
+
   test_LookupFunctionIsLeaf() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';

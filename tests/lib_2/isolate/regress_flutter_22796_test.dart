@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 // Verifies that large typed data can be passed in a field through message port.
 // This is a regression test for
 // https://github.com/flutter/flutter/issues/22796.

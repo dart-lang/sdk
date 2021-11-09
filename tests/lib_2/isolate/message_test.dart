@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 // Dart test program for testing serialization of messages.
 // VMOptions=--enable_type_checks --enable_asserts
 

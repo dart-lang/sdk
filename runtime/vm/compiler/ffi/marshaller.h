@@ -109,6 +109,10 @@ class BaseMarshaller : public ZoneAllocated {
     return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
            kFfiHandleCid;
   }
+  bool IsBool(intptr_t arg_index) const {
+    return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
+           kFfiBoolCid;
+  }
 
   bool IsCompound(intptr_t arg_index) const {
     const auto& type = AbstractType::Handle(zone_, CType(arg_index));

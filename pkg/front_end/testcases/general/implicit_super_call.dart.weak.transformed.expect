@@ -1,0 +1,137 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/implicit_super_call.dart:11:5: Error: Can't use 'super' as an expression.
+// To delegate a constructor to a super constructor, put the super call as an initializer.
+//     super();
+//     ^
+//
+// pkg/front_end/testcases/general/implicit_super_call.dart:22:5: Error: Can't use 'super' as an expression.
+// To delegate a constructor to a super constructor, put the super call as an initializer.
+//     super(0);
+//     ^
+//
+// pkg/front_end/testcases/general/implicit_super_call.dart:23:5: Error: Can't use 'super' as an expression.
+// To delegate a constructor to a super constructor, put the super call as an initializer.
+//     super(0, 1);
+//     ^
+//
+// pkg/front_end/testcases/general/implicit_super_call.dart:35:5: Error: Can't use 'super' as an expression.
+// To delegate a constructor to a super constructor, put the super call as an initializer.
+//     super(0);
+//     ^
+//
+// pkg/front_end/testcases/general/implicit_super_call.dart:36:5: Error: Can't use 'super' as an expression.
+// To delegate a constructor to a super constructor, put the super call as an initializer.
+//     super(0, b: 1);
+//     ^
+//
+// pkg/front_end/testcases/general/implicit_super_call.dart:37:5: Error: Can't use 'super' as an expression.
+// To delegate a constructor to a super constructor, put the super call as an initializer.
+//     super(0, c: 1);
+//     ^
+//
+// pkg/front_end/testcases/general/implicit_super_call.dart:38:5: Error: Can't use 'super' as an expression.
+// To delegate a constructor to a super constructor, put the super call as an initializer.
+//     super(0, b: 1, c: 2);
+//     ^
+//
+// pkg/front_end/testcases/general/implicit_super_call.dart:39:5: Error: Can't use 'super' as an expression.
+// To delegate a constructor to a super constructor, put the super call as an initializer.
+//     super(0, c: 1, b: 2);
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super1 extends core::Object {
+  synthetic constructor •() → self::Super1
+    : super core::Object::•()
+    ;
+  method call() → void {}
+}
+class Class1 extends self::Super1 {
+  synthetic constructor •() → self::Class1
+    : super self::Super1::•()
+    ;
+  method method() → void {
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:11:5: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+    super();
+    ^";
+    super.{self::Super1::call}();
+  }
+}
+class Super2 extends core::Object {
+  synthetic constructor •() → self::Super2
+    : super core::Object::•()
+    ;
+  method call(core::int a, [core::int? b = #C1]) → core::int
+    return a;
+}
+class Class2 extends self::Super2 {
+  synthetic constructor •() → self::Class2
+    : super self::Super2::•()
+    ;
+  method method() → void {
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:22:5: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+    super(0);
+    ^";
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:23:5: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+    super(0, 1);
+    ^";
+    super.{self::Super2::call}(0);
+    super.{self::Super2::call}(0, 1);
+  }
+}
+class Super3 extends core::Object {
+  synthetic constructor •() → self::Super3
+    : super core::Object::•()
+    ;
+  method call(core::int a, {core::int? b = #C1, core::int? c = #C1}) → core::int
+    return a;
+}
+class Class3 extends self::Super3 {
+  synthetic constructor •() → self::Class3
+    : super self::Super3::•()
+    ;
+  method method() → void {
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:35:5: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+    super(0);
+    ^";
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:36:5: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+    super(0, b: 1);
+    ^";
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:37:5: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+    super(0, c: 1);
+    ^";
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:38:5: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+    super(0, b: 1, c: 2);
+    ^";
+    invalid-expression "pkg/front_end/testcases/general/implicit_super_call.dart:39:5: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+    super(0, c: 1, b: 2);
+    ^";
+    super.{self::Super3::call}(0);
+    super.{self::Super3::call}(0, b: 1);
+    super.{self::Super3::call}(0, c: 1);
+    super.{self::Super3::call}(0, b: 1, c: 2);
+    super.{self::Super3::call}(0, c: 1, b: 2);
+  }
+}
+static method main() → dynamic {
+  new self::Class1::•().{self::Class1::method}(){() → void};
+  new self::Class2::•().{self::Class2::method}(){() → void};
+  new self::Class3::•().{self::Class3::method}(){() → void};
+}
+
+constants  {
+  #C1 = null
+}

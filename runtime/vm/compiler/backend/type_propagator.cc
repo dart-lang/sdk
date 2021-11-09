@@ -1541,16 +1541,6 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     is_nullable = false;
   }
 
-  auto& obj = Object::Handle();
-  const bool is_initialized = IsFieldInitialized(&obj);
-  if (field.is_final() && is_initialized) {
-    if (!obj.IsNull()) {
-      is_nullable = false;
-      cid = obj.GetClassId();
-      abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
-    }
-  }
-
   if ((field.guarded_cid() != kIllegalCid) &&
       (field.guarded_cid() != kDynamicCid)) {
     cid = field.guarded_cid();

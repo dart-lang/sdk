@@ -64,65 +64,63 @@ Object _convertDataTree(Object data) {
   return _convert(data)!;
 }
 
-dynamic newObject() => JS('=Object', '{}');
+T newObject<T>() => JS('=Object', '{}');
 
 bool hasProperty(Object o, Object name) => JS('bool', '# in #', name, o);
 
-// A CFE transformation will optimize all calls to `getProperty`.
-dynamic getProperty(Object o, Object name) =>
-    JS('Object|Null', '#[#]', o, name);
+T getProperty<T>(Object o, Object name) => JS('Object|Null', '#[#]', o, name);
 
 // A CFE transformation may optimize calls to `setProperty`, when [value] is
 // statically known to be a non-function.
-dynamic setProperty(Object o, Object name, Object? value) {
+T setProperty<T>(Object o, Object name, T? value) {
   assertInterop(value);
   return JS('', '#[#]=#', o, name, value);
 }
 
 /// Unchecked version of setProperty, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
-dynamic _setPropertyUnchecked(Object o, Object name, Object? value) {
+T _setPropertyUnchecked<T>(Object o, Object name, T? value) {
   return JS('', '#[#]=#', o, name, value);
 }
 
 // A CFE transformation may optimize calls to `callMethod` when [args] is a
 // a list literal or const list containing at most 4 values, all of which are
 // statically known to be non-functions.
-dynamic callMethod(Object o, String method, List<Object?> args) {
+T callMethod<T>(Object o, String method, List<Object?> args) {
   assertInteropArgs(args);
   return JS('Object|Null', '#[#].apply(#, #)', o, method, o, args);
 }
 
 /// Unchecked version for 0 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
-dynamic _callMethodUnchecked0(Object o, String method) {
+T _callMethodUnchecked0<T>(Object o, String method) {
   return JS('Object|Null', '#[#]()', o, method);
 }
 
 /// Unchecked version for 1 argument, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
-dynamic _callMethodUnchecked1(Object o, String method, Object? arg1) {
+T _callMethodUnchecked1<T>(Object o, String method, Object? arg1) {
   return JS('Object|Null', '#[#](#)', o, method, arg1);
 }
 
 /// Unchecked version for 2 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
-dynamic _callMethodUnchecked2(
+T _callMethodUnchecked2<T>(
     Object o, String method, Object? arg1, Object? arg2) {
   return JS('Object|Null', '#[#](#, #)', o, method, arg1, arg2);
 }
 
 /// Unchecked version for 3 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
-dynamic _callMethodUnchecked3(
+T _callMethodUnchecked3<T>(
     Object o, String method, Object? arg1, Object? arg2, Object? arg3) {
   return JS('Object|Null', '#[#](#, #, #)', o, method, arg1, arg2, arg3);
 }
 
 /// Unchecked version for 4 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
-dynamic _callMethodUnchecked4(Object o, String method, Object? arg1,
-    Object? arg2, Object? arg3, Object? arg4) {
+T _callMethodUnchecked4<T>(Object o, String method, Object? arg1, Object? arg2,
+    Object? arg3, Object? arg4) {
   return JS(
       'Object|Null', '#[#](#, #, #, #)', o, method, arg1, arg2, arg3, arg4);
 }
@@ -134,7 +132,7 @@ dynamic _callMethodUnchecked4(Object o, String method, Object? arg1,
 bool instanceof(Object? o, Object type) =>
     JS('bool', '# instanceof #', o, type);
 
-dynamic callConstructor(Object constr, List<Object?>? arguments) {
+T callConstructor<T>(Object constr, List<Object?>? arguments) {
   if (arguments == null) {
     return JS('Object', 'new #()', constr);
   } else {
@@ -197,32 +195,32 @@ dynamic callConstructor(Object constr, List<Object?>? arguments) {
 
 /// Unchecked version for 0 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
-dynamic _callConstructorUnchecked0(Object constr) {
+T _callConstructorUnchecked0<T>(Object constr) {
   return JS('Object', 'new #()', constr);
 }
 
 /// Unchecked version for 1 argument, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
-dynamic _callConstructorUnchecked1(Object constr, Object? arg1) {
+T _callConstructorUnchecked1<T>(Object constr, Object? arg1) {
   return JS('Object', 'new #(#)', constr, arg1);
 }
 
 /// Unchecked version for 2 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
-dynamic _callConstructorUnchecked2(Object constr, Object? arg1, Object? arg2) {
+T _callConstructorUnchecked2<T>(Object constr, Object? arg1, Object? arg2) {
   return JS('Object', 'new #(#, #)', constr, arg1, arg2);
 }
 
 /// Unchecked version for 3 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
-dynamic _callConstructorUnchecked3(
+T _callConstructorUnchecked3<T>(
     Object constr, Object? arg1, Object? arg2, Object? arg3) {
   return JS('Object', 'new #(#, #, #)', constr, arg1, arg2, arg3);
 }
 
 /// Unchecked version for 4 arguments, only used in a CFE transformation.
 @pragma('dart2js:tryInline')
-dynamic _callConstructorUnchecked4(
+T _callConstructorUnchecked4<T>(
     Object constr, Object? arg1, Object? arg2, Object? arg3, Object? arg4) {
   return JS('Object', 'new #(#, #, #, #)', constr, arg1, arg2, arg3, arg4);
 }
@@ -247,7 +245,7 @@ class NullRejectionException implements Exception {
 
 /// Converts a JavaScript Promise to a Dart [Future].
 ///
-/// ```dart
+/// ```dart template:none
 /// @JS()
 /// external Promise<num> get threePromise; // Resolves to 3
 ///

@@ -7,6 +7,18 @@ library /*isNonNullableByDefault*/;
 //   int new = 42;
 //       ^^^
 //
+// pkg/front_end/testcases/constructor_tearoffs/issue47075.dart:10:11: Error: 'new' can only be used as a constructor reference.
+//   new C().new is int;
+//           ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue47075.dart:12:7: Error: 'new' can only be used as a constructor reference.
+//   foo.new;
+//       ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue47075.dart:13:7: Error: 'new' can only be used as a constructor reference.
+//   foo.new();
+//       ^^^
+//
 import self as self;
 import "dart:core" as core;
 

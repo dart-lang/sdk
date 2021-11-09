@@ -19,16 +19,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, verify_handles, false, "Verify handles.");
 
-VMHandles::~VMHandles() {
-  if (FLAG_trace_handles) {
-    OS::PrintErr("***   Handle Counts for 0x(%" Px "):Zone = %d,Scoped = %d\n",
-                 reinterpret_cast<intptr_t>(this), CountZoneHandles(),
-                 CountScopedHandles());
-    OS::PrintErr("*** Deleting VM handle block 0x%" Px "\n",
-                 reinterpret_cast<intptr_t>(this));
-  }
-}
-
 void VMHandles::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   return Handles<kVMHandleSizeInWords, kVMHandlesPerChunk,
                  kOffsetOfRawPtr>::VisitObjectPointers(visitor);

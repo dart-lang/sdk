@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/error_verifier.dart';
 
 /// Verifier for [CollectionElement]s in list, set, or map literals.
 class LiteralElementVerifier {
@@ -18,7 +19,7 @@ class LiteralElementVerifier {
   final TypeSystemImpl typeSystem;
   final ErrorReporter errorReporter;
   final FeatureSet featureSet;
-  final bool Function(Expression) checkForUseOfVoidResult;
+  final ErrorVerifier _errorVerifier;
 
   final bool forList;
   final bool forSet;
@@ -32,7 +33,7 @@ class LiteralElementVerifier {
     this.typeProvider,
     this.typeSystem,
     this.errorReporter,
-    this.checkForUseOfVoidResult, {
+    this._errorVerifier, {
     this.forList = false,
     this.forSet = false,
     this.elementType,
@@ -49,6 +50,7 @@ class LiteralElementVerifier {
   /// Check that the given [type] is assignable to the [elementType], otherwise
   /// report the list or set error on the [errorNode].
   void _checkAssignableToElementType(DartType type, AstNode errorNode) {
+    var elementType = this.elementType;
     if (!typeSystem.isAssignableTo(type, elementType!)) {
       var errorCode = forList
           ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
@@ -66,7 +68,8 @@ class LiteralElementVerifier {
   void _verifyElement(CollectionElement? element) {
     if (element is Expression) {
       if (forList || forSet) {
-        if (!elementType!.isVoid && checkForUseOfVoidResult(element)) {
+        if (!elementType!.isVoid &&
+            _errorVerifier.checkForUseOfVoidResult(element)) {
           return;
         }
         _checkAssignableToElementType(element.typeOrThrow, element);
@@ -100,16 +103,20 @@ class LiteralElementVerifier {
   /// Verify that the [entry]'s key and value are assignable to [mapKeyType]
   /// and [mapValueType].
   void _verifyMapLiteralEntry(MapLiteralEntry entry) {
-    if (!mapKeyType!.isVoid && checkForUseOfVoidResult(entry.key)) {
+    var mapKeyType = this.mapKeyType;
+    if (!mapKeyType!.isVoid &&
+        _errorVerifier.checkForUseOfVoidResult(entry.key)) {
       return;
     }
 
-    if (!mapValueType!.isVoid && checkForUseOfVoidResult(entry.value)) {
+    var mapValueType = this.mapValueType;
+    if (!mapValueType!.isVoid &&
+        _errorVerifier.checkForUseOfVoidResult(entry.value)) {
       return;
     }
 
     var keyType = entry.key.typeOrThrow;
-    if (!typeSystem.isAssignableTo(keyType, mapKeyType!)) {
+    if (!typeSystem.isAssignableTo(keyType, mapKeyType)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
         entry.key,
@@ -118,7 +125,7 @@ class LiteralElementVerifier {
     }
 
     var valueType = entry.value.typeOrThrow;
-    if (!typeSystem.isAssignableTo(valueType, mapValueType!)) {
+    if (!typeSystem.isAssignableTo(valueType, mapValueType)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
         entry.value,
@@ -172,15 +179,44 @@ class LiteralElementVerifier {
     }
 
     var iterableElementType = iterableType.typeArguments[0];
+    var elementType = this.elementType;
     if (!typeSystem.isAssignableTo(iterableElementType, elementType!)) {
       var errorCode = forList
           ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
           : CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
-      errorReporter.reportErrorForNode(
-        errorCode,
-        expression,
-        [iterableElementType, elementType],
-      );
+      // Also check for an "implicit tear-off conversion" which would be applied
+      // after desugaring a spread element.
+      var implicitCallMethod = _errorVerifier.getImplicitCallMethod(
+          iterableElementType, elementType, expression);
+      if (implicitCallMethod == null) {
+        errorReporter.reportErrorForNode(
+          errorCode,
+          expression,
+          [iterableElementType, elementType],
+        );
+      } else {
+        var tearoffType = implicitCallMethod.type;
+        if (featureSet.isEnabled(Feature.constructor_tearoffs)) {
+          var typeArguments = typeSystem.inferFunctionTypeInstantiation(
+            elementType as FunctionType,
+            tearoffType,
+            errorReporter: errorReporter,
+            errorNode: expression,
+            genericMetadataIsEnabled: true,
+          )!;
+          if (typeArguments.isNotEmpty) {
+            tearoffType = tearoffType.instantiate(typeArguments);
+          }
+        }
+
+        if (!typeSystem.isAssignableTo(tearoffType, elementType)) {
+          errorReporter.reportErrorForNode(
+            errorCode,
+            expression,
+            [iterableElementType, elementType],
+          );
+        }
+      }
     }
   }
 
@@ -229,6 +265,7 @@ class LiteralElementVerifier {
     }
 
     var keyType = mapType.typeArguments[0];
+    var mapKeyType = this.mapKeyType;
     if (!typeSystem.isAssignableTo(keyType, mapKeyType!)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
@@ -238,6 +275,7 @@ class LiteralElementVerifier {
     }
 
     var valueType = mapType.typeArguments[1];
+    var mapValueType = this.mapValueType;
     if (!typeSystem.isAssignableTo(valueType, mapValueType!)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,

@@ -12,8 +12,7 @@ class B extends A {
   int call(int x) => x * 3;
 
   int call_super() {
-    // Assumes that super() means super.call().
-    // In reality, it is illegal to use it this way.
+    // super() means super.call().
     return super(5);
   }
 }

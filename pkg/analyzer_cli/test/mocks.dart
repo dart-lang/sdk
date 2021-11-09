@@ -92,7 +92,7 @@ class MockErrorCode implements ErrorCode {
   MockErrorCode(this.type, this.errorSeverity, this.name);
 
   @override
-  String get correction {
+  String get correctionMessage {
     throw StateError('Unexpected invocation of correction');
   }
 
@@ -106,7 +106,7 @@ class MockErrorCode implements ErrorCode {
   bool get isUnresolvedIdentifier => false;
 
   @override
-  String get message {
+  String get problemMessage {
     throw StateError('Unexpected invocation of message');
   }
 
@@ -114,6 +114,9 @@ class MockErrorCode implements ErrorCode {
   String get uniqueName {
     throw StateError('Unexpected invocation of uniqueName');
   }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockLineInfo implements LineInfo {

@@ -4,9 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-//
 // Dart test program for testing typed data.
 
 // Library tag to be able to run in html test framework.

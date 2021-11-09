@@ -77,9 +77,9 @@ extension DynamicLibraryExtension on DynamicLibrary {
   /// ```
   ///
   /// ```dart
-  /// DynamicLibrary dylib;
-  /// final add = dylib.lookupFunction<Int32 Function(Int32, Int32),
-  ///                                  int Function(int, int)>('add');
+  /// DynamicLibrary dylib = DynamicLibrary.executable();
+  /// final add = dylib.lookupFunction<Int32 Function(Int32, Int32), int Function(int, int)>(
+  ///         'add');
   /// ```
   external F lookupFunction<T extends Function, F extends Function>(
       String symbolName,

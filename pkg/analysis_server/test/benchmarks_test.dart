@@ -7,15 +7,14 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer_utilities/package_root.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() => defineTests();
 
 String get _serverSourcePath {
-  var script = Platform.script.toFilePath(windows: Platform.isWindows);
-  var pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
-  return path.join(pkgPath, 'analysis_server');
+  return path.join(packageRoot, 'analysis_server');
 }
 
 void defineTests() {
@@ -26,8 +25,14 @@ void defineTests() {
       expect(benchmarks, isNotEmpty);
     });
 
+    const benchmarkIdsToSkip = {
+      'analysis-flutter-analyze',
+      'das-flutter',
+      'lsp-flutter',
+    };
+
     for (var benchmarkId in benchmarks) {
-      if (benchmarkId == 'analysis-flutter-analyze') {
+      if (benchmarkIdsToSkip.contains(benchmarkId)) {
         continue;
       }
 

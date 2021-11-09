@@ -28,7 +28,7 @@
 #ifdef __cplusplus
 #define DART_EXTERN_C extern "C"
 #else
-#define DART_EXTERN_C
+#define DART_EXTERN_C extern
 #endif
 
 #if defined(__CYGWIN__)
@@ -608,6 +608,7 @@ typedef struct {
   bool copy_parent_code;
   bool null_safety;
   bool is_system_isolate;
+  bool snapshot_is_dontneed_safe;
 } Dart_IsolateFlags;
 
 /**

@@ -4,16 +4,14 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups --no-enable-fast-object-copy
-// VMOptions=--enable-isolate-groups --enable-fast-object-copy
-// VMOptions=--no-enable-isolate-groups
+// VMOptions=--no-enable-fast-object-copy
+// VMOptions=--enable-fast-object-copy
 
 // Tests that sets of enums can be set through ports.
 // https://github.com/dart-lang/sdk/issues/35626
 
 library spawn_tests;
 
-import "dart:io";
 import "dart:isolate";
 import "package:expect/expect.dart";
 

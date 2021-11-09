@@ -1,0 +1,22 @@
+abstract class AbstractNamedMixinApplication<T, S> = Class<T> with Mixin<S>;
+
+abstract class Interface {
+  int get field;
+}
+
+class Class<T> implements Interface {
+  Class([this.field = 0]);
+  Class.named(this.field);
+  Class.redirectingGenerative(int field) : this(field);
+  factory Class.fact(int field) => new Class(field);
+  factory Class.redirectingFactory(int field) = Class;
+  var field;
+}
+
+class NamedMixinApplication<T, S> = Class<T> with Mixin<S>;
+main() {}
+mixin Mixin<S> {}
+test() {}
+var f1 = NamedMixinApplication.new;
+var f2 = NamedMixinApplication.named;
+var f3 = NamedMixinApplication.redirectingGenerative;

@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-09-23T11:31:05.389095",
+  "generated": "2021-10-26T10:20:01.277340",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -94,7 +94,7 @@
       "name": "analyzer_plugin",
       "rootUri": "../pkg/analyzer_plugin",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "analyzer_utilities",
@@ -208,7 +208,7 @@
       "name": "dart2js_info",
       "rootUri": "../pkg/dart2js_info",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.11"
     },
     {
       "name": "dart2js_runtime_metrics",
@@ -220,7 +220,7 @@
       "name": "dart2js_tools",
       "rootUri": "../pkg/dart2js_tools",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "dart2native",
@@ -351,7 +351,7 @@
       "name": "http",
       "rootUri": "../third_party/pkg/http",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "http_io",
@@ -470,7 +470,7 @@
       "name": "native_stack_traces",
       "rootUri": "../pkg/native_stack_traces",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "nnbd_migration",
@@ -515,7 +515,7 @@
     {
       "name": "package_deps",
       "rootUri": "../tools/package_deps",
-      "languageVersion": "2.8"
+      "languageVersion": "2.12"
     },
     {
       "name": "path",
@@ -564,12 +564,6 @@
       "rootUri": "../third_party/pkg/pub_semver",
       "packageUri": "lib/",
       "languageVersion": "2.12"
-    },
-    {
-      "name": "resource",
-      "rootUri": "../third_party/pkg/resource",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
     },
     {
       "name": "scrape",
@@ -629,7 +623,7 @@
       "name": "source_maps",
       "rootUri": "../third_party/pkg/source_maps",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "source_span",
@@ -713,6 +707,11 @@
       "name": "test_descriptor",
       "rootUri": "../third_party/pkg/test_descriptor",
       "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "test_package",
+      "rootUri": "../pkg/vm_service/test/test_package",
       "languageVersion": "2.12"
     },
     {

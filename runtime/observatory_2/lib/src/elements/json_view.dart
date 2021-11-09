@@ -12,7 +12,6 @@ import 'package:observatory_2/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory_2/src/elements/helpers/custom_element.dart';
 import 'package:observatory_2/src/elements/nav/notify.dart';
 import 'package:observatory_2/src/elements/nav/top_menu.dart';
-import 'package:observatory_2/src/elements/view_footer.dart';
 
 class JSONViewElement extends CustomElement implements Renderable {
   RenderingScheduler<JSONViewElement> _r;
@@ -63,8 +62,6 @@ class JSONViewElement extends CustomElement implements Renderable {
           new HeadingElement.h2()..text = 'Object',
           new HRElement(),
           new PreElement()..text = JSONPretty.stringify(_map),
-          new HRElement(),
-          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }
