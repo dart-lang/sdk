@@ -153,8 +153,8 @@ abstract class Map<K, V> {
   /// The map construction iterates over [keys] and [values] simultaneously,
   /// and adds an entry to the map for each pair of key and value.
   /// ```dart
-  /// final List<String> letters = ['b', 'c'];
-  /// final List<String> words = ['bad', 'cat'];
+  /// final letters = ['b', 'c'];
+  /// final words = ['bad', 'cat'];
   /// final map = Map.fromIterables(letters, words);
   /// print(map); // {b: bad, c: cat}
   /// print(map.runtimeType); // LinkedHashMap
