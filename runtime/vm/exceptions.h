@@ -32,6 +32,9 @@ class Exceptions : AllStatic {
   DART_NORETURN static void ReThrow(Thread* thread,
                                     const Instance& exception,
                                     const Instance& stacktrace);
+  DART_NORETURN static void ThrowWithStackTrace(Thread* thread,
+                                                const Instance& exception,
+                                                const Instance& stacktrace);
   DART_NORETURN static void PropagateError(const Error& error);
 
   // Propagate an error to the entry frame, skipping over Dart frames.

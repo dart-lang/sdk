@@ -5,6 +5,7 @@
 import 'package:analyzer_utilities/check/check_target.dart';
 import 'package:meta/meta.dart';
 
+export 'package:analyzer_utilities/check/bool.dart';
 export 'package:analyzer_utilities/check/check_target.dart';
 export 'package:analyzer_utilities/check/equality.dart';
 export 'package:analyzer_utilities/check/int.dart';

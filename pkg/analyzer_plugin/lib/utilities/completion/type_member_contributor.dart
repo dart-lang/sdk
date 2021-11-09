@@ -29,7 +29,7 @@ class TypeMemberContributor implements CompletionContributor {
     var containingLibrary = request.result.libraryElement;
 
     // Recompute the target since resolution may have changed it
-    var expression = _computeDotTarget(request, null);
+    var expression = _computeDotTarget(request.result.unit, request.offset);
     if (expression == null || expression.isSynthetic) {
       return;
     }
@@ -42,7 +42,7 @@ class TypeMemberContributor implements CompletionContributor {
     var containingLibrary = request.result.libraryElement;
 
     // Recompute the target since resolution may have changed it
-    var expression = _computeDotTarget(request, entryPoint);
+    var expression = _computeDotTarget(entryPoint, request.offset);
     if (expression == null || expression.isSynthetic) {
       return;
     }
@@ -50,10 +50,8 @@ class TypeMemberContributor implements CompletionContributor {
   }
 
   /// Update the completion [target] and [dotTarget] based on the given [unit].
-  Expression? _computeDotTarget(
-      DartCompletionRequest request, AstNode? entryPoint) {
-    var target = CompletionTarget.forOffset(request.result.unit, request.offset,
-        entryPoint: entryPoint);
+  Expression? _computeDotTarget(AstNode entryPoint, int offset) {
+    var target = CompletionTarget.forOffset(entryPoint, offset);
     return target.dotTarget;
   }
 

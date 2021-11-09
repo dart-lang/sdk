@@ -939,7 +939,7 @@ RedirectingConstructorWithAnotherInitializer:
 
 SuperInitializerNotLast:
   problemMessage: "Can't have initializers after 'super'."
-  analyzerCode: INVALID_SUPER_INVOCATION
+  analyzerCode: SUPER_INVOCATION_NOT_LAST
   script:
     - "class C { int x; C.bad() : super(), x = 5; }"
 

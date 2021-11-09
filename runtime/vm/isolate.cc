@@ -2638,9 +2638,11 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
       Dart::thread_pool()->Run<ShutdownGroupTask>(isolate_group);
     }
   } else {
-    // TODO(dartbug.com/36097): An isolate just died. A significant amount of
-    // memory might have become unreachable. We should evaluate how to best
-    // inform the GC about this situation.
+    if (FLAG_enable_isolate_groups) {
+      // TODO(dartbug.com/36097): An isolate just died. A significant amount of
+      // memory might have become unreachable. We should evaluate how to best
+      // inform the GC about this situation.
+    }
   }
 }  // namespace dart
 
@@ -2804,6 +2806,11 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
     bool use_force_growth_in_otherwise) {
   auto thread = Thread::Current();
   StoppedMutatorsScope stopped_mutators_scope(thread);
+
+  if (thread->IsMutatorThread() && !FLAG_enable_isolate_groups) {
+    single_current_mutator->Call();
+    return;
+  }
 
   if (thread->IsAtSafepoint()) {
     RELEASE_ASSERT(safepoint_handler()->IsOwnedByTheThread(thread));

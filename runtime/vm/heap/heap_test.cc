@@ -574,6 +574,9 @@ class SendAndExitMessagesHandler : public MessageHandler {
 };
 
 VM_UNIT_TEST_CASE(CleanupBequestNeverReceived) {
+  // This test uses features from isolate groups
+  FLAG_enable_isolate_groups = true;
+
   const char* TEST_MESSAGE = "hello, world";
   Dart_Isolate parent = TestCase::CreateTestIsolate("parent");
   EXPECT_EQ(parent, Dart_CurrentIsolate());
@@ -605,6 +608,9 @@ VM_UNIT_TEST_CASE(CleanupBequestNeverReceived) {
 }
 
 VM_UNIT_TEST_CASE(ReceivesSendAndExitMessage) {
+  // This test uses features from isolate groups
+  FLAG_enable_isolate_groups = true;
+
   const char* TEST_MESSAGE = "hello, world";
   Dart_Isolate parent = TestCase::CreateTestIsolate("parent");
   EXPECT_EQ(parent, Dart_CurrentIsolate());

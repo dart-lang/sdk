@@ -111,8 +111,9 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
   // We have to check whether the reciever has the same isolate group (e.g.
   // native message handlers such as an IOService handler does not but does
   // share the same origin port).
-  const bool same_group = PortMap::IsReceiverInThisIsolateGroup(
-      destination_port_id, isolate->group());
+  const bool same_group =
+      FLAG_enable_isolate_groups && PortMap::IsReceiverInThisIsolateGroup(
+                                        destination_port_id, isolate->group());
   // TODO(turnidge): Throw an exception when the return value is false?
   PortMap::PostMessage(WriteMessage(can_send_any_object, same_group, obj,
                                     destination_port_id,
@@ -638,7 +639,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     ASSERT(name != nullptr);
 
     auto group = state_->isolate_group();
-    if (group == nullptr) {
+    if (!FLAG_enable_isolate_groups || group == nullptr) {
       RunHeavyweight(name);
     } else {
       RunLightweight(name);
@@ -675,7 +676,8 @@ class SpawnIsolateTask : public ThreadPool::Task {
   }
 
   void RunLightweight(const char* name) {
-    // The create isolate initialize callback is mandatory.
+    // The create isolate initialize callback is mandatory if
+    // --enable-isolate-groups was passed.
     auto initialize_callback = Isolate::InitializeCallback();
     if (initialize_callback == nullptr) {
       FailedSpawn(
@@ -932,16 +934,22 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   const auto& func = Function::Handle(zone, GetTopLevelFunction(zone, closure));
   PersistentHandle* closure_tuple_handle = nullptr;
   if (func.IsNull()) {
-    // We have a non-toplevel closure that we might need to copy.
-    // Result will be [<closure-copy>, <objects-in-msg-to-rehash>]
-    const auto& closure_copy_tuple = Object::Handle(
-        zone, CopyMutableObjectGraph(closure));  // Throws if it fails.
-    ASSERT(closure_copy_tuple.IsArray());
-    ASSERT(Object::Handle(zone, Array::Cast(closure_copy_tuple).At(0))
-               .IsClosure());
-    closure_tuple_handle =
-        isolate->group()->api_state()->AllocatePersistentHandle();
-    closure_tuple_handle->set_ptr(closure_copy_tuple.ptr());
+    if (!FLAG_enable_isolate_groups) {
+      const String& msg = String::Handle(String::New(
+          "Isolate.spawn expects to be passed a static or top-level function"));
+      Exceptions::ThrowArgumentError(msg);
+    } else {
+      // We have a non-toplevel closure that we might need to copy.
+      // Result will be [<closure-copy>, <objects-in-msg-to-rehash>]
+      const auto& closure_copy_tuple = Object::Handle(
+          zone, CopyMutableObjectGraph(closure));  // Throws if it fails.
+      ASSERT(closure_copy_tuple.IsArray());
+      ASSERT(Object::Handle(zone, Array::Cast(closure_copy_tuple).At(0))
+                 .IsClosure());
+      closure_tuple_handle =
+          isolate->group()->api_state()->AllocatePersistentHandle();
+      closure_tuple_handle->set_ptr(closure_copy_tuple.ptr());
+    }
   }
 
   bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
@@ -952,8 +960,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   // serializable this will throw an exception.
   SerializedObjectBuffer message_buffer;
   message_buffer.set_message(WriteMessage(
-      /*can_send_any_object=*/true,
-      /*same_group=*/true, message, ILLEGAL_PORT, Message::kNormalPriority));
+      /* can_send_any_object */ true,
+      /* same_group */ FLAG_enable_isolate_groups, message, ILLEGAL_PORT,
+      Message::kNormalPriority));
 
   const char* utf8_package_config =
       packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);

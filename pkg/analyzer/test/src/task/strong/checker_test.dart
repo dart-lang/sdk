@@ -3031,33 +3031,6 @@ void f() {
     ]);
   }
 
-  test_superCallPlacement() async {
-    await assertErrorsInCode('''
-class Base {
-  var x;
-  Base() : x = 1;
-}
-
-class Derived extends Base {
-  var y, z;
-  Derived() : y = 1, super(), z = 2;
-}
-
-class Valid extends Base {
-  var y, z;
-  Valid(): y = 1, z = 2, super();
-}
-
-class AlsoValid extends Base {
-  AlsoValid() : super();
-}
-
-main() => new Derived();
-''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 105, 5),
-    ]);
-  }
-
   test_superclassOverrideOfGrandInterface_interfaceOfAbstractSuperclass() async {
     await assertErrorsInCode('''
 class A {}
@@ -3413,62 +3386,6 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-    ]);
-  }
-
-  test_unaryOperators() async {
-    await assertErrorsInCode('''
-class A {
-  A operator ~() => null;
-  A operator +(int x) => null;
-  A operator -(int x) => null;
-  A operator -() => null;
-}
-class B extends A {}
-class C extends B {}
-
-foo() => new A();
-
-test() {
-  A a = new A();
-  B b = new B();
-  var c = foo();
-  dynamic d;
-
-  ~a;
-  (~d);
-
-  !a;
-  !d;
-
-  -a;
-  (-d);
-
-  ++a;
-  --a;
-  (++d);
-  (--d);
-
-  a++;
-  a--;
-  (d++);
-  (d--);
-
-  ++b;
-  --b;
-  b++;
-  b--;
-
-  takesC(C c) => null;
-  takesC(++b);
-  takesC(--b);
-  takesC(b++);
-  takesC(b--);
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 201, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 237, 1),
-      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 280, 1),
     ]);
   }
 

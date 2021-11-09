@@ -696,8 +696,9 @@ static void ThrowExceptionHelper(Thread* thread,
   if (exception.IsNull()) {
     exception ^=
         Exceptions::Create(Exceptions::kNullThrown, Object::empty_array());
-  } else if (exception.ptr() == object_store->out_of_memory() ||
-             exception.ptr() == object_store->stack_overflow()) {
+  } else if (existing_stacktrace.IsNull() &&
+             (exception.ptr() == object_store->out_of_memory() ||
+              exception.ptr() == object_store->stack_overflow())) {
     use_preallocated_stacktrace = true;
   }
   // Find the exception handler and determine if the handler needs a
@@ -729,11 +730,17 @@ static void ThrowExceptionHelper(Thread* thread,
     }
   } else {
     if (!existing_stacktrace.IsNull()) {
-      // If we have an existing stack trace then this better be a rethrow. The
-      // reverse is not necessarily true (e.g. Dart_PropagateError can cause
-      // a rethrow being called without an existing stacktrace.)
-      ASSERT(is_rethrow);
       stacktrace = existing_stacktrace.ptr();
+      // If this is not a rethrow, it's a "throw with stacktrace".
+      // Set an Error object's stackTrace field if needed.
+      if (!is_rethrow) {
+        const Field& stacktrace_field =
+            Field::Handle(zone, LookupStackTraceField(exception));
+        if (!stacktrace_field.IsNull() &&
+            (exception.GetField(stacktrace_field) == Object::null())) {
+          exception.SetField(stacktrace_field, stacktrace);
+        }
+      }
     } else {
       // Get stacktrace field of class Error to determine whether we have a
       // subclass of Error which carries around its stack trace.
@@ -915,6 +922,13 @@ void Exceptions::ReThrow(Thread* thread,
                          const Instance& stacktrace) {
   // Null object is a valid exception object.
   ThrowExceptionHelper(thread, exception, stacktrace, true);
+}
+
+void Exceptions::ThrowWithStackTrace(Thread* thread,
+                                     const Instance& exception,
+                                     const Instance& stacktrace) {
+  // Null object is a valid exception object.
+  ThrowExceptionHelper(thread, exception, stacktrace, false);
 }
 
 void Exceptions::PropagateError(const Error& error) {

@@ -9429,7 +9429,7 @@ const Code<Null> codeSuperInitializerNotLast = messageSuperInitializerNotLast;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperInitializerNotLast = const MessageCode(
     "SuperInitializerNotLast",
-    analyzerCodes: <String>["INVALID_SUPER_INVOCATION"],
+    analyzerCodes: <String>["SUPER_INVOCATION_NOT_LAST"],
     problemMessage: r"""Can't have initializers after 'super'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

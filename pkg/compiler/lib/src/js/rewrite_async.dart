@@ -1397,8 +1397,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   @override
   void visitSwitch(js.Switch node) {
-    if (!node.cases.any(shouldTransform)) {
-      // If only the key has an await, translation can be simplified.
+    if (!shouldTransform(node)) {
+      // TODO(sra): If only the key has an await, translation can be simplified.
       bool oldInsideUntranslated = insideUntranslatedBreakable;
       insideUntranslatedBreakable = true;
       withExpression(node.key, (js.Expression key) {
@@ -2824,10 +2824,9 @@ class PreTranslationAnalysis extends js.BaseVisitor<bool> {
   @override
   bool visitSwitch(js.Switch node) {
     loopsAndSwitches.add(node);
-    // If the key has an `await` expression, do not transform the
-    // body of the switch.
-    visit(node.key);
-    bool result = false;
+    // TODO(sra): If just the key has an `await` expression, do not transform
+    // the body of the switch.
+    bool result = visit(node.key);
     for (js.SwitchClause clause in node.cases) {
       if (visit(clause)) result = true;
     }

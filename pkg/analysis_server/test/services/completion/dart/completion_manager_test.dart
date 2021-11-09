@@ -57,7 +57,7 @@ part 'test.dart';
       offset: completionOffset,
     );
 
-    var directives = request.target.unit.directives;
+    var directives = resolvedUnit.unit.directives;
 
     var imports = request.libraryElement.imports;
     expect(imports, hasLength(directives.length + 1));

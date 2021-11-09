@@ -22,7 +22,8 @@ import 'dart:_js_helper'
         Primitives,
         quoteStringForRegExp,
         getTraceFromException,
-        RuntimeError;
+        RuntimeError,
+        wrapException;
 
 import 'dart:_foreign_helper' show JS;
 import 'dart:_native_typed_data' show NativeUint8List;
@@ -187,6 +188,14 @@ class Error {
 
   @patch
   StackTrace? get stackTrace => Primitives.extractStackTrace(this);
+
+  @patch
+  static Never _throw(Object error, StackTrace stackTrace) {
+    error = wrapException(error);
+    JS('void', '#.stack = #', error, stackTrace.toString());
+    JS('', 'throw #', error);
+    throw "unreachable";
+  }
 }
 
 @patch
