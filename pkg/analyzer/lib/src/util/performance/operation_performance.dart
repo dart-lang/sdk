@@ -155,12 +155,9 @@ class OperationPerformanceImpl implements OperationPerformance {
   ) async {
     var child = _existingOrNewChild(name);
     child._timer.start();
-
-    try {
-      return await operation(child);
-    } finally {
-      child._timer.stop();
-    }
+    var result = await operation(child);
+    child._timer.stop();
+    return result;
   }
 
   @override
