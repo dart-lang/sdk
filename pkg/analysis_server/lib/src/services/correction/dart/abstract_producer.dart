@@ -239,10 +239,6 @@ class CorrectionProducerContext {
 
   final AstNode node;
 
-  /// A map keyed by lock names whose value is a list of the ranges for which a
-  /// lock has already been acquired.
-  final Map<String, List<SourceRange>> _lockRanges = {};
-
   CorrectionProducerContext._({
     required this.resolvedResult,
     required this.workspace,
@@ -457,26 +453,6 @@ abstract class _AbstractCorrectionProducer {
   CompilationUnit get unit => _context.unit;
 
   CorrectionUtils get utils => _context.utils;
-
-  /// Return `true` if this is the first request to lock the given [range] for
-  /// the lock with the given [lockName], or false if a lock for that range has
-  /// already been acquired.
-  ///
-  /// This method is used to allow correction producers to guard against
-  /// repeating changes that have already been made. For example, if multiple
-  /// arguments in an argument list have diagnostics reported against them and
-  /// the fix will fix all of the arguments, then the fix should be applied for
-  /// the first diagnostic and not for the others. A correction producer can
-  /// ensure this behavior by attempting to acquire a lock prior to creating any
-  /// edits, and only create the edits if a lock could be acquired.
-  bool acquireLockOnRange(String lockName, SourceRange range) {
-    var ranges = _context._lockRanges.putIfAbsent(lockName, () => []);
-    if (ranges.contains(range)) {
-      return false;
-    }
-    ranges.add(range);
-    return true;
-  }
 
   /// Configure this producer based on the [context].
   void configure(CorrectionProducerContext context) {
