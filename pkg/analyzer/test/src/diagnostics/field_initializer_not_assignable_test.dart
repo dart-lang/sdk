@@ -10,7 +10,9 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FieldInitializerNotAssignableTest);
-    defineReflectiveTests(FieldInitializerNotAssignableWithNoImplicitCastsTest);
+    defineReflectiveTests(
+        FieldInitializerNotAssignableWithoutNullSafetyAndNoImplicitCastsTest);
+    defineReflectiveTests(FieldInitializerNotAssignableWithStrictCastsTest);
   });
 }
 
@@ -53,14 +55,34 @@ class A {
 }
 
 @reflectiveTest
-class FieldInitializerNotAssignableWithNoImplicitCastsTest
+class FieldInitializerNotAssignableWithoutNullSafetyAndNoImplicitCastsTest
     extends PubPackageResolutionTest
     with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
   test_constructorInitializer() async {
-    await assertErrorsWithNoImplicitCasts(
-      'class A { int i; A(num n) : i = n; }',
+    await assertErrorsWithNoImplicitCasts('''
+class A {
+  int i;
+  A(num n) : i = n;
+}
+''', [
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 36, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class FieldInitializerNotAssignableWithStrictCastsTest
+    extends PubPackageResolutionTest with WithStrictCastsMixin {
+  test_constructorInitializer() async {
+    await assertErrorsWithStrictCasts(
+      '''
+class A {
+  int i;
+  A(dynamic a) : i = a;
+}
+''',
       [
-        error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 32, 1),
+        error(CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE, 40, 1),
       ],
     );
   }

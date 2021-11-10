@@ -76,7 +76,7 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_rev": "3b3f55766af13d895d2020ec001a28e8dc147f91",
   "async_rev": "80886150a5e6c58006c8ae5a6c2aa7108638e2a9",
-  "bazel_worker_rev": "0885637b037979afbf5bcd05fd748b309fd669c0",
+  "bazel_worker_rev": "ceeba0982d4ff40d32371c9d35f3d2dc1868de20",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
   "boringssl_gen_rev": "7322fc15cc065d8d2957fccce6b62a509dc4d641",
@@ -141,7 +141,7 @@ vars = {
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
   "pub_rev": "96404e0749864c9fbf8b12e1d424e8078809e00a",
-  "pub_semver_rev": "a43ad72fb6b7869607581b5fedcb186d1e74276a",
+  "pub_semver_rev": "cee044a3dc867c1c8464408ed435bd21949510c0",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
   "shelf_static_rev": "202ec1a53c9a830c17cf3b718d089cf7eba568ad",

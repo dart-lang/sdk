@@ -11,8 +11,10 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidAssignment_ImplicitCallReferenceTest);
     defineReflectiveTests(InvalidAssignmentTest);
-    defineReflectiveTests(InvalidAssignmentWithNoImplicitCastsTest);
+    defineReflectiveTests(
+        InvalidAssignmentWithoutNullSafetyAndNoImplicitCastsTest);
     defineReflectiveTests(InvalidAssignmentWithoutNullSafetyTest);
+    defineReflectiveTests(InvalidAssignmentWithStrictCastsTest);
   });
 }
 
@@ -962,24 +964,27 @@ main() {
 }
 
 @reflectiveTest
-class InvalidAssignmentWithNoImplicitCastsTest extends PubPackageResolutionTest
+class InvalidAssignmentWithoutNullSafetyAndNoImplicitCastsTest
+    extends PubPackageResolutionTest
     with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
   test_assignment() async {
-    await assertErrorsWithNoImplicitCasts(
-      'void f(num n, int i) { i = n;}',
-      [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 1),
-      ],
-    );
+    await assertErrorsWithNoImplicitCasts('''
+void f(num n, int i) {
+  i = n;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 1),
+    ]);
   }
 
   test_compoundAssignment() async {
-    await assertErrorsWithNoImplicitCasts(
-      'void f(num n, int i) { i += n; }',
-      [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 28, 1),
-      ],
-    );
+    await assertErrorsWithNoImplicitCasts('''
+void f(num n, int i) {
+  i += n;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 30, 1),
+    ]);
   }
 
   @failingTest
@@ -1008,11 +1013,11 @@ void f(dynamic a) {
 
   test_numericOps() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26912
-    await assertErrorsWithNoImplicitCasts(r'''
+    await assertNoErrorsWithNoImplicitCasts('''
 void f(int x, int y) {
   x += y;
 }
-''', []);
+''');
   }
 
   @failingTest
@@ -1085,6 +1090,19 @@ class B<T> {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 57, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class InvalidAssignmentWithStrictCastsTest extends PubPackageResolutionTest
+    with WithStrictCastsMixin {
+  test_assignment() async {
+    await assertErrorsWithStrictCasts('''
+dynamic a;
+int b = a;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
     ]);
   }
 }
