@@ -632,39 +632,31 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl? visitConstructorReference(ConstructorReference node) {
-    var constructorTearoffResult = DartObjectImpl(
+    var constructorFunctionType = node.typeOrThrow as FunctionType;
+    var classType = constructorFunctionType.returnType as InterfaceType;
+    var typeArguments = classType.typeArguments;
+    // The result is already instantiated during resolution;
+    // [_dartObjectComputer.typeInstantiate] is unnecessary.
+    var typeElement =
+        node.constructorName.type2.name.staticElement as TypeDefiningElement;
+
+    TypeAliasElement? viaTypeAlias;
+    if (typeElement is TypeAliasElementImpl) {
+      if (constructorFunctionType.typeFormals.isNotEmpty &&
+          !typeElement.isProperRename()) {
+        // The type alias is not a proper rename of the aliased class, so
+        // the constructor tear-off is distinct from the associated
+        // constructor function of the aliased class.
+        viaTypeAlias = typeElement;
+      }
+    }
+
+    return DartObjectImpl(
       typeSystem,
       node.typeOrThrow,
-      FunctionState(node.constructorName.staticElement),
+      FunctionState(node.constructorName.staticElement,
+          typeArguments: typeArguments, viaTypeAlias: viaTypeAlias),
     );
-    var typeArgumentList = node.constructorName.type2.typeArguments;
-    if (typeArgumentList == null) {
-      return constructorTearoffResult;
-    } else {
-      var typeArguments = <DartType>[];
-      for (var typeArgument in typeArgumentList.arguments) {
-        var object = typeArgument.accept(this);
-        if (object == null) {
-          return null;
-        }
-        var typeArgumentType = object.toTypeValue();
-        if (typeArgumentType == null) {
-          return null;
-        }
-        // TODO(srawlins): Test type alias types (`typedef i = int`) used as
-        // type arguments. Possibly change implementation based on
-        // canonicalization rules.
-        typeArguments.add(typeArgumentType);
-      }
-      // The result is already instantiated during resolution;
-      // [_dartObjectComputer.typeInstantiate] is unnecessary.
-      return DartObjectImpl(
-        typeSystem,
-        node.typeOrThrow,
-        FunctionState(node.constructorName.staticElement,
-            typeArguments: typeArguments),
-      );
-    }
   }
 
   @override

@@ -563,9 +563,9 @@ class Isolate {
   /// This operation is potentially dangerous and should be used judiciously.
   /// The isolate stops operating *immediately*. It throws if the optional
   /// [message] does not adhere to the limitations on what can be sent from one
-  /// isolate to another. It also throws if a [finalMessagePort] is associated
-  /// with an isolate spawned outside of current isolate group, spawned via
-  /// [spawnUri].
+  /// isolate to another (see [SendPort.send] for more details). It also throws
+  /// if a [finalMessagePort] is associated with an isolate spawned outside of
+  /// current isolate group, spawned via [spawnUri].
   ///
   /// If successful, a call to this method does not return. Pending `finally`
   /// blocks are not executed, control flow will not go back to the event loop,
@@ -575,9 +575,9 @@ class Isolate {
   /// code will run in the isolate.)
   ///
   /// If [finalMessagePort] is provided, and the [message] can be sent through
-  /// it, then the message is sent through that port as the final operation of
-  /// the current isolate. The isolate terminates immediately after
-  /// that [SendPort.send] call returns.
+  /// it (see [SendPort.send] for more details), then the message is sent
+  /// through that port as the final operation of the current isolate. The
+  /// isolate terminates immediately after that [SendPort.send] call returns.
   ///
   /// If the port is a native port -- one provided by [ReceivePort.sendPort] or
   /// [RawReceivePort.sendPort] -- the system may be able to send this final
@@ -599,9 +599,10 @@ class Isolate {
 /// when sent.
 abstract class SendPort implements Capability {
   /// Sends an asynchronous [message] through this send port, to its
-  /// corresponding `ReceivePort`.
+  /// corresponding [ReceivePort].
   ///
-  /// The content of [message] can be:
+  /// The transitive object graph of [message] can contain the following
+  /// objects:
   ///   - [Null]
   ///   - [bool]
   ///   - [int]
@@ -612,14 +613,34 @@ abstract class SendPort implements Capability {
   ///   - [SendPort]
   ///   - [Capability]
   ///
-  /// In the special circumstances when two isolates share the same code and are
-  /// running in the same process (e.g. isolates created via [Isolate.spawn]),
-  /// it is also possible to send object instances (which would be copied in the
-  /// process).
+  /// If the sender and receiver isolate share the same code (e.g. isolates
+  /// created via [Isolate.spawn]), the transitive object graph of [message] can
+  /// contain any object, with the following exceptions:
   ///
-  /// The send happens immediately and doesn't block.  The corresponding receive
+  ///   - Objects with native resources (subclasses of e.g.
+  ///     `NativeFieldWrapperClass1`). A [Socket] object for example referrs
+  ///     internally to objects that have native resources attached and can
+  ///     therefore not be sent.
+  ///   - [ReceivePort]
+  ///   - [DynamicLibrary]
+  ///   - [Pointer]
+  ///   - [UserTag]
+  ///   - `MirrorReference`
+  ///
+  /// Apart from those exceptions any object can be sent. Objects that are
+  /// identified as immutable (e.g. strings) will be shared whereas all other
+  /// objects will be copied.
+  ///
+  /// The send happens immediately and may have a linear time cost to copy the
+  /// transtive object graph. The send itself doesn't block (i.e. doesn't wait
+  /// until the receiver has received the message). The corresponding receive
   /// port can receive the message as soon as its isolate's event loop is ready
   /// to deliver it, independently of what the sending isolate is doing.
+  ///
+  /// Note: Due to an implementation choice the Dart VM made for how closures
+  /// represent captured state, closures can currently capture more state than
+  /// they need, which can cause the transitive closure to be larger than
+  /// needed. Open bug to address this: http://dartbug.com/36983
   void send(Object? message);
 
   /// Tests whether [other] is a [SendPort] pointing to the same

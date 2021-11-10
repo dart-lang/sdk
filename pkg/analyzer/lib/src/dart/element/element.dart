@@ -5582,6 +5582,37 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     }
   }
 
+  /// Returns whether this alias is a "proper rename" of [aliasedClass], as
+  /// defined in the constructor-tearoffs specification.
+  bool isProperRename() {
+    var aliasedType_ = aliasedType;
+    if (aliasedType_ is! InterfaceType) {
+      return false;
+    }
+    var aliasedClass = aliasedType_.element;
+    var typeArguments = aliasedType_.typeArguments;
+    var typeParameterCount = typeParameters.length;
+    if (typeParameterCount != aliasedClass.typeParameters.length) {
+      return false;
+    }
+    if (typeParameterCount != typeArguments.length) {
+      return false;
+    }
+    for (var i = 0; i < typeParameterCount; i++) {
+      var bound = typeParameters[i].bound ?? library.typeProvider.dynamicType;
+      var aliasedBound = aliasedClass.typeParameters[i].bound ??
+          library.typeProvider.dynamicType;
+      if (!library.typeSystem.isSubtypeOf(bound, aliasedBound) ||
+          !library.typeSystem.isSubtypeOf(aliasedBound, bound)) {
+        return false;
+      }
+      if (typeParameters[i] != typeArguments[i].element) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
     this.reference = reference;
     reference.element = this;
