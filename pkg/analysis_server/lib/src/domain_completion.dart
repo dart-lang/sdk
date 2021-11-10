@@ -302,9 +302,9 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     performance.runAsync(
       'request',
       (performance) async {
-        var resolvedUnit = await performance.runAsync(
+        var resolvedUnit = performance.run(
           'resolveForCompletion',
-          (performance) async {
+          (performance) {
             return server.resolveForCompletion(
               path: file,
               offset: offset,
