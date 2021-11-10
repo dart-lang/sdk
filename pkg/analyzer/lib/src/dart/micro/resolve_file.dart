@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
@@ -186,30 +185,25 @@ class FileResolver {
     removedCacheIds.addAll(libraryContext!.collectSharedDataIdentifiers());
   }
 
-  /// Looks for references to the Element at the given offset and path. All the
+  /// Looks for references to the given Element in the path. All the
   /// files currently cached by the resolver are searched, generated files are
   /// ignored.
-  List<CiderSearchMatch> findReferences(int offset, String path,
+  List<CiderSearchMatch> findReferences(Element element, String path,
       {OperationPerformanceImpl? performance}) {
     var references = <CiderSearchMatch>[];
-    var unit = resolve(path: path);
-    var node = NodeLocator(offset).searchWithin(unit.unit);
-    var element = getElementOfNode(node);
-    if (element != null) {
-      // TODO(keertip): check if element is named constructor.
-      var result = fsState!.getFilesContaining(element.displayName);
-      result.forEach((filePath) {
-        var resolved = resolve(path: filePath);
-        var collector = ReferencesCollector(element);
-        resolved.unit.accept(collector);
-        var offsets = collector.offsets;
-        if (offsets.isNotEmpty) {
-          var lineInfo = resolved.unit.lineInfo;
-          references.add(CiderSearchMatch(filePath,
-              offsets.map((offset) => lineInfo?.getLocation(offset)).toList()));
-        }
-      });
-    }
+    // TODO(keertip): check if element is named constructor.
+    var result = fsState!.getFilesContaining(element.displayName);
+    result.forEach((filePath) {
+      var resolved = resolve(path: filePath);
+      var collector = ReferencesCollector(element);
+      resolved.unit.accept(collector);
+      var offsets = collector.offsets;
+      if (offsets.isNotEmpty) {
+        var lineInfo = resolved.unit.lineInfo;
+        references.add(CiderSearchMatch(filePath,
+            offsets.map((offset) => lineInfo?.getLocation(offset)).toList()));
+      }
+    });
     return references;
   }
 

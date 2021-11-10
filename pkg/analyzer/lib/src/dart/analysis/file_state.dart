@@ -94,6 +94,9 @@ class FileState {
   /// The absolute URI of the file.
   final Uri uri;
 
+  /// Properties of the [uri].
+  final FileUriProperties uriProperties;
+
   /// The [Source] of the file with the [uri].
   final Source source;
 
@@ -148,7 +151,7 @@ class FileState {
     this.workspacePackage,
     this._contextFeatureSet,
     this.packageLanguageVersion,
-  );
+  ) : uriProperties = FileUriProperties(uri);
 
   /// The unlinked API signature of the file.
   Uint8List get apiSignature => _apiSignature!;
@@ -970,4 +973,47 @@ class FileSystemStateTestView {
         .where((f) => f._libraryCycle == null)
         .toSet();
   }
+}
+
+/// Precomputed properties of a file URI, used because [Uri] is relatively
+/// expensive to work with, if we do this thousand times.
+class FileUriProperties {
+  static const int _isDart = 1 << 0;
+  static const int _isSrc = 1 << 1;
+
+  final int _flags;
+  final String? packageName;
+
+  factory FileUriProperties(Uri uri) {
+    if (uri.isScheme('dart')) {
+      return const FileUriProperties._dart();
+    } else if (uri.isScheme('package')) {
+      var segments = uri.pathSegments;
+      if (segments.length >= 2) {
+        return FileUriProperties._package(
+          packageName: segments[0],
+          isSrc: segments[1] == 'src',
+        );
+      }
+    }
+    return const FileUriProperties._unknown();
+  }
+
+  const FileUriProperties._dart()
+      : _flags = _isDart,
+        packageName = null;
+
+  FileUriProperties._package({
+    required String packageName,
+    required bool isSrc,
+  })  : _flags = isSrc ? _isSrc : 0,
+        packageName = packageName;
+
+  const FileUriProperties._unknown()
+      : _flags = 0,
+        packageName = null;
+
+  bool get isDart => (_flags & _isDart) != 0;
+
+  bool get isSrc => (_flags & _isSrc) != 0;
 }

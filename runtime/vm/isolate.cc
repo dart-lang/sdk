@@ -62,6 +62,7 @@ namespace dart {
 
 DECLARE_FLAG(bool, print_metrics);
 DECLARE_FLAG(bool, trace_service);
+DECLARE_FLAG(bool, trace_shutdown);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 // Reload flags.
@@ -488,6 +489,19 @@ void IsolateGroup::CreateHeap(bool is_vm_isolate,
 }
 
 void IsolateGroup::Shutdown() {
+  char* name;
+  // We retrieve the flag value once to avoid the compiler complaining about the
+  // possibly uninitialized value of name, as the compiler is unaware that when
+  // the flag variable is non-const, it is set once during VM initialization and
+  // never changed after, and that modification never runs concurrently with
+  // this method.
+  const bool trace_shutdown = FLAG_trace_shutdown;
+
+  if (trace_shutdown) {
+    name = Utils::StrDup(source()->name);
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutdown starting for group %s\n",
+                 Dart::UptimeMillis(), name);
+  }
   // Ensure to join all threads before waiting for pending GC tasks (the thread
   // pool can trigger idle notification, which can start new GC tasks).
   //
@@ -529,11 +543,28 @@ void IsolateGroup::Shutdown() {
   // After this isolate group has died we might need to notify a pending
   // `Dart_Cleanup()` call.
   {
+    if (trace_shutdown) {
+      OS::PrintErr("[+%" Pd64
+                   "ms] SHUTDOWN: Notifying "
+                   "isolate group shutdown (%s)\n",
+                   Dart::UptimeMillis(), name);
+    }
     MonitorLocker ml(Isolate::isolate_creation_monitor_);
     if (!Isolate::creation_enabled_ &&
         !IsolateGroup::HasApplicationIsolateGroups()) {
       ml.Notify();
     }
+    if (trace_shutdown) {
+      OS::PrintErr("[+%" Pd64
+                   "ms] SHUTDOWN: Done Notifying "
+                   "isolate group shutdown (%s)\n",
+                   Dart::UptimeMillis(), name);
+    }
+  }
+  if (trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done shutdown for group %s\n",
+                 Dart::UptimeMillis(), name);
+    free(name);
   }
 }
 
@@ -2635,6 +2666,10 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
       // The current thread is running on the isolate group's thread pool.
       // So we cannot safely delete the isolate group (and it's pool).
       // Instead we will destroy the isolate group on the VM-global pool.
+      if (FLAG_trace_shutdown) {
+        OS::PrintErr("[+%" Pd64 "ms] : Scheduling shutdown on VM pool %s\n",
+                     Dart::UptimeMillis(), isolate_group->source()->name);
+      }
       Dart::thread_pool()->Run<ShutdownGroupTask>(isolate_group);
     }
   } else {

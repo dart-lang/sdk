@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/analysis_context.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -688,6 +689,22 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return completer.future;
   }
 
+  /// Return [LibraryElementResult] for the given [file], or `null` if the
+  /// file is a part.
+  LibraryElement? getLibraryByFile(FileState file) {
+    if (file.isPart) {
+      return null;
+    }
+
+    var element = libraryContext.getLibraryElementIfReady(file.uriStr);
+    if (element != null) {
+      return element;
+    }
+
+    libraryContext.load2(file);
+    return libraryContext.getLibraryElement(file.uri);
+  }
+
   /// Return a [Future] that completes with [LibraryElementResult] for the given
   /// [uri], which is either resynthesized from the provided external summary
   /// store, or built for a file to which the given [uri] is resolved.
@@ -1328,6 +1345,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     );
 
     return ResolvedForCompletionResultImpl(
+      analysisSession: currentSession,
       path: path,
       uri: file.uri,
       exists: file.exists,
