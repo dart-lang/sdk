@@ -560,6 +560,53 @@ bool FlowGraphCompiler::IsPeephole(Instruction* instr) const {
   return false;
 }
 
+void FlowGraphCompiler::EmitFunctionEntrySourcePositionDescriptorIfNeeded() {
+  // When unwinding async stacks we might produce frames which correspond
+  // to future listeners which are going to be called when the future completes.
+  // These listeners are not yet called and thus their frame pc_offset is set
+  // to 0 - which does not actually correspond to any call- or yield- site
+  // inside the code object. Nevertheless we would like to be able to
+  // produce proper position information for it when symbolizing the stack.
+  // To achieve that in AOT mode (where we don't actually have
+  // |Function::token_pos| available) we instead emit an artificial descriptor
+  // at the very beginning of the function.
+  if (FLAG_precompiled_mode && flow_graph().function().IsClosureFunction()) {
+    code_source_map_builder_->WriteFunctionEntrySourcePosition(
+        InstructionSource(flow_graph().function().token_pos()));
+  }
+}
+
+void FlowGraphCompiler::CompileGraph() {
+  InitCompiler();
+
+#if !defined(TARGET_ARCH_IA32)
+  // For JIT we have multiple entrypoints functionality which moved the frame
+  // setup into the [TargetEntryInstr] (which will set the constant pool
+  // allowed bit to true).  Despite this we still have to set the
+  // constant pool allowed bit to true here as well, because we can generate
+  // code for [CatchEntryInstr]s, which need the pool.
+  assembler()->set_constant_pool_allowed(true);
+#endif
+
+  EmitFunctionEntrySourcePositionDescriptorIfNeeded();
+  VisitBlocks();
+
+#if defined(DEBUG)
+  assembler()->Breakpoint();
+#endif
+
+  if (!skip_body_compilation()) {
+#if !defined(TARGET_ARCH_IA32)
+    ASSERT(assembler()->constant_pool_allowed());
+#endif
+    GenerateDeferredCode();
+  }
+
+  for (intptr_t i = 0; i < indirect_gotos_.length(); ++i) {
+    indirect_gotos_[i]->ComputeOffsetTable(this);
+  }
+}
+
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
   if (compiler::Assembler::EmittingComments()) {
