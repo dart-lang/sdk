@@ -10,20 +10,14 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 
 /// A contributor of suggestions from not yet imported libraries.
 class NotImportedContributor extends DartCompletionContributor {
-  /// Tests set this function to abort the current request.
-  @visibleForTesting
-  static void Function(FileState)? onFile;
-
   final CompletionBudget budget;
   final Map<protocol.CompletionSuggestion, Uri> notImportedSuggestions;
 
@@ -36,7 +30,6 @@ class NotImportedContributor extends DartCompletionContributor {
 
   @override
   Future<void> computeSuggestions() async {
-    var analysisSession = request.analysisSession;
     var analysisDriver = request.analysisContext.driver;
 
     var fsState = analysisDriver.fsState;
@@ -53,9 +46,6 @@ class NotImportedContributor extends DartCompletionContributor {
 
     var knownFiles = fsState.knownFiles.toList();
     for (var file in knownFiles) {
-      onFile?.call(file);
-      request.checkAborted();
-
       if (budget.isEmpty) {
         return;
       }
@@ -64,12 +54,12 @@ class NotImportedContributor extends DartCompletionContributor {
         continue;
       }
 
-      var elementResult = await analysisSession.getLibraryByUri(file.uriStr);
-      if (elementResult is! LibraryElementResult) {
+      var element = analysisDriver.getLibraryByFile(file);
+      if (element == null) {
         continue;
       }
 
-      var exportNamespace = elementResult.element.exportNamespace;
+      var exportNamespace = element.exportNamespace;
       var exportElements = exportNamespace.definedNames.values.toList();
 
       builder.laterReplacesEarlier = false;
