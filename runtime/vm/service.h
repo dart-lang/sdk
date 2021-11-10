@@ -161,10 +161,6 @@ class Service : public AllStatic {
                         const Instance& id,
                         const Error& error);
 
-  // Enable/Disable timeline categories.
-  // Returns True if the categories were successfully enabled, False otherwise.
-  static bool EnableTimelineStreams(char* categories_list);
-
   // Well-known streams.
   static StreamInfo vm_stream;
   static StreamInfo isolate_stream;
