@@ -50,8 +50,8 @@ class CheckNameResponse {
   String get oldName => canRename.refactoringElement.element.displayName;
 
   RenameResponse? computeRenameRanges() {
-    var matches = canRename._fileResolver.findReferences(
-        canRename.refactoringElement.element, canRename.filePath);
+    var matches = canRename._fileResolver
+        .findReferences(canRename.refactoringElement.element);
     return RenameResponse(matches, this);
   }
 }
