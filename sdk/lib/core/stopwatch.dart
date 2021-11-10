@@ -5,6 +5,36 @@
 part of dart.core;
 
 /// A simple stopwatch interface to measure elapsed time.
+///
+/// Example:
+/// ```dart
+/// final stopwatch = Stopwatch();
+/// // Check elapsed number of clock ticks since calling start.
+/// print(stopwatch.elapsedTicks); // 0
+/// print(stopwatch.isRunning); // false;
+///
+/// // Start
+/// stopwatch.start();
+/// print(stopwatch.isRunning); // true;
+/// sleep(const Duration(seconds: 5));
+/// // Stopwath provides Duration type object via elapsed
+/// print(stopwatch.elapsed.inSeconds); // 5
+/// // Stopwatch elapsed time in milliseconds
+/// print(stopwatch.elapsedMilliseconds);
+///
+/// // Stop
+/// stopwatch.stop();
+/// print(stopwatch.isRunning); // false;
+/// // Check elapsed number of clock ticks since calling start.
+/// print(stopwatch.elapsedTicks);
+///
+/// // Reset - stopwatch elapsed time is reset
+/// stopwatch.reset();
+/// sleep(const Duration(seconds: 1));
+/// print(stopwatch.isRunning); // false;
+/// print(stopwatch.elapsed); // 0:00:00.000000
+/// print(stopwatch.elapsedTicks); // 0
+/// ```
 class Stopwatch {
   /// Cached frequency of the system in Hz (ticks per second).
   ///
