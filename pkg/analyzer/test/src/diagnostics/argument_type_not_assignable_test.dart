@@ -11,8 +11,10 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgumentTypeNotAssignableTest);
-    defineReflectiveTests(ArgumentTypeNotAssignableWithNoImplicitCastsTest);
+    defineReflectiveTests(
+        ArgumentTypeNotAssignableWithoutNullSafetyAndNoImplicitCastsTest);
     defineReflectiveTests(ArgumentTypeNotAssignableWithoutNullSafetyTest);
+    defineReflectiveTests(ArgumentTypeNotAssignableWithStrictCastsTest);
   });
 }
 
@@ -656,7 +658,7 @@ g(C c) {
 }
 
 @reflectiveTest
-class ArgumentTypeNotAssignableWithNoImplicitCastsTest
+class ArgumentTypeNotAssignableWithoutNullSafetyAndNoImplicitCastsTest
     extends PubPackageResolutionTest
     with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
   test_functionCall() async {
@@ -705,6 +707,31 @@ main() {
   acceptFunOptBool(C.funBool);
 }''', [
       error(CompileTimeErrorCode.INVALID_CAST_METHOD, 125, 9),
+    ]);
+  }
+}
+
+@reflectiveTest
+class ArgumentTypeNotAssignableWithStrictCastsTest
+    extends PubPackageResolutionTest with WithStrictCastsMixin {
+  test_functionCall() async {
+    await assertErrorsWithStrictCasts('''
+void f(int i) {}
+void foo(dynamic a) {
+  f(a);
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 43, 1),
+    ]);
+  }
+
+  test_operator() async {
+    await assertErrorsWithStrictCasts('''
+void foo(int i, dynamic a) {
+  i + a;
+}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 35, 1),
     ]);
   }
 }

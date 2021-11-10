@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolNegationExpressionTest);
     defineReflectiveTests(NonBoolNegationExpressionWithNullSafetyTest);
+    defineReflectiveTests(NonBoolNegationExpressionWithStrictCastsTest);
   });
 }
 
@@ -50,14 +51,26 @@ f(Object o) {
 class NonBoolNegationExpressionWithNullSafetyTest
     extends PubPackageResolutionTest {
   test_null() async {
-    await assertErrorsInCode(r'''
-m() {
-  Null x;
+    await assertErrorsInCode('''
+void m(Null x) {
   !x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 19, 1),
+      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 20, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NonBoolNegationExpressionWithStrictCastsTest
+    extends PubPackageResolutionTest with WithStrictCastsMixin {
+  test_negation() async {
+    await assertErrorsWithStrictCasts(r'''
+void f(dynamic a) {
+  !a;
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 23, 1),
     ]);
   }
 }

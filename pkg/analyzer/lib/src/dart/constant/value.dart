@@ -518,6 +518,7 @@ class DartObjectImpl implements DartObject {
     var typeSystem = TypeSystemImpl(
       implicitCasts: false,
       isNonNullableByDefault: false,
+      strictCasts: false,
       strictInference: false,
       typeProvider: typeProvider,
     );

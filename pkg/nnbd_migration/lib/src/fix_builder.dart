@@ -292,6 +292,7 @@ class FixBuilder {
     return TypeSystemImpl(
         implicitCasts: typeSystem.implicitCasts,
         isNonNullableByDefault: true,
+        strictCasts: typeSystem.strictCasts,
         strictInference: typeSystem.strictInference,
         typeProvider: nnbdTypeProvider);
   }
