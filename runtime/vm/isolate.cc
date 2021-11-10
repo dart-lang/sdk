@@ -490,8 +490,14 @@ void IsolateGroup::CreateHeap(bool is_vm_isolate,
 
 void IsolateGroup::Shutdown() {
   char* name;
+  // We retrieve the flag value once to avoid the compiler complaining about the
+  // possibly uninitialized value of name, as the compiler is unaware that when
+  // the flag variable is non-const, it is set once during VM initialization and
+  // never changed after, and that modification never runs concurrently with
+  // this method.
+  const bool trace_shutdown = FLAG_trace_shutdown;
 
-  if (FLAG_trace_shutdown) {
+  if (trace_shutdown) {
     name = Utils::StrDup(source()->name);
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutdown starting for group %s\n",
                  Dart::UptimeMillis(), name);
@@ -537,7 +543,7 @@ void IsolateGroup::Shutdown() {
   // After this isolate group has died we might need to notify a pending
   // `Dart_Cleanup()` call.
   {
-    if (FLAG_trace_shutdown) {
+    if (trace_shutdown) {
       OS::PrintErr("[+%" Pd64
                    "ms] SHUTDOWN: Notifying "
                    "isolate group shutdown (%s)\n",
@@ -548,14 +554,14 @@ void IsolateGroup::Shutdown() {
         !IsolateGroup::HasApplicationIsolateGroups()) {
       ml.Notify();
     }
-    if (FLAG_trace_shutdown) {
+    if (trace_shutdown) {
       OS::PrintErr("[+%" Pd64
                    "ms] SHUTDOWN: Done Notifying "
                    "isolate group shutdown (%s)\n",
                    Dart::UptimeMillis(), name);
     }
   }
-  if (FLAG_trace_shutdown) {
+  if (trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done shutdown for group %s\n",
                  Dart::UptimeMillis(), name);
     free(name);
