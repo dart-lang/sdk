@@ -40,7 +40,8 @@ part of dart.core;
 ///
 /// Example of growable list:
 /// ```dart
-/// final growableList = []; // []
+/// final growableList = [];
+/// print(growableList); // []
 /// growableList.addAll(['A', 'B', 'C', 'D']);
 /// growableList[0] = 'G';
 /// print(growableList); // [G, B, C, D]
