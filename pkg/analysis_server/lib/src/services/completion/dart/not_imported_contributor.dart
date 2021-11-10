@@ -145,14 +145,15 @@ class _PubFilter implements _Filter {
 
   @override
   bool shouldInclude(FileState file) {
-    var uri = file.uri;
-    if (uri.isScheme('dart')) {
+    var uri = file.uriProperties;
+    if (uri.isDart) {
       return true;
     }
 
     // Normally only package URIs are available.
     // But outside of lib/ we allow any files of this package.
-    if (!uri.isScheme('package')) {
+    var packageName = uri.packageName;
+    if (packageName == null) {
       if (targetInLib) {
         return false;
       } else {
@@ -162,20 +163,13 @@ class _PubFilter implements _Filter {
       }
     }
 
-    // Sanity check.
-    var uriPathSegments = uri.pathSegments;
-    if (uriPathSegments.length < 2) {
-      return false;
-    }
-
     // Any `package:` library from the same package.
-    var packageName = uriPathSegments[0];
     if (packageName == targetPackageName) {
       return true;
     }
 
     // If not the same package, must be public.
-    if (uriPathSegments[1] == 'src') {
+    if (uri.isSrc) {
       return false;
     }
 
