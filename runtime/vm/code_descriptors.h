@@ -246,7 +246,6 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   void NoteNullCheck(int32_t pc_offset,
                      const InstructionSource& source,
                      intptr_t name_index);
-  void WriteFunctionEntrySourcePosition(const InstructionSource& source);
 
   // If source is from an inlined call, returns the token position of the
   // original call in the root function, otherwise the source's token position.

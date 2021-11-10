@@ -717,26 +717,6 @@ void Dwarf::WriteLineNumberProgramFromCodeSourceMaps(
     function_stack.Clear();
     token_positions.Clear();
 
-    // CodeSourceMap might start in the following way:
-    //
-    //   ChangePosition function.token_pos()
-    //   AdvancePC 0
-    //   ChangePosition x
-    //   AdvancePC y
-    //
-    // This entry is emitted to ensure correct symbolization of
-    // function listener frames produced by async unwinding.
-    // (See EmitFunctionEntrySourcePositionDescriptorIfNeeded).
-    // Directly interpreting this sequence would cause us to emit
-    // multiple with the same pc into line number table and different
-    // position information. To avoid this will make an adjustment for
-    // the second record we emit: if position x is a synthetic one we will
-    // simply drop the second record, if position x is real then we will
-    // emit row with a slightly adjusted PC (by 1 byte). This would not
-    // affect symbolization (you can't have a call that is 1 byte long)
-    // but will avoid line number table entries with the same PC.
-    bool function_entry_position_was_emitted = false;
-
     int32_t current_pc_offset = 0;
     function_stack.Add(&root_function);
     token_positions.Add(kNoDwarfPositionInfo);
@@ -760,30 +740,9 @@ void Dwarf::WriteLineNumberProgramFromCodeSourceMaps(
           const intptr_t file = LookupScript(script);
           const intptr_t line = token_positions.Last().line();
           const intptr_t column = token_positions.Last().column();
-          intptr_t pc_offset_adjustment = 0;
-          bool should_emit = true;
-
-          // If we are at the function entry and have already emitted a row
-          // then adjust current_pc_offset to avoid duplicated entries.
-          // See the comment below which explains why this code is here.
-          if (current_pc_offset == 0 && function_entry_position_was_emitted) {
-            pc_offset_adjustment = 1;
-            // Ignore synthetic positions. Function entry position gives
-            // more information anyway.
-            should_emit = !(line == 0 && column == 0);
-          }
-
-          if (should_emit) {
-            writer->EmitRow(file, line, column, asm_name,
-                            current_pc_offset + pc_offset_adjustment);
-          }
+          writer->EmitRow(file, line, column, asm_name, current_pc_offset);
 
           current_pc_offset += arg1;
-          if (arg1 == 0) {  // Special case of AdvancePC 0.
-            ASSERT(current_pc_offset == 0);
-            ASSERT(!function_entry_position_was_emitted);
-            function_entry_position_was_emitted = true;
-          }
           break;
         }
         case CodeSourceMapOps::kPushFunction: {

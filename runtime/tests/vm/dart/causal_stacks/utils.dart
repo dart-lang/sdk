@@ -850,7 +850,7 @@ Future<void> doTestsLazy([String? debugInfoFilename]) async {
       r'^<asynchronous suspension>$',
       r'^#1      asyncStarThrowAsync \(.*/utils.dart:126(:5)?\)$',
       r'^<asynchronous suspension>$',
-      r'^#2      listenAsyncStarThrowAsync.<anonymous closure> \(.+/utils.dart:132(:56)?\)$',
+      r'^#2      listenAsyncStarThrowAsync.<anonymous closure> \(.+/utils.dart(:0)?\)$',
       r'^<asynchronous suspension>$',
     ];
     await doTestAwait(

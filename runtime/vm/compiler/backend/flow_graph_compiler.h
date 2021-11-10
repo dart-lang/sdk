@@ -559,8 +559,6 @@ class FlowGraphCompiler : public ValueObject {
 
   void VisitBlocks();
 
-  void EmitFunctionEntrySourcePositionDescriptorIfNeeded();
-
   // Bail out of the flow graph compiler. Does not return to the caller.
   void Bailout(const char* reason);
 
