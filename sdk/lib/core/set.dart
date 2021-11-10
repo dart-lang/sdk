@@ -160,8 +160,8 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// Whether [value] is in the set.
   /// ```dart
   /// final characters = {'A', 'B', 'C'};
-  /// final isB = characters.contains('B'); // true
-  /// final isD = characters.contains('D'); // false
+  /// final containsB = characters.contains('B'); // true
+  /// final containsD = characters.contains('D'); // false
   /// ```
   bool contains(Object? value);
 
@@ -208,8 +208,8 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// The method has no effect if [value] was not in the set.
   /// ```dart
   /// final characters = {'A', 'B', 'C'};
-  /// final removeB = characters.remove('B'); // true
-  /// final removeD = characters.remove('D'); // false
+  /// final didRemoveB = characters.remove('B'); // true
+  /// final didRemoveD = characters.remove('D'); // false
   /// print(characters); // {A, C}
   /// ```
   bool remove(Object? value);
@@ -228,8 +228,8 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// set element.
   /// ```dart
   /// final characters = {'A', 'B', 'C'};
-  /// final isB = characters.lookup('B');
-  /// print(isB); // B
+  /// final b = characters.lookup('B');
+  /// print(b); // B
   /// ```
   E? lookup(Object? object);
 
