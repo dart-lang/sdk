@@ -51,7 +51,7 @@ class CheckNameResponse {
 
   RenameResponse? computeRenameRanges() {
     var matches = canRename._fileResolver.findReferences(
-        canRename.refactoringElement.offset, canRename.filePath);
+        canRename.refactoringElement.element, canRename.filePath);
     return RenameResponse(matches, this);
   }
 }
