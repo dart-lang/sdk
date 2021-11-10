@@ -1328,6 +1328,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     );
 
     return ResolvedForCompletionResultImpl(
+      analysisSession: currentSession,
       path: path,
       uri: file.uri,
       exists: file.exists,
