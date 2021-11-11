@@ -6272,6 +6272,20 @@ DART_EXPORT bool Dart_IsReloading() {
 #endif
 }
 
+DART_EXPORT bool Dart_SetEnabledTimelineCategory(const char* categories) {
+#if defined(SUPPORT_TIMELINE)
+  bool result = false;
+  if (categories != nullptr) {
+    char* carray = Utils::SCreate("[%s]", categories);
+    result = Service::EnableTimelineStreams(carray);
+    free(carray);
+  }
+  return result;
+#else
+  return false;
+#endif
+}
+
 DART_EXPORT int64_t Dart_TimelineGetMicros() {
   return OS::GetCurrentMonotonicMicros();
 }
