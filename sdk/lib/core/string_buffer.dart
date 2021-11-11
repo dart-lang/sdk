@@ -15,19 +15,25 @@ part of dart.core;
 /// final buffer = StringBuffer();
 /// // Check is buffer empty or not
 /// print(buffer.isEmpty); // true
+///
 /// // Write multiple objects in iteration order with custom separator
 /// const separator = '-';
 /// buffer.writeAll(['Dart', 'is', 'fun!'], separator);
+///
 /// // Add linebreak
 /// buffer.writeln();
+///
 /// // Add string using char codes
 /// buffer.writeCharCode(68); // D
 /// buffer.writeCharCode(97); // a
 /// buffer.writeCharCode(114); // r
 /// buffer.writeCharCode(116); // t
+///
+/// // Add single text to buffer
 /// buffer.write(' is open source');
 /// // Check buffer current length
 /// print(buffer.length); // 32
+///
 /// // Get buffer content as single String
 /// final newString = buffer.toString();
 /// print(newString);
@@ -37,7 +43,7 @@ part of dart.core;
 ///
 /// // Clear the buffer
 /// buffer.clear();
-/// buffer.isEmpty; // true
+/// print(buffer.isEmpty); // true
 /// ```
 class StringBuffer implements StringSink {
   /// Creates the string buffer with an initial content.
