@@ -52,10 +52,10 @@ abstract class Map<K, V> {
   /// `operator==` and `hashCode`.
   /// It iterates in key insertion order.
   /// ```dart
-  /// final data = {1: 'A', 2: 'B', 3: 'C'};
+  /// final data = {1: 'Mercury', 2: 'Venus', 3: 'Earth', 4: 'Mars'};
   /// final mapFrom = Map.from(data);
-  /// print(mapFrom); // {1: A, 2: B, 3: C}
-  /// print(mapFrom.runtimeType); // LinkedHashMap
+  /// print(mapFrom); // {1: Mercury, 2: Venus, 3: Earth, 4: Mars}
+  /// print(mapFrom.runtimeType); // LinkedHashMap<int, String>
   /// ```
   factory Map.from(Map other) = LinkedHashMap<K, V>.from;
 
@@ -65,10 +65,10 @@ abstract class Map<K, V> {
   /// `operator==` and `hashCode`, and it allows `null` as a key.
   /// It iterates in key insertion order.
   /// ```dart
-  /// final data = {1: 'A', 2: 'B', 3: 'C'};
+  /// final data = {1: 'Mercury', 2: 'Venus', 3: 'Earth', 4: 'Mars'};
   /// final mapOf = Map.of(data);
-  /// print(mapOf); // {1: A, 2: B, 3: C}
-  /// print(mapOf.runtimeType); // LinkedHashMap
+  /// print(mapOf); // {1: Mercury, 2: Venus, 3: Earth, 4: Mars}
+  /// print(mapOf.runtimeType); // LinkedHashMap<int, String>
   /// ```
   factory Map.of(Map<K, V> other) = LinkedHashMap<K, V>.of;
 
@@ -85,9 +85,9 @@ abstract class Map<K, V> {
   /// The resulting map behaves like the result of [Map.from],
   /// except that the map returned by this constructor is not modifiable.
   /// ```dart
-  /// final data = {1: 'A', 2: 'B', 3: 'C'};
+  /// final data = {1: 'Mercury', 2: 'Venus', 3: 'Earth', 4: 'Mars'};
   /// final unmodifiableMap = Map.unmodifiable(data);
-  /// print(unmodifiableMap); // {1: A, 2: B, 3: C}
+  /// print(unmodifiableMap); // {1: Mercury, 2: Venus, 3: Earth, 4: Mars}
   /// print(unmodifiableMap.runtimeType); // UnmodifiableMapView
   /// ```
   external factory Map.unmodifiable(Map<dynamic, dynamic> other);
@@ -153,11 +153,11 @@ abstract class Map<K, V> {
   /// The map construction iterates over [keys] and [values] simultaneously,
   /// and adds an entry to the map for each pair of key and value.
   /// ```dart
-  /// final letters = ['b', 'c'];
-  /// final words = ['bad', 'cat'];
-  /// final map = Map.fromIterables(letters, words);
-  /// print(map); // {b: bad, c: cat}
-  /// print(map.runtimeType); // LinkedHashMap
+  /// final rings = [false, false, true, true];
+  /// final planets = {'Earth', 'Mars', 'Jupiter', 'Saturn'};
+  /// final map = Map.fromIterables(planets, rings);
+  /// print(map); // {Earth: false, Mars: false, Jupiter: true, Saturn: true}
+  /// print(map.runtimeType); // LinkedHashMap<String, bool>
   /// ```
   /// If [keys] contains the same object multiple times,
   /// the value of the last occurrence overwrites any previous value.
@@ -205,10 +205,11 @@ abstract class Map<K, V> {
   /// ```
   /// Example:
   /// ```dart
-  /// final baseMap = {1: 'A', 2: 'B', 3: 'C'};
-  /// final mapFromEntries = Map.fromEntries(baseMap.entries);
-  /// print(mapFromEntries); // {1: A, 2: B, 3: C}
-  /// print(mapFromEntries.runtimeType); // LinkedHashMap
+  /// final data = {'Mercury': 0, 'Venus': 0, 'Earth': 1, 'Mars': 2,
+  ///   'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14 };
+  /// final confirmedMoons = Map.fromEntries(data.entries);
+  /// print(confirmedMoons);
+  /// print(confirmedMoons.runtimeType); // LinkedHashMap<String, int>
   /// ```
   factory Map.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       <K, V>{}..addEntries(entries);
@@ -239,9 +240,10 @@ abstract class Map<K, V> {
   /// Returns true if any of the values in the map are equal to `value`
   /// according to the `==` operator.
   /// ```dart
-  /// final data = {'A': 'X', 'B': 'Y', 'C': 'Z'};
-  /// final containsA = data.containsValue('A'); // false
-  /// final containsZ = data.containsValue('Z'); // true
+  /// final confirmedMoons = {'Mercury': 0, 'Venus': 0, 'Earth': 1, 'Mars': 2,
+  ///   'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14 };
+  /// final moons3 = confirmedMoons.containsValue(3); // false
+  /// final moons82 = confirmedMoons.containsValue(82); // true
   /// ```
   bool containsValue(Object? value);
 
@@ -250,9 +252,10 @@ abstract class Map<K, V> {
   /// Returns true if any of the keys in the map are equal to `key`
   /// according to the equality used by the map.
   /// ```dart
-  /// final data = {'A': 'X', 'B': 'Y', 'C': 'Z'};
-  /// final containsA = data.containsKey('A'); // true
-  /// final containsZ = data.containsKey('Z'); // false
+  /// final confirmedMoons = {'Mercury': 0, 'Venus': 0, 'Earth': 1, 'Mars': 2,
+  ///   'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14 };
+  /// final containsUranus = confirmedMoons.containsKey('Uranus'); // true
+  /// final containsPluto = confirmedMoons.containsKey('Pluto'); // false
   /// ```
   bool containsKey(Object? key);
 
@@ -286,24 +289,14 @@ abstract class Map<K, V> {
   /// The operation is equivalent to doing `this[entry.key] = entry.value`
   /// for each [MapEntry] of the iterable.
   /// ```dart
-  /// final map1 = {'A': 'X', 'B': 'Y', 'C': 'Z'};
-  /// map1.addEntries([const MapEntry('E', 'AB'), const MapEntry('F', 'CD')]);
-  /// print(map1); // {A: X, B: Y, C: Z, E: AB, F: CD}
-  ///
-  /// final map2 = {1: 'A', 2: 'B', 3: 'C'};
-  ///
-  /// final customMap = {};
-  /// customMap['map1'] = map1;
-  /// customMap['map2'] = map2;
-  /// customMap['value'] = 123;
-  /// customMap['text'] = 'foo';
-  /// print(customMap);
-  /// // {
-  /// //   map1: {A: X, B: Y, C: Z, E: AB, F: CD},
-  /// //   map2: {1: A, 2: B, 3: C}
-  /// //   value: 123,
-  /// //   text: foo
-  /// // }
+  /// final planets = {1: 'Mercury', 2: 'Venus', 3: 'Earth', 4: 'Mars'};
+  /// final gasGiants = {5: 'Jupiter', 6: 'Saturn'};
+  /// final iceGiants = {7: 'Uranus', 8: 'Neptune'};
+  /// planets.addEntries(gasGiants.entries);
+  /// planets.addEntries(iceGiants.entries);
+  /// print(planets);
+  /// // {1: Mercury, 2: Venus, 3: Earth, 4: Mars, 5: Jupiter, 6: Saturn,
+  /// //  7: Uranus, 8: Neptune}
   /// ```
   void addEntries(Iterable<MapEntry<K, V>> newEntries);
 
@@ -319,12 +312,18 @@ abstract class Map<K, V> {
   ///
   /// If the key is not present, [ifAbsent] must be provided.
   /// ```dart
-  /// final data = {1: 'A', 2: 'B', 3: 'C'};
-  /// data.update(2, (value) => 'ABCD', ifAbsent: () => 'G');
-  /// print(data); // {1: A, 2: ABCD, 3: C}
-  /// // if there is no key then ifAbsent is used
-  /// data.update(10, (value) => 'XYZ', ifAbsent: () => 'X');
-  /// print(data); // {1: A, 2: ABCD, 3: C, 10: X}
+  /// final planetsFromSun = {1: 'Mercury', 2: null, 3: 'Earth'};
+  ///
+  /// // Update value for known key value 2
+  /// planetsFromSun.update(2, (value) => 'Venus');
+  /// print(planetsFromSun); // {1: Mercury, 2: Venus, 3: Earth}
+  /// print(planetsFromSun.runtimeType); // LinkedHashMap<int, String?>
+  ///
+  /// final largestPlanets = {1: 'Jupiter', 2: 'Saturn', 3: 'Neptune'};
+  /// // If the key is not present and ifAbsent is provided
+  /// // Key value 8 is missing from list, add it with ifAbsent value 'Mercury'
+  /// largestPlanets.update(8, (value) => 'Mercury', ifAbsent: () => 'Mercury');
+  /// print(largestPlanets); // {1: Jupiter, 2: Saturn, 3: Neptune, 8: Mercury}
   /// ```
   V update(K key, V update(V value), {V ifAbsent()?});
 
@@ -333,19 +332,17 @@ abstract class Map<K, V> {
   /// Iterates over all entries in the map and updates them with the result
   /// of invoking [update].
   /// ```dart
-  /// final data = {1: 'A', 2: 'B', 3: 'C'};
-  /// data.updateAll((key, value) => 'AB');
-  /// print(data); // {1: AB, 2: AB, 3: AB}
-  /// data.updateAll((key, value) => key.toString());
-  /// print(data); // {1: 1, 2: 2, 3: 3}
+  /// final terrestrial = {1: 'Mercury', 2: 'Venus', 3: 'Earth', 4: 'Mars'};
+  /// terrestrial.updateAll((key, value) => value.toUpperCase());
+  /// print(terrestrial); // {1: MERCURY, 2: VENUS, 3: EARTH, 4: MARS}
   /// ```
   void updateAll(V update(K key, V value));
 
   /// Removes all entries of this map that satisfy the given [test].
   /// ```dart
-  /// final data = {1: 'A', 2: 'B', 3: 'C'};
-  /// data.removeWhere((key, value) => key == 2);
-  /// print(data); // {1: A, 3: C}
+  /// final terrestrial = {1: 'Mercury', 2: 'Venus', 3: 'Earth', 4: 'Mars'};
+  /// terrestrial.removeWhere((key, value) => value == 'Earth');
+  /// print(terrestrial); // {1: Mercury, 2: Venus, 4: Mars}
   /// ```
   void removeWhere(bool test(K key, V value));
 
@@ -355,14 +352,19 @@ abstract class Map<K, V> {
   /// Otherwise calls [ifAbsent] to get a new value, associates [key] to
   /// that value, and then returns the new value.
   /// ```dart
-  /// final scores = {'Bob': 36};
-  /// for (final key in ['Bob', 'Rohan', 'Sophena']) {
-  ///   scores.putIfAbsent(key, () => key.length);
+  /// final Map<num, String> diameters = {1: 'Earth'};
+  /// final diameterNew = {0.383: 'Mercury', 0.949: 'Venus'};
+  ///
+  /// for (final item in diameterNew.entries) {
+  ///   print(item.runtimeType); // MapEntry<double, String>
+  ///   diameters.putIfAbsent(item.key, () => item.value);
   /// }
-  /// print(scores); // {Bob: 36, Rohan: 5, Sophena: 7}
+  /// print(diameters); // {1: Earth, 0.383: Mercury, 0.949: Venus}
+  /// print(diameters.runtimeType); // LinkedHashMap<num, String>
+  ///
   /// // If the key already exists, the current value is returned, and the Map isn't modified.
-  /// final ret = scores.putIfAbsent('Sophena', () => 10);
-  /// print(ret); // 7
+  /// diameters.putIfAbsent(0.383, () => 'Random');
+  /// print(diameters); // {1: Earth, 0.383: Mercury, 0.949: Venus}
   /// ```
   /// Calling [ifAbsent] must not add or remove keys from the map.
   V putIfAbsent(K key, V ifAbsent());
@@ -375,9 +377,9 @@ abstract class Map<K, V> {
   /// and associated value in other. It iterates over [other], which must
   /// therefore not change during the iteration.
   /// ```dart
-  /// final data = {1: 'A', 2: 'B'};
-  /// data.addAll({3: 'C', 1: 'ABC'});
-  /// print(data); // {1: ABC, 2: B, 3: C}
+  /// final newDataMap = {1: 'Sun', 2: null};
+  /// newDataMap.addAll({5: 'Jupiter', 6: 'Saturn'});
+  /// print(newDataMap); // {1: Sun, 2: null, 5: Jupiter, 6: Saturn}
   /// ```
   void addAll(Map<K, V> other);
 
@@ -389,10 +391,10 @@ abstract class Map<K, V> {
   /// Note that some maps allow `null` as a value,
   /// so a returned `null` value doesn't always mean that the key was absent.
   /// ```dart
-  /// final data = {1: 'A', 2: 'B', 3: 'C'};
-  /// final removedValue = data.remove(2);
-  /// print(removedValue); // B
-  /// print(data); // {1: A, 3: C}
+  /// final terrestrial = {1: 'Mercury', 2: 'Venus', 3: 'Earth', 4: 'Mars'};
+  /// final removedValue = terrestrial.remove(2);
+  /// print(removedValue); // Venus
+  /// print(terrestrial); // {1: Mercury, 3: Earth, 4: Mars}
   /// ```
   V? remove(Object? key);
 
@@ -400,7 +402,7 @@ abstract class Map<K, V> {
   ///
   /// After this, the map is empty.
   /// ```dart
-  /// final data = {1: 'A', 2: 'B', 3: 'C'};
+  /// final data = {1: 'Mercury', 2: 'Venus', 3: 'Earth', 4: 'Mars'};
   /// data.clear();
   /// print(data); // {}
   /// ```
@@ -410,13 +412,15 @@ abstract class Map<K, V> {
   ///
   /// Calling `action` must not add or remove keys from the map.
   /// ```dart
-  /// final data = {1: 'A', 2: 'B', 3: 'C'};
-  /// data.forEach((key, value) {
+  /// final mass = {0.81: 'Venus', 1: 'Earth', 0.11: 'Mars', 17.15: 'Neptune'};
+  /// mass.forEach((key, value) {
   ///   print('$key: $value');
-  ///   // 1: A
-  ///   // 2: B
-  ///   // 3: C
+  ///   // 0.81: Venus
+  ///   // 1: Earth
+  ///   // 0.11: Mars
+  ///   // 17.15: Neptune
   /// });
+  /// print(mass.runtimeType); // LinkedHashMap<num, String>
   /// ```
   void forEach(void action(K key, V value));
 
