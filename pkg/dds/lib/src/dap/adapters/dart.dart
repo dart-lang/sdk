@@ -13,6 +13,7 @@ import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../../../dds.dart';
+import '../../rpc_error_codes.dart';
 import '../base_debug_adapter.dart';
 import '../exceptions.dart';
 import '../isolate_manager.dart';
@@ -48,6 +49,9 @@ const maxToStringsPerEvaluation = 10;
 /// evaluate it as an expression and the current thread has an exception, it
 /// will work.
 const threadExceptionExpression = r'$_threadException';
+
+/// Typedef for handlers of VM Service stream events.
+typedef _StreamEventHandler<T> = FutureOr<void> Function(T data);
 
 /// Pattern for extracting useful error messages from an evaluation exception.
 final _evalErrorMessagePattern = RegExp('Error: (.*)');
@@ -354,6 +358,17 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
   late final sendLogsToClient = args.sendLogsToClient ?? false;
 
+  /// Whether or not the DAP is terminating.
+  ///
+  /// When set to `true`, some requests that return "Service Disappeared" errors
+  /// will be caught and dropped as these are expected if the process is
+  /// terminating.
+  ///
+  /// This flag may be set by incoming requests from the client
+  /// (terminateRequest/disconnectRequest) or when a process terminates, or the
+  /// VM Service disconnects.
+  bool isTerminating = false;
+
   DartDebugAdapter(
     ByteStreamServerChannel channel, {
     this.ipv6 = false,
@@ -531,16 +546,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     this.vmService = vmService;
 
     unawaited(vmService.onDone.then((_) => _handleVmServiceClosed()));
+
+    // Handlers must be wrapped to handle Service Disappeared errors if async
+    // code tries to call the VM Service after termination begins.
+    final wrap = _wrapHandlerWithErrorHandling;
     _subscriptions.addAll([
-      vmService.onIsolateEvent.listen(handleIsolateEvent),
-      vmService.onDebugEvent.listen(handleDebugEvent),
-      vmService.onLoggingEvent.listen(handleLoggingEvent),
-      vmService.onExtensionEvent.listen(handleExtensionEvent),
-      vmService.onServiceEvent.listen(handleServiceEvent),
+      vmService.onIsolateEvent.listen(wrap(handleIsolateEvent)),
+      vmService.onDebugEvent.listen(wrap(handleDebugEvent)),
+      vmService.onLoggingEvent.listen(wrap(handleLoggingEvent)),
+      vmService.onExtensionEvent.listen(wrap(handleExtensionEvent)),
+      vmService.onServiceEvent.listen(wrap(handleServiceEvent)),
       if (_subscribeToOutputStreams)
-        vmService.onStdoutEvent.listen(_handleStdoutEvent),
+        vmService.onStdoutEvent.listen(wrap(_handleStdoutEvent)),
       if (_subscribeToOutputStreams)
-        vmService.onStderrEvent.listen(_handleStderrEvent),
+        vmService.onStderrEvent.listen(wrap(_handleStderrEvent)),
     ]);
     await Future.wait([
       vmService.streamListen(vm.EventStreams.kIsolate),
@@ -558,8 +577,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // Let the subclass do any existing setup once we have a connection.
     await debuggerConnected(vmInfo);
 
-    // Process any existing isolates that may have been created before the
-    // streams above were set up.
+    await _withErrorHandling(
+      () => _configureExistingIsolates(vmService, vmInfo, resumeIfStarting),
+    );
+
+    _debuggerInitializedCompleter.complete();
+  }
+
+  /// Process any existing isolates that may have been created before the
+  /// streams above were set up.
+  Future<void> _configureExistingIsolates(
+    vm.VmService vmService,
+    vm.VM vmInfo,
+    bool resumeIfStarting,
+  ) async {
     final existingIsolateRefs = vmInfo.isolates;
     final existingIsolates = existingIsolateRefs != null
         ? await Future.wait(existingIsolateRefs
@@ -596,8 +627,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         }
       }
     }));
-
-    _debuggerInitializedCompleter.complete();
   }
 
   /// Handles the clients "continue" ("resume") request for the thread in
@@ -695,6 +724,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     DisconnectArguments? args,
     void Function() sendResponse,
   ) async {
+    isTerminating = true;
+
     await disconnectImpl();
     await shutdown();
     sendResponse();
@@ -839,6 +870,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       return;
     }
 
+    isTerminating = true;
     _hasSentTerminatedEvent = true;
     // Always add a leading newline since the last written text might not have
     // had one.
@@ -1318,6 +1350,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     TerminateArguments? args,
     void Function() sendResponse,
   ) async {
+    isTerminating = true;
+
     await terminateImpl();
     await shutdown();
     sendResponse();
@@ -1661,6 +1695,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   }
 
   Future<void> _handleVmServiceClosed() async {
+    isTerminating = true;
     if (terminateOnVmServiceClose) {
       handleSessionTerminate();
     }
@@ -1766,6 +1801,40 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       disposeHandler: () => socket.close(),
       streamClosed: streamClosedCompleter.future,
     );
+  }
+
+  /// Wraps a function with an error handler that handles errors that occur when
+  /// the VM Service/DDS shuts down.
+  ///
+  /// When the debug adapter is terminating, it's possible in-flight requests
+  /// triggered by handlers will fail with "Service Disappeared". This is
+  /// normal and such errors can be ignored, rather than allowed to pass
+  /// uncaught.
+  _StreamEventHandler<T> _wrapHandlerWithErrorHandling<T>(
+    _StreamEventHandler<T> handler,
+  ) {
+    return (data) => _withErrorHandling(() => handler(data));
+  }
+
+  /// Calls a function with an error handler that handles errors that occur when
+  /// the VM Service/DDS shuts down.
+  ///
+  /// When the debug adapter is terminating, it's possible in-flight requests
+  /// will fail with "Service Disappeared". This is normal and such errors can
+  /// be ignored, rather than allowed to pass uncaught.
+  FutureOr<T?> _withErrorHandling<T>(FutureOr<T> Function() func) async {
+    try {
+      return await func();
+    } on vm.RPCError catch (e) {
+      // If we're been asked to shut down while this request was occurring,
+      // it's normal to get kServiceDisappeared so we should handle this
+      // silently.
+      if (isTerminating && e.code == RpcErrorCodes.kServiceDisappeared) {
+        return null;
+      }
+
+      rethrow;
+    }
   }
 }
 

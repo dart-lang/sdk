@@ -764,6 +764,16 @@ class _SelectorApproximation {
   /// different arguments reaches this limit.
   static const int maxInvocationsPerSelector = 5000;
 
+  /// [_DirectInvocation] can be approximated with raw arguments
+  /// if number of operations in its summary exceeds this threshold.
+  static const int largeSummarySize = 300;
+
+  /// If summary exceeds [largeSummarySize] and number of
+  /// [_DirectInvocation] objects with same selector but
+  /// different arguments exceeds this limit, then approximate
+  /// [_DirectInvocation] with raw arguments is created and used.
+  static const int maxDirectInvocationsPerSelector = 10;
+
   int count = 0;
   _Invocation? approximation;
 }
@@ -773,14 +783,19 @@ class _SelectorApproximation {
 class _InvocationsCache {
   final TypeFlowAnalysis _typeFlowAnalysis;
   final Set<_Invocation> _invocations = new Set<_Invocation>();
-  final Map<Selector, _SelectorApproximation> _approximations =
-      <Selector, _SelectorApproximation>{};
+  final Map<InterfaceSelector, _SelectorApproximation>
+      _interfaceSelectorApproximations =
+      <InterfaceSelector, _SelectorApproximation>{};
+  final Map<DirectSelector, _SelectorApproximation>
+      _directSelectorApproximations =
+      <DirectSelector, _SelectorApproximation>{};
 
   _InvocationsCache(this._typeFlowAnalysis);
 
   _Invocation getInvocation(Selector selector, Args<Type> args) {
     ++Statistics.invocationsQueriedInCache;
-    _Invocation invocation = (selector is DirectSelector)
+    final bool isDirectSelector = (selector is DirectSelector);
+    _Invocation invocation = isDirectSelector
         ? new _DirectInvocation(selector, args)
         : new _DispatchableInvocation(selector, args);
     _Invocation? result = _invocations.lookup(invocation);
@@ -788,12 +803,36 @@ class _InvocationsCache {
       return result;
     }
 
-    if (selector is InterfaceSelector) {
+    if (isDirectSelector) {
+      // If there is a selector approximation (meaning the summary is large)
+      // then number of distinct invocations per selector should be limited
+      // in order to bound analysis time.
+
+      final sa = _directSelectorApproximations[selector];
+      if (sa != null) {
+        if (sa.count >=
+            _SelectorApproximation.maxDirectInvocationsPerSelector) {
+          _Invocation? approximation = sa.approximation;
+          if (approximation == null) {
+            final rawArgs =
+                _typeFlowAnalysis.summaryCollector.rawArguments(selector);
+            sa.approximation =
+                approximation = _DirectInvocation(selector, rawArgs);
+            approximation.init();
+            Statistics.approximateDirectInvocationsCreated++;
+          }
+          Statistics.approximateDirectInvocationsUsed++;
+          return approximation;
+        }
+        ++sa.count;
+      }
+    } else if (selector is InterfaceSelector) {
       // Detect if there are too many invocations per selector. In such case,
       // approximate extra invocations with a single invocation with raw
       // arguments.
 
-      final sa = (_approximations[selector] ??= new _SelectorApproximation());
+      final sa = (_interfaceSelectorApproximations[selector] ??=
+          new _SelectorApproximation());
 
       if (sa.count >= _SelectorApproximation.maxInvocationsPerSelector) {
         _Invocation? approximation = sa.approximation;
@@ -803,9 +842,9 @@ class _InvocationsCache {
           sa.approximation =
               approximation = _DispatchableInvocation(selector, rawArgs);
           approximation.init();
-          Statistics.approximateInvocationsCreated++;
+          Statistics.approximateInterfaceInvocationsCreated++;
         }
-        Statistics.approximateInvocationsUsed++;
+        Statistics.approximateInterfaceInvocationsUsed++;
         return approximation;
       }
 
@@ -819,6 +858,10 @@ class _InvocationsCache {
     assert(added);
     ++Statistics.invocationsAddedToCache;
     return invocation;
+  }
+
+  void addDirectSelectorApproximation(DirectSelector selector) {
+    _directSelectorApproximations[selector] ??= new _SelectorApproximation();
   }
 }
 
@@ -1530,7 +1573,17 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   _Invocation get currentInvocation => workList.callStack.last;
 
   Summary getSummary(Member member) {
-    return _summaries[member] ??= summaryCollector.createSummary(member);
+    Summary? summary = _summaries[member];
+    if (summary == null) {
+      _summaries[member] = summary = summaryCollector.createSummary(member);
+      if (summary.statements.length >=
+          _SelectorApproximation.largeSummarySize) {
+        final DirectSelector selector =
+            currentInvocation.selector as DirectSelector;
+        _invocationsCache.addDirectSelectorApproximation(selector);
+      }
+    }
+    return summary;
   }
 
   _FieldValue getFieldValue(Field field) {

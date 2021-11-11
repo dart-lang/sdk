@@ -44,9 +44,9 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "73545b2bf6c7f8e4eb931bb04d86e38d6485deee",
+  "co19_rev": "39c5bbc03bf5c5c0a3f9341abe811871eababfaf",
   # This line prevents conflicts when both packages are rolled simultaneously.
-  "co19_2_rev": "52d3d2a6d2550ccd69c8facf8a36099be66f1493",
+  "co19_2_rev": "86f01ade433fbb4eec3a7f93f5e1e4fed9a84fb3",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "076df10d9b77af337f2d8029725787155eb1cd52",
@@ -141,7 +141,7 @@ vars = {
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
   "pub_rev": "96404e0749864c9fbf8b12e1d424e8078809e00a",
-  "pub_semver_rev": "cee044a3dc867c1c8464408ed435bd21949510c0",
+  "pub_semver_rev": "a43ad72fb6b7869607581b5fedcb186d1e74276a",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
   "shelf_static_rev": "202ec1a53c9a830c17cf3b718d089cf7eba568ad",

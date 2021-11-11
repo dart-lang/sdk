@@ -7,6 +7,7 @@
 #include <functional>
 
 #include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/slot.h"
 #include "vm/growable_array.h"
@@ -126,6 +127,32 @@ const Function& CompilerState::StringBaseInterpolate() {
     ASSERT(!interpolate_->IsNull());
   }
   return *interpolate_;
+}
+
+void CompilerState::ReportCrash() {
+  OS::PrintErr("=== Crash occured when compiling %s in %s mode in %s pass\n",
+               function() != nullptr ? function()->ToFullyQualifiedCString()
+                                     : "unknown function",
+               is_aot()          ? "AOT"
+               : is_optimizing() ? "optimizing JIT"
+                                 : "unoptimized JIT",
+               pass() != nullptr ? pass()->name() : "unknown");
+  if (pass_state() != nullptr && pass()->id() == CompilerPass::kGenerateCode) {
+    if (pass_state()->graph_compiler->current_block() != nullptr) {
+      OS::PrintErr("=== When compiling block %s\n",
+                   pass_state()->graph_compiler->current_block()->ToCString());
+    }
+    if (pass_state()->graph_compiler->current_instruction() != nullptr) {
+      OS::PrintErr(
+          "=== When compiling instruction %s\n",
+          pass_state()->graph_compiler->current_instruction()->ToCString());
+    }
+  }
+  if (pass_state() != nullptr && pass_state()->flow_graph() != nullptr) {
+    pass_state()->flow_graph()->Print(pass()->name());
+  } else {
+    OS::PrintErr("=== Flow Graph not available\n");
+  }
 }
 
 }  // namespace dart
