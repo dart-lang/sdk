@@ -240,8 +240,8 @@ abstract class Map<K, V> {
   /// according to the `==` operator.
   /// ```dart
   /// final data = {'A': 'X', 'B': 'Y', 'C': 'Z'};
-  /// final isA = data.containsValue('A'); // false
-  /// final isZ = data.containsValue('Z'); // true
+  /// final containsA = data.containsValue('A'); // false
+  /// final containsZ = data.containsValue('Z'); // true
   /// ```
   bool containsValue(Object? value);
 
@@ -251,8 +251,8 @@ abstract class Map<K, V> {
   /// according to the equality used by the map.
   /// ```dart
   /// final data = {'A': 'X', 'B': 'Y', 'C': 'Z'};
-  /// final isA = data.containsKey('A'); // true
-  /// final isZ = data.containsKey('Z'); // false
+  /// final containsA = data.containsKey('A'); // true
+  /// final containsZ = data.containsKey('Z'); // false
   /// ```
   bool containsKey(Object? key);
 
@@ -360,7 +360,7 @@ abstract class Map<K, V> {
   ///   scores.putIfAbsent(key, () => key.length);
   /// }
   /// print(scores); // {Bob: 36, Rohan: 5, Sophena: 7}
-  /// // Return value is current value and no update done if key exists on map
+  /// // If the key already exists, the current value is returned, and the Map isn't modified.
   /// final ret = scores.putIfAbsent('Sophena', () => 10);
   /// print(ret); // 7
   /// ```
