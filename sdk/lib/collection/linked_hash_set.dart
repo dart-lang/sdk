@@ -6,6 +6,8 @@ part of dart.collection;
 
 /// A [LinkedHashSet] is a hash-table based [Set] implementation.
 ///
+/// Default implementation of [Set] is [LinkedHashSet].
+///
 /// The `LinkedHashSet` also keep track of the order that elements were inserted
 /// in, and iteration happens in first-to-last insertion order.
 ///
@@ -26,63 +28,74 @@ part of dart.collection;
 /// constant time: [add], [contains], [remove], and [length], provided the hash
 /// codes of objects are well distributed.
 ///
-/// The [forEach] iterates through all entries of a set.
-/// Manipulating item count in [forEach] is prohibited. Adding or
-/// deleting items during iteration causes an exception:
-/// _"Concurrent modification during iteration"_.
+/// **Notice:**
+/// It is generally not allowed to modify the set (add or remove elements) while
+/// an operation on the set is being performed, for example during a call to
+/// [forEach] or [containsAll]. Nor is it allowed to modify the set while
+/// iterating either the set itself or any [Iterable] that is backed by the set,
+/// such as the ones returned by methods like [where] and [map].
+///
+/// It is generally not allowed to modify the equality of elements (and thus not
+/// their hashcode) while they are in the set. Some specialized subtypes may be
+/// more permissive, in which case they should document this behavior.
+///
 ///
 /// Example:
 /// ```dart
-/// final LinkedHashSet linkedHashSet = LinkedHashSet();
-/// linkedHashSet.addAll({'A', 'B', 'C', 'D'});
-/// linkedHashSet.isEmpty; // false
-/// linkedHashSet.length; // 4
-/// print(linkedHashSet); // {A, B, C, D}
+/// final planets = LinkedHashSet();
+/// planets.addAll({'Venus', 'Mars', 'Earth', 'Jupiter'});
+/// planets.isEmpty; // false
+/// planets.length; // 4
+/// print(planets); // {Venus, Mars, Earth, Jupiter}
 ///
 /// // To check is there a value item on map, call contains
-/// linkedHashSet.contains('B'); // true
+/// final marsExists = planets.contains('Mars'); // true
 ///
 /// // To get element value using index, call elementAt
-/// final String elementAt = linkedHashSet.elementAt(1);
-/// print(elementAt); // B
+/// final elementAt = planets.elementAt(1);
+/// print(elementAt); // Mars
 ///
 /// // The forEach iterates through all entries of a set.
-/// linkedHashSet.forEach((element) {
+/// planets.forEach((element) {
 ///   print(element);
-///   // A
-///   // B
-///   // C
-///   // D
+///   // Venus
+///   // Mars
+///   // Earth
+///   // Jupiter
 /// });
 ///
 /// // To convert set to list, call toList
-/// final toList = linkedHashSet.toList();
-/// print(toList); // [A, B, C, D]
+/// final toList = planets.toList();
+/// print(toList); // [Venus, Mars, Earth, Jupiter]
 ///
 /// // To make a copy of set, call toSet
-/// final copySet = linkedHashSet.toSet();
-/// print(copySet); // {A, B, C, D}
+/// final copySet = planets.toSet();
+/// print(copySet); // {Venus, Mars, Earth, Jupiter}
 ///
 /// // To add item to set, call add
-/// linkedHashSet.add('E');
-/// print(linkedHashSet); // {A, B, C, D, E}
+/// final uranusAdded = planets.add('Uranus');
+/// print(planets); // {Venus, Mars, Earth, Jupiter, Uranus}
 ///
 /// // To remove specific value, call remove
-/// final removedValue = linkedHashSet.remove('A'); // A
-/// print(linkedHashSet); // {B, C, D, E}
+/// final removedValue = planets.remove('Mars'); // Mars
+/// print(planets); // {Venus, Earth, Jupiter, Uranus}
 ///
 /// // To remove value(s) with a statement, call removeWhere
-/// linkedHashSet.removeWhere((element) => element.contains('B'));
-/// print(linkedHashSet); // {C, D, E}
+/// planets.removeWhere((element) => element.contains('Earth'));
+/// print(planets); // {Venus, Jupiter, Uranus}
 ///
 /// // To remove other values than those which match statement
-/// linkedHashSet.retainWhere((element) => element.contains('C'));
-/// print(linkedHashSet); // {C}
+/// planets.retainWhere((element) => element.contains('C'));
+/// print(planets); // {Jupiter}
 ///
 /// // To clean up data, call clear
-/// linkedHashSet.clear();
-/// print(linkedHashSet); // {}
+/// planets.clear();
+/// print(planets); // {}
 /// ```
+/// **See also:**
+/// * [Set] is a base-class for collection of objects.
+/// * [HashSet] the order of the objects in the iterations is not guaranteed.
+/// * [SplayTreeSet] the order of the objects can be relative to each other.
 abstract class LinkedHashSet<E> implements Set<E> {
   /// Create an insertion-ordered hash set using the provided
   /// [equals] and [hashCode].
@@ -154,7 +167,7 @@ abstract class LinkedHashSet<E> implements Set<E> {
   /// ```
   /// Example:
   /// ```dart
-  /// final baseSet = LinkedHashSet()..addAll({'A', 'B', 'C'});
+  /// final baseSet = {'A', 'B', 'C'};
   /// final hashSetFrom = LinkedHashSet.from(baseSet);
   /// print(hashSetFrom); // {A, B, C}
   /// ```
@@ -172,8 +185,8 @@ abstract class LinkedHashSet<E> implements Set<E> {
   /// element of `elements` to this set in the order they are iterated.
   /// Example:
   /// ```dart
-  /// final baseSet = LinkedHashSet()..addAll({'A', 'B', 'C'});
-  /// final LinkedHashSet setOf = LinkedHashSet.of(baseSet);
+  /// final baseSet = {'A', 'B', 'C'};
+  /// final setOf = LinkedHashSet.of(baseSet);
   /// print(setOf); // {A, B, C}
   /// ```
   factory LinkedHashSet.of(Iterable<E> elements) =>
