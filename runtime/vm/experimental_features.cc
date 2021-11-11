@@ -18,7 +18,16 @@ namespace dart {
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature) {
   constexpr bool kFeatureValues[] = {
-      true, true, true, true, true, true, true, true, true, true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
   };
   ASSERT(static_cast<size_t>(feature) < ARRAY_SIZE(kFeatureValues));
   return kFeatureValues[static_cast<int>(feature)];
@@ -26,16 +35,16 @@ bool GetExperimentalFeatureDefault(ExperimentalFeature feature) {
 
 const char* GetExperimentalFeatureName(ExperimentalFeature feature) {
   constexpr const char* kFeatureNames[] = {
-      "nonfunction-type-aliases",
-      "non-nullable",
-      "extension-methods",
-      "constant-update-2018",
-      "control-flow-collections",
-      "generic-metadata",
-      "set-literals",
-      "spread-collections",
-      "triple-shift",
-      "constructor-tearoffs",
+    "nonfunction-type-aliases",
+    "non-nullable",
+    "extension-methods",
+    "constant-update-2018",
+    "control-flow-collections",
+    "generic-metadata",
+    "set-literals",
+    "spread-collections",
+    "triple-shift",
+    "constructor-tearoffs",
   };
   ASSERT(static_cast<size_t>(feature) < ARRAY_SIZE(kFeatureNames));
   return kFeatureNames[static_cast<int>(feature)];
