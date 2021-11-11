@@ -17,7 +17,6 @@ dependencies:
   dart2native:
     path: ../dart2native
   dart_style: any
-  dartdoc: any
   dds:
     path: ../dds
   devtools_server: any

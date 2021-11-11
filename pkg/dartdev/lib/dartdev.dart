@@ -21,7 +21,6 @@ import 'src/commands/analyze.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
 import 'src/commands/debug_adapter.dart';
-import 'src/commands/doc.dart';
 import 'src/commands/fix.dart';
 import 'src/commands/language_server.dart';
 import 'src/commands/migrate.dart';
@@ -115,7 +114,6 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(CreateCommand(verbose: verbose));
     addCommand(DebugAdapterCommand(verbose: verbose));
     addCommand(CompileCommand(verbose: verbose));
-    addCommand(DocCommand(verbose: verbose));
     addCommand(DevToolsCommand(
       verbose: verbose,
       customDevToolsPath: sdk.devToolsBinaries,
