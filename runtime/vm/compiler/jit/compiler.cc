@@ -504,6 +504,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       CompilerState compiler_state(thread(), /*is_aot=*/false, optimized(),
                                    CompilerState::ShouldTrace(function));
+      compiler_state.set_function(function);
 
       {
         // Extract type feedback before the graph is built, as the graph
@@ -577,10 +578,9 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           &speculative_policy, pass_state.inline_id_to_function,
           pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
           ic_data_array);
-      {
-        TIMELINE_DURATION(thread(), CompilerVerbose, "CompileGraph");
-        graph_compiler.CompileGraph();
-      }
+      pass_state.graph_compiler = &graph_compiler;
+      CompilerPass::GenerateCode(&pass_state);
+
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
 
