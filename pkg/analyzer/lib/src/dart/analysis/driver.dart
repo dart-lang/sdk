@@ -1781,15 +1781,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   void _removePotentiallyAffectedLibraries(String path) {
-    _logger.run('Invalidate affected by $path.', () {
-      _logger.writeln('Work in $name');
-      var affected = <FileState>{};
-      _fsState.collectAffected(path, affected);
-      _logger.writeln('Remove ${affected.length} libraries.');
-      _libraryContext?.elementFactory.removeLibraries(
-        affected.map((e) => e.uriStr).toSet(),
-      );
-    });
+    var affected = <FileState>{};
+    _fsState.collectAffected(path, affected);
+    _libraryContext?.elementFactory.removeLibraries(
+      affected.map((e) => e.uriStr).toSet(),
+    );
   }
 
   void _reportException(String path, Object exception, StackTrace stackTrace) {
