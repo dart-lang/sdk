@@ -25,7 +25,7 @@ dependencies:
   shelf_web_socket: ^1.0.0
   sse: ^4.0.0
   stream_channel: ^2.0.0
-  vm_service: ^7.5.0
+  vm_service: ^7.2.0
   web_socket_channel: ^2.0.0
 
 dev_dependencies:

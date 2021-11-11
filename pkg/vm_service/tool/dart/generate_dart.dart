@@ -725,9 +725,6 @@ abstract class VmServiceInterface {
             }
             return result;
           };
-          if (m.deprecated) {
-            gen.writeln("// ignore: deprecated_member_use_from_same_package");
-          }
           gen.write("response = await _serviceImplementation.${m.name}(");
           // Positional args
           m.args.where((arg) => !arg.optional).forEach((MethodArg arg) {
@@ -1133,8 +1130,6 @@ class Method extends Member {
   final String? docs;
 
   MemberType returnType = MemberType();
-  bool get deprecated => deprecationMessage != null;
-  String? deprecationMessage;
   List<MethodArg> args = [];
 
   Method(this.name, String definition, [this.docs]) {
@@ -1200,9 +1195,6 @@ class Method extends Member {
         _docs = _docs.trim();
       }
       if (_docs.isNotEmpty) gen.writeDocs(_docs);
-    }
-    if (deprecated) {
-      gen.writeln("@Deprecated('$deprecationMessage')");
     }
     if (withOverrides) gen.writeln('@override');
     gen.write('Future<${returnType.name}> ${name}(');
@@ -2136,12 +2128,7 @@ class MethodParser extends Parser {
   void parseInto(Method method) {
     // method is return type, name, (, args )
     // args is type name, [optional], comma
-    if (peek()?.text?.startsWith('@deprecated') ?? false) {
-      advance();
-      expect('(');
-      method.deprecationMessage = consumeString()!;
-      expect(')');
-    }
+
     method.returnType.parse(this, isReturnType: true);
 
     Token t = expectName();
