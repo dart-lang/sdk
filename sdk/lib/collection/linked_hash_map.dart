@@ -4,9 +4,11 @@
 
 part of dart.collection;
 
-/// A hash-table based implementation of [Map].
+/// LinkedHashMap is the default implementation of [Map].
 ///
-/// __The insertion order of keys is remembered__,
+/// The LinkedHashMap iterates in key insertion order.
+///
+/// The insertion order of keys is remembered,
 /// and keys are iterated in the order they were inserted into the map.
 /// Values are iterated in their corresponding key's order.
 /// Changing a key's value, when the key is already in the map,
@@ -14,9 +16,12 @@ part of dart.collection;
 /// but removing the key and adding it again
 /// will make it be last in the iteration order.
 ///
-/// **Notice:** Manipulating item count in [forEach] is prohibited. Adding or
-/// deleting items during iteration causes an exception:
-/// [ConcurrentModificationError].
+/// **Notice:**
+/// It is generally not allowed to modify the map (add or remove keys) while
+/// an operation is being performed on the map, for example in functions called
+/// during a [forEach] or [putIfAbsent] call.
+/// Modifying the map while iterating the keys or values
+/// may also break the iteration.
 ///
 /// The keys of a `LinkedHashMap` must have consistent [Object.==]
 /// and [Object.hashCode] implementations. This means that the `==` operator
@@ -27,60 +32,63 @@ part of dart.collection;
 /// Example:
 ///
 /// ```dart
-/// final LinkedHashMap<int, String> linkedHashMap =
-///   LinkedHashMap<int, String>();
+/// final equatorialDiameters = {};
 ///
 /// // To add data to map, call addAll or addEntries
-/// linkedHashMap.addAll({1: 'A', 4: 'D', 2: 'B', 3: 'C'});
+/// equatorialDiameters
+///     .addAll({0.949: 'Venus', 1: 'Earth', 0.532: 'Mars', 11.209: 'Jupiter'});
 ///
 /// // To check is the map empty, use isEmpty or isNotEmpty.
 /// // To check length of map data, use length
-/// linkedHashMap.isEmpty; // false
-/// linkedHashMap.length; // 4
-/// print(linkedHashMap); // {1: A, 4: D, 2: B, 3: C}
+/// equatorialDiameters.isEmpty; // false
+/// equatorialDiameters.length; // 4
+/// print(equatorialDiameters);
+/// // {0.949: Venus, 1: Earth, 0.532: Mars, 11.209: Jupiter}
 ///
 /// // The forEach iterates through all entries of a map.
-/// linkedHashMap.forEach((key, value) {
+/// equatorialDiameters.forEach((key, value) {
 ///   print('key: $key value: $value');
-///   // key: 1 value: A
-///   // key: 4 value: D
-///   // key: 2 value: B
-///   // key: 3 value: C
+///   // key: 0.949  value: Venus
+///   // key: 1      value: Earth
+///   // key: 0.532  value: Mars
+///   // key: 11.209 value: Jupiter
 /// });
 ///
 /// // To check is there a defined key, call containsKey
-/// final keyOneExists = linkedHashMap.containsKey(1); // true
-/// final keyFiveExists = linkedHashMap.containsKey(5); // false
+/// final keyOneExists = equatorialDiameters.containsKey(1); // true
+/// final keyFiveExists = equatorialDiameters.containsKey(5); // false
 ///
 /// // To check is there a value item on map, call containsValue
-/// final bExists = linkedHashMap.containsValue('B'); // true
-/// final gExists =  linkedHashMap.containsValue('G'); // false
+/// final earthExists = equatorialDiameters.containsValue('Earth'); // true
+/// final saturnExists =  equatorialDiameters.containsValue('Saturn'); // false
 ///
 /// // To remove specific key-pair using key, call remove
-/// final removedValue = linkedHashMap.remove(1);
-/// print(removedValue); // A
-/// print(linkedHashMap); // {4: D, 2: B, 3: C}
+/// final removedValue = equatorialDiameters.remove(1);
+/// print(removedValue); // Earth
+/// print(equatorialDiameters); // {0.949: Venus, 0.532: Mars, 11.209: Jupiter}
 ///
 /// // To remove item(s) with a statement, call removeWhere
-/// linkedHashMap.removeWhere((key, value) => key == 2);
-/// linkedHashMap.removeWhere((key, value) => value == 'C');
-/// print(linkedHashMap); // {4: D}
+/// equatorialDiameters.removeWhere((key, value) => key == 0.949);
+/// print(equatorialDiameters); // {0.532: Mars, 11.209: Jupiter}
 ///
 /// // To update or insert (adding new key-value pair if not exists) value,
 /// // call update with ifAbsent statement or call putIfAbsent:
-/// linkedHashMap.update(10, (v) => 'ABC', ifAbsent: () => 'E');
-/// print(linkedHashMap); // {4: D, 10: E}
-/// linkedHashMap.update(4, (v) => 'abc', ifAbsent: () => 'F');
-/// print(linkedHashMap); // {4: abc, 10: E}
+/// equatorialDiameters.update(0.949, (v) => 'Venus', ifAbsent: () => 'Venus');
+/// print(equatorialDiameters); // {0.532: Mars, 11.209: Jupiter, 0.949: Venus}
 ///
 /// // To update all items, call updateAll
-/// linkedHashMap.updateAll((int key, String value) => 'X');
-/// print(linkedHashMap); // {4: X, 1: X}
+/// equatorialDiameters.updateAll((key, value) => 'X');
+/// print(equatorialDiameters); // {0.532: X, 11.209: X, 0.949: X}
 ///
 /// // To clean up data, call clear
-/// linkedHashMap.clear();
-/// print(linkedHashMap); // {}
+/// equatorialDiameters.clear();
+/// print(equatorialDiameters); // {}
 /// ```
+/// **See also:**
+/// * [Map] a base-class for key/value pair collection.
+/// * [HashMap] is unordered (the order of iteration is not guaranteed).
+/// * [SplayTreeMap] iterates the keys in sorted order.
+
 abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// Creates an insertion-ordered hash-table based [Map].
   ///
@@ -204,10 +212,11 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// It is an error if the two [Iterable]s don't have the same length.
   /// Example:
   /// ```dart
-  /// final keys = ['1', '2', '3', '4'];
-  /// final values = ['A', 'B', 'C', 'D'];
+  /// final values = [0.06, 0.81, 1, 0.11];
+  /// final keys = ['Mercury', 'Venus', 'Earth', 'Mars'];
   /// final mapFromIterables = LinkedHashMap.fromIterables(keys, values);
-  /// print(mapFromIterables); // {1: A, 2: B, 3: C, 4: D}
+  /// print(mapFromIterables);
+  /// // {Mercury: 0.06, Venus: 0.81, Earth: 1, Mars: 0.11}
   /// ```
   factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
     LinkedHashMap<K, V> map = LinkedHashMap<K, V>();
