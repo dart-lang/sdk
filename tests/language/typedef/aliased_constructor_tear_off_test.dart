@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=constructor-tearoffs
-
 // Tests that constructor tear-offs from type aliases work and
 // are canonicalized correctly
 
@@ -115,15 +113,15 @@ void main() {
   context<C<int> Function(int)>(
       Bounded.named..expectStaticType<Exactly<C<int> Function(int)>>());
 
-  context<C<C<int>> Function(C<int>)>(Wrapping.new
-    ..expectStaticType<Exactly<C<C<int>> Function(C<int>)>>());
-  context<C<C<int>> Function(C<int>)>(Wrapping.named
-    ..expectStaticType<Exactly<C<C<int>> Function(C<int>)>>());
+  context<C<C<int>> Function(C<int>)>(
+      Wrapping.new..expectStaticType<Exactly<C<C<int>> Function(C<int>)>>());
+  context<C<C<int>> Function(C<int>)>(
+      Wrapping.named..expectStaticType<Exactly<C<C<int>> Function(C<int>)>>());
 
-  context<C<int> Function(int)>(Extra.new
-    ..expectStaticType<Exactly<C<int> Function(int)>>());
-  context<C<int> Function(int)>(Extra.named
-    ..expectStaticType<Exactly<C<int> Function(int)>>());
+  context<C<int> Function(int)>(
+      Extra.new..expectStaticType<Exactly<C<int> Function(int)>>());
+  context<C<int> Function(int)>(
+      Extra.named..expectStaticType<Exactly<C<int> Function(int)>>());
 
   // Uninstantiated tear-offs always canonicalize.
   Expect.identical(Direct.new, Direct.new);

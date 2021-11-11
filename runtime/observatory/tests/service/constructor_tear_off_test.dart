@@ -4,8 +4,6 @@
 
 // @dart=2.15
 
-// SharedOptions=--enable-experiment=constructor-tearoffs
-
 import 'package:observatory/service_common.dart';
 import 'package:test/test.dart';
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=constructor-tearoffs
-
 // Test the support for type parameters as potentially constant expressions
 // and potentially constant type expressions. The cast to dynamic is included
 // in order to avoid a diagnostic message about an unnecessary cast.
