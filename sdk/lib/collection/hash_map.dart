@@ -17,6 +17,7 @@ typedef _Equality<K> = bool Function(K a, K b);
 typedef _Hasher<K> = int Function(K object);
 
 /// A hash-table based implementation of [Map].
+/// The [HashMap] is unordered (the order of iteration is not guaranteed).
 ///
 /// The keys of a `HashMap` must have consistent [Object.==]
 /// and [Object.hashCode] implementations. This means that the `==` operator
@@ -25,27 +26,31 @@ typedef _Hasher<K> = int Function(K object);
 /// must be the same for objects that are considered equal by `==`.
 ///
 /// Iterating the map's keys, values or entries (through [forEach])
-/// may happen in any order.
-/// The iteration order only changes when the map is modified.
-/// Values are iterated in the same order as their associated keys,
+/// may happen in any order. The iteration order only changes when the map is
+/// modified. Values are iterated in the same order as their associated keys,
 /// so iterating the [keys] and [values] in parallel
-/// will give matching key and value pairs. **Notice:** Manipulating item count
-/// in [forEach] is prohibited. Adding or deleting items during iteration
-/// throws an exception: [ConcurrentModificationError].
+/// will give matching key and value pairs.
+///
+/// **Notice:**
+/// It is generally not allowed to modify the map (add or remove keys) while
+/// an operation is being performed on the map, for example in functions called
+/// during a [forEach] or [putIfAbsent] call.
+/// Modifying the map while iterating the keys or values
+/// may also break the iteration.
 ///
 /// Example:
 ///
 /// ```dart
-/// final HashMap<int, String> hashMap = HashMap();
+/// final hashMap = HashMap();
 /// // To add data to map, call addAll or addEntries.
-/// hashMap.addAll({1: 'A', 4: 'D', 2: 'B', 3: 'C'});
-/// print(hashMap); // {1: A, 2: B, 3: C, 4: D}
+/// hashMap.addAll({3: 'Earth', 4: 'Mars'});
+/// print(hashMap.runtimeType); // HashMap<dynamic, dynamic>
 ///
-/// final HashMap<int, String> anotherHashMap = HashMap();
-/// anotherHashMap.addEntries(hashMap.entries);
-/// print(anotherHashMap); // {1: A, 2: B, 3: C, 4: D}
+/// final gasGiants = {1: 'Jupiter', 2: 'Saturn'};
+/// hashMap.addEntries(gasGiants.entries);
+/// print(hashMap); // {1: Jupiter, 2: Saturn, 3: Earth, 4: Mars}
 ///
-/// // To check is the map empty, use isEmpty or isNotEmpty
+/// // To check if the map is empty, use isEmpty or isNotEmpty
 /// // To check length of map data, use length
 /// final isEmpty = hashMap.isEmpty; // false
 /// final length = hashMap.length; // 4
@@ -53,10 +58,10 @@ typedef _Hasher<K> = int Function(K object);
 /// // The forEach iterates through all entries of a map.
 /// hashMap.forEach((key, value) {
 ///   print('key: $key value: $value');
-///   // key: 1 value: A
-///   // key: 2 value: B
-///   // key: 3 value: C
-///   // key: 4 value: D
+///   // key: 1 value: Jupiter
+///   // key: 2 value: Saturn
+///   // key: 3 value: Earth
+///   // key: 4 value: Mars
 /// });
 ///
 /// // To check is there a defined key, call containsKey
@@ -64,34 +69,38 @@ typedef _Hasher<K> = int Function(K object);
 /// final keyFiveExists = hashMap.containsKey(5); // false
 ///
 /// // To check is there a value item on map, call containsValue
-/// final bExists = hashMap.containsValue('B'); // true
-/// final gExists = hashMap.containsValue('G'); // false
+/// final marsExists = hashMap.containsValue('Mars'); // true
+/// final venusExists = hashMap.containsValue('Venus'); // false
 ///
 /// // To remove specific key-pair using key, call remove
 /// final removeValue = hashMap.remove(1);
-/// print(removeValue); // A
-/// print(hashMap); // {2: B, 3: C, 4: D}
+/// print(removeValue); // Jupiter
+/// print(hashMap); // {2: Saturn, 3: Earth, 4: Mars}
 ///
 /// // To remove item(s) with a statement, call the removeWhere
 /// hashMap.removeWhere((key, value) => key == 2);
-/// hashMap.removeWhere((key, value) => value == 'C');
-/// print(hashMap); // {4: D}
+/// print(hashMap); // {3: Earth, 4: Mars}
 ///
-/// // To update or insert (adding new key-value pair if not exists) value,
-/// // call update method with ifAbsent statement
-/// hashMap.update(10, (v) => 'ABC', ifAbsent: () => 'E');
-/// print(hashMap); // {10: E, 4: D}
-/// hashMap.update(4, (v) => 'abc', ifAbsent: () => 'F');
-/// print(hashMap); // {10: E, 4: abc}
+/// // Update known key values
+/// hashMap.update(4, (v) => 'Sun');
+/// print(hashMap); // {3: Earth, 4: Sun}
+/// // Key 8 missing from hashmap, adds Neptune via ifAbsent
+/// hashMap.update(8, (v) => '', ifAbsent: () => 'Neptune');
+/// print(hashMap); // {8: Neptune, 3: Earth, 4: Sun}
 ///
 /// // To update all items, call updateAll
-/// hashMap.updateAll((int key, String value) => 'X');
-/// print(hashMap); // {10: X, 4: X}
+/// hashMap.updateAll((key, value) => null);
+/// print(hashMap); // {8: null, 3: null, 4: null}
 ///
 /// // To clean up data, call the clear
 /// hashMap.clear();
 /// print(hashMap); // {}
 /// ```
+///
+/// **See also:**
+/// * [Map] a base-class for key/value pair collection.
+/// * [LinkedHashMap] iterates in key insertion order.
+/// * [SplayTreeMap] iterates the keys in sorted order.
 abstract class HashMap<K, V> implements Map<K, V> {
   /// Creates an unordered hash-table based [Map].
   ///
@@ -217,10 +226,12 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// It is an error if the two [Iterable]s don't have the same length.
   /// Example:
   /// ```dart
-  /// final keys = ['1', '2', '3', '4'];
-  /// final values = ['A', 'B', 'C', 'D'];
+  /// final keys = ['Mercury', 'Venus', 'Earth', 'Mars'];
+  /// final values = [0.06, 0.81, 1, 0.11];
   /// final mapFromIterables = HashMap.fromIterables(keys, values);
-  /// print(mapFromIterables); // {4: D, 1: A, 3: C, 2: B}
+  /// print(mapFromIterables);
+  /// // {Earth: 1, Mercury: 0.06, Mars: 0.11, Venus: 0.81}
+  /// print(hashMap.runtimeType);
   /// ```
   factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
     HashMap<K, V> map = HashMap<K, V>();
@@ -238,9 +249,9 @@ abstract class HashMap<K, V> implements Map<K, V> {
   ///
   /// Example:
   /// ```dart
-  /// final baseMap = {3: 'A', 2: 'B', 1: 'C'};
-  /// final mapFromEntries = HashMap.fromEntries(baseMap.entries);
-  /// print(mapFromEntries); // example: {1: C, 2: B, 3: A}
+  /// final data = {'Earth': 1, 'Mercury': 0.06, 'Mars': 0.11 };
+  /// final mapFromEntries = HashMap.fromEntries(data.entries);
+  /// print(mapFromEntries); // {Mercury: 0.06, Earth: 1, Mars: 0.11}
   /// ```
   @Since("2.1")
   factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) =>
