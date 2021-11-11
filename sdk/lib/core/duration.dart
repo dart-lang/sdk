@@ -23,13 +23,13 @@ part of dart.core;
 /// To create a new Duration object, use this class's single constructor
 /// giving the appropriate arguments:
 /// ```dart
-/// const fastestMarathon = Duration(days: 0, hours: 2, minutes: 3, seconds: 2);
+/// const fastestMarathon = Duration(hours: 2, minutes: 3, seconds: 2);
 /// ```
 /// The [Duration] is the sum of all individual parts.
 /// This means that individual parts can be larger than the next-bigger unit.
 /// For example, [inMinutes] can be greater than 59.
 /// ```dart
-/// const fastestMarathon = Duration(days: 0, hours: 2, minutes: 3, seconds: 2);
+/// const fastestMarathon = Duration(hours: 2, minutes: 3, seconds: 2);
 /// print(fastestMarathon.inDays); // 0
 /// print(fastestMarathon.inHours); // 2
 /// print(fastestMarathon.inMinutes); // 123
@@ -38,7 +38,7 @@ part of dart.core;
 /// ```
 /// All individual parts are allowed to be negative.
 /// ```dart
-/// const overDayAgo = Duration(days: -1, hours: -10, minutes: 0);
+/// const overDayAgo = Duration(days: -1, hours: -10);
 /// print(overDayAgo.inDays); // -1
 /// print(overDayAgo.inHours); // -34
 /// print(overDayAgo.inMinutes); // -2040
@@ -320,7 +320,7 @@ class Duration implements Comparable<Duration> {
   /// var d = const Duration(days: 1, hours: 1, minutes: 33, microseconds: 500);
   /// print(d.toString()); // "25:33:00.000500"
   ///
-  /// d = const Duration(days: 0, hours: 1, minutes: 10, microseconds: 500);
+  /// d = const Duration(hours: 1, minutes: 10, microseconds: 500);
   /// print(d.toString()); // 1:10:00.000500
   /// ```
   String toString() {
