@@ -22,10 +22,16 @@ part of dart.collection;
 /// multiple iterations over the same set produce the same order, as long as
 /// the set is not modified.
 ///
-/// The [forEach] iterates through all entries of a set.
-/// Manipulating item count in [forEach] is prohibited. Adding or
-/// deleting items during iteration causes an exception:
-/// [ConcurrentModificationError].
+/// **Notice:**
+/// It is generally not allowed to modify the set (add or remove elements) while
+/// an operation on the set is being performed, for example during a call to
+/// [forEach] or [containsAll]. Nor is it allowed to modify the set while
+/// iterating either the set itself or any [Iterable] that is backed by the set,
+/// such as the ones returned by methods like [where] and [map].
+///
+/// It is generally not allowed to modify the equality of elements (and thus not
+/// their hashcode) while they are in the set. Some specialized subtypes may be
+/// more permissive, in which case they should document this behavior.
 ///
 /// Example:
 ///
@@ -43,7 +49,7 @@ part of dart.collection;
 /// final elementAt = hashSet.elementAt(1);
 /// print(elementAt); // D
 ///
-/// // The forEach iterates through all entries of a set.
+/// // The forEach iterates through all entries of a set
 /// hashSet.forEach((element) {
 ///   print(element);
 ///   // A
@@ -61,11 +67,11 @@ part of dart.collection;
 /// print(copyOfOriginal); // {A, C, D, B}
 ///
 /// // To add item to set, call [add]
-/// hashSet.add('E');
+/// final addedValue = hashSet.add('E'); // true
 /// print(hashSet); // {A, D, C, E, B}
 ///
 /// // To remove specific value, call remove
-/// hashSet.remove('A');
+/// final removedValue = hashSet.remove('A'); // true
 /// print(hashSet); // {D, C, E, B}
 ///
 /// // To remove value(s) with a statement, call the removeWhere
@@ -80,6 +86,10 @@ part of dart.collection;
 /// hashSet.clear();
 /// print(hashSet); // {}
 /// ```
+/// **See also:**
+/// * [Set] is a base-class for collection of objects.
+/// * [LinkedHashSet] objects stored based on insertion order.
+/// * [SplayTreeSet] the order of the objects can be relative to each other.
 abstract class HashSet<E> implements Set<E> {
   /// Create a hash set using the provided [equals] as equality.
   ///
