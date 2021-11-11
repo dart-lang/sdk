@@ -88,7 +88,6 @@ part of dart.collection;
 /// * [Map] a base-class for key/value pair collection.
 /// * [HashMap] is unordered (the order of iteration is not guaranteed).
 /// * [SplayTreeMap] iterates the keys in sorted order.
-
 abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// Creates an insertion-ordered hash-table based [Map].
   ///
