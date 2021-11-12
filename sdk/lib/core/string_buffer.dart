@@ -13,10 +13,13 @@ part of dart.core;
 /// Example:
 /// ```dart
 /// final buffer = StringBuffer();
-/// // Check is buffer empty or not
-/// print(buffer.isEmpty); // true
+/// // Add string to buffer
+/// buffer.write('Dart'.toUpperCase());
 ///
-/// // Write multiple objects in iteration order with custom separator
+/// // Add linebreak
+/// buffer.writeln();
+///
+/// // Write multiple strings in iteration order with custom separator
 /// const separator = '-';
 /// buffer.writeAll(['Dart', 'is', 'fun!'], separator);
 ///
@@ -29,21 +32,20 @@ part of dart.core;
 /// buffer.writeCharCode(114); // r
 /// buffer.writeCharCode(116); // t
 ///
-/// // Add single text to buffer
+/// // Add string
 /// buffer.write(' is open source');
 /// // Check buffer current length
-/// print(buffer.length); // 32
+/// print(buffer.length); // 37
 ///
 /// // Get buffer content as single String
-/// final newString = buffer.toString();
-/// print(newString);
-/// // Outputs two line string:
+/// final fromBuffer = buffer.toString();
+/// print(fromBuffer);
+/// // Dart
 /// // Dart-is-fun!
 /// // Dart is open source
 ///
 /// // Clear the buffer
 /// buffer.clear();
-/// print(buffer.isEmpty); // true
 /// ```
 class StringBuffer implements StringSink {
   /// Creates the string buffer with an initial content.
