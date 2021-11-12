@@ -189,31 +189,42 @@ class FileResolver {
   ///  cached by the resolver are searched, generated files are ignored.
   List<CiderSearchMatch> findReferences(Element element,
       {OperationPerformanceImpl? performance}) {
-    var references = <CiderSearchMatch>[];
+    return logger.run('findReferences for ${element.name}', () {
+      var references = <CiderSearchMatch>[];
 
-    void collectReferences(String path) {
-      var resolved = resolve(path: path);
-      var collector = ReferencesCollector(element);
-      resolved.unit.accept(collector);
-      var offsets = collector.offsets;
-      if (offsets.isNotEmpty) {
-        var lineInfo = resolved.unit.lineInfo;
-        references.add(CiderSearchMatch(path,
-            offsets.map((offset) => lineInfo?.getLocation(offset)).toList()));
+      void collectReferences(
+          String path, OperationPerformanceImpl performance) {
+        performance.run('collectReferences', (_) {
+          var resolved = resolve(path: path);
+          var collector = ReferencesCollector(element);
+          resolved.unit.accept(collector);
+          var offsets = collector.offsets;
+          if (offsets.isNotEmpty) {
+            var lineInfo = resolved.unit.lineInfo;
+            references.add(CiderSearchMatch(
+                path,
+                offsets
+                    .map((offset) => lineInfo?.getLocation(offset))
+                    .toList()));
+          }
+        });
       }
-    }
 
-    // TODO(keertip): check if element is named constructor.
-    if (element is LocalVariableElement ||
-        (element is ParameterElement && !element.isNamed)) {
-      collectReferences(element.source!.fullName);
-    } else {
-      var result = fsState!.getFilesContaining(element.displayName);
-      result.forEach((filePath) {
-        collectReferences(filePath);
-      });
-    }
-    return references;
+      performance ??= OperationPerformanceImpl('<default>');
+      // TODO(keertip): check if element is named constructor.
+      if (element is LocalVariableElement ||
+          (element is ParameterElement && !element.isNamed)) {
+        collectReferences(element.source!.fullName, performance!);
+      } else {
+        var result = performance!.run('getFilesContaining', (performance) {
+          return fsState!.getFilesContaining(element.displayName);
+        });
+        result.forEach((filePath) {
+          collectReferences(filePath, performance!);
+        });
+      }
+      return references;
+    });
   }
 
   ErrorsResult getErrors({
