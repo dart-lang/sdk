@@ -13099,13 +13099,9 @@ class Element extends Node
   /**
    * Allows access to all custom data attributes (data-*) set on this element.
    *
-   * The keys for the map must follow these rules:
-   *
-   * * The name must not begin with 'xml'.
-   * * The name cannot contain a semi-colon (';').
-   * * The name cannot contain any capital letters.
-   *
-   * Any keys from markup will be converted to camel-cased keys in the map.
+   * Any data attributes in the markup will be converted to camel-cased keys
+   * in the map based on [these conversion
+   * rules](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset).
    *
    * For example, HTML specified as:
    *
@@ -13117,6 +13113,8 @@ class Element extends Node
    *
    * See also:
    *
+   * * [HTML data-* attributes naming
+       restrictions](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/data-*)
    * * [Custom data
    *   attributes](http://dev.w3.org/html5/spec-preview/global-attributes.html#custom-data-attribute)
    */
