@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.52.0';
+const String vmServiceVersion = '3.53.0';
 
 /// @optional
 const String optional = 'optional';
@@ -236,6 +236,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'resume': const ['Success'],
   'setBreakpointState': const ['Breakpoint'],
   'setExceptionPauseMode': const ['Success'],
+  'setIsolatePauseMode': const ['Success'],
   'setFlag': const ['Success', 'Error'],
   'setLibraryDebuggable': const ['Success'],
   'setName': const ['Success'],
@@ -1078,8 +1079,33 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
+  @Deprecated('Use setIsolatePauseMode instead')
   Future<Success> setExceptionPauseMode(
       String isolateId, /*ExceptionPauseMode*/ String mode);
+
+  /// The `setIsolatePauseMode` RPC is used to control if or when an isolate
+  /// will pause due to a change in execution state.
+  ///
+  /// The `shouldPauseOnExit` parameter specify whether the target isolate
+  /// should pause on exit.
+  ///
+  /// The `setExceptionPauseMode` RPC is used to control if an isolate pauses
+  /// when an exception is thrown.
+  ///
+  /// mode | meaning
+  /// ---- | -------
+  /// None | Do not pause isolate on thrown exceptions
+  /// Unhandled | Pause isolate on unhandled exceptions
+  /// All  | Pause isolate on all thrown exceptions
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Success> setIsolatePauseMode(String isolateId,
+      {/*ExceptionPauseMode*/ String? exceptionPauseMode,
+      bool? shouldPauseOnExit});
 
   /// The `setFlag` RPC is used to set a VM flag at runtime. Returns an error if
   /// the named flag does not exist, the flag may not be set at runtime, or the
@@ -1101,6 +1127,7 @@ abstract class VmServiceInterface {
   /// provided value. If set to false when the profiler is already running, the
   /// profiler will be stopped but may not free its sample buffer depending on
   /// platform limitations.
+  /// - Isolate pause settings will only be applied to newly spawned isolates.
   ///
   /// See [Success].
   ///
@@ -1549,9 +1576,17 @@ class VmServerConnection {
           );
           break;
         case 'setExceptionPauseMode':
+          // ignore: deprecated_member_use_from_same_package
           response = await _serviceImplementation.setExceptionPauseMode(
             params!['isolateId'],
             params['mode'],
+          );
+          break;
+        case 'setIsolatePauseMode':
+          response = await _serviceImplementation.setIsolatePauseMode(
+            params!['isolateId'],
+            exceptionPauseMode: params['exceptionPauseMode'],
+            shouldPauseOnExit: params['shouldPauseOnExit'],
           );
           break;
         case 'setFlag':
@@ -2081,10 +2116,22 @@ class VmService implements VmServiceInterface {
         'enable': enable
       });
 
+  @Deprecated('Use setIsolatePauseMode instead')
   @override
   Future<Success> setExceptionPauseMode(
           String isolateId, /*ExceptionPauseMode*/ String mode) =>
       _call('setExceptionPauseMode', {'isolateId': isolateId, 'mode': mode});
+
+  @override
+  Future<Success> setIsolatePauseMode(String isolateId,
+          {/*ExceptionPauseMode*/ String? exceptionPauseMode,
+          bool? shouldPauseOnExit}) =>
+      _call('setIsolatePauseMode', {
+        'isolateId': isolateId,
+        if (exceptionPauseMode != null)
+          'exceptionPauseMode': exceptionPauseMode,
+        if (shouldPauseOnExit != null) 'shouldPauseOnExit': shouldPauseOnExit,
+      });
 
   @override
   Future<Response> setFlag(String name, String value) =>

@@ -581,7 +581,10 @@ class IsolateManager {
       return;
     }
 
-    await service.setExceptionPauseMode(isolate.id!, _exceptionPauseMode);
+    await service.setIsolatePauseMode(
+      isolate.id!,
+      exceptionPauseMode: _exceptionPauseMode,
+    );
   }
 
   /// Calls setLibraryDebuggable for all libraries in the given isolate based
