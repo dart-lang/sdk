@@ -214,7 +214,6 @@ class TypeWriter {
     String? modifiers = 'public',
     String? returnType = 'void',
     bool isOverride = false,
-    bool isDeprecated = false,
   }) {
     var methodDecl = StringBuffer();
     if (javadoc != null && javadoc.isNotEmpty) {
@@ -223,9 +222,6 @@ class TypeWriter {
           .split('\n')
           .forEach((line) => methodDecl.writeln('   * $line'.trimRight()));
       methodDecl.writeln('   */');
-    }
-    if (isDeprecated) {
-      methodDecl.writeln('  @Deprecated');
     }
     if (isOverride) {
       methodDecl.writeln('  @Override');

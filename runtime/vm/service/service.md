@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.53
+# Dart VM Service Protocol 3.52
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.53_ of the Dart VM Service Protocol. This
+This document describes of _version 3.52_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1378,35 +1378,9 @@ See [Breakpoint](#breakpoint).
 ### setExceptionPauseMode
 
 ```
-@deprecated('Use setIsolatePauseMode instead')
 Success|Sentinel setExceptionPauseMode(string isolateId,
                                        ExceptionPauseMode mode)
 ```
-
-The _setExceptionPauseMode_ RPC is used to control if an isolate pauses when
-an exception is thrown.
-
-mode | meaning
----- | -------
-None | Do not pause isolate on thrown exceptions
-Unhandled | Pause isolate on unhandled exceptions
-All  | Pause isolate on all thrown exceptions
-
-If _isolateId_ refers to an isolate which has exited, then the
-_Collected_ [Sentinel](#sentinel) is returned.
-
-### setIsolatePauseMode
-
-```
-Success|Sentinel setIsolatePauseMode(string isolateId,
-                                     ExceptionPauseMode exceptionPauseMode [optional],
-                                     bool shouldPauseOnExit [optional])
-```
-
-The _setIsolatePauseMode_ RPC is used to control if or when an isolate will
-pause due to a change in execution state.
-
-The _shouldPauseOnExit_ parameter specify whether the target isolate should pause on exit.
 
 The _setExceptionPauseMode_ RPC is used to control if an isolate pauses when
 an exception is thrown.
@@ -1446,7 +1420,6 @@ Notes:
    provided value. If set to false when the profiler is already running, the
    profiler will be stopped but may not free its sample buffer depending on
    platform limitations.
- * Isolate pause settings will only be applied to newly spawned isolates.
 
 See [Success](#success).
 
@@ -4262,5 +4235,4 @@ version | comments
 3.50 | Added `returnType`, `parameters`, and `typeParameters` to `@Instance`, and `implicit` to `@Function`. Added `Parameter` type.
 3.51 | Added optional `reportLines` parameter to `getSourceReport` RPC.
 3.52 | Added `lookupResolvedPackageUris` and `lookupPackageUris` RPCs and `UriList` type.
-3.53 | Added `setIsolatePauseMode` RPC.
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

@@ -167,23 +167,6 @@ abstract class Parser {
         .trim();
   }
 
-  String? consumeString() {
-    StringBuffer buf = StringBuffer();
-    String startQuotation = advance()!.text!;
-    if (startQuotation != '"' && startQuotation != "'") {
-      return null;
-    }
-    while (peek()!.text != startQuotation) {
-      Token t = advance()!;
-      if (t.text == null) {
-        throw FormatException('Reached EOF');
-      }
-      buf.write('${t.text} ');
-    }
-    advance();
-    return buf.toString().trim();
-  }
-
   void validate(bool result, String message) {
     if (!result) throw 'expected ${message}';
   }

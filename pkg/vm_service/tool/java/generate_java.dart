@@ -496,7 +496,6 @@ class Method extends Member {
   final String? docs;
 
   MemberType returnType = MemberType();
-  bool deprecated = false;
   List<MethodArg> args = [];
 
   Method(this.name, String definition, [this.docs]) {
@@ -607,7 +606,7 @@ class Method extends Member {
         }
       }
       writer.addLine('request("$name", params, consumer);');
-    }, javadoc: javadoc.toString(), isDeprecated: deprecated);
+    }, javadoc: javadoc.toString());
   }
 
   void _parse(Token? token) {
@@ -648,13 +647,6 @@ class MethodParser extends Parser {
     // method is return type, name, (, args )
     // args is type name, [optional], comma
 
-    if (peek()?.text?.startsWith('@deprecated') ?? false) {
-      advance();
-      expect('(');
-      consumeString();
-      expect(')');
-      method.deprecated = true;
-    }
     method.returnType.parse(this);
 
     Token t = expectName();
