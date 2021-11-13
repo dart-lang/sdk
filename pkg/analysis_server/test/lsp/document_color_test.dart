@@ -17,6 +17,9 @@ void main() {
 
 @reflectiveTest
 class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
+  late Range colorRange, importRange;
+  final uiImportUri = 'package:ui/ui.dart';
+
   @override
   void setUp() {
     super.setUp();
@@ -30,45 +33,30 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
     // calling colorPresentation directly to get the new code (and not fetching
     // colors already in the file).
     const content = '''
-const white = [[]];
+[[]]const white = [[]];
 ''';
 
-    const expectedMainEdit = '''
-const white = Color(0xFFFFFFFF);
-''';
-
-    const expectedAllEdits = '''
-import 'package:ui/ui.dart';
-
-const white = Color(0xFFFFFFFF);
-''';
+    final ranges = rangesFromMarkers(content);
+    importRange = ranges[0];
+    colorRange = ranges[1];
 
     newFile(mainFilePath, content: withoutMarkers(content));
     await initialize();
 
     final colorPresentations = await getColorPresentation(
       mainFileUri.toString(),
-      rangeFromMarkers(content),
+      colorRange,
       Color(alpha: 1, red: 1, green: 1, blue: 1),
     );
-    expect(colorPresentations, hasLength(1));
 
-    final colorPresentation = colorPresentations[0];
-    expect(colorPresentation.label, 'Color(0xFFFFFFFF)');
-
-    // Test the main edit just replaces the color.
-    final contentWithMainEdit = applyTextEdits(
-      withoutMarkers(content),
-      [colorPresentation.textEdit!],
+    expect(
+      colorPresentations,
+      equals([
+        _color('Color.fromARGB(255, 255, 255, 255)', importUri: uiImportUri),
+        _color('Color.fromRGBO(255, 255, 255, 1)', importUri: uiImportUri),
+        _color('Color(0xFFFFFFFF)', importUri: uiImportUri),
+      ]),
     );
-    expect(contentWithMainEdit, equals(expectedMainEdit));
-
-    // Test all of the edits also adds the import.
-    final contentWithAllEdits = applyTextEdits(
-      withoutMarkers(content),
-      [colorPresentation.textEdit!, ...colorPresentation.additionalTextEdits!],
-    );
-    expect(contentWithAllEdits, equals(expectedAllEdits));
   }
 
   Future<void> test_nonDartFile() async {
@@ -89,21 +77,46 @@ const white = Color(0xFFFFFFFF);
 
     const white = [[Color(0xFFFFFFFF)]];
     ''';
+    colorRange = rangeFromMarkers(content);
+
     newFile(mainFilePath, content: withoutMarkers(content));
     await initialize();
 
     final colorPresentations = await getColorPresentation(
       mainFileUri.toString(),
-      rangeFromMarkers(content),
+      colorRange,
       // Send a different color to what's in the source to simulate the user
       // having changed in the color picker. This is the one that we should be
       // creating a presentation for, not the one in the source.
       Color(alpha: 1, red: 1, green: 0, blue: 0),
     );
-    expect(colorPresentations, hasLength(1));
 
-    final colorPresentation = colorPresentations[0];
-    expect(colorPresentation.label, 'Color(0xFFFF0000)');
+    expect(
+      colorPresentations,
+      equals([
+        _color('Color.fromARGB(255, 255, 0, 0)'),
+        _color('Color.fromRGBO(255, 0, 0, 1)'),
+        _color('Color(0xFFFF0000)'),
+      ]),
+    );
+  }
+
+  /// Creates a [ColorPresentation] for comparing against actual results.
+  ColorPresentation _color(
+    String label, {
+    String? colorCode,
+    String? importUri,
+  }) {
+    final edit = TextEdit(range: colorRange, newText: colorCode ?? label);
+    final additionalEdits = importUri != null
+        ? [TextEdit(range: importRange, newText: "import '$importUri';\n\n")]
+        : null;
+
+    return ColorPresentation(
+      label: label,
+      textEdit: edit,
+      additionalTextEdits: additionalEdits,
+    );
   }
 }
 

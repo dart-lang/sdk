@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -49,24 +50,68 @@ class DocumentColorPresentationHandler
     return (alpha << 24) | (red << 16) | (green << 8) | (blue << 0);
   }
 
-  /// Builds a list of valid color presentations for the requested color.
+  /// Creates a [ColorPresentation] for inserting code to produce a dart:ui
+  /// or Flutter Color at [editRange].
   ///
-  /// Currently only a single presentation (`Color(0xAARRGGBB)`) is provided.
+  /// [colorType] is the Type of the Color class whose constructor will be
+  /// called. This will be replaced into [editRange] and any required import
+  /// statement will produce additional edits.
+  ///
+  /// [label] is the visible label shown to the user and should roughly reflect
+  /// the code that will be inserted.
+  ///
+  /// [invocationString] is written immediately after [colorType] in [editRange].
+  Future<ColorPresentation> _createColorPresentation(
+    ResolvedUnitResult unit,
+    SourceRange editRange,
+    ClassElement colorType,
+    String label,
+    String invocationString,
+  ) async {
+    final builder = ChangeBuilder(session: unit.session);
+    await builder.addDartFileEdit(unit.path, (builder) {
+      builder.addReplacement(editRange, (builder) {
+        builder.writeType(colorType.thisType);
+        builder.write(invocationString);
+      });
+    });
+
+    // We can only apply changes to the same file, so filter any change from the
+    // builder to only include this file, otherwise we may corrupt the users
+    // source (although hopefully we don't produce edits for other files).
+    final editsForThisFile = builder.sourceChange.edits
+        .where((edit) => edit.file == unit.path)
+        .expand((edit) => edit.edits)
+        .toList();
+
+    // LSP requires that we separate the main edit (changing the color code)
+    // from anything else (imports).
+    final mainEdit =
+        editsForThisFile.singleWhere((edit) => edit.offset == editRange.offset);
+    final otherEdits =
+        editsForThisFile.where((edit) => edit.offset != editRange.offset);
+
+    return ColorPresentation(
+      label: label,
+      textEdit: toTextEdit(unit.lineInfo, mainEdit),
+      additionalTextEdits: otherEdits.isNotEmpty
+          ? otherEdits.map((edit) => toTextEdit(unit.lineInfo, edit)).toList()
+          : null,
+    );
+  }
+
+  /// Builds a list of valid color presentations for the requested color.
   Future<ErrorOr<List<ColorPresentation>>> _getPresentations(
     ColorPresentationParams params,
     ResolvedUnitResult unit,
   ) async {
     // The values in LSP are decimals 0-1 so should be scaled up to 255 that
-    // we use internally.
-    final colorValue = _colorValueForComponents(
-      (params.color.alpha * 255).toInt(),
-      (params.color.red * 255).toInt(),
-      (params.color.green * 255).toInt(),
-      (params.color.blue * 255).toInt(),
-    );
-
-    final colorValueHex =
-        '0x${colorValue.toRadixString(16).toUpperCase().padLeft(8, '0')}';
+    // we use internally (except for opacity is which 0-1).
+    final alpha = (params.color.alpha * 255).toInt();
+    final red = (params.color.red * 255).toInt();
+    final green = (params.color.green * 255).toInt();
+    final blue = (params.color.blue * 255).toInt();
+    final opacity = params.color.alpha;
 
     final editStart = toOffset(unit.lineInfo, params.range.start);
     final editEnd = toOffset(unit.lineInfo, params.range.end);
@@ -87,36 +132,38 @@ class DocumentColorPresentationHandler
       return success([]);
     }
 
-    final builder = ChangeBuilder(session: unit.session);
-    await builder.addDartFileEdit(unit.path, (builder) {
-      builder.addReplacement(editRange, (builder) {
-        builder.writeType(colorType.thisType);
-        builder.write('($colorValueHex)');
-      });
-    });
+    final colorValue = _colorValueForComponents(alpha, red, green, blue);
+    final colorValueHex =
+        '0x${colorValue.toRadixString(16).toUpperCase().padLeft(8, '0')}';
 
-    // We can only apply changes to the same file, so filter any change from the
-    // builder to only include this file, otherwise we may corrupt the users
-    // source (although hopefully we don't produce edits for other files).
-    final editsForThisFile = builder.sourceChange.edits
-        .where((edit) => edit.file == unit.path)
-        .expand((edit) => edit.edits)
-        .toList();
+    final colorFromARGB = await _createColorPresentation(
+      unit,
+      editRange,
+      colorType,
+      'Color.fromARGB($alpha, $red, $green, $blue)',
+      '.fromARGB($alpha, $red, $green, $blue)',
+    );
 
-    // LSP requires that we separate the main edit (changing the color code)
-    // from anything else (imports).
-    final mainEdit =
-        editsForThisFile.singleWhere((edit) => edit.offset == editRange.offset);
-    final otherEdits =
-        editsForThisFile.where((edit) => edit.offset != editRange.offset);
+    final colorFromRGBO = await _createColorPresentation(
+      unit,
+      editRange,
+      colorType,
+      'Color.fromRGBO($red, $green, $blue, $opacity)',
+      '.fromRGBO($red, $green, $blue, $opacity)',
+    );
+
+    final colorDefault = await _createColorPresentation(
+      unit,
+      editRange,
+      colorType,
+      'Color($colorValueHex)',
+      '($colorValueHex)',
+    );
 
     return success([
-      ColorPresentation(
-        label: 'Color($colorValueHex)',
-        textEdit: toTextEdit(unit.lineInfo, mainEdit),
-        additionalTextEdits:
-            otherEdits.map((edit) => toTextEdit(unit.lineInfo, edit)).toList(),
-      ),
+      colorFromARGB,
+      colorFromRGBO,
+      colorDefault,
     ]);
   }
 }
