@@ -108,7 +108,7 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
 
   const Dart_Port destination_port_id = port.Id();
   const bool can_send_any_object = isolate->origin_id() == port.origin_id();
-  // We have to check whether the reciever has the same isolate group (e.g.
+  // We have to check whether the receiver has the same isolate group (e.g.
   // native message handlers such as an IOService handler does not but does
   // share the same origin port).
   const bool same_group =
@@ -719,7 +719,11 @@ class SpawnIsolateTask : public ThreadPool::Task {
     }
 
     state_->set_isolate(child);
-    child->set_origin_id(state_->origin_id());
+    if (state_->origin_id() != ILLEGAL_PORT) {
+      // origin_id is set to parent isolate main port id when spawning via
+      // spawnFunction.
+      child->set_origin_id(state_->origin_id());
+    }
 
     bool success = true;
     {
