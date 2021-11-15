@@ -148,7 +148,7 @@ class DapTestClient {
       sendRequest(ContinueArguments(threadId: threadId));
 
   /// Sends a custom request to the server and waits for a response.
-  Future<Response> custom(String name, Object? args) async {
+  Future<Response> custom(String name, [Object? args]) async {
     return sendRequest(args, overrideCommand: name);
   }
 
@@ -189,6 +189,11 @@ class DapTestClient {
     FutureOr<Object?> Function(Object?) handler,
   ) {
     _serverRequestHandlers[request] = handler;
+  }
+
+  /// Send a custom 'hotReload' request to the server.
+  Future<Response> hotReload() async {
+    return custom('hotReload');
   }
 
   /// Send an initialize request to the server.

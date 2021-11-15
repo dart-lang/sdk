@@ -53,6 +53,13 @@ const threadExceptionExpression = r'$_threadException';
 /// Typedef for handlers of VM Service stream events.
 typedef _StreamEventHandler<T> = FutureOr<void> Function(T data);
 
+/// A null result passed to `sendResponse` functions when there is no result.
+///
+/// Because the signature of `sendResponse` is generic, an argument must be
+/// provided even when the generic type is `void`. This value is used to make
+/// it clearer in calling code that the result is unused.
+const _noResult = null;
+
 /// Pattern for extracting useful error messages from an evaluation exception.
 final _evalErrorMessagePattern = RegExp('Error: (.*)');
 
@@ -661,26 +668,26 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   ) async {
     switch (request.command) {
 
-      /// Used by tests to validate available protocols (e.g. DDS). There may be
-      /// value in making this available to clients in future, but for now it's
-      /// internal.
+      // Used by tests to validate available protocols (e.g. DDS). There may be
+      // value in making this available to clients in future, but for now it's
+      // internal.
       case '_getSupportedProtocols':
         final protocols = await vmService?.getSupportedProtocols();
         sendResponse(protocols?.toJson());
         break;
 
-      /// Used to toggle debug settings such as whether SDK/Packages are
-      /// debuggable while the session is in progress.
+      // Used to toggle debug settings such as whether SDK/Packages are
+      // debuggable while the session is in progress.
       case 'updateDebugOptions':
         if (args != null) {
           await _updateDebugOptions(args.args);
         }
-        sendResponse(null);
+        sendResponse(_noResult);
         break;
 
-      /// Allows an editor to call a service/service extension that it was told
-      /// about via a custom 'dart.serviceRegistered' or
-      /// 'dart.serviceExtensionAdded' event.
+      // Allows an editor to call a service/service extension that it was told
+      // about via a custom 'dart.serviceRegistered' or
+      // 'dart.serviceExtensionAdded' event.
       case 'callService':
         final method = args?.args['method'] as String?;
         if (method == null) {
@@ -694,6 +701,15 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           args: params,
         );
         sendResponse(response?.json);
+        break;
+
+      // Used to reload sources for all isolates. This supports Hot Reload for
+      // Dart apps. Flutter's DAP handles this command itself (and sends it
+      // through the run daemon) as it needs to perform additional work to
+      // rebuild widgets afterwards.
+      case 'hotReload':
+        await _isolateManager.reloadSources();
+        sendResponse(_noResult);
         break;
 
       default:

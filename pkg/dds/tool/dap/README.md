@@ -74,6 +74,17 @@ Some custom requests are available for clients to call.
 }
 ```
 
+### `hotReload`
+
+`hotReload` calls the VM's `reloadSources` service for each active isolate, reloading all modified source files.
+
+```
+{
+	"method": "hotReload",
+	"params": null
+}
+```
+
 ## Custom Events
 
 The debug adapter may emit several custom events that are useful to clients.
