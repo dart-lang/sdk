@@ -72,6 +72,231 @@ DEFINE_FLAG(bool,
             "Print a message when an isolate is paused but there is no "
             "debugger attached.");
 
+static void PrintInvalidParamError(JSONStream* js, const char* param) {
+#if !defined(PRODUCT)
+  js->PrintError(kInvalidParams, "%s: invalid '%s' parameter: %s", js->method(),
+                 param, js->LookupParam(param));
+#endif
+}
+
+// TODO(johnmccutchan): Split into separate file and write unit tests.
+class MethodParameter {
+ public:
+  MethodParameter(const char* name, bool required)
+      : name_(name), required_(required) {}
+
+  virtual ~MethodParameter() {}
+
+  virtual bool Validate(const char* value) const { return true; }
+
+  virtual bool ValidateObject(const Object& value) const { return true; }
+
+  const char* name() const { return name_; }
+
+  bool required() const { return required_; }
+
+  virtual void PrintError(const char* name,
+                          const char* value,
+                          JSONStream* js) const {
+    PrintInvalidParamError(js, name);
+  }
+
+  virtual void PrintErrorObject(const char* name,
+                                const Object& value,
+                                JSONStream* js) const {
+    PrintInvalidParamError(js, name);
+  }
+
+ private:
+  const char* name_;
+  bool required_;
+};
+
+class NoSuchParameter : public MethodParameter {
+ public:
+  explicit NoSuchParameter(const char* name) : MethodParameter(name, false) {}
+
+  virtual bool Validate(const char* value) const { return (value == NULL); }
+
+  virtual bool ValidateObject(const Object& value) const {
+    return value.IsNull();
+  }
+};
+
+#define ISOLATE_PARAMETER new IdParameter("isolateId", true)
+#define ISOLATE_GROUP_PARAMETER new IdParameter("isolateGroupId", true)
+#define NO_ISOLATE_PARAMETER new NoSuchParameter("isolateId")
+#define RUNNABLE_ISOLATE_PARAMETER new RunnableIsolateParameter("isolateId")
+
+class EnumListParameter : public MethodParameter {
+ public:
+  EnumListParameter(const char* name, bool required, const char* const* enums)
+      : MethodParameter(name, required), enums_(enums) {}
+
+  virtual bool Validate(const char* value) const {
+    return ElementCount(value) >= 0;
+  }
+
+  const char** Parse(char* value) const {
+    const char* kJsonChars = " \t\r\n[,]";
+
+    // Make a writeable copy of the value.
+    intptr_t element_count = ElementCount(value);
+    if (element_count < 0) {
+      return nullptr;
+    }
+    intptr_t element_pos = 0;
+
+    // Allocate our element array.  +1 for NULL terminator.
+    // The caller is reponsible for deleting this memory.
+    char** elements = new char*[element_count + 1];
+    elements[element_count] = NULL;
+
+    // Parse the string destructively.  Build the list of elements.
+    while (element_pos < element_count) {
+      // Skip to the next element.
+      value += strspn(value, kJsonChars);
+
+      intptr_t len = strcspn(value, kJsonChars);
+      ASSERT(len > 0);  // We rely on the parameter being validated already.
+      value[len] = '\0';
+      elements[element_pos++] = value;
+
+      // Advance.  +1 for null terminator.
+      value += (len + 1);
+    }
+    return const_cast<const char**>(elements);
+  }
+
+ private:
+  // For now observatory enums are ascii letters plus underscore.
+  static bool IsEnumChar(char c) {
+    return (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) ||
+            (c == '_'));
+  }
+
+  // Returns number of elements in the list.  -1 on parse error.
+  intptr_t ElementCount(const char* value) const {
+    const char* kJsonWhitespaceChars = " \t\r\n";
+    if (value == NULL) {
+      return -1;
+    }
+    const char* cp = value;
+    cp += strspn(cp, kJsonWhitespaceChars);
+    if (*cp++ != '[') {
+      // Missing initial [.
+      return -1;
+    }
+    bool closed = false;
+    bool element_allowed = true;
+    intptr_t element_count = 0;
+    while (true) {
+      // Skip json whitespace.
+      cp += strspn(cp, kJsonWhitespaceChars);
+      switch (*cp) {
+        case '\0':
+          return closed ? element_count : -1;
+        case ']':
+          closed = true;
+          cp++;
+          break;
+        case ',':
+          if (element_allowed) {
+            return -1;
+          }
+          element_allowed = true;
+          cp++;
+          break;
+        default:
+          if (!element_allowed) {
+            return -1;
+          }
+          bool valid_enum = false;
+          const char* id_start = cp;
+          while (IsEnumChar(*cp)) {
+            cp++;
+          }
+          if (cp == id_start) {
+            // Empty identifier, something like this [,].
+            return -1;
+          }
+          intptr_t id_len = cp - id_start;
+          if (enums_ != NULL) {
+            for (intptr_t i = 0; enums_[i] != NULL; i++) {
+              intptr_t len = strlen(enums_[i]);
+              if (len == id_len && strncmp(id_start, enums_[i], len) == 0) {
+                element_count++;
+                valid_enum = true;
+                element_allowed = false;  // we need a comma first.
+                break;
+              }
+            }
+          }
+          if (!valid_enum) {
+            return -1;
+          }
+          break;
+      }
+    }
+  }
+
+  const char* const* enums_;
+};
+
+#if defined(SUPPORT_TIMELINE)
+static const char* const timeline_streams_enum_names[] = {
+    "all",
+#define DEFINE_NAME(name, unused) #name,
+    TIMELINE_STREAM_LIST(DEFINE_NAME)
+#undef DEFINE_NAME
+        NULL};
+
+static const MethodParameter* const set_vm_timeline_flags_params[] = {
+    NO_ISOLATE_PARAMETER,
+    new EnumListParameter("recordedStreams",
+                          false,
+                          timeline_streams_enum_names),
+    NULL,
+};
+
+static bool HasStream(const char** recorded_streams, const char* stream) {
+  while (*recorded_streams != NULL) {
+    if ((strstr(*recorded_streams, "all") != NULL) ||
+        (strstr(*recorded_streams, stream) != NULL)) {
+      return true;
+    }
+    recorded_streams++;
+  }
+  return false;
+}
+
+bool Service::EnableTimelineStreams(char* categories_list) {
+  const EnumListParameter* recorded_streams_param =
+      static_cast<const EnumListParameter*>(set_vm_timeline_flags_params[1]);
+  const char** streams = recorded_streams_param->Parse(categories_list);
+  if (streams == nullptr) {
+    return false;
+  }
+
+#define SET_ENABLE_STREAM(name, unused)                                        \
+  Timeline::SetStream##name##Enabled(HasStream(streams, #name));
+  TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
+#undef SET_ENABLE_STREAM
+
+  delete[] streams;
+
+#if !defined(PRODUCT)
+  // Notify clients that the set of subscribed streams has been updated.
+  if (Service::timeline_stream.enabled()) {
+    ServiceEvent event(ServiceEvent::kTimelineStreamSubscriptionsUpdate);
+    Service::HandleEvent(&event);
+  }
+#endif
+
+  return true;
+}
+#endif  // defined(SUPPORT_TIMELINE)
+
 #ifndef PRODUCT
 // The name of this of this vm as reported by the VM service protocol.
 static char* vm_name = NULL;
@@ -218,20 +443,6 @@ ObjectPtr Service::RequestAssets() {
     return Object::null();
   }
   return object.ptr();
-}
-
-static void PrintMissingParamError(JSONStream* js, const char* param) {
-  js->PrintError(kInvalidParams, "%s expects the '%s' parameter", js->method(),
-                 param);
-}
-
-static void PrintInvalidParamError(JSONStream* js, const char* param) {
-  js->PrintError(kInvalidParams, "%s: invalid '%s' parameter: %s", js->method(),
-                 param, js->LookupParam(param));
-}
-
-static void PrintUnrecognizedMethodError(JSONStream* js) {
-  js->PrintError(kMethodNotFound, NULL);
 }
 
 static void PrintSuccess(JSONStream* js) {
@@ -430,39 +641,6 @@ static ClassPtr GetClassForId(Isolate* isolate, intptr_t cid) {
   return class_table->At(cid);
 }
 
-// TODO(johnmccutchan): Split into separate file and write unit tests.
-class MethodParameter {
- public:
-  MethodParameter(const char* name, bool required)
-      : name_(name), required_(required) {}
-
-  virtual ~MethodParameter() {}
-
-  virtual bool Validate(const char* value) const { return true; }
-
-  virtual bool ValidateObject(const Object& value) const { return true; }
-
-  const char* name() const { return name_; }
-
-  bool required() const { return required_; }
-
-  virtual void PrintError(const char* name,
-                          const char* value,
-                          JSONStream* js) const {
-    PrintInvalidParamError(js, name);
-  }
-
-  virtual void PrintErrorObject(const char* name,
-                                const Object& value,
-                                JSONStream* js) const {
-    PrintInvalidParamError(js, name);
-  }
-
- private:
-  const char* name_;
-  bool required_;
-};
-
 class DartStringParameter : public MethodParameter {
  public:
   DartStringParameter(const char* name, bool required)
@@ -480,17 +658,6 @@ class DartListParameter : public MethodParameter {
 
   virtual bool ValidateObject(const Object& value) const {
     return value.IsArray() || value.IsGrowableObjectArray();
-  }
-};
-
-class NoSuchParameter : public MethodParameter {
- public:
-  explicit NoSuchParameter(const char* name) : MethodParameter(name, false) {}
-
-  virtual bool Validate(const char* value) const { return (value == NULL); }
-
-  virtual bool ValidateObject(const Object& value) const {
-    return value.IsNull();
   }
 };
 
@@ -632,11 +799,6 @@ class RunnableIsolateParameter : public MethodParameter {
   }
 };
 
-#define ISOLATE_PARAMETER new IdParameter("isolateId", true)
-#define ISOLATE_GROUP_PARAMETER new IdParameter("isolateGroupId", true)
-#define NO_ISOLATE_PARAMETER new NoSuchParameter("isolateId")
-#define RUNNABLE_ISOLATE_PARAMETER new RunnableIsolateParameter("isolateId")
-
 class EnumParameter : public MethodParameter {
  public:
   EnumParameter(const char* name, bool required, const char* const* enums)
@@ -673,118 +835,6 @@ T EnumMapper(const char* value, const char* const* enums, T* values) {
   return values[i];
 }
 
-class EnumListParameter : public MethodParameter {
- public:
-  EnumListParameter(const char* name, bool required, const char* const* enums)
-      : MethodParameter(name, required), enums_(enums) {}
-
-  virtual bool Validate(const char* value) const {
-    return ElementCount(value) >= 0;
-  }
-
-  const char** Parse(Zone* zone, const char* value_in) const {
-    const char* kJsonChars = " \t\r\n[,]";
-
-    // Make a writeable copy of the value.
-    char* value = zone->MakeCopyOfString(value_in);
-    intptr_t element_count = ElementCount(value);
-    intptr_t element_pos = 0;
-
-    // Allocate our element array.  +1 for NULL terminator.
-    char** elements = zone->Alloc<char*>(element_count + 1);
-    elements[element_count] = NULL;
-
-    // Parse the string destructively.  Build the list of elements.
-    while (element_pos < element_count) {
-      // Skip to the next element.
-      value += strspn(value, kJsonChars);
-
-      intptr_t len = strcspn(value, kJsonChars);
-      ASSERT(len > 0);  // We rely on the parameter being validated already.
-      value[len] = '\0';
-      elements[element_pos++] = value;
-
-      // Advance.  +1 for null terminator.
-      value += (len + 1);
-    }
-    return const_cast<const char**>(elements);
-  }
-
- private:
-  // For now observatory enums are ascii letters plus underscore.
-  static bool IsEnumChar(char c) {
-    return (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) ||
-            (c == '_'));
-  }
-
-  // Returns number of elements in the list.  -1 on parse error.
-  intptr_t ElementCount(const char* value) const {
-    const char* kJsonWhitespaceChars = " \t\r\n";
-    if (value == NULL) {
-      return -1;
-    }
-    const char* cp = value;
-    cp += strspn(cp, kJsonWhitespaceChars);
-    if (*cp++ != '[') {
-      // Missing initial [.
-      return -1;
-    }
-    bool closed = false;
-    bool element_allowed = true;
-    intptr_t element_count = 0;
-    while (true) {
-      // Skip json whitespace.
-      cp += strspn(cp, kJsonWhitespaceChars);
-      switch (*cp) {
-        case '\0':
-          return closed ? element_count : -1;
-        case ']':
-          closed = true;
-          cp++;
-          break;
-        case ',':
-          if (element_allowed) {
-            return -1;
-          }
-          element_allowed = true;
-          cp++;
-          break;
-        default:
-          if (!element_allowed) {
-            return -1;
-          }
-          bool valid_enum = false;
-          const char* id_start = cp;
-          while (IsEnumChar(*cp)) {
-            cp++;
-          }
-          if (cp == id_start) {
-            // Empty identifier, something like this [,].
-            return -1;
-          }
-          intptr_t id_len = cp - id_start;
-          if (enums_ != NULL) {
-            for (intptr_t i = 0; enums_[i] != NULL; i++) {
-              intptr_t len = strlen(enums_[i]);
-              if (len == id_len && strncmp(id_start, enums_[i], len) == 0) {
-                element_count++;
-                valid_enum = true;
-                element_allowed = false;  // we need a comma first.
-                break;
-              }
-            }
-          }
-          if (!valid_enum) {
-            return -1;
-          }
-          break;
-      }
-    }
-  }
-
-  const char* const* enums_;
-};
-
 typedef void (*ServiceMethodEntry)(Thread* thread, JSONStream* js);
 
 struct ServiceMethodDescriptor {
@@ -792,6 +842,15 @@ struct ServiceMethodDescriptor {
   const ServiceMethodEntry entry;
   const MethodParameter* const* parameters;
 };
+
+static void PrintMissingParamError(JSONStream* js, const char* param) {
+  js->PrintError(kInvalidParams, "%s expects the '%s' parameter", js->method(),
+                 param);
+}
+
+static void PrintUnrecognizedMethodError(JSONStream* js) {
+  js->PrintError(kMethodNotFound, NULL);
+}
 
 // TODO(johnmccutchan): Do we reject unexpected parameters?
 static bool ValidateParameters(const MethodParameter* const* parameters,
@@ -3349,23 +3408,28 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
     return;
   }
 
-  const char* reports_str = js->LookupParam("reports");
+  char* reports_str = Utils::StrDup(js->LookupParam("reports"));
   const EnumListParameter* reports_parameter =
       static_cast<const EnumListParameter*>(get_source_report_params[1]);
-  const char** reports = reports_parameter->Parse(thread->zone(), reports_str);
+  const char** reports = reports_parameter->Parse(reports_str);
+  const char** riter = reports;
   intptr_t report_set = 0;
-  while (*reports != NULL) {
-    if (strcmp(*reports, SourceReport::kCallSitesStr) == 0) {
+  while (*riter != NULL) {
+    if (strcmp(*riter, SourceReport::kCallSitesStr) == 0) {
       report_set |= SourceReport::kCallSites;
-    } else if (strcmp(*reports, SourceReport::kCoverageStr) == 0) {
+    } else if (strcmp(*riter, SourceReport::kCoverageStr) == 0) {
       report_set |= SourceReport::kCoverage;
-    } else if (strcmp(*reports, SourceReport::kPossibleBreakpointsStr) == 0) {
+    } else if (strcmp(*riter, SourceReport::kPossibleBreakpointsStr) == 0) {
       report_set |= SourceReport::kPossibleBreakpoints;
-    } else if (strcmp(*reports, SourceReport::kProfileStr) == 0) {
+    } else if (strcmp(*riter, SourceReport::kProfileStr) == 0) {
       report_set |= SourceReport::kProfile;
     }
-    reports++;
+    riter++;
   }
+  if (reports != nullptr) {
+    delete[] reports;
+  }
+  free(reports_str);
 
   SourceReport::CompileMode compile_mode = SourceReport::kNoCompile;
   if (BoolParameter::Parse(js->LookupParam("forceCompile"), false)) {
@@ -3803,34 +3867,6 @@ static void GetIsolateMetric(Thread* thread, JSONStream* js) {
   }
 }
 
-static const char* const timeline_streams_enum_names[] = {
-    "all",
-#define DEFINE_NAME(name, unused) #name,
-    TIMELINE_STREAM_LIST(DEFINE_NAME)
-#undef DEFINE_NAME
-        NULL};
-
-static const MethodParameter* const set_vm_timeline_flags_params[] = {
-    NO_ISOLATE_PARAMETER,
-    new EnumListParameter("recordedStreams",
-                          false,
-                          timeline_streams_enum_names),
-    NULL,
-};
-
-#if defined(SUPPORT_TIMELINE)
-static bool HasStream(const char** recorded_streams, const char* stream) {
-  while (*recorded_streams != NULL) {
-    if ((strstr(*recorded_streams, "all") != NULL) ||
-        (strstr(*recorded_streams, stream) != NULL)) {
-      return true;
-    }
-    recorded_streams++;
-  }
-  return false;
-}
-#endif
-
 static void SetVMTimelineFlags(Thread* thread, JSONStream* js) {
 #if !defined(SUPPORT_TIMELINE)
   PrintSuccess(js);
@@ -3839,23 +3875,9 @@ static void SetVMTimelineFlags(Thread* thread, JSONStream* js) {
   ASSERT(isolate != NULL);
   StackZone zone(thread);
 
-  const EnumListParameter* recorded_streams_param =
-      static_cast<const EnumListParameter*>(set_vm_timeline_flags_params[1]);
-
-  const char* recorded_streams_str = js->LookupParam("recordedStreams");
-  const char** recorded_streams =
-      recorded_streams_param->Parse(thread->zone(), recorded_streams_str);
-
-#define SET_ENABLE_STREAM(name, unused)                                        \
-  Timeline::SetStream##name##Enabled(HasStream(recorded_streams, #name));
-  TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
-#undef SET_ENABLE_STREAM
-
-  // Notify clients that the set of subscribed streams has been updated.
-  if (Service::timeline_stream.enabled()) {
-    ServiceEvent event(ServiceEvent::kTimelineStreamSubscriptionsUpdate);
-    Service::HandleEvent(&event);
-  }
+  char* recorded_streams = Utils::StrDup(js->LookupParam("recordedStreams"));
+  Service::EnableTimelineStreams(recorded_streams);
+  free(recorded_streams);
 
   PrintSuccess(js);
 #endif

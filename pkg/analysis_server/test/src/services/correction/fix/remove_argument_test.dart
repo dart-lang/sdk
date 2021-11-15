@@ -21,7 +21,7 @@ class RemoveArgumentBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.avoid_redundant_argument_values;
 
-  Future<void> test_independentInvocations() async {
+  Future<void> test_singleFile() async {
     await resolveTestCode('''
 void f({bool valWithDefault = true, bool val}) {}
 void f2({bool valWithDefault = true, bool val}) {}
@@ -39,23 +39,6 @@ void main() {
   f();
   f2(val: false);
 }
-''');
-  }
-
-  Future<void> test_multipleInSingleInvocation() async {
-    await resolveTestCode('''
-void f() {
-  g(a: 0, b: 1, c: 2);
-}
-
-void g({int a = 0, int b = 1, int c = 2}) {}
-''');
-    await assertHasFix('''
-void f() {
-  g();
-}
-
-void g({int a = 0, int b = 1, int c = 2}) {}
 ''');
   }
 }

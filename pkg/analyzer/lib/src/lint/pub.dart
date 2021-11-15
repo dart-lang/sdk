@@ -52,17 +52,27 @@ PSGitRepo? _processGitRepo(
 
 PSHost? _processHost(
     YamlScalar key, YamlNode v, ResourceProvider? resourceProvider) {
-  if (v is! YamlMap) {
-    return null;
+  if (v is YamlScalar) {
+    // dependencies:
+    //   mypkg:
+    //     hosted:  https://some-pub-server.com
+    //     version: ^1.2.3
+    _PSHost host = _PSHost(isShortForm: true);
+    host.token = _PSNode(key, resourceProvider);
+    host.url = _processScalar(key, v, resourceProvider);
+    return host;
   }
-  YamlMap hostMap = v;
-  // name: transmogrify
-  // url: http://your-package-server.com
-  _PSHost host = _PSHost();
-  host.token = _PSNode(key, resourceProvider);
-  host.name = _findEntry(hostMap, 'name', resourceProvider);
-  host.url = _findEntry(hostMap, 'url', resourceProvider);
-  return host;
+  if (v is YamlMap) {
+    YamlMap hostMap = v;
+    // name: transmogrify
+    // url: http://your-package-server.com
+    _PSHost host = _PSHost(isShortForm: false);
+    host.token = _PSNode(key, resourceProvider);
+    host.name = _findEntry(hostMap, 'name', resourceProvider);
+    host.url = _findEntry(hostMap, 'url', resourceProvider);
+    return host;
+  }
+  return null;
 }
 
 PSNodeList? _processList(
@@ -86,6 +96,16 @@ PSEntry? _processScalar(
       _PSNode(key, resourceProvider), _PSNode(value, resourceProvider));
 }
 
+/// Representation of a key/value pair a map from package name to
+/// _package description_.
+///
+/// **Example** of a path-dependency:
+/// ```yaml
+/// dependencies:
+///   <name>:
+///     version: <version>
+///     path: <path>
+/// ```
 abstract class PSDependency {
   PSGitRepo? get git;
   PSHost? get host;
@@ -94,6 +114,8 @@ abstract class PSDependency {
   PSEntry? get version;
 }
 
+/// Representation of the map from package name to _package description_ used
+/// under `dependencies`, `dev_dependencies` and `dependency_overrides`.
 abstract class PSDependencyList with IterableMixin<PSDependency> {}
 
 class PSEntry {
@@ -112,6 +134,33 @@ abstract class PSGitRepo {
 }
 
 abstract class PSHost {
+  /// True, if _short-form_ for writing hosted-dependencies was used.
+  ///
+  /// **Example** of a hosted-dependency written in short-form:
+  /// ```yaml
+  /// dependencies:
+  ///   foo:
+  ///     hosted: https://some-pub-server.com
+  ///     version: ^1.2.3
+  /// ```
+  ///
+  /// The _long-form_ for writing the dependency given above is:
+  /// ```yaml
+  /// dependencies:
+  ///   foo:
+  ///     hosted:
+  ///       url: https://some-pub-server.com
+  ///       name: foo
+  ///     version: ^1.2.3
+  /// ```
+  ///
+  /// The short-form was added in Dart 2.15.0 because:
+  ///  * The `name` property just specifies the package name, which can be
+  ///    inferred from the context. So it is unnecessary to write it.
+  ///  * The nested object and `url` key becomes unnecessary when the `name`
+  ///    property is removed.
+  bool get isShortForm;
+
   PSEntry? get name;
   PSNode? get token;
   PSEntry? get url;
@@ -276,11 +325,19 @@ class _PSGitRepo implements PSGitRepo {
 
 class _PSHost implements PSHost {
   @override
-  PSNode? token;
+  bool isShortForm;
+
   @override
   PSEntry? name;
+
+  @override
+  PSNode? token;
+
   @override
   PSEntry? url;
+
+  _PSHost({required this.isShortForm});
+
   @override
   String toString() => '''
     $token:

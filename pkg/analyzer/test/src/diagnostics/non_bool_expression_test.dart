@@ -10,6 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolExpressionTest);
+    defineReflectiveTests(NonBoolExpressionWithStrictCastsTest);
   });
 }
 
@@ -44,6 +45,20 @@ f() {
 }
 ''', [
       error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 15, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NonBoolExpressionWithStrictCastsTest extends PubPackageResolutionTest
+    with WithStrictCastsMixin {
+  test_assert() async {
+    await assertErrorsWithStrictCasts('''
+void f(dynamic a) {
+  assert(a);
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 29, 1),
     ]);
   }
 }

@@ -9323,6 +9323,84 @@ TEST_CASE(DartAPI_TimelineClock) {
   EXPECT_EQ(frequency1, frequency2);
 }
 
+TEST_CASE(DartAPI_TimelineCategories) {
+  bool result;
+  {
+    result = Dart_SetEnabledTimelineCategory("all");
+    EXPECT_EQ(true, result);
+    JSONStream js;
+    JSONObject obj(&js);
+    JSONArray jstream(&obj, "available");
+    Timeline::PrintFlagsToJSONArray(&jstream);
+    const char* js_str = js.ToCString();
+#define TIMELINE_STREAM_CHECK(name, fuchsia_name)                              \
+  EXPECT_SUBSTRING(#name, js_str);
+    TIMELINE_STREAM_LIST(TIMELINE_STREAM_CHECK)
+#undef TIMELINE_STREAM_CHECK
+  }
+
+  {
+    result = Dart_SetEnabledTimelineCategory(nullptr);
+    EXPECT_EQ(false, result);
+    result = Dart_SetEnabledTimelineCategory("GC,api,compiler");
+    EXPECT_EQ(false, result);
+  }
+
+  {
+    result = Dart_SetEnabledTimelineCategory("GC,API,Compiler");
+    EXPECT_EQ(true, result);
+    JSONStream js;
+    JSONObject obj(&js);
+    JSONArray jstream(&obj, "available");
+    Timeline::PrintFlagsToJSONArray(&jstream);
+    const char* js_str = js.ToCString();
+    EXPECT_SUBSTRING("GC", js_str);
+    EXPECT_SUBSTRING("API", js_str);
+    EXPECT_SUBSTRING("Compiler", js_str);
+    EXPECT_NOTSUBSTRING("CompilerVerbose", js_str);
+    EXPECT_NOTSUBSTRING("Debugger", js_str);
+    EXPECT_NOTSUBSTRING("Embedder", js_str);
+    EXPECT_NOTSUBSTRING("Isolate", js_str);
+    EXPECT_NOTSUBSTRING("VM", js_str);
+  }
+
+  {
+    result = Dart_SetEnabledTimelineCategory("Isolate");
+    EXPECT_EQ(true, result);
+    JSONStream js;
+    JSONObject obj(&js);
+    JSONArray jstream(&obj, "available");
+    Timeline::PrintFlagsToJSONArray(&jstream);
+    const char* js_str = js.ToCString();
+    EXPECT_NOTSUBSTRING("GC", js_str);
+    EXPECT_NOTSUBSTRING("API", js_str);
+    EXPECT_NOTSUBSTRING("Compiler", js_str);
+    EXPECT_NOTSUBSTRING("CompilerVerbose", js_str);
+    EXPECT_NOTSUBSTRING("Debugger", js_str);
+    EXPECT_NOTSUBSTRING("Embedder", js_str);
+    EXPECT_SUBSTRING("Isolate", js_str);
+    EXPECT_NOTSUBSTRING("VM", js_str);
+  }
+
+  {
+    result = Dart_SetEnabledTimelineCategory("");
+    EXPECT_EQ(true, result);
+    JSONStream js;
+    JSONObject obj(&js);
+    JSONArray jstream(&obj, "available");
+    Timeline::PrintFlagsToJSONArray(&jstream);
+    const char* js_str = js.ToCString();
+    EXPECT_NOTSUBSTRING("GC", js_str);
+    EXPECT_NOTSUBSTRING("API", js_str);
+    EXPECT_NOTSUBSTRING("Compiler", js_str);
+    EXPECT_NOTSUBSTRING("CompilerVerbose", js_str);
+    EXPECT_NOTSUBSTRING("Debugger", js_str);
+    EXPECT_NOTSUBSTRING("Embedder", js_str);
+    EXPECT_NOTSUBSTRING("Isolate", js_str);
+    EXPECT_NOTSUBSTRING("VM", js_str);
+  }
+}
+
 static void HintFreedNative(Dart_NativeArguments args) {
   int64_t size = 0;
   EXPECT_VALID(Dart_GetNativeIntegerArgument(args, 0, &size));

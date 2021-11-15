@@ -108,40 +108,13 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// values, the iteration order is unspecified except that it will stay the
   /// same as long as the map isn't changed.
   ///
-  /// If [equals] is provided, it is used to compare the keys in the table with
+  /// If [equals] is provided, it is used to compare the keys in the map with
   /// new keys. If [equals] is omitted, the key's own [Object.==] is used
   /// instead.
   ///
   /// Similar, if [hashCode] is provided, it is used to produce a hash value
-  /// for keys in order to place them in the hash table. If it is omitted, the
-  /// key's own [Object.hashCode] is used.
-  ///
-  /// If using methods like [operator []], [remove] and [containsKey] together
-  /// with a custom equality and hashcode, an extra `isValidKey` function
-  /// can be supplied. This function is called before calling [equals] or
-  /// [hashCode] with an argument that may not be a [K] instance, and if the
-  /// call returns false, the key is assumed to not be in the set.
-  /// The [isValidKey] function defaults to just testing if the object is a
-  /// [K] instance.
-  ///
-  /// Example:
-  /// ```dart template:expression
-  /// HashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
-  ///                  hashCode: (int e) => e % 5);
-  /// ```
-  /// This example map does not need an `isValidKey` function to be passed.
-  /// The default function accepts only `int` values, which can safely be
-  /// passed to both the `equals` and `hashCode` functions.
-  ///
-  /// If neither `equals`, `hashCode`, nor `isValidKey` is provided,
-  /// the default `isValidKey` instead accepts all keys.
-  /// The default equality and hashcode operations are assumed to work on all
-  /// objects.
-  ///
-  /// Likewise, if `equals` is [identical], `hashCode` is [identityHashCode]
-  /// and `isValidKey` is omitted, the resulting map is identity based,
-  /// and the `isValidKey` defaults to accepting all keys.
-  /// Such a map can be created directly using [HashMap.identity].
+  /// for keys in order to place them in the map. If [hashCode] is omitted,
+  /// the key's own [Object.hashCode] is used.
   ///
   /// The used `equals` and `hashCode` method should always be consistent,
   /// so that if `equals(a, b)` then `hashCode(a) == hashCode(b)`. The hash
@@ -150,13 +123,45 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// unpredictable.
   ///
   /// If you supply one of [equals] and [hashCode],
-  /// you should generally also to supply the other.
+  /// you should generally also supply the other.
+  ///
+  /// Some [equals] or [hashCode] functions might not work for all objects.
+  /// If [isValidKey] is supplied, it's used to check a potential key
+  /// which is not necessarily an instance of [K], like the arguments to
+  /// [operator []], [remove] and [containsKey], which are typed as `Object?`.
+  /// If [isValidKey] returns `false`, for an object, the [equals] and
+  /// [hashCode] functions are not called, and no key equal to that object
+  /// is assumed to be in the map.
+  /// The [isValidKey] function defaults to just testing if the object is an
+  /// instance of [K].
+  ///
+  /// Example:
+  /// ```dart template:expression
+  /// HashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
+  ///                  hashCode: (int e) => e % 5);
+  /// ```
+  /// This example map does not need an `isValidKey` function to be passed.
+  /// The default function accepts precisely `int` values, which can safely be
+  /// passed to both the `equals` and `hashCode` functions.
+  ///
+  /// If neither `equals`, `hashCode`, nor `isValidKey` is provided,
+  /// the default `isValidKey` instead accepts all keys.
+  /// The default equality and hashcode operations are known to work on all
+  /// objects.
+  ///
+  /// Likewise, if `equals` is [identical], `hashCode` is [identityHashCode]
+  /// and `isValidKey` is omitted, the resulting map is identity based,
+  /// and the `isValidKey` defaults to accepting all keys.
+  /// Such a map can be created directly using [HashMap.identity].
   external factory HashMap(
       {bool Function(K, K)? equals,
       int Function(K)? hashCode,
       bool Function(dynamic)? isValidKey});
 
   /// Creates an unordered identity-based map.
+  ///
+  /// Keys of this map are considered equal only to the same object,
+  /// and does not use [Object.==] at all.
   ///
   /// Effectively a shorthand for:
   /// ```dart

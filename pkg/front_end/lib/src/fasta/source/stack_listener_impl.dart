@@ -12,8 +12,6 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
 import 'package:kernel/ast.dart';
 
-import '../../api_prototype/experimental_flags.dart';
-
 import '../fasta_codes.dart';
 
 import '../problems.dart' as problems
@@ -97,8 +95,7 @@ abstract class StackListenerImpl extends StackListener {
             token.charOffset,
             token.charCount);
       }
-    } else if (libraryBuilder.loader.target
-        .isExperimentEnabledByDefault(ExperimentalFlag.nonNullable)) {
+    } else {
       if (libraryBuilder.languageVersion.version <
           libraryBuilder.enableNonNullableVersionInLibrary) {
         addProblem(
@@ -110,25 +107,6 @@ abstract class StackListenerImpl extends StackListener {
         addProblem(templateExperimentDisabled.withArguments('non-nullable'),
             token.offset, noLength);
       }
-    } else if (!libraryBuilder.loader.target
-        .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
-      if (libraryBuilder.languageVersion.version <
-          libraryBuilder.enableNonNullableVersionInLibrary) {
-        addProblem(
-            templateExperimentNotEnabledNoFlagInvalidLanguageVersion
-                .withArguments(
-                    libraryBuilder.enableNonNullableVersionInLibrary.toText()),
-            token.offset,
-            noLength);
-      } else {
-        addProblem(messageExperimentNotEnabledNoFlag, token.offset, noLength);
-      }
-    } else {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('non-nullable',
-              libraryBuilder.enableNonNullableVersionInLibrary.toText()),
-          token.offset,
-          noLength);
     }
   }
 
