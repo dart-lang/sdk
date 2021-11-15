@@ -189,11 +189,12 @@ function lazy(holder, name, getterName, initializer) {
   };
 }
 
-// Creates a lazy final field that uses non-nullable initialization semantics.
+// Creates a lazy final static field that uses non-nullable initialization
+// semantics.
 //
-// A lazy field has a storage entry, [name], which holds the value, and a
-// getter ([getterName]) to access the field. If the field wasn't set before
-// the first access, it is initialized with the [initializer].
+// A lazy final field has a storage entry, [name], which holds the value, and a
+// getter ([getterName]) to access the field. The field is initialized on first
+// access with the [initializer].
 function lazyFinal(holder, name, getterName, initializer) {
   var uninitializedSentinel = holder;
   holder[name] = uninitializedSentinel;
@@ -201,12 +202,21 @@ function lazyFinal(holder, name, getterName, initializer) {
     if (holder[name] === uninitializedSentinel) {
       var value = initializer();
       if (holder[name] !== uninitializedSentinel) {
+        // Since there is no setter, the only way to get here is via bounded
+        // recursion, where `initializer` calls the lazy final getter.
         #throwLateFieldADI(name);
       }
       holder[name] = value;
     }
-    holder[getterName] = function() { return this[name]; };
-    return holder[name];
+    // TODO(sra): Does the value need to be stored in the holder at all?
+    // Potentially a call to the getter could be replaced with an access to
+    // holder slot if dominated by a previous call to the getter. Does the
+    // optimizer do this? If so, within a single function, the dominance
+    // relations should allow a local copy via GVN, so it is not that valuable
+    // an optimization for a `final` static variable.
+    var finalValue = holder[name];
+    holder[getterName] = function() { return finalValue; };
+    return finalValue;
   };
 }
 
