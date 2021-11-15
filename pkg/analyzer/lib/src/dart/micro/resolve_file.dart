@@ -185,26 +185,46 @@ class FileResolver {
     removedCacheIds.addAll(libraryContext!.collectSharedDataIdentifiers());
   }
 
-  /// Looks for references to the given Element in the path. All the
-  /// files currently cached by the resolver are searched, generated files are
-  /// ignored.
-  List<CiderSearchMatch> findReferences(Element element, String path,
+  /// Looks for references to the given Element. All the files currently
+  ///  cached by the resolver are searched, generated files are ignored.
+  List<CiderSearchMatch> findReferences(Element element,
       {OperationPerformanceImpl? performance}) {
-    var references = <CiderSearchMatch>[];
-    // TODO(keertip): check if element is named constructor.
-    var result = fsState!.getFilesContaining(element.displayName);
-    result.forEach((filePath) {
-      var resolved = resolve(path: filePath);
-      var collector = ReferencesCollector(element);
-      resolved.unit.accept(collector);
-      var offsets = collector.offsets;
-      if (offsets.isNotEmpty) {
-        var lineInfo = resolved.unit.lineInfo;
-        references.add(CiderSearchMatch(filePath,
-            offsets.map((offset) => lineInfo?.getLocation(offset)).toList()));
+    return logger.run('findReferences for ${element.name}', () {
+      var references = <CiderSearchMatch>[];
+
+      void collectReferences(
+          String path, OperationPerformanceImpl performance) {
+        performance.run('collectReferences', (_) {
+          var resolved = resolve(path: path);
+          var collector = ReferencesCollector(element);
+          resolved.unit.accept(collector);
+          var offsets = collector.offsets;
+          if (offsets.isNotEmpty) {
+            var lineInfo = resolved.unit.lineInfo;
+            references.add(CiderSearchMatch(
+                path,
+                offsets
+                    .map((offset) => lineInfo?.getLocation(offset))
+                    .toList()));
+          }
+        });
       }
+
+      performance ??= OperationPerformanceImpl('<default>');
+      // TODO(keertip): check if element is named constructor.
+      if (element is LocalVariableElement ||
+          (element is ParameterElement && !element.isNamed)) {
+        collectReferences(element.source!.fullName, performance!);
+      } else {
+        var result = performance!.run('getFilesContaining', (performance) {
+          return fsState!.getFilesContaining(element.displayName);
+        });
+        result.forEach((filePath) {
+          collectReferences(filePath, performance!);
+        });
+      }
+      return references;
     });
-    return references;
   }
 
   ErrorsResult getErrors({

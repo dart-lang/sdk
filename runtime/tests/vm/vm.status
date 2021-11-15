@@ -421,8 +421,10 @@ dart_2/*: SkipByDesign # Legacy tests are not supposed to run on NNBD bots.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
 [ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+dart/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
 dart_2/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+dart_2/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
 dart_2/issue32950_test: SkipByDesign # uses spawnUri.
 
 [ $runtime != dart_precompiled || $system == android ]

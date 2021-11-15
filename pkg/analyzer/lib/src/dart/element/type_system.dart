@@ -45,6 +45,11 @@ class TypeSystemImpl implements TypeSystem {
   /// This affects the behavior of [isAssignableTo].
   bool implicitCasts;
 
+  /// True if "strict casts" should be enforced.
+  ///
+  /// This affects the behavior of [isAssignableTo].
+  bool strictCasts;
+
   /// A flag indicating whether inference failures are allowed, off by default.
   ///
   /// This option is experimental and subject to change.
@@ -71,6 +76,7 @@ class TypeSystemImpl implements TypeSystem {
   TypeSystemImpl({
     required this.implicitCasts,
     required this.isNonNullableByDefault,
+    required this.strictCasts,
     required this.strictInference,
     required TypeProvider typeProvider,
   }) : typeProvider = typeProvider as TypeProviderImpl {
@@ -699,9 +705,10 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
 
-    // First make sure --no-implicit-casts disables all downcasts, including
-    // dynamic casts.
-    if (!implicitCasts) {
+    // First make sure that the static analysis options, `implicit-casts: false`
+    // and `strict-casts: true` disable all downcasts, including casts from
+    // `dynamic`.
+    if (!implicitCasts || strictCasts) {
       return false;
     }
 
@@ -1537,9 +1544,11 @@ class TypeSystemImpl implements TypeSystem {
 
   void updateOptions({
     required bool implicitCasts,
+    required bool strictCasts,
     required bool strictInference,
   }) {
     this.implicitCasts = implicitCasts;
+    this.strictCasts = strictCasts;
     this.strictInference = strictInference;
   }
 

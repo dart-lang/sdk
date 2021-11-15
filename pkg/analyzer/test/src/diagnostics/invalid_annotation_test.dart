@@ -110,6 +110,40 @@ main() {
     ]);
   }
 
+  test_localVariable_const() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  const a = 0;
+  @a
+  var b; // ignore:unused_local_variable
+}
+''');
+  }
+
+  test_localVariable_const_withArguments() async {
+    await assertErrorsInCode(r'''
+void f() {
+  const a = 0;
+  @a(0)
+  var b; // ignore:unused_local_variable
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ANNOTATION, 28, 5),
+    ]);
+  }
+
+  test_localVariable_final() async {
+    await assertErrorsInCode(r'''
+void f() {
+  final a = 0;
+  @a
+  var b; // ignore:unused_local_variable
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ANNOTATION, 28, 2),
+    ]);
+  }
+
   test_notClass_importWithPrefix() async {
     newFile('$testPackageLibPath/annotations.dart', content: r'''
 class Property {

@@ -25,12 +25,7 @@ abstract class HashSet<E> implements Set<E> {
   /// Create a hash set using the provided [equals] as equality.
   ///
   /// The provided [equals] must define a stable equivalence relation, and
-  /// [hashCode] must be consistent with [equals]. If the [equals] or [hashCode]
-  /// methods won't work on all objects, but only on some instances of E, the
-  /// [isValidKey] predicate can be used to restrict the keys that the functions
-  /// are applied to.
-  /// Any key for which [isValidKey] returns false is automatically assumed
-  /// to not be in the set when asking `contains`.
+  /// [hashCode] must be consistent with [equals].
   ///
   /// If [equals] or [hashCode] are omitted, the set uses
   /// the elements' intrinsic [Object.==] and [Object.hashCode].
@@ -38,18 +33,20 @@ abstract class HashSet<E> implements Set<E> {
   /// If you supply one of [equals] and [hashCode],
   /// you should generally also to supply the other.
   ///
-  /// If the supplied `equals` or `hashCode` functions won't work on all [E]
-  /// objects, and the map will be used in a setting where a non-`E` object
-  /// is passed to, e.g., `contains`, then the [isValidKey] function should
-  /// also be supplied.
-  ///
-  /// If [isValidKey] is omitted, it defaults to testing if the object is an
-  /// [E] instance. That means that:
+  /// Some [equals] or [hashCode] functions might not work for all objects.
+  /// If [isValidKey] is supplied, it's used to check a potential element
+  /// which is not necessarily an instance of [E], like the argument to
+  /// [contains] which is typed as `Object?`.
+  /// If [isValidKey] returns `false`, for an object, the [equals] and
+  /// [hashCode] functions are not called, and no key equal to that object
+  /// is assumed to be in the map.
+  /// The [isValidKey] function defaults to just testing if the object is an
+  /// instance of [E], which means that:
   /// ```dart template:expression
   /// HashSet<int>(equals: (int e1, int e2) => (e1 - e2) % 5 == 0,
   ///              hashCode: (int e) => e % 5)
   /// ```
-  /// does not need an `isValidKey` argument, because it defaults to only
+  /// does not need an `isValidKey` argument because it defaults to only
   /// accepting `int` values which are accepted by both `equals` and `hashCode`.
   ///
   /// If neither `equals`, `hashCode`, nor `isValidKey` is provided,
