@@ -267,11 +267,16 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   /// Implement the 'completion.getSuggestions2' request.
   void getSuggestions2(Request request) async {
-    var budget = CompletionBudget(budgetDuration);
-
     var params = CompletionGetSuggestions2Params.fromRequest(request);
     var file = params.file;
     var offset = params.offset;
+
+    var timeoutMilliseconds = params.timeout;
+    var budget = CompletionBudget(
+      timeoutMilliseconds != null
+          ? Duration(milliseconds: timeoutMilliseconds)
+          : budgetDuration,
+    );
 
     var provider = server.resourceProvider;
     var pathContext = provider.pathContext;

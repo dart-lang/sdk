@@ -4698,7 +4698,14 @@ class CompletionGetSuggestions2Params implements RequestParams {
   /// to true.
   int maxResults;
 
-  CompletionGetSuggestions2Params(this.file, this.offset, this.maxResults);
+  /// The approximate time in milliseconds that the server should spend. The
+  /// server will perform some steps anyway, even if it takes longer than the
+  /// specified timeout. This field is intended to be used for benchmarking,
+  /// and usually should not be provided, so that the default timeout is used.
+  int? timeout;
+
+  CompletionGetSuggestions2Params(this.file, this.offset, this.maxResults,
+      {this.timeout});
 
   factory CompletionGetSuggestions2Params.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4723,7 +4730,12 @@ class CompletionGetSuggestions2Params implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'maxResults');
       }
-      return CompletionGetSuggestions2Params(file, offset, maxResults);
+      int? timeout;
+      if (json.containsKey('timeout')) {
+        timeout = jsonDecoder.decodeInt(jsonPath + '.timeout', json['timeout']);
+      }
+      return CompletionGetSuggestions2Params(file, offset, maxResults,
+          timeout: timeout);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, 'completion.getSuggestions2 params', json);
@@ -4741,6 +4753,10 @@ class CompletionGetSuggestions2Params implements RequestParams {
     result['file'] = file;
     result['offset'] = offset;
     result['maxResults'] = maxResults;
+    var timeout = this.timeout;
+    if (timeout != null) {
+      result['timeout'] = timeout;
+    }
     return result;
   }
 
@@ -4757,7 +4773,8 @@ class CompletionGetSuggestions2Params implements RequestParams {
     if (other is CompletionGetSuggestions2Params) {
       return file == other.file &&
           offset == other.offset &&
-          maxResults == other.maxResults;
+          maxResults == other.maxResults &&
+          timeout == other.timeout;
     }
     return false;
   }
@@ -4767,6 +4784,7 @@ class CompletionGetSuggestions2Params implements RequestParams {
         file,
         offset,
         maxResults,
+        timeout,
       );
 }
 
