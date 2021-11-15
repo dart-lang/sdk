@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-10-26T10:20:01.277340",
+  "generated": "2021-11-10T09:58:01.876670",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -124,7 +124,7 @@
       "name": "bazel_worker",
       "rootUri": "../third_party/pkg/bazel_worker",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "benchmark_harness",

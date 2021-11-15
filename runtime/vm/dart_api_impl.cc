@@ -1463,13 +1463,6 @@ Dart_CreateIsolateInGroup(Dart_Isolate group_member,
 
   *error = nullptr;
 
-  if (!FLAG_enable_isolate_groups) {
-    *error = Utils::StrDup(
-        "Lightweight isolates need to be explicitly enabled by passing "
-        "--enable-isolate-groups.");
-    return nullptr;
-  }
-
   Isolate* isolate;
   isolate = CreateWithinExistingIsolateGroup(member->group(), name, error);
   if (isolate != nullptr) {
@@ -6276,6 +6269,20 @@ DART_EXPORT bool Dart_IsReloading() {
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
   return isolate->group()->IsReloading();
+#endif
+}
+
+DART_EXPORT bool Dart_SetEnabledTimelineCategory(const char* categories) {
+#if defined(SUPPORT_TIMELINE)
+  bool result = false;
+  if (categories != nullptr) {
+    char* carray = Utils::SCreate("[%s]", categories);
+    result = Service::EnableTimelineStreams(carray);
+    free(carray);
+  }
+  return result;
+#else
+  return false;
 #endif
 }
 

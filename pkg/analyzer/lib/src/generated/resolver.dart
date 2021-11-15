@@ -1045,20 +1045,16 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     var callerType = InferenceContext.getContext(node);
     NodeList<Expression> arguments = node.arguments;
     if (callerType is FunctionType) {
-      Map<String, DartType> namedParameterTypes =
-          callerType.namedParameterTypes;
-      List<DartType> normalParameterTypes = callerType.normalParameterTypes;
-      List<DartType> optionalParameterTypes = callerType.optionalParameterTypes;
-      int normalCount = normalParameterTypes.length;
-      int optionalCount = optionalParameterTypes.length;
+      var parameters = callerType.parameters;
 
-      Iterable<Expression> positional =
-          arguments.takeWhile((l) => l is! NamedExpression);
-      Iterable<Expression> required = positional.take(normalCount);
-      Iterable<Expression> optional =
-          positional.skip(normalCount).take(optionalCount);
-      Iterable<Expression> named =
-          arguments.skipWhile((l) => l is! NamedExpression);
+      var namedParameters = <String, ParameterElement>{};
+      for (var i = 0; i < parameters.length; i++) {
+        var parameter = parameters[i];
+        if (parameter.isNamed) {
+          namedParameters[parameter.name] = parameter;
+        }
+      }
+
       var parent = node.parent;
       DartType? targetType;
       Element? methodElement;
@@ -1072,28 +1068,29 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       //TODO(leafp): Consider using the parameter elements here instead.
       //TODO(leafp): Make sure that the parameter elements are getting
       // setup correctly with inference.
-      int index = 0;
-      for (Expression argument in required) {
-        var parameterType = normalParameterTypes[index++];
-        if (targetType != null) {
-          InferenceContext.setType(
-              argument,
-              typeSystem.refineNumericInvocationContext(
-                  targetType, methodElement, invocationContext, parameterType));
-        } else {
-          InferenceContext.setType(argument, parameterType);
-        }
-      }
-      index = 0;
-      for (Expression argument in optional) {
-        InferenceContext.setType(argument, optionalParameterTypes[index++]);
-      }
-
-      for (Expression argument in named) {
+      var positionalParameterIndex = 0;
+      for (var i = 0; i < arguments.length; i++) {
+        var argument = arguments[i];
+        ParameterElement? parameter;
         if (argument is NamedExpression) {
-          var type = namedParameterTypes[argument.name.label.name];
-          if (type != null) {
-            InferenceContext.setType(argument, type);
+          parameter = namedParameters[argument.name.label.name];
+        } else {
+          while (positionalParameterIndex < parameters.length) {
+            parameter = parameters[positionalParameterIndex++];
+            if (!parameter.isNamed) {
+              break;
+            }
+          }
+        }
+        if (parameter != null) {
+          var parameterType = parameter.type;
+          if (targetType != null) {
+            InferenceContext.setType(
+                argument,
+                typeSystem.refineNumericInvocationContext(targetType,
+                    methodElement, invocationContext, parameterType));
+          } else {
+            InferenceContext.setType(argument, parameterType);
           }
         }
       }

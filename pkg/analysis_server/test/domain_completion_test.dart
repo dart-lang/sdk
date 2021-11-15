@@ -11,7 +11,6 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
-import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
@@ -229,10 +228,6 @@ class CompletionDomainHandlerGetSuggestions2Test
     completionDomain.budgetDuration = const Duration(seconds: 30);
   }
 
-  void tearDown() {
-    NotImportedContributor.onFile = null;
-  }
-
   Future<void> test_abort_onAnotherCompletionRequest() async {
     var abortedIdSet = <String>{};
     server.discardedRequests.stream.listen((request) {
@@ -298,38 +293,6 @@ class CompletionDomainHandlerGetSuggestions2Test
     validator
       ..assertIncomplete()
       ..suggestions.assertEmpty();
-  }
-
-  Future<void> test_notImported_abort() async {
-    await _configureWithWorkspaceRoot();
-
-    NotImportedContributor.onFile = (file) {
-      if (file.uriStr == 'dart:math') {
-        unawaited(
-          _getSuggestions(
-            path: convertPath(testFilePath),
-            completionOffset: 0,
-            maxResults: 100,
-          ),
-        );
-      }
-    };
-
-    var responseValidator = await _getTestCodeSuggestions('''
-void f() {
-  Rand^
-}
-''');
-
-    responseValidator
-      ..assertIncomplete()
-      ..assertReplacementBack(4)
-      ..assertLibrariesToImport(includes: [], excludes: [
-        'dart:core',
-        'dart:math',
-      ]);
-
-    responseValidator.suggestions.assertEmpty();
   }
 
   Future<void> test_notImported_dart() async {

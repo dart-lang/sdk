@@ -132,7 +132,7 @@ main() {
     // Should work with whichever object gets here.
     try {
       Error.throwWithStackTrace(error, systemStack);
-    } on Error catch (e, s) {
+    } catch (e, s) {
       Expect.identical(error, e);
       Expect.equals("$systemStack", "$s");
     }

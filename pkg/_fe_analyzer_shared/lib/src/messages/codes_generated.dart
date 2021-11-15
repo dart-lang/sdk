@@ -3272,48 +3272,6 @@ Message _withArgumentsExperimentNotEnabled(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeExperimentNotEnabledNoFlag =
-    messageExperimentNotEnabledNoFlag;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExperimentNotEnabledNoFlag = const MessageCode(
-    "ExperimentNotEnabledNoFlag",
-    analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"],
-    problemMessage:
-        r"""This requires the null safety language feature, which is experimental.""",
-    correctionMessage:
-        r"""You can enable the experiment using the '--enable-experiment=non-nullable' command line option.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string2)>
-    templateExperimentNotEnabledNoFlagInvalidLanguageVersion =
-    const Template<Message Function(String string2)>(
-        problemMessageTemplate:
-            r"""This requires the null safety language feature, which is experimental and requires language version of #string2 or higher.""",
-        correctionMessageTemplate:
-            r"""You can enable the experiment using the '--enable-experiment=non-nullable' command line option.""",
-        withArguments:
-            _withArgumentsExperimentNotEnabledNoFlagInvalidLanguageVersion);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string2)>
-    codeExperimentNotEnabledNoFlagInvalidLanguageVersion =
-    const Code<Message Function(String string2)>(
-        "ExperimentNotEnabledNoFlagInvalidLanguageVersion",
-        analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExperimentNotEnabledNoFlagInvalidLanguageVersion(
-    String string2) {
-  if (string2.isEmpty) throw 'No string provided';
-  return new Message(codeExperimentNotEnabledNoFlagInvalidLanguageVersion,
-      problemMessage:
-          """This requires the null safety language feature, which is experimental and requires language version of ${string2} or higher.""",
-      correctionMessage: """You can enable the experiment using the '--enable-experiment=non-nullable' command line option.""",
-      arguments: {'string2': string2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExplicitExtensionArgumentMismatch =
     messageExplicitExtensionArgumentMismatch;
 

@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(YieldOfInvalidTypeTest);
     defineReflectiveTests(YieldOfInvalidTypeWithoutNullSafetyTest);
+    defineReflectiveTests(YieldOfInvalidTypeWithStrictCastsTest);
   });
 }
 
@@ -448,3 +449,27 @@ Iterable<String> g() => throw 0;
 @reflectiveTest
 class YieldOfInvalidTypeWithoutNullSafetyTest extends PubPackageResolutionTest
     with YieldOfInvalidTypeTestCases, WithoutNullSafetyMixin {}
+
+@reflectiveTest
+class YieldOfInvalidTypeWithStrictCastsTest extends PubPackageResolutionTest
+    with WithStrictCastsMixin {
+  test_yieldEach_asyncStar() async {
+    await assertErrorsWithStrictCasts('''
+f(dynamic a) async* {
+  yield* a;
+}
+''', [
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 31, 1),
+    ]);
+  }
+
+  test_yieldEach_syncStar() async {
+    await assertErrorsWithStrictCasts('''
+f(dynamic a) sync* {
+  yield* a;
+}
+''', [
+      error(CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE, 30, 1),
+    ]);
+  }
+}
