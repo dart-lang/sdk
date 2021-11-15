@@ -394,8 +394,8 @@ abstract class String implements Comparable<String>, Pattern {
   ///
   /// As [trim], but only removes leading whitespace.
   /// ```dart
-  /// final string = ' Go Forward '.trimLeft();
-  /// print(string); // 'Go Forward '
+  /// final string = ' Go '.trimLeft();
+  /// print(string); // 'Go '
   /// ```
   String trimLeft();
 
@@ -403,8 +403,8 @@ abstract class String implements Comparable<String>, Pattern {
   ///
   /// As [trim], but only removes trailing whitespace.
   /// ```dart
-  /// final string = ' Go Forward '.trimRight();
-  /// print(string); // ' Go Forward'
+  /// final string = ' Go '.trimRight();
+  /// print(string); // ' Go'
   /// ```
   String trimRight();
 
