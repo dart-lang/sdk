@@ -204,6 +204,10 @@ luci.project(
     ],
     bindings = [
         luci.binding(
+            roles = "role/configs.validator",
+            users = TRY_ACCOUNT,
+        ),
+        luci.binding(
             roles = "role/swarming.poolOwner",
             groups = "project-dart-admins",
         ),
