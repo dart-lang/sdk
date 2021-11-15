@@ -82,7 +82,6 @@ void f() {
 ''');
   }
 
-  // @soloTest
   Future<void> test_constructorTearOff_nameUnnamed() async {
     await resolveTestCode('''
 class C {
