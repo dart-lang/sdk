@@ -9,6 +9,9 @@
 #include "platform/atomic.h"
 #include "vm/allocation.h"
 #include "vm/code_patcher.h"
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/compiler_state.h"
+#endif
 #include "vm/debugger.h"
 #include "vm/instructions.h"
 #include "vm/isolate.h"
@@ -1263,6 +1266,11 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
       StackFrame::DumpCurrentTrace();
     } else if (thread->execution_state() == Thread::kThreadInVM) {
       StackFrame::DumpCurrentTrace();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (thread->HasCompilerState()) {
+        thread->compiler_state().ReportCrash();
+      }
+#endif
     }
   }
 }

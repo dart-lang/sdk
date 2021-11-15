@@ -25,7 +25,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _opaqueClassName = 'Opaque';
   static const _ffiNativeName = 'FfiNative';
 
-  static const List<String> _primitiveIntegerNativeTypes = [
+  static const Set<String> _primitiveIntegerNativeTypes = {
     'Int8',
     'Int16',
     'Int32',
@@ -35,12 +35,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     'Uint32',
     'Uint64',
     'IntPtr'
-  ];
+  };
 
-  static const List<String> _primitiveDoubleNativeTypes = [
+  static const Set<String> _primitiveDoubleNativeTypes = {
     'Float',
     'Double',
-  ];
+  };
 
   static const _primitiveBoolNativeType = 'Bool';
 
@@ -1516,13 +1516,7 @@ extension on NamedType {
   bool get isCompoundSubtype {
     var element = name.staticElement;
     if (element is ClassElement) {
-      bool isCompound(InterfaceType? type) {
-        return type != null && type.isCompound;
-      }
-
-      return isCompound(element.supertype) ||
-          element.interfaces.any(isCompound) ||
-          element.mixins.any(isCompound);
+      return element.allSupertypes.any((e) => e.isCompound);
     }
     return false;
   }

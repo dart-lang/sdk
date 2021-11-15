@@ -15,6 +15,8 @@ import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion_resolve.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_definition.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_document_color.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_document_color_presentation.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_highlights.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_symbols.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
@@ -77,6 +79,8 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
       server,
       server.initializationOptions.suggestFromUnimportedLibraries,
     ));
+    registerHandler(DocumentColorHandler(server));
+    registerHandler(DocumentColorPresentationHandler(server));
     registerHandler(CompletionResolveHandler(server));
     registerHandler(SignatureHelpHandler(server));
     registerHandler(DefinitionHandler(server));

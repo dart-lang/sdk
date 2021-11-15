@@ -471,6 +471,9 @@ class BaseFlowGraphBuilder {
   // Pops double value and applies unary math operation.
   Fragment MathUnary(MathUnaryInstr::MathUnaryKind kind);
 
+  // Records coverage for this position, if the current VM mode supports it.
+  Fragment RecordCoverage(TokenPosition position);
+
   // Returns whether this function has a saved arguments descriptor array.
   bool has_saved_args_desc_array() {
     return function_.HasSavedArgumentsDescriptor();

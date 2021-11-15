@@ -221,11 +221,13 @@ class SynchronousSession {
 
     _typeSystemLegacy?.updateOptions(
       implicitCasts: analysisOptions.implicitCasts,
+      strictCasts: analysisOptions.strictCasts,
       strictInference: analysisOptions.strictInference,
     );
 
     _typeSystemNonNullableByDefault?.updateOptions(
       implicitCasts: analysisOptions.implicitCasts,
+      strictCasts: analysisOptions.strictCasts,
       strictInference: analysisOptions.strictInference,
     );
   }
@@ -268,6 +270,7 @@ class SynchronousSession {
     _typeSystemLegacy = TypeSystemImpl(
       implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: false,
+      strictCasts: _analysisOptions.strictCasts,
       strictInference: _analysisOptions.strictInference,
       typeProvider: legacy,
     );
@@ -275,6 +278,7 @@ class SynchronousSession {
     _typeSystemNonNullableByDefault = TypeSystemImpl(
       implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: true,
+      strictCasts: _analysisOptions.strictCasts,
       strictInference: _analysisOptions.strictInference,
       typeProvider: nonNullableByDefault,
     );

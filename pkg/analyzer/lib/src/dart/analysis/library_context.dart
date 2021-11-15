@@ -81,6 +81,11 @@ class LibraryContext {
     return elementFactory.libraryOfUri2('$uri');
   }
 
+  /// Return [LibraryElement] if it is ready.
+  LibraryElement? getLibraryElementIfReady(String uriStr) {
+    return elementFactory.libraryOfUriIfReady(uriStr);
+  }
+
   /// We are about to discard this context, mark all libraries invalid.
   void invalidAllLibraries() {
     elementFactory.invalidateAllLibraries();

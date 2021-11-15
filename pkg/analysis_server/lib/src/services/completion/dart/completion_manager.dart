@@ -328,17 +328,22 @@ class DartCompletionRequest {
   bool _aborted = false;
 
   factory DartCompletionRequest({
-    required ResolvedUnitResult resolvedUnit,
+    required AnalysisSession analysisSession,
+    required String filePath,
+    required String fileContent,
+    required CompilationUnitElement unitElement,
+    required AstNode enclosingNode,
     required int offset,
     DartdocDirectiveInfo? dartdocDirectiveInfo,
     CompletionPreference completionPreference = CompletionPreference.insert,
     DocumentationCache? documentationCache,
   }) {
-    var target = CompletionTarget.forOffset(resolvedUnit.unit, offset);
+    var target = CompletionTarget.forOffset(enclosingNode, offset);
 
+    var libraryElement = unitElement.library;
     var featureComputer = FeatureComputer(
-      resolvedUnit.typeSystem,
-      resolvedUnit.typeProvider,
+      libraryElement.typeSystem,
+      libraryElement.typeProvider,
     );
 
     var contextType = featureComputer.computeContextType(
@@ -352,20 +357,40 @@ class DartCompletionRequest {
     }
 
     return DartCompletionRequest._(
-      analysisSession: resolvedUnit.session as AnalysisSessionImpl,
+      analysisSession: analysisSession as AnalysisSessionImpl,
       completionPreference: completionPreference,
-      content: resolvedUnit.content,
+      content: fileContent,
       contextType: contextType,
       dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
       documentationCache: documentationCache,
       featureComputer: featureComputer,
-      libraryElement: resolvedUnit.libraryElement,
+      libraryElement: libraryElement,
       offset: offset,
       opType: opType,
-      path: resolvedUnit.path,
+      path: filePath,
       replacementRange: target.computeReplacementRange(offset),
-      source: resolvedUnit.unit.declaredElement!.source,
+      source: unitElement.source,
       target: target,
+    );
+  }
+
+  factory DartCompletionRequest.forResolvedUnit({
+    required ResolvedUnitResult resolvedUnit,
+    required int offset,
+    DartdocDirectiveInfo? dartdocDirectiveInfo,
+    CompletionPreference completionPreference = CompletionPreference.insert,
+    DocumentationCache? documentationCache,
+  }) {
+    return DartCompletionRequest(
+      analysisSession: resolvedUnit.session,
+      filePath: resolvedUnit.path,
+      fileContent: resolvedUnit.content,
+      unitElement: resolvedUnit.unit.declaredElement!,
+      enclosingNode: resolvedUnit.unit,
+      offset: offset,
+      dartdocDirectiveInfo: dartdocDirectiveInfo,
+      completionPreference: completionPreference,
+      documentationCache: documentationCache,
     );
   }
 
