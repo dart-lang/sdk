@@ -23,6 +23,7 @@ luci.builder.defaults.experiments.set({
     # Launch 100% of Swarming tasks in "realms-aware mode", crbug.com/1170330.
     "luci.use_realms": 100,
     "luci.buildbucket.use_bbagent": 100,
+    "luci.recipes.use_python3": 5,
 })
 
 DART_GIT = "https://dart.googlesource.com/sdk"
