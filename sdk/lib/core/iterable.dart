@@ -162,6 +162,11 @@ abstract class Iterable<E> {
   /// The returned iterable will provide the same elements as this iterable,
   /// and, after that, the elements of [other], in the same order as in the
   /// original iterables.
+  /// ```dart
+  /// var planets = ['Earth', 'Jupiter', 'Saturn'];
+  /// planets = planets.followedBy(['Mars', 'Venus']).toList();
+  /// print(planets); //[Earth, Jupiter, Saturn, Mars, Venus]
+  /// ```
   Iterable<E> followedBy(Iterable<E> other) {
     var self = this; // TODO(lrn): Remove when we can promote `this`.
     if (self is EfficientLengthIterable<E>) {
@@ -210,6 +215,12 @@ abstract class Iterable<E> {
   /// Iterating will not cache results, and thus iterating multiple times over
   /// the returned [Iterable] may invoke the supplied
   /// function [test] multiple times on the same element.
+  /// ```dart
+  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// print(numbers.where((x) => x < 5).toList()); // [1, 2, 3]
+  /// print(numbers.where((x) => x > 5).toList()); // [6, 7]
+  /// print(numbers.where((x) => x.isEven).toList()); // [2, 6]
+  /// ```
   Iterable<E> where(bool test(E element)) => WhereIterable<E>(this, test);
 
   /// Returns a new lazy [Iterable] with all elements that have type [T].
@@ -233,13 +244,13 @@ abstract class Iterable<E> {
   ///
   /// Example:
   /// ```dart
-  /// var pairs = [[1, 2], [3, 4]];
-  /// var flattened = pairs.expand((pair) => pair).toList();
-  /// print(flattened); // => [1, 2, 3, 4];
+  /// final pairs = [[1, 2], [3, 4]];
+  /// final flattened = pairs.expand((pair) => pair).toList();
+  /// print(flattened); // [1, 2, 3, 4];
   ///
-  /// var input = [1, 2, 3];
-  /// var duplicated = input.expand((i) => [i, i]).toList();
-  /// print(duplicated); // => [1, 1, 2, 2, 3, 3]
+  /// final input = [1, 2, 3];
+  /// final duplicated = input.expand((i) => [i, i]).toList();
+  /// print(duplicated); // [1, 1, 2, 2, 3, 3]
   /// ```
   ///
   /// Equivalent to:
@@ -275,6 +286,15 @@ abstract class Iterable<E> {
   }
 
   /// Invokes [action] on each element of this iterable in iteration order.
+  /// ```dart
+  /// final planets = {0.06: 'Mercury', 0.81: 'Venus', 0.11: 'Mars'};
+  /// planets.forEach((key, value) {
+  ///   print('$key : $value');
+  ///   // 0.06 : Mercury
+  ///   // 0.81 : Venus
+  ///   // 0.11 : Mars
+  /// });
+  /// ```
   void forEach(void action(E element)) {
     for (E element in this) action(element);
   }
@@ -297,7 +317,9 @@ abstract class Iterable<E> {
   /// ```
   /// Example of calculating the sum of an iterable:
   /// ```dart
-  /// iterable.reduce((value, element) => value + element);
+  /// final numbers = [10, 2, 5, 0.5];
+  /// final result = numbers.reduce((value, element) => value + element);
+  /// print(result); // 17.5
   /// ```
   E reduce(E combine(E value, E element)) {
     Iterator<E> iterator = this.iterator;
@@ -326,7 +348,11 @@ abstract class Iterable<E> {
   /// ```
   /// Example of calculating the sum of an iterable:
   /// ```dart
-  /// iterable.fold(0, (prev, element) => prev + element);
+  /// final numbers = [10, 2, 5, 0.5];
+  /// const initialValue = 100.0;
+  /// final result = numbers.fold(initialValue,
+  ///     (previousValue, element) => (previousValue as double) + element);
+  /// print(result); // 117.5
   /// ```
   T fold<T>(T initialValue, T combine(T previousValue, E element)) {
     var value = initialValue;
@@ -338,6 +364,12 @@ abstract class Iterable<E> {
   ///
   /// Checks every element in iteration order, and returns `false` if
   /// any of them make [test] return `false`, otherwise returns `true`.
+  /// ```dart
+  /// final mass = {0.06: 'Mercury', 0.81: 'Venus', 0.11: 'Mars'};
+  /// // Checks whether all keys smaller than 1
+  /// final every = mass.entries.every((element) => element.key < 1.0);
+  /// print(every); // true
+  /// ```
   bool every(bool test(E element)) {
     for (E element in this) {
       if (!test(element)) return false;
@@ -351,6 +383,12 @@ abstract class Iterable<E> {
   /// converts each one to a [String] by calling [Object.toString],
   /// and then concatenates the strings, with the
   /// [separator] string interleaved between the elements.
+  ///
+  /// ```dart
+  /// final mass = {0.06: 'Mercury', 0.81: 'Venus', 0.11: 'Mars'};
+  /// final joinedNames = mass.values.join('-');
+  /// print(joinedNames); // Mercury-Venus-Mars
+  /// ```
   String join([String separator = ""]) {
     Iterator<E> iterator = this.iterator;
     if (!iterator.moveNext()) return "";
@@ -373,6 +411,12 @@ abstract class Iterable<E> {
   ///
   /// Checks every element in iteration order, and returns `true` if
   /// any of them make [test] return `true`, otherwise returns false.
+  ///
+  /// ```dart
+  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// print(numbers.any((element) => element == 5)); // true;
+  /// print(numbers.any((element) => element == 4)); // false;
+  /// ```
   bool any(bool test(E element)) {
     for (E element in this) {
       if (test(element)) return true;
@@ -414,11 +458,21 @@ abstract class Iterable<E> {
 
   /// Whether this collection has no elements.
   ///
+  /// ```dart
+  /// final emptyList = List.empty();
+  /// print(emptyList.isEmpty); // true;
+  /// print(emptyList.iterator.moveNext()); // false
+  /// ```
   /// May be computed by checking if `iterator.moveNext()` returns `false`.
   bool get isEmpty => !iterator.moveNext();
 
   /// Whether this collection has at least one element.
   ///
+  /// ```dart
+  /// final numbers = {1, 2, 3};
+  /// print(numbers.isNotEmpty); // true;
+  /// print(numbers.iterator.moveNext()); // true
+  /// ```
   /// May be computed by checking if `iterator.moveNext()` returns `true`.
   bool get isNotEmpty => !isEmpty;
 
@@ -429,6 +483,11 @@ abstract class Iterable<E> {
   ///
   /// The elements can be computed by stepping through [iterator] until [count]
   /// elements have been seen.
+  ///
+  /// ```dart
+  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// print(numbers.take(5).toList()); // [1, 2, 3, 5, 6]
+  /// ```
   ///
   /// The `count` must not be negative.
   Iterable<E> take(int count) {
@@ -443,6 +502,12 @@ abstract class Iterable<E> {
   /// The elements can be computed by stepping through [iterator] until an
   /// element is found where `test(element)` is false. At that point,
   /// the returned iterable stops (its `moveNext()` returns false).
+  /// ```dart
+  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// print(numbers.takeWhile((x) => x < 5).toList()); // [1, 2, 3]
+  /// print(numbers.takeWhile((x) => x > 5).toList()); // []
+  /// print(numbers.takeWhile((x) => x.isOdd).toList()); // [1]
+  /// ```
   Iterable<E> takeWhile(bool test(E value)) {
     return TakeWhileIterable<E>(this, test);
   }
@@ -460,6 +525,11 @@ abstract class Iterable<E> {
   /// through earlier elements, for example when iterating a [List].
   /// Such iterables are allowed to ignore the initial skipped elements.
   ///
+  /// ```dart
+  /// final count = 4;
+  /// print([1, 2, 3, 5, 6, 7].skip(count).toList()); // [6, 7]
+  /// ```
+  ///
   /// The [count] must not be negative.
   Iterable<E> skip(int count) {
     return SkipIterable<E>(this, count);
@@ -475,6 +545,13 @@ abstract class Iterable<E> {
   /// true. If all elements satisfy `test` the resulting iterable is empty,
   /// otherwise it iterates the remaining elements in their original order,
   /// starting with the first element for which `test(element)` returns `false`.
+  ///
+  /// ```dart
+  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// print(numbers.skipWhile((x) => x < 5).toList()); // [5, 6, 7]
+  /// print(numbers.skipWhile((x) => x > 5).toList()); // [1, 2, 3, 5, 6, 7]
+  /// print(numbers.skipWhile((x) => x.isOdd).toList()); // [2, 3, 5, 6, 7]
+  /// ```
   Iterable<E> skipWhile(bool test(E value)) {
     return SkipWhileIterable<E>(this, test);
   }
@@ -527,6 +604,14 @@ abstract class Iterable<E> {
   ///
   /// Iterates through elements and returns the first to satisfy [test].
   ///
+  /// ```dart
+  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// print(numbers.firstWhere((element) => element < 5)); // 1
+  /// print(numbers.firstWhere((element) => element > 5)); // 6
+  /// print(numbers.firstWhere((element) => element > 10,
+  ///     orElse: () => -1)); // -1
+  /// ```
+  ///
   /// If no element satisfies [test], the result of invoking the [orElse]
   /// function is returned.
   /// If [orElse] is omitted, it defaults to throwing a [StateError].
@@ -546,6 +631,14 @@ abstract class Iterable<E> {
   /// The default implementation iterates elements in iteration order,
   /// checks `test(element)` for each,
   /// and finally returns that last one that matched.
+  ///
+  /// ```dart
+  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// print(numbers.lastWhere((element) => element < 5)); // 3
+  /// print(numbers.lastWhere((element) => element > 5)); // 7
+  /// print(numbers.lastWhere((element) => element > 10,
+  ///     orElse: () => -1)); // -1
+  /// ```
   ///
   /// If no element satisfies [test], the result of invoking the [orElse]
   /// function is returned.
@@ -571,6 +664,19 @@ abstract class Iterable<E> {
   /// If more than one matching element is found, throws [StateError].
   /// If no matching element is found, returns the result of [orElse].
   /// If [orElse] is omitted, it defaults to throwing a [StateError].
+  ///
+  /// ```dart
+  /// final numbers = [2, 2, 10];
+  /// var result = numbers.singleWhere((element) => element == 10);
+  /// print(result); // 10
+  ///
+  /// // When no matching element is found, returns result from orElse
+  /// result = numbers.singleWhere((element) => element == 1, orElse: () => -1);
+  /// print(result); // -1
+  ///
+  /// // Multiple matches, error is thrown
+  /// result = numbers.singleWhere((element) => element == 2); // StateError
+  /// ```
   E singleWhere(bool test(E element), {E orElse()?}) {
     late E result;
     bool foundMatching = false;
@@ -597,6 +703,11 @@ abstract class Iterable<E> {
   /// May iterate through the elements in iteration order, ignoring the
   /// first [index] elements and then returning the next.
   /// Some iterables may have a more efficient way to find the element.
+  ///
+  /// ```dart
+  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// final elementAt = numbers.elementAt(4); // 6
+  /// ```
   E elementAt(int index) {
     RangeError.checkNotNegative(index, "index");
     int elementIndex = 0;
