@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dds/src/dap/protocol_generated.dart';
@@ -158,6 +159,19 @@ main() {
       // Source code should contain the implementation/signature of print().
       final source = await client.getValidSource(topFrame.source!);
       expect(source.content, contains('void print(Object? object) {'));
+    });
+
+    test('can shutdown during startup', () async {
+      final testFile = dap.createTestFile(simpleArgPrintingProgram);
+
+      // Terminate the app immediately upon recieving the first Thread event.
+      // The DAP is also responding to this event to configure the isolate (eg.
+      // set breakpoints and exception pause behaviour) and will cause it to
+      // receive "Service has disappeared" responses if these are in-flight as
+      // the process terminates. These should not go unhandled since they are
+      // normal during shutdown.
+      unawaited(dap.client.event('thread').then((_) => dap.client.terminate()));
+      await dap.client.start(file: testFile);
     });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);

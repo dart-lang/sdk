@@ -223,6 +223,14 @@ class Base64Codec extends Codec<List<int>, String> {
 /// Encodes lists of bytes using base64 or base64url encoding.
 ///
 /// The results are ASCII strings using a restricted alphabet.
+///
+/// Example:
+/// ```dart
+/// final base64Encoder = base64.encoder;
+/// const sample = 'Dart is open source';
+/// final encodedSample = base64Encoder.convert(sample.codeUnits);
+/// print(encodedSample); // RGFydCBpcyBvcGVuIHNvdXJjZQ==
+/// ```
 class Base64Encoder extends Converter<List<int>, String> {
   final bool _urlSafe;
 
@@ -295,7 +303,7 @@ class _Base64Encoder {
   /// Returns a [Uint8List] of the ASCII codes of the encoded data.
   ///
   /// If the input, including left over [_state] from earlier encodings,
-  /// are not a multiple of three bytes, then the partial state is stored
+  /// is not a multiple of three bytes, then the partial state is stored
   /// back into [_state].
   /// If [isLast] is true, partial state is encoded in the output instead,
   /// with the necessary padding.
@@ -469,6 +477,20 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
 /// This decoder accepts both base64 and base64url ("url-safe") encodings.
 ///
 /// The encoding is required to be properly padded.
+///
+/// Throws a [FormatException] if the input is not valid base64 data.
+///
+/// Example:
+/// ```dart
+/// final base64Decoder = base64.decoder;
+/// const base64Bytes = 'RGFydCBpcyBvcGVuIHNvdXJjZQ==';
+/// final decodedBytes = base64Decoder.convert(base64Bytes);
+/// // decodedBytes: [68, 97, 114, 116, 32, 105, 115, 32, 111, 112, 101, 110,
+/// // 32, 115, 111, 117, 114, 99, 101]
+///
+/// // Print as string using UTF-8 decoder
+/// print(utf8.decode(decodedBytes)); // Dart is open source
+/// ```
 class Base64Decoder extends Converter<String, List<int>> {
   const Base64Decoder();
 
@@ -726,7 +748,7 @@ class _Base64Decoder {
   /// it needs when input is valid, and at least enough bytes to reach the error
   /// when input is invalid.
   ///
-  /// Never count more than two padding sequences since any more than that
+  /// Never count more than two padding sequences as any more than that
   /// will raise an error anyway, and we only care about being precise for
   /// successful conversions.
   static int _trimPaddingChars(String input, int start, int end) {
@@ -777,7 +799,7 @@ class _Base64Decoder {
   /// only call this function after having seen at least one `=` or `%`
   /// character.
   /// If the number of missing characters is not 3 or 0, we have seen (at least)
-  /// a `%` character and expects the rest of the `%3D` sequence, and a `=` is
+  /// a `%` character and expect the rest of the `%3D` sequence, and a `=` is
   /// not allowed. When missing 3 characters, either `=` or `%` is allowed.
   ///
   /// When the value is 0, no more padding (or any other character) is allowed.

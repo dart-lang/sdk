@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=constructor-tearoffs
-
 import "package:expect/expect.dart";
 
 import "../static_type_helper.dart";
@@ -19,11 +17,11 @@ class C {
   void tearOffsOnThis() {
     const staticTearOff = staticMethod<int, String>;
     staticMethod<int, String>
-      .expectStaticType<Exactly<int Function(String, [String?])>>();
+        .expectStaticType<Exactly<int Function(String, [String?])>>();
     instanceMethod<int, String>
-      .expectStaticType<Exactly<int Function(String, [String?])>>();
+        .expectStaticType<Exactly<int Function(String, [String?])>>();
     this.instanceMethod<int, String>
-      .expectStaticType<Exactly<int Function(String, [String?])>>();
+        .expectStaticType<Exactly<int Function(String, [String?])>>();
 
     Expect.identical(staticMethod<int, String>, staticTearOff);
 
@@ -39,16 +37,15 @@ mixin M on C {
   void mixinTearOffsOnThis() {
     const staticTearOff = staticMethod<int, String>;
     staticMethod<int, String>
-      .expectStaticType<Exactly<int Function(String, [String?])>>();
+        .expectStaticType<Exactly<int Function(String, [String?])>>();
     mixinInstanceMethod<int, String>
-      .expectStaticType<Exactly<int Function(String, [String?])>>();
+        .expectStaticType<Exactly<int Function(String, [String?])>>();
     this.mixinInstanceMethod<int, String>
-      .expectStaticType<Exactly<int Function(String, [String?])>>();
+        .expectStaticType<Exactly<int Function(String, [String?])>>();
 
     Expect.identical(staticMethod<int, String>, staticTearOff);
 
-    Expect.equals(
-        mixinInstanceMethod<int, String>,
+    Expect.equals(mixinInstanceMethod<int, String>,
         this.mixinInstanceMethod<int, String>);
   }
 }
@@ -60,11 +57,11 @@ extension E on C {
   void extensionTearOffsOnThis() {
     const staticTearOff = staticMethod<int, String>;
     staticMethod<int, String>
-      .expectStaticType<Exactly<int Function(String, [String?])>>();
+        .expectStaticType<Exactly<int Function(String, [String?])>>();
     extInstanceMethod<int, String>
-      .expectStaticType<Exactly<int Function(String, [String?])>>();
+        .expectStaticType<Exactly<int Function(String, [String?])>>();
     this.extInstanceMethod<int, String>
-      .expectStaticType<Exactly<int Function(String, [String?])>>();
+        .expectStaticType<Exactly<int Function(String, [String?])>>();
     Expect.identical(staticMethod<int, String>, staticTearOff);
     // Extension instance methods do not specify equality.
   }
@@ -73,7 +70,7 @@ extension E on C {
 class D extends C with M {
   void tearOffsOnSuper() {
     super.instanceMethod<int, String>
-      .expectStaticType<Exactly<int Function(String, [String?])>>();
+        .expectStaticType<Exactly<int Function(String, [String?])>>();
     Expect.equals(
         super.instanceMethod<int, String>, super.instanceMethod<int, String>);
   }
@@ -93,23 +90,17 @@ void main() {
 
   toplevel<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
-  C
-      .staticMethod<int, String>
+  C.staticMethod<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
-  M
-      .staticMethod<int, String>
+  M.staticMethod<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
-  E
-      .staticMethod<int, String>
+  E.staticMethod<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
-  o
-      .instanceMethod<int, String>
+  o.instanceMethod<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
-  o
-      .mixinInstanceMethod<int, String>
+  o.mixinInstanceMethod<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
-  o
-      .extInstanceMethod<int, String>
+  o.extInstanceMethod<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
   local<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
@@ -125,8 +116,7 @@ void main() {
 
   // But not for instance method tear-off.
   // Specification requires equality.
-  Expect.equals(
-      o.instanceMethod<int, String>, o.instanceMethod<int, String>);
+  Expect.equals(o.instanceMethod<int, String>, o.instanceMethod<int, String>);
   Expect.equals(
       o.mixinInstanceMethod<int, String>, o.mixinInstanceMethod<int, String>);
 
@@ -134,8 +124,7 @@ void main() {
 
   // And not canonicalized where they shouldn't (different types).
   Expect.notEquals(toplevel<int, String>, toplevel<num, String>);
-  Expect.notEquals(
-      C.staticMethod<int, String>, C.staticMethod<num, String>);
+  Expect.notEquals(C.staticMethod<int, String>, C.staticMethod<num, String>);
   Expect.notEquals(local<int, String>, local<num, String>);
   Expect.notEquals(
       o.instanceMethod<int, String>, o.instanceMethod<num, String>);

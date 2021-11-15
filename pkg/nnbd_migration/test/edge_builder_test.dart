@@ -70,6 +70,7 @@ class AssignmentCheckerTest extends Object
         TypeSystemImpl(
           implicitCasts: true,
           isNonNullableByDefault: false,
+          strictCasts: false,
           strictInference: false,
           typeProvider: typeProvider,
         ),
@@ -500,6 +501,7 @@ class AssignmentCheckerTest extends Object
     var typeSystem = TypeSystemImpl(
       isNonNullableByDefault: false,
       implicitCasts: true,
+      strictCasts: false,
       strictInference: false,
       typeProvider: typeProvider,
     );

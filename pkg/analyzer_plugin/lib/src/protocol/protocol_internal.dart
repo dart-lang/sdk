@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 import 'dart:convert' hide JsonDecoder;
-import 'dart:math' as math;
 
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -29,17 +28,6 @@ void addAllEditsForSource(
 /// If the invariants can't be preserved, then a [ConflictingEditException] is
 /// thrown.
 void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
-  /// If the [leftEdit] and the [rightEdit] can be merged, then merge them.
-  SourceEdit? _merge(SourceEdit leftEdit, SourceEdit rightEdit) {
-    assert(leftEdit.offset <= rightEdit.offset);
-    if (leftEdit.isDeletion && rightEdit.isDeletion) {
-      var offset = leftEdit.offset;
-      var end = math.max(leftEdit.end, rightEdit.end);
-      return SourceEdit(offset, end - offset, '');
-    }
-    return null;
-  }
-
   var edits = sourceFileEdit.edits;
   var length = edits.length;
   var index = 0;
@@ -51,12 +39,7 @@ void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
     // The [previousEdit] has an offset that is strictly greater than the offset
     // of the [sourceEdit] so we only need to look at the end of the
     // [sourceEdit] to know whether they overlap.
-    if (sourceEdit.end > previousEdit.offset) {
-      var mergedEdit = _merge(sourceEdit, previousEdit);
-      if (mergedEdit != null) {
-        edits[index - 1] = mergedEdit;
-        return;
-      }
+    if (sourceEdit.offset + sourceEdit.length > previousEdit.offset) {
       throw ConflictingEditException(
           newEdit: sourceEdit, existingEdit: previousEdit);
     }
@@ -71,12 +54,7 @@ void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
     if ((sourceEdit.offset == nextEdit.offset &&
             sourceEdit.length > 0 &&
             nextEdit.length > 0) ||
-        nextEdit.end > sourceEdit.offset) {
-      var mergedEdit = _merge(nextEdit, sourceEdit);
-      if (mergedEdit != null) {
-        edits[index] = mergedEdit;
-        return;
-      }
+        nextEdit.offset + nextEdit.length > sourceEdit.offset) {
       throw ConflictingEditException(
           newEdit: sourceEdit, existingEdit: nextEdit);
     }
@@ -489,12 +467,4 @@ abstract class ResponseResult implements HasToJson {
   /// Return a response whose result data is this object for the request with
   /// the given [id], where the request was received at the given [requestTime].
   Response toResponse(String id, int requestTime);
-}
-
-extension SourceEditExtensions on SourceEdit {
-  /// Return `true` if this source edit represents a deletion.
-  bool get isDeletion => replacement.isEmpty;
-
-  /// Return `true` if this source edit represents an insertion.
-  bool get isInsertion => length == 0;
 }

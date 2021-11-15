@@ -2033,6 +2033,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
 /// A base class for concrete implementations of an [Element].
 abstract class ElementImpl implements Element {
+  static const _metadataFlag_isReady = 1 << 0;
+  static const _metadataFlag_hasDeprecated = 1 << 1;
+  static const _metadataFlag_hasOverride = 1 << 2;
+
   /// An Unicode right arrow.
   @deprecated
   static final String RIGHT_ARROW = " \u2192 ";
@@ -2060,6 +2064,9 @@ abstract class ElementImpl implements Element {
 
   /// A list containing all of the metadata associated with this element.
   List<ElementAnnotation> _metadata = const [];
+
+  /// Cached flags denoting presence of specific annotations in [_metadata].
+  int _metadataFlags = 0;
 
   /// A cached copy of the calculated hashCode for this element.
   int? _cachedHashCode;
@@ -2138,14 +2145,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasDeprecated {
-    final metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isDeprecated) {
-        return true;
-      }
-    }
-    return false;
+    return (_getMetadataFlags() & _metadataFlag_hasDeprecated) != 0;
   }
 
   @override
@@ -2277,14 +2277,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasOverride {
-    final metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isOverride) {
-        return true;
-      }
-    }
-    return false;
+    return (_getMetadataFlags() & _metadataFlag_hasOverride) != 0;
   }
 
   /// Return `true` if this element has an annotation of the form
@@ -2586,6 +2579,29 @@ abstract class ElementImpl implements Element {
   @override
   void visitChildren(ElementVisitor visitor) {
     // There are no children to visit
+  }
+
+  /// Return flags that denote presence of a few specific annotations.
+  int _getMetadataFlags() {
+    var result = _metadataFlags;
+
+    // Has at least `_metadataFlag_isReady`.
+    if (result != 0) {
+      return result;
+    }
+
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isDeprecated) {
+        result |= _metadataFlag_hasDeprecated;
+      } else if (annotation.isOverride) {
+        result |= _metadataFlag_hasOverride;
+      }
+    }
+
+    result |= _metadataFlag_isReady;
+    return _metadataFlags = result;
   }
 }
 

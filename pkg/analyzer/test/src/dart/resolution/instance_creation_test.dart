@@ -305,42 +305,48 @@ main() {
 
   test_namedArgument_anywhere() async {
     await assertNoErrorsInCode('''
-class A {
-  A(int a, double b, {bool? c, bool? d});
+class A {}
+class B {}
+class C {}
+class D {}
+
+class X {
+  X(A a, B b, {C? c, D? d});
 }
 
+T g1<T>() => throw 0;
+T g2<T>() => throw 0;
+T g3<T>() => throw 0;
+T g4<T>() => throw 0;
+
 void f() {
-  A(0, c: true, 1.2, d: true);
+  X(g1(), c: g3(), g2(), d: g4());
 }
 ''');
 
     assertInstanceCreation(
-      findNode.instanceCreation('A(0'),
-      findElement.class_('A'),
-      'A',
+      findNode.instanceCreation('X(g'),
+      findElement.class_('X'),
+      'X',
     );
 
-    assertParameterElement(
-      findNode.integerLiteral('0'),
-      findElement.parameter('a'),
-    );
+    var g1 = findNode.methodInvocation('g1()');
+    assertType(g1, 'A');
+    assertParameterElement(g1, findElement.parameter('a'));
 
-    assertParameterElement(
-      findNode.doubleLiteral('1.2'),
-      findElement.parameter('b'),
-    );
+    var g2 = findNode.methodInvocation('g2()');
+    assertType(g2, 'B');
+    assertParameterElement(g2, findElement.parameter('b'));
 
-    assertParameterElement(
-      findNode.namedExpression('c: true'),
-      findElement.parameter('c'),
-    );
-    assertNamedParameterRef('c: true', 'c');
+    var named_g3 = findNode.namedExpression('c: g3()');
+    assertType(named_g3.expression, 'C?');
+    assertParameterElement(named_g3, findElement.parameter('c'));
+    assertNamedParameterRef('c:', 'c');
 
-    assertParameterElement(
-      findNode.namedExpression('d: true'),
-      findElement.parameter('d'),
-    );
-    assertNamedParameterRef('d: true', 'd');
+    var named_g4 = findNode.namedExpression('d: g4()');
+    assertType(named_g4.expression, 'D?');
+    assertParameterElement(named_g4, findElement.parameter('d'));
+    assertNamedParameterRef('d:', 'd');
   }
 
   test_typeAlias_generic_class_generic_named_infer_all() async {
