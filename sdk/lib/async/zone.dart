@@ -797,7 +797,7 @@ abstract class Zone {
 
   /// Registers the given callback in this zone.
   ///
-  /// Similar to [registerCallback] but with a unary callback.
+  /// Similar to [registerCallback] but with a binary callback.
   ZoneBinaryCallback<R, T1, T2> registerBinaryCallback<R, T1, T2>(
       R callback(T1 arg1, T2 arg2));
 
