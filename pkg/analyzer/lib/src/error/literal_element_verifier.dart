@@ -138,7 +138,15 @@ class LiteralElementVerifier {
   /// assigned to the [elementType] of the enclosing collection.
   void _verifySpreadForListOrSet(bool isNullAware, Expression expression) {
     var expressionType = expression.typeOrThrow;
-    if (expressionType.isDynamic) return;
+    if (expressionType.isDynamic) {
+      if (typeSystem.strictCasts) {
+        return errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
+          expression,
+        );
+      }
+      return;
+    }
 
     if (typeSystem.isNonNullableByDefault) {
       if (typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {
@@ -224,7 +232,15 @@ class LiteralElementVerifier {
   /// its key and values are assignable to [mapKeyType] and [mapValueType].
   void _verifySpreadForMap(bool isNullAware, Expression expression) {
     var expressionType = expression.typeOrThrow;
-    if (expressionType.isDynamic) return;
+    if (expressionType.isDynamic) {
+      if (typeSystem.strictCasts) {
+        return errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_MAP_SPREAD,
+          expression,
+        );
+      }
+      return;
+    }
 
     if (typeSystem.isNonNullableByDefault) {
       if (typeSystem.isSubtypeOf(expressionType, NeverTypeImpl.instance)) {

@@ -10,8 +10,10 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapValueTypeNotAssignableTest);
-    defineReflectiveTests(MapValueTypeNotAssignableWithNoImplicitCastsTest);
+    defineReflectiveTests(
+        MapValueTypeNotAssignableWithoutNullSafetyAndNoImplicitCastsTest);
     defineReflectiveTests(MapValueTypeNotAssignableWithoutNullSafetyTest);
+    defineReflectiveTests(MapValueTypeNotAssignableWithStrictCastsTest);
   });
 }
 
@@ -232,7 +234,7 @@ var v = <bool, int>{...{true: a}};
 }
 
 @reflectiveTest
-class MapValueTypeNotAssignableWithNoImplicitCastsTest
+class MapValueTypeNotAssignableWithoutNullSafetyAndNoImplicitCastsTest
     extends PubPackageResolutionTest
     with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
   test_ifElement_falseBranch_value_dynamic() async {
@@ -294,5 +296,39 @@ class MapValueTypeNotAssignableWithoutNullSafetyTest
     await assertNoErrorsInCode('''
 var v = <int, int>{...<num, num>{1: 1}};
 ''');
+  }
+}
+
+@reflectiveTest
+class MapValueTypeNotAssignableWithStrictCastsTest
+    extends PubPackageResolutionTest with WithStrictCastsMixin {
+  test_ifElement_falseBranch() async {
+    await assertErrorsWithStrictCasts('''
+void f(bool c, dynamic a) {
+  <int, int>{if (c) 0: 0 else 0: a};
+}
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 61, 1),
+    ]);
+  }
+
+  test_ifElement_trueBranch() async {
+    await assertErrorsWithStrictCasts('''
+void f(bool c, dynamic a) {
+  <int, int>{if (c) 0: a};
+}
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 51, 1),
+    ]);
+  }
+
+  test_spread() async {
+    await assertErrorsWithStrictCasts('''
+void f(Map<int, dynamic> a) {
+  <int, int>{...a};
+}
+''', [
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 46, 1),
+    ]);
   }
 }

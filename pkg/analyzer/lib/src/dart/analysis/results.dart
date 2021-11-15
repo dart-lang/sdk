@@ -168,6 +168,7 @@ class ParseStringResultImpl implements ParseStringResult {
 }
 
 class ResolvedForCompletionResultImpl {
+  final AnalysisSession analysisSession;
   final String path;
   final Uri uri;
   final bool exists;
@@ -196,6 +197,7 @@ class ResolvedForCompletionResultImpl {
   final List<AstNode> resolvedNodes;
 
   ResolvedForCompletionResultImpl({
+    required this.analysisSession,
     required this.path,
     required this.uri,
     required this.exists,

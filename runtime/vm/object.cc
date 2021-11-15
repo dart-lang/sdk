@@ -25851,6 +25851,15 @@ const char* StackTrace::ToCString() const {
       // A visible frame ends any gap we might be in.
       in_gap = false;
 
+      // Zero pc_offset can only occur in the frame produced by the async
+      // unwinding and it corresponds to the next future listener in the
+      // chain. This function is not yet called (it will be called when
+      // the future completes) hence pc_offset is set to 0. This frame
+      // is very different from other frames which have pc_offsets
+      // corresponding to call- or yield-sites in the generated code and
+      // should be handled specially.
+      const bool is_future_listener = pc_offset == 0;
+
 #if defined(DART_PRECOMPILED_RUNTIME)
       // When printing non-symbolic frames, we normally print call
       // addresses, not return addresses, by subtracting one from the PC to
@@ -25861,7 +25870,6 @@ const char* StackTrace::ToCString() const {
       // is invoked with the value of the resolved future. Thus, we must
       // report the return address, as returning a value before the closure
       // payload will cause failures to decode the frame using DWARF info.
-      const bool is_future_listener = pc_offset == 0;
       const uword call_addr = is_future_listener ? pc : pc - 1;
 
       if (FLAG_dwarf_stack_traces_mode) {
@@ -25887,7 +25895,11 @@ const char* StackTrace::ToCString() const {
       }
 #endif
 
-      if (code.is_optimized() && stack_trace.expand_inlined()) {
+      if (code.is_optimized() && stack_trace.expand_inlined() &&
+          (FLAG_precompiled_mode || !is_future_listener)) {
+        // Note: In AOT mode EmitFunctionEntrySourcePositionDescriptorIfNeeded
+        // will take care of emitting a descriptor that would allow us to
+        // symbolize stack frame with 0 offset.
         code.GetInlinedFunctionsAtReturnAddress(pc_offset, &inlined_functions,
                                                 &inlined_token_positions);
         ASSERT(inlined_functions.length() >= 1);
@@ -25901,7 +25913,8 @@ const char* StackTrace::ToCString() const {
         continue;
       }
 
-      auto const pos = code.GetTokenIndexOfPC(pc);
+      auto const pos = is_future_listener ? function.token_pos()
+                                          : code.GetTokenIndexOfPC(pc);
       PrintSymbolicStackFrame(zone, &buffer, function, pos, frame_index);
       frame_index++;
     }

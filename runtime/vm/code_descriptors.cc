@@ -417,6 +417,14 @@ void CodeSourceMapBuilder::StartInliningInterval(
   }
 }
 
+void CodeSourceMapBuilder::WriteFunctionEntrySourcePosition(
+    const InstructionSource& source) {
+  ASSERT(written_pc_offset_ == 0 && buffered_pc_offset_ == 0);
+  ASSERT(stream_.bytes_written() == 0);
+  WriteChangePosition(source.token_pos);
+  WriteAdvancePC(0);
+}
+
 void CodeSourceMapBuilder::BeginCodeSourceRange(
     int32_t pc_offset,
     const InstructionSource& source) {

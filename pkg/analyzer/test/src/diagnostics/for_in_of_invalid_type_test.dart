@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ForInOfInvalidTypeTest);
     defineReflectiveTests(ForInOfInvalidTypeWithoutNullSafetyTest);
+    defineReflectiveTests(ForInOfInvalidTypeWithStrictCastsTest);
   });
 }
 
@@ -181,5 +182,21 @@ f(Object e) async {
   }
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class ForInOfInvalidTypeWithStrictCastsTest extends PubPackageResolutionTest
+    with WithStrictCastsMixin {
+  test_forIn() async {
+    await assertErrorsWithStrictCasts('''
+f(dynamic e) {
+  for (var id in e) {
+    id;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 32, 1),
+    ]);
   }
 }

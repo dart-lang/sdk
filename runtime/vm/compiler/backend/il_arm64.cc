@@ -2300,7 +2300,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
            compiler::FieldAddress(
                field_reg, Field::guarded_list_length_in_object_offset_offset()),
            compiler::kByte);
-    __ LoadCompressed(
+    __ LoadCompressedSmi(
         length_reg,
         compiler::FieldAddress(field_reg, Field::guarded_list_length_offset()));
 
@@ -2311,7 +2311,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // value's class matches guarded class id of the field.
     // offset_reg contains offset already corrected by -kHeapObjectTag that is
     // why we use Address instead of FieldAddress.
-    __ ldr(TMP, compiler::Address(value_reg, offset_reg));
+    __ LoadCompressedSmi(TMP, compiler::Address(value_reg, offset_reg));
     __ CompareObjectRegisters(length_reg, TMP);
 
     if (deopt == NULL) {

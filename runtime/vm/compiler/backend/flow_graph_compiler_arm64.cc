@@ -372,38 +372,6 @@ void FlowGraphCompiler::EmitPrologue() {
   EndCodeSourceRange(PrologueSource());
 }
 
-// Input parameters:
-//   LR: return address.
-//   SP: address of last argument.
-//   FP: caller's frame pointer.
-//   PP: caller's pool pointer.
-//   R4: arguments descriptor array.
-void FlowGraphCompiler::CompileGraph() {
-  InitCompiler();
-
-  // For JIT we have multiple entrypoints functionality which moved the frame
-  // setup into the [TargetEntryInstr] (which will set the constant pool
-  // allowed bit to true).  Despite this we still have to set the
-  // constant pool allowed bit to true here as well, because we can generate
-  // code for [CatchEntryInstr]s, which need the pool.
-  __ set_constant_pool_allowed(true);
-
-  VisitBlocks();
-
-#if defined(DEBUG)
-  __ brk(0);
-#endif
-
-  if (!skip_body_compilation()) {
-    ASSERT(assembler()->constant_pool_allowed());
-    GenerateDeferredCode();
-  }
-
-  for (intptr_t i = 0; i < indirect_gotos_.length(); ++i) {
-    indirect_gotos_[i]->ComputeOffsetTable(this);
-  }
-}
-
 void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
   ASSERT(!stub.IsNull());
   if (CanPcRelativeCall(stub)) {

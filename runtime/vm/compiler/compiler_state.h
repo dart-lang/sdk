@@ -17,6 +17,8 @@
 
 namespace dart {
 
+class CompilerPass;
+struct CompilerPassState;
 class Function;
 class LocalScope;
 class LocalVariable;
@@ -105,6 +107,20 @@ class CompilerState : public ThreadStackResource {
   // Returns _StringBase._interpolateSingle
   const Function& StringBaseInterpolateSingle();
 
+  const Function* function() const { return function_; }
+
+  void set_function(const Function& function) { function_ = &function; }
+  void set_current_pass(const CompilerPass* pass,
+                        const CompilerPassState* pass_state) {
+    pass_ = pass;
+    pass_state_ = pass_state;
+  }
+
+  const CompilerPass* pass() const { return pass_; }
+  const CompilerPassState* pass_state() const { return pass_state_; }
+
+  void ReportCrash();
+
  private:
   CHA cha_;
   intptr_t deopt_id_ = 0;
@@ -126,6 +142,10 @@ class CompilerState : public ThreadStackResource {
   const Class* comparable_class_ = nullptr;
   const Function* interpolate_ = nullptr;
   const Function* interpolate_single_ = nullptr;
+
+  const Function* function_ = nullptr;
+  const CompilerPass* pass_ = nullptr;
+  const CompilerPassState* pass_state_ = nullptr;
 
   CompilerState* previous_;
 };

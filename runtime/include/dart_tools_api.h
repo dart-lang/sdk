@@ -363,6 +363,37 @@ DART_EXPORT bool Dart_IsReloading();
  */
 
 /**
+ * Enable tracking of specified timeline category. This is operational
+ * only when systrace timeline functionality is turned on.
+ *
+ * \param categories A comma seperated list of categories that need to
+ *   be enabled, the categories are
+ *   "all" : All categories
+ *   "API" - Execution of Dart C API functions
+ *   "Compiler" - Execution of Dart JIT compiler
+ *   "CompilerVerbose" - More detailed Execution of Dart JIT compiler
+ *   "Dart" - Execution of Dart code
+ *   "Debugger" - Execution of Dart debugger
+ *   "Embedder" - Execution of Dart embedder code
+ *   "GC" - Execution of Dart Garbage Collector
+ *   "Isolate" - Dart Isolate lifecycle execution
+ *   "VM" - Excution in Dart VM runtime code
+ *   "" - None
+ *
+ *  When "all" is specified all the categories are enabled.
+ *  When a comma seperated list of categories is specified, the categories
+ *   that are specified will be enabled and the rest will be disabled. 
+ *  When "" is specified all the categories are disabled.
+ *  The category names are case sensitive.
+ *  eg:  Dart_EnableTimelineCategory("all");
+ *       Dart_EnableTimelineCategory("GC,API,Isolate");
+ *       Dart_EnableTimelineCategory("GC,Debugger,Dart");
+ *
+ * \return True if the categories were successfully enabled, False otherwise.
+ */
+DART_EXPORT bool Dart_SetEnabledTimelineCategory(const char* categories);
+
+/**
  * Returns a timestamp in microseconds. This timestamp is suitable for
  * passing into the timeline system, and uses the same monotonic clock
  * as dart:developer's Timeline.now.

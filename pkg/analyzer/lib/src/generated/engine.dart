@@ -285,6 +285,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// re-throwing them)
   bool propagateLinterExceptions = false;
 
+  /// Whether implicit casts should be reported as potential problems.
+  bool strictCasts = false;
+
   /// A flag indicating whether inference failures are allowed, off by default.
   ///
   /// This option is experimental and subject to change.

@@ -126,7 +126,8 @@ class TestCompiler {
     var compilerOptions = SharedCompilerOptions(
         replCompile: true,
         moduleName: moduleName,
-        soundNullSafety: setup.soundNullSafety);
+        soundNullSafety: setup.soundNullSafety,
+        emitDebugMetadata: true);
     var coreTypes = compiler.getCoreTypes();
 
     final importToSummary = Map<Library, Component>.identity();
@@ -145,10 +146,10 @@ class TestCompiler {
     var code = jsProgramToCode(
       module,
       setup.moduleFormat,
-      inlineSourceMap: true,
-      buildSourceMap: true,
-      emitDebugMetadata: true,
-      emitDebugSymbols: true,
+      inlineSourceMap: compilerOptions.inlineSourceMap,
+      buildSourceMap: compilerOptions.sourceMap,
+      emitDebugMetadata: compilerOptions.emitDebugMetadata,
+      emitDebugSymbols: compilerOptions.emitDebugSymbols,
       jsUrl: '$output',
       mapUrl: '$output.map',
       compiler: kernel2jsCompiler,

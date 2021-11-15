@@ -119,6 +119,8 @@ class FlowGraph : public ZoneAllocated {
   const ParsedFunction& parsed_function() const { return parsed_function_; }
   const Function& function() const { return parsed_function_.function(); }
 
+  void Print(const char* phase = "unknown");
+
   // The number of directly accessable parameters (above the frame pointer).
   // All other parameters can only be indirectly loaded via metadata found in
   // the arguments descriptor.

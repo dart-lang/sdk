@@ -150,8 +150,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
 
   // Mark that the thread has not exited generated Dart code.
-  __ LoadImmediate(R2, 0);
-  __ StoreToOffset(R2, THR, target::Thread::exit_through_ffi_offset());
+  __ StoreToOffset(ZR, THR, target::Thread::exit_through_ffi_offset());
 
   // Reset exit frame information in Isolate's mutator thread structure.
   __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
@@ -722,8 +721,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   __ StoreToOffset(R2, THR, target::Thread::vm_tag_offset());
 
   // Mark that the thread has not exited generated Dart code.
-  __ LoadImmediate(R2, 0);
-  __ StoreToOffset(R2, THR, target::Thread::exit_through_ffi_offset());
+  __ StoreToOffset(ZR, THR, target::Thread::exit_through_ffi_offset());
 
   // Reset exit frame information in Isolate's mutator thread structure.
   __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
@@ -1389,8 +1387,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   __ LoadFromOffset(R6, THR, target::Thread::exit_through_ffi_offset());
   __ Push(R6);
-  __ LoadImmediate(R6, 0);
-  __ StoreToOffset(R6, THR, target::Thread::exit_through_ffi_offset());
+  __ StoreToOffset(ZR, THR, target::Thread::exit_through_ffi_offset());
 
   __ LoadFromOffset(R6, THR, target::Thread::top_exit_frame_info_offset());
   __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());

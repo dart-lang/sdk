@@ -101,7 +101,7 @@ class Error {
   /// or set on [error] if it is an [Error],
   /// may not be the [stackTrace] object itself,
   /// but will be a stack trace with the same content.
-  @Since("2.15")
+  @Since("2.16")
   static Never throwWithStackTrace(Object error, StackTrace stackTrace) {
     checkNotNullable(error, "error");
     checkNotNullable(stackTrace, "stackTrace");

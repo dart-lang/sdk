@@ -819,6 +819,51 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue35453_NoSuchMethod) {
       buffer);
 }
 
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue47017_Assert) {
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript =
+      "void foo(Object? bar) {\n"
+      "  assert(bar == null);\n"
+      "}\n"
+      "void main() {\n"
+      "  foo(null);\n"
+      "}\n";
+
+  Library& lib = Library::Handle();
+  const bool old_asserts = IsolateGroup::Current()->asserts();
+  IsolateGroup::Current()->set_asserts(true);
+  lib ^= ExecuteScript(kScript);
+  IsolateGroup::Current()->set_asserts(old_asserts);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // Foo is hit, and the assert is hit.
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":47,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[0,33],\"misses\":[]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":49,\"endPos\":76,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[49,65],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart
