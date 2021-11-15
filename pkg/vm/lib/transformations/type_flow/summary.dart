@@ -682,8 +682,8 @@ class Summary {
       if (staticTypeForNarrowing != null) {
         types[i] = argType.intersection(staticTypeForNarrowing, typeHierarchy);
       } else {
-        // TODO(sjindel/tfa): Narrowing is performed inside a [TypeCheck] later.
-        types[i] = args[i];
+        // Narrowing is performed inside a [TypeCheck] later.
+        types[i] = argType;
       }
     }
 

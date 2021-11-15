@@ -1870,6 +1870,10 @@ Fragment StreamingFlowGraphBuilder::CheckArgumentType(
       type, variable->name(), AssertAssignableInstr::kParameterCheck);
 }
 
+Fragment StreamingFlowGraphBuilder::RecordCoverage(TokenPosition position) {
+  return flow_graph_builder_->RecordCoverage(position);
+}
+
 Fragment StreamingFlowGraphBuilder::EnterScope(
     intptr_t kernel_offset,
     const LocalScope** scope /* = nullptr */) {
@@ -4338,6 +4342,7 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
       ReadPosition();  // read condition end offset.
 
   instructions += EvaluateAssertion();
+  instructions += RecordCoverage(condition_start_offset);
   instructions += CheckBoolean(condition_start_offset);
   instructions += Constant(Bool::True());
   instructions += BranchIfEqual(&then, &otherwise, false);

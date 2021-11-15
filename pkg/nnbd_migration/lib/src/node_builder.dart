@@ -660,7 +660,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType? visitVariableDeclarationList(VariableDeclarationList node) {
     node.metadata.accept(this);
     var typeAnnotation = node.type;
-    var type = _pushNullabilityNodeTarget(
+    var declaredType = _pushNullabilityNodeTarget(
         NullabilityNodeTarget.element(
             node.variables.first.declaredElement!, _getLineInfo),
         () => typeAnnotation?.accept(this));
@@ -671,9 +671,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (hint != null && hint.kind == HintCommentKind.lateFinal) {
       _variables!.recordLateHint(source, node, hint);
     }
+    var parent = node.parent;
     for (var variable in node.variables) {
       variable.metadata.accept(this);
       var declaredElement = variable.declaredElement;
+      var type = declaredType;
       if (type == null) {
         var target =
             NullabilityNodeTarget.element(declaredElement!, _getLineInfo);
@@ -683,11 +685,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       _variables!.recordDecoratedElementType(declaredElement, type);
       variable.initializer?.accept(this);
-    }
-    var parent = node.parent;
-    if (parent is FieldDeclaration) {
-      if (_hasAngularChildAnnotation(parent.metadata)) {
-        _graph.makeNullable(type!.node!, AngularAnnotationOrigin(source, node));
+      if (parent is FieldDeclaration) {
+        if (_hasAngularChildAnnotation(parent.metadata)) {
+          _graph.makeNullable(
+              type.node!, AngularAnnotationOrigin(source, node));
+        }
       }
     }
     return null;

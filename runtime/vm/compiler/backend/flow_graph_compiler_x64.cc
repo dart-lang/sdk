@@ -378,33 +378,6 @@ void FlowGraphCompiler::EmitPrologue() {
   EndCodeSourceRange(PrologueSource());
 }
 
-void FlowGraphCompiler::CompileGraph() {
-  InitCompiler();
-
-  // We have multiple entrypoints functionality which moved the frame
-  // setup into the [FunctionEntryInstr] (which will set the constant pool
-  // allowed bit to true).  Despite this we still have to set the
-  // constant pool allowed bit to true here as well, because we can generate
-  // code for [CatchEntryInstr]s, which need the pool.
-  __ set_constant_pool_allowed(true);
-
-  ASSERT(!block_order().is_empty());
-  VisitBlocks();
-
-#if defined(DEBUG)
-  __ int3();
-#endif
-
-  if (!skip_body_compilation()) {
-    ASSERT(assembler()->constant_pool_allowed());
-    GenerateDeferredCode();
-  }
-
-  for (intptr_t i = 0; i < indirect_gotos_.length(); ++i) {
-    indirect_gotos_[i]->ComputeOffsetTable(this);
-  }
-}
-
 void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
   ASSERT(!stub.IsNull());
   if (CanPcRelativeCall(stub)) {

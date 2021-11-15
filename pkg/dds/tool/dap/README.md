@@ -15,7 +15,7 @@ Because in the DAP protocol the client speaks first, running this command from t
 
 For details on the standard DAP functionality, see [the Debug Adapter Protocol Overview](https://microsoft.github.io/debug-adapter-protocol/) and [the Debug Adapter Protocol Specification](https://microsoft.github.io/debug-adapter-protocol/specification). Custom extensions are detailed below.
 
-**Flutter**: To run Flutter apps, the equivalent command should be run through the `flutter` tool. This is unavailable at the time of writing, but details will be linked here once available.
+**Flutter**: Flutter apps should be run using the debug adapter in the `flutter` tool - [see this document](https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/debug_adapters/README.md).
 
 ## Launch/Attach Arguments
 

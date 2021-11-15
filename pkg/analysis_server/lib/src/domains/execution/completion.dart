@@ -69,7 +69,7 @@ class RuntimeCompletionComputer {
       return RuntimeCompletionResult([], []);
     }
 
-    var dartRequest = DartCompletionRequest(
+    var dartRequest = DartCompletionRequest.forResolvedUnit(
       resolvedUnit: targetResult,
       offset: targetOffset,
     );

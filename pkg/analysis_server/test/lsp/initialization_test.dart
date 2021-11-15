@@ -230,6 +230,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.hoverProvider, isNotNull);
     expect(initResult.capabilities.signatureHelpProvider, isNotNull);
     expect(initResult.capabilities.referencesProvider, isNotNull);
+    expect(initResult.capabilities.colorProvider, isNotNull);
     expect(initResult.capabilities.documentHighlightProvider, isNotNull);
     expect(initResult.capabilities.documentFormattingProvider, isNotNull);
     expect(initResult.capabilities.documentOnTypeFormattingProvider, isNotNull);
@@ -289,6 +290,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.hoverProvider, isNull);
     expect(initResult.capabilities.signatureHelpProvider, isNull);
     expect(initResult.capabilities.referencesProvider, isNull);
+    expect(initResult.capabilities.colorProvider, isNull);
     expect(initResult.capabilities.documentHighlightProvider, isNull);
     expect(initResult.capabilities.documentFormattingProvider, isNull);
     expect(initResult.capabilities.documentOnTypeFormattingProvider, isNull);

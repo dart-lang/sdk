@@ -63,12 +63,48 @@ class Latin1Codec extends Encoding {
 }
 
 /// This class converts strings of only ISO Latin-1 characters to bytes.
+///
+/// Example:
+/// ```dart
+/// final latin1Encoder = latin1.encoder;
+///
+/// const sample = 'àáâãäå';
+/// final encoded = latin1Encoder.convert(sample);
+/// print(encoded); // [224, 225, 226, 227, 228, 229]
+/// ```
 class Latin1Encoder extends _UnicodeSubsetEncoder {
   const Latin1Encoder() : super(_latin1Mask);
 }
 
 /// This class converts Latin-1 bytes (lists of unsigned 8-bit integers)
 /// to a string.
+///
+/// Example:
+/// ```dart
+/// final latin1Decoder = latin1.decoder;
+///
+/// const encodedBytes = [224, 225, 226, 227, 228, 229];
+/// final decoded = latin1Decoder.convert(encodedBytes);
+/// print(decoded); // àáâãäå
+///
+/// // Hexadecimal values as source
+/// const hexBytes = [0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5];
+/// final decodedHexBytes = latin1Decoder.convert(hexBytes);
+/// print(decodedHexBytes); // àáâãäå
+/// ```
+/// Throws a [FormatException] if the encoded input contains values that are
+/// not in the range 0 .. 255 and [allowInvalid] is false ( the default ).
+///
+/// If [allowInvalid] is true, invalid bytes are converted
+/// to Unicode Replacement character U+FFFD (�).
+///
+/// Example with `allowInvalid` set to true:
+/// ```dart
+/// const latin1Decoder = Latin1Decoder(allowInvalid: true);
+/// const encodedBytes = [300];
+/// final decoded = latin1Decoder.convert(encodedBytes);
+/// print(decoded); // �
+/// ```
 class Latin1Decoder extends _UnicodeSubsetDecoder {
   /// Instantiates a new [Latin1Decoder].
   ///
