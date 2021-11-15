@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NotIterableSpreadTest);
     defineReflectiveTests(NotIterableSpreadWithoutNullSafetyTest);
+    defineReflectiveTests(NotIterableSpreadWithStrictCastsTest);
   });
 }
 
@@ -112,3 +113,27 @@ void f<T extends num>(T a) {
 @reflectiveTest
 class NotIterableSpreadWithoutNullSafetyTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin, NotIterableSpreadTestCases {}
+
+@reflectiveTest
+class NotIterableSpreadWithStrictCastsTest extends PubPackageResolutionTest
+    with WithStrictCastsMixin {
+  test_list() async {
+    await assertErrorsWithStrictCasts('''
+void f(dynamic a) {
+  [...a];
+}
+''', [
+      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 26, 1),
+    ]);
+  }
+
+  test_set() async {
+    await assertErrorsWithStrictCasts('''
+void f(dynamic a) {
+  <int>{...a};
+}
+''', [
+      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 31, 1),
+    ]);
+  }
+}

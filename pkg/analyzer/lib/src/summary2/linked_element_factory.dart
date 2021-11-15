@@ -180,9 +180,16 @@ class LinkedElementFactory {
   LibraryElementImpl libraryOfUri2(String uriStr) {
     var element = libraryOfUri(uriStr);
     if (element == null) {
+      libraryOfUri(uriStr);
       throw StateError('No library: $uriStr');
     }
     return element;
+  }
+
+  /// Return the [LibraryElementImpl] if it is ready.
+  LibraryElementImpl? libraryOfUriIfReady(String uriStr) {
+    var element = rootReference.getChild(uriStr).element;
+    return element is LibraryElementImpl ? element : null;
   }
 
   /// We have linked the bundle, and need to disconnect its libraries, so

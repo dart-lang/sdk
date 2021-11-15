@@ -143,7 +143,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
       );
     }
 
-    return elementFactory.libraryOfUri('${source.uri}')!;
+    return elementFactory.libraryOfUri2('${source.uri}');
   }
 
   void setUp() {

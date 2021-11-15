@@ -241,8 +241,14 @@ class RunCommand extends Command {
 
     if (benchmark is FlutterBenchmark) {
       if (flutterRepository != null) {
-        (benchmark as FlutterBenchmark).flutterRepositoryPath =
-            flutterRepository;
+        if (path.isAbsolute(flutterRepository) &&
+            path.normalize(flutterRepository) == flutterRepository) {
+          (benchmark as FlutterBenchmark).flutterRepositoryPath =
+              flutterRepository;
+        } else {
+          print('The path must be absolute and normalized: $flutterRepository');
+          exit(1);
+        }
       } else {
         print('The option --flutter-repository is required to '
             "run '$benchmarkId'.");

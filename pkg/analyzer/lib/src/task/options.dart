@@ -139,6 +139,7 @@ class AnalyzerOptions {
   static const String implicitDynamic = 'implicit-dynamic';
 
   // Language options (see AnalysisOptionsImpl for documentation).
+  static const String strictCasts = 'strict-casts';
   static const String strictInference = 'strict-inference';
   static const String strictRawTypes = 'strict-raw-types';
 
@@ -177,7 +178,11 @@ class AnalyzerOptions {
   ];
 
   /// Supported `analyzer` language options.
-  static const List<String> languageOptions = [strictInference, strictRawTypes];
+  static const List<String> languageOptions = [
+    strictCasts,
+    strictInference,
+    strictRawTypes,
+  ];
 
   /// Supported 'analyzer' optional checks options.
   static const List<String> optionalChecksOptions = [
@@ -750,6 +755,9 @@ class _OptionsProcessor {
       AnalysisOptionsImpl options, Object? feature, Object value) {
     var boolValue = toBool(value);
     if (boolValue != null) {
+      if (feature == AnalyzerOptions.strictCasts) {
+        options.strictCasts = boolValue;
+      }
       if (feature == AnalyzerOptions.strictInference) {
         options.strictInference = boolValue;
       }

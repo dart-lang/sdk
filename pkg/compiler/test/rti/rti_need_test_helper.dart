@@ -34,7 +34,6 @@ runTests(List<String> args, [int shardIndex]) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const RtiNeedDataComputer(),
-        options: ['--enable-experiment=constructor-tearoffs'],
         args: args,
         shardIndex: shardIndex ?? 0,
         shards: shardIndex != null ? 4 : 1);

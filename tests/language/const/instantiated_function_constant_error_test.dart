@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=constructor-tearoffs
-
 // Test the support for error detection with generic function instantiation
 // expressions that are constant or potentially constant. Include both some
 // explicit generic function instantiations, and some implicit ones (for the

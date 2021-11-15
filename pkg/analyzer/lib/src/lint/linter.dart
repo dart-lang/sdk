@@ -16,6 +16,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -368,11 +369,26 @@ class LinterContextImpl implements LinterContext {
       isNonNullableByDefault: libraryElement.isNonNullableByDefault,
     );
 
+    var evaluationEngine = ConstantEvaluationEngine(
+      declaredVariables: declaredVariables,
+      isNonNullableByDefault: isEnabled(Feature.non_nullable),
+    );
+
+    var dependencies = <ConstantEvaluationTarget>[];
+    node.accept(
+      ReferenceFinder(dependencies.add),
+    );
+
+    computeConstants(
+      typeProvider,
+      typeSystem,
+      declaredVariables,
+      dependencies,
+      libraryElement.featureSet as ExperimentStatus,
+    );
+
     var visitor = ConstantVisitor(
-      ConstantEvaluationEngine(
-        declaredVariables: declaredVariables,
-        isNonNullableByDefault: isEnabled(Feature.non_nullable),
-      ),
+      evaluationEngine,
       libraryElement,
       errorReporter,
     );

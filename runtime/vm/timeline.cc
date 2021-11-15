@@ -1441,7 +1441,9 @@ void TimelineEventBlock::PrintJSON(JSONStream* js) const {
   JSONArray events(js);
   for (intptr_t i = 0; i < length(); i++) {
     const TimelineEvent* event = At(i);
-    events.AddValue(event);
+    if (event->IsValid()) {
+      events.AddValue(event);
+    }
   }
 }
 #endif

@@ -36,6 +36,7 @@ class AnalysisOptionsFileConfig {
   final bool implicitCasts;
   final bool implicitDynamic;
   final List<String> lints;
+  final bool strictCasts;
   final bool strictInference;
   final bool strictRawTypes;
   final List<String> unignorableNames;
@@ -45,6 +46,7 @@ class AnalysisOptionsFileConfig {
     this.implicitCasts = true,
     this.implicitDynamic = true,
     this.lints = const [],
+    this.strictCasts = false,
     this.strictInference = false,
     this.strictRawTypes = false,
     this.unignorableNames = const [],
@@ -59,8 +61,9 @@ class AnalysisOptionsFileConfig {
       buffer.writeln('    - $experiment');
     }
     buffer.writeln('  language:');
-    buffer.writeln('    strict-raw-types: $strictRawTypes');
+    buffer.writeln('    strict-casts: $strictCasts');
     buffer.writeln('    strict-inference: $strictInference');
+    buffer.writeln('    strict-raw-types: $strictRawTypes');
     buffer.writeln('  strong-mode:');
     buffer.writeln('    implicit-casts: $implicitCasts');
     buffer.writeln('    implicit-dynamic: $implicitDynamic');
@@ -393,13 +396,14 @@ class PubspecYamlFileDependency {
 }
 
 mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {
+  /// Asserts that no errors are reported in [code] when implicit casts are
+  /// allowed, and that [expectedErrors] are reported for the same [code] when
+  /// implicit casts are not allowed.
   Future<void> assertErrorsWithNoImplicitCasts(
     String code,
-    List<ExpectedError> expectedErrorsWhenImplicitCastsDisabled,
+    List<ExpectedError> expectedErrors,
   ) async {
-    newFile(testFilePath, content: code);
-
-    await resolveTestFile();
+    await resolveTestCode(code);
     assertNoErrorsInResult();
 
     disposeAnalysisContextCollection();
@@ -411,8 +415,13 @@ mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {
     );
 
     await resolveTestFile();
-    assertErrorsInResult(expectedErrorsWhenImplicitCastsDisabled);
+    assertErrorsInResult(expectedErrors);
   }
+
+  /// Asserts that no errors are reported in [code], both when implicit casts
+  /// are allowed and when implicit casts are not allowed.
+  Future<void> assertNoErrorsWithNoImplicitCasts(String code) async =>
+      assertErrorsWithNoImplicitCasts(code, []);
 }
 
 mixin WithoutConstructorTearoffsMixin on PubPackageResolutionTest {
@@ -426,4 +435,33 @@ mixin WithoutNullSafetyMixin on PubPackageResolutionTest {
 
   @override
   bool get typeToStringWithNullability => false;
+}
+
+mixin WithStrictCastsMixin on PubPackageResolutionTest {
+  /// Asserts that no errors are reported in [code] when implicit casts are
+  /// allowed, and that [expectedErrors] are reported for the same [code] when
+  /// implicit casts are not allowed.
+  Future<void> assertErrorsWithStrictCasts(
+    String code,
+    List<ExpectedError> expectedErrors,
+  ) async {
+    await resolveTestCode(code);
+    assertNoErrorsInResult();
+
+    disposeAnalysisContextCollection();
+
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictCasts: true,
+      ),
+    );
+
+    await resolveTestFile();
+    assertErrorsInResult(expectedErrors);
+  }
+
+  /// Asserts that no errors are reported in [code], both when implicit casts
+  /// are allowed and when implicit casts are not allowed.
+  Future<void> assertNoErrorsWithStrictCasts(String code) async =>
+      assertErrorsWithStrictCasts(code, []);
 }

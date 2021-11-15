@@ -282,16 +282,6 @@ ExperimentNotEnabled:
   correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
-ExperimentNotEnabledNoFlag:
-  problemMessage: "This requires the null safety language feature, which is experimental."
-  correctionMessage: "You can enable the experiment using the '--enable-experiment=non-nullable' command line option."
-  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
-
-ExperimentNotEnabledNoFlagInvalidLanguageVersion:
-  problemMessage: "This requires the null safety language feature, which is experimental and requires language version of #string2 or higher."
-  correctionMessage: "You can enable the experiment using the '--enable-experiment=non-nullable' command line option."
-  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
-
 ExperimentDisabled:
   problemMessage: "This requires the '#string' language feature to be enabled."
   correctionMessage: "The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#string' command line option is passed."
