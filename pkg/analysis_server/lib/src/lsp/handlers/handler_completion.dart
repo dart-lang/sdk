@@ -215,7 +215,7 @@ class CompletionHandler
         );
         server.performanceStats.completion.add(completionPerformance);
 
-        final completionRequest = DartCompletionRequest(
+        final completionRequest = DartCompletionRequest.forResolvedUnit(
           resolvedUnit: unit,
           offset: offset,
           dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(unit),

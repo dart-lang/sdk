@@ -31,6 +31,7 @@ import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:collection/collection.dart';
 
 /// Instances of the class [CompletionDomainHandler] implement a
 /// [RequestHandler] that handles requests in the completion domain.
@@ -301,10 +302,14 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     performance.runAsync(
       'request',
       (performance) async {
-        var resolvedUnit = await performance.runAsync(
-          'getResolvedUnit',
-          (performance) async {
-            return await server.getResolvedUnit(file);
+        var resolvedUnit = performance.run(
+          'resolveForCompletion',
+          (performance) {
+            return server.resolveForCompletion(
+              path: file,
+              offset: offset,
+              performance: performance,
+            );
           },
         );
         if (resolvedUnit == null) {
@@ -329,13 +334,21 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         );
         performanceList.add(completionPerformance);
 
+        var analysisSession = resolvedUnit.analysisSession;
+        var enclosingNode =
+            resolvedUnit.resolvedNodes.lastOrNull ?? resolvedUnit.parsedUnit;
+
         var completionRequest = DartCompletionRequest(
-          resolvedUnit: resolvedUnit,
+          analysisSession: analysisSession,
+          filePath: resolvedUnit.path,
+          fileContent: resolvedUnit.content,
+          unitElement: resolvedUnit.unitElement,
+          enclosingNode: enclosingNode,
           offset: offset,
-          dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
-            resolvedUnit,
-          ),
-          documentationCache: server.getDocumentationCacheFor(resolvedUnit),
+          dartdocDirectiveInfo:
+              server.getDartdocDirectiveInfoForSession(analysisSession),
+          documentationCache:
+              server.getDocumentationCacheForSession(analysisSession),
         );
         setNewRequest(completionRequest);
 
@@ -391,15 +404,17 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           }
         }
 
-        server.sendResponse(
-          CompletionGetSuggestions2Result(
-            completionRequest.replacementOffset,
-            completionRequest.replacementLength,
-            lengthRestricted,
-            librariesToImport.keys.map((e) => '$e').toList(),
-            isIncomplete,
-          ).toResponse(request.id),
-        );
+        performance.run('sendResponse', (_) {
+          server.sendResponse(
+            CompletionGetSuggestions2Result(
+              completionRequest.replacementOffset,
+              completionRequest.replacementLength,
+              lengthRestricted,
+              librariesToImport.keys.map((e) => '$e').toList(),
+              isIncomplete,
+            ).toResponse(request.id),
+          );
+        });
       },
     );
   }
@@ -527,7 +542,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           return;
         }
 
-        var completionRequest = DartCompletionRequest(
+        var completionRequest = DartCompletionRequest.forResolvedUnit(
           resolvedUnit: resolvedUnit,
           offset: offset,
           dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(

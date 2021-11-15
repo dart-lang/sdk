@@ -31,7 +31,6 @@ runTests(List<String> args, [int shardIndex]) {
         new Directory.fromUri(Platform.script.resolve('emission'));
     await checkTests(dataDir, const RtiEmissionDataComputer(),
         args: args,
-        options: ['--enable-experiment=constructor-tearoffs'],
         shardIndex: shardIndex ?? 0,
         shards: shardIndex != null ? 4 : 1);
   });

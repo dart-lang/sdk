@@ -99,7 +99,7 @@ class CompletionRunner {
           }
 
           timer.start();
-          var dartRequest = DartCompletionRequest(
+          var dartRequest = DartCompletionRequest.forResolvedUnit(
             resolvedUnit: result,
             offset: offset,
           );

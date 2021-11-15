@@ -10,7 +10,7 @@ part of dart.collection;
 ///
 /// The insertion order of keys is remembered,
 /// and keys are iterated in the order they were inserted into the map.
-/// Values are iterated in their corresponding key's order.
+/// Values and entries are iterated in their corresponding key's order.
 /// Changing a key's value, when the key is already in the map,
 /// does not change the iteration order,
 /// but removing the key and adding it again
@@ -99,21 +99,36 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// for keys in order to place them in the hash table. If it is omitted, the
   /// key's own [Object.hashCode] is used.
   ///
-  /// If using methods like [operator []], [remove] and [containsKey] together
-  /// with a custom equality and hashcode, an extra `isValidKey` function
-  /// can be supplied. This function is called before calling [equals] or
-  /// [hashCode] with an argument that may not be a [K] instance, and if the
-  /// call returns false, the key is assumed to not be in the set.
-  /// The [isValidKey] function defaults to just testing if the object is a
-  /// [K] instance.
+  /// The used `equals` and `hashCode` method should always be consistent,
+  /// so that if `equals(a, b)` then `hashCode(a) == hashCode(b)`. The hash
+  /// of an object, or what it compares equal to, should not change while the
+  /// object is in the table. If it does change, the result is unpredictable.
+  ///
+  /// If you supply one of [equals] and [hashCode],
+  /// you should generally also supply the other.
+  ///
+  /// Some [equals] or [hashCode] functions might not work for all objects.
+  /// If [isValidKey] is supplied, it's used to check a potential key
+  /// which is not necessarily an instance of [K], like the arguments to
+  /// [operator []], [remove] and [containsKey], which are typed as `Object?`.
+  /// If [isValidKey] returns `false`, for an object, the [equals] and
+  /// [hashCode] functions are not called, and no key equal to that object
+  /// is assumed to be in the map.
+  /// The [isValidKey] function defaults to just testing if the object is an
+  /// instance of [K].
   ///
   /// Example:
   /// ```dart template:expression
+<<<<<<< HEAD
   /// LinkedHashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
   ///                        hashCode: (int e) => e % 5);
+=======
+  /// LikedHashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
+  ///                       hashCode: (int e) => e % 5)
+>>>>>>> 33dfe014ee0fb8e7129b363ba262cc8688b25573
   /// ```
   /// This example map does not need an `isValidKey` function to be passed.
-  /// The default function accepts only `int` values, which can safely be
+  /// The default function accepts precisely `int` values, which can safely be
   /// passed to both the `equals` and `hashCode` functions.
   ///
   /// If neither `equals`, `hashCode`, nor `isValidKey` is provided,
@@ -125,14 +140,6 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// and `isValidKey` is omitted, the resulting map is identity based,
   /// and the `isValidKey` defaults to accepting all keys.
   /// Such a map can be created directly using [LinkedHashMap.identity].
-  ///
-  /// The used `equals` and `hashCode` method should always be consistent,
-  /// so that if `equals(a, b)` then `hashCode(a) == hashCode(b)`. The hash
-  /// of an object, or what it compares equal to, should not change while the
-  /// object is in the table. If it does change, the result is unpredictable.
-  ///
-  /// If you supply one of [equals] and [hashCode],
-  /// you should generally also to supply the other.
   external factory LinkedHashMap(
       {bool Function(K, K)? equals,
       int Function(K)? hashCode,

@@ -96,19 +96,16 @@ def main():
     if job.returncode != 0:
         print(out, file=sys.stderr)
         print(err, file=sys.stderr)
-        raise Exception((
-            'Error %d running xcode-select, you might have to run '
-            '|sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer| '
-            'if you are using Xcode 4.') % job.returncode)
-    # The Developer folder moved in Xcode 4.3.
-    xcode43_sdk_path = os.path.join(out.rstrip(),
-                                    'Platforms/MacOSX.platform/Developer/SDKs')
-    if os.path.isdir(xcode43_sdk_path):
-        sdk_dir = xcode43_sdk_path
-    else:
-        sdk_dir = os.path.join(out.rstrip(), 'SDKs')
+        raise Exception('Error %d running xcode-select' % job.returncode)
+    sdk_dir = os.path.join(out.rstrip(),
+                           'Platforms/MacOSX.platform/Developer/SDKs')
+    if not os.path.isdir(sdk_dir):
+        raise Exception(
+            'Install Xcode, launch it, accept the license ' +
+            'agreement, and run `sudo xcode-select -s /path/to/Xcode.app` ' +
+            'to continue.')
     sdks = [
-        re.findall('^MacOSX(1[01]\.\d+)\.sdk$', s) for s in os.listdir(sdk_dir)
+        re.findall('^MacOSX(\d+\.\d+)\.sdk$', s) for s in os.listdir(sdk_dir)
     ]
     sdks = [s[0] for s in sdks if s]  # [['10.5'], ['10.6']] => ['10.5', '10.6']
     sdks = [

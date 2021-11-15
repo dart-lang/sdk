@@ -582,6 +582,14 @@ void Dart::WaitForApplicationIsolateShutdown() {
 
 // This waits until only the VM isolate remains in the list.
 void Dart::WaitForIsolateShutdown() {
+  int64_t start_time = 0;
+  if (FLAG_trace_shutdown) {
+    start_time = UptimeMillis();
+    OS::PrintErr("[+%" Pd64
+                 "ms] SHUTDOWN: Waiting for service "
+                 "and kernel isolates to shutdown\n",
+                 start_time);
+  }
   ASSERT(!Isolate::creation_enabled_);
   MonitorLocker ml(Isolate::isolate_creation_monitor_);
   intptr_t num_attempts = 0;
@@ -592,6 +600,25 @@ void Dart::WaitForIsolateShutdown() {
       if (num_attempts > 10) {
         DumpAliveIsolates(num_attempts, /*only_application_isolates=*/false);
       }
+      if (FLAG_trace_shutdown) {
+        OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: %" Pd
+                     " time out waiting for "
+                     "service and kernel isolates to shutdown\n",
+                     UptimeMillis(), num_attempts);
+      }
+    }
+  }
+  if (FLAG_trace_shutdown) {
+    int64_t stop_time = UptimeMillis();
+    OS::PrintErr("[+%" Pd64
+                 "ms] SHUTDOWN: Done waiting for service "
+                 "and kernel isolates to shutdown\n",
+                 stop_time);
+    if ((stop_time - start_time) > 500) {
+      OS::PrintErr("[+%" Pd64
+                   "ms] SHUTDOWN: waited too long for service "
+                   "and kernel isolates to shutdown\n",
+                   (stop_time - start_time));
     }
   }
 
@@ -642,6 +669,10 @@ char* Dart::Cleanup() {
                    UptimeMillis());
     }
     WaitForApplicationIsolateShutdown();
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done shutting down app isolates\n",
+                   UptimeMillis());
+    }
   }
 
   // Shutdown the kernel isolate.
@@ -658,12 +689,8 @@ char* Dart::Cleanup() {
   }
   ServiceIsolate::Shutdown();
 
-  // Wait for the remaining isolate (service isolate) to shutdown
+  // Wait for the remaining isolate (service/kernel isolate) to shutdown
   // before shutting down the thread pool.
-  if (FLAG_trace_shutdown) {
-    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Waiting for isolate shutdown\n",
-                 UptimeMillis());
-  }
   WaitForIsolateShutdown();
 
 #if !defined(PRODUCT)
@@ -696,6 +723,10 @@ char* Dart::Cleanup() {
   thread_pool_->Shutdown();
   delete thread_pool_;
   thread_pool_ = NULL;
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done deleting thread pool\n",
+                 UptimeMillis());
+  }
 
   Api::Cleanup();
   delete predefined_handles_;

@@ -52,12 +52,14 @@ namespace dart {
   V(TypePropagation)                                                           \
   V(UseTableDispatch)                                                          \
   V(WidenSmiToInt32)                                                           \
-  V(EliminateWriteBarriers)
+  V(EliminateWriteBarriers)                                                    \
+  V(GenerateCode)
 
 class AllocationSinking;
 class BlockScheduler;
 class CallSpecializer;
 class FlowGraph;
+class FlowGraphCompiler;
 class Function;
 class Precompiler;
 class SpeculativeInliningPolicy;
@@ -94,6 +96,8 @@ struct CompilerPassState {
   bool reorder_blocks;
 
   intptr_t sticky_flags;
+
+  FlowGraphCompiler* graph_compiler = nullptr;
 
  private:
   FlowGraph* flow_graph_;
@@ -143,6 +147,10 @@ class CompilerPass {
   static void ParseFilters(const char* filter);
 
   enum PipelineMode { kJIT, kAOT };
+
+  static void GenerateCode(CompilerPassState* state) {
+    CompilerPass::Get(CompilerPass::kGenerateCode)->Run(state);
+  }
 
   static void RunGraphIntrinsicPipeline(CompilerPassState* state);
 

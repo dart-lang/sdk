@@ -94,6 +94,9 @@ class FileState {
   /// The absolute URI of the file.
   final Uri uri;
 
+  /// Properties of the [uri].
+  final FileUriProperties uriProperties;
+
   /// The [Source] of the file with the [uri].
   final Source source;
 
@@ -126,6 +129,9 @@ class FileState {
 
   UnlinkedUnit? _unlinked2;
 
+  /// Files that reference this file.
+  final List<FileState> referencingFiles = [];
+
   List<FileState?>? _importedFiles;
   List<FileState?>? _exportedFiles;
   List<FileState?>? _partedFiles;
@@ -148,7 +154,7 @@ class FileState {
     this.workspacePackage,
     this._contextFeatureSet,
     this.packageLanguageVersion,
-  );
+  ) : uriProperties = FileUriProperties(uri);
 
   /// The unlinked API signature of the file.
   Uint8List get apiSignature => _apiSignature!;
@@ -196,7 +202,10 @@ class FileState {
     return _exportedFiles ??= _unlinked2!.exports.map((directive) {
       var uri = _selectRelativeUri(directive);
       return _fileForRelativeUri(uri).map(
-        (file) => file,
+        (file) {
+          file?.referencingFiles.add(this);
+          return file;
+        },
         (_) => null,
       );
     }).toList();
@@ -210,7 +219,10 @@ class FileState {
     return _importedFiles ??= _unlinked2!.imports.map((directive) {
       var uri = _selectRelativeUri(directive);
       return _fileForRelativeUri(uri).map(
-        (file) => file,
+        (file) {
+          file?.referencingFiles.add(this);
+          return file;
+        },
         (_) => null,
       );
     }).toList();
@@ -276,6 +288,7 @@ class FileState {
       return _fileForRelativeUri(uri).map(
         (file) {
           if (file != null) {
+            file.referencingFiles.add(this);
             _fsState._partToLibraries
                 .putIfAbsent(file, () => <FileState>[])
                 .add(this);
@@ -420,6 +433,9 @@ class FileState {
       }
     }
 
+    // It is possible that this file does not reference these files.
+    _stopReferencingByThisFile();
+
     // Read imports/exports on demand.
     _importedFiles = null;
     _exportedFiles = null;
@@ -557,6 +573,20 @@ class FileState {
       }
     }
     return directive.uri;
+  }
+
+  void _stopReferencingByThisFile() {
+    void removeForOne(List<FileState?>? referencedFiles) {
+      if (referencedFiles != null) {
+        for (var referenced in referencedFiles) {
+          referenced?.referencingFiles.remove(this);
+        }
+      }
+    }
+
+    removeForOne(_importedFiles);
+    removeForOne(_exportedFiles);
+    removeForOne(_partedFiles);
   }
 
   static UnlinkedUnit serializeAstUnlinked2(CompilationUnit unit) {
@@ -737,23 +767,10 @@ class FileSystemState {
   /// Collected files that transitively reference a file with the [path].
   /// These files are potentially affected by the change.
   void collectAffected(String path, Set<FileState> affected) {
-    final knownFiles = this.knownFiles.toList();
-
-    final fileToReferences = <FileState, List<FileState>>{};
-    for (var file in knownFiles) {
-      for (var referenced in file.directReferencedFiles) {
-        var references = fileToReferences[referenced] ??= [];
-        references.add(file);
-      }
-    }
-
     collectAffected(FileState file) {
       if (affected.add(file)) {
-        var references = fileToReferences[file];
-        if (references != null) {
-          for (var other in references) {
-            collectAffected(other);
-          }
+        for (var other in file.referencingFiles) {
+          collectAffected(other);
         }
       }
     }
@@ -970,4 +987,47 @@ class FileSystemStateTestView {
         .where((f) => f._libraryCycle == null)
         .toSet();
   }
+}
+
+/// Precomputed properties of a file URI, used because [Uri] is relatively
+/// expensive to work with, if we do this thousand times.
+class FileUriProperties {
+  static const int _isDart = 1 << 0;
+  static const int _isSrc = 1 << 1;
+
+  final int _flags;
+  final String? packageName;
+
+  factory FileUriProperties(Uri uri) {
+    if (uri.isScheme('dart')) {
+      return const FileUriProperties._dart();
+    } else if (uri.isScheme('package')) {
+      var segments = uri.pathSegments;
+      if (segments.length >= 2) {
+        return FileUriProperties._package(
+          packageName: segments[0],
+          isSrc: segments[1] == 'src',
+        );
+      }
+    }
+    return const FileUriProperties._unknown();
+  }
+
+  const FileUriProperties._dart()
+      : _flags = _isDart,
+        packageName = null;
+
+  FileUriProperties._package({
+    required String packageName,
+    required bool isSrc,
+  })  : _flags = isSrc ? _isSrc : 0,
+        packageName = packageName;
+
+  const FileUriProperties._unknown()
+      : _flags = 0,
+        packageName = null;
+
+  bool get isDart => (_flags & _isDart) != 0;
+
+  bool get isSrc => (_flags & _isSrc) != 0;
 }

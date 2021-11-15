@@ -3130,6 +3130,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       CompilerState compiler_state(thread(), /*is_aot=*/true, optimized(),
                                    CompilerState::ShouldTrace(function));
+      compiler_state.set_function(function);
 
       {
         ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
