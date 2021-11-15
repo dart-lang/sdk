@@ -2288,7 +2288,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         offset_reg,
         compiler::FieldAddress(
             field_reg, Field::guarded_list_length_in_object_offset_offset()));
-    __ LoadCompressed(
+    __ LoadCompressedSmi(
         length_reg,
         compiler::FieldAddress(field_reg, Field::guarded_list_length_offset()));
 

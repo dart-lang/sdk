@@ -10,8 +10,10 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnOfInvalidTypeTest);
-    defineReflectiveTests(ReturnOfInvalidTypeWithNoImplicitCastsTest);
+    defineReflectiveTests(
+        ReturnOfInvalidTypeWithoutNullSafetyAndNoImplicitCastsTest);
     defineReflectiveTests(ReturnOfInvalidTypeWithoutNullSafetyTest);
+    defineReflectiveTests(ReturnOfInvalidTypeWithStrictCastsTest);
   });
 }
 
@@ -547,7 +549,7 @@ class A {
 }
 
 @reflectiveTest
-class ReturnOfInvalidTypeWithNoImplicitCastsTest
+class ReturnOfInvalidTypeWithoutNullSafetyAndNoImplicitCastsTest
     extends PubPackageResolutionTest
     with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
   test_return() async {
@@ -571,3 +573,25 @@ Future<List<String>> f() async {
 @reflectiveTest
 class ReturnOfInvalidTypeWithoutNullSafetyTest extends PubPackageResolutionTest
     with ReturnOfInvalidTypeTestCases, WithoutNullSafetyMixin {}
+
+@reflectiveTest
+class ReturnOfInvalidTypeWithStrictCastsTest extends PubPackageResolutionTest
+    with WithStrictCastsMixin {
+  test_return() async {
+    await assertErrorsWithStrictCasts('''
+int f(dynamic a) => a;
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 20, 1),
+    ]);
+  }
+
+  test_return_async() async {
+    await assertErrorsWithStrictCasts('''
+Future<int> f(dynamic a) async {
+  return a;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 42, 1),
+    ]);
+  }
+}

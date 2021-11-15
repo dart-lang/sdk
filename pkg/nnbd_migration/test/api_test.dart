@@ -8927,6 +8927,49 @@ http.BaseClient downcast(http.Client x) => x as http.BaseClient;
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_var_with_different_types() async {
+    // Based on https://github.com/dart-lang/sdk/issues/47669
+    var content = '''
+class C<T> {
+  T m() => throw 'foo';
+}
+f(bool b, List<C<int>> cs) {
+  var x = !b,
+      y = cs.first,
+      z = y.m();
+}
+''';
+    var expected = '''
+class C<T> {
+  T m() => throw 'foo';
+}
+f(bool b, List<C<int>> cs) {
+  var x = !b,
+      y = cs.first,
+      z = y.m();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_var_with_different_types_becoming_explicit() async {
+    // When types need to be added to some variables in a declaration but not
+    // others, we handle it by introducing `as` casts.
+    var content = '''
+f(int i, String s) {
+  var x = i, y = s;
+  x = null;
+}
+''';
+    var expected = '''
+f(int i, String s) {
+  var x = i as int?, y = s;
+  x = null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_weak_if_visit_weak_subexpression() async {
     var content = '''
 int f(int x, int/*?*/ y) {

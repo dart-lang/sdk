@@ -8,6 +8,7 @@
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/constant_propagator.h"
 #include "vm/compiler/backend/flow_graph_checker.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
@@ -206,6 +207,7 @@ void CompilerPass::Run(CompilerPassState* state) const {
       Get(kCanonicalize)->Run(state);
     }
 
+    CompilerState::Current().set_current_pass(this, state);
     PrintGraph(state, kTraceBefore, round);
     {
       TIMELINE_DURATION(thread, CompilerVerbose, name());
@@ -217,9 +219,12 @@ void CompilerPass::Run(CompilerPassState* state) const {
     }
     PrintGraph(state, kTraceAfter, round);
 #if defined(DEBUG)
-    FlowGraphChecker(state->flow_graph(), state->inline_id_to_function)
-        .Check(name());
+    if (CompilerState::Current().is_optimizing()) {
+      FlowGraphChecker(state->flow_graph(), state->inline_id_to_function)
+          .Check(name());
+    }
 #endif
+    CompilerState::Current().set_current_pass(nullptr, nullptr);
   }
 }
 
@@ -554,5 +559,7 @@ COMPILER_PASS(FinalizeGraph, {
   // Remove redefinitions for the rest of the pipeline.
   flow_graph->RemoveRedefinitions();
 });
+
+COMPILER_PASS(GenerateCode, { state->graph_compiler->CompileGraph(); });
 
 }  // namespace dart

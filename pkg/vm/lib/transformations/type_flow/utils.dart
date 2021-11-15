@@ -188,8 +188,10 @@ class Statistics {
   static int invocationsQueriedInCache = 0;
   static int invocationsAddedToCache = 0;
   static int maxInvocationsCachedPerSelector = 0;
-  static int approximateInvocationsCreated = 0;
-  static int approximateInvocationsUsed = 0;
+  static int approximateDirectInvocationsCreated = 0;
+  static int approximateDirectInvocationsUsed = 0;
+  static int approximateInterfaceInvocationsCreated = 0;
+  static int approximateInterfaceInvocationsUsed = 0;
   static int deepInvocationsDeferred = 0;
   static int classesDropped = 0;
   static int membersDropped = 0;
@@ -222,8 +224,10 @@ class Statistics {
     invocationsQueriedInCache = 0;
     invocationsAddedToCache = 0;
     maxInvocationsCachedPerSelector = 0;
-    approximateInvocationsCreated = 0;
-    approximateInvocationsUsed = 0;
+    approximateDirectInvocationsCreated = 0;
+    approximateDirectInvocationsUsed = 0;
+    approximateInterfaceInvocationsCreated = 0;
+    approximateInterfaceInvocationsUsed = 0;
     deepInvocationsDeferred = 0;
     classesDropped = 0;
     membersDropped = 0;
@@ -267,8 +271,10 @@ class Statistics {
     ${invocationsQueriedInCache} invocations queried in cache
     ${invocationsAddedToCache} invocations added to cache
     ${maxInvocationsCachedPerSelector} maximum invocations cached per selector
-    ${approximateInvocationsCreated} approximate invocations created
-    ${approximateInvocationsUsed} times approximate invocation is used
+    ${approximateDirectInvocationsCreated} approximate direct invocations created
+    ${approximateDirectInvocationsUsed} times direct interface invocation is used
+    ${approximateInterfaceInvocationsCreated} approximate interface invocations created
+    ${approximateInterfaceInvocationsUsed} times approximate interface invocation is used
     ${deepInvocationsDeferred} times invocation processing was deferred due to deep call stack
     ${classesDropped} classes dropped
     ${membersDropped} members dropped

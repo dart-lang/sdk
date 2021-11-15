@@ -101,8 +101,8 @@ Below is a list of LSP methods and their implementation status.
 | codeLens/resolve | | | | | |
 | textDocument/documentLink | | | | | |
 | documentLink/resolve | | | | | |
-| textDocument/documentColor | | | | | |
-| textDocument/colorPresentation | | | | | |
+| textDocument/documentColor | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/colorPresentation | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/formatting | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/rangeFormatting | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/onTypeFormatting | ✅ | ✅ | | ✅ | ✅ |

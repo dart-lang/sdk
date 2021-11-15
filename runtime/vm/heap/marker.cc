@@ -783,13 +783,31 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
   ResetSlices();
   for (intptr_t i = 0; i < num_tasks; i++) {
     ASSERT(visitors_[i] == NULL);
-    visitors_[i] = new SyncMarkingVisitor(
+    SyncMarkingVisitor* visitor = new SyncMarkingVisitor(
         isolate_group_, page_space, &marking_stack_, &deferred_marking_stack_);
+    visitors_[i] = visitor;
 
-    // Begin marking on a helper thread.
-    bool result = Dart::thread_pool()->Run<ConcurrentMarkTask>(
-        this, isolate_group_, page_space, visitors_[i]);
-    ASSERT(result);
+    if (i < (num_tasks - 1)) {
+      // Begin marking on a helper thread.
+      bool result = Dart::thread_pool()->Run<ConcurrentMarkTask>(
+          this, isolate_group_, page_space, visitor);
+      ASSERT(result);
+    } else {
+      // Last worker is the main thread, which will only mark roots.
+      TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ConcurrentMark");
+      int64_t start = OS::GetCurrentMonotonicMicros();
+      IterateRoots(visitor);
+      int64_t stop = OS::GetCurrentMonotonicMicros();
+      visitor->AddMicros(stop - start);
+      if (FLAG_log_marker_tasks) {
+        THR_Print("Task marked %" Pd " bytes in %" Pd64 " micros.\n",
+                  visitor->marked_bytes(), visitor->marked_micros());
+      }
+      // Continue non-root marking concurrently.
+      bool result = Dart::thread_pool()->Run<ConcurrentMarkTask>(
+          this, isolate_group_, page_space, visitor);
+      ASSERT(result);
+    }
   }
 
   isolate_group_->DeferredMarkLiveTemporaries();

@@ -2259,6 +2259,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     DartType iterableType = node.iterable.typeOrThrow;
 
+    Token? awaitKeyword;
+    var parent = node.parent;
+    if (parent is ForStatement) {
+      awaitKeyword = parent.awaitKeyword;
+    } else if (parent is ForElement) {
+      awaitKeyword = parent.awaitKeyword;
+    }
+
+    // Use an explicit string instead of [loopType] to remove the "<E>".
+    String loopNamedType = awaitKeyword != null ? 'Stream' : 'Iterable';
+
+    if (iterableType.isDynamic && typeSystem.strictCasts) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
+        node.iterable,
+        [iterableType, loopNamedType],
+      );
+      return false;
+    }
+
     // TODO(scheglov) use NullableDereferenceVerifier
     if (_isNonNullableByDefault) {
       if (typeSystem.isNullable(iterableType)) {
@@ -2275,14 +2295,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return false;
     }
 
-    Token? awaitKeyword;
-    var parent = node.parent;
-    if (parent is ForStatement) {
-      awaitKeyword = parent.awaitKeyword;
-    } else if (parent is ForElement) {
-      awaitKeyword = parent.awaitKeyword;
-    }
-
     // The object being iterated has to implement Iterable<T> for some T that
     // is assignable to the variable's type.
     // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
@@ -2297,8 +2309,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (!typeSystem.isAssignableTo(iterableType, requiredSequenceType)) {
-      // Use an explicit string instead of [loopType] to remove the "<E>".
-      String loopNamedType = awaitKeyword != null ? 'Stream' : 'Iterable';
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
         node.iterable,
