@@ -2449,7 +2449,18 @@ void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
 
 // static
 void Isolate::NotifyLowMemory() {
-  Isolate::KillAllIsolates(Isolate::kLowMemoryMsg);
+  IsolateGroup::ForEach([](IsolateGroup* group) { group->NotifyLowMemory(); });
+}
+
+void IsolateGroup::NotifyLowMemory() {
+  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
+  MonitorLocker ml2(Isolate::isolate_creation_monitor_);
+  for (Isolate* isolate : isolates_) {
+    if (isolate->AcceptsMessagesLocked()) {
+      isolate->KillLocked(Isolate::kLowMemoryMsg);
+      return;  // Only wake up one member of the group.
+    }
+  }
 }
 
 void Isolate::LowLevelShutdown() {
