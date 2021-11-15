@@ -6,7 +6,7 @@ part of dart.collection;
 
 /// LinkedHashMap is the default implementation of [Map].
 ///
-/// The LinkedHashMap iterates in key insertion order.
+/// LinkedHashMap iterates in key insertion order.
 ///
 /// The insertion order of keys is remembered,
 /// and keys are iterated in the order they were inserted into the map.
@@ -38,7 +38,7 @@ part of dart.collection;
 /// equatorialDiameters
 ///     .addAll({0.949: 'Venus', 1: 'Earth', 0.532: 'Mars', 11.209: 'Jupiter'});
 ///
-/// // To check is the map empty, use isEmpty or isNotEmpty.
+/// // To check if the map is empty, use isEmpty or isNotEmpty.
 /// // To check length of map data, use length
 /// equatorialDiameters.isEmpty; // false
 /// equatorialDiameters.length; // 4
@@ -54,11 +54,11 @@ part of dart.collection;
 ///   // key: 11.209 value: Jupiter
 /// });
 ///
-/// // To check is there a defined key, call containsKey
+/// // To check if there is a defined key, call containsKey
 /// final keyOneExists = equatorialDiameters.containsKey(1); // true
 /// final keyFiveExists = equatorialDiameters.containsKey(5); // false
 ///
-/// // To check is there a value item on map, call containsValue
+/// // To check if there is a value item on map, call containsValue
 /// final earthExists = equatorialDiameters.containsValue('Earth'); // true
 /// final saturnExists =  equatorialDiameters.containsValue('Saturn'); // false
 ///
@@ -85,7 +85,7 @@ part of dart.collection;
 /// print(equatorialDiameters); // {}
 /// ```
 /// **See also:**
-/// * [Map] a base-class for key/value pair collection.
+/// * [Map], a base-class for key/value pair collection.
 /// * [HashMap] is unordered (the order of iteration is not guaranteed).
 /// * [SplayTreeMap] iterates the keys in sorted order.
 abstract class LinkedHashMap<K, V> implements Map<K, V> {
@@ -95,7 +95,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// new keys. If [equals] is omitted, the key's own [Object.==] is used
   /// instead.
   ///
-  /// Similar, if [hashCode] is provided, it is used to produce a hash value
+  /// Similarly, if [hashCode] is provided, it is used to produce a hash value
   /// for keys in order to place them in the hash table. If it is omitted, the
   /// key's own [Object.hashCode] is used.
   ///
@@ -104,7 +104,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// of an object, or what it compares equal to, should not change while the
   /// object is in the table. If it does change, the result is unpredictable.
   ///
-  /// If you supply one of [equals] and [hashCode],
+  /// If you supply one of [equals] or [hashCode],
   /// you should generally also supply the other.
   ///
   /// Some [equals] or [hashCode] functions might not work for all objects.
@@ -119,13 +119,8 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   ///
   /// Example:
   /// ```dart template:expression
-<<<<<<< HEAD
-  /// LinkedHashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
-  ///                        hashCode: (int e) => e % 5);
-=======
   /// LikedHashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
   ///                       hashCode: (int e) => e % 5)
->>>>>>> 33dfe014ee0fb8e7129b363ba262cc8688b25573
   /// ```
   /// This example map does not need an `isValidKey` function to be passed.
   /// The default function accepts precisely `int` values, which can safely be
@@ -147,7 +142,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
 
   /// Creates an insertion-ordered identity-based map.
   ///
-  /// Effectively a shorthand for:
+  /// Effectively shorthand for:
   /// ```dart template:expression
   /// LinkedHashMap<K, V>(equals: identical,
   ///                     hashCode: identityHashCode)
@@ -185,13 +180,13 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// Creates a [LinkedHashMap] where the keys and values are computed from the
   /// [iterable].
   ///
-  /// For each element of the [iterable] this constructor computes a key/value
-  /// pair, by applying [key] and [value] respectively.
+  /// For each element of the [iterable], this constructor computes a key/value
+  /// pair by applying [key] and [value] respectively.
   ///
   /// The keys of the key/value pairs do not need to be unique. The last
   /// occurrence of a key will simply overwrite any previous value.
   ///
-  /// If no values are specified for [key] and [value] the default is the
+  /// If no values are specified for [key] and [value], the default is the
   /// identity function.
   /// Example:
   /// ```dart
