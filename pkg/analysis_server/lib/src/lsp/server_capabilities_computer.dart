@@ -30,6 +30,7 @@ class ClientDynamicRegistrations {
     Method.textDocument_signatureHelp,
     Method.textDocument_references,
     Method.textDocument_documentHighlight,
+    Method.textDocument_documentColor,
     Method.textDocument_formatting,
     Method.textDocument_onTypeFormatting,
     Method.textDocument_rangeFormatting,
@@ -51,6 +52,9 @@ class ClientDynamicRegistrations {
 
   bool get codeActions =>
       _capabilities.textDocument?.foldingRange?.dynamicRegistration ?? false;
+
+  bool get colorProvider =>
+      _capabilities.textDocument?.colorProvider?.dynamicRegistration ?? false;
 
   bool get completion =>
       _capabilities.textDocument?.completion?.dynamicRegistration ?? false;
@@ -130,8 +134,15 @@ class ServerCapabilitiesComputer {
   Set<Registration> currentRegistrations = {};
   var _lastRegistrationId = 0;
 
-  ServerCapabilitiesComputer(this._server);
+  final dartFiles = DocumentFilter(language: 'dart', scheme: 'file');
+  final pubspecFile = DocumentFilter(
+      language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
+  final analysisOptionsFile = DocumentFilter(
+      language: 'yaml', scheme: 'file', pattern: '**/analysis_options.yaml');
+  final fixDataFile = DocumentFilter(
+      language: 'yaml', scheme: 'file', pattern: '**/lib/fix_data.yaml');
 
+  ServerCapabilitiesComputer(this._server);
   ServerCapabilities computeServerCapabilities(
       LspClientCapabilities clientCapabilities) {
     final codeActionLiteralSupport = clientCapabilities.literalCodeActions;
@@ -210,6 +221,11 @@ class ServerCapabilitiesComputer {
                   codeActionKinds: DartCodeActionKind.serverSupportedKinds,
                 ))
               : Either2<bool, CodeActionOptions>.t1(true),
+      colorProvider: dynamicRegistrations.colorProvider
+          ? null
+          : Either3<bool, DocumentColorOptions,
+                  DocumentColorRegistrationOptions>.t3(
+              DocumentColorRegistrationOptions(documentSelector: [dartFiles])),
       documentFormattingProvider: dynamicRegistrations.formatting
           ? null
           : Either2<bool, DocumentFormattingOptions>.t1(enableFormatter),
@@ -279,14 +295,6 @@ class ServerCapabilitiesComputer {
   /// support and it will be up to them to decide which file types they will
   /// send requests for.
   Future<void> performDynamicRegistration() async {
-    final dartFiles = DocumentFilter(language: 'dart', scheme: 'file');
-    final pubspecFile = DocumentFilter(
-        language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
-    final analysisOptionsFile = DocumentFilter(
-        language: 'yaml', scheme: 'file', pattern: '**/analysis_options.yaml');
-    final fixDataFile = DocumentFilter(
-        language: 'yaml', scheme: 'file', pattern: '**/lib/fix_data.yaml');
-
     final pluginTypes = _server.pluginManager.plugins
         .expand((plugin) => plugin.currentSession?.interestingFiles ?? const [])
         // All published plugins use something like `*.extension` as
@@ -408,6 +416,12 @@ class ServerCapabilitiesComputer {
       dynamicRegistrations.documentSymbol,
       Method.textDocument_documentSymbol,
       TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
+    );
+    register(
+      dynamicRegistrations.colorProvider,
+      // This registration covers both documentColor and colorPresentation.
+      Method.textDocument_documentColor,
+      DocumentColorRegistrationOptions(documentSelector: [dartFiles]),
     );
     register(
       enableFormatter && dynamicRegistrations.formatting,

@@ -10,8 +10,10 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListElementTypeNotAssignableTest);
-    defineReflectiveTests(ListElementTypeNotAssignableWithNoImplicitCastsTest);
+    defineReflectiveTests(
+        ListElementTypeNotAssignableWithoutNullSafetyAndNoImplicitCastsTest);
     defineReflectiveTests(ListElementTypeNotAssignableWithoutNullSafetyTest);
+    defineReflectiveTests(ListElementTypeNotAssignableWithStrictCastsTest);
   });
 }
 
@@ -233,7 +235,7 @@ var v = <void>[42];
 }
 
 @reflectiveTest
-class ListElementTypeNotAssignableWithNoImplicitCastsTest
+class ListElementTypeNotAssignableWithoutNullSafetyAndNoImplicitCastsTest
     extends PubPackageResolutionTest
     with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
   test_ifElement_falseBranch_dynamic() async {
@@ -291,3 +293,37 @@ void f(Iterable<num> a) {
 class ListElementTypeNotAssignableWithoutNullSafetyTest
     extends PubPackageResolutionTest
     with WithoutNullSafetyMixin, ListElementTypeNotAssignableTestCases {}
+
+@reflectiveTest
+class ListElementTypeNotAssignableWithStrictCastsTest
+    extends PubPackageResolutionTest with WithStrictCastsMixin {
+  test_ifElement_falseBranch() async {
+    await assertErrorsWithStrictCasts('''
+void f(bool c, dynamic a) {
+  <int>[if (c) 0 else a];
+}
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 50, 1),
+    ]);
+  }
+
+  test_ifElement_trueBranch() async {
+    await assertErrorsWithStrictCasts('''
+void f(bool c, dynamic a) {
+  <int>[if (c) a];
+}
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 43, 1),
+    ]);
+  }
+
+  test_spread() async {
+    await assertErrorsWithStrictCasts('''
+void f(Iterable<dynamic> a) {
+  <int>[...a];
+}
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 41, 1),
+    ]);
+  }
+}

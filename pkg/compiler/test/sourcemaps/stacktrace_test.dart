@@ -89,7 +89,6 @@ Future runTest(Test test, String config,
       '--libraries-spec=$sdkLibrariesSpecificationPath',
       '--packages=${Platform.packageConfig}',
       Flags.testMode,
-      '--enable-experiment=extension-methods',
       input,
     ]..addAll(options);
     print("Compiling dart2js ${arguments.join(' ')}");

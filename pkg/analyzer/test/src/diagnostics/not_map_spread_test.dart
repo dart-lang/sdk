@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NotMapSpreadTest);
     defineReflectiveTests(NotMapSpreadWithoutNullSafetyTest);
+    defineReflectiveTests(NotMapSpreadWithStrictCastsTest);
   });
 }
 
@@ -102,3 +103,17 @@ void f<T extends num>(T a) {
 @reflectiveTest
 class NotMapSpreadWithoutNullSafetyTest extends PubPackageResolutionTest
     with NotMapSpreadTestCases, WithoutNullSafetyMixin {}
+
+@reflectiveTest
+class NotMapSpreadWithStrictCastsTest extends PubPackageResolutionTest
+    with WithStrictCastsMixin {
+  test_map() async {
+    await assertErrorsWithStrictCasts('''
+void f(dynamic a) {
+  <int, String>{...a};
+}
+''', [
+      error(CompileTimeErrorCode.NOT_MAP_SPREAD, 39, 1),
+    ]);
+  }
+}

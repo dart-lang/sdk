@@ -488,6 +488,29 @@ var x = 1 + 2;
     expect(result.value!.toIntValue(), 3);
   }
 
+  test_hasValue_constantReference() async {
+    await resolve('''
+const a = 42;
+var x = a;
+''');
+    var result = _evaluateX();
+    expect(result.errors, isEmpty);
+    expect(result.value!.toIntValue(), 42);
+  }
+
+  test_hasValue_constantReference_imported() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+const a = 42;
+''');
+    await resolve('''
+import 'a.dart';
+var x = a;
+''');
+    var result = _evaluateX();
+    expect(result.errors, isEmpty);
+    expect(result.value!.toIntValue(), 42);
+  }
+
   test_hasValue_intLiteral() async {
     await resolve('''
 var x = 42;

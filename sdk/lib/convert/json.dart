@@ -76,6 +76,39 @@ const JsonCodec json = JsonCodec();
 ///
 /// Shorthand for `json.encode`. Useful if a local variable shadows the global
 /// [json] constant.
+///
+/// Example:
+/// ```dart
+/// const data = {'text': 'foo', 'value': 2, 'status': false, 'extra': null};
+/// final String jsonString = jsonEncode(data);
+/// print(jsonString); // {"text":"foo","value":2,"status":false,"extra":null}
+/// ```
+///
+/// Example of converting an otherwise unsupported object to a
+/// custom JSON format:
+///
+/// ```dart
+/// class CustomClass {
+///   final String text;
+///   final int value;
+///   CustomClass({required this.text, required this.value});
+///   CustomClass.fromJson(Map<String, dynamic> json)
+///       : text = json['text'],
+///         value = json['value'];
+///
+///   static Map<String, dynamic> toJson(CustomClass value) =>
+///       {'text': value.text, 'value': value.value};
+/// }
+///
+/// void main() {
+///   final CustomClass cc = CustomClass(text: 'Dart', value: 123);
+///   final jsonText = jsonEncode({'cc': cc},
+///       toEncodable: (Object? value) => value is CustomClass
+///           ? CustomClass.toJson(value)
+///           : throw UnsupportedError('Cannot convert to JSON: $value'));
+///   print(jsonText); // {"cc":{"text":"Dart","value":123}}
+/// }
+/// ```
 String jsonEncode(Object? object,
         {Object? toEncodable(Object? nonEncodable)?}) =>
     json.encode(object, toEncodable: toEncodable);
@@ -91,6 +124,32 @@ String jsonEncode(Object? object,
 ///
 /// Shorthand for `json.decode`. Useful if a local variable shadows the global
 /// [json] constant.
+///
+/// Example:
+/// ```dart
+/// const jsonString =
+///     '{"text": "foo", "value": 1, "status": false, "extra": null}';
+///
+/// final data = jsonDecode(jsonString);
+/// print(data['text']); // foo
+/// print(data['value']); // 1
+/// print(data['status']); // false
+/// print(data['extra']); // null
+///
+/// const jsonArray = '''
+///   [{"text": "foo", "value": 1, "status": true},
+///    {"text": "bar", "value": 2, "status": false}]
+/// ''';
+///
+/// final List<dynamic> dataList = jsonDecode(jsonArray);
+/// print(dataList[0]); // {text: foo, value: 1, status: true}
+/// print(dataList[1]); // {text: bar, value: 2, status: false}
+///
+/// final item = dataList[0];
+/// print(item['text']); // foo
+/// print(item['value']); // 1
+/// print(item['status']); // false
+/// ```
 dynamic jsonDecode(String source,
         {Object? reviver(Object? key, Object? value)?}) =>
     json.decode(source, reviver: reviver);
@@ -185,6 +244,30 @@ class JsonCodec extends Codec<Object?, String> {
 }
 
 /// This class converts JSON objects to strings.
+///
+/// Example:
+///
+/// ```dart
+/// const JsonEncoder encoder = JsonEncoder();
+/// const data = {'text': 'foo', 'value': '2'};
+///
+/// final String jsonString = encoder.convert(data);
+/// print(jsonString); // {"text":"foo","value":"2"}
+/// ```
+///
+/// Example of pretty-printed output:
+///
+/// ```dart
+/// const JsonEncoder encoder = JsonEncoder.withIndent('  ');
+///
+/// const data = {'text': 'foo', 'value': '2'};
+/// final String jsonString = encoder.convert(data);
+/// print(jsonString);
+/// // {
+/// //   "text": "foo",
+/// //   "value": "2"
+/// // }
+/// ```
 class JsonEncoder extends Converter<Object?, String> {
   /// The string used for indention.
   ///
@@ -477,6 +560,29 @@ class _JsonUtf8EncoderSink extends ChunkedConversionSink<Object?> {
 ///
 /// A JSON input must be the JSON encoding of a single JSON value,
 /// which can be a list or map containing other values.
+///
+/// Throws [FormatException] if the input is not valid JSON text.
+///
+/// Example:
+/// ```dart
+/// const JsonDecoder decoder = JsonDecoder();
+///
+/// const String jsonString = '''
+///   {
+///     "data": [{"text": "foo", "value": 1 },
+///              {"text": "bar", "value": 2 }],
+///     "text": "Dart"
+///   }
+/// ''';
+///
+/// final Map<String, dynamic> object = decoder.convert(jsonString);
+///
+/// final item = object['data'][0];
+/// print(item['text']); // foo
+/// print(item['value']); // 1
+///
+/// print(object['text']); // Dart
+/// ```
 ///
 /// When used as a [StreamTransformer], the input stream may emit
 /// multiple strings. The concatenation of all of these strings must

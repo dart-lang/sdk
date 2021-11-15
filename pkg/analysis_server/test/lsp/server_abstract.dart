@@ -284,6 +284,7 @@ mixin ClientCapabilitiesHelperMixin {
       'references': {'dynamicRegistration': true},
       'documentHighlight': {'dynamicRegistration': true},
       'documentSymbol': {'dynamicRegistration': true},
+      'colorProvider': {'dynamicRegistration': true},
       'formatting': {'dynamicRegistration': true},
       'onTypeFormatting': {'dynamicRegistration': true},
       'rangeFormatting': {'dynamicRegistration': true},
@@ -1035,6 +1036,22 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
+  Future<List<ColorPresentation>> getColorPresentation(
+      String fileUri, Range range, Color color) {
+    final request = makeRequest(
+      Method.textDocument_colorPresentation,
+      ColorPresentationParams(
+        textDocument: TextDocumentIdentifier(uri: fileUri),
+        range: range,
+        color: color,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+      request,
+      _fromJsonList(ColorPresentation.fromJson),
+    );
+  }
+
   Future<List<CompletionItem>> getCompletion(Uri uri, Position pos,
       {CompletionContext? context}) {
     final request = makeRequest(
@@ -1091,6 +1108,19 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       null,
     );
     return expectSuccessfulResponseTo(request, DartDiagnosticServer.fromJson);
+  }
+
+  Future<List<ColorInformation>> getDocumentColors(String fileUri) {
+    final request = makeRequest(
+      Method.textDocument_documentColor,
+      DocumentColorParams(
+        textDocument: TextDocumentIdentifier(uri: fileUri),
+      ),
+    );
+    return expectSuccessfulResponseTo(
+      request,
+      _fromJsonList(ColorInformation.fromJson),
+    );
   }
 
   Future<List<DocumentHighlight>?> getDocumentHighlights(

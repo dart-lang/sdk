@@ -44,10 +44,6 @@ import 'package:meta/meta_meta.dart';
 class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   static const String _TO_INT_METHOD_NAME = "toInt";
 
-  static final Map<String, TargetKind> _targetKindsByName = {
-    for (final kind in TargetKind.values) kind.toString(): kind,
-  };
-
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
   ClassElementImpl? _enclosingClass;
@@ -305,7 +301,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    var kinds = _targetKindsFor(element);
+    var kinds = element.targetKinds;
     if (kinds.isNotEmpty) {
       if (!_isValidTarget(parent, kinds)) {
         var invokedElement = element.element!;
@@ -1715,51 +1711,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return kinds.contains(TargetKind.topLevelVariable);
     }
     return false;
-  }
-
-  /// Return the target kinds defined for the given [annotation].
-  Set<TargetKind> _targetKindsFor(ElementAnnotation annotation) {
-    var element = annotation.element;
-    ClassElement? classElement;
-    if (element is PropertyAccessorElement) {
-      if (element.isGetter) {
-        var type = element.returnType;
-        if (type is InterfaceType) {
-          classElement = type.element;
-        }
-      }
-    } else if (element is ConstructorElement) {
-      classElement = element.enclosingElement;
-    }
-    if (classElement == null) {
-      return const <TargetKind>{};
-    }
-    for (var annotation in classElement.metadata) {
-      if (annotation.isTarget) {
-        var value = annotation.computeConstantValue()!;
-        var kinds = <TargetKind>{};
-
-        for (var kindObject in value.getField('kinds')!.toSetValue()!) {
-          // We can't directly translate the index from the analyzed TargetKind
-          // constant to TargetKinds.values because the analyzer from the SDK
-          // may have been compiled with a different version of pkg:meta.
-          var index = kindObject.getField('index')!.toIntValue()!;
-          var targetKindClass =
-              (kindObject.type as InterfaceType).element as EnumElementImpl;
-          // Instead, map constants to their TargetKind by comparing getter
-          // names.
-          var getter = targetKindClass.constants[index];
-          var name = 'TargetKind.${getter.name}';
-
-          var foundTargetKind = _targetKindsByName[name];
-          if (foundTargetKind != null) {
-            kinds.add(foundTargetKind);
-          }
-        }
-        return kinds;
-      }
-    }
-    return const <TargetKind>{};
   }
 
   /// Checks for the passed as expression for the [HintCode.UNNECESSARY_CAST]

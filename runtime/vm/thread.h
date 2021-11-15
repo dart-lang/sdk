@@ -474,8 +474,10 @@ class Thread : public ThreadState {
   // Has |this| exited Dart code?
   bool HasExitedDartCode() const;
 
+  bool HasCompilerState() const { return compiler_state_ != nullptr; }
+
   CompilerState& compiler_state() {
-    ASSERT(compiler_state_ != nullptr);
+    ASSERT(HasCompilerState());
     return *compiler_state_;
   }
 
