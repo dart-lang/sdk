@@ -129,6 +129,9 @@ class FileState {
 
   UnlinkedUnit? _unlinked2;
 
+  /// Files that reference this file.
+  final List<FileState> referencingFiles = [];
+
   List<FileState?>? _importedFiles;
   List<FileState?>? _exportedFiles;
   List<FileState?>? _partedFiles;
@@ -199,7 +202,10 @@ class FileState {
     return _exportedFiles ??= _unlinked2!.exports.map((directive) {
       var uri = _selectRelativeUri(directive);
       return _fileForRelativeUri(uri).map(
-        (file) => file,
+        (file) {
+          file?.referencingFiles.add(this);
+          return file;
+        },
         (_) => null,
       );
     }).toList();
@@ -213,7 +219,10 @@ class FileState {
     return _importedFiles ??= _unlinked2!.imports.map((directive) {
       var uri = _selectRelativeUri(directive);
       return _fileForRelativeUri(uri).map(
-        (file) => file,
+        (file) {
+          file?.referencingFiles.add(this);
+          return file;
+        },
         (_) => null,
       );
     }).toList();
@@ -279,6 +288,7 @@ class FileState {
       return _fileForRelativeUri(uri).map(
         (file) {
           if (file != null) {
+            file.referencingFiles.add(this);
             _fsState._partToLibraries
                 .putIfAbsent(file, () => <FileState>[])
                 .add(this);
@@ -423,6 +433,9 @@ class FileState {
       }
     }
 
+    // It is possible that this file does not reference these files.
+    _stopReferencingByThisFile();
+
     // Read imports/exports on demand.
     _importedFiles = null;
     _exportedFiles = null;
@@ -560,6 +573,20 @@ class FileState {
       }
     }
     return directive.uri;
+  }
+
+  void _stopReferencingByThisFile() {
+    void removeForOne(List<FileState?>? referencedFiles) {
+      if (referencedFiles != null) {
+        for (var referenced in referencedFiles) {
+          referenced?.referencingFiles.remove(this);
+        }
+      }
+    }
+
+    removeForOne(_importedFiles);
+    removeForOne(_exportedFiles);
+    removeForOne(_partedFiles);
   }
 
   static UnlinkedUnit serializeAstUnlinked2(CompilationUnit unit) {
@@ -740,23 +767,10 @@ class FileSystemState {
   /// Collected files that transitively reference a file with the [path].
   /// These files are potentially affected by the change.
   void collectAffected(String path, Set<FileState> affected) {
-    final knownFiles = this.knownFiles.toList();
-
-    final fileToReferences = <FileState, List<FileState>>{};
-    for (var file in knownFiles) {
-      for (var referenced in file.directReferencedFiles) {
-        var references = fileToReferences[referenced] ??= [];
-        references.add(file);
-      }
-    }
-
     collectAffected(FileState file) {
       if (affected.add(file)) {
-        var references = fileToReferences[file];
-        if (references != null) {
-          for (var other in references) {
-            collectAffected(other);
-          }
+        for (var other in file.referencingFiles) {
+          collectAffected(other);
         }
       }
     }

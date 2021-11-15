@@ -263,6 +263,19 @@ class AnnotationResolver {
     _visitArguments(node, whyNotPromotedList);
   }
 
+  void _localVariable(
+    AnnotationImpl node,
+    VariableElement element,
+    List<WhyNotPromotedGetter> whyNotPromotedList,
+  ) {
+    if (!element.isConst || node.arguments != null) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.INVALID_ANNOTATION, node);
+    }
+
+    _visitArguments(node, whyNotPromotedList);
+  }
+
   void _propertyAccessorElement(
     AnnotationImpl node,
     SimpleIdentifierImpl name,
@@ -393,8 +406,8 @@ class AnnotationResolver {
       return;
     }
 
-    // TODO(scheglov) Must be const.
     if (element1 is VariableElement) {
+      _localVariable(node, element1, whyNotPromotedList);
       return;
     }
 

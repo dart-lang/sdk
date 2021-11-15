@@ -254,6 +254,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildImplicitClosureCreation(const Function& target);
   Fragment CheckBoolean(TokenPosition position);
   Fragment CheckArgumentType(LocalVariable* variable, const AbstractType& type);
+  Fragment RecordCoverage(TokenPosition position);
   Fragment EnterScope(intptr_t kernel_offset,
                       const LocalScope** scope = nullptr);
   Fragment ExitScope(intptr_t kernel_offset);

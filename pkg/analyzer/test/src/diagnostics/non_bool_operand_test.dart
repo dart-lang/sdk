@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolOperandTest);
     defineReflectiveTests(NonBoolOperandWithNullSafetyTest);
+    defineReflectiveTests(NonBoolOperandWithStrictCastsTest);
   });
 }
 
@@ -107,6 +108,20 @@ m() {
 }
 ''', [
       error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NonBoolOperandWithStrictCastsTest extends PubPackageResolutionTest
+    with WithStrictCastsMixin {
+  test_and() async {
+    await assertErrorsWithStrictCasts('''
+void f(dynamic a) {
+  if(a && true) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 25, 1),
     ]);
   }
 }

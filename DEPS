@@ -44,9 +44,9 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "73545b2bf6c7f8e4eb931bb04d86e38d6485deee",
+  "co19_rev": "39c5bbc03bf5c5c0a3f9341abe811871eababfaf",
   # This line prevents conflicts when both packages are rolled simultaneously.
-  "co19_2_rev": "52d3d2a6d2550ccd69c8facf8a36099be66f1493",
+  "co19_2_rev": "86f01ade433fbb4eec3a7f93f5e1e4fed9a84fb3",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "076df10d9b77af337f2d8029725787155eb1cd52",
@@ -76,7 +76,7 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_rev": "3b3f55766af13d895d2020ec001a28e8dc147f91",
   "async_rev": "80886150a5e6c58006c8ae5a6c2aa7108638e2a9",
-  "bazel_worker_rev": "0885637b037979afbf5bcd05fd748b309fd669c0",
+  "bazel_worker_rev": "ceeba0982d4ff40d32371c9d35f3d2dc1868de20",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
   "boringssl_gen_rev": "7322fc15cc065d8d2957fccce6b62a509dc4d641",

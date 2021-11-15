@@ -488,6 +488,9 @@ class FlowGraphCompiler : public ValueObject {
 
   BlockEntryInstr* current_block() const { return current_block_; }
   void set_current_block(BlockEntryInstr* value) { current_block_ = value; }
+
+  Instruction* current_instruction() const { return current_instruction_; }
+
   static bool CanOptimize();
   bool CanOptimizeFunction() const;
   bool CanOSRFunction() const;
@@ -558,6 +561,8 @@ class FlowGraphCompiler : public ValueObject {
   void EmitPrologue();
 
   void VisitBlocks();
+
+  void EmitFunctionEntrySourcePositionDescriptorIfNeeded();
 
   // Bail out of the flow graph compiler. Does not return to the caller.
   void Bailout(const char* reason);
@@ -1140,8 +1145,6 @@ class FlowGraphCompiler : public ValueObject {
   void set_current_instruction(Instruction* current_instruction) {
     current_instruction_ = current_instruction;
   }
-
-  Instruction* current_instruction() { return current_instruction_; }
 
   void CompactBlock(BlockEntryInstr* block);
   void CompactBlocks();
