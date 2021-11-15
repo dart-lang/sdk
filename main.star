@@ -564,6 +564,7 @@ def dart_try_builder(
         dimensions = None,
         execution_timeout = None,
         experiment_percentage = None,
+        experiments = None,
         goma = None,
         location_regexp = None,
         properties = None,
@@ -577,6 +578,7 @@ def dart_try_builder(
         dimensions: Extra swarming dimensions required by this builder.
         execution_timeout: Time to allow for the build to run.
         experiment_percentage: What experiment percentage to use.
+        experiments: Experiments to run on this builder, with percentages.
         goma: Whether to use goma or not.
         location_regexp: Locations that trigger this tryjob.
         properties: Extra properties to set for builds.
@@ -597,6 +599,7 @@ def dart_try_builder(
         dimensions = dimensions,
         executable = dart_recipe(recipe),
         execution_timeout = execution_timeout,
+        experiments = experiments,
         priority = HIGH,
         properties = builder_properties,
         service_account = TRY_ACCOUNT,
@@ -638,6 +641,7 @@ def dart_builder(
         executable = None,
         execution_timeout = None,
         experimental = None,
+        experiments = None,
         expiration_timeout = None,
         goma = None,
         fyi = False,
@@ -665,7 +669,8 @@ def dart_builder(
         dimensions: Extra swarming dimensions required by this builder.
         executable: The Luci executable to use.
         execution_timeout: Time to allow for the build to run.
-        experimental: Wether the build is experimental or not.
+        experimental: Whether the build is experimental or not.
+        experiments: Experiments to run on this builder, with percentages.
         expiration_timeout: How long builds should wait for a bot to run on.
         goma: Whether to use goma or not.
         fyi: Whether this is an FYI builder or not.
@@ -705,6 +710,7 @@ def dart_builder(
                 on_cq = on_cq,
                 execution_timeout = execution_timeout,
                 experiment_percentage = experiment_percentage,
+                experiments = experiments,
                 goma = goma,
                 location_regexp = location_regexp,
             )
@@ -739,6 +745,7 @@ def dart_builder(
                 executable = executable or dart_recipe(recipe),
                 execution_timeout = execution_timeout,
                 experimental = experimental,
+                experiments = experiments,
                 expiration_timeout = expiration_timeout,
                 priority = priority,
                 properties = builder_properties,
@@ -1128,6 +1135,7 @@ dart_ci_sandbox_builder(
 dart_vm_extra_builder(
     "vm-kernel-checked-linux-release-x64",
     category = "vm|kernel|rc",
+    experiments = {"dart.use_update_script": 100},
 )
 dart_vm_nightly_builder(
     "vm-kernel-linux-debug-ia32",
@@ -1410,12 +1418,14 @@ dart_ci_sandbox_builder(
     channels = ["try"],
     dimensions = mac(cpu = "arm64"),
     properties = union(CHROME, NO_ANDROID),
+    experiments = {"dart.use_update_script": 100},
 )
 dart_ci_sandbox_builder(
     "pkg-win-release",
     category = "pkg|w",
     dimensions = windows(),
     properties = CHROME,
+    experiments = {"dart.use_update_script": 100},
 )
 dart_ci_sandbox_builder(
     "pkg-linux-debug",
@@ -1529,6 +1539,7 @@ dart_ci_sandbox_builder(
     category = "analyzer|w",
     channels = CHANNELS,
     dimensions = windows(),
+    experiments = {"dart.use_update_script": 100},
 )
 
 # analyzer|nnbd
