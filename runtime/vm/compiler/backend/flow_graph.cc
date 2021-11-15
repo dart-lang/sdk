@@ -2866,4 +2866,8 @@ void FlowGraph::InsertPushArguments() {
   }
 }
 
+void FlowGraph::Print(const char* phase) {
+  FlowGraphPrinter::PrintGraph(phase, this);
+}
+
 }  // namespace dart

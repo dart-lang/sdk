@@ -44,12 +44,14 @@ import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -302,8 +304,14 @@ abstract class AbstractAnalysisServer {
   }
 
   DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result) {
+    return getDartdocDirectiveInfoForSession(result.session);
+  }
+
+  DartdocDirectiveInfo getDartdocDirectiveInfoForSession(
+    AnalysisSession session,
+  ) {
     return declarationsTracker
-            ?.getContext(result.session.analysisContext)
+            ?.getContext(session.analysisContext)
             ?.dartdocDirectiveInfo ??
         DartdocDirectiveInfo();
   }
@@ -312,7 +320,14 @@ abstract class AbstractAnalysisServer {
   /// context that produced the [result], or `null` if there is no cache for the
   /// context.
   DocumentationCache? getDocumentationCacheFor(ResolvedUnitResult result) {
-    var context = result.session.analysisContext;
+    return getDocumentationCacheForSession(result.session);
+  }
+
+  /// Return the object used to cache the documentation for elements in the
+  /// context that produced the [session], or `null` if there is no cache for
+  /// the context.
+  DocumentationCache? getDocumentationCacheForSession(AnalysisSession session) {
+    var context = session.analysisContext;
     var tracker = declarationsTracker?.getContext(context);
     if (tracker == null) {
       return null;
@@ -460,6 +475,31 @@ abstract class AbstractAnalysisServer {
   /// all current analysis drivers.
   void reanalyze() {
     contextManager.refresh();
+  }
+
+  ResolvedForCompletionResultImpl? resolveForCompletion({
+    required String path,
+    required int offset,
+    required OperationPerformanceImpl performance,
+  }) {
+    if (!file_paths.isDart(resourceProvider.pathContext, path)) {
+      return null;
+    }
+
+    var driver = getAnalysisDriver(path);
+    if (driver == null) {
+      return null;
+    }
+
+    try {
+      return driver.resolveForCompletion(
+        path: path,
+        offset: offset,
+        performance: performance,
+      );
+    } catch (e, st) {
+      instrumentationService.logException(e, st);
+    }
   }
 
   /// Sends an error notification to the user.

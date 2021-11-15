@@ -214,6 +214,13 @@ class ProgramSplitBuilder {
     return node;
   }
 
+  NamedNode _lookupNamedNode(String nodeName) {
+    if (!namedNodes.containsKey(nodeName)) {
+      throw 'Missing reference node for $nodeName';
+    }
+    return namedNodes[nodeName];
+  }
+
   /// Returns a [ReferenceNode] referencing [importUriAndPrefix].
   /// [ReferenceNode]s are typically created in bulk, by mapping over a list of
   /// strings of imports in the form 'uri#prefix'. In further builder calls,
@@ -228,17 +235,15 @@ class ProgramSplitBuilder {
   /// Creates an unnamed [RelativeOrderNode] referencing two [NamedNode]s.
   RelativeOrderNode orderNode(String predecessor, String successor) {
     return RelativeOrderNode(
-        predecessor: namedNodes[predecessor], successor: namedNodes[successor]);
+        predecessor: _lookupNamedNode(predecessor),
+        successor: _lookupNamedNode(successor));
   }
 
   /// Creates a [CombinerNode] which can be referenced by [name] in further
   /// calls to the builder.
   CombinerNode combinerNode(String name, Set<String> nodes, CombinerType type) {
     ReferenceNode _lookup(String nodeName) {
-      if (!namedNodes.containsKey(nodeName)) {
-        throw 'Missing reference node for $nodeName';
-      }
-      var node = namedNodes[nodeName];
+      var node = _lookupNamedNode(nodeName);
       if (node is! ReferenceNode) {
         // TODO(joshualitt): Implement nested combiners.
         throw '$name references node $nodeName which is not a ReferenceNode.';

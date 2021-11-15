@@ -531,7 +531,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     result = await session.getResolvedUnit(testFile) as ResolvedUnitResult;
 
     // Build the request
-    var request = DartCompletionRequest(
+    var request = DartCompletionRequest.forResolvedUnit(
       resolvedUnit: result,
       offset: completionOffset,
       dartdocDirectiveInfo: dartdocInfo,

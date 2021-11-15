@@ -9,10 +9,10 @@
 
 ## Running the Server
 
-The analysis server snapshot is included in the `bin/snapshots` folder of the Dart SDK. Pass the `--lsp` flag to start the server in LSP mode and the `--client-id` and `--client-version` flags to identify your editor/plugin and version:
+Start the language server using the `dart language-server` command. Pass the `--client-id` and `--client-version` flags to identify your editor/plugin and version:
 
 ```
-dart bin/snapshots/analysis_server.dart.snapshot --lsp --client-id my-editor.my-plugin --client-version 1.2
+dart language-server --client-id my-editor.my-plugin --client-version 1.2
 ```
 
 Note: In LSP the client makes the first request so there is no obvious confirmation that the server is working correctly until the client sends an `initialize` request. Unlike standard JSON RPC, [LSP requires that headers are sent](https://microsoft.github.io/language-server-protocol/specification).
@@ -101,8 +101,8 @@ Below is a list of LSP methods and their implementation status.
 | codeLens/resolve | | | | | |
 | textDocument/documentLink | | | | | |
 | documentLink/resolve | | | | | |
-| textDocument/documentColor | | | | | |
-| textDocument/colorPresentation | | | | | |
+| textDocument/documentColor | ✅ | ✅ | | ✅ | ✅ |
+| textDocument/colorPresentation | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/formatting | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/rangeFormatting | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/onTypeFormatting | ✅ | ✅ | | ✅ | ✅ |
