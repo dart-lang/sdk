@@ -16,6 +16,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/src/utilities/library.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -150,22 +151,6 @@ class ImportLibrary extends MultiCorrectionProducer {
     return false;
   }
 
-  /// Returns the relative URI from the passed [library] to the given [path].
-  ///
-  /// If the [path] is not in the [library]'s directory, `null` is returned.
-  String? _getRelativeUriFromLibrary(LibraryElement library, String path) {
-    var librarySource = library.librarySource;
-    var pathContext = resourceProvider.pathContext;
-    var libraryDirectory = pathContext.dirname(librarySource.fullName);
-    var sourceDirectory = pathContext.dirname(path);
-    if (pathContext.isWithin(libraryDirectory, path) ||
-        pathContext.isWithin(sourceDirectory, libraryDirectory)) {
-      var relativeFile = pathContext.relative(path, from: libraryDirectory);
-      return pathContext.split(relativeFile).join('/');
-    }
-    return null;
-  }
-
   Iterable<CorrectionProducer> _importExtensionInLibrary(
       Uri uri, DartType targetType, String memberName) sync* {
     // Look to see whether the library at the [uri] is already imported. If it
@@ -207,25 +192,28 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   /// Returns a list of one or two import corrections.
   ///
-  /// If [relativeUri] is `null`, only one correction, with an absolute import
-  /// path, is returned. Otherwise, a correction with an absolute import path
-  /// and a correction with a relative path are returned. If the
+  /// If [includeRelativeFix] is `false`, only one correction, with an absolute
+  /// import path, is returned. Otherwise, a correction with an absolute import
+  /// path and a correction with a relative path are returned. If the
   /// `prefer_relative_imports` lint rule is enabled, the relative path is
   /// returned first.
-  Iterable<CorrectionProducer> _importLibrary(FixKind fixKind, Uri library,
-      [String? relativeUri]) {
-    if (relativeUri == null || relativeUri.isEmpty) {
+  Iterable<CorrectionProducer> _importLibrary(
+    FixKind fixKind,
+    Uri library, {
+    bool includeRelativeFix = false,
+  }) {
+    if (!includeRelativeFix) {
       return [_ImportAbsoluteLibrary(fixKind, library)];
     }
     if (isLintEnabled(LintNames.prefer_relative_imports)) {
       return [
-        _ImportRelativeLibrary(fixKind, relativeUri),
+        _ImportRelativeLibrary(fixKind, library),
         _ImportAbsoluteLibrary(fixKind, library),
       ];
     } else {
       return [
         _ImportAbsoluteLibrary(fixKind, library),
-        _ImportRelativeLibrary(fixKind, relativeUri),
+        _ImportRelativeLibrary(fixKind, library),
       ];
     }
   }
@@ -312,10 +300,13 @@ class ImportLibrary extends MultiCorrectionProducer {
         // Good: direct declaration.
         fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
       }
-      // Add the fix.
-      var relativeUri =
-          _getRelativeUriFromLibrary(libraryElement, declaration.path);
-      yield* _importLibrary(fixKind, declaration.uri, relativeUri);
+      // If both files are in the same package's lib folder, also include a
+      // relative import.
+      var includeRelativeUri = canBeRelativeImport(
+          declaration.uri, libraryElement.librarySource.uri);
+      // Add the fix(es).
+      yield* _importLibrary(fixKind, declaration.uri,
+          includeRelativeFix: includeRelativeUri);
     }
   }
 
@@ -415,7 +406,9 @@ class _ImportAbsoluteLibrary extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
-      _uriText = builder.importLibrary(_library);
+      if (builder is DartFileEditBuilderImpl) {
+        _uriText = builder.importLibraryWithAbsoluteUri(_library);
+      }
     });
   }
 }
@@ -532,12 +525,14 @@ class _ImportLibraryShow extends CorrectionProducer {
 class _ImportRelativeLibrary extends CorrectionProducer {
   final FixKind _fixKind;
 
-  final String _relativeURI;
+  final Uri _library;
 
-  _ImportRelativeLibrary(this._fixKind, this._relativeURI);
+  String _uriText = '';
+
+  _ImportRelativeLibrary(this._fixKind, this._library);
 
   @override
-  List<Object> get fixArguments => [_relativeURI];
+  List<Object> get fixArguments => [_uriText];
 
   @override
   FixKind get fixKind => _fixKind;
@@ -546,7 +541,7 @@ class _ImportRelativeLibrary extends CorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
       if (builder is DartFileEditBuilderImpl) {
-        builder.importLibraryWithRelativeUri(_relativeURI);
+        _uriText = builder.importLibraryWithRelativeUri(_library);
       }
     });
   }
