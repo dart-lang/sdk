@@ -6195,14 +6195,6 @@ DART_EXPORT char* Dart_SetServiceStreamCallbacks(
 #endif
 }
 
-DART_EXPORT void Dart_SetNativeServiceStreamCallback(
-    Dart_NativeStreamConsumer consumer,
-    const char* stream_id) {
-#if !defined(PRODUCT)
-  Service::SetNativeServiceStreamCallback(consumer, stream_id);
-#endif
-}
-
 DART_EXPORT char* Dart_ServiceSendDataEvent(const char* stream_id,
                                             const char* event_kind,
                                             const uint8_t* bytes,

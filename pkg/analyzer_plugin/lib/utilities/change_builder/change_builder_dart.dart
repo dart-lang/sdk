@@ -346,6 +346,9 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   ///
   /// Returns the text of the URI that will be used in the import directive.
   /// It can be different than the given [Uri].
+  ///
+  /// [uri] may be converted from an absolute URI to a relative URI depending on
+  /// user preferences/lints.
   String importLibrary(Uri uri);
 
   /// Ensure that the library with the given [uri] is imported.

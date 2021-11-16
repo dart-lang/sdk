@@ -1192,14 +1192,6 @@ void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
   }
   PostEvent(event->isolate(), stream_id, event->KindAsCString(), &js,
             enter_safepoint);
-
-  // Post event to the native Service Stream handlers if set.
-  if (event->stream_info() != nullptr &&
-      event->stream_info()->consumer() != nullptr) {
-    auto length = js.buffer()->length();
-    event->stream_info()->consumer()(
-        reinterpret_cast<uint8_t*>(js.buffer()->buffer()), length);
-  }
 }
 
 void Service::PostEvent(Isolate* isolate,
@@ -1385,17 +1377,6 @@ void Service::SetEmbedderStreamCallbacks(
     Dart_ServiceStreamCancelCallback cancel_callback) {
   stream_listen_callback_ = listen_callback;
   stream_cancel_callback_ = cancel_callback;
-}
-
-void Service::SetNativeServiceStreamCallback(Dart_NativeStreamConsumer consumer,
-                                             const char* stream_id) {
-  for (auto stream : streams_) {
-    if (stream->id() == stream_id) {
-      stream->set_consumer(consumer);
-    }
-  }
-  // Enable stream.
-  ListenStream(stream_id);
 }
 
 void Service::SetGetServiceAssetsCallback(

@@ -4,9 +4,11 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -232,6 +234,21 @@ void f() {
         ''',
         'myFunction(…)',
         insertText: 'myFunction',
+      );
+
+  Future<void> test_completeFunctionCalls_existingArgList_member_noPrefix() =>
+      // https://github.com/Dart-Code/Dart-Code/issues/3672
+      checkCompleteFunctionCallInsertText(
+        '''
+        class Aaaaa {
+          static foo(int a) {}
+        }
+        void f() {
+          Aaaaa.[[^]]()
+        }
+        ''',
+        'foo(…)',
+        insertText: 'foo',
       );
 
   Future<void> test_completeFunctionCalls_existingArgList_namedConstructor() =>
@@ -1606,6 +1623,36 @@ void f() {
     expect(resolved.detail, isNull);
   }
 
+  Future<void> test_suggestionSets_importsPackageUri() async {
+    newFile(
+      join(projectFolderPath, 'lib', 'my_class.dart'),
+      content: 'class MyClass {}',
+    );
+
+    final content = '''
+void f() {
+  MyClas^
+}
+    ''';
+
+    final expectedContent = '''
+import 'package:test/my_class.dart';
+
+void f() {
+  MyClass
+}
+    ''';
+
+    final completionLabel = 'MyClass';
+
+    await _checkCompletionEdits(
+      mainFileUri,
+      content,
+      completionLabel,
+      expectedContent,
+    );
+  }
+
   Future<void>
       test_suggestionSets_includesReexportedSymbolsForEachFile() async {
     newFile(
@@ -2003,6 +2050,78 @@ void f() {
     '''));
   }
 
+  Future<void> test_suggestionSets_preferRelativeImportsLib_insideLib() async {
+    _enableLints([LintNames.prefer_relative_imports]);
+    final importingFilePath =
+        join(projectFolderPath, 'lib', 'nested1', 'main.dart');
+    final importingFileUri = Uri.file(importingFilePath);
+    final importedFilePath =
+        join(projectFolderPath, 'lib', 'nested2', 'imported.dart');
+
+    // Create a file that will be auto-imported from completion.
+    newFile(importedFilePath, content: 'class MyClass {}');
+
+    final content = '''
+void f() {
+  MyClas^
+}
+    ''';
+
+    final expectedContent = '''
+import '../nested2/imported.dart';
+
+void f() {
+  MyClass
+}
+    ''';
+
+    final completionLabel = 'MyClass';
+
+    await _checkCompletionEdits(
+      importingFileUri,
+      content,
+      completionLabel,
+      expectedContent,
+    );
+  }
+
+  Future<void> test_suggestionSets_preferRelativeImportsLib_outsideLib() async {
+    // Files outside of the lib folder should still get absolute imports to
+    // files inside lib, even with the lint enabled.
+    _enableLints([LintNames.prefer_relative_imports]);
+    final importingFilePath =
+        join(projectFolderPath, 'bin', 'nested1', 'main.dart');
+    final importingFileUri = Uri.file(importingFilePath);
+    final importedFilePath =
+        join(projectFolderPath, 'lib', 'nested2', 'imported.dart');
+
+    // Create a file that will be auto-imported from completion.
+    newFile(importedFilePath, content: 'class MyClass {}');
+
+    final content = '''
+void f() {
+  MyClas^
+}
+    ''';
+
+    final expectedContent = '''
+import 'package:test/nested2/imported.dart';
+
+void f() {
+  MyClass
+}
+    ''';
+
+    final completionLabel = 'MyClass';
+
+    await _checkCompletionEdits(
+      importingFileUri,
+      content,
+      completionLabel,
+      expectedContent,
+    );
+  }
+
   Future<void> test_suggestionSets_unavailableIfDisabled() async {
     newFile(
       join(projectFolderPath, 'other_file.dart'),
@@ -2085,6 +2204,39 @@ void f() {
     expect(updated, contains('a.abcdefghij'));
   }
 
+  /// Sets up the server with a file containing [content] and checks that
+  /// accepting a specific completion produces [expectedContent].
+  ///
+  /// [content] should contain a `^` at the location where completion should be
+  /// invoked/accepted.
+  Future<void> _checkCompletionEdits(
+    Uri fileUri,
+    String content,
+    String completionLabel,
+    String expectedContent,
+  ) async {
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(fileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(fileUri, positionFromMarker(content));
+
+    final completion = res.where((c) => c.label == completionLabel).single;
+    final resolvedCompletion = await resolveCompletion(completion);
+
+    // Apply both the main completion edit and the additionalTextEdits atomically.
+    final newContent = applyTextEdits(
+      withoutMarkers(content),
+      [toTextEdit(resolvedCompletion.textEdit!)]
+          .followedBy(resolvedCompletion.additionalTextEdits!)
+          .toList(),
+    );
+
+    expect(newContent, equals(expectedContent));
+  }
+
   Future<void> _checkResultsForTriggerCharacters(String content,
       List<String> triggerCharacters, Matcher expectedResults) async {
     await initialize();
@@ -2098,6 +2250,16 @@ void f() {
           context: context);
       expect(res, expectedResults);
     }
+  }
+
+  void _enableLints(List<String> lintNames) {
+    registerLintRules();
+    final lintsYaml = lintNames.map((name) => '    - $name\n').join();
+    newFile(analysisOptionsPath, content: '''
+linter:
+  rules:
+$lintsYaml
+''');
   }
 }
 

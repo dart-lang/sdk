@@ -482,7 +482,9 @@ class CompletionHandler
     return (node is ast.InvocationExpression &&
             !node.argumentList.beginToken.isSynthetic) ||
         (node is ast.InstanceCreationExpression &&
-            !node.argumentList.beginToken.isSynthetic);
+            !node.argumentList.beginToken.isSynthetic) ||
+        // "ClassName.^()" will appear as accessing a property named '('.
+        (node is ast.PropertyAccess && node.propertyName.name.startsWith('('));
   }
 
   Iterable<CompletionItem> _pluginResultsToItems(

@@ -6,8 +6,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 // Maximum page size across all supported architectures (arm64 macOS has 16K
-// pages, the rest are all 4k pages).
-const elfPageSize = 16384;
+// pages, some arm64 Linux distributions have 64K pages).
+const elfPageSize = 65536;
 const appjitMagicNumber = <int>[0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0];
 
 enum Kind { aot, exe }

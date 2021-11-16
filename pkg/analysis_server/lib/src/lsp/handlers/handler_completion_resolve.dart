@@ -60,11 +60,12 @@ class CompletionResolveHandler
           'Requests not before server is initilized');
     }
 
-    final lineInfo = server.getLineInfo(data.file);
+    final file = data.file;
+    final lineInfo = server.getLineInfo(file);
     if (lineInfo == null) {
       return error(
         ErrorCodes.InternalError,
-        'Line info not available for ${data.file}',
+        'Line info not available for $file',
         null,
       );
     }
@@ -99,7 +100,7 @@ class CompletionResolveHandler
     _latestCompletionItem = item;
     while (item == _latestCompletionItem && timer.elapsed < timeout) {
       try {
-        final analysisDriver = server.getAnalysisDriver(data.file);
+        final analysisDriver = server.getAnalysisDriver(file);
         final session = analysisDriver?.currentSession;
 
         // We shouldn't not get a driver/session, but if we did perhaps the file
@@ -139,7 +140,7 @@ class CompletionResolveHandler
 
         var newInsertText = item.insertText ?? item.label;
         final builder = ChangeBuilder(session: session);
-        await builder.addDartFileEdit(data.file, (builder) {
+        await builder.addDartFileEdit(file, (builder) {
           final result = builder.importLibraryElement(library.uri);
           if (result.prefix != null) {
             newInsertText = '${result.prefix}.$newInsertText';
@@ -152,9 +153,9 @@ class CompletionResolveHandler
 
         final changes = builder.sourceChange;
         final thisFilesChanges =
-            changes.edits.where((e) => e.file == data.file).toList();
+            changes.edits.where((e) => e.file == file).toList();
         final otherFilesChanges =
-            changes.edits.where((e) => e.file != data.file).toList();
+            changes.edits.where((e) => e.file != file).toList();
 
         // If this completion involves editing other files, we'll need to build
         // a command that the client will call to apply those edits later.

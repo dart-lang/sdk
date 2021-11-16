@@ -35,6 +35,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/either.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
@@ -716,11 +717,8 @@ class FileSystemState {
   /// Mapping from a path to the flag whether there is a URI for the path.
   final Map<String, bool> _hasUriForPath = {};
 
-  /// Mapping from a path to the corresponding [FileState]s, canonical or not.
-  final Map<String, List<FileState>> _pathToFiles = {};
-
-  /// Mapping from a path to the corresponding canonical [FileState].
-  final Map<String, FileState> _pathToCanonicalFile = {};
+  /// Mapping from a path to the corresponding [FileState].
+  final Map<String, FileState> _pathToFile = {};
 
   /// We don't read parts until requested, but if we need to know the
   /// library for a file, we need to read parts of every file to know
@@ -775,7 +773,8 @@ class FileSystemState {
       }
     }
 
-    for (var file in _pathToFiles[path] ?? <FileState>[]) {
+    var file = _pathToFile[path];
+    if (file != null) {
       collectAffected(file);
     }
   }
@@ -808,25 +807,16 @@ class FileSystemState {
     return featureSetProvider.getLanguageVersion(path, uri);
   }
 
-  /// Return the canonical [FileState] for the given absolute [path]. The
-  /// returned file has the last known state since if was last refreshed.
-  ///
-  /// Here "canonical" means that if the [path] is in a package `lib` then the
-  /// returned file will have the `package:` style URI.
+  /// Return the [FileState] for the given absolute [path]. The returned file
+  /// has the last known state since if was last refreshed.
   FileState getFileForPath(String path) {
-    FileState? file = _pathToCanonicalFile[path];
+    var file = _pathToFile[path];
     if (file == null) {
       File resource = _resourceProvider.getFile(path);
       Source fileSource = resource.createSource();
       Uri? uri = _sourceFactory.restoreUri(fileSource);
-      // Try to get the existing instance.
-      file = _uriToFile[uri];
-      // If we have a file, call it the canonical one and return it.
-      if (file != null) {
-        _pathToCanonicalFile[path] = file;
-        return file;
-      }
       // Create a new file.
+      // TODO(scheglov) this is duplicate
       FileSource uriSource = FileSource(resource, uri!);
       WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
       FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
@@ -834,9 +824,9 @@ class FileSystemState {
           contextLanguageVersion(path, uri, workspacePackage);
       file = FileState._(this, path, uri, uriSource, workspacePackage,
           featureSet, packageLanguageVersion);
+      _pathToFile[path] = file;
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
-      _pathToCanonicalFile[path] = file;
       file.refresh();
     }
     return file;
@@ -874,6 +864,13 @@ class FileSystemState {
 
       String path = uriSource.fullName;
       File resource = _resourceProvider.getFile(path);
+
+      var rewrittenUri = rewriteFileToPackageUri(_sourceFactory, uri);
+      if (rewrittenUri == null) {
+        return Either2.t1(null);
+      }
+      uri = rewrittenUri;
+
       FileSource source = FileSource(resource, uri);
       WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
       FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
@@ -881,24 +878,12 @@ class FileSystemState {
           contextLanguageVersion(path, uri, workspacePackage);
       file = FileState._(this, path, uri, source, workspacePackage, featureSet,
           packageLanguageVersion);
+      _pathToFile[path] = file;
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       file.refresh();
     }
     return Either2.t1(file);
-  }
-
-  /// Return the list of all [FileState]s corresponding to the given [path]. The
-  /// list has at least one item, and the first item is the canonical file.
-  List<FileState> getFilesForPath(String path) {
-    FileState canonicalFile = getFileForPath(path);
-    List<FileState> allFiles = _pathToFiles[path]!.toList();
-    if (allFiles.length == 1) {
-      return allFiles;
-    }
-    return allFiles
-      ..remove(canonicalFile)
-      ..insert(0, canonicalFile);
   }
 
   /// Return files where the given [name] is subtyped, i.e. used in `extends`,
@@ -951,15 +936,9 @@ class FileSystemState {
   }
 
   void _addFileWithPath(String path, FileState file) {
-    var files = _pathToFiles[path];
-    if (files == null) {
-      knownFilePaths.add(path);
-      knownFiles.add(file);
-      files = <FileState>[];
-      _pathToFiles[path] = files;
-      fileStamp++;
-    }
-    files.add(file);
+    knownFilePaths.add(path);
+    knownFiles.add(file);
+    fileStamp++;
   }
 
   /// Clear all [FileState] data - all maps from path or URI, etc.
@@ -968,8 +947,7 @@ class FileSystemState {
     knownFilePaths.clear();
     knownFiles.clear();
     _hasUriForPath.clear();
-    _pathToFiles.clear();
-    _pathToCanonicalFile.clear();
+    _pathToFile.clear();
     _librariesWithoutPartsRead.clear();
     _partToLibraries.clear();
     _subtypedNameToFiles.clear();
