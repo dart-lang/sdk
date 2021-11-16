@@ -146,6 +146,7 @@ import 'rules/prefer_typing_uninitialized_variables.dart';
 import 'rules/prefer_void_to_null.dart';
 import 'rules/provide_deprecation_message.dart';
 import 'rules/pub/package_names.dart';
+import 'rules/pub/secure_pubspec_urls.dart';
 import 'rules/pub/sort_pub_dependencies.dart';
 import 'rules/public_member_api_docs.dart';
 import 'rules/recursive_getters.dart';
@@ -348,6 +349,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(ProvideDeprecationMessage())
     ..register(PublicMemberApiDocs())
     ..register(PubPackageNames())
+    ..register(SecurePubspecUrls())
     ..register(RecursiveGetters())
     ..register(RequireTrailingCommas())
     ..register(SizedBoxForWhitespace())

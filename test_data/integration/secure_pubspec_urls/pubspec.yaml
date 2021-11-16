@@ -1,0 +1,32 @@
+name: fancy
+description: Fancy pre-built things.
+version: 1.1.1
+homepage: http://github.com/dart-lang/linter
+repository: http://github.com/dart-lang/linter
+
+environment:
+  sdk: ">=2.15.2 <3.0.0"
+
+dependencies:
+  transmogrify:
+    hosted:
+      name: transmogrify
+      url: http://some-package-server.com # lint
+    version: ^1.0.0
+
+dev_dependencies:
+  kittens_private2:
+    hosted: http://my-package-server.com #lint
+
+
+dependency_overrides:
+  kittens:
+    git: http://github.com/munificent/kittens.git # lint
+  kittens2:
+    git:
+      url: http://github.com/munificent/kittens2.git # lint
+      ref: main
+  kittens3:
+    git:
+      url: git://github.com/munificent/kittens2.git # lint
+      ref: main
