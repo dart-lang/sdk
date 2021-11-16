@@ -10,7 +10,7 @@ part of dart.collection;
 /// and hashCode implementations. This means that the equals operation
 /// must define a stable equivalence relation on the elements (reflexive,
 /// symmetric, transitive, and consistent over time), and that the hashCode
-/// must consistent with equality, so that the same for objects that are
+/// must be consistent with equality, so that it's the same for objects that are
 /// considered equal.
 ///
 /// Most simple operations on `HashSet` are done in (potentially amortized)
@@ -34,7 +34,6 @@ part of dart.collection;
 /// more permissive, in which case they should document this behavior.
 ///
 /// Example:
-///
 /// ```dart
 /// final hashSet = HashSet();
 /// hashSet.addAll({'A', 'B', 'C', 'D'});
@@ -42,7 +41,7 @@ part of dart.collection;
 /// hashSet.length; // 4
 /// print(hashSet); // {A, D, C, B}
 ///
-/// // To check is there a value item on map, call contains
+/// // To check if there is a value item on map, call contains
 /// final bExists = hashSet.contains('B'); // true
 ///
 /// // To get element value using index, call elementAt
@@ -70,7 +69,7 @@ part of dart.collection;
 /// final addedValue = hashSet.add('E'); // true
 /// print(hashSet); // {A, D, C, E, B}
 ///
-/// // To remove specific value, call remove
+/// // To remove a specific value, call remove
 /// final removedValue = hashSet.remove('A'); // true
 /// print(hashSet); // {D, C, E, B}
 ///
@@ -78,7 +77,7 @@ part of dart.collection;
 /// hashSet.removeWhere((element) => element.contains('B'));
 /// print(hashSet); // {D, C, E}
 ///
-/// // To remove other values than those which match statement
+/// // To remove values other than those which match statement
 /// hashSet.retainWhere((element) => element.contains('C'));
 /// print(hashSet); // {C}
 ///
@@ -100,7 +99,7 @@ abstract class HashSet<E> implements Set<E> {
   /// the elements' intrinsic [Object.==] and [Object.hashCode].
   ///
   /// If you supply one of [equals] and [hashCode],
-  /// you should generally also to supply the other.
+  /// you should generally also supply the other.
   ///
   /// Some [equals] or [hashCode] functions might not work for all objects.
   /// If [isValidKey] is supplied, it's used to check a potential element
@@ -134,7 +133,7 @@ abstract class HashSet<E> implements Set<E> {
 
   /// Creates an unordered identity-based set.
   ///
-  /// Effectively a shorthand for:
+  /// Effectively shorthand for:
   /// ```dart
   /// HashSet<E>(equals: identical, hashCode: identityHashCode)
   /// ```
@@ -186,6 +185,6 @@ abstract class HashSet<E> implements Set<E> {
   /// Provides an iterator that iterates over the elements of this set.
   ///
   /// The order of iteration is unspecified,
-  /// but consistent between changes to the set.
+  /// but is consistent between changes to the set.
   Iterator<E> get iterator;
 }
