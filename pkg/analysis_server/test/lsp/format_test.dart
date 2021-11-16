@@ -295,6 +295,26 @@ main3  ()
     await expectRangeFormattedContents(mainFileUri, contents, expected);
   }
 
+  Future<void> test_formatRange_trailingNewline_47702() async {
+    // Check we complete when a formatted block ends with a newline.
+    // https://github.com/dart-lang/sdk/issues/47702
+    const contents = '''
+int a;
+[[
+    int b;
+]]
+''';
+    final expected = '''
+int a;
+
+int b;
+
+''';
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    await expectRangeFormattedContents(mainFileUri, contents, expected);
+  }
+
   Future<void> test_invalidSyntax() async {
     const contents = '''void f(((( {
   print('test');
