@@ -41,6 +41,7 @@ import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/ffi_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -49,6 +50,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 var timerLibraryAnalyzer = Stopwatch();
@@ -772,6 +774,18 @@ class LibraryAnalyzer {
         featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper));
   }
 
+  Uri? _resolveRelativeUri(String relativeUriStr) {
+    Uri relativeUri;
+    try {
+      relativeUri = Uri.parse(relativeUriStr);
+    } on FormatException {
+      return null;
+    }
+
+    var absoluteUri = resolveRelativeUri(_library.uri, relativeUri);
+    return rewriteFileToPackageUri(_sourceFactory, absoluteUri);
+  }
+
   /// Return the result of resolve the given [uriContent], reporting errors
   /// against the [uriLiteral].
   Source? _resolveUri(FileState file, bool isImport, StringLiteral uriLiteral,
@@ -813,12 +827,12 @@ class LibraryAnalyzer {
         directive.uriSource = defaultSource;
       }
       if (directive is NamespaceDirectiveImpl) {
-        var relativeUri = _selectRelativeUri(directive);
-        directive.selectedUriContent = relativeUri;
-        directive.selectedSource = _sourceFactory.resolveUri(
-          _library.source,
-          relativeUri,
-        );
+        var relativeUriStr = _selectRelativeUri(directive);
+        directive.selectedUriContent = relativeUriStr;
+        var absoluteUri = _resolveRelativeUri(relativeUriStr);
+        if (absoluteUri != null) {
+          directive.selectedSource = _sourceFactory.forUri2(absoluteUri);
+        }
         for (var configuration in directive.configurations) {
           configuration as ConfigurationImpl;
           var uriLiteral = configuration.uri;

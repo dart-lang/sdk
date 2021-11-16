@@ -23,7 +23,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
@@ -268,8 +267,6 @@ class A1 {}
     expect(file.libraryFiles, [file, file.partedFiles[0]]);
 
     expect(_excludeSdk(file.directReferencedFiles), hasLength(5));
-
-    expect(fileSystemState.getFilesForPath(a1), [file]);
   }
 
   test_getFileForPath_onlyDartFiles() {
@@ -361,27 +358,6 @@ part 'not-a2.dart';
         fail('Expected null.');
       },
     );
-  }
-
-  test_getFileForUri_packageVsFileUri() {
-    String path = convertPath('/aaa/lib/a.dart');
-    var packageUri = Uri.parse('package:aaa/a.dart');
-    var fileUri = toUri(path);
-
-    // The files with `package:` and `file:` URIs are different.
-    var filePackageUri = fileSystemState.getFileForUri(packageUri).asFileState;
-    var fileFileUri = fileSystemState.getFileForUri(fileUri).asFileState;
-    expect(filePackageUri, isNot(same(fileFileUri)));
-
-    expect(filePackageUri.path, path);
-    expect(filePackageUri.uri, packageUri);
-
-    expect(fileFileUri.path, path);
-    expect(fileFileUri.uri, fileUri);
-
-    // The file with the `package:` style URI is canonical, and is the first.
-    var files = fileSystemState.getFilesForPath(path);
-    expect(files, [filePackageUri, fileFileUri]);
   }
 
   test_getFilesSubtypingName() {
@@ -781,14 +757,5 @@ class _SourceMock implements Source {
   @override
   noSuchMethod(Invocation invocation) {
     throw StateError('Unexpected invocation of ${invocation.memberName}');
-  }
-}
-
-extension on Either2<FileState?, ExternalLibrary> {
-  FileState get asFileState {
-    return map(
-      (file) => file!,
-      (_) => fail('Expected a file'),
-    );
   }
 }

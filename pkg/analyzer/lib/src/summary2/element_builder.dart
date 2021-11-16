@@ -13,6 +13,7 @@ import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:collection/collection.dart';
 
 class ElementBuilder extends ThrowingAstVisitor<void> {
@@ -997,16 +998,24 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     if (relativeUriStr == null) {
       return null;
     }
-    var relativeUri = Uri.parse(relativeUriStr);
-    return resolveRelativeUri(_libraryBuilder.uri, relativeUri);
+
+    Uri relativeUri;
+    try {
+      relativeUri = Uri.parse(relativeUriStr);
+    } on FormatException {
+      return null;
+    }
+
+    var absoluteUri = resolveRelativeUri(_libraryBuilder.uri, relativeUri);
+
+    var sourceFactory = _linker.analysisContext.sourceFactory;
+    return rewriteFileToPackageUri(sourceFactory, absoluteUri);
   }
 
   LibraryElement? _selectLibrary(NamespaceDirective node) {
-    try {
-      var uri = _selectAbsoluteUri(node);
+    var uri = _selectAbsoluteUri(node);
+    if (uri != null) {
       return _linker.elementFactory.libraryOfUri('$uri');
-    } on FormatException {
-      return null;
     }
   }
 
