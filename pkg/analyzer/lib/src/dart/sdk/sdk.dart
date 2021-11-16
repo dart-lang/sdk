@@ -46,17 +46,6 @@ abstract class AbstractDartSdk implements DartSdk {
   @override
   List<String> get uris => libraryMap.uris;
 
-  /// Add the extensions from one or more sdk extension files to this sdk. The
-  /// [extensions] should be a table mapping the names of extensions to the
-  /// paths where those extensions can be found.
-  void addExtensions(Map<String, String> extensions) {
-    extensions.forEach((String uri, String path) {
-      SdkLibraryImpl library = SdkLibraryImpl(uri);
-      library.path = path;
-      libraryMap.setLibrary(uri, library);
-    });
-  }
-
   /// Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
   Map<String, Object> debugInfo() {
     return <String, Object>{
