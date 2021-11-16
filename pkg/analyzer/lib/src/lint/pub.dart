@@ -207,7 +207,9 @@ abstract class Pubspec {
   PSDependencyList? get devDependencies;
   PSEntry? get documentation;
   PSEntry? get homepage;
+  PSEntry? get issueTracker;
   PSEntry? get name;
+  PSEntry? get repository;
   PSEntry? get version;
   void accept(PubspecVisitor visitor);
 }
@@ -224,7 +226,9 @@ abstract class PubspecVisitor<T> {
   T? visitPackageDevDependency(PSDependency dependency) => null;
   T? visitPackageDocumentation(PSEntry documentation) => null;
   T? visitPackageHomepage(PSEntry homepage) => null;
+  T? visitPackageIssueTracker(PSEntry issueTracker) => null;
   T? visitPackageName(PSEntry name) => null;
+  T? visitPackageRepository(PSEntry repostory) => null;
   T? visitPackageVersion(PSEntry version) => null;
 }
 
@@ -410,7 +414,11 @@ class _Pubspec implements Pubspec {
   @override
   PSEntry? homepage;
   @override
+  PSEntry? issueTracker;
+  @override
   PSEntry? name;
+  @override
+  PSEntry? repository;
   @override
   PSEntry? version;
   @override
@@ -445,6 +453,12 @@ class _Pubspec implements Pubspec {
     if (homepage != null) {
       visitor.visitPackageHomepage(homepage!);
     }
+    if (issueTracker != null) {
+      visitor.visitPackageIssueTracker(issueTracker!);
+    }
+    if (repository != null) {
+      visitor.visitPackageRepository(repository!);
+    }
     if (name != null) {
       visitor.visitPackageName(name!);
     }
@@ -474,6 +488,8 @@ class _Pubspec implements Pubspec {
     sb.writelin(authors);
     sb.writelin(description);
     sb.writelin(homepage);
+    sb.writelin(repository);
+    sb.writelin(issueTracker);
     sb.writelin(dependencies);
     sb.writelin(devDependencies);
     sb.writelin(dependencyOverrides);
@@ -501,6 +517,12 @@ class _Pubspec implements Pubspec {
           break;
         case 'homepage':
           homepage = _processScalar(key, v, resourceProvider);
+          break;
+        case 'repository':
+          repository = _processScalar(key, v, resourceProvider);
+          break;
+        case 'issue_tracker':
+          issueTracker = _processScalar(key, v, resourceProvider);
           break;
         case 'name':
           name = _processScalar(key, v, resourceProvider);

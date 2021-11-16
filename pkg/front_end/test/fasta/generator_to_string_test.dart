@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Test of toString on generators.
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
@@ -32,7 +30,8 @@ import 'package:kernel/ast.dart'
         VariableDeclaration,
         VariableGet,
         VoidType,
-        defaultLanguageVersion;
+        defaultLanguageVersion,
+        dummyLibraryDependency;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 
@@ -61,6 +60,8 @@ import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 import 'package:front_end/src/fasta/source/source_library_builder.dart'
     show ImplicitLanguageVersion, SourceLibraryBuilder;
 
+import '../mock_file_system.dart';
+
 void check(String expected, Object generator) {
   Expect.stringEquals(expected, "$generator");
 }
@@ -88,7 +89,7 @@ Future<void> main() async {
         /*packageUri*/ null,
         new ImplicitLanguageVersion(defaultLanguageVersion),
         new KernelTarget(
-                null,
+                const MockFileSystem(),
                 false,
                 new DillTarget(c.options.ticker, uriTranslator,
                     new NoneTarget(new TargetFlags())),
@@ -97,7 +98,7 @@ Future<void> main() async {
         null);
     libraryBuilder.markLanguageVersionFinal();
     LoadLibraryBuilder loadLibraryBuilder =
-        new LoadLibraryBuilder(libraryBuilder, null, -1);
+        new LoadLibraryBuilder(libraryBuilder, dummyLibraryDependency, -1);
     Procedure getter = new Procedure(
         new Name("myGetter"), ProcedureKind.Getter, new FunctionNode(null),
         fileUri: uri);

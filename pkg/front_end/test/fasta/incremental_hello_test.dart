@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 library fasta.test.incremental_dynamic_test;
 
 import 'package:async_helper/async_helper.dart' show asyncTest;
@@ -34,7 +32,7 @@ void diagnosticMessageHandler(DiagnosticMessage message) {
   throw "Unexpected message: ${message.plainTextFormatted.join('\n')}";
 }
 
-Future<void> test({bool sdkFromSource}) async {
+Future<void> test({required bool sdkFromSource}) async {
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..packagesFileUri = Uri.base.resolve(".packages")
     ..target = new VmTarget(new TargetFlags())

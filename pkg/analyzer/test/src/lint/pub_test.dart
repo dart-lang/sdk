@@ -50,6 +50,8 @@ dev_dependencies:
   unittest: '>=0.11.0 <0.12.0'
 dependency_overrides:
   foo: 1.2.0
+repository: https://github.com/dart-lang/linter
+issue_tracker: https://github.com/dart-lang/linter/issues
 """;
 
   Pubspec ps = Pubspec.parse(src);
@@ -72,6 +74,10 @@ dependency_overrides:
       });
       testValue('homepage', ps.homepage,
           equals('https://github.com/dart-lang/linter'));
+      testValue('repository', ps.repository,
+          equals('https://github.com/dart-lang/linter'));
+      testValue('issue_tracker', ps.issueTracker,
+          equals('https://github.com/dart-lang/linter/issues'));
       testValue(
           'description', ps.description, equals('Style linter for Dart.'));
       testValue('version', ps.version, equals('0.0.1'));

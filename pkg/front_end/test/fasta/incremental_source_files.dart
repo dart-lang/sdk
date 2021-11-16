@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 library fasta.test.incremental_source_files;
 
 /// Expand a file with diffs in common merge conflict format into a [List] that
@@ -57,10 +55,9 @@ List expandDiff(String text) {
 ///   ["head v1 tail", "head v2 tail"]
 List<String> expandUpdates(List updates) {
   int outputCount = updates.firstWhere((e) => e is Iterable).length;
-  List<StringBuffer> result = new List<StringBuffer>.filled(outputCount, null);
-  for (int i = 0; i < outputCount; i++) {
-    result[i] = new StringBuffer();
-  }
+  List<StringBuffer> result = new List<StringBuffer>.generate(
+      outputCount, (_) => new StringBuffer(),
+      growable: false);
   for (var chunk in updates) {
     if (chunk is Iterable) {
       int segmentCount = 0;

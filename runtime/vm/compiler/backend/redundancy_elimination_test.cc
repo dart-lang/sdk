@@ -1352,6 +1352,116 @@ ISOLATE_UNIT_TEST_CASE(CheckStackOverflowElimination_NoInterruptsPragma) {
   }
 }
 
+// This test checks that CSE unwraps redefinitions when comparing all
+// instructions except loads, which are handled specially.
+ISOLATE_UNIT_TEST_CASE(CSE_Redefinitions) {
+  const char* script_chars = R"(
+    @pragma("vm:external-name", "BlackholeNative")
+    external dynamic blackhole([a, b, c, d, e, f]);
+    class K<T> {
+      final T field;
+      K(this.field);
+    }
+  )";
+  const Library& lib =
+      Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
+
+  const Class& cls = Class::ZoneHandle(
+      lib.LookupLocalClass(String::Handle(Symbols::New(thread, "K"))));
+  const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
+  EXPECT(err.IsNull());
+
+  const Field& original_field = Field::Handle(
+      cls.LookupField(String::Handle(Symbols::New(thread, "field"))));
+  EXPECT(!original_field.IsNull());
+  const Field& field = Field::Handle(original_field.CloneFromOriginal());
+
+  const Function& blackhole =
+      Function::ZoneHandle(GetFunction(lib, "blackhole"));
+
+  using compiler::BlockBuilder;
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+  FlowGraphBuilderHelper H;
+
+  auto b1 = H.flow_graph()->graph_entry()->normal_entry();
+
+  BoxInstr* box0;
+  BoxInstr* box1;
+  LoadFieldInstr* load0;
+  LoadFieldInstr* load1;
+  LoadFieldInstr* load2;
+  StaticCallInstr* call;
+  ReturnInstr* ret;
+
+  {
+    BlockBuilder builder(H.flow_graph(), b1);
+    auto& slot = Slot::Get(field, &H.flow_graph()->parsed_function());
+    auto param0 =
+        builder.AddParameter(0, 0, /*with_frame=*/true, kUnboxedDouble);
+    auto param1 = builder.AddParameter(1, 2, /*with_frame=*/true, kTagged);
+    auto redef0 =
+        builder.AddDefinition(new RedefinitionInstr(new Value(param0)));
+    auto redef1 =
+        builder.AddDefinition(new RedefinitionInstr(new Value(param0)));
+    box0 = builder.AddDefinition(
+        BoxInstr::Create(kUnboxedDouble, new Value(redef0)));
+    box1 = builder.AddDefinition(
+        BoxInstr::Create(kUnboxedDouble, new Value(redef1)));
+
+    auto redef2 =
+        builder.AddDefinition(new RedefinitionInstr(new Value(param1)));
+    auto redef3 =
+        builder.AddDefinition(new RedefinitionInstr(new Value(param1)));
+    load0 = builder.AddDefinition(
+        new LoadFieldInstr(new Value(redef2), slot, InstructionSource()));
+    load1 = builder.AddDefinition(
+        new LoadFieldInstr(new Value(redef3), slot, InstructionSource()));
+    load2 = builder.AddDefinition(
+        new LoadFieldInstr(new Value(redef3), slot, InstructionSource()));
+
+    auto args = new InputsArray(3);
+    args->Add(new Value(load0));
+    args->Add(new Value(load1));
+    args->Add(new Value(load2));
+    call = builder.AddInstruction(new StaticCallInstr(
+        InstructionSource(), blackhole, 0, Array::empty_array(), args,
+        S.GetNextDeoptId(), 0, ICData::RebindRule::kStatic));
+
+    ret = builder.AddReturn(new Value(box1));
+  }
+  H.FinishGraph();
+
+  // Running CSE without load optimization should eliminate redundant boxing
+  // but keep loads intact if they don't  have exactly matching inputs.
+  DominatorBasedCSE::Optimize(H.flow_graph(), /*run_load_optimization=*/false);
+
+  EXPECT_PROPERTY(box1, it.WasEliminated());
+  EXPECT_PROPERTY(ret, it.value()->definition() == box0);
+
+  EXPECT_PROPERTY(load0, !it.WasEliminated());
+  EXPECT_PROPERTY(load1, !it.WasEliminated());
+  EXPECT_PROPERTY(load2, it.WasEliminated());
+
+  EXPECT_PROPERTY(call, it.ArgumentAt(0) == load0);
+  EXPECT_PROPERTY(call, it.ArgumentAt(1) == load1);
+  EXPECT_PROPERTY(call, it.ArgumentAt(2) == load1);
+
+  // Running load optimization pass should remove the second load but
+  // insert a redefinition to prevent code motion because the field
+  // has a generic type.
+  DominatorBasedCSE::Optimize(H.flow_graph(), /*run_load_optimization=*/true);
+
+  EXPECT_PROPERTY(load0, !it.WasEliminated());
+  EXPECT_PROPERTY(load1, it.WasEliminated());
+  EXPECT_PROPERTY(load2, it.WasEliminated());
+
+  EXPECT_PROPERTY(call, it.ArgumentAt(0) == load0);
+  EXPECT_PROPERTY(call, it.ArgumentAt(1)->IsRedefinition() &&
+                            it.ArgumentAt(1)->OriginalDefinition() == load0);
+  EXPECT_PROPERTY(call, it.ArgumentAt(2)->IsRedefinition() &&
+                            it.ArgumentAt(2)->OriginalDefinition() == load0);
+}
+
 #endif  // !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart
