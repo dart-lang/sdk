@@ -45,16 +45,21 @@ part of dart.core;
 /// growableList.addAll(['A', 'B', 'C', 'D']);
 /// growableList[0] = 'G';
 /// print(growableList); // [G, B, C, D]
+///
 /// // Concatenate items to single string
 /// print(growableList.join('-')); // G-B-C-D
+///
 /// // Check is item on list
 /// final isA = growableList.contains('A'); // false
+///
 /// // Sort items on list and iterate list content
 /// growableList.sort((a, b) => a.compareTo(b));
 /// print(growableList); // [B, C, D, G]
+///
 /// // Check is value 'E' on list otherwise return 'N'
 /// final ret = growableList.firstWhere((element) => element.contains('E'),
 ///     orElse: () => 'N'); // N
+///
 /// // Search items from list, convert result to list
 /// final resultList = growableList
 ///     .where((element) => element.contains('B') || element.contains('G'))
@@ -697,7 +702,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// ```dart
   /// final parts = ['head', 'shoulder', 'knees', 'toes'];
   /// final retVal = parts.removeLast(); // toes
-  /// print(parts); // [head, shoulder, toes]
+  /// print(parts); // [head, shoulder, knees]
   /// ```
   E removeLast();
 
@@ -750,7 +755,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// ```dart
   /// final colors = ['red', 'green', 'blue', 'orange', 'pink'];
-  /// print(colors.sublist(3)); // [green, blue, orange, pink]
+  /// print(colors.sublist(3)); // [orange, pink]
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
