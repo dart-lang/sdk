@@ -15,6 +15,9 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_TARGET_OS_LINUX)
+#include "vm/elf.h"
+#endif
 #include "vm/flags.h"
 #include "vm/handles.h"
 #include "vm/heap/become.h"
@@ -298,6 +301,16 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
   }
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::Init();
+
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_TARGET_OS_LINUX)
+  if (VirtualMemory::PageSize() > kElfPageSize) {
+    return Utils::SCreate(
+        "Incompatible page size for AOT compiled ELF: expected at most %" Pd
+        ", got %" Pd "",
+        kElfPageSize, VirtualMemory::PageSize());
+  }
+#endif
+
   OSThread::Init();
   Zone::Init();
 #if defined(SUPPORT_TIMELINE)
