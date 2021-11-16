@@ -253,7 +253,7 @@ class Duration implements Comparable<Duration> {
   /// For example a duration of three hours and 12 minutes
   /// has 192 minutes.
   /// ```dart
-  /// const duration = Duration(hours: 3, minutes:12);
+  /// const duration = Duration(hours: 3, minutes: 12);
   /// print(duration.inMinutes); // 192
   /// ```
   int get inMinutes => _duration ~/ Duration.microsecondsPerMinute;
@@ -264,7 +264,7 @@ class Duration implements Comparable<Duration> {
   /// For example a duration of three minutes and 12 seconds
   /// has 192 seconds.
   /// ```dart
-  /// const duration = Duration(minutes: 3, seconds:12);
+  /// const duration = Duration(minutes: 3, seconds: 12);
   /// print(duration.inSeconds); // 192
   /// ```
   int get inSeconds => _duration ~/ Duration.microsecondsPerSecond;
