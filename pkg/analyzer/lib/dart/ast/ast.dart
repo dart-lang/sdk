@@ -2200,6 +2200,7 @@ abstract class ForStatement implements Statement {
 ///        [BlockFunctionBody]
 ///      | [EmptyFunctionBody]
 ///      | [ExpressionFunctionBody]
+///      | [NativeFunctionBody]
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionBody implements AstNode {
