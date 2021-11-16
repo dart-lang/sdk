@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -29,12 +27,12 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
   @override
   Future<void> run() async {
     vmService.VM vm = await serviceClient.getVM();
-    if (vm.isolates.length != 1) {
-      throw "Expected 1 isolate, got ${vm.isolates.length}";
+    if (vm.isolates!.length != 1) {
+      throw "Expected 1 isolate, got ${vm.isolates!.length}";
     }
-    vmService.IsolateRef isolateRef = vm.isolates.single;
-    await waitUntilIsolateIsRunnable(isolateRef.id);
-    await serviceClient.resume(isolateRef.id);
+    vmService.IsolateRef isolateRef = vm.isolates!.single;
+    await waitUntilIsolateIsRunnable(isolateRef.id!);
+    await serviceClient.resume(isolateRef.id!);
 
     Map<vmService.ClassRef, List<int>> instanceCounts =
         new Map<vmService.ClassRef, List<int>>();
@@ -76,12 +74,12 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
       Map<vmService.ClassRef, vmService.Class> classInfo) {
     bool foundLeak = false;
     for (vmService.ClassRef c in instanceCounts.keys) {
-      List<int> listOfInstanceCounts = instanceCounts[c];
+      List<int> listOfInstanceCounts = instanceCounts[c]!;
 
       // Ignore VM internal stuff like "PatchClass", "PcDescriptors" etc.
       // (they don't have a url).
-      vmService.Class classDetails = classInfo[c];
-      String uriString = classDetails.location?.script?.uri;
+      vmService.Class classDetails = classInfo[c]!;
+      String? uriString = classDetails.location?.script?.uri;
       if (uriString == null) continue;
 
       // For now ignore anything not in package:kernel or package:front_end.
@@ -136,30 +134,30 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
     try {
       while (true) {
         if (shouldBail(iterationNumber)) break;
-        if (!await waitUntilPaused(isolateRef.id)) break;
+        if (!await waitUntilPaused(isolateRef.id!)) break;
         print("\n\n====================\n\nIteration #$iterationNumber");
         iterationNumber++;
         vmService.AllocationProfile allocationProfile =
-            await forceGC(isolateRef.id);
-        for (vmService.ClassHeapStats member in allocationProfile.members) {
+            await forceGC(isolateRef.id!);
+        for (vmService.ClassHeapStats member in allocationProfile.members!) {
           if (!classInfo.containsKey(member.classRef)) {
-            vmService.Class c = await serviceClient.getObject(
-                isolateRef.id, member.classRef.id);
-            classInfo[member.classRef] = c;
+            vmService.Class c = (await serviceClient.getObject(
+                isolateRef.id!, member.classRef!.id!)) as vmService.Class;
+            classInfo[member.classRef!] = c;
           }
-          List<int> listOfInstanceCounts = instanceCounts[member.classRef];
+          List<int>? listOfInstanceCounts = instanceCounts[member.classRef];
           if (listOfInstanceCounts == null) {
-            listOfInstanceCounts = instanceCounts[member.classRef] = <int>[];
+            listOfInstanceCounts = instanceCounts[member.classRef!] = <int>[];
           }
           while (listOfInstanceCounts.length < iterationNumber - 2) {
             listOfInstanceCounts.add(0);
           }
-          listOfInstanceCounts.add(member.instancesCurrent);
+          listOfInstanceCounts.add(member.instancesCurrent!);
           if (listOfInstanceCounts.length != iterationNumber - 1) {
             throw "Unexpected length";
           }
         }
-        await serviceClient.resume(isolateRef.id);
+        await serviceClient.resume(isolateRef.id!);
       }
     } catch (e) {
       print("Got error: $e");
@@ -173,7 +171,7 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
   }
 
   bool ignoredClass(vmService.Class classDetails) {
-    String uriString = classDetails.location?.script?.uri;
+    String? uriString = classDetails.location?.script?.uri;
     if (uriString == null) return true;
     if (uriString.startsWith("package:front_end/")) {
       // Classes used for lazy initialization will naturally fluctuate.
@@ -210,7 +208,7 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
       // naturally increase, e.g. we can get 2 more booleans every time (up to
       // a maximum of 2 per library or however many would have been there if we
       // didn't canonicalize at all).
-      if (classDetails.name.endsWith("Constant")) return true;
+      if (classDetails.name!.endsWith("Constant")) return true;
 
       // These classes have proved to fluctuate, although the reason is less
       // clear.

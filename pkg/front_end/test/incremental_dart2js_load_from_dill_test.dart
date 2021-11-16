@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, File;
 
 import 'package:expect/expect.dart' show Expect;
@@ -20,7 +18,7 @@ import 'package:kernel/target/targets.dart';
 import 'incremental_suite.dart'
     show checkIsEqual, getOptions, initializedCompile, normalCompile;
 
-Directory outDir;
+late Directory outDir;
 
 Future<void> main() async {
   outDir =
@@ -64,10 +62,10 @@ Future<void> testDart2jsCompile() async {
         .readComponent(c);
     for (Uri uri in c.uriToSource.keys) {
       if (cSdk.uriToSource.containsKey(uri)) {
-        if ((c.uriToSource[uri].source?.length ?? 0) != 0) {
+        if (c.uriToSource[uri]!.source.length != 0) {
           throw "Compile contained sources for the sdk $uri";
         }
-        if ((c.uriToSource[uri].lineStarts?.length ?? 0) != 0) {
+        if ((c.uriToSource[uri]!.lineStarts?.length ?? 0) != 0) {
           throw "Compile contained line starts for the sdk $uri";
         }
       }
@@ -80,8 +78,8 @@ Future<void> testDart2jsCompile() async {
     [normalDill, true],
     [nonexisting, false],
   ]) {
-    Uri initializeWith = initializationData[0];
-    bool initializeExpect = initializationData[1];
+    Uri initializeWith = initializationData[0] as Uri;
+    bool initializeExpect = initializationData[1] as bool;
     stopwatch.reset();
     bool initializeResult = await initializedCompile(
         dart2jsUrl, fullDillFromInitialized, initializeWith, [invalidateUri],
@@ -135,16 +133,16 @@ class Strategy extends EquivalenceStrategy {
         visitor.matchNamedNodes, visitor.checkNodes, 'procedures');
   }
 
-  bool _isMixinOrCloneReference(EquivalenceVisitor visitor, Reference a,
-      Reference b, String propertyName) {
+  bool _isMixinOrCloneReference(EquivalenceVisitor visitor, Reference? a,
+      Reference? b, String propertyName) {
     if (a != null && b != null) {
-      ReferenceName thisName = ReferenceName.fromReference(a);
-      ReferenceName otherName = ReferenceName.fromReference(b);
+      ReferenceName thisName = ReferenceName.fromReference(a)!;
+      ReferenceName otherName = ReferenceName.fromReference(b)!;
       if (thisName.kind == ReferenceNameKind.Member &&
           otherName.kind == ReferenceNameKind.Member &&
           thisName.memberName == otherName.memberName) {
-        String thisClassName = thisName.declarationName;
-        String otherClassName = otherName.declarationName;
+        String? thisClassName = thisName.declarationName;
+        String? otherClassName = otherName.declarationName;
         if (thisClassName != null &&
             otherClassName != null &&
             thisClassName.contains('&${otherClassName}')) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show File;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
@@ -57,21 +55,21 @@ Future<Null> main() async {
 }
 
 class Tester {
-  Uri sdkRoot;
-  Uri base;
-  Uri sdkSummary;
-  Uri initializeFrom;
-  Uri helperFile;
-  Uri helper2File;
-  Uri entryPoint;
-  Uri entryPointImportDartFoo;
-  Uri platformUri;
-  List<int> sdkSummaryData;
-  List<DiagnosticMessage> errorMessages;
-  List<DiagnosticMessage> warningMessages;
-  MemoryFileSystem fs;
-  CompilerOptions options;
-  IncrementalCompiler compiler;
+  late Uri sdkRoot;
+  late Uri base;
+  late Uri sdkSummary;
+  late Uri initializeFrom;
+  late Uri helperFile;
+  late Uri helper2File;
+  late Uri entryPoint;
+  late Uri entryPointImportDartFoo;
+  late Uri platformUri;
+  late List<int> sdkSummaryData;
+  late List<DiagnosticMessage> errorMessages;
+  late List<DiagnosticMessage> warningMessages;
+  late MemoryFileSystem fs;
+  late CompilerOptions options;
+  late IncrementalCompiler compiler;
 
   Future<void> compileExpectInitializeFailAndSpecificWarning(
       Code expectedWarningCode, bool writeFileOnCrashReport) async {
@@ -248,7 +246,7 @@ main() {
     List<int> mixedPart1;
     {
       // Create a component that is compiled without NNBD.
-      Map<ExperimentalFlag, bool> prevTesting =
+      Map<ExperimentalFlag, bool>? prevTesting =
           options.defaultExperimentFlagsForTesting;
       options.defaultExperimentFlagsForTesting = {
         ExperimentalFlag.nonNullable: false
@@ -270,7 +268,7 @@ main() {
     List<int> mixedPart2;
     {
       // Create a component that is compiled with strong NNBD.
-      Map<ExperimentalFlag, bool> prevTesting =
+      Map<ExperimentalFlag, bool>? prevTesting =
           options.defaultExperimentFlagsForTesting;
       options.defaultExperimentFlagsForTesting = {
         ExperimentalFlag.nonNullable: true
@@ -302,7 +300,7 @@ main() {
 
 class DeleteTempFilesIncrementalCompiler extends IncrementalCompiler {
   DeleteTempFilesIncrementalCompiler(CompilerContext context,
-      [Uri initializeFromDillUri])
+      [Uri? initializeFromDillUri])
       : super(context, initializeFromDillUri);
 
   @override
