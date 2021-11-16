@@ -366,9 +366,14 @@ void FlowGraphTypePropagator::VisitGuardFieldClass(
 }
 
 void FlowGraphTypePropagator::VisitAssertAssignable(
-    AssertAssignableInstr* instr) {
-  SetTypeOf(instr->value()->definition(),
-            new (zone()) CompileType(instr->ComputeType()));
+    AssertAssignableInstr* check) {
+  auto defn = check->value()->definition();
+  SetTypeOf(defn, new (zone()) CompileType(check->ComputeType()));
+  if (check->ssa_temp_index() == -1) {
+    flow_graph_->AllocateSSAIndexes(check);
+    GrowTypes(check->ssa_temp_index() + 1);
+  }
+  FlowGraph::RenameDominatedUses(defn, check, check);
 }
 
 void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {

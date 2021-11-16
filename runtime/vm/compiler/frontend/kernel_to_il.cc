@@ -347,7 +347,8 @@ Fragment FlowGraphBuilder::InstanceCall(
     const InferredTypeMetadata* result_type,
     bool use_unchecked_entry,
     const CallSiteAttributesMetadata* call_site_attrs,
-    bool receiver_is_not_smi) {
+    bool receiver_is_not_smi,
+    bool is_call_on_this) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   InputsArray* arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
@@ -359,6 +360,9 @@ Fragment FlowGraphBuilder::InstanceCall(
   }
   if (use_unchecked_entry) {
     call->set_entry_kind(Code::EntryKind::kUnchecked);
+  }
+  if (is_call_on_this) {
+    call->mark_as_call_on_this();
   }
   if (call_site_attrs != nullptr && call_site_attrs->receiver_type != nullptr &&
       call_site_attrs->receiver_type->IsInstantiated()) {
@@ -1769,7 +1773,7 @@ bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
   if (auto const alloc = definition->AsAllocateClosure()) {
     return !alloc->known_function().IsNull();
   }
-  return definition->IsLoadLocal();
+  return definition->IsLoadLocal() || definition->IsAssertAssignable();
 }
 
 Fragment FlowGraphBuilder::EvaluateAssertion() {

@@ -3770,6 +3770,8 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
 
   virtual Value* RedefinedValue() const;
 
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
@@ -4106,6 +4108,9 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   Code::EntryKind entry_kind() const { return entry_kind_; }
   void set_entry_kind(Code::EntryKind value) { entry_kind_ = value; }
 
+  void mark_as_call_on_this() { is_call_on_this_ = true; }
+  bool is_call_on_this() const { return is_call_on_this_; }
+
   DEFINE_INSTRUCTION_TYPE_CHECK(InstanceCallBase);
 
   bool receiver_is_not_smi() const { return receiver_is_not_smi_; }
@@ -4152,6 +4157,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   bool has_unique_selector_;
   Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
   bool receiver_is_not_smi_ = false;
+  bool is_call_on_this_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallBaseInstr);
 };
@@ -4262,6 +4268,9 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
     new_call->set_result_type(call->result_type());
     new_call->set_entry_kind(call->entry_kind());
     new_call->set_has_unique_selector(call->has_unique_selector());
+    if (call->is_call_on_this()) {
+      new_call->mark_as_call_on_this();
+    }
     return new_call;
   }
 

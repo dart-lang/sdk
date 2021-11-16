@@ -1627,11 +1627,13 @@ Fragment StreamingFlowGraphBuilder::InstanceCall(
     const InferredTypeMetadata* result_type,
     bool use_unchecked_entry,
     const CallSiteAttributesMetadata* call_site_attrs,
-    bool receiver_is_not_smi) {
+    bool receiver_is_not_smi,
+    bool is_call_on_this) {
   return flow_graph_builder_->InstanceCall(
       position, name, kind, type_args_len, argument_count, argument_names,
       checked_argument_count, interface_target, tearoff_interface_target,
-      result_type, use_unchecked_entry, call_site_attrs, receiver_is_not_smi);
+      result_type, use_unchecked_entry, call_site_attrs, receiver_is_not_smi,
+      is_call_on_this);
 }
 
 Fragment StreamingFlowGraphBuilder::ThrowException(TokenPosition position) {
@@ -2420,7 +2422,8 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceSet(TokenPosition* p) {
   const TokenPosition position = ReadPosition();  // read position.
   if (p != nullptr) *p = position;
 
-  if (PeekTag() == kThisExpression) {
+  const bool is_call_on_this = PeekTag() == kThisExpression;
+  if (is_call_on_this) {
     is_unchecked_call = true;
   }
   instructions += BuildExpression();  // read receiver.
@@ -2464,7 +2467,8 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceSet(TokenPosition* p) {
         Array::null_array(), kNumArgsChecked, interface_target,
         Function::null_function(),
         /*result_type=*/nullptr,
-        /*use_unchecked_entry=*/is_unchecked_call, &call_site_attributes);
+        /*use_unchecked_entry=*/is_unchecked_call, &call_site_attributes,
+        /*receiver_not_smi=*/false, is_call_on_this);
   }
 
   instructions += Drop();  // Drop result of the setter invocation.
@@ -2928,7 +2932,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
 
   // Take note of whether the invocation is against the receiver of the current
   // function: in this case, we may skip some type checks in the callee.
-  if ((PeekTag() == kThisExpression) && !is_dynamic) {
+  const bool is_call_on_this = (PeekTag() == kThisExpression) && !is_dynamic;
+  if (is_call_on_this) {
     is_unchecked_call = true;
   }
   instructions += BuildExpression();  // read receiver.
@@ -3035,12 +3040,12 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
                    argument_names, ICData::kNoRebind, &result_type,
                    type_args_len, /*use_unchecked_entry=*/is_unchecked_call);
   } else {
-    instructions +=
-        InstanceCall(position, *mangled_name, token_kind, type_args_len,
-                     argument_count, argument_names, checked_argument_count,
-                     *interface_target, Function::null_function(), &result_type,
-                     /*use_unchecked_entry=*/is_unchecked_call,
-                     &call_site_attributes, result_type.ReceiverNotInt());
+    instructions += InstanceCall(
+        position, *mangled_name, token_kind, type_args_len, argument_count,
+        argument_names, checked_argument_count, *interface_target,
+        Function::null_function(), &result_type,
+        /*use_unchecked_entry=*/is_unchecked_call, &call_site_attributes,
+        result_type.ReceiverNotInt(), is_call_on_this);
   }
 
   // Drop temporaries preserving result on the top of the stack.
@@ -3880,12 +3885,10 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
     // We do not care whether the 'as' cast as implicitly added by the frontend
     // or explicitly written by the user, in both cases we use an assert
     // assignable.
-    instructions += LoadLocal(MakeTemporary());
     instructions += B->AssertAssignableLoadTypeArguments(
         position, type,
         is_type_error ? Symbols::Empty() : Symbols::InTypeCast(),
         AssertAssignableInstr::kInsertedByFrontend);
-    instructions += Drop();
   }
   return instructions;
 }

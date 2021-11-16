@@ -1135,18 +1135,18 @@ UnboxedConstantInstr::UnboxedConstantInstr(const Object& value,
 
 // Returns true if the value represents a constant.
 bool Value::BindsToConstant() const {
-  return definition()->IsConstant();
+  return definition()->OriginalDefinition()->IsConstant();
 }
 
 // Returns true if the value represents constant null.
 bool Value::BindsToConstantNull() const {
-  ConstantInstr* constant = definition()->AsConstant();
+  ConstantInstr* constant = definition()->OriginalDefinition()->AsConstant();
   return (constant != NULL) && constant->value().IsNull();
 }
 
 const Object& Value::BoundConstant() const {
   ASSERT(BindsToConstant());
-  ConstantInstr* constant = definition()->AsConstant();
+  ConstantInstr* constant = definition()->OriginalDefinition()->AsConstant();
   ASSERT(constant != NULL);
   return constant->value();
 }
@@ -2545,7 +2545,8 @@ Definition* RedefinitionInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses() && !flow_graph->is_licm_allowed()) {
     return NULL;
   }
-  if ((constrained_type() != nullptr) && Type()->IsEqualTo(value()->Type())) {
+  if (constrained_type() != nullptr &&
+      constrained_type()->IsEqualTo(value()->Type())) {
     return value()->definition();
   }
   return this;
@@ -5919,8 +5920,43 @@ Definition* PhiInstr::GetReplacementForRedundantPhi() const {
   }
 }
 
+static bool AllInputsAreRedefinitions(PhiInstr* phi) {
+  for (intptr_t i = 0; i < phi->InputCount(); i++) {
+    if (phi->InputAt(i)->definition()->RedefinedValue() == nullptr) {
+      return false;
+    }
+  }
+  return true;
+}
+
 Definition* PhiInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* replacement = GetReplacementForRedundantPhi();
+  if (replacement != nullptr && flow_graph->is_licm_allowed() &&
+      AllInputsAreRedefinitions(this)) {
+    // If we are replacing a Phi which has redefinitions as all of its inputs
+    // then to maintain the redefinition chain we are going to insert a
+    // redefinition. If any input is *not* a redefinition that means that
+    // whatever properties were infered for a Phi also hold on a path
+    // that does not pass through any redefinitions so there is no need
+    // to redefine this value.
+    auto zone = flow_graph->zone();
+    auto redef = new (zone) RedefinitionInstr(new (zone) Value(replacement));
+    flow_graph->InsertAfter(block(), redef, /*env=*/nullptr, FlowGraph::kValue);
+
+    // Redefinition is not going to dominate the block entry itself, so we
+    // have to handle environment uses at the block entry specially.
+    Value* next_use;
+    for (Value* use = env_use_list(); use != nullptr; use = next_use) {
+      next_use = use->next_use();
+      if (use->instruction() == block()) {
+        use->RemoveFromUseList();
+        use->set_definition(replacement);
+        replacement->AddEnvUse(use);
+      }
+    }
+    return redef;
+  }
+
   return (replacement != nullptr) ? replacement : this;
 }
 

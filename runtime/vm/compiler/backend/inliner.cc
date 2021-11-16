@@ -629,18 +629,128 @@ class PolymorphicInliner : public ValueObject {
   const Function& caller_function_;
 };
 
+static bool IsAThisCallThroughAnUncheckedEntryPoint(Definition* call) {
+  if (auto instance_call = call->AsInstanceCallBase()) {
+    return (instance_call->entry_kind() == Code::EntryKind::kUnchecked) &&
+           instance_call->is_call_on_this();
+  }
+  return false;
+}
+
+// Helper which returns true if callee potentially has a more specific
+// parameter type and thus a redefinition needs to be inserted.
+static bool CalleeParameterTypeMightBeMoreSpecific(
+    BitVector* is_generic_covariant_impl,
+    const FunctionType& interface_target_signature,
+    const FunctionType& callee_signature,
+    intptr_t first_arg_index,
+    intptr_t arg_index) {
+  if (arg_index > first_arg_index && is_generic_covariant_impl != nullptr &&
+      is_generic_covariant_impl->Contains(arg_index - first_arg_index)) {
+    const intptr_t param_index = arg_index - first_arg_index;
+    const intptr_t num_named_params =
+        callee_signature.NumOptionalNamedParameters();
+    const intptr_t num_params = callee_signature.NumParameters();
+    if (num_named_params == 0 &&
+        param_index >= interface_target_signature.NumParameters()) {
+      // An optional positional parameter which was added in the callee but
+      // not present in the interface target.
+      return false;
+    }
+
+    // Check if this argument corresponds to a named parameter. In this case
+    // we need to find correct index based on the name.
+    intptr_t interface_target_param_index = param_index;
+    if (num_named_params > 0 &&
+        (num_params - num_named_params) <= param_index) {
+      // This is a named parameter.
+      const String& name =
+          String::Handle(callee_signature.ParameterNameAt(param_index));
+      interface_target_param_index = -1;
+      for (intptr_t i = interface_target_signature.NumParameters() -
+                        interface_target_signature.NumOptionalNamedParameters(),
+                    n = interface_target_signature.NumParameters();
+           i < n; i++) {
+        if (interface_target_signature.ParameterNameAt(i) == name.ptr()) {
+          interface_target_param_index = i;
+          break;
+        }
+      }
+
+      // This is a named parameter which was added in the callee.
+      if (interface_target_param_index == -1) {
+        return false;
+      }
+    }
+    const AbstractType& callee_parameter_type =
+        AbstractType::Handle(callee_signature.ParameterTypeAt(param_index));
+    const AbstractType& interface_target_parameter_type =
+        AbstractType::Handle(interface_target_signature.ParameterTypeAt(
+            interface_target_param_index));
+    if (interface_target_parameter_type.ptr() != callee_parameter_type.ptr()) {
+      // This a conservative approximation.
+      return true;
+    }
+  }
+  return false;
+}
+
 static void ReplaceParameterStubs(Zone* zone,
                                   FlowGraph* caller_graph,
                                   InlinedCallData* call_data,
                                   const TargetInfo* target_info) {
   const bool is_polymorphic = call_data->call->IsPolymorphicInstanceCall();
+  const bool no_checks =
+      IsAThisCallThroughAnUncheckedEntryPoint(call_data->call);
   ASSERT(is_polymorphic == (target_info != NULL));
   FlowGraph* callee_graph = call_data->callee_graph;
   auto callee_entry = callee_graph->graph_entry()->normal_entry();
+  const Function& callee = callee_graph->function();
+
+  FunctionType& interface_target_signature = FunctionType::Handle();
+  FunctionType& callee_signature = FunctionType::Handle(callee.signature());
+
+  // If we are inlining a call on this and we are going to skip parameter checks
+  // then a situation can arise when parameter type in the callee has a narrower
+  // type than what interface target specifies, e.g.
+  //
+  //    class A<T> {
+  //      void f(T v);
+  //      void g(T v) { f(v); }
+  //    }
+  //    class B extends A<X> { void f(X v) { ... } }
+  //
+  // Conside when B.f is inlined into a callsite in A.g (e.g. due to polymorphic
+  // inlining). v is known to be X within the body of B.f, but not guaranteed to
+  // be X outside of it. Thus we must ensure that all operations with v that
+  // depend on its type being X are pinned to stay within the inlined body.
+  //
+  // We achieve that by inserting redefinitions for parameters which potentially
+  // have narrower types in callee compared to those in the interface target of
+  // the call.
+  BitVector* is_generic_covariant_impl = nullptr;
+  if (no_checks && callee.IsRegularFunction()) {
+    const Function& interface_target =
+        call_data->call->AsInstanceCallBase()->interface_target();
+
+    callee_signature = callee.signature();
+    interface_target_signature = interface_target.signature();
+
+    // If signatures match then there is nothing to do.
+    if (interface_target.signature() != callee.signature()) {
+      const intptr_t num_params = callee.NumParameters();
+      BitVector is_covariant(zone, num_params);
+      is_generic_covariant_impl = new (zone) BitVector(zone, num_params);
+
+      kernel::ReadParameterCovariance(callee_graph->function(), &is_covariant,
+                                      is_generic_covariant_impl);
+    }
+  }
 
   // Replace each stub with the actual argument or the caller's constant.
   // Nulls denote optional parameters for which no actual was given.
   const intptr_t first_arg_index = call_data->first_arg_index;
+
   // When first_arg_index > 0, the stub and actual argument processed in the
   // first loop iteration represent a passed-in type argument vector.
   GrowableArray<Value*>* arguments = call_data->arguments;
@@ -654,17 +764,29 @@ static void ReplaceParameterStubs(Zone* zone,
   }
   for (intptr_t i = 0; i < arguments->length(); ++i) {
     Value* actual = (*arguments)[i];
-    Definition* defn = NULL;
-    if (is_polymorphic && (i == first_arg_index)) {
-      // Replace the receiver argument with a redefinition to prevent code from
-      // the inlined body from being hoisted above the inlined entry.
+    Definition* defn = nullptr;
+
+    // Replace the receiver argument with a redefinition to prevent code from
+    // the inlined body from being hoisted above the inlined entry.
+    const bool is_polymorphic_receiver =
+        (is_polymorphic && (i == first_arg_index));
+
+    if (actual == nullptr) {
+      ASSERT(!is_polymorphic_receiver);
+      continue;
+    }
+
+    if (is_polymorphic_receiver ||
+        CalleeParameterTypeMightBeMoreSpecific(
+            is_generic_covariant_impl, interface_target_signature,
+            callee_signature, first_arg_index, i)) {
       RedefinitionInstr* redefinition =
           new (zone) RedefinitionInstr(actual->Copy(zone));
       redefinition->set_ssa_temp_index(caller_graph->alloc_ssa_temp_index());
       if (FlowGraph::NeedsPairLocation(redefinition->representation())) {
         caller_graph->alloc_ssa_temp_index();
       }
-      if (target_info->IsSingleCid()) {
+      if (is_polymorphic_receiver && target_info->IsSingleCid()) {
         redefinition->UpdateType(CompileType::FromCid(target_info->cid_start));
       }
       redefinition->InsertAfter(callee_entry);
@@ -674,13 +796,12 @@ static void ReplaceParameterStubs(Zone* zone,
       callee_entry->ReplaceInEnvironment(
           call_data->parameter_stubs->At(first_arg_stub_index + i),
           actual->definition());
-    } else if (actual != NULL) {
+    } else {
       defn = actual->definition();
     }
-    if (defn != NULL) {
-      call_data->parameter_stubs->At(first_arg_stub_index + i)
-          ->ReplaceUsesWith(defn);
-    }
+
+    call_data->parameter_stubs->At(first_arg_stub_index + i)
+        ->ReplaceUsesWith(defn);
   }
 
   // Replace remaining constants with uses by constants in the caller's
@@ -688,7 +809,7 @@ static void ReplaceParameterStubs(Zone* zone,
   auto defns = callee_graph->graph_entry()->initial_definitions();
   for (intptr_t i = 0; i < defns->length(); ++i) {
     ConstantInstr* constant = (*defns)[i]->AsConstant();
-    if (constant != NULL && constant->HasUses()) {
+    if (constant != nullptr && constant->HasUses()) {
       constant->ReplaceUsesWith(caller_graph->GetConstant(constant->value()));
     }
   }
@@ -696,12 +817,12 @@ static void ReplaceParameterStubs(Zone* zone,
   defns = callee_graph->graph_entry()->normal_entry()->initial_definitions();
   for (intptr_t i = 0; i < defns->length(); ++i) {
     ConstantInstr* constant = (*defns)[i]->AsConstant();
-    if (constant != NULL && constant->HasUses()) {
+    if (constant != nullptr && constant->HasUses()) {
       constant->ReplaceUsesWith(caller_graph->GetConstant(constant->value()));
     }
 
     SpecialParameterInstr* param = (*defns)[i]->AsSpecialParameter();
-    if (param != NULL && param->HasUses()) {
+    if (param != nullptr && param->HasUses()) {
       switch (param->kind()) {
         case SpecialParameterInstr::kContext: {
           ASSERT(!is_polymorphic);
@@ -1422,9 +1543,8 @@ class CallSiteInliner : public ValueObject {
     // Plug result in the caller graph.
     InlineExitCollector* exit_collector = call_data->exit_collector;
     exit_collector->PrepareGraphs(callee_graph);
-    exit_collector->ReplaceCall(callee_function_entry);
-
     ReplaceParameterStubs(zone(), caller_graph_, call_data, NULL);
+    exit_collector->ReplaceCall(callee_function_entry);
 
     ASSERT(!call_data->call->HasPushArguments());
   }

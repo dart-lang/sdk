@@ -1921,6 +1921,72 @@ class LoadOptimizer : public ValueObject {
             (array_store->class_id() == kTypedDataFloat32x4ArrayCid));
   }
 
+  static bool AlreadyPinnedByRedefinition(Definition* replacement,
+                                          Definition* redefinition) {
+    Definition* defn = replacement;
+    if (auto load_field = replacement->AsLoadField()) {
+      defn = load_field->instance()->definition();
+    } else if (auto load_indexed = replacement->AsLoadIndexed()) {
+      defn = load_indexed->array()->definition();
+    }
+
+    Value* unwrapped;
+    while ((unwrapped = defn->RedefinedValue()) != nullptr) {
+      if (defn == redefinition) {
+        return true;
+      }
+      defn = unwrapped->definition();
+    }
+
+    return false;
+  }
+
+  Definition* ReplaceLoad(Definition* load, Definition* replacement) {
+    // When replacing a load from a generic field or from an array element
+    // check if instance we are loading from is redefined. If it is then
+    // we need to ensure that replacement is not going to break the
+    // dependency chain.
+    Definition* redef = nullptr;
+    if (auto load_field = load->AsLoadField()) {
+      auto instance = load_field->instance()->definition();
+      if (instance->RedefinedValue() != nullptr) {
+        if ((load_field->slot().kind() ==
+                 Slot::Kind::kGrowableObjectArray_data ||
+             (load_field->slot().IsDartField() &&
+              !AbstractType::Handle(load_field->slot().field().type())
+                   .IsInstantiated()))) {
+          redef = instance;
+        }
+      }
+    } else if (auto load_indexed = load->AsLoadIndexed()) {
+      if (load_indexed->class_id() == kArrayCid ||
+          load_indexed->class_id() == kImmutableArrayCid) {
+        auto instance = load_indexed->array()->definition();
+        if (instance->RedefinedValue() != nullptr) {
+          redef = instance;
+        }
+      }
+    }
+    if (redef != nullptr && !AlreadyPinnedByRedefinition(replacement, redef)) {
+      // Original load had a redefined instance and replacement does not
+      // depend on the same redefinition. Create a redefinition
+      // of the replacement to keep the dependency chain.
+      auto replacement_redefinition =
+          new (zone()) RedefinitionInstr(new (zone()) Value(replacement));
+      if (redef->IsDominatedBy(replacement)) {
+        graph_->InsertAfter(redef, replacement_redefinition, /*env=*/nullptr,
+                            FlowGraph::kValue);
+      } else {
+        graph_->InsertBefore(load, replacement_redefinition, /*env=*/nullptr,
+                             FlowGraph::kValue);
+      }
+      replacement = replacement_redefinition;
+    }
+
+    load->ReplaceUsesWith(replacement);
+    return replacement;
+  }
+
   // Compute sets of loads generated and killed by each block.
   // Additionally compute upwards exposed and generated loads for each block.
   // Exposed loads are those that can be replaced if a corresponding
@@ -2142,7 +2208,7 @@ class LoadOptimizer : public ValueObject {
                       defn->ssa_temp_index(), replacement->ssa_temp_index());
           }
 
-          defn->ReplaceUsesWith(replacement);
+          ReplaceLoad(defn, replacement);
           instr_it.RemoveCurrentFromGraph();
           forwarded_ = true;
           continue;
@@ -2515,7 +2581,7 @@ class LoadOptimizer : public ValueObject {
                       load->ssa_temp_index(), replacement->ssa_temp_index());
           }
 
-          load->ReplaceUsesWith(replacement);
+          replacement = ReplaceLoad(load, replacement);
           load->RemoveFromGraph();
           load->SetReplacement(replacement);
           forwarded_ = true;
