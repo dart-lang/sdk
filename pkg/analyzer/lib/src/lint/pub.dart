@@ -75,17 +75,6 @@ PSHost? _processHost(
   return null;
 }
 
-PSNodeList? _processList(
-    YamlScalar key, YamlNode v, ResourceProvider? resourceProvider) {
-  if (v is! YamlList) {
-    return null;
-  }
-  YamlList nodeList = v;
-
-  return _PSNodeList(_PSNode(key, resourceProvider),
-      nodeList.nodes.map((n) => _PSNode(n, resourceProvider)));
-}
-
 PSEntry? _processScalar(
     YamlScalar key, YamlNode value, ResourceProvider? resourceProvider) {
   if (value is! YamlScalar) {
@@ -94,6 +83,20 @@ PSEntry? _processScalar(
   }
   return PSEntry(
       _PSNode(key, resourceProvider), _PSNode(value, resourceProvider));
+}
+
+PSNodeList? _processScalarList(
+    YamlScalar key, YamlNode v, ResourceProvider? resourceProvider) {
+  if (v is! YamlList) {
+    return null;
+  }
+  YamlList nodeList = v;
+
+  return _PSNodeList(
+      _PSNode(key, resourceProvider),
+      nodeList.nodes
+          .whereType<YamlScalar>()
+          .map((n) => _PSNode(n, resourceProvider)));
 }
 
 /// Representation of a key/value pair a map from package name to
@@ -166,9 +169,22 @@ abstract class PSHost {
   PSEntry? get url;
 }
 
+/// Representation of a leaf-node from `pubspec.yaml`.
 abstract class PSNode {
   Source get source;
   SourceSpan get span;
+
+  /// String value of the node, or `null` if value in pubspec.yaml is `null` or
+  /// omitted.
+  ///
+  /// **Example**
+  /// ```
+  /// name: foo
+  /// version:
+  /// ```
+  /// In the example above the [PSNode] for `foo` will have [text] "foo", and
+  /// the [PSNode] for `version` will have not have [text] as `null`, as empty
+  /// value or `"null"` is the same in YAML.
   String? get text;
 }
 
@@ -353,7 +369,7 @@ class _PSNode implements PSNode {
 
   final ResourceProvider? resourceProvider;
 
-  _PSNode(YamlNode node, this.resourceProvider)
+  _PSNode(YamlScalar node, this.resourceProvider)
       : text = node.value?.toString(),
         span = node.span;
 
@@ -481,7 +497,7 @@ class _Pubspec implements Pubspec {
           author = _processScalar(key, v, resourceProvider);
           break;
         case 'authors':
-          authors = _processList(key, v, resourceProvider);
+          authors = _processScalarList(key, v, resourceProvider);
           break;
         case 'homepage':
           homepage = _processScalar(key, v, resourceProvider);

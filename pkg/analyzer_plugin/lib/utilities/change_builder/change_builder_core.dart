@@ -63,6 +63,10 @@ abstract class ChangeBuilder {
   /// that changes to the copy will not effect this change builder.
   ChangeBuilder copy();
 
+  /// Return `true` if this builder already has edits for the file with the
+  /// given [path].
+  bool hasEditsFor(String path);
+
   /// Set the selection for the change being built to the given [position].
   void setSelection(Position position);
 }

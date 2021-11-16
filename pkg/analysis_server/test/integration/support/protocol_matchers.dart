@@ -2139,7 +2139,8 @@ final Matcher isCompletionGetSuggestionDetailsResult = LazyMatcher(() =>
 /// }
 final Matcher isCompletionGetSuggestions2Params = LazyMatcher(() =>
     MatchesJsonObject('completion.getSuggestions2 params',
-        {'file': isFilePath, 'offset': isInt, 'maxResults': isInt}));
+        {'file': isFilePath, 'offset': isInt, 'maxResults': isInt},
+        optionalFields: {'timeout': isInt}));
 
 /// completion.getSuggestions2 result
 ///

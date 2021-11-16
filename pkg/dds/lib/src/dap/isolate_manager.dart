@@ -136,10 +136,7 @@ class IsolateManager {
     vm.Event event, {
     bool resumeIfStarting = true,
   }) async {
-    final isolateId = event.isolate?.id;
-    if (isolateId == null) {
-      return;
-    }
+    final isolateId = event.isolate?.id!;
 
     final eventKind = event.kind;
     if (eventKind == vm.EventKind.kIsolateStart ||
@@ -203,12 +200,16 @@ class IsolateManager {
     return info;
   }
 
+  /// Calls reloadSources for all isolates.
+  Future<void> reloadSources() async {
+    await Future.wait(_threadsByThreadId.values.map(
+      (isolate) => _reloadSources(isolate.isolate),
+    ));
+  }
+
   Future<void> resumeIsolate(vm.IsolateRef isolateRef,
       [String? resumeType]) async {
-    final isolateId = isolateRef.id;
-    if (isolateId == null) {
-      return;
-    }
+    final isolateId = isolateRef.id!;
 
     final thread = _threadsByIsolateId[isolateId];
     if (thread == null) {
@@ -527,6 +528,18 @@ class IsolateManager {
     }
   }
 
+  /// Calls reloadSources for the given isolate.
+  Future<void> _reloadSources(vm.IsolateRef isolateRef) async {
+    final service = _adapter.vmService;
+    if (!debug || service == null) {
+      return;
+    }
+
+    final isolateId = isolateRef.id!;
+
+    await service.reloadSources(isolateId);
+  }
+
   /// Sets breakpoints for an individual isolate.
   ///
   /// If [uri] is provided, only breakpoints for that URI will be sent (used
@@ -592,10 +605,7 @@ class IsolateManager {
       return;
     }
 
-    final isolateId = isolateRef.id;
-    if (isolateId == null) {
-      return;
-    }
+    final isolateId = isolateRef.id!;
 
     final isolate = await service.getIsolate(isolateId);
     final libraries = isolate.libraries;

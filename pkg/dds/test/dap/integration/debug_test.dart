@@ -173,6 +173,34 @@ main() {
       unawaited(dap.client.event('thread').then((_) => dap.client.terminate()));
       await dap.client.start(file: testFile);
     });
+
+    test('can hot reload', () async {
+      const originalText = 'ORIGINAL TEXT';
+      const newText = 'NEW TEXT';
+
+      // Create a script that prints 'ORIGINAL TEXT'.
+      final testFile = dap.createTestFile(stringPrintingProgram(originalText));
+
+      // Start the program and wait for 'ORIGINAL TEXT' to be printed.
+      await Future.wait([
+        dap.client.initialize(),
+        dap.client.launch(testFile.path),
+      ], eagerError: true);
+
+      // Expect the original text.
+      await dap.client.outputEvents
+          .firstWhere((event) => event.output.trim() == originalText);
+
+      // Update the file and hot reload.
+      testFile.writeAsStringSync(stringPrintingProgram(newText));
+      await dap.client.hotReload();
+
+      // Expect the new text.
+      await dap.client.outputEvents
+          .firstWhere((event) => event.output.trim() == newText);
+
+      await dap.client.terminate();
+    });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
 

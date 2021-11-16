@@ -1169,7 +1169,9 @@ transforms:
 import '$importUri';
 void f(Old p) {}
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+void f(Old p) {}
+''');
   }
 }
 

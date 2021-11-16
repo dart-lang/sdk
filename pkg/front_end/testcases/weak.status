@@ -4,11 +4,20 @@
 
 # Status file for the weak_suite.dart test suite.
 
-general/platform_invalid_uris/main: SemiFuzzFailure
+dart2js/late_fields: SemiFuzzFailure
+dart2js/late_from_dill/main: SemiFuzzFailure
+dart2js/late_statics: SemiFuzzFailure
+dart2js/mixin_from_opt_in/main: SemiFuzzFailure
+dart2js/mixin_from_opt_in/main.no_link: SemiFuzzFailure
 general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure
 general/error_recovery/issue_39202.crash: SemiFuzzCrash
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
+general/issue47339: SemiFuzzCrash
+general/platform_invalid_uris/main: SemiFuzzFailure
+nnbd_mixed/mixin_from_opt_in/main: SemiFuzzFailure
+nnbd_mixed/mixin_from_opt_in/main.no_link: SemiFuzzFailure
 regress/utf_16_le_content.crash: SemiFuzzCrash
+static_field_lowering/opt_in: SemiFuzzFailure
 
 constructor_tearoffs/call_instantiation: TypeCheckError
 constructor_tearoffs/lowering/invalid_redirect: VerificationError
