@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:expect/expect.dart';
@@ -59,10 +57,10 @@ Future<void> main() async {
 }
 
 Future<void> test(
-    {bool enableNonNullableByDefault,
-    bool enableNonNullableExplicitly,
-    Version versionImpliesOptIn,
-    Version versionOptsInAllowed}) async {
+    {required bool enableNonNullableByDefault,
+    required bool enableNonNullableExplicitly,
+    required Version versionImpliesOptIn,
+    required Version versionOptsInAllowed}) async {
   CompilerOptions options = new CompilerOptions();
   if (enableNonNullableByDefault) {
     // Pretend non-nullable is on by default.
@@ -112,12 +110,12 @@ Future<void> test(
 
   Directory directory = new Directory.fromUri(
       Uri.base.resolve('pkg/front_end/test/enable_non_nullable/data/'));
-  CompilerResult result = await kernelForProgramInternal(
+  CompilerResult result = (await kernelForProgramInternal(
       directory.uri.resolve('main.dart'), options,
-      retainDataForTesting: true);
+      retainDataForTesting: true))!;
   Expect.isFalse(
       hadDiagnostic, "Compilation had diagnostics (errors, warnings)!");
-  for (Library library in result.component.libraries) {
+  for (Library library in result.component!.libraries) {
     if (library.importUri.scheme != 'dart') {
       bool usesLegacy =
           await uriUsesLegacyLanguageVersion(library.fileUri, options);

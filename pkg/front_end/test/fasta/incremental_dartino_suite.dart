@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 library fasta.test.incremental_test;
 
 import "dart:convert" show JsonEncoder;
@@ -73,7 +71,7 @@ class Context extends ChainContext {
 
   ProcessedOptions get options => compilerContext.options;
 
-  MemoryFileSystem get fileSystem => options.fileSystem;
+  MemoryFileSystem get fileSystem => options.fileSystem as MemoryFileSystem;
 
   Future<T> runInContext<T>(Future<T> action(CompilerContext c)) {
     return compilerContext.runInContext<T>(action);
@@ -103,9 +101,9 @@ class ReadTest extends Step<TestDescription, TestCase, Context> {
     Uri uri = description.uri;
     String contents = await new File.fromUri(uri).readAsString();
     Map<String, List<String>> sources = <String, List<String>>{};
-    List<IncrementalExpectation> expectations;
+    List<IncrementalExpectation>? expectations;
     bool firstPatch = true;
-    YamlMap map = loadYamlNode(contents, sourceUrl: uri);
+    YamlMap map = loadYamlNode(contents, sourceUrl: uri) as YamlMap;
     map.forEach((_fileName, _contents) {
       String fileName = _fileName; // Strong mode hurray!
       String contents = _contents; // Strong mode hurray!
@@ -135,7 +133,7 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
   Future<Result<TestCase>> run(TestCase test, Context context) async {
     for (int edits = 0;; edits++) {
       bool foundSources = false;
-      test.sources.forEach((String name, List<String> sources) {
+      test.sources!.forEach((String name, List<String> sources) {
         if (edits < sources.length) {
           String source = sources[edits];
           Uri uri = base.resolve(name);
@@ -157,7 +155,7 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
       Component component =
           await compiler.computeDelta(entryPoints: [entryPoint]);
       List<DiagnosticMessage> errors = context.takeErrors();
-      if (test.expectations[edits].hasCompileTimeError) {
+      if (test.expectations![edits].hasCompileTimeError) {
         if (errors.isEmpty) {
           return fail(test, "Compile-time error expected, but none reported");
         }
@@ -176,9 +174,9 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
 class TestCase {
   final TestDescription description;
 
-  final Map<String, List<String>> sources;
+  final Map<String, List<String>>? sources;
 
-  final List<IncrementalExpectation> expectations;
+  final List<IncrementalExpectation>? expectations;
 
   TestCase(this.description, this.sources, this.expectations);
 
@@ -192,16 +190,16 @@ class TestCase {
     if (sources == null) {
       return step.fail(this, "No sources.");
     }
-    if (expectations == null || expectations.isEmpty) {
+    if (expectations == null || expectations!.isEmpty) {
       return step.fail(this, "No expectations.");
     }
-    for (String name in sources.keys) {
-      List<String> versions = sources[name];
-      if (versions.length != 1 && versions.length != expectations.length) {
+    for (String name in sources!.keys) {
+      List<String> versions = sources![name]!;
+      if (versions.length != 1 && versions.length != expectations!.length) {
         return step.fail(
             this,
             "Found ${versions.length} versions of $name,"
-            " but expected 1 or ${expectations.length}.");
+            " but expected 1 or ${expectations!.length}.");
       }
     }
     return step.pass(this);
