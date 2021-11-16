@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -23,7 +21,7 @@ final Uri benchmarkHelper =
     Platform.script.resolve("compile_benchmark_helper.dart");
 
 void main(List<String> args) {
-  List<String> arguments;
+  List<String>? arguments;
   bool tryToAnnotate = false;
   bool tryToSlowDown = false;
   bool timeInsteadOfCount = false;
@@ -135,7 +133,7 @@ void doWork(Directory tmp, List<int> dillData, List<String> arguments,
   if (tryToSlowDown) {
     didSomething = true;
     for (Procedure p in sortedProcedures) {
-      Uri busyWaiting = busyWaitProcedure(
+      Uri? busyWaiting = busyWaitProcedure(
           dillData,
           tmp.uri,
           (lib) => lib.importUri == p.enclosingLibrary.importUri,
@@ -245,13 +243,14 @@ class IntPair {
 ///
 /// The annotation is copied from the [preferInlineMe] method in the helper.
 Uri preferInlineProcedure(List<int> dillData, Uri tmp,
-    bool libraryMatcher(Library lib), String className, String procedureName) {
+    bool libraryMatcher(Library lib), String? className, String procedureName) {
   Component component = new Component();
   new BinaryBuilder(dillData, disableLazyReading: true)
       .readComponent(component);
   Procedure preferInlineMeProcedure = getProcedure(component,
       (lib) => lib.fileUri == benchmarkHelper, null, "preferInlineMe");
-  ConstantExpression annotation = preferInlineMeProcedure.annotations.single;
+  ConstantExpression annotation =
+      preferInlineMeProcedure.annotations.single as ConstantExpression;
   Procedure markProcedure =
       getProcedure(component, libraryMatcher, className, procedureName);
   markProcedure.addAnnotation(
@@ -268,8 +267,8 @@ Uri preferInlineProcedure(List<int> dillData, Uri tmp,
 ///
 /// This will make the procedure busy-wait approximately 0.002 ms for each
 /// invocation (+ whatever overhead and imprecision).
-Uri busyWaitProcedure(List<int> dillData, Uri tmp,
-    bool libraryMatcher(Library lib), String className, String procedureName) {
+Uri? busyWaitProcedure(List<int> dillData, Uri tmp,
+    bool libraryMatcher(Library lib), String? className, String procedureName) {
   Component component = new Component();
   new BinaryBuilder(dillData, disableLazyReading: true)
       .readComponent(component);
@@ -280,7 +279,7 @@ Uri busyWaitProcedure(List<int> dillData, Uri tmp,
       getProcedure(component, libraryMatcher, className, procedureName);
   if (markProcedure.function.body == null) return null;
 
-  Statement orgBody = markProcedure.function.body;
+  Statement orgBody = markProcedure.function.body as Statement;
   markProcedure.function.body = new Block([
     new ExpressionStatement(new StaticInvocation(
         busyWaitProcedure, new Arguments([new IntLiteral(2 /* 0.002 ms */)]))),
@@ -375,13 +374,13 @@ class RegisterCallTransformer extends RecursiveVisitor {
     if (node.function.body == null) return;
     int procedureNum = procedures.length;
     procedures.add(node);
-    Statement orgBody = node.function.body;
+    Statement orgBody = node.function.body as Statement;
     node.function.body = new Block([
       new ExpressionStatement(new StaticInvocation(registerCallProcedure,
           new Arguments([new IntLiteral(procedureNum)]))),
       orgBody
     ]);
-    node.function.body.parent = node.function;
+    node.function.body!.parent = node.function;
   }
 }
 
@@ -408,7 +407,7 @@ class RegisterTimeTransformer extends RecursiveVisitor {
     if (node.function.dartAsyncMarker != AsyncMarker.Sync) return;
     int procedureNum = procedures.length;
     procedures.add(node);
-    Statement orgBody = node.function.body;
+    Statement orgBody = node.function.body as Statement;
     // Rewrite as
     // {
     //    registerCallStartProcedure(x);
@@ -428,12 +427,12 @@ class RegisterTimeTransformer extends RecursiveVisitor {
       )
     ]);
     node.function.body = block;
-    node.function.body.parent = node.function;
+    node.function.body!.parent = node.function;
   }
 }
 
 Procedure getProcedure(Component component, bool libraryMatcher(Library lib),
-    String className, String procedureName) {
+    String? className, String procedureName) {
   Library lib = component.libraries.where(libraryMatcher).single;
   List<Procedure> procedures = lib.procedures;
   if (className != null) {
@@ -444,7 +443,7 @@ Procedure getProcedure(Component component, bool libraryMatcher(Library lib),
   return procedures.where((p) => p.name.text == procedureName).single;
 }
 
-List<int> runXTimes(int x, List<String> arguments, [List<dynamic> stdout]) {
+List<int> runXTimes(int x, List<String> arguments, [List<dynamic>? stdout]) {
   List<int> result = [];
   Stopwatch stopwatch = new Stopwatch()..start();
   for (int i = 0; i < x; i++) {

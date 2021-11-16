@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 /// Dijkstra's algorithm for single source shortest path.
@@ -21,8 +19,8 @@ class DijkstrasAlgorithm<E> {
   DijkstrasAlgorithm(Iterable<GraphNode<E>> graphNodes, GraphNode<E> source,
       int Function(E, E) comparator, int Function(E, E) distance) {
     SplayTreeSet<GraphNode<E>> q = new SplayTreeSet<GraphNode<E>>((a, b) {
-      int distA = dist[a];
-      int distB = dist[b];
+      int? distA = dist[a];
+      int? distB = dist[b];
 
       int when0() {
         if (identical(a, b)) return 0;
@@ -39,7 +37,7 @@ class DijkstrasAlgorithm<E> {
       if (distA == null && distB == null) {
         return when0();
       }
-      if (distA < distB) return -1;
+      if (distA! < distB!) return -1;
       if (distA > distB) return 1;
       return when0();
     });
@@ -56,7 +54,7 @@ class DijkstrasAlgorithm<E> {
 
     while (q.isNotEmpty) {
       GraphNode<E> u = q.first;
-      int distToU = dist[u];
+      int? distToU = dist[u];
       if (distToU == null) {
         // No path to any of the remaining ${q.length} nodes.
         break;
@@ -68,7 +66,7 @@ class DijkstrasAlgorithm<E> {
         int distanceUToV = distance(u.node, v.node);
         if (distanceUToV < 0) throw "Got negative distance. That's not allowed";
         int alt = distToU + distanceUToV;
-        int distToV = dist[v];
+        int? distToV = dist[v];
         if (distToV == null || alt < distToV) {
           // Decrease length (decrease priority in priority queue).
           q.remove(v);
@@ -85,7 +83,7 @@ class DijkstrasAlgorithm<E> {
     GraphNode<E> u = target;
     while (u == source || prev[u] != null) {
       path.add(u.node);
-      u = prev[u];
+      u = prev[u]!;
     }
     return path.reversed.toList();
   }

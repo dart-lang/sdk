@@ -1,5 +1,3 @@
-// @dart = 2.9
-
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -393,7 +391,7 @@ import 'foo.dart';
 }
 
 int expectCalls = 0;
-String expectCategory;
+String? expectCategory;
 
 void expect(dynamic actual, dynamic expected) {
   expectCalls++;
@@ -461,23 +459,23 @@ bool _expectImpl(dynamic actual, dynamic expected, StringBuffer explainer) {
   return false;
 }
 
-impl.CommentString extractFirstComment(String test) {
+impl.CommentString? extractFirstComment(String test) {
   Token firstToken = impl.scanRawBytes(utf8.encode(test) as Uint8List);
   Token token = firstToken;
   while (true) {
-    CommentToken comment = token.precedingComments;
+    CommentToken? comment = token.precedingComments;
     if (comment != null) {
       return impl.extractComments(comment, test);
     }
     if (token.isEof) break;
-    Token next = token.next;
+    Token? next = token.next;
     if (next == null) break;
     token = next;
   }
   return null;
 }
 
-List<impl.Test> extractTests(String test, [Uri uri]) {
+List<impl.Test> extractTests(String test, [Uri? uri]) {
   return impl.extractTests(utf8.encode(test) as Uint8List,
       uri ?? new Uri(scheme: "darttest", path: "/foo.dart"));
 }
