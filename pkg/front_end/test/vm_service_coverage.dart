@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'dart:async';
 
 import 'vm_service_helper.dart' as vmService;
@@ -31,12 +29,12 @@ class CoverageHelper extends vmService.LaunchingVMServiceHelper {
   @override
   Future<void> run() async {
     vmService.VM vm = await serviceClient.getVM();
-    if (vm.isolates.length != 1) {
-      throw "Expected 1 isolate, got ${vm.isolates.length}";
+    if (vm.isolates!.length != 1) {
+      throw "Expected 1 isolate, got ${vm.isolates!.length}";
     }
-    vmService.IsolateRef isolateRef = vm.isolates.single;
-    await waitUntilIsolateIsRunnable(isolateRef.id);
-    await serviceClient.resume(isolateRef.id);
+    vmService.IsolateRef isolateRef = vm.isolates!.single;
+    await waitUntilIsolateIsRunnable(isolateRef.id!);
+    await serviceClient.resume(isolateRef.id!);
     Completer<String> cTimeout = new Completer();
     Timer timer = new Timer(new Duration(minutes: 20), () {
       cTimeout.complete("Timeout");
@@ -45,13 +43,13 @@ class CoverageHelper extends vmService.LaunchingVMServiceHelper {
 
     Completer<String> cRunDone = new Completer();
     // ignore: unawaited_futures
-    waitUntilPaused(isolateRef.id).then((value) => cRunDone.complete("Done"));
+    waitUntilPaused(isolateRef.id!).then((value) => cRunDone.complete("Done"));
 
     await Future.any([cRunDone.future, cTimeout.future, cProcessExited.future]);
 
     timer.cancel();
 
-    if (!await isPausedAtExit(isolateRef.id)) {
+    if (!await isPausedAtExit(isolateRef.id!)) {
       killProcess();
       throw "Expected to be paused at exit, but is just paused!";
     }
@@ -59,36 +57,36 @@ class CoverageHelper extends vmService.LaunchingVMServiceHelper {
     // Get and process coverage information.
     Stopwatch stopwatch = new Stopwatch()..start();
     vmService.SourceReport sourceReport = await serviceClient.getSourceReport(
-        isolateRef.id, [vmService.SourceReportKind.kCoverage],
+        isolateRef.id!, [vmService.SourceReportKind.kCoverage],
         forceCompile: forceCompilation);
     print("Got source report from VM in ${stopwatch.elapsedMilliseconds} ms");
     stopwatch.reset();
     Map<Uri, Coverage> coverages = {};
-    for (vmService.SourceReportRange range in sourceReport.ranges) {
-      vmService.ScriptRef script = sourceReport.scripts[range.scriptIndex];
-      Uri scriptUri = Uri.parse(script.uri);
+    for (vmService.SourceReportRange range in sourceReport.ranges!) {
+      vmService.ScriptRef script = sourceReport.scripts![range.scriptIndex!];
+      Uri scriptUri = Uri.parse(script.uri!);
       if (!includeCoverageFor(scriptUri)) continue;
       Coverage coverage = coverages[scriptUri] ??= new Coverage();
 
-      vmService.SourceReportCoverage sourceReportCoverage = range.coverage;
+      vmService.SourceReportCoverage? sourceReportCoverage = range.coverage;
       if (sourceReportCoverage == null) {
         // Range not compiled. Record the range if provided.
-        assert(!range.compiled);
-        if (range.startPos >= 0 || range.endPos >= 0) {
+        assert(!range.compiled!);
+        if (range.startPos! >= 0 || range.endPos! >= 0) {
           coverage.notCompiled
-              .add(new StartEndPair(range.startPos, range.endPos));
+              .add(new StartEndPair(range.startPos!, range.endPos!));
         }
         continue;
       }
-      coverage.hits.addAll(sourceReportCoverage.hits);
-      coverage.misses.addAll(sourceReportCoverage.misses);
+      coverage.hits.addAll(sourceReportCoverage.hits!);
+      coverage.misses.addAll(sourceReportCoverage.misses!);
     }
     print("Processed source report from VM in "
         "${stopwatch.elapsedMilliseconds} ms");
     stopwatch.reset();
 
     // It's paused at exit, so resuming should allow us to exit.
-    await serviceClient.resume(isolateRef.id);
+    await serviceClient.resume(isolateRef.id!);
 
     for (MapEntry<Uri, Coverage> entry in coverages.entries) {
       assert(entry.value.hits.intersection(entry.value.misses).isEmpty);
@@ -142,7 +140,7 @@ class StartEndPair implements Comparable {
   String toString() => "[$startPos - $endPos]";
 
   @override
-  int compareTo(Object other) {
+  int compareTo(dynamic other) {
     if (other is! StartEndPair) return -1;
     StartEndPair o = other;
     return startPos - o.startPos;

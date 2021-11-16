@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, File, FileSystemEntity;
 
 import 'package:testing/testing.dart'
@@ -30,7 +28,7 @@ Future<SpellContext> createContext(
 }
 
 class SpellContextExternal extends SpellContext {
-  SpellContextExternal({bool interactive, bool onlyInGit})
+  SpellContextExternal({required bool interactive, required bool onlyInGit})
       : super(interactive: interactive, onlyInGit: onlyInGit);
 
   @override

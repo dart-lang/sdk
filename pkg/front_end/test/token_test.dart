@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerConfiguration, scanString;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
@@ -38,11 +36,11 @@ class Foo {
 
     Token nextComment() {
       while (!token.isEof) {
-        Token comment = token.precedingComments;
-        token = token.next;
+        Token? comment = token.precedingComments;
+        token = token.next!;
         if (comment != null) return comment;
       }
-      return null;
+      throw new StateError("No comment found.");
     }
 
     Token comment = nextComment();
@@ -69,10 +67,10 @@ class Foo {
   void test_isSynthetic() {
     var token = scanString('/* 1 */ foo', includeComments: true).tokens;
     expect(token.isSynthetic, false);
-    expect(token.precedingComments.isSynthetic, false);
-    expect(token.previous.isSynthetic, true);
-    expect(token.next.isEof, true);
-    expect(token.next.isSynthetic, true);
+    expect(token.precedingComments!.isSynthetic, false);
+    expect(token.previous!.isSynthetic, true);
+    expect(token.next!.isEof, true);
+    expect(token.next!.isSynthetic, true);
   }
 
   void test_matchesAny() {
@@ -197,11 +195,11 @@ class Foo {
     expect(token.lexeme, 'true');
     expect(token.value(), Keyword.TRUE);
     // General tokens
-    token = token.next;
+    token = token.next!;
     expect(token.lexeme, '&');
     expect(token.value(), '&');
     // String tokens
-    token = token.next;
+    token = token.next!;
     expect(token.lexeme, '"home"');
     expect(token.value(), '"home"');
   }

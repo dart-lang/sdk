@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/scheme_based_file_system.dart';
 
@@ -16,10 +14,10 @@ void main() {
     var fileSystem =
         new SchemeBasedFileSystem({'scheme1': fs1, 'scheme2': fs2});
 
-    MockFileSystemEntity e1 =
-        fileSystem.entityForUri(Uri.parse('scheme1:a.dart'));
-    MockFileSystemEntity e2 =
-        fileSystem.entityForUri(Uri.parse('scheme2:a.dart'));
+    MockFileSystemEntity e1 = fileSystem
+        .entityForUri(Uri.parse('scheme1:a.dart')) as MockFileSystemEntity;
+    MockFileSystemEntity e2 = fileSystem
+        .entityForUri(Uri.parse('scheme2:a.dart')) as MockFileSystemEntity;
     expect(e1.fileSystem, fs1);
     expect(e2.fileSystem, fs2);
   });

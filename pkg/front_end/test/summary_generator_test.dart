@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:kernel/kernel.dart';
@@ -13,19 +11,19 @@ import 'package:test/test.dart';
 void main() {
   test('summary has no source-info by default', () async {
     var summary = await summarize(['a.dart'], allSources);
-    var component = loadComponentFromBytes(summary);
+    var component = loadComponentFromBytes(summary!);
 
     // Note: the kernel representation always includes the Uri entries, but
     // doesn't include the actual source here.
     for (Source source in component.uriToSource.values) {
       expect(source.source.length, 0);
-      expect(source.lineStarts.length, 0);
+      expect(source.lineStarts!.length, 0);
     }
   });
 
   test('summary includes declarations, but no method bodies', () async {
     var summary = await summarize(['a.dart'], allSources);
-    var component = loadComponentFromBytes(summary);
+    var component = loadComponentFromBytes(summary!);
     var aLib = findLibrary(component, 'a.dart');
     expect(aLib.importUri.path, '/a/b/c/a.dart');
     var classA = aLib.classes.first;
@@ -51,7 +49,7 @@ void main() {
     var summaryD = await summarize(['d.dart'], sourcesWithABC,
         additionalDills: ['a.dill', 'bc.dill']);
 
-    checkDSummary(summaryD);
+    checkDSummary(summaryD!);
   });
 
   test('dependencies can be combined in any order', () async {
@@ -71,13 +69,13 @@ void main() {
     // dill files and because of how the kernel loader merges definitions.
     var summaryD = await summarize(['d.dart'], sourcesWithABC,
         additionalDills: ['bc.dill', 'a.dill']);
-    checkDSummary(summaryD);
+    checkDSummary(summaryD!);
   });
 
   test('dependencies not included in truncated summaries', () async {
     // Note: by default this test is loading the SDK from summaries.
     var summaryA = await summarize(['a.dart'], allSources, truncate: true);
-    var component = loadComponentFromBytes(summaryA);
+    var component = loadComponentFromBytes(summaryA!);
     expect(component.libraries.length, 1);
     expect(
         component.libraries.single.importUri.path.endsWith('a.dart'), isTrue);
@@ -86,7 +84,7 @@ void main() {
     sourcesWithA['a.dill'] = summaryA;
     var summaryB = await summarize(['b.dart'], sourcesWithA,
         additionalDills: ['a.dill'], truncate: true);
-    component = loadComponentFromBytes(summaryB);
+    component = loadComponentFromBytes(summaryB!);
     expect(component.libraries.length, 1);
     expect(
         component.libraries.single.importUri.path.endsWith('b.dart'), isTrue);
@@ -126,7 +124,7 @@ void checkDSummary(List<int> summary) {
   expect(bClass.superclass, same(aClass));
 
   var dClass = dLib.classes.firstWhere((c) => c.name == 'D');
-  expect(dClass.superclass.superclass, same(bClass));
+  expect(dClass.superclass!.superclass, same(bClass));
 
   var dInterface = dClass.implementedTypes.first.classNode;
   expect(dInterface, same(aClass));
