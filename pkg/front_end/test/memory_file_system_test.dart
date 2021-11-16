@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // SharedOptions=--supermixin
 
-// @dart = 2.9
-
 library front_end.test.memory_file_system_test;
 
 import 'dart:convert';
@@ -32,8 +30,8 @@ final Matcher _throwsFileSystemException =
 
 @reflectiveTest
 class FileTest extends _BaseTestNative {
-  String path;
-  MemoryFileSystemEntity file;
+  late String path;
+  late MemoryFileSystemEntity file;
 
   void setUp() {
     _baseSetUp();
@@ -180,7 +178,7 @@ class FileTest extends _BaseTestNative {
 }
 
 abstract class MemoryFileSystemTestMixin implements _BaseTest {
-  Uri tempUri;
+  late Uri tempUri;
 
   void setUp() {
     _baseSetUp();
@@ -287,13 +285,15 @@ abstract class _BaseTest {
 class _BaseTestNative extends _BaseTest {
   @override
   final pathos.Context context = pathos.context;
-  @override
-  MemoryFileSystem fileSystem;
-  @override
-  String tempPath;
 
   @override
-  String join(String path1, String path2, [String path3, String path4]) =>
+  late MemoryFileSystem fileSystem;
+
+  @override
+  late String tempPath;
+
+  @override
+  String join(String path1, String path2, [String? path3, String? path4]) =>
       pathos.join(path1, path2, path3, path4);
 
   @override
@@ -306,13 +306,15 @@ class _BaseTestNative extends _BaseTest {
 class _BaseTestPosix extends _BaseTest {
   @override
   final pathos.Context context = pathos.posix;
-  @override
-  MemoryFileSystem fileSystem;
-  @override
-  String tempPath;
 
   @override
-  String join(String path1, String path2, [String path3, String path4]) =>
+  late MemoryFileSystem fileSystem;
+
+  @override
+  late String tempPath;
+
+  @override
+  String join(String path1, String path2, [String? path3, String? path4]) =>
       pathos.posix.join(path1, path2, path3, path4);
 
   @override
@@ -325,13 +327,15 @@ class _BaseTestPosix extends _BaseTest {
 class _BaseTestWindows extends _BaseTest {
   @override
   final pathos.Context context = pathos.windows;
-  @override
-  MemoryFileSystem fileSystem;
-  @override
-  String tempPath;
 
   @override
-  String join(String path1, String path2, [String path3, String path4]) =>
+  late MemoryFileSystem fileSystem;
+
+  @override
+  late String tempPath;
+
+  @override
+  String join(String path1, String path2, [String? path3, String? path4]) =>
       pathos.windows.join(path1, path2, path3, path4);
 
   @override
