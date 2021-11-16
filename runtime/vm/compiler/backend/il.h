@@ -237,6 +237,10 @@ struct CidRangeValue {
     return cid_start == kIllegalCid && cid_end == kIllegalCid;
   }
 
+  bool Equals(const CidRangeValue& other) const {
+    return cid_start == other.cid_start && cid_end == other.cid_end;
+  }
+
   intptr_t cid_start;
   intptr_t cid_end;
 };
@@ -957,6 +961,11 @@ class Instruction : public ZoneAllocated {
   template <typename T>
   T* Cast() {
     return static_cast<T*>(this);
+  }
+
+  template <typename T>
+  const T* Cast() const {
+    return static_cast<const T*>(this);
   }
 
   // Returns structure describing location constraints required
@@ -8893,7 +8902,9 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
   virtual bool AllowsCSE() const { return true; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual bool AttributesEqual(const Instruction& other) const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.Cast<CheckClassIdInstr>()->cids().Equals(cids_);
+  }
 
   PRINT_OPERANDS_TO_SUPPORT
 

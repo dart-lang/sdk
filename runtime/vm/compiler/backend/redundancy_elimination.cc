@@ -29,10 +29,15 @@ DEFINE_FLAG(bool,
 // Quick access to the current zone.
 #define Z (zone())
 
-class CSEInstructionMap : public ValueObject {
+// A set of Instructions used by CSE pass.
+//
+// Instructions are compared as if all redefinitions were removed from the
+// graph, with the exception of LoadField instruction which gets special
+// treatment.
+class CSEInstructionSet : public ValueObject {
  public:
-  CSEInstructionMap() : map_() {}
-  explicit CSEInstructionMap(const CSEInstructionMap& other)
+  CSEInstructionSet() : map_() {}
+  explicit CSEInstructionSet(const CSEInstructionSet& other)
       : ValueObject(), map_(other.map_) {}
 
   Instruction* Lookup(Instruction* other) const {
@@ -46,7 +51,59 @@ class CSEInstructionMap : public ValueObject {
   }
 
  private:
-  PointerSet<Instruction> map_;
+  static Definition* OriginalDefinition(Value* value) {
+    return value->definition()->OriginalDefinition();
+  }
+
+  static bool EqualsIgnoringRedefinitions(const Instruction& a,
+                                          const Instruction& b) {
+    const auto tag = a.tag();
+    if (tag != b.tag()) return false;
+    const auto input_count = a.InputCount();
+    if (input_count != b.InputCount()) return false;
+
+    // We would like to avoid replacing a load from a redefinition with a
+    // load from an original definition because that breaks the dependency
+    // on the redefinition and enables potentially incorrect code motion.
+    if (tag != Instruction::kLoadField) {
+      for (intptr_t i = 0; i < input_count; ++i) {
+        if (OriginalDefinition(a.InputAt(i)) !=
+            OriginalDefinition(b.InputAt(i))) {
+          return false;
+        }
+      }
+    } else {
+      for (intptr_t i = 0; i < input_count; ++i) {
+        if (!a.InputAt(i)->Equals(*b.InputAt(i))) return false;
+      }
+    }
+    return a.AttributesEqual(b);
+  }
+
+  class Trait {
+   public:
+    typedef Instruction* Value;
+    typedef Instruction* Key;
+    typedef Instruction* Pair;
+
+    static Key KeyOf(Pair kv) { return kv; }
+    static Value ValueOf(Pair kv) { return kv; }
+
+    static inline uword Hash(Key key) {
+      uword result = key->tag();
+      for (intptr_t i = 0; i < key->InputCount(); ++i) {
+        result = CombineHashes(
+            result, OriginalDefinition(key->InputAt(i))->ssa_temp_index());
+      }
+      return FinalizeHash(result, kBitsPerInt32 - 1);
+    }
+
+    static inline bool IsKeyEqual(Pair kv, Key key) {
+      return EqualsIgnoringRedefinitions(*kv, *key);
+    }
+  };
+
+  DirectChainedHashMap<Trait> map_;
 };
 
 // Place describes an abstract location (e.g. field) that IR can load
@@ -2870,13 +2927,14 @@ class LoadOptimizer : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(LoadOptimizer);
 };
 
-bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
+bool DominatorBasedCSE::Optimize(FlowGraph* graph,
+                                 bool run_load_optimization /* = true */) {
   bool changed = false;
-  if (FLAG_load_cse) {
+  if (FLAG_load_cse && run_load_optimization) {
     changed = LoadOptimizer::OptimizeGraph(graph) || changed;
   }
 
-  CSEInstructionMap map;
+  CSEInstructionSet map;
   changed = OptimizeRecursive(graph, graph->graph_entry(), &map) || changed;
 
   return changed;
@@ -2884,7 +2942,7 @@ bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
 
 bool DominatorBasedCSE::OptimizeRecursive(FlowGraph* graph,
                                           BlockEntryInstr* block,
-                                          CSEInstructionMap* map) {
+                                          CSEInstructionSet* map) {
   bool changed = false;
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
@@ -2912,7 +2970,7 @@ bool DominatorBasedCSE::OptimizeRecursive(FlowGraph* graph,
     BlockEntryInstr* child = block->dominated_blocks()[i];
     if (i < num_children - 1) {
       // Copy map.
-      CSEInstructionMap child_map(*map);
+      CSEInstructionSet child_map(*map);
       changed = OptimizeRecursive(graph, child, &child_map) || changed;
     } else {
       // Reuse map for the last child.
