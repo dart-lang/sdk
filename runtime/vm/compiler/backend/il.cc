@@ -1207,7 +1207,7 @@ bool GraphEntryInstr::IsCompiledForOsr() const {
 // ==== Support for visiting flow graphs.
 
 #define DEFINE_ACCEPT(ShortName, Attrs)                                        \
-  void ShortName##Instr::Accept(FlowGraphVisitor* visitor) {                   \
+  void ShortName##Instr::Accept(InstructionVisitor* visitor) {                 \
     visitor->Visit##ShortName(this);                                           \
   }
 

@@ -115,13 +115,15 @@ class CompilerPass {
   static constexpr intptr_t kNumPasses = 0 COMPILER_PASS_LIST(ADD_ONE);
 #undef ADD_ONE
 
-  CompilerPass(Id id, const char* name) : id_(id), name_(name), flags_(0) {
+  CompilerPass(Id id, const char* name) : id_(id), name_(name) {
     ASSERT(passes_[id] == NULL);
     passes_[id] = this;
 
     // By default print the final flow-graph after the register allocation.
     if (id == kAllocateRegisters) {
-      flags_ = kTraceAfter;
+      flags_[id] = kTraceAfter;
+    } else {
+      flags_[id] = 0;
     }
   }
   virtual ~CompilerPass() {}
@@ -136,15 +138,18 @@ class CompilerPass {
 
   void Run(CompilerPassState* state) const;
 
-  intptr_t flags() const { return flags_; }
+  uint8_t flags() const { return flags_[id()]; }
   const char* name() const { return name_; }
   Id id() const { return id_; }
 
-  bool IsFlagSet(Flag flag) const { return (flags() & flag) != 0; }
-
   static CompilerPass* Get(Id id) { return passes_[id]; }
 
-  static void ParseFilters(const char* filter);
+  static void ParseFiltersFromFlag(const char* filter);
+  static uint8_t* ParseFiltersFromPragma(const char* filter);
+  static void ParseFilters(const char* filter, uint8_t* flags);
+  static void ParseOneFilter(const char* start,
+                             const char* end,
+                             uint8_t* flags);
 
   enum PipelineMode { kJIT, kAOT };
 
@@ -196,10 +201,10 @@ class CompilerPass {
   void PrintGraph(CompilerPassState* state, Flag mask, intptr_t round) const;
 
   static CompilerPass* passes_[];
+  static uint8_t flags_[];
 
   Id id_;
   const char* name_;
-  intptr_t flags_;
 };
 
 }  // namespace dart

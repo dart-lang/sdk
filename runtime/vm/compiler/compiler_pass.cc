@@ -75,8 +75,9 @@ CompilerPassState::CompilerPassState(
 }
 
 CompilerPass* CompilerPass::passes_[CompilerPass::kNumPasses] = {NULL};
+uint8_t CompilerPass::flags_[CompilerPass::kNumPasses] = {0};
 
-DEFINE_OPTION_HANDLER(CompilerPass::ParseFilters,
+DEFINE_OPTION_HANDLER(CompilerPass::ParseFiltersFromFlag,
                       compiler_passes,
                       "List of comma separated compilation passes flags. "
                       "Use -Name to disable a pass, Name to print IL after it. "
@@ -110,7 +111,18 @@ static const char* kCompilerPassesUsage =
     "\n"
     "List of compiler passes:\n";
 
-void CompilerPass::ParseFilters(const char* filter) {
+void CompilerPass::ParseFiltersFromFlag(const char* filter) {
+  ParseFilters(filter, flags_);
+}
+
+uint8_t* CompilerPass::ParseFiltersFromPragma(const char* filter) {
+  auto flags =
+      ThreadState::Current()->zone()->Alloc<uint8_t>(CompilerPass::kNumPasses);
+  ParseFilters(filter, flags);
+  return flags;
+}
+
+void CompilerPass::ParseFilters(const char* filter, uint8_t* pass_flags) {
   if (filter == NULL || *filter == 0) {
     return;
   }
@@ -126,11 +138,7 @@ void CompilerPass::ParseFilters(const char* filter) {
   }
 
   // Clear all flags.
-  for (intptr_t i = 0; i < kNumPasses; i++) {
-    if (passes_[i] != NULL) {
-      passes_[i]->flags_ = 0;
-    }
-  }
+  memset(pass_flags, 0, CompilerPass::kNumPasses);
 
   for (const char *start = filter, *end = filter; *end != 0;
        start = (end + 1)) {
@@ -144,54 +152,58 @@ void CompilerPass::ParseFilters(const char* filter) {
       continue;
     }
 
-    uint8_t flags = 0;
-    if (*start == '-') {
-      flags = kDisabled;
-    } else if (*start == ']') {
-      flags = kTraceAfter;
-    } else if (*start == '[') {
-      flags = kTraceBefore;
-    } else if (*start == '*') {
-      flags = kTraceBeforeOrAfter;
+    ParseOneFilter(start, end, pass_flags);
+  }
+}
+
+void CompilerPass::ParseOneFilter(const char* start,
+                                  const char* end,
+                                  uint8_t* pass_flags) {
+  uint8_t flags = 0;
+  if (*start == '-') {
+    flags = kDisabled;
+  } else if (*start == ']') {
+    flags = kTraceAfter;
+  } else if (*start == '[') {
+    flags = kTraceBefore;
+  } else if (*start == '*') {
+    flags = kTraceBeforeOrAfter;
+  }
+  if (flags == 0) {
+    flags |= kTraceAfter;
+  } else {
+    start++;  // Skip the modifier
+  }
+
+  size_t suffix = 0;
+  if (end[-1] == '+') {
+    if (start == (end - 1)) {
+      OS::PrintErr("Sticky modifier '+' should follow pass name\n");
+      return;
     }
-    if (flags == 0) {
-      flags |= kTraceAfter;
+    flags |= kSticky;
+    suffix = 1;
+  }
+
+  size_t length = (end - start) - suffix;
+  if (length != 0) {
+    char* pass_name = Utils::StrNDup(start, length);
+    CompilerPass* pass = FindPassByName(pass_name);
+    if (pass != NULL) {
+      pass_flags[pass->id()] |= flags;
     } else {
-      start++;  // Skip the modifier
+      OS::PrintErr("Unknown compiler pass: %s\n", pass_name);
     }
-
-    size_t suffix = 0;
-    if (end[-1] == '+') {
-      if (start == (end - 1)) {
-        OS::PrintErr("Sticky modifier '+' should follow pass name\n");
-        continue;
-      }
-      flags |= kSticky;
-      suffix = 1;
-    }
-
-    size_t length = (end - start) - suffix;
-    if (length != 0) {
-      char* pass_name = Utils::StrNDup(start, length);
-      CompilerPass* pass = FindPassByName(pass_name);
-      if (pass != NULL) {
-        pass->flags_ |= flags;
-      } else {
-        OS::PrintErr("Unknown compiler pass: %s\n", pass_name);
-      }
-      free(pass_name);
-    } else if (flags == kTraceBeforeOrAfter) {
-      for (intptr_t i = 0; i < kNumPasses; i++) {
-        if (passes_[i] != NULL) {
-          passes_[i]->flags_ = kTraceAfter;
-        }
-      }
+    free(pass_name);
+  } else if (flags == kTraceBeforeOrAfter) {
+    for (intptr_t i = 0; i < kNumPasses; i++) {
+      pass_flags[i] = kTraceAfter;
     }
   }
 }
 
 void CompilerPass::Run(CompilerPassState* state) const {
-  if (IsFlagSet(kDisabled)) {
+  if ((flags() & kDisabled) != 0) {
     return;
   }
 
@@ -231,8 +243,11 @@ void CompilerPass::Run(CompilerPassState* state) const {
 void CompilerPass::PrintGraph(CompilerPassState* state,
                               Flag mask,
                               intptr_t round) const {
-  const intptr_t current_flags = flags() | state->sticky_flags;
   FlowGraph* flow_graph = state->flow_graph();
+  const uint8_t* graph_flags = flow_graph->compiler_pass_filters();
+  const uint8_t current_flags =
+      (graph_flags != nullptr ? graph_flags[id()] : flags()) |
+      state->sticky_flags;
 
   if ((FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) &&
       flow_graph->should_print() && ((current_flags & mask) != 0)) {

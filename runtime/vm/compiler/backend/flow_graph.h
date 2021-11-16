@@ -469,6 +469,9 @@ class FlowGraph : public ZoneAllocated {
   void RenameUsesDominatedByRedefinitions();
 
   bool should_print() const { return should_print_; }
+  const uint8_t* compiler_pass_filters() const {
+    return compiler_pass_filters_;
+  }
 
   //
   // High-level utilities.
@@ -632,6 +635,7 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t inlining_id_;
   bool should_print_;
+  uint8_t* compiler_pass_filters_ = nullptr;
 
   const Array* coverage_array_ = &Array::empty_array();
 };
