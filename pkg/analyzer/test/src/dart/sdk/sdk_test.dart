@@ -122,17 +122,6 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 
 @reflectiveTest
 class FolderBasedDartSdkTest with ResourceProviderMixin {
-  void test_addExtensions() {
-    FolderBasedDartSdk sdk = _createDartSdk();
-    String uri = 'dart:my.internal';
-    sdk.addExtensions({uri: '/Users/user/dart/my.dart'});
-    expect(sdk.mapDartUri(uri), isNotNull);
-    // The `shortName` property must include the `dart:` prefix.
-    expect(sdk.sdkLibraries, contains(predicate((SdkLibrary library) {
-      return library.shortName == uri;
-    })));
-  }
-
   void test_creation() {
     FolderBasedDartSdk sdk = _createDartSdk();
     expect(sdk, isNotNull);
