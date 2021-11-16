@@ -18936,8 +18936,7 @@ library
   test_import_short_absolute() async {
     testFile = '/my/project/bin/test.dart';
     // Note: "/a.dart" resolves differently on Windows vs. Posix.
-    var destinationPath =
-        resourceProvider.pathContext.fromUri(Uri.parse('/a.dart'));
+    var destinationPath = convertPath('/a.dart');
     addLibrarySource(destinationPath, 'class C {}');
     var library = await checkLibrary('import "/a.dart"; C c;');
     checkElementText(library, r'''
