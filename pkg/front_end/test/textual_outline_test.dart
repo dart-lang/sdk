@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import "dart:convert";
 
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
@@ -17,7 +15,7 @@ const ScannerConfiguration scannerConfiguration =
 
 void main() {
   // Doesn't sort if not asked to perform modelling.
-  String result = textualOutline(utf8.encode("""
+  String? result = textualOutline(utf8.encode("""
 b() { print("hello"); }
 a() { print("hello"); }
 """), scannerConfiguration, throwOnUnexpected: true, performModelling: false);

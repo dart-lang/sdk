@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart';
@@ -75,7 +73,7 @@ Future<void> main() async {
         new DillTarget(ticker, uriTranslator, c.options.target);
     KernelTarget kernelTarget =
         new KernelTarget(c.fileSystem, false, dillTarget, uriTranslator);
-    Uri platform = c.options.sdkSummary;
+    Uri? platform = c.options.sdkSummary;
     if (platform != null) {
       var bytes = new File.fromUri(platform).readAsBytesSync();
       var platformComponent = loadComponentFromBytes(bytes);
@@ -84,7 +82,7 @@ Future<void> main() async {
     }
 
     kernelTarget.setEntryPoints(c.options.inputs);
-    await dillTarget.buildOutlines();
+    dillTarget.buildOutlines();
     await kernelTarget.loader.buildOutlines();
     return new List<Uri>.from(c.dependencies);
   });

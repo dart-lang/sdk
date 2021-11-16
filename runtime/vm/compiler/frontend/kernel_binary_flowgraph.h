@@ -199,7 +199,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
       const InferredTypeMetadata* result_type = nullptr,
       bool use_unchecked_entry = false,
       const CallSiteAttributesMetadata* call_site_attrs = nullptr,
-      bool receiver_is_not_smi = false);
+      bool receiver_is_not_smi = false,
+      bool is_call_on_this = false);
 
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();

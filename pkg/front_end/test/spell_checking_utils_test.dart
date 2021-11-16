@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'spell_checking_utils.dart';
 
 void main() {
@@ -98,7 +96,7 @@ void expectSplit(String s, bool splitAsCode, List<String> expectedWords,
   compareLists(actualOffsets, expectedOffsets);
 }
 
-void compareLists(List<dynamic> actual, List<dynamic> expected) {
+void compareLists(List<dynamic>? actual, List<dynamic>? expected) {
   if (actual == null && expected == null) return;
   if (actual == null) throw "Got null, expected $expected";
   if (expected == null) throw "Expected null, got $actual";
@@ -113,7 +111,7 @@ void compareLists(List<dynamic> actual, List<dynamic> expected) {
 }
 
 void expectAlternative(
-    String word, List<String> expected, Set<String> dictionary) {
-  List<String> alternatives = findAlternatives(word, [dictionary]);
+    String word, List<String>? expected, Set<String> dictionary) {
+  List<String>? alternatives = findAlternatives(word, [dictionary]);
   compareLists(alternatives, expected);
 }

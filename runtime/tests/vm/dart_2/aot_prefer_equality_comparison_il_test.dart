@@ -5,13 +5,20 @@
 // Test that we emit EqualityCompare rather than StrictCompare+BoxInt64
 // when comparing non-nullable integer to a Smi.
 
-// MatchIL[AOT]=factorial
-// __ GraphEntry
-// __ FunctionEntry
-// __ CheckStackOverflow
-// __ Branch(EqualityCompare)
+import 'package:vm/testing/il_matchers.dart';
+
 @pragma('vm:never-inline')
+@pragma('vm:testing:print-flow-graph')
 int factorial(int value) => value == 1 ? value : value * factorial(value - 1);
+
+void matchIL$factorial(FlowGraph graph) {
+  graph.match([
+    match.block('Graph'),
+    match.block('Function', [
+      match.Branch(match.EqualityCompare(match.any, match.any, kind: '==')),
+    ]),
+  ]);
+}
 
 void main() {
   print(factorial(4));

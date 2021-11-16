@@ -11,6 +11,7 @@
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 #include <memory>
+#include <tuple>
 #include <utility>
 
 #include "vm/allocation.h"
@@ -54,6 +55,7 @@ class FlowGraphCompiler;
 class FlowGraphVisitor;
 class ForwardInstructionIterator;
 class Instruction;
+class InstructionVisitor;
 class LocalVariable;
 class LoopInfo;
 class ParsedFunction;
@@ -537,7 +539,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 // Functions required in all concrete instruction classes.
 #define DECLARE_INSTRUCTION_NO_BACKEND(type)                                   \
   virtual Tag tag() const { return k##type; }                                  \
-  virtual void Accept(FlowGraphVisitor* visitor);                              \
+  virtual void Accept(InstructionVisitor* visitor);                            \
   DEFINE_INSTRUCTION_TYPE_CHECK(type)
 
 #define DECLARE_INSTRUCTION_BACKEND()                                          \
@@ -564,9 +566,13 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #define PRINT_TO_SUPPORT virtual void PrintTo(BaseTextBuffer* f) const;
 #define PRINT_OPERANDS_TO_SUPPORT                                              \
   virtual void PrintOperandsTo(BaseTextBuffer* f) const;
+#define DECLARE_ATTRIBUTES(...)                                                \
+  auto GetAttributes() const { return std::make_tuple(__VA_ARGS__); }          \
+  static auto GetAttributeNames() { return std::make_tuple(#__VA_ARGS__); }
 #else
 #define PRINT_TO_SUPPORT
 #define PRINT_OPERANDS_TO_SUPPORT
+#define DECLARE_ATTRIBUTES(...)
 #endif  // defined(INCLUDE_IL_PRINTER)
 
 // Together with CidRange, this represents a mapping from a range of class-ids
@@ -867,7 +873,7 @@ class Instruction : public ZoneAllocated {
   }
 
   // Visiting support.
-  virtual void Accept(FlowGraphVisitor* visitor) = 0;
+  virtual void Accept(InstructionVisitor* visitor) = 0;
 
   Instruction* previous() const { return previous_; }
   void set_previous(Instruction* instr) {
@@ -2566,6 +2572,7 @@ class ParameterInstr : public Definition {
         block_(block) {}
 
   DECLARE_INSTRUCTION(Parameter)
+  DECLARE_ATTRIBUTES(index())
 
   intptr_t index() const { return index_; }
   intptr_t param_offset() const { return param_offset_; }
@@ -3254,6 +3261,7 @@ class ComparisonInstr : public Definition {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   Token::Kind kind() const { return kind_; }
+  DECLARE_ATTRIBUTES(kind())
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right) = 0;
 
@@ -3762,6 +3770,8 @@ class AssertAssignableInstr : public TemplateDefinition<4, Throws, Pure> {
 
   virtual Value* RedefinedValue() const;
 
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
@@ -4098,6 +4108,9 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   Code::EntryKind entry_kind() const { return entry_kind_; }
   void set_entry_kind(Code::EntryKind value) { entry_kind_ = value; }
 
+  void mark_as_call_on_this() { is_call_on_this_ = true; }
+  bool is_call_on_this() const { return is_call_on_this_; }
+
   DEFINE_INSTRUCTION_TYPE_CHECK(InstanceCallBase);
 
   bool receiver_is_not_smi() const { return receiver_is_not_smi_; }
@@ -4144,6 +4157,7 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
   bool has_unique_selector_;
   Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
   bool receiver_is_not_smi_ = false;
+  bool is_call_on_this_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallBaseInstr);
 };
@@ -4254,6 +4268,9 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
     new_call->set_result_type(call->result_type());
     new_call->set_entry_kind(call->entry_kind());
     new_call->set_has_unique_selector(call->has_unique_selector());
+    if (call->is_call_on_this()) {
+      new_call->mark_as_call_on_this();
+    }
     return new_call;
   }
 
@@ -6674,6 +6691,8 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   bool IsPotentialUnboxedDartFieldLoad() const;
 
   DECLARE_INSTRUCTION(LoadField)
+  DECLARE_ATTRIBUTES(&slot())
+
   virtual CompileType ComputeType() const;
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
@@ -9664,9 +9683,27 @@ class Environment : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(Environment);
 };
 
+class InstructionVisitor : public ValueObject {
+ public:
+  InstructionVisitor() {}
+  virtual ~InstructionVisitor() {}
+
+// Visit functions for instruction classes, with an empty default
+// implementation.
+#define DECLARE_VISIT_INSTRUCTION(ShortName, Attrs)                            \
+  virtual void Visit##ShortName(ShortName##Instr* instr) {}
+
+  FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+
+#undef DECLARE_VISIT_INSTRUCTION
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(InstructionVisitor);
+};
+
 // Visitor base class to visit each instruction and computation in a flow
 // graph as defined by a reversed list of basic blocks.
-class FlowGraphVisitor : public ValueObject {
+class FlowGraphVisitor : public InstructionVisitor {
  public:
   explicit FlowGraphVisitor(const GrowableArray<BlockEntryInstr*>& block_order)
       : current_iterator_(NULL), block_order_(&block_order) {}
@@ -9679,15 +9716,6 @@ class FlowGraphVisitor : public ValueObject {
   // Visit each block in the block order, and for each block its
   // instructions in order from the block entry to exit.
   virtual void VisitBlocks();
-
-// Visit functions for instruction classes, with an empty default
-// implementation.
-#define DECLARE_VISIT_INSTRUCTION(ShortName, Attrs)                            \
-  virtual void Visit##ShortName(ShortName##Instr* instr) {}
-
-  FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
-
-#undef DECLARE_VISIT_INSTRUCTION
 
  protected:
   void set_block_order(const GrowableArray<BlockEntryInstr*>& block_order) {

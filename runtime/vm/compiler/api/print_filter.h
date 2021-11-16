@@ -19,7 +19,8 @@ namespace compiler {
 
 class PrintFilter : public AllStatic {
  public:
-  static bool ShouldPrint(const Function& function);
+  static bool ShouldPrint(const Function& function,
+                          uint8_t** compiler_pass_filter = nullptr);
 };
 
 }  // namespace compiler

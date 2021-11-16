@@ -4,6 +4,8 @@
 
 #include "vm/compiler/backend/il_printer.h"
 
+#include <tuple>
+
 #include "vm/compiler/api/print_filter.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/linearscan.h"
@@ -20,19 +22,195 @@ DEFINE_FLAG(bool,
             false,
             "Calls display a unary, sorted-by count form of ICData");
 DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
+DEFINE_FLAG(bool,
+            print_flow_graph_as_json,
+            false,
+            "Use machine readable output when printing IL graphs.");
 
 DECLARE_FLAG(bool, trace_inlining_intervals);
 
-bool FlowGraphPrinter::ShouldPrint(const Function& function) {
-  return compiler::PrintFilter::ShouldPrint(function);
+class IlTestPrinter : public AllStatic {
+ public:
+  static void PrintGraph(const char* phase, FlowGraph* flow_graph) {
+    JSONWriter writer;
+    writer.OpenObject();
+    writer.PrintProperty("p", phase);
+    writer.PrintProperty("f", flow_graph->function().ToFullyQualifiedCString());
+    writer.OpenArray("b");
+    for (auto block : flow_graph->reverse_postorder()) {
+      PrintBlock(&writer, block);
+    }
+    writer.CloseArray();
+    writer.OpenObject("desc");
+    AttributesSerializer(&writer).WriteDescriptors();
+    writer.CloseObject();
+    writer.CloseObject();
+    THR_Print("%s\n", writer.ToCString());
+  }
+
+  static void PrintBlock(JSONWriter* writer, BlockEntryInstr* block) {
+    writer->OpenObject();
+    writer->PrintProperty64("b", block->block_id());
+    writer->PrintProperty("o", block->DebugName());
+    if (auto block_with_defs = block->AsBlockEntryWithInitialDefs()) {
+      if (block_with_defs->initial_definitions() != nullptr &&
+          block_with_defs->initial_definitions()->length() > 0) {
+        writer->OpenArray("d");
+        for (auto defn : *block_with_defs->initial_definitions()) {
+          if (defn->IsConstant() && !defn->HasUses()) continue;
+          PrintInstruction(writer, defn);
+        }
+        writer->CloseArray();
+      }
+    }
+    writer->OpenArray("is");
+    if (auto join = block->AsJoinEntry()) {
+      for (PhiIterator it(join); !it.Done(); it.Advance()) {
+        PrintInstruction(writer, it.Current());
+      }
+    }
+    for (auto instr : block->instructions()) {
+      PrintInstruction(writer, instr);
+    }
+    writer->CloseArray();
+    writer->CloseObject();
+  }
+
+  static void PrintInstruction(JSONWriter* writer,
+                               Instruction* instr,
+                               const char* name = nullptr) {
+    writer->OpenObject(name);
+    if (auto defn = instr->AsDefinition()) {
+      if (defn->ssa_temp_index() != -1) {
+        writer->PrintProperty("v", defn->ssa_temp_index());
+      }
+    }
+    writer->PrintProperty("o", instr->DebugName());
+    if (auto branch = instr->AsBranch()) {
+      PrintInstruction(writer, branch->comparison(), "cc");
+    } else {
+      if (instr->InputCount() != 0) {
+        writer->OpenArray("i");
+        for (intptr_t i = 0; i < instr->InputCount(); i++) {
+          writer->PrintValue(instr->InputAt(i)->definition()->ssa_temp_index());
+        }
+        writer->CloseArray();
+      } else if (instr->ArgumentCount() != 0 &&
+                 instr->GetPushArguments() != nullptr) {
+        writer->OpenArray("i");
+        for (intptr_t i = 0; i < instr->ArgumentCount(); i++) {
+          writer->PrintValue(
+              instr->ArgumentValueAt(i)->definition()->ssa_temp_index());
+        }
+        writer->CloseArray();
+      }
+      AttributesSerializer serializer(writer);
+      instr->Accept(&serializer);
+    }
+    if (instr->SuccessorCount() > 0) {
+      writer->OpenArray("s");
+      for (auto succ : instr->successors()) {
+        writer->PrintValue(succ->block_id());
+      }
+      writer->CloseArray();
+    }
+    writer->CloseObject();
+  }
+
+  template <typename T>
+  class HasGetAttributes {
+    template <typename U>
+    static std::true_type test(decltype(&U::GetAttributes));
+    template <typename U>
+    static std::false_type test(...);
+
+   public:
+    static constexpr bool value = decltype(test<T>(0))::value;
+  };
+
+  class AttributesSerializer : public InstructionVisitor {
+   public:
+    explicit AttributesSerializer(JSONWriter* writer) : writer_(writer) {}
+
+    void WriteDescriptors() {
+#define DECLARE_VISIT_INSTRUCTION(ShortName, Attrs)                            \
+  WriteDescriptor<ShortName##Instr>(#ShortName);
+
+      FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+
+#undef DECLARE_VISIT_INSTRUCTION
+    }
+
+#define DECLARE_VISIT_INSTRUCTION(ShortName, Attrs)                            \
+  virtual void Visit##ShortName(ShortName##Instr* instr) { Write(instr); }
+
+    FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+
+#undef DECLARE_VISIT_INSTRUCTION
+
+   private:
+    void WriteAttribute(const char* value) { writer_->PrintValue(value); }
+
+    void WriteAttribute(intptr_t value) { writer_->PrintValue(value); }
+
+    void WriteAttribute(Token::Kind kind) {
+      writer_->PrintValue(Token::Str(kind));
+    }
+
+    void WriteAttribute(const Slot* slot) { writer_->PrintValue(slot->Name()); }
+
+    template <typename... Ts>
+    void WriteTuple(const std::tuple<Ts...>& tuple) {
+      std::apply([&](Ts const&... elements) { WriteAttribute(elements...); },
+                 tuple);
+    }
+
+    template <typename T,
+              typename = typename std::enable_if_t<HasGetAttributes<T>::value>>
+    void Write(T* instr) {
+      writer_->OpenArray("d");
+      WriteTuple(instr->GetAttributes());
+      writer_->CloseArray();
+    }
+
+    void Write(Instruction* instr) {
+      // Default, do nothing.
+    }
+
+    template <typename T>
+    void WriteDescriptor(
+        const char* name,
+        typename std::enable_if_t<HasGetAttributes<T>::value>* = 0) {
+      writer_->OpenArray(name);
+      WriteTuple(T::GetAttributeNames());
+      writer_->CloseArray();
+    }
+
+    template <typename T>
+    void WriteDescriptor(
+        const char* name,
+        typename std::enable_if_t<!HasGetAttributes<T>::value>* = 0) {}
+
+    JSONWriter* writer_;
+  };
+};
+
+bool FlowGraphPrinter::ShouldPrint(
+    const Function& function,
+    uint8_t** compiler_pass_filter /* = nullptr */) {
+  return compiler::PrintFilter::ShouldPrint(function, compiler_pass_filter);
 }
 
 void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
   LogBlock lb;
-  THR_Print("*** BEGIN CFG\n%s\n", phase);
-  FlowGraphPrinter printer(*flow_graph);
-  printer.PrintBlocks();
-  THR_Print("*** END CFG\n");
+  if (FLAG_print_flow_graph_as_json) {
+    IlTestPrinter::PrintGraph(phase, flow_graph);
+  } else {
+    THR_Print("*** BEGIN CFG\n%s\n", phase);
+    FlowGraphPrinter printer(*flow_graph);
+    printer.PrintBlocks();
+    THR_Print("*** END CFG\n");
+  }
   fflush(stdout);
 }
 
@@ -1286,7 +1464,9 @@ void FlowGraphPrinter::PrintICData(const ICData& ic_data,
   UNREACHABLE();
 }
 
-bool FlowGraphPrinter::ShouldPrint(const Function& function) {
+bool FlowGraphPrinter::ShouldPrint(
+    const Function& function,
+    uint8_t** compiler_pass_filter /* = nullptr */) {
   return false;
 }
 

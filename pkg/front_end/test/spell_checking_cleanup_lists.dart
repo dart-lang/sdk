@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'spell_checking_utils.dart' as spell;
@@ -12,7 +10,7 @@ void main() {
   {
     spell.ensureDictionariesLoaded([spell.Dictionaries.common]);
     Set<String> commonWords =
-        spell.loadedDictionaries[spell.Dictionaries.common];
+        spell.loadedDictionaries![spell.Dictionaries.common]!;
     for (spell.Dictionaries dictionary in spell.Dictionaries.values) {
       if (dictionary == spell.Dictionaries.common) continue;
       Uri uri = spell.dictionaryToUri(dictionary);
@@ -30,7 +28,7 @@ void main() {
   {
     spell.ensureDictionariesLoaded([spell.Dictionaries.cfeCode]);
     Set<String> codeWords =
-        spell.loadedDictionaries[spell.Dictionaries.cfeCode];
+        spell.loadedDictionaries![spell.Dictionaries.cfeCode]!;
     Uri uri = spell.dictionaryToUri(spell.Dictionaries.cfeTests);
     List<String> keep = <String>[];
     for (String line in new File.fromUri(uri).readAsLinesSync()) {

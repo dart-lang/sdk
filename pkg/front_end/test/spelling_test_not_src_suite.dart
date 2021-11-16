@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:testing/testing.dart' show Chain, runMe;
 
 import 'spelling_test_base.dart';
@@ -26,7 +24,7 @@ Future<SpellContext> createContext(
 }
 
 class SpellContextTest extends SpellContext {
-  SpellContextTest({bool interactive, bool onlyInGit})
+  SpellContextTest({required bool interactive, required bool onlyInGit})
       : super(interactive: interactive, onlyInGit: onlyInGit);
 
   @override

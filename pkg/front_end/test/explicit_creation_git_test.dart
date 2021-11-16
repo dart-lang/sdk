@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart';
@@ -86,15 +84,14 @@ Future<void> main(List<String> args) async {
 
   Stopwatch stopwatch = new Stopwatch()..start();
 
-  await CompilerContext.runWithOptions<List<Uri>>(options,
-      (CompilerContext c) async {
+  await CompilerContext.runWithOptions(options, (CompilerContext c) async {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     DillTarget dillTarget =
         new DillTarget(ticker, uriTranslator, c.options.target);
     KernelTarget kernelTarget =
         new KernelTargetTest(c.fileSystem, false, dillTarget, uriTranslator);
 
-    Uri platform = c.options.sdkSummary;
+    Uri? platform = c.options.sdkSummary;
     if (platform != null) {
       var bytes = new File.fromUri(platform).readAsBytesSync();
       var platformComponent = loadComponentFromBytes(bytes);
@@ -103,10 +100,9 @@ Future<void> main(List<String> args) async {
     }
 
     kernelTarget.setEntryPoints(c.options.inputs);
-    await dillTarget.buildOutlines();
+    dillTarget.buildOutlines();
     await kernelTarget.buildOutlines();
     await kernelTarget.buildComponent();
-    return null;
   });
 
   print("Done in ${stopwatch.elapsedMilliseconds} ms. "
@@ -138,7 +134,7 @@ class SourceLoaderTest extends SourceLoader {
   @override
   BodyBuilder createBodyBuilderForOutlineExpression(
       SourceLibraryBuilder library,
-      DeclarationBuilder declarationBuilder,
+      DeclarationBuilder? declarationBuilder,
       ModifierBuilder member,
       Scope scope,
       Uri fileUri) {
@@ -162,10 +158,10 @@ class DietListenerTest extends DietListener {
   BodyBuilder createListenerInternal(
       ModifierBuilder builder,
       Scope memberScope,
-      Scope formalParameterScope,
+      Scope? formalParameterScope,
       bool isDeclarationInstanceMember,
-      VariableDeclaration extensionThis,
-      List<TypeParameter> extensionTypeParameters,
+      VariableDeclaration? extensionThis,
+      List<TypeParameter>? extensionTypeParameters,
       TypeInferrer typeInferrer,
       ConstantContext constantContext) {
     return new BodyBuilderTest(
@@ -221,7 +217,7 @@ class BodyBuilderTest extends BodyBuilder {
   @override
   BodyBuilderTest.forOutlineExpression(
       SourceLibraryBuilder library,
-      DeclarationBuilder declarationBuilder,
+      DeclarationBuilder? declarationBuilder,
       ModifierBuilder member,
       Scope scope,
       Uri fileUri)
@@ -230,18 +226,18 @@ class BodyBuilderTest extends BodyBuilder {
 
   @override
   Expression buildConstructorInvocation(
-      TypeDeclarationBuilder type,
+      TypeDeclarationBuilder? type,
       Token nameToken,
       Token nameLastToken,
-      Arguments arguments,
+      Arguments? arguments,
       String name,
-      List<TypeBuilder> typeArguments,
+      List<TypeBuilder>? typeArguments,
       int charOffset,
       Constness constness,
       {bool isTypeArgumentsInForest = false,
-      TypeDeclarationBuilder typeAliasBuilder,
-      UnresolvedKind unresolvedKind}) {
-    Token maybeNewOrConst = nameToken.previous;
+      TypeDeclarationBuilder? typeAliasBuilder,
+      required UnresolvedKind unresolvedKind}) {
+    Token maybeNewOrConst = nameToken.previous!;
     bool doReport = true;
     if (maybeNewOrConst is KeywordToken) {
       if (maybeNewOrConst.lexeme == "new" ||

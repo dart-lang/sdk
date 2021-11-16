@@ -56,7 +56,8 @@ class FlowGraphPrinter : public ValueObject {
   static void PrintCidRangeData(const CallTargets& ic_data,
                                 intptr_t num_checks_to_print = kPrintAll);
 
-  static bool ShouldPrint(const Function& function);
+  static bool ShouldPrint(const Function& function,
+                          uint8_t** compiler_pass_filter = nullptr);
 
  private:
   const Function& function_;

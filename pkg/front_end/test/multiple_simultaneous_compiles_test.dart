@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show File, Platform;
 
 import 'package:front_end/src/base/processed_options.dart'
@@ -27,7 +25,7 @@ Future<void> main() async {
   List<Future> futures = [];
   List<int> compilesLeft = new List<int>.filled(5, 8);
   for (int i = 0; i < compilesLeft.length; i++) {
-    Future<Component> compileAgain() async {
+    Future<Component?> compileAgain() async {
       print("$i has ${compilesLeft[i]} left.");
       if (compilesLeft[i] > 0) {
         compilesLeft[i]--;
@@ -56,13 +54,13 @@ Future<void> main() async {
       "(with the same compiler) (without crashing)");
 }
 
-List<IncrementalCompiler> compilers = [];
+List<IncrementalCompiler?> compilers = [];
 
 Future<Component> compile(int compilerNum, Uri uri) async {
   if (compilers.length <= compilerNum) {
     compilers.length = compilerNum + 1;
   }
-  IncrementalCompiler compiler = compilers[compilerNum];
+  IncrementalCompiler? compiler = compilers[compilerNum];
   if (compiler == null) {
     var options = getOptions();
     compiler = new IncrementalCompiler(new CompilerContext(

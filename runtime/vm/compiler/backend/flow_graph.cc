@@ -56,7 +56,10 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       loop_invariant_loads_(nullptr),
       captured_parameters_(new (zone()) BitVector(zone(), variable_count())),
       inlining_id_(-1),
-      should_print_(FlowGraphPrinter::ShouldPrint(parsed_function.function())) {
+      should_print_(false) {
+  should_print_ = FlowGraphPrinter::ShouldPrint(parsed_function.function(),
+                                                &compiler_pass_filters_);
+
   direct_parameters_size_ = ParameterOffsetAt(
       function(), num_direct_parameters_, /*last_slot*/ false);
   DiscoverBlocks();

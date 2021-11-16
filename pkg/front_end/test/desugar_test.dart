@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Test to ensure that desugaring APIs used by clients like dart2js are
 /// always up to date.
 ///
@@ -33,13 +31,13 @@ Future<void> main() async {
 
 Future<void> testRedirectingFactoryDirect() async {
   var component = await compileUnit(['a.dart'], {'a.dart': aSource});
-  checkIsRedirectingFactory(component, 'a.dart', 'A', 'foo');
+  checkIsRedirectingFactory(component!, 'a.dart', 'A', 'foo');
   checkIsRedirectingFactory(component, 'core', 'Uri', 'file');
 }
 
 Future<void> testRedirectingFactorySerialized() async {
   var component = await compileUnit(['a.dart'], {'a.dart': aSource});
-  var bytes = serializeComponent(component);
+  var bytes = serializeComponent(component!);
   component = new ir.Component();
   new BinaryBuilder(bytes).readComponent(component);
   checkIsRedirectingFactory(component, 'a.dart', 'A', 'foo');
@@ -62,8 +60,8 @@ void checkIsRedirectingFactory(ir.Component component, String uriPath,
   var lib =
       component.libraries.firstWhere((l) => l.importUri.path.endsWith(uriPath));
   var cls = lib.classes.firstWhere((c) => c.name == className);
-  ir.Procedure member =
-      cls.members.firstWhere((m) => m.name.text == constructorName);
+  ir.Procedure member = cls.members
+      .firstWhere((m) => m.name.text == constructorName) as ir.Procedure;
   Expect.isTrue(
       member.kind == ir.ProcedureKind.Factory, "$member is not a factory");
   Expect.isTrue(api.isRedirectingFactory(member));

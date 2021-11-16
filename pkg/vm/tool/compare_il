@@ -26,10 +26,6 @@ SDK_DIR="$CUR_DIR/../../.."
 
 # TODO(kustermann): For windows as well as for hosts running on arm, our
 # checked-in dart binaries must be adjusted.
-if [[ `uname` == 'Darwin' ]]; then
-  DART="$SDK_DIR/tools/sdks/dart-sdk/bin/dart"
-else
-  DART="$SDK_DIR/tools/sdks/dart-sdk/bin/dart"
-fi
+DART="$SDK_DIR/tools/sdks/dart-sdk/bin/dart"
 
 exec "$DART" $DART_VM_FLAGS "${SDK_DIR}/pkg/vm/bin/compare_il.dart" $@
