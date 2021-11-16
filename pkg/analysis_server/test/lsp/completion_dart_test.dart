@@ -234,6 +234,21 @@ void f() {
         insertText: 'myFunction',
       );
 
+  Future<void> test_completeFunctionCalls_existingArgList_member_noPrefix() =>
+      // https://github.com/Dart-Code/Dart-Code/issues/3672
+      checkCompleteFunctionCallInsertText(
+        '''
+        class Aaaaa {
+          static foo(int a) {}
+        }
+        void f() {
+          Aaaaa.[[^]]()
+        }
+        ''',
+        'foo(…)',
+        insertText: 'foo',
+      );
+
   Future<void> test_completeFunctionCalls_existingArgList_namedConstructor() =>
       checkCompleteFunctionCallInsertText(
         '''
