@@ -201,6 +201,12 @@ abstract class Iterable<E> {
   ///   }
   /// }
   /// ```
+  /// Example:
+  /// ```dart
+  /// final gasPlanets = {1: 'Jupiter', 2: 'Saturn'};
+  /// final altered = gasPlanets.map((key, value) => MapEntry(value, key));
+  /// print(altered); // {Jupiter: 1, Saturn: 2}
+  /// ```
   Iterable<T> map<T>(T toElement(E e)) => MappedIterable<E, T>(this, toElement);
 
   /// Returns a new lazy [Iterable] with all elements that satisfy the
@@ -278,6 +284,13 @@ abstract class Iterable<E> {
   /// (see [Set.identity]) that its `contains` uses.
   /// Likewise the `Iterable` returned by a [Map.keys] call
   /// should use the same equality that the `Map` uses for keys.
+  /// ```dart
+  /// final gasPlanets = {1: 'Jupiter', 2: 'Saturn'};
+  /// print(gasPlanets.keys.contains(1)); // true
+  /// print(gasPlanets.keys.contains(5)); // false
+  /// print(gasPlanets.values.contains('Jupiter')); // true
+  /// print(gasPlanets.values.contains('Mercury')); // false
+  /// ```
   bool contains(Object? element) {
     for (E e in this) {
       if (e == element) return true;
@@ -428,6 +441,11 @@ abstract class Iterable<E> {
   ///
   /// The elements are in iteration order.
   /// The list is fixed-length if [growable] is false.
+  /// ```dart
+  /// final planets = {1: 'Mercury', 2: 'Venus', 3: 'Mars'};
+  /// final keysList = planets.keys.toList(growable: true);
+  /// print(keysList); // [1, 2, 3]
+  /// ```
   List<E> toList({bool growable = true}) {
     return List<E>.of(this, growable: growable);
   }
@@ -439,6 +457,11 @@ abstract class Iterable<E> {
   /// or it contains one or more elements that are equal.
   /// The order of the elements in the set is not guaranteed to be the same
   /// as for the iterable.
+  /// ```dart
+  /// final planets = {1: 'Mercury', 2: 'Venus', 3: 'Mars'};
+  /// final valueSet = planets.values.toSet();
+  /// print(valueSet); // {Mercury, Venus, Mars}
+  /// ```
   Set<E> toSet() => Set<E>.of(this);
 
   /// Returns the number of elements in [this].
@@ -486,7 +509,8 @@ abstract class Iterable<E> {
   ///
   /// ```dart
   /// final numbers = [1, 2, 3, 5, 6, 7];
-  /// print(numbers.take(5).toList()); // [1, 2, 3, 5, 6]
+  /// final count = 5;
+  /// print(numbers.take(count).toList()); // [1, 2, 3, 5, 6]
   /// ```
   ///
   /// The `count` must not be negative.
