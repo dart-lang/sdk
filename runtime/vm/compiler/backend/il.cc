@@ -894,17 +894,17 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
 
 bool LoadFieldInstr::IsUnboxedDartFieldLoad() const {
   return slot().representation() == kTagged && slot().IsDartField() &&
-         slot().IsUnboxed();
+         FlowGraphCompiler::IsUnboxedField(slot().field());
 }
 
 bool LoadFieldInstr::IsPotentialUnboxedDartFieldLoad() const {
   return slot().representation() == kTagged && slot().IsDartField() &&
-         slot().IsPotentialUnboxed();
+         FlowGraphCompiler::IsPotentialUnboxedField(slot().field());
 }
 
 Representation LoadFieldInstr::representation() const {
   if (IsUnboxedDartFieldLoad() && CompilerState::Current().is_optimizing()) {
-    return slot().UnboxedRepresentation();
+    return FlowGraph::UnboxedFieldRepresentationOf(slot().field());
   }
   return slot().representation();
 }
@@ -963,12 +963,12 @@ void AllocateTypedDataInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 bool StoreInstanceFieldInstr::IsUnboxedDartFieldStore() const {
   return slot().representation() == kTagged && slot().IsDartField() &&
-         slot().IsUnboxed();
+         FlowGraphCompiler::IsUnboxedField(slot().field());
 }
 
 bool StoreInstanceFieldInstr::IsPotentialUnboxedDartFieldStore() const {
   return slot().representation() == kTagged && slot().IsDartField() &&
-         slot().IsPotentialUnboxed();
+         FlowGraphCompiler::IsPotentialUnboxedField(slot().field());
 }
 
 Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
@@ -979,7 +979,7 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
     return kTagged;
   }
   if (IsUnboxedDartFieldStore() && CompilerState::Current().is_optimizing()) {
-    return slot().UnboxedRepresentation();
+    return FlowGraph::UnboxedFieldRepresentationOf(slot().field());
   }
   return slot().representation();
 }
@@ -6181,7 +6181,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
 }
 
 bool Utf8ScanInstr::IsScanFlagsUnboxed() const {
-  return scan_flags_field_.IsUnboxed();
+  return FlowGraphCompiler::IsUnboxedField(scan_flags_field_.field());
 }
 
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(

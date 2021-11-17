@@ -157,6 +157,8 @@ class FlowGraph : public ZoneAllocated {
 
   static Representation ReturnRepresentationOf(const Function& function);
 
+  static Representation UnboxedFieldRepresentationOf(const Field& field);
+
   // The number of variables (or boxes) inside the functions frame - meaning
   // below the frame pointer.  This does not include the expression stack.
   intptr_t num_stack_locals() const {
