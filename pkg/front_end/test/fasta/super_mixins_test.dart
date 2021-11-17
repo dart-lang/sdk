@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 library fasta.test.incremental_dynamic_test;
 
 import "package:_fe_analyzer_shared/src/messages/diagnostic_message.dart"
@@ -83,7 +81,7 @@ DiagnosticMessageHandler _makeDiagnosticMessageHandler(Set<String> names) {
     Expect.equals(Severity.error, message.severity);
     Expect.identical(codeSuperclassHasNoMethod, getMessageCodeObject(message));
     Expect.isTrue(message.plainTextFormatted.length == 1);
-    names.add(getMessageArguments(message)['name']);
+    names.add(getMessageArguments(message)!['name']);
   };
 }
 

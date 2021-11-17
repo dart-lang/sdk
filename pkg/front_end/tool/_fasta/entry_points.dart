@@ -126,7 +126,7 @@ Future<void> batchEntryPoint(List<String> arguments) {
 }
 
 class BatchCompiler {
-  final Stream<String> lines;
+  final Stream<String>? lines;
 
   Uri? platformUri;
 
@@ -137,7 +137,7 @@ class BatchCompiler {
   BatchCompiler(this.lines);
 
   Future<void> run() async {
-    await for (String line in lines) {
+    await for (String line in lines!) {
       try {
         if (await batchCompileArguments(
             new List<String>.from(jsonDecode(line)))) {

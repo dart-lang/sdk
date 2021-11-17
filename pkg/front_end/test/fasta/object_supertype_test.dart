@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "dart:convert" show json;
 
 import "package:_fe_analyzer_shared/src/messages/diagnostic_message.dart"
@@ -77,13 +75,13 @@ Future<List<DiagnosticMessage>> outline(String objectHeader) async {
 
 Future<void> test() async {
   Set<String> normalErrors = (await outline("class Object {"))
-      .map((DiagnosticMessage message) => getMessageCodeObject(message).name)
+      .map((DiagnosticMessage message) => getMessageCodeObject(message)!.name)
       .toSet();
 
   Future<void> check(String objectHeader, List<Code> expectedCodes) async {
     List<DiagnosticMessage> messages = (await outline(objectHeader))
         .where((DiagnosticMessage message) =>
-            !normalErrors.contains(getMessageCodeObject(message).name))
+            !normalErrors.contains(getMessageCodeObject(message)!.name))
         .toList();
     Expect.setEquals(
         expectedCodes,
