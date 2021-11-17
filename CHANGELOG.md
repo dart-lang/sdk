@@ -1,3 +1,11 @@
+## 2.17.0
+
+### Core libraries
+
+- **Breaking Change** [#47653](https://github.com/dart-lang/sdk/issues/47653):
+  On Windows, `Directory.rename` will no longer delete a directory if
+  `newPath` specifies one. Instead, a `FileSystemException` will be thrown.
+
 ## 2.16.0
 
 ### Core libraries
@@ -12,7 +20,8 @@
 
 #### Dart command line
 
-- **Breaking Change** [#46100][]: The standalone `dartanalyzer` tool has been
+- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dartanalyzer` tool has been
   marked deprecated as previously announced.
   Its replacement is the `dart analyze` command.
   Should you find any issues, or missing features, in the replacement

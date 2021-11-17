@@ -6518,7 +6518,7 @@ _Publishable packages can't have '{0}' dependencies._
 #### Description
 
 The analyzer produces this diagnostic when a package under either
-`dependencies` or `dev_dependencies` is not a pub, `git`, or `path` based
+`dependencies` or `dev_dependencies` isn't a pub, `git`, or `path` based
 dependency.
 
 See [Package dependencies](https://dart.dev/tools/pub/dependencies) for
@@ -6527,7 +6527,7 @@ more information about the kind of dependencies that are supported.
 #### Example
 
 The following code produces this diagnostic because the dependency on the
-package `transmogrify` is not a pub, `git`, or `path` based dependency:
+package `transmogrify` isn't a pub, `git`, or `path` based dependency:
 
 ```yaml
 name: example
@@ -6968,7 +6968,7 @@ operator following `s` short-circuits the evaluation of both `length` and
 `isEven` if `s` is `null`. In other words, if `s` is `null`, then neither
 `length` nor `isEven` will be invoked, and if `s` is non-`null`, then
 `length` can't return a `null` value. Either way, `isEven` can't be invoked
-on a `null` value, so the null-aware operator is not necessary. See
+on a `null` value, so the null-aware operator isn't necessary. See
 [Understanding null safety](/null-safety/understanding-null-safety#smarter-null-aware-methods)
 for more details.
 
@@ -14407,7 +14407,7 @@ the imported libraries.
 
 ### undefined_referenced_parameter
 
-_The parameter '{0}' is not defined by '{1}'._
+_The parameter '{0}' isn't defined by '{1}'._
 
 #### Description
 

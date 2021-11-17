@@ -359,7 +359,7 @@ analyzer:
       expect(
           bulletToDash(outSink),
           contains(
-              'warning - The feature android.software.home_screen is not supported on Chrome OS'));
+              "warning - The feature android.software.home_screen isn't supported on Chrome OS"));
       expect(exitCode, 0);
     });
   }

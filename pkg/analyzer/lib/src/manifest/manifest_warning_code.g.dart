@@ -76,7 +76,7 @@ class ManifestWarningCode extends ErrorCode {
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_FEATURE =
       ManifestWarningCode(
     'UNSUPPORTED_CHROME_OS_FEATURE',
-    "The feature {0} is not supported on Chrome OS, consider making it optional.",
+    "The feature {0} isn't supported on Chrome OS, consider making it optional.",
     correctionMessage:
         "Try changing to `android:required=\"false\"` for this feature.",
   );
@@ -88,7 +88,7 @@ class ManifestWarningCode extends ErrorCode {
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_HARDWARE =
       ManifestWarningCode(
     'UNSUPPORTED_CHROME_OS_HARDWARE',
-    "The feature {0} is not supported on Chrome OS, consider making it optional.",
+    "The feature {0} isn't supported on Chrome OS, consider making it optional.",
     correctionMessage:
         "Try adding `android:required=\"false\"` for this feature.",
   );
