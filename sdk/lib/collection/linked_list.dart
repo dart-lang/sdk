@@ -34,7 +34,6 @@ part of dart.collection;
 /// class EntryItem extends LinkedListEntry<EntryItem> {
 ///   final int id;
 ///   final String text;
-///
 ///   EntryItem(this.id, this.text);
 ///
 ///   @override
@@ -49,6 +48,7 @@ part of dart.collection;
 ///       [EntryItem(1, 'A'), EntryItem(2, 'B'), EntryItem(3, 'C')].toList());
 ///   print(linkedList.first); // 1 : A
 ///   print(linkedList.last); // 3 : C
+///
 ///   // Add new item after first item
 ///   linkedList.first.insertAfter(EntryItem(15, 'E'));
 ///   // Add new item before last item
@@ -62,6 +62,7 @@ part of dart.collection;
 ///     // 10 : D
 ///     // 3 : C
 ///   });
+///   
 ///   // Remove item using index from list
 ///   linkedList.elementAt(2).unlink();
 ///   print(linkedList); // (1 : A, 15 : E, 10 : D, 3 : C)
@@ -95,7 +96,7 @@ class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
     _insertBefore(_first, entry, updateFirst: false);
   }
 
-  /// Add [entries] to the end of the linked list.
+  /// Adds [entries] to the end of the linked list.
   void addAll(Iterable<E> entries) {
     entries.forEach(add);
   }
@@ -287,7 +288,7 @@ abstract class LinkedListEntry<E extends LinkedListEntry<E>> {
 
   /// The successor of this element in its linked list.
   ///
-  /// The value is  `null` if there is no successor in the linked list,
+  /// The value is `null` if there is no successor in the linked list,
   /// or if this entry is not currently in any list.
   E? get next {
     if (_list == null || identical(_list!.first, _next)) return null;
