@@ -16633,7 +16633,7 @@ HintCode:
       var x = min(0, 1);
       ```
   UNDEFINED_REFERENCED_PARAMETER:
-    problemMessage: "The parameter '{0}' is not defined by '{1}'."
+    problemMessage: "The parameter '{0}' isn't defined by '{1}'."
     hasPublishedDocs: true
     comment: |-
       Parameters:
@@ -17457,11 +17457,11 @@ ManifestWarningCode:
     correctionMessage: Consider declaring the corresponding activity element with `screenOrientation="unspecified"` or `"fullSensor"` attribute.
     comment: A code indicating that the activity is locked to an orientation.
   UNSUPPORTED_CHROME_OS_FEATURE:
-    problemMessage: "The feature {0} is not supported on Chrome OS, consider making it optional."
+    problemMessage: "The feature {0} isn't supported on Chrome OS, consider making it optional."
     correctionMessage: "Try changing to `android:required=\"false\"` for this feature."
     comment: A code indicating that a specified feature is not supported on Chrome OS.
   UNSUPPORTED_CHROME_OS_HARDWARE:
-    problemMessage: "The feature {0} is not supported on Chrome OS, consider making it optional."
+    problemMessage: "The feature {0} isn't supported on Chrome OS, consider making it optional."
     correctionMessage: "Try adding `android:required=\"false\"` for this feature."
     comment: |-
       A code indicating that a specified hardware feature is not supported on
@@ -18028,7 +18028,7 @@ PubspecWarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a package under either
-      `dependencies` or `dev_dependencies` is not a pub, `git`, or `path` based
+      `dependencies` or `dev_dependencies` isn't a pub, `git`, or `path` based
       dependency.
 
       See [Package dependencies](https://dart.dev/tools/pub/dependencies) for
@@ -18037,7 +18037,7 @@ PubspecWarningCode:
       #### Example
 
       The following code produces this diagnostic because the dependency on the
-      package `transmogrify` is not a pub, `git`, or `path` based dependency:
+      package `transmogrify` isn't a pub, `git`, or `path` based dependency:
 
       ```yaml
       %uri="pubspec.yaml"
@@ -18397,7 +18397,7 @@ StaticWarningCode:
       `isEven` if `s` is `null`. In other words, if `s` is `null`, then neither
       `length` nor `isEven` will be invoked, and if `s` is non-`null`, then
       `length` can't return a `null` value. Either way, `isEven` can't be invoked
-      on a `null` value, so the null-aware operator is not necessary. See
+      on a `null` value, so the null-aware operator isn't necessary. See
       [Understanding null safety](/null-safety/understanding-null-safety#smarter-null-aware-methods)
       for more details.
 

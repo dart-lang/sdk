@@ -15938,7 +15938,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // `isEven` if `s` is `null`. In other words, if `s` is `null`, then neither
   // `length` nor `isEven` will be invoked, and if `s` is non-`null`, then
   // `length` can't return a `null` value. Either way, `isEven` can't be invoked
-  // on a `null` value, so the null-aware operator is not necessary. See
+  // on a `null` value, so the null-aware operator isn't necessary. See
   // [Understanding null safety](/null-safety/understanding-null-safety#smarter-null-aware-methods)
   // for more details.
   //
