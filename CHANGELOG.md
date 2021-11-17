@@ -2,14 +2,18 @@
 
 ### Language
 
-- **[Constructor tearoffs][]**: **BETA PREVIEW**
+The following features are new in the Dart 2.15 [language version][]. To use
+them, you must set the lower bound on the SDK constraint for your package to
+2.15 or greater (`sdk: '>=2.15.0 <3.0.0'`).
 
-  Previous Dart versions allowed a method on an instance to be passed as a
-  closure, and similarly for static methods. This is commonly referred to as
-  "closurizing" or "tearing off" a method. Constructors were not previously
-  eligible for closurization, forcing users to explicitly write wrapper
-  functions when using constructors as first class functions, as in the calls to
-  `List.map` in the following example:
+[language version]: https://dart.dev/guides/language/evolution
+
+- **[Constructor tear-offs][]**: Previous Dart versions allowed a method on an
+  instance to be passed as a closure, and similarly for static methods. This is
+  commonly referred to as "closurizing" or "tearing off" a method. Constructors
+  were not previously eligible for closurization, forcing users to explicitly
+  write wrapper functions when using constructors as first class functions, as
+  in the calls to `map()` in the following example:
 
   ```dart
   class A {
@@ -55,10 +59,10 @@
   ```
 
   Constructors for generic classes may be torn off as generic functions, or
-  instantiated at the tear off site. So in the following code, the tear off
+  instantiated at the tear-off site. So in the following code, the tear-off
   `G.new` used to initialize the variable `f` produces a generic function which
   may be used to produce an instance of `G<T>` for any type `T` provided when
-  `f` is called. The tear off `G<String>.new` used to initialize the variable
+  `f` is called. The tear-off `G<String>.new` used to initialize the variable
   `g` on the other hand produces a non-generic function which may only be used
   to produce instances of type `G<String>`.
 
@@ -76,27 +80,14 @@
   }
   ```
 
-  The new constructor tearoff feature is currently in **BETA PREVIEW**. The
-  feature is enabled in beta releases only, and is still subject to breaking
-  changes. It is not fully supported by all tools and there may be known issues
-  with the tool support. Feedback on the feature is welcome, but it is not
-  recommended that production code use the feature until it has been released in
-  a stable version.
+[constructor tear-offs]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/constructor-tearoffs/feature-specification.md
 
-  The new constructor tearoff feature is only available as part of the 2.15
-  [language version](https://dart.dev/guides/language/evolution). To use this
-  feature, you must set the lower bound on the sdk constraint for your package
-  to 2.15 or greater (if using a beta preview release, an sdk constraint of
-  `>=2.15.0-0` must be used).
-
-- **[Generic type literals][Explicit instantiation]**: **BETA PREVIEW**
-
-  Previous Dart versions allowed class names to be used as type literals. So
-  for example,`int` may be used as an expression, producing a value of type
-  `Type`. Generic classes (e.g. `List`) could be referred to by name as an
-  expression, but no type arguments could be provided and so only the `dynamic`
-  instantiation could be produced directly as an expression without using
-  indirect methods:
+- **[Generic type literals][explicit instantiation]**: Previous Dart versions
+  allowed class names to be used as type literals. So for example,`int` may be
+  used as an expression, producing a value of type `Type`. Generic classes (e.g.
+  `List`) could be referred to by name as an expression, but no type arguments
+  could be provided and so only the `dynamic` instantiation could be produced
+  directly as an expression without using indirect methods:
 
   ```dart
   // Workaround to capture generic type literals.
@@ -121,23 +112,9 @@
   }
   ```
 
-  The new generic type literal feature is currently in **BETA PREVIEW**. The
-  feature is enabled in beta releases only, and is still subject to breaking
-  changes. It is not fully supported by all tools and there may be known issues
-  with the tool support. Feedback on the feature is welcome, but it is not
-  recommended that production code use the feature until it has been released in
-  a stable version.
-
-  Generic type literals are only available as part of the 2.15 [language
-  version](https://dart.dev/guides/language/evolution). To use this feature, you
-  must set the lower bound on the sdk constraint for your package to 2.15 or
-  greater (if using a beta preview release, an sdk constraint of
-  `>=2.15.0-0` must be used).
-
-- **[Explicit generic method instantiations][Explicit instantiation]**: **BETA PREVIEW**
-
-  Previous Dart versions allowed generic methods to be implicitly specialized
-  (or "instantiated") to non-generic versions when assigned to a location with a
+- **[Explicit generic method instantiations][explicit instantiation]**: Previous
+  Dart versions allowed generic methods to be implicitly specialized (or
+  "instantiated") to non-generic versions when assigned to a location with a
   compatible monomorphic type. Example:
 
   ```dart
@@ -177,30 +154,12 @@
   }
   ```
 
-  The new generic method instantation feature is currently in **BETA PREVIEW**.
-  The feature is enabled in beta releases only, and is still subject to breaking
-  changes. It is not fully supported by all tools and there may be known issues
-  with the tool support. Feedback on the feature is welcome, but it is not
-  recommended that production code use the feature until it has been released in
-  a stable version.
+[explicit instantiation]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/constructor-tearoffs/feature-specification.md#explicitly-instantiated-classes-and-functions
 
-  Explicit generic method instantiations are only available as part of the 2.15
-  [language version](https://dart.dev/guides/language/evolution). To use this
-  feature, you must set the lower bound on the sdk constraint for your package
-  to 2.15 or greater (if using a beta preview release, an sdk constraint of
-  `>=2.15.0-0` must be used).
-
-  [Constructor tearoffs]:
-        https://github.com/dart-lang/language/blob/master/accepted/future-releases/constructor-tearoffs/feature-specification.md
-
-  [Explicit instantiation]:
-        https://github.com/dart-lang/language/blob/master/accepted/future-releases/constructor-tearoffs/feature-specification.md#explicitly-instantiated-classes-and-functions
-
-- **[Generic instantiation of function objects][Object instantiation]**: **BETA PREVIEW**
-
-  Generic function instantiation was previously restricted to function
-  declarations. For example, as soon as a function had already been torn
-  off, it could not be instantiated:
+- **[Generic instantiation of function objects][object instantiation]**: Generic
+  function instantiation was previously restricted to function declarations. For
+  example, as soon as a function had already been torn off, it could not be
+  instantiated:
 
   ```dart
   X id<X>(X x) => x;
@@ -240,19 +199,6 @@
   }
   ```
 
-  The new generic instantation of objects feature is currently in **BETA
-  PREVIEW**. The feature is enabled in beta releases only, and is still subject
-  to breaking changes. It is not fully supported by all tools and there may be
-  known issues with the tool support. Feedback on the feature is welcome, but it
-  is not recommended that production code use the feature until it has been
-  released in a stable version.
-
-  Generic instantiation of objects is only available as part of the 2.15
-  [language version](https://dart.dev/guides/language/evolution). To use this
-  feature, you must set the lower bound on the sdk constraint for your package
-  to 2.15 or greater (if using a beta preview release, an sdk constraint of
-  `>=2.15.0-0` must be used).
-
 [Object instantiation]: https://github.com/dart-lang/language/pull/1812
 
 - Annotations on type parameters of classes can no longer refer to class members
@@ -282,7 +228,7 @@
   f(int? i) {
     var iIsNull = i == null;
     if (!iIsNull) {
-      print(i + 1); // OK, because `i` is known to be non-null
+      print(i + 1); // OK, because `i` is known to be non-null.
     }
   }
   ```
@@ -293,7 +239,7 @@
   lacked an explicit type.
 
   To avoid causing problems for packages that are intended to work with older
-  versions of Dart, the fix only takes effect when the "constructor tearoffs"
+  versions of Dart, the fix only takes effect when the "constructor tear-offs"
   language feature is enabled.
 
 [#1785]: https://github.com/dart-lang/language/issues/1785
@@ -324,72 +270,17 @@
   instance variable, and it brings the implementation behavior in line with
   the specification in all other cases.
 
-- **Function object canonicalization and equality**
-
-  Several corner cases in the area of function object canonicalization and
-  function object equality have been updated, such that all tools behave in
-  the same way, and the behavior matches the specification.
+- **Function object canonicalization and equality**: Several corner cases in the
+  area of function object canonicalization and function object equality have
+  been updated, such that all tools behave in the same way, and the behavior
+  matches the specification.
 
   In particular, function objects are now equal when they are obtained by
   generic instantiation from the same function with the same actual type
   arguments, even when that type argument is not known at compile time.
   When the expressions are constant then said function objects are identical.
   Constant expressions are treated as such even when they do not occur in a
-  constant context (e.g., `var f = top;`). Here are the main cases where the
-  behavior has been adjusted:
-
-  ```dart
-  void top() {}
-  X? genericTop<X>() => null;
-
-  class A {
-    static void stat() {}
-    static X? genericStat<X>() => null;
-    void inst() {}
-    X? genericInst<X>() => null;
-  }
-
-  const int? Function() cIntTop1 = genericTop;
-  const int? Function() cIntStat1 = A.genericStat;
-
-  int? Function() vIntTop1 = genericTop;
-  int? Function() vIntStat1 = A.genericStat;
-  int? Function() vIntTop2 = genericTop;
-  int? Function() vIntStat2 = A.genericStat;
-
-  String? Function() vStringTop = genericTop;
-  String? Function() vStringStat = A.genericStat;
-
-  void main() {
-    var a = A();
-    int? Function() vIntInst1 = a.genericInst;
-    int? Function() vIntInst2 = a.genericInst;
-
-    // All true (used to be false).
-    identical(cIntTop1, vIntTop2);
-    identical(cIntStat1, vIntStat2);
-    identical(vIntTop1, vIntTop2);
-    identical(vIntStat1, vIntStat2);
-    vIntInst1 == vIntInst2;
-
-    <X>() {
-      X? Function() vXTop1 = genericTop;
-      X? Function() vXStat1 = A.genericStat;
-      X? Function() vXTop2 = genericTop;
-      X? Function() vXStat2 = A.genericStat;
-      X? Function() vXInst1 = a.genericInst;
-      X? Function() vXInst2 = a.genericInst;
-
-      // All true (used to be false).
-      vXTop1 == vXTop2;
-      vXStat1 == vXStat2;
-      vXInst1 == vXInst2;
-      vXTop1 == vIntTop1;
-      vXStat1 == vIntStat1;
-      vXInst1 == vIntInst2;
-    }<int>();
-  }
-  ```
+  constant context (e.g., `var f = top;`).
 
 ### Core libraries
 

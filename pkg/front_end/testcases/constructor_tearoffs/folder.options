@@ -1,2 +1,1 @@
---enable-experiment=constructor-tearoffs
 --force-constructor-tear-off-lowering=0

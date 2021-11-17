@@ -1124,6 +1124,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     for (var i = 0; i < mixinApplications.length; i++) {
       var m = mixinApplications[i];
       var mixinClass = m.isAnonymousMixin ? m.mixedInClass : m;
+      _declareBeforeUse(mixinClass);
       var mixinType =
           _hierarchy.getClassAsInstanceOf(c, mixinClass).asInterfaceType;
       var mixinName =

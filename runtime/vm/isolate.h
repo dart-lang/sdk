@@ -592,6 +592,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return deferred_marking_stack_;
   }
 
+  void NotifyLowMemory();
+
   // Runs the given [function] on every isolate in the isolate group.
   //
   // During the duration of this function, no new isolates can be added or
