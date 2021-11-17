@@ -23,7 +23,7 @@ luci.builder.defaults.experiments.set({
     # Launch 100% of Swarming tasks in "realms-aware mode", crbug.com/1170330.
     "luci.use_realms": 100,
     "luci.buildbucket.use_bbagent": 100,
-    "luci.recipes.use_python3": 5,
+    "luci.recipes.use_python3": 0,
 })
 
 DART_GIT = "https://dart.googlesource.com/sdk"
@@ -805,9 +805,10 @@ def dart_ci_sandbox_builder(name, channels = CHANNELS, **kwargs):
         **kwargs
     )
 
-def dart_infra_builder(name, notifies = "infra", triggered_by = None, **kwargs):
+def dart_infra_builder(name, experiments = {"luci.recipes.use_python3": 100}, notifies = "infra", triggered_by = None, **kwargs):
     dart_ci_builder(
         name,
+        experiments = experiments,
         notifies = notifies,
         triggered_by = triggered_by,
         **kwargs
