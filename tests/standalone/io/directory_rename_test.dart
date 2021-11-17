@@ -19,16 +19,22 @@ testRenameToNewPath() async {
   });
 }
 
-testRenameDoesNotAdjustPath() async {
+testRenamePath() async {
+  // Verifies that the returned directory has the correct path.
   await withTempDir('testRenameToNewPath', (Directory tempDir) async {
-    final dir1 = Directory("${tempDir.path}/dir1");
-    dir1.createSync();
-    final originalPath = dir1.path;
+    final oldDir = Directory("${tempDir.path}/dir1");
+    oldDir.createSync();
 
-    dir1.renameSync("${tempDir.path}/dir2");
-    final finalPath = dir1.path;
-    Expect.isTrue(originalPath == finalPath,
-        "$originalPath != $finalPath - path should not be updated");
+    final newDir = oldDir.renameSync("${tempDir.path}/dir2");
+
+    Expect.isTrue(
+        oldDir.path == "${tempDir.path}/dir1",
+        "${oldDir.path} != '${tempDir.path}/dir1'"
+        "- path should not be updated");
+    Expect.isTrue(
+        newDir.path == "${tempDir.path}/dir2",
+        "${newDir.path} != '${tempDir.path}/dir2'"
+        "- path should be updated");
   });
 }
 
@@ -39,26 +45,8 @@ testRenameToSamePath() async {
     final file = File("${dir.path}/file");
     file.createSync();
 
-    try {
-      dir.renameSync(dir.path);
-      if (Platform.isWindows) {
-        Expect.fail('Directory.rename to same path should fail on Windows');
-      } else {
-        Expect.isTrue(file.existsSync());
-      }
-    } on FileSystemException catch (e) {
-      if (Platform.isWindows) {
-        // On Windows, the directory will be *deleted*.
-        Expect.isFalse(dir.existsSync());
-        Expect.isTrue(
-            e.osError!.message.contains('cannot find the file specified'),
-            'Unexpected error: $e');
-      } else {
-        Expect.fail('Directory.rename to same path should not fail on '
-            '${Platform.operatingSystem} (${Platform.operatingSystemVersion}): '
-            '$e');
-      }
-    }
+    dir.renameSync(dir.path);
+    Expect.isTrue(file.existsSync());
   });
 }
 
@@ -74,11 +62,11 @@ testRenameToExistingFile() async {
       dir.renameSync(file.path);
       Expect.fail('Directory.rename should fail to rename a non-directory');
     } on FileSystemException catch (e) {
-      if (Platform.isLinux || Platform.isMacOS) {
-        Expect.isTrue(e.osError!.message.contains('Not a directory'),
-            'Unexpected error: $e');
-      } else if (Platform.isWindows) {
+      if (Platform.isWindows) {
         Expect.isTrue(e.osError!.message.contains('file already exists'),
+            'Unexpected error: $e');
+      } else if (Platform.isLinux || Platform.isMacOS) {
+        Expect.isTrue(e.osError!.message.contains('Not a directory'),
             'Unexpected error: $e');
       }
     }
@@ -95,9 +83,23 @@ testRenameToExistingEmptyDirectory() async {
     final dir2 = Directory("${tempDir.path}/dir2");
     dir2.createSync();
 
-    dir1.renameSync(dir2.path);
-    // Verify that the file contained in dir1 have been moved.
-    Expect.isTrue(File("${dir2.path}/file").existsSync());
+    try {
+      dir1.renameSync(dir2.path);
+      // Verify that the file contained in dir1 has been moved.
+      if (Platform.isWindows) {
+        Expect.fail(
+            'Directory.rename should fail to rename over an existing directory '
+            'on Windows');
+      } else {
+        Expect.isTrue(File("${dir2.path}/file").existsSync());
+      }
+    } on FileSystemException catch (e) {
+      if (Platform.isWindows) {
+        Expect.isTrue(e.osError!.message.contains('file already exists'));
+      } else {
+        Expect.fail('Directory.rename should allow moves to empty directories');
+      }
+    }
   });
 }
 
@@ -114,17 +116,13 @@ testRenameToExistingNonEmptyDirectory() async {
 
     try {
       dir1.renameSync(dir2.path);
-      if (Platform.isWindows) {
-        // Verify that the old directory is deleted.
-        Expect.isTrue(File("${dir2.path}/file1").existsSync());
-        Expect.isFalse(File("${dir2.path}/file2").existsSync());
-      } else {
-        Expect.fail(
-            'Directory.rename should fail to rename a non-empty directory '
-            'except on Windows');
-      }
+      Expect.fail(
+          'Directory.rename should fail to rename a non-empty directory');
     } on FileSystemException catch (e) {
-      if (Platform.isLinux || Platform.isMacOS) {
+      if (Platform.isWindows) {
+        Expect.isTrue(e.osError!.message.contains('file already exists'),
+            'Unexpected error: $e');
+      } else if (Platform.isLinux || Platform.isMacOS) {
         Expect.isTrue(e.osError!.message.contains('Directory not empty'),
             'Unexpected error: $e');
       }
@@ -134,7 +132,7 @@ testRenameToExistingNonEmptyDirectory() async {
 
 main() async {
   await testRenameToNewPath();
-  await testRenameDoesNotAdjustPath();
+  await testRenamePath();
   await testRenameToSamePath();
   await testRenameToExistingFile();
   await testRenameToExistingEmptyDirectory();

@@ -233,20 +233,28 @@ abstract class Directory implements FileSystemEntity {
   /// Returns a `Future<Directory>` that completes
   /// with a [Directory] for the renamed directory.
   ///
-  /// If [newPath] identifies an existing directory, that directory is
-  /// removed first.
+  /// If [newPath] identifies an existing directory, then the behavior is
+  /// platform-specific. On all platforms, the future completes with an
+  /// [FileSystemException] if the existing directory is not empty. On POSIX
+  /// systems, if [newPath] identifies an existing empty directory then that
+  /// directory is deleted before this directory is renamed.
+  ///
   /// If [newPath] identifies an existing file, the operation
-  /// fails and the future completes with an exception.
+  /// fails and the future completes with a [FileSystemException].
   Future<Directory> rename(String newPath);
 
   /// Synchronously renames this directory.
   ///
   /// Returns a [Directory] for the renamed directory.
   ///
-  /// If [newPath] identifies an existing directory, that directory is
-  /// removed first.
+  /// If [newPath] identifies an existing directory, then the behavior is
+  /// platform-specific. On all platforms, a [FileSystemException] is thrown
+  /// if the existing directory is not empty. On POSIX systems, if [newPath]
+  /// identifies an existing empty directory then that directory is deleted
+  /// before this directory is renamed.
+  ///
   /// If [newPath] identifies an existing file the operation
-  /// fails and an exception is thrown.
+  /// fails and a [FileSystemException] is thrown.
   Directory renameSync(String newPath);
 
   /// A [Directory] whose path is the absolute path of [this].
