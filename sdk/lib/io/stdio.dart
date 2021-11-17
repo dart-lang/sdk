@@ -362,9 +362,9 @@ class StdioType {
   String toString() => "StdioType: $name";
 }
 
-Stdin? _stdin;
-Stdout? _stdout;
-Stdout? _stderr;
+final Stdin _stdin = _StdIOUtils._getStdioInputStream(_stdinFD);
+final Stdout _stdout = _StdIOUtils._getStdioOutputStream(_stdoutFD);
+final Stdout _stderr = _StdIOUtils._getStdioOutputStream(_stderrFD);
 
 // These may be set to different values by the embedder by calling
 // _setStdioFDs when initializing dart:io.
@@ -381,7 +381,7 @@ void _setStdioFDs(int stdin, int stdout, int stderr) {
 
 /// The standard input stream of data read by this program.
 Stdin get stdin {
-  return _stdin ??= _StdIOUtils._getStdioInputStream(_stdinFD);
+  return IOOverrides.current?.stdin ?? _stdin;
 }
 
 /// The standard output stream of data written by this program.
@@ -390,7 +390,7 @@ Stdin get stdin {
 /// result in an unhandled asynchronous error unless there is an error handler
 /// on `done`.
 Stdout get stdout {
-  return _stdout ??= _StdIOUtils._getStdioOutputStream(_stdoutFD);
+  return IOOverrides.current?.stdout ?? _stdout;
 }
 
 /// The standard output stream of errors written by this program.
@@ -399,7 +399,7 @@ Stdout get stdout {
 /// result in an unhandled asynchronous error unless there is an error handler
 /// on `done`.
 Stdout get stderr {
-  return _stderr ??= _StdIOUtils._getStdioOutputStream(_stderrFD);
+  return IOOverrides.current?.stderr ?? _stderr;
 }
 
 /// Whether a stream is attached to a file, pipe, terminal, or

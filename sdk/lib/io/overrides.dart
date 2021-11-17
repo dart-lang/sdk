@@ -90,7 +90,12 @@ abstract class IOOverrides {
       // ServerSocket
       Future<ServerSocket> Function(dynamic, int,
               {int backlog, bool v6Only, bool shared})?
-          serverSocketBind}) {
+          serverSocketBind,
+
+      // Standard Streams
+      Stdin Function()? stdin,
+      Stdout Function()? stdout,
+      Stdout Function()? stderr}) {
     IOOverrides overrides = new _IOOverridesScope(
       // Directory
       createDirectory,
@@ -124,6 +129,11 @@ abstract class IOOverrides {
 
       // ServerSocket
       serverSocketBind,
+
+      // Standard streams
+      stdin,
+      stdout,
+      stderr,
     );
     return _asyncRunZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
   }
@@ -286,6 +296,32 @@ abstract class IOOverrides {
     return ServerSocket._bind(address, port,
         backlog: backlog, v6Only: v6Only, shared: shared);
   }
+
+  // Standard streams
+
+  /// The standard input stream of data read by this program.
+  ///
+  /// When this override is installed, this getter overrides the behavior of
+  /// the top-level `stdin` getter.
+  Stdin get stdin {
+    return _stdin;
+  }
+
+  /// The standard output stream of data written by this program.
+  ///
+  /// When this override is installed, this getter overrides the behavior of
+  /// the top-level `stdout` getter.
+  Stdout get stdout {
+    return _stdout;
+  }
+
+  /// The standard output stream of errors written by this program.
+  ///
+  /// When this override is installed, this getter overrides the behavior of
+  /// the top-level `stderr` getter.
+  Stdout get stderr {
+    return _stderr;
+  }
 }
 
 class _IOOverridesScope extends IOOverrides {
@@ -327,6 +363,11 @@ class _IOOverridesScope extends IOOverrides {
   Future<ServerSocket> Function(dynamic, int,
       {int backlog, bool v6Only, bool shared})? _serverSocketBind;
 
+  // Standard streams
+  Stdin Function()? _stdin;
+  Stdout Function()? _stdout;
+  Stdout Function()? _stderr;
+
   _IOOverridesScope(
     // Directory
     this._createDirectory,
@@ -360,6 +401,11 @@ class _IOOverridesScope extends IOOverrides {
 
     // ServerSocket
     this._serverSocketBind,
+
+    // Standard streams
+    this._stdin,
+    this._stdout,
+    this._stderr,
   );
 
   // Directory
@@ -513,5 +559,22 @@ class _IOOverridesScope extends IOOverrides {
     }
     return super.serverSocketBind(address, port,
         backlog: backlog, v6Only: v6Only, shared: shared);
+  }
+
+  // Standard streams
+
+  @override
+  Stdin get stdin {
+    return _stdin?.call() ?? _previous?.stdin ?? super.stdin;
+  }
+
+  @override
+  Stdout get stdout {
+    return _stdout?.call() ?? _previous?.stdout ?? super.stdout;
+  }
+
+  @override
+  Stdout get stderr {
+    return _stderr?.call() ?? _previous?.stderr ?? super.stderr;
   }
 }
