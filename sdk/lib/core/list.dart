@@ -67,7 +67,7 @@ part of dart.core;
 /// ```
 /// Lists are [Iterable]. Iteration occurs over values in index order. Changing
 /// the values does not affect iteration, but changing the valid
-/// indices&mdash;that is, changing the list's length&mdash;between iteration
+/// indices&mdash, that is, changing the list's length&mdash, between iteration
 /// steps causes a [ConcurrentModificationError]. This means that only growable
 /// lists can throw ConcurrentModificationError. If the length changes
 /// temporarily and is restored before continuing the iteration, the iterator
@@ -79,47 +79,10 @@ part of dart.core;
 /// Changing the list's length while it is being iterated, either by iterating it
 /// directly or through iterating an [Iterable] that is backed by the list, will
 /// break the iteration.
-///
-/// ## Constructor options for initialization
-/// Example of [List.empty]:
-/// ```dart
-/// final growableList = List.empty(growable: true);
-/// growableList.add(1); // [1]
-/// // OR equivalent to constructor:
-/// final emptyList = []; // []
-///
-/// final fixedLengthList = List.empty(growable: false);
-/// fixedLengthList.add(1); // error
-/// ```
-/// Example of [List.filled]:
-/// ```dart
-/// final filledList = List.filled(5, 100);
-/// print(filledList); // [100, 100, 100, 100, 100]
-/// ```
-/// Example of [List.from]:
-/// ```dart
-/// final numbers = [1, 2, 3];
-/// final listFrom = List.from(numbers);
-/// ```
-/// Example of [List.generate]:
-/// ```dart
-/// final generatedList = List.generate(5, (index) => index);
-/// print(generatedList); // [0, 1, 2, 3, 4]
-/// ```
-/// Example of [List.of]:
-/// ```dart
-/// final numbers = [1, 2, 3];
-/// final listOf = List.of(numbers);
-/// ```
-/// Example of [List.unmodifiable]:
-/// ```dart
-/// final numbers = [1, 2, 3];
-/// final unmodifiableList = List.unmodifiable(numbers);
-/// ```
 abstract class List<E> implements EfficientLengthIterable<E> {
   /// Creates a list of the given length.
   ///
-  /// **NOTICE**: This constructor cannot be used in null-safe code.
+  /// **NOTE**: This constructor cannot be used in null-safe code.
   /// Use [List.filled] to create a non-empty list.
   /// This requires a fill value to initialize the list elements with.
   /// To create an empty list, use `[]` for a growable list or
@@ -175,14 +138,14 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// ```dart
   /// final shared = List.filled(3, []);
   /// shared[0].add(499);
-  /// print(shared);  // => [[499], [499], [499]]
+  /// print(shared);  // [[499], [499], [499]]
   /// ```
   /// You can use [List.generate] to create a list with a fixed length
   /// and a new object at each position.
   /// ```dart
   /// final unique = List.generate(3, (_) => []);
   /// unique[0].add(499);
-  /// print(unique); // => [[499], [], []]
+  /// print(unique); // [[499], [], []]
   /// ```
   external factory List.filled(int length, E fill, {bool growable = false});
 
@@ -214,10 +177,12 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The `elements` iterable itself may have any element type, so this
   /// constructor can be used to down-cast a `List`, for example as:
   /// ```dart import:convert
-  /// const jsonArray = '[{"text": "foo", "value": 1, "status": true},'
-  ///     '{"text": "bar", "value": 2, "status":false}]';
-  /// final List<dynamic> dynamicList = jsonDecode(jsonArray);
-  /// final List<Map<String, dynamic>> fooData =
+  /// const jsonArray = '''
+  ///   [{"text": "foo", "value": 1, "status": true},
+  ///    {"text": "bar", "value": 2, "status": false}]
+  /// ''';
+  /// final dynamicList = jsonDecode(jsonArray);
+  /// final fooData =
   ///     List.from(dynamicList.where((x) => x is Map && x['text'] == 'bar'));
   /// print(fooData); // [{text: bar, value: 2, status: false}]
   /// ```
@@ -299,7 +264,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// If [start] is omitted, it defaults to zero.
   /// If [end] is omitted, it defaults to [source].length.
   ///
-  /// If [source] and [target] is the same list, overlapping source and target
+  /// If [source] and [target] are the same list, overlapping source and target
   /// ranges are respected so that the target range ends up containing the
   /// initial content of the source range.
   /// Otherwise the order of element copying is not guaranteed.
@@ -358,8 +323,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// that is not an instance of [R], the access will throw instead.
   ///
   /// Elements added to the list (e.g., by using [add] or [addAll])
-  /// must be instance of [R] to be valid arguments to the adding function,
-  /// and they must be instances of [E] as well to be accepted by
+  /// must be instances of [R] to be valid arguments to the adding function,
+  /// and they must also be instances of [E] to be accepted by
   /// this list as well.
   ///
   /// Methods which accept `Object?` as argument, like [contains] and [remove],
@@ -759,7 +724,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// ```
   ///
   /// The `start` and `end` positions must satisfy the relations
-  /// 0 ≤ `start` ≤ `end` ≤ [length]
+  /// 0 ≤ `start` ≤ `end` ≤ [length].
   /// If `end` is equal to `start`, then the returned list is empty.
   List<E> sublist(int start, [int? end]);
 
