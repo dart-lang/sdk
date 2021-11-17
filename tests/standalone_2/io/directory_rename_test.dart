@@ -132,6 +132,25 @@ testRenameToExistingNonEmptyDirectory() async {
   });
 }
 
+testRenameButActuallyFile() async {
+  await withTempDir('testRenameButActuallyFile', (Directory tempDir) async {
+    final file = File("${tempDir.path}/file");
+    file.createSync();
+    final dir = Directory(file.path);
+    try {
+      dir.renameSync("${tempDir.path}/dir");
+      Expect.fail("Expected a failure to rename the file.");
+    } on FileSystemException catch (e) {
+      Expect.isTrue(
+          e.message.contains('Rename failed'), 'Unexpected error: $e');
+      if (Platform.isLinux || Platform.isMacOS) {
+        Expect.isTrue(e.osError.message.contains('Not a directory'),
+            'Unexpected error: $e');
+      }
+    }
+  });
+}
+
 main() async {
   await testRenameToNewPath();
   await testRenamePath();
@@ -139,4 +158,5 @@ main() async {
   await testRenameToExistingFile();
   await testRenameToExistingEmptyDirectory();
   await testRenameToExistingNonEmptyDirectory();
+  await testRenameButActuallyFile();
 }
