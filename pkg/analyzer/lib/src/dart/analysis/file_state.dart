@@ -814,20 +814,8 @@ class FileSystemState {
     if (file == null) {
       File resource = _resourceProvider.getFile(path);
       Source fileSource = resource.createSource();
-      Uri? uri = _sourceFactory.restoreUri(fileSource);
-      // Create a new file.
-      // TODO(scheglov) this is duplicate
-      FileSource uriSource = FileSource(resource, uri!);
-      WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
-      FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
-      Version packageLanguageVersion =
-          contextLanguageVersion(path, uri, workspacePackage);
-      file = FileState._(this, path, uri, uriSource, workspacePackage,
-          featureSet, packageLanguageVersion);
-      _pathToFile[path] = file;
-      _uriToFile[uri] = file;
-      _addFileWithPath(path, file);
-      file.refresh();
+      Uri uri = _sourceFactory.restoreUri(fileSource)!;
+      file = _newFile(resource, path, uri);
     }
     return file;
   }
@@ -871,17 +859,7 @@ class FileSystemState {
       }
       uri = rewrittenUri;
 
-      FileSource source = FileSource(resource, uri);
-      WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
-      FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
-      Version packageLanguageVersion =
-          contextLanguageVersion(path, uri, workspacePackage);
-      file = FileState._(this, path, uri, source, workspacePackage, featureSet,
-          packageLanguageVersion);
-      _pathToFile[path] = file;
-      _uriToFile[uri] = file;
-      _addFileWithPath(path, file);
-      file.refresh();
+      file = _newFile(resource, path, uri);
     }
     return Either2.t1(file);
   }
@@ -935,12 +913,6 @@ class FileSystemState {
     _clearFiles();
   }
 
-  void _addFileWithPath(String path, FileState file) {
-    knownFilePaths.add(path);
-    knownFiles.add(file);
-    fileStamp++;
-  }
-
   /// Clear all [FileState] data - all maps from path or URI, etc.
   void _clearFiles() {
     _uriToFile.clear();
@@ -951,6 +923,23 @@ class FileSystemState {
     _librariesWithoutPartsRead.clear();
     _partToLibraries.clear();
     _subtypedNameToFiles.clear();
+  }
+
+  FileState _newFile(File resource, String path, Uri uri) {
+    FileSource uriSource = FileSource(resource, uri);
+    WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
+    FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
+    Version packageLanguageVersion =
+        contextLanguageVersion(path, uri, workspacePackage);
+    var file = FileState._(this, path, uri, uriSource, workspacePackage,
+        featureSet, packageLanguageVersion);
+    _pathToFile[path] = file;
+    _uriToFile[uri] = file;
+    knownFilePaths.add(path);
+    knownFiles.add(file);
+    fileStamp++;
+    file.refresh();
+    return file;
   }
 }
 

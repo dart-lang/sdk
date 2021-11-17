@@ -64,14 +64,6 @@ class SourceFactoryImpl implements SourceFactory {
   }
 
   @override
-  void clearCache() {
-    _absoluteUriToSourceCache.clear();
-    for (var resolver in resolvers) {
-      resolver.clearCache();
-    }
-  }
-
-  @override
   Source? forUri(String absoluteUri) {
     try {
       Uri uri;
