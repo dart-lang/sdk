@@ -73,8 +73,10 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 
 #if defined(PRODUCT)
 #define NOT_IN_PRODUCT(code)
+#define ONLY_IN_PRODUCT(code) code
 #else  // defined(PRODUCT)
 #define NOT_IN_PRODUCT(code) code
+#define ONLY_IN_PRODUCT(code)
 #endif  // defined(PRODUCT)
 
 #if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_PRECOMPILER)
@@ -87,13 +89,9 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 #define NOT_IN_PRECOMPILED(code)
-#else
-#define NOT_IN_PRECOMPILED(code) code
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-
-#if defined(DART_PRECOMPILED_RUNTIME)
 #define ONLY_IN_PRECOMPILED(code) code
 #else
+#define NOT_IN_PRECOMPILED(code) code
 #define ONLY_IN_PRECOMPILED(code)
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 

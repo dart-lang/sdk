@@ -73,7 +73,9 @@ FunctionPtr ClosureFunctionsCache::LookupClosureFunctionLocked(
   return Function::null();
 }
 
-void ClosureFunctionsCache::AddClosureFunctionLocked(const Function& function) {
+void ClosureFunctionsCache::AddClosureFunctionLocked(
+    const Function& function,
+    bool allow_implicit_closure_functions /* = false */) {
   ASSERT(!Compiler::IsBackgroundCompilation());
 
   auto thread = Thread::Current();
@@ -86,7 +88,8 @@ void ClosureFunctionsCache::AddClosureFunctionLocked(const Function& function) {
   const auto& closures =
       GrowableObjectArray::Handle(zone, object_store->closure_functions());
   ASSERT(!closures.IsNull());
-  ASSERT(function.IsNonImplicitClosureFunction());
+  ASSERT(allow_implicit_closure_functions ||
+         function.IsNonImplicitClosureFunction());
   closures.Add(function, Heap::kOld);
 }
 

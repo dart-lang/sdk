@@ -7483,7 +7483,7 @@ FunctionPtr Function::GetOutermostFunction() const {
 
 FunctionPtr Function::implicit_closure_function() const {
   if (IsClosureFunction() || IsDispatcherOrImplicitAccessor() ||
-      IsFieldInitializer() || IsFfiTrampoline()) {
+      IsFieldInitializer() || IsFfiTrampoline() || IsMethodExtractor()) {
     return Function::null();
   }
   const Object& obj = Object::Handle(data());

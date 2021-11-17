@@ -12,13 +12,17 @@ typedef Renamer = String Function(String);
 class FlowGraph {
   final List<dynamic> blocks;
   final Map<String, InstructionDescriptor> descriptors;
+  final Map<String, dynamic> flags;
   final Renamer rename;
 
-  FlowGraph(this.blocks, Map<String, dynamic> desc, {required this.rename})
+  FlowGraph(this.blocks, Map<String, dynamic> desc, this.flags,
+      {required this.rename})
       : descriptors = {
           for (var e in desc.entries)
             e.key: InstructionDescriptor.fromJson(e.value)
         };
+
+  bool get soundNullSafety => flags['nnbd'];
 
   /// Match the sequence of blocks in this flow graph against the given
   /// sequence of matchers: `expected[i]` is expected to match `blocks[i]`,
@@ -33,10 +37,33 @@ class FlowGraph {
     env ??= Env(rename: rename, descriptors: descriptors);
 
     for (var i = 0; i < expected.length; i++) {
-      expected[i].match(env, blocks[i]).expectMatched('failed to match');
+      final result = expected[i].match(env, blocks[i]);
+      if (result.isFail) {
+        print('Failed to match: ${result.message}');
+        dump();
+        throw 'Failed to match';
+      }
     }
 
     return env;
+  }
+
+  void dump() {
+    for (var block in blocks) {
+      print('B${block['b']}[${block['o']}]');
+      for (var instr in [...?block['d'], ...?block['is']]) {
+        final v = instr['v'] ?? -1;
+        final prefix = v != -1 ? 'v$v <- ' : '';
+        final inputs = instr['i']?.map((v) => 'v$v').join(', ') ?? '';
+        final attrs = descriptors[instr['o']]
+            ?.attributeIndex
+            .entries
+            .map((e) => '${e.key}: ${instr['d'][e.value]}')
+            .join(',');
+        final attrsWrapped = attrs != null ? '[$attrs]' : '';
+        print('  ${prefix}${instr['o']}$attrsWrapped($inputs)');
+      }
+    }
   }
 }
 
@@ -303,6 +330,11 @@ class _AttributesMatcher implements Matcher {
         .map((name) => matchers[name] ?? const _AnyMatcher())
         .toList());
     return impl!.match(e, v);
+  }
+
+  @override
+  String toString() {
+    return matchers.toString();
   }
 }
 

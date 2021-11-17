@@ -141,12 +141,11 @@ struct RetainReasons : public AllStatic {
   // The object is a function and symbolic stack traces are enabled.
   static constexpr const char* kSymbolicStackTraces =
       "needed for symbolic stack traces";
-  // The object is a function that is only used via its implicit closure
-  // function, into which it was inlined.
-  static constexpr const char* kInlinedIntoICF =
-      "inlined into implicit closure function";
   // The object is a parent function function of a non-inlined local function.
   static constexpr const char* kLocalParent = "parent of a local function";
+  // The object is a main function of the root library.
+  static constexpr const char* kMainFunction =
+      "this is main function of the root library";
   // The object has an entry point pragma that requires it be retained.
   static constexpr const char* kEntryPointPragma = "entry point pragma";
   // The function is a target of FFI callback.
@@ -724,13 +723,10 @@ void Precompiler::PrecompileConstructors() {
 
 void Precompiler::AddRoots() {
   HANDLESCOPE(T);
-  // Note that <rootlibrary>.main is not a root. The appropriate main will be
-  // discovered through _getMainClosure.
-
   AddSelector(Symbols::NoSuchMethod());
-
   AddSelector(Symbols::Call());  // For speed, not correctness.
 
+  // Add main as an entry point.
   const Library& lib = Library::Handle(IG->object_store()->root_library());
   if (lib.IsNull()) {
     const String& msg = String::Handle(
@@ -740,22 +736,26 @@ void Precompiler::AddRoots() {
   }
 
   const String& name = String::Handle(String::New("main"));
-  const Object& main_closure = Object::Handle(lib.GetFunctionClosure(name));
-  if (main_closure.IsClosure()) {
-    if (lib.LookupLocalFunction(name) == Function::null()) {
-      // Check whether the function is in exported namespace of library, in
-      // this case we have to retain the root library caches.
-      if (lib.LookupFunctionAllowPrivate(name) != Function::null() ||
-          lib.LookupReExport(name) != Object::null()) {
-        retain_root_library_caches_ = true;
-      }
+  Function& main = Function::Handle(lib.LookupFunctionAllowPrivate(name));
+  if (main.IsNull()) {
+    const Object& obj = Object::Handle(lib.LookupReExport(name));
+    if (obj.IsFunction()) {
+      main ^= obj.ptr();
     }
-    AddConstObject(Closure::Cast(main_closure));
-  } else if (main_closure.IsError()) {
-    const Error& error = Error::Cast(main_closure);
-    String& msg =
-        String::Handle(Z, String::NewFormatted("Cannot find main closure %s\n",
-                                               error.ToErrorCString()));
+  }
+  if (!main.IsNull()) {
+    if (lib.LookupLocalFunction(name) == Function::null()) {
+      retain_root_library_caches_ = true;
+    }
+    AddRetainReason(main, RetainReasons::kMainFunction);
+    AddTypesOf(main);
+    // Create closure object from main.
+    main = main.ImplicitClosureFunction();
+    AddConstObject(Closure::Handle(main.ImplicitStaticClosure()));
+  } else {
+    String& msg = String::Handle(
+        Z, String::NewFormatted("Cannot find main in library %s\n",
+                                lib.ToCString()));
     Jump(Error::Handle(Z, ApiError::New(msg)));
     UNREACHABLE();
   }
@@ -1930,25 +1930,25 @@ void Precompiler::TraceForRetainedFunctions() {
       for (intptr_t j = 0; j < functions.Length(); j++) {
         SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
         function ^= functions.At(j);
-        bool retain = possibly_retained_functions_.ContainsKey(function);
-        if (!retain && function.HasImplicitClosureFunction()) {
-          // It can happen that all uses of an implicit closure inline their
-          // target function, leaving the target function uncompiled. Keep
-          // the target function anyway so we can enumerate it to bind its
-          // static calls, etc.
-          function2 = function.ImplicitClosureFunction();
-          retain = function2.HasCode();
-          if (retain) {
-            AddRetainReason(function, RetainReasons::kInlinedIntoICF);
-          }
-        }
-        if (retain) {
-          function.DropUncompiledImplicitClosureFunction();
+        function.DropUncompiledImplicitClosureFunction();
+
+        const bool retained =
+            possibly_retained_functions_.ContainsKey(function);
+        if (retained) {
           AddTypesOf(function);
-          if (function.HasImplicitClosureFunction()) {
-            function2 = function.ImplicitClosureFunction();
-            if (possibly_retained_functions_.ContainsKey(function2)) {
-              AddTypesOf(function2);
+        }
+        if (function.HasImplicitClosureFunction()) {
+          function2 = function.ImplicitClosureFunction();
+
+          if (possibly_retained_functions_.ContainsKey(function2)) {
+            AddTypesOf(function2);
+            // If function has @pragma('vm:entry-point', 'get') we need to keep
+            // the function itself around so that runtime could find it and
+            // get to the implicit closure through it.
+            if (!retained &&
+                functions_with_entry_point_pragmas_.ContainsKey(function2)) {
+              AddRetainReason(function, RetainReasons::kEntryPointPragma);
+              AddTypesOf(function);
             }
           }
         }
@@ -2129,6 +2129,7 @@ void Precompiler::DropFunctions() {
   Array& functions = Array::Handle(Z);
   Function& function = Function::Handle(Z);
   Function& target = Function::Handle(Z);
+  Function& implicit_closure = Function::Handle(Z);
   Code& code = Code::Handle(Z);
   Object& owner = Object::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
@@ -2206,6 +2207,17 @@ void Precompiler::DropFunctions() {
       owner = WeakSerializationReference::New(
           owner, Smi::Handle(Smi::New(owner.GetClassId())));
       code.set_owner(owner);
+    }
+    if (function.HasImplicitClosureFunction()) {
+      // If we are going to drop the function which has a compiled
+      // implicit closure move the closure itself to the list of closures
+      // attached to the object store so that ProgramVisitor could find it.
+      // The list of closures is going to be dropped during PRODUCT snapshotting
+      // so there is no overhead in doing so.
+      implicit_closure = function.ImplicitClosureFunction();
+      RELEASE_ASSERT(functions_to_retain_.ContainsKey(implicit_closure));
+      ClosureFunctionsCache::AddClosureFunctionLocked(
+          implicit_closure, /*allow_implicit_closure_functions=*/true);
     }
     dropped_function_count_++;
     if (FLAG_trace_precompiler) {
@@ -2289,6 +2301,9 @@ void Precompiler::DropFunctions() {
     }
     return true;  // Continue iteration.
   });
+
+  // Note: in PRODUCT mode snapshotter will drop this field when serializing.
+  // This is done in ProgramSerializationRoots.
   IG->object_store()->set_closure_functions(retained_functions);
 }
 
