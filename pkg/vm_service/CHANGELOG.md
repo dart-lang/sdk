@@ -1,5 +1,10 @@
 # Changelog
 
+## 7.5.0
+- Update to version `3.53` of the spec.
+- Added `setIsolatePauseMode` RPC.
+- Deprecated `setExceptionPauseMode` in favor of `setIsolatePauseMode`.
+
 ## 7.4.0
 - Update to version `3.52` of the spec.
 - Added `lookupResolvedPackageUris` and `lookupPackageUris` RPCs and `UriList`

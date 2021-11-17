@@ -5145,6 +5145,44 @@ static void SetExceptionPauseMode(Thread* thread, JSONStream* js) {
   PrintSuccess(js);
 }
 
+static const MethodParameter* const set_isolate_pause_mode_params[] = {
+    ISOLATE_PARAMETER,
+    new EnumParameter("exceptionPauseMode", false, exception_pause_mode_names),
+    new BoolParameter("shouldPauseOnExit", false),
+    nullptr,
+};
+
+static void SetIsolatePauseMode(Thread* thread, JSONStream* js) {
+  bool state_changed = false;
+  const char* exception_pause_mode = js->LookupParam("exceptionPauseMode");
+  if (exception_pause_mode != nullptr) {
+    Dart_ExceptionPauseInfo info =
+        EnumMapper(exception_pause_mode, exception_pause_mode_names,
+                   exception_pause_mode_values);
+    if (info == kInvalidExceptionPauseInfo) {
+      PrintInvalidParamError(js, "exceptionPauseMode");
+      return;
+    }
+    Isolate* isolate = thread->isolate();
+    isolate->debugger()->SetExceptionPauseInfo(info);
+    state_changed = true;
+  }
+
+  const char* pause_isolate_on_exit = js->LookupParam("shouldPauseOnExit");
+  if (pause_isolate_on_exit != nullptr) {
+    bool enable = BoolParameter::Parse(pause_isolate_on_exit, false);
+    thread->isolate()->message_handler()->set_should_pause_on_exit(enable);
+    state_changed = true;
+  }
+
+  if (state_changed && Service::debug_stream.enabled()) {
+    ServiceEvent event(thread->isolate(),
+                       ServiceEvent::kDebuggerSettingsUpdate);
+    Service::HandleEvent(&event);
+  }
+  PrintSuccess(js);
+}
+
 static const MethodParameter* const set_breakpoint_state_params[] = {
     ISOLATE_PARAMETER,
     new IdParameter("breakpointId", true),
@@ -5561,6 +5599,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_breakpoint_state_params },
   { "setExceptionPauseMode", SetExceptionPauseMode,
     set_exception_pause_mode_params },
+  { "setIsolatePauseMode", SetIsolatePauseMode,
+    set_isolate_pause_mode_params },
   { "setFlag", SetFlag,
     set_flags_params },
   { "setLibraryDebuggable", SetLibraryDebuggable,
