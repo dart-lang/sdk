@@ -33,13 +33,12 @@ typedef _Hasher<K> = int Function(K object);
 ///
 /// **Notice:**
 /// It is generally not allowed to modify the map (add or remove keys) while
-/// an operation is being performed on the map, for example in functions called
+/// an operation is being performed on the map, for example, in functions called
 /// during a [forEach] or [putIfAbsent] call.
 /// Modifying the map while iterating the keys or values
 /// may also break the iteration.
 ///
 /// Example:
-///
 /// ```dart
 /// final hashMap = HashMap();
 /// // To add data to map, call addAll or addEntries.
@@ -112,12 +111,12 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// new keys. If [equals] is omitted, the key's own [Object.==] is used
   /// instead.
   ///
-  /// Similar, if [hashCode] is provided, it is used to produce a hash value
+  /// Similarly, if [hashCode] is provided, it is used to produce a hash value
   /// for keys in order to place them in the map. If [hashCode] is omitted,
   /// the key's own [Object.hashCode] is used.
   ///
   /// The used `equals` and `hashCode` method should always be consistent,
-  /// so that if `equals(a, b)` then `hashCode(a) == hashCode(b)`. The hash
+  /// so that if `equals(a, b)`, then `hashCode(a) == hashCode(b)`. The hash
   /// of an object, or what it compares equal to, should not change while the
   /// object is a key in the map. If it does change, the result is
   /// unpredictable.
@@ -161,9 +160,9 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// Creates an unordered identity-based map.
   ///
   /// Keys of this map are considered equal only to the same object,
-  /// and does not use [Object.==] at all.
+  /// and do not use [Object.==] at all.
   ///
-  /// Effectively a shorthand for:
+  /// Effectively shorthand for:
   /// ```dart
   /// HashMap<K, V>(equals: identical, hashCode: identityHashCode)
   /// ```
@@ -204,7 +203,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// The keys of the key/value pairs do not need to be unique. The last
   /// occurrence of a key will simply overwrite any previous value.
   ///
-  /// If no values are specified for [key] and [value] the default is the
+  /// If no values are specified for [key] and [value], the default is the
   /// identity function.
   /// Example:
   /// ```dart
@@ -236,7 +235,6 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// final mapFromIterables = HashMap.fromIterables(keys, values);
   /// print(mapFromIterables);
   /// // {Earth: 1, Mercury: 0.06, Mars: 0.11, Venus: 0.81}
-  /// print(hashMap.runtimeType);
   /// ```
   factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
     HashMap<K, V> map = HashMap<K, V>();
