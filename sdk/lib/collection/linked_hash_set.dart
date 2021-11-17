@@ -6,9 +6,9 @@ part of dart.collection;
 
 /// A [LinkedHashSet] is a hash-table based [Set] implementation.
 ///
-/// Default implementation of [Set] is [LinkedHashSet].
+/// The default implementation of [Set] is [LinkedHashSet].
 ///
-/// The `LinkedHashSet` also keep track of the order that elements were inserted
+/// The `LinkedHashSet` also keeps track of the order that elements were inserted
 /// in, and iteration happens in first-to-last insertion order.
 ///
 /// The elements of a `LinkedHashSet` must have consistent [Object.==]
@@ -21,14 +21,14 @@ part of dart.collection;
 /// An element that was added after another will occur later in the iteration.
 /// Adding an element that is already in the set
 /// does not change its position in the iteration order,
-/// but removing an element and adding it again,
+/// but removing an element and adding it again
 /// will make it the last element of an iteration.
 ///
 /// Most simple operations on `HashSet` are done in (potentially amortized)
 /// constant time: [add], [contains], [remove], and [length], provided the hash
 /// codes of objects are well distributed.
 ///
-/// **Notice:**
+/// **Note:**
 /// It is generally not allowed to modify the set (add or remove elements) while
 /// an operation on the set is being performed, for example during a call to
 /// [forEach] or [containsAll]. Nor is it allowed to modify the set while
@@ -39,7 +39,6 @@ part of dart.collection;
 /// their hashcode) while they are in the set. Some specialized subtypes may be
 /// more permissive, in which case they should document this behavior.
 ///
-///
 /// Example:
 /// ```dart
 /// final planets = LinkedHashSet();
@@ -48,7 +47,7 @@ part of dart.collection;
 /// planets.length; // 4
 /// print(planets); // {Venus, Mars, Earth, Jupiter}
 ///
-/// // To check is there a value item on map, call contains
+/// // To check if there is a value item on map, call contains
 /// final marsExists = planets.contains('Mars'); // true
 ///
 /// // To get element value using index, call elementAt
@@ -94,8 +93,8 @@ part of dart.collection;
 /// ```
 /// **See also:**
 /// * [Set] is a base-class for collection of objects.
-/// * [HashSet] the order of the objects in the iterations is not guaranteed.
-/// * [SplayTreeSet] the order of the objects can be relative to each other.
+/// * [HashSet]: the order of the objects in the iterations is not guaranteed.
+/// * [SplayTreeSet]: the order of the objects can be relative to each other.
 abstract class LinkedHashSet<E> implements Set<E> {
   /// Create an insertion-ordered hash set using the provided
   /// [equals] and [hashCode].
@@ -104,7 +103,7 @@ abstract class LinkedHashSet<E> implements Set<E> {
   /// [hashCode] must be consistent with [equals].
   ///
   /// If you supply one of [equals] and [hashCode],
-  /// you should generally also to supply the other.
+  /// you should generally also supply the other.
   ///
   /// Some [equals] or [hashCode] functions might not work for all objects.
   /// If [isValidKey] is supplied, it's used to check a potential element
@@ -122,7 +121,7 @@ abstract class LinkedHashSet<E> implements Set<E> {
   /// does not need an `isValidKey` argument, because it defaults to only
   /// accepting `int` values which are accepted by both `equals` and `hashCode`.
   ///
-  /// If neither `equals`, `hashCode`, nor `isValidKey` is provided,
+  /// If neither `equals`, `hashCode`, nor `isValidKey` are provided,
   /// the default `isValidKey` instead accepts all values.
   /// The default equality and hashcode operations are assumed to work on all
   /// objects.
@@ -138,7 +137,7 @@ abstract class LinkedHashSet<E> implements Set<E> {
 
   /// Creates an insertion-ordered identity-based set.
   ///
-  /// Effectively a shorthand for:
+  /// Effectively shorthand for:
   /// ```dart
   /// LinkedHashSet<E>(equals: identical, hashCode: identityHashCode)
   /// ```
