@@ -9,7 +9,7 @@ part of dart.collection;
 /// an [Iterator].
 ///
 /// It is generally not allowed to modify the queue (add or remove entries)
-/// while an operation on the queue is being performed, for example during a
+/// while an operation in the queue is being performed, for example during a
 /// call to [forEach].
 /// Modifying the queue while it is being iterated will most likely break the
 /// iteration.
@@ -18,10 +18,9 @@ part of dart.collection;
 ///
 /// Example:
 /// ```dart
-/// final queue = Queue();
-///
-/// // Queue() calls ListQueue() by default
+/// final queue = Queue(); // Queue() calls ListQueue() by default
 /// print(queue.runtimeType); // ListQueue
+///
 /// // Adding items to queue
 /// queue.addAll([1, 2, 3]);
 /// queue.addFirst(0);
@@ -63,16 +62,16 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// Any time the queue would produce an element that is not a [T],
   /// the element access will throw.
   ///
-  /// Any time a [T] value is attempted stored into the adapted queue,
+  /// Any time a [T] value is attempted to be stored into the adapted queue,
   /// the store will throw unless the value is also an instance of [S].
   ///
   /// If all accessed elements of [source] are actually instances of [T],
-  /// and if all elements stored into the returned queue are actually instance
+  /// and if all elements stored into the returned queue are actually instances
   /// of [S],
   /// then the returned queue can be used as a `Queue<T>`.
   ///
   /// Methods which accept `Object?` as argument, like [contains] and [remove],
-  /// will pass the argument directly to the this queue's method
+  /// will pass the argument directly to this queue's method
   /// without any checks.
   static Queue<T> castFrom<S, T>(Queue<S> source) => CastQueue<S, T>(source);
 
@@ -83,8 +82,8 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// that is not an instance of [R], the access will throw instead.
   ///
   /// Elements added to the queue (e.g., by using [addFirst] or [addAll])
-  /// must be instance of [R] to be valid arguments to the adding function,
-  /// and they must be instances of [E] as well to be accepted by
+  /// must be instances of [R] to be valid arguments to the adding function,
+  /// and they must also be instances of [E] to be accepted by
   /// this queue as well.
   ///
   /// Methods which accept `Object?` as argument, like [contains] and [remove],
@@ -113,7 +112,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// Adds [value] at the end of the queue.
   void add(E value);
 
-  /// Remove a single instance of [value] from the queue.
+  /// Removes a single instance of [value] from the queue.
   ///
   /// Returns `true` if a value was removed, or `false` if the queue
   /// contained no element equal to [value].
@@ -455,7 +454,7 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// [DoubleLinkedQueueEntry.previousEntry()].
   ///
   /// The [action] function can use methods on [DoubleLinkedQueueEntry] to
-  /// remove the entry or it can insert elements before or after then entry.
+  /// remove the entry or it can insert elements before or after the entry.
   /// If the current entry is removed, iteration continues with the entry that
   /// was following the current entry when [action] was called. Any elements
   /// inserted after the current element before it is removed will not be
@@ -531,6 +530,8 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 /// Example:
 /// ```dart
 /// final queue = ListQueue();
+///
+/// // Adding items to queue
 /// queue.add(5);
 /// queue.addFirst(0);
 /// queue.addLast(10);
@@ -613,8 +614,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   /// ```
   /// Example:
   /// ```dart
-  /// final baseQueue = ListQueue()..addAll([10, 20, 30]);
-  /// final queueFrom = ListQueue.from(baseQueue);
+  /// final queueFrom = ListQueue.from([10, 20, 30]);
   /// ```
   factory ListQueue.from(Iterable<dynamic> elements) {
     if (elements is List<dynamic>) {
