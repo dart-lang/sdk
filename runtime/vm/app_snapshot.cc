@@ -5686,43 +5686,48 @@ static const char* const kObjectStoreFieldNames[] = {
 
 class ProgramSerializationRoots : public SerializationRoots {
  public:
+#define RESET_ROOT_LIST(V)                                                     \
+  V(symbol_table, Array, HashTables::New<CanonicalStringSet>(4))               \
+  V(canonical_types, Array, HashTables::New<CanonicalTypeSet>(4))              \
+  V(canonical_function_types, Array,                                           \
+    HashTables::New<CanonicalFunctionTypeSet>(4))                              \
+  V(canonical_type_arguments, Array,                                           \
+    HashTables::New<CanonicalTypeArgumentsSet>(4))                             \
+  V(canonical_type_parameters, Array,                                          \
+    HashTables::New<CanonicalTypeParameterSet>(4))                             \
+  ONLY_IN_PRODUCT(ONLY_IN_AOT(                                                 \
+      V(closure_functions, GrowableObjectArray, GrowableObjectArray::null())))
+
   ProgramSerializationRoots(ZoneGrowableArray<Object*>* base_objects,
                             ObjectStore* object_store,
                             Snapshot::Kind snapshot_kind)
       : base_objects_(base_objects),
         object_store_(object_store),
-        dispatch_table_entries_(Array::Handle()),
-        saved_symbol_table_(Array::Handle()),
-        saved_canonical_types_(Array::Handle()),
-        saved_canonical_function_types_(Array::Handle()),
-        saved_canonical_type_arguments_(Array::Handle()),
-        saved_canonical_type_parameters_(Array::Handle()) {
-    saved_symbol_table_ = object_store->symbol_table();
-    object_store->set_symbol_table(
-        Array::Handle(HashTables::New<CanonicalStringSet>(4)));
-    saved_canonical_types_ = object_store->canonical_types();
-    object_store->set_canonical_types(
-        Array::Handle(HashTables::New<CanonicalTypeSet>(4)));
-    saved_canonical_function_types_ = object_store->canonical_function_types();
-    object_store->set_canonical_function_types(
-        Array::Handle(HashTables::New<CanonicalFunctionTypeSet>(4)));
-    saved_canonical_type_arguments_ = object_store->canonical_type_arguments();
-    object_store->set_canonical_type_arguments(
-        Array::Handle(HashTables::New<CanonicalTypeArgumentsSet>(4)));
-    saved_canonical_type_parameters_ =
-        object_store->canonical_type_parameters();
-    object_store->set_canonical_type_parameters(
-        Array::Handle(HashTables::New<CanonicalTypeParameterSet>(4)));
+        snapshot_kind_(snapshot_kind) {
+#define ONLY_IN_AOT(code)                                                      \
+  if (snapshot_kind_ == Snapshot::kFullAOT) {                                  \
+    code                                                                       \
+  }
+#define SAVE_AND_RESET_ROOT(name, Type, init)                                  \
+  do {                                                                         \
+    saved_##name##_ = object_store->name();                                    \
+    object_store->set_##name(Type::Handle(init));                              \
+  } while (0);
+
+    RESET_ROOT_LIST(SAVE_AND_RESET_ROOT)
+#undef SAVE_AND_RESET_ROOT
+#undef ONLY_IN_AOT
   }
   ~ProgramSerializationRoots() {
-    object_store_->set_symbol_table(saved_symbol_table_);
-    object_store_->set_canonical_types(saved_canonical_types_);
-    object_store_->set_canonical_function_types(
-        saved_canonical_function_types_);
-    object_store_->set_canonical_type_arguments(
-        saved_canonical_type_arguments_);
-    object_store_->set_canonical_type_parameters(
-        saved_canonical_type_parameters_);
+#define ONLY_IN_AOT(code)                                                      \
+  if (snapshot_kind_ == Snapshot::kFullAOT) {                                  \
+    code                                                                       \
+  }
+#define RESTORE_ROOT(name, Type, init)                                         \
+  object_store_->set_##name(saved_##name##_);
+    RESET_ROOT_LIST(RESTORE_ROOT)
+#undef RESTORE_ROOT
+#undef ONLY_IN_AOT
   }
 
   void AddBaseObjects(Serializer* s) {
@@ -5776,14 +5781,16 @@ class ProgramSerializationRoots : public SerializationRoots {
   }
 
  private:
-  ZoneGrowableArray<Object*>* base_objects_;
-  ObjectStore* object_store_;
-  Array& dispatch_table_entries_;
-  Array& saved_symbol_table_;
-  Array& saved_canonical_types_;
-  Array& saved_canonical_function_types_;
-  Array& saved_canonical_type_arguments_;
-  Array& saved_canonical_type_parameters_;
+  ZoneGrowableArray<Object*>* const base_objects_;
+  ObjectStore* const object_store_;
+  const Snapshot::Kind snapshot_kind_;
+  Array& dispatch_table_entries_ = Array::Handle();
+
+#define ONLY_IN_AOT(code) code
+#define DECLARE_FIELD(name, Type, init) Type& saved_##name##_ = Type::Handle();
+  RESET_ROOT_LIST(DECLARE_FIELD)
+#undef DECLARE_FIELD
+#undef ONLY_IN_AOT
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
