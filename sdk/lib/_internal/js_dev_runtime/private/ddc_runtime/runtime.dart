@@ -17,7 +17,6 @@ import 'dart:_js_helper'
     show
         AssertionErrorImpl,
         BooleanConversionAssertionError,
-        CastErrorImpl,
         DartIterator,
         DeferredNotLoadedError,
         TypeErrorImpl,
