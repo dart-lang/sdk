@@ -53,12 +53,6 @@ class BazelPackageUriResolver extends UriResolver {
         _context = workspace.provider.pathContext;
 
   @override
-  void clearCache() {
-    _sourceCache.clear();
-    _workspace.clearCache();
-  }
-
-  @override
   Source? resolveAbsolute(Uri uri) {
     var source = _sourceCache[uri];
     if (source == null) {
@@ -237,10 +231,6 @@ class BazelWorkspace extends Workspace
 
   @override
   UriResolver get packageUriResolver => BazelPackageUriResolver(this);
-
-  void clearCache() {
-    _directoryToPackage.clear();
-  }
 
   @override
   SourceFactory createSourceFactory(

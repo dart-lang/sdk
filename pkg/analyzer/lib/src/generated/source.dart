@@ -271,10 +271,6 @@ abstract class SourceFactory {
   /// the package (or [null] if there is no registered package URI resolver).
   Map<String, List<Folder>>? get packageMap;
 
-  /// Clear any cached URI resolution information in the [SourceFactory] itself,
-  /// and also ask each [UriResolver]s to clear its caches.
-  void clearCache();
-
   /// Return a source object representing the given absolute URI, or `null` if
   /// the URI is not a valid URI or if it is not an absolute URI.
   ///
@@ -413,16 +409,7 @@ class UriKind implements Comparable<UriKind> {
 /// The abstract class `UriResolver` defines the behavior of objects that are
 /// used to resolve URI's for a source factory. Subclasses of this class are
 /// expected to resolve a single scheme of absolute URI.
-///
-/// NOTICE: in a future breaking change release of the analyzer, a method
-/// `void clearCache()` will be added.  Clients that implement, but do not
-/// extend, this class, can prepare for the breaking change by adding an
-/// implementation of this method that clears any cached URI resolution
-/// information.
 abstract class UriResolver {
-  /// Clear any cached URI resolution information.
-  void clearCache() {}
-
   /// Resolve the given absolute [uri]. Return a [Source] representing the file
   /// to which it was resolved, whether or not the resulting source exists, or
   /// `null` if it could not be resolved because the URI is invalid.
