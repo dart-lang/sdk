@@ -221,8 +221,8 @@ void main(List<String> args) {
   BImpl(A1("")).loadWithNamedParam(h: H(A1("")));
 
   for (var i = 0; i < 2; i++) {
-    final a1 = A1(i.toString());
-    final a0 = A0(i.toDouble(), i.toString());
+    final a1 = A1("$i");
+    final a0 = A0(i.toDouble(), "$i");
     B1(a1).testNarrowingThroughThisCallWithPositionalParam(H(a1));
     B0(a0).testNarrowingThroughThisCallWithPositionalParam(H(a0));
     B1(a1).testNarrowingThroughThisCallWithNamedParams(H(a1));
@@ -601,7 +601,6 @@ void matchIL$testNarrowingThroughIndexedLoadFromGrowableArray(
     ]),
     'B1' <<
         match.block('Join', [
-          'a.data[0]*' << match.Phi('a.data[0]', match.any),
           match.CheckStackOverflow(),
           match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
               ifTrue: 'B2'),
@@ -617,8 +616,13 @@ void matchIL$testNarrowingThroughIndexedLoadFromGrowableArray(
         match.block('Target', [
           match.Redefinition('this'),
           // This redefinition was inserted by load forwarding.
-          'a.data[0]**' << match.Redefinition('a.data[0]*'),
-          'a.data[0].str' << match.LoadField('a.data[0]**', slot: 'str'),
+          'a.data[0]*' << match.Redefinition('a.data[0]'),
+          if (!beforeLICM.soundNullSafety)
+            'a.data[0]*!' << match.CheckNull('a.data[0]*'),
+          'a.data[0].str' <<
+              match.LoadField(
+                  beforeLICM.soundNullSafety ? 'a.data[0]*' : 'a.data[0]*!',
+                  slot: 'str'),
         ]),
   ]);
 
@@ -632,7 +636,6 @@ void matchIL$testNarrowingThroughIndexedLoadFromGrowableArray(
     ]),
     'B1' <<
         match.block('Join', [
-          'a.data[0]*' << match.Phi('a.data[0]', match.any),
           match.CheckStackOverflow(),
           match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
               ifTrue: 'B2'),
@@ -646,7 +649,12 @@ void matchIL$testNarrowingThroughIndexedLoadFromGrowableArray(
         ]),
     'B3' <<
         match.block('Target', [
-          'a.data[0].str' << match.LoadField('a.data[0]*', slot: 'str'),
+          if (!beforeLICM.soundNullSafety)
+            'a.data[0]!' << match.CheckNull('a.data[0]'),
+          'a.data[0].str' <<
+              match.LoadField(
+                  beforeLICM.soundNullSafety ? 'a.data[0]' : 'a.data[0]!',
+                  slot: 'str'),
         ]),
   ], env: env);
 }
@@ -668,7 +676,6 @@ void matchIL$testNarrowingThroughIndexedLoadFromFixedArray(
     ]),
     'B1' <<
         match.block('Join', [
-          'a[0]*' << match.Phi('a[0]', match.any),
           match.CheckStackOverflow(),
           match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
               ifTrue: 'B2'),
@@ -684,8 +691,11 @@ void matchIL$testNarrowingThroughIndexedLoadFromFixedArray(
         match.block('Target', [
           match.Redefinition('this'),
           // This redefinition was inserted by load forwarding.
-          'a[0]**' << match.Redefinition('a[0]*'),
-          'a[0].str' << match.LoadField('a[0]**', slot: 'str'),
+          'a[0]*' << match.Redefinition('a[0]'),
+          if (!beforeLICM.soundNullSafety) 'a[0]*!' << match.CheckNull('a[0]*'),
+          'a[0].str' <<
+              match.LoadField(beforeLICM.soundNullSafety ? 'a[0]*' : 'a[0]*!',
+                  slot: 'str'),
         ]),
   ]);
 
@@ -698,7 +708,6 @@ void matchIL$testNarrowingThroughIndexedLoadFromFixedArray(
     ]),
     'B1' <<
         match.block('Join', [
-          'a[0]*' << match.Phi('a[0]', match.any),
           match.CheckStackOverflow(),
           match.Branch(match.RelationalOp(match.any, match.any, kind: '<'),
               ifTrue: 'B2'),
@@ -712,7 +721,10 @@ void matchIL$testNarrowingThroughIndexedLoadFromFixedArray(
         ]),
     'B3' <<
         match.block('Target', [
-          'a[0].str' << match.LoadField('a[0]*', slot: 'str'),
+          if (!beforeLICM.soundNullSafety) 'a[0]!' << match.CheckNull('a[0]'),
+          'a[0].str' <<
+              match.LoadField(beforeLICM.soundNullSafety ? 'a[0]' : 'a[0]!',
+                  slot: 'str'),
         ]),
   ], env: env);
 }

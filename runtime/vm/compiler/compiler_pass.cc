@@ -357,6 +357,7 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(WidenSmiToInt32);
   INVOKE_PASS(SelectRepresentations);
   INVOKE_PASS(CSE);
+  INVOKE_PASS(Canonicalize);
   INVOKE_PASS(LICM);
   INVOKE_PASS(TryOptimizePatterns);
   INVOKE_PASS(DSE);
@@ -387,6 +388,7 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(AllocationSinking_DetachMaterializations);
   INVOKE_PASS(EliminateWriteBarriers);
   INVOKE_PASS(FinalizeGraph);
+  INVOKE_PASS(Canonicalize);
   INVOKE_PASS(AllocateRegisters);
   INVOKE_PASS(ReorderBlocks);
   return pass_state->flow_graph();
@@ -573,7 +575,6 @@ COMPILER_PASS(FinalizeGraph, {
   flow_graph->function().set_inlining_depth(state->inlining_depth);
   // Remove redefinitions for the rest of the pipeline.
   flow_graph->RemoveRedefinitions();
-  flow_graph->Canonicalize();
 });
 
 COMPILER_PASS(GenerateCode, { state->graph_compiler->CompileGraph(); });
