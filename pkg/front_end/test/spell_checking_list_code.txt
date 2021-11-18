@@ -329,6 +329,7 @@ despite
 destination
 destinations
 destroy
+destructive
 deterministic
 dev
 device
@@ -620,6 +621,7 @@ int32x4
 int64
 int8
 integrate
+intends
 intentionally
 interested
 interim

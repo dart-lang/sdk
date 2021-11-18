@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:async';
 
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:modular_test/src/io_pipeline.dart';
@@ -32,36 +33,26 @@ main(List<String> args) async {
   _packageConfig = await loadPackageConfigUri(packageConfigUri);
   await _resolveScripts();
   await Future.wait([
+    // TODO(joshualitt): Factor modular steps into a library so we can test
+    // modular analysis alongside the existing pipeline.
     runSuite(
         sdkRoot.resolve('tests/modular/'),
         'tests/modular',
         _options,
         IOPipeline([
-          SourceToDillStep(),
-          ModularAnalysisStep(),
-          ComputeClosedWorldStep(useModularAnalysis: true),
+          OutlineDillCompilationStep(),
+          FullDillCompilationStep(),
+          ComputeClosedWorldStep(useModularAnalysis: false),
           GlobalAnalysisStep(),
           Dart2jsCodegenStep(codeId0),
           Dart2jsCodegenStep(codeId1),
           Dart2jsEmissionStep(),
           RunD8(),
         ], cacheSharedModules: true)),
-    runSuite(
-        sdkRoot.resolve('tests/modular/'),
-        'tests/modular',
-        _options,
-        IOPipeline([
-          SourceToDillStep(),
-          ComputeClosedWorldStep(useModularAnalysis: false),
-          LegacyGlobalAnalysisStep(),
-          LegacyDart2jsCodegenStep(codeId0),
-          LegacyDart2jsCodegenStep(codeId1),
-          LegacyDart2jsEmissionStep(),
-          RunD8(),
-        ], cacheSharedModules: true))
   ]);
 }
 
+const dillSummaryId = DataId("sdill");
 const dillId = DataId("dill");
 const modularUpdatedDillId = DataId("mdill");
 const modularDataId = DataId("mdata");
@@ -86,19 +77,13 @@ String _packageConfigEntry(String name, Uri root,
   return '{${fields.join(',')}}';
 }
 
-// Step that compiles sources in a module to a .dill file.
-class SourceToDillStep implements IOModularStep {
-  @override
-  List<DataId> get resultData => const [dillId];
+abstract class CFEStep implements IOModularStep {
+  final String stepName;
+
+  CFEStep(this.stepName);
 
   @override
   bool get needsSources => true;
-
-  @override
-  List<DataId> get dependencyDataNeeded => const [dillId];
-
-  @override
-  List<DataId> get moduleDataNeeded => const [];
 
   @override
   bool get onlyOnMain => false;
@@ -106,7 +91,7 @@ class SourceToDillStep implements IOModularStep {
   @override
   Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
       List<String> flags) async {
-    if (_options.verbose) print("\nstep: source-to-dill on $module");
+    if (_options.verbose) print("\nstep: $stepName on $module");
 
     // We use non file-URI schemes for representeing source locations in a
     // root-agnostic way. This allows us to refer to file across modules and
@@ -181,44 +166,45 @@ class SourceToDillStep implements IOModularStep {
         .writeAsString('$packagesContents');
 
     List<String> sources;
-    List<String> extraArgs;
+    List<String> extraArgs = ['--packages-file', '$rootScheme:/.packages'];
     if (module.isSdk) {
       // When no flags are passed, we can skip compilation and reuse the
       // platform.dill created by build.py.
       if (flags.isEmpty) {
         var platform = computePlatformBinariesLocation()
             .resolve("dart2js_platform_unsound.dill");
-        var destination = root.resolveUri(toUri(module, dillId));
+        var destination = root.resolveUri(toUri(module, outputData));
         if (_options.verbose) {
           print('command:\ncp $platform $destination');
         }
         await File.fromUri(platform).copy(destination.toFilePath());
         return;
       }
-      sources = ['dart:core'];
-      extraArgs = ['--libraries-file', '$rootScheme:///sdk/lib/libraries.json'];
+      sources = requiredLibraries['dart2js'] + ['dart:core'];
+      extraArgs += [
+        '--libraries-file',
+        '$rootScheme:///sdk/lib/libraries.json'
+      ];
       assert(transitiveDependencies.isEmpty);
     } else {
       sources = module.sources.map(sourceToImportUri).toList();
-      extraArgs = ['--packages-file', '$rootScheme:/.packages'];
     }
 
     // TODO(joshualitt): Ensure the kernel worker has some way to specify
     // --no-sound-null-safety
     List<String> args = [
       _kernelWorkerScript,
-      '--no-summary-only',
-      '--target',
-      'dart2js',
+      ...stepArguments,
+      '--exclude-non-sources',
       '--multi-root',
       '$root',
       '--multi-root-scheme',
       rootScheme,
       ...extraArgs,
       '--output',
-      '${toUri(module, dillId)}',
+      '${toUri(module, outputData)}',
       ...(transitiveDependencies
-          .expand((m) => ['--input-linked', '${toUri(m, dillId)}'])),
+          .expand((m) => ['--input-summary', '${toUri(m, inputData)}'])),
       ...(sources.expand((String uri) => ['--source', uri])),
       ...(flags.expand((String flag) => ['--enable-experiment', flag])),
     ];
@@ -228,10 +214,71 @@ class SourceToDillStep implements IOModularStep {
     _checkExitCode(result, this, module);
   }
 
+  List<String> get stepArguments;
+
+  DataId get inputData;
+
+  DataId get outputData;
+
   @override
   void notifyCached(Module module) {
-    if (_options.verbose) print("\ncached step: source-to-dill on $module");
+    if (_options.verbose) print("\ncached step: $stepName on $module");
   }
+}
+
+// Step that compiles sources in a module to a summary .dill file.
+class OutlineDillCompilationStep extends CFEStep {
+  @override
+  List<DataId> get resultData => const [dillSummaryId];
+
+  @override
+  bool get needsSources => true;
+
+  @override
+  List<DataId> get dependencyDataNeeded => const [dillSummaryId];
+
+  @override
+  List<DataId> get moduleDataNeeded => const [];
+
+  @override
+  List<String> get stepArguments =>
+      ['--target', 'dart2js_summary', '--summary-only'];
+
+  @override
+  DataId get inputData => dillSummaryId;
+
+  @override
+  DataId get outputData => dillSummaryId;
+
+  OutlineDillCompilationStep() : super('outline-dill-compilation');
+}
+
+// Step that compiles sources in a module to a .dill file.
+class FullDillCompilationStep extends CFEStep {
+  @override
+  List<DataId> get resultData => const [dillId];
+
+  @override
+  bool get needsSources => true;
+
+  @override
+  List<DataId> get dependencyDataNeeded => const [dillSummaryId];
+
+  @override
+  List<DataId> get moduleDataNeeded => const [];
+
+  // TODO(joshualitt): we need a --no-summary argument to cfe.
+  @override
+  List<String> get stepArguments =>
+      ['--target', 'dart2js', '--no-summary-only'];
+
+  @override
+  DataId get inputData => dillSummaryId;
+
+  @override
+  DataId get outputData => dillId;
+
+  FullDillCompilationStep() : super('full-dill-compilation');
 }
 
 class ModularAnalysisStep implements IOModularStep {
