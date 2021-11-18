@@ -6,7 +6,7 @@ part of dart.core;
 
 /// A simple stopwatch interface to measure elapsed time.
 ///
-/// The [elapsed] count is increasing monotonically. If the Stopwatch has
+/// The [elapsed] count increases monotonically. If the Stopwatch has
 /// been stopped, then calling [start] again restarts it without resetting the
 /// [elapsed] count. Calling [reset] does not stop the [elapsed] counter, but
 /// resets the [elapsed] count. Call [stop] to pause or end counter.
@@ -33,6 +33,7 @@ part of dart.core;
 ///
 /// // Continue stopwatch by starting it again
 /// stopwatch.start();
+/// // Delay for Stopwatch behavior demo
 /// sleep(const Duration(seconds: 2));
 ///
 /// // Stop
@@ -41,7 +42,6 @@ part of dart.core;
 ///
 /// // Reset - stopwatch elapsed counter is zeroed
 /// stopwatch.reset();
-/// sleep(const Duration(seconds: 1));
 /// print(stopwatch.elapsed); // 0:00:00.000000
 /// print(stopwatch.elapsedTicks); // 0
 /// ```
@@ -62,7 +62,7 @@ class Stopwatch {
   /// The following example shows how to start a [Stopwatch]
   /// immediately after allocation.
   /// ```dart
-  /// var stopwatch = Stopwatch()..start();
+  /// final stopwatch = Stopwatch()..start();
   /// ```
   Stopwatch() {
     _frequency; // Ensures initialization before using any method.
@@ -73,7 +73,7 @@ class Stopwatch {
 
   /// Starts the [Stopwatch].
   ///
-  /// The [elapsed] count is increasing monotonically. If the [Stopwatch] has
+  /// The [elapsed] count increases monotonically. If the [Stopwatch] has
   /// been stopped, then calling start again restarts it without resetting the
   /// [elapsed] count.
   ///
