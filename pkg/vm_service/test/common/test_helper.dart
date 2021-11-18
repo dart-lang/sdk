@@ -277,6 +277,7 @@ class _ServiceTesterRunner {
         vm = await vmServiceConnectUri(serviceWebsocketAddress);
         print('Done loading VM');
         isolate = await getFirstIsolate(vm);
+        print('Got first isolate');
       });
     });
 
@@ -340,6 +341,8 @@ class _ServiceTesterRunner {
         completer = null;
       }
     });
+    await service.streamListen(EventStreams.kIsolate);
+
     await service.streamListen(EventStreams.kIsolate);
 
     // The isolate may have started before we subscribed.

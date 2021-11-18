@@ -3702,6 +3702,9 @@ class Function : public Object {
   //   element 2 * i + 1 is coverage hit (zero meaning code was not hit)
   ArrayPtr GetCoverageArray() const;
 
+  // Outputs this function's service ID to the provided JSON object.
+  void AddFunctionServiceId(const JSONObject& obj) const;
+
   // Sets deopt reason in all ICData-s with given deopt_id.
   void SetDeoptReasonForAll(intptr_t deopt_id, ICData::DeoptReasonId reason);
 
