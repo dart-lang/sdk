@@ -2709,6 +2709,8 @@ class Function : public Object {
                                 intptr_t num_free_fun_type_params = kAllFree,
                                 TrailPtr trail = nullptr) const;
 
+  bool IsPrivate() const;
+
   ClassPtr Owner() const;
   void set_owner(const Object& value) const;
   ClassPtr origin() const;

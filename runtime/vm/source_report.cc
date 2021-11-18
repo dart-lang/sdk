@@ -115,6 +115,36 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     // function failed to compile.
     return true;
   }
+
+  // There is an idiom where static utility classes are given a private
+  // constructor to prevent the the class from being instantiated. Ignore these
+  // constructors so that they don't lower the coverage rate. See #47021.
+  SafepointReadRwLocker ml(thread_, thread_->isolate_group()->program_lock());
+  if (func.kind() == UntaggedFunction::kConstructor &&
+      func.NumParameters() == func.NumImplicitParameters() &&
+      func.IsPrivate()) {
+    // Check that the class has no non-static members and no subclasses.
+    Class& cls = Class::Handle(func.Owner());
+    GrowableObjectArray& subclasses =
+        GrowableObjectArray::Handle(cls.direct_subclasses());
+    if (cls.is_abstract() && !cls.HasInstanceFields() &&
+        (subclasses.IsNull() || subclasses.Length() == 0)) {
+      // Check that the constructor is the only non-static function.
+      Array& clsFuncs = Array::Handle(cls.functions());
+      Function& otherFunc = Function::Handle();
+      intptr_t numNonStaticFunctions = 0;
+      for (intptr_t i = 0; i < clsFuncs.Length(); ++i) {
+        otherFunc ^= clsFuncs.At(i);
+        if (!otherFunc.IsStaticFunction()) {
+          ++numNonStaticFunctions;
+        }
+      }
+      if (numNonStaticFunctions == 1) {
+        return true;
+      }
+    }
+  }
+
   return false;
 }
 

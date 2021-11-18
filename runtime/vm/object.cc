@@ -9600,6 +9600,10 @@ bool FunctionType::IsInstantiated(Genericity genericity,
   return true;
 }
 
+bool Function::IsPrivate() const {
+  return Library::IsPrivate(String::Handle(name()));
+}
+
 ClassPtr Function::Owner() const {
   ASSERT(untag()->owner() != Object::null());
   if (untag()->owner()->IsClass()) {
