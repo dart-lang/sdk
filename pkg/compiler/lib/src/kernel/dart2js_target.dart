@@ -93,7 +93,7 @@ class Dart2jsTarget extends Target {
   int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.all;
 
   @override
-  List<String> get extraRequiredLibraries => _requiredLibraries[name]!;
+  List<String> get extraRequiredLibraries => requiredLibraries[name]!;
 
   @override
   List<String> get extraIndexedLibraries => const [
@@ -222,48 +222,85 @@ class Dart2jsTarget extends Target {
 
 // TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
 // compile-platform should just specify which libraries to compile instead.
-const _requiredLibraries = <String, List<String>>{
+const requiredLibraries = <String, List<String>>{
   'dart2js': [
+    'dart:_async_await_error_codes',
     'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
+    'dart:_http',
     'dart:_interceptors',
     'dart:_internal',
+    'dart:_js',
     'dart:_js_annotations',
     'dart:_js_embedded_names',
     'dart:_js_helper',
     'dart:_js_names',
+    'dart:_js_primitives',
     'dart:_late_helper',
+    'dart:_metadata',
     'dart:_native_typed_data',
+    'dart:_recipe_syntax',
+    'dart:_rti',
     'dart:async',
     'dart:collection',
+    'dart:convert',
+    'dart:developer',
     'dart:html',
     'dart:html_common',
     'dart:indexed_db',
     'dart:io',
+    'dart:isolate',
     'dart:js',
     'dart:js_util',
+    'dart:math',
     'dart:svg',
+    'dart:typed_data',
     'dart:web_audio',
     'dart:web_gl',
   ],
   'dart2js_server': [
+    'dart:_async_await_error_codes',
     'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
+    'dart:_http',
     'dart:_interceptors',
     'dart:_internal',
+    'dart:_js',
     'dart:_js_annotations',
     'dart:_js_embedded_names',
     'dart:_js_helper',
     'dart:_js_names',
+    'dart:_js_primitives',
     'dart:_late_helper',
     'dart:_native_typed_data',
+    'dart:_recipe_syntax',
+    'dart:_rti',
     'dart:async',
     'dart:collection',
+    'dart:convert',
+    'dart:developer',
     'dart:io',
+    'dart:isolate',
     'dart:js',
     'dart:js_util',
+    'dart:math',
+    'dart:typed_data',
   ]
 };
+
+/// Extends the Dart2jsTarget to transform outlines to meet the requirements
+/// of summaries in bazel and package-build.
+class Dart2jsSummaryTarget extends Dart2jsTarget with SummaryMixin {
+  @override
+  final List<Uri> sources;
+
+  @override
+  final bool excludeNonSources;
+
+  Dart2jsSummaryTarget(String name, this.sources, this.excludeNonSources,
+      TargetFlags targetFlags)
+      : super(name, targetFlags);
+}
 
 class Dart2jsConstantsBackend extends ConstantsBackend {
   @override

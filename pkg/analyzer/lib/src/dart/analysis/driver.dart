@@ -1783,6 +1783,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   void _removePotentiallyAffectedLibraries(String path) {
     var affected = <FileState>{};
     _fsState.collectAffected(path, affected);
+
+    for (var file in affected) {
+      file.invalidateLibraryCycle();
+    }
+
     _libraryContext?.elementFactory.removeLibraries(
       affected.map((e) => e.uriStr).toSet(),
     );

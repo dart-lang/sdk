@@ -352,6 +352,11 @@ class FileState {
     _libraryCycle = cycle;
   }
 
+  void invalidateLibraryCycle() {
+    _libraryCycle?.invalidate();
+    _libraryCycle = null;
+  }
+
   /// Return a new parsed unresolved [CompilationUnit].
   CompilationUnitImpl parse([AnalysisErrorListener? errorListener]) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
@@ -765,6 +770,20 @@ class FileSystemState {
   /// Collected files that transitively reference a file with the [path].
   /// These files are potentially affected by the change.
   void collectAffected(String path, Set<FileState> affected) {
+    // TODO(scheglov) This should not be necessary.
+    // We use affected files to remove library elements, and we can only get
+    // these library elements when we link or load them, using library cycles.
+    // And we get library cycles by asking `directReferencedFiles`.
+    while (true) {
+      final knownFiles = this.knownFiles.toList();
+      for (var file in knownFiles.toList()) {
+        file.directReferencedFiles;
+      }
+      if (this.knownFiles.length == knownFiles.length) {
+        break;
+      }
+    }
+
     collectAffected(FileState file) {
       if (affected.add(file)) {
         for (var other in file.referencingFiles) {

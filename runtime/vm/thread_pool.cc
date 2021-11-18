@@ -82,6 +82,22 @@ void ThreadPool::Shutdown() {
 }
 
 bool ThreadPool::RunImpl(std::unique_ptr<Task> task) {
+  Dart_PostTaskCallback post_task = Dart::post_task_callback();
+  if (post_task != nullptr) {
+    {
+      MonitorLocker ml(&pool_monitor_);
+      if (shutting_down_) {
+        return false;
+      }
+    }
+    Dart_TaskData data;
+    data.priority = Dart_TaskPriority_Default;
+    data.time_point = 0;
+    post_task(Dart::post_task_data(),
+              reinterpret_cast<Dart_Task>(task.release()), data);
+    return true;
+  }
+
   Worker* new_worker = nullptr;
   {
     MonitorLocker ml(&pool_monitor_);

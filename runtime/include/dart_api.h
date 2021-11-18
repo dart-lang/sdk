@@ -831,7 +831,7 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
  * The current version of the Dart_InitializeFlags. Should be incremented every
  * time Dart_InitializeFlags changes in a binary incompatible way.
  */
-#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000004)
+#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000005)
 
 /** Forward declaration */
 struct Dart_CodeObserver;
@@ -856,6 +856,50 @@ typedef struct Dart_CodeObserver {
 
   Dart_OnNewCodeCallback on_new_code;
 } Dart_CodeObserver;
+
+typedef struct _Dart_Task* Dart_Task;
+typedef enum {
+  Dart_TaskPriority_Default,
+} Dart_TaskPriority;
+typedef struct {
+  /**
+   * Placeholder.
+   */
+  Dart_TaskPriority priority;
+  /**
+   * Time after which the task should run according to the clock of
+   * Dart_TimelineGetMicros.
+   */
+  int64_t time_point;
+} Dart_TaskData;
+/**
+ * Callback provided by the embedder that is used by the VM to eventually run
+ * various tasks. If no callback is provided, these tasks will run on a
+ * VM-internal thread pool. This callback allows the embedder to make its own
+ * choices around the scheduling of these tasks: when they run, how many threads
+ * are servicing these tasks, the priorities of said threads, etc.
+ * The callback can be invoked as early as during the Dart_Initialize call.
+ *
+ * \param post_task_data
+ *     The data provided to Dart_InitializeParams.post_task_data.
+ * \param task
+ *     A task that should eventually be passed to Dart_RunTask.
+ * \param task_data
+ *     Hints about when the task should run.
+ */
+typedef void (*Dart_PostTaskCallback)(void* post_task_data,
+                                      Dart_Task task,
+                                      Dart_TaskData task_data);
+
+/**
+ * Runs a task given to the Dart_PostTaskCallback. Must not be called
+ * synchronously in response to any callback from the VM. In particular, must
+ * not be called synchronously by the implemention of a Dart native function
+ * or Dart_Post_TaskCallback.
+ *
+ * Requires there to be no current isolate or isolate group.
+ */
+DART_EXPORT void Dart_RunTask(Dart_Task task);
 
 /**
  * Describes how to initialize the VM. Used with Dart_Initialize.
@@ -884,6 +928,8 @@ typedef struct Dart_CodeObserver {
  *    See Dart_GetVMServiceAssetsArchive.
  * \param code_observer An external code observer callback function.
  *    The observer can be invoked as early as during the Dart_Initialize() call.
+ * \param post_task A task scheduling callback function.
+ *    See Dart_PostTaskCallback.
  */
 typedef struct {
   int32_t version;
@@ -903,6 +949,8 @@ typedef struct {
   Dart_GetVMServiceAssetsArchive get_service_assets;
   bool start_kernel_isolate;
   Dart_CodeObserver* code_observer;
+  Dart_PostTaskCallback post_task;
+  void* post_task_data;
 } Dart_InitializeParams;
 
 /**

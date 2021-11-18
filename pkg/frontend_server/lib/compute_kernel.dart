@@ -62,6 +62,7 @@ final summaryArgsParser = new ArgParser()
         'flutter',
         'flutter_runner',
         'dart2js',
+        'dart2js_summary',
         'ddc',
       ],
       help: 'Build kernel for the vm, flutter, flutter_runner, dart2js or ddc')
@@ -172,6 +173,14 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       if (summaryOnly) {
         out.writeln(
             'error: --summary-only not supported for the dart2js target');
+      }
+      break;
+    case 'dart2js_summary':
+      target = new Dart2jsSummaryTarget(
+          'dart2js', sources, excludeNonSources, targetFlags);
+      if (!summaryOnly) {
+        out.writeln(
+            'error: --no-summary-only not supported for the dart2js summary target');
       }
       break;
     case 'ddc':
@@ -358,47 +367,13 @@ void makeStable(Component c) {
   }
 }
 
-/// Extends the DevCompilerTarget to transform outlines to meet the requirements
-/// of summaries in bazel and package-build.
-///
-/// Build systems like package-build may provide the same input file twice to
-/// the summary worker, but only intends to have it in one output summary.  The
-/// convention is that if it is listed as a source, it is intended to be part of
-/// the output, if the source file was loaded as a dependency, then it was
-/// already included in a different summary.  The transformation below ensures
-/// that the output summary doesn't include those implicit inputs.
-///
-/// Note: this transformation is destructive and is only intended to be used
-/// when generating summaries.
-class DevCompilerSummaryTarget extends DevCompilerTarget {
+class DevCompilerSummaryTarget extends DevCompilerTarget with SummaryMixin {
   final List<Uri> sources;
   final bool excludeNonSources;
 
   DevCompilerSummaryTarget(
       this.sources, this.excludeNonSources, TargetFlags targetFlags)
       : super(targetFlags);
-
-  @override
-  void performOutlineTransformations(Component component) {
-    super.performOutlineTransformations(component);
-    if (!excludeNonSources) return;
-
-    List<Library> libraries = new List.from(component.libraries);
-    component.libraries.clear();
-    Set<Uri> include = sources.toSet();
-    for (var lib in libraries) {
-      if (include.contains(lib.importUri)) {
-        component.libraries.add(lib);
-      } else {
-        // Excluding the library also means that their canonical names will not
-        // be computed as part of serialization, so we need to do that
-        // preemtively here to avoid errors when serializing references to
-        // elements of these libraries.
-        component.root.getChildFromUri(lib.importUri).bindTo(lib.reference);
-        lib.computeCanonicalNames();
-      }
-    }
-  }
 }
 
 Uri toUri(String uriString) {
