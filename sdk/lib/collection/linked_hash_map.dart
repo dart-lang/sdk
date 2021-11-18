@@ -45,8 +45,8 @@ part of dart.collection;
 /// planetsByDiameter[1] = 'Earth';
 /// planetsByDiameter.addAll({0.532: 'Mars', 11.209: 'Jupiter'});
 /// ```
-/// To check if the map is empty, use [isEmpty]/[isNotEmpty].
-/// To find the number of map entries, use `length`.
+/// To check if the map is empty, use [isEmpty] or [isNotEmpty].
+/// To find the number of map entries, use [length].
 /// ```
 /// print(planetsByDiameter.isEmpty); // false
 /// print(planetsByDiameter.length); // 4
