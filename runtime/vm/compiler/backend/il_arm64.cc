@@ -1071,7 +1071,7 @@ Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   Location right = locs()->in(1);
   if (right.IsConstant()) {
     ASSERT(right.constant().IsSmi());
-    const int64_t imm = static_cast<int64_t>(right.constant().ptr());
+    const int64_t imm = Smi::RawValue(Smi::Cast(right.constant()).Value());
     __ TestImmediate(left, imm, compiler::kObjectBytes);
   } else {
     __ tst(left, compiler::Operand(right.reg()), compiler::kObjectBytes);
@@ -3438,7 +3438,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    const int64_t imm = static_cast<int64_t>(constant.ptr());
+    const int64_t imm = Smi::RawValue(Smi::Cast(constant).Value());
     switch (op_kind()) {
       case Token::kADD: {
         if (deopt == NULL) {
