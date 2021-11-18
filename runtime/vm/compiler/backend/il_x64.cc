@@ -1037,7 +1037,7 @@ Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   Location right = locs()->in(1);
   if (right.IsConstant()) {
     ASSERT(right.constant().IsSmi());
-    const int64_t imm = static_cast<int64_t>(right.constant().ptr());
+    const int64_t imm = Smi::RawValue(Smi::Cast(right.constant()).Value());
     __ TestImmediate(left_reg, compiler::Immediate(imm),
                      compiler::kObjectBytes);
   } else {
@@ -3487,7 +3487,8 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 
 static bool CanBeImmediate(const Object& constant) {
   return constant.IsSmi() &&
-         compiler::Immediate(static_cast<int64_t>(constant.ptr())).is_int32();
+         compiler::Immediate(Smi::RawValue(Smi::Cast(constant).Value()))
+             .is_int32();
 }
 
 static bool IsSmiValue(const Object& constant, intptr_t value) {
@@ -3620,7 +3621,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    const int64_t imm = static_cast<int64_t>(constant.ptr());
+    const int64_t imm = Smi::RawValue(Smi::Cast(constant).Value());
     switch (op_kind()) {
       case Token::kADD: {
         __ AddImmediate(left, compiler::Immediate(imm), compiler::kObjectBytes);
