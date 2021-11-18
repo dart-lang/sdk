@@ -59,6 +59,10 @@ abstract class DartSdk {
   /// Return the source representing the library with the given 'dart:' [uri],
   /// or `null` if the given URI does not denote a library in this SDK.
   Source? mapDartUri(String uri);
+
+  /// Return the `dart` URI representing the given [path] if the file is in
+  /// this SDK, or `null` if the file is not in this SDK.
+  Uri? pathToUri(String path);
 }
 
 /// Manages the DartSdk's that have been created. Clients need to create

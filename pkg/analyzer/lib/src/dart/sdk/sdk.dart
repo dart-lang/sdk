@@ -128,6 +128,23 @@ abstract class AbstractDartSdk implements DartSdk {
     return source;
   }
 
+  @override
+  Uri? pathToUri(String path) {
+    var file = resourceProvider.getFile(path);
+
+    var uriStr = _getPath(file);
+    if (uriStr == null) {
+      return null;
+    }
+
+    try {
+      return Uri.parse(uriStr);
+    } on FormatException {
+      return null;
+    }
+  }
+
+  /// TODO(scheglov) This name is misleading, returns `dart:foo/bar.dart`.
   String? _getPath(File file) {
     List<SdkLibrary> libraries = libraryMap.sdkLibraries;
     int length = libraries.length;

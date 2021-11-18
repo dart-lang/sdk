@@ -832,8 +832,7 @@ class FileSystemState {
     var file = _pathToFile[path];
     if (file == null) {
       File resource = _resourceProvider.getFile(path);
-      Source fileSource = resource.createSource();
-      Uri uri = _sourceFactory.restoreUri(fileSource)!;
+      Uri uri = _sourceFactory.pathToUri(path)!;
       file = _newFile(resource, path, uri);
     }
     return file;
@@ -897,10 +896,8 @@ class FileSystemState {
   bool hasUri(String path) {
     bool? flag = _hasUriForPath[path];
     if (flag == null) {
-      File resource = _resourceProvider.getFile(path);
-      Source fileSource = resource.createSource();
-      Uri? uri = _sourceFactory.restoreUri(fileSource);
-      Source? uriSource = _sourceFactory.forUri2(uri!);
+      Uri uri = _sourceFactory.pathToUri(path)!;
+      Source? uriSource = _sourceFactory.forUri2(uri);
       flag = uriSource?.fullName == path;
       _hasUriForPath[path] = flag;
     }

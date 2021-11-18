@@ -18,6 +18,11 @@ class ResourceUriResolver extends UriResolver {
   ResourceProvider get provider => _provider;
 
   @override
+  Uri pathToUri(String path) {
+    return _provider.pathContext.toUri(path);
+  }
+
+  @override
   Source? resolveAbsolute(Uri uri) {
     if (!isFileUri(uri)) {
       return null;
@@ -27,9 +32,9 @@ class ResourceUriResolver extends UriResolver {
     return file.createSource(uri);
   }
 
+  @Deprecated('Use pathToUri() instead')
   @override
-  Uri restoreAbsolute(Source source) =>
-      _provider.pathContext.toUri(source.fullName);
+  Uri restoreAbsolute(Source source) => pathToUri(source.fullName);
 
   /// Return `true` if the given [uri] is a `file` URI.
   static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;

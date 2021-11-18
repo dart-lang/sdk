@@ -95,6 +95,9 @@ class InSummaryUriResolver extends UriResolver {
   InSummaryUriResolver(this.resourceProvider, this._dataStore);
 
   @override
+  Uri? pathToUri(String path) => null;
+
+  @override
   Source? resolveAbsolute(Uri uri) {
     String uriString = uri.toString();
     String? summaryPath = _dataStore.uriToSummaryPath[uriString];

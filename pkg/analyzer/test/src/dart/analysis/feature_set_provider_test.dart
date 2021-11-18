@@ -446,9 +446,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
 
   FeatureSet _getPathFeatureSet(String path) {
     path = convertPath(path);
-    var fileUri = toUri(path);
-    var fileSource = sourceFactory.forUri2(fileUri)!;
-    var uri = sourceFactory.restoreUri(fileSource)!;
+    var uri = sourceFactory.pathToUri(path)!;
     return provider.getFeatureSet(path, uri);
   }
 

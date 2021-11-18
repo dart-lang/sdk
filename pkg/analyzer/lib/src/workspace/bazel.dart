@@ -53,6 +53,24 @@ class BazelPackageUriResolver extends UriResolver {
         _context = workspace.provider.pathContext;
 
   @override
+  Uri? pathToUri(String path) {
+    // Search in each root.
+    for (var root in [
+      ..._workspace.binPaths,
+      _workspace.genfiles,
+      _workspace.readonly,
+      _workspace.root
+    ]) {
+      var uriParts = _restoreUriParts(root, path);
+      if (uriParts != null) {
+        return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
+      }
+    }
+
+    return null;
+  }
+
+  @override
   Source? resolveAbsolute(Uri uri) {
     var source = _sourceCache[uri];
     if (source == null) {
@@ -62,26 +80,6 @@ class BazelPackageUriResolver extends UriResolver {
       }
     }
     return source;
-  }
-
-  @override
-  Uri? restoreAbsolute(Source source) {
-    String filePath = source.fullName;
-
-    // Search in each root.
-    for (var root in [
-      ..._workspace.binPaths,
-      _workspace.genfiles,
-      _workspace.readonly,
-      _workspace.root
-    ]) {
-      var uriParts = _restoreUriParts(root, filePath);
-      if (uriParts != null) {
-        return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
-      }
-    }
-
-    return null;
   }
 
   Source? _resolveAbsolute(Uri uri) {

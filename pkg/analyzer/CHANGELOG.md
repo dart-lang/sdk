@@ -2,6 +2,8 @@
 * Deprecations and renames for `getXyz` methods in `AnalysisDriver`.
 * Removed uppercase named constants from `double` in mock SDK.
 * Deprecated `path` and `uri` from `AnalysisResult`.
+* Deprecated `UriResolver.restoreAbsolute`, use `pathToUri` instead.
+* Deprecated `SourceFactory.restoreAbsolute`, use `pathToUri` instead.
 
 ## 2.7.0
 * Updated `ConstructorElement.displayName` to either `Class` or `Class.constructor`.

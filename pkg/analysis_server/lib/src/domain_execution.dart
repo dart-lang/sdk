@@ -125,7 +125,7 @@ class ExecutionDomainHandler implements RequestHandler {
       if (source.uriKind != UriKind.FILE_URI) {
         uri = source.uri.toString();
       } else {
-        uri = sourceFactory.restoreUri(source).toString();
+        uri = sourceFactory.pathToUri(file).toString();
       }
       return ExecutionMapUriResult(uri: uri).toResponse(request.id);
     } else if (uri != null) {

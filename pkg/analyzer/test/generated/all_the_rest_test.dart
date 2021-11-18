@@ -44,6 +44,18 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
     expect(DartUriResolver.isDartUri(uri), isFalse);
   }
 
+  void test_pathToUri_library() {
+    var path = convertPath('/sdk/lib/core/core.dart');
+    var dartUri = resolver.pathToUri(path);
+    expect(dartUri.toString(), 'dart:core');
+  }
+
+  void test_pathToUri_part() {
+    var path = convertPath('/sdk/lib/core/int.dart');
+    var dartUri = resolver.pathToUri(path);
+    expect(dartUri.toString(), 'dart:core/int.dart');
+  }
+
   void test_resolve_dart_library() {
     var source = resolver.resolveAbsolute(Uri.parse('dart:core'));
     expect(source, isNotNull);
@@ -64,16 +76,18 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
     expect(result, isNull);
   }
 
+  @Deprecated('Use pathToUri() instead')
   void test_restoreAbsolute_library() {
     _SourceMock source = _SourceMock();
-    source.uri = toUri('/sdk/lib/core/core.dart');
+    source.fullName = convertPath('/sdk/lib/core/core.dart');
     var dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core');
   }
 
+  @Deprecated('Use pathToUri() instead')
   void test_restoreAbsolute_part() {
     _SourceMock source = _SourceMock();
-    source.uri = toUri('/sdk/lib/core/int.dart');
+    source.fullName = convertPath('/sdk/lib/core/int.dart');
     var dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core/int.dart');
   }
@@ -350,6 +364,9 @@ part of dart.core;
 }
 
 class _SourceMock implements Source {
+  @override
+  late final String fullName;
+
   @override
   late final Uri uri;
 

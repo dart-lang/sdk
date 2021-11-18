@@ -90,4 +90,10 @@ class SummaryBasedDartSdk implements DartSdk {
     Uri uri = Uri.parse(uriStr);
     return _uriResolver.resolveAbsolute(uri);
   }
+
+  @override
+  Uri? pathToUri(String path) {
+    // Libraries from summaries don't have corresponding Dart files.
+    return null;
+  }
 }

@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:path/src/context.dart';
 
 /// An implementation of a URI converter based on an analysis driver.
@@ -32,8 +31,7 @@ class DriverBasedUriConverter implements UriConverter {
         }
       }
     }
-    Source source = provider.getFile(path).createSource();
-    return driver.sourceFactory.restoreUri(source);
+    return driver.sourceFactory.pathToUri(path);
   }
 
   @override
