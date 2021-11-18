@@ -71,8 +71,6 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// ```dart
   /// final characters = {'A', 'B', 'C'};
   /// final setFrom = Set.from(characters);
-  /// print(setFrom); // {A, B, C}
-  /// print(setFrom.runtimeType); // LinkedHashSet
   /// ```
   factory Set.from(Iterable elements) = LinkedHashSet<E>.from;
 
@@ -87,8 +85,6 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// ```dart
   /// final characters = {'A', 'B', 'C'};
   /// final setOf = Set.of(characters);
-  /// print(setOf); // {A, B, C}
-  /// print(setOf.runtimeType); // LinkedHashSet
   /// ```
   factory Set.of(Iterable<E> elements) = LinkedHashSet<E>.of;
 
@@ -99,8 +95,6 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// ```dart
   /// final characters = {'A', 'B', 'C'};
   /// final unmodifiableSet = Set.unmodifiable(characters);
-  /// print(unmodifiableSet); // {A, B, C}
-  /// print(unmodifiableSet.runtimeType); // UnmodifiableSetView
   /// ```
   @Since("2.12")
   factory Set.unmodifiable(Iterable<E> elements) =>
@@ -121,7 +115,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// the store will throw unless the value is also an instance of [S].
   ///
   /// If all accessed elements of [source] are actually instances of [T],
-  /// and if all elements added to the returned set are actually instance
+  /// and if all elements added to the returned set are actually instances
   /// of [S],
   /// then the returned set can be used as a `Set<T>`.
   ///
@@ -139,7 +133,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// that is not an instance of [R], the access will throw instead.
   ///
   /// Elements added to the set (e.g., by using [add] or [addAll])
-  /// must be instance of [R] to be valid arguments to the adding function,
+  /// must be instances of [R] to be valid arguments to the adding function,
   /// and they must be instances of [E] as well to be accepted by
   /// this set as well.
   ///
@@ -323,8 +317,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// Removes all elements from the set.
   /// ```dart
   /// final characters = {'A', 'B', 'C'};
-  /// characters.clear();
-  /// print(characters); // {}
+  /// characters.clear(); // {}
   /// ```
   void clear();
 
