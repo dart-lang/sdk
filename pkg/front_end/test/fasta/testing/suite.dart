@@ -223,7 +223,7 @@ const String KERNEL_TEXT_SERIALIZATION = " kernel text serialization ";
 final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
 
 const String experimentalFlagOptions = '--enable-experiment=';
-const Option<String> overwriteCurrentSdkVersion =
+const Option<String?> overwriteCurrentSdkVersion =
     const Option('--overwrite-current-sdk-version', const StringValue());
 const Option<bool> noVerifyCmd =
     const Option('--no-verify', const BoolValue(false));
@@ -479,7 +479,7 @@ class FastaContext extends ChainContext with MatchContext {
               ParsedOptions.parse(arguments, folderOptionsSpecification);
           List<String> experimentalFlagsArguments =
               Options.enableExperiment.read(parsedOptions) ?? <String>[];
-          String overwriteCurrentSdkVersionArgument =
+          String? overwriteCurrentSdkVersionArgument =
               overwriteCurrentSdkVersion.read(parsedOptions);
           enableUnscheduledExperiments =
               Options.enableUnscheduledExperiments.read(parsedOptions);
