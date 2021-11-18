@@ -54,8 +54,6 @@ abstract class Map<K, V> {
   /// ```dart
   /// final data = {1: 'Mercury', 2: 'Venus', 3: 'Earth', 4: 'Mars'};
   /// final mapFrom = Map.from(data);
-  /// print(mapFrom); // {1: Mercury, 2: Venus, 3: Earth, 4: Mars}
-  /// print(mapFrom.runtimeType); // LinkedHashMap<int, String>
   /// ```
   factory Map.from(Map other) = LinkedHashMap<K, V>.from;
 
@@ -67,8 +65,6 @@ abstract class Map<K, V> {
   /// ```dart
   /// final data = {1: 'Mercury', 2: 'Venus', 3: 'Earth', 4: 'Mars'};
   /// final mapOf = Map.of(data);
-  /// print(mapOf); // {1: Mercury, 2: Venus, 3: Earth, 4: Mars}
-  /// print(mapOf.runtimeType); // LinkedHashMap<int, String>
   /// ```
   factory Map.of(Map<K, V> other) = LinkedHashMap<K, V>.of;
 
@@ -87,8 +83,6 @@ abstract class Map<K, V> {
   /// ```dart
   /// final data = {1: 'Mercury', 2: 'Venus', 3: 'Earth', 4: 'Mars'};
   /// final unmodifiableMap = Map.unmodifiable(data);
-  /// print(unmodifiableMap); // {1: Mercury, 2: Venus, 3: Earth, 4: Mars}
-  /// print(unmodifiableMap.runtimeType); // UnmodifiableMapView
   /// ```
   external factory Map.unmodifiable(Map<dynamic, dynamic> other);
 
@@ -157,7 +151,6 @@ abstract class Map<K, V> {
   /// final planets = {'Earth', 'Mars', 'Jupiter', 'Saturn'};
   /// final map = Map.fromIterables(planets, rings);
   /// print(map); // {Earth: false, Mars: false, Jupiter: true, Saturn: true}
-  /// print(map.runtimeType); // LinkedHashMap<String, bool>
   /// ```
   /// If [keys] contains the same object multiple times,
   /// the value of the last occurrence overwrites any previous value.
@@ -208,8 +201,6 @@ abstract class Map<K, V> {
   /// final data = {'Mercury': 0, 'Venus': 0, 'Earth': 1, 'Mars': 2,
   ///   'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14 };
   /// final confirmedMoons = Map.fromEntries(data.entries);
-  /// print(confirmedMoons);
-  /// print(confirmedMoons.runtimeType); // LinkedHashMap<String, int>
   /// ```
   factory Map.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       <K, V>{}..addEntries(entries);
@@ -317,12 +308,11 @@ abstract class Map<K, V> {
   /// // Update value for known key value 2
   /// planetsFromSun.update(2, (value) => 'Venus');
   /// print(planetsFromSun); // {1: Mercury, 2: Venus, 3: Earth}
-  /// print(planetsFromSun.runtimeType); // LinkedHashMap<int, String?>
   ///
   /// final largestPlanets = {1: 'Jupiter', 2: 'Saturn', 3: 'Neptune'};
   /// // If the key is not present and ifAbsent is provided
   /// // Key value 8 is missing from list, add it with ifAbsent value 'Mercury'
-  /// largestPlanets.update(8, (value) => 'Mercury', ifAbsent: () => 'Mercury');
+  /// largestPlanets.update(8, (value) => 'New', ifAbsent: () => 'Mercury');
   /// print(largestPlanets); // {1: Jupiter, 2: Saturn, 3: Neptune, 8: Mercury}
   /// ```
   V update(K key, V update(V value), {V ifAbsent()?});
@@ -356,13 +346,11 @@ abstract class Map<K, V> {
   /// final diameterNew = {0.383: 'Mercury', 0.949: 'Venus'};
   ///
   /// for (final item in diameterNew.entries) {
-  ///   print(item.runtimeType); // MapEntry<double, String>
   ///   diameters.putIfAbsent(item.key, () => item.value);
   /// }
   /// print(diameters); // {1: Earth, 0.383: Mercury, 0.949: Venus}
-  /// print(diameters.runtimeType); // LinkedHashMap<num, String>
   ///
-  /// // If the key already exists, the current value is returned, and the Map isn't modified.
+  /// // If the key already exists, the current value is returned
   /// diameters.putIfAbsent(0.383, () => 'Random');
   /// print(diameters); // {1: Earth, 0.383: Mercury, 0.949: Venus}
   /// ```
@@ -392,8 +380,7 @@ abstract class Map<K, V> {
   /// so a returned `null` value doesn't always mean that the key was absent.
   /// ```dart
   /// final terrestrial = {1: 'Mercury', 2: 'Venus', 3: 'Earth', 4: 'Mars'};
-  /// final removedValue = terrestrial.remove(2);
-  /// print(removedValue); // Venus
+  /// final removedValue = terrestrial.remove(2); // Venus
   /// print(terrestrial); // {1: Mercury, 3: Earth, 4: Mars}
   /// ```
   V? remove(Object? key);
@@ -403,8 +390,7 @@ abstract class Map<K, V> {
   /// After this, the map is empty.
   /// ```dart
   /// final data = {1: 'Mercury', 2: 'Venus', 3: 'Earth', 4: 'Mars'};
-  /// data.clear();
-  /// print(data); // {}
+  /// data.clear(); // {}
   /// ```
   void clear();
 
@@ -420,7 +406,6 @@ abstract class Map<K, V> {
   ///   // 0.11: Mars
   ///   // 17.15: Neptune
   /// });
-  /// print(mass.runtimeType); // LinkedHashMap<num, String>
   /// ```
   void forEach(void action(K key, V value));
 
