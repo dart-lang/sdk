@@ -69,6 +69,8 @@ Dart_FileWriteCallback Dart::file_write_callback_ = NULL;
 Dart_FileCloseCallback Dart::file_close_callback_ = NULL;
 Dart_EntropySource Dart::entropy_source_callback_ = NULL;
 Dart_GCEventCallback Dart::gc_event_callback_ = nullptr;
+Dart_PostTaskCallback Dart::post_task_callback_ = nullptr;
+void* Dart::post_task_data_ = nullptr;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -259,7 +261,9 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
                      Dart_EntropySource entropy_source,
                      Dart_GetVMServiceAssetsArchive get_service_assets,
                      bool start_kernel_isolate,
-                     Dart_CodeObserver* observer) {
+                     Dart_CodeObserver* observer,
+                     Dart_PostTaskCallback post_task,
+                     void* post_task_data) {
   CheckOffsets();
 
   if (!Flags::Initialized()) {
@@ -294,6 +298,8 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
   set_thread_exit_callback(thread_exit);
   SetFileCallbacks(file_open, file_read, file_write, file_close);
   set_entropy_source_callback(entropy_source);
+  set_post_task_callback(post_task);
+  set_post_task_data(post_task_data);
   OS::Init();
   NOT_IN_PRODUCT(CodeObservers::Init());
   if (observer != nullptr) {
@@ -531,18 +537,21 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
                  Dart_EntropySource entropy_source,
                  Dart_GetVMServiceAssetsArchive get_service_assets,
                  bool start_kernel_isolate,
-                 Dart_CodeObserver* observer) {
+                 Dart_CodeObserver* observer,
+                 Dart_PostTaskCallback post_task,
+                 void* post_task_data) {
   if (!init_state_.SetInitializing()) {
     return Utils::StrDup(
         "Bad VM initialization state, "
         "already initialized or "
         "multiple threads initializing the VM.");
   }
-  char* retval = DartInit(vm_isolate_snapshot, instructions_snapshot,
-                          create_group, initialize_isolate, shutdown, cleanup,
-                          cleanup_group, thread_exit, file_open, file_read,
-                          file_write, file_close, entropy_source,
-                          get_service_assets, start_kernel_isolate, observer);
+  char* retval =
+      DartInit(vm_isolate_snapshot, instructions_snapshot, create_group,
+               initialize_isolate, shutdown, cleanup, cleanup_group,
+               thread_exit, file_open, file_read, file_write, file_close,
+               entropy_source, get_service_assets, start_kernel_isolate,
+               observer, post_task, post_task_data);
   if (retval != NULL) {
     init_state_.ResetInitializing();
     return retval;
@@ -823,6 +832,8 @@ char* Dart::Cleanup() {
   Service::SetEmbedderStreamCallbacks(NULL, NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   VirtualMemory::Cleanup();
+  post_task_callback_ = nullptr;
+  post_task_data_ = nullptr;
   return NULL;
 }
 
