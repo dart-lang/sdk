@@ -1556,31 +1556,32 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     // for-in [iterableType] is a subtype of `Stream`.
     ir.DartType iterableType = visitNode(node.iterable);
     ir.DartType iteratorType = const ir.DynamicType();
-    if (node.isAsync) {
-      ir.InterfaceType streamInterfaceType = getInterfaceTypeOf(iterableType);
-      ir.InterfaceType streamType = typeEnvironment.getTypeAsInstanceOf(
-          streamInterfaceType,
-          typeEnvironment.coreTypes.streamClass,
-          currentLibrary,
-          typeEnvironment.coreTypes);
-      if (streamType != null) {
-        iteratorType = ir.InterfaceType(
-            typeEnvironment.coreTypes.streamIteratorClass,
-            ir.Nullability.nonNullable,
-            streamType.typeArguments);
-      }
-    } else {
-      ir.InterfaceType iterableInterfaceType = getInterfaceTypeOf(iterableType);
-      ir.Member member = hierarchy.getInterfaceMember(
-          iterableInterfaceType.classNode, ir.Name(Identifiers.iterator));
-      if (member != null) {
-        iteratorType = ir.Substitution.fromInterfaceType(
-                typeEnvironment.getTypeAsInstanceOf(
-                    iterableInterfaceType,
-                    member.enclosingClass,
-                    currentLibrary,
-                    typeEnvironment.coreTypes))
-            .substituteType(member.getterType);
+    ir.InterfaceType iterableInterfaceType = getInterfaceTypeOf(iterableType);
+    if (iterableInterfaceType != null) {
+      if (node.isAsync) {
+        ir.InterfaceType streamType = typeEnvironment.getTypeAsInstanceOf(
+            iterableInterfaceType,
+            typeEnvironment.coreTypes.streamClass,
+            currentLibrary,
+            typeEnvironment.coreTypes);
+        if (streamType != null) {
+          iteratorType = ir.InterfaceType(
+              typeEnvironment.coreTypes.streamIteratorClass,
+              ir.Nullability.nonNullable,
+              streamType.typeArguments);
+        }
+      } else {
+        ir.Member member = hierarchy.getInterfaceMember(
+            iterableInterfaceType.classNode, ir.Name(Identifiers.iterator));
+        if (member != null) {
+          iteratorType = ir.Substitution.fromInterfaceType(
+                  typeEnvironment.getTypeAsInstanceOf(
+                      iterableInterfaceType,
+                      member.enclosingClass,
+                      currentLibrary,
+                      typeEnvironment.coreTypes))
+              .substituteType(member.getterType);
+        }
       }
     }
     _staticTypeCache._forInIteratorTypes[node] = iteratorType;
