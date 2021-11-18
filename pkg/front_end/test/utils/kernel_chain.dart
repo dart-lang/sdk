@@ -30,7 +30,7 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 
 import 'package:front_end/src/fasta/messages.dart'
-    show DiagnosticMessageFromJson, LocatedMessage;
+    show DiagnosticMessageFromJson, LocatedMessage, Message;
 
 import 'package:kernel/ast.dart' show Component, Library, Reference, Source;
 
@@ -392,10 +392,11 @@ class KernelTextSerialization
 
       List<RoundTripStatus> failures = verifier.failures;
       for (RoundTripStatus failure in failures) {
-        LocatedMessage message = templateUnspecified
-            .withArguments("\n${failure}")
-            .withLocation(failure.uri!, failure.offset, 1);
-        options.report(message, message.code.severity);
+        Message message = templateUnspecified.withArguments("\n${failure}");
+        LocatedMessage locatedMessage = failure.uri != null
+            ? message.withLocation(failure.uri!, failure.offset, 1)
+            : message.withoutLocation();
+        options.report(locatedMessage, locatedMessage.code.severity);
       }
 
       if (writeRoundTripStatus) {

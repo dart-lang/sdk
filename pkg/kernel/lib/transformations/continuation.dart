@@ -442,7 +442,8 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
         type: FunctionType([], syncOpType, staticTypeContext.nonNullable));
 
     final syncOpVariable = VariableDeclaration(ContinuationVariables.syncOp);
-    final syncOpDecl = FunctionDeclaration(syncOpVariable, syncOpFN);
+    final syncOpDecl = FunctionDeclaration(syncOpVariable, syncOpFN)
+      ..fileOffset = enclosingFunction.fileOffset;
 
     enclosingFunction.body = Block([
       // :sync_op_gen() {
@@ -466,7 +467,8 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
                 // return sync_op;
                 ReturnStatement(VariableGet(syncOpVariable)),
               ]),
-              returnType: syncOpType)),
+              returnType: syncOpType))
+        ..fileOffset = enclosingFunction.fileOffset,
 
       // return _SyncIterable<T>(:sync_op_gen);
       ReturnStatement(ConstructorInvocation(
