@@ -14,36 +14,37 @@ part of dart.core;
 /// Example:
 /// ```dart
 /// final stopwatch = Stopwatch();
-/// // Check elapsed number of clock ticks since calling start.
-/// print(stopwatch.elapsedTicks); // 0
-/// print(stopwatch.isRunning); // false;
 ///
-/// // Start
+/// // To start stopwatch counter, call 'start'.
 /// stopwatch.start();
-/// print(stopwatch.isRunning); // true;
+/// print(stopwatch.isRunning); // true
+///
+/// // Delay for behavior demo.
 /// sleep(const Duration(seconds: 2));
-/// // Stopwatch provides Duration type object via elapsed
+///
+/// // Stopwatch provides 'Duration' type object via 'elapsed'.
 /// print(stopwatch.elapsed.inSeconds); // 2
 ///
-/// // Stop
+/// // To pause or end counter, call 'stop'.
 /// stopwatch.stop();
-/// print(stopwatch.isRunning); // false;
-/// // Check elapsed number of clock ticks since calling start.
-/// print(stopwatch.elapsed.inSeconds); // 2
+/// print(stopwatch.isRunning); // false
 ///
-/// // Continue stopwatch by starting it again
+/// // Continue counter, call 'start' again.
 /// stopwatch.start();
-/// // Delay for Stopwatch behavior demo
+///
+/// // Delay for behavior demo.
 /// sleep(const Duration(seconds: 2));
 ///
-/// // Stop
+/// // To pause or end counter, call 'stop'.
 /// stopwatch.stop();
 /// print(stopwatch.elapsed.inSeconds); // 4
+/// print(stopwatch.isRunning); // false;
 ///
-/// // Reset - stopwatch elapsed counter is zeroed
+/// // Call 'reset' to initialize counter.
 /// stopwatch.reset();
 /// print(stopwatch.elapsed); // 0:00:00.000000
 /// print(stopwatch.elapsedTicks); // 0
+/// print(stopwatch.isRunning); // false
 /// ```
 class Stopwatch {
   /// Cached frequency of the system in Hz (ticks per second).
