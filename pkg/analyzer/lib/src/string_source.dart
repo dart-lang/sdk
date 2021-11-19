@@ -29,6 +29,7 @@ class StringSource extends Source {
   TimestampedData<String> get contents =>
       TimestampedData(modificationStamp, _contents);
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding => uri.toString();
 

@@ -164,6 +164,7 @@ class MockSource implements Source {
     throw StateError('Unexpected invocation of contents');
   }
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding {
     throw StateError('Unexpected invocation of encoding');

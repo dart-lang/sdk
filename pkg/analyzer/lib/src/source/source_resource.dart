@@ -68,6 +68,7 @@ class FileSource extends Source {
         modificationStamp, fileReadMode(file.readAsStringSync()));
   }
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding => _encoding ??= uri.toString();
 

@@ -23,6 +23,7 @@ abstract class BasicSource extends Source {
 
   BasicSource(this.uri);
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding => uri.toString();
 
@@ -100,6 +101,7 @@ class NonExistingSource extends Source {
     throw UnsupportedError('$fullName does not exist.');
   }
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding => uri.toString();
 
@@ -168,7 +170,7 @@ abstract class Source {
   ///
   /// @return an encoded representation of this source
   /// See [SourceFactory.fromEncoding].
-  @deprecated
+  @Deprecated('Not used anymore')
   String get encoding;
 
   /// Return the full (long) version of the name that can be displayed to the

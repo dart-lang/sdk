@@ -159,6 +159,7 @@ class MockSource implements Source {
   @override
   TimestampedData<String> get contents => TimestampedData(0, '');
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding => '';
 
