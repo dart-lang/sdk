@@ -1246,8 +1246,7 @@ bbb() {}
     Source generatedSource = _SourceMock(generatedPath, uri);
 
     generatedUriResolver.resolveAbsoluteFunction = (uri) => generatedSource;
-    generatedUriResolver.restoreAbsoluteFunction = (Source source) {
-      String path = source.fullName;
+    generatedUriResolver.pathToUriFunction = (path) {
       if (path == templatePath || path == generatedPath) {
         return uri;
       } else {

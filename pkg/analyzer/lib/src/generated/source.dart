@@ -61,17 +61,16 @@ class DartUriResolver extends UriResolver {
   DartSdk get dartSdk => _sdk;
 
   @override
+  Uri? pathToUri(String path) {
+    return _sdk.pathToUri(path);
+  }
+
+  @override
   Source? resolveAbsolute(Uri uri) {
     if (!isDartUri(uri)) {
       return null;
     }
     return _sdk.mapDartUri(uri.toString());
-  }
-
-  @override
-  Uri? restoreAbsolute(Source source) {
-    var dartSource = _sdk.fromFileUri(source.uri);
-    return dartSource?.uri;
   }
 
   /// Return `true` if the given URI is a `dart:` URI.
@@ -285,6 +284,13 @@ abstract class SourceFactory {
   /// @return a source object representing the absolute URI
   Source? forUri2(Uri absoluteUri);
 
+  /// Return the URI that should be used to reference the file at the absolute
+  /// [path], or `null` if there is no valid way to reference the file.
+  /// The file at that path is not required to exist.
+  ///
+  /// Throws an [ArgumentError] if the [path] is not a valid path.
+  Uri? pathToUri(String path);
+
   /// Return a source representing the URI that results from resolving the given
   /// (possibly relative) [containedUri] against the URI associated with the
   /// [containingSource], whether or not the resulting source exists, or `null`
@@ -297,6 +303,7 @@ abstract class SourceFactory {
   ///
   /// @param source the source to get URI for
   /// @return the absolute URI representing the given source
+  @Deprecated('Use pathToUri() instead')
   Uri? restoreUri(Source source);
 }
 
@@ -410,6 +417,14 @@ class UriKind implements Comparable<UriKind> {
 /// used to resolve URI's for a source factory. Subclasses of this class are
 /// expected to resolve a single scheme of absolute URI.
 abstract class UriResolver {
+  /// Return the absolute URI that should be used to reference the file at the
+  /// absolute [path], or `null` if this resolver cannot reference this file.
+  /// The file at that path is not required to exist.
+  ///
+  /// Throws an [ArgumentError] if the [path] is not a valid path.
+  /// ignore: deprecated_member_use_from_same_package
+  Uri? pathToUri(String path) => restoreAbsolute(_FakeSource(path));
+
   /// Resolve the given absolute [uri]. Return a [Source] representing the file
   /// to which it was resolved, whether or not the resulting source exists, or
   /// `null` if it could not be resolved because the URI is invalid.
@@ -419,5 +434,21 @@ abstract class UriResolver {
   /// valid URI cannot be computed.
   ///
   /// The computation should be based solely on [source.fullName].
-  Uri? restoreAbsolute(Source source) => null;
+  @Deprecated('Use pathToUri() instead')
+  Uri? restoreAbsolute(Source source) {
+    return pathToUri(source.fullName);
+  }
+}
+
+class _FakeSource implements Source {
+  @override
+  final String fullName;
+
+  _FakeSource(this.fullName);
+
+  @override
+  Uri get uri => pathos.toUri(fullName);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -453,6 +453,20 @@ vms.CpuSamples assertCpuSamples(vms.CpuSamples obj) {
   return obj;
 }
 
+vms.CpuSamplesEvent assertCpuSamplesEvent(vms.CpuSamplesEvent obj) {
+  assertNotNull(obj);
+  assertInt(obj.samplePeriod!);
+  assertInt(obj.maxStackDepth!);
+  assertInt(obj.sampleCount!);
+  assertInt(obj.timeSpan!);
+  assertInt(obj.timeOriginMicros!);
+  assertInt(obj.timeExtentMicros!);
+  assertInt(obj.pid!);
+  assertListOfDynamic(obj.functions!);
+  assertListOfCpuSample(obj.samples!);
+  return obj;
+}
+
 vms.CpuSample assertCpuSample(vms.CpuSample obj) {
   assertNotNull(obj);
   assertInt(obj.tid!);

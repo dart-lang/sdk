@@ -1791,6 +1791,18 @@ static ObjectPtr LookupClassMembers(Thread* thread,
     }
     return field.ptr();
   }
+  if (strcmp(parts[2], "field_inits") == 0) {
+    // Field initializer ids look like: "classes/17/field_inits/name"
+    const auto& field = Field::Handle(klass.LookupField(id));
+    if (field.IsNull() || (field.is_late() && !field.has_initializer())) {
+      return Object::sentinel().ptr();
+    }
+    const auto& function = Function::Handle(field.EnsureInitializerFunction());
+    if (function.IsNull()) {
+      return Object::sentinel().ptr();
+    }
+    return function.ptr();
+  }
   if (strcmp(parts[2], "functions") == 0) {
     // Function ids look like: "classes/17/functions/name"
 
@@ -1883,6 +1895,10 @@ static ObjectPtr LookupHeapObjectLibraries(IsolateGroup* isolate_group,
     // Library field ids look like: "libraries/17/fields/name"
     return LookupClassMembers(Thread::Current(), klass, parts, num_parts);
   }
+  if (strcmp(parts[2], "field_inits") == 0) {
+    // Library field ids look like: "libraries/17/field_inits/name"
+    return LookupClassMembers(Thread::Current(), klass, parts, num_parts);
+  }
   if (strcmp(parts[2], "functions") == 0) {
     // Library function ids look like: "libraries/17/functions/name"
     return LookupClassMembers(Thread::Current(), klass, parts, num_parts);
@@ -1951,6 +1967,9 @@ static ObjectPtr LookupHeapObjectClasses(Thread* thread,
   }
   if (strcmp(parts[2], "closures") == 0) {
     // Closure ids look like: "classes/17/closures/11"
+    return LookupClassMembers(thread, cls, parts, num_parts);
+  } else if (strcmp(parts[2], "field_inits") == 0) {
+    // Field initializer ids look like: "classes/17/field_inits/name"
     return LookupClassMembers(thread, cls, parts, num_parts);
   } else if (strcmp(parts[2], "fields") == 0) {
     // Field ids look like: "classes/17/fields/name"

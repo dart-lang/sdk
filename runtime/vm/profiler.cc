@@ -250,7 +250,6 @@ void SampleBlockBuffer::ProcessCompletedBlocks() {
 ProcessedSampleBuffer* SampleBlockListProcessor::BuildProcessedSampleBuffer(
     SampleFilter* filter,
     ProcessedSampleBuffer* buffer) {
-  ASSERT(filter != NULL);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
@@ -267,7 +266,6 @@ ProcessedSampleBuffer* SampleBlockListProcessor::BuildProcessedSampleBuffer(
 ProcessedSampleBuffer* SampleBlockBuffer::BuildProcessedSampleBuffer(
     SampleFilter* filter,
     ProcessedSampleBuffer* buffer) {
-  ASSERT(filter != NULL);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 

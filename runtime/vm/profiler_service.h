@@ -171,7 +171,7 @@ class ProfileFunction : public ZoneAllocated {
 
   static const char* KindToCString(Kind kind);
 
-  void PrintToJSONArray(JSONArray* functions);
+  void PrintToJSONArray(JSONArray* functions, bool print_only_ids = false);
 
   // Returns true if the call was successful and |pfsp| is set.
   bool GetSinglePosition(ProfileFunctionSourcePosition* pfsp);
@@ -385,7 +385,9 @@ class Profile : public ValueObject {
   ProfileCode* GetCodeFromPC(uword pc, int64_t timestamp);
 
   void PrintProfileJSON(JSONStream* stream, bool include_code_samples);
-  void PrintProfileJSON(JSONObject* obj, bool include_code_samples);
+  void PrintProfileJSON(JSONObject* obj,
+                        bool include_code_samples,
+                        bool is_event = false);
 
   ProfileFunction* FindFunction(const Function& function);
 

@@ -72,8 +72,7 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
 
   Source addSource(String path, String contents) {
     var file = newFile(path, content: contents);
-    var fileSource = file.createSource();
-    var uri = sourceFactory.restoreUri(fileSource)!;
+    var uri = sourceFactory.pathToUri(file.path)!;
     return sourceFactory.forUri2(uri)!;
   }
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:path/path.dart';
 
 String fileUriToNormalizedPath(Context context, Uri fileUri) {
@@ -34,5 +35,9 @@ Uri? rewriteFileToPackageUri(SourceFactory sourceFactory, Uri absoluteUri) {
     return null;
   }
 
-  return sourceFactory.restoreUri(source);
+  if (source is InSummarySource) {
+    return source.uri;
+  }
+
+  return sourceFactory.pathToUri(source.fullName);
 }

@@ -935,6 +935,10 @@ dynamic assertDynamic(dynamic obj) {
   return obj;
 }
 
+List<dynamic> assertListOfDynamic(List<dynamic> list) {
+  return list;
+}
+
 List<int> assertListOfInt(List<int> list) {
   for (int elem in list) {
     assertInt(elem);

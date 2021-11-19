@@ -335,10 +335,7 @@ class FileSystemState {
       return file;
     }
 
-    var fileUri = _resourceProvider.pathContext.toUri(path);
-    var uri = _sourceFactory.restoreUri(
-      _FakeSource(path, fileUri),
-    );
+    var uri = _sourceFactory.pathToUri(path);
     if (uri == null) {
       throw StateError('Unable to convert path to URI: $path');
     }
@@ -587,19 +584,6 @@ class _ContentWithDigest {
     required this.content,
     required this.digest,
   });
-}
-
-class _FakeSource implements Source {
-  @override
-  final String fullName;
-
-  @override
-  final Uri uri;
-
-  _FakeSource(this.fullName, this.uri);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _FileStateFiles {

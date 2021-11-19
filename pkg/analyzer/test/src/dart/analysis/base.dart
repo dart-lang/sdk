@@ -153,10 +153,10 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   void tearDown() {}
 }
 
-class _GeneratedUriResolverMock implements UriResolver {
+class _GeneratedUriResolverMock extends UriResolver {
   Source? Function(Uri)? resolveAbsoluteFunction;
 
-  Uri? Function(Source)? restoreAbsoluteFunction;
+  Uri? Function(String)? pathToUriFunction;
 
   @override
   noSuchMethod(Invocation invocation) {
@@ -164,17 +164,14 @@ class _GeneratedUriResolverMock implements UriResolver {
   }
 
   @override
-  Source? resolveAbsolute(Uri uri) {
-    if (resolveAbsoluteFunction != null) {
-      return resolveAbsoluteFunction!(uri);
-    }
-    return null;
+  Uri? pathToUri(String path) {
+    return pathToUriFunction?.call(path);
   }
 
   @override
-  Uri? restoreAbsolute(Source source) {
-    if (restoreAbsoluteFunction != null) {
-      return restoreAbsoluteFunction!(source);
+  Source? resolveAbsolute(Uri uri) {
+    if (resolveAbsoluteFunction != null) {
+      return resolveAbsoluteFunction!(uri);
     }
     return null;
   }

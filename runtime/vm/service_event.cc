@@ -307,7 +307,8 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
 
   if (kind() == kCpuSamples) {
     JSONObject cpu_profile(&jsobj, "cpuSamples");
-    cpu_profile_->PrintProfileJSON(&cpu_profile, false);
+    cpu_profile_->PrintProfileJSON(&cpu_profile, /*include_code_samples=*/false,
+                                   /*is_event=*/true);
   }
 }
 

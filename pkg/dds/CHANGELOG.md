@@ -1,3 +1,7 @@
+# 2.1.5
+- Update to new CpuSamplesEvent format for CPU sample caching for improved
+  performance.
+
 # 2.1.4
 - A new library `package:dds/dap.dart` exposes classes required to build a custom DAP
   debug-adapter on top of the base Dart DAP functionality in DDS.

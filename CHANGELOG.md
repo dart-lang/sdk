@@ -1,16 +1,12 @@
-## 2.17.0
-
-### Core libraries
-
-- **Breaking Change** [#47653](https://github.com/dart-lang/sdk/issues/47653):
-  On Windows, `Directory.rename` will no longer delete a directory if
-  `newPath` specifies one. Instead, a `FileSystemException` will be thrown.
-
 ## 2.16.0
 
 ### Core libraries
 
 #### `dart:core`
+
+- **Breaking Change** [#47653](https://github.com/dart-lang/sdk/issues/47653):
+  On Windows, `Directory.rename` will no longer delete a directory if
+  `newPath` specifies one. Instead, a `FileSystemException` will be thrown.
 
 - Add `Error.throwWithStackTrace` which can `throw` an
   error with an existing stack trace, instead of creating

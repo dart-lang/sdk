@@ -14,8 +14,10 @@ import 'test_helper.dart';
 class _DummyClass {
   static var dummyVar = 11;
   final List<String> dummyList = new List<String>.filled(20, null);
+  static var dummyVarWithInit = foo();
   void dummyFunction(int a, [bool b = false]) {}
   void dummyGenericFunction<K, V>(K a, {V param}) {}
+  static List foo() => List<String>.filled(20, '');
 }
 
 class _DummySubClass extends _DummyClass {}
@@ -1012,6 +1014,34 @@ var tests = <IsolateTest>[
     expect(result['_guardNullable'], isNotNull);
     expect(result['_guardClass'], isNotNull);
     expect(result['_guardLength'], equals('20'));
+  },
+
+  // static field initializer
+  (Isolate isolate) async {
+    // Call eval to get a class id.
+    var evalResult = await invoke(isolate, 'getDummyClass');
+    var id = "${evalResult['class']['id']}/field_inits/dummyVarWithInit";
+    var params = {
+      'objectId': id,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Function'));
+    expect(result['id'], equals(id));
+    expect(result['name'], equals('dummyVarWithInit'));
+    expect(result['_kind'], equals('FieldInitializer'));
+    expect(result['static'], equals(true));
+    expect(result['const'], equals(false));
+    expect(result['implicit'], equals(false));
+    expect(result['signature']['typeParameters'], isNull);
+    expect(result['signature']['returnType'], isNotNull);
+    expect(result['signature']['parameters'].length, 0);
+    expect(result['location']['type'], equals('SourceLocation'));
+    expect(result['code']['type'], equals('@Code'));
+    expect(result['_optimizable'], equals(true));
+    expect(result['_inlinable'], equals(false));
+    expect(result['_usageCounter'], isZero);
+    expect(result['_optimizedCallSiteCount'], isZero);
+    expect(result['_deoptimizations'], isZero);
   },
 
   // invalid field.

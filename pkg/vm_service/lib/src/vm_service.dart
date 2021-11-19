@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.53.0';
+const String vmServiceVersion = '3.54.0';
 
 /// @optional
 const String optional = 'optional';
@@ -123,6 +123,7 @@ Map<String, Function> _typeFactories = {
   'Context': Context.parse,
   'ContextElement': ContextElement.parse,
   'CpuSamples': CpuSamples.parse,
+  'CpuSamplesEvent': CpuSamplesEvent.parse,
   'CpuSample': CpuSample.parse,
   '@Error': ErrorRef.parse,
   'Error': Error.parse,
@@ -3658,6 +3659,92 @@ class CpuSamples extends Response {
   String toString() => '[CpuSamples]';
 }
 
+class CpuSamplesEvent {
+  static CpuSamplesEvent? parse(Map<String, dynamic>? json) =>
+      json == null ? null : CpuSamplesEvent._fromJson(json);
+
+  /// The sampling rate for the profiler in microseconds.
+  int? samplePeriod;
+
+  /// The maximum possible stack depth for samples.
+  int? maxStackDepth;
+
+  /// The number of samples returned.
+  int? sampleCount;
+
+  /// The timespan the set of returned samples covers, in microseconds
+  /// (deprecated).
+  ///
+  /// Note: this property is deprecated and will always return -1. Use
+  /// `timeExtentMicros` instead.
+  int? timeSpan;
+
+  /// The start of the period of time in which the returned samples were
+  /// collected.
+  int? timeOriginMicros;
+
+  /// The duration of time covered by the returned samples.
+  int? timeExtentMicros;
+
+  /// The process ID for the VM.
+  int? pid;
+
+  /// A list of references to functions seen in the relevant samples. These
+  /// references can be looked up using the indicies provided in a `CpuSample`
+  /// `stack` to determine which function was on the stack.
+  List<dynamic>? functions;
+
+  /// A list of samples collected in the range `[timeOriginMicros,
+  /// timeOriginMicros + timeExtentMicros]`
+  List<CpuSample>? samples;
+
+  CpuSamplesEvent({
+    required this.samplePeriod,
+    required this.maxStackDepth,
+    required this.sampleCount,
+    required this.timeSpan,
+    required this.timeOriginMicros,
+    required this.timeExtentMicros,
+    required this.pid,
+    required this.functions,
+    required this.samples,
+  });
+
+  CpuSamplesEvent._fromJson(Map<String, dynamic> json) {
+    samplePeriod = json['samplePeriod'] ?? -1;
+    maxStackDepth = json['maxStackDepth'] ?? -1;
+    sampleCount = json['sampleCount'] ?? -1;
+    timeSpan = json['timeSpan'] ?? -1;
+    timeOriginMicros = json['timeOriginMicros'] ?? -1;
+    timeExtentMicros = json['timeExtentMicros'] ?? -1;
+    pid = json['pid'] ?? -1;
+    functions = List<dynamic>.from(
+        createServiceObject(json['functions'], const ['dynamic']) as List? ??
+            []);
+    samples = List<CpuSample>.from(
+        createServiceObject(json['samples'], const ['CpuSample']) as List? ??
+            []);
+  }
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+    json.addAll({
+      'samplePeriod': samplePeriod,
+      'maxStackDepth': maxStackDepth,
+      'sampleCount': sampleCount,
+      'timeSpan': timeSpan,
+      'timeOriginMicros': timeOriginMicros,
+      'timeExtentMicros': timeExtentMicros,
+      'pid': pid,
+      'functions': functions?.map((f) => f.toJson()).toList(),
+      'samples': samples?.map((f) => f.toJson()).toList(),
+    });
+    return json;
+  }
+
+  String toString() => '[CpuSamplesEvent]';
+}
+
 /// See [getCpuSamples] and [CpuSamples].
 class CpuSample {
   static CpuSample? parse(Map<String, dynamic>? json) =>
@@ -4051,7 +4138,7 @@ class Event extends Response {
 
   /// A CPU profile containing recent samples.
   @optional
-  CpuSamples? cpuSamples;
+  CpuSamplesEvent? cpuSamples;
 
   /// Binary data associated with the event.
   ///
@@ -4132,8 +4219,9 @@ class Event extends Response {
     last = json['last'];
     updatedTag = json['updatedTag'];
     previousTag = json['previousTag'];
-    cpuSamples = createServiceObject(json['cpuSamples'], const ['CpuSamples'])
-        as CpuSamples?;
+    cpuSamples =
+        createServiceObject(json['cpuSamples'], const ['CpuSamplesEvent'])
+            as CpuSamplesEvent?;
     data = json['data'];
   }
 

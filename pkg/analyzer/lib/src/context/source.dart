@@ -102,6 +102,17 @@ class SourceFactoryImpl implements SourceFactory {
   }
 
   @override
+  Uri? pathToUri(String path) {
+    for (var resolver in resolvers) {
+      var uri = resolver.pathToUri(path);
+      if (uri != null) {
+        return uri;
+      }
+    }
+    return null;
+  }
+
+  @override
   Source? resolveUri(Source? containingSource, String? containedUri) {
     if (containedUri == null) {
       return null;
@@ -128,21 +139,13 @@ class SourceFactoryImpl implements SourceFactory {
     }
   }
 
+  @Deprecated('Use pathToUri() instead')
   @override
   Uri? restoreUri(Source source) {
     if (source is InSummarySource) {
       return source.uri;
     }
-    for (UriResolver resolver in resolvers) {
-      // First see if a resolver can restore the URI.
-      Uri? uri = resolver.restoreAbsolute(source);
-
-      if (uri != null) {
-        return uri;
-      }
-    }
-
-    return null;
+    return pathToUri(source.fullName);
   }
 
   /// Return a source object representing the URI that results from resolving

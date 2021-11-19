@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.53
+# Dart VM Service Protocol 3.54
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.53_ of the Dart VM Service Protocol. This
+This document describes of _version 3.54_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1987,6 +1987,46 @@ class CpuSamples extends Response {
 
 See [getCpuSamples](#getcpusamples) and [CpuSample](#cpusample).
 
+### CpuSamplesEvent
+
+```
+class CpuSamplesEvent {
+  // The sampling rate for the profiler in microseconds.
+  int samplePeriod;
+
+  // The maximum possible stack depth for samples.
+  int maxStackDepth;
+
+  // The number of samples returned.
+  int sampleCount;
+
+  // The timespan the set of returned samples covers, in microseconds (deprecated).
+  //
+  // Note: this property is deprecated and will always return -1. Use `timeExtentMicros`
+  // instead.
+  int timeSpan;
+
+  // The start of the period of time in which the returned samples were
+  // collected.
+  int timeOriginMicros;
+
+  // The duration of time covered by the returned samples.
+  int timeExtentMicros;
+
+  // The process ID for the VM.
+  int pid;
+
+  // A list of references to functions seen in the relevant samples. These references can
+  // be looked up using the indicies provided in a `CpuSample` `stack` to determine
+  // which function was on the stack.
+  (@Object|NativeFunction)[] functions;
+
+  // A list of samples collected in the range
+  // `[timeOriginMicros, timeOriginMicros + timeExtentMicros]`
+  CpuSample[] samples;
+}
+```
+
 ### CpuSample
 
 ```
@@ -2251,7 +2291,7 @@ class Event extends Response {
   string previousTag [optional];
 
   // A CPU profile containing recent samples.
-  CpuSamples cpuSamples [optional];
+  CpuSamplesEvent cpuSamples [optional];
 }
 ```
 
@@ -4263,4 +4303,6 @@ version | comments
 3.51 | Added optional `reportLines` parameter to `getSourceReport` RPC.
 3.52 | Added `lookupResolvedPackageUris` and `lookupPackageUris` RPCs and `UriList` type.
 3.53 | Added `setIsolatePauseMode` RPC.
+3.54 | Added `CpuSamplesEvent`, updated `cpuSamples` property on `Event` to have type `CpuSamplesEvent`.
+
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

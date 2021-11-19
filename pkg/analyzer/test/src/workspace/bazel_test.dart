@@ -38,6 +38,12 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
     expect(workspace.isBazel, isTrue);
   }
 
+  void test_pathToUri() {
+    Uri uri = toUri('/workspace/test.dart');
+    var source = resolver.resolveAbsolute(uri)!;
+    expect(resolver.pathToUri(source.fullName), uri);
+  }
+
   void test_resolveAbsolute_doesNotExist() {
     var source = _resolvePath('/workspace/foo.dart')!;
     expect(source.exists(), isFalse);
@@ -79,6 +85,7 @@ class BazelFileUriResolverTest with ResourceProviderMixin {
     expect(source, isNull);
   }
 
+  @Deprecated('Use pathToUri() instead')
   void test_restoreAbsolute() {
     Uri uri =
         resourceProvider.pathContext.toUri(convertPath('/workspace/test.dart'));
@@ -561,21 +568,25 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
       {bool exists = true, bool restore = true}) {
     Uri uri = Uri.parse(uriStr);
     var source = resolver.resolveAbsolute(uri)!;
-    expect(source.fullName, convertPath(posixPath));
+    var path = source.fullName;
+    expect(path, convertPath(posixPath));
     expect(source.uri, uri);
     expect(source.exists(), exists);
     // If enabled, test also "restoreAbsolute".
     if (restore) {
-      var uri = resolver.restoreAbsolute(source);
-      expect(uri.toString(), uriStr);
+      expect(resolver.pathToUri(path), uri);
+      // ignore: deprecated_member_use_from_same_package
+      expect(resolver.restoreAbsolute(source), uri);
     }
   }
 
-  void _assertRestore(String posixPath, String? expectedUri) {
+  void _assertRestore(String posixPath, String? expectedUriStr) {
+    var expectedUri = expectedUriStr != null ? Uri.parse(expectedUriStr) : null;
     String path = convertPath(posixPath);
     _MockSource source = _MockSource(path);
-    var uri = resolver.restoreAbsolute(source);
-    expect(uri?.toString(), expectedUri);
+    expect(resolver.pathToUri(path), expectedUri);
+    // ignore: deprecated_member_use_from_same_package
+    expect(resolver.restoreAbsolute(source), expectedUri);
   }
 }
 

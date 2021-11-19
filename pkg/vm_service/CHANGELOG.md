@@ -1,5 +1,10 @@
 # Changelog
 
+## 8.0.0
+- *breaking* Updated type of `Event.cpuSamples` from `CpuSamples` to
+  `CpuSamplesEvent`, which is less expensive to generate and serialize.
+- Added `CpuSamplesEvent` object.
+
 ## 7.5.0
 - Update to version `3.53` of the spec.
 - Added `setIsolatePauseMode` RPC.
