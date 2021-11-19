@@ -1185,6 +1185,34 @@ class AstFactoryImpl extends AstFactory {
       SuperExpressionImpl(superKeyword);
 
   @override
+  SuperFormalParameterImpl superFormalParameter(
+          {Comment? comment,
+          List<Annotation>? metadata,
+          Token? covariantKeyword,
+          Token? requiredKeyword,
+          Token? keyword,
+          TypeAnnotation? type,
+          required Token superKeyword,
+          required Token period,
+          required SimpleIdentifier identifier,
+          TypeParameterList? typeParameters,
+          FormalParameterList? parameters,
+          Token? question}) =>
+      SuperFormalParameterImpl(
+          comment as CommentImpl?,
+          metadata,
+          covariantKeyword,
+          requiredKeyword,
+          keyword,
+          type as TypeAnnotationImpl?,
+          superKeyword,
+          period,
+          identifier as SimpleIdentifierImpl,
+          typeParameters as TypeParameterListImpl?,
+          parameters as FormalParameterListImpl?,
+          question);
+
+  @override
   SwitchCaseImpl switchCase(List<Label> labels, Token keyword,
           Expression expression, Token colon, List<Statement> statements) =>
       SwitchCaseImpl(

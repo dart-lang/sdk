@@ -561,6 +561,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitSuperExpression(SuperExpression node) => visitExpression(node);
 
   @override
+  R? visitSuperFormalParameter(SuperFormalParameter node) =>
+      visitNormalFormalParameter(node);
+
+  @override
   R? visitSwitchCase(SwitchCase node) => visitSwitchMember(node);
 
   @override
@@ -1309,6 +1313,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitSuperFormalParameter(SuperFormalParameter node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitSwitchCase(SwitchCase node) {
     node.visitChildren(this);
     return null;
@@ -1771,6 +1781,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitSuperExpression(SuperExpression node) => null;
 
   @override
+  R? visitSuperFormalParameter(SuperFormalParameter node) => null;
+
+  @override
   R? visitSwitchCase(SwitchCase node) => null;
 
   @override
@@ -2182,6 +2195,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitSuperExpression(SuperExpression node) => _throw(node);
+
+  @override
+  R? visitSuperFormalParameter(SuperFormalParameter node) => _throw(node);
 
   @override
   R? visitSwitchCase(SwitchCase node) => _throw(node);
@@ -3145,6 +3161,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitSuperFormalParameter(SuperFormalParameter node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitSuperFormalParameter(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitSwitchCase(SwitchCase node) {
     stopwatch.start();
     T? result = _baseVisitor.visitSwitchCase(node);
@@ -3666,6 +3690,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitSuperExpression(SuperExpression node) => visitNode(node);
+
+  @override
+  R? visitSuperFormalParameter(SuperFormalParameter node) => visitNode(node);
 
   @override
   R? visitSwitchCase(SwitchCase node) => visitNode(node);

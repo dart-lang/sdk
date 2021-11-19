@@ -1103,6 +1103,19 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitSuperFormalParameter(SuperFormalParameter node) {
+    SuperFormalParameter other = _other as SuperFormalParameter;
+    return isEqualNodes(
+            node.documentationComment, other.documentationComment) &&
+        _isEqualNodeLists(node.metadata, other.metadata) &&
+        isEqualTokens(node.keyword, other.keyword) &&
+        isEqualNodes(node.type, other.type) &&
+        isEqualTokens(node.superKeyword, other.superKeyword) &&
+        isEqualTokens(node.period, other.period) &&
+        isEqualNodes(node.identifier, other.identifier);
+  }
+
+  @override
   bool visitSwitchCase(SwitchCase node) {
     SwitchCase other = _other as SwitchCase;
     return _isEqualNodeLists(node.labels, other.labels) &&
@@ -2794,6 +2807,18 @@ class NodeReplacer implements AstVisitor<bool> {
   @override
   bool visitSuperExpression(covariant SuperExpressionImpl node) =>
       visitNode(node);
+
+  @override
+  bool visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
+    if (identical(node.type, _oldNode)) {
+      node.type = _newNode as TypeAnnotation;
+      return true;
+    } else if (identical(node.parameters, _oldNode)) {
+      node.parameters = _newNode as FormalParameterList;
+      return true;
+    }
+    return visitNormalFormalParameter(node);
+  }
 
   @override
   bool visitSwitchCase(covariant SwitchCaseImpl node) {

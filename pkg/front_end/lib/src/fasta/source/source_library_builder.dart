@@ -318,12 +318,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   Version? _enableConstructorTearoffsVersionInLibrary;
   Version? _enableExtensionTypesVersionInLibrary;
   Version? _enableNamedArgumentsAnywhereVersionInLibrary;
+  Version? _enableSuperParametersVersionInLibrary;
   bool? _enableTripleShiftInLibrary;
   bool? _enableExtensionMethodsInLibrary;
   bool? _enableGenericMetadataInLibrary;
   bool? _enableExtensionTypesInLibrary;
   bool? _enableConstructorTearOffsInLibrary;
   bool? _enableNamedArgumentsAnywhereInLibrary;
+  bool? _enableSuperParametersInLibrary;
 
   bool get enableConstFunctionsInLibrary => _enableConstFunctionsInLibrary ??=
       loader.target.isExperimentEnabledInLibraryByVersion(
@@ -410,6 +412,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           .getExperimentEnabledVersionInLibrary(
               ExperimentalFlag.namedArgumentsAnywhere,
               _packageUri ?? importUri);
+
+  bool get enableSuperParametersInLibrary => _enableSuperParametersInLibrary ??=
+      loader.target.isExperimentEnabledInLibraryByVersion(
+          ExperimentalFlag.superParameters,
+          _packageUri ?? importUri,
+          languageVersion.version);
+
+  Version get enableSuperParametersVersionInLibrary =>
+      _enableSuperParametersVersionInLibrary ??= loader.target
+          .getExperimentEnabledVersionInLibrary(
+              ExperimentalFlag.superParameters, _packageUri ?? importUri);
 
   void _updateLibraryNNBDSettings() {
     library.isNonNullableByDefault = isNonNullableByDefault;

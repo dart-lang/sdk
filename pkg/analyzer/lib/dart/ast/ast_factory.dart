@@ -872,6 +872,26 @@ abstract class AstFactory {
   /// Returns a newly created super expression.
   SuperExpression superExpression(Token superKeyword);
 
+  /// Returns a newly created super-initializer parameter. Either or both of
+  /// the [comment] and [metadata] can be `null` if the parameter does not have
+  /// the corresponding attribute. The [keyword] can be `null` if there is a
+  /// type. The [type] must be `null` if the keyword is 'var'. The [parameters]
+  /// can be `null` if this is not a function-typed super-initializer
+  /// parameter.
+  SuperFormalParameter superFormalParameter(
+      {Comment? comment,
+      List<Annotation>? metadata,
+      Token? covariantKeyword,
+      Token? requiredKeyword,
+      Token? keyword,
+      TypeAnnotation? type,
+      required Token superKeyword,
+      required Token period,
+      required SimpleIdentifier identifier,
+      TypeParameterList? typeParameters,
+      FormalParameterList? parameters,
+      Token? question});
+
   /// Returns a newly created switch case. The list of [labels] can be `null`
   /// if there are no labels.
   SwitchCase switchCase(List<Label> labels, Token keyword,

@@ -2895,13 +2895,14 @@ class TypeInfoListener implements Listener {
   @override
   void endFormalParameter(
       Token thisKeyword,
-      Token periodAfterThis,
+      Token superKeyword,
+      Token periodAfterThisOrSuper,
       Token nameToken,
       Token initializerStart,
       Token initializerEnd,
       FormalParameterKind kind,
       MemberKind memberKind) {
-    calls.add('endFormalParameter $thisKeyword $periodAfterThis '
+    calls.add('endFormalParameter $thisKeyword $periodAfterThisOrSuper '
         '$nameToken $kind $memberKind');
   }
 

@@ -953,6 +953,19 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.requiredKeyword, suffix: ' ');
+    _visitToken(node.covariantKeyword, suffix: ' ');
+    _visitToken(node.keyword, suffix: ' ');
+    _visitNode(node.type, suffix: ' ');
+    sink.write('super.');
+    _visitNode(node.identifier);
+    _visitNode(node.typeParameters);
+    _visitNode(node.parameters);
+  }
+
+  @override
   void visitSwitchCase(SwitchCase node) {
     _visitNodeList(node.labels, separator: ' ', suffix: ' ');
     sink.write('case ');

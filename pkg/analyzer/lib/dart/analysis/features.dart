@@ -38,6 +38,9 @@ abstract class Feature {
   /// Feature information for set literals.
   static final set_literals = ExperimentalFeatures.set_literals;
 
+  /// Feature information for super parameters.
+  static final super_parameters = ExperimentalFeatures.super_parameters;
+
   /// Feature information for the triple-shift operator.
   static final triple_shift = ExperimentalFeatures.triple_shift;
 

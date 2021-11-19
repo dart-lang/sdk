@@ -1991,13 +1991,26 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endFormalParameter(
       Token? thisKeyword,
-      Token? periodAfterThis,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
       Token nameToken,
       Token? initializerStart,
       Token? initializerEnd,
       FormalParameterKind kind,
       MemberKind memberKind) {
     debugEvent("FormalParameter");
+
+    if (superKeyword != null &&
+        !libraryBuilder.enableSuperParametersInLibrary) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments(
+              'super-parameters',
+              libraryBuilder.enableConstructorTearOffsVersionInLibrary
+                  .toText()),
+          superKeyword.charOffset,
+          superKeyword.length);
+    }
+
     int charOffset = popCharOffset();
     Object? name = pop();
     TypeBuilder? type = nullIfParserRecovery(pop()) as TypeBuilder?;

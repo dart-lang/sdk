@@ -9751,6 +9751,144 @@ class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
   }
 }
 
+/// A super-initializer formal parameter.
+///
+///    fieldFormalParameter ::=
+///        ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])?
+///        'super' '.' [SimpleIdentifier]
+///        ([TypeParameterList]? [FormalParameterList])?
+class SuperFormalParameterImpl extends NormalFormalParameterImpl
+    implements SuperFormalParameter {
+  /// The token representing either the 'final', 'const' or 'var' keyword, or
+  /// `null` if no keyword was used.
+  @override
+  Token? keyword;
+
+  /// The name of the declared type of the parameter, or `null` if the parameter
+  /// does not have a declared type.
+  TypeAnnotationImpl? _type;
+
+  /// The token representing the 'super' keyword.
+  @override
+  Token superKeyword;
+
+  /// The token representing the period.
+  @override
+  Token period;
+
+  /// The type parameters associated with the method, or `null` if the method is
+  /// not a generic method.
+  TypeParameterListImpl? _typeParameters;
+
+  /// The parameters of the function-typed parameter, or `null` if this is not a
+  /// function-typed field formal parameter.
+  FormalParameterListImpl? _parameters;
+
+  @override
+  Token? question;
+
+  /// Initialize a newly created formal parameter. Either or both of the
+  /// [comment] and [metadata] can be `null` if the parameter does not have the
+  /// corresponding attribute. The [keyword] can be `null` if there is a type.
+  /// The [type] must be `null` if the keyword is 'var'. The [thisKeyword] and
+  /// [period] can be `null` if the keyword 'this' was not provided.  The
+  /// [parameters] can be `null` if this is not a function-typed field formal
+  /// parameter.
+  SuperFormalParameterImpl(
+      CommentImpl? comment,
+      List<Annotation>? metadata,
+      Token? covariantKeyword,
+      Token? requiredKeyword,
+      this.keyword,
+      this._type,
+      this.superKeyword,
+      this.period,
+      SimpleIdentifierImpl identifier,
+      this._typeParameters,
+      this._parameters,
+      this.question)
+      : super(
+            comment, metadata, covariantKeyword, requiredKeyword, identifier) {
+    _becomeParentOf(_type);
+    _becomeParentOf(_typeParameters);
+    _becomeParentOf(_parameters);
+  }
+
+  @override
+  Token get beginToken {
+    final metadata = this.metadata;
+    if (metadata.isNotEmpty) {
+      return metadata.beginToken!;
+    } else if (requiredKeyword != null) {
+      return requiredKeyword!;
+    } else if (covariantKeyword != null) {
+      return covariantKeyword!;
+    } else if (keyword != null) {
+      return keyword!;
+    } else if (_type != null) {
+      return _type!.beginToken;
+    }
+    return superKeyword;
+  }
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(keyword)
+    ..add(_type)
+    ..add(superKeyword)
+    ..add(period)
+    ..add(identifier)
+    ..add(_parameters);
+
+  @override
+  Token get endToken {
+    return question ?? _parameters?.endToken ?? identifier.endToken;
+  }
+
+  @override
+  SimpleIdentifierImpl get identifier => super.identifier!;
+
+  @override
+  bool get isConst => keyword?.keyword == Keyword.CONST;
+
+  @override
+  bool get isFinal => keyword?.keyword == Keyword.FINAL;
+
+  @override
+  FormalParameterListImpl? get parameters => _parameters;
+
+  set parameters(FormalParameterList? parameters) {
+    _parameters = _becomeParentOf(parameters as FormalParameterListImpl?);
+  }
+
+  @override
+  TypeAnnotationImpl? get type => _type;
+
+  set type(TypeAnnotation? type) {
+    _type = _becomeParentOf(type as TypeAnnotationImpl);
+  }
+
+  @override
+  TypeParameterListImpl? get typeParameters => _typeParameters;
+
+  set typeParameters(TypeParameterList? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  }
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitSuperFormalParameter(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _type?.accept(visitor);
+    identifier.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _parameters?.accept(visitor);
+  }
+}
+
 /// A case in a switch statement.
 ///
 ///    switchCase ::=

@@ -1612,13 +1612,19 @@ class Parser {
         parameterKind == FormalParameterKind.optionalNamed;
 
     Token? thisKeyword;
-    Token? periodAfterThis;
+    Token? superKeyword;
+    Token? periodAfterThisOrSuper;
     IdentifierContext nameContext =
         IdentifierContext.formalParameterDeclaration;
 
-    if (!inFunctionType && optional('this', next)) {
+    if (!inFunctionType &&
+        (optional('this', next) || optional('super', next))) {
       Token originalToken = token;
-      thisKeyword = token = next;
+      if (optional('this', next)) {
+        thisKeyword = token = next;
+      } else {
+        superKeyword = token = next;
+      }
       next = token.next!;
       if (!optional('.', next)) {
         if (isOneOf(next, okNextValueInFormalParameter)) {
@@ -1626,7 +1632,7 @@ class Parser {
           // later that it's not an allowed identifier.
           token = originalToken;
           next = token.next!;
-          thisKeyword = null;
+          thisKeyword = superKeyword = null;
         } else {
           // Recover from a missing period by inserting one.
           next = rewriteAndRecover(
@@ -1634,13 +1640,13 @@ class Parser {
               codes.templateExpectedButGot.withArguments('.'),
               new SyntheticToken(TokenType.PERIOD, next.charOffset));
           // These 3 lines are duplicated here and below.
-          periodAfterThis = token = next;
+          periodAfterThisOrSuper = token = next;
           next = token.next!;
           nameContext = IdentifierContext.fieldInitializer;
         }
       } else {
         // These 3 lines are duplicated here and above.
-        periodAfterThis = token = next;
+        periodAfterThisOrSuper = token = next;
         next = token.next!;
         nameContext = IdentifierContext.fieldInitializer;
       }
@@ -1711,8 +1717,8 @@ class Parser {
     }
 
     Token nameToken;
-    if (periodAfterThis != null) {
-      token = periodAfterThis;
+    if (periodAfterThisOrSuper != null) {
+      token = periodAfterThisOrSuper;
     }
     next = token.next!;
     if (inFunctionType &&
@@ -1759,8 +1765,15 @@ class Parser {
     } else {
       listener.handleFormalParameterWithoutValue(next);
     }
-    listener.endFormalParameter(thisKeyword, periodAfterThis, nameToken,
-        initializerStart, initializerEnd, parameterKind, memberKind);
+    listener.endFormalParameter(
+        thisKeyword,
+        superKeyword,
+        periodAfterThisOrSuper,
+        nameToken,
+        initializerStart,
+        initializerEnd,
+        parameterKind,
+        memberKind);
     return token;
   }
 
