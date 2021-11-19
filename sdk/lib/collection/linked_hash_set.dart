@@ -41,58 +41,75 @@ part of dart.collection;
 ///
 /// Example:
 /// ```dart
-/// final planets = LinkedHashSet();
+/// final planets = <String>{}; // LinkedHashSet
+/// ```
+/// To add data to a set, use  [add] or [addAll].
+/// ```
+/// final uranusAdded = planets.add('Uranus');
 /// planets.addAll({'Venus', 'Mars', 'Earth', 'Jupiter'});
-/// planets.isEmpty; // false
-/// planets.length; // 4
-/// print(planets); // {Venus, Mars, Earth, Jupiter}
-///
-/// // To check if there is a value item on map, call contains
+/// print(planets); // {Uranus, Venus, Mars, Earth, Jupiter}
+/// ```
+/// To check if the set is empty, use [isEmpty] or [isNotEmpty].
+/// To find the number of set entries, use [length].
+/// ```
+/// print(planets.isEmpty); // false
+/// print(planets.length); // 5
+/// ```
+/// To check whether the set has an entry with a specific value, use [contains].
+/// ```
 /// final marsExists = planets.contains('Mars'); // true
-///
-/// // To get element value using index, call elementAt
+/// ```
+/// To get element value using index, use [elementAt].
+/// ```
 /// final elementAt = planets.elementAt(1);
-/// print(elementAt); // Mars
-///
-/// // The forEach iterates through all entries of a set.
+/// print(elementAt); // Venus
+/// ```
+/// The [forEach] iterates through all entries of a set.
+/// ```
 /// planets.forEach((element) {
 ///   print(element);
+///   // Uranus
 ///   // Venus
 ///   // Mars
 ///   // Earth
 ///   // Jupiter
 /// });
-///
-/// // To convert set to list, call toList
+/// ```
+/// To convert set to list, call [toList].
+/// ```
 /// final toList = planets.toList();
-/// print(toList); // [Venus, Mars, Earth, Jupiter]
-///
-/// // To make a copy of set, call toSet
+/// print(toList); // [Uranus, Venus, Mars, Earth, Jupiter]
+/// ```
+/// To make a copy of set, use [toSet].
+/// ```
 /// final copySet = planets.toSet();
-/// print(copySet); // {Venus, Mars, Earth, Jupiter}
-///
-/// // To add item to set, call add
-/// final uranusAdded = planets.add('Uranus');
-/// print(planets); // {Venus, Mars, Earth, Jupiter, Uranus}
-///
-/// // To remove specific value, call remove
+/// print(copySet); // {Uranus, Venus, Mars, Earth, Jupiter}
+/// ```
+/// To remove an element, use [remove].
+/// ```
 /// final removedValue = planets.remove('Mars'); // Mars
-/// print(planets); // {Venus, Earth, Jupiter, Uranus}
-///
-/// // To remove value(s) with a statement, call removeWhere
+/// print(planets); // {Uranus, Venus, Earth, Jupiter}
+/// ```
+/// To remove multiple elements at the same time, use [removeWhere].
+/// ```
 /// planets.removeWhere((element) => element.contains('Earth'));
-/// print(planets); // {Venus, Jupiter, Uranus}
-///
-/// // To remove other values than those which match statement
-/// planets.retainWhere((element) => element.contains('C'));
+/// print(planets); // {Uranus, Venus, Jupiter}
+/// ```
+/// To removes all elements in this set that do not meet the condition,
+/// use [retainWhere].
+/// ```
+/// planets.retainWhere((element) => element.contains('Jupiter'))
 /// print(planets); // {Jupiter}
-///
-/// // To clean up data, call clear
+/// ```
+/// To remove all elements and empty the set, use [clear].
+/// ```
 /// planets.clear();
+/// print(planets.isEmpty); // true
 /// print(planets); // {}
 /// ```
 /// **See also:**
-/// * [Set] is a base-class for collection of objects.
+/// * [Set] is the general interface of collection where each object can
+/// occur only once.
 /// * [HashSet]: the order of the objects in the iterations is not guaranteed.
 /// * [SplayTreeSet]: the order of the objects can be relative to each other.
 abstract class LinkedHashSet<E> implements Set<E> {
@@ -158,9 +175,9 @@ abstract class LinkedHashSet<E> implements Set<E> {
   /// ```
   /// Example:
   /// ```dart
-  /// final baseSet = {'A', 'B', 'C'};
-  /// final hashSetFrom = LinkedHashSet.from(baseSet);
-  /// print(hashSetFrom); // {A, B, C}
+  /// final numbers = [10, 20, 30];
+  /// final setFrom = LinkedHashSet.from(numbers);
+  /// print(setFrom); // {10, 20, 30}
   /// ```
   factory LinkedHashSet.from(Iterable<dynamic> elements) {
     LinkedHashSet<E> result = LinkedHashSet<E>();
@@ -176,9 +193,9 @@ abstract class LinkedHashSet<E> implements Set<E> {
   /// element of `elements` to this set in the order they are iterated.
   /// Example:
   /// ```dart
-  /// final baseSet = {'A', 'B', 'C'};
-  /// final setOf = LinkedHashSet.of(baseSet);
-  /// print(setOf); // {A, B, C}
+  /// final baseSet = <int>{1, 2, 3};
+  /// final setOf = LinkedHashSet<num>.of(baseSet);
+  /// print(setOf); // {1, 2, 3}
   /// ```
   factory LinkedHashSet.of(Iterable<E> elements) =>
       LinkedHashSet<E>()..addAll(elements);
