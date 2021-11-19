@@ -1025,6 +1025,7 @@ CompileType RedefinitionInstr::ComputeType() const {
     // If either type is non-nullable, the resulting type is non-nullable.
     const bool is_nullable =
         value()->Type()->is_nullable() && constrained_type_->is_nullable();
+    // The resulting type can be the sentinel value only if both types can be.
     const bool can_be_sentinel = value()->Type()->can_be_sentinel() &&
                                  constrained_type_->can_be_sentinel();
 
@@ -1037,13 +1038,18 @@ CompileType RedefinitionInstr::ComputeType() const {
       return CompileType(is_nullable, can_be_sentinel,
                          constrained_type_->ToNullableCid(), nullptr);
     }
-    if (value()->Type()->IsSubtypeOf(*constrained_type_->ToAbstractType())) {
-      return is_nullable ? *value()->Type()
-                         : value()->Type()->CopyNonNullable();
-    } else {
-      return is_nullable ? *constrained_type_
-                         : constrained_type_->CopyNonNullable();
+
+    CompileType result(
+        value()->Type()->IsSubtypeOf(*constrained_type_->ToAbstractType())
+            ? *value()->Type()
+            : *constrained_type_);
+    if (!is_nullable) {
+      result = result.CopyNonNullable();
     }
+    if (!can_be_sentinel) {
+      result = result.CopyNonSentinel();
+    }
+    return result;
   }
   return *value()->Type();
 }
