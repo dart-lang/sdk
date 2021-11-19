@@ -18,9 +18,9 @@ void devtools() {
 
   tearDown(() => p?.dispose());
 
-  test('--help', () {
+  test('--help', () async {
     p = project();
-    var result = p.runSync(['devtools', '--help']);
+    var result = await p.run(['devtools', '--help']);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Open DevTools'));
@@ -31,9 +31,9 @@ void devtools() {
     expect(result.stdout.contains('--try-ports'), isFalse);
   });
 
-  test('--help --verbose', () {
+  test('--help --verbose', () async {
     p = project();
-    var result = p.runSync(['devtools', '--help', '--verbose']);
+    var result = await p.run(['devtools', '--help', '--verbose']);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Open DevTools'));

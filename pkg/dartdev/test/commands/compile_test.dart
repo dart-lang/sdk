@@ -29,9 +29,9 @@ void defineCompileTests() {
     expect(binDir.path, contains('bin'));
   });
 
-  test('Implicit --help', () {
+  test('Implicit --help', () async {
     final p = project();
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
       ],
@@ -40,9 +40,9 @@ void defineCompileTests() {
     expect(result.exitCode, compileErrorExitCode);
   });
 
-  test('--help', () {
+  test('--help', () async {
     final p = project();
-    final result = p.runSync(
+    final result = await p.run(
       ['compile', '--help'],
     );
     expect(result.stdout, contains('Compile Dart'));
@@ -61,9 +61,9 @@ void defineCompileTests() {
     expect(result.exitCode, 0);
   });
 
-  test('--help --verbose', () {
+  test('--help --verbose', () async {
     final p = project();
-    final result = p.runSync(
+    final result = await p.run(
       ['compile', '--help', '--verbose'],
     );
     expect(result.stdout, contains('Compile Dart'));
@@ -76,10 +76,10 @@ void defineCompileTests() {
     expect(result.exitCode, 0);
   });
 
-  test('Compile and run jit snapshot', () {
+  test('Compile and run jit snapshot', () async {
     final p = project(mainSrc: 'void main() { print("I love jit"); }');
     final outFile = path.join(p.dirPath, 'main.jit');
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'jit-snapshot',
@@ -93,18 +93,18 @@ void defineCompileTests() {
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
 
-    result = p.runSync(['run', 'main.jit']);
+    result = await p.run(['run', 'main.jit']);
     expect(result.stdout, contains('I love jit'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });
 
-  test('Compile and run executable', () {
+  test('Compile and run executable', () async {
     final p = project(mainSrc: 'void main() { print("I love executables"); }');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'lib', 'main.exe'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'exe',
@@ -127,11 +127,11 @@ void defineCompileTests() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
-  test('Compile to executable disabled on IA32', () {
+  test('Compile to executable disabled on IA32', () async {
     final p = project(mainSrc: 'void main() { print("I love executables"); }');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'exe',
@@ -144,11 +144,11 @@ void defineCompileTests() {
     expect(result.exitCode, 64);
   }, skip: !isRunningOnIA32);
 
-  test('Compile to AOT snapshot disabled on IA32', () {
+  test('Compile to AOT snapshot disabled on IA32', () async {
     final p = project(mainSrc: 'void main() { print("I love executables"); }');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'aot-snapshot',
@@ -161,13 +161,13 @@ void defineCompileTests() {
     expect(result.exitCode, 64);
   }, skip: !isRunningOnIA32);
 
-  test('Compile and run executable with options', () {
+  test('Compile and run executable with options', () async {
     final p = project(
         mainSrc: 'void main() {print(const String.fromEnvironment("life"));}');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'exe',
@@ -194,12 +194,12 @@ void defineCompileTests() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
-  test('Compile and run aot snapshot', () {
+  test('Compile and run aot snapshot', () async {
     final p = project(mainSrc: 'void main() { print("I love AOT"); }');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'main.aot'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'aot-snapshot',
@@ -225,10 +225,10 @@ void defineCompileTests() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
-  test('Compile and run kernel snapshot', () {
+  test('Compile and run kernel snapshot', () async {
     final p = project(mainSrc: 'void main() { print("I love kernel"); }');
     final outFile = path.join(p.dirPath, 'main.dill');
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'kernel',
@@ -242,13 +242,13 @@ void defineCompileTests() {
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
 
-    result = p.runSync(['run', 'main.dill']);
+    result = await p.run(['run', 'main.dill']);
     expect(result.stdout, contains('I love kernel'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });
 
-  test('Compile JS', () {
+  test('Compile JS', () async {
     final p = project(mainSrc: '''
         void main() {
           print('1: ' + const String.fromEnvironment('foo'));
@@ -257,7 +257,7 @@ void defineCompileTests() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'main.js'));
 
-    final result = p.runSync([
+    final result = await p.run([
       'compile',
       'js',
       '-m',
@@ -279,7 +279,7 @@ void defineCompileTests() {
     expect(contents.contains('2: foo'), true);
   });
 
-  test('Compile exe with error', () {
+  test('Compile exe with error', () async {
     final p = project(mainSrc: '''
 void main() {
   int? i;
@@ -289,7 +289,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'exe',
@@ -309,7 +309,7 @@ void main() {
         reason: 'File not found: $outFile');
   }, skip: isRunningOnIA32);
 
-  test('Compile exe with warnings', () {
+  test('Compile exe with warnings', () async {
     final p = project(mainSrc: '''
 void main() {
   int i = 0;
@@ -319,7 +319,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'exe',
@@ -336,12 +336,12 @@ void main() {
         reason: 'File not found: $outFile');
   }, skip: isRunningOnIA32);
 
-  test('Compile exe with sound null safety', () {
+  test('Compile exe with sound null safety', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'exe',
@@ -358,7 +358,7 @@ void main() {
         reason: 'File not found: $outFile');
   }, skip: isRunningOnIA32);
 
-  test('Compile exe with unsound null safety', () {
+  test('Compile exe with unsound null safety', () async {
     final p = project(mainSrc: '''
 // @dart=2.9
 void main() {}
@@ -366,7 +366,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'exe',
@@ -383,14 +383,14 @@ void main() {}
         reason: 'File not found: $outFile');
   }, skip: isRunningOnIA32);
 
-  test('Compile and run exe with --sound-null-safety', () {
+  test('Compile and run exe with --sound-null-safety', () async {
     final p = project(mainSrc: '''void main() {
       print((<int?>[] is List<int>) ? 'oh no' : 'sound');
     }''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'exe',
@@ -417,14 +417,14 @@ void main() {}
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
-  test('Compile and run exe with --no-sound-null-safety', () {
+  test('Compile and run exe with --no-sound-null-safety', () async {
     final p = project(mainSrc: '''void main() {
       print((<int?>[] is List<int>) ? 'unsound' : 'oh no');
     }''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'exe',
@@ -451,12 +451,12 @@ void main() {}
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
-  test('Compile exe without info', () {
+  test('Compile exe without info', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'exe',
@@ -475,7 +475,7 @@ void main() {}
         reason: 'File not found: $outFile');
   }, skip: isRunningOnIA32);
 
-  test('Compile exe without warnings', () {
+  test('Compile exe without warnings', () async {
     final p = project(mainSrc: '''
 void main() {
   int i = 0;
@@ -485,7 +485,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'exe',
@@ -502,12 +502,12 @@ void main() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
-  test('Compile JS with sound null safety', () {
+  test('Compile JS with sound null safety', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'js',
@@ -524,7 +524,7 @@ void main() {
         reason: 'File not found: $outFile');
   });
 
-  test('Compile JS with unsound null safety', () {
+  test('Compile JS with unsound null safety', () async {
     final p = project(mainSrc: '''
 // @dart=2.9
 void main() {}
@@ -532,7 +532,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'js',
@@ -549,12 +549,12 @@ void main() {}
         reason: 'File not found: $outFile');
   });
 
-  test('Compile JS without info', () {
+  test('Compile JS without info', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'js',
@@ -573,7 +573,7 @@ void main() {}
         reason: 'File not found: $outFile');
   });
 
-  test('Compile JS without warnings', () {
+  test('Compile JS without warnings', () async {
     final p = project(mainSrc: '''
 void main() {
   int i = 0;
@@ -583,7 +583,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'js',
@@ -600,12 +600,12 @@ void main() {
     expect(result.exitCode, 0);
   });
 
-  test('Compile AOT snapshot with sound null safety', () {
+  test('Compile AOT snapshot with sound null safety', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'aot-snapshot',
@@ -622,7 +622,7 @@ void main() {
         reason: 'File not found: $outFile');
   }, skip: isRunningOnIA32);
 
-  test('Compile AOT snapshot with unsound null safety', () {
+  test('Compile AOT snapshot with unsound null safety', () async {
     final p = project(mainSrc: '''
 // @dart=2.9
 void main() {}
@@ -630,7 +630,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'aot-snapshot',
@@ -647,12 +647,12 @@ void main() {}
         reason: 'File not found: $outFile');
   }, skip: isRunningOnIA32);
 
-  test('Compile AOT snapshot without info', () {
+  test('Compile AOT snapshot without info', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'aot-snapshot',
@@ -671,7 +671,7 @@ void main() {}
         reason: 'File not found: $outFile');
   }, skip: isRunningOnIA32);
 
-  test('Compile AOT snapshot without warnings', () {
+  test('Compile AOT snapshot without warnings', () async {
     final p = project(mainSrc: '''
 void main() {
   int i = 0;
@@ -681,7 +681,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'aot-snapshot',
@@ -698,7 +698,7 @@ void main() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
-  test('Compile AOT snapshot with warnings', () {
+  test('Compile AOT snapshot with warnings', () async {
     final p = project(mainSrc: '''
 void main() {
   int i = 0;
@@ -708,7 +708,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'aot-snapshot',
@@ -726,12 +726,12 @@ void main() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
-  test('Compile kernel with invalid trailing argument', () {
+  test('Compile kernel with invalid trailing argument', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'kernel',
@@ -754,12 +754,12 @@ void main() {
     expect(File(outFile).existsSync(), false, reason: 'File found: $outFile');
   });
 
-  test('Compile kernel with sound null safety', () {
+  test('Compile kernel with sound null safety', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'kernel',
@@ -776,7 +776,7 @@ void main() {
         reason: 'File not found: $outFile');
   });
 
-  test('Compile kernel with unsound null safety', () {
+  test('Compile kernel with unsound null safety', () async {
     final p = project(mainSrc: '''
 // @dart=2.9
 void main() {}
@@ -784,7 +784,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'kernel',
@@ -801,12 +801,12 @@ void main() {}
         reason: 'File not found: $outFile');
   });
 
-  test('Compile kernel without info', () {
+  test('Compile kernel without info', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'kernel',
@@ -825,7 +825,7 @@ void main() {}
         reason: 'File not found: $outFile');
   });
 
-  test('Compile kernel without warning', () {
+  test('Compile kernel without warning', () async {
     final p = project(mainSrc: '''
 void main() {
     int i;
@@ -834,7 +834,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'kernel',
@@ -851,7 +851,7 @@ void main() {
     expect(result.exitCode, 254);
   });
 
-  test('Compile kernel with warnings', () {
+  test('Compile kernel with warnings', () async {
     final p = project(mainSrc: '''
 void main() {
     int i = 0;
@@ -860,7 +860,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'kernel',
@@ -877,12 +877,12 @@ void main() {
     expect(result.exitCode, 0);
   });
 
-  test('Compile JIT snapshot with sound null safety', () {
+  test('Compile JIT snapshot with sound null safety', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'jit-snapshot',
@@ -899,7 +899,7 @@ void main() {
         reason: 'File not found: $outFile');
   });
 
-  test('Compile JIT snapshot with unsound null safety', () {
+  test('Compile JIT snapshot with unsound null safety', () async {
     final p = project(mainSrc: '''
 // @dart=2.9
 void main() {}
@@ -907,7 +907,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'jit-snapshot',
@@ -924,13 +924,13 @@ void main() {}
         reason: 'File not found: $outFile');
   });
 
-  test('Compile JIT snapshot with training args', () {
+  test('Compile JIT snapshot with training args', () async {
     final p =
         project(mainSrc: '''void main(List<String> args) => print(args);''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'jit-snapshot',
@@ -948,12 +948,12 @@ void main() {}
         reason: 'File not found: $outFile');
   });
 
-  test('Compile JIT snapshot without info', () {
+  test('Compile JIT snapshot without info', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'jit-snapshot',
@@ -972,7 +972,7 @@ void main() {}
         reason: 'File not found: $outFile');
   });
 
-  test('Compile JIT snapshot without warnings', () {
+  test('Compile JIT snapshot without warnings', () async {
     final p = project(mainSrc: '''
 void main() {
     int i;
@@ -981,7 +981,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'jit-snapshot',
@@ -998,7 +998,7 @@ void main() {
     expect(result.exitCode, 254);
   });
 
-  test('Compile JIT snapshot with warnings', () {
+  test('Compile JIT snapshot with warnings', () async {
     final p = project(mainSrc: '''
 void main() {
     int i = 0;
@@ -1007,7 +1007,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'compile',
         'jit-snapshot',
