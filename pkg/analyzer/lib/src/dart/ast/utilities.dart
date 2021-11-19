@@ -1735,6 +1735,9 @@ class NodeReplacer implements AstVisitor<bool> {
     } else if (identical(node.stackTraceParameter, _oldNode)) {
       node.stackTraceParameter = _newNode as SimpleIdentifier;
       return true;
+    } else if (identical(node.body, _oldNode)) {
+      node.body = _newNode as Block;
+      return true;
     }
     return visitNode(node);
   }

@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -207,24 +208,6 @@ class Getter_NodeReplacerTest_test_cascadeExpression
     implements NodeReplacerTest_Getter<CascadeExpression, Expression> {
   @override
   Expression get(CascadeExpression node) => node.target;
-}
-
-class Getter_NodeReplacerTest_test_catchClause
-    implements NodeReplacerTest_Getter<CatchClause, SimpleIdentifier> {
-  @override
-  SimpleIdentifier? get(CatchClause node) => node.stackTraceParameter;
-}
-
-class Getter_NodeReplacerTest_test_catchClause_2
-    implements NodeReplacerTest_Getter<CatchClause, SimpleIdentifier> {
-  @override
-  SimpleIdentifier? get(CatchClause node) => node.exceptionParameter;
-}
-
-class Getter_NodeReplacerTest_test_catchClause_3
-    implements NodeReplacerTest_Getter<CatchClause, TypeAnnotation> {
-  @override
-  TypeAnnotation? get(CatchClause node) => node.exceptionType;
 }
 
 class Getter_NodeReplacerTest_test_classDeclaration
@@ -1475,14 +1458,22 @@ class NodeReplacerTest {
   }
 
   void test_catchClause() {
-    CatchClause node = AstTestFactory.catchClause5(
-        AstTestFactory.namedType4("E"),
-        "e",
-        "s",
-        [AstTestFactory.emptyStatement()]);
-    _assertReplace(node, Getter_NodeReplacerTest_test_catchClause_3());
-    _assertReplace(node, Getter_NodeReplacerTest_test_catchClause_2());
-    _assertReplace(node, Getter_NodeReplacerTest_test_catchClause());
+    var findNode = _parseStringToFindNode(r'''
+void f() {
+  try {} on E catch (e, st) {}
+  try {} on E2 catch (e2, st2) {}
+}
+''');
+    _assertReplaceList<CatchClause>(
+      destination: findNode.catchClause('(e,'),
+      source: findNode.catchClause('(e2,'),
+      getters: [
+        (node) => node.exceptionType!,
+        (node) => node.exceptionParameter!,
+        (node) => node.stackTraceParameter!,
+        (node) => node.body,
+      ],
+    );
   }
 
   void test_classDeclaration() {
@@ -2269,6 +2260,27 @@ class NodeReplacerTest {
       expect(getter.get(parent), child);
       expect(child.parent, child.parent);
     }
+  }
+
+  void _assertReplaceList<T extends AstNode>({
+    required T destination,
+    required T source,
+    required List<AstNode Function(T node)> getters,
+  }) {
+    for (var getter in getters) {
+      var child = getter(destination);
+      expect(child.parent, destination);
+
+      var replacement = getter(source);
+      NodeReplacer.replace(child, replacement);
+      expect(getter(destination), replacement);
+      expect(replacement.parent, destination);
+    }
+  }
+
+  FindNode _parseStringToFindNode(String content) {
+    var parseResult = parseString(content: content);
+    return FindNode(parseResult.content, parseResult.unit);
   }
 
   void _testAnnotatedNode(AnnotatedNode node) {
