@@ -18,7 +18,7 @@ part of dart.collection;
 ///
 /// Example:
 /// ```dart
-/// final queue = Queue(); // Queue() calls ListQueue() by default
+/// final queue = Queue(); // ListQueue() by default
 /// print(queue.runtimeType); // ListQueue
 ///
 /// // Adding items to queue
@@ -530,47 +530,57 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 /// Example:
 /// ```dart
 /// final queue = ListQueue();
-///
-/// // Adding items to queue
+/// ```
+/// To add objects to a queue, use [add], [addAll], [addFirst] or[addLast].
+/// ```
 /// queue.add(5);
 /// queue.addFirst(0);
 /// queue.addLast(10);
 /// queue.addAll([1, 2, 3]);
 /// print(queue); // {0, 5, 10, 1, 2, 3}
-///
-/// // To check is queue empty, use isEmpty or isNotEmpty.
-/// // To check size of queue, use length
+/// ```
+/// To check if the queue is empty, use [isEmpty] or [isNotEmpty].
+/// To find the number of queue entries, use [length].
+/// ```
 /// final isEmpty = queue.isEmpty; // false
 /// final queueSize = queue.length; // 6
-///
-/// // To get first or last item from queue, use first or last
+/// ```
+/// To get first or last item from queue, use [first] or [last].
+/// ```
 /// final first = queue.first; // 0
 /// final last = queue.last; // 3
-///
-/// // To get item using queue index, call elementAt
+/// ```
+/// To get item value using index, use [elementAt].
+/// ```
 /// final itemAt = queue.elementAt(2); // 10
-///
-/// // To convert queue to list type, call toList
-/// final asList = queue.toList();
-/// print(asList); // [0, 5, 10, 1, 2, 3]
-///
-/// // To remove items from queue, call remove, removeFirst or removeLast
+/// ```
+/// To convert queue to list, call [toList].
+/// ```
+/// final numbers = queue.toList();
+/// print(numbers); // [0, 5, 10, 1, 2, 3]
+/// ```
+/// To remove item from queue, call [remove], [removeFirst] or [removeLast].
+/// ```
 /// queue.remove(10);
 /// queue.removeFirst();
 /// queue.removeLast();
 /// print(queue); // {5, 1, 2}
-///
-/// // To remove item(s) with a statement, call the removeWhere
+/// ```
+/// To remove multiple elements at the same time, use [removeWhere].
+/// ```
 /// queue.removeWhere((element) => element == 1);
 /// print(queue); // {5, 2}
-///
-/// // To remove other values than those which match statement,
-/// // call the retainWhere
+/// ```
+/// To removes all elements in this queue that do not meet the condition,
+/// use [retainWhere].
+/// ```
 /// queue.retainWhere((element) => element == 2);
 /// print(queue); // {2}
-///
-/// // To clean up data, call the clear
+/// ```
+/// To remove all items and empty the set, use [clear].
+/// ```
 /// queue.clear();
+/// print(queue.isEmpty); // true
 /// print(queue); // {}
 /// ```
 class ListQueue<E> extends ListIterable<E> implements Queue<E> {
@@ -645,8 +655,9 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   /// by `elements.iterator`.
   /// Example:
   /// ```dart
-  /// final baseQueue = ListQueue()..addAll([10, 20, 30]);
-  /// final queueOf = ListQueue.of(baseQueue);
+  /// final baseQueue = ListQueue<double>()..addAll([1.0, 20, 30]);
+  /// final queueOf = ListQueue<num>.of(baseQueue);
+  /// print(queueOf); // {1.0, 20.0, 30.0}
   /// ```
   factory ListQueue.of(Iterable<E> elements) =>
       ListQueue<E>()..addAll(elements);
