@@ -8,7 +8,7 @@ part of dart.core;
 ///
 /// Strings are mainly used to represent text. A character may be represented by
 /// multiple code points, each code point consisting of one or two code
-/// units. For example the Papua New Guinea flag character requires four code
+/// units. For example, the Papua New Guinea flag character requires four code
 /// units to represent two code points, but should be treated like a single
 /// character: "🇵🇬". Platforms that do not support the flag character may show
 /// the letters "PG" instead. If the code points are swapped, it instead becomes
@@ -33,7 +33,7 @@ part of dart.core;
 /// string""";
 /// ```
 /// Strings are immutable. Although you cannot change a string, you can perform
-/// an operation on a string which creates a new string:
+/// an operation on a string that creates a new string:
 /// ```dart
 /// const string = 'Dart is fun';
 /// final result = string.substring(0, 5);
@@ -338,7 +338,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// ```
   String operator +(String other);
 
-  /// The substring of this string from [start],inclusive, to [end], exclusive.
+  /// The substring of this string from [start], inclusive, to [end], exclusive.
   ///
   /// Example:
   /// ```dart
@@ -394,8 +394,8 @@ abstract class String implements Comparable<String>, Pattern {
   ///
   /// As [trim], but only removes leading whitespace.
   /// ```dart
-  /// final string = ' Go '.trimLeft();
-  /// print(string); // 'Go '
+  /// final string = ' Dart '.trimLeft();
+  /// print(string); // 'Dart '
   /// ```
   String trimLeft();
 
@@ -403,8 +403,8 @@ abstract class String implements Comparable<String>, Pattern {
   ///
   /// As [trim], but only removes trailing whitespace.
   /// ```dart
-  /// final string = ' Go '.trimRight();
-  /// print(string); // ' Go'
+  /// final string = ' Dart '.trimRight();
+  /// print(string); // ' Dart'
   /// ```
   String trimRight();
 
@@ -415,9 +415,9 @@ abstract class String implements Comparable<String>, Pattern {
   /// `str + str + ...`(n times)`... + str`.
   ///
   /// ```dart
-  /// const string = ' Dart ';
+  /// const string = 'Dart';
   /// final multiplied = string * 3;
-  /// print(multiplied); // ' Dart  Dart  Dart '
+  /// print(multiplied); // 'DartDartDart'
   /// ```
   /// Returns an empty string if [times] is zero or negative.
   String operator *(int times);
@@ -442,7 +442,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// padding is a longer string representing a single character, like
   /// `"&nbsp;"` or `"\u{10002}`".
   /// In that case, the user should make sure that `this.length` is
-  /// the correct measure of the strings length.
+  /// the correct measure of the string's length.
   String padLeft(int width, [String padding = ' ']);
 
   /// Pads this string on the right if it is shorter than [width].
@@ -465,7 +465,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// padding is a longer string representing a single character, like
   /// `"&nbsp;"` or `"\u{10002}`".
   /// In that case, the user should make sure that `this.length` is
-  /// the correct measure of the strings length.
+  /// the correct measure of the string's length.
   String padRight(int width, [String padding = ' ']);
 
   /// Whether this string contains a match of [other].
@@ -524,7 +524,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// 'resume'.replaceAll(RegExp(r'e'), 'é'); // 'résumé'
   /// ```
   /// Notice that the [replace] string is not interpreted. If the replacement
-  /// depends on the match (for example on a [RegExp]'s capture groups), use
+  /// depends on the match (for example, on a [RegExp]'s capture groups), use
   /// the [replaceAllMapped] method instead.
   String replaceAll(Pattern from, String replace);
 
@@ -778,7 +778,7 @@ class RuneIterator implements BidirectionalIterator<int> {
   ///
   /// When created, there is no [current] value.
   /// A [moveNext] will use the rune starting at [index] the current value,
-  /// and a [movePrevious] will use the rune ending just before [index] as the
+  /// and a [movePrevious] will use the rune ending just before [index] as 
   /// the current value.
   ///
   /// The [index] position must not be in the middle of a surrogate pair.
