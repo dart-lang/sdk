@@ -5,10 +5,8 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' hide SdkLibrariesReader;
-import 'package:analyzer/src/generated/java_engine_io.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
@@ -18,7 +16,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DartUriResolverTest);
     defineReflectiveTests(ErrorSeverityTest);
-    defineReflectiveTests(FileBasedSourceTest);
     defineReflectiveTests(ResolveRelativeUriTest);
     defineReflectiveTests(UriKindTest);
   });
@@ -138,134 +135,6 @@ class ErrorSeverityTest {
   test_max_warning_warning() async {
     expect(ErrorSeverity.WARNING.max(ErrorSeverity.WARNING),
         same(ErrorSeverity.WARNING));
-  }
-}
-
-@reflectiveTest
-class FileBasedSourceTest {
-  test_equals_false_differentFiles() async {
-    JavaFile file1 = FileUtilities2.createFile("/does/not/exist1.dart");
-    JavaFile file2 = FileUtilities2.createFile("/does/not/exist2.dart");
-    FileBasedSource source1 = FileBasedSource(file1);
-    FileBasedSource source2 = FileBasedSource(file2);
-    expect(source1 == source2, isFalse);
-  }
-
-  test_equals_false_null() async {
-    JavaFile file = FileUtilities2.createFile("/does/not/exist1.dart");
-    FileBasedSource source1 = FileBasedSource(file);
-    expect(source1, isNotNull);
-  }
-
-  test_equals_true() async {
-    JavaFile file1 = FileUtilities2.createFile("/does/not/exist.dart");
-    JavaFile file2 = FileUtilities2.createFile("/does/not/exist.dart");
-    FileBasedSource source1 = FileBasedSource(file1);
-    FileBasedSource source2 = FileBasedSource(file2);
-    expect(source1 == source2, isTrue);
-  }
-
-  test_getFullName() async {
-    String fullPath = "/does/not/exist.dart";
-    JavaFile file = FileUtilities2.createFile(fullPath);
-    FileBasedSource source = FileBasedSource(file);
-    expect(source.fullName, file.getAbsolutePath());
-  }
-
-  test_getShortName() async {
-    JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
-    FileBasedSource source = FileBasedSource(file);
-    expect(source.shortName, "exist.dart");
-  }
-
-  test_hashCode() async {
-    JavaFile file1 = FileUtilities2.createFile("/does/not/exist.dart");
-    JavaFile file2 = FileUtilities2.createFile("/does/not/exist.dart");
-    FileBasedSource source1 = FileBasedSource(file1);
-    FileBasedSource source2 = FileBasedSource(file2);
-    expect(source2.hashCode, source1.hashCode);
-  }
-
-  test_isInSystemLibrary_contagious() async {
-    DartSdk sdk = (_SimpleDartSdkTest()..setUp()).sdk;
-    UriResolver resolver = DartUriResolver(sdk);
-    SourceFactory factory = SourceFactory([resolver]);
-    // resolve dart:core
-    var result = resolver.resolveAbsolute(Uri.parse("dart:core"));
-    expect(result, isNotNull);
-    expect(result!.isInSystemLibrary, isTrue);
-    // system libraries reference only other system libraries
-    var partSource = factory.resolveUri(result, "num.dart");
-    expect(partSource, isNotNull);
-    expect(partSource!.isInSystemLibrary, isTrue);
-  }
-
-  test_isInSystemLibrary_false() async {
-    JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
-    FileBasedSource source = FileBasedSource(file);
-    expect(source, isNotNull);
-    expect(source.fullName, file.getAbsolutePath());
-    expect(source.isInSystemLibrary, isFalse);
-  }
-
-  test_issue14500() async {
-    // see https://code.google.com/p/dart/issues/detail?id=14500
-    FileBasedSource source = FileBasedSource(
-        FileUtilities2.createFile("/some/packages/foo:bar.dart"));
-    expect(source, isNotNull);
-    expect(source.exists(), isFalse);
-  }
-
-  test_resolveRelative_file_fileName() async {
-    if (OSUtilities.isWindows()) {
-      // On Windows, the URI that is produced includes a drive letter,
-      // which I believe is not consistent across all machines that might run
-      // this test.
-      return;
-    }
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = FileBasedSource(file);
-    expect(source, isNotNull);
-    Uri relative = resolveRelativeUri(source.uri, Uri.parse("lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "file:///a/b/lib.dart");
-  }
-
-  test_resolveRelative_file_filePath() async {
-    if (OSUtilities.isWindows()) {
-      // On Windows, the URI that is produced includes a drive letter,
-      // which I believe is not consistent across all machines that might run
-      // this test.
-      return;
-    }
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = FileBasedSource(file);
-    expect(source, isNotNull);
-    Uri relative = resolveRelativeUri(source.uri, Uri.parse("c/lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "file:///a/b/c/lib.dart");
-  }
-
-  test_resolveRelative_file_filePathWithParent() async {
-    if (OSUtilities.isWindows()) {
-      // On Windows, the URI that is produced includes a drive letter, which I
-      // believe is not consistent across all machines that might run this test.
-      return;
-    }
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = FileBasedSource(file);
-    expect(source, isNotNull);
-    Uri relative = resolveRelativeUri(source.uri, Uri.parse("../c/lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "file:///a/c/lib.dart");
-  }
-
-  test_system() async {
-    JavaFile file = FileUtilities2.createFile("/does/not/exist.dart");
-    FileBasedSource source = FileBasedSource(file, Uri.parse("dart:core"));
-    expect(source, isNotNull);
-    expect(source.fullName, file.getAbsolutePath());
-    expect(source.isInSystemLibrary, isTrue);
   }
 }
 
