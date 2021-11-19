@@ -150,6 +150,9 @@ class AstBuilder extends StackListener {
   /// `true` if named arguments anywhere are enabled
   final bool enableNamedArgumentsAnywhere;
 
+  /// `true` if super parameters are enabled
+  final bool enableSuperParameters;
+
   final FeatureSet _featureSet;
 
   AstBuilder(ErrorReporter? errorReporter, this.fileUri, this.isFullAst,
@@ -170,6 +173,7 @@ class AstBuilder extends StackListener {
         enableExtensionTypes = _featureSet.isEnabled(Feature.extension_types),
         enableNamedArgumentsAnywhere =
             _featureSet.isEnabled(Feature.named_arguments_anywhere),
+        enableSuperParameters = _featureSet.isEnabled(Feature.super_parameters),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -1412,17 +1416,31 @@ class AstBuilder extends StackListener {
   @override
   void endFormalParameter(
       Token? thisKeyword,
-      Token? periodAfterThis,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
       Token nameToken,
       Token? initializerStart,
       Token? initializerEnd,
       FormalParameterKind kind,
       MemberKind memberKind) {
     assert(optionalOrNull('this', thisKeyword));
-    assert(thisKeyword == null
-        ? periodAfterThis == null
-        : optional('.', periodAfterThis!));
+    assert(optionalOrNull('super', superKeyword));
+    assert(thisKeyword == null && superKeyword == null
+        ? periodAfterThisOrSuper == null
+        : optional('.', periodAfterThisOrSuper!));
     debugEvent("FormalParameter");
+
+    if (superKeyword != null && !enableSuperParameters) {
+      var feature = ExperimentalFeatures.super_parameters;
+      handleRecoverableError(
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        superKeyword,
+        superKeyword,
+      );
+    }
 
     var defaultValue = pop() as _ParameterDefaultValue?;
     var name = pop() as SimpleIdentifier?;
@@ -1443,7 +1461,7 @@ class AstBuilder extends StackListener {
       // This is a temporary AST node that was constructed in
       // [endFunctionTypedFormalParameter]. We now deconstruct it and create
       // the final AST node.
-      if (thisKeyword == null) {
+      if (thisKeyword == null && superKeyword == null) {
         node = ast.functionTypedFormalParameter2(
             identifier: name!,
             comment: comment,
@@ -1454,7 +1472,9 @@ class AstBuilder extends StackListener {
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
             parameters: typeOrFunctionTypedParameter.parameters,
             question: typeOrFunctionTypedParameter.question);
-      } else {
+      } else if (thisKeyword != null) {
+        assert(superKeyword == null,
+            "Can't have both 'this' and 'super' in a parameter.");
         node = ast.fieldFormalParameter2(
             identifier: name!,
             comment: comment,
@@ -1463,7 +1483,21 @@ class AstBuilder extends StackListener {
             requiredKeyword: requiredKeyword,
             type: typeOrFunctionTypedParameter.returnType,
             thisKeyword: thisKeyword,
-            period: periodAfterThis!,
+            period: periodAfterThisOrSuper!,
+            typeParameters: typeOrFunctionTypedParameter.typeParameters,
+            parameters: typeOrFunctionTypedParameter.parameters,
+            question: typeOrFunctionTypedParameter.question);
+      } else {
+        assert(superKeyword != null && thisKeyword == null);
+        node = ast.superFormalParameter(
+            identifier: name!,
+            comment: comment,
+            metadata: metadata,
+            covariantKeyword: covariantKeyword,
+            requiredKeyword: requiredKeyword,
+            type: typeOrFunctionTypedParameter.returnType,
+            superKeyword: superKeyword!,
+            period: periodAfterThisOrSuper!,
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
             parameters: typeOrFunctionTypedParameter.parameters,
             question: typeOrFunctionTypedParameter.question);

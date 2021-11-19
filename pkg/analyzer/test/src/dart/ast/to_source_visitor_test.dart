@@ -2962,6 +2962,64 @@ import 'foo.dart'
     _assertSource("super", AstTestFactory.superExpression());
   }
 
+  void test_visitSuperFormalParameter_annotation() {
+    SuperFormalParameter parameter = AstTestFactory.superFormalParameter2('f');
+    parameter.metadata
+        .add(AstTestFactory.annotation(AstTestFactory.identifier3("A")));
+    _assertSource('@A super.f', parameter);
+  }
+
+  void test_visitSuperFormalParameter_functionTyped() {
+    _assertSource(
+        "A super.a(b)",
+        AstTestFactory.superFormalParameter(
+            null,
+            AstTestFactory.namedType4("A"),
+            "a",
+            AstTestFactory.formalParameterList(
+                [AstTestFactory.simpleFormalParameter3("b")])));
+  }
+
+  void test_visitSuperFormalParameter_functionTyped_typeParameters() {
+    _assertSource(
+        "A super.a<E, F>(b)",
+        astFactory.superFormalParameter(
+            type: AstTestFactory.namedType4('A'),
+            superKeyword: TokenFactory.tokenFromKeyword(Keyword.SUPER),
+            period: TokenFactory.tokenFromType(TokenType.PERIOD),
+            identifier: AstTestFactory.identifier3('a'),
+            typeParameters: AstTestFactory.typeParameterList(['E', 'F']),
+            parameters: AstTestFactory.formalParameterList(
+                [AstTestFactory.simpleFormalParameter3("b")])));
+  }
+
+  void test_visitSuperFormalParameter_keyword() {
+    _assertSource("var super.a",
+        AstTestFactory.superFormalParameter(Keyword.VAR, null, "a"));
+  }
+
+  void test_visitSuperFormalParameter_keywordAndType() {
+    _assertSource(
+        "final A super.a",
+        AstTestFactory.superFormalParameter(
+            Keyword.FINAL, AstTestFactory.namedType4("A"), "a"));
+  }
+
+  void test_visitSuperFormalParameter_type() {
+    _assertSource(
+        "A super.a",
+        AstTestFactory.superFormalParameter(
+            null, AstTestFactory.namedType4("A"), "a"));
+  }
+
+  void test_visitSuperFormalParameter_type_covariant() {
+    var expected = AstTestFactory.superFormalParameter(
+        null, AstTestFactory.namedType4("A"), "a");
+    expected.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _assertSource("covariant A super.a", expected);
+  }
+
   void test_visitSwitchCase_multipleLabels() {
     _assertSource(
         "l1: l2: case a: {}",

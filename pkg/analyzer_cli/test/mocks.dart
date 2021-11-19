@@ -164,6 +164,7 @@ class MockSource implements Source {
     throw StateError('Unexpected invocation of contents');
   }
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding {
     throw StateError('Unexpected invocation of encoding');
@@ -175,11 +176,6 @@ class MockSource implements Source {
   }
 
   @override
-  Source get librarySource {
-    throw StateError('Unexpected invocation of librarySource');
-  }
-
-  @override
   int get modificationStamp {
     throw StateError('Unexpected invocation of modificationStamp');
   }
@@ -187,11 +183,6 @@ class MockSource implements Source {
   @override
   String get shortName {
     throw StateError('Unexpected invocation of shortName');
-  }
-
-  @override
-  Source get source {
-    throw StateError('Unexpected invocation of source');
   }
 
   @override

@@ -454,6 +454,7 @@ class TestSource extends Source {
     return TimestampedData<String>(0, _contents);
   }
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding => _name;
 
@@ -519,6 +520,7 @@ class TestSourceWithUri extends TestSource {
   TestSourceWithUri(String path, this.uri, [String content = ''])
       : super(path, content);
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding => uri.toString();
 

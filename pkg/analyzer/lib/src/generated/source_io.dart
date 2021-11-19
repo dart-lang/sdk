@@ -65,6 +65,7 @@ class FileBasedSource extends Source {
         file.lastModified(), file.readAsStringSync());
   }
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding {
     return _encoding ??= uri.toString();

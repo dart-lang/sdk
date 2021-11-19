@@ -728,14 +728,22 @@ class ForwardingListener implements Listener {
   @override
   void endFormalParameter(
       Token? thisKeyword,
-      Token? periodAfterThis,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
       Token nameToken,
       Token? initializerStart,
       Token? initializerEnd,
       FormalParameterKind kind,
       MemberKind memberKind) {
-    listener?.endFormalParameter(thisKeyword, periodAfterThis, nameToken,
-        initializerStart, initializerEnd, kind, memberKind);
+    listener?.endFormalParameter(
+        thisKeyword,
+        superKeyword,
+        periodAfterThisOrSuper,
+        nameToken,
+        initializerStart,
+        initializerEnd,
+        kind,
+        memberKind);
   }
 
   @override

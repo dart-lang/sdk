@@ -1688,6 +1688,21 @@ class StringInterpolationTest extends ParserTestCase {
 }
 
 @reflectiveTest
+class SuperFormalParameterTest {
+  void test_endToken_noParameters() {
+    SuperFormalParameter parameter =
+        AstTestFactory.superFormalParameter2('field');
+    expect(parameter.endToken, parameter.identifier.endToken);
+  }
+
+  void test_endToken_parameters() {
+    SuperFormalParameter parameter = AstTestFactory.superFormalParameter(
+        null, null, 'field', AstTestFactory.formalParameterList([]));
+    expect(parameter.endToken, parameter.parameters!.endToken);
+  }
+}
+
+@reflectiveTest
 class VariableDeclarationTest extends ParserTestCase {
   void test_getDocumentationComment_onGrandParent() {
     VariableDeclaration varDecl = AstTestFactory.variableDeclaration("a");

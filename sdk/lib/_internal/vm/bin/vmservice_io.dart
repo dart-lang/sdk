@@ -123,10 +123,11 @@ class _DebuggingSession {
         stderrSub.cancel();
         completer.complete();
       } else {
+        final error = result['error'] ?? event;
+        final stacktrace = result['stacktrace'] ?? '';
         stderrSub.cancel();
         completer.completeError(
-          'Could not start Observatory HTTP server',
-        );
+            'Could not start Observatory HTTP server:\n$error\n$stacktrace\n');
       }
     });
     try {

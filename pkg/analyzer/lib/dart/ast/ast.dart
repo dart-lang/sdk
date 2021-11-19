@@ -570,6 +570,8 @@ abstract class AstVisitor<R> {
 
   R? visitSuperExpression(SuperExpression node);
 
+  R? visitSuperFormalParameter(SuperFormalParameter node);
+
   R? visitSwitchCase(SwitchCase node);
 
   R? visitSwitchDefault(SwitchDefault node);
@@ -4057,6 +4059,48 @@ abstract class SuperConstructorInvocation
 abstract class SuperExpression implements Expression {
   /// Return the token representing the 'super' keyword.
   Token get superKeyword;
+}
+
+/// A super-initializer formal parameter.
+///
+///    superFormalParameter ::=
+///        ('final' [TypeAnnotation] | 'const' [TypeAnnotation] | 'var' | [TypeAnnotation])?
+///        'super' '.' [SimpleIdentifier] ([TypeParameterList]? [FormalParameterList])?
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class SuperFormalParameter implements NormalFormalParameter {
+  @override
+  SimpleIdentifier get identifier;
+
+  /// Return the token representing either the 'final', 'const' or 'var'
+  /// keyword, or `null` if no keyword was used.
+  Token? get keyword;
+
+  /// Return the parameters of the function-typed parameter, or `null` if this
+  /// is not a function-typed field formal parameter.
+  FormalParameterList? get parameters;
+
+  /// Return the token representing the period.
+  Token get period;
+
+  /// If the parameter is function-typed, and has the question mark, then its
+  /// function type is nullable. Having a nullable function type means that the
+  /// parameter can be null.
+  Token? get question;
+
+  /// Return the token representing the 'super' keyword.
+  Token get superKeyword;
+
+  /// Return the declared type of the parameter, or `null` if the parameter does
+  /// not have a declared type.
+  ///
+  /// Note that if this is a function-typed field formal parameter this is the
+  /// return type of the function.
+  TypeAnnotation? get type;
+
+  /// Return the type parameters associated with this method, or `null` if this
+  /// method is not a generic method.
+  TypeParameterList? get typeParameters;
 }
 
 /// A case in a switch statement.

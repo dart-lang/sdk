@@ -159,6 +159,7 @@ class MockSource implements Source {
   @override
   TimestampedData<String> get contents => TimestampedData(0, '');
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding => '';
 
@@ -169,16 +170,10 @@ class MockSource implements Source {
   bool get isInSystemLibrary => false;
 
   @override
-  Source get librarySource => this;
-
-  @override
   int get modificationStamp => 0;
 
   @override
   String get shortName => 'test.dart';
-
-  @override
-  Source get source => this;
 
   @override
   Uri get uri => Uri.parse('package:test/test.dart');

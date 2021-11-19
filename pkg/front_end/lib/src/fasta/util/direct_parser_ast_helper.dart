@@ -589,7 +589,8 @@ abstract class AbstractDirectParserASTListener implements Listener {
   @override
   void endFormalParameter(
       Token? thisKeyword,
-      Token? periodAfterThis,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
       Token nameToken,
       Token? initializerStart,
       Token? initializerEnd,
@@ -598,7 +599,8 @@ abstract class AbstractDirectParserASTListener implements Listener {
     DirectParserASTContentFormalParameterEnd data =
         new DirectParserASTContentFormalParameterEnd(DirectParserASTType.END,
             thisKeyword: thisKeyword,
-            periodAfterThis: periodAfterThis,
+            superKeyword: superKeyword,
+            periodAfterThisOrSuper: periodAfterThisOrSuper,
             nameToken: nameToken,
             initializerStart: initializerStart,
             initializerEnd: initializerEnd,
@@ -3824,7 +3826,8 @@ class DirectParserASTContentFormalParameterBegin
 
 class DirectParserASTContentFormalParameterEnd extends DirectParserASTContent {
   final Token? thisKeyword;
-  final Token? periodAfterThis;
+  final Token? superKeyword;
+  final Token? periodAfterThisOrSuper;
   final Token nameToken;
   final Token? initializerStart;
   final Token? initializerEnd;
@@ -3833,7 +3836,8 @@ class DirectParserASTContentFormalParameterEnd extends DirectParserASTContent {
 
   DirectParserASTContentFormalParameterEnd(DirectParserASTType type,
       {this.thisKeyword,
-      this.periodAfterThis,
+      this.superKeyword,
+      this.periodAfterThisOrSuper,
       required this.nameToken,
       this.initializerStart,
       this.initializerEnd,
@@ -3844,7 +3848,8 @@ class DirectParserASTContentFormalParameterEnd extends DirectParserASTContent {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "thisKeyword": thisKeyword,
-        "periodAfterThis": periodAfterThis,
+        "superKeyword": superKeyword,
+        "periodAfterThisOrSuper": periodAfterThisOrSuper,
         "nameToken": nameToken,
         "initializerStart": initializerStart,
         "initializerEnd": initializerEnd,
