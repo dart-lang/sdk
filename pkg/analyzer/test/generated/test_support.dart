@@ -483,6 +483,7 @@ class TestSource extends Source {
   @override
   Uri get uri => Uri.file(_name);
 
+  @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind {
     throw UnsupportedError('uriKind');
@@ -524,6 +525,7 @@ class TestSourceWithUri extends TestSource {
   @override
   String get encoding => uri.toString();
 
+  @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind {
     if (uri.scheme == 'dart') {

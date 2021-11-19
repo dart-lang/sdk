@@ -42,6 +42,7 @@ class StringSource extends Source {
   @override
   String get shortName => fullName;
 
+  @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind => UriKind.FILE_URI;
 

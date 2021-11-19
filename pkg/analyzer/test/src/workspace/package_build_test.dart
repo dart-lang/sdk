@@ -114,8 +114,8 @@ class PackageBuildFileUriResolverTest with ResourceProviderMixin {
     expect(source, isNotNull);
     expect(resolver.restoreAbsolute(source), uri);
     expect(
-        resolver.restoreAbsolute(NonExistingSource(source.fullName,
-            Uri.parse('package:test/test.dart'), UriKind.PACKAGE_URI)),
+        resolver.restoreAbsolute(NonExistingSource(
+            source.fullName, Uri.parse('package:test/test.dart'))),
         uri);
   }
 

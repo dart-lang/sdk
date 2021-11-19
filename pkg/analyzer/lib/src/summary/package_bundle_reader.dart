@@ -75,6 +75,7 @@ class InSummarySource extends BasicSource {
   @override
   int get modificationStamp => 0;
 
+  @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind => UriKind.PACKAGE_URI;
 

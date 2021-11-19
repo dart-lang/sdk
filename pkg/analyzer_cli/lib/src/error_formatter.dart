@@ -297,9 +297,9 @@ class HumanErrorFormatter extends ErrorFormatter {
 
     // warning • 'foo' is not a bar. • lib/foo.dart:1:2 • foo_warning
     String sourcePath;
-    if (source.uriKind == UriKind.DART_URI) {
+    if (source.uri.isScheme('dart')) {
       sourcePath = source.uri.toString();
-    } else if (source.uriKind == UriKind.PACKAGE_URI) {
+    } else if (source.uri.isScheme('package')) {
       sourcePath = _relative(source.fullName);
       if (sourcePath == source.fullName) {
         // If we weren't able to shorten the path name, use the package: version.

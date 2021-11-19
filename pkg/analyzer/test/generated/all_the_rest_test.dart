@@ -324,6 +324,7 @@ class ResolveRelativeUriTest {
 
 @reflectiveTest
 class UriKindTest {
+  @deprecated
   test_fromEncoding() async {
     expect(UriKind.fromEncoding(0x64), same(UriKind.DART_URI));
     expect(UriKind.fromEncoding(0x66), same(UriKind.FILE_URI));
@@ -331,6 +332,7 @@ class UriKindTest {
     expect(UriKind.fromEncoding(0x58), isNull);
   }
 
+  @deprecated
   test_getEncoding() async {
     expect(UriKind.DART_URI.encoding, 0x64);
     expect(UriKind.FILE_URI.encoding, 0x66);

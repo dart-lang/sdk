@@ -155,46 +155,13 @@ class MockLineInfo implements LineInfo {
 
 class MockSource implements Source {
   @override
-  String fullName;
-
-  MockSource(this.fullName);
+  final String fullName;
 
   @override
-  TimestampedData<String> get contents {
-    throw StateError('Unexpected invocation of contents');
-  }
+  final Uri uri;
 
-  @Deprecated('Not used anymore')
-  @override
-  String get encoding {
-    throw StateError('Unexpected invocation of encoding');
-  }
+  MockSource(this.fullName, this.uri);
 
   @override
-  bool get isInSystemLibrary {
-    throw StateError('Unexpected invocation of isInSystemLibrary');
-  }
-
-  @override
-  int get modificationStamp {
-    throw StateError('Unexpected invocation of modificationStamp');
-  }
-
-  @override
-  String get shortName {
-    throw StateError('Unexpected invocation of shortName');
-  }
-
-  @override
-  Uri get uri {
-    throw StateError('Unexpected invocation of uri');
-  }
-
-  @override
-  UriKind get uriKind => null; //UriKind.FILE_URI;
-
-  @override
-  bool exists() {
-    throw StateError('Unexpected invocation of exists');
-  }
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -93,6 +93,7 @@ class FileSource extends Source {
   @override
   String get shortName => file.shortName;
 
+  @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind => UriKind.fromScheme(uri.scheme);
 

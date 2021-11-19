@@ -178,6 +178,7 @@ class MockSource implements Source {
   @override
   Uri get uri => Uri.parse('package:test/test.dart');
 
+  @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind => UriKind.PACKAGE_URI;
 

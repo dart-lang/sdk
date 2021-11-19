@@ -103,7 +103,6 @@ mixin FileTestMixin implements FileSystemTestSupport {
     Source source = file.createSource();
     expect(source, isNotNull);
     expect(source.fullName, defaultFilePath);
-    expect(source.uriKind, UriKind.FILE_URI);
     expect(source.uri, Uri.file(defaultFilePath));
     expect(source.exists(), isTrue);
     expect(source.contents.data, defaultFileContent);

@@ -79,7 +79,9 @@ class DartUriResolver extends UriResolver {
 /// An implementation of an non-existing [Source].
 class NonExistingSource extends Source {
   static final unknown = NonExistingSource(
-      '/unknown.dart', pathos.toUri('/unknown.dart'), UriKind.FILE_URI);
+    '/unknown.dart',
+    pathos.toUri('/unknown.dart'),
+  );
 
   @override
   final String fullName;
@@ -87,10 +89,7 @@ class NonExistingSource extends Source {
   @override
   final Uri uri;
 
-  @override
-  final UriKind uriKind;
-
-  NonExistingSource(this.fullName, this.uri, this.uriKind);
+  NonExistingSource(this.fullName, this.uri);
 
   @override
   TimestampedData<String> get contents {
@@ -113,10 +112,16 @@ class NonExistingSource extends Source {
   @override
   String get shortName => pathos.basename(fullName);
 
+  @Deprecated('Use Source.uri instead')
+  @override
+  UriKind get uriKind {
+    return UriKind.FILE_URI;
+  }
+
   @override
   bool operator ==(Object other) {
     if (other is NonExistingSource) {
-      return other.uriKind == uriKind && other.fullName == fullName;
+      return other.uri == uri && other.fullName == fullName;
     }
     return false;
   }
@@ -220,6 +225,7 @@ abstract class Source {
   /// against which the relative URI was resolved.
   ///
   /// @return the kind of URI from which this source was originally derived
+  @Deprecated('Use Source.uri instead')
   UriKind get uriKind;
 
   /// Return `true` if the given object is a source that represents the same
@@ -342,6 +348,7 @@ class SourceKind implements Comparable<SourceKind> {
 /// The enumeration `UriKind` defines the different kinds of URI's that are
 /// known to the analysis engine. These are used to keep track of the kind of
 /// URI associated with a given source.
+@Deprecated('Use Source.uri instead')
 class UriKind implements Comparable<UriKind> {
   /// A 'dart:' URI.
   static const UriKind DART_URI = UriKind('DART_URI', 0, 0x64);
