@@ -725,10 +725,16 @@ class FfiTransformer extends Transformer {
   /// Returns the single element type nested type argument of `Array`.
   ///
   /// `Array<Array<Array<Int8>>>` -> `Int8`.
+  ///
+  /// `Array<Array<Array<Unknown>>>` -> [InvalidType].
   DartType arraySingleElementType(DartType dartType) {
     InterfaceType elementType = dartType as InterfaceType;
     while (elementType.classNode == arrayClass) {
-      elementType = elementType.typeArguments[0] as InterfaceType;
+      final elementTypeAny = elementType.typeArguments[0];
+      if (elementTypeAny is InvalidType) {
+        return elementTypeAny;
+      }
+      elementType = elementTypeAny as InterfaceType;
     }
     return elementType;
   }
@@ -736,11 +742,14 @@ class FfiTransformer extends Transformer {
   /// Returns the number of dimensions of `Array`.
   ///
   /// `Array<Array<Array<Int8>>>` -> 3.
+  ///
+  /// `Array<Array<Array<Unknown>>>` -> 3.
   int arrayDimensions(DartType dartType) {
-    InterfaceType elementType = dartType as InterfaceType;
+    DartType elementType = dartType;
     int dimensions = 0;
-    while (elementType.classNode == arrayClass) {
-      elementType = elementType.typeArguments[0] as InterfaceType;
+    while (
+        elementType is InterfaceType && elementType.classNode == arrayClass) {
+      elementType = elementType.typeArguments[0];
       dimensions++;
     }
     return dimensions;

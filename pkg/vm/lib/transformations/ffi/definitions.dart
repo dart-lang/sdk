@@ -146,8 +146,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final sizeAnnotations = _getArraySizeAnnotations(f);
         if (sizeAnnotations.length == 1) {
           final singleElementType = arraySingleElementType(type);
-          if (isCompoundSubtype(singleElementType)) {
-            final clazz = (singleElementType as InterfaceType).classNode;
+          if (singleElementType is InterfaceType &&
+              isCompoundSubtype(singleElementType)) {
+            final clazz = singleElementType.classNode;
             dependencies.add(clazz);
           }
         }
@@ -403,24 +404,31 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           final sizeAnnotations = _getArraySizeAnnotations(f);
           if (sizeAnnotations.length == 1) {
             final singleElementType = arraySingleElementType(type);
-            if (isCompoundSubtype(singleElementType)) {
-              final clazz = (singleElementType as InterfaceType).classNode;
-              _checkPacking(node, packing, clazz, f);
-            }
-            final dimensions = sizeAnnotations.single;
-            if (arrayDimensions(type) != dimensions.length) {
-              diagnosticReporter.report(
-                  templateFfiSizeAnnotationDimensions
-                      .withArguments(f.name.text),
-                  f.fileOffset,
-                  f.name.text.length,
-                  f.fileUri);
-            }
-            for (var dimension in dimensions) {
-              if (dimension < 0) {
-                diagnosticReporter.report(messageNonPositiveArrayDimensions,
-                    f.fileOffset, f.name.text.length, f.fileUri);
-                success = false;
+            if (singleElementType is! InterfaceType) {
+              assert(singleElementType is InvalidType);
+              // This class is invalid, but continue reporting other errors on it.
+              // An error on the type will already have been reported.
+              success = false;
+            } else {
+              if (isCompoundSubtype(singleElementType)) {
+                final clazz = singleElementType.classNode;
+                _checkPacking(node, packing, clazz, f);
+              }
+              final dimensions = sizeAnnotations.single;
+              if (arrayDimensions(type) != dimensions.length) {
+                diagnosticReporter.report(
+                    templateFfiSizeAnnotationDimensions
+                        .withArguments(f.name.text),
+                    f.fileOffset,
+                    f.name.text.length,
+                    f.fileUri);
+              }
+              for (var dimension in dimensions) {
+                if (dimension < 0) {
+                  diagnosticReporter.report(messageNonPositiveArrayDimensions,
+                      f.fileOffset, f.name.text.length, f.fileUri);
+                  success = false;
+                }
               }
             }
           } else {
@@ -568,8 +576,15 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         if (sizeAnnotations.length == 1) {
           final arrayDimensions = sizeAnnotations.single;
           if (this.arrayDimensions(dartType) == arrayDimensions.length) {
-            type = NativeTypeCfe(this, dartType,
-                compoundCache: compoundCache, arrayDimensions: arrayDimensions);
+            final elementType = arraySingleElementType(dartType);
+            if (elementType is! InterfaceType) {
+              assert(elementType is InvalidType);
+              type = InvalidNativeTypeCfe("Invalid element type.");
+            } else {
+              type = NativeTypeCfe(this, dartType,
+                  compoundCache: compoundCache,
+                  arrayDimensions: arrayDimensions);
+            }
           } else {
             type = InvalidNativeTypeCfe("Invalid array dimensions.");
           }
