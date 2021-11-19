@@ -35,58 +35,74 @@ part of dart.collection;
 ///
 /// Example:
 /// ```dart
-/// final hashSet = HashSet();
-/// hashSet.addAll({'A', 'B', 'C', 'D'});
-/// hashSet.isEmpty; // false
-/// hashSet.length; // 4
-/// print(hashSet); // {A, D, C, B}
-///
-/// // To check if there is a value item on map, call contains
-/// final bExists = hashSet.contains('B'); // true
-///
-/// // To get element value using index, call elementAt
-/// final elementAt = hashSet.elementAt(1);
-/// print(elementAt); // D
-///
-/// // The forEach iterates through all entries of a set
-/// hashSet.forEach((element) {
+/// final letters = HashSet();
+/// ```
+/// To add data to a set, use  [add] or [addAll].
+/// ```
+/// letters.add('A');
+/// letters.addAll({'B', 'C', 'D'});
+/// ```
+/// To check if the set is empty, use [isEmpty] or [isNotEmpty].
+/// To find the number of set entries, use [length].
+/// ```
+/// print(letters.isEmpty); // false
+/// print(letters.length); // 4
+/// print(letters); // {A, D, C, B}
+/// ```
+/// To check whether the set has an entry with a specific value, use [contains].
+/// ```
+/// final bExists = letters.contains('B'); // true
+/// ```
+/// To get element value using index, use [elementAt].
+/// ```
+/// final elementAt = letters.elementAt(1);
+/// print(elementAt);
+/// ```
+/// The [forEach] iterates through all entries of a set.
+/// ```
+/// letters.forEach((element) {
 ///   print(element);
 ///   // A
 ///   // D
 ///   // C
 ///   // B
 /// });
-///
-/// // To convert set to list, call toList
-/// final toList = hashSet.toList();
+/// ```
+/// To convert set to list, call [toList].
+/// ```
+/// final toList = letters.toList();
 /// print(toList); // [A, D, C, B]
-///
-/// // To make a copy of set, call toSet
-/// final copyOfOriginal = hashSet.toSet();
-/// print(copyOfOriginal); // {A, C, D, B}
-///
-/// // To add item to set, call [add]
-/// final addedValue = hashSet.add('E'); // true
-/// print(hashSet); // {A, D, C, E, B}
-///
-/// // To remove a specific value, call remove
-/// final removedValue = hashSet.remove('A'); // true
-/// print(hashSet); // {D, C, E, B}
-///
-/// // To remove value(s) with a statement, call the removeWhere
-/// hashSet.removeWhere((element) => element.contains('B'));
-/// print(hashSet); // {D, C, E}
-///
-/// // To remove values other than those which match statement
-/// hashSet.retainWhere((element) => element.contains('C'));
-/// print(hashSet); // {C}
-///
-/// // To clean up data, call the clear
-/// hashSet.clear();
-/// print(hashSet); // {}
+/// ```
+/// To make a copy of set, use [toSet].
+/// ```
+/// final anotherSet = letters.toSet();
+/// print(anotherSet); // {A, C, D, B}
+/// ```
+/// To remove an element, use [remove].
+/// ```
+/// final removedValue = letters.remove('A'); // true
+/// print(letters); // {D, C, B}
+/// ```
+/// To remove multiple elements at the same time, use [removeWhere].
+/// ```
+/// letters.removeWhere((element) => element.contains('B'));
+/// print(letters); // {D, C}
+/// ```
+/// To removes all elements in this set that do not meet the condition,
+/// use [retainWhere].
+/// ```
+/// letters.retainWhere((element) => element.contains('C'));
+/// print(letters); // {C}
+/// ```
+/// To remove all elements and empty the set, use [clear].
+/// ```
+/// letters.clear();
+/// print(letters.isEmpty); // true
+/// print(letters); // {}
 /// ```
 /// **See also:**
-/// * [Set] is a base-class for collection of objects.
+/// * [Set] is the general interface of collection where each object can
+/// occur only once.
 /// * [LinkedHashSet] objects stored based on insertion order.
 /// * [SplayTreeSet] the order of the objects can be relative to each other.
 abstract class HashSet<E> implements Set<E> {
@@ -156,9 +172,9 @@ abstract class HashSet<E> implements Set<E> {
   /// ```
   /// Example:
   /// ```dart
-  /// final baseSet = {'A', 'B', 'C'};
-  /// final hashSetFrom = HashSet.from(baseSet);
-  /// print(hashSetFrom); // {A, C, B}
+  /// final numbers = [10, 20, 30];
+  /// final hashSetFrom = HashSet.from(numbers);
+  /// print(hashSetFrom); // {10, 20, 30}
   /// ```
   factory HashSet.from(Iterable<dynamic> elements) {
     HashSet<E> result = HashSet<E>();
@@ -176,8 +192,8 @@ abstract class HashSet<E> implements Set<E> {
   /// the one in the resulting set.
   /// Example:
   /// ```dart
-  /// final baseSet = {'A', 'B', 'C'};
-  /// final hashSetOf = HashSet.of(baseSet);
+  /// final baseSet = <int>{1, 2, 3};
+  /// final hashSetOf = HashSet<num>.of(baseSet);
   /// print(hashSetOf); // {A, C, B}
   /// ```
   factory HashSet.of(Iterable<E> elements) => HashSet<E>()..addAll(elements);
