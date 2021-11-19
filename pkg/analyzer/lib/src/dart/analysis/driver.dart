@@ -1293,6 +1293,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return;
     }
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
+      _lastProducedSignatures.remove(path);
       _priorityResults.clear();
       _removePotentiallyAffectedLibraries(path);
       _fileTracker.removeFile(path);

@@ -4,6 +4,7 @@
 * Deprecated `path` and `uri` from `AnalysisResult`.
 * Deprecated `UriResolver.restoreAbsolute`, use `pathToUri` instead.
 * Deprecated `SourceFactory.restoreAbsolute`, use `pathToUri` instead.
+* Fixed #47715.
 
 ## 2.7.0
 * Updated `ConstructorElement.displayName` to either `Class` or `Class.constructor`.
