@@ -5,6 +5,7 @@
 * Deprecated `UriResolver.restoreAbsolute`, use `pathToUri` instead.
 * Deprecated `SourceFactory.restoreAbsolute`, use `pathToUri` instead.
 * Deprecated `UriKind` and `Source.uriKind`.
+* Deprecated `Source.modificationStamp`.
 * Fixed #47715.
 
 ## 2.7.0

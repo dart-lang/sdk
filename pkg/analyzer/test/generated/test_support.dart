@@ -471,6 +471,7 @@ class TestSource extends Source {
     return false;
   }
 
+  @Deprecated('Not used anymore')
   @override
   int get modificationStamp =>
       generateExceptionOnRead ? -1 : _modificationStamp;

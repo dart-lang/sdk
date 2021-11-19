@@ -106,6 +106,7 @@ class NonExistingSource extends Source {
   @override
   bool get isInSystemLibrary => false;
 
+  @Deprecated('Not used anymore')
   @override
   int get modificationStamp => -1;
 
@@ -204,6 +205,7 @@ abstract class Source {
   /// Clients should consider using the method
   /// [AnalysisContext.getModificationStamp] because contexts can have local
   /// overrides of the content of a source that the source is not aware of.
+  @Deprecated('Not used anymore')
   int get modificationStamp;
 
   /// Return a short version of the name that can be displayed to the user to

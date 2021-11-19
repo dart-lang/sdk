@@ -72,6 +72,7 @@ class InSummarySource extends BasicSource {
   @override
   TimestampedData<String> get contents => TimestampedData<String>(0, '');
 
+  @Deprecated('Not used anymore')
   @override
   int get modificationStamp => 0;
 

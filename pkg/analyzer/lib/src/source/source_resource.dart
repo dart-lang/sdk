@@ -65,7 +65,7 @@ class FileSource extends Source {
   /// See [contents].
   TimestampedData<String> get contentsFromFile {
     return TimestampedData<String>(
-        modificationStamp, fileReadMode(file.readAsStringSync()));
+        file.modificationStamp, fileReadMode(file.readAsStringSync()));
   }
 
   @Deprecated('Not used anymore')
@@ -81,6 +81,7 @@ class FileSource extends Source {
   @override
   bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;
 
+  @Deprecated('Not used anymore')
   @override
   int get modificationStamp {
     try {

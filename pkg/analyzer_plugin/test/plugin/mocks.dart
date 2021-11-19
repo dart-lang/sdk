@@ -169,6 +169,7 @@ class MockSource implements Source {
   @override
   bool get isInSystemLibrary => false;
 
+  @Deprecated('Not used anymore')
   @override
   int get modificationStamp => 0;
 
