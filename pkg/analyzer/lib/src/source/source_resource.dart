@@ -78,6 +78,7 @@ class FileSource extends Source {
   @override
   int get hashCode => uri.hashCode;
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;
 

@@ -260,7 +260,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
         _duplicateDefinitionVerifier =
             DuplicateDefinitionVerifier(_currentLibrary, errorReporter) {
-    _isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
+    _isInSystemLibrary = _currentLibrary.source.uri.isScheme('dart');
     _isInCatchClause = false;
     _isInStaticVariableDeclaration = false;
     _isInConstructorInitializer = false;
@@ -2506,7 +2506,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     // The SDK implementation may implement disallowed types. For example,
     // JSNumber in dart2js and _Smi in Dart VM both implement int.
-    if (_currentLibrary.source.isInSystemLibrary) {
+    if (_currentLibrary.source.uri.isScheme('dart')) {
       return false;
     }
     var type = namedType.type;

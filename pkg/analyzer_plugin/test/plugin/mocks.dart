@@ -166,6 +166,7 @@ class MockSource implements Source {
   @override
   String get fullName => '/pkg/lib/test.dart';
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary => false;
 

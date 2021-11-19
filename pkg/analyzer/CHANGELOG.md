@@ -6,6 +6,7 @@
 * Deprecated `SourceFactory.restoreAbsolute`, use `pathToUri` instead.
 * Deprecated `UriKind` and `Source.uriKind`.
 * Deprecated `Source.modificationStamp`.
+* Deprecated `Source.isInSystemLibrary`, use `uri.isScheme('dart')` instead.
 * Fixed #47715.
 
 ## 2.7.0

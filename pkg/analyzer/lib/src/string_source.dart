@@ -36,6 +36,7 @@ class StringSource extends Source {
   @override
   int get hashCode => _contents.hashCode ^ fullName.hashCode;
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary => false;
 

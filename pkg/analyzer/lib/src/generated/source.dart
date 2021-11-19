@@ -29,6 +29,7 @@ abstract class BasicSource extends Source {
   @override
   int get hashCode => uri.hashCode;
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary => uri.scheme == 'dart';
 
@@ -103,6 +104,7 @@ class NonExistingSource extends Source {
   @override
   int get hashCode => fullName.hashCode;
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary => false;
 
@@ -192,6 +194,7 @@ abstract class Source {
   /// Return `true` if this source is in one of the system libraries.
   ///
   /// @return `true` if this is in a system library
+  @Deprecated('Use uri.isScheme("dart") instead')
   bool get isInSystemLibrary;
 
   /// Return the modification stamp for this source, or a negative value if the

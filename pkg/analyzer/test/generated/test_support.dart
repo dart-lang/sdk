@@ -466,6 +466,7 @@ class TestSource extends Source {
   @override
   int get hashCode => 0;
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary {
     return false;
