@@ -2922,6 +2922,24 @@ var b = new B();
     expect(result.unit, isNotNull);
   }
 
+  test_removeFile_addFile_results() async {
+    var a = convertPath('/test/lib/a.dart');
+    newFile(a, content: 'class A {}');
+
+    driver.addFile(a);
+
+    await waitForIdleWithoutExceptions();
+    expect(allResults.map((e) => e.path).toSet(), {a});
+    allResults.clear();
+
+    driver.removeFile(a);
+    driver.addFile(a);
+
+    // a.dart should be produced again
+    await waitForIdleWithoutExceptions();
+    expect(allResults.map((e) => e.path).toSet(), {a});
+  }
+
   test_removeFile_changeFile_implicitlyAnalyzed() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
