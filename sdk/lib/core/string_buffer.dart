@@ -13,42 +13,52 @@ part of dart.core;
 /// Example:
 /// ```dart
 /// final buffer = StringBuffer();
-/// // Add string to buffer
+/// ```
+/// To add string to buffer, call [write].
+/// ```
 /// buffer.write('Dart'.toUpperCase());
-///
-/// // Add linebreak
+/// buffer.write(' is open source');
+/// print(buffer.length); // 19
+/// print(buffer); // DART is open source
+/// ```
+/// To add linebreak to buffer, call [writeln].
+/// ```
 /// buffer.writeln();
-///
-/// // Write multiple strings in iteration order with custom separator
+/// ```
+/// To write multiple stings to buffer, call [writeAll].
+/// ```
 /// const separator = '-';
 /// buffer.writeAll(['Dart', 'is', 'fun!'], separator);
-///
-/// // Add linebreak
-/// buffer.writeln();
-///
-/// // Add string using char codes
-/// buffer.writeCharCode(68); // D
-/// buffer.writeCharCode(97); // a
-/// buffer.writeCharCode(114); // r
-/// buffer.writeCharCode(116); // t
-///
-/// // Add string
-/// buffer.write(' is open source');
-/// // Check buffer current length
-/// print(buffer.length); // 37
-///
-/// // Get buffer content as single String
-/// final fromBuffer = buffer.toString();
-/// print(fromBuffer);
-/// // Dart
+/// print(buffer.length); // 32
+/// print(buffer);
+/// // DART is open source
 /// // Dart-is-fun!
-/// // Dart is open source
-///
-/// // Clear the buffer
+/// ```
+/// To add the string representation of `charCode` to the buffer,
+/// call [writeCharCode].
+/// ```
+/// buffer.writeCharCode(0x0A); // LF (line feed)
+/// buffer.writeCharCode(0x44); // 'D'
+/// buffer.writeCharCode(0x61); // 'a'
+/// buffer.writeCharCode(0x72); // 'r'
+/// buffer.writeCharCode(0x74); // 't'
+/// ```
+/// To get buffer content as single string, call [toString].
+/// ```
+/// final text = buffer.toString();
+/// print(text);
+/// // DART is open source
+/// // Dart-is-fun!
+/// // Dart
+/// ```
+/// To clear the buffer, call [clear]
+/// ```
 /// buffer.clear();
+/// print(buffer.isEmpty); // true
+/// print(buffer.length); // 0
 /// ```
 class StringBuffer implements StringSink {
-  /// Creates the string buffer with an initial content.
+  /// Creates the string buffer with initial content.
   external StringBuffer([Object content = ""]);
 
   /// Returns the length of the content that has been accumulated so far.
