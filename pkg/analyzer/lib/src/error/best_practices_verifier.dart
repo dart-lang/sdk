@@ -42,7 +42,7 @@ import 'package:meta/meta_meta.dart';
 /// Instances of the class `BestPracticesVerifier` traverse an AST structure
 /// looking for violations of Dart best practices.
 class BestPracticesVerifier extends RecursiveAstVisitor<void> {
-  static const String _TO_INT_METHOD_NAME = "toInt";
+  static const String toIntMethodName = "toInt";
 
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
@@ -81,7 +81,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   final WorkspacePackage? _workspacePackage;
 
   /// The [LinterContext] used for possible const calculations.
-  late final LinterContext _linterContext;
+  final LinterContext _linterContext;
 
   /// Is `true` if the library being analyzed is non-nullable by default.
   final bool _isNonNullableByDefault;
@@ -89,9 +89,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// True if inference failures should be reported, otherwise false.
   final bool _strictInference;
 
-  /// Create a new instance of the [BestPracticesVerifier].
-  ///
-  /// @param errorReporter the error reporter
+  /// Whether [_currentLibrary] is part of its containing package's public API.
+  late final bool _inPublicPackageApi = _workspacePackage != null &&
+      _workspacePackage!.sourceIsInPublicApi(_currentLibrary.source);
+
   BestPracticesVerifier(
     this._errorReporter,
     TypeProviderImpl typeProvider,
@@ -117,26 +118,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _errorHandlerVerifier =
             ErrorHandlerVerifier(_errorReporter, typeProvider, typeSystem),
         _nullSafeApiVerifier = NullSafeApiVerifier(_errorReporter, typeSystem),
-        _workspacePackage = workspacePackage {
+        _workspacePackage = workspacePackage,
+        _linterContext = LinterContextImpl(
+          [],
+          LinterContextUnit(content, unit),
+          declaredVariables,
+          typeProvider,
+          typeSystem,
+          inheritanceManager,
+          analysisOptions,
+          workspacePackage,
+        ) {
     _deprecatedVerifier.pushInDeprecatedValue(_currentLibrary.hasDeprecated);
     _inDoNotStoreMember = _currentLibrary.hasDoNotStore;
-
-    _linterContext = LinterContextImpl(
-      [],
-      LinterContextUnit(content, unit),
-      declaredVariables,
-      typeProvider,
-      _typeSystem,
-      _inheritanceManager,
-      analysisOptions,
-      _workspacePackage,
-    );
     _invalidAccessVerifier._inTestDirectory = _linterContext.inTestDir(unit);
-  }
-
-  bool get _inPublicPackageApi {
-    return _workspacePackage != null &&
-        _workspacePackage!.sourceIsInPublicApi(_currentLibrary.source);
   }
 
   @override
@@ -403,7 +398,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredElement as ConstructorElementImpl;
-    if (!_isNonNullableByDefault && node.declaredElement!.isFactory) {
+    if (!_isNonNullableByDefault && element.isFactory) {
       if (node.body is BlockFunctionBody) {
         // Check the block for a return statement, if not, create the hint.
         if (!ExitDetector.exits(node.body)) {
@@ -904,7 +899,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           _wrapParenthesizedExpression(parent);
       var grandParent = parenthesizedExpression.parent;
       if (grandParent is MethodInvocation) {
-        if (_TO_INT_METHOD_NAME == grandParent.methodName.name &&
+        if (toIntMethodName == grandParent.methodName.name &&
             grandParent.argumentList.arguments.isEmpty) {
           _errorReporter.reportErrorForNode(
               HintCode.DIVISION_OPTIMIZATION, grandParent);
@@ -984,8 +979,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    /// Return `true` if the given class [element] defines a non-final instance
-    /// field.
     Iterable<String> nonFinalInstanceFields(ClassElement element) {
       return element.fields
           .where((FieldElement field) =>
@@ -993,8 +986,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           .map((FieldElement field) => '${element.name}.${field.name}');
     }
 
-    /// Return `true` if the given class [element] defines or inherits a
-    /// non-final field.
     Iterable<String> definedOrInheritedNonFinalInstanceFields(
         ClassElement element, HashSet<ClassElement> visited) {
       Iterable<String> nonFinalFields = [];
@@ -1808,16 +1799,15 @@ class _InvalidAccessVerifier {
   final LibraryElement _library;
   final WorkspacePackage? _workspacePackage;
 
-  late final bool _inTemplateSource;
+  final bool _inTemplateSource;
   late final bool _inTestDirectory;
 
   ClassElement? _enclosingClass;
 
   _InvalidAccessVerifier(
-      this._errorReporter, this._library, this._workspacePackage) {
-    var path = _library.source.fullName;
-    _inTemplateSource = path.contains(_templateExtension);
-  }
+      this._errorReporter, this._library, this._workspacePackage)
+      : _inTemplateSource =
+            _library.source.fullName.contains(_templateExtension);
 
   /// Produces a hint if [identifier] is accessed from an invalid location.
   ///
