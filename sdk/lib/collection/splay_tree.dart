@@ -312,61 +312,81 @@ Comparator<K> _defaultCompare<K>() {
 /// value is a [K].
 ///
 /// **Notice:**
-/// It is generally not allowed to modify the map (add or remove keys) while
-/// an operation is being performed on the map, for example in functions called
-/// during a [forEach] or [putIfAbsent] call.
-/// Modifying the map while iterating the keys or values
-/// may also break the iteration.
+/// Do not modify a map (add or remove keys) while an operation
+/// is being performed on that map, for example in functions
+/// called during a [forEach] or [putIfAbsent] call,
+/// or while iterating the map ([keys], [values] or [entries]).
 ///
 /// Example:
 /// ```dart
 /// final mass = SplayTreeMap();
-/// mass.addAll({ 0.06: 'Mercury', 0.81: 'Venus', 1: 'Earth', 0.11: 'Mars',
-///   317.83: 'Jupiter'});
-/// final isEmpty = mass.isEmpty; // false
-/// final length = mass.length; // 5
-///
-/// // The forEach iterates through all entries of a map.
+/// ```
+/// To add data to a map, use [operator[]=], [addAll] or [addEntries].
+/// ```
+/// mass[0.06] = 'Mercury';
+/// mass.addAll({0.81: 'Venus', 1.0: 'Earth', 0.11: 'Mars', 317.83: 'Jupiter'});
+/// ```
+/// To check if the map is empty, use [isEmpty] or [isNotEmpty].
+/// To find the number of map entries, use [length].
+/// ```
+/// print(mass.isEmpty); // false
+/// print(mass.length); // 5
+/// ```
+/// The [forEach] iterates through all entries of a map.
+/// ```
 /// mass.forEach((key, value) {
-///   print('key: $key value: $value');
-///   // key: 0.06 value: Mercury
-///   // key: 0.11 value: Mars
-///   // key: 0.81 value: Venus
-///   // key: 1 value: Earth
-///   // key: 317.83 value: Jupiter
+/// print('$key \t $value');
+///   // 0.06    Mercury
+///   // 0.11    Mars
+///   // 0.81    Venus
+///   // 1.0     Earth
+///   // 317.83  Jupiter
 /// });
-///
-/// // To check is there a defined key, call containsKey
-/// final keyOneExists = mass.containsKey(1); // true
+/// ```
+/// To check whether the map has an entry with a specific key, use [containsKey].
+/// ```
+/// final keyOneExists = mass.containsKey(1.0); // true
 /// final keyFiveExists = mass.containsKey(5); // false
-///
-/// // To check is there a value item on map, call containsValue
+/// ```
+/// To check whether the map has an entry with a specific value,
+/// use [containsValue].
+/// ```
 /// final earthExists = mass.containsValue('Earth'); // true
 /// final plutoExists = mass.containsValue('Pluto'); // false
-///
-/// // To remove specific key-pair using key, call remove
-/// final removedValue = mass.remove(1);
+/// ```
+/// To remove an entry with a specific key, use [remove].
+/// ```
+/// final removedValue = mass.remove(1.0);
 /// print(removedValue); // Earth
-///
-/// // To remove item(s) with a statement, call removeWhere
+/// ```
+/// To remove multiple entries at the same time, based on their keys and values,
+/// use [removeWhere].
+/// ```
 /// mass.removeWhere((key, value) => key <= 1);
 /// print(mass); // {317.83: Jupiter}
-///
-/// // To update or insert (adding new key-value pair if not exists) value,
-/// // call update method with ifAbsent statement or call putIfAbsent
+/// ```
+/// To conditionally add or modify a value for a specific key, depending on
+/// whether there already is an entry with that key,
+/// use [putIfAbsent] or [update].
+/// ```
 /// mass.update(1, (v) => '', ifAbsent: () => 'Earth');
+/// mass.putIfAbsent(317.83, () => 'Another Jupiter');
 /// print(mass); // {1: Earth, 317.83: Jupiter}
-///
-/// // To update all items, call updateAll
-/// mass.updateAll((key,value) => null);
+/// ```
+/// To update the values of all keys, based on the existing key and value,
+/// use [updateAll].
+/// ```
+/// mass.updateAll((key, value) => null);
 /// print(mass); // {1: null, 317.83: null}
-///
-/// // To clean up data, call clear
+/// ```
+/// To remove all entries and empty the map, use [clear].
+/// ```
 /// mass.clear();
+/// print(mass.isEmpty); // false
 /// print(mass); // {}
 /// ```
 /// **See also:**
-/// * [Map] a base-class for key/value pair collection.
+/// * [Map], the general interface of key/value pair collections.
 /// * [HashMap] is unordered (the order of iteration is not guaranteed).
 /// * [LinkedHashMap] iterates in key insertion order.
 class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
@@ -388,8 +408,8 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   /// The [other] map itself can have any type.
   /// Example:
   /// ```dart
-  /// final baseMap = {1: 'A', 2: 'B', 3: 'C'};
-  /// final fromBaseMap = SplayTreeMap.from(baseMap);
+  /// final baseMap = <int, Object>{1: 'A', 2: 'B', 3: 'C'};
+  /// final fromBaseMap = SplayTreeMap<int, String>.from(baseMap);
   /// print(fromBaseMap); // {1: A, 2: B, 3: C}
   /// ```
   factory SplayTreeMap.from(Map<dynamic, dynamic> other,
@@ -408,9 +428,9 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   /// Creates a [SplayTreeMap] that contains all key/value pairs of [other].
   /// Example:
   /// ```dart
-  /// final baseMap = {3: 'A', 2: 'B', 1: 'C', 4: 'D'};
-  /// final mapOf = SplayTreeMap.of(baseMap);
-  /// print(mapOf); // {1: C, 2: B, 3: A, 4: D}
+  /// final baseMap = <int, String>{3: 'A', 2: 'B', 1: 'C', 4: 'D'};
+  /// final mapOf = SplayTreeMap<num, Object>.of(baseMap);
+  /// print(mapOf);
   /// ```
   factory SplayTreeMap.of(Map<K, V> other,
           [int Function(K key1, K key2)? compare,
@@ -430,9 +450,9 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   /// use the iterable value itself.
   /// Example:
   /// ```dart
-  /// final keyList = [11, 12, 13, 14];
+  /// final numbers = [11, 12, 13, 14];
   /// final mapFromIterable =
-  ///   SplayTreeMap.fromIterable(keyList, key: (i) => i, value: (i) => i * i);
+  ///   SplayTreeMap.fromIterable(numbers, key: (i) => i, value: (i) => i * i);
   /// print(mapFromIterable); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
   factory SplayTreeMap.fromIterable(Iterable iterable,
@@ -871,54 +891,69 @@ class _SplayTreeMapEntryIterator<K, V>
 /// Example:
 /// ```dart
 /// final planets = SplayTreeSet();
+/// ```
+/// To add data to a set, use [add] or [addAll].
+/// ```
+/// planets.add('Neptune');
 /// planets.addAll({'Venus', 'Mars', 'Earth', 'Jupiter'});
+/// print(planets); // {Earth, Jupiter, Mars, Neptune, Venus}
+/// ```
+/// To check if the set is empty, use [isEmpty] or [isNotEmpty].
+/// To find the number of set entries, use [length].
+/// ```
 /// final isEmpty = planets.isEmpty; // false
-/// final length = planets.length; // 4
-/// print(planets); // {Earth, Jupiter, Mars, Venus}
-///
-/// // To check if there is a value item on map, call contains
+/// final length = planets.length; // 5
+/// ```
+/// To check whether the set has an entry with a specific value, use [contains].
+/// ```
 /// final marsExists = planets.contains('Mars'); // true
-///
-/// // To get element value using index, call elementAt
+/// ```
+/// To get element value using index, use [elementAt].
+/// ```
 /// final elementAt = planets.elementAt(1);
 /// print(elementAt); // Jupiter
-///
-/// // The forEach iterates through all entries of a set.
+/// ```
+/// The [forEach] iterates through all entries of a set.
+/// ```
 /// planets.forEach((element) {
 ///   print(element);
+///   // Jupiter
 ///   // Earth
 ///   // Jupiter
 ///   // Mars
 ///   // Venus
 /// });
-///
-/// // To convert set to list, call toList
-/// final toList = planets.toList();
-/// print(toList); // [Earth, Jupiter, Mars, Venus]
-///
-/// // To make a copy of set, call toSet
-/// final copyOfOriginal = planets.toSet();
-/// print(copyOfOriginal); // {Earth, Jupiter, Mars, Venus}
-///
-/// // To remove item from set, call remove
+/// ```
+/// To convert set to list, call [toList].
+/// ```
+/// final planetsList = planets.toList();
+/// print(planetsList); // [Earth, Jupiter, Mars, Neptune, Venus]
+/// ```
+/// To make a copy of set, use [toSet].
+/// ```
+/// final copySet = planets.toSet();
+/// print(copySet); // {Earth, Jupiter, Mars, Neptune, Venus}
+/// ```
+/// To remove an element, use [remove].
+/// ```
 /// final removedValue = planets.remove('Mars'); // true
-/// print(planets); // {Earth, Jupiter, Venus}
-///
-/// // To add item to set, call add
-/// final addedValue = planets.add('Neptune'); // true
 /// print(planets); // {Earth, Jupiter, Neptune, Venus}
-///
-/// // To remove value(s) with a statement, call removeWhere
+/// ```
+/// To remove multiple elements at the same time, use [removeWhere].
+/// ```
 /// planets.removeWhere((element) => element.contains('Jupiter'));
 /// print(planets); // {Earth, Neptune, Venus}
-///
-/// // To remove values other than those which match statement,
-/// // call retainWhere
+/// ```
+/// To removes all elements in this set that do not meet the condition,
+/// use [retainWhere].
+/// ```
 /// planets.retainWhere((element) => element.contains('Earth'));
 /// print(planets); // {Earth}
-///
-/// // To clean up data, call clear
+/// ```
+/// To remove all elements and empty the set, use [clear].
+/// ```
 /// planets.clear();
+/// print(planets.isEmpty); // true
 /// print(planets); // {}
 /// ```
 /// **See also:**
@@ -975,10 +1010,9 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
   /// ```
   /// Example:
   /// ```dart
-  /// final baseSet = SplayTreeSet();
-  /// baseSet.addAll({'C', 'B', 'A'});
-  /// final setFrom = SplayTreeSet.from(baseSet);
-  /// print(setFrom); // {A, B, C}
+  /// final numbers = [20, 30, 10];
+  /// final setFrom = SplayTreeSet.from(numbers);
+  /// print(setFrom); // {10, 20, 30}
   /// ```
   factory SplayTreeSet.from(Iterable elements,
       [int Function(E key1, E key2)? compare,
@@ -1000,10 +1034,9 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
   /// All the [elements] should be valid as arguments to the [compare] function.
   /// Example:
   /// ```dart
-  /// final baseSet = SplayTreeSet();
-  /// baseSet.addAll({'C', 'B', 'A'});
+  /// final baseSet = <int>{1, 2, 3};
   /// final setOf = SplayTreeSet.of(baseSet);
-  /// print(setOf); // {A, B, C}
+  /// print(setOf); // {1, 2, 3}
   /// ```
   factory SplayTreeSet.of(Iterable<E> elements,
           [int Function(E key1, E key2)? compare,
