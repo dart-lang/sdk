@@ -12,7 +12,7 @@ part of dart.core;
 ///
 /// Durations are context independent. For example, a duration of 2 days is
 /// always 48 hours, even when it is added to a `DateTime` just when the
-/// time zone is about to do a daylight-savings switch. (See [DateTime.add]).
+/// time zone is about to make a daylight-savings switch. (See [DateTime.add]).
 ///
 /// Despite the same name, a `Duration` object does not implement "Durations"
 /// as specified by ISO 8601. In particular, a duration object does not keep
@@ -61,15 +61,15 @@ part of dart.core;
 /// final maxGameTime = firstHalf + secondHalf + overTime;
 /// print(maxGameTime.inMinutes); // 120
 ///
-/// // Equal durations, returns 0
+/// // Equal durations, returns 0.
 /// var result = firstHalf.compareTo(secondHalf);
 /// print(result); // 0
 ///
-/// // Duration of overTime is shorter, returns -1
+/// // Duration of overTime is shorter, returns -1.
 /// result = overTime.compareTo(firstHalf);
 /// print(result); // -1
 ///
-/// // Duration of secondHalf is longer, returns 1
+/// // Duration of secondHalf is longer, returns 1.
 /// result = secondHalf.compareTo(overTime);
 /// print(result); // 1
 /// ```
@@ -228,7 +228,7 @@ class Duration implements Comparable<Duration> {
 
   /// The number of entire days spanned by this [Duration].
   ///
-  /// For example a duration of four days and three hours
+  /// For example, a duration of four days and three hours
   /// has 4 entire days.
   /// ```dart
   /// const duration = Duration(days: 4, hours: 3);
@@ -239,7 +239,7 @@ class Duration implements Comparable<Duration> {
   /// The number of entire hours spanned by this [Duration].
   ///
   /// The returned value can be greater than 23.
-  /// For example a duration of four days and three hours
+  /// For example, a duration of four days and three hours
   /// has 99 entire hours.
   /// ```dart
   /// const duration = Duration(days: 4, hours: 3);
@@ -250,7 +250,7 @@ class Duration implements Comparable<Duration> {
   /// The number of whole minutes spanned by this [Duration].
   ///
   /// The returned value can be greater than 59.
-  /// For example a duration of three hours and 12 minutes
+  /// For example, a duration of three hours and 12 minutes
   /// has 192 minutes.
   /// ```dart
   /// const duration = Duration(hours: 3, minutes: 12);
@@ -261,7 +261,7 @@ class Duration implements Comparable<Duration> {
   /// The number of whole seconds spanned by this [Duration].
   ///
   /// The returned value can be greater than 59.
-  /// For example a duration of three minutes and 12 seconds
+  /// For example, a duration of three minutes and 12 seconds
   /// has 192 seconds.
   /// ```dart
   /// const duration = Duration(minutes: 3, seconds: 12);
@@ -272,7 +272,7 @@ class Duration implements Comparable<Duration> {
   /// The number of whole milliseconds spanned by this [Duration].
   ///
   /// The returned value can be greater than 999.
-  /// For example a duration of three seconds and 125 milliseconds
+  /// For example, a duration of three seconds and 125 milliseconds
   /// has 3125 milliseconds.
   /// ```dart
   /// const duration = Duration(seconds: 3, milliseconds: 125);
@@ -283,7 +283,7 @@ class Duration implements Comparable<Duration> {
   /// The number of whole microseconds spanned by this [Duration].
   ///
   /// The returned value can be greater than 999999.
-  /// For example a duration of three seconds, 125 milliseconds and
+  /// For example, a duration of three seconds, 125 milliseconds and
   /// 369 microseconds has 3125369 microseconds.
   /// ```dart
   /// const duration = Duration(seconds: 3, milliseconds: 125,
