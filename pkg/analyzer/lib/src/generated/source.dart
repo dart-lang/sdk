@@ -6,7 +6,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-import 'package:analyzer/src/task/api/model.dart';
 import 'package:path/path.dart' as pathos;
 
 export 'package:analyzer/source/line_info.dart' show LineInfo;
@@ -153,7 +152,7 @@ class NonExistingSource extends Source {
 /// represent non-existent files must also be retained so that if those files
 /// are created at a later date the long-lived sources representing those files
 /// will know that they now exist.
-abstract class Source implements AnalysisTarget {
+abstract class Source {
   /// Get the contents and timestamp of this source.
   ///
   /// Clients should consider using the method [AnalysisContext.getContents]
@@ -191,9 +190,6 @@ abstract class Source implements AnalysisTarget {
   /// @return `true` if this is in a system library
   bool get isInSystemLibrary;
 
-  @override
-  Source get librarySource => throw UnimplementedError();
-
   /// Return the modification stamp for this source, or a negative value if the
   /// source does not exist. A modification stamp is a non-negative integer with
   /// the property that if the contents of the source have not been modified
@@ -213,9 +209,6 @@ abstract class Source implements AnalysisTarget {
   ///
   /// @return a name that can be displayed to the user to denote this source
   String get shortName;
-
-  @override
-  Source get source => this;
 
   /// Return the URI from which this source was originally derived.
   ///
