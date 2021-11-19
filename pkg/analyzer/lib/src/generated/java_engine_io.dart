@@ -4,14 +4,6 @@
 
 import "dart:io";
 
-import "package:analyzer/src/generated/java_io.dart";
-
-class FileUtilities2 {
-  static JavaFile createFile(String path) {
-    return JavaFile(path).getAbsoluteFile();
-  }
-}
-
 class OSUtilities {
   static String LINE_SEPARATOR = isWindows() ? '\r\n' : '\n';
   static bool isMac() => Platform.operatingSystem == 'macos';
