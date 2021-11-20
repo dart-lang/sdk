@@ -18,15 +18,10 @@ void main() {
 
 @reflectiveTest
 class OptionsTest {
-  _Runner runner;
-
-  void setUp() {
-    runner = _Runner.setUp();
-  }
+  final _Runner runner = _Runner.setUp();
 
   void tearDown() {
     runner.tearDown();
-    runner = null;
   }
 
   Future<void> test_options() async {

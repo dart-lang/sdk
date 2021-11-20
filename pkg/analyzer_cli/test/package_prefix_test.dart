@@ -13,7 +13,7 @@ import 'utils.dart' show testDirectory;
 
 void main() {
   group('--x-package-warnings-prefix', () {
-    _Runner runner;
+    late _Runner runner;
 
     setUp(() {
       runner = _Runner.setUp();
@@ -21,7 +21,6 @@ void main() {
 
     tearDown(() {
       runner.tearDown();
-      runner = null;
     });
 
     test('shows only the hint whose package matches the prefix', () async {

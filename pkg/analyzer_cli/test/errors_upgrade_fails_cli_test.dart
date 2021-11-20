@@ -18,9 +18,9 @@ void main() {
 
 @reflectiveTest
 class ErrorUpgradeFailsCli {
-  StringSink savedOutSink, savedErrorSink;
-  int savedExitCode;
-  ExitHandler savedExitHandler;
+  late StringSink savedOutSink, savedErrorSink;
+  late int savedExitCode;
+  late ExitHandler savedExitHandler;
 
   void setUp() {
     savedOutSink = outSink;

@@ -63,12 +63,12 @@ Stopwatch scanTimer = Stopwatch();
 int scanTotalChars = 0;
 
 /// Factory to load and resolve app, packages, and sdk sources.
-SourceFactory sources;
+late SourceFactory sources;
 
 /// Add to [files] all sources reachable from [start].
-void collectSources(Source start, Set<Source> files) {
+void collectSources(Source? start, Set<Source?> files) {
   if (!files.add(start)) return;
-  var unit = parseDirectives(start);
+  var unit = parseDirectives(start!);
   for (var directive in unit.directives) {
     if (directive is UriBasedDirective) {
       var next = sources.resolveUri(start, directive.uri.stringValue);
@@ -89,7 +89,7 @@ CompilationUnit parseDirectives(Source source) {
 }
 
 /// Parses every file in [files] and reports the time spent doing so.
-void parseFiles(Set<Source> files) {
+void parseFiles(Set<Source?> files) {
   // The code below will record again how many chars are scanned and how long it
   // takes to scan them, even though we already did so in [scanReachableFiles].
   // Recording and reporting this twice is unnecessary, but we do so for now to
@@ -99,7 +99,7 @@ void parseFiles(Set<Source> files) {
   scanTotalChars = 0;
   var parseTimer = Stopwatch()..start();
   for (var source in files) {
-    parseFull(source);
+    parseFull(source!);
   }
   parseTimer.stop();
 
@@ -132,7 +132,7 @@ void report(String name, int time) {
 }
 
 /// Scans every file in [files] and reports the time spent doing so.
-void scanFiles(Set<Source> files) {
+void scanFiles(Set<Source?> files) {
   // The code below will record again how many chars are scanned and how long it
   // takes to scan them, even though we already did so in [scanReachableFiles].
   // Recording and reporting this twice is unnecessary, but we do so for now to
@@ -141,7 +141,7 @@ void scanFiles(Set<Source> files) {
   var old = scanTotalChars;
   scanTotalChars = 0;
   for (var source in files) {
-    tokenize(source);
+    tokenize(source!);
   }
 
   // Report size and scanning time again. See discussion above.
@@ -151,8 +151,8 @@ void scanFiles(Set<Source> files) {
 
 /// Load and scans all files we need to process: files reachable from the
 /// entrypoint and all core libraries automatically included by the VM.
-Set<Source> scanReachableFiles(Uri entryUri) {
-  var files = <Source>{};
+Set<Source?> scanReachableFiles(Uri entryUri) {
+  var files = <Source?>{};
   var loadTimer = Stopwatch()..start();
   collectSources(sources.forUri2(entryUri), files);
 
