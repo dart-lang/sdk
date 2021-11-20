@@ -35,6 +35,8 @@ ExitHandler exitHandler = io.exit;
 
 T cast<T>(dynamic value) => value as T;
 
+T? castNullable<T>(dynamic value) => value as T?;
+
 /// Print the given [message] to stderr and exit with the given [exitCode].
 void printAndFail(String message, {int exitCode = 15}) {
   errorSink.writeln(message);
@@ -53,18 +55,18 @@ class CommandLineOptions {
   /// The file path of the analysis options file that should be used in place of
   /// any file in the root directory or a parent of the root directory,
   /// or `null` if the normal lookup mechanism should be used.
-  String defaultAnalysisOptionsPath;
+  String? defaultAnalysisOptionsPath;
 
   /// The file path of the .packages file that should be used in place of any
   /// file found using the normal (Package Specification DEP) lookup mechanism,
   /// or `null` if the normal lookup mechanism should be used.
-  String defaultPackagesPath;
+  String? defaultPackagesPath;
 
   /// A table mapping variable names to values for the declared variables.
   final Map<String, String> declaredVariables = {};
 
   /// The path to the dart SDK.
-  String dartSdkPath;
+  String? dartSdkPath;
 
   /// Whether to disable cache flushing. This option can improve analysis
   /// speed at the expense of memory usage. It may also be useful for working
@@ -91,7 +93,7 @@ class CommandLineOptions {
 
   /// The path to a file to write a performance log.
   /// (Or null if not enabled.)
-  final String perfReport;
+  final String? perfReport;
 
   /// Batch mode (for unit testing)
   final bool batchMode;
@@ -100,7 +102,7 @@ class CommandLineOptions {
   final bool showPackageWarnings;
 
   /// If not null, show package: warnings only for matching packages.
-  final String showPackageWarningsPrefix;
+  final String? showPackageWarningsPrefix;
 
   /// Whether to show SDK warnings
   final bool showSdkWarnings;
@@ -133,7 +135,7 @@ class CommandLineOptions {
     ResourceProvider resourceProvider,
     ArgResults args,
   )   : _argResults = args,
-        dartSdkPath = cast(args[_sdkPathOption]),
+        dartSdkPath = castNullable(args[_sdkPathOption]),
         disableCacheFlushing = cast(args['disable-cache-flushing']),
         disableHints = cast(args['no-hints']),
         displayVersion = cast(args['version']),
@@ -141,12 +143,13 @@ class CommandLineOptions {
         log = cast(args['log']),
         jsonFormat = args['format'] == 'json',
         machineFormat = args['format'] == 'machine',
-        perfReport = cast(args['x-perf-report']),
+        perfReport = castNullable(args['x-perf-report']),
         batchMode = cast(args['batch']),
         showPackageWarnings = cast(args['show-package-warnings']) ||
             cast(args['package-warnings']) ||
             args['x-package-warnings-prefix'] != null,
-        showPackageWarningsPrefix = cast(args['x-package-warnings-prefix']),
+        showPackageWarningsPrefix =
+            castNullable(args['x-package-warnings-prefix']),
         showSdkWarnings = cast(args['sdk-warnings']),
         sourceFiles = args.rest,
         infosAreFatal = cast(args['fatal-infos']) || cast(args['fatal-hints']),
@@ -160,11 +163,11 @@ class CommandLineOptions {
     //
     defaultAnalysisOptionsPath = _absoluteNormalizedPath(
       resourceProvider,
-      cast(args[_analysisOptionsFileOption]),
+      castNullable(args[_analysisOptionsFileOption]),
     );
     defaultPackagesPath = _absoluteNormalizedPath(
       resourceProvider,
-      cast(args[_packagesOption]),
+      castNullable(args[_packagesOption]),
     );
 
     //
@@ -192,20 +195,20 @@ class CommandLineOptions {
 
   /// The default language version for files that are not in a package.
   /// (Or null if no default language version to force.)
-  String get defaultLanguageVersion {
-    return cast(_argResults[_defaultLanguageVersionOption]);
+  String? get defaultLanguageVersion {
+    return castNullable(_argResults[_defaultLanguageVersionOption]);
   }
 
   /// A list of the names of the experiments that are to be enabled.
-  List<String> get enabledExperiments {
-    return cast(_argResults[_enableExperimentOption]);
+  List<String>? get enabledExperiments {
+    return castNullable(_argResults[_enableExperimentOption]);
   }
 
-  bool get implicitCasts => _argResults[_implicitCastsFlag] as bool;
+  bool? get implicitCasts => _argResults[_implicitCastsFlag] as bool?;
 
-  bool get lints => _argResults[_lintsFlag] as bool;
+  bool? get lints => _argResults[_lintsFlag] as bool?;
 
-  bool get noImplicitDynamic => _argResults[_noImplicitDynamicFlag] as bool;
+  bool? get noImplicitDynamic => _argResults[_noImplicitDynamicFlag] as bool?;
 
   /// Update the [analysisOptions] with flags that the user specified
   /// explicitly. The [analysisOptions] are usually loaded from one of
@@ -222,7 +225,7 @@ class CommandLineOptions {
           .restrictToVersion(nonPackageLanguageVersion);
     }
 
-    var enabledExperiments = this.enabledExperiments;
+    var enabledExperiments = this.enabledExperiments!;
     if (enabledExperiments.isNotEmpty) {
       analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
         sdkLanguageVersion: ExperimentStatus.currentVersion,
@@ -303,7 +306,7 @@ class CommandLineOptions {
   /// Parse [args] into [CommandLineOptions] describing the specified
   /// analyzer options. In case of a format error, calls [printAndFail], which
   /// by default prints an error message to stderr and exits.
-  static CommandLineOptions parse(
+  static CommandLineOptions? parse(
       ResourceProvider resourceProvider, List<String> args,
       {void Function(String msg) printAndFail = printAndFail}) {
     var options = _parse(resourceProvider, args);
@@ -335,9 +338,9 @@ class CommandLineOptions {
     return options;
   }
 
-  static String _absoluteNormalizedPath(
+  static String? _absoluteNormalizedPath(
     ResourceProvider resourceProvider,
-    String path,
+    String? path,
   ) {
     if (path == null) {
       return null;
@@ -425,7 +428,7 @@ class CommandLineOptions {
     }
   }
 
-  static CommandLineOptions _parse(
+  static CommandLineOptions? _parse(
     ResourceProvider resourceProvider,
     List<String> args,
   ) {

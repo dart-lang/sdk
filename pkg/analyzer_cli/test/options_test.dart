@@ -24,11 +24,11 @@ void main() {
       var outStringBuffer = StringBuffer();
       var errorStringBuffer = StringBuffer();
 
-      StringSink savedOutSink, savedErrorSink;
-      int savedExitCode;
-      ExitHandler savedExitHandler;
+      late StringSink savedOutSink, savedErrorSink;
+      late int savedExitCode;
+      late ExitHandler savedExitHandler;
 
-      CommandLineOptions parse(List<String> args,
+      CommandLineOptions? parse(List<String> args,
           {void Function(String msg) printAndFail = printAndFail}) {
         var resourceProvider = PhysicalResourceProvider.INSTANCE;
         return CommandLineOptions.parse(resourceProvider, args,
@@ -53,7 +53,7 @@ void main() {
       });
 
       test('defaults', () {
-        var options = parse(['--dart-sdk', '.', 'foo.dart']);
+        var options = parse(['--dart-sdk', '.', 'foo.dart'])!;
         expect(options, isNotNull);
         expect(options.dartSdkPath, isNotNull);
         expect(options.disableCacheFlushing, isFalse);
@@ -78,19 +78,19 @@ void main() {
       });
 
       test('batch', () {
-        var options = parse(['--dart-sdk', '.', '--batch']);
+        var options = parse(['--dart-sdk', '.', '--batch'])!;
         expect(options.batchMode, isTrue);
       });
 
       test('defined variables', () {
-        var options = parse(['--dart-sdk', '.', '-Dfoo=bar', 'foo.dart']);
+        var options = parse(['--dart-sdk', '.', '-Dfoo=bar', 'foo.dart'])!;
         expect(options.declaredVariables['foo'], equals('bar'));
         expect(options.declaredVariables['bar'], isNull);
       });
 
       test('disable cache flushing', () {
         var options =
-            parse(['--dart-sdk', '.', '--disable-cache-flushing', 'foo.dart']);
+            parse(['--dart-sdk', '.', '--disable-cache-flushing', 'foo.dart'])!;
         expect(options.disableCacheFlushing, isTrue);
       });
 
@@ -126,119 +126,126 @@ void main() {
         };
 
         test('no values', () {
-          var options =
-              overrideKnownFeatures(knownFeatures, () => parse(['foo.dart']));
+          var options = overrideKnownFeatures(
+              knownFeatures, (() => parse(['foo.dart'])!));
           expect(options.enabledExperiments, isEmpty);
         });
 
         test('single value', () {
           var options = overrideKnownFeatures(knownFeatures,
-              () => parse(['--enable-experiment', 'a', 'foo.dart']));
+              (() => parse(['--enable-experiment', 'a', 'foo.dart'])!));
           expect(options.enabledExperiments, ['a']);
         });
 
         group('multiple values', () {
           test('single flag', () {
             var options = overrideKnownFeatures(knownFeatures,
-                () => parse(['--enable-experiment', 'a,b', 'foo.dart']));
+                (() => parse(['--enable-experiment', 'a,b', 'foo.dart'])!));
             expect(options.enabledExperiments, ['a', 'b']);
           });
 
           test('mixed single and multiple flags', () {
             var options = overrideKnownFeatures(
                 knownFeatures,
-                () => parse([
+                (() => parse([
                       '--enable-experiment',
                       'a,b',
                       '--enable-experiment',
                       'c',
                       'foo.dart'
-                    ]));
+                    ])!));
             expect(options.enabledExperiments, ['a', 'b', 'c']);
           });
 
           test('multiple flags', () {
             var options = overrideKnownFeatures(
                 knownFeatures,
-                () => parse([
+                (() => parse([
                       '--enable-experiment',
                       'a',
                       '--enable-experiment',
                       'b',
                       'foo.dart'
-                    ]));
+                    ])!));
             expect(options.enabledExperiments, ['a', 'b']);
           });
         });
       });
 
       test('hintsAreFatal', () {
-        var options = parse(['--dart-sdk', '.', '--fatal-hints', 'foo.dart']);
+        var options = parse(['--dart-sdk', '.', '--fatal-hints', 'foo.dart'])!;
         expect(options.infosAreFatal, isTrue);
       });
 
       test('infosAreFatal', () {
-        var options = parse(['--dart-sdk', '.', '--fatal-infos', 'foo.dart']);
+        var options = parse(['--dart-sdk', '.', '--fatal-infos', 'foo.dart'])!;
         expect(options.infosAreFatal, isTrue);
       });
 
       test('log', () {
-        var options = parse(['--dart-sdk', '.', '--log', 'foo.dart']);
+        var options = parse(['--dart-sdk', '.', '--log', 'foo.dart'])!;
         expect(options.log, isTrue);
       });
 
       group('format', () {
         test('json', () {
-          var options = parse(['--dart-sdk', '.', '--format=json', 'foo.dart']);
+          var options =
+              parse(['--dart-sdk', '.', '--format=json', 'foo.dart'])!;
           expect(options.jsonFormat, isTrue);
           expect(options.machineFormat, isFalse);
         });
 
         test('machine', () {
           var options =
-              parse(['--dart-sdk', '.', '--format=machine', 'foo.dart']);
+              parse(['--dart-sdk', '.', '--format=machine', 'foo.dart'])!;
           expect(options.jsonFormat, isFalse);
           expect(options.machineFormat, isTrue);
         });
       });
 
       test('no-hints', () {
-        var options = parse(['--dart-sdk', '.', '--no-hints', 'foo.dart']);
+        var options = parse(['--dart-sdk', '.', '--no-hints', 'foo.dart'])!;
         expect(options.disableHints, isTrue);
       });
 
       test('options', () {
-        var options =
-            parse(['--dart-sdk', '.', '--options', 'options.yaml', 'foo.dart']);
+        var options = parse(
+            ['--dart-sdk', '.', '--options', 'options.yaml', 'foo.dart'])!;
         expect(options.defaultAnalysisOptionsPath, endsWith('options.yaml'));
       });
 
       test('lints', () {
-        var options = parse(['--dart-sdk', '.', '--lints', 'foo.dart']);
+        var options = parse(['--dart-sdk', '.', '--lints', 'foo.dart'])!;
         expect(options.lints, isTrue);
       });
 
       test('package warnings', () {
         var options =
-            parse(['--dart-sdk', '.', '--package-warnings', 'foo.dart']);
+            parse(['--dart-sdk', '.', '--package-warnings', 'foo.dart'])!;
         expect(options.showPackageWarnings, isTrue);
       });
 
       test('sdk warnings', () {
-        var options = parse(['--dart-sdk', '.', '--sdk-warnings', 'foo.dart']);
+        var options = parse(['--dart-sdk', '.', '--sdk-warnings', 'foo.dart'])!;
         expect(options.showSdkWarnings, isTrue);
       });
 
       test('sourceFiles', () {
-        var options = parse(
-            ['--dart-sdk', '.', '--log', 'foo.dart', 'foo2.dart', 'foo3.dart']);
+        var options = parse([
+          '--dart-sdk',
+          '.',
+          '--log',
+          'foo.dart',
+          'foo2.dart',
+          'foo3.dart'
+        ])!;
         expect(options.sourceFiles,
             equals(['foo.dart', 'foo2.dart', 'foo3.dart']));
       });
 
       test('warningsAreFatal', () {
         var options =
-            parse(['--dart-sdk', '.', '--fatal-warnings', 'foo.dart']);
+            parse(['--dart-sdk', '.', '--fatal-warnings', 'foo.dart'])!;
         expect(options.warningsAreFatal, isTrue);
       });
 
@@ -250,25 +257,25 @@ void main() {
           '--dart-sdk',
           '.',
           'foo.dart'
-        ]);
+        ])!;
         expect(options, isNotNull);
         expect(options.sourceFiles, equals(['foo.dart']));
       });
 
       test('hintsAreFatal', () {
-        var options = parse(['--dart-sdk', '.', '--fatal-lints', 'foo.dart']);
+        var options = parse(['--dart-sdk', '.', '--fatal-lints', 'foo.dart'])!;
         expect(options.lintsAreFatal, isTrue);
       });
 
       test('bad SDK dir', () {
-        String failureMessage;
+        String? failureMessage;
         parse(['--dart-sdk', '&&&&&', 'foo.dart'],
             printAndFail: (msg) => failureMessage = msg);
         expect(failureMessage, equals('Invalid Dart SDK path: &&&&&'));
       });
 
       test('--train-snapshot', () {
-        var options = parse(['--train-snapshot', 'foo.dart']);
+        var options = parse(['--train-snapshot', 'foo.dart'])!;
         expect(options.trainSnapshot, isTrue);
       });
     });
@@ -278,13 +285,13 @@ void main() {
 
 @reflectiveTest
 class ArgumentsTest with ResourceProviderMixin {
-  CommandLineOptions commandLineOptions;
-  String failureMessage;
+  CommandLineOptions? commandLineOptions;
+  String? failureMessage;
 
   void test_declaredVariables() {
     _parse(['-Da=0', '-Db=', 'a.dart']);
 
-    var definedVariables = commandLineOptions.declaredVariables;
+    var definedVariables = commandLineOptions!.declaredVariables;
 
     expect(definedVariables['a'], '0');
     expect(definedVariables['b'], '');
@@ -296,7 +303,7 @@ class ArgumentsTest with ResourceProviderMixin {
     _parse(['--options=$expected', 'a.dart']);
 
     expect(
-      commandLineOptions.defaultAnalysisOptionsPath,
+      commandLineOptions!.defaultAnalysisOptionsPath,
       endsWith(expected),
     );
   }
@@ -306,16 +313,16 @@ class ArgumentsTest with ResourceProviderMixin {
     _parse(['--packages=$expected', 'a.dart']);
 
     expect(
-      commandLineOptions.defaultPackagesPath,
+      commandLineOptions!.defaultPackagesPath,
       endsWith(expected),
     );
   }
 
   void test_defaults() {
     _parse(['a.dart']);
-    expect(commandLineOptions.declaredVariables, isEmpty);
-    expect(commandLineOptions.defaultAnalysisOptionsPath, isNull);
-    expect(commandLineOptions.defaultPackagesPath, isNull);
+    expect(commandLineOptions!.declaredVariables, isEmpty);
+    expect(commandLineOptions!.defaultAnalysisOptionsPath, isNull);
+    expect(commandLineOptions!.defaultPackagesPath, isNull);
   }
 
   void test_filterUnknownArguments() {
@@ -554,7 +561,7 @@ class ArgumentsTest with ResourceProviderMixin {
     var analysisOptions = AnalysisOptionsImpl();
     configureInitial(analysisOptions);
 
-    commandLineOptions.updateAnalysisOptions(analysisOptions);
+    commandLineOptions!.updateAnalysisOptions(analysisOptions);
     checkApplied(analysisOptions);
   }
 

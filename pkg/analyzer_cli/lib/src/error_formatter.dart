@@ -34,7 +34,7 @@ ErrorSeverity _severityIdentity(AnalysisError error) =>
 
 /// Returns desired severity for the given [error] (or `null` if it's to be
 /// suppressed).
-typedef SeverityProcessor = ErrorSeverity Function(AnalysisError error);
+typedef SeverityProcessor = ErrorSeverity? Function(AnalysisError error);
 
 /// Analysis statistics counter.
 class AnalysisStats {
@@ -113,20 +113,20 @@ class CLIError implements Comparable<CLIError> {
   final String message;
   final List<ContextMessage> contextMessages;
   final String errorCode;
-  final String correction;
-  final String url;
+  final String? correction;
+  final String? url;
 
   CLIError({
-    this.severity,
-    this.sourcePath,
-    this.offset,
-    this.line,
-    this.column,
-    this.message,
-    this.contextMessages,
-    this.errorCode,
-    this.correction,
-    this.url,
+    required this.severity,
+    required this.sourcePath,
+    required this.offset,
+    required this.line,
+    required this.column,
+    required this.message,
+    required this.contextMessages,
+    required this.errorCode,
+    required this.correction,
+    required this.url,
   });
 
   @override
@@ -150,7 +150,8 @@ class CLIError implements Comparable<CLIError> {
   @override
   int compareTo(CLIError other) {
     // severity
-    var compare = _severityCompare[other.severity] - _severityCompare[severity];
+    var compare =
+        _severityCompare[other.severity]! - _severityCompare[severity]!;
     if (compare != 0) return compare;
 
     // path
@@ -179,12 +180,11 @@ abstract class ErrorFormatter {
   final StringSink out;
   final CommandLineOptions options;
   final AnalysisStats stats;
-  SeverityProcessor _severityProcessor;
+  final SeverityProcessor _severityProcessor;
 
   ErrorFormatter(this.out, this.options, this.stats,
-      {SeverityProcessor severityProcessor}) {
-    _severityProcessor = severityProcessor ?? _severityIdentity;
-  }
+      {SeverityProcessor? severityProcessor})
+      : _severityProcessor = severityProcessor ?? _severityIdentity;
 
   /// Call to write any batched up errors from [formatErrors].
   void flush();
@@ -213,22 +213,20 @@ abstract class ErrorFormatter {
 
   /// Compute the severity for this [error] or `null` if this error should be
   /// filtered.
-  ErrorSeverity _computeSeverity(AnalysisError error) =>
+  ErrorSeverity? _computeSeverity(AnalysisError error) =>
       _severityProcessor(error);
 }
 
 class HumanErrorFormatter extends ErrorFormatter {
-  AnsiLogger ansi;
+  late final AnsiLogger ansi = AnsiLogger(options.color);
 
   // This is a Set in order to de-dup CLI errors.
   final Set<CLIError> batchedErrors = {};
 
   HumanErrorFormatter(
       StringSink out, CommandLineOptions options, AnalysisStats stats,
-      {SeverityProcessor severityProcessor})
-      : super(out, options, stats, severityProcessor: severityProcessor) {
-    ansi = AnsiLogger(this.options.color);
-  }
+      {SeverityProcessor? severityProcessor})
+      : super(out, options, stats, severityProcessor: severityProcessor);
 
   @override
   void flush() {
@@ -281,10 +279,10 @@ class HumanErrorFormatter extends ErrorFormatter {
   void formatError(
       Map<AnalysisError, ErrorsResult> errorToLine, AnalysisError error) {
     var source = error.source;
-    var result = errorToLine[error];
+    var result = errorToLine[error]!;
     var location = result.lineInfo.getLocation(error.offset);
 
-    var severity = _severityProcessor(error);
+    var severity = _severityProcessor(error)!;
 
     // Get display name; translate INFOs into LINTS and HINTS.
     var errorType = severity.displayName;
@@ -314,7 +312,7 @@ class HumanErrorFormatter extends ErrorFormatter {
       if (session is DriverBasedAnalysisContext) {
         var fileResult = session.driver.getFileSync(message.filePath);
         if (fileResult is FileResult) {
-          var lineInfo = fileResult?.lineInfo;
+          var lineInfo = fileResult.lineInfo;
           var location = lineInfo.getLocation(message.offset);
           contextMessages.add(ContextMessage(
               message.filePath,
@@ -343,7 +341,7 @@ class HumanErrorFormatter extends ErrorFormatter {
 class JsonErrorFormatter extends ErrorFormatter {
   JsonErrorFormatter(
       StringSink out, CommandLineOptions options, AnalysisStats stats,
-      {SeverityProcessor severityProcessor})
+      {SeverityProcessor? severityProcessor})
       : super(out, options, stats, severityProcessor: severityProcessor);
 
   @override
@@ -430,7 +428,7 @@ class MachineErrorFormatter extends ErrorFormatter {
 
   MachineErrorFormatter(
       StringSink out, CommandLineOptions options, AnalysisStats stats,
-      {SeverityProcessor severityProcessor})
+      {SeverityProcessor? severityProcessor})
       : super(out, options, stats, severityProcessor: severityProcessor);
 
   @override
@@ -444,7 +442,7 @@ class MachineErrorFormatter extends ErrorFormatter {
       return;
     }
     var source = error.source;
-    var location = errorToLine[error].lineInfo.getLocation(error.offset);
+    var location = errorToLine[error]!.lineInfo.getLocation(error.offset);
     var length = error.length;
 
     var severity = _severityProcessor(error);

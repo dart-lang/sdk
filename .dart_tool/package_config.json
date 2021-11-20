@@ -88,7 +88,7 @@
       "name": "analyzer_cli",
       "rootUri": "../pkg/analyzer_cli",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.14"
     },
     {
       "name": "analyzer_plugin",

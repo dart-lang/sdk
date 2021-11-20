@@ -29,7 +29,7 @@ class StrongModeTest extends BaseTest {
     expect(exitCode, 3);
     var stdout = bulletToDash(outSink);
     expect(stdout, contains("isn't a valid override of"));
-    expect(stdout, contains('error - The list literal type'));
+    expect(stdout, contains('error - A value of type'));
     expect(stdout, contains('2 errors found'));
   }
 }
