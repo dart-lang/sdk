@@ -466,11 +466,13 @@ class TestSource extends Source {
   @override
   int get hashCode => 0;
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary {
     return false;
   }
 
+  @Deprecated('Not used anymore')
   @override
   int get modificationStamp =>
       generateExceptionOnRead ? -1 : _modificationStamp;
@@ -483,6 +485,7 @@ class TestSource extends Source {
   @override
   Uri get uri => Uri.file(_name);
 
+  @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind {
     throw UnsupportedError('uriKind');
@@ -524,6 +527,7 @@ class TestSourceWithUri extends TestSource {
   @override
   String get encoding => uri.toString();
 
+  @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind {
     if (uri.scheme == 'dart') {

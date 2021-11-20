@@ -13,7 +13,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 

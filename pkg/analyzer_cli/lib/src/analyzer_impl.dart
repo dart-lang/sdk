@@ -11,8 +11,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/error_severity.dart';
@@ -168,16 +166,15 @@ class AnalyzerImpl {
   /// Returns true if we want to report diagnostics for this library.
   bool _isAnalyzedLibrary(LibraryElement library) {
     var source = library.source;
-    switch (source.uriKind) {
-      case UriKind.DART_URI:
-        return options.showSdkWarnings;
-      case UriKind.PACKAGE_URI:
-        if (_isPathInPubCache(source.fullName)) {
-          return false;
-        }
-        return _isAnalyzedPackage(source.uri);
-      default:
-        return true;
+    if (source.uri.isScheme('dart')) {
+      return options.showSdkWarnings;
+    } else if (source.uri.isScheme('package')) {
+      if (_isPathInPubCache(source.fullName)) {
+        return false;
+      }
+      return _isAnalyzedPackage(source.uri);
+    } else {
+      return true;
     }
   }
 

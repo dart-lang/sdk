@@ -14,22 +14,22 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 CompilationUnit parseText(
+  Source source,
   String text,
   FeatureSet featureSet,
 ) {
   CharSequenceReader reader = CharSequenceReader(text);
-  Scanner scanner =
-      Scanner(_SourceMock.instance, reader, AnalysisErrorListener.NULL_LISTENER)
-        ..configureFeatures(
-          featureSetForOverriding: featureSet,
-          featureSet: featureSet,
-        );
+  Scanner scanner = Scanner(source, reader, AnalysisErrorListener.NULL_LISTENER)
+    ..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
   Token token = scanner.tokenize();
   // Pass the feature set from the scanner to the parser
   // because the scanner may have detected a language version comment
   // and downgraded the feature set it holds.
   Parser parser = Parser(
-    NonExistingSource.unknown,
+    source,
     AnalysisErrorListener.NULL_LISTENER,
     featureSet: scanner.featureSet,
   );
@@ -42,11 +42,4 @@ CompilationUnit parseText(
   );
 
   return unit;
-}
-
-class _SourceMock implements Source {
-  static final Source instance = _SourceMock();
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

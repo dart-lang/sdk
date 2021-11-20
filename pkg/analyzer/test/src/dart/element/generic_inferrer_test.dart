@@ -642,7 +642,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
 
     var reporter = ErrorReporter(
       listener,
-      NonExistingSource('/test.dart', toUri('/test.dart'), UriKind.FILE_URI),
+      NonExistingSource('/test.dart', toUri('/test.dart')),
       isNonNullableByDefault: false,
     );
 

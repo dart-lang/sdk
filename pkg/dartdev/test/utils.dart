@@ -51,6 +51,8 @@ class TestProject {
 
   final Map<String, dynamic> pubspec;
 
+  Process _process;
+
   TestProject(
       {String mainSrc,
       String analysisOptions,
@@ -92,24 +94,35 @@ dev_dependencies:
   }
 
   void dispose() {
+    _process?.kill();
+    _process = null;
     if (dir.existsSync()) {
       dir.deleteSync(recursive: true);
     }
   }
 
-  ProcessResult runSync(
+  Future<ProcessResult> run(
     List<String> arguments, {
     String workingDir,
-  }) {
-    return Process.runSync(
+  }) async {
+    _process = await Process.start(
         Platform.resolvedExecutable,
         [
           '--no-analytics',
           ...arguments,
         ],
         workingDirectory: workingDir ?? dir.path,
-        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'},
-        stdoutEncoding: utf8);
+        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'});
+
+    final stdoutContents = await _process.stdout.transform(utf8.decoder).join();
+    final stderrContents = await _process.stderr.transform(utf8.decoder).join();
+    final code = await _process.exitCode;
+    return ProcessResult(
+      _process.pid,
+      code,
+      stdoutContents,
+      stderrContents,
+    );
   }
 
   Future<Process> start(

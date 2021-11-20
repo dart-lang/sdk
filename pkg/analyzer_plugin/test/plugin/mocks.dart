@@ -166,9 +166,11 @@ class MockSource implements Source {
   @override
   String get fullName => '/pkg/lib/test.dart';
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary => false;
 
+  @Deprecated('Not used anymore')
   @override
   int get modificationStamp => 0;
 
@@ -178,6 +180,7 @@ class MockSource implements Source {
   @override
   Uri get uri => Uri.parse('package:test/test.dart');
 
+  @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind => UriKind.PACKAGE_URI;
 

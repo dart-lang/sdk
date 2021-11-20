@@ -90,8 +90,7 @@ class ElementFactory {
 
   static CompilationUnitElementImpl compilationUnit(String fileName,
       [Source? librarySource]) {
-    Source source =
-        NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
+    Source source = NonExistingSource(fileName, toUri(fileName));
     CompilationUnitElementImpl unit = CompilationUnitElementImpl();
     unit.source = source;
     librarySource ??= source;

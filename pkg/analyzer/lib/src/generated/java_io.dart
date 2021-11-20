@@ -6,6 +6,7 @@ import "dart:io";
 
 import 'package:path/path.dart' as path;
 
+@Deprecated('Use ResourceProvider and path context instead.')
 class JavaFile {
   @deprecated
   static path.Context pathContext = path.context;

@@ -127,7 +127,7 @@ vars = {
   "lints_tag": "f9670df2a66e0ec12eb51554e70c1cbf56c8f5d0",
   "logging_rev": "575781ef196e4fed4fb737e38fb4b73d62727187",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "markdown_rev": "9c4beaac96d8f008078e00b027915f81b665d2de",
+  "markdown_rev": "7479783f0493f6717e1d7ae31cb37d39a91026b2",
   "matcher_rev": "6ba4a6d68bdfacff3d572c9ea98333dfc66fd6bf",
   "mime_rev": "c931f4bed87221beaece356494b43731445ce7b8",
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",

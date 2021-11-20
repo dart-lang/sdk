@@ -72,8 +72,8 @@ class ResourceUriResolverTest with ResourceProviderMixin {
     var source = resolver.resolveAbsolute(uri)!;
     expect(resolver.restoreAbsolute(source), uri);
     expect(
-        resolver.restoreAbsolute(NonExistingSource(
-            source.fullName, Uri.parse('dart:math'), UriKind.DART_URI)),
+        resolver.restoreAbsolute(
+            NonExistingSource(source.fullName, Uri.parse('dart:math'))),
         uri);
   }
 }

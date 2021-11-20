@@ -29,6 +29,7 @@ abstract class BasicSource extends Source {
   @override
   int get hashCode => uri.hashCode;
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary => uri.scheme == 'dart';
 
@@ -79,7 +80,9 @@ class DartUriResolver extends UriResolver {
 /// An implementation of an non-existing [Source].
 class NonExistingSource extends Source {
   static final unknown = NonExistingSource(
-      '/unknown.dart', pathos.toUri('/unknown.dart'), UriKind.FILE_URI);
+    '/unknown.dart',
+    pathos.toUri('/unknown.dart'),
+  );
 
   @override
   final String fullName;
@@ -87,10 +90,7 @@ class NonExistingSource extends Source {
   @override
   final Uri uri;
 
-  @override
-  final UriKind uriKind;
-
-  NonExistingSource(this.fullName, this.uri, this.uriKind);
+  NonExistingSource(this.fullName, this.uri);
 
   @override
   TimestampedData<String> get contents {
@@ -104,19 +104,27 @@ class NonExistingSource extends Source {
   @override
   int get hashCode => fullName.hashCode;
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary => false;
 
+  @Deprecated('Not used anymore')
   @override
   int get modificationStamp => -1;
 
   @override
   String get shortName => pathos.basename(fullName);
 
+  @Deprecated('Use Source.uri instead')
+  @override
+  UriKind get uriKind {
+    return UriKind.FILE_URI;
+  }
+
   @override
   bool operator ==(Object other) {
     if (other is NonExistingSource) {
-      return other.uriKind == uriKind && other.fullName == fullName;
+      return other.uri == uri && other.fullName == fullName;
     }
     return false;
   }
@@ -186,6 +194,7 @@ abstract class Source {
   /// Return `true` if this source is in one of the system libraries.
   ///
   /// @return `true` if this is in a system library
+  @Deprecated('Use uri.isScheme("dart") instead')
   bool get isInSystemLibrary;
 
   /// Return the modification stamp for this source, or a negative value if the
@@ -199,6 +208,7 @@ abstract class Source {
   /// Clients should consider using the method
   /// [AnalysisContext.getModificationStamp] because contexts can have local
   /// overrides of the content of a source that the source is not aware of.
+  @Deprecated('Not used anymore')
   int get modificationStamp;
 
   /// Return a short version of the name that can be displayed to the user to
@@ -220,6 +230,7 @@ abstract class Source {
   /// against which the relative URI was resolved.
   ///
   /// @return the kind of URI from which this source was originally derived
+  @Deprecated('Use Source.uri instead')
   UriKind get uriKind;
 
   /// Return `true` if the given object is a source that represents the same
@@ -342,6 +353,7 @@ class SourceKind implements Comparable<SourceKind> {
 /// The enumeration `UriKind` defines the different kinds of URI's that are
 /// known to the analysis engine. These are used to keep track of the kind of
 /// URI associated with a given source.
+@Deprecated('Use Source.uri instead')
 class UriKind implements Comparable<UriKind> {
   /// A 'dart:' URI.
   static const UriKind DART_URI = UriKind('DART_URI', 0, 0x64);

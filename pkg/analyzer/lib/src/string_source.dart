@@ -36,12 +36,14 @@ class StringSource extends Source {
   @override
   int get hashCode => _contents.hashCode ^ fullName.hashCode;
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary => false;
 
   @override
   String get shortName => fullName;
 
+  @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind => UriKind.FILE_URI;
 

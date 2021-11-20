@@ -62,7 +62,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
     for (var sdkLibrary in sdk.sdkLibraries) {
       var source = sourceFactory.resolveUri(null, sdkLibrary.shortName)!;
       var text = getFile(source.fullName).readAsStringSync();
-      var unit = parseText(text, featureSet);
+      var unit = parseText(source, text, featureSet);
 
       var inputUnits = <LinkInputUnit>[];
       _addLibraryUnits(source, unit, inputUnits, featureSet);
@@ -180,7 +180,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
 
         if (partSource != null) {
           var text = _readSafely(partSource.fullName);
-          var unit = parseText(text, featureSet);
+          var unit = parseText(partSource, text, featureSet);
           units.add(
             LinkInputUnit(
               partDirectiveIndex: partDirectiveIndex,
@@ -205,7 +205,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
     }
 
     var text = _readSafely(source.fullName);
-    var unit = parseText(text, featureSet);
+    var unit = parseText(source, text, featureSet);
 
     var units = <LinkInputUnit>[];
     _addLibraryUnits(source, unit, units, featureSet);

@@ -4,6 +4,9 @@
 * Deprecated `path` and `uri` from `AnalysisResult`.
 * Deprecated `UriResolver.restoreAbsolute`, use `pathToUri` instead.
 * Deprecated `SourceFactory.restoreAbsolute`, use `pathToUri` instead.
+* Deprecated `UriKind` and `Source.uriKind`.
+* Deprecated `Source.modificationStamp`.
+* Deprecated `Source.isInSystemLibrary`, use `uri.isScheme('dart')` instead.
 * Fixed #47715.
 
 ## 2.7.0

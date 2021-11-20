@@ -97,14 +97,14 @@ class _PackageMapUriResolverTest {
       Uri uri = Uri.parse('package:pkgA/libA.dart');
       var result = resolver.resolveAbsolute(uri)!;
       expect(result.exists(), isTrue);
-      expect(result.uriKind, UriKind.PACKAGE_URI);
+      expect(result.uri, uri);
       expect(result.fullName, pkgFileA);
     }
     {
       Uri uri = Uri.parse('package:pkgB/libB.dart');
       var result = resolver.resolveAbsolute(uri)!;
       expect(result.exists(), isTrue);
-      expect(result.uriKind, UriKind.PACKAGE_URI);
+      expect(result.uri, uri);
       expect(result.fullName, pkgFileB);
     }
   }
@@ -201,7 +201,8 @@ class _PackageMapUriResolverTest {
     }
   }
 
+  @Deprecated('Use pathToUri() instead')
   Source _createFileSource(String path) {
-    return NonExistingSource(path, toUri(path), UriKind.FILE_URI);
+    return NonExistingSource(path, toUri(path));
   }
 }

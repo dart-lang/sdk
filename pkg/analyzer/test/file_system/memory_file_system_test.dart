@@ -216,6 +216,7 @@ class MemoryFileSourceNotExistingTest extends BaseTest {
     expect(source.fullName, sourcePath);
   }
 
+  @Deprecated('Not used anymore')
   test_modificationStamp() {
     expect(source.modificationStamp, -1);
   }

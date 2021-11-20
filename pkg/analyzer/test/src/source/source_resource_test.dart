@@ -83,6 +83,7 @@ class FileSourceTest with ResourceProviderMixin {
     expect(source2.hashCode, source1.hashCode);
   }
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   void test_isInSystemLibrary_contagious() {
     DartSdk sdk = _createSdk();
     UriResolver resolver = DartUriResolver(sdk);
@@ -95,6 +96,7 @@ class FileSourceTest with ResourceProviderMixin {
     expect(partSource.isInSystemLibrary, isTrue);
   }
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   void test_isInSystemLibrary_false() {
     File file = getFile("/does/not/exist.dart");
     FileSource source = FileSource(file);
@@ -159,7 +161,7 @@ class FileSourceTest with ResourceProviderMixin {
     FileSource source = FileSource(file, Uri.parse("dart:core"));
     expect(source, isNotNull);
     expect(source.fullName, file.path);
-    expect(source.isInSystemLibrary, isTrue);
+    expect(source.uri.toString(), 'dart:core');
   }
 
   DartSdk _createSdk() {

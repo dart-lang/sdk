@@ -7,6 +7,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/error_formatter.dart';
+import 'package:path/path.dart' as package_path;
 import 'package:test/test.dart' hide ErrorFormatter;
 
 import 'mocks.dart';
@@ -102,7 +103,8 @@ ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
 
   // Details
   var code = MockErrorCode(type, severity, 'mock_code');
-  var source = MockSource('/foo/bar/baz.dart');
+  var path = '/foo/bar/baz.dart';
+  var source = MockSource(path, package_path.toUri(path));
   var error = MockAnalysisError(source, code, 20, 'MSG');
 
   return ErrorsResultImpl(
