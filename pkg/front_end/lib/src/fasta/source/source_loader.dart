@@ -64,6 +64,7 @@ import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart'
     show SynthesizedFunctionNode, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
+import '../kernel/macro.dart';
 import '../kernel/transform_collections.dart' show CollectionTransformer;
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
@@ -198,6 +199,8 @@ class SourceLoader extends Loader {
   int byteCount = 0;
 
   Uri? currentUriForCrashReporting;
+
+  Class? _macroClass;
 
   SourceLoader(this.fileSystem, this.includeComments, this.target)
       : dataForTesting =
@@ -828,7 +831,7 @@ severity: $severity
     _typeInferenceEngine!.typeDependencies[member] = typeDependency;
   }
 
-  Future<Null> buildOutlines() async {
+  Future<void> buildOutlines() async {
     _ensureCoreLibrary();
     while (_unparsedLibraries.isNotEmpty) {
       LibraryBuilder library = _unparsedLibraries.removeFirst();
@@ -1166,6 +1169,128 @@ severity: $severity
       }
     }
     ticker.logMs("Resolved $typeCount types");
+  }
+
+  void computeMacroDeclarations(List<SourceClassBuilder> classes) {
+    if (!enableMacros) return;
+    LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
+    if (macroLibraryBuilder == null) return;
+    Builder? macroClassBuilder =
+        macroLibraryBuilder.lookupLocalMember(macroClassName);
+    if (macroClassBuilder is! ClassBuilder) {
+      // TODO(johnniwinther): Report this when the actual macro builder package
+      // exists. It should at least be a warning.
+      return;
+    }
+
+    Class macroClass = _macroClass = macroClassBuilder.cls;
+    if (retainDataForTesting) {
+      dataForTesting!.macroDeclarationData.macroClass = macroClass;
+    }
+    for (SourceClassBuilder classBuilder in classes) {
+      Class cls = classBuilder.cls;
+      if (hierarchy.isSubtypeOf(cls, macroClass)) {
+        if (retainDataForTesting) {
+          (dataForTesting!.macroDeclarationData
+                  .macroDeclarations[cls.enclosingLibrary] ??= [])
+              .add(cls);
+        }
+      }
+    }
+  }
+
+  void computeMacroApplications() {
+    if (!enableMacros || _macroClass == null) return;
+    Class macroClass = _macroClass!;
+
+    Set<Class> macroClasses = {};
+    for (Library library in hierarchy.knownLibraries) {
+      for (Class cls in library.classes) {
+        // TODO(johnniwinther): Avoid calling `isSubtypeOf` for all classes. We
+        // should only check classes used in annotations to avoid marking too
+        // many classes as used.
+        if (hierarchy.isSubtypeOf(cls, macroClass)) {
+          macroClasses.add(cls);
+          if (retainDataForTesting) {
+            dataForTesting!.macroDeclarationData.macroClasses.add(cls);
+          }
+        }
+      }
+    }
+
+    Class? computeApplication(Expression expression) {
+      if (expression is ConstructorInvocation) {
+        Class cls = expression.target.enclosingClass;
+        if (macroClasses.contains(cls)) {
+          return cls;
+        }
+      }
+      return null;
+    }
+
+    MacroApplications? computeApplications(List<Expression> annotations) {
+      List<Class> macros = [];
+      for (Expression annotation in annotations) {
+        Class? cls = computeApplication(annotation);
+        if (cls != null) {
+          macros.add(cls);
+        }
+      }
+      return macros.isNotEmpty ? new MacroApplications(macros) : null;
+    }
+
+    for (LibraryBuilder libraryBuilder in libraryBuilders) {
+      if (libraryBuilder.loader != this) continue;
+      LibraryMacroApplicationData libraryMacroApplicationData =
+          new LibraryMacroApplicationData();
+      Library library = libraryBuilder.library;
+      libraryMacroApplicationData.libraryApplications =
+          computeApplications(library.annotations);
+      for (Class cls in library.classes) {
+        ClassMacroApplicationData classMacroApplicationData =
+            new ClassMacroApplicationData();
+        classMacroApplicationData.classApplications =
+            computeApplications(cls.annotations);
+        for (Member member in cls.members) {
+          MacroApplications? macroApplications =
+              computeApplications(member.annotations);
+          if (macroApplications != null) {
+            classMacroApplicationData.memberApplications[member] =
+                macroApplications;
+          }
+        }
+        if (classMacroApplicationData.classApplications != null ||
+            classMacroApplicationData.memberApplications.isNotEmpty) {
+          libraryMacroApplicationData.classData[cls] =
+              classMacroApplicationData;
+        }
+      }
+      for (Member member in library.members) {
+        MacroApplications? macroApplications =
+            computeApplications(member.annotations);
+        if (macroApplications != null) {
+          libraryMacroApplicationData.memberApplications[member] =
+              macroApplications;
+        }
+      }
+      for (Typedef typedef in library.typedefs) {
+        MacroApplications? macroApplications =
+            computeApplications(typedef.annotations);
+        if (macroApplications != null) {
+          libraryMacroApplicationData.typedefApplications[typedef] =
+              macroApplications;
+        }
+      }
+      if (libraryMacroApplicationData.libraryApplications != null ||
+          libraryMacroApplicationData.classData.isNotEmpty ||
+          libraryMacroApplicationData.typedefApplications.isNotEmpty ||
+          libraryMacroApplicationData.memberApplications.isNotEmpty) {
+        if (retainDataForTesting) {
+          dataForTesting!.macroApplicationData.libraryData[library] =
+              libraryMacroApplicationData;
+        }
+      }
+    }
   }
 
   void finishDeferredLoadTearoffs() {
@@ -2269,4 +2394,8 @@ class SourceLoaderDataForTesting {
   TreeNode toOriginal(TreeNode alias) {
     return _aliasMap[alias] ?? alias;
   }
+
+  final MacroDeclarationData macroDeclarationData = new MacroDeclarationData();
+
+  final MacroApplicationData macroApplicationData = new MacroApplicationData();
 }
