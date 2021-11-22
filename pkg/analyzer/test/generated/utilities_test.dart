@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -1464,7 +1466,7 @@ void f() {
   try {} on E2 catch (e2, st2) {}
 }
 ''');
-    _assertReplaceList<CatchClause>(
+    _assertReplace2<CatchClause>(
       destination: findNode.catchClause('(e,'),
       source: findNode.catchClause('(e2,'),
       getters: [
@@ -2118,6 +2120,30 @@ void f() {
         node, Getter_NodeReplacerTest_test_superConstructorInvocation_2());
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47741')
+  void test_superFormalParameter() {
+    var findNode = _parseStringToFindNode(r'''
+class A {
+  A(int foo<T>(int a));
+}
+
+class B extends A {
+  B.sub1(double super.bar1<T1>(int a1),);
+  B.sub2(double super.bar2<T2>(int a2),);
+}
+''');
+    _assertReplace2<SuperFormalParameter>(
+      destination: findNode.superFormalParameter('bar1'),
+      source: findNode.superFormalParameter('bar2'),
+      getters: [
+        (node) => node.type!,
+        (node) => node.identifier,
+        (node) => node.typeParameters!,
+        (node) => node.parameters!,
+      ],
+    );
+  }
+
   void test_switchCase() {
     SwitchCase node = AstTestFactory.switchCase2([AstTestFactory.label2("l")],
         AstTestFactory.integer(0), [AstTestFactory.block()]);
@@ -2262,7 +2288,7 @@ void f() {
     }
   }
 
-  void _assertReplaceList<T extends AstNode>({
+  void _assertReplace2<T extends AstNode>({
     required T destination,
     required T source,
     required List<AstNode Function(T node)> getters,
@@ -2279,7 +2305,15 @@ void f() {
   }
 
   FindNode _parseStringToFindNode(String content) {
-    var parseResult = parseString(content: content);
+    var parseResult = parseString(
+      content: content,
+      featureSet: FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.currentVersion,
+        flags: [
+          Feature.super_parameters.enableString,
+        ],
+      ),
+    );
     return FindNode(parseResult.content, parseResult.unit);
   }
 

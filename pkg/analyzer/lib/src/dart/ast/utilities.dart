@@ -2813,6 +2813,9 @@ class NodeReplacer implements AstVisitor<bool> {
     if (identical(node.type, _oldNode)) {
       node.type = _newNode as TypeAnnotation;
       return true;
+    } else if (identical(node.typeParameters, _oldNode)) {
+      node.typeParameters = _newNode as TypeParameterList;
+      return true;
     } else if (identical(node.parameters, _oldNode)) {
       node.parameters = _newNode as FormalParameterList;
       return true;
