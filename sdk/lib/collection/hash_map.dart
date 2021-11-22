@@ -40,15 +40,15 @@ typedef _Hasher<K> = int Function(K object);
 ///
 /// Example:
 /// ```dart
-/// final planets = HashMap(); // Is a HashMap
+/// final Map<int, String> planets = HashMap(); // Is a HashMap
 /// ```
 /// To add data to a map, use [operator[]=], [addAll] or [addEntries].
 /// ```
-/// planets[1] = 'Earth';
-/// planets.addAll({2: 'Mars'});
-/// final gasGiants = {3: 'Jupiter', 4: 'Saturn'};
+/// planets[3] = 'Earth';
+/// planets.addAll({4: 'Mars'});
+/// final gasGiants = {6: 'Jupiter', 5: 'Saturn'};
 /// planets.addEntries(gasGiants.entries);
-/// print(planets); // {1: Earth, 2: Mars, 3: Jupiter, 4: Saturn}
+/// print(planets); // fx {5: Saturn, 6: Jupiter, 3: Earth, 4: Mars}
 /// ```
 /// To check if the map is empty, use [isEmpty] or [isNotEmpty].
 /// To find the number of map entries, use [length].
@@ -60,16 +60,16 @@ typedef _Hasher<K> = int Function(K object);
 /// ```
 /// planets.forEach((key, value) {
 ///   print('$key \t $value');
-///   // 1 	 Earth
-///   // 2 	 Mars
-///   // 3 	 Jupiter
-///   // 4 	 Saturn
+///   // 5        Saturn
+///   // 4        Mars
+///   // 3        Earth
+///   // 6        Jupiter
 /// });
 /// ```
 /// To check whether the map has an entry with a specific key, use [containsKey].
 /// ```
-/// final keyOneExists = planets.containsKey(1); // true
-/// final keyFiveExists = planets.containsKey(5); // false
+/// final keyOneExists = planets.containsKey(4); // true
+/// final keyFiveExists = planets.containsKey(1); // false
 /// ```
 /// To check whether the map has an entry with a specific value,
 /// use [containsValue].
@@ -79,30 +79,30 @@ typedef _Hasher<K> = int Function(K object);
 /// ```
 /// To remove an entry with a specific key, use [remove].
 /// ```
-/// final removeValue = planets.remove(3);
+/// final removeValue = planets.remove(5);
 /// print(removeValue); // Jupiter
-/// print(planets); // {1: Earth, 2: Mars, 4: Saturn}
+/// print(planets); // fx {4: Mars, 3: Earth, 5: Saturn}
 /// ```
 /// To remove multiple entries at the same time, based on their keys and values,
 /// use [removeWhere].
 /// ```
-/// planets.removeWhere((key, value) => key == 4);
-/// print(planets); // {1: Earth, 2: Mars}
+/// planets.removeWhere((key, value) => key == 5);
+/// print(planets); // fx {3: Earth, 4: Mars}
 /// ```
 /// To conditionally add or modify a value for a specific key, depending on
 /// whether there already is an entry with that key,
 /// use [putIfAbsent] or [update].
 /// ```
-/// planets.update(2, (v) => 'Saturn');
+/// planets.update(4, (v) => 'Saturn');
 /// planets.update(8, (v) => '', ifAbsent: () => 'Neptune');
-/// planets.putIfAbsent(2, () => 'Another Saturn');
-/// print(planets); // {8: Neptune, 1: Earth, 2: Saturn}
+/// planets.putIfAbsent(4, () => 'Another Saturn');
+/// print(planets); // fx {4: Saturn, 8: Neptune, 3: Earth}
 /// ```
 /// To update the values of all keys, based on the existing key and value,
 /// use [updateAll].
 /// ```
-/// planets.updateAll((key, value) => null);
-/// print(planets); // {8: null, 1: null, 2: null}
+/// planets.updateAll((key, value) => 'X');
+/// print(planets); // fx {8: X, 3: X, 4: X}
 /// ```
 /// To remove all entries and empty the map, use [clear].
 /// ```
@@ -189,7 +189,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// The [other] map itself can have any type.
   /// ```dart
   /// final baseMap = {1: 'A', 2: 'B', 3: 'C'};
-  /// final fromBaseMap = HashMap.from(baseMap);
+  /// final fromBaseMap = HashMap<int, String>.from(baseMap);
   /// print(fromBaseMap); // {1: A, 2: B, 3: C}
   /// ```
   factory HashMap.from(Map<dynamic, dynamic> other) {
@@ -224,7 +224,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// ```dart
   /// final numbers = [11, 12, 13, 14];
   /// final mapFromIterable =
-  ///   HashMap.fromIterable(numbers, key: (i) => i, value: (i) => i * i);
+  ///   HashMap<int, int>.fromIterable(numbers, key: (i) => i, value: (i) => i * i);
   /// print(mapFromIterable); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
   factory HashMap.fromIterable(Iterable iterable,
