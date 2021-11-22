@@ -46,21 +46,21 @@ part of dart.core;
 /// growableList[0] = 'G';
 /// print(growableList); // [G, B, C, D]
 ///
-/// // Concatenate items to single string
+/// // To concatenate items to single string, use 'join'.
 /// print(growableList.join('-')); // G-B-C-D
 ///
-/// // Check is item on list
+/// // To check is item on list, use 'contains'.
 /// final isA = growableList.contains('A'); // false
 ///
-/// // Sort items on list and iterate list content
+/// // To sort items on list and iterate list content, use 'sort'.
 /// growableList.sort((a, b) => a.compareTo(b));
 /// print(growableList); // [B, C, D, G]
 ///
-/// // Check is value 'E' on list otherwise return 'N'
+/// // To check is item 'E' on list otherwise return 'N', use 'firstWhere'.
 /// final ret = growableList.firstWhere((element) => element.contains('E'),
 ///     orElse: () => 'N'); // N
 ///
-/// // Search items from list, convert result to list
+/// // To search items from list, convert result to list, use 'where'.
 /// final resultList = growableList
 ///     .where((element) => element.contains('B') || element.contains('G'))
 ///     .toList(); // [B, G]
