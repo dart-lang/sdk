@@ -18,7 +18,7 @@ part of dart.collection;
 ///
 /// Example:
 /// ```dart
-/// final queue = Queue(); // ListQueue() by default
+/// final queue = Queue<int>(); // ListQueue() by default
 /// print(queue.runtimeType); // ListQueue
 ///
 /// // Adding items to queue
@@ -62,8 +62,8 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// Any time the queue would produce an element that is not a [T],
   /// the element access will throw.
   ///
-  /// Any time a [T] value is attempted to be stored into the adapted queue,
-  /// the store will throw unless the value is also an instance of [S].
+  /// When a [T] value is stored into the adapted queue,
+  /// the operation will throw unless the value is also an instance of [S].
   ///
   /// If all accessed elements of [source] are actually instances of [T],
   /// and if all elements stored into the returned queue are actually instances
@@ -529,7 +529,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 ///
 /// Example:
 /// ```dart
-/// final queue = ListQueue();
+/// final queue = ListQueue<int>();
 /// ```
 /// To add objects to a queue, use [add], [addAll], [addFirst] or[addLast].
 /// ```
@@ -571,10 +571,10 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 /// queue.removeWhere((element) => element == 1);
 /// print(queue); // {5, 2}
 /// ```
-/// To removes all elements in this queue that do not meet the condition,
+/// To remove all elements in this queue that do not meet a condition,
 /// use [retainWhere].
 /// ```
-/// queue.retainWhere((element) => element == 2);
+/// queue.retainWhere((element) => element < 4);
 /// print(queue); // {2}
 /// ```
 /// To remove all items and empty the set, use [clear].
@@ -624,7 +624,9 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   /// ```
   /// Example:
   /// ```dart
-  /// final queueFrom = ListQueue.from([10, 20, 30]);
+  /// final numbers = <num>[10, 20, 30];
+  /// final queue = ListQueue<int>.from(numbers);
+  /// print(queue); // {10, 20, 30}
   /// ```
   factory ListQueue.from(Iterable<dynamic> elements) {
     if (elements is List<dynamic>) {
@@ -655,9 +657,9 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   /// by `elements.iterator`.
   /// Example:
   /// ```dart
-  /// final baseQueue = ListQueue<double>()..addAll([1.0, 20, 30]);
-  /// final queueOf = ListQueue<num>.of(baseQueue);
-  /// print(queueOf); // {1.0, 20.0, 30.0}
+  /// final baseQueue = ListQueue.of([1.0, 2.0, 3.0]); // A ListQueue<double>
+  /// final numQueue = ListQueue<num>.of(baseQueue);
+  /// print(numQueue); // {1.0, 2.0, 3.0}
   /// ```
   factory ListQueue.of(Iterable<E> elements) =>
       ListQueue<E>()..addAll(elements);
