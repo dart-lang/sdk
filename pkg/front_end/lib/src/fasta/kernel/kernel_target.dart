@@ -423,6 +423,7 @@ class KernelTarget extends TargetImplementation {
       computeCoreTypes();
       loader.buildClassHierarchy(myClasses, objectClassBuilder);
       loader.computeHierarchy();
+      loader.computeMacroDeclarations(myClasses);
       loader.computeShowHideElements();
       loader.installTypedefTearOffs();
       loader.performTopLevelInference(myClasses);
@@ -433,6 +434,7 @@ class KernelTarget extends TargetImplementation {
       loader.checkMixins(myClasses);
       loader.buildOutlineExpressions(
           loader.coreTypes, synthesizedFunctionNodes);
+      loader.computeMacroApplications();
       loader.checkTypes();
       loader.checkRedirectingFactories(myClasses);
       loader.checkMainMethods();
