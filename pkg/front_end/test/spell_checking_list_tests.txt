@@ -643,6 +643,8 @@ loo
 lookahead
 loopback
 mac
+macro
+macros
 maker
 matters
 mds

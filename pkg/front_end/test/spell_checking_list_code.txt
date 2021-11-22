@@ -723,6 +723,8 @@ ly
 lz
 m
 macos
+macro
+macros
 maintaining
 mangled
 manipulation
