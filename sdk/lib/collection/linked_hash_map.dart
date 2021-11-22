@@ -51,16 +51,16 @@ part of dart.collection;
 /// print(planetsByDiameter.isEmpty); // false
 /// print(planetsByDiameter.length); // 4
 /// print(planetsByDiameter);
-/// // {0.949: Venus, 1: Earth, 0.532: Mars, 11.209: Jupiter}
+/// // {0.949: Venus, 1.0: Earth, 0.532: Mars, 11.209: Jupiter}
 /// ```
-/// The [forEach] iterates through all entries of a map.
+/// The [forEach] method calls a function for each key/value entry of the map.
 /// ```
 /// planetsByDiameter.forEach((key, value) {
 ///   print('$key \t $value');
-///   // 0.949  Venus
-///   // 1.0    Earth
-///   // 0.532  Mars
-///   // 11.209 Jupiter
+///   // 0.949    Venus
+///   // 1.0      Earth
+///   // 0.532    Mars
+///   // 11.209   Jupiter
 /// });
 /// ```
 /// To check whether the map has an entry with a specific key, use [containsKey].
@@ -209,12 +209,12 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   /// occurrence of a key will simply overwrite any previous value.
   ///
   /// If no values are specified for [key] and [value], the default is the
-  /// identity function.
+  /// both default to the identity function.
   /// Example:
   /// ```dart
   /// final numbers = [11, 12, 13, 14];
   /// final mapFromIterable =
-  ///   LinkedHashMap.fromIterable(numbers, key: (i) => i, value: (i) => i * i);
+  ///     LinkedHashMap.fromIterable(numbers, key: (i) => i, value: (i) => i * i);
   /// print(mapFromIterable); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
   factory LinkedHashMap.fromIterable(Iterable iterable,
