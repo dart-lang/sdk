@@ -223,8 +223,8 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// Example:
   /// ```dart
   /// final numbers = [11, 12, 13, 14];
-  /// final mapFromIterable =
-  ///   HashMap<int, int>.fromIterable(numbers, key: (i) => i, value: (i) => i * i);
+  /// final mapFromIterable = HashMap<int, int>.fromIterable(numbers,
+  ///     key: (i) => i, value: (i) => i * i);
   /// print(mapFromIterable); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
   factory HashMap.fromIterable(Iterable iterable,
