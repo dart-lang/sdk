@@ -51,13 +51,13 @@ SpellingResult spellcheckString(String s,
       }
     }
     if (!found) {
-      wrongWords ??= <String>[];
+      wrongWords ??= [];
       wrongWords.add(word);
-      wrongWordsAlternatives ??= <List<String>>[];
+      wrongWordsAlternatives ??= [];
       wrongWordsAlternatives.add(findAlternatives(word, dictionariesUnpacked));
-      wrongWordsOffset ??= <int>[];
+      wrongWordsOffset ??= [];
       wrongWordsOffset.add(offset);
-      wrongWordDenylisted ??= <bool>[];
+      wrongWordDenylisted ??= [];
       wrongWordDenylisted
           .add(loadedDictionaries![Dictionaries.denylist]!.contains(word));
     }
