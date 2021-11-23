@@ -23,7 +23,7 @@ Widget buildLogo() {
   return SizedBox(
     height: 0,
     width: 0,
-    child:const MyLogo(),
+    child: const MyLogo(),
   );
 }
 ```
@@ -33,7 +33,7 @@ Widget buildLogo() {
   return SizedBox(
     height: double.infinity,
     width: double.infinity,
-    child:const MyLogo(),
+    child: const MyLogo(),
   );
 }
 ```
@@ -42,7 +42,7 @@ Widget buildLogo() {
 ```dart
 Widget buildLogo() {
   return SizedBox.shrink(
-    child:const MyLogo(),
+    child: const MyLogo(),
   );
 }
 ```
@@ -50,7 +50,7 @@ Widget buildLogo() {
 ```dart
 Widget buildLogo() {
   return SizedBox.expand(
-    child:const MyLogo(),
+    child: const MyLogo(),
   );
 }
 ```

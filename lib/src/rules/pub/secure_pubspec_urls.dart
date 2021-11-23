@@ -19,8 +19,9 @@ repository: 'https://github.com/dart-lang/example'
 ```
 
 **BAD:**
-```dart
+```yaml
 repository: 'http://github.com/dart-lang/example'
+```
 ''';
 
 class SecurePubspecUrls extends LintRule {
