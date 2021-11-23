@@ -1,3 +1,13 @@
+# 1.15.0
+
+- new lint: `use_decorated_box`
+- new lint: `no_leading_underscores_for_library_prefixes`
+- new lint: `no_leading_underscores_for_local_identifiers`
+- new lint: `secure_pubspec_urls`
+- new lint: `sized_box_shrink_expand`
+- new lint: `avoid_final_parameters`
+- improved docs for `omit_local_variable_types`
+
 # 1.14.0
 
 - fix `omit_local_variable_types` to not flag a local type that is 
