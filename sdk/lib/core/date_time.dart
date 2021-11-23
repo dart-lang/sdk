@@ -756,7 +756,7 @@ class DateTime implements Comparable<DateTime> {
   /// ```dart
   /// final dateUSA = DateTime.parse('2021-11-01 20:18:04Z').toLocal();
   /// print(dateUSA); // 2021-11-01 13:18:04.000
-  /// print(dateUSA.timeZoneName); // PDT ( Pacific Time )
+  /// print(dateUSA.timeZoneName); // PDT ( Pacific Daylight Time )
   /// print(dateUSA.timeZoneOffset.inHours); // -7
   /// print(dateUSA.timeZoneOffset.inMinutes); // -420
   /// ```
