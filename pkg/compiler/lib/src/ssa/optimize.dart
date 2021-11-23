@@ -606,8 +606,20 @@ class SsaInstructionSimplifier extends HBaseVisitor
           .isDefinitelyTrue) {
         resultType = _abstractValueDomain.uint32Type;
       }
+      HInstruction checkedReceiver = actualReceiver;
+      if (actualReceiver.isNull(_abstractValueDomain).isPotentiallyTrue) {
+        // The receiver is potentially `null` so we insert a null receiver
+        // check. This will be folded into the length access later.
+        HNullCheck check = HNullCheck(actualReceiver,
+            _abstractValueDomain.excludeNull(actualReceiver.instructionType))
+          ..selector = node.selector
+          ..sourceInformation = node.sourceInformation;
+        _log?.registerNullCheck(node, check);
+        node.block.addBefore(node, check);
+        checkedReceiver = check;
+      }
       HGetLength result =
-          HGetLength(actualReceiver, resultType, isAssignable: !isFixed);
+          HGetLength(checkedReceiver, resultType, isAssignable: !isFixed);
       return result;
     } else if (actualReceiver.isConstantMap()) {
       HConstant constantInput = actualReceiver;
@@ -2607,12 +2619,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     if (branch is HIf) {
       if (branch.thenBlock.isLive == branch.elseBlock.isLive) return;
       assert(branch.condition.isConstant());
-      HBasicBlock target =
+      HBasicBlock liveSuccessor =
           branch.thenBlock.isLive ? branch.thenBlock : branch.elseBlock;
-      HInstruction instruction = target.first;
-      while (!instruction.isControlFlow()) {
-        HInstruction next = instruction.next;
+      HInstruction instruction = liveSuccessor.first;
+      // Move instructions up until the final control flow instruction or pinned
+      // HTypeKnown.
+      while (instruction.next != null) {
         if (instruction is HTypeKnown && instruction.isPinned) break;
+        HInstruction next = instruction.next;
         // It might be worth re-running GVN optimizations if we hoisted a
         // GVN-able instructions from [target] into [block].
         newGvnCandidates = newGvnCandidates || instruction.useGvn();

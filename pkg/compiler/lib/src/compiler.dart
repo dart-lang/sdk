@@ -275,13 +275,8 @@ abstract class Compiler {
           performGlobalTypeInference(closedWorldAndIndices.closedWorld);
       var indices = closedWorldAndIndices.indices;
       if (options.writeDataUri != null) {
-        if (options.noClosedWorldInData) {
-          serializationTask.serializeGlobalTypeInference(
-              globalTypeInferenceResults, indices);
-        } else {
-          serializationTask
-              .serializeGlobalTypeInferenceLegacy(globalTypeInferenceResults);
-        }
+        serializationTask.serializeGlobalTypeInference(
+            globalTypeInferenceResults, indices);
         return;
       }
       await generateJavaScriptCode(globalTypeInferenceResults,
@@ -301,12 +296,6 @@ abstract class Compiler {
               closedWorldAndIndices);
       await generateJavaScriptCode(globalTypeInferenceResults,
           indices: closedWorldAndIndices.indices);
-    } else if (options.readDataUri != null) {
-      // TODO(joshualitt) delete and clean up after google3 roll
-      var globalTypeInferenceResults =
-          await serializationTask.deserializeGlobalTypeInferenceLegacy(
-              environment, abstractValueStrategy);
-      await generateJavaScriptCode(globalTypeInferenceResults);
     } else {
       KernelResult result = await kernelLoader.load();
       reporter.log("Kernel load complete");
@@ -543,16 +532,6 @@ abstract class Compiler {
       if (stopAfterClosedWorld || options.stopAfterProgramSplit) return;
       GlobalTypeInferenceResults globalInferenceResults =
           performGlobalTypeInference(closedWorld);
-      if (options.writeDataUri != null) {
-        // TODO(joshualitt) delete after google3 roll.
-        if (options.noClosedWorldInData) {
-          throw '"no-closed-world-in-data" requires serializing closed world.';
-        } else {
-          serializationTask
-              .serializeGlobalTypeInferenceLegacy(globalInferenceResults);
-        }
-        return;
-      }
       if (options.testMode) {
         globalInferenceResults =
             globalTypeInferenceResultsTestMode(globalInferenceResults);
