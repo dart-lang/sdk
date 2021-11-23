@@ -370,10 +370,10 @@ class BulkFixProcessor {
     }
 
     var errorCode = diagnostic.errorCode;
+    var codeName = errorCode.name;
     try {
-      var codeName = errorCode.name;
       if (errorCode is LintCode) {
-        var generators = FixProcessor.lintProducerMap[errorCode.name] ?? [];
+        var generators = FixProcessor.lintProducerMap[codeName] ?? [];
         await bulkApply(generators, codeName);
       } else {
         var generators = FixProcessor.nonLintProducerMap[errorCode] ?? [];
@@ -391,9 +391,7 @@ class BulkFixProcessor {
       }
     } catch (e, s) {
       throw CaughtException.withMessage(
-          'Exception generating fix for ${errorCode.name} in ${result.path}',
-          e,
-          s);
+          'Exception generating fix for $codeName in ${result.path}', e, s);
     }
   }
 
@@ -405,7 +403,7 @@ class BulkFixProcessor {
     await _applyProducer(context, producer);
     var newHash = computeChangeHash();
     if (newHash != oldHash) {
-      changeMap.add(context.resolvedResult.path, code);
+      changeMap.add(context.resolvedResult.path, code.toLowerCase());
     }
   }
 

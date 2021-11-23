@@ -195,6 +195,32 @@ linter:
         ]));
   });
 
+  test('--apply (contradictory lints do not loop infinitely)', () async {
+    p = project(
+      mainSrc: '''
+var x = "";
+''',
+      analysisOptions: '''
+linter:
+  rules:
+    - prefer_double_quotes
+    - prefer_single_quotes
+''',
+    );
+    var result = await runFix(['--apply', '.'], workingDir: p.dirPath);
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(
+        result.stdout,
+        stringContainsInOrder([
+          'Applying fixes...',
+          'lib${Platform.pathSeparator}main.dart',
+          '  prefer_double_quotes $bullet 2 fixes',
+          '  prefer_single_quotes $bullet 2 fixes',
+          '4 fixes made in 1 file.',
+        ]));
+  });
+
   test('--apply (excludes)', () async {
     p = project(
       mainSrc: '''
@@ -231,6 +257,33 @@ linter:
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Nothing to fix!'));
+  });
+
+  test('--apply (unused imports require a second pass)', () async {
+    p = project(
+      mainSrc: '''
+import 'dart:math';
+
+var x = "";
+''',
+      analysisOptions: '''
+linter:
+  rules:
+    - prefer_single_quotes
+''',
+    );
+    var result = await runFix(['--apply', '.'], workingDir: p.dirPath);
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(
+        result.stdout,
+        stringContainsInOrder([
+          'Applying fixes...',
+          'lib${Platform.pathSeparator}main.dart',
+          '  prefer_single_quotes $bullet 1 fix',
+          '  unused_import $bullet 1 fix',
+          '2 fixes made in 1 file.',
+        ]));
   });
 
   group('compare-to-golden', () {

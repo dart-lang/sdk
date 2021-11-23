@@ -8,7 +8,11 @@ import 'dart:io';
 
 import 'package:analysis_server/src/server/driver.dart' show Driver;
 import 'package:analysis_server_client/protocol.dart'
-    show EditBulkFixesResult, ResponseDecoder;
+    show
+        AddContentOverlay,
+        AnalysisUpdateContentParams,
+        EditBulkFixesResult,
+        ResponseDecoder;
 import 'package:args/args.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
@@ -165,6 +169,12 @@ class AnalysisServer {
     }).then((value) async {
       await dispose();
     });
+  }
+
+  /// Send an `analysis.updateContent` request with the given [files].
+  Future<void> updateContent(Map<String, AddContentOverlay> files) async {
+    await _sendCommand('analysis.updateContent',
+        params: AnalysisUpdateContentParams(files).toJson());
   }
 
   Future<Map<String, dynamic>> _sendCommand(String method,
