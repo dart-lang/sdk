@@ -400,7 +400,7 @@ class NamedTypeBuilder extends TypeBuilder {
         // from ClassHierarchyBuilder.
         TypeDeclarationBuilder? unaliasedDeclaration = this.declaration;
         // The following code assumes that the declaration is a TypeAliasBuilder
-        // that through a chain of other TypeAliasBuilders (possibly, the chian
+        // that through a chain of other TypeAliasBuilders (possibly, the chain
         // length is 0) references a ClassBuilder of the Null class.  Otherwise,
         // it won't produce the NullType on the output.
         while (unaliasedDeclaration is TypeAliasBuilder) {
@@ -421,7 +421,7 @@ class NamedTypeBuilder extends TypeBuilder {
         // class from ClassHierarchyBuilder.
         TypeDeclarationBuilder? unaliasedDeclaration = this.declaration;
         // The following code assumes that the declaration is a TypeAliasBuilder
-        // that through a chain of other TypeAliasBuilders (possibly, the chian
+        // that through a chain of other TypeAliasBuilders (possibly, the chain
         // length is 0) references a ClassBuilder of the FutureOr class.
         // Otherwise, it won't produce the FutureOrType on the output.
         while (unaliasedDeclaration is TypeAliasBuilder) {

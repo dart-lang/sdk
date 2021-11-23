@@ -160,7 +160,7 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
   @override
   Features computeLibraryValue(Id id, Library node) {
     Features features = new Features();
-    if (macroDeclarationData.macroClass != null) {
+    if (macroDeclarationData.macrosAreAvailable) {
       features.add(Tags.macrosAreAvailable);
     }
     if (node == compilerResult.component!.mainMethod!.enclosingLibrary) {
@@ -172,10 +172,11 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
         }
       }
     }
-    List<Class>? macroClasses = macroDeclarationData.macroDeclarations[node];
+    List<String>? macroClasses =
+        macroDeclarationData.macroDeclarations[node.importUri];
     if (macroClasses != null) {
-      for (Class cls in macroClasses) {
-        features.addElement(Tags.declaredMacros, cls.name);
+      for (String clsName in macroClasses) {
+        features.addElement(Tags.declaredMacros, clsName);
       }
     }
     if (getLibraryMacroApplicationData(node) != null) {

@@ -10,9 +10,8 @@ final Uri macroLibraryUri = Uri.parse('package:macro_builder/src/macro.dart');
 const String macroClassName = 'Macro';
 
 class MacroDeclarationData {
-  Class? macroClass;
-  Map<Library, List<Class>> macroDeclarations = {};
-  Set<Class> macroClasses = {};
+  bool macrosAreAvailable = false;
+  Map<Uri, List<String>> macroDeclarations = {};
   List<List<Uri>>? compilationSequence;
 }
 
