@@ -854,7 +854,7 @@ class FileSystemState {
 
     FileState? file = _uriToFile[uri];
     if (file == null) {
-      Source? uriSource = _sourceFactory.resolveUri(null, uri.toString());
+      Source? uriSource = _sourceFactory.forUri2(uri);
 
       // If the URI cannot be resolved, for example because the factory
       // does not understand the scheme, return the unresolved file instance.
@@ -863,15 +863,22 @@ class FileSystemState {
       }
 
       String path = uriSource.fullName;
+
+      // Check if already resolved to this path via different URI.
+      // That different URI must be the canonical one.
+      file = _pathToFile[path];
+      if (file != null) {
+        return Either2.t1(file);
+      }
+
       File resource = _resourceProvider.getFile(path);
 
       var rewrittenUri = rewriteFileToPackageUri(_sourceFactory, uri);
       if (rewrittenUri == null) {
         return Either2.t1(null);
       }
-      uri = rewrittenUri;
 
-      file = _newFile(resource, path, uri);
+      file = _newFile(resource, path, rewrittenUri);
     }
     return Either2.t1(file);
   }

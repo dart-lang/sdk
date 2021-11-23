@@ -23,16 +23,75 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../resolution/context_collection_resolution.dart';
+
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FileSystemStateTest);
+    defineReflectiveTests(FileSystemState_BazelWorkspaceTest);
   });
+}
+
+@reflectiveTest
+class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
+  void test_getFileForUri_hasGenerated_askGeneratedFirst() async {
+    var relPath = 'dart/my/test/a.dart';
+    var writablePath = convertPath('$workspaceRootPath/$relPath');
+    var generatedPath = convertPath('$workspaceRootPath/bazel-bin/$relPath');
+
+    // This generated file should be used instead of the writable.
+    newFile(generatedPath);
+
+    var analysisDriver = driverFor(convertPath(testFilePath));
+
+    var fsState = analysisDriver.fsState;
+
+    // The file is the generated file.
+    var generatedUri = toUri(generatedPath);
+    var generatedFile = fsState.getFileForUri(generatedUri).t1!;
+    expect(generatedFile.uri, generatedUri);
+    expect(generatedFile.path, generatedPath);
+
+    // The file is cached under the requested URI.
+    var writableUri = toUri(writablePath);
+    var writableFile1 = fsState.getFileForUri(writableUri).t1!;
+    var writableFile2 = fsState.getFileForUri(writableUri).t1!;
+    expect(writableFile1, same(generatedFile));
+    expect(writableFile2, same(generatedFile));
+  }
+
+  void test_getFileForUri_hasGenerated_askWritableFirst() async {
+    var relPath = 'dart/my/test/a.dart';
+    var writablePath = convertPath('$workspaceRootPath/$relPath');
+    var generatedPath = convertPath('$workspaceRootPath/bazel-bin/$relPath');
+
+    // This generated file should be used instead of the writable.
+    newFile(generatedPath);
+
+    var analysisDriver = driverFor(convertPath(testFilePath));
+
+    var fsState = analysisDriver.fsState;
+
+    // The file is cached under the requested URI.
+    var writableUri = toUri(writablePath);
+    var writableFile1 = fsState.getFileForUri(writableUri).t1!;
+    var writableFile2 = fsState.getFileForUri(writableUri).t1!;
+    expect(writableFile2, same(writableFile1));
+
+    // The file is the generated file.
+    var generatedUri = toUri(generatedPath);
+    var generatedFile = fsState.getFileForUri(generatedUri).t1!;
+    expect(generatedFile.uri, generatedUri);
+    expect(generatedFile.path, generatedPath);
+    expect(writableFile2, same(generatedFile));
+  }
 }
 
 @reflectiveTest
@@ -754,5 +813,16 @@ class _SourceMock implements Source {
   @override
   noSuchMethod(Invocation invocation) {
     throw StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+}
+
+extension _Either2Extension<T1, T2> on Either2<T1, T2> {
+  T1 get t1 {
+    late T1 result;
+    map(
+      (t1) => result = t1,
+      (_) => throw 'Expected T1',
+    );
+    return result;
   }
 }
