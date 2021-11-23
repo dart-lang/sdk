@@ -27,6 +27,7 @@ import 'package:kernel/class_hierarchy.dart'
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/util/graph.dart';
 import 'package:package_config/package_config.dart' as package_config;
 
 import '../../api_prototype/experimental_flags.dart';
@@ -34,7 +35,9 @@ import '../../api_prototype/file_system.dart';
 import '../../base/common.dart';
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../../base/nnbd_mode.dart';
+import '../dill/dill_class_builder.dart';
 import '../dill/dill_library_builder.dart';
+import '../builder_graph.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
@@ -200,7 +203,7 @@ class SourceLoader extends Loader {
 
   Uri? currentUriForCrashReporting;
 
-  Class? _macroClass;
+  ClassBuilder? _macroClassBuilder;
 
   SourceLoader(this.fileSystem, this.includeComments, this.target)
       : dataForTesting =
@@ -1171,10 +1174,12 @@ severity: $severity
     ticker.logMs("Resolved $typeCount types");
   }
 
-  void computeMacroDeclarations(List<SourceClassBuilder> classes) {
+  void computeMacroDeclarations(List<SourceClassBuilder> sourceClassBuilders) {
     if (!enableMacros) return;
+
     LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
     if (macroLibraryBuilder == null) return;
+
     Builder? macroClassBuilder =
         macroLibraryBuilder.lookupLocalMember(macroClassName);
     if (macroClassBuilder is! ClassBuilder) {
@@ -1183,45 +1188,106 @@ severity: $severity
       return;
     }
 
-    Class macroClass = _macroClass = macroClassBuilder.cls;
+    _macroClassBuilder = macroClassBuilder;
     if (retainDataForTesting) {
-      dataForTesting!.macroDeclarationData.macroClass = macroClass;
+      dataForTesting!.macroDeclarationData.macrosAreAvailable = true;
     }
-    for (SourceClassBuilder classBuilder in classes) {
-      Class cls = classBuilder.cls;
-      if (hierarchy.isSubtypeOf(cls, macroClass)) {
-        if (retainDataForTesting) {
-          (dataForTesting!.macroDeclarationData
-                  .macroDeclarations[cls.enclosingLibrary] ??= [])
-              .add(cls);
+
+    Set<ClassBuilder> macroClasses = {macroClassBuilder};
+    Set<Uri> macroLibraries = {macroLibraryBuilder.importUri};
+
+    bool isMacroClass(TypeDeclarationBuilder? typeDeclarationBuilder) {
+      if (typeDeclarationBuilder == null) return false;
+      while (typeDeclarationBuilder is TypeAliasBuilder) {
+        typeDeclarationBuilder =
+            typeDeclarationBuilder.unaliasDeclaration(null);
+      }
+      if (typeDeclarationBuilder is ClassBuilder) {
+        if (macroClasses.contains(typeDeclarationBuilder)) return true;
+        if (typeDeclarationBuilder is DillClassBuilder) {
+          // TODO(johnniwinther): Recognize macro classes from dill.
         }
       }
+      return false;
+    }
+
+    for (SourceClassBuilder sourceClassBuilder in sourceClassBuilders) {
+      bool isMacro =
+          isMacroClass(sourceClassBuilder.supertypeBuilder?.declaration);
+      if (!isMacro && sourceClassBuilder.interfaceBuilders != null) {
+        for (TypeBuilder interfaceBuilder
+            in sourceClassBuilder.interfaceBuilders!) {
+          if (isMacroClass(interfaceBuilder.declaration)) {
+            isMacro = true;
+            break;
+          }
+        }
+      }
+      isMacro = isMacro ||
+          isMacroClass(sourceClassBuilder.mixedInTypeBuilder?.declaration);
+      if (isMacro) {
+        macroClasses.add(sourceClassBuilder);
+        macroLibraries.add(sourceClassBuilder.library.importUri);
+        if (retainDataForTesting) {
+          (dataForTesting!.macroDeclarationData.macroDeclarations[
+                  sourceClassBuilder.library.importUri] ??= [])
+              .add(sourceClassBuilder.name);
+        }
+      }
+    }
+
+    bool isDillLibrary(Uri uri) => _builders[uri]?.loader != this;
+
+    List<List<Uri>> computeCompilationSequence(Graph<Uri> libraryGraph,
+        {required bool Function(Uri) filter}) {
+      List<List<Uri>> stronglyConnectedComponents =
+          computeStrongComponents(libraryGraph);
+
+      Graph<List<Uri>> strongGraph =
+          new StrongComponentGraph(libraryGraph, stronglyConnectedComponents);
+      List<List<List<Uri>>> componentLayers = [];
+      topologicalSort(strongGraph, layers: componentLayers);
+      List<List<Uri>> layeredComponents = [];
+      List<Uri> currentLayer = [];
+      for (List<List<Uri>> layer in componentLayers) {
+        bool declaresMacro = false;
+        for (List<Uri> component in layer) {
+          for (Uri uri in component) {
+            if (filter(uri)) continue;
+            if (macroLibraries.contains(uri)) {
+              declaresMacro = true;
+            }
+            currentLayer.add(uri);
+          }
+        }
+        if (declaresMacro) {
+          layeredComponents.add(currentLayer);
+          currentLayer = [];
+        }
+      }
+      if (currentLayer.isNotEmpty) {
+        layeredComponents.add(currentLayer);
+      }
+      return layeredComponents;
+    }
+
+    List<List<Uri>> compilationSteps = computeCompilationSequence(
+        new BuilderGraph(_builders),
+        filter: isDillLibrary);
+    if (retainDataForTesting) {
+      dataForTesting!.macroDeclarationData.compilationSequence =
+          compilationSteps;
     }
   }
 
   void computeMacroApplications() {
-    if (!enableMacros || _macroClass == null) return;
-    Class macroClass = _macroClass!;
-
-    Set<Class> macroClasses = {};
-    for (Library library in hierarchy.knownLibraries) {
-      for (Class cls in library.classes) {
-        // TODO(johnniwinther): Avoid calling `isSubtypeOf` for all classes. We
-        // should only check classes used in annotations to avoid marking too
-        // many classes as used.
-        if (hierarchy.isSubtypeOf(cls, macroClass)) {
-          macroClasses.add(cls);
-          if (retainDataForTesting) {
-            dataForTesting!.macroDeclarationData.macroClasses.add(cls);
-          }
-        }
-      }
-    }
+    if (!enableMacros || _macroClassBuilder == null) return;
+    Class macroClass = _macroClassBuilder!.cls;
 
     Class? computeApplication(Expression expression) {
       if (expression is ConstructorInvocation) {
         Class cls = expression.target.enclosingClass;
-        if (macroClasses.contains(cls)) {
+        if (hierarchy.isSubtypeOf(cls, macroClass)) {
           return cls;
         }
       }

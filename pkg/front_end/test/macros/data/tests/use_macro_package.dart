@@ -4,6 +4,10 @@
 
 /*library: 
  appliedMacros=[Macro3],
+ compilationSequence=[
+  package:macro_builder/src/macro.dart,
+  package:macro/macro.dart|package:macro_builder/macro_builder.dart,
+  main.dart],
  macrosAreApplied,
  macrosAreAvailable
 */

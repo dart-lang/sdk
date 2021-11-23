@@ -9,18 +9,6 @@ import 'dart:async' show Completer;
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
-
-import 'package:front_end/src/api_prototype/lowering_predicates.dart'
-    show isExtensionThisName;
-
-import 'package:front_end/src/base/nnbd_mode.dart';
-
-import 'package:front_end/src/fasta/builder/member_builder.dart'
-    show MemberBuilder;
-
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
@@ -69,12 +57,18 @@ import 'package:kernel/target/changed_structure_notifier.dart'
 
 import 'package:package_config/package_config.dart' show Package, PackageConfig;
 
+import '../api_prototype/experimental_flags.dart';
+
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
 
 import '../api_prototype/incremental_kernel_generator.dart'
     show IncrementalKernelGenerator, isLegalIdentifier;
 
+import '../api_prototype/lowering_predicates.dart' show isExtensionThisName;
+
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
+
+import '../base/nnbd_mode.dart';
 
 import 'builder/builder.dart' show Builder;
 
@@ -85,6 +79,8 @@ import 'builder/extension_builder.dart' show ExtensionBuilder;
 import 'builder/field_builder.dart' show FieldBuilder;
 
 import 'builder/library_builder.dart' show LibraryBuilder;
+
+import 'builder/member_builder.dart' show MemberBuilder;
 
 import 'builder/name_iterator.dart' show NameIterator;
 
@@ -106,6 +102,8 @@ import 'dill/dill_loader.dart' show DillLoader;
 import 'dill/dill_target.dart' show DillTarget;
 
 import 'export.dart' show Export;
+
+import 'fasta_codes.dart';
 
 import 'import.dart' show Import;
 
@@ -133,6 +131,8 @@ import 'library_graph.dart' show LibraryGraph;
 
 import 'source/source_library_builder.dart'
     show ImplicitLanguageVersion, SourceLibraryBuilder;
+
+import 'source/source_loader.dart';
 
 import 'ticker.dart' show Ticker;
 

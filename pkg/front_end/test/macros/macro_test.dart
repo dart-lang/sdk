@@ -70,8 +70,27 @@ class MacroDataComputer extends DataComputer<Features> {
 class Tags {
   static const String macrosAreAvailable = 'macrosAreAvailable';
   static const String macrosAreApplied = 'macrosAreApplied';
+  static const String compilationSequence = 'compilationSequence';
   static const String declaredMacros = 'declaredMacros';
   static const String appliedMacros = 'appliedMacros';
+}
+
+String importUriToString(Uri importUri) {
+  if (importUri.scheme == 'package') {
+    return importUri.toString();
+  } else if (importUri.scheme == 'dart') {
+    return importUri.toString();
+  } else {
+    return importUri.pathSegments.last;
+  }
+}
+
+String libraryToString(Library library) => importUriToString(library.importUri);
+
+String strongComponentToString(Iterable<Uri> uris) {
+  List<String> list = uris.map(importUriToString).toList();
+  list.sort();
+  return list.join('|');
 }
 
 class MacroDataExtractor extends CfeDataExtractor<Features> {
@@ -129,31 +148,41 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
   }
 
   @override
-  Features computeLibraryValue(Id id, Library node) {
-    Features features = new Features();
-    if (macroDeclarationData.macroClass != null) {
-      features.add(Tags.macrosAreAvailable);
-    }
-    List<Class>? macroClasses = macroDeclarationData.macroDeclarations[node];
-    if (macroClasses != null) {
-      for (Class cls in macroClasses) {
-        features.addElement(Tags.declaredMacros, cls.name);
-      }
-    }
-    if (getLibraryMacroApplicationData(node) != null) {
-      features.add(Tags.macrosAreApplied);
-    }
-    registerMacroApplications(features, getLibraryMacroApplications(node));
-    return features;
-  }
-
-  @override
   Features computeClassValue(Id id, Class node) {
     Features features = new Features();
     if (getClassMacroApplicationData(node) != null) {
       features.add(Tags.macrosAreApplied);
     }
     registerMacroApplications(features, getClassMacroApplications(node));
+    return features;
+  }
+
+  @override
+  Features computeLibraryValue(Id id, Library node) {
+    Features features = new Features();
+    if (macroDeclarationData.macrosAreAvailable) {
+      features.add(Tags.macrosAreAvailable);
+    }
+    if (node == compilerResult.component!.mainMethod!.enclosingLibrary) {
+      if (macroDeclarationData.compilationSequence != null) {
+        features.markAsUnsorted(Tags.compilationSequence);
+        for (List<Uri> component in macroDeclarationData.compilationSequence!) {
+          features.addElement(
+              Tags.compilationSequence, strongComponentToString(component));
+        }
+      }
+    }
+    List<String>? macroClasses =
+        macroDeclarationData.macroDeclarations[node.importUri];
+    if (macroClasses != null) {
+      for (String clsName in macroClasses) {
+        features.addElement(Tags.declaredMacros, clsName);
+      }
+    }
+    if (getLibraryMacroApplicationData(node) != null) {
+      features.add(Tags.macrosAreApplied);
+    }
+    registerMacroApplications(features, getLibraryMacroApplications(node));
     return features;
   }
 

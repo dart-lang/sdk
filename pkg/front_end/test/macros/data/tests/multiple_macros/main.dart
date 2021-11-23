@@ -5,12 +5,22 @@
 /*library: 
  compilationSequence=[
   package:macro_builder/src/macro.dart,
-  package:macro/macro.dart|package:macro_builder/macro_builder.dart,
+  macro_lib1.dart|macro_lib2a.dart|package:macro_builder/macro_builder.dart,
+  macro_lib2b.dart,
   main.dart],
+ macrosAreApplied,
  macrosAreAvailable
 */
 
-// ignore: unused_import
-import 'package:macro/macro.dart';
+import 'macro_lib1.dart';
+import 'macro_lib2a.dart';
+import 'macro_lib2b.dart';
 
+@Macro1()
+@Macro2a()
+@Macro2b()
+/*member: main:appliedMacros=[
+  Macro1,
+  Macro2a,
+  Macro2b]*/
 void main() {}

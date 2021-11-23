@@ -436,7 +436,6 @@ checker
 checking
 checkpoints
 checks
-chian
 child
 children
 choice

@@ -4,13 +4,16 @@
 
 /*library: 
  compilationSequence=[
-  package:macro_builder/src/macro.dart,
+  apply_lib_dep.dart|macro_lib_dep.dart|main_lib_dep.dart|package:macro_builder/src/macro.dart,
   macro_lib.dart|package:macro_builder/macro_builder.dart,
-  main.dart],
+  apply_lib.dart|main.dart],
  macrosAreAvailable
 */
 
-// ignore: unused_import
-import 'macro_lib.dart';
+import 'apply_lib.dart';
+import 'main_lib_dep.dart';
 
-void main() {}
+void main() {
+  new Class();
+  method();
+}

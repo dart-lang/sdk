@@ -3,14 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
- compilationSequence=[
-  package:macro_builder/src/macro.dart,
-  package:macro/macro.dart|package:macro_builder/macro_builder.dart,
-  main.dart],
+ macrosAreApplied,
  macrosAreAvailable
 */
 
-// ignore: unused_import
-import 'package:macro/macro.dart';
+import 'macro_lib.dart';
+import 'apply_lib_dep.dart';
 
-void main() {}
+@Macro1()
+/*class: Class:
+ appliedMacros=[Macro1],
+ macrosAreApplied
+*/
+class Class extends Super {}

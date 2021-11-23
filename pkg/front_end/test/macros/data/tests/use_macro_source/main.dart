@@ -3,6 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
+ compilationSequence=[
+  package:macro_builder/src/macro.dart,
+  macro_lib.dart|package:macro_builder/macro_builder.dart,
+  main.dart],
  macrosAreApplied,
  macrosAreAvailable
 */
