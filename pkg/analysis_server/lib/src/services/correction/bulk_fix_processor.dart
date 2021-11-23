@@ -322,13 +322,15 @@ class BulkFixProcessor {
         // apply it first.
         var context = correctionContext(definingUnit, directivesOrderingError);
         if (context != null) {
-          await _applyProducer(context, OrganizeImports.newInstance());
+          await _generateFix(context, OrganizeImports.newInstance(),
+              directivesOrderingError.errorCode.name);
         }
       } else {
         for (var error in unusedImportErrors) {
           var context = correctionContext(definingUnit, error);
           if (context != null) {
-            await _applyProducer(context, RemoveUnusedImport.newInstance());
+            await _generateFix(context, RemoveUnusedImport.newInstance(),
+                error.errorCode.name);
           }
         }
       }
@@ -357,23 +359,12 @@ class BulkFixProcessor {
       return;
     }
 
-    int computeChangeHash() => (builder as ChangeBuilderImpl).changeHash;
-
-    Future<void> generate(CorrectionProducer producer, String code) async {
-      var oldHash = computeChangeHash();
-      await _applyProducer(context, producer);
-      var newHash = computeChangeHash();
-      if (newHash != oldHash) {
-        changeMap.add(result.path, code);
-      }
-    }
-
     Future<void> bulkApply(
         List<ProducerGenerator> generators, String codeName) async {
       for (var generator in generators) {
         var producer = generator();
         if (producer.canBeAppliedInBulk) {
-          await generate(producer, codeName);
+          await _generateFix(context, producer, codeName);
         }
       }
     }
@@ -393,7 +384,7 @@ class BulkFixProcessor {
             var multiProducer = multiGenerator();
             multiProducer.configure(context);
             for (var producer in multiProducer.producers) {
-              await generate(producer, codeName);
+              await _generateFix(context, producer, codeName);
             }
           }
         }
@@ -403,6 +394,18 @@ class BulkFixProcessor {
           'Exception generating fix for ${errorCode.name} in ${result.path}',
           e,
           s);
+    }
+  }
+
+  Future<void> _generateFix(CorrectionProducerContext context,
+      CorrectionProducer producer, String code) async {
+    int computeChangeHash() => (builder as ChangeBuilderImpl).changeHash;
+
+    var oldHash = computeChangeHash();
+    await _applyProducer(context, producer);
+    var newHash = computeChangeHash();
+    if (newHash != oldHash) {
+      changeMap.add(context.resolvedResult.path, code);
     }
   }
 

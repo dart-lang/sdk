@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -54,6 +55,11 @@ void f() {}
     await assertHasFix('''
 void f() {}
 ''');
+    var details = processor.fixDetails;
+    expect(details, hasLength(1));
+    var fixes = details[0].fixes;
+    expect(fixes, hasLength(1));
+    expect(fixes[0].occurrences, 3);
   }
 
   Future<void> test_usedAndUnused() async {
