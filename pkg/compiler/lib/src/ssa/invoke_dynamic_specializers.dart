@@ -117,9 +117,24 @@ class InvokeDynamicSpecializer {
         .isEmitted;
   }
 
-  HBoundsCheck insertBoundsCheck(HInstruction indexerNode, HInstruction array,
-      HInstruction indexArgument, JClosedWorld closedWorld) {
+  HBoundsCheck insertBoundsCheck(
+      HInvokeDynamic indexerNode,
+      HInstruction array,
+      HInstruction indexArgument,
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
     final abstractValueDomain = closedWorld.abstractValueDomain;
+
+    if (abstractValueDomain.isNull(array.instructionType).isPotentiallyTrue) {
+      HNullCheck check = HNullCheck(
+          array, abstractValueDomain.excludeNull(array.instructionType))
+        ..selector = indexerNode.selector
+        ..sourceInformation = indexerNode.sourceInformation;
+      log?.registerNullCheck(indexerNode, check);
+      indexerNode.block.addBefore(indexerNode, check);
+      array = check;
+    }
+
     HGetLength length = HGetLength(array, abstractValueDomain.positiveIntType,
         isAssignable: abstractValueDomain
             .isFixedLengthJsIndexable(array.instructionType)
@@ -212,7 +227,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
     HInstruction checkedIndex = index;
     if (requiresBoundsCheck(instruction, closedWorld)) {
       checkedIndex =
-          insertBoundsCheck(instruction, receiver, index, closedWorld);
+          insertBoundsCheck(instruction, receiver, index, closedWorld, log);
     }
     HIndexAssign converted = HIndexAssign(
         closedWorld.abstractValueDomain, receiver, checkedIndex, value);
@@ -291,7 +306,7 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
     HInstruction checkedIndex = index;
     if (requiresBoundsCheck(instruction, closedWorld)) {
       checkedIndex =
-          insertBoundsCheck(instruction, receiver, index, closedWorld);
+          insertBoundsCheck(instruction, receiver, index, closedWorld, log);
     }
     HIndex converted = HIndex(receiver, checkedIndex, elementType);
     log?.registerIndex(instruction, converted);
@@ -322,7 +337,7 @@ class RemoveLastSpecializer extends InvokeDynamicSpecializer {
     if (requiresBoundsCheck(instruction, closedWorld)) {
       HConstant zeroIndex = graph.addConstantInt(0, closedWorld);
       HBoundsCheck check =
-          insertBoundsCheck(instruction, receiver, zeroIndex, closedWorld);
+          insertBoundsCheck(instruction, receiver, zeroIndex, closedWorld, log);
       HInstruction minusOne = graph.addConstantInt(-1, closedWorld);
       check.inputs.add(minusOne);
       minusOne.usedBy.add(check);
