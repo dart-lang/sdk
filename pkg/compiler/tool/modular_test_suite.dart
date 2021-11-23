@@ -385,7 +385,6 @@ class ComputeClosedWorldStep implements IOModularStep {
       if (useModularAnalysis)
         '${Flags.readModularAnalysis}=${dataDependencies.join(',')}',
       '${Flags.writeClosedWorld}=${toUri(module, closedWorldId)}',
-      Flags.noClosedWorldInData,
       '--out=${toUri(module, globalUpdatedDillId)}',
     ];
     var result =
@@ -433,8 +432,6 @@ class GlobalAnalysisStep implements IOModularStep {
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
       '${Flags.writeData}=${toUri(module, globalDataId)}',
-      // TODO(joshualitt): delete this flag after google3 roll
-      '${Flags.noClosedWorldInData}',
     ];
     var result =
         await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
@@ -538,153 +535,6 @@ class Dart2jsEmissionStep implements IOModularStep {
       '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
-      '${Flags.readData}=${toUri(module, globalDataId)}',
-      '${Flags.readCodegen}=${toUri(module, codeId)}',
-      '${Flags.codegenShards}=${codeId.shards}',
-      '--out=${toUri(module, jsId)}',
-    ];
-    var result =
-        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
-
-    _checkExitCode(result, this, module);
-  }
-
-  @override
-  void notifyCached(Module module) {
-    if (_options.verbose) print("\ncached step: dart2js backend on $module");
-  }
-}
-
-// TODO(joshualitt): delete after google3 roll.
-class LegacyGlobalAnalysisStep implements IOModularStep {
-  @override
-  List<DataId> get resultData => const [globalDataId];
-
-  @override
-  bool get needsSources => false;
-
-  @override
-  List<DataId> get dependencyDataNeeded => const [globalUpdatedDillId];
-
-  @override
-  List<DataId> get moduleDataNeeded =>
-      const [closedWorldId, globalUpdatedDillId];
-
-  @override
-  bool get onlyOnMain => true;
-
-  @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
-    if (_options.verbose) print("\nstep: dart2js global analysis on $module");
-    List<String> args = [
-      '--packages=${sdkRoot.toFilePath()}/.packages',
-      _dart2jsScript,
-      // TODO(sigmund): remove this dependency on libraries.json
-      if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
-      '${toUri(module, globalUpdatedDillId)}',
-      for (String flag in flags) '--enable-experiment=$flag',
-      '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
-      '${Flags.writeData}=${toUri(module, globalDataId)}',
-    ];
-    var result =
-        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
-
-    _checkExitCode(result, this, module);
-  }
-
-  @override
-  void notifyCached(Module module) {
-    if (_options.verbose)
-      print("\ncached step: dart2js global analysis on $module");
-  }
-}
-
-// Step that invokes the dart2js code generation on the main module given the
-// results of the global analysis step and produces one shard of the codegen
-// output.
-// Note: Legacy.
-class LegacyDart2jsCodegenStep implements IOModularStep {
-  final ShardDataId codeId;
-
-  LegacyDart2jsCodegenStep(this.codeId);
-
-  @override
-  List<DataId> get resultData => [codeId];
-
-  @override
-  bool get needsSources => false;
-
-  @override
-  List<DataId> get dependencyDataNeeded => const [];
-
-  @override
-  List<DataId> get moduleDataNeeded =>
-      const [globalUpdatedDillId, globalDataId];
-
-  @override
-  bool get onlyOnMain => true;
-
-  @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
-    if (_options.verbose) print("\nstep: dart2js backend on $module");
-    List<String> args = [
-      '--packages=${sdkRoot.toFilePath()}/.packages',
-      _dart2jsScript,
-      if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
-      '${toUri(module, globalUpdatedDillId)}',
-      for (String flag in flags) '--enable-experiment=$flag',
-      '${Flags.readData}=${toUri(module, globalDataId)}',
-      '${Flags.writeCodegen}=${toUri(module, codeId.dataId)}',
-      '${Flags.codegenShard}=${codeId.shard}',
-      '${Flags.codegenShards}=${codeId.dataId.shards}',
-    ];
-    var result =
-        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
-
-    _checkExitCode(result, this, module);
-  }
-
-  @override
-  void notifyCached(Module module) {
-    if (_options.verbose) print("cached step: dart2js backend on $module");
-  }
-}
-
-// Step that invokes the dart2js codegen enqueuer and emitter on the main module
-// given the results of the global analysis step and codegen shards.
-// Note: Legacy.
-class LegacyDart2jsEmissionStep implements IOModularStep {
-  @override
-  List<DataId> get resultData => const [jsId];
-
-  @override
-  bool get needsSources => false;
-
-  @override
-  List<DataId> get dependencyDataNeeded => const [];
-
-  @override
-  List<DataId> get moduleDataNeeded =>
-      const [globalUpdatedDillId, globalDataId, codeId0, codeId1];
-
-  @override
-  bool get onlyOnMain => true;
-
-  @override
-  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
-      List<String> flags) async {
-    if (_options.verbose) print("step: dart2js backend on $module");
-    List<String> args = [
-      '--packages=${sdkRoot.toFilePath()}/.packages',
-      _dart2jsScript,
-      if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
-      '${toUri(module, globalUpdatedDillId)}',
-      for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
       '${Flags.readData}=${toUri(module, globalDataId)}',
       '${Flags.readCodegen}=${toUri(module, codeId)}',
       '${Flags.codegenShards}=${codeId.shards}',
