@@ -29,58 +29,48 @@ part of dart.collection;
 /// codes of objects are well distributed.
 ///
 /// **Note:**
-/// It is generally not allowed to modify the set (add or remove elements) while
-/// an operation on the set is being performed, for example during a call to
-/// [forEach] or [containsAll]. Nor is it allowed to modify the set while
-/// iterating either the set itself or any [Iterable] that is backed by the set,
-/// such as the ones returned by methods like [where] and [map].
+/// Do not modify a set (add or remove elements) while an operation
+/// is being performed on that set, for example in functions
+/// called during a [forEach] or [containsAll] call,
+/// or while iterating the set.
 ///
-/// It is generally not allowed to modify the equality of elements (and thus not
-/// their hashcode) while they are in the set. Some specialized subtypes may be
-/// more permissive, in which case they should document this behavior.
+/// Do not modify elements in a way which changes their equality (and thus their
+/// hash code) while they are in the set. Some specialized kinds of sets may be
+/// more permissive with regards to equality, in which case they should document
+/// their different behavior and restrictions.
 ///
 /// Example:
 /// ```dart
 /// final planets = <String>{}; // LinkedHashSet
 /// ```
-/// To add data to a set, use  [add] or [addAll].
+/// To add data to a set, use [add] or [addAll].
 /// ```
-/// final uranusAdded = planets.add('Uranus');
+/// final uranusAdded = planets.add('Uranus'); // true
 /// planets.addAll({'Venus', 'Mars', 'Earth', 'Jupiter'});
 /// print(planets); // {Uranus, Venus, Mars, Earth, Jupiter}
 /// ```
 /// To check if the set is empty, use [isEmpty] or [isNotEmpty].
-/// To find the number of set entries, use [length].
+/// To find the number of elements in the set, use [length].
 /// ```
 /// print(planets.isEmpty); // false
 /// print(planets.length); // 5
 /// ```
-/// To check whether the set has an entry with a specific value, use [contains].
+/// To check whether the set has an element with a specific value,
+/// use [contains].
 /// ```
 /// final marsExists = planets.contains('Mars'); // true
 /// ```
-/// To get element value using index, use [elementAt].
+/// The [forEach] method calls a function with each element of the set.
 /// ```
-/// final elementAt = planets.elementAt(1);
-/// print(elementAt); // Venus
+/// planets.forEach(print);
+/// // Uranus
+/// // Venus
+/// // Mars
+/// // Earth
+/// // Jupiter
 /// ```
-/// The [forEach] iterates through all entries of a set.
-/// ```
-/// planets.forEach((element) {
-///   print(element);
-///   // Uranus
-///   // Venus
-///   // Mars
-///   // Earth
-///   // Jupiter
-/// });
-/// ```
-/// To convert set to list, call [toList].
-/// ```
-/// final toList = planets.toList();
-/// print(toList); // [Uranus, Venus, Mars, Earth, Jupiter]
-/// ```
-/// To make a copy of set, use [toSet].
+///
+/// To make a copy of the set, use [toSet].
 /// ```
 /// final copySet = planets.toSet();
 /// print(copySet); // {Uranus, Venus, Mars, Earth, Jupiter}
@@ -90,15 +80,16 @@ part of dart.collection;
 /// final removedValue = planets.remove('Mars'); // Mars
 /// print(planets); // {Uranus, Venus, Earth, Jupiter}
 /// ```
-/// To remove multiple elements at the same time, use [removeWhere].
+/// To remove multiple elements at the same time, use [removeWhere] or
+/// [removeAll].
 /// ```
-/// planets.removeWhere((element) => element.contains('Earth'));
+/// planets.removeWhere((element) => element.startsWith('E'));
 /// print(planets); // {Uranus, Venus, Jupiter}
 /// ```
-/// To removes all elements in this set that do not meet the condition,
+/// To removes all elements in this set that do not meet a condition,
 /// use [retainWhere].
 /// ```
-/// planets.retainWhere((element) => element.contains('Jupiter'))
+/// planets.retainWhere((element) => element.contains('Jupiter'));
 /// print(planets); // {Jupiter}
 /// ```
 /// To remove all elements and empty the set, use [clear].
@@ -110,8 +101,8 @@ part of dart.collection;
 /// **See also:**
 /// * [Set] is the general interface of collection where each object can
 /// occur only once.
-/// * [HashSet]: the order of the objects in the iterations is not guaranteed.
-/// * [SplayTreeSet]: the order of the objects can be relative to each other.
+/// * [HashSet] the order of the objects in the iteration is not guaranteed.
+/// * [SplayTreeSet] iterates the objects in sorted order.
 abstract class LinkedHashSet<E> implements Set<E> {
   /// Create an insertion-ordered hash set using the provided
   /// [equals] and [hashCode].
@@ -175,8 +166,8 @@ abstract class LinkedHashSet<E> implements Set<E> {
   /// ```
   /// Example:
   /// ```dart
-  /// final numbers = [10, 20, 30];
-  /// final setFrom = LinkedHashSet.from(numbers);
+  /// final numbers = <num>[10, 20, 30];
+  /// final setFrom = LinkedHashSet<int>.from(numbers);
   /// print(setFrom); // {10, 20, 30}
   /// ```
   factory LinkedHashSet.from(Iterable<dynamic> elements) {
