@@ -27,6 +27,7 @@ import 'package:kernel/class_hierarchy.dart'
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/util/graph.dart';
 import 'package:package_config/package_config.dart' as package_config;
 
 import '../../api_prototype/experimental_flags.dart';
@@ -35,6 +36,7 @@ import '../../base/common.dart';
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../../base/nnbd_mode.dart';
 import '../dill/dill_library_builder.dart';
+import '../builder_graph.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
@@ -1173,6 +1175,9 @@ severity: $severity
 
   void computeMacroDeclarations(List<SourceClassBuilder> classes) {
     if (!enableMacros) return;
+
+    bool isDillLibrary(Uri uri) => _builders[uri]?.loader != this;
+
     LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
     if (macroLibraryBuilder == null) return;
     Builder? macroClassBuilder =
@@ -1187,15 +1192,58 @@ severity: $severity
     if (retainDataForTesting) {
       dataForTesting!.macroDeclarationData.macroClass = macroClass;
     }
+    Set<Uri> macroLibraries = {};
     for (SourceClassBuilder classBuilder in classes) {
       Class cls = classBuilder.cls;
       if (hierarchy.isSubtypeOf(cls, macroClass)) {
+        macroLibraries.add(cls.enclosingLibrary.importUri);
         if (retainDataForTesting) {
           (dataForTesting!.macroDeclarationData
                   .macroDeclarations[cls.enclosingLibrary] ??= [])
               .add(cls);
         }
       }
+    }
+
+    List<List<Uri>> computeCompilationSequence(Graph<Uri> libraryGraph,
+        {required bool Function(Uri) filter}) {
+      List<List<Uri>> stronglyConnectedComponents =
+          computeStrongComponents(libraryGraph);
+
+      Graph<List<Uri>> strongGraph =
+          new StrongComponentGraph(libraryGraph, stronglyConnectedComponents);
+      List<List<List<Uri>>> componentLayers = [];
+      topologicalSort(strongGraph, layers: componentLayers);
+      List<List<Uri>> layeredComponents = [];
+      List<Uri> currentLayer = [];
+      for (List<List<Uri>> layer in componentLayers) {
+        bool declaresMacro = false;
+        for (List<Uri> component in layer) {
+          for (Uri uri in component) {
+            if (filter(uri)) continue;
+            if (macroLibraries.contains(uri)) {
+              declaresMacro = true;
+            }
+            currentLayer.add(uri);
+          }
+        }
+        if (declaresMacro) {
+          layeredComponents.add(currentLayer);
+          currentLayer = [];
+        }
+      }
+      if (currentLayer.isNotEmpty) {
+        layeredComponents.add(currentLayer);
+      }
+      return layeredComponents;
+    }
+
+    List<List<Uri>> compilationSteps = computeCompilationSequence(
+        new BuilderGraph(_builders),
+        filter: isDillLibrary);
+    if (retainDataForTesting) {
+      dataForTesting!.macroDeclarationData.compilationSequence =
+          compilationSteps;
     }
   }
 

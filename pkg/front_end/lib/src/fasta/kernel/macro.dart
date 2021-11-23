@@ -13,7 +13,7 @@ class MacroDeclarationData {
   Class? macroClass;
   Map<Library, List<Class>> macroDeclarations = {};
   Set<Class> macroClasses = {};
-  List<List<Library>> compilationSequence = [];
+  List<List<Uri>>? compilationSequence;
 }
 
 class MacroApplicationData {

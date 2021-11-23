@@ -23,4 +23,4 @@ import 'macro_lib2b.dart';
   Macro1,
   Macro2a,
   Macro2b]*/
-main() {}
+void main() {}

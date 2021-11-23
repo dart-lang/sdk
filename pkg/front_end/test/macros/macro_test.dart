@@ -11,7 +11,6 @@ import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:front_end/src/fasta/kernel/macro.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/util/graph.dart';
 
 Future<void> main(List<String> args) async {
   enableMacros = true;
@@ -76,54 +75,22 @@ class Tags {
   static const String appliedMacros = 'appliedMacros';
 }
 
-String libraryToString(Library library) {
-  if (library.importUri.scheme == 'package') {
-    return library.importUri.toString();
-  } else if (library.importUri.scheme == 'dart') {
-    return library.importUri.toString();
+String importUriToString(Uri importUri) {
+  if (importUri.scheme == 'package') {
+    return importUri.toString();
+  } else if (importUri.scheme == 'dart') {
+    return importUri.toString();
   } else {
-    return library.importUri.pathSegments.last;
+    return importUri.pathSegments.last;
   }
 }
 
-String strongComponentToString(Iterable<Library> libraries) {
-  List<String> list = libraries.map(libraryToString).toList();
+String libraryToString(Library library) => importUriToString(library.importUri);
+
+String strongComponentToString(Iterable<Uri> uris) {
+  List<String> list = uris.map(importUriToString).toList();
   list.sort();
   return list.join('|');
-}
-
-void computeCompilationSequence(
-    MacroDeclarationData macroDeclarationData, Graph<Library> libraryGraph,
-    {required bool Function(Library) filter}) {
-  List<List<Library>> stronglyConnectedComponents =
-      computeStrongComponents(libraryGraph);
-
-  Graph<List<Library>> strongGraph =
-      new StrongComponentGraph(libraryGraph, stronglyConnectedComponents);
-  List<List<List<Library>>> componentLayers = [];
-  topologicalSort(strongGraph, layers: componentLayers);
-  List<List<Library>> layeredComponents = [];
-  List<Library> currentLayer = [];
-  for (List<List<Library>> layer in componentLayers) {
-    bool declaresMacro = false;
-    for (List<Library> component in layer) {
-      for (Library library in component) {
-        if (filter(library)) continue;
-        if (macroDeclarationData.macroDeclarations.containsKey(library)) {
-          declaresMacro = true;
-        }
-        currentLayer.add(library);
-      }
-    }
-    if (declaresMacro) {
-      layeredComponents.add(currentLayer);
-      currentLayer = [];
-    }
-  }
-  if (currentLayer.isNotEmpty) {
-    layeredComponents.add(currentLayer);
-  }
-  macroDeclarationData.compilationSequence = layeredComponents;
 }
 
 class MacroDataExtractor extends CfeDataExtractor<Features> {
@@ -141,13 +108,6 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
 
   LibraryMacroApplicationData? getLibraryMacroApplicationData(Library library) {
     return macroApplicationData.libraryData[library];
-  }
-
-  List<List<Library>> getCompilationSequence() {
-    computeCompilationSequence(macroDeclarationData,
-        new LibraryGraph(compilerResult.component!.libraries),
-        filter: (Library library) => library.importUri.scheme == 'dart');
-    return macroDeclarationData.compilationSequence;
   }
 
   MacroApplications? getLibraryMacroApplications(Library library) {
@@ -204,10 +164,12 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
       features.add(Tags.macrosAreAvailable);
     }
     if (node == compilerResult.component!.mainMethod!.enclosingLibrary) {
-      features.markAsUnsorted(Tags.compilationSequence);
-      for (List<Library> component in getCompilationSequence()) {
-        features.addElement(
-            Tags.compilationSequence, strongComponentToString(component));
+      if (macroDeclarationData.compilationSequence != null) {
+        features.markAsUnsorted(Tags.compilationSequence);
+        for (List<Uri> component in macroDeclarationData.compilationSequence!) {
+          features.addElement(
+              Tags.compilationSequence, strongComponentToString(component));
+        }
       }
     }
     List<Class>? macroClasses = macroDeclarationData.macroDeclarations[node];
