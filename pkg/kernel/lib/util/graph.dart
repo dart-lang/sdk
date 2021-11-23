@@ -4,10 +4,40 @@
 
 library fasta.graph;
 
+import 'dart:math';
+
+import '../ast.dart';
+
 abstract class Graph<T> {
   Iterable<T> get vertices;
 
   Iterable<T> neighborsOf(T vertex);
+}
+
+/// [Graph] implementation using a collection of [Library] nodes as the graph
+/// vertices and using library dependencies to compute neighbors.
+///
+/// If [coreLibrary] is provided, it will be included in the neighbor of all
+/// vertices. Otherwise, `dart:core` will only be neighboring libraries that
+/// explicitly dependent on it.
+class LibraryGraph implements Graph<Library> {
+  final Iterable<Library> libraries;
+  final Library? coreLibrary;
+
+  LibraryGraph(this.libraries, {this.coreLibrary});
+
+  @override
+  Iterable<Library> get vertices => libraries;
+
+  @override
+  Iterable<Library> neighborsOf(Library library) sync* {
+    if (coreLibrary != null && library != coreLibrary) {
+      yield coreLibrary!;
+    }
+    for (LibraryDependency dependency in library.dependencies) {
+      yield dependency.targetLibrary;
+    }
+  }
 }
 
 /// Computes the strongly connected components of [graph].
@@ -76,4 +106,94 @@ List<List<T>> computeStrongComponents<T>(Graph<T> graph) {
   }
 
   return result;
+}
+
+/// A [Graph] using strongly connected components, as computed by
+/// [computeStrongComponents], as vertices. Neighbors are computed using the
+/// neighbors of the provided [subgraph] which was used to compute the strongly
+/// connected components.
+class StrongComponentGraph<T> implements Graph<List<T>> {
+  final Graph<T> subgraph;
+  final List<List<T>> components;
+  final Map<T, List<T>> _elementToComponentMap = {};
+  final Map<List<T>, Set<List<T>>> _neighborsMap = {};
+
+  StrongComponentGraph(this.subgraph, this.components) {
+    for (List<T> component in components) {
+      for (T element in component) {
+        _elementToComponentMap[element] = component;
+      }
+    }
+  }
+
+  Set<List<T>> _computeNeighborsOf(List<T> component) {
+    Set<List<T>> neighbors = {};
+    for (T element in component) {
+      for (T neighborElement in subgraph.neighborsOf(element)) {
+        List<T> neighborComponent = _elementToComponentMap[neighborElement]!;
+        if (component != neighborComponent) {
+          neighbors.add(neighborComponent);
+        }
+      }
+    }
+    return neighbors;
+  }
+
+  @override
+  Iterable<List<T>> neighborsOf(List<T> vertex) {
+    return _neighborsMap[vertex] ??= _computeNeighborsOf(vertex);
+  }
+
+  @override
+  Iterable<List<T>> get vertices => components;
+}
+
+/// Returns the non-cyclic vertices of [graph] sorted in topological order.
+///
+/// If [indexMap] is provided, it is filled with "index" of each vertex.
+/// If [layers] is provided, it is filled with a list of the vertices for each
+/// "index".
+///
+/// Here, the "index" of a vertex is the length of the longest path through
+/// neighbors. For vertices with no neighbors, the index is 0. For any other
+/// vertex, it is 1 plus max of the index of its neighbors.
+List<T> topologicalSort<T>(Graph<T> graph,
+    {Map<T, int>? indexMap, List<List<T>>? layers}) {
+  List<T> workList = graph.vertices.toList();
+  indexMap ??= {};
+  List<T> topologicallySortedVertices = [];
+  List<T> previousWorkList;
+  do {
+    previousWorkList = workList;
+    workList = [];
+    for (int i = 0; i < previousWorkList.length; i++) {
+      T vertex = previousWorkList[i];
+      int index = 0;
+      bool allSupertypesProcessed = true;
+      for (T neighbor in graph.neighborsOf(vertex)) {
+        int? neighborIndex = indexMap[neighbor];
+        if (neighborIndex == null) {
+          allSupertypesProcessed = false;
+          break;
+        } else {
+          index = max(index, neighborIndex + 1);
+        }
+      }
+      if (allSupertypesProcessed) {
+        indexMap[vertex] = index;
+        topologicallySortedVertices.add(vertex);
+        if (layers != null) {
+          if (index >= layers.length) {
+            assert(index == layers.length);
+            layers.add([vertex]);
+          } else {
+            layers[index].add(vertex);
+          }
+        }
+      } else {
+        workList.add(vertex);
+      }
+    }
+  } while (previousWorkList.length != workList.length);
+  return topologicallySortedVertices;
 }
