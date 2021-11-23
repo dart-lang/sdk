@@ -492,6 +492,16 @@ class DateTime implements Comparable<DateTime> {
   /// Returns a negative value if this DateTime [isBefore] [other]. It returns 0
   /// if it [isAtSameMomentAs] [other], and returns a positive value otherwise
   /// (when this [isAfter] [other]).
+  /// ```dart
+  /// final now = DateTime.now();
+  /// final future = now.add(const Duration(days: 2));
+  /// final past = now.subtract(const Duration(days: 2));
+  /// final newDate = now.toUtc();
+  ///
+  /// print(now.compareTo(future)); // -1
+  /// print(now.compareTo(past)); // 1
+  /// print(now.compareTo(newDate)); // 0
+  /// ```
   external int compareTo(DateTime other);
 
   int get hashCode => (_value ^ (_value >> 30)) & 0x3FFFFFFF;
