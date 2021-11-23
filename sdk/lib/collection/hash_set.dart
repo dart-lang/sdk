@@ -22,20 +22,20 @@ part of dart.collection;
 /// multiple iterations over the same set produce the same order, as long as
 /// the set is not modified.
 ///
-/// **Notice:**
-/// It is generally not allowed to modify the set (add or remove elements) while
-/// an operation on the set is being performed, for example during a call to
-/// [forEach] or [containsAll]. Nor is it allowed to modify the set while
-/// iterating either the set itself or any [Iterable] that is backed by the set,
-/// such as the ones returned by methods like [where] and [map].
+/// **Note:**
+/// Do not modify a set (add or remove elements) while an operation
+/// is being performed on that set, for example in functions
+/// called during a [forEach] or [containsAll] call,
+/// or while iterating the set.
 ///
-/// It is generally not allowed to modify the equality of elements (and thus not
-/// their hashcode) while they are in the set. Some specialized subtypes may be
-/// more permissive, in which case they should document this behavior.
+/// Do not modify elements in a way which changes their equality (and thus their
+/// hash code) while they are in the set. Some specialized kinds of sets may be
+/// more permissive with regards to equality, in which case they should document
+/// their different behavior and restrictions.
 ///
 /// Example:
 /// ```dart
-/// final letters = HashSet();
+/// final letters = HashSet<String>();
 /// ```
 /// To add data to a set, use  [add] or [addAll].
 /// ```
@@ -43,52 +43,48 @@ part of dart.collection;
 /// letters.addAll({'B', 'C', 'D'});
 /// ```
 /// To check if the set is empty, use [isEmpty] or [isNotEmpty].
-/// To find the number of set entries, use [length].
+/// To find the number of elements in the set, use [length].
 /// ```
 /// print(letters.isEmpty); // false
 /// print(letters.length); // 4
-/// print(letters); // {A, D, C, B}
+/// print(letters); // fx {A, D, C, B}
 /// ```
-/// To check whether the set has an entry with a specific value, use [contains].
+/// To check whether the set has an element with a specific value,
+/// use [contains].
 /// ```
 /// final bExists = letters.contains('B'); // true
 /// ```
-/// To get element value using index, use [elementAt].
+/// To get element value by its index in the element iteration order,
+/// use [elementAt].
 /// ```
 /// final elementAt = letters.elementAt(1);
-/// print(elementAt);
+/// print(elementAt); // fx D
 /// ```
-/// The [forEach] iterates through all entries of a set.
+/// The [forEach] method calls a function with each element of the set.
 /// ```
-/// letters.forEach((element) {
-///   print(element);
-///   // A
-///   // D
-///   // C
-///   // B
-/// });
+/// letters.forEach(print);
+/// // A
+/// // D
+/// // C
+/// // B
 /// ```
-/// To convert set to list, call [toList].
-/// ```
-/// final toList = letters.toList();
-/// print(toList); // [A, D, C, B]
-/// ```
-/// To make a copy of set, use [toSet].
+/// To make a copy of the set, use [toSet].
 /// ```
 /// final anotherSet = letters.toSet();
-/// print(anotherSet); // {A, C, D, B}
+/// print(anotherSet); // fx {A, C, D, B}
 /// ```
 /// To remove an element, use [remove].
 /// ```
 /// final removedValue = letters.remove('A'); // true
-/// print(letters); // {D, C, B}
+/// print(letters); // fx {B, C, D}
 /// ```
-/// To remove multiple elements at the same time, use [removeWhere].
+/// To remove multiple elements at the same time, use [removeWhere] or
+/// [removeAll].
 /// ```
-/// letters.removeWhere((element) => element.contains('B'));
-/// print(letters); // {D, C}
+/// letters.removeWhere((element) => element.startsWith('B'));
+/// print(letters); // fx {D, C}
 /// ```
-/// To removes all elements in this set that do not meet the condition,
+/// To removes all elements in this set that do not meet a condition,
 /// use [retainWhere].
 /// ```
 /// letters.retainWhere((element) => element.contains('C'));
@@ -104,7 +100,7 @@ part of dart.collection;
 /// * [Set] is the general interface of collection where each object can
 /// occur only once.
 /// * [LinkedHashSet] objects stored based on insertion order.
-/// * [SplayTreeSet] the order of the objects can be relative to each other.
+/// * [SplayTreeSet] iterates the objects in sorted order.
 abstract class HashSet<E> implements Set<E> {
   /// Create a hash set using the provided [equals] as equality.
   ///
@@ -172,9 +168,9 @@ abstract class HashSet<E> implements Set<E> {
   /// ```
   /// Example:
   /// ```dart
-  /// final numbers = [10, 20, 30];
-  /// final hashSetFrom = HashSet.from(numbers);
-  /// print(hashSetFrom); // {10, 20, 30}
+  /// final numbers = <num>[10, 20, 30];
+  /// final hashSetFrom = HashSet<int>.from(numbers);
+  /// print(hashSetFrom); // fx {20, 10, 30}
   /// ```
   factory HashSet.from(Iterable<dynamic> elements) {
     HashSet<E> result = HashSet<E>();
@@ -194,7 +190,7 @@ abstract class HashSet<E> implements Set<E> {
   /// ```dart
   /// final baseSet = <int>{1, 2, 3};
   /// final hashSetOf = HashSet<num>.of(baseSet);
-  /// print(hashSetOf); // {A, C, B}
+  /// print(hashSetOf); // fx {3, 1, 2}
   /// ```
   factory HashSet.of(Iterable<E> elements) => HashSet<E>()..addAll(elements);
 
