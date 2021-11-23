@@ -751,6 +751,24 @@ class DateTime implements Comparable<DateTime> {
   /// Note, that JavaScript, Python and C return the difference between UTC and
   /// local time. Java, C# and Ruby return the difference between local time and
   /// UTC.
+  ///
+  /// For example, using local time in San Francisco, United States:
+  /// ```dart
+  /// final dateUSA = DateTime.parse('2021-11-01 20:18:04Z').toLocal();
+  /// print(dateUSA); // 2021-11-01 13:18:04.000
+  /// print(dateUSA.timeZoneName); // PDT ( Pacific Time )
+  /// print(dateUSA.timeZoneOffset.inHours); // -7
+  /// print(dateUSA.timeZoneOffset.inMinutes); // -420
+  /// ```
+  ///
+  /// For example, using local time in Canberra, Australia:
+  /// ```dart
+  /// final dateAus = DateTime.parse('2021-11-01 20:18:04Z').toLocal();
+  /// print(dateAus); // 2021-11-02 07:18:04.000
+  /// print(dateAus.timeZoneName); // AEDT ( Australian Eastern Daylight Time )
+  /// print(dateAus.timeZoneOffset.inHours); // 11
+  /// print(dateAus.timeZoneOffset.inMinutes); // 660
+  /// ```
   external Duration get timeZoneOffset;
 
   /// The year.
