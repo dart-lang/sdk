@@ -774,14 +774,8 @@ class FileSystemState {
     // We use affected files to remove library elements, and we can only get
     // these library elements when we link or load them, using library cycles.
     // And we get library cycles by asking `directReferencedFiles`.
-    while (true) {
-      final knownFiles = this.knownFiles.toList();
-      for (var file in knownFiles.toList()) {
-        file.directReferencedFiles;
-      }
-      if (this.knownFiles.length == knownFiles.length) {
-        break;
-      }
+    for (var file in knownFiles.toList()) {
+      file.directReferencedFiles;
     }
 
     collectAffected(FileState file) {
