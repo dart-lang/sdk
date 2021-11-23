@@ -415,7 +415,14 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 #### Linter
 
-Updated the Linter to `1.14.0`, which includes changes that
+Updated the Linter to `1.15.0`, which includes changes that
+- adds new lint: `use_decorated_box`.
+- adds new lint: `no_leading_underscores_for_library_prefixes`.
+- adds new lint: `no_leading_underscores_for_local_identifiers`.
+- adds new lint: `secure_pubspec_urls`.
+- adds new lint: `sized_box_shrink_expand`.
+- adds new lint: `avoid_final_parameters`.
+- improves docs for `omit_local_variable_types`.
 - fix `omit_local_variable_types` to not flag a local type that is
   required for inference.
 - allow `while (true) { ... }` in `literal_only_boolean_expressions`.
