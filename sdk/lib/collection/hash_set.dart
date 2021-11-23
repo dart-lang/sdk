@@ -54,12 +54,6 @@ part of dart.collection;
 /// ```
 /// final bExists = letters.contains('B'); // true
 /// ```
-/// To get element value by its index in the element iteration order,
-/// use [elementAt].
-/// ```
-/// final elementAt = letters.elementAt(1);
-/// print(elementAt); // fx D
-/// ```
 /// The [forEach] method calls a function with each element of the set.
 /// ```
 /// letters.forEach(print);
