@@ -58,11 +58,9 @@ part of dart.core;
 ///
 /// ```dart
 /// final dDay = DateTime.utc(1944, 6, 6);
-/// print(dDay); // 1969-07-20 20:18:04.000Z
 /// print(dDay.isUtc); // true
 ///
 /// final dDayLocal = DateTime(1944, 6, 6);
-/// print(dDayLocal); // 1944-06-06 00:00:00.000
 /// print(dDayLocal.isUtc); // false
 /// ```
 /// Use the methods [toLocal] and [toUtc]
