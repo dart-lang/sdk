@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
@@ -21,15 +19,15 @@ void main() {
 
 @reflectiveTest
 class TypeSchemaEnvironmentTest {
-  Env typeParserEnvironment;
-  TypeSchemaEnvironment typeSchemaEnvironment;
+  late Env typeParserEnvironment;
+  late TypeSchemaEnvironment typeSchemaEnvironment;
 
   final Map<String, DartType Function()> additionalTypes = {
     "UNKNOWN": () => new UnknownType(),
   };
 
-  Library _coreLibrary;
-  Library _testLibrary;
+  late Library _coreLibrary;
+  late Library _testLibrary;
 
   Library get coreLibrary => _coreLibrary;
   Library get testLibrary => _testLibrary;
@@ -111,7 +109,7 @@ class TypeSchemaEnvironmentTest {
   /// There's an infinite amount of such types, and the list contains some
   /// practical base cases.  For the definition of TOP see the following:
   /// https://github.com/dart-lang/language/blob/master/resources/type-system/upper-lower-bounds.md#helper-predicates
-  static const Map<String, String> topPredicateEnumeration = <String, String>{
+  static const Map<String, String?> topPredicateEnumeration = {
     // dynamic and void.
     "dynamic": null,
     "void": null,
@@ -210,7 +208,7 @@ class TypeSchemaEnvironmentTest {
   /// There's an infinite amount of such types, and the list contains some
   /// practical base cases.  For the definition of OBJECT see the following:
   /// https://github.com/dart-lang/language/blob/master/resources/type-system/upper-lower-bounds.md#helper-predicates
-  static const Map<String, String> objectPredicateEnumeration = {
+  static const Map<String, String?> objectPredicateEnumeration = {
     "Object": null,
     "FutureOr<Object>": null,
     "FutureOr<FutureOr<Object>>": null,
@@ -224,7 +222,7 @@ class TypeSchemaEnvironmentTest {
   ///
   /// The names of the variables here and in [nullPredicateEnumeration] should
   /// be distinct to avoid collisions.
-  static const Map<String, String> bottomPredicateEnumeration = {
+  static const Map<String, String?> bottomPredicateEnumeration = {
     "Never": null,
     "Xb & Never": "Xb extends Object?",
     "Yb & Zb & Never": "Yb extends Object?, Zb extends Object?",
@@ -241,7 +239,7 @@ class TypeSchemaEnvironmentTest {
   ///
   /// The names of the variables here and in [bottomPredicateEnumeration] should
   /// be distinct to avoid collisions.
-  static const Map<String, String> nullPredicateEnumeration = {
+  static const Map<String, String?> nullPredicateEnumeration = {
     // T? where BOTTOM(T).
     "Never?": null,
     "Xn?": "Xn extends Never",
@@ -256,8 +254,8 @@ class TypeSchemaEnvironmentTest {
     "Null": null,
   };
 
-  static String joinTypeParameters(
-      String typeParameters1, String typeParameters2) {
+  static String? joinTypeParameters(
+      String? typeParameters1, String? typeParameters2) {
     if (typeParameters1 == null) return typeParameters2;
     if (typeParameters2 == null) return typeParameters1;
     if (typeParameters1 == typeParameters2) return typeParameters1;
@@ -277,7 +275,7 @@ class TypeSchemaEnvironmentTest {
     //   T2 otherwise
     for (String t1 in bottomPredicateEnumeration.keys) {
       for (String t2 in bottomPredicateEnumeration.keys) {
-        String typeParameters = joinTypeParameters(
+        String? typeParameters = joinTypeParameters(
             bottomPredicateEnumeration[t1], bottomPredicateEnumeration[t2]);
         typeParserEnvironment.withTypeParameters(typeParameters, (_) {
           String expected =
@@ -320,7 +318,7 @@ class TypeSchemaEnvironmentTest {
     //   T2 otherwise
     for (String t1 in nullPredicateEnumeration.keys) {
       for (String t2 in nullPredicateEnumeration.keys) {
-        String typeParameters = joinTypeParameters(
+        String? typeParameters = joinTypeParameters(
             nullPredicateEnumeration[t1], nullPredicateEnumeration[t2]);
         typeParserEnvironment.withTypeParameters(typeParameters, (_) {
           String expected =
@@ -600,7 +598,7 @@ class TypeSchemaEnvironmentTest {
     //   T2 otherwise
     for (String t1 in topPredicateEnumeration.keys) {
       for (String t2 in topPredicateEnumeration.keys) {
-        String typeParameters = joinTypeParameters(
+        String? typeParameters = joinTypeParameters(
             topPredicateEnumeration[t1], topPredicateEnumeration[t2]);
         typeParserEnvironment.withTypeParameters(typeParameters, (_) {
           String expected =
@@ -1100,7 +1098,7 @@ class TypeSchemaEnvironmentTest {
     //   T2 otherwise
     for (String t1 in topPredicateEnumeration.keys) {
       for (String t2 in topPredicateEnumeration.keys) {
-        String typeParameters = joinTypeParameters(
+        String? typeParameters = joinTypeParameters(
             topPredicateEnumeration[t1], topPredicateEnumeration[t2]);
         typeParserEnvironment.withTypeParameters(typeParameters, (_) {
           String expected =
@@ -1143,7 +1141,7 @@ class TypeSchemaEnvironmentTest {
     //   T2 otherwise
     for (String t1 in objectPredicateEnumeration.keys) {
       for (String t2 in objectPredicateEnumeration.keys) {
-        String typeParameters = joinTypeParameters(
+        String? typeParameters = joinTypeParameters(
             objectPredicateEnumeration[t1], objectPredicateEnumeration[t2]);
         typeParserEnvironment.withTypeParameters(typeParameters, (_) {
           String expected =
@@ -1194,7 +1192,7 @@ class TypeSchemaEnvironmentTest {
     //   T1 otherwise
     for (String t1 in bottomPredicateEnumeration.keys) {
       for (String t2 in bottomPredicateEnumeration.keys) {
-        String typeParameters = joinTypeParameters(
+        String? typeParameters = joinTypeParameters(
             bottomPredicateEnumeration[t1], bottomPredicateEnumeration[t2]);
         typeParserEnvironment.withTypeParameters(typeParameters, (_) {
           String expected =
@@ -1237,7 +1235,7 @@ class TypeSchemaEnvironmentTest {
     //   T1 otherwise
     for (String t1 in nullPredicateEnumeration.keys) {
       for (String t2 in nullPredicateEnumeration.keys) {
-        String typeParameters = joinTypeParameters(
+        String? typeParameters = joinTypeParameters(
             nullPredicateEnumeration[t1], nullPredicateEnumeration[t2]);
         typeParserEnvironment.withTypeParameters(typeParameters, (_) {
           String expected =
@@ -1505,8 +1503,7 @@ class TypeSchemaEnvironmentTest {
   }
 
   void checkConstraintSolving(String constraint, String expected,
-      {bool grounded}) {
-    assert(grounded != null);
+      {required bool grounded}) {
     expect(
         typeSchemaEnvironment.solveTypeConstraint(
             parseConstraint(constraint),
@@ -1516,17 +1513,13 @@ class TypeSchemaEnvironmentTest {
         parseType(expected));
   }
 
-  void checkConstraintUpperBound({String constraint, String bound}) {
-    assert(constraint != null);
-    assert(bound != null);
-
+  void checkConstraintUpperBound(
+      {required String constraint, required String bound}) {
     expect(parseConstraint(constraint).upper, parseType(bound));
   }
 
-  void checkConstraintLowerBound({String constraint, String bound}) {
-    assert(constraint != null);
-    assert(bound != null);
-
+  void checkConstraintLowerBound(
+      {required String constraint, required String bound}) {
     expect(parseConstraint(constraint).lower, parseType(bound));
   }
 
@@ -1572,16 +1565,12 @@ class TypeSchemaEnvironmentTest {
   }
 
   void checkUpperBound(
-      {String type1,
-      String type2,
-      String upperBound,
-      String typeParameters,
+      {required String type1,
+      required String type2,
+      required String upperBound,
+      String? typeParameters,
       bool nonNull1: false,
       bool nonNull2: false}) {
-    assert(type1 != null);
-    assert(type2 != null);
-    assert(upperBound != null);
-
     typeParserEnvironment.withTypeParameters(typeParameters,
         (List<TypeParameter> typeParameterNodes) {
       DartType dartType1 = parseType(type1);
@@ -1600,11 +1589,10 @@ class TypeSchemaEnvironmentTest {
   }
 
   void checkLowerBound(
-      {String type1, String type2, String lowerBound, String typeParameters}) {
-    assert(type1 != null);
-    assert(type2 != null);
-    assert(lowerBound != null);
-
+      {required String type1,
+      required String type2,
+      required String lowerBound,
+      String? typeParameters}) {
     typeParserEnvironment.withTypeParameters(typeParameters,
         (List<TypeParameter> typeParameterNodes) {
       expect(
@@ -1615,28 +1603,23 @@ class TypeSchemaEnvironmentTest {
   }
 
   void checkInference(
-      {String typeParametersToInfer,
-      String functionType,
-      String actualParameterTypes,
-      String returnContextType,
-      String inferredTypesFromDownwardPhase,
-      String expectedTypes}) {
-    assert(typeParametersToInfer != null);
-    assert(functionType != null);
-    assert(expectedTypes != null);
-
+      {required String typeParametersToInfer,
+      required String functionType,
+      String? actualParameterTypes,
+      String? returnContextType,
+      String? inferredTypesFromDownwardPhase,
+      required String expectedTypes}) {
     typeParserEnvironment.withTypeParameters(typeParametersToInfer,
         (List<TypeParameter> typeParameterNodesToInfer) {
-      FunctionType functionTypeNode = parseType(functionType);
-      DartType returnContextTypeNode =
+      FunctionType functionTypeNode = parseType(functionType) as FunctionType;
+      DartType? returnContextTypeNode =
           returnContextType == null ? null : parseType(returnContextType);
-      List<DartType> actualTypeNodes = actualParameterTypes == null
+      List<DartType>? actualTypeNodes = actualParameterTypes == null
           ? null
           : parseTypes(actualParameterTypes);
-      List<DartType> expectedTypeNodes =
-          expectedTypes == null ? null : parseTypes(expectedTypes);
+      List<DartType> expectedTypeNodes = parseTypes(expectedTypes);
       DartType declaredReturnTypeNode = functionTypeNode.returnType;
-      List<DartType> formalTypeNodes = actualParameterTypes == null
+      List<DartType>? formalTypeNodes = actualParameterTypes == null
           ? null
           : functionTypeNode.positionalParameters;
 
@@ -1668,14 +1651,11 @@ class TypeSchemaEnvironmentTest {
   }
 
   void checkInferenceFromConstraints(
-      {String typeParameter,
-      String constraints,
-      String inferredTypeFromDownwardPhase,
-      bool downwardsInferPhase,
-      String expected}) {
-    assert(typeParameter != null);
-    assert(expected != null);
-    assert(downwardsInferPhase != null);
+      {required String typeParameter,
+      required String constraints,
+      String? inferredTypeFromDownwardPhase,
+      required bool downwardsInferPhase,
+      required String expected}) {
     assert(inferredTypeFromDownwardPhase == null || !downwardsInferPhase);
 
     typeParserEnvironment.withTypeParameters(typeParameter,

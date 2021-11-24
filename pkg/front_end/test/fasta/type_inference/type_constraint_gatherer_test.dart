@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:front_end/src/fasta/type_inference/type_constraint_gatherer.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
@@ -22,15 +20,15 @@ void main() {
 
 @reflectiveTest
 class TypeConstraintGathererTest {
-  Env env;
+  late Env env;
 
   final Map<String, DartType Function()> additionalTypes = {
     'UNKNOWN': () => UnknownType()
   };
 
-  Library _coreLibrary;
+  late Library _coreLibrary;
 
-  Library _testLibrary;
+  late Library _testLibrary;
 
   TypeConstraintGathererTest();
 
@@ -215,8 +213,8 @@ class TypeConstraintGathererTest {
         typeParameters: 'T1 extends Object*');
   }
 
-  void checkConstraintsLower(String type, String bound, List<String> expected,
-      {String typeParameters, String typeParametersToConstrain}) {
+  void checkConstraintsLower(String type, String bound, List<String>? expected,
+      {String? typeParameters, String? typeParametersToConstrain}) {
     env.withTypeParameters(typeParameters ?? '',
         (List<TypeParameter> typeParameterNodes) {
       List<TypeParameter> typeParameterNodesToConstrain;
@@ -242,7 +240,7 @@ class TypeConstraintGathererTest {
       DartType type,
       DartType bound,
       Library clientLibrary,
-      List<String> expectedConstraints,
+      List<String>? expectedConstraints,
       List<TypeParameter> typeParameterNodesToConstrain) {
     _checkConstraintsHelper(
         type,
@@ -253,8 +251,8 @@ class TypeConstraintGathererTest {
         typeParameterNodesToConstrain);
   }
 
-  void checkConstraintsUpper(String type, String bound, List<String> expected,
-      {String typeParameters, String typeParametersToConstrain}) {
+  void checkConstraintsUpper(String type, String bound, List<String>? expected,
+      {String? typeParameters, String? typeParametersToConstrain}) {
     env.withTypeParameters(typeParameters ?? '',
         (List<TypeParameter> typeParameterNodes) {
       List<TypeParameter> typeParameterNodesToConstrain;
@@ -280,7 +278,7 @@ class TypeConstraintGathererTest {
       DartType type,
       DartType bound,
       Library clientLibrary,
-      List<String> expectedConstraints,
+      List<String>? expectedConstraints,
       List<TypeParameter> typeParameterNodesToConstrain) {
     _checkConstraintsHelper(
         type,
@@ -295,7 +293,7 @@ class TypeConstraintGathererTest {
       DartType a,
       DartType b,
       Library clientLibrary,
-      List<String> expectedConstraints,
+      List<String>? expectedConstraints,
       bool Function(TypeConstraintGatherer, DartType, DartType) tryConstrain,
       List<TypeParameter> typeParameterNodesToConstrain) {
     var typeSchemaEnvironment = new TypeSchemaEnvironment(
@@ -311,7 +309,7 @@ class TypeConstraintGathererTest {
     }
     expect(constraints, isNotNull);
     var constraintStrings = <String>[];
-    constraints.forEach((t, constraint) {
+    constraints!.forEach((t, constraint) {
       if (constraint.lower is! UnknownType ||
           constraint.upper is! UnknownType) {
         var s = t.name;
@@ -321,7 +319,7 @@ class TypeConstraintGathererTest {
         if (constraint.upper is! UnknownType) {
           s = '$s <: ${typeSchemaToString(constraint.upper)}';
         }
-        constraintStrings.add(s);
+        constraintStrings.add(s as String);
       }
     });
     expect(constraintStrings, unorderedEquals(expectedConstraints));
