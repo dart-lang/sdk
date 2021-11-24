@@ -401,8 +401,8 @@ abstract class Map<K, V> {
   ///
   /// Calling `action` must not add or remove keys from the map.
   /// ```dart
-  /// final massByPlanets = {0.81: 'Venus', 1: 'Earth', 0.11: 'Mars',
-  ///   17.15: 'Neptune'};
+  /// final massByPlanets = <num, String>{0.81: 'Venus', 1: 'Earth',
+  ///   0.11: 'Mars', 17.15: 'Neptune'};
   ///
   /// massByPlanets.forEach((key, value) {
   ///   print('$key: $value');
