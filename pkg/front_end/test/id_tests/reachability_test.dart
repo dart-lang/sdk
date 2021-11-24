@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
@@ -43,11 +41,11 @@ class ReachabilityDataComputer
       InternalCompilerResult compilerResult,
       Member member,
       Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     MemberBuilderImpl memberBuilder =
-        lookupMemberBuilder(compilerResult, member);
+        lookupMemberBuilder(compilerResult, member) as MemberBuilderImpl;
     member.accept(new ReachabilityDataExtractor(compilerResult, actualMap,
-        memberBuilder.dataForTesting.inferenceData.flowAnalysisResult));
+        memberBuilder.dataForTesting!.inferenceData.flowAnalysisResult));
   }
 
   /// Errors are supported for testing erroneous code. The reported errors are
@@ -66,15 +64,15 @@ class ReachabilityDataExtractor
       Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
       this._flowResult)
       : _sourceLoaderDataForTesting =
-            compilerResult.kernelTargetForTesting.loader.dataForTesting,
+            compilerResult.kernelTargetForTesting!.loader.dataForTesting!,
         super(compilerResult, actualMap);
 
   @override
-  Set<_ReachabilityAssertion> computeMemberValue(Id id, Member member) {
+  Set<_ReachabilityAssertion>? computeMemberValue(Id id, Member member) {
     Set<_ReachabilityAssertion> result = {};
     if (member.function != null) {
       TreeNode alias =
-          _sourceLoaderDataForTesting.toOriginal(member.function.body);
+          _sourceLoaderDataForTesting.toOriginal(member.function!.body!);
       if (_flowResult.functionBodiesThatDontComplete.contains(alias)) {
         result.add(_ReachabilityAssertion.doesNotComplete);
       }
@@ -83,7 +81,7 @@ class ReachabilityDataExtractor
   }
 
   @override
-  Set<_ReachabilityAssertion> computeNodeValue(Id id, TreeNode node) {
+  Set<_ReachabilityAssertion>? computeNodeValue(Id id, TreeNode node) {
     Set<_ReachabilityAssertion> result = {};
     TreeNode alias = _sourceLoaderDataForTesting.toOriginal(node);
     if (node is Expression && node.parent is ExpressionStatement) {
@@ -93,12 +91,12 @@ class ReachabilityDataExtractor
       // amount of redundancy in the test files.
       assert(_flowResult.unreachableNodes.contains(alias) ==
           _flowResult.unreachableNodes
-              .contains(_sourceLoaderDataForTesting.toOriginal(node.parent)));
+              .contains(_sourceLoaderDataForTesting.toOriginal(node.parent!)));
     } else if (_flowResult.unreachableNodes.contains(alias)) {
       result.add(_ReachabilityAssertion.unreachable);
     }
     if (node is FunctionDeclaration) {
-      Statement body = node.function.body;
+      Statement? body = node.function.body;
       if (body != null &&
           _flowResult.functionBodiesThatDontComplete
               .contains(_sourceLoaderDataForTesting.toOriginal(body))) {
@@ -120,12 +118,12 @@ class _ReachabilityDataInterpreter
 
   @override
   String getText(Set<_ReachabilityAssertion> actualData,
-          [String indentation]) =>
+          [String? indentation]) =>
       _sortedRepresentation(_toStrings(actualData));
 
   @override
-  String isAsExpected(
-      Set<_ReachabilityAssertion> actualData, String expectedData) {
+  String? isAsExpected(
+      Set<_ReachabilityAssertion> actualData, String? expectedData) {
     var actualStrings = _toStrings(actualData);
     var actualSorted = _sortedRepresentation(actualStrings);
     var expectedSorted = _sortedRepresentation(expectedData?.split(','));
@@ -139,7 +137,7 @@ class _ReachabilityDataInterpreter
   @override
   bool isEmpty(Set<_ReachabilityAssertion> actualData) => actualData.isEmpty;
 
-  String _sortedRepresentation(Iterable<String> values) {
+  String _sortedRepresentation(Iterable<String>? values) {
     var list = values == null || values.isEmpty ? ['none'] : values.toList();
     list.sort();
     return list.join(',');

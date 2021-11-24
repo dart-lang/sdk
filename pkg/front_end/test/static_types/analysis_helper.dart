@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert' as json;
 import 'dart:io';
 
@@ -25,7 +23,7 @@ import 'package:kernel/type_environment.dart';
 Future<void> run(Uri entryPoint, String allowedListPath,
     {bool verbose = false,
     bool generate = false,
-    bool analyzedUrisFilter(Uri uri)}) async {
+    bool Function(Uri uri)? analyzedUrisFilter}) async {
   CompilerOptions options = new CompilerOptions();
   options.sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
 
@@ -33,10 +31,10 @@ Future<void> run(Uri entryPoint, String allowedListPath,
     printDiagnosticMessage(message, print);
   };
   InternalCompilerResult compilerResult = await kernelForProgramInternal(
-      entryPoint, options,
-      retainDataForTesting: true, requireMain: false);
+          entryPoint, options, retainDataForTesting: true, requireMain: false)
+      as InternalCompilerResult;
 
-  new DynamicVisitor(options.onDiagnostic, compilerResult.component,
+  new DynamicVisitor(options.onDiagnostic!, compilerResult.component!,
           allowedListPath, analyzedUrisFilter)
       .run(verbose: verbose, generate: generate);
 }
@@ -44,7 +42,7 @@ Future<void> run(Uri entryPoint, String allowedListPath,
 class StaticTypeVisitorBase extends RecursiveVisitor {
   final TypeEnvironment typeEnvironment;
 
-  StaticTypeContext staticTypeContext;
+  StaticTypeContext? staticTypeContext;
 
   StaticTypeVisitorBase(Component component, ClassHierarchy classHierarchy)
       : typeEnvironment =
@@ -86,8 +84,8 @@ class DynamicVisitor extends StaticTypeVisitorBase {
 
   final DiagnosticMessageHandler onDiagnostic;
   final Component component;
-  final String _allowedListPath;
-  final bool Function(Uri uri) analyzedUrisFilter;
+  final String? _allowedListPath;
+  final bool Function(Uri uri)? analyzedUrisFilter;
 
   Map _expectedJson = {};
   Map<String, Map<String, List<FormattedMessage>>> _actualMessages = {};
@@ -99,7 +97,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
 
   void run({bool verbose = false, bool generate = false}) {
     if (!generate && _allowedListPath != null) {
-      File file = new File(_allowedListPath);
+      File file = new File(_allowedListPath!);
       if (file.existsSync()) {
         try {
           _expectedJson = json.jsonDecode(file.readAsStringSync());
@@ -121,14 +119,14 @@ class DynamicVisitor extends StaticTypeVisitorBase {
         actualJson[uri] = map;
       });
 
-      new File(_allowedListPath).writeAsStringSync(
+      new File(_allowedListPath!).writeAsStringSync(
           new json.JsonEncoder.withIndent('  ').convert(actualJson));
       return;
     }
 
     int errorCount = 0;
     _expectedJson.forEach((uri, expectedMessages) {
-      Map<String, List<FormattedMessage>> actualMessagesMap =
+      Map<String, List<FormattedMessage>>? actualMessagesMap =
           _actualMessages[uri];
       if (actualMessagesMap == null) {
         print("Error: Allowed-listing of uri '$uri' isn't used. "
@@ -136,7 +134,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
         errorCount++;
       } else {
         expectedMessages.forEach((expectedMessage, expectedCount) {
-          List<FormattedMessage> actualMessages =
+          List<FormattedMessage>? actualMessages =
               actualMessagesMap[expectedMessage];
           if (actualMessages == null) {
             print("Error: Allowed-listing of message '$expectedMessage' "
@@ -223,8 +221,8 @@ class DynamicVisitor extends StaticTypeVisitorBase {
                                 locatedMessage.messageObject.correctionMessage,
                             arguments: locatedMessage.messageObject.arguments)),
                     Severity.warning,
-                    location:
-                        new Location(message.uri, message.line, message.column),
+                    location: new Location(
+                        message.uri!, message.line, message.column),
                     uriToSource: component.uriToSource),
                 message.line,
                 message.column,
@@ -256,7 +254,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
   @override
   void visitLibrary(Library node) {
     if (analyzedUrisFilter != null) {
-      if (analyzedUrisFilter(node.importUri)) {
+      if (analyzedUrisFilter!(node.importUri)) {
         super.visitLibrary(node);
       }
     } else {
@@ -309,9 +307,9 @@ class DynamicVisitor extends StaticTypeVisitorBase {
   }
 
   void registerError(TreeNode node, String message) {
-    Location location = node.location;
+    Location location = node.location!;
     Uri uri = location.file;
-    String uriString = relativizeUri(uri);
+    String uriString = relativizeUri(uri)!;
     Map<String, List<FormattedMessage>> actualMap = _actualMessages.putIfAbsent(
         uriString, () => <String, List<FormattedMessage>>{});
     if (uri.scheme == 'org-dartlang-sdk') {

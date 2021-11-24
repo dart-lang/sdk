@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
@@ -45,12 +43,12 @@ class InferredTypeArgumentDataComputer extends DataComputer<List<DartType>> {
       InternalCompilerResult compilerResult,
       Member member,
       Map<Id, ActualData<List<DartType>>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     MemberBuilderImpl memberBuilder =
-        lookupMemberBuilder(compilerResult, member);
+        lookupMemberBuilder(compilerResult, member) as MemberBuilderImpl;
     member.accept(new InferredTypeArgumentDataExtractor(
         compilerResult,
-        memberBuilder.dataForTesting.inferenceData.typeInferenceResult,
+        memberBuilder.dataForTesting!.inferenceData.typeInferenceResult,
         actualMap));
   }
 }
@@ -64,7 +62,7 @@ class InferredTypeArgumentDataExtractor
       : super(compilerResult, actualMap);
 
   @override
-  List<DartType> computeNodeValue(Id id, TreeNode node) {
+  List<DartType>? computeNodeValue(Id id, TreeNode node) {
     if (node is Arguments ||
         node is ListLiteral ||
         node is SetLiteral ||
@@ -80,7 +78,7 @@ class _InferredTypeArgumentsDataInterpreter
   const _InferredTypeArgumentsDataInterpreter();
 
   @override
-  String getText(List<DartType> actualData, [String indentation]) {
+  String getText(List<DartType> actualData, [String? indentation]) {
     StringBuffer sb = new StringBuffer();
     if (actualData.isNotEmpty) {
       sb.write('<');
@@ -97,7 +95,7 @@ class _InferredTypeArgumentsDataInterpreter
   }
 
   @override
-  String isAsExpected(List<DartType> actualData, String expectedData) {
+  String? isAsExpected(List<DartType> actualData, String? expectedData) {
     if (getText(actualData) == expectedData) {
       return null;
     } else {
@@ -106,6 +104,6 @@ class _InferredTypeArgumentsDataInterpreter
   }
 
   @override
-  bool isEmpty(List<DartType> actualData) =>
+  bool isEmpty(List<DartType>? actualData) =>
       actualData == null || actualData.isEmpty;
 }

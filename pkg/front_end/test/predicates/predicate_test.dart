@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
@@ -77,7 +75,7 @@ class PredicateDataComputer extends DataComputer<Features> {
       InternalCompilerResult compilerResult,
       Library library,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     new PredicateDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library);
   }
@@ -88,7 +86,7 @@ class PredicateDataComputer extends DataComputer<Features> {
       InternalCompilerResult compilerResult,
       Member member,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     member.accept(new PredicateDataExtractor(compilerResult, actualMap));
   }
 
@@ -106,12 +104,12 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
       : super(compilerResult, actualMap);
 
   @override
-  Features computeLibraryValue(Id id, Library node) {
+  Features? computeLibraryValue(Id id, Library node) {
     return null;
   }
 
   @override
-  Features computeMemberValue(Id id, Member node) {
+  Features? computeMemberValue(Id id, Member node) {
     if (node is Field) {
       Features features = new Features();
       if (isLateLoweredField(node)) {
@@ -124,11 +122,11 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
         features[Tags.lateFieldName] =
             extractFieldNameFromLateLoweredIsSetField(node).text;
       }
-      Field target = getLateFieldTarget(node);
+      Field? target = getLateFieldTarget(node);
       if (target != null) {
         features[Tags.lateFieldTarget] = getQualifiedMemberName(target);
       }
-      Expression initializer = getLateFieldInitializer(node);
+      Expression? initializer = getLateFieldInitializer(node);
       if (initializer != null) {
         features[Tags.lateFieldInitializer] =
             initializer.toText(astTextStrategyForTesting);
@@ -146,11 +144,11 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
         features[Tags.lateFieldName] =
             extractFieldNameFromLateLoweredFieldSetter(node).text;
       }
-      Field target = getLateFieldTarget(node);
+      Field? target = getLateFieldTarget(node);
       if (target != null) {
         features[Tags.lateFieldTarget] = getQualifiedMemberName(target);
       }
-      Expression initializer = getLateFieldInitializer(node);
+      Expression? initializer = getLateFieldInitializer(node);
       if (initializer != null) {
         features[Tags.lateFieldInitializer] =
             initializer.toText(astTextStrategyForTesting);
@@ -164,11 +162,11 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
   void visitProcedure(Procedure node) {
     super.visitProcedure(node);
     nodeIdMap.forEach((String name, NodeId id) {
-      Features features = featureMap[name];
+      Features? features = featureMap[name];
       if (features != null) {
-        TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
+        TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
         registerValue(
-            nodeWithOffset.location.file, id.value, id, features, name);
+            nodeWithOffset.location!.file, id.value, id, features, name);
       }
     });
     nodeIdMap.clear();
@@ -177,22 +175,22 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    String name;
-    String tag;
+    String? name;
+    String? tag;
     if (isLateLoweredLocal(node)) {
-      name = extractLocalNameFromLateLoweredLocal(node.name);
+      name = extractLocalNameFromLateLoweredLocal(node.name!);
       tag = Tags.lateLocal;
     } else if (isLateLoweredIsSetLocal(node)) {
-      name = extractLocalNameFromLateLoweredIsSet(node.name);
+      name = extractLocalNameFromLateLoweredIsSet(node.name!);
       tag = Tags.lateIsSetLocal;
     } else if (isLateLoweredLocalGetter(node)) {
-      name = extractLocalNameFromLateLoweredGetter(node.name);
+      name = extractLocalNameFromLateLoweredGetter(node.name!);
       tag = Tags.lateLocalGetter;
     } else if (isLateLoweredLocalSetter(node)) {
-      name = extractLocalNameFromLateLoweredSetter(node.name);
+      name = extractLocalNameFromLateLoweredSetter(node.name!);
       tag = Tags.lateLocalSetter;
     } else if (isExtensionThis(node)) {
-      name = extractLocalNameForExtensionThis(node.name);
+      name = extractLocalNameForExtensionThis(node.name!);
       tag = Tags.extensionThis;
     } else if (node.name != null) {
       name = node.name;
@@ -210,7 +208,7 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
   }
 
   @override
-  ActualData<Features> mergeData(
+  ActualData<Features>? mergeData(
       ActualData<Features> value1, ActualData<Features> value2) {
     if ('${value1.value}' == '${value2.value}') {
       // The extension this parameter is seen twice in the extension method
