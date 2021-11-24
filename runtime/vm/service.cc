@@ -367,7 +367,7 @@ static StreamInfo* const streams_[] = {
     &Service::timeline_stream, &Service::profiler_stream,
 };
 
-bool Service::ListenStream(const char* stream_id) {
+bool Service::ListenStream(const char* stream_id, bool include_private_members) {
   if (FLAG_trace_service) {
     OS::PrintErr("vm-service: starting stream '%s'\n", stream_id);
   }
@@ -375,6 +375,7 @@ bool Service::ListenStream(const char* stream_id) {
   for (intptr_t i = 0; i < num_streams; i++) {
     if (strcmp(stream_id, streams_[i]->id()) == 0) {
       streams_[i]->set_enabled(true);
+      streams_[i]->set_include_private_members(include_private_members);
       return true;
     }
   }
@@ -1164,7 +1165,7 @@ static void ReportPauseOnConsole(ServiceEvent* event) {
 }
 
 void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
-  if (event->stream_info() != NULL && !event->stream_info()->enabled()) {
+  if (event->stream_info() != nullptr && !event->stream_info()->enabled()) {
     if (FLAG_warn_on_pause_with_no_debugger && event->IsPause()) {
       // If we are about to pause a running program which has no
       // debugger connected, tell the user about it.
@@ -1172,7 +1173,7 @@ void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
     }
     // Ignore events when no one is listening to the event stream.
     return;
-  } else if (event->stream_info() != NULL &&
+  } else if (event->stream_info() != nullptr &&
              FLAG_warn_on_pause_with_no_debugger && event->IsPause()) {
     ReportPauseOnConsole(event);
   }
@@ -1180,8 +1181,11 @@ void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
     return;
   }
   JSONStream js;
+  if (event->stream_info() != nullptr) {
+    js.set_include_private_members(event->stream_info()->include_private_members());
+  }
   const char* stream_id = event->stream_id();
-  ASSERT(stream_id != NULL);
+  ASSERT(stream_id != nullptr);
   {
     JSONObject jsobj(&js);
     jsobj.AddProperty("jsonrpc", "2.0");
@@ -1493,6 +1497,30 @@ static void PrintSentinel(JSONStream* js, SentinelType sentinel_type) {
       UNIMPLEMENTED();
       break;
   }
+}
+
+static const MethodParameter* const set_stream_include_private_members_params[] = {
+    NO_ISOLATE_PARAMETER,
+    new BoolParameter("includePrivateMembers", true),
+    nullptr,
+};
+
+static void SetStreamIncludePrivateMembers(Thread* thread, JSONStream* js) {
+  const char* stream_id = js->LookupParam("streamId");
+  if (stream_id == nullptr) {
+    PrintMissingParamError(js, "streamId");
+    return;
+  }
+  bool include_private_members =
+      BoolParameter::Parse(js->LookupParam("includePrivateMembers"), false);
+  intptr_t num_streams = sizeof(streams_) / sizeof(streams_[0]);
+  for (intptr_t i = 0; i < num_streams; i++) {
+    if (strcmp(stream_id, streams_[i]->id()) == 0) {
+      streams_[i]->set_include_private_members(include_private_members);
+      break;
+    }
+  }
+  PrintSuccess(js);
 }
 
 static void ActOnIsolateGroup(JSONStream* js,
@@ -5626,6 +5654,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_library_debuggable_params },
   { "setName", SetName,
     set_name_params },
+  { "_setStreamIncludePrivateMembers", SetStreamIncludePrivateMembers,
+    set_stream_include_private_members_params },
   { "setTraceClassAllocation", SetTraceClassAllocation,
     set_trace_class_allocation_params },
   { "setVMName", SetVMName,
