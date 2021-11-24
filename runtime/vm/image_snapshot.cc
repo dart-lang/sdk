@@ -56,7 +56,6 @@ const UntaggedInstructionsSection* Image::ExtraInfo(const uword raw_memory,
     // (unless splitting into multiple outputs and there are no Code objects
     // in this particular output), but is guaranteed empty otherwise (the
     // instructions follow the InstructionsSection object instead).
-    ASSERT(FLAG_use_bare_instructions || layout->payload_length_ == 0);
     ASSERT(raw_value <=
            size - InstructionsSection::InstanceSize(layout->payload_length_));
     return layout;
@@ -599,8 +598,7 @@ const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) const {
 }
 
 void ImageWriter::WriteText(bool vm) {
-  const bool bare_instruction_payloads =
-      FLAG_precompiled_mode && FLAG_use_bare_instructions;
+  const bool bare_instruction_payloads = FLAG_precompiled_mode;
 
   // Start snapshot at page boundary.
   if (!EnterSection(ProgramSection::Text, vm, ImageWriter::kTextAlignment)) {
@@ -1568,20 +1566,18 @@ ApiErrorPtr ImageReader::VerifyAlignment() const {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 uword ImageReader::GetBareInstructionsAt(uint32_t offset) const {
-  ASSERT(FLAG_use_bare_instructions);
   ASSERT(Utils::IsAligned(offset, Instructions::kBarePayloadAlignment));
   return reinterpret_cast<uword>(instructions_image_) + offset;
 }
 
 uword ImageReader::GetBareInstructionsEnd() const {
-  ASSERT(FLAG_use_bare_instructions);
   Image image(instructions_image_);
   return reinterpret_cast<uword>(image.object_start()) + image.object_size();
 }
 #endif
 
 InstructionsPtr ImageReader::GetInstructionsAt(uint32_t offset) const {
-  ASSERT(!FLAG_precompiled_mode || !FLAG_use_bare_instructions);
+  ASSERT(!FLAG_precompiled_mode);
   ASSERT(Utils::IsAligned(offset, kObjectAlignment));
 
   ObjectPtr result = UntaggedObject::FromAddr(

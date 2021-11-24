@@ -47,7 +47,7 @@ ObjectPtr ReversePc::FindCodeDescriptor(IsolateGroup* group,
                                         uword pc,
                                         bool is_return_address,
                                         uword* code_start) {
-  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+  ASSERT(FLAG_precompiled_mode);
   NoSafepointScope no_safepoint;
 
   ObjectPtr code_descriptor =
@@ -62,7 +62,7 @@ ObjectPtr ReversePc::FindCodeDescriptor(IsolateGroup* group,
 CodePtr ReversePc::Lookup(IsolateGroup* group,
                           uword pc,
                           bool is_return_address) {
-  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+  ASSERT(FLAG_precompiled_mode);
   NoSafepointScope no_safepoint;
 
   uword code_start;
@@ -85,7 +85,7 @@ CompressedStackMapsPtr ReversePc::FindCompressedStackMaps(
     uword pc,
     bool is_return_address,
     uword* code_start) {
-  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+  ASSERT(FLAG_precompiled_mode);
   NoSafepointScope no_safepoint;
 
   ObjectPtr code_descriptor =

@@ -837,7 +837,6 @@ void MonomorphicSmiableCall::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("_target", Code::Handle(target()));
 }
 
 void CallSiteData::PrintJSONImpl(JSONStream* stream, bool ref) const {

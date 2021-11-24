@@ -82,7 +82,7 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
   __ LoadCompressedFieldFromOffset(
       kFunctionReg, InitInstanceFieldABI::kFieldReg,
       target::Field::initializer_function_offset());
-  if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+  if (!FLAG_precompiled_mode) {
     __ LoadCompressedFieldFromOffset(CODE_REG, kFunctionReg,
                                      target::Function::code_offset());
     // Load a GC-safe value for the arguments descriptor (unused but tagged).
@@ -675,7 +675,7 @@ void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
 void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   Label done, call_runtime;
 
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     __ LoadFromOffset(CODE_REG, THR,
                       target::Thread::slow_type_test_stub_offset());
   }
@@ -807,13 +807,9 @@ void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
       // entry point in bare instructions mode or to 0 otherwise (to catch
       // misuse). This overwrites the scratch register, but there are no more
       // boxed fields.
-      if (FLAG_use_bare_instructions) {
-        __ LoadFromSlot(AllocateClosureABI::kScratchReg,
-                        AllocateClosureABI::kFunctionReg,
-                        Slot::Function_entry_point());
-      } else {
-        __ LoadImmediate(AllocateClosureABI::kScratchReg, 0);
-      }
+      __ LoadFromSlot(AllocateClosureABI::kScratchReg,
+                      AllocateClosureABI::kFunctionReg,
+                      Slot::Function_entry_point());
       __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
                               AllocateClosureABI::kResultReg,
                               Slot::Closure_entry_point());

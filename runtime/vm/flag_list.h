@@ -66,7 +66,6 @@ constexpr bool FLAG_support_il_printer = false;
     "Use --[no-]dwarf-stack-traces instead.")                                  \
   P(lazy_async_stacks, bool, true, "Reconstruct async stacks from listeners")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
-  P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
   R(dedup_instructions, true, bool, false,                                     \
     "Canonicalize instructions when precompiling.")
 

@@ -826,21 +826,6 @@
         "vm-options": []
       }
     },
-    "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-(x64|x64c)": {
-      "options": {
-        "vm-options": [
-          "--no-use-bare-instructions"
-        ]
-      }
-    },
-    "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-(simarm|simarm64|simarm64c)": {
-      "options": {
-        "vm-options": [
-          "--no-use-bare-instructions"
-        ],
-        "use-elf": true
-      }
-    },
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {},
     "dartk-fuchsia-(debug|product|release)-(x64|x64c)": {},
     "dartk-linux-debug-(ia32|x64)-canary": {
@@ -1540,36 +1525,6 @@
           "name": "vm tests",
           "arguments": [
             "-ndartkp-dwarf-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-precomp-bare-linux-release-x64",
-        "vm-kernel-precomp-bare-linux-release-x64c",
-        "vm-kernel-precomp-bare-linux-release-simarm",
-        "vm-kernel-precomp-bare-linux-release-simarm64",
-        "vm-kernel-precomp-bare-linux-release-simarm64c"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm kernel precomp builders using bare instructions."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime",
-            "dart_precompiled_runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartkp-no-bare-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10

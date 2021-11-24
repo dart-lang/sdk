@@ -49,11 +49,16 @@ template("dart2js_compile") {
   abs_output = rebase_path(out)
 
   prebuilt_dart_action(target_name) {
-    deps = invoker.deps + [ "../compiler:compile_dart2js_platform" ]
+    deps = invoker.deps + [
+             "../compiler:compile_dart2js_platform",
+             "../compiler:compile_dart2js_platform_unsound",
+           ]
 
     inputs = [
       "$root_out_dir/dart2js_platform.dill",
+      "$root_out_dir/dart2js_platform_unsound.dill",
       "$root_out_dir/dart2js_outline.dill",
+      "$root_out_dir/dart2js_outline_unsound.dill",
     ]
     outputs = [ out ]
 

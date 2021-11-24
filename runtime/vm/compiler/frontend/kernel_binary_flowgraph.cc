@@ -3110,7 +3110,7 @@ Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
 
   // Lookup the function in the closure.
   instructions += LoadLocal(variable);
-  if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+  if (!FLAG_precompiled_mode) {
     instructions += LoadNativeField(Slot::Closure_function());
   }
   if (parsed_function()->function().is_debuggable()) {
@@ -3173,7 +3173,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
                               /*clear_temp=*/false);
     // Lookup the function in the closure.
     instructions += LoadLocal(receiver_temp);
-    if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+    if (!FLAG_precompiled_mode) {
       instructions += LoadNativeField(Slot::Closure_function());
     }
     if (parsed_function()->function().is_debuggable()) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
@@ -49,9 +47,9 @@ Future<void> main(List<String> args) async {
 
 class TestConfigWithLanguageVersion extends TestConfig {
   TestConfigWithLanguageVersion(String marker, String name,
-      {Uri librariesSpecificationUri,
+      {Uri? librariesSpecificationUri,
       Map<ExperimentalFlag, bool> experimentalFlags = const {},
-      AllowedExperimentalFlags allowedExperimentalFlags})
+      AllowedExperimentalFlags? allowedExperimentalFlags})
       : super(marker, name,
             librariesSpecificationUri: librariesSpecificationUri,
             explicitExperimentalFlags: experimentalFlags,
@@ -72,7 +70,7 @@ class PatchingDataComputer extends DataComputer<Features> {
       InternalCompilerResult compilerResult,
       Member member,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     member.accept(new PatchingDataExtractor(compilerResult, actualMap));
   }
 
@@ -82,7 +80,7 @@ class PatchingDataComputer extends DataComputer<Features> {
       InternalCompilerResult compilerResult,
       Class cls,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     new PatchingDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
@@ -92,7 +90,7 @@ class PatchingDataComputer extends DataComputer<Features> {
       InternalCompilerResult compilerResult,
       Library library,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     new PatchingDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library);
   }
@@ -136,7 +134,7 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
 
   @override
   Features computeClassValue(Id id, Class cls) {
-    ClassBuilder clsBuilder = lookupClassBuilder(compilerResult, cls);
+    ClassBuilder clsBuilder = lookupClassBuilder(compilerResult, cls)!;
 
     Features features = new Features();
     clsBuilder.scope.forEach((String name, Builder builder) {
@@ -172,9 +170,10 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
         features.addElement(Tags.initializers, desc);
       }
     }
-    MemberBuilderImpl memberBuilder =
-        lookupMemberBuilder(compilerResult, member, required: false);
-    MemberBuilder patchMember = memberBuilder?.dataForTesting?.patchForTesting;
+    MemberBuilderImpl? memberBuilder =
+        lookupMemberBuilder(compilerResult, member, required: false)
+            as MemberBuilderImpl?;
+    MemberBuilder? patchMember = memberBuilder?.dataForTesting?.patchForTesting;
     if (patchMember != null) {
       features.add(Tags.patch);
     }

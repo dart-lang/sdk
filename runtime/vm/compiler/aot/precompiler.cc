@@ -455,12 +455,10 @@ void Precompiler::DoCompileAll() {
       retained_reasons_writer_ = &reasons_writer;
     }
 
-    if (FLAG_use_bare_instructions) {
-      // Since we keep the object pool until the end of AOT compilation, it
-      // will hang on to its entries until the very end. Therefore we have
-      // to use handles which survive that long, so we use [zone_] here.
-      global_object_pool_builder_.InitializeWithZone(zone_);
-    }
+    // Since we keep the object pool until the end of AOT compilation, it
+    // will hang on to its entries until the very end. Therefore we have
+    // to use handles which survive that long, so we use [zone_] here.
+    global_object_pool_builder_.InitializeWithZone(zone_);
 
     {
       HANDLESCOPE(T);
@@ -481,7 +479,7 @@ void Precompiler::DoCompileAll() {
       // as well as other type checks.
       HierarchyInfo hierarchy_info(T);
 
-      if (FLAG_use_bare_instructions && FLAG_use_table_dispatch) {
+      if (FLAG_use_table_dispatch) {
         dispatch_table_generator_ = new compiler::DispatchTableGenerator(Z);
         dispatch_table_generator_->Initialize(IG->class_table());
       }
@@ -489,7 +487,7 @@ void Precompiler::DoCompileAll() {
       // Precompile constructors to compute information such as
       // optimized instruction count (used in inlining heuristics).
       ClassFinalizer::ClearAllCode(
-          /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
+          /*including_nonchanging_cids=*/true);
 
       {
         CompilerState state(thread_, /*is_aot=*/true, /*is_optimizing=*/true);
@@ -497,14 +495,14 @@ void Precompiler::DoCompileAll() {
       }
 
       ClassFinalizer::ClearAllCode(
-          /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
+          /*including_nonchanging_cids=*/true);
 
       tracer_ = PrecompilerTracer::StartTracingIfRequested(this);
 
       // All stubs have already been generated, all of them share the same pool.
       // We use that pool to initialize our global object pool, to guarantee
       // stubs as well as code compiled from here on will have the same pool.
-      if (FLAG_use_bare_instructions) {
+      {
         // We use any stub here to get it's object pool (all stubs share the
         // same object pool in bare instructions mode).
         const Code& code = StubCode::LazyCompile();
@@ -571,7 +569,7 @@ void Precompiler::DoCompileAll() {
       // [Type]-specialized stubs.
       AttachOptimizedTypeTestingStub();
 
-      if (FLAG_use_bare_instructions) {
+      {
         // Now we generate the actual object pool instance and attach it to the
         // object store. The AOT runtime will use it from there in the enter
         // dart code stub.
@@ -853,9 +851,7 @@ void Precompiler::CollectCallbackFields() {
 
 void Precompiler::ProcessFunction(const Function& function) {
   HANDLESCOPE(T);
-  const intptr_t gop_offset =
-      FLAG_use_bare_instructions ? global_object_pool_builder()->CurrentLength()
-                                 : 0;
+  const intptr_t gop_offset = global_object_pool_builder()->CurrentLength();
   RELEASE_ASSERT(!function.HasCode());
   // Ffi trampoline functions have no signature.
   ASSERT(function.kind() == UntaggedFunction::kFfiTrampoline ||
@@ -949,7 +945,7 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
   // rather than scanning global object pool - because we want to include
   // *all* outgoing references into the trace. Scanning GOP would exclude
   // references that have been deduplicated.
-  if (FLAG_use_bare_instructions && !is_tracing()) {
+  if (!is_tracing()) {
     for (intptr_t i = gop_offset;
          i < global_object_pool_builder()->CurrentLength(); i++) {
       const auto& wrapper_entry = global_object_pool_builder()->EntryAt(i);
@@ -1442,7 +1438,7 @@ void Precompiler::AddSelector(const String& selector) {
 }
 
 void Precompiler::AddTableSelector(const compiler::TableSelector* selector) {
-  ASSERT(FLAG_use_bare_instructions && FLAG_use_table_dispatch);
+  ASSERT(FLAG_use_table_dispatch);
 
   if (is_tracing()) {
     tracer_->WriteTableSelectorRef(selector->id);
@@ -1455,7 +1451,7 @@ void Precompiler::AddTableSelector(const compiler::TableSelector* selector) {
 }
 
 bool Precompiler::IsHitByTableSelector(const Function& function) {
-  if (!(FLAG_use_bare_instructions && FLAG_use_table_dispatch)) {
+  if (!FLAG_use_table_dispatch) {
     return false;
   }
 
@@ -2007,7 +2003,7 @@ void Precompiler::TraceForRetainedFunctions() {
 
 void Precompiler::FinalizeDispatchTable() {
   PRECOMPILER_TIMER_SCOPE(this, FinalizeDispatchTable);
-  if (!FLAG_use_bare_instructions || !FLAG_use_table_dispatch) return;
+  if (!FLAG_use_table_dispatch) return;
   HANDLESCOPE(T);
   // Build the entries used to serialize the dispatch table before
   // dropping functions, as we may clear references to Code objects.
@@ -2066,11 +2062,8 @@ void Precompiler::ReplaceFunctionStaticCallEntries() {
       // the old references to the CallStaticFunction stub, but it is sufficient
       // for the local pool to include the actual call target.
       compiler::ObjectPoolBuilder builder;
-      bool append_to_pool = FLAG_use_bare_instructions;
-      if (append_to_pool) {
-        pool_ = code.object_pool();
-        pool_.CopyInto(&builder);
-      }
+      pool_ = code.object_pool();
+      pool_.CopyInto(&builder);
 
       for (auto& view : static_calls) {
         kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
@@ -2093,9 +2086,7 @@ void Precompiler::ReplaceFunctionStaticCallEntries() {
               Code::OffsetField::decode(kind_and_offset_.Value());
           const uword pc = pc_offset + code.PayloadStart();
           CodePatcher::PatchStaticCallAt(pc, code, target_code_);
-          if (append_to_pool) {
-            builder.AddObject(Object::ZoneHandle(target_code_.ptr()));
-          }
+          builder.AddObject(Object::ZoneHandle(target_code_.ptr()));
         }
         if (FLAG_trace_precompiler) {
           THR_Print("Updated static call entry to %s in \"%s\"\n",
@@ -2104,9 +2095,7 @@ void Precompiler::ReplaceFunctionStaticCallEntries() {
         }
       }
 
-      if (append_to_pool) {
-        code.set_object_pool(ObjectPool::NewFromBuilder(builder));
-      }
+      code.set_object_pool(ObjectPool::NewFromBuilder(builder));
     }
 
    private:
@@ -2902,11 +2891,9 @@ void Precompiler::DiscardCodeObjects() {
     intptr_t discarded_codes_ = 0;
   };
 
-  // Code objects are stored in stack frames if not use_bare_instructions.
   // Code objects are used by stack traces if not dwarf_stack_traces.
   // Code objects are used by profiler in non-PRODUCT mode.
-  if (!FLAG_use_bare_instructions || !FLAG_dwarf_stack_traces_mode ||
-      FLAG_retain_code_objects) {
+  if (!FLAG_dwarf_stack_traces_mode || FLAG_retain_code_objects) {
     return;
   }
 
@@ -3065,9 +3052,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
       Array::Handle(zone, graph_compiler->CreateDeoptInfo(assembler));
   // Allocates instruction object. Since this occurs only at safepoint,
   // there can be no concurrent access to the instruction page.
-  const auto pool_attachment = FLAG_use_bare_instructions
-                                   ? Code::PoolAttachment::kNotAttachPool
-                                   : Code::PoolAttachment::kAttachPool;
+  const auto pool_attachment = Code::PoolAttachment::kNotAttachPool;
 
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
   const Code& code = Code::Handle(
@@ -3193,19 +3178,17 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       ASSERT(pass_state.inline_id_to_function.length() ==
              pass_state.caller_inline_id.length());
 
-      ASSERT(!FLAG_use_bare_instructions || precompiler_ != nullptr);
+      ASSERT(precompiler_ != nullptr);
 
-      if (FLAG_use_bare_instructions) {
-        // When generating code in bare instruction mode all code objects
-        // share the same global object pool. To reduce interleaving of
-        // unrelated object pool entries from different code objects
-        // we attempt to pregenerate stubs referenced by the code
-        // we are going to generate.
-        //
-        // Reducing interleaving means reducing recompilations triggered by
-        // failure to commit object pool into the global object pool.
-        GenerateNecessaryAllocationStubs(flow_graph);
-      }
+      // When generating code in bare instruction mode all code objects
+      // share the same global object pool. To reduce interleaving of
+      // unrelated object pool entries from different code objects
+      // we attempt to pregenerate stubs referenced by the code
+      // we are going to generate.
+      //
+      // Reducing interleaving means reducing recompilations triggered by
+      // failure to commit object pool into the global object pool.
+      GenerateNecessaryAllocationStubs(flow_graph);
 
       // Even in bare instructions mode we don't directly add objects into
       // the global object pool because code generation can bail out
@@ -3220,9 +3203,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // some stubs). If this indeed happens we retry the compilation.
       // (See TryCommitToParent invocation below).
       compiler::ObjectPoolBuilder object_pool_builder(
-          FLAG_use_bare_instructions
-              ? precompiler_->global_object_pool_builder()
-              : nullptr);
+          precompiler_->global_object_pool_builder());
       compiler::Assembler assembler(&object_pool_builder, use_far_branches);
 
       CodeStatistics* function_stats = NULL;
@@ -3283,8 +3264,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // method will lead to the same IR due to instability of inlining
       // heuristics (under some conditions we might end up inlining
       // more aggressively on the second attempt).
-      if (FLAG_use_bare_instructions &&
-          !object_pool_builder.TryCommitToParent()) {
+      if (!object_pool_builder.TryCommitToParent()) {
         done = false;
         continue;
       }

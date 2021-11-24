@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
@@ -55,7 +53,7 @@ class InheritanceDataComputer extends DataComputer<String> {
       InternalCompilerResult compilerResult,
       Library library,
       Map<Id, ActualData<String>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     new InheritanceDataExtractor(config, compilerResult, actualMap)
         .computeForLibrary(library);
   }
@@ -66,7 +64,7 @@ class InheritanceDataComputer extends DataComputer<String> {
       InternalCompilerResult compilerResult,
       Class cls,
       Map<Id, ActualData<String>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     new InheritanceDataExtractor(config, compilerResult, actualMap)
         .computeForClass(cls);
   }
@@ -92,12 +90,12 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
       this._config, this._compilerResult, Map<Id, ActualData<String>> actualMap)
       : super(_compilerResult, actualMap);
 
-  ClassHierarchy get _hierarchy => _compilerResult.classHierarchy;
+  ClassHierarchy get _hierarchy => _compilerResult.classHierarchy!;
 
-  CoreTypes get _coreTypes => _compilerResult.coreTypes;
+  CoreTypes get _coreTypes => _compilerResult.coreTypes!;
 
   ClassHierarchyBuilder get _classHierarchyBuilder =>
-      _compilerResult.kernelTargetForTesting.loader.builderHierarchy;
+      _compilerResult.kernelTargetForTesting!.loader.builderHierarchy;
 
   @override
   String computeLibraryValue(Id id, Library node) {
@@ -121,18 +119,18 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
         .map((Member member) => member.name)
         .toSet();
 
-    void addMember(Name name, {bool isSetter}) {
+    void addMember(Name name, {required bool isSetter}) {
       Member member =
-          _hierarchy.getInterfaceMember(node, name, setter: isSetter);
+          _hierarchy.getInterfaceMember(node, name, setter: isSetter)!;
       if (member.enclosingClass == _coreTypes.objectClass) {
         return;
       }
       InterfaceType supertype = _hierarchy.getTypeAsInstanceOf(
           _coreTypes.thisInterfaceType(node, node.enclosingLibrary.nonNullable),
-          member.enclosingClass,
-          node.enclosingLibrary);
+          member.enclosingClass!,
+          node.enclosingLibrary)!;
       Substitution substitution = Substitution.fromInterfaceType(supertype);
-      DartType type;
+      DartType? type;
       if (member is Procedure) {
         if (member.kind == ProcedureKind.Getter) {
           type = substitution.substituteType(member.function.returnType);
@@ -167,14 +165,14 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
 
       TreeNode nodeWithOffset;
       if (member.enclosingClass == node) {
-        nodeWithOffset = computeTreeNodeWithOffset(member);
+        nodeWithOffset = computeTreeNodeWithOffset(member)!;
       } else {
-        nodeWithOffset = computeTreeNodeWithOffset(node);
+        nodeWithOffset = computeTreeNodeWithOffset(node)!;
       }
 
       registerValue(
-          nodeWithOffset?.location?.file,
-          nodeWithOffset?.fileOffset,
+          nodeWithOffset.location!.file,
+          nodeWithOffset.fileOffset,
           id,
           typeToText(type, TypeRepresentation.analyzerNonNullableByDefault),
           member);
@@ -190,15 +188,14 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
   }
 
   @override
-  String computeClassValue(Id id, Class node) {
+  String? computeClassValue(Id id, Class node) {
     if (node.isAnonymousMixin) return null;
     if (_config.marker == cfeMarker) {
       List<String> supertypes = <String>[];
       for (Class superclass in computeAllSuperclasses(node)) {
-        Supertype supertype = _hierarchy.getClassAsInstanceOf(node, superclass);
+        Supertype supertype =
+            _hierarchy.getClassAsInstanceOf(node, superclass)!;
         if (supertype.classNode.isAnonymousMixin) continue;
-        assert(
-            supertype != null, "No instance of $superclass found for $node.");
         supertypes.add(supertypeToText(
             supertype, TypeRepresentation.analyzerNonNullableByDefault));
       }

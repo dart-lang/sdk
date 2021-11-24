@@ -141,7 +141,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
   }
 
@@ -645,7 +645,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
 
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
   }
 
@@ -1366,7 +1366,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Bind(&done_push_arguments);
 
   // Call the Dart code entrypoint.
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
     __ xorq(CODE_REG, CODE_REG);  // GC-safe value into CODE_REG.
   } else {
@@ -1935,7 +1935,7 @@ void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
 void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
   const Register kTagsToClsIdReg = R8;
 
-  if (!FLAG_use_bare_instructions) {
+  if (!FLAG_precompiled_mode) {
     __ movq(CODE_REG,
             Address(THR, target::Thread::call_to_runtime_stub_offset()));
   }
@@ -3052,7 +3052,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
           Immediate(0));
   // Restore the pool pointer.
   __ RestoreCodePointer();
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
   } else {
     __ LoadPoolPointer(PP);
@@ -3274,7 +3274,7 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ movq(R10, FieldAddress(
                    RBX, target::CallSiteData::arguments_descriptor_offset()));
   __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     __ LoadCompressed(CODE_REG,
                       FieldAddress(RAX, target::Function::code_offset()));
   }
@@ -3329,7 +3329,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ jmp(&loop);
 
   __ Bind(&found);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     const intptr_t entry_offset =
         target::ICData::EntryPointIndexFor(1) * target::kCompressedWordSize;
     __ LoadCompressed(RCX, Address(R13, entry_offset));
@@ -3362,14 +3362,9 @@ void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub(
   __ Bind(&have_cid);
   __ cmpq(RAX, RCX);
   __ j(NOT_EQUAL, &miss, Assembler::kNearJump);
-  if (FLAG_use_bare_instructions) {
-    __ jmp(
-        FieldAddress(RBX, target::MonomorphicSmiableCall::entrypoint_offset()));
-  } else {
-    __ movq(CODE_REG,
-            FieldAddress(RBX, target::MonomorphicSmiableCall::target_offset()));
-    __ jmp(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  }
+  // Note: this stub is only used in AOT mode, hence the direct (bare) call.
+  __ jmp(
+      FieldAddress(RBX, target::MonomorphicSmiableCall::entrypoint_offset()));
 
   __ Bind(&miss);
   __ jmp(Address(THR, target::Thread::switchable_call_miss_entry_offset()));

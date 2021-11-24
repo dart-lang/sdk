@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--dwarf-stack-traces --save-debugging-info=async_lazy_debug.so --lazy-async-stacks --no-use-bare-instructions
+// VMOptions=--dwarf-stack-traces --save-debugging-info=async_lazy_debug.so --lazy-async-stacks
 
 import 'dart:async';
 import 'dart:io';

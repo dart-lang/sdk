@@ -2014,7 +2014,6 @@ class SingleTargetCache : public Object {
 
 class MonomorphicSmiableCall : public Object {
  public:
-  CodePtr target() const { return untag()->target(); }
   classid_t expected_cid() const { return untag()->expected_cid_; }
 
   static intptr_t InstanceSize() {
@@ -2026,10 +2025,6 @@ class MonomorphicSmiableCall : public Object {
 
   static intptr_t expected_cid_offset() {
     return OFFSET_OF(UntaggedMonomorphicSmiableCall, expected_cid_);
-  }
-
-  static intptr_t target_offset() {
-    return OFFSET_OF(UntaggedMonomorphicSmiableCall, target_);
   }
 
   static intptr_t entrypoint_offset() {
@@ -5450,7 +5445,8 @@ class Instructions : public Object {
   // _not_ at the start of the payload.
   static const intptr_t kBarePayloadAlignment = 4;
 
-  // In non-bare mode, we align the payloads on word boundaries.
+  // When instructions reside in the heap we align the payloads on word
+  // boundaries.
   static const intptr_t kNonBarePayloadAlignment = kWordSize;
 
   // In the precompiled runtime when running in bare instructions mode,
@@ -5459,9 +5455,7 @@ class Instructions : public Object {
 
   static intptr_t HeaderSize() {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (FLAG_use_bare_instructions) {
-      UNREACHABLE();
-    }
+    UNREACHABLE();
 #endif
     return Utils::RoundUp(sizeof(UntaggedInstructions),
                           kNonBarePayloadAlignment);
@@ -5475,18 +5469,14 @@ class Instructions : public Object {
 
   static intptr_t InstanceSize(intptr_t size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (FLAG_use_bare_instructions) {
-      UNREACHABLE();
-    }
+    UNREACHABLE();
 #endif
     return RoundedAllocationSize(HeaderSize() + size);
   }
 
   static InstructionsPtr FromPayloadStart(uword payload_start) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (FLAG_use_bare_instructions) {
-      UNREACHABLE();
-    }
+    UNREACHABLE();
 #endif
     return static_cast<InstructionsPtr>(payload_start - HeaderSize() +
                                         kHeapObjectTag);

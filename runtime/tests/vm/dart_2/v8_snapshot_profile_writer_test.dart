@@ -109,7 +109,6 @@ Future<void> testJIT(String dillPath, String snapshotKind) async {
 
 Future<void> testAOT(String dillPath,
     {bool useAsm = false,
-    bool useBare = true,
     bool forceDrops = false,
     bool useDispatch = true,
     bool stripUtil = false, // Note: forced true if useAsm.
@@ -129,9 +128,6 @@ Future<void> testAOT(String dillPath,
   }
 
   final descriptionBuilder = StringBuffer()..write(useAsm ? 'assembly' : 'elf');
-  if (!useBare) {
-    descriptionBuilder.write('-nonbare');
-  }
   if (forceDrops) {
     descriptionBuilder.write('-dropped');
   }
@@ -158,7 +154,6 @@ Future<void> testAOT(String dillPath,
     final snapshotPath = path.join(tempDir, 'test.snap');
     final commonSnapshotArgs = [
       if (stripFlag) '--strip', //  gen_snapshot specific and not a VM flag.
-      useBare ? '--use-bare-instructions' : '--no-use-bare-instructions',
       "--write-v8-snapshot-profile-to=$profilePath",
       if (forceDrops) ...[
         '--dwarf-stack-traces',
@@ -432,24 +427,11 @@ main() async {
 
     // Test unstripped ELF generation directly.
     await testAOT(aotDillPath);
-    await testAOT(aotDillPath, useBare: false);
     await testAOT(aotDillPath, forceDrops: true);
-    await testAOT(aotDillPath, forceDrops: true, useBare: false);
     await testAOT(aotDillPath, forceDrops: true, useDispatch: false);
-    await testAOT(aotDillPath,
-        forceDrops: true, useDispatch: false, useBare: false);
 
     // Test flag-stripped ELF generation.
     await testAOT(aotDillPath, stripFlag: true);
-    await testAOT(aotDillPath, useBare: false, stripFlag: true);
-
-    // Since we can't force disassembler support after the fact when running
-    // in PRODUCT mode, skip any --disassemble tests. Do these tests last as
-    // they have lots of output and so the log will be truncated.
-    if (!const bool.fromEnvironment('dart.vm.product')) {
-      // Regression test for dartbug.com/41149.
-      await testAOT(aotDillPath, useBare: false, disassemble: true);
-    }
 
     // We neither generate assembly nor have a stripping utility on Windows.
     if (Platform.isWindows) {
@@ -463,7 +445,6 @@ main() async {
     } else {
       // Test unstripped ELF generation that is then externally stripped.
       await testAOT(aotDillPath, stripUtil: true);
-      await testAOT(aotDillPath, stripUtil: true, useBare: false);
     }
 
     // TODO(sstrickl): Currently we can't assemble for SIMARM64 on MacOSX.
@@ -476,9 +457,7 @@ main() async {
     }
     // Test unstripped assembly generation that is then externally stripped.
     await testAOT(aotDillPath, useAsm: true);
-    await testAOT(aotDillPath, useAsm: true, useBare: false);
     // Test stripped assembly generation that is then externally stripped.
     await testAOT(aotDillPath, useAsm: true, stripFlag: true);
-    await testAOT(aotDillPath, useAsm: true, stripFlag: true, useBare: false);
   });
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:expect/expect.dart';
 import 'package:front_end/src/fasta/kernel/collections.dart';
 import 'package:front_end/src/fasta/kernel/forest.dart';
@@ -12,7 +10,7 @@ import 'package:kernel/ast.dart';
 import 'text_representation_test.dart';
 
 void testStatement(Statement node, String normal,
-    {String verbose, String limited}) {
+    {String? verbose, String? limited}) {
   Expect.stringEquals(normal, node.toText(normalStrategy),
       "Unexpected normal strategy text for ${node.runtimeType}");
   Expect.stringEquals(verbose ?? normal, node.toText(verboseStrategy),
@@ -22,7 +20,7 @@ void testStatement(Statement node, String normal,
 }
 
 void testExpression(Expression node, String normal,
-    {String verbose, String limited}) {
+    {String? verbose, String? limited}) {
   Expect.stringEquals(normal, node.toText(normalStrategy),
       "Unexpected normal strategy text for ${node.runtimeType}");
   Expect.stringEquals(verbose ?? normal, node.toText(verboseStrategy),
@@ -592,10 +590,6 @@ void _testLoadLibraryTearOff() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   LibraryDependency dependency =
       LibraryDependency.deferredImport(library, 'pre');
-
-  testExpression(new LoadLibraryTearOff(dependency, null), ''' 
-pre.loadLibrary''');
-
   Procedure procedure = new Procedure(new Name('get#loadLibrary'),
       ProcedureKind.Getter, new FunctionNode(new Block([])),
       fileUri: dummyUri);

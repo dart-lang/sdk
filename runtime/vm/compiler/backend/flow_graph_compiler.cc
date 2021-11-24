@@ -3687,19 +3687,17 @@ static intptr_t LoadingUnitOf(Zone* zone, const Code& code) {
 }
 
 bool FlowGraphCompiler::CanPcRelativeCall(const Function& target) const {
-  return FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+  return FLAG_precompiled_mode &&
          (LoadingUnitOf(zone_, function()) == LoadingUnitOf(zone_, target));
 }
 
 bool FlowGraphCompiler::CanPcRelativeCall(const Code& target) const {
-  return FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-         !target.InVMIsolateHeap() &&
+  return FLAG_precompiled_mode && !target.InVMIsolateHeap() &&
          (LoadingUnitOf(zone_, function()) == LoadingUnitOf(zone_, target));
 }
 
 bool FlowGraphCompiler::CanPcRelativeCall(const AbstractType& target) const {
-  return FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-         !target.InVMIsolateHeap() &&
+  return FLAG_precompiled_mode && !target.InVMIsolateHeap() &&
          (LoadingUnitOf(zone_, function()) == LoadingUnit::kRootId);
 }
 

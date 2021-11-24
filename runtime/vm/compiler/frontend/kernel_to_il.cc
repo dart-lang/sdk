@@ -3087,7 +3087,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
   if (is_closure_call) {
     body += LoadLocal(closure);
-    if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+    if (!FLAG_precompiled_mode) {
       // Lookup the function in the closure.
       body += LoadNativeField(Slot::Closure_function());
     }

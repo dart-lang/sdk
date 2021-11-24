@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "package:async_helper/async_helper.dart" show asyncTest;
 
 import "package:kernel/ast.dart" show Component, DartType;
@@ -55,9 +53,9 @@ void main() {
         new NoneTarget(new TargetFlags()));
     final DillLoader loader = target.loader;
     loader.appendLibraries(sdk);
-    await target.buildOutlines();
-    ClassBuilder objectClass =
-        loader.coreLibrary.lookupLocalMember("Object", required: true);
+    target.buildOutlines();
+    ClassBuilder objectClass = loader.coreLibrary
+        .lookupLocalMember("Object", required: true) as ClassBuilder;
     ClassHierarchyBuilder hierarchy =
         new ClassHierarchyBuilder(objectClass, loader, new CoreTypes(sdk));
     new FastaTypesTest(hierarchy, environment).run();
@@ -85,7 +83,7 @@ class FastaTypesTest extends SubtypeTest<DartType, TypeParserEnvironment> {
   }
 
   @override
-  TypeParserEnvironment extend(String typeParameters) {
+  TypeParserEnvironment extend(String? typeParameters) {
     return environment.extendWithTypeParameters(typeParameters);
   }
 }

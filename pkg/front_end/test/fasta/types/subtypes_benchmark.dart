@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "dart:convert" show json, utf8;
 
 import "dart:io" show File, gzip;
@@ -66,17 +64,17 @@ class SubtypeCheck {
 }
 
 SubtypesBenchmark parseBenchMark(String source) {
-  Map<Object, Object> data = json.decode(source);
-  List<Object> classes = data["classes"];
+  Map<dynamic, dynamic> data = json.decode(source);
+  List<dynamic> classes = data["classes"];
   Uri uri = Uri.parse("dart:core");
   TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
   Library library =
       parseLibrary(uri, classes.join("\n"), environment: environment);
-  List<Object> checks = data["checks"];
+  List<dynamic> checks = data["checks"];
   List<SubtypeCheck> subtypeChecks = <SubtypeCheck>[];
-  for (Map<Object, Object> check in checks) {
+  for (Map<dynamic, dynamic> check in checks) {
     String kind = check["kind"];
-    List<Object> arguments = check["arguments"];
+    List<dynamic> arguments = check["arguments"];
     String sSource = arguments[0];
     String tSource = arguments[1];
     if (sSource.contains("?")) continue;
@@ -85,7 +83,7 @@ SubtypesBenchmark parseBenchMark(String source) {
     if (tSource.contains("⊥")) continue;
     TypeParserEnvironment localEnvironment = environment;
     if (arguments.length > 2) {
-      List<Object> typeParametersSource = arguments[2];
+      List<dynamic> typeParametersSource = arguments[2];
       localEnvironment = environment
           .extendWithTypeParameters("${typeParametersSource.join(', ')}");
     }
@@ -124,7 +122,7 @@ Future<void> run(Uri benchmarkInput, String name) async {
   final Ticker ticker = new Ticker(isVerbose: false);
   Stopwatch kernelWatch = new Stopwatch();
   Stopwatch fastaWatch = new Stopwatch();
-  List<int> bytes = await new File.fromUri(benchmarkInput).readAsBytes();
+  List<int>? bytes = await new File.fromUri(benchmarkInput).readAsBytes();
   if (bytes.length > 3) {
     if (bytes[0] == 0x1f && bytes[1] == 0x8b && bytes[2] == 0x08) {
       bytes = gzip.decode(bytes);
@@ -148,9 +146,9 @@ Future<void> run(Uri benchmarkInput, String name) async {
         new NoneTarget(new TargetFlags()));
     final DillLoader loader = target.loader;
     loader.appendLibraries(c);
-    await target.buildOutlines();
-    ClassBuilder objectClass =
-        loader.coreLibrary.lookupLocalMember("Object", required: true);
+    target.buildOutlines();
+    ClassBuilder objectClass = loader.coreLibrary
+        .lookupLocalMember("Object", required: true) as ClassBuilder;
     ClassHierarchyBuilder hierarchy =
         new ClassHierarchyBuilder(objectClass, loader, coreTypes);
 

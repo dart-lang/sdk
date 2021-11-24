@@ -1133,7 +1133,7 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   call_hook += Constant(closure);
   call_hook += Constant(function_name);
   call_hook += LoadLocal(entry_point_num);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     call_hook += Constant(closure);
   } else {
     call_hook += Constant(Function::ZoneHandle(Z, closure.function()));

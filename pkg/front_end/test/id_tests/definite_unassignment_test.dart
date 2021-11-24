@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
@@ -41,13 +39,13 @@ class DefiniteUnassignmentDataComputer extends DataComputer<String> {
       InternalCompilerResult compilerResult,
       Member member,
       Map<Id, ActualData<String>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     MemberBuilderImpl memberBuilder =
-        lookupMemberBuilder(compilerResult, member);
+        lookupMemberBuilder(compilerResult, member) as MemberBuilderImpl;
     member.accept(new DefiniteUnassignmentDataExtractor(
         compilerResult,
         actualMap,
-        memberBuilder.dataForTesting.inferenceData.flowAnalysisResult));
+        memberBuilder.dataForTesting!.inferenceData.flowAnalysisResult));
   }
 
   /// Errors are supported for testing erroneous code. The reported errors are
@@ -63,11 +61,11 @@ class DefiniteUnassignmentDataExtractor extends CfeDataExtractor<String> {
   DefiniteUnassignmentDataExtractor(InternalCompilerResult compilerResult,
       Map<Id, ActualData<String>> actualMap, this._flowResult)
       : _sourceLoaderDataForTesting =
-            compilerResult.kernelTargetForTesting.loader.dataForTesting,
+            compilerResult.kernelTargetForTesting!.loader.dataForTesting!,
         super(compilerResult, actualMap);
 
   @override
-  String computeNodeValue(Id id, TreeNode node) {
+  String? computeNodeValue(Id id, TreeNode node) {
     if (node is VariableGet) {
       TreeNode alias = _sourceLoaderDataForTesting.toOriginal(node);
       if (_flowResult.definitelyUnassignedNodes.contains(alias)) {
