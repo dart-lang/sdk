@@ -489,9 +489,11 @@ class DateTime implements Comparable<DateTime> {
   /// Compares this DateTime object to [other],
   /// returning zero if the values are equal.
   ///
-  /// Returns a negative value if this DateTime [isBefore] [other]. It returns 0
-  /// if it [isAtSameMomentAs] [other], and returns a positive value otherwise
-  /// (when this [isAfter] [other]).
+  /// A [compareTo] function returns:
+  ///  * a negative value if this DateTime [isBefore] [other].
+  ///  * `0` if this DateTime [isAtSameMomentAs] [other], and
+  ///  * a positive value otherwise (when this DateTime [isAfter] [other]).
+  ///
   /// ```dart
   /// final now = DateTime.now();
   /// final future = now.add(const Duration(days: 2));
