@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "package:async_helper/async_helper.dart" show asyncTest;
 
 import "package:expect/expect.dart" show Expect;
@@ -123,9 +121,9 @@ class F implements D<int, bool>;""",
             new NoneTarget(new TargetFlags()));
         final DillLoader loader = target.loader;
         loader.appendLibraries(component);
-        await target.buildOutlines();
-        ClassBuilder objectClass =
-            loader.coreLibrary.lookupLocalMember("Object", required: true);
+        target.buildOutlines();
+        ClassBuilder objectClass = loader.coreLibrary
+            .lookupLocalMember("Object", required: true) as ClassBuilder;
         ClassHierarchyBuilder hierarchy = new ClassHierarchyBuilder(
             objectClass, loader, new CoreTypes(component));
         Library library = component.libraries.last;

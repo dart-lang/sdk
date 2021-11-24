@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:front_end/src/fasta/util/direct_parser_ast.dart';
 import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
 
-Uri base;
+late Uri base;
 
 void main(List<String> args) {
   File script = new File.fromUri(Platform.script);
@@ -41,7 +39,7 @@ void canParseTopLevelIshOfAllFrontendFiles() {
             enableExtensionMethods: true,
             enableNonNullable: false);
         splitIntoChunks(ast, data);
-        for (DirectParserASTContent child in ast.children) {
+        for (DirectParserASTContent child in ast.children!) {
           if (child.isClass()) {
             splitIntoChunks(
                 child.asClass().getClassOrMixinOrExtensionBody(), data);
@@ -163,7 +161,7 @@ void testClassStuff() {
   DirectParserASTContentClassOrMixinImplementsHandle implementsDecl =
       cls.getClassImplements();
   expect("implements", implementsDecl.implementsKeyword?.lexeme);
-  DirectParserASTContentClassWithClauseHandle withClauseDecl =
+  DirectParserASTContentClassWithClauseHandle? withClauseDecl =
       cls.getClassWithClause();
   expect(null, withClauseDecl);
   List<DirectParserASTContentMemberEnd> members =
@@ -191,19 +189,19 @@ void testClassStuff() {
   expect("int field1, field2 = 42;", chunks[4]);
 
   chunks = processItem(
-      members[0].getClassConstructor().getBlockFunctionBody(), data);
+      members[0].getClassConstructor().getBlockFunctionBody()!, data);
   expect(1, chunks.length);
   expect("""{
     // Constructor
   }""", chunks[0]);
   chunks =
-      processItem(members[2].getClassMethod().getBlockFunctionBody(), data);
+      processItem(members[2].getClassMethod().getBlockFunctionBody()!, data);
   expect(1, chunks.length);
   expect("""{
     // instance method.
   }""", chunks[0]);
   chunks =
-      processItem(members[3].getClassMethod().getBlockFunctionBody(), data);
+      processItem(members[3].getClassMethod().getBlockFunctionBody()!, data);
   expect(1, chunks.length);
   expect("""{
     // static method.
@@ -227,7 +225,7 @@ void testClassStuff() {
   implementsDecl = cls.getClassImplements();
   expect(null, implementsDecl.implementsKeyword?.lexeme);
   withClauseDecl = cls.getClassWithClause();
-  expect("with", withClauseDecl.withKeyword.lexeme);
+  expect("with", withClauseDecl!.withKeyword.lexeme);
   members = cls.getClassOrMixinOrExtensionBody().getMembers();
   expect(0, members.length);
 }
@@ -278,7 +276,7 @@ void expect<E>(E expect, E actual) {
 
 List<String> splitIntoChunks(DirectParserASTContent ast, List<int> data) {
   List<String> foundChunks = [];
-  for (DirectParserASTContent child in ast.children) {
+  for (DirectParserASTContent child in ast.children!) {
     foundChunks.addAll(processItem(child, data));
   }
   return foundChunks;
@@ -308,7 +306,7 @@ List<String> processItem(DirectParserASTContent item, List<int> data) {
     DirectParserASTContentImportEnd import = item.asImport();
     return [
       getCutContent(data, import.importKeyword.offset,
-          import.semicolon.offset + import.semicolon.length)
+          import.semicolon!.offset + import.semicolon!.length)
     ];
   } else if (item.isExport()) {
     DirectParserASTContentExportEnd export = item.asExport();
@@ -352,8 +350,8 @@ List<String> processItem(DirectParserASTContent item, List<int> data) {
       getCutContent(
           data,
           declaration.enumKeyword.offset,
-          declaration.leftBrace.endGroup.offset +
-              declaration.leftBrace.endGroup.length)
+          declaration.leftBrace.endGroup!.offset +
+              declaration.leftBrace.endGroup!.length)
     ];
   } else if (item.isMixinDeclaration()) {
     DirectParserASTContentMixinDeclarationEnd mixinDecl =
@@ -472,8 +470,8 @@ List<String> processItem(DirectParserASTContent item, List<int> data) {
   }
 }
 
-List<int> _contentCache;
-String _contentCacheString;
+List<int>? _contentCache;
+String? _contentCacheString;
 String getCutContent(List<int> content, int from, int to) {
   if (identical(content, _contentCache)) {
     // cache up to date.
@@ -481,5 +479,5 @@ String getCutContent(List<int> content, int from, int to) {
     _contentCache = content;
     _contentCacheString = utf8.decode(content);
   }
-  return _contentCacheString.substring(from, to);
+  return _contentCacheString!.substring(from, to);
 }
