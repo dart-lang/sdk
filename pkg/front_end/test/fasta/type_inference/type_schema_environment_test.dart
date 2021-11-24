@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart';
 import 'package:kernel/ast.dart';
@@ -21,15 +19,15 @@ void main() {
 
 @reflectiveTest
 class TypeSchemaEnvironmentTest {
-  Env typeParserEnvironment;
-  TypeSchemaEnvironment typeSchemaEnvironment;
+  late Env typeParserEnvironment;
+  late TypeSchemaEnvironment typeSchemaEnvironment;
 
   final Map<String, DartType Function()> additionalTypes = {
     "UNKNOWN": () => new UnknownType(),
   };
 
-  Library _coreLibrary;
-  Library _testLibrary;
+  late Library _coreLibrary;
+  late Library _testLibrary;
 
   Library get coreLibrary => _coreLibrary;
   Library get testLibrary => _testLibrary;
@@ -587,8 +585,7 @@ class TypeSchemaEnvironmentTest {
   }
 
   void checkConstraintSolving(String constraint, String expected,
-      {bool grounded}) {
-    assert(grounded != null);
+      {required bool grounded}) {
     expect(
         typeSchemaEnvironment.solveTypeConstraint(
             parseConstraint(constraint), new DynamicType(), new NullType(),
@@ -596,17 +593,13 @@ class TypeSchemaEnvironmentTest {
         parseType(expected));
   }
 
-  void checkConstraintUpperBound({String constraint, String bound}) {
-    assert(constraint != null);
-    assert(bound != null);
-
+  void checkConstraintUpperBound(
+      {required String constraint, required String bound}) {
     expect(parseConstraint(constraint).upper, parseType(bound));
   }
 
-  void checkConstraintLowerBound({String constraint, String bound}) {
-    assert(constraint != null);
-    assert(bound != null);
-
+  void checkConstraintLowerBound(
+      {required String constraint, required String bound}) {
     expect(parseConstraint(constraint).lower, parseType(bound));
   }
 
@@ -652,11 +645,10 @@ class TypeSchemaEnvironmentTest {
   }
 
   void checkUpperBound(
-      {String type1, String type2, String upperBound, String typeParameters}) {
-    assert(type1 != null);
-    assert(type2 != null);
-    assert(upperBound != null);
-
+      {required String type1,
+      required String type2,
+      required String upperBound,
+      String? typeParameters}) {
     typeParserEnvironment.withTypeParameters(typeParameters,
         (List<TypeParameter> typeParameterNodes) {
       expect(
@@ -667,11 +659,10 @@ class TypeSchemaEnvironmentTest {
   }
 
   void checkLowerBound(
-      {String type1, String type2, String lowerBound, String typeParameters}) {
-    assert(type1 != null);
-    assert(type2 != null);
-    assert(lowerBound != null);
-
+      {required String type1,
+      required String type2,
+      required String lowerBound,
+      String? typeParameters}) {
     typeParserEnvironment.withTypeParameters(typeParameters,
         (List<TypeParameter> typeParameterNodes) {
       expect(
@@ -682,28 +673,23 @@ class TypeSchemaEnvironmentTest {
   }
 
   void checkInference(
-      {String typeParametersToInfer,
-      String functionType,
-      String actualParameterTypes,
-      String returnContextType,
-      String inferredTypesFromDownwardPhase,
-      String expectedTypes}) {
-    assert(typeParametersToInfer != null);
-    assert(functionType != null);
-    assert(expectedTypes != null);
-
+      {required String typeParametersToInfer,
+      required String functionType,
+      String? actualParameterTypes,
+      String? returnContextType,
+      String? inferredTypesFromDownwardPhase,
+      required String expectedTypes}) {
     typeParserEnvironment.withTypeParameters(typeParametersToInfer,
         (List<TypeParameter> typeParameterNodesToInfer) {
-      FunctionType functionTypeNode = parseType(functionType);
-      DartType returnContextTypeNode =
+      FunctionType functionTypeNode = parseType(functionType) as FunctionType;
+      DartType? returnContextTypeNode =
           returnContextType == null ? null : parseType(returnContextType);
-      List<DartType> actualTypeNodes = actualParameterTypes == null
+      List<DartType>? actualTypeNodes = actualParameterTypes == null
           ? null
           : parseTypes(actualParameterTypes);
-      List<DartType> expectedTypeNodes =
-          expectedTypes == null ? null : parseTypes(expectedTypes);
+      List<DartType> expectedTypeNodes = parseTypes(expectedTypes);
       DartType declaredReturnTypeNode = functionTypeNode.returnType;
-      List<DartType> formalTypeNodes = actualParameterTypes == null
+      List<DartType>? formalTypeNodes = actualParameterTypes == null
           ? null
           : functionTypeNode.positionalParameters;
 
@@ -735,14 +721,11 @@ class TypeSchemaEnvironmentTest {
   }
 
   void checkInferenceFromConstraints(
-      {String typeParameter,
-      String constraints,
-      String inferredTypeFromDownwardPhase,
-      bool downwardsInferPhase,
-      String expected}) {
-    assert(typeParameter != null);
-    assert(expected != null);
-    assert(downwardsInferPhase != null);
+      {required String typeParameter,
+      required String constraints,
+      String? inferredTypeFromDownwardPhase,
+      required bool downwardsInferPhase,
+      required String expected}) {
     assert(inferredTypeFromDownwardPhase == null || !downwardsInferPhase);
 
     typeParserEnvironment.withTypeParameters(typeParameter,

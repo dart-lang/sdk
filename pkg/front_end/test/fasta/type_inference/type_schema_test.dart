@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import 'package:kernel/ast.dart';
 import 'package:test/test.dart';
@@ -112,38 +110,38 @@ class UnknownTypeTest {
   }
 }
 
-class _OrdinaryVisitor<R> extends Visitor<R> with VisitorNullMixin<R> {
-  final _UnaryFunction<DartType, R> _defaultDartType;
+class _OrdinaryVisitor<R> extends Visitor<R?> with VisitorNullMixin<R> {
+  final _UnaryFunction<DartType, R>? _defaultDartType;
 
-  _OrdinaryVisitor({_UnaryFunction<DartType, R> defaultDartType})
+  _OrdinaryVisitor({_UnaryFunction<DartType, R>? defaultDartType})
       : _defaultDartType = defaultDartType;
 
   @override
-  R defaultDartType(DartType node) {
+  R? defaultDartType(DartType node) {
     if (_defaultDartType != null) {
-      return _defaultDartType(node);
+      return _defaultDartType!(node);
     } else {
       return super.defaultDartType(node);
     }
   }
 }
 
-class _TypeSchemaVisitor<R> extends Visitor<R> with VisitorNullMixin<R> {
-  final _UnaryFunction<DartType, R> _defaultDartType;
-  final _UnaryFunction<UnknownType, R> _visitUnknownType;
+class _TypeSchemaVisitor<R> extends Visitor<R?> with VisitorNullMixin<R> {
+  final _UnaryFunction<DartType, R>? _defaultDartType;
+  final _UnaryFunction<UnknownType, R>? _visitUnknownType;
 
   _TypeSchemaVisitor(
-      {_UnaryFunction<DartType, R> defaultDartType,
-      _UnaryFunction<UnknownType, R> visitUnknownType})
+      {_UnaryFunction<DartType, R>? defaultDartType,
+      _UnaryFunction<UnknownType, R>? visitUnknownType})
       : _defaultDartType = defaultDartType,
         _visitUnknownType = visitUnknownType;
 
   @override
-  R defaultDartType(DartType node) {
+  R? defaultDartType(DartType node) {
     if (node is UnknownType && _visitUnknownType != null) {
-      return _visitUnknownType(node);
+      return _visitUnknownType!(node);
     } else if (_defaultDartType != null) {
-      return _defaultDartType(node);
+      return _defaultDartType!(node);
     } else {
       return super.defaultDartType(node);
     }
