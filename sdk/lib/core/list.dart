@@ -40,9 +40,7 @@ part of dart.core;
 ///
 /// Example of growable list:
 /// ```dart
-/// final growableList = [];
-/// print(growableList); // []
-/// growableList.addAll(['A', 'B', 'C', 'D']);
+/// final growableList = ['A', 'B', 'C', 'D'];
 /// growableList[0] = 'G';
 /// print(growableList); // [G, B, C, D]
 ///
@@ -62,8 +60,8 @@ part of dart.core;
 ///
 /// // To search items from list, convert result to list, use 'where'.
 /// final resultList = growableList
-///     .where((element) => element.contains('B') || element.contains('G'))
-///     .toList(); // [B, G]
+///     .where((element) => element.contains('B') || element.contains('G'));
+/// print(resultList.toList()); // [B, G]
 /// ```
 /// Lists are [Iterable]. Iteration occurs over values in index order. Changing
 /// the values does not affect iteration, but changing the valid
@@ -155,10 +153,10 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// the list is a fixed-length list of length zero.
   /// If [growable] is `true`, the list is growable and equivalent to `<E>[]`.
   /// ```dart
-  /// final growableList = List.empty(growable: true);
+  /// final growableList = List.empty(growable: true); // []
   /// growableList.add(1); // [1]
   ///
-  /// final fixedLengthList = List.empty(growable: false);
+  /// final fixedLengthList = List.empty(growable: false); // []
   /// fixedLengthList.add(1); // error
   /// ```
   @Since("2.9")
@@ -171,8 +169,9 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// All the [elements] should be instances of [E].
   /// Example:
   /// ```dart
-  /// final numbers = [1, 2, 3];
-  /// final listFrom = List.from(numbers); // [1, 2, 3]
+  /// final numbers = <int>[1, 2, 3];
+  /// final listFrom = List<num>.from(numbers);
+  /// print(listFrom); // [1, 2, 3]
   /// ```
   /// The `elements` iterable itself may have any element type, so this
   /// constructor can be used to down-cast a `List`, for example as:
@@ -181,10 +180,10 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///   [{"text": "foo", "value": 1, "status": true},
   ///    {"text": "bar", "value": 2, "status": false}]
   /// ''';
-  /// final dynamicList = jsonDecode(jsonArray);
-  /// final fooData =
-  ///     List.from(dynamicList.where((x) => x is Map && x['text'] == 'bar'));
-  /// print(fooData); // [{text: bar, value: 2, status: false}]
+  /// final List<dynamic> dynamicList = jsonDecode(jsonArray);
+  /// final List<Map<String, dynamic>> fooData =
+  ///     List.from(dynamicList.where((x) => x is Map && x['text'] == 'foo'));
+  /// print(fooData); // [{text: foo, value: 1, status: true}]
   /// ```
   ///
   /// This constructor creates a growable list when [growable] is true;
@@ -198,8 +197,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// This constructor creates a growable list when [growable] is true;
   /// otherwise, it returns a fixed-length list.
   /// ```dart
-  /// final numbers = [1, 2, 3];
-  /// final listOf = List.of(numbers); // [1, 2, 3]
+  /// final numbers = <int>[1, 2, 3];
+  /// final listOf = List<num>.of(numbers); // [1.0, 2.0, 3.0]
   /// ```
   external factory List.of(Iterable<E> elements, {bool growable = true});
 
@@ -213,9 +212,9 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///     List<int>.generate(3, (int index) => index * index, growable: true);
   /// print(growableList); // [0, 1, 4]
   ///
-  /// final fixedList =
+  /// final fixedLengthList =
   ///     List<int>.generate(3, (int index) => index * index, growable: false);
-  /// print(fixedList); // [0, 1, 4]
+  /// print(fixedLengthList); // [0, 1, 4]
   /// ```
   /// The created list is fixed-length if [growable] is set to false.
   ///
@@ -231,8 +230,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// If the elements are themselves immutable, then the resulting list
   /// is also immutable.
   /// ```dart
-  /// final numbers = [1, 2, 3];
-  /// final unmodifiableList = List.unmodifiable(numbers);
+  /// final numbers = <int>[1, 2, 3];
+  /// final unmodifiableList = List.unmodifiable(numbers); // [1, 2, 3]
   /// ```
   external factory List.unmodifiable(Iterable elements);
 
@@ -426,6 +425,11 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   void addAll(Iterable<E> iterable);
 
   /// An [Iterable] of the objects in this list in reverse order.
+  /// ```dart
+  /// final numbers = ['two', 'three', 'four'];
+  /// final reverseOrder = numbers.reversed;
+  /// print(reverseOrder.toList()); // [four, three, two]
+  /// ```
   Iterable<E> get reversed;
 
   /// Sorts this list according to the order specified by the [compare] function.
@@ -608,12 +612,6 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// The elements of [iterable] are written into this list,
   /// starting at position [index].
-  /// ```dart
-  /// final list = ['a', 'b', 'c', 'd'];
-  /// const index = 1;
-  /// list.setAll(index, ['bee', 'sea']);
-  /// print(list); // [a, bee, sea, d]
-  /// ```
   /// This operation does not increase the length of the list.
   ///
   /// The [index] must be non-negative and no greater than [length].
@@ -623,6 +621,12 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// If `iterable` is based on this list, its values may change _during_ the
   /// `setAll` operation.
+  /// ```dart
+  /// final list = ['a', 'b', 'c', 'd'];
+  /// const index = 1;
+  /// list.setAll(index, ['bee', 'sea']);
+  /// print(list); // [a, bee, sea, d]
+  /// ```
   void setAll(int index, Iterable<E> iterable);
 
   /// Removes the first occurrence of [value] from this list.
