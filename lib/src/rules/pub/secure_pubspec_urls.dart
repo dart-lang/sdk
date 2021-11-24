@@ -11,16 +11,21 @@ const _desc = r'Use secure urls in `pubspec.yaml`.';
 const _details = r'''
 **DO** Use secure urls in `pubspec.yaml`.
 
-Use `https` instead of `http` an `git:`.
+Use `https` instead of `http` or `git:`.
 
 **GOOD:**
 ```yaml
-repository: 'https://github.com/dart-lang/example'
+repository: https://github.com/dart-lang/example
 ```
 
 **BAD:**
 ```yaml
-repository: 'http://github.com/dart-lang/example'
+repository: http://github.com/dart-lang/example
+```
+
+```yaml
+git:
+  url: git://github.com/dart-lang/example/example.git 
 ```
 ''';
 
