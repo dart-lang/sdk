@@ -251,13 +251,8 @@ class ImageWriter : public ValueObject {
     if (FLAG_precompiled_mode) {
       // We reserve space for the initial InstructionsSection object. It is
       // manually serialized since it includes offsets to other snapshot parts.
-      // In bare instructions mode, it contains all the payloads and so we
-      // start after the header, whereas in non-bare mode, it contains no
-      // payload and Instructions start after it.
-      next_text_offset_ +=
-          FLAG_use_bare_instructions
-              ? compiler::target::InstructionsSection::HeaderSize()
-              : compiler::target::InstructionsSection::InstanceSize(0);
+      // It contains all the payloads which start directly after the header.
+      next_text_offset_ += compiler::target::InstructionsSection::HeaderSize();
     }
 #endif
     objects_.Clear();

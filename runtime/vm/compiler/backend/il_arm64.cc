@@ -523,7 +523,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(R4, arguments_descriptor);
 
   ASSERT(locs()->in(0).reg() == R0);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     // R0: Closure with a cached entry point.
     __ LoadFieldFromOffset(R2, R0,
                            compiler::target::Closure::entry_point_offset());
@@ -1343,7 +1343,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     // Restore the global object pool after returning from runtime (old space is
     // moving, so the GOP could have been relocated).
-    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    if (FLAG_precompiled_mode) {
       __ SetupGlobalPoolAndDispatchTable();
     }
 
@@ -1506,7 +1506,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Put the code object in the reserved slot.
   __ StoreToOffset(CODE_REG, FPREG,
                    kPcMarkerSlotFromFp * compiler::target::kWordSize);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     __ SetupGlobalPoolAndDispatchTable();
   } else {
     // We now load the pool pointer (PP) with a GC safe value as we are about to
@@ -3994,7 +3994,7 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
-  // FLAG_use_bare_instructions mode and only after VM isolate stubs where
+  // precompiled mode and only after VM isolate stubs where
   // replaced with isolate-specific stubs.
   auto object_store = IsolateGroup::Current()->object_store();
   const bool stubs_in_vm_isolate =
@@ -4005,7 +4005,6 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
           ->untag()
           ->InVMIsolateHeap();
   const bool shared_slow_path_call = SlowPathSharingSupported(opt) &&
-                                     FLAG_use_bare_instructions &&
                                      !stubs_in_vm_isolate;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,

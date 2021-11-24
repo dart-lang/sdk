@@ -323,7 +323,6 @@
   FIELD(UserTag, tag_offset)                                                   \
   FIELD(MonomorphicSmiableCall, expected_cid_offset)                           \
   FIELD(MonomorphicSmiableCall, entrypoint_offset)                             \
-  FIELD(MonomorphicSmiableCall, target_offset)                                 \
   FIELD(WeakProperty, key_offset)                                              \
   FIELD(WeakProperty, value_offset)                                            \
   RANGE(Code, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,       \

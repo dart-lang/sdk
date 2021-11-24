@@ -1565,7 +1565,7 @@ void Assembler::RestorePinnedRegisters() {
 }
 
 void Assembler::SetupGlobalPoolAndDispatchTable() {
-  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+  ASSERT(FLAG_precompiled_mode);
   ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
   sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
   if (FLAG_use_table_dispatch) {
@@ -1648,7 +1648,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
   // Setup the frame.
   EnterFrame(0);
 
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     TagAndPushPPAndPcMarker();  // Save PP and PC marker.
 
     // Load the pool pointer.
@@ -1683,7 +1683,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size, Register new_pp) {
 }
 
 void Assembler::LeaveDartFrame(RestorePP restore_pp) {
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     if (restore_pp == kRestoreCallerPP) {
       // Restore and untag PP.
       LoadFromOffset(
@@ -1820,7 +1820,7 @@ void Assembler::TransitionNativeToGenerated(Register state,
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
   Comment("EnterCallRuntimeFrame");
   EnterFrame(0);
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     TagAndPushPPAndPcMarker();  // Save PP and PC marker.
   }
 

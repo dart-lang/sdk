@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// VMOptions=--always-generate-trampolines-for-testing --use-bare-instructions
+// VMOptions=--always-generate-trampolines-for-testing
 
 // We use a reasonable sized test and run it with the above options.
 import 'hello_fuchsia_test.dart' as test;

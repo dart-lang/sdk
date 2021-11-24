@@ -2273,13 +2273,10 @@ class UntaggedSingleTargetCache : public UntaggedObject {
 
 class UntaggedMonomorphicSmiableCall : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(MonomorphicSmiableCall);
-  POINTER_FIELD(CodePtr,
-                target);  // Entrypoint PC in bare mode, Code in non-bare mode.
-  VISIT_FROM(target)
-  VISIT_TO(target)
+  VISIT_NOTHING();
+
   uword expected_cid_;
   uword entrypoint_;
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 // Abstract base class for RawICData/RawMegamorphicCache

@@ -656,7 +656,7 @@ void AssertBooleanInstr::PrintOperandsTo(BaseTextBuffer* f) const {
 }
 
 void ClosureCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     f->AddString(" closure=");
   } else {
     f->AddString(" function=");

@@ -470,7 +470,7 @@ COMPILER_PASS(SelectRepresentations, {
 });
 
 COMPILER_PASS(UseTableDispatch, {
-  if (FLAG_use_bare_instructions && FLAG_use_table_dispatch) {
+  if (FLAG_use_table_dispatch) {
     state->call_specializer->ReplaceInstanceCallsWithDispatchTableCalls();
   }
 });

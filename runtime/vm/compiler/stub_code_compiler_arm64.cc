@@ -157,7 +157,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     __ SetupGlobalPoolAndDispatchTable();
   }
 
@@ -728,7 +728,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
 
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     __ SetupGlobalPoolAndDispatchTable();
   }
 
@@ -1437,7 +1437,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ b(&push_arguments, LT);
   __ Bind(&done_push_arguments);
 
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     __ SetupGlobalPoolAndDispatchTable();
     __ mov(CODE_REG, ZR);  // GC-safe value into CODE_REG.
   } else {
@@ -2003,7 +2003,7 @@ void StubCodeCompiler::GenerateAllocateObjectParameterizedStub(
 void StubCodeCompiler::GenerateAllocateObjectSlowStub(Assembler* assembler) {
   const Register kTagsToClsIdReg = R2;
 
-  if (!FLAG_use_bare_instructions) {
+  if (!FLAG_precompiled_mode) {
     __ ldr(CODE_REG,
            Address(THR, target::Thread::call_to_runtime_stub_offset()));
   }
@@ -3110,7 +3110,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
   // Restore the pool pointer.
   __ RestoreCodePointer();
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     __ SetupGlobalPoolAndDispatchTable();
   } else {
     __ LoadPoolPointer();
@@ -3221,8 +3221,8 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 
   __ Bind(&reference_compare);
   __ CompareObjectRegisters(left, right);
-  // None of the branches above go directly here to avoid generating a conditional 
-  // branch to a ret instruction.
+  // None of the branches above go directly here to avoid generating a
+  // conditional branch to a ret instruction.
   // This is an attempt to work-around a possible CPU on Exynos 2100 SoC.
   // See https://github.com/flutter/flutter/issues/88261
   __ ret();
@@ -3332,7 +3332,7 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ ldr(R1, FieldAddress(R0, target::Function::entry_point_offset()));
   __ ldr(ARGS_DESC_REG,
          FieldAddress(R5, target::CallSiteData::arguments_descriptor_offset()));
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     __ LoadCompressed(CODE_REG,
                       FieldAddress(R0, target::Function::code_offset()));
   }
@@ -3385,7 +3385,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ b(&loop);
 
   __ Bind(&found);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     const intptr_t entry_offset =
         target::ICData::EntryPointIndexFor(1) * target::kCompressedWordSize;
     __ LoadCompressed(R1,
@@ -3419,30 +3419,16 @@ void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub(
   Label miss;
   __ LoadClassIdMayBeSmi(IP0, R0);
 
-  if (FLAG_use_bare_instructions) {
-    __ LoadField(
-        IP1, FieldAddress(
-                 R5, target::MonomorphicSmiableCall::expected_cid_offset()));
-    __ LoadField(
-        R1,
-        FieldAddress(R5, target::MonomorphicSmiableCall::entrypoint_offset()));
-    __ cmp(IP0, Operand(IP1));
-    __ b(&miss, NE);
-    __ br(R1);
-  } else {
-    __ LoadField(
-        IP1, FieldAddress(
-                 R5, target::MonomorphicSmiableCall::expected_cid_offset()));
-    __ LoadField(
-        CODE_REG,
-        FieldAddress(R5, target::MonomorphicSmiableCall::target_offset()));
-    __ LoadField(
-        R1,
-        FieldAddress(R5, target::MonomorphicSmiableCall::entrypoint_offset()));
-    __ cmp(IP0, Operand(IP1));
-    __ b(&miss, NE);
-    __ br(R1);
-  }
+  // Note: this stub is only used in AOT mode, hence the direct (bare) call.
+  __ LoadField(
+      IP1,
+      FieldAddress(R5, target::MonomorphicSmiableCall::expected_cid_offset()));
+  __ LoadField(
+      R1,
+      FieldAddress(R5, target::MonomorphicSmiableCall::entrypoint_offset()));
+  __ cmp(IP0, Operand(IP1));
+  __ b(&miss, NE);
+  __ br(R1);
 
   __ Bind(&miss);
   __ ldr(IP0,

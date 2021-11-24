@@ -245,7 +245,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   ASSERT(code.pointer_offsets_length() == 0);
 #endif
 
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     THR_Print("(No object pool for bare instructions.)\n");
   } else {
     const ObjectPool& object_pool =
@@ -480,7 +480,7 @@ void Disassembler::DisassembleStub(const char* name, const Code& code) {
   code.Disassemble(&formatter);
   THR_Print("}\n");
   const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     THR_Print("(No object pool for bare instructions.)\n");
   } else if (!object_pool.IsNull()) {
     object_pool.DebugPrint();

@@ -29,7 +29,7 @@ DEFINE_FLAG(bool, unbox_doubles, true, "Optimize double arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
 
 void FlowGraphCompiler::ArchSpecificInitialization() {
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     auto object_store = isolate_group()->object_store();
 
     const auto& stub =
@@ -286,7 +286,7 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
 
   // R1 = extracted function
   // R4 = offset of type argument vector (or 0 if class is not generic)
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     kPoolReg = PP;
   } else {
     __ LoadFieldFromOffset(kPoolReg, CODE_REG,
@@ -340,7 +340,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
       ASSERT(StackSize() >= 0);
       __ EnterDartFrame(StackSize() * compiler::target::kWordSize);
     }
-  } else if (FLAG_use_bare_instructions) {
+  } else if (FLAG_precompiled_mode) {
     assembler()->set_constant_pool_allowed(true);
   }
 }
@@ -548,20 +548,11 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
                     (args_desc.Count() - 1) * compiler::target::kWordSize);
   // Use same code pattern as instance call so it can be parsed by code patcher.
   if (FLAG_precompiled_mode) {
-    if (FLAG_use_bare_instructions) {
-      // The AOT runtime will replace the slot in the object pool with the
-      // entrypoint address - see app_snapshot.cc.
-      CLOBBERS_LR(__ LoadUniqueObject(LR, StubCode::MegamorphicCall()));
-    } else {
-      __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
-      CLOBBERS_LR(
-          __ ldr(LR, compiler::FieldAddress(
-                         CODE_REG, compiler::target::Code::entry_point_offset(
-                                       Code::EntryKind::kMonomorphic))));
-    }
+    // The AOT runtime will replace the slot in the object pool with the
+    // entrypoint address - see app_snapshot.cc.
+    CLOBBERS_LR(__ LoadUniqueObject(LR, StubCode::MegamorphicCall()));
     __ LoadUniqueObject(R9, cache);
     CLOBBERS_LR(__ blx(LR));
-
   } else {
     __ LoadUniqueObject(R9, cache);
     __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
@@ -609,7 +600,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   __ LoadFromOffset(
       R0, SP,
       (ic_data.SizeWithoutTypeArgs() - 1) * compiler::target::kWordSize);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see app_snapshot.cc.
     CLOBBERS_LR(__ LoadUniqueObject(LR, initial_stub));
@@ -661,7 +652,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   if (function.HasOptionalParameters() || function.IsGeneric()) {
     __ LoadObject(R4, arguments_descriptor);
   } else {
-    if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    if (!FLAG_precompiled_mode) {
       __ LoadImmediate(R4, 0);  // GC safe smi zero because of stub.
     }
   }

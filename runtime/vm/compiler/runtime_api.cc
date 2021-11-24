@@ -793,7 +793,7 @@ const word MarkingStackBlock::kSize = dart::MarkingStackBlock::kSize;
 // Used for InstructionsSection and Instructions methods, since we don't
 // serialize Instructions objects in bare instructions mode, just payloads.
 DART_FORCE_INLINE static bool BareInstructionsPayloads() {
-  return FLAG_precompiled_mode && FLAG_use_bare_instructions;
+  return FLAG_precompiled_mode;
 }
 
 word InstructionsSection::HeaderSize() {

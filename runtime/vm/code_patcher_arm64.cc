@@ -132,7 +132,7 @@ void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
     const Code& caller_code,
     const Object& data,
     const Code& target) {
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     BareSwitchableCallPattern call(return_address);
     call.SetData(data);
     call.SetTarget(target);
@@ -145,7 +145,7 @@ void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
 
 uword CodePatcher::GetSwitchableCallTargetEntryAt(uword return_address,
                                                   const Code& caller_code) {
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     BareSwitchableCallPattern call(return_address);
     return call.target_entry();
   } else {
@@ -156,7 +156,7 @@ uword CodePatcher::GetSwitchableCallTargetEntryAt(uword return_address,
 
 ObjectPtr CodePatcher::GetSwitchableCallDataAt(uword return_address,
                                                const Code& caller_code) {
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     BareSwitchableCallPattern call(return_address);
     return call.data();
   } else {

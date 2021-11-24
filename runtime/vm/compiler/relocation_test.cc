@@ -43,13 +43,11 @@ struct RelocatorTestHelper {
         safepoint_and_growth_scope(thread, SafepointLevel::kGC) {
     // So the relocator uses the correct instruction size layout.
     FLAG_precompiled_mode = true;
-    FLAG_use_bare_instructions = true;
 
     FLAG_lower_pc_relative_call_distance = -128;
     FLAG_upper_pc_relative_call_distance = 128;
   }
   ~RelocatorTestHelper() {
-    FLAG_use_bare_instructions = false;
     FLAG_precompiled_mode = false;
   }
 

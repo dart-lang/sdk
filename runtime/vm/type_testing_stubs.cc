@@ -255,7 +255,7 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   ASSERT(!type_class.IsNull());
 
   auto& slow_tts_stub = Code::ZoneHandle(zone);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     slow_tts_stub = thread->isolate_group()->object_store()->slow_tts_stub();
   }
 
@@ -273,9 +273,8 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
 
             const char* name = namer_.StubNameForType(type);
             const auto pool_attachment =
-                FLAG_use_bare_instructions
-                    ? Code::PoolAttachment::kNotAttachPool
-                    : Code::PoolAttachment::kAttachPool;
+                FLAG_precompiled_mode ? Code::PoolAttachment::kNotAttachPool
+                                      : Code::PoolAttachment::kAttachPool;
 
             Code& code = Code::Handle(thread->zone());
             auto install_code_fun = [&]() {

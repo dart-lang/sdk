@@ -10148,8 +10148,7 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
   }
 
   // If table dispatch is disabled, all instance calls use switchable calls.
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-        FLAG_use_table_dispatch)) {
+  if (!(FLAG_precompiled_mode && FLAG_use_table_dispatch)) {
     return true;
   }
 
@@ -15531,7 +15530,6 @@ MonomorphicSmiableCallPtr MonomorphicSmiableCall::New(classid_t expected_cid,
   result ^= Object::Allocate(
       MonomorphicSmiableCall::kClassId, MonomorphicSmiableCall::InstanceSize(),
       Heap::kOld, MonomorphicSmiableCall::ContainsCompressedPointers());
-  result.untag()->set_target(target.ptr());
   result.StoreNonPointer(&result.untag()->expected_cid_, expected_cid);
   result.StoreNonPointer(&result.untag()->entrypoint_, target.EntryPoint());
   return result.ptr();
@@ -16906,7 +16904,7 @@ void Code::set_static_calls_target_table(const Array& value) const {
 
 ObjectPoolPtr Code::GetObjectPool() const {
 #if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     return IsolateGroup::Current()->object_store()->global_object_pool();
   }
 #endif
@@ -25514,8 +25512,7 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
     result.untag()->set_function(function.ptr());
     result.untag()->set_context(context.ptr());
 #if defined(DART_PRECOMPILED_RUNTIME)
-    result.set_entry_point(FLAG_use_bare_instructions ? function.entry_point()
-                                                      : 0);
+    result.set_entry_point(function.entry_point());
 #endif
   }
   return result.ptr();

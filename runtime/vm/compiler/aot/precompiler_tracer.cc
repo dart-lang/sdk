@@ -90,7 +90,7 @@ void PrecompilerTracer::WriteEntityTable() {
       const auto& fun = Function::Cast(obj);
       cls_ = fun.Owner();
       const intptr_t selector_id =
-          FLAG_use_bare_instructions && FLAG_use_table_dispatch
+          FLAG_use_table_dispatch
               ? precompiler_->selector_map()->SelectorId(fun)
               : -1;
       Write("\"%c\",%" Pd ",%" Pd ",%" Pd "",
