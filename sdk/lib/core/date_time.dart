@@ -44,6 +44,8 @@ part of dart.core;
 /// You can use these constants to improve code readability:
 /// ```dart
 /// final berlinWallFell = DateTime.utc(1989, DateTime.november, 9);
+/// print(DateTime.november); // 11
+/// assert(berlinWallFell.month == DateTime.november);
 /// assert(berlinWallFell.weekday == DateTime.thursday);
 /// ```
 ///
@@ -66,7 +68,7 @@ part of dart.core;
 /// Use the methods [toLocal] and [toUtc]
 /// to get the equivalent date/time value specified in the other time zone.
 /// ```
-/// final localDay = dDay.toLocal(); // fx 1944-06-06 02:00:00.000
+/// final localDay = dDay.toLocal(); // e.g 1944-06-06 02:00:00.000
 /// print(localDay.isUtc); // false
 ///
 /// final utcFromLocal = localDay.toUtc(); // 1944-06-06 00:00:00.000Z
@@ -101,7 +103,7 @@ part of dart.core;
 ///
 /// Use the [add] and [subtract] methods with a [Duration] object
 /// to create a `DateTime` object based on another.
-/// For example, to find the date that is sixty days (24 * 60 hours) after today,
+/// For example, to find the date that is sixty days (24 * 60 hours) from today,
 /// write:
 ///
 /// ```dart
@@ -113,7 +115,7 @@ part of dart.core;
 /// [difference], which returns a [Duration] object:
 /// ```
 /// final difference = berlinWallFell.difference(moonLanding);
-/// assert(difference.inDays == 7416);
+/// print(difference.inDays); // 7416
 /// ```
 ///
 /// The difference between two dates in different time zones
@@ -133,7 +135,6 @@ part of dart.core;
 ///  * The `DateTime` class does not provide internationalization.
 ///  To internationalize your code, use
 ///  the [intl](https://pub.dev/packages/intl) package.
-///
 class DateTime implements Comparable<DateTime> {
   // Weekday constants that are returned by [weekday] method:
   static const int monday = 1;
@@ -176,7 +177,6 @@ class DateTime implements Comparable<DateTime> {
   /// final local = DateTime(1944, 6, 6);
   /// print(local.isUtc); // false
   /// ```
-  ///
   final bool isUtc;
 
   /// Constructs a [DateTime] instance specified in the local time zone.
@@ -205,7 +205,7 @@ class DateTime implements Comparable<DateTime> {
   /// final moonLanding = DateTime.utc(1969, 7, 20, 20, 18, 04);
   /// ```
   ///
-  /// When dealing with dates or historic events prefer to use UTC DateTimes,
+  /// When dealing with dates or historic events, preferably use UTC DateTimes,
   /// since they are unaffected by daylight-saving changes and are unaffected
   /// by the local timezone.
   DateTime.utc(int year,
@@ -223,7 +223,7 @@ class DateTime implements Comparable<DateTime> {
   /// local time zone.
   ///
   /// ```dart
-  /// final thisInstant = DateTime.now();
+  /// final now = DateTime.now();
   /// ```
   DateTime.now() : this._now();
 
@@ -231,7 +231,7 @@ class DateTime implements Comparable<DateTime> {
   ///
   /// Throws a [FormatException] if the input string cannot be parsed.
   ///
-  /// The function parses a subset of ISO 8601
+  /// The function parses a subset of ISO 8601,
   /// which includes the subset accepted by RFC 3339.
   ///
   /// The accepted inputs are currently:
@@ -252,7 +252,7 @@ class DateTime implements Comparable<DateTime> {
   ///   possibly separated from the previous by a space.
   ///   The time zone is either 'z' or 'Z', or it is a signed two digit hour
   ///   part and an optional two digit minute part. The sign must be either
-  ///   "+" or "-", and can not be omitted.
+  ///   "+" or "-", and cannot be omitted.
   ///   The minutes may be separated from the hours by a ':'.
   ///   Examples: "Z", "-10", "+01:30", "+1130".
   ///
@@ -384,7 +384,7 @@ class DateTime implements Comparable<DateTime> {
   /// Constructs a new [DateTime] instance
   /// with the given [microsecondsSinceEpoch].
   ///
-  /// If [isUtc] is false then the date is in the local time zone.
+  /// If [isUtc] is false, then the date is in the local time zone.
   ///
   /// The constructed [DateTime] represents
   /// 1970-01-01T00:00:00Z + [microsecondsSinceEpoch] us in the given
@@ -399,7 +399,7 @@ class DateTime implements Comparable<DateTime> {
 
   /// Constructs a new [DateTime] instance with the given value.
   ///
-  /// If [isUtc] is false then the date is in the local time zone.
+  /// If [isUtc] is false, then the date is in the local time zone.
   DateTime._withValue(this._value, {required this.isUtc}) {
     if (millisecondsSinceEpoch.abs() > _maxMillisecondsSinceEpoch ||
         (millisecondsSinceEpoch.abs() == _maxMillisecondsSinceEpoch &&
@@ -420,6 +420,7 @@ class DateTime implements Comparable<DateTime> {
   ///
   /// // These two dates are at the same moment, but are in different zones.
   /// assert(dDayUtc != dDayLocal);
+  /// print(dDayUtc != dDayLocal); // true
   /// ```
   ///
   /// See [isAtSameMomentAs] for a comparison that compares moments in time
@@ -434,15 +435,15 @@ class DateTime implements Comparable<DateTime> {
   /// ```dart
   /// final now = DateTime.now();
   /// final earlier = now.subtract(const Duration(seconds: 5));
-  /// assert(earlier.isBefore(now));
-  /// assert(!now.isBefore(now));
+  /// print(earlier.isBefore(now)); // true
+  /// print(!now.isBefore(now)); // true
   ///
   /// // This relation stays the same, even when changing timezones.
-  /// assert(earlier.isBefore(now.toUtc()));
-  /// assert(earlier.toUtc().isBefore(now));
+  /// print(earlier.isBefore(now.toUtc())); // true
+  /// print(earlier.toUtc().isBefore(now)); // true
   ///
-  /// assert(!now.toUtc().isBefore(now));
-  /// assert(!now.isBefore(now.toUtc()));
+  /// print(!now.toUtc().isBefore(now)); // true
+  /// print(!now.isBefore(now.toUtc())); // true
   /// ```
   external bool isBefore(DateTime other);
 
@@ -454,15 +455,15 @@ class DateTime implements Comparable<DateTime> {
   /// ```dart
   /// final now = DateTime.now();
   /// final later = now.add(const Duration(seconds: 5));
-  /// assert(later.isAfter(now));
-  /// assert(!now.isBefore(now));
+  /// print(later.isAfter(now)); // true
+  /// print(!now.isBefore(now)); // true
   ///
   /// // This relation stays the same, even when changing timezones.
-  /// assert(later.isAfter(now.toUtc()));
-  /// assert(later.toUtc().isAfter(now));
+  /// print(later.isAfter(now.toUtc())); // true
+  /// print(later.toUtc().isAfter(now)); // true
   ///
-  /// assert(!now.toUtc().isAfter(now));
-  /// assert(!now.isAfter(now.toUtc()));
+  /// print(!now.toUtc().isAfter(now)); // true
+  /// print(!now.isAfter(now.toUtc())); // true
   /// ```
   external bool isAfter(DateTime other);
 
@@ -474,15 +475,15 @@ class DateTime implements Comparable<DateTime> {
   /// ```dart
   /// final now = DateTime.now();
   /// final later = now.add(const Duration(seconds: 5));
-  /// assert(!later.isAtSameMomentAs(now));
-  /// assert(now.isAtSameMomentAs(now));
+  /// print(!later.isAtSameMomentAs(now)); // true
+  /// print(now.isAtSameMomentAs(now)); // true
   ///
   /// // This relation stays the same, even when changing timezones.
-  /// assert(!later.isAtSameMomentAs(now.toUtc()));
-  /// assert(!later.toUtc().isAtSameMomentAs(now));
+  /// print(!later.isAtSameMomentAs(now.toUtc())); // true
+  /// print(!later.toUtc().isAtSameMomentAs(now)); // true
   ///
-  /// assert(now.toUtc().isAtSameMomentAs(now));
-  /// assert(now.isAtSameMomentAs(now.toUtc()));
+  /// print(now.toUtc().isAtSameMomentAs(now)); // true
+  /// print(now.isAtSameMomentAs(now.toUtc())); // true
   /// ```
   external bool isAtSameMomentAs(DateTime other);
 
@@ -672,7 +673,7 @@ class DateTime implements Comparable<DateTime> {
   /// final dDay = DateTime.utc(1944, DateTime.june, 6);
   ///
   /// final difference = berlinWallFell.difference(dDay);
-  /// assert(difference.inDays == 16592);
+  /// print(difference.inDays); // 16592
   /// ```
   ///
   /// The difference is measured in seconds and fractions of seconds.
@@ -688,7 +689,7 @@ class DateTime implements Comparable<DateTime> {
   /// final berlinWallFell = DateTime(1989, DateTime.november, 9);
   /// final dDay = DateTime(1944, DateTime.june, 6);
   /// final difference = berlinWallFell.difference(dDay);
-  /// assert(difference.inDays == 16592);
+  /// print(difference.inDays); // 16592
   /// ```
   /// will fail because the difference is actually 16591 days and 23 hours, and
   /// [Duration.inDays] only returns the number of whole days.
@@ -777,7 +778,7 @@ class DateTime implements Comparable<DateTime> {
   ///
   /// ```dart
   /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
-  /// assert(moonLanding.year == 1969);
+  /// print(moonLanding.year); // 1969
   /// ```
   external int get year;
 
@@ -785,7 +786,7 @@ class DateTime implements Comparable<DateTime> {
   ///
   /// ```dart
   /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
-  /// assert(moonLanding.month == 7);
+  /// print(moonLanding.month); // 7
   /// assert(moonLanding.month == DateTime.july);
   /// ```
   external int get month;
@@ -794,7 +795,7 @@ class DateTime implements Comparable<DateTime> {
   ///
   /// ```dart
   /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
-  /// assert(moonLanding.day == 20);
+  /// print(moonLanding.day); // 20
   /// ```
   external int get day;
 
@@ -802,7 +803,7 @@ class DateTime implements Comparable<DateTime> {
   ///
   /// ```dart
   /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
-  /// assert(moonLanding.hour == 20);
+  /// print(moonLanding.hour); // 20
   /// ```
   external int get hour;
 
@@ -810,7 +811,7 @@ class DateTime implements Comparable<DateTime> {
   ///
   /// ```dart
   /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
-  /// assert(moonLanding.minute == 18);
+  /// print(moonLanding.minute); // 18
   /// ```
   external int get minute;
 
@@ -818,7 +819,7 @@ class DateTime implements Comparable<DateTime> {
   ///
   /// ```dart
   /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
-  /// assert(moonLanding.second == 4);
+  /// print(moonLanding.second); // 4
   /// ```
   external int get second;
 
@@ -826,7 +827,7 @@ class DateTime implements Comparable<DateTime> {
   ///
   /// ```dart
   /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
-  /// assert(moonLanding.millisecond == 0);
+  /// print(moonLanding.millisecond); // 0
   /// ```
   external int get millisecond;
 
@@ -834,7 +835,7 @@ class DateTime implements Comparable<DateTime> {
   ///
   /// ```dart
   /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
-  /// assert(moonLanding.microsecond == 0);
+  /// print(moonLanding.microsecond); // 0
   /// ```
   external int get microsecond;
 
@@ -845,7 +846,7 @@ class DateTime implements Comparable<DateTime> {
   ///
   /// ```dart
   /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
-  /// assert(moonLanding.weekday == 7);
+  /// print(moonLanding.weekday); // 7
   /// assert(moonLanding.weekday == DateTime.sunday);
   /// ```
   external int get weekday;
