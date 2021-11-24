@@ -21,7 +21,7 @@
   marked deprecated as previously announced.
   Its replacement is the `dart analyze` command.
   Should you find any issues, or missing features, in the replacement
-  command, kindly file [an issue]][].
+  command, kindly file [an issue][].
 
 [an issue]: https://github.com/dart-lang/sdk/issues/new
 
