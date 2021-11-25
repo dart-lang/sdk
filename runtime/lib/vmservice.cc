@@ -128,13 +128,10 @@ DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 0, 1) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_ListenStream, 0, 2) {
+DEFINE_NATIVE_ENTRY(VMService_ListenStream, 0, 1) {
 #ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, include_privates,
-                               arguments->NativeArgAt(1));
-  bool result =
-      Service::ListenStream(stream_id.ToCString(), include_privates.value());
+  bool result = Service::ListenStream(stream_id.ToCString());
   return Bool::Get(result).ptr();
 #else
   return Object::null();
