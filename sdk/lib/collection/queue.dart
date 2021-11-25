@@ -9,12 +9,29 @@ part of dart.collection;
 /// an [Iterator].
 ///
 /// It is generally not allowed to modify the queue (add or remove entries)
-/// while an operation on the queue is being performed, for example during a
+/// while an operation in the queue is being performed, for example during a
 /// call to [forEach].
 /// Modifying the queue while it is being iterated will most likely break the
 /// iteration.
 /// This goes both for using the [iterator] directly, or for iterating an
 /// `Iterable` returned by a method like [map] or [where].
+///
+/// Example:
+/// ```dart
+/// final queue = Queue<int>(); // ListQueue() by default
+/// print(queue.runtimeType); // ListQueue
+///
+/// // Adding items to queue
+/// queue.addAll([1, 2, 3]);
+/// queue.addFirst(0);
+/// queue.addLast(10);
+/// print(queue); // {0, 1, 2, 3, 10}
+///
+/// // Removing items from queue
+/// queue.removeFirst();
+/// queue.removeLast();
+/// print(queue); // {1, 2, 3}
+/// ```
 abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// Creates a queue.
   factory Queue() = ListQueue<E>;
@@ -45,16 +62,16 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// Any time the queue would produce an element that is not a [T],
   /// the element access will throw.
   ///
-  /// Any time a [T] value is attempted stored into the adapted queue,
-  /// the store will throw unless the value is also an instance of [S].
+  /// When a [T] value is stored into the adapted queue,
+  /// the operation will throw unless the value is also an instance of [S].
   ///
   /// If all accessed elements of [source] are actually instances of [T],
-  /// and if all elements stored into the returned queue are actually instance
+  /// and if all elements stored into the returned queue are actually instances
   /// of [S],
   /// then the returned queue can be used as a `Queue<T>`.
   ///
   /// Methods which accept `Object?` as argument, like [contains] and [remove],
-  /// will pass the argument directly to the this queue's method
+  /// will pass the argument directly to this queue's method
   /// without any checks.
   static Queue<T> castFrom<S, T>(Queue<S> source) => CastQueue<S, T>(source);
 
@@ -65,8 +82,8 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// that is not an instance of [R], the access will throw instead.
   ///
   /// Elements added to the queue (e.g., by using [addFirst] or [addAll])
-  /// must be instance of [R] to be valid arguments to the adding function,
-  /// and they must be instances of [E] as well to be accepted by
+  /// must be instances of [R] to be valid arguments to the adding function,
+  /// and they must also be instances of [E] to be accepted by
   /// this queue as well.
   ///
   /// Methods which accept `Object?` as argument, like [contains] and [remove],
@@ -95,7 +112,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// Adds [value] at the end of the queue.
   void add(E value);
 
-  /// Remove a single instance of [value] from the queue.
+  /// Removes a single instance of [value] from the queue.
   ///
   /// Returns `true` if a value was removed, or `false` if the queue
   /// contained no element equal to [value].
@@ -437,7 +454,7 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// [DoubleLinkedQueueEntry.previousEntry()].
   ///
   /// The [action] function can use methods on [DoubleLinkedQueueEntry] to
-  /// remove the entry or it can insert elements before or after then entry.
+  /// remove the entry or it can insert elements before or after the entry.
   /// If the current entry is removed, iteration continues with the entry that
   /// was following the current entry when [action] was called. Any elements
   /// inserted after the current element before it is removed will not be
@@ -509,6 +526,63 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 /// amortized constant time add operations.
 ///
 /// The structure is efficient for any queue or stack usage.
+///
+/// Example:
+/// ```dart
+/// final queue = ListQueue<int>();
+/// ```
+/// To add objects to a queue, use [add], [addAll], [addFirst] or[addLast].
+/// ```
+/// queue.add(5);
+/// queue.addFirst(0);
+/// queue.addLast(10);
+/// queue.addAll([1, 2, 3]);
+/// print(queue); // {0, 5, 10, 1, 2, 3}
+/// ```
+/// To check if the queue is empty, use [isEmpty] or [isNotEmpty].
+/// To find the number of queue entries, use [length].
+/// ```
+/// final isEmpty = queue.isEmpty; // false
+/// final queueSize = queue.length; // 6
+/// ```
+/// To get first or last item from queue, use [first] or [last].
+/// ```
+/// final first = queue.first; // 0
+/// final last = queue.last; // 3
+/// ```
+/// To get item value using index, use [elementAt].
+/// ```
+/// final itemAt = queue.elementAt(2); // 10
+/// ```
+/// To convert queue to list, call [toList].
+/// ```
+/// final numbers = queue.toList();
+/// print(numbers); // [0, 5, 10, 1, 2, 3]
+/// ```
+/// To remove item from queue, call [remove], [removeFirst] or [removeLast].
+/// ```
+/// queue.remove(10);
+/// queue.removeFirst();
+/// queue.removeLast();
+/// print(queue); // {5, 1, 2}
+/// ```
+/// To remove multiple elements at the same time, use [removeWhere].
+/// ```
+/// queue.removeWhere((element) => element == 1);
+/// print(queue); // {5, 2}
+/// ```
+/// To remove all elements in this queue that do not meet a condition,
+/// use [retainWhere].
+/// ```
+/// queue.retainWhere((element) => element < 4);
+/// print(queue); // {2}
+/// ```
+/// To remove all items and empty the set, use [clear].
+/// ```
+/// queue.clear();
+/// print(queue.isEmpty); // true
+/// print(queue); // {}
+/// ```
 class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   static const int _INITIAL_CAPACITY = 8;
   List<E?> _table;
@@ -548,6 +622,12 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   /// Queue<SubType> subQueue =
   ///     ListQueue<SubType>.from(superQueue.whereType<SubType>());
   /// ```
+  /// Example:
+  /// ```dart
+  /// final numbers = <num>[10, 20, 30];
+  /// final queue = ListQueue<int>.from(numbers);
+  /// print(queue); // {10, 20, 30}
+  /// ```
   factory ListQueue.from(Iterable<dynamic> elements) {
     if (elements is List<dynamic>) {
       int length = elements.length;
@@ -575,6 +655,12 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   ///
   /// The elements are added to the queue, as by [addLast], in the order given
   /// by `elements.iterator`.
+  /// Example:
+  /// ```dart
+  /// final baseQueue = ListQueue.of([1.0, 2.0, 3.0]); // A ListQueue<double>
+  /// final numQueue = ListQueue<num>.of(baseQueue);
+  /// print(numQueue); // {1.0, 2.0, 3.0}
+  /// ```
   factory ListQueue.of(Iterable<E> elements) =>
       ListQueue<E>()..addAll(elements);
 
