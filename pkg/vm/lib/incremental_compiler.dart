@@ -66,8 +66,9 @@ class IncrementalCompiler {
       _entryPoint = entryPoint ?? _entryPoint;
       List<Uri>? entryPoints;
       if (entryPoint != null) entryPoints = [entryPoint];
-      Component component = await _generator.computeDelta(
+      IncrementalCompilerResult compilerResult = await _generator.computeDelta(
           entryPoints: entryPoints, fullComponent: fullComponent);
+      Component component = compilerResult.component;
       initialized = true;
       fullComponent = false;
       _pendingDeltas.add(component);

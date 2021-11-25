@@ -7,6 +7,9 @@ import 'dart:io' show Platform;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
+
 import 'package:front_end/src/fasta/kernel/utils.dart';
 
 import 'package:kernel/kernel.dart'
@@ -89,7 +92,9 @@ class Dart2jsTester {
     print("Invalidating $uri ($i)");
     compiler.invalidate(uri);
     localStopwatch.reset();
-    Component c2 = await compiler.computeDelta(fullComponent: true);
+    IncrementalCompilerResult compilerResult =
+        await compiler.computeDelta(fullComponent: true);
+    Component c2 = compilerResult.component;
     print("Recompiled in ${localStopwatch.elapsedMilliseconds} ms");
     print("invalidatedImportUrisForTesting: "
         "${compiler.invalidatedImportUrisForTesting}");
@@ -180,7 +185,8 @@ class Dart2jsTester {
         .alternativeInvalidationStrategy] = useExperimentalInvalidation;
     helper.TestIncrementalCompiler compiler =
         new helper.TestIncrementalCompiler(options, input);
-    Component? c = await compiler.computeDelta();
+    IncrementalCompilerResult compilerResult = await compiler.computeDelta();
+    Component? c = compilerResult.component;
     print("Compiled dart2js to Component with ${c.libraries.length} libraries "
         "in ${stopwatch.elapsedMilliseconds} ms.");
     stopwatch.reset();

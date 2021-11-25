@@ -40,6 +40,9 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
+
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
 
@@ -1207,7 +1210,9 @@ class FuzzCompiles
     IncrementalCompiler incrementalCompiler =
         new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
-    final Component component = await incrementalCompiler.computeDelta();
+    IncrementalCompilerResult incrementalCompilerResult =
+        await incrementalCompiler.computeDelta();
+    final Component component = incrementalCompilerResult.component;
     if (!canSerialize(component)) {
       return new Result<ComponentResult>(result, semiFuzzFailure,
           "Couldn't serialize initial component for fuzzing");
@@ -1237,8 +1242,9 @@ class FuzzCompiles
     compilationSetup.errors.clear();
     for (Uri importUri in userLibraries) {
       incrementalCompiler.invalidate(importUri);
-      final Component newComponent =
+      final IncrementalCompilerResult newResult =
           await incrementalCompiler.computeDelta(fullComponent: true);
+      final Component newComponent = newResult.component;
       if (!canSerialize(newComponent)) {
         return new Result<ComponentResult>(
             result, semiFuzzFailure, "Couldn't serialize fuzzed component");
@@ -1329,7 +1335,9 @@ class FuzzCompiles
     IncrementalCompiler incrementalCompiler =
         new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
-    Component initialComponent = await incrementalCompiler.computeDelta();
+    IncrementalCompilerResult initialResult =
+        await incrementalCompiler.computeDelta();
+    Component initialComponent = initialResult.component;
     if (!canSerialize(initialComponent)) {
       return new Result<ComponentResult>(result, semiFuzzFailure,
           "Couldn't serialize initial component for fuzzing");
@@ -1392,7 +1400,9 @@ class FuzzCompiles
         incrementalCompiler = new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
         try {
-          Component component = await incrementalCompiler.computeDelta();
+          IncrementalCompilerResult incrementalCompilerResult =
+              await incrementalCompiler.computeDelta();
+          Component component = incrementalCompilerResult.component;
           if (!canSerialize(component)) {
             return new Result<ComponentResult>(
                 result, semiFuzzFailure, "Couldn't serialize fuzzed component");

@@ -21,7 +21,8 @@ class TestCompiler {
     // Initialize incremental compiler and create component.
     setup.options.packagesFileUri = packages;
     var compiler = DevelopmentIncrementalCompiler(setup.options, input);
-    var component = await compiler.computeDelta();
+    var compilerResult = await compiler.computeDelta();
+    var component = compilerResult.component;
     component.computeCanonicalNames();
     var errors = setup.errors.where((e) => e.contains('Error'));
     if (errors.isNotEmpty) {

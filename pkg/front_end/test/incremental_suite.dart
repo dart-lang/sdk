@@ -24,7 +24,8 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag, experimentEnabledVersion;
-
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem, MemoryFileSystemEntity;
 
@@ -355,7 +356,9 @@ Future<Map<String, List<int>>> createModules(
     }
     TestIncrementalCompiler compiler = new TestIncrementalCompiler(
         options, moduleSources.first, /* initializeFrom = */ null, outlineOnly);
-    Component c = await compiler.computeDelta(entryPoints: moduleSources);
+    IncrementalCompilerResult compilerResult =
+        await compiler.computeDelta(entryPoints: moduleSources);
+    Component c = compilerResult.component;
     c.computeCanonicalNames();
     List<Library> wantedLibs = <Library>[];
     for (Library lib in c.libraries) {
@@ -664,11 +667,12 @@ class NewWorldTest {
       }
 
       Stopwatch stopwatch = new Stopwatch()..start();
-      component = await compiler!.computeDelta(
+      IncrementalCompilerResult compilerResult = await compiler!.computeDelta(
           entryPoints: entries,
           fullComponent:
               brandNewWorld ? false : (noFullComponent ? false : true),
           simulateTransformer: world["simulateTransformer"]);
+      component = compilerResult.component;
       if (outlineOnly && !skipOutlineBodyCheck) {
         for (Library lib in component!.libraries) {
           for (Class c in lib.classes) {
@@ -934,10 +938,11 @@ class NewWorldTest {
 
       if (!noFullComponent) {
         clearPrevErrorsEtc();
-        component2 = await compiler.computeDelta(
+        IncrementalCompilerResult compilerResult2 = await compiler.computeDelta(
             entryPoints: entries,
             fullComponent: true,
             simulateTransformer: world["simulateTransformer"]);
+        component2 = compilerResult2.component;
         Result<TestData>? result = performErrorAndWarningCheck(world, data,
             gotError, formattedErrors, gotWarning, formattedWarnings);
         if (result != null) return result;
@@ -1047,9 +1052,11 @@ class NewWorldTest {
         }
 
         Stopwatch stopwatch = new Stopwatch()..start();
-        component3 = await compilerFromScratch.computeDelta(
-            entryPoints: entries,
-            simulateTransformer: world["simulateTransformer"]);
+        IncrementalCompilerResult compilerResult3 =
+            await compilerFromScratch.computeDelta(
+                entryPoints: entries,
+                simulateTransformer: world["simulateTransformer"]);
+        component3 = compilerResult3.component;
         compilerFromScratch = null;
         Result<TestData>? result = performErrorAndWarningCheck(world, data,
             gotError, formattedErrors, gotWarning, formattedWarnings);
@@ -1787,7 +1794,7 @@ Future<Component> normalCompilePlain(Uri input,
     {CompilerOptions? options, IncrementalCompiler? compiler}) async {
   options ??= getOptions();
   compiler ??= new TestIncrementalCompiler(options, input);
-  return await compiler.computeDelta();
+  return (await compiler.computeDelta()).component;
 }
 
 Future<bool> initializedCompile(
@@ -1799,7 +1806,9 @@ Future<bool> initializedCompile(
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }
-  Component initializedComponent = await compiler.computeDelta();
+  IncrementalCompilerResult initializedCompilerResult =
+      await compiler.computeDelta();
+  Component initializedComponent = initializedCompilerResult.component;
   util.throwOnEmptyMixinBodies(initializedComponent);
   await util.throwOnInsufficientUriToSource(initializedComponent);
   bool result = compiler.initializedFromDill;
@@ -1814,8 +1823,9 @@ Future<bool> initializedCompile(
         "got $actuallyInvalidatedCount");
   }
 
-  Component initializedFullComponent =
+  IncrementalCompilerResult initializedFullCompilerResult =
       await compiler.computeDelta(fullComponent: true);
+  Component initializedFullComponent = initializedFullCompilerResult.component;
   util.throwOnEmptyMixinBodies(initializedFullComponent);
   await util.throwOnInsufficientUriToSource(initializedFullComponent);
   Expect.equals(initializedComponent.libraries.length,
@@ -1827,7 +1837,8 @@ Future<bool> initializedCompile(
     compiler.invalidate(invalidateUri);
   }
 
-  Component partialComponent = await compiler.computeDelta();
+  IncrementalCompilerResult partialResult = await compiler.computeDelta();
+  Component partialComponent = partialResult.component;
   util.throwOnEmptyMixinBodies(partialComponent);
   await util.throwOnInsufficientUriToSource(partialComponent);
   actuallyInvalidatedCount = (compiler
@@ -1839,7 +1850,8 @@ Future<bool> initializedCompile(
         "got $actuallyInvalidatedCount");
   }
 
-  Component emptyComponent = await compiler.computeDelta();
+  IncrementalCompilerResult emptyResult = await compiler.computeDelta();
+  Component emptyComponent = emptyResult.component;
   util.throwOnEmptyMixinBodies(emptyComponent);
   await util.throwOnInsufficientUriToSource(emptyComponent);
 
@@ -1933,11 +1945,11 @@ class TestIncrementalCompiler extends IncrementalCompiler {
   }
 
   @override
-  Future<Component> computeDelta(
+  Future<IncrementalCompilerResult> computeDelta(
       {List<Uri>? entryPoints,
       bool fullComponent = false,
       bool? simulateTransformer}) async {
-    Component result = await super
+    IncrementalCompilerResult result = await super
         .computeDelta(entryPoints: entryPoints, fullComponent: fullComponent);
 
     // We should at least have the SDK builders available. Slight smoke test.
@@ -1949,7 +1961,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
     }
 
     if (simulateTransformer == true) {
-      doSimulateTransformer(result);
+      doSimulateTransformer(result.component);
     }
     return result;
   }

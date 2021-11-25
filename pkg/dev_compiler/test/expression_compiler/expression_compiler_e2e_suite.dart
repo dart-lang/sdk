@@ -117,7 +117,8 @@ class TestCompiler {
     // compilers/components/names per module.
     setup.options.packagesFileUri = packages;
     var compiler = DevelopmentIncrementalCompiler(setup.options, input);
-    var component = await compiler.computeDelta();
+    var compilerResult = await compiler.computeDelta();
+    var component = compilerResult.component;
     component.computeCanonicalNames();
     // Initialize DDC.
     var moduleName = p.basenameWithoutExtension(output.toFilePath());

@@ -70,9 +70,11 @@ abstract class IncrementalKernelGenerator {
         component);
   }
 
-  /// Returns a component whose libraries are the recompiled libraries,
-  /// or - in the case of [fullComponent] - a full Component.
-  Future<Component> computeDelta({List<Uri>? entryPoints, bool fullComponent});
+  /// Returns an [IncrementalCompilerResult] with the component whose libraries
+  /// are the recompiled libraries, or - in the case of [fullComponent] - a full
+  /// Component.
+  Future<IncrementalCompilerResult> computeDelta(
+      {List<Uri>? entryPoints, bool fullComponent});
 
   /// Returns [CoreTypes] used during compilation.
   /// Valid after [computeDelta] is called.
@@ -148,4 +150,10 @@ abstract class IncrementalKernelGenerator {
 
 bool isLegalIdentifier(String identifier) {
   return StringScanner.isLegalIdentifier(identifier);
+}
+
+class IncrementalCompilerResult {
+  final Component component;
+
+  IncrementalCompilerResult(this.component);
 }

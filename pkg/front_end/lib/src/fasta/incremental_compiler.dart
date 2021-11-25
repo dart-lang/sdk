@@ -62,7 +62,10 @@ import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
 
 import '../api_prototype/incremental_kernel_generator.dart'
-    show IncrementalKernelGenerator, isLegalIdentifier;
+    show
+        IncrementalCompilerResult,
+        IncrementalKernelGenerator,
+        isLegalIdentifier;
 
 import '../api_prototype/lowering_predicates.dart' show isExtensionThisName;
 
@@ -143,78 +146,94 @@ final Uri dartFfiUri = Uri.parse("dart:ffi");
 class IncrementalCompiler implements IncrementalKernelGenerator {
   final CompilerContext context;
 
-  final Ticker ticker;
-  final bool resetTicker;
+  final Ticker _ticker;
+  final bool _resetTicker;
   final bool outlineOnly;
   bool trackNeededDillLibraries = false;
-  Set<Library>? neededDillLibraries;
+  Set<Library>? _neededDillLibraries;
 
-  Set<Uri?> invalidatedUris = new Set<Uri?>();
+  Set<Uri?> _invalidatedUris = new Set<Uri?>();
 
-  DillTarget? dillLoadedData;
-  List<LibraryBuilder>? platformBuilders;
-  Map<Uri, LibraryBuilder>? userBuilders;
-  final Uri? initializeFromDillUri;
-  Component? componentToInitializeFrom;
-  bool initializedFromDill = false;
-  bool initializedIncrementalSerializer = false;
-  Uri? previousPackagesUri;
-  Map<String, Package>? previousPackagesMap;
-  Map<String, Package>? currentPackagesMap;
-  bool hasToCheckPackageUris = false;
-  final bool initializedForExpressionCompilationOnly;
-  bool computeDeltaRunOnce = false;
-  Map<Uri, List<DiagnosticMessageFromJson>> remainingComponentProblems =
+  DillTarget? _dillLoadedData;
+  List<LibraryBuilder>? _platformBuilders;
+  Map<Uri, LibraryBuilder>? _userBuilders;
+  final Uri? _initializeFromDillUri;
+  Component? _componentToInitializeFrom;
+  bool _initializedFromDill = false;
+  bool _initializedIncrementalSerializer = false;
+  Uri? _previousPackagesUri;
+  Map<String, Package>? _previousPackagesMap;
+  Map<String, Package>? _currentPackagesMap;
+  bool _hasToCheckPackageUris = false;
+  final bool _initializedForExpressionCompilationOnly;
+  bool _computeDeltaRunOnce = false;
+  Map<Uri, List<DiagnosticMessageFromJson>> _remainingComponentProblems =
       new Map<Uri, List<DiagnosticMessageFromJson>>();
-  List<Component>? modulesToLoad;
-  IncrementalSerializer? incrementalSerializer;
+  List<Component>? _modulesToLoad;
+  IncrementalSerializer? _incrementalSerializer;
 
   static final Uri debugExprUri =
       new Uri(scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
 
-  IncrementalKernelTarget? userCode;
-  Set<Library>? previousSourceBuilders;
+  IncrementalKernelTarget? _userCode;
+  Set<Library>? _previousSourceBuilders;
 
   /// Guard against multiple computeDelta calls at the same time (possibly
   /// caused by lacking awaits etc).
-  Completer<dynamic>? currentlyCompiling;
+  Completer<dynamic>? _currentlyCompiling;
 
   IncrementalCompiler.fromComponent(
-      this.context, this.componentToInitializeFrom,
-      [bool? outlineOnly, this.incrementalSerializer])
-      : ticker = context.options.ticker,
-        resetTicker = true,
-        initializeFromDillUri = null,
+      this.context, this._componentToInitializeFrom,
+      [bool? outlineOnly, this._incrementalSerializer])
+      : _ticker = context.options.ticker,
+        _resetTicker = true,
+        _initializeFromDillUri = null,
         this.outlineOnly = outlineOnly ?? false,
-        this.initializedForExpressionCompilationOnly = false {
-    enableExperimentsBasedOnEnvironment();
+        this._initializedForExpressionCompilationOnly = false {
+    _enableExperimentsBasedOnEnvironment();
   }
 
   IncrementalCompiler(this.context,
-      [this.initializeFromDillUri,
+      [this._initializeFromDillUri,
       bool? outlineOnly,
-      this.incrementalSerializer])
-      : ticker = context.options.ticker,
-        resetTicker = true,
-        componentToInitializeFrom = null,
+      this._incrementalSerializer])
+      : _ticker = context.options.ticker,
+        _resetTicker = true,
+        _componentToInitializeFrom = null,
         this.outlineOnly = outlineOnly ?? false,
-        this.initializedForExpressionCompilationOnly = false {
-    enableExperimentsBasedOnEnvironment();
+        this._initializedForExpressionCompilationOnly = false {
+    _enableExperimentsBasedOnEnvironment();
   }
 
   IncrementalCompiler.forExpressionCompilationOnly(
-      this.context, this.componentToInitializeFrom,
+      this.context, this._componentToInitializeFrom,
       [bool? resetTicker])
-      : ticker = context.options.ticker,
-        this.resetTicker = resetTicker ?? true,
-        initializeFromDillUri = null,
+      : _ticker = context.options.ticker,
+        this._resetTicker = resetTicker ?? true,
+        _initializeFromDillUri = null,
         this.outlineOnly = false,
-        this.incrementalSerializer = null,
-        this.initializedForExpressionCompilationOnly = true {
-    enableExperimentsBasedOnEnvironment();
+        this._incrementalSerializer = null,
+        this._initializedForExpressionCompilationOnly = true {
+    _enableExperimentsBasedOnEnvironment();
   }
 
-  void enableExperimentsBasedOnEnvironment({Set<String>? enabledExperiments}) {
+  bool get initializedFromDill => _initializedFromDill;
+
+  bool get initializedIncrementalSerializer =>
+      _initializedIncrementalSerializer;
+
+  Set<Library>? get neededDillLibraries => _neededDillLibraries;
+
+  DillTarget? get dillLoadedData => _dillLoadedData;
+
+  IncrementalKernelTarget? get userCode => _userCode;
+
+  /// Returns the [Package] used for the package [packageName] in the most
+  /// recent compilation.
+  Package? getPackageForPackageName(String packageName) =>
+      _currentPackagesMap?[packageName];
+
+  void _enableExperimentsBasedOnEnvironment({Set<String>? enabledExperiments}) {
     // Note that these are all experimental. Use at your own risk.
     enabledExperiments ??= getExperimentEnvironment();
     // Currently there's no live experiments.
@@ -222,36 +241,37 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   @override
   void setExperimentalFeaturesForTesting(Set<String> features) {
-    enableExperimentsBasedOnEnvironment(enabledExperiments: features);
+    _enableExperimentsBasedOnEnvironment(enabledExperiments: features);
   }
 
   @override
-  Future<Component> computeDelta(
+  Future<IncrementalCompilerResult> computeDelta(
       {List<Uri>? entryPoints, bool fullComponent: false}) async {
-    while (currentlyCompiling != null) {
-      await currentlyCompiling!.future;
+    while (_currentlyCompiling != null) {
+      await _currentlyCompiling!.future;
     }
-    currentlyCompiling = new Completer();
-    if (resetTicker) {
-      ticker.reset();
+    _currentlyCompiling = new Completer();
+    if (_resetTicker) {
+      _ticker.reset();
     }
     entryPoints ??= context.options.inputs;
-    return context.runInContext<Component>((CompilerContext c) async {
-      if (computeDeltaRunOnce && initializedForExpressionCompilationOnly) {
+    return context
+        .runInContext<IncrementalCompilerResult>((CompilerContext c) async {
+      if (_computeDeltaRunOnce && _initializedForExpressionCompilationOnly) {
         throw new StateError("Initialized for expression compilation: "
             "cannot do another general compile.");
       }
-      computeDeltaRunOnce = true;
+      _computeDeltaRunOnce = true;
       // Initial setup: Load platform, initialize from dill or component etc.
-      UriTranslator uriTranslator = await setupPackagesAndUriTranslator(c);
+      UriTranslator uriTranslator = await _setupPackagesAndUriTranslator(c);
       IncrementalCompilerData data =
-          await ensurePlatformAndInitialize(uriTranslator, c);
+          await _ensurePlatformAndInitialize(uriTranslator, c);
 
       // Figure out what to keep and what to throw away.
-      Set<Uri?> invalidatedUris = this.invalidatedUris.toSet();
-      invalidateNotKeptUserBuilders(invalidatedUris);
+      Set<Uri?> invalidatedUris = this._invalidatedUris.toSet();
+      _invalidateNotKeptUserBuilders(invalidatedUris);
       ReusageResult? reusedResult =
-          computeReusedLibraries(invalidatedUris, uriTranslator, entryPoints!);
+          _computeReusedLibraries(invalidatedUris, uriTranslator, entryPoints!);
 
       // Use the reused libraries to re-write entry-points.
       if (reusedResult.arePartsUsedAsEntryPoints()) {
@@ -267,43 +287,43 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       // Experimental invalidation initialization (e.g. figure out if we can).
       ExperimentalInvalidation? experimentalInvalidation =
-          await initializeExperimentalInvalidation(reusedResult, c);
+          await _initializeExperimentalInvalidation(reusedResult, c);
       recordRebuildBodiesCountForTesting(
           experimentalInvalidation?.missingSources.length ?? 0);
 
       // Cleanup: After (potentially) removing builders we have stuff to cleanup
       // to not leak, and we might need to re-create the dill target.
-      cleanupRemovedBuilders(reusedResult, uriTranslator);
-      recreateDillTargetIfPackageWasUpdated(uriTranslator, c);
-      ClassHierarchy? hierarchy = userCode?.loader.hierarchy;
-      cleanupHierarchy(hierarchy, experimentalInvalidation, reusedResult);
+      _cleanupRemovedBuilders(reusedResult, uriTranslator);
+      _recreateDillTargetIfPackageWasUpdated(uriTranslator, c);
+      ClassHierarchy? hierarchy = _userCode?.loader.hierarchy;
+      _cleanupHierarchy(hierarchy, experimentalInvalidation, reusedResult);
       List<LibraryBuilder> reusedLibraries = reusedResult.reusedLibraries;
       reusedResult = null;
 
       // TODO(jensj): Given the code below, [userCode] is assumed always to be
       // non-null.
-      if (userCode != null) {
-        ticker.logMs("Decided to reuse ${reusedLibraries.length}"
-            " of ${userCode!.loader.libraryBuilders.length} libraries");
+      if (_userCode != null) {
+        _ticker.logMs("Decided to reuse ${reusedLibraries.length}"
+            " of ${_userCode!.loader.libraryBuilders.length} libraries");
       }
 
       // For modular compilation we can be asked to load components and track
       // which libraries we actually use for the compilation. Set that up now.
-      loadEnsureLoadedComponents(reusedLibraries);
-      resetTrackingOfUsedLibraries(hierarchy);
+      _loadEnsureLoadedComponents(reusedLibraries);
+      _resetTrackingOfUsedLibraries(hierarchy);
 
       // For each computeDelta call we create a new userCode object which needs
       // to be setup, and in the case of experimental invalidation some of the
       // builders needs to be patched up.
-      IncrementalKernelTarget? userCodeOld = userCode;
-      setupNewUserCode(c, uriTranslator, hierarchy, reusedLibraries,
+      IncrementalKernelTarget? userCodeOld = _userCode;
+      _setupNewUserCode(c, uriTranslator, hierarchy, reusedLibraries,
           experimentalInvalidation, entryPoints!.first);
       Map<LibraryBuilder, List<LibraryBuilder>>? rebuildBodiesMap =
-          experimentalInvalidationCreateRebuildBodiesBuilders(
+          _experimentalInvalidationCreateRebuildBodiesBuilders(
               experimentalInvalidation, uriTranslator);
-      entryPoints = userCode!.setEntryPoints(entryPoints!);
-      await userCode!.loader.buildOutlines();
-      experimentalInvalidationPatchUpScopes(
+      entryPoints = _userCode!.setEntryPoints(entryPoints!);
+      await _userCode!.loader.buildOutlines();
+      _experimentalInvalidationPatchUpScopes(
           experimentalInvalidation, rebuildBodiesMap);
       rebuildBodiesMap = null;
 
@@ -313,35 +333,35 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // libraries loaded from .dill files or directly from components.
       // Technically, it's the combination of userCode.loader.libraries and
       // dillLoadedData.loader.libraries.
-      Component? componentWithDill = await userCode!.buildOutlines();
+      Component? componentWithDill = await _userCode!.buildOutlines();
 
       if (!outlineOnly) {
         // Checkpoint: Build the actual bodies.
         componentWithDill =
-            await userCode!.buildComponent(verify: c.options.verify);
+            await _userCode!.buildComponent(verify: c.options.verify);
       }
-      hierarchy ??= userCode!.loader.hierarchy;
+      hierarchy ??= _userCode!.loader.hierarchy;
       // ignore: unnecessary_null_comparison
       if (hierarchy != null) {
-        if (userCode!.classHierarchyChanges != null) {
-          hierarchy.applyTreeChanges([], [], userCode!.classHierarchyChanges!);
+        if (_userCode!.classHierarchyChanges != null) {
+          hierarchy.applyTreeChanges([], [], _userCode!.classHierarchyChanges!);
         }
-        if (userCode!.classMemberChanges != null) {
-          hierarchy.applyMemberChanges(userCode!.classMemberChanges!,
+        if (_userCode!.classMemberChanges != null) {
+          hierarchy.applyMemberChanges(_userCode!.classMemberChanges!,
               findDescendants: true);
         }
       }
       recordNonFullComponentForTesting(componentWithDill!);
 
       // Perform actual dill usage tracking.
-      performDillUsageTracking(hierarchy);
+      _performDillUsageTracking(hierarchy);
 
       // If we actually got a result we can throw away the old userCode and the
       // list of invalidated uris.
       // ignore: unnecessary_null_comparison
       if (componentWithDill != null) {
-        this.invalidatedUris.clear();
-        hasToCheckPackageUris = false;
+        this._invalidatedUris.clear();
+        _hasToCheckPackageUris = false;
         userCodeOld?.loader.releaseAncillaryResources();
         userCodeOld = null;
       }
@@ -349,12 +369,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Compute which libraries to output and which (previous) errors/warnings
       // we have to reissue. In the process do some cleanup too.
       List<Library> compiledLibraries =
-          new List<Library>.from(userCode!.loader.libraries);
+          new List<Library>.from(_userCode!.loader.libraries);
       Map<Uri, Source> uriToSource = componentWithDill.uriToSource;
-      experimentalCompilationPostCompilePatchup(
+      _experimentalCompilationPostCompilePatchup(
           experimentalInvalidation, compiledLibraries, uriToSource);
       List<Library> outputLibraries =
-          calculateOutputLibrariesAndIssueLibraryProblems(
+          _calculateOutputLibrariesAndIssueLibraryProblems(
               data.component != null || fullComponent,
               compiledLibraries,
               entryPoints!,
@@ -363,18 +383,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               uriTranslator,
               uriToSource,
               c);
-      List<String> problemsAsJson = reissueComponentProblems(componentWithDill);
+      List<String> problemsAsJson =
+          _reissueComponentProblems(componentWithDill);
 
       // If we didn't get a result, go back to the previous one so expression
       // calculation has the potential to work.
       // ignore: unnecessary_null_comparison
       if (componentWithDill == null) {
-        userCode!.loader.clearLibraryBuilders();
-        userCode = userCodeOld;
-        dillLoadedData!.loader.currentSourceLoader = userCode!.loader;
+        _userCode!.loader.clearLibraryBuilders();
+        _userCode = userCodeOld;
+        _dillLoadedData!.loader.currentSourceLoader = _userCode!.loader;
       } else {
-        previousSourceBuilders =
-            convertSourceLibraryBuildersToDill(experimentalInvalidation);
+        _previousSourceBuilders =
+            _convertSourceLibraryBuildersToDill(experimentalInvalidation);
       }
 
       experimentalInvalidation = null;
@@ -394,11 +415,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ..problemsAsJson = problemsAsJson;
 
       // We're now done. Allow any waiting compile to start.
-      Completer<dynamic> currentlyCompilingLocal = currentlyCompiling!;
-      currentlyCompiling = null;
+      Completer<dynamic> currentlyCompilingLocal = _currentlyCompiling!;
+      _currentlyCompiling = null;
       currentlyCompilingLocal.complete();
 
-      return result;
+      return new IncrementalCompilerResult(result);
     });
   }
 
@@ -410,25 +431,25 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// source builders and they will thus be patched up here too.
   ///
   /// Returns the set of Libraries that now has new (dill) builders.
-  Set<Library> convertSourceLibraryBuildersToDill(
+  Set<Library> _convertSourceLibraryBuildersToDill(
       ExperimentalInvalidation? experimentalInvalidation) {
     bool changed = false;
     Set<Library> newDillLibraryBuilders = new Set<Library>();
-    userBuilders ??= <Uri, LibraryBuilder>{};
+    _userBuilders ??= <Uri, LibraryBuilder>{};
     Map<LibraryBuilder, List<LibraryBuilder>>? convertedLibraries;
-    for (LibraryBuilder builder in userCode!.loader.libraryBuilders) {
+    for (LibraryBuilder builder in _userCode!.loader.libraryBuilders) {
       if (builder is SourceLibraryBuilder) {
         DillLibraryBuilder dillBuilder =
-            dillLoadedData!.loader.appendLibrary(builder.library);
-        userCode!.loader.registerLibraryBuilder(
+            _dillLoadedData!.loader.appendLibrary(builder.library);
+        _userCode!.loader.registerLibraryBuilder(
             // TODO(johnniwinther): Why do we need to create
             //  [DillLibraryBuilder]s for the patch library file uris?
             dillBuilder,
             builder.isPatch ? builder.fileUri : null);
-        userBuilders![builder.importUri] = dillBuilder;
+        _userBuilders![builder.importUri] = dillBuilder;
         newDillLibraryBuilders.add(builder.library);
-        if (userCode!.loader.first == builder) {
-          userCode!.loader.first = dillBuilder;
+        if (_userCode!.loader.first == builder) {
+          _userCode!.loader.first = dillBuilder;
         }
         changed = true;
         if (experimentalInvalidation != null) {
@@ -441,8 +462,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (changed) {
       // We suppress finalization errors because they have already been
       // reported.
-      dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
-      assert(_checkEquivalentScopes(userCode!.loader, dillLoadedData!.loader));
+      _dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
+      assert(
+          _checkEquivalentScopes(_userCode!.loader, _dillLoadedData!.loader));
 
       if (experimentalInvalidation != null) {
         /// If doing experimental invalidation that means that some of the old
@@ -455,7 +477,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         // Maps from old library builder to map of new content.
         Map<LibraryBuilder, Map<String, Builder>>? replacementSettersMap = {};
 
-        experimentalInvalidationFillReplacementMaps(
+        _experimentalInvalidationFillReplacementMaps(
             convertedLibraries!, replacementMap, replacementSettersMap);
 
         for (LibraryBuilder builder
@@ -478,12 +500,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         replacementSettersMap = null;
       }
     }
-    userCode!.loader.buildersCreatedWithReferences.clear();
-    userCode!.loader.builderHierarchy.clear();
-    userCode!.loader.referenceFromIndex = null;
+    _userCode!.loader.buildersCreatedWithReferences.clear();
+    _userCode!.loader.builderHierarchy.clear();
+    _userCode!.loader.referenceFromIndex = null;
     convertedLibraries = null;
     experimentalInvalidation = null;
-    if (userBuilders!.isEmpty) userBuilders = null;
+    if (_userBuilders!.isEmpty) _userBuilders = null;
     return newDillLibraryBuilders;
   }
 
@@ -565,7 +587,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Compute which libraries to output and which (previous) errors/warnings we
   /// have to reissue. In the process do some cleanup too.
-  List<Library> calculateOutputLibrariesAndIssueLibraryProblems(
+  List<Library> _calculateOutputLibrariesAndIssueLibraryProblems(
       bool fullComponent,
       List<Library> compiledLibraries,
       List<Uri> entryPoints,
@@ -577,18 +599,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Library> outputLibraries;
     Set<Library> allLibraries;
     if (fullComponent) {
-      outputLibraries = computeTransitiveClosure(compiledLibraries, entryPoints,
-          reusedLibraries, hierarchy, uriTranslator, uriToSource);
+      outputLibraries = _computeTransitiveClosure(compiledLibraries,
+          entryPoints, reusedLibraries, hierarchy, uriTranslator, uriToSource);
       allLibraries = outputLibraries.toSet();
       if (!c.options.omitPlatform) {
-        for (int i = 0; i < platformBuilders!.length; i++) {
-          Library lib = platformBuilders![i].library;
+        for (int i = 0; i < _platformBuilders!.length; i++) {
+          Library lib = _platformBuilders![i].library;
           outputLibraries.add(lib);
         }
       }
     } else {
       outputLibraries = <Library>[];
-      allLibraries = computeTransitiveClosure(
+      allLibraries = _computeTransitiveClosure(
               compiledLibraries,
               entryPoints,
               reusedLibraries,
@@ -599,7 +621,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           .toSet();
     }
 
-    reissueLibraryProblems(allLibraries, compiledLibraries);
+    _reissueLibraryProblems(allLibraries, compiledLibraries);
     return outputLibraries;
   }
 
@@ -610,7 +632,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// contain all the libraries that would normally have been recompiled.
   /// This might be a temporary thing, but we need to figure out if the VM
   /// can (always) work with only getting the actually rebuild stuff.
-  void experimentalCompilationPostCompilePatchup(
+  void _experimentalCompilationPostCompilePatchup(
       ExperimentalInvalidation? experimentalInvalidation,
       List<Library> compiledLibraries,
       Map<Uri, Source> uriToSource) {
@@ -628,32 +650,32 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Perform dill usage tracking if asked. Use the marking on dill builders as
   /// well as the class hierarchy to figure out which dill libraries was
   /// actually used by the compilation.
-  void performDillUsageTracking(ClassHierarchy hierarchy) {
+  void _performDillUsageTracking(ClassHierarchy hierarchy) {
     if (trackNeededDillLibraries) {
       // Which dill builders were built?
-      neededDillLibraries = new Set<Library>();
+      Set<Library> neededDillLibraries = _neededDillLibraries = {};
 
       // Propagate data from constant evaluator: Libraries used in the constant
       // evaluator - that comes from dill - are marked.
-      Set<Library> librariesUsedByConstantEvaluator = userCode!.librariesUsed;
+      Set<Library> librariesUsedByConstantEvaluator = _userCode!.librariesUsed;
 
-      for (LibraryBuilder builder in dillLoadedData!.loader.libraryBuilders) {
+      for (LibraryBuilder builder in _dillLoadedData!.loader.libraryBuilders) {
         if (builder is DillLibraryBuilder) {
           if (builder.isBuiltAndMarked ||
               librariesUsedByConstantEvaluator.contains(builder.library)) {
-            neededDillLibraries!.add(builder.library);
+            neededDillLibraries.add(builder.library);
           }
         }
       }
 
       updateNeededDillLibrariesWithHierarchy(
-          hierarchy, userCode!.loader.builderHierarchy);
+          hierarchy, _userCode!.loader.builderHierarchy);
     }
   }
 
   /// Fill in the replacement maps that describe the replacements that need to
   /// happen because of experimental invalidation.
-  void experimentalInvalidationFillReplacementMaps(
+  void _experimentalInvalidationFillReplacementMaps(
       Map<LibraryBuilder, List<LibraryBuilder>> rebuildBodiesMap,
       Map<LibraryBuilder, Map<String, Builder>> replacementMap,
       Map<LibraryBuilder, Map<String, Builder>> replacementSettersMap) {
@@ -690,7 +712,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// be rebuild special, namely they have to be [userCode.loader.read] with
   /// references from the original [Library] for things to work.
   Map<LibraryBuilder, List<LibraryBuilder>>
-      experimentalInvalidationCreateRebuildBodiesBuilders(
+      _experimentalInvalidationCreateRebuildBodiesBuilders(
           ExperimentalInvalidation? experimentalInvalidation,
           UriTranslator uriTranslator) {
     // Any builder(s) in [rebuildBodies] should be semi-reused: Create source
@@ -700,8 +722,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         new Map<LibraryBuilder, List<LibraryBuilder>>.identity();
     if (experimentalInvalidation != null) {
       for (LibraryBuilder library in experimentalInvalidation.rebuildBodies) {
-        LibraryBuilder newBuilder = userCode!.loader.read(library.importUri, -1,
-            accessor: userCode!.loader.first,
+        LibraryBuilder newBuilder = _userCode!.loader.read(
+            library.importUri, -1,
+            accessor: _userCode!.loader.first,
             fileUri: library.fileUri,
             referencesFrom: library.library);
         List<LibraryBuilder> builders = [newBuilder];
@@ -713,8 +736,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           // libraries.
           Uri partUri = getPartUri(library.importUri, part);
           Uri? fileUri =
-              getPartFileUri(library.library.fileUri, part, uriTranslator);
-          LibraryBuilder newPartBuilder = userCode!.loader.read(partUri, -1,
+              _getPartFileUri(library.library.fileUri, part, uriTranslator);
+          LibraryBuilder newPartBuilder = _userCode!.loader.read(partUri, -1,
               accessor: library,
               fileUri: fileUri,
               referencesFrom: library.library,
@@ -729,7 +752,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// When doing experimental invalidation we have to patch up the scopes of the
   /// the libraries we're not recompiling but should have recompiled if we
   /// didn't do anything special.
-  void experimentalInvalidationPatchUpScopes(
+  void _experimentalInvalidationPatchUpScopes(
       ExperimentalInvalidation? experimentalInvalidation,
       Map<LibraryBuilder, List<LibraryBuilder>> rebuildBodiesMap) {
     if (experimentalInvalidation != null) {
@@ -739,7 +762,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Maps from old library builder to map of new content.
       Map<LibraryBuilder, Map<String, Builder>> replacementSettersMap = {};
 
-      experimentalInvalidationFillReplacementMaps(
+      _experimentalInvalidationFillReplacementMaps(
           rebuildBodiesMap, replacementMap, replacementSettersMap);
 
       for (LibraryBuilder builder
@@ -777,20 +800,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             Builder childBuilder = iterator.current;
             if (childBuilder is SourceClassBuilder) {
               TypeBuilder? typeBuilder = childBuilder.supertypeBuilder;
-              replaceTypeBuilder(
+              _replaceTypeBuilder(
                   replacementMap, replacementSettersMap, typeBuilder);
               typeBuilder = childBuilder.mixedInTypeBuilder;
-              replaceTypeBuilder(
+              _replaceTypeBuilder(
                   replacementMap, replacementSettersMap, typeBuilder);
               if (childBuilder.onTypes != null) {
                 for (typeBuilder in childBuilder.onTypes!) {
-                  replaceTypeBuilder(
+                  _replaceTypeBuilder(
                       replacementMap, replacementSettersMap, typeBuilder);
                 }
               }
               if (childBuilder.interfaceBuilders != null) {
                 for (typeBuilder in childBuilder.interfaceBuilders!) {
-                  replaceTypeBuilder(
+                  _replaceTypeBuilder(
                       replacementMap, replacementSettersMap, typeBuilder);
                 }
               }
@@ -820,30 +843,30 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         fileSystem, includeComments, dillTarget, uriTranslator);
   }
 
-  /// Create a new [userCode] object, and add the reused builders to it.
-  void setupNewUserCode(
+  /// Create a new [_userCode] object, and add the reused builders to it.
+  void _setupNewUserCode(
       CompilerContext c,
       UriTranslator uriTranslator,
       ClassHierarchy? hierarchy,
       List<LibraryBuilder> reusedLibraries,
       ExperimentalInvalidation? experimentalInvalidation,
       Uri firstEntryPoint) {
-    userCode = createIncrementalKernelTarget(
+    _userCode = createIncrementalKernelTarget(
         new HybridFileSystem(
             new MemoryFileSystem(
                 new Uri(scheme: "org-dartlang-debug", path: "/")),
             c.fileSystem),
         false,
-        dillLoadedData!,
+        _dillLoadedData!,
         uriTranslator);
-    userCode!.loader.hierarchy = hierarchy;
-    dillLoadedData!.loader.currentSourceLoader = userCode!.loader;
+    _userCode!.loader.hierarchy = hierarchy;
+    _dillLoadedData!.loader.currentSourceLoader = _userCode!.loader;
 
     // Re-use the libraries we've deemed re-usable.
     List<bool> seenModes = [false, false, false, false];
     for (LibraryBuilder library in reusedLibraries) {
       seenModes[library.library.nonNullableByDefaultCompiledMode.index] = true;
-      userCode!.loader.registerLibraryBuilder(library);
+      _userCode!.loader.registerLibraryBuilder(library);
     }
     // Check compilation mode up against what we've seen here and set
     // `hasInvalidNnbdModeLibrary` accordingly.
@@ -853,14 +876,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           // Don't expect strong or invalid.
           if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
               seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-            userCode!.loader.hasInvalidNnbdModeLibrary = true;
+            _userCode!.loader.hasInvalidNnbdModeLibrary = true;
           }
           break;
         case NnbdMode.Strong:
           // Don't expect weak or invalid.
           if (seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
               seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-            userCode!.loader.hasInvalidNnbdModeLibrary = true;
+            _userCode!.loader.hasInvalidNnbdModeLibrary = true;
           }
           break;
         case NnbdMode.Agnostic:
@@ -868,7 +891,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
               seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
               seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-            userCode!.loader.hasInvalidNnbdModeLibrary = true;
+            _userCode!.loader.hasInvalidNnbdModeLibrary = true;
           }
           break;
       }
@@ -876,7 +899,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Don't expect strong or invalid.
       if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
           seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-        userCode!.loader.hasInvalidNnbdModeLibrary = true;
+        _userCode!.loader.hasInvalidNnbdModeLibrary = true;
       }
     }
 
@@ -884,13 +907,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // correctly. If the first one is in the rebuildBodies, we have to add it
     // from there first.
     Uri firstEntryPointImportUri =
-        userCode!.getEntryPointUri(firstEntryPoint, issueProblem: false);
+        _userCode!.getEntryPointUri(firstEntryPoint, issueProblem: false);
     bool wasFirstSet = false;
     if (experimentalInvalidation != null) {
       for (LibraryBuilder library in experimentalInvalidation.rebuildBodies) {
         if (library.importUri == firstEntryPointImportUri) {
-          userCode!.loader.read(library.importUri, -1,
-              accessor: userCode!.loader.first,
+          _userCode!.loader.read(library.importUri, -1,
+              accessor: _userCode!.loader.first,
               fileUri: library.fileUri,
               referencesFrom: library.library);
           wasFirstSet = true;
@@ -899,17 +922,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
     if (!wasFirstSet) {
-      userCode!.loader.read(firstEntryPointImportUri, -1,
-          accessor: userCode!.loader.first,
+      _userCode!.loader.read(firstEntryPointImportUri, -1,
+          accessor: _userCode!.loader.first,
           fileUri: firstEntryPointImportUri != firstEntryPoint
               ? firstEntryPoint
               : null);
     }
-    if (userCode!.loader.first == null) {
+    if (_userCode!.loader.first == null) {
       LibraryBuilder? libraryBuilder =
-          userCode!.loader.lookupLibraryBuilder(firstEntryPointImportUri);
+          _userCode!.loader.lookupLibraryBuilder(firstEntryPointImportUri);
       if (libraryBuilder != null) {
-        userCode!.loader.first = libraryBuilder;
+        _userCode!.loader.first = libraryBuilder;
       }
     }
   }
@@ -917,10 +940,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// When tracking used libraries we mark them when we use them. To track
   /// correctly we have to unmark before the next iteration to not have too much
   /// marked and therefore incorrectly marked something as used when it is not.
-  void resetTrackingOfUsedLibraries(ClassHierarchy? hierarchy) {
+  void _resetTrackingOfUsedLibraries(ClassHierarchy? hierarchy) {
     if (trackNeededDillLibraries) {
       // Reset dill loaders and kernel class hierarchy.
-      for (LibraryBuilder builder in dillLoadedData!.loader.libraryBuilders) {
+      for (LibraryBuilder builder in _dillLoadedData!.loader.libraryBuilders) {
         if (builder is DillLibraryBuilder) {
           if (builder.isBuiltAndMarked) {
             // Clear cached calculations in classes which upon calculation can
@@ -944,7 +967,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Cleanup the hierarchy to no longer reference libraries that we are
   /// invalidating (or would normally have invalidated if we hadn't done any
   /// experimental invalidation).
-  void cleanupHierarchy(
+  void _cleanupHierarchy(
       ClassHierarchy? hierarchy,
       ExperimentalInvalidation? experimentalInvalidation,
       ReusageResult reusedResult) {
@@ -970,19 +993,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// If the package uris needs to be re-checked the uri translator has changed,
   /// and the [DillTarget] needs to get the new uri translator. We do that
   /// by creating a new one.
-  void recreateDillTargetIfPackageWasUpdated(
+  void _recreateDillTargetIfPackageWasUpdated(
       UriTranslator uriTranslator, CompilerContext c) {
-    if (hasToCheckPackageUris) {
+    if (_hasToCheckPackageUris) {
       // The package file was changed.
       // Make sure the dill loader is on the same page.
-      DillTarget oldDillLoadedData = dillLoadedData!;
-      dillLoadedData = new DillTarget(ticker, uriTranslator, c.options.target);
+      DillTarget oldDillLoadedData = _dillLoadedData!;
+      DillTarget newDillLoadedData = _dillLoadedData =
+          new DillTarget(_ticker, uriTranslator, c.options.target);
       for (DillLibraryBuilder library
           in oldDillLoadedData.loader.libraryBuilders) {
-        dillLoadedData!.loader.registerLibraryBuilder(library);
+        newDillLoadedData.loader.registerLibraryBuilder(library);
       }
-      dillLoadedData!.loader.first = oldDillLoadedData.loader.first;
-      dillLoadedData!.loader.libraries
+      newDillLoadedData.loader.first = oldDillLoadedData.loader.first;
+      newDillLoadedData.loader.libraries
           .addAll(oldDillLoadedData.loader.libraries);
     }
   }
@@ -994,37 +1018,37 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// We also have to remove any component problems beloning to any such
   /// no-longer-used library (to avoid re-issuing errors about no longer
   /// relevant stuff).
-  void cleanupRemovedBuilders(
+  void _cleanupRemovedBuilders(
       ReusageResult reusedResult, UriTranslator uriTranslator) {
     bool removedDillBuilders = false;
     for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
-      cleanupSourcesForBuilder(reusedResult, builder, uriTranslator,
+      _cleanupSourcesForBuilder(reusedResult, builder, uriTranslator,
           CompilerContext.current.uriToSource);
-      incrementalSerializer?.invalidate(builder.fileUri);
+      _incrementalSerializer?.invalidate(builder.fileUri);
 
       LibraryBuilder? dillBuilder =
           dillLoadedData!.loader.deregisterLibraryBuilder(builder.importUri);
       if (dillBuilder != null) {
         removedDillBuilders = true;
-        userBuilders?.remove(builder.importUri);
+        _userBuilders?.remove(builder.importUri);
       }
 
       // Remove component problems for libraries we don't reuse.
-      if (remainingComponentProblems.isNotEmpty) {
+      if (_remainingComponentProblems.isNotEmpty) {
         Library lib = builder.library;
-        removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
+        _removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
       }
     }
 
     if (removedDillBuilders) {
-      makeDillLoaderLibrariesUpToDateWithBuildersMap();
+      _makeDillLoaderLibrariesUpToDateWithBuildersMap();
     }
   }
 
   bool _importsFfi() {
-    if (userBuilders == null) return false;
+    if (_userBuilders == null) return false;
     final Uri dartFfiUri = Uri.parse("dart:ffi");
-    for (LibraryBuilder builder in userBuilders!.values) {
+    for (LibraryBuilder builder in _userBuilders!.values) {
       Library lib = builder.library;
       for (LibraryDependency dependency in lib.dependencies) {
         if (dependency.targetLibrary.importUri == dartFfiUri) {
@@ -1038,7 +1062,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Figure out if we can (and was asked to) do experimental invalidation.
   /// Note that this returns (future or) [null] if we're not doing experimental
   /// invalidation.
-  Future<ExperimentalInvalidation?> initializeExperimentalInvalidation(
+  Future<ExperimentalInvalidation?> _initializeExperimentalInvalidation(
       ReusageResult reusedResult, CompilerContext c) async {
     Set<LibraryBuilder>? rebuildBodies;
     Set<LibraryBuilder> originalNotReusedLibraries;
@@ -1046,7 +1070,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     if (!context.options.isExperimentEnabledGlobally(
         ExperimentalFlag.alternativeInvalidationStrategy)) return null;
-    if (modulesToLoad != null) return null;
+    if (_modulesToLoad != null) return null;
     if (reusedResult.directlyInvalidated.isEmpty) return null;
     if (reusedResult.invalidatedBecauseOfPackageUpdate) return null;
 
@@ -1185,29 +1209,30 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Get UriTranslator, and figure out if the packages file was (potentially)
   /// changed.
-  Future<UriTranslator> setupPackagesAndUriTranslator(CompilerContext c) async {
+  Future<UriTranslator> _setupPackagesAndUriTranslator(
+      CompilerContext c) async {
     bool bypassCache = false;
-    if (!identical(previousPackagesUri, c.options.packagesUriRaw)) {
-      previousPackagesUri = c.options.packagesUriRaw;
+    if (!identical(_previousPackagesUri, c.options.packagesUriRaw)) {
+      _previousPackagesUri = c.options.packagesUriRaw;
       bypassCache = true;
-    } else if (this.invalidatedUris.contains(c.options.packagesUri)) {
+    } else if (this._invalidatedUris.contains(c.options.packagesUri)) {
       bypassCache = true;
     }
     UriTranslator uriTranslator =
         await c.options.getUriTranslator(bypassCache: bypassCache);
-    previousPackagesMap = currentPackagesMap;
-    currentPackagesMap = createPackagesMap(uriTranslator.packages);
+    _previousPackagesMap = _currentPackagesMap;
+    _currentPackagesMap = _createPackagesMap(uriTranslator.packages);
     // TODO(jensj): We can probably (from the maps above) figure out if anything
     // changed and only set this to true if it did.
-    hasToCheckPackageUris = hasToCheckPackageUris || bypassCache;
-    ticker.logMs("Read packages file");
-    if (initializedForExpressionCompilationOnly) {
-      hasToCheckPackageUris = false;
+    _hasToCheckPackageUris = _hasToCheckPackageUris || bypassCache;
+    _ticker.logMs("Read packages file");
+    if (_initializedForExpressionCompilationOnly) {
+      _hasToCheckPackageUris = false;
     }
     return uriTranslator;
   }
 
-  Map<String, Package> createPackagesMap(PackageConfig packages) {
+  Map<String, Package> _createPackagesMap(PackageConfig packages) {
     Map<String, Package> result = new Map<String, Package>();
     for (Package package in packages.packages) {
       result[package.name] = package;
@@ -1217,26 +1242,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Load platform and (potentially) initialize from dill,
   /// or initialize from component.
-  Future<IncrementalCompilerData> ensurePlatformAndInitialize(
+  Future<IncrementalCompilerData> _ensurePlatformAndInitialize(
       UriTranslator uriTranslator, CompilerContext c) async {
     IncrementalCompilerData data = new IncrementalCompilerData();
-    if (dillLoadedData == null) {
+    if (_dillLoadedData == null) {
       int bytesLength = 0;
-      if (componentToInitializeFrom != null) {
+      if (_componentToInitializeFrom != null) {
         // If initializing from a component it has to include the sdk,
         // so we explicitly don't load it here.
-        initializeFromComponent(uriTranslator, c, data);
-        componentToInitializeFrom = null;
+        _initializeFromComponent(uriTranslator, c, data);
+        assert(_dillLoadedData != null);
+        _componentToInitializeFrom = null;
       } else {
         List<int>? summaryBytes = await c.options.loadSdkSummaryBytes();
-        bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
-        if (initializeFromDillUri != null) {
+        bytesLength = _prepareSummary(summaryBytes, uriTranslator, c, data);
+        assert(_dillLoadedData != null);
+        if (_initializeFromDillUri != null) {
           try {
-            bytesLength += await initializeFromDill(uriTranslator, c, data);
+            bytesLength += await _initializeFromDill(uriTranslator, c, data);
           } catch (e, st) {
             // We might have loaded x out of y libraries into the component.
             // To avoid any unforeseen problems start over.
-            bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
+            bytesLength = _prepareSummary(summaryBytes, uriTranslator, c, data);
 
             if (e is InvalidKernelVersionError ||
                 e is InvalidKernelSdkVersionError ||
@@ -1254,51 +1281,51 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               if (e is CanonicalNameError) {
                 Message message = gzInitializedFrom != null
                     ? templateInitializeFromDillNotSelfContained.withArguments(
-                        initializeFromDillUri.toString(), gzInitializedFrom)
+                        _initializeFromDillUri.toString(), gzInitializedFrom)
                     : templateInitializeFromDillNotSelfContainedNoDump
-                        .withArguments(initializeFromDillUri.toString());
-                dillLoadedData!.loader
+                        .withArguments(_initializeFromDillUri.toString());
+                _dillLoadedData!.loader
                     .addProblem(message, TreeNode.noOffset, 1, null);
               } else {
                 // Unknown error: Report problem as such.
                 Message message = gzInitializedFrom != null
                     ? templateInitializeFromDillUnknownProblem.withArguments(
-                        initializeFromDillUri.toString(),
+                        _initializeFromDillUri.toString(),
                         "$e",
                         "$st",
                         gzInitializedFrom)
                     : templateInitializeFromDillUnknownProblemNoDump
                         .withArguments(
-                            initializeFromDillUri.toString(), "$e", "$st");
-                dillLoadedData!.loader
+                            _initializeFromDillUri.toString(), "$e", "$st");
+                _dillLoadedData!.loader
                     .addProblem(message, TreeNode.noOffset, 1, null);
               }
             }
           }
         }
       }
-      appendLibraries(data, bytesLength);
+      _appendLibraries(data, bytesLength);
 
       // We suppress finalization errors because they will reported via
       // problemsAsJson fields (with better precision).
-      dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
-      userBuilders = <Uri, LibraryBuilder>{};
-      platformBuilders = <LibraryBuilder>[];
+      _dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
+      _userBuilders = <Uri, LibraryBuilder>{};
+      _platformBuilders = <LibraryBuilder>[];
       for (DillLibraryBuilder builder
-          in dillLoadedData!.loader.libraryBuilders) {
+          in _dillLoadedData!.loader.libraryBuilders) {
         if (builder.importUri.scheme == "dart") {
-          platformBuilders!.add(builder);
+          _platformBuilders!.add(builder);
         } else {
-          userBuilders![builder.importUri] = builder;
+          _userBuilders![builder.importUri] = builder;
         }
       }
-      if (userBuilders!.isEmpty) userBuilders = null;
+      if (_userBuilders!.isEmpty) _userBuilders = null;
     }
     data.initializationBytes = null;
     return data;
   }
 
-  void replaceTypeBuilder(
+  void _replaceTypeBuilder(
       Map<LibraryBuilder, Map<String, Builder>> replacementMap,
       Map<LibraryBuilder, Map<String, Builder>> replacementSettersMap,
       TypeBuilder? typeBuilder) {
@@ -1320,10 +1347,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   @override
-  CoreTypes? getCoreTypes() => userCode?.loader.coreTypes;
+  CoreTypes? getCoreTypes() => _userCode?.loader.coreTypes;
 
   @override
-  ClassHierarchy? getClassHierarchy() => userCode?.loader.hierarchy;
+  ClassHierarchy? getClassHierarchy() => _userCode?.loader.hierarchy;
 
   /// Allows for updating the list of needed libraries.
   ///
@@ -1339,7 +1366,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   void updateNeededDillLibrariesWithHierarchy(
       ClassHierarchy hierarchy, ClassHierarchyBuilder? builderHierarchy) {
     if (hierarchy is ClosedWorldClassHierarchy && !hierarchy.allBetsOff) {
-      neededDillLibraries ??= new Set<Library>();
+      Set<Library> neededDillLibraries = _neededDillLibraries ??= {};
       Set<Class> classes = new Set<Class>();
       List<Class> worklist = <Class>[];
       // Get all classes touched by kernel class hierarchy.
@@ -1380,35 +1407,35 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Library library = c.enclosingLibrary;
         // Only add if loaded from a dill file (and wasn't a 'dill' that was
         // converted from source builders to dill builders).
-        if (dillLoadedData!.loader.containsLibraryBuilder(library.importUri) &&
-            (previousSourceBuilders == null ||
-                !previousSourceBuilders!.contains(library))) {
-          neededDillLibraries!.add(library);
+        if (_dillLoadedData!.loader.containsLibraryBuilder(library.importUri) &&
+            (_previousSourceBuilders == null ||
+                !_previousSourceBuilders!.contains(library))) {
+          neededDillLibraries.add(library);
         }
       }
     } else {
       // Cannot track in other kernel class hierarchies or
       // if all bets are off: Add everything (except for the libraries we just
       // converted from source builders to dill builders).
-      neededDillLibraries = new Set<Library>();
+      Set<Library> neededDillLibraries = _neededDillLibraries = {};
       for (DillLibraryBuilder builder
-          in dillLoadedData!.loader.libraryBuilders) {
-        if (previousSourceBuilders == null ||
-            !previousSourceBuilders!.contains(builder.library)) {
-          neededDillLibraries!.add(builder.library);
+          in _dillLoadedData!.loader.libraryBuilders) {
+        if (_previousSourceBuilders == null ||
+            !_previousSourceBuilders!.contains(builder.library)) {
+          neededDillLibraries.add(builder.library);
         }
       }
     }
   }
 
   /// Internal method.
-  void invalidateNotKeptUserBuilders(Set<Uri?> invalidatedUris) {
-    if (modulesToLoad != null && userBuilders != null) {
+  void _invalidateNotKeptUserBuilders(Set<Uri?> invalidatedUris) {
+    if (_modulesToLoad != null && _userBuilders != null) {
       Set<Library> loadedNotKept = new Set<Library>();
-      for (LibraryBuilder builder in userBuilders!.values) {
+      for (LibraryBuilder builder in _userBuilders!.values) {
         loadedNotKept.add(builder.library);
       }
-      for (Component module in modulesToLoad!) {
+      for (Component module in _modulesToLoad!) {
         loadedNotKept.removeAll(module.libraries);
       }
       for (Library lib in loadedNotKept) {
@@ -1418,43 +1445,44 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   /// Internal method.
-  void loadEnsureLoadedComponents(List<LibraryBuilder> reusedLibraries) {
-    if (modulesToLoad != null) {
+  void _loadEnsureLoadedComponents(List<LibraryBuilder> reusedLibraries) {
+    if (_modulesToLoad != null) {
       bool loadedAnything = false;
-      for (Component module in modulesToLoad!) {
+      for (Component module in _modulesToLoad!) {
         bool usedComponent = false;
         for (Library lib in module.libraries) {
-          if (!dillLoadedData!.loader.containsLibraryBuilder(lib.importUri)) {
-            dillLoadedData!.loader.libraries.add(lib);
-            dillLoadedData!.loader.registerKnownLibrary(lib);
-            reusedLibraries.add(dillLoadedData!.loader.read(lib.importUri, -1));
+          if (!_dillLoadedData!.loader.containsLibraryBuilder(lib.importUri)) {
+            _dillLoadedData!.loader.libraries.add(lib);
+            _dillLoadedData!.loader.registerKnownLibrary(lib);
+            reusedLibraries
+                .add(_dillLoadedData!.loader.read(lib.importUri, -1));
             usedComponent = true;
           }
         }
         if (usedComponent) {
-          dillLoadedData!.uriToSource.addAll(module.uriToSource);
+          _dillLoadedData!.uriToSource.addAll(module.uriToSource);
           loadedAnything = true;
         }
       }
       if (loadedAnything) {
         // We suppress finalization errors because they will reported via
         // problemsAsJson fields (with better precision).
-        dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
-        userBuilders = <Uri, LibraryBuilder>{};
-        platformBuilders = <LibraryBuilder>[];
+        _dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
+        _userBuilders = <Uri, LibraryBuilder>{};
+        _platformBuilders = <LibraryBuilder>[];
         for (DillLibraryBuilder builder
-            in dillLoadedData!.loader.libraryBuilders) {
+            in _dillLoadedData!.loader.libraryBuilders) {
           if (builder.importUri.scheme == "dart") {
-            platformBuilders!.add(builder);
+            _platformBuilders!.add(builder);
           } else {
-            userBuilders![builder.importUri] = builder;
+            _userBuilders![builder.importUri] = builder;
           }
         }
-        if (userBuilders!.isEmpty) {
-          userBuilders = null;
+        if (_userBuilders!.isEmpty) {
+          _userBuilders = null;
         }
       }
-      modulesToLoad = null;
+      _modulesToLoad = null;
     }
   }
 
@@ -1463,7 +1491,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   /// Internal method.
-  void reissueLibraryProblems(
+  void _reissueLibraryProblems(
       Set<Library> allLibraries, List<Library> compiledLibraries) {
     // The newly-compiled libraries have issued problems already. Re-issue
     // problems for the libraries that weren't re-compiled (ignore compile
@@ -1485,7 +1513,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Internal method.
   /// Re-issue problems on the component and return the filtered list.
-  List<String> reissueComponentProblems(Component componentWithDill) {
+  List<String> _reissueComponentProblems(Component componentWithDill) {
     // These problems have already been reported.
     Set<String> issuedProblems = new Set<String>();
     if (componentWithDill.problemsAsJson != null) {
@@ -1495,7 +1523,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // Report old problems that wasn't reported again.
     Set<Uri>? strongModeNNBDPackageOptOutUris;
     for (MapEntry<Uri, List<DiagnosticMessageFromJson>> entry
-        in remainingComponentProblems.entries) {
+        in _remainingComponentProblems.entries) {
       List<DiagnosticMessageFromJson> messages = entry.value;
       for (int i = 0; i < messages.length; i++) {
         DiagnosticMessageFromJson message = messages[i];
@@ -1516,7 +1544,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // `SourceLoader.giveCombinedErrorForNonStrongLibraries` on them to issue
       // a new error.
       Set<LibraryBuilder> builders = {};
-      SourceLoader loader = userCode!.loader;
+      SourceLoader loader = _userCode!.loader;
       for (LibraryBuilder builder in loader.libraryBuilders) {
         if (strongModeNNBDPackageOptOutUris.contains(builder.fileUri)) {
           builders.add(builder);
@@ -1535,7 +1563,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   /// Internal method.
-  Uri? getPartFileUri(
+  Uri? _getPartFileUri(
       Uri parentFileUri, LibraryPart part, UriTranslator uriTranslator) {
     Uri? fileUri = getPartUri(parentFileUri, part);
     if (fileUri.scheme == "package") {
@@ -1552,7 +1580,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   ///
   /// As a side-effect, this also cleans-up now-unreferenced builders as well as
   /// any saved component problems for such builders.
-  List<Library> computeTransitiveClosure(
+  List<Library> _computeTransitiveClosure(
       List<Library> inputLibraries,
       List<Uri> entryPoints,
       List<LibraryBuilder> reusedLibraries,
@@ -1622,7 +1650,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
           for (LibraryPart part in library.parts) {
             Uri? partFileUri =
-                getPartFileUri(library.fileUri, part, uriTranslator);
+                _getPartFileUri(library.fileUri, part, uriTranslator);
             partsUsed.add(partFileUri);
           }
         }
@@ -1633,26 +1661,26 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     bool removedDillBuilders = false;
     for (Uri uri in potentiallyReferencedLibraries.keys) {
       if (uri.scheme == "package") continue;
-      LibraryBuilder? builder = userCode!.loader.deregisterLibraryBuilder(uri);
+      LibraryBuilder? builder = _userCode!.loader.deregisterLibraryBuilder(uri);
       if (builder != null) {
         Library lib = builder.library;
         removedLibraries.add(lib);
         if (dillLoadedData!.loader.deregisterLibraryBuilder(uri) != null) {
           removedDillBuilders = true;
         }
-        cleanupSourcesForBuilder(null, builder, uriTranslator,
+        _cleanupSourcesForBuilder(null, builder, uriTranslator,
             CompilerContext.current.uriToSource, uriToSource, partsUsed);
-        userBuilders?.remove(uri);
-        removeLibraryFromRemainingComponentProblems(
+        _userBuilders?.remove(uri);
+        _removeLibraryFromRemainingComponentProblems(
             lib, uriTranslator, partsUsed);
 
         // Technically this isn't necessary as the uri is not a package-uri.
-        incrementalSerializer?.invalidate(builder.fileUri);
+        _incrementalSerializer?.invalidate(builder.fileUri);
       }
     }
     hierarchy.applyTreeChanges(removedLibraries, const [], const []);
     if (removedDillBuilders) {
-      makeDillLoaderLibrariesUpToDateWithBuildersMap();
+      _makeDillLoaderLibrariesUpToDateWithBuildersMap();
     }
 
     return result;
@@ -1663,10 +1691,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// will still hang around and be linked into the Component created internally
   /// in the compilation process.
   /// This method syncs the [libraries] list with the data in [builders].
-  void makeDillLoaderLibrariesUpToDateWithBuildersMap() {
-    dillLoadedData!.loader.libraries.clear();
-    for (LibraryBuilder builder in dillLoadedData!.loader.libraryBuilders) {
-      dillLoadedData!.loader.libraries.add(builder.library);
+  void _makeDillLoaderLibrariesUpToDateWithBuildersMap() {
+    _dillLoadedData!.loader.libraries.clear();
+    for (LibraryBuilder builder in _dillLoadedData!.loader.libraryBuilders) {
+      _dillLoadedData!.loader.libraries.add(builder.library);
     }
   }
 
@@ -1675,7 +1703,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// [partsUsed] indicates part uris that are used by (other/alive) libraries.
   /// Those parts will not be cleaned up. This is useful when a part has been
   /// "moved" to be part of another library.
-  void cleanupSourcesForBuilder(
+  void _cleanupSourcesForBuilder(
       ReusageResult? reusedResult,
       LibraryBuilder builder,
       UriTranslator uriTranslator,
@@ -1686,15 +1714,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     uriToSourceExtra?.remove(builder.fileUri);
     Library lib = builder.library;
     for (LibraryPart part in lib.parts) {
-      Uri? partFileUri = getPartFileUri(lib.fileUri, part, uriTranslator);
+      Uri? partFileUri = _getPartFileUri(lib.fileUri, part, uriTranslator);
       if (partsUsed != null && partsUsed.contains(partFileUri)) continue;
 
       // If the builders map contain the "parts" import uri, it's a real library
       // (erroneously) used as a part so we don't want to remove that.
-      if (userCode?.loader != null) {
+      if (_userCode?.loader != null) {
         Uri? partImportUri = uriToSource[partFileUri]?.importUri;
         if (partImportUri != null &&
-            userCode!.loader.containsLibraryBuilder(partImportUri)) {
+            _userCode!.loader.containsLibraryBuilder(partImportUri)) {
           continue;
         }
       } else if (reusedResult != null) {
@@ -1722,30 +1750,30 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// [partsUsed] indicates part uris that are used by (other/alive) libraries.
   /// Those parts will not be removed from the component problems.
   /// This is useful when a part has been "moved" to be part of another library.
-  void removeLibraryFromRemainingComponentProblems(
+  void _removeLibraryFromRemainingComponentProblems(
       Library lib, UriTranslator uriTranslator,
       [Set<Uri?>? partsUsed]) {
-    remainingComponentProblems.remove(lib.fileUri);
+    _remainingComponentProblems.remove(lib.fileUri);
     // Remove parts too.
     for (LibraryPart part in lib.parts) {
-      Uri? partFileUri = getPartFileUri(lib.fileUri, part, uriTranslator);
-      remainingComponentProblems.remove(partFileUri);
+      Uri? partFileUri = _getPartFileUri(lib.fileUri, part, uriTranslator);
+      _remainingComponentProblems.remove(partFileUri);
     }
   }
 
   /// Internal method.
-  int prepareSummary(List<int>? summaryBytes, UriTranslator uriTranslator,
+  int _prepareSummary(List<int>? summaryBytes, UriTranslator uriTranslator,
       CompilerContext c, IncrementalCompilerData data) {
-    dillLoadedData = new DillTarget(ticker, uriTranslator, c.options.target);
+    _dillLoadedData = new DillTarget(_ticker, uriTranslator, c.options.target);
     int bytesLength = 0;
 
     data.component = c.options.target.configureComponent(new Component());
     if (summaryBytes != null) {
-      ticker.logMs("Read ${c.options.sdkSummary}");
+      _ticker.logMs("Read ${c.options.sdkSummary}");
       new BinaryBuilderWithMetadata(summaryBytes,
               disableLazyReading: false, disableLazyClassReading: true)
           .readComponent(data.component!);
-      ticker.logMs("Deserialized ${c.options.sdkSummary}");
+      _ticker.logMs("Deserialized ${c.options.sdkSummary}");
       bytesLength += summaryBytes.length;
     }
 
@@ -1754,16 +1782,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Internal method.
   // This procedure will try to load the dill file and will crash if it cannot.
-  Future<int> initializeFromDill(UriTranslator uriTranslator, CompilerContext c,
-      IncrementalCompilerData data) async {
+  Future<int> _initializeFromDill(UriTranslator uriTranslator,
+      CompilerContext c, IncrementalCompilerData data) async {
     int bytesLength = 0;
     FileSystemEntity entity =
-        c.options.fileSystem.entityForUri(initializeFromDillUri!);
+        c.options.fileSystem.entityForUri(_initializeFromDillUri!);
     if (await entity.exists()) {
       List<int> initializationBytes = await entity.readAsBytes();
       // ignore: unnecessary_null_comparison
       if (initializationBytes != null && initializationBytes.isNotEmpty) {
-        ticker.logMs("Read $initializeFromDillUri");
+        _ticker.logMs("Read $_initializeFromDillUri");
         data.initializationBytes = initializationBytes;
 
         // We're going to output all we read here so lazy loading it
@@ -1820,20 +1848,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
         // Only initialize the incremental serializer when we know we'll
         // actually use the data loaded from dill.
-        initializedIncrementalSerializer =
-            incrementalSerializer?.initialize(initializationBytes, views) ??
+        _initializedIncrementalSerializer =
+            _incrementalSerializer?.initialize(initializationBytes, views) ??
                 false;
 
-        initializedFromDill = true;
+        _initializedFromDill = true;
         bytesLength += initializationBytes.length;
-        saveComponentProblems(data);
+        _saveComponentProblems(data);
       }
     }
     return bytesLength;
   }
 
   /// Internal method.
-  void saveComponentProblems(IncrementalCompilerData data) {
+  void _saveComponentProblems(IncrementalCompilerData data) {
     List<String>? problemsAsJson = data.component!.problemsAsJson;
     _addProblemsAsJsonToRemainingProblems(problemsAsJson);
   }
@@ -1848,7 +1876,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 message.involvedFiles!.isNotEmpty));
         if (message.uri != null) {
           List<DiagnosticMessageFromJson> messages =
-              remainingComponentProblems[message.uri!] ??=
+              _remainingComponentProblems[message.uri!] ??=
                   <DiagnosticMessageFromJson>[];
           messages.add(message);
         }
@@ -1859,7 +1887,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           // only be reported once.
           for (Uri uri in message.involvedFiles!) {
             List<DiagnosticMessageFromJson> messages =
-                remainingComponentProblems[uri] ??=
+                _remainingComponentProblems[uri] ??=
                     <DiagnosticMessageFromJson>[];
             messages.add(message);
           }
@@ -1870,17 +1898,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Internal method.
   // This procedure will set up compiler from [componentToInitializeFrom].
-  void initializeFromComponent(UriTranslator uriTranslator, CompilerContext c,
+  void _initializeFromComponent(UriTranslator uriTranslator, CompilerContext c,
       IncrementalCompilerData data) {
-    ticker.logMs("About to initializeFromComponent");
+    _ticker.logMs("About to initializeFromComponent");
 
-    dillLoadedData = new DillTarget(ticker, uriTranslator, c.options.target);
+    _dillLoadedData = new DillTarget(_ticker, uriTranslator, c.options.target);
     data.component = new Component(
-        libraries: componentToInitializeFrom!.libraries,
-        uriToSource: componentToInitializeFrom!.uriToSource)
-      ..setMainMethodAndMode(componentToInitializeFrom!.mainMethod?.reference,
-          true, componentToInitializeFrom!.mode);
-    saveComponentProblems(data);
+        libraries: _componentToInitializeFrom!.libraries,
+        uriToSource: _componentToInitializeFrom!.uriToSource)
+      ..setMainMethodAndMode(_componentToInitializeFrom!.mainMethod?.reference,
+          true, _componentToInitializeFrom!.mode);
+    _saveComponentProblems(data);
 
     bool foundDartCore = false;
     for (int i = 0; i < data.component!.libraries.length; i++) {
@@ -1897,16 +1925,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           "tried to initialize from component.");
     }
 
-    ticker.logMs("Ran initializeFromComponent");
+    _ticker.logMs("Ran initializeFromComponent");
   }
 
   /// Internal method.
-  void appendLibraries(IncrementalCompilerData data, int bytesLength) {
+  void _appendLibraries(IncrementalCompilerData data, int bytesLength) {
     if (data.component != null) {
       dillLoadedData!.loader
           .appendLibraries(data.component!, byteCount: bytesLength);
     }
-    ticker.logMs("Appended libraries");
+    _ticker.logMs("Appended libraries");
   }
 
   @override
@@ -1919,12 +1947,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       {String? className,
       String? methodName,
       bool isStatic = false}) async {
-    assert(dillLoadedData != null && userCode != null);
+    assert(_dillLoadedData != null && _userCode != null);
 
     return await context.runInContext((_) async {
-      LibraryBuilder libraryBuilder = userCode!.loader
-          .read(libraryUri, -1, accessor: userCode!.loader.first);
-      ticker.logMs("Loaded library $libraryUri");
+      LibraryBuilder libraryBuilder = _userCode!.loader
+          .read(libraryUri, -1, accessor: _userCode!.loader.first);
+      _ticker.logMs("Loaded library $libraryUri");
 
       Class? cls;
       if (className != null) {
@@ -1954,11 +1982,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
-      userCode!.loader.resetSeenMessages();
+      _userCode!.loader.resetSeenMessages();
 
       for (TypeParameter typeParam in typeDefinitions) {
         if (!isLegalIdentifier(typeParam.name!)) {
-          userCode!.loader.addProblem(
+          _userCode!.loader.addProblem(
               templateIncrementalCompilerIllegalTypeParameter
                   .withArguments('$typeParam'),
               typeParam.fileOffset,
@@ -1975,7 +2003,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 !isStatic &&
                 index == 1 &&
                 isExtensionThisName(name)))) {
-          userCode!.loader.addProblem(
+          _userCode!.loader.addProblem(
               templateIncrementalCompilerIllegalParameter.withArguments(name),
               // TODO: pass variable declarations instead of
               // parameter names for proper location detection.
@@ -1992,12 +2020,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         debugExprUri,
         /*packageUri*/ null,
         new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
-        userCode!.loader,
+        _userCode!.loader,
         null,
         scope: libraryBuilder.scope.createNestedScope("expression"),
         nameOrigin: libraryBuilder,
       );
-      ticker.logMs("Created debug library");
+      _ticker.logMs("Created debug library");
 
       if (libraryBuilder is DillLibraryBuilder) {
         for (LibraryDependency dependency
@@ -2030,10 +2058,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
 
         debugLibrary.addImportsToScope();
-        ticker.logMs("Added imports");
+        _ticker.logMs("Added imports");
       }
 
-      HybridFileSystem hfs = userCode!.fileSystem as HybridFileSystem;
+      HybridFileSystem hfs = _userCode!.fileSystem as HybridFileSystem;
       MemoryFileSystem fs = hfs.memory;
       fs.entityForUri(debugExprUri).writeAsStringSync(expression);
 
@@ -2061,8 +2089,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
-      debugLibrary.build(userCode!.loader.coreLibrary, modifyTarget: false);
-      Expression compiledExpression = await userCode!.loader.buildExpression(
+      debugLibrary.build(_userCode!.loader.coreLibrary, modifyTarget: false);
+      Expression compiledExpression = await _userCode!.loader.buildExpression(
           debugLibrary,
           className ?? extensionName,
           (className != null && !isStatic) || extensionThis != null,
@@ -2080,21 +2108,21 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       procedure.fileUri = debugLibrary.fileUri;
       procedure.parent = cls ?? libraryBuilder.library;
 
-      userCode!.uriToSource.remove(debugExprUri);
-      userCode!.loader.sourceBytes.remove(debugExprUri);
+      _userCode!.uriToSource.remove(debugExprUri);
+      _userCode!.loader.sourceBytes.remove(debugExprUri);
 
       // Make sure the library has a canonical name.
       Component c = new Component(libraries: [debugLibrary.library]);
       c.computeCanonicalNames();
-      ticker.logMs("Built debug library");
+      _ticker.logMs("Built debug library");
 
-      userCode!.runProcedureTransformations(procedure);
+      _userCode!.runProcedureTransformations(procedure);
 
       return procedure;
     });
   }
 
-  bool packagesEqual(Package? a, Package? b) {
+  bool _packagesEqual(Package? a, Package? b) {
     if (a == null || b == null) return false;
     if (a.name != b.name) return false;
     if (a.root != b.root) return false;
@@ -2105,16 +2133,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   /// Internal method.
-  ReusageResult computeReusedLibraries(Set<Uri?> invalidatedUris,
+  ReusageResult _computeReusedLibraries(Set<Uri?> invalidatedUris,
       UriTranslator uriTranslator, List<Uri> entryPoints) {
     Set<Uri> seenUris = new Set<Uri>();
     List<LibraryBuilder> reusedLibraries = <LibraryBuilder>[];
-    for (int i = 0; i < platformBuilders!.length; i++) {
-      LibraryBuilder builder = platformBuilders![i];
+    for (int i = 0; i < _platformBuilders!.length; i++) {
+      LibraryBuilder builder = _platformBuilders![i];
       if (!seenUris.add(builder.importUri)) continue;
       reusedLibraries.add(builder);
     }
-    if (userCode == null && userBuilders == null) {
+    if (_userCode == null && _userBuilders == null) {
       return new ReusageResult.reusedLibrariesOnly(reusedLibraries);
     }
     bool invalidatedBecauseOfPackageUpdate = false;
@@ -2134,16 +2162,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (importUri != fileUri && invalidatedUris.contains(fileUri)) {
         return true;
       }
-      if (hasToCheckPackageUris && importUri.scheme == "package") {
+      if (_hasToCheckPackageUris && importUri.scheme == "package") {
         // Get package name, check if the base URI has changed for the package,
         // if it has, translate the URI again,
         // otherwise the URI cannot have changed.
         String path = importUri.path;
         int firstSlash = path.indexOf('/');
         String packageName = path.substring(0, firstSlash);
-        if (previousPackagesMap == null ||
-            !packagesEqual(previousPackagesMap![packageName],
-                currentPackagesMap![packageName])) {
+        if (_previousPackagesMap == null ||
+            !_packagesEqual(_previousPackagesMap![packageName],
+                _currentPackagesMap![packageName])) {
           Uri? newFileUri = uriTranslator.translate(importUri, false);
           if (newFileUri != fileUri) {
             invalidatedBecauseOfPackageUpdate = true;
@@ -2179,7 +2207,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       } else if (libraryBuilder is DillLibraryBuilder) {
         for (LibraryPart part in libraryBuilder.library.parts) {
           Uri partUri = getPartUri(libraryBuilder.importUri, part);
-          Uri? fileUri = getPartFileUri(
+          Uri? fileUri = _getPartFileUri(
               libraryBuilder.library.fileUri, part, uriTranslator);
           partUriToParent[partUri] = libraryBuilder;
           partUriToParent[fileUri] = libraryBuilder;
@@ -2198,16 +2226,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
 
-    if (userCode != null) {
+    if (_userCode != null) {
       // userCode already contains the builders from userBuilders.
-      for (LibraryBuilder libraryBuilder in userCode!.loader.libraryBuilders) {
+      for (LibraryBuilder libraryBuilder in _userCode!.loader.libraryBuilders) {
         addBuilderAndInvalidateUris(libraryBuilder.importUri, libraryBuilder);
       }
     } else {
       // userCode was null so we explicitly have to add the builders from
       // userBuilders (which cannot be null as we checked initially that one of
       // them was non-null).
-      userBuilders!.forEach(addBuilderAndInvalidateUris);
+      _userBuilders!.forEach(addBuilderAndInvalidateUris);
     }
 
     recordInvalidatedImportUrisForTesting(invalidatedImportUris);
@@ -2286,26 +2314,26 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   @override
   void invalidate(Uri? uri) {
-    invalidatedUris.add(uri);
+    _invalidatedUris.add(uri);
   }
 
   @override
   void invalidateAllSources() {
-    if (userCode != null) {
-      Set<Uri> uris = new Set<Uri>.from(userCode!.loader.libraryImportUris);
-      uris.removeAll(dillLoadedData!.loader.libraryImportUris);
-      if (previousSourceBuilders != null) {
-        for (Library library in previousSourceBuilders!) {
+    if (_userCode != null) {
+      Set<Uri> uris = new Set<Uri>.from(_userCode!.loader.libraryImportUris);
+      uris.removeAll(_dillLoadedData!.loader.libraryImportUris);
+      if (_previousSourceBuilders != null) {
+        for (Library library in _previousSourceBuilders!) {
           uris.add(library.importUri);
         }
       }
-      invalidatedUris.addAll(uris);
+      _invalidatedUris.addAll(uris);
     }
   }
 
   @override
   void setModulesToLoadOnNextComputeDelta(List<Component> components) {
-    modulesToLoad = components.toList();
+    _modulesToLoad = components.toList();
   }
 
   /// Internal method.
