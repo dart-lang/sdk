@@ -798,8 +798,7 @@ class NewWorldTest {
       result = checkExpectFile(data, worldNum, "", context, actualSerialized);
       if (result != null) return result;
       if (world["skipClassHierarchyTest"] != true) {
-        result =
-            checkClassHierarchy(compiler, component!, data, worldNum, context);
+        result = checkClassHierarchy(compilerResult, data, worldNum, context);
         if (result != null) return result;
       }
 
@@ -1190,10 +1189,10 @@ Result<TestData>? checkExpectFile(TestData data, int worldNum,
 ///
 /// This has the option to do expect files, but it's disabled by default
 /// while we're trying to figure out if it's useful or not.
-Result<TestData>? checkClassHierarchy(TestIncrementalCompiler compiler,
-    Component component, TestData data, int worldNum, Context context,
+Result<TestData>? checkClassHierarchy(IncrementalCompilerResult compilerResult,
+    TestData data, int worldNum, Context context,
     {bool checkExpectFile: false}) {
-  ClassHierarchy? classHierarchy = compiler.getClassHierarchy();
+  ClassHierarchy? classHierarchy = compilerResult.classHierarchy;
   if (classHierarchy is! ClosedWorldClassHierarchy) {
     return new Result<TestData>(
         data,
@@ -1213,6 +1212,7 @@ Result<TestData>? checkClassHierarchy(TestIncrementalCompiler compiler,
     classHierarchyMap[info.classNode] = info;
   }
 
+  Component component = compilerResult.component;
   StringBuffer sb = new StringBuffer();
   for (Library library in component.libraries) {
     if (library.importUri.scheme == "dart") continue;

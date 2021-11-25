@@ -76,14 +76,6 @@ abstract class IncrementalKernelGenerator {
   Future<IncrementalCompilerResult> computeDelta(
       {List<Uri>? entryPoints, bool fullComponent});
 
-  /// Returns [CoreTypes] used during compilation.
-  /// Valid after [computeDelta] is called.
-  CoreTypes? getCoreTypes();
-
-  /// Returns [ClassHierarchy] used during compilation.
-  /// Valid after [computeDelta] is called.
-  ClassHierarchy? getClassHierarchy();
-
   /// Remove the file associated with the given file [uri] from the set of
   /// valid files.  This guarantees that those files will be re-read on the
   /// next call to [computeDelta]).
@@ -154,6 +146,9 @@ bool isLegalIdentifier(String identifier) {
 
 class IncrementalCompilerResult {
   final Component component;
+  final ClassHierarchy? classHierarchy;
+  final CoreTypes? coreTypes;
 
-  IncrementalCompilerResult(this.component);
+  IncrementalCompilerResult(this.component,
+      {this.classHierarchy, this.coreTypes});
 }

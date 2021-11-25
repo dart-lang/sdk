@@ -527,13 +527,14 @@ class FrontendCompiler implements CompilerInterface {
       _compilerOptions.omitPlatform = false;
       _generator = generator ?? _createGenerator(Uri.file(_initializeFromDill));
       await invalidateIfInitializingFromDill();
-      Component component =
+      IncrementalCompilerResult compilerResult =
           await _runWithPrintRedirection(() => _generator.compile());
+      Component component = compilerResult.component;
       results = KernelCompilationResults(
           component,
           const {},
-          _generator.getClassHierarchy(),
-          _generator.getCoreTypes(),
+          compilerResult.classHierarchy,
+          compilerResult.coreTypes,
           component.uriToSource.keys);
 
       incrementalSerializer = _generator.incrementalSerializer;
@@ -783,7 +784,9 @@ class FrontendCompiler implements CompilerInterface {
     }
     errors.clear();
 
-    Component deltaProgram = await _generator.compile(entryPoint: _mainSource);
+    IncrementalCompilerResult deltaProgramResult =
+        await _generator.compile(entryPoint: _mainSource);
+    Component deltaProgram = deltaProgramResult.component;
     if (deltaProgram != null && transformer != null) {
       transformer.transform(deltaProgram);
     }
@@ -791,8 +794,8 @@ class FrontendCompiler implements CompilerInterface {
     KernelCompilationResults results = KernelCompilationResults(
         deltaProgram,
         const {},
-        _generator.getClassHierarchy(),
-        _generator.getCoreTypes(),
+        deltaProgramResult.classHierarchy,
+        deltaProgramResult.coreTypes,
         deltaProgram.uriToSource.keys);
 
     if (_compilerOptions.target.name == 'dartdevc') {
@@ -871,7 +874,8 @@ class FrontendCompiler implements CompilerInterface {
         .logMs('Compiling expression to JavaScript in $moduleName');
 
     final kernel2jsCompiler = cachedProgramCompilers[moduleName];
-    Component component = _generator.lastKnownGoodComponent;
+    IncrementalCompilerResult compilerResult = _generator.lastKnownGoodResult;
+    Component component = compilerResult.component;
     component.computeCanonicalNames();
 
     _processedOptions.ticker.logMs('Computed component');
@@ -1055,9 +1059,9 @@ class FrontendCompiler implements CompilerInterface {
     }
     final String singleModifiedClassName =
         _widgetCache.checkSingleWidgetTypeModified(
-      _generator.lastKnownGoodComponent,
+      _generator.lastKnownGoodResult?.component,
       partialComponent,
-      _generator.getClassHierarchy(),
+      _generator.lastKnownGoodResult?.classHierarchy,
     );
     final File outputFile = File('$_kernelBinaryFilename.widget_cache');
     if (singleModifiedClassName != null) {

@@ -375,8 +375,8 @@ class ExpressionCompilerWorker {
       };
     }
 
-    var coreTypes = incrementalCompiler.getCoreTypes();
-    var hierarchy = incrementalCompiler.getClassHierarchy();
+    var coreTypes = incrementalCompilerResult.coreTypes;
+    var hierarchy = incrementalCompilerResult.classHierarchy;
 
     var kernel2jsCompiler = ProgramCompiler(
       finalComponent,

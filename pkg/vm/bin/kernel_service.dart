@@ -333,9 +333,10 @@ class IncrementalCompilerWrapper extends Compiler {
     final generator = this.generator ??= IncrementalCompiler(options, script);
     errorsPlain.clear();
     errorsColorized.clear();
-    final component = await generator.compile(entryPoint: script);
+    final compilerResult = await generator.compile(entryPoint: script);
+    final component = compilerResult.component;
     return new CompilerResult(component, const {},
-        generator.getClassHierarchy(), generator.getCoreTypes());
+        compilerResult.classHierarchy, compilerResult.coreTypes);
   }
 
   void accept() => generator!.accept();
@@ -353,7 +354,8 @@ class IncrementalCompilerWrapper extends Compiler {
     // TODO(VM TEAM): This does not seem safe. What if cloning while having
     // pending deltas for instance?
     generator.resetDeltaState();
-    Component fullComponent = await generator.compile();
+    IncrementalCompilerResult compilerResult = await generator.compile();
+    Component fullComponent = compilerResult.component;
 
     // Assume fileSystem is HybridFileSystem because that is the setup where
     // clone should be used for.

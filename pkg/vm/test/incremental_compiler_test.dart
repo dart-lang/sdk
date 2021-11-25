@@ -12,6 +12,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerOptions,
         DiagnosticMessage,
         ExperimentalFlag,
+        IncrementalCompilerResult,
         computePlatformBinariesLocation;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -65,7 +66,8 @@ main() {
 
     test('compile', () async {
       IncrementalCompiler compiler = new IncrementalCompiler(options, main.uri);
-      Component component = await compiler.compile();
+      IncrementalCompilerResult compilerResult = await compiler.compile();
+      Component component = compilerResult.component;
 
       final StringBuffer buffer = new StringBuffer();
       new Printer(buffer, showMetadata: true)
@@ -83,7 +85,8 @@ main() {
         ..embedSourceText = false;
       IncrementalCompiler compiler =
           new IncrementalCompiler(optionsExcludeSources, main.uri);
-      Component component = await compiler.compile();
+      IncrementalCompilerResult compilerResult = await compiler.compile();
+      Component component = compilerResult.component;
 
       for (Source source in component.uriToSource.values) {
         expect(source.source.length, equals(0));
@@ -319,7 +322,8 @@ main() {
 
     compileAndSerialize(
         File mainDill, File libDill, IncrementalCompiler compiler) async {
-      Component component = await compiler.compile();
+      IncrementalCompilerResult compilerResult = await compiler.compile();
+      Component component = compilerResult.component;
       new BinaryPrinter(new DevNullSink<List<int>>())
           .writeComponentFile(component);
       IOSink sink = mainDill.openWrite();
@@ -621,7 +625,8 @@ main() {
       // collector helper in this file.
       File libDill = File(p.join(dir.path, p.basename(lib1.path + ".dill")));
       IncrementalCompiler compiler = new IncrementalCompiler(options, lib1.uri);
-      Component component = await compiler.compile();
+      IncrementalCompilerResult compilerResult = await compiler.compile();
+      Component component = compilerResult.component;
       expect(component.libraries.length, equals(1));
       expect(component.libraries.single.fileUri, equals(lib1.uri));
       IOSink sink = libDill.openWrite();
@@ -649,7 +654,8 @@ main() {
       // Then compile lib, run and verify coverage (un-named constructor
       // covered, and the named constructor coveraged too).
       File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
-      component = await compiler.compile(entryPoint: main.uri);
+      compilerResult = await compiler.compile(entryPoint: main.uri);
+      component = compilerResult.component;
       expect(component.libraries.length, equals(1));
       expect(component.libraries.single.fileUri, equals(main.uri));
       sink = mainDill.openWrite();
@@ -706,7 +712,8 @@ main() {
       int newLineForUnnamedConstructor = 8;
       int newLineForNamedConstructor = 9;
       compiler.invalidate(lib1.uri);
-      component = await compiler.compile(entryPoint: lib1.uri);
+      compilerResult = await compiler.compile(entryPoint: lib1.uri);
+      component = compilerResult.component;
       expect(component.libraries.length, equals(1));
       expect(component.libraries.single.fileUri, equals(lib1.uri));
       sink = libDill.openWrite();
@@ -794,7 +801,8 @@ main() {
 
     compileAndSerialize(File mainDill, File lib1Dill, File lib2Dill,
         IncrementalCompiler compiler) async {
-      Component component = await compiler.compile();
+      IncrementalCompilerResult compilerResult = await compiler.compile();
+      Component component = compilerResult.component;
       new BinaryPrinter(new DevNullSink<List<int>>())
           .writeComponentFile(component);
       IOSink sink = mainDill.openWrite();
@@ -901,7 +909,8 @@ main() {
           "openReceivePortSoWeWontDie() { new RawReceivePort(); }\n");
 
       IncrementalCompiler compiler = new IncrementalCompiler(options, file.uri);
-      Component component = await compiler.compile();
+      IncrementalCompilerResult compilerResult = await compiler.compile();
+      Component component = compilerResult.component;
 
       File outputFile = new File('${mytest.path}/foo.dart.dill');
       await _writeProgramToFile(component, outputFile);
@@ -948,7 +957,8 @@ main() {
       compiler.accept();
 
       // Confirm that without changes VM reloads nothing.
-      component = await compiler.compile();
+      compilerResult = await compiler.compile();
+      component = compilerResult.component;
       await _writeProgramToFile(component, outputFile);
       var reloadResult = await remoteVm.reload(new Uri.file(outputFile.path));
       expect(reloadResult['success'], isTrue);
@@ -957,7 +967,8 @@ main() {
       // Introduce a change that force VM to reject the change.
       fileBar.writeAsStringSync("class A<T,U> { int _a = 0; }\n");
       compiler.invalidate(fileBar.uri);
-      component = await compiler.compile();
+      compilerResult = await compiler.compile();
+      component = compilerResult.component;
       await _writeProgramToFile(component, outputFile);
       reloadResult = await remoteVm.reload(new Uri.file(outputFile.path));
       expect(reloadResult['success'], isFalse);
@@ -965,7 +976,8 @@ main() {
       // Fix a change so VM is happy to accept the change.
       fileBar.writeAsStringSync("class A<T> { int _a = 0; hi() => _a; }\n");
       compiler.invalidate(fileBar.uri);
-      component = await compiler.compile();
+      compilerResult = await compiler.compile();
+      component = compilerResult.component;
       await _writeProgramToFile(component, outputFile);
       reloadResult = await remoteVm.reload(new Uri.file(outputFile.path));
       expect(reloadResult['success'], isTrue);
@@ -1018,7 +1030,9 @@ main() {
       IncrementalCompiler compiler =
           new IncrementalCompiler(optionsModified, packageEntry);
       {
-        Component component = await compiler.compile(entryPoint: packageEntry);
+        IncrementalCompilerResult compilerResult =
+            await compiler.compile(entryPoint: packageEntry);
+        Component component = compilerResult.component;
         File outputFile = new File('${mytest.path}/foo.dart.dill');
         await _writeProgramToFile(component, outputFile);
       }
@@ -1033,7 +1047,9 @@ main() {
           .writeAsStringSync("class A { static int b; }\n");
       compiler.invalidate(barUri);
       {
-        Component component = await compiler.compile(entryPoint: packageEntry);
+        IncrementalCompilerResult compilerResult =
+            await compiler.compile(entryPoint: packageEntry);
+        Component component = compilerResult.component;
         File outputFile = new File('${mytest.path}/foo1.dart.dill');
         await _writeProgramToFile(component, outputFile);
       }
@@ -1076,7 +1092,9 @@ main() {
       Library fooLib;
       Library barLib;
       {
-        final Component component = await compiler.compile(entryPoint: fooUri);
+        final IncrementalCompilerResult compilerResult =
+            await compiler.compile(entryPoint: fooUri);
+        final Component component = compilerResult.component;
         expect(component.libraries.length, equals(2));
         fooLib = component.libraries.firstWhere((lib) => lib.fileUri == fooUri);
         barLib = component.libraries.firstWhere((lib) => lib.fileUri == barUri);
@@ -1104,7 +1122,9 @@ main() {
         """);
       compiler.invalidate(barUri);
       {
-        final Component component = await compiler.compile(entryPoint: fooUri);
+        final IncrementalCompilerResult compilerResult =
+            await compiler.compile(entryPoint: fooUri);
+        final Component component = compilerResult.component;
         final Library? fooLib2 = component.libraries
             .firstWhereOrNull((lib) => lib.fileUri == fooUri);
         expect(fooLib2, isNull);
@@ -1125,10 +1145,10 @@ main() {
         expect(lrc.librariesReferenced, equals(<Library>{barLib}));
       }
       {
-        // Verify that the saved "last known good" compnent only contains links
+        // Verify that the saved "last known good" component only contains links
         // to the original 'foo' and 'bar' libraries.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
-        compiler.lastKnownGoodComponent!.accept(lrc);
+        compiler.lastKnownGoodResult!.component.accept(lrc);
         expect(lrc.librariesReferenced, equals(<Library>{fooLib, barLib}));
       }
       {
@@ -1272,7 +1292,8 @@ main() {
       """);
       IncrementalCompiler compiler =
           new IncrementalCompiler(options, mainFile.uri);
-      Component component = await compiler.compile();
+      IncrementalCompilerResult compilerResult = await compiler.compile();
+      Component component = compilerResult.component;
       File mainDill = new File.fromUri(mainFile.uri.resolve("main.dill"));
       IOSink sink = mainDill.openWrite();
       new BinaryPrinter(sink).writeComponentFile(component);
@@ -1345,7 +1366,8 @@ main() {
       """);
       IncrementalCompiler compiler =
           new IncrementalCompiler(options, mainFile.uri);
-      Component component = await compiler.compile();
+      IncrementalCompilerResult compilerResult = await compiler.compile();
+      Component component = compilerResult.component;
       File mainDill = new File.fromUri(mainFile.uri.resolve("main.dill"));
       IOSink sink = mainDill.openWrite();
       new BinaryPrinter(sink).writeComponentFile(component);
@@ -1367,7 +1389,8 @@ main() {
         }
       """);
       compiler.invalidate(helperFile.uri);
-      component = await compiler.compile();
+      compilerResult = await compiler.compile();
+      component = compilerResult.component;
       File partial1Dill =
           new File.fromUri(mainFile.uri.resolve("partial1.dill"));
       sink = partial1Dill.openWrite();
@@ -1393,7 +1416,8 @@ main() {
         }
       """);
       compiler.invalidate(helperFile.uri);
-      component = await compiler.compile();
+      compilerResult = await compiler.compile();
+      component = compilerResult.component;
       File partial2Dill =
           new File.fromUri(mainFile.uri.resolve("partial2.dill"));
       sink = partial2Dill.openWrite();
@@ -1519,7 +1543,8 @@ main() {
         IncrementalCompiler compiler =
             new IncrementalCompiler(optionsModified, mainUri);
 
-        Component component = await compiler.compile();
+        IncrementalCompilerResult compilerResult = await compiler.compile();
+        Component component = compilerResult.component;
         File mainDill = new File.fromUri(mainFile.uri.resolve("main.dill"));
         IOSink sink = mainDill.openWrite();
         new BinaryPrinter(sink).writeComponentFile(component);

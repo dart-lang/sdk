@@ -82,13 +82,13 @@ class TestCompiler {
 
     // initialize ddc
     var moduleName = 'foo.dart';
-    var classHierarchy = compiler.getClassHierarchy();
+    var classHierarchy = compilerResult.classHierarchy;
     var compilerOptions = SharedCompilerOptions(
         replCompile: true,
         moduleName: moduleName,
         soundNullSafety: setup.soundNullSafety,
         moduleFormats: [setup.moduleFormat]);
-    var coreTypes = compiler.getCoreTypes();
+    var coreTypes = compilerResult.coreTypes;
 
     final importToSummary = Map<Library, Component>.identity();
     final summaryToModule = Map<Component, String>.identity();

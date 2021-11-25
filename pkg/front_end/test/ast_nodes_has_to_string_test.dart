@@ -29,7 +29,7 @@ Future<void> main(List<String> args) async {
             /*Uri initializeFrom*/ null, /*bool outlineOnly*/ true);
     IncrementalCompilerResult compilerResult = await compiler.computeDelta();
     c = compilerResult.component;
-    classHierarchy = compiler.getClassHierarchy()!;
+    classHierarchy = compilerResult.classHierarchy!;
     List<Library> libraries = c.libraries
         .where((Library lib) =>
             (lib.importUri.toString() == "package:kernel/ast.dart"))

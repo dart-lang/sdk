@@ -123,13 +123,13 @@ class TestCompiler {
     // Initialize DDC.
     var moduleName = p.basenameWithoutExtension(output.toFilePath());
 
-    var classHierarchy = compiler.getClassHierarchy();
+    var classHierarchy = compilerResult.classHierarchy;
     var compilerOptions = SharedCompilerOptions(
         replCompile: true,
         moduleName: moduleName,
         soundNullSafety: setup.soundNullSafety,
         emitDebugMetadata: true);
-    var coreTypes = compiler.getCoreTypes();
+    var coreTypes = compilerResult.coreTypes;
 
     final importToSummary = Map<Library, Component>.identity();
     final summaryToModule = Map<Component, String>.identity();
