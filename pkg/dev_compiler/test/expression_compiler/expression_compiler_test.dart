@@ -76,7 +76,8 @@ class TestCompiler {
     // initialize incremental compiler and create component
     setup.options.packagesFileUri = packages;
     var compiler = DevelopmentIncrementalCompiler(setup.options, input);
-    var component = await compiler.computeDelta();
+    var compilerResult = await compiler.computeDelta();
+    var component = compilerResult.component;
     component.computeCanonicalNames();
 
     // initialize ddc

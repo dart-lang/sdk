@@ -34,6 +34,9 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
+
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/fasta/builder/library_builder.dart';
@@ -1826,7 +1829,9 @@ worlds:
     }
     incrementalCompiler.invalidate(_mainUri);
     try {
-      _latestComponent = await incrementalCompiler.computeDelta();
+      IncrementalCompilerResult incrementalCompilerResult =
+          await incrementalCompiler.computeDelta();
+      _latestComponent = incrementalCompilerResult.component;
       if (_settings.serialize) {
         // We're asked to serialize, probably because it crashes in
         // serialization.
@@ -1839,7 +1844,9 @@ worlds:
 
       for (Uri uri in _settings.invalidate) {
         incrementalCompiler.invalidate(uri);
-        Component delta = await incrementalCompiler.computeDelta();
+        IncrementalCompilerResult deltaResult =
+            await incrementalCompiler.computeDelta();
+        Component delta = deltaResult.component;
         if (_settings.serialize) {
           // We're asked to serialize, probably because it crashes in
           // serialization.
@@ -1926,7 +1933,9 @@ worlds:
   Future<Component> _getInitialComponent() async {
     IncrementalCompiler incrementalCompiler =
         new IncrementalCompiler(_setupCompilerContext());
-    Component originalComponent = await incrementalCompiler.computeDelta();
+    IncrementalCompilerResult incrementalCompilerResult =
+        await incrementalCompiler.computeDelta();
+    Component originalComponent = incrementalCompilerResult.component;
     return originalComponent;
   }
 

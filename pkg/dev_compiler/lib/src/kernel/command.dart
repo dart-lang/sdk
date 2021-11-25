@@ -338,10 +338,13 @@ Future<CompilerResult> _compile(List<String> args,
     result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   } else {
     compilerState.options.onDiagnostic = diagnosticMessageHandler;
-    var incrementalComponent = await incrementalCompiler.computeDelta(
+    var incrementalCompilerResult = await incrementalCompiler.computeDelta(
         entryPoints: inputs, fullComponent: true);
-    result = fe.DdcResult(incrementalComponent, cachedSdkInput.component,
-        doneAdditionalDills, incrementalCompiler.userCode.loader.hierarchy);
+    result = fe.DdcResult(
+        incrementalCompilerResult.component,
+        cachedSdkInput.component,
+        doneAdditionalDills,
+        incrementalCompiler.userCode.loader.hierarchy);
   }
   compilerState.options.onDiagnostic = null; // See http://dartbug.com/36983.
 

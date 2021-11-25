@@ -7,6 +7,8 @@ import 'dart:io' show Directory, File, exit;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 
@@ -82,7 +84,8 @@ Future<void> main(List<String> args) async {
       .alternativeInvalidationStrategy] = useExperimentalInvalidation;
   helper.TestIncrementalCompiler compiler =
       new helper.TestIncrementalCompiler(options, inputFile.uri);
-  Component? c = await compiler.computeDelta();
+  IncrementalCompilerResult compilerResult = await compiler.computeDelta();
+  Component? c = compilerResult.component;
   print("Compiled to Component with ${c.libraries.length} "
       "libraries in ${stopwatch.elapsedMilliseconds} ms.");
   stopwatch.reset();
@@ -132,7 +135,9 @@ Future<void> main(List<String> args) async {
     print("Invalidating $uri ($i)");
     compiler.invalidate(uri);
     localStopwatch.reset();
-    Component c2 = await compiler.computeDelta(fullComponent: true);
+    IncrementalCompilerResult compilerResult =
+        await compiler.computeDelta(fullComponent: true);
+    Component c2 = compilerResult.component;
     print("Recompiled in ${localStopwatch.elapsedMilliseconds} ms");
     print("invalidatedImportUrisForTesting: "
         "${compiler.invalidatedImportUrisForTesting}");

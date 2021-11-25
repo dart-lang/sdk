@@ -15,6 +15,7 @@ import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:kernel/ast.dart' show Component, Library, Reference;
 import 'package:kernel/target/targets.dart';
@@ -277,8 +278,10 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   bool wroteUsedDills = false;
   if (usingIncrementalCompiler) {
     state.options.onDiagnostic = onDiagnostic;
-    Component incrementalComponent = await state.incrementalCompiler
+    IncrementalCompilerResult incrementalCompilerResult = await state
+        .incrementalCompiler
         .computeDelta(entryPoints: sources, fullComponent: true);
+    Component incrementalComponent = incrementalCompilerResult.component;
 
     if (recordUsedInputs) {
       Set<Uri> usedOutlines = {};

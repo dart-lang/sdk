@@ -17,6 +17,8 @@ import 'package:front_end/src/api_prototype/compiler_options.dart' as api
 
 import 'package:front_end/src/api_prototype/file_system.dart' as api
     show FileSystem;
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -81,7 +83,9 @@ Future<void> main(List<String> args) async {
   CompilerContext context = new CompilerContext(options);
   IncrementalCompiler incrementalCompiler =
       new TestIncrementalCompiler(context);
-  component = await incrementalCompiler.computeDelta();
+  IncrementalCompilerResult incrementalCompilerResult =
+      await incrementalCompiler.computeDelta();
+  component = incrementalCompilerResult.component;
 
   for (Library library in component.libraries) {
     if (library.importUri.scheme == "dart") continue;

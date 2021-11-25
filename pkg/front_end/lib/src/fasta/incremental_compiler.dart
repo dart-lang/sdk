@@ -62,7 +62,10 @@ import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
 
 import '../api_prototype/incremental_kernel_generator.dart'
-    show IncrementalKernelGenerator, isLegalIdentifier;
+    show
+        IncrementalCompilerResult,
+        IncrementalKernelGenerator,
+        isLegalIdentifier;
 
 import '../api_prototype/lowering_predicates.dart' show isExtensionThisName;
 
@@ -242,7 +245,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   @override
-  Future<Component> computeDelta(
+  Future<IncrementalCompilerResult> computeDelta(
       {List<Uri>? entryPoints, bool fullComponent: false}) async {
     while (_currentlyCompiling != null) {
       await _currentlyCompiling!.future;
@@ -252,7 +255,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       _ticker.reset();
     }
     entryPoints ??= context.options.inputs;
-    return context.runInContext<Component>((CompilerContext c) async {
+    return context
+        .runInContext<IncrementalCompilerResult>((CompilerContext c) async {
       if (_computeDeltaRunOnce && _initializedForExpressionCompilationOnly) {
         throw new StateError("Initialized for expression compilation: "
             "cannot do another general compile.");
@@ -415,7 +419,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       _currentlyCompiling = null;
       currentlyCompilingLocal.complete();
 
-      return result;
+      return new IncrementalCompilerResult(result);
     });
   }
 

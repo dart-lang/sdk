@@ -8,7 +8,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
-    show IncrementalKernelGenerator;
+    show IncrementalCompilerResult, IncrementalKernelGenerator;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
@@ -77,7 +77,8 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
     try {
       IncrementalKernelGenerator compiler =
           new IncrementalKernelGenerator(getOptions(), uri);
-      oneShotSerialized = util.postProcess(await compiler.computeDelta());
+      oneShotSerialized =
+          util.postProcess((await compiler.computeDelta()).component);
     } catch (e) {
       oneShotFailed = true;
     }
@@ -90,8 +91,9 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
       if (context.compiler == null) {
         context.compiler = new IncrementalKernelGenerator(getOptions(), uri);
       }
-      Component bulkCompiledComponent = await context.compiler!
+      IncrementalCompilerResult compilerResult = await context.compiler!
           .computeDelta(entryPoints: [uri], fullComponent: true);
+      Component bulkCompiledComponent = compilerResult.component;
       bulkSerialized = util.postProcess(bulkCompiledComponent);
     } catch (e) {
       bulkFailed = true;
@@ -106,8 +108,9 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
       if (context.compiler == null) {
         context.compiler = new IncrementalKernelGenerator(getOptions(), uri);
       }
-      Component bulkCompiledComponent = await context.compiler!
+      IncrementalCompilerResult compilerResult = await context.compiler!
           .computeDelta(entryPoints: [uri], fullComponent: true);
+      Component bulkCompiledComponent = compilerResult.component;
       bulkSerialized2 = util.postProcess(bulkCompiledComponent);
     } catch (e) {
       bulk2Failed = true;

@@ -4,6 +4,8 @@
 
 import 'dart:io' show File, Platform;
 
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
@@ -69,7 +71,8 @@ Future<Component> compile(int compilerNum, Uri uri) async {
   } else {
     compiler.invalidateAllSources();
   }
-  Component result = await compiler.computeDelta();
+  IncrementalCompilerResult compilerResult = await compiler.computeDelta();
+  Component result = compilerResult.component;
   print("Now compile is done!");
   return result;
 }

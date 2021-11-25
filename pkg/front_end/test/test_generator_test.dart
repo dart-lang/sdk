@@ -5,6 +5,7 @@
 import 'dart:io' show exitCode, File, stdout;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
@@ -90,7 +91,9 @@ class TestCompiler {
     StringBuffer sb = new StringBuffer();
     fs.entityForUri(testUri).writeAsStringSync(src);
     compiler.invalidate(testUri);
-    Component result = await compiler.computeDelta(entryPoints: [testUri]);
+    IncrementalCompilerResult compilerResult =
+        await compiler.computeDelta(entryPoints: [testUri]);
+    Component result = compilerResult.component;
     Iterator<Code> codeIterator = formattedWarningsCodes.iterator;
     for (String warning in formattedWarnings) {
       codeIterator.moveNext();

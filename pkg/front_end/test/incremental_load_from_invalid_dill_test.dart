@@ -17,6 +17,9 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag;
 
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
+
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
 
@@ -106,7 +109,8 @@ class Tester {
         new CompilerContext(
             new ProcessedOptions(options: options, inputs: [compileThis])),
         initializeFrom);
-    Component component = await compiler.computeDelta();
+    IncrementalCompilerResult compilerResult = await compiler.computeDelta();
+    Component component = compilerResult.component;
 
     if (compiler.initializedFromDill != initializedFromDill) {
       Expect.fail("Expected initializedFromDill to be $initializedFromDill "
@@ -181,7 +185,9 @@ main() {
             new ProcessedOptions(options: options, inputs: [entryPoint])),
         initializeFrom);
 
-    Component componentGood = await compiler.computeDelta();
+    IncrementalCompilerResult compilerGoodResult =
+        await compiler.computeDelta();
+    Component componentGood = compilerGoodResult.component;
     List<int> dataGood = serializeComponent(componentGood);
     fs.entityForUri(initializeFrom).writeAsBytesSync(dataGood);
 
@@ -191,7 +197,9 @@ main() {
         new CompilerContext(
             new ProcessedOptions(options: options, inputs: [helper2File])),
         initializeFrom);
-    Component componentHelper = await compiler.computeDelta();
+    IncrementalCompilerResult compilerHelperResult =
+        await compiler.computeDelta();
+    Component componentHelper = compilerHelperResult.component;
     Library helper2Lib = componentHelper.libraries
         .firstWhere((lib) => lib.importUri == helper2File);
     helper2Lib.importUri = new Uri(scheme: "dart", path: "foo");
@@ -214,7 +222,8 @@ main() {
 
     // Create a partial dill file.
     compiler.invalidate(entryPoint);
-    component = await compiler.computeDelta();
+    IncrementalCompilerResult compilerResult = await compiler.computeDelta();
+    component = compilerResult.component;
     if (component.libraries.length != 1) {
       Expect.fail("Expected 1 library, got ${component.libraries.length}: "
           "${component.libraries}");
@@ -257,7 +266,9 @@ main() {
           new CompilerContext(
               new ProcessedOptions(options: options, inputs: [helper2File])),
           null);
-      Component c = await compiler.computeDelta();
+
+      IncrementalCompilerResult result = await compiler.computeDelta();
+      Component c = result.component;
       c.setMainMethodAndMode(
           null, false, NonNullableByDefaultCompiledMode.Weak);
       mixedPart1 = serializeComponent(c);
@@ -279,7 +290,8 @@ main() {
           new CompilerContext(
               new ProcessedOptions(options: options, inputs: [helperFile])),
           null);
-      Component c = await compiler.computeDelta();
+      IncrementalCompilerResult result = await compiler.computeDelta();
+      Component c = result.component;
       c.setMainMethodAndMode(
           null, false, NonNullableByDefaultCompiledMode.Strong);
       mixedPart2 = serializeComponent(c);

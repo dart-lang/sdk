@@ -6,6 +6,8 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart' as api;
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
@@ -58,8 +60,8 @@ Future<void> main(List<String> args) async {
 
   IncrementalCompiler compiler =
       new IncrementalCompiler(new CompilerContext(options));
-  Component component = await compiler.computeDelta();
-
+  IncrementalCompilerResult compilerResult = await compiler.computeDelta();
+  Component component = compilerResult.component;
   component.accept(new AsyncNoAwaitVisitor());
 
   print("Done in ${stopwatch.elapsedMilliseconds} ms. "

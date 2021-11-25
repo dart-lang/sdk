@@ -316,7 +316,8 @@ Future<bool> rebuild(IncrementalKernelGenerator compiler, Uri outputUri) async {
   compiler.invalidate(Uri.parse("org-dartlang-test:///a.dart"));
   compiler.invalidate(Uri.parse("org-dartlang-test:///b.dart"));
   compiler.invalidate(Uri.parse("org-dartlang-test:///c.dart"));
-  var component = await compiler.computeDelta();
+  var compilerResult = await compiler.computeDelta();
+  var component = compilerResult.component;
   if (!component.libraries.isEmpty) {
     await writeProgram(component, outputUri);
     return true;
