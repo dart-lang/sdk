@@ -336,7 +336,7 @@ Comparator<K> _defaultCompare<K>() {
 /// The [forEach] method calls a function for each key/value entry of the map.
 /// ```
 /// planetsByMass.forEach((key, value) {
-/// print('$key \t $value');
+///   print('$key \t $value');
 ///   // 0.06    Mercury
 ///   // 0.11    Mars
 ///   // 0.81    Venus
@@ -453,8 +453,8 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   /// ```dart
   /// final numbers = [12, 11, 14, 13];
   /// final mapFromIterable =
-  ///   SplayTreeMap<int, int>.fromIterable(numbers,
-  ///   key: (i) => i, value: (i) => i * i);
+  ///     SplayTreeMap<int, int>.fromIterable(numbers,
+  ///         key: (i) => i, value: (i) => i * i);
   /// print(mapFromIterable); // {11: 121, 12: 144, 13: 169, 14: 196}
   /// ```
   factory SplayTreeMap.fromIterable(Iterable iterable,
