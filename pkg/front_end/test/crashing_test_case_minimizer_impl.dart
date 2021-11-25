@@ -802,7 +802,7 @@ worlds:
     Uri uriTokenUri = uri.resolve(uriString);
     if (resolvePackage && uriTokenUri.scheme == "package") {
       Package package = _latestCrashingIncrementalCompiler!
-          .currentPackagesMap![uriTokenUri.pathSegments.first]!;
+          .getPackageForPackageName(uriTokenUri.pathSegments.first)!;
       uriTokenUri = package.packageUriRoot
           .resolve(uriTokenUri.pathSegments.skip(1).join("/"));
     }
