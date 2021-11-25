@@ -21,8 +21,6 @@ import 'package:kernel/binary/ast_from_binary.dart'
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
 
-import 'package:kernel/core_types.dart' show CoreTypes;
-
 import 'package:kernel/kernel.dart'
     show
         Class,
@@ -419,7 +417,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       _currentlyCompiling = null;
       currentlyCompilingLocal.complete();
 
-      return new IncrementalCompilerResult(result);
+      return new IncrementalCompilerResult(result,
+          classHierarchy: _userCode?.loader.hierarchy,
+          coreTypes: _userCode?.loader.coreTypes);
     });
   }
 
@@ -1345,12 +1345,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     assert(replacement != null, "Didn't find the replacement for $typeBuilder");
     typeBuilder!.bind(replacement as TypeDeclarationBuilder);
   }
-
-  @override
-  CoreTypes? getCoreTypes() => _userCode?.loader.coreTypes;
-
-  @override
-  ClassHierarchy? getClassHierarchy() => _userCode?.loader.hierarchy;
 
   /// Allows for updating the list of needed libraries.
   ///

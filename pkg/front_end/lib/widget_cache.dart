@@ -59,7 +59,7 @@ class WidgetCache {
   String? checkSingleWidgetTypeModified(
     Component? lastGoodComponent,
     Component partialComponent,
-    ClassHierarchy classHierarchy,
+    ClassHierarchy? classHierarchy,
   ) {
     if (!_frameworkTypesLocated ||
         lastGoodComponent == null ||
@@ -124,7 +124,7 @@ class WidgetCache {
     }
 
     // Update the class references to stateless, stateful, and state classes.
-    for (Library library in classHierarchy.knownLibraries) {
+    for (Library library in classHierarchy!.knownLibraries) {
       if (library.importUri == _frameworkLibrary) {
         _locatedClassDeclarations(library);
       }
