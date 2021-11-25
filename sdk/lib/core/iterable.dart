@@ -203,7 +203,7 @@ abstract class Iterable<E> {
   /// ```
   /// Example:
   /// ```dart
-  /// final gasPlanets = {1: 'Jupiter', 2: 'Saturn'};
+  /// final gasPlanets = <int, String>{1: 'Jupiter', 2: 'Saturn'};
   /// final altered = gasPlanets.map((key, value) => MapEntry(value, key));
   /// print(altered); // {Jupiter: 1, Saturn: 2}
   /// ```
@@ -285,7 +285,7 @@ abstract class Iterable<E> {
   /// Likewise the `Iterable` returned by a [Map.keys] call
   /// should use the same equality that the `Map` uses for keys.
   /// ```dart
-  /// final gasPlanets = {1: 'Jupiter', 2: 'Saturn'};
+  /// final gasPlanets = <int, String>{1: 'Jupiter', 2: 'Saturn'};
   /// print(gasPlanets.keys.contains(1)); // true
   /// print(gasPlanets.keys.contains(5)); // false
   /// print(gasPlanets.values.contains('Jupiter')); // true
@@ -300,7 +300,8 @@ abstract class Iterable<E> {
 
   /// Invokes [action] on each element of this iterable in iteration order.
   /// ```dart
-  /// final planets = {0.06: 'Mercury', 0.81: 'Venus', 0.11: 'Mars'};
+  /// final planets = <double, String>{0.06: 'Mercury', 0.81: 'Venus',
+  ///   0.11: 'Mars'};
   /// planets.forEach((key, value) {
   ///   print('$key : $value');
   ///   // 0.06 : Mercury
