@@ -137,8 +137,9 @@ InitializedCompilerState initializeCompiler(
 
 Future<CompilerResult> _compile(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
-    {bool? summaryOnly, bool includeOffsets: true}) {
-  summaryOnly ??= true;
+    {bool? buildSummary, bool? buildComponent, bool includeOffsets: true}) {
+  buildSummary ??= true;
+  buildComponent ??= true;
   CompilerOptions options = compilerState.options;
   options..onDiagnostic = diagnosticMessageHandler;
 
@@ -147,8 +148,8 @@ Future<CompilerResult> _compile(InitializedCompilerState compilerState,
   processedOpts.inputs.addAll(inputs);
 
   return generateKernel(processedOpts,
-      buildSummary: summaryOnly,
-      buildComponent: !summaryOnly,
+      buildSummary: buildSummary,
+      buildComponent: buildComponent,
       includeOffsets: includeOffsets);
 }
 
@@ -157,15 +158,18 @@ Future<List<int>?> compileSummary(InitializedCompilerState compilerState,
     {bool includeOffsets: false}) async {
   CompilerResult result = await _compile(
       compilerState, inputs, diagnosticMessageHandler,
-      summaryOnly: true, includeOffsets: includeOffsets);
+      buildSummary: true,
+      buildComponent: false,
+      includeOffsets: includeOffsets);
   return result.summary;
 }
 
 Future<Component?> compileComponent(InitializedCompilerState compilerState,
-    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
+    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
+    {bool buildSummary: true}) async {
   CompilerResult result = await _compile(
       compilerState, inputs, diagnosticMessageHandler,
-      summaryOnly: false);
+      buildSummary: buildSummary, buildComponent: true);
 
   Component? component = result.component;
   if (component != null) {
