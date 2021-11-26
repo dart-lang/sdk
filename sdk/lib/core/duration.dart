@@ -61,15 +61,15 @@ part of dart.core;
 /// final maxGameTime = firstHalf + secondHalf + overTime;
 /// print(maxGameTime.inMinutes); // 120
 ///
-/// // Equal durations, returns 0.
+/// // The duration of the firstHalf and secondHalf is the same, returns 0.
 /// var result = firstHalf.compareTo(secondHalf);
 /// print(result); // 0
 ///
-/// // Duration of overTime is shorter, returns -1.
+/// // Duration of overTime is shorter than firstHalf, returns -1.
 /// result = overTime.compareTo(firstHalf);
 /// print(result); // -1
 ///
-/// // Duration of secondHalf is longer, returns 1.
+/// // Duration of secondHalf is longer than overTime, returns 1.
 /// result = secondHalf.compareTo(overTime);
 /// print(result); // 1
 /// ```
@@ -318,7 +318,7 @@ class Duration implements Comparable<Duration> {
   /// following format: `H:MM:SS.mmmmmm`. For example,
   /// ```dart
   /// var d = const Duration(days: 1, hours: 1, minutes: 33, microseconds: 500);
-  /// print(d.toString()); // "25:33:00.000500"
+  /// print(d.toString()); // 25:33:00.000500
   ///
   /// d = const Duration(hours: 1, minutes: 10, microseconds: 500);
   /// print(d.toString()); // 1:10:00.000500
