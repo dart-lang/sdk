@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include "platform/thread_sanitizer.h"
+
 #include "vm/compiler/runtime_api.h"
 #include "vm/compiler/runtime_offsets_list.h"
 #include "vm/dart_api_state.h"
@@ -29,10 +31,18 @@
 #error Unknown architecture
 #endif
 
-#if defined(DART_COMPRESSED_POINTERS)
-#define ARCH_DEF ARCH_DEF_CPU " && defined(DART_COMPRESSED_POINTERS)"
+#define SEP "  \\\n    && "
+
+#if defined(USING_THREAD_SANITIZER)
+#define ARCH_DEF_CPU_TSAN ARCH_DEF_CPU SEP "defined(USING_THREAD_SANITIZER)"
 #else
-#define ARCH_DEF ARCH_DEF_CPU " && !defined(DART_COMPRESSED_POINTERS)"
+#define ARCH_DEF_CPU_TSAN ARCH_DEF_CPU SEP "!defined(USING_THREAD_SANITIZER)"
+#endif
+
+#if defined(DART_COMPRESSED_POINTERS)
+#define ARCH_DEF ARCH_DEF_CPU_TSAN SEP "defined(DART_COMPRESSED_POINTERS)"
+#else
+#define ARCH_DEF ARCH_DEF_CPU_TSAN SEP "!defined(DART_COMPRESSED_POINTERS)"
 #endif
 
 namespace dart {
@@ -149,6 +159,9 @@ class OffsetsExtractor : public AllStatic {
     COMMON_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
                         PRINT_ARRAY_SIZEOF, PRINT_PAYLOAD_SIZEOF, PRINT_RANGE,
                         PRINT_CONSTANT)
+    DO_IF_TSAN(TSAN_OFFSETS_LIST(
+        PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
+        PRINT_ARRAY_SIZEOF, PRINT_PAYLOAD_SIZEOF, PRINT_RANGE, PRINT_CONSTANT))
 
 #undef PRINT_FIELD_OFFSET
 #undef PRINT_ARRAY_LAYOUT

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/thread_sanitizer.h"
+
 #include "vm/compiler/runtime_api.h"
 
 #include "vm/object.h"
@@ -620,6 +622,13 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
                     DEFINE_CONSTANT)
+DO_IF_TSAN(TSAN_OFFSETS_LIST(DEFINE_FIELD,
+                             DEFINE_ARRAY,
+                             DEFINE_SIZEOF,
+                             DEFINE_ARRAY_SIZEOF,
+                             DEFINE_PAYLOAD_SIZEOF,
+                             DEFINE_RANGE,
+                             DEFINE_CONSTANT))
 
 #else
 
@@ -773,6 +782,13 @@ COMMON_OFFSETS_LIST(DEFINE_FIELD,
                     DEFINE_PAYLOAD_SIZEOF,
                     DEFINE_RANGE,
                     DEFINE_CONSTANT)
+DO_IF_TSAN(TSAN_OFFSETS_LIST(DEFINE_FIELD,
+                             DEFINE_ARRAY,
+                             DEFINE_SIZEOF,
+                             DEFINE_ARRAY_SIZEOF,
+                             DEFINE_PAYLOAD_SIZEOF,
+                             DEFINE_RANGE,
+                             DEFINE_CONSTANT))
 
 #endif
 
