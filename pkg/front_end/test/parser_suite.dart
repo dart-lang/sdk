@@ -30,7 +30,7 @@ import 'package:front_end/src/fasta/source/stack_listener_impl.dart'
     show offsetForToken;
 
 import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart'
-    show DirectParserASTContent;
+    show ParserAstNode;
 
 import 'package:kernel/ast.dart';
 
@@ -170,7 +170,7 @@ class DirectParserASTStep
     Uri uri = description.uri;
     File f = new File.fromUri(uri);
     List<int> rawBytes = f.readAsBytesSync();
-    DirectParserASTContent ast = getAST(rawBytes);
+    ParserAstNode ast = getAST(rawBytes);
     if (ast.what != "CompilationUnit") {
       throw "Expected a single element for 'CompilationUnit' "
           "but got ${ast.what}";

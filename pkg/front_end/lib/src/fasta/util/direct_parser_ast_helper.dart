@@ -21,93 +21,81 @@ import 'package:front_end/src/fasta/messages.dart';
 // Run this command to update it:
 // 'dart pkg/front_end/tool/_fasta/direct_parser_ast_helper_creator.dart'
 
-abstract class DirectParserASTContent {
+abstract class ParserAstNode {
   final String what;
-  final DirectParserASTType type;
+  final ParserAstType type;
   Map<String, Object?> get deprecatedArguments;
-  List<DirectParserASTContent>? children;
-  DirectParserASTContent? parent;
+  List<ParserAstNode>? children;
+  ParserAstNode? parent;
 
-  DirectParserASTContent(this.what, this.type);
+  ParserAstNode(this.what, this.type);
 
   // TODO(jensj): Compare two ASTs.
 }
 
-enum DirectParserASTType { BEGIN, END, HANDLE }
+enum ParserAstType { BEGIN, END, HANDLE }
 
-abstract class AbstractDirectParserASTListener implements Listener {
-  List<DirectParserASTContent> data = [];
+abstract class AbstractParserAstListener implements Listener {
+  List<ParserAstNode> data = [];
 
-  void seen(DirectParserASTContent entry);
+  void seen(ParserAstNode entry);
 
   @override
   void beginArguments(Token token) {
-    DirectParserASTContentArgumentsBegin data =
-        new DirectParserASTContentArgumentsBegin(DirectParserASTType.BEGIN,
-            token: token);
+    ArgumentsBegin data = new ArgumentsBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
-    DirectParserASTContentArgumentsEnd data =
-        new DirectParserASTContentArgumentsEnd(DirectParserASTType.END,
-            count: count, beginToken: beginToken, endToken: endToken);
+    ArgumentsEnd data = new ArgumentsEnd(ParserAstType.END,
+        count: count, beginToken: beginToken, endToken: endToken);
     seen(data);
   }
 
   @override
   void handleAsyncModifier(Token? asyncToken, Token? starToken) {
-    DirectParserASTContentAsyncModifierHandle data =
-        new DirectParserASTContentAsyncModifierHandle(
-            DirectParserASTType.HANDLE,
-            asyncToken: asyncToken,
-            starToken: starToken);
+    AsyncModifierHandle data = new AsyncModifierHandle(ParserAstType.HANDLE,
+        asyncToken: asyncToken, starToken: starToken);
     seen(data);
   }
 
   @override
   void beginAwaitExpression(Token token) {
-    DirectParserASTContentAwaitExpressionBegin data =
-        new DirectParserASTContentAwaitExpressionBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    AwaitExpressionBegin data =
+        new AwaitExpressionBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endAwaitExpression(Token beginToken, Token endToken) {
-    DirectParserASTContentAwaitExpressionEnd data =
-        new DirectParserASTContentAwaitExpressionEnd(DirectParserASTType.END,
-            beginToken: beginToken, endToken: endToken);
+    AwaitExpressionEnd data = new AwaitExpressionEnd(ParserAstType.END,
+        beginToken: beginToken, endToken: endToken);
     seen(data);
   }
 
   @override
   void endInvalidAwaitExpression(
       Token beginToken, Token endToken, MessageCode errorCode) {
-    DirectParserASTContentInvalidAwaitExpressionEnd data =
-        new DirectParserASTContentInvalidAwaitExpressionEnd(
-            DirectParserASTType.END,
-            beginToken: beginToken,
-            endToken: endToken,
-            errorCode: errorCode);
+    InvalidAwaitExpressionEnd data = new InvalidAwaitExpressionEnd(
+        ParserAstType.END,
+        beginToken: beginToken,
+        endToken: endToken,
+        errorCode: errorCode);
     seen(data);
   }
 
   @override
   void beginBlock(Token token, BlockKind blockKind) {
-    DirectParserASTContentBlockBegin data =
-        new DirectParserASTContentBlockBegin(DirectParserASTType.BEGIN,
-            token: token, blockKind: blockKind);
+    BlockBegin data =
+        new BlockBegin(ParserAstType.BEGIN, token: token, blockKind: blockKind);
     seen(data);
   }
 
   @override
   void endBlock(
       int count, Token beginToken, Token endToken, BlockKind blockKind) {
-    DirectParserASTContentBlockEnd data = new DirectParserASTContentBlockEnd(
-        DirectParserASTType.END,
+    BlockEnd data = new BlockEnd(ParserAstType.END,
         count: count,
         beginToken: beginToken,
         endToken: endToken,
@@ -117,473 +105,398 @@ abstract class AbstractDirectParserASTListener implements Listener {
 
   @override
   void handleInvalidTopLevelBlock(Token token) {
-    DirectParserASTContentInvalidTopLevelBlockHandle data =
-        new DirectParserASTContentInvalidTopLevelBlockHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    InvalidTopLevelBlockHandle data =
+        new InvalidTopLevelBlockHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void beginCascade(Token token) {
-    DirectParserASTContentCascadeBegin data =
-        new DirectParserASTContentCascadeBegin(DirectParserASTType.BEGIN,
-            token: token);
+    CascadeBegin data = new CascadeBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endCascade() {
-    DirectParserASTContentCascadeEnd data =
-        new DirectParserASTContentCascadeEnd(DirectParserASTType.END);
+    CascadeEnd data = new CascadeEnd(ParserAstType.END);
     seen(data);
   }
 
   @override
   void beginCaseExpression(Token caseKeyword) {
-    DirectParserASTContentCaseExpressionBegin data =
-        new DirectParserASTContentCaseExpressionBegin(DirectParserASTType.BEGIN,
-            caseKeyword: caseKeyword);
+    CaseExpressionBegin data =
+        new CaseExpressionBegin(ParserAstType.BEGIN, caseKeyword: caseKeyword);
     seen(data);
   }
 
   @override
   void endCaseExpression(Token colon) {
-    DirectParserASTContentCaseExpressionEnd data =
-        new DirectParserASTContentCaseExpressionEnd(DirectParserASTType.END,
-            colon: colon);
+    CaseExpressionEnd data =
+        new CaseExpressionEnd(ParserAstType.END, colon: colon);
     seen(data);
   }
 
   @override
   void beginClassOrMixinOrExtensionBody(DeclarationKind kind, Token token) {
-    DirectParserASTContentClassOrMixinOrExtensionBodyBegin data =
-        new DirectParserASTContentClassOrMixinOrExtensionBodyBegin(
-            DirectParserASTType.BEGIN,
-            kind: kind,
-            token: token);
+    ClassOrMixinOrExtensionBodyBegin data =
+        new ClassOrMixinOrExtensionBodyBegin(ParserAstType.BEGIN,
+            kind: kind, token: token);
     seen(data);
   }
 
   @override
   void endClassOrMixinOrExtensionBody(
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
-    DirectParserASTContentClassOrMixinOrExtensionBodyEnd data =
-        new DirectParserASTContentClassOrMixinOrExtensionBodyEnd(
-            DirectParserASTType.END,
-            kind: kind,
-            memberCount: memberCount,
-            beginToken: beginToken,
-            endToken: endToken);
+    ClassOrMixinOrExtensionBodyEnd data = new ClassOrMixinOrExtensionBodyEnd(
+        ParserAstType.END,
+        kind: kind,
+        memberCount: memberCount,
+        beginToken: beginToken,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void beginClassOrMixinOrNamedMixinApplicationPrelude(Token token) {
-    DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin data =
-        new DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin(
-            DirectParserASTType.BEGIN,
+    ClassOrMixinOrNamedMixinApplicationPreludeBegin data =
+        new ClassOrMixinOrNamedMixinApplicationPreludeBegin(ParserAstType.BEGIN,
             token: token);
     seen(data);
   }
 
   @override
   void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
-    DirectParserASTContentClassDeclarationBegin data =
-        new DirectParserASTContentClassDeclarationBegin(
-            DirectParserASTType.BEGIN,
-            begin: begin,
-            abstractToken: abstractToken,
-            name: name);
+    ClassDeclarationBegin data = new ClassDeclarationBegin(ParserAstType.BEGIN,
+        begin: begin, abstractToken: abstractToken, name: name);
     seen(data);
   }
 
   @override
   void handleClassExtends(Token? extendsKeyword, int typeCount) {
-    DirectParserASTContentClassExtendsHandle data =
-        new DirectParserASTContentClassExtendsHandle(DirectParserASTType.HANDLE,
-            extendsKeyword: extendsKeyword, typeCount: typeCount);
+    ClassExtendsHandle data = new ClassExtendsHandle(ParserAstType.HANDLE,
+        extendsKeyword: extendsKeyword, typeCount: typeCount);
     seen(data);
   }
 
   @override
   void handleClassOrMixinImplements(
       Token? implementsKeyword, int interfacesCount) {
-    DirectParserASTContentClassOrMixinImplementsHandle data =
-        new DirectParserASTContentClassOrMixinImplementsHandle(
-            DirectParserASTType.HANDLE,
-            implementsKeyword: implementsKeyword,
-            interfacesCount: interfacesCount);
+    ClassOrMixinImplementsHandle data = new ClassOrMixinImplementsHandle(
+        ParserAstType.HANDLE,
+        implementsKeyword: implementsKeyword,
+        interfacesCount: interfacesCount);
     seen(data);
   }
 
   @override
   void handleExtensionShowHide(Token? showKeyword, int showElementCount,
       Token? hideKeyword, int hideElementCount) {
-    DirectParserASTContentExtensionShowHideHandle data =
-        new DirectParserASTContentExtensionShowHideHandle(
-            DirectParserASTType.HANDLE,
-            showKeyword: showKeyword,
-            showElementCount: showElementCount,
-            hideKeyword: hideKeyword,
-            hideElementCount: hideElementCount);
+    ExtensionShowHideHandle data = new ExtensionShowHideHandle(
+        ParserAstType.HANDLE,
+        showKeyword: showKeyword,
+        showElementCount: showElementCount,
+        hideKeyword: hideKeyword,
+        hideElementCount: hideElementCount);
     seen(data);
   }
 
   @override
   void handleClassHeader(Token begin, Token classKeyword, Token? nativeToken) {
-    DirectParserASTContentClassHeaderHandle data =
-        new DirectParserASTContentClassHeaderHandle(DirectParserASTType.HANDLE,
-            begin: begin, classKeyword: classKeyword, nativeToken: nativeToken);
+    ClassHeaderHandle data = new ClassHeaderHandle(ParserAstType.HANDLE,
+        begin: begin, classKeyword: classKeyword, nativeToken: nativeToken);
     seen(data);
   }
 
   @override
   void handleRecoverClassHeader() {
-    DirectParserASTContentRecoverClassHeaderHandle data =
-        new DirectParserASTContentRecoverClassHeaderHandle(
-            DirectParserASTType.HANDLE);
+    RecoverClassHeaderHandle data =
+        new RecoverClassHeaderHandle(ParserAstType.HANDLE);
     seen(data);
   }
 
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
-    DirectParserASTContentClassDeclarationEnd data =
-        new DirectParserASTContentClassDeclarationEnd(DirectParserASTType.END,
-            beginToken: beginToken, endToken: endToken);
+    ClassDeclarationEnd data = new ClassDeclarationEnd(ParserAstType.END,
+        beginToken: beginToken, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginMixinDeclaration(Token mixinKeyword, Token name) {
-    DirectParserASTContentMixinDeclarationBegin data =
-        new DirectParserASTContentMixinDeclarationBegin(
-            DirectParserASTType.BEGIN,
-            mixinKeyword: mixinKeyword,
-            name: name);
+    MixinDeclarationBegin data = new MixinDeclarationBegin(ParserAstType.BEGIN,
+        mixinKeyword: mixinKeyword, name: name);
     seen(data);
   }
 
   @override
   void handleMixinOn(Token? onKeyword, int typeCount) {
-    DirectParserASTContentMixinOnHandle data =
-        new DirectParserASTContentMixinOnHandle(DirectParserASTType.HANDLE,
-            onKeyword: onKeyword, typeCount: typeCount);
+    MixinOnHandle data = new MixinOnHandle(ParserAstType.HANDLE,
+        onKeyword: onKeyword, typeCount: typeCount);
     seen(data);
   }
 
   @override
   void handleMixinHeader(Token mixinKeyword) {
-    DirectParserASTContentMixinHeaderHandle data =
-        new DirectParserASTContentMixinHeaderHandle(DirectParserASTType.HANDLE,
-            mixinKeyword: mixinKeyword);
+    MixinHeaderHandle data =
+        new MixinHeaderHandle(ParserAstType.HANDLE, mixinKeyword: mixinKeyword);
     seen(data);
   }
 
   @override
   void handleRecoverMixinHeader() {
-    DirectParserASTContentRecoverMixinHeaderHandle data =
-        new DirectParserASTContentRecoverMixinHeaderHandle(
-            DirectParserASTType.HANDLE);
+    RecoverMixinHeaderHandle data =
+        new RecoverMixinHeaderHandle(ParserAstType.HANDLE);
     seen(data);
   }
 
   @override
   void endMixinDeclaration(Token mixinKeyword, Token endToken) {
-    DirectParserASTContentMixinDeclarationEnd data =
-        new DirectParserASTContentMixinDeclarationEnd(DirectParserASTType.END,
-            mixinKeyword: mixinKeyword, endToken: endToken);
+    MixinDeclarationEnd data = new MixinDeclarationEnd(ParserAstType.END,
+        mixinKeyword: mixinKeyword, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginUncategorizedTopLevelDeclaration(Token token) {
-    DirectParserASTContentUncategorizedTopLevelDeclarationBegin data =
-        new DirectParserASTContentUncategorizedTopLevelDeclarationBegin(
-            DirectParserASTType.BEGIN,
+    UncategorizedTopLevelDeclarationBegin data =
+        new UncategorizedTopLevelDeclarationBegin(ParserAstType.BEGIN,
             token: token);
     seen(data);
   }
 
   @override
   void beginExtensionDeclarationPrelude(Token extensionKeyword) {
-    DirectParserASTContentExtensionDeclarationPreludeBegin data =
-        new DirectParserASTContentExtensionDeclarationPreludeBegin(
-            DirectParserASTType.BEGIN,
+    ExtensionDeclarationPreludeBegin data =
+        new ExtensionDeclarationPreludeBegin(ParserAstType.BEGIN,
             extensionKeyword: extensionKeyword);
     seen(data);
   }
 
   @override
   void beginExtensionDeclaration(Token extensionKeyword, Token? name) {
-    DirectParserASTContentExtensionDeclarationBegin data =
-        new DirectParserASTContentExtensionDeclarationBegin(
-            DirectParserASTType.BEGIN,
-            extensionKeyword: extensionKeyword,
-            name: name);
+    ExtensionDeclarationBegin data = new ExtensionDeclarationBegin(
+        ParserAstType.BEGIN,
+        extensionKeyword: extensionKeyword,
+        name: name);
     seen(data);
   }
 
   @override
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
       Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
-    DirectParserASTContentExtensionDeclarationEnd data =
-        new DirectParserASTContentExtensionDeclarationEnd(
-            DirectParserASTType.END,
-            extensionKeyword: extensionKeyword,
-            typeKeyword: typeKeyword,
-            onKeyword: onKeyword,
-            showKeyword: showKeyword,
-            hideKeyword: hideKeyword,
-            endToken: endToken);
+    ExtensionDeclarationEnd data = new ExtensionDeclarationEnd(
+        ParserAstType.END,
+        extensionKeyword: extensionKeyword,
+        typeKeyword: typeKeyword,
+        onKeyword: onKeyword,
+        showKeyword: showKeyword,
+        hideKeyword: hideKeyword,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void beginCombinators(Token token) {
-    DirectParserASTContentCombinatorsBegin data =
-        new DirectParserASTContentCombinatorsBegin(DirectParserASTType.BEGIN,
-            token: token);
+    CombinatorsBegin data =
+        new CombinatorsBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endCombinators(int count) {
-    DirectParserASTContentCombinatorsEnd data =
-        new DirectParserASTContentCombinatorsEnd(DirectParserASTType.END,
-            count: count);
+    CombinatorsEnd data = new CombinatorsEnd(ParserAstType.END, count: count);
     seen(data);
   }
 
   @override
   void beginCompilationUnit(Token token) {
-    DirectParserASTContentCompilationUnitBegin data =
-        new DirectParserASTContentCompilationUnitBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    CompilationUnitBegin data =
+        new CompilationUnitBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void handleDirectivesOnly() {
-    DirectParserASTContentDirectivesOnlyHandle data =
-        new DirectParserASTContentDirectivesOnlyHandle(
-            DirectParserASTType.HANDLE);
+    DirectivesOnlyHandle data = new DirectivesOnlyHandle(ParserAstType.HANDLE);
     seen(data);
   }
 
   @override
   void endCompilationUnit(int count, Token token) {
-    DirectParserASTContentCompilationUnitEnd data =
-        new DirectParserASTContentCompilationUnitEnd(DirectParserASTType.END,
-            count: count, token: token);
+    CompilationUnitEnd data =
+        new CompilationUnitEnd(ParserAstType.END, count: count, token: token);
     seen(data);
   }
 
   @override
   void beginConstLiteral(Token token) {
-    DirectParserASTContentConstLiteralBegin data =
-        new DirectParserASTContentConstLiteralBegin(DirectParserASTType.BEGIN,
-            token: token);
+    ConstLiteralBegin data =
+        new ConstLiteralBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endConstLiteral(Token token) {
-    DirectParserASTContentConstLiteralEnd data =
-        new DirectParserASTContentConstLiteralEnd(DirectParserASTType.END,
-            token: token);
+    ConstLiteralEnd data = new ConstLiteralEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void beginConstructorReference(Token start) {
-    DirectParserASTContentConstructorReferenceBegin data =
-        new DirectParserASTContentConstructorReferenceBegin(
-            DirectParserASTType.BEGIN,
-            start: start);
+    ConstructorReferenceBegin data =
+        new ConstructorReferenceBegin(ParserAstType.BEGIN, start: start);
     seen(data);
   }
 
   @override
   void endConstructorReference(Token start, Token? periodBeforeName,
       Token endToken, ConstructorReferenceContext constructorReferenceContext) {
-    DirectParserASTContentConstructorReferenceEnd data =
-        new DirectParserASTContentConstructorReferenceEnd(
-            DirectParserASTType.END,
-            start: start,
-            periodBeforeName: periodBeforeName,
-            endToken: endToken,
-            constructorReferenceContext: constructorReferenceContext);
+    ConstructorReferenceEnd data = new ConstructorReferenceEnd(
+        ParserAstType.END,
+        start: start,
+        periodBeforeName: periodBeforeName,
+        endToken: endToken,
+        constructorReferenceContext: constructorReferenceContext);
     seen(data);
   }
 
   @override
   void beginDoWhileStatement(Token token) {
-    DirectParserASTContentDoWhileStatementBegin data =
-        new DirectParserASTContentDoWhileStatementBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    DoWhileStatementBegin data =
+        new DoWhileStatementBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endDoWhileStatement(
       Token doKeyword, Token whileKeyword, Token endToken) {
-    DirectParserASTContentDoWhileStatementEnd data =
-        new DirectParserASTContentDoWhileStatementEnd(DirectParserASTType.END,
-            doKeyword: doKeyword,
-            whileKeyword: whileKeyword,
-            endToken: endToken);
+    DoWhileStatementEnd data = new DoWhileStatementEnd(ParserAstType.END,
+        doKeyword: doKeyword, whileKeyword: whileKeyword, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginDoWhileStatementBody(Token token) {
-    DirectParserASTContentDoWhileStatementBodyBegin data =
-        new DirectParserASTContentDoWhileStatementBodyBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    DoWhileStatementBodyBegin data =
+        new DoWhileStatementBodyBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endDoWhileStatementBody(Token token) {
-    DirectParserASTContentDoWhileStatementBodyEnd data =
-        new DirectParserASTContentDoWhileStatementBodyEnd(
-            DirectParserASTType.END,
-            token: token);
+    DoWhileStatementBodyEnd data =
+        new DoWhileStatementBodyEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void beginWhileStatementBody(Token token) {
-    DirectParserASTContentWhileStatementBodyBegin data =
-        new DirectParserASTContentWhileStatementBodyBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    WhileStatementBodyBegin data =
+        new WhileStatementBodyBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endWhileStatementBody(Token token) {
-    DirectParserASTContentWhileStatementBodyEnd data =
-        new DirectParserASTContentWhileStatementBodyEnd(DirectParserASTType.END,
-            token: token);
+    WhileStatementBodyEnd data =
+        new WhileStatementBodyEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void beginEnum(Token enumKeyword) {
-    DirectParserASTContentEnumBegin data = new DirectParserASTContentEnumBegin(
-        DirectParserASTType.BEGIN,
-        enumKeyword: enumKeyword);
+    EnumBegin data =
+        new EnumBegin(ParserAstType.BEGIN, enumKeyword: enumKeyword);
     seen(data);
   }
 
   @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
-    DirectParserASTContentEnumEnd data = new DirectParserASTContentEnumEnd(
-        DirectParserASTType.END,
-        enumKeyword: enumKeyword,
-        leftBrace: leftBrace,
-        count: count);
+    EnumEnd data = new EnumEnd(ParserAstType.END,
+        enumKeyword: enumKeyword, leftBrace: leftBrace, count: count);
     seen(data);
   }
 
   @override
   void beginExport(Token token) {
-    DirectParserASTContentExportBegin data =
-        new DirectParserASTContentExportBegin(DirectParserASTType.BEGIN,
-            token: token);
+    ExportBegin data = new ExportBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endExport(Token exportKeyword, Token semicolon) {
-    DirectParserASTContentExportEnd data = new DirectParserASTContentExportEnd(
-        DirectParserASTType.END,
-        exportKeyword: exportKeyword,
-        semicolon: semicolon);
+    ExportEnd data = new ExportEnd(ParserAstType.END,
+        exportKeyword: exportKeyword, semicolon: semicolon);
     seen(data);
   }
 
   @override
   void handleExtraneousExpression(Token token, Message message) {
-    DirectParserASTContentExtraneousExpressionHandle data =
-        new DirectParserASTContentExtraneousExpressionHandle(
-            DirectParserASTType.HANDLE,
-            token: token,
-            message: message);
+    ExtraneousExpressionHandle data = new ExtraneousExpressionHandle(
+        ParserAstType.HANDLE,
+        token: token,
+        message: message);
     seen(data);
   }
 
   @override
   void handleExpressionStatement(Token token) {
-    DirectParserASTContentExpressionStatementHandle data =
-        new DirectParserASTContentExpressionStatementHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    ExpressionStatementHandle data =
+        new ExpressionStatementHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void beginFactoryMethod(DeclarationKind declarationKind, Token lastConsumed,
       Token? externalToken, Token? constToken) {
-    DirectParserASTContentFactoryMethodBegin data =
-        new DirectParserASTContentFactoryMethodBegin(DirectParserASTType.BEGIN,
-            declarationKind: declarationKind,
-            lastConsumed: lastConsumed,
-            externalToken: externalToken,
-            constToken: constToken);
+    FactoryMethodBegin data = new FactoryMethodBegin(ParserAstType.BEGIN,
+        declarationKind: declarationKind,
+        lastConsumed: lastConsumed,
+        externalToken: externalToken,
+        constToken: constToken);
     seen(data);
   }
 
   @override
   void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    DirectParserASTContentClassFactoryMethodEnd data =
-        new DirectParserASTContentClassFactoryMethodEnd(DirectParserASTType.END,
-            beginToken: beginToken,
-            factoryKeyword: factoryKeyword,
-            endToken: endToken);
+    ClassFactoryMethodEnd data = new ClassFactoryMethodEnd(ParserAstType.END,
+        beginToken: beginToken,
+        factoryKeyword: factoryKeyword,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void endMixinFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    DirectParserASTContentMixinFactoryMethodEnd data =
-        new DirectParserASTContentMixinFactoryMethodEnd(DirectParserASTType.END,
-            beginToken: beginToken,
-            factoryKeyword: factoryKeyword,
-            endToken: endToken);
+    MixinFactoryMethodEnd data = new MixinFactoryMethodEnd(ParserAstType.END,
+        beginToken: beginToken,
+        factoryKeyword: factoryKeyword,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void endExtensionFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    DirectParserASTContentExtensionFactoryMethodEnd data =
-        new DirectParserASTContentExtensionFactoryMethodEnd(
-            DirectParserASTType.END,
-            beginToken: beginToken,
-            factoryKeyword: factoryKeyword,
-            endToken: endToken);
+    ExtensionFactoryMethodEnd data = new ExtensionFactoryMethodEnd(
+        ParserAstType.END,
+        beginToken: beginToken,
+        factoryKeyword: factoryKeyword,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
       Token? covariantToken, Token? varFinalOrConst) {
-    DirectParserASTContentFormalParameterBegin data =
-        new DirectParserASTContentFormalParameterBegin(
-            DirectParserASTType.BEGIN,
-            token: token,
-            kind: kind,
-            requiredToken: requiredToken,
-            covariantToken: covariantToken,
-            varFinalOrConst: varFinalOrConst);
+    FormalParameterBegin data = new FormalParameterBegin(ParserAstType.BEGIN,
+        token: token,
+        kind: kind,
+        requiredToken: requiredToken,
+        covariantToken: covariantToken,
+        varFinalOrConst: varFinalOrConst);
     seen(data);
   }
 
@@ -597,48 +510,39 @@ abstract class AbstractDirectParserASTListener implements Listener {
       Token? initializerEnd,
       FormalParameterKind kind,
       MemberKind memberKind) {
-    DirectParserASTContentFormalParameterEnd data =
-        new DirectParserASTContentFormalParameterEnd(DirectParserASTType.END,
-            thisKeyword: thisKeyword,
-            superKeyword: superKeyword,
-            periodAfterThisOrSuper: periodAfterThisOrSuper,
-            nameToken: nameToken,
-            initializerStart: initializerStart,
-            initializerEnd: initializerEnd,
-            kind: kind,
-            memberKind: memberKind);
+    FormalParameterEnd data = new FormalParameterEnd(ParserAstType.END,
+        thisKeyword: thisKeyword,
+        superKeyword: superKeyword,
+        periodAfterThisOrSuper: periodAfterThisOrSuper,
+        nameToken: nameToken,
+        initializerStart: initializerStart,
+        initializerEnd: initializerEnd,
+        kind: kind,
+        memberKind: memberKind);
     seen(data);
   }
 
   @override
   void handleNoFormalParameters(Token token, MemberKind kind) {
-    DirectParserASTContentNoFormalParametersHandle data =
-        new DirectParserASTContentNoFormalParametersHandle(
-            DirectParserASTType.HANDLE,
-            token: token,
-            kind: kind);
+    NoFormalParametersHandle data = new NoFormalParametersHandle(
+        ParserAstType.HANDLE,
+        token: token,
+        kind: kind);
     seen(data);
   }
 
   @override
   void beginFormalParameters(Token token, MemberKind kind) {
-    DirectParserASTContentFormalParametersBegin data =
-        new DirectParserASTContentFormalParametersBegin(
-            DirectParserASTType.BEGIN,
-            token: token,
-            kind: kind);
+    FormalParametersBegin data = new FormalParametersBegin(ParserAstType.BEGIN,
+        token: token, kind: kind);
     seen(data);
   }
 
   @override
   void endFormalParameters(
       int count, Token beginToken, Token endToken, MemberKind kind) {
-    DirectParserASTContentFormalParametersEnd data =
-        new DirectParserASTContentFormalParametersEnd(DirectParserASTType.END,
-            count: count,
-            beginToken: beginToken,
-            endToken: endToken,
-            kind: kind);
+    FormalParametersEnd data = new FormalParametersEnd(ParserAstType.END,
+        count: count, beginToken: beginToken, endToken: endToken, kind: kind);
     seen(data);
   }
 
@@ -653,17 +557,16 @@ abstract class AbstractDirectParserASTListener implements Listener {
       int count,
       Token beginToken,
       Token endToken) {
-    DirectParserASTContentClassFieldsEnd data =
-        new DirectParserASTContentClassFieldsEnd(DirectParserASTType.END,
-            abstractToken: abstractToken,
-            externalToken: externalToken,
-            staticToken: staticToken,
-            covariantToken: covariantToken,
-            lateToken: lateToken,
-            varFinalOrConst: varFinalOrConst,
-            count: count,
-            beginToken: beginToken,
-            endToken: endToken);
+    ClassFieldsEnd data = new ClassFieldsEnd(ParserAstType.END,
+        abstractToken: abstractToken,
+        externalToken: externalToken,
+        staticToken: staticToken,
+        covariantToken: covariantToken,
+        lateToken: lateToken,
+        varFinalOrConst: varFinalOrConst,
+        count: count,
+        beginToken: beginToken,
+        endToken: endToken);
     seen(data);
   }
 
@@ -678,17 +581,16 @@ abstract class AbstractDirectParserASTListener implements Listener {
       int count,
       Token beginToken,
       Token endToken) {
-    DirectParserASTContentMixinFieldsEnd data =
-        new DirectParserASTContentMixinFieldsEnd(DirectParserASTType.END,
-            abstractToken: abstractToken,
-            externalToken: externalToken,
-            staticToken: staticToken,
-            covariantToken: covariantToken,
-            lateToken: lateToken,
-            varFinalOrConst: varFinalOrConst,
-            count: count,
-            beginToken: beginToken,
-            endToken: endToken);
+    MixinFieldsEnd data = new MixinFieldsEnd(ParserAstType.END,
+        abstractToken: abstractToken,
+        externalToken: externalToken,
+        staticToken: staticToken,
+        covariantToken: covariantToken,
+        lateToken: lateToken,
+        varFinalOrConst: varFinalOrConst,
+        count: count,
+        beginToken: beginToken,
+        endToken: endToken);
     seen(data);
   }
 
@@ -703,286 +605,239 @@ abstract class AbstractDirectParserASTListener implements Listener {
       int count,
       Token beginToken,
       Token endToken) {
-    DirectParserASTContentExtensionFieldsEnd data =
-        new DirectParserASTContentExtensionFieldsEnd(DirectParserASTType.END,
-            abstractToken: abstractToken,
-            externalToken: externalToken,
-            staticToken: staticToken,
-            covariantToken: covariantToken,
-            lateToken: lateToken,
-            varFinalOrConst: varFinalOrConst,
-            count: count,
-            beginToken: beginToken,
-            endToken: endToken);
+    ExtensionFieldsEnd data = new ExtensionFieldsEnd(ParserAstType.END,
+        abstractToken: abstractToken,
+        externalToken: externalToken,
+        staticToken: staticToken,
+        covariantToken: covariantToken,
+        lateToken: lateToken,
+        varFinalOrConst: varFinalOrConst,
+        count: count,
+        beginToken: beginToken,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void handleForInitializerEmptyStatement(Token token) {
-    DirectParserASTContentForInitializerEmptyStatementHandle data =
-        new DirectParserASTContentForInitializerEmptyStatementHandle(
-            DirectParserASTType.HANDLE,
+    ForInitializerEmptyStatementHandle data =
+        new ForInitializerEmptyStatementHandle(ParserAstType.HANDLE,
             token: token);
     seen(data);
   }
 
   @override
   void handleForInitializerExpressionStatement(Token token, bool forIn) {
-    DirectParserASTContentForInitializerExpressionStatementHandle data =
-        new DirectParserASTContentForInitializerExpressionStatementHandle(
-            DirectParserASTType.HANDLE,
-            token: token,
-            forIn: forIn);
+    ForInitializerExpressionStatementHandle data =
+        new ForInitializerExpressionStatementHandle(ParserAstType.HANDLE,
+            token: token, forIn: forIn);
     seen(data);
   }
 
   @override
   void handleForInitializerLocalVariableDeclaration(Token token, bool forIn) {
-    DirectParserASTContentForInitializerLocalVariableDeclarationHandle data =
-        new DirectParserASTContentForInitializerLocalVariableDeclarationHandle(
-            DirectParserASTType.HANDLE,
-            token: token,
-            forIn: forIn);
+    ForInitializerLocalVariableDeclarationHandle data =
+        new ForInitializerLocalVariableDeclarationHandle(ParserAstType.HANDLE,
+            token: token, forIn: forIn);
     seen(data);
   }
 
   @override
   void beginForStatement(Token token) {
-    DirectParserASTContentForStatementBegin data =
-        new DirectParserASTContentForStatementBegin(DirectParserASTType.BEGIN,
-            token: token);
+    ForStatementBegin data =
+        new ForStatementBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void handleForLoopParts(Token forKeyword, Token leftParen,
       Token leftSeparator, int updateExpressionCount) {
-    DirectParserASTContentForLoopPartsHandle data =
-        new DirectParserASTContentForLoopPartsHandle(DirectParserASTType.HANDLE,
-            forKeyword: forKeyword,
-            leftParen: leftParen,
-            leftSeparator: leftSeparator,
-            updateExpressionCount: updateExpressionCount);
+    ForLoopPartsHandle data = new ForLoopPartsHandle(ParserAstType.HANDLE,
+        forKeyword: forKeyword,
+        leftParen: leftParen,
+        leftSeparator: leftSeparator,
+        updateExpressionCount: updateExpressionCount);
     seen(data);
   }
 
   @override
   void endForStatement(Token endToken) {
-    DirectParserASTContentForStatementEnd data =
-        new DirectParserASTContentForStatementEnd(DirectParserASTType.END,
-            endToken: endToken);
+    ForStatementEnd data =
+        new ForStatementEnd(ParserAstType.END, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginForStatementBody(Token token) {
-    DirectParserASTContentForStatementBodyBegin data =
-        new DirectParserASTContentForStatementBodyBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    ForStatementBodyBegin data =
+        new ForStatementBodyBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endForStatementBody(Token token) {
-    DirectParserASTContentForStatementBodyEnd data =
-        new DirectParserASTContentForStatementBodyEnd(DirectParserASTType.END,
-            token: token);
+    ForStatementBodyEnd data =
+        new ForStatementBodyEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
       Token leftParenthesis, Token inKeyword) {
-    DirectParserASTContentForInLoopPartsHandle data =
-        new DirectParserASTContentForInLoopPartsHandle(
-            DirectParserASTType.HANDLE,
-            awaitToken: awaitToken,
-            forToken: forToken,
-            leftParenthesis: leftParenthesis,
-            inKeyword: inKeyword);
+    ForInLoopPartsHandle data = new ForInLoopPartsHandle(ParserAstType.HANDLE,
+        awaitToken: awaitToken,
+        forToken: forToken,
+        leftParenthesis: leftParenthesis,
+        inKeyword: inKeyword);
     seen(data);
   }
 
   @override
   void endForIn(Token endToken) {
-    DirectParserASTContentForInEnd data = new DirectParserASTContentForInEnd(
-        DirectParserASTType.END,
-        endToken: endToken);
+    ForInEnd data = new ForInEnd(ParserAstType.END, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginForInExpression(Token token) {
-    DirectParserASTContentForInExpressionBegin data =
-        new DirectParserASTContentForInExpressionBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    ForInExpressionBegin data =
+        new ForInExpressionBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endForInExpression(Token token) {
-    DirectParserASTContentForInExpressionEnd data =
-        new DirectParserASTContentForInExpressionEnd(DirectParserASTType.END,
-            token: token);
+    ForInExpressionEnd data =
+        new ForInExpressionEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void beginForInBody(Token token) {
-    DirectParserASTContentForInBodyBegin data =
-        new DirectParserASTContentForInBodyBegin(DirectParserASTType.BEGIN,
-            token: token);
+    ForInBodyBegin data = new ForInBodyBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endForInBody(Token token) {
-    DirectParserASTContentForInBodyEnd data =
-        new DirectParserASTContentForInBodyEnd(DirectParserASTType.END,
-            token: token);
+    ForInBodyEnd data = new ForInBodyEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void beginNamedFunctionExpression(Token token) {
-    DirectParserASTContentNamedFunctionExpressionBegin data =
-        new DirectParserASTContentNamedFunctionExpressionBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    NamedFunctionExpressionBegin data =
+        new NamedFunctionExpressionBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endNamedFunctionExpression(Token endToken) {
-    DirectParserASTContentNamedFunctionExpressionEnd data =
-        new DirectParserASTContentNamedFunctionExpressionEnd(
-            DirectParserASTType.END,
-            endToken: endToken);
+    NamedFunctionExpressionEnd data =
+        new NamedFunctionExpressionEnd(ParserAstType.END, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginLocalFunctionDeclaration(Token token) {
-    DirectParserASTContentLocalFunctionDeclarationBegin data =
-        new DirectParserASTContentLocalFunctionDeclarationBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    LocalFunctionDeclarationBegin data =
+        new LocalFunctionDeclarationBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endLocalFunctionDeclaration(Token endToken) {
-    DirectParserASTContentLocalFunctionDeclarationEnd data =
-        new DirectParserASTContentLocalFunctionDeclarationEnd(
-            DirectParserASTType.END,
-            endToken: endToken);
+    LocalFunctionDeclarationEnd data =
+        new LocalFunctionDeclarationEnd(ParserAstType.END, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginBlockFunctionBody(Token token) {
-    DirectParserASTContentBlockFunctionBodyBegin data =
-        new DirectParserASTContentBlockFunctionBodyBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    BlockFunctionBodyBegin data =
+        new BlockFunctionBodyBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endBlockFunctionBody(int count, Token beginToken, Token endToken) {
-    DirectParserASTContentBlockFunctionBodyEnd data =
-        new DirectParserASTContentBlockFunctionBodyEnd(DirectParserASTType.END,
-            count: count, beginToken: beginToken, endToken: endToken);
+    BlockFunctionBodyEnd data = new BlockFunctionBodyEnd(ParserAstType.END,
+        count: count, beginToken: beginToken, endToken: endToken);
     seen(data);
   }
 
   @override
   void handleNoFunctionBody(Token token) {
-    DirectParserASTContentNoFunctionBodyHandle data =
-        new DirectParserASTContentNoFunctionBodyHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    NoFunctionBodyHandle data =
+        new NoFunctionBodyHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
-    DirectParserASTContentFunctionBodySkippedHandle data =
-        new DirectParserASTContentFunctionBodySkippedHandle(
-            DirectParserASTType.HANDLE,
-            token: token,
-            isExpressionBody: isExpressionBody);
+    FunctionBodySkippedHandle data = new FunctionBodySkippedHandle(
+        ParserAstType.HANDLE,
+        token: token,
+        isExpressionBody: isExpressionBody);
     seen(data);
   }
 
   @override
   void beginFunctionName(Token token) {
-    DirectParserASTContentFunctionNameBegin data =
-        new DirectParserASTContentFunctionNameBegin(DirectParserASTType.BEGIN,
-            token: token);
+    FunctionNameBegin data =
+        new FunctionNameBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endFunctionName(Token beginToken, Token token) {
-    DirectParserASTContentFunctionNameEnd data =
-        new DirectParserASTContentFunctionNameEnd(DirectParserASTType.END,
-            beginToken: beginToken, token: token);
+    FunctionNameEnd data = new FunctionNameEnd(ParserAstType.END,
+        beginToken: beginToken, token: token);
     seen(data);
   }
 
   @override
   void beginTypedef(Token token) {
-    DirectParserASTContentTypedefBegin data =
-        new DirectParserASTContentTypedefBegin(DirectParserASTType.BEGIN,
-            token: token);
+    TypedefBegin data = new TypedefBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
-    DirectParserASTContentTypedefEnd data =
-        new DirectParserASTContentTypedefEnd(DirectParserASTType.END,
-            typedefKeyword: typedefKeyword, equals: equals, endToken: endToken);
+    TypedefEnd data = new TypedefEnd(ParserAstType.END,
+        typedefKeyword: typedefKeyword, equals: equals, endToken: endToken);
     seen(data);
   }
 
   @override
   void handleClassWithClause(Token withKeyword) {
-    DirectParserASTContentClassWithClauseHandle data =
-        new DirectParserASTContentClassWithClauseHandle(
-            DirectParserASTType.HANDLE,
-            withKeyword: withKeyword);
+    ClassWithClauseHandle data = new ClassWithClauseHandle(ParserAstType.HANDLE,
+        withKeyword: withKeyword);
     seen(data);
   }
 
   @override
   void handleClassNoWithClause() {
-    DirectParserASTContentClassNoWithClauseHandle data =
-        new DirectParserASTContentClassNoWithClauseHandle(
-            DirectParserASTType.HANDLE);
+    ClassNoWithClauseHandle data =
+        new ClassNoWithClauseHandle(ParserAstType.HANDLE);
     seen(data);
   }
 
   @override
   void beginNamedMixinApplication(
       Token begin, Token? abstractToken, Token name) {
-    DirectParserASTContentNamedMixinApplicationBegin data =
-        new DirectParserASTContentNamedMixinApplicationBegin(
-            DirectParserASTType.BEGIN,
-            begin: begin,
-            abstractToken: abstractToken,
-            name: name);
+    NamedMixinApplicationBegin data = new NamedMixinApplicationBegin(
+        ParserAstType.BEGIN,
+        begin: begin,
+        abstractToken: abstractToken,
+        name: name);
     seen(data);
   }
 
   @override
   void handleNamedMixinApplicationWithClause(Token withKeyword) {
-    DirectParserASTContentNamedMixinApplicationWithClauseHandle data =
-        new DirectParserASTContentNamedMixinApplicationWithClauseHandle(
-            DirectParserASTType.HANDLE,
+    NamedMixinApplicationWithClauseHandle data =
+        new NamedMixinApplicationWithClauseHandle(ParserAstType.HANDLE,
             withKeyword: withKeyword);
     seen(data);
   }
@@ -990,446 +845,368 @@ abstract class AbstractDirectParserASTListener implements Listener {
   @override
   void endNamedMixinApplication(Token begin, Token classKeyword, Token equals,
       Token? implementsKeyword, Token endToken) {
-    DirectParserASTContentNamedMixinApplicationEnd data =
-        new DirectParserASTContentNamedMixinApplicationEnd(
-            DirectParserASTType.END,
-            begin: begin,
-            classKeyword: classKeyword,
-            equals: equals,
-            implementsKeyword: implementsKeyword,
-            endToken: endToken);
+    NamedMixinApplicationEnd data = new NamedMixinApplicationEnd(
+        ParserAstType.END,
+        begin: begin,
+        classKeyword: classKeyword,
+        equals: equals,
+        implementsKeyword: implementsKeyword,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void beginHide(Token hideKeyword) {
-    DirectParserASTContentHideBegin data = new DirectParserASTContentHideBegin(
-        DirectParserASTType.BEGIN,
-        hideKeyword: hideKeyword);
+    HideBegin data =
+        new HideBegin(ParserAstType.BEGIN, hideKeyword: hideKeyword);
     seen(data);
   }
 
   @override
   void endHide(Token hideKeyword) {
-    DirectParserASTContentHideEnd data = new DirectParserASTContentHideEnd(
-        DirectParserASTType.END,
-        hideKeyword: hideKeyword);
+    HideEnd data = new HideEnd(ParserAstType.END, hideKeyword: hideKeyword);
     seen(data);
   }
 
   @override
   void handleIdentifierList(int count) {
-    DirectParserASTContentIdentifierListHandle data =
-        new DirectParserASTContentIdentifierListHandle(
-            DirectParserASTType.HANDLE,
-            count: count);
+    IdentifierListHandle data =
+        new IdentifierListHandle(ParserAstType.HANDLE, count: count);
     seen(data);
   }
 
   @override
   void beginTypeList(Token token) {
-    DirectParserASTContentTypeListBegin data =
-        new DirectParserASTContentTypeListBegin(DirectParserASTType.BEGIN,
-            token: token);
+    TypeListBegin data = new TypeListBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endTypeList(int count) {
-    DirectParserASTContentTypeListEnd data =
-        new DirectParserASTContentTypeListEnd(DirectParserASTType.END,
-            count: count);
+    TypeListEnd data = new TypeListEnd(ParserAstType.END, count: count);
     seen(data);
   }
 
   @override
   void beginIfStatement(Token token) {
-    DirectParserASTContentIfStatementBegin data =
-        new DirectParserASTContentIfStatementBegin(DirectParserASTType.BEGIN,
-            token: token);
+    IfStatementBegin data =
+        new IfStatementBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endIfStatement(Token ifToken, Token? elseToken) {
-    DirectParserASTContentIfStatementEnd data =
-        new DirectParserASTContentIfStatementEnd(DirectParserASTType.END,
-            ifToken: ifToken, elseToken: elseToken);
+    IfStatementEnd data = new IfStatementEnd(ParserAstType.END,
+        ifToken: ifToken, elseToken: elseToken);
     seen(data);
   }
 
   @override
   void beginThenStatement(Token token) {
-    DirectParserASTContentThenStatementBegin data =
-        new DirectParserASTContentThenStatementBegin(DirectParserASTType.BEGIN,
-            token: token);
+    ThenStatementBegin data =
+        new ThenStatementBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endThenStatement(Token token) {
-    DirectParserASTContentThenStatementEnd data =
-        new DirectParserASTContentThenStatementEnd(DirectParserASTType.END,
-            token: token);
+    ThenStatementEnd data =
+        new ThenStatementEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void beginElseStatement(Token token) {
-    DirectParserASTContentElseStatementBegin data =
-        new DirectParserASTContentElseStatementBegin(DirectParserASTType.BEGIN,
-            token: token);
+    ElseStatementBegin data =
+        new ElseStatementBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endElseStatement(Token token) {
-    DirectParserASTContentElseStatementEnd data =
-        new DirectParserASTContentElseStatementEnd(DirectParserASTType.END,
-            token: token);
+    ElseStatementEnd data =
+        new ElseStatementEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void beginImport(Token importKeyword) {
-    DirectParserASTContentImportBegin data =
-        new DirectParserASTContentImportBegin(DirectParserASTType.BEGIN,
-            importKeyword: importKeyword);
+    ImportBegin data =
+        new ImportBegin(ParserAstType.BEGIN, importKeyword: importKeyword);
     seen(data);
   }
 
   @override
   void handleImportPrefix(Token? deferredKeyword, Token? asKeyword) {
-    DirectParserASTContentImportPrefixHandle data =
-        new DirectParserASTContentImportPrefixHandle(DirectParserASTType.HANDLE,
-            deferredKeyword: deferredKeyword, asKeyword: asKeyword);
+    ImportPrefixHandle data = new ImportPrefixHandle(ParserAstType.HANDLE,
+        deferredKeyword: deferredKeyword, asKeyword: asKeyword);
     seen(data);
   }
 
   @override
   void endImport(Token importKeyword, Token? semicolon) {
-    DirectParserASTContentImportEnd data = new DirectParserASTContentImportEnd(
-        DirectParserASTType.END,
-        importKeyword: importKeyword,
-        semicolon: semicolon);
+    ImportEnd data = new ImportEnd(ParserAstType.END,
+        importKeyword: importKeyword, semicolon: semicolon);
     seen(data);
   }
 
   @override
   void handleRecoverImport(Token? semicolon) {
-    DirectParserASTContentRecoverImportHandle data =
-        new DirectParserASTContentRecoverImportHandle(
-            DirectParserASTType.HANDLE,
-            semicolon: semicolon);
+    RecoverImportHandle data =
+        new RecoverImportHandle(ParserAstType.HANDLE, semicolon: semicolon);
     seen(data);
   }
 
   @override
   void beginConditionalUris(Token token) {
-    DirectParserASTContentConditionalUrisBegin data =
-        new DirectParserASTContentConditionalUrisBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    ConditionalUrisBegin data =
+        new ConditionalUrisBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endConditionalUris(int count) {
-    DirectParserASTContentConditionalUrisEnd data =
-        new DirectParserASTContentConditionalUrisEnd(DirectParserASTType.END,
-            count: count);
+    ConditionalUrisEnd data =
+        new ConditionalUrisEnd(ParserAstType.END, count: count);
     seen(data);
   }
 
   @override
   void beginConditionalUri(Token ifKeyword) {
-    DirectParserASTContentConditionalUriBegin data =
-        new DirectParserASTContentConditionalUriBegin(DirectParserASTType.BEGIN,
-            ifKeyword: ifKeyword);
+    ConditionalUriBegin data =
+        new ConditionalUriBegin(ParserAstType.BEGIN, ifKeyword: ifKeyword);
     seen(data);
   }
 
   @override
   void endConditionalUri(Token ifKeyword, Token leftParen, Token? equalSign) {
-    DirectParserASTContentConditionalUriEnd data =
-        new DirectParserASTContentConditionalUriEnd(DirectParserASTType.END,
-            ifKeyword: ifKeyword, leftParen: leftParen, equalSign: equalSign);
+    ConditionalUriEnd data = new ConditionalUriEnd(ParserAstType.END,
+        ifKeyword: ifKeyword, leftParen: leftParen, equalSign: equalSign);
     seen(data);
   }
 
   @override
   void handleDottedName(int count, Token firstIdentifier) {
-    DirectParserASTContentDottedNameHandle data =
-        new DirectParserASTContentDottedNameHandle(DirectParserASTType.HANDLE,
-            count: count, firstIdentifier: firstIdentifier);
+    DottedNameHandle data = new DottedNameHandle(ParserAstType.HANDLE,
+        count: count, firstIdentifier: firstIdentifier);
     seen(data);
   }
 
   @override
   void beginImplicitCreationExpression(Token token) {
-    DirectParserASTContentImplicitCreationExpressionBegin data =
-        new DirectParserASTContentImplicitCreationExpressionBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    ImplicitCreationExpressionBegin data =
+        new ImplicitCreationExpressionBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endImplicitCreationExpression(Token token, Token openAngleBracket) {
-    DirectParserASTContentImplicitCreationExpressionEnd data =
-        new DirectParserASTContentImplicitCreationExpressionEnd(
-            DirectParserASTType.END,
-            token: token,
-            openAngleBracket: openAngleBracket);
+    ImplicitCreationExpressionEnd data = new ImplicitCreationExpressionEnd(
+        ParserAstType.END,
+        token: token,
+        openAngleBracket: openAngleBracket);
     seen(data);
   }
 
   @override
   void beginInitializedIdentifier(Token token) {
-    DirectParserASTContentInitializedIdentifierBegin data =
-        new DirectParserASTContentInitializedIdentifierBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    InitializedIdentifierBegin data =
+        new InitializedIdentifierBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endInitializedIdentifier(Token nameToken) {
-    DirectParserASTContentInitializedIdentifierEnd data =
-        new DirectParserASTContentInitializedIdentifierEnd(
-            DirectParserASTType.END,
-            nameToken: nameToken);
+    InitializedIdentifierEnd data =
+        new InitializedIdentifierEnd(ParserAstType.END, nameToken: nameToken);
     seen(data);
   }
 
   @override
   void beginFieldInitializer(Token token) {
-    DirectParserASTContentFieldInitializerBegin data =
-        new DirectParserASTContentFieldInitializerBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    FieldInitializerBegin data =
+        new FieldInitializerBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endFieldInitializer(Token assignment, Token token) {
-    DirectParserASTContentFieldInitializerEnd data =
-        new DirectParserASTContentFieldInitializerEnd(DirectParserASTType.END,
-            assignment: assignment, token: token);
+    FieldInitializerEnd data = new FieldInitializerEnd(ParserAstType.END,
+        assignment: assignment, token: token);
     seen(data);
   }
 
   @override
   void handleNoFieldInitializer(Token token) {
-    DirectParserASTContentNoFieldInitializerHandle data =
-        new DirectParserASTContentNoFieldInitializerHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    NoFieldInitializerHandle data =
+        new NoFieldInitializerHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void beginVariableInitializer(Token token) {
-    DirectParserASTContentVariableInitializerBegin data =
-        new DirectParserASTContentVariableInitializerBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    VariableInitializerBegin data =
+        new VariableInitializerBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endVariableInitializer(Token assignmentOperator) {
-    DirectParserASTContentVariableInitializerEnd data =
-        new DirectParserASTContentVariableInitializerEnd(
-            DirectParserASTType.END,
-            assignmentOperator: assignmentOperator);
+    VariableInitializerEnd data = new VariableInitializerEnd(ParserAstType.END,
+        assignmentOperator: assignmentOperator);
     seen(data);
   }
 
   @override
   void handleNoVariableInitializer(Token token) {
-    DirectParserASTContentNoVariableInitializerHandle data =
-        new DirectParserASTContentNoVariableInitializerHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    NoVariableInitializerHandle data =
+        new NoVariableInitializerHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void beginInitializer(Token token) {
-    DirectParserASTContentInitializerBegin data =
-        new DirectParserASTContentInitializerBegin(DirectParserASTType.BEGIN,
-            token: token);
+    InitializerBegin data =
+        new InitializerBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endInitializer(Token token) {
-    DirectParserASTContentInitializerEnd data =
-        new DirectParserASTContentInitializerEnd(DirectParserASTType.END,
-            token: token);
+    InitializerEnd data = new InitializerEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void beginInitializers(Token token) {
-    DirectParserASTContentInitializersBegin data =
-        new DirectParserASTContentInitializersBegin(DirectParserASTType.BEGIN,
-            token: token);
+    InitializersBegin data =
+        new InitializersBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endInitializers(int count, Token beginToken, Token endToken) {
-    DirectParserASTContentInitializersEnd data =
-        new DirectParserASTContentInitializersEnd(DirectParserASTType.END,
-            count: count, beginToken: beginToken, endToken: endToken);
+    InitializersEnd data = new InitializersEnd(ParserAstType.END,
+        count: count, beginToken: beginToken, endToken: endToken);
     seen(data);
   }
 
   @override
   void handleNoInitializers() {
-    DirectParserASTContentNoInitializersHandle data =
-        new DirectParserASTContentNoInitializersHandle(
-            DirectParserASTType.HANDLE);
+    NoInitializersHandle data = new NoInitializersHandle(ParserAstType.HANDLE);
     seen(data);
   }
 
   @override
   void handleInvalidExpression(Token token) {
-    DirectParserASTContentInvalidExpressionHandle data =
-        new DirectParserASTContentInvalidExpressionHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    InvalidExpressionHandle data =
+        new InvalidExpressionHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleInvalidFunctionBody(Token token) {
-    DirectParserASTContentInvalidFunctionBodyHandle data =
-        new DirectParserASTContentInvalidFunctionBodyHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    InvalidFunctionBodyHandle data =
+        new InvalidFunctionBodyHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleInvalidTypeReference(Token token) {
-    DirectParserASTContentInvalidTypeReferenceHandle data =
-        new DirectParserASTContentInvalidTypeReferenceHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    InvalidTypeReferenceHandle data =
+        new InvalidTypeReferenceHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleLabel(Token token) {
-    DirectParserASTContentLabelHandle data =
-        new DirectParserASTContentLabelHandle(DirectParserASTType.HANDLE,
-            token: token);
+    LabelHandle data = new LabelHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void beginLabeledStatement(Token token, int labelCount) {
-    DirectParserASTContentLabeledStatementBegin data =
-        new DirectParserASTContentLabeledStatementBegin(
-            DirectParserASTType.BEGIN,
-            token: token,
-            labelCount: labelCount);
+    LabeledStatementBegin data = new LabeledStatementBegin(ParserAstType.BEGIN,
+        token: token, labelCount: labelCount);
     seen(data);
   }
 
   @override
   void endLabeledStatement(int labelCount) {
-    DirectParserASTContentLabeledStatementEnd data =
-        new DirectParserASTContentLabeledStatementEnd(DirectParserASTType.END,
-            labelCount: labelCount);
+    LabeledStatementEnd data =
+        new LabeledStatementEnd(ParserAstType.END, labelCount: labelCount);
     seen(data);
   }
 
   @override
   void beginLibraryName(Token token) {
-    DirectParserASTContentLibraryNameBegin data =
-        new DirectParserASTContentLibraryNameBegin(DirectParserASTType.BEGIN,
-            token: token);
+    LibraryNameBegin data =
+        new LibraryNameBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endLibraryName(Token libraryKeyword, Token semicolon) {
-    DirectParserASTContentLibraryNameEnd data =
-        new DirectParserASTContentLibraryNameEnd(DirectParserASTType.END,
-            libraryKeyword: libraryKeyword, semicolon: semicolon);
+    LibraryNameEnd data = new LibraryNameEnd(ParserAstType.END,
+        libraryKeyword: libraryKeyword, semicolon: semicolon);
     seen(data);
   }
 
   @override
   void handleLiteralMapEntry(Token colon, Token endToken) {
-    DirectParserASTContentLiteralMapEntryHandle data =
-        new DirectParserASTContentLiteralMapEntryHandle(
-            DirectParserASTType.HANDLE,
-            colon: colon,
-            endToken: endToken);
+    LiteralMapEntryHandle data = new LiteralMapEntryHandle(ParserAstType.HANDLE,
+        colon: colon, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginLiteralString(Token token) {
-    DirectParserASTContentLiteralStringBegin data =
-        new DirectParserASTContentLiteralStringBegin(DirectParserASTType.BEGIN,
-            token: token);
+    LiteralStringBegin data =
+        new LiteralStringBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void handleInterpolationExpression(Token leftBracket, Token? rightBracket) {
-    DirectParserASTContentInterpolationExpressionHandle data =
-        new DirectParserASTContentInterpolationExpressionHandle(
-            DirectParserASTType.HANDLE,
-            leftBracket: leftBracket,
-            rightBracket: rightBracket);
+    InterpolationExpressionHandle data = new InterpolationExpressionHandle(
+        ParserAstType.HANDLE,
+        leftBracket: leftBracket,
+        rightBracket: rightBracket);
     seen(data);
   }
 
   @override
   void endLiteralString(int interpolationCount, Token endToken) {
-    DirectParserASTContentLiteralStringEnd data =
-        new DirectParserASTContentLiteralStringEnd(DirectParserASTType.END,
-            interpolationCount: interpolationCount, endToken: endToken);
+    LiteralStringEnd data = new LiteralStringEnd(ParserAstType.END,
+        interpolationCount: interpolationCount, endToken: endToken);
     seen(data);
   }
 
   @override
   void handleStringJuxtaposition(Token startToken, int literalCount) {
-    DirectParserASTContentStringJuxtapositionHandle data =
-        new DirectParserASTContentStringJuxtapositionHandle(
-            DirectParserASTType.HANDLE,
-            startToken: startToken,
-            literalCount: literalCount);
+    StringJuxtapositionHandle data = new StringJuxtapositionHandle(
+        ParserAstType.HANDLE,
+        startToken: startToken,
+        literalCount: literalCount);
     seen(data);
   }
 
   @override
   void beginMember() {
-    DirectParserASTContentMemberBegin data =
-        new DirectParserASTContentMemberBegin(DirectParserASTType.BEGIN);
+    MemberBegin data = new MemberBegin(ParserAstType.BEGIN);
     seen(data);
   }
 
   @override
   void handleInvalidMember(Token endToken) {
-    DirectParserASTContentInvalidMemberHandle data =
-        new DirectParserASTContentInvalidMemberHandle(
-            DirectParserASTType.HANDLE,
-            endToken: endToken);
+    InvalidMemberHandle data =
+        new InvalidMemberHandle(ParserAstType.HANDLE, endToken: endToken);
     seen(data);
   }
 
   @override
   void endMember() {
-    DirectParserASTContentMemberEnd data =
-        new DirectParserASTContentMemberEnd(DirectParserASTType.END);
+    MemberEnd data = new MemberEnd(ParserAstType.END);
     seen(data);
   }
 
@@ -1442,182 +1219,159 @@ abstract class AbstractDirectParserASTListener implements Listener {
       Token? varFinalOrConst,
       Token? getOrSet,
       Token name) {
-    DirectParserASTContentMethodBegin data =
-        new DirectParserASTContentMethodBegin(DirectParserASTType.BEGIN,
-            declarationKind: declarationKind,
-            externalToken: externalToken,
-            staticToken: staticToken,
-            covariantToken: covariantToken,
-            varFinalOrConst: varFinalOrConst,
-            getOrSet: getOrSet,
-            name: name);
+    MethodBegin data = new MethodBegin(ParserAstType.BEGIN,
+        declarationKind: declarationKind,
+        externalToken: externalToken,
+        staticToken: staticToken,
+        covariantToken: covariantToken,
+        varFinalOrConst: varFinalOrConst,
+        getOrSet: getOrSet,
+        name: name);
     seen(data);
   }
 
   @override
   void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
-    DirectParserASTContentClassMethodEnd data =
-        new DirectParserASTContentClassMethodEnd(DirectParserASTType.END,
-            getOrSet: getOrSet,
-            beginToken: beginToken,
-            beginParam: beginParam,
-            beginInitializers: beginInitializers,
-            endToken: endToken);
+    ClassMethodEnd data = new ClassMethodEnd(ParserAstType.END,
+        getOrSet: getOrSet,
+        beginToken: beginToken,
+        beginParam: beginParam,
+        beginInitializers: beginInitializers,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void endMixinMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
-    DirectParserASTContentMixinMethodEnd data =
-        new DirectParserASTContentMixinMethodEnd(DirectParserASTType.END,
-            getOrSet: getOrSet,
-            beginToken: beginToken,
-            beginParam: beginParam,
-            beginInitializers: beginInitializers,
-            endToken: endToken);
+    MixinMethodEnd data = new MixinMethodEnd(ParserAstType.END,
+        getOrSet: getOrSet,
+        beginToken: beginToken,
+        beginParam: beginParam,
+        beginInitializers: beginInitializers,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void endExtensionMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
-    DirectParserASTContentExtensionMethodEnd data =
-        new DirectParserASTContentExtensionMethodEnd(DirectParserASTType.END,
-            getOrSet: getOrSet,
-            beginToken: beginToken,
-            beginParam: beginParam,
-            beginInitializers: beginInitializers,
-            endToken: endToken);
+    ExtensionMethodEnd data = new ExtensionMethodEnd(ParserAstType.END,
+        getOrSet: getOrSet,
+        beginToken: beginToken,
+        beginParam: beginParam,
+        beginInitializers: beginInitializers,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void endClassConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
-    DirectParserASTContentClassConstructorEnd data =
-        new DirectParserASTContentClassConstructorEnd(DirectParserASTType.END,
-            getOrSet: getOrSet,
-            beginToken: beginToken,
-            beginParam: beginParam,
-            beginInitializers: beginInitializers,
-            endToken: endToken);
+    ClassConstructorEnd data = new ClassConstructorEnd(ParserAstType.END,
+        getOrSet: getOrSet,
+        beginToken: beginToken,
+        beginParam: beginParam,
+        beginInitializers: beginInitializers,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void endMixinConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
-    DirectParserASTContentMixinConstructorEnd data =
-        new DirectParserASTContentMixinConstructorEnd(DirectParserASTType.END,
-            getOrSet: getOrSet,
-            beginToken: beginToken,
-            beginParam: beginParam,
-            beginInitializers: beginInitializers,
-            endToken: endToken);
+    MixinConstructorEnd data = new MixinConstructorEnd(ParserAstType.END,
+        getOrSet: getOrSet,
+        beginToken: beginToken,
+        beginParam: beginParam,
+        beginInitializers: beginInitializers,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void endExtensionConstructor(Token? getOrSet, Token beginToken,
       Token beginParam, Token? beginInitializers, Token endToken) {
-    DirectParserASTContentExtensionConstructorEnd data =
-        new DirectParserASTContentExtensionConstructorEnd(
-            DirectParserASTType.END,
-            getOrSet: getOrSet,
-            beginToken: beginToken,
-            beginParam: beginParam,
-            beginInitializers: beginInitializers,
-            endToken: endToken);
+    ExtensionConstructorEnd data = new ExtensionConstructorEnd(
+        ParserAstType.END,
+        getOrSet: getOrSet,
+        beginToken: beginToken,
+        beginParam: beginParam,
+        beginInitializers: beginInitializers,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void beginMetadataStar(Token token) {
-    DirectParserASTContentMetadataStarBegin data =
-        new DirectParserASTContentMetadataStarBegin(DirectParserASTType.BEGIN,
-            token: token);
+    MetadataStarBegin data =
+        new MetadataStarBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endMetadataStar(int count) {
-    DirectParserASTContentMetadataStarEnd data =
-        new DirectParserASTContentMetadataStarEnd(DirectParserASTType.END,
-            count: count);
+    MetadataStarEnd data = new MetadataStarEnd(ParserAstType.END, count: count);
     seen(data);
   }
 
   @override
   void beginMetadata(Token token) {
-    DirectParserASTContentMetadataBegin data =
-        new DirectParserASTContentMetadataBegin(DirectParserASTType.BEGIN,
-            token: token);
+    MetadataBegin data = new MetadataBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endMetadata(Token beginToken, Token? periodBeforeName, Token endToken) {
-    DirectParserASTContentMetadataEnd data =
-        new DirectParserASTContentMetadataEnd(DirectParserASTType.END,
-            beginToken: beginToken,
-            periodBeforeName: periodBeforeName,
-            endToken: endToken);
+    MetadataEnd data = new MetadataEnd(ParserAstType.END,
+        beginToken: beginToken,
+        periodBeforeName: periodBeforeName,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void beginOptionalFormalParameters(Token token) {
-    DirectParserASTContentOptionalFormalParametersBegin data =
-        new DirectParserASTContentOptionalFormalParametersBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    OptionalFormalParametersBegin data =
+        new OptionalFormalParametersBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
-    DirectParserASTContentOptionalFormalParametersEnd data =
-        new DirectParserASTContentOptionalFormalParametersEnd(
-            DirectParserASTType.END,
-            count: count,
-            beginToken: beginToken,
-            endToken: endToken);
+    OptionalFormalParametersEnd data = new OptionalFormalParametersEnd(
+        ParserAstType.END,
+        count: count,
+        beginToken: beginToken,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void beginPart(Token token) {
-    DirectParserASTContentPartBegin data = new DirectParserASTContentPartBegin(
-        DirectParserASTType.BEGIN,
-        token: token);
+    PartBegin data = new PartBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endPart(Token partKeyword, Token semicolon) {
-    DirectParserASTContentPartEnd data = new DirectParserASTContentPartEnd(
-        DirectParserASTType.END,
-        partKeyword: partKeyword,
-        semicolon: semicolon);
+    PartEnd data = new PartEnd(ParserAstType.END,
+        partKeyword: partKeyword, semicolon: semicolon);
     seen(data);
   }
 
   @override
   void beginPartOf(Token token) {
-    DirectParserASTContentPartOfBegin data =
-        new DirectParserASTContentPartOfBegin(DirectParserASTType.BEGIN,
-            token: token);
+    PartOfBegin data = new PartOfBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endPartOf(
       Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
-    DirectParserASTContentPartOfEnd data = new DirectParserASTContentPartOfEnd(
-        DirectParserASTType.END,
+    PartOfEnd data = new PartOfEnd(ParserAstType.END,
         partKeyword: partKeyword,
         ofKeyword: ofKeyword,
         semicolon: semicolon,
@@ -1627,215 +1381,182 @@ abstract class AbstractDirectParserASTListener implements Listener {
 
   @override
   void beginRedirectingFactoryBody(Token token) {
-    DirectParserASTContentRedirectingFactoryBodyBegin data =
-        new DirectParserASTContentRedirectingFactoryBodyBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    RedirectingFactoryBodyBegin data =
+        new RedirectingFactoryBodyBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endRedirectingFactoryBody(Token beginToken, Token endToken) {
-    DirectParserASTContentRedirectingFactoryBodyEnd data =
-        new DirectParserASTContentRedirectingFactoryBodyEnd(
-            DirectParserASTType.END,
-            beginToken: beginToken,
-            endToken: endToken);
+    RedirectingFactoryBodyEnd data = new RedirectingFactoryBodyEnd(
+        ParserAstType.END,
+        beginToken: beginToken,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void beginReturnStatement(Token token) {
-    DirectParserASTContentReturnStatementBegin data =
-        new DirectParserASTContentReturnStatementBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    ReturnStatementBegin data =
+        new ReturnStatementBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
-    DirectParserASTContentNativeFunctionBodyHandle data =
-        new DirectParserASTContentNativeFunctionBodyHandle(
-            DirectParserASTType.HANDLE,
-            nativeToken: nativeToken,
-            semicolon: semicolon);
+    NativeFunctionBodyHandle data = new NativeFunctionBodyHandle(
+        ParserAstType.HANDLE,
+        nativeToken: nativeToken,
+        semicolon: semicolon);
     seen(data);
   }
 
   @override
   void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
-    DirectParserASTContentNativeFunctionBodyIgnoredHandle data =
-        new DirectParserASTContentNativeFunctionBodyIgnoredHandle(
-            DirectParserASTType.HANDLE,
-            nativeToken: nativeToken,
-            semicolon: semicolon);
+    NativeFunctionBodyIgnoredHandle data = new NativeFunctionBodyIgnoredHandle(
+        ParserAstType.HANDLE,
+        nativeToken: nativeToken,
+        semicolon: semicolon);
     seen(data);
   }
 
   @override
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
-    DirectParserASTContentNativeFunctionBodySkippedHandle data =
-        new DirectParserASTContentNativeFunctionBodySkippedHandle(
-            DirectParserASTType.HANDLE,
-            nativeToken: nativeToken,
-            semicolon: semicolon);
+    NativeFunctionBodySkippedHandle data = new NativeFunctionBodySkippedHandle(
+        ParserAstType.HANDLE,
+        nativeToken: nativeToken,
+        semicolon: semicolon);
     seen(data);
   }
 
   @override
   void handleEmptyFunctionBody(Token semicolon) {
-    DirectParserASTContentEmptyFunctionBodyHandle data =
-        new DirectParserASTContentEmptyFunctionBodyHandle(
-            DirectParserASTType.HANDLE,
-            semicolon: semicolon);
+    EmptyFunctionBodyHandle data =
+        new EmptyFunctionBodyHandle(ParserAstType.HANDLE, semicolon: semicolon);
     seen(data);
   }
 
   @override
   void handleExpressionFunctionBody(Token arrowToken, Token? endToken) {
-    DirectParserASTContentExpressionFunctionBodyHandle data =
-        new DirectParserASTContentExpressionFunctionBodyHandle(
-            DirectParserASTType.HANDLE,
-            arrowToken: arrowToken,
-            endToken: endToken);
+    ExpressionFunctionBodyHandle data = new ExpressionFunctionBodyHandle(
+        ParserAstType.HANDLE,
+        arrowToken: arrowToken,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void endReturnStatement(
       bool hasExpression, Token beginToken, Token endToken) {
-    DirectParserASTContentReturnStatementEnd data =
-        new DirectParserASTContentReturnStatementEnd(DirectParserASTType.END,
-            hasExpression: hasExpression,
-            beginToken: beginToken,
-            endToken: endToken);
+    ReturnStatementEnd data = new ReturnStatementEnd(ParserAstType.END,
+        hasExpression: hasExpression,
+        beginToken: beginToken,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void handleSend(Token beginToken, Token endToken) {
-    DirectParserASTContentSendHandle data =
-        new DirectParserASTContentSendHandle(DirectParserASTType.HANDLE,
-            beginToken: beginToken, endToken: endToken);
+    SendHandle data = new SendHandle(ParserAstType.HANDLE,
+        beginToken: beginToken, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginShow(Token showKeyword) {
-    DirectParserASTContentShowBegin data = new DirectParserASTContentShowBegin(
-        DirectParserASTType.BEGIN,
-        showKeyword: showKeyword);
+    ShowBegin data =
+        new ShowBegin(ParserAstType.BEGIN, showKeyword: showKeyword);
     seen(data);
   }
 
   @override
   void endShow(Token showKeyword) {
-    DirectParserASTContentShowEnd data = new DirectParserASTContentShowEnd(
-        DirectParserASTType.END,
-        showKeyword: showKeyword);
+    ShowEnd data = new ShowEnd(ParserAstType.END, showKeyword: showKeyword);
     seen(data);
   }
 
   @override
   void beginSwitchStatement(Token token) {
-    DirectParserASTContentSwitchStatementBegin data =
-        new DirectParserASTContentSwitchStatementBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    SwitchStatementBegin data =
+        new SwitchStatementBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
-    DirectParserASTContentSwitchStatementEnd data =
-        new DirectParserASTContentSwitchStatementEnd(DirectParserASTType.END,
-            switchKeyword: switchKeyword, endToken: endToken);
+    SwitchStatementEnd data = new SwitchStatementEnd(ParserAstType.END,
+        switchKeyword: switchKeyword, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginSwitchBlock(Token token) {
-    DirectParserASTContentSwitchBlockBegin data =
-        new DirectParserASTContentSwitchBlockBegin(DirectParserASTType.BEGIN,
-            token: token);
+    SwitchBlockBegin data =
+        new SwitchBlockBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
-    DirectParserASTContentSwitchBlockEnd data =
-        new DirectParserASTContentSwitchBlockEnd(DirectParserASTType.END,
-            caseCount: caseCount, beginToken: beginToken, endToken: endToken);
+    SwitchBlockEnd data = new SwitchBlockEnd(ParserAstType.END,
+        caseCount: caseCount, beginToken: beginToken, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginLiteralSymbol(Token token) {
-    DirectParserASTContentLiteralSymbolBegin data =
-        new DirectParserASTContentLiteralSymbolBegin(DirectParserASTType.BEGIN,
-            token: token);
+    LiteralSymbolBegin data =
+        new LiteralSymbolBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endLiteralSymbol(Token hashToken, int identifierCount) {
-    DirectParserASTContentLiteralSymbolEnd data =
-        new DirectParserASTContentLiteralSymbolEnd(DirectParserASTType.END,
-            hashToken: hashToken, identifierCount: identifierCount);
+    LiteralSymbolEnd data = new LiteralSymbolEnd(ParserAstType.END,
+        hashToken: hashToken, identifierCount: identifierCount);
     seen(data);
   }
 
   @override
   void handleThrowExpression(Token throwToken, Token endToken) {
-    DirectParserASTContentThrowExpressionHandle data =
-        new DirectParserASTContentThrowExpressionHandle(
-            DirectParserASTType.HANDLE,
-            throwToken: throwToken,
-            endToken: endToken);
+    ThrowExpressionHandle data = new ThrowExpressionHandle(ParserAstType.HANDLE,
+        throwToken: throwToken, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginRethrowStatement(Token token) {
-    DirectParserASTContentRethrowStatementBegin data =
-        new DirectParserASTContentRethrowStatementBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    RethrowStatementBegin data =
+        new RethrowStatementBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endRethrowStatement(Token rethrowToken, Token endToken) {
-    DirectParserASTContentRethrowStatementEnd data =
-        new DirectParserASTContentRethrowStatementEnd(DirectParserASTType.END,
-            rethrowToken: rethrowToken, endToken: endToken);
+    RethrowStatementEnd data = new RethrowStatementEnd(ParserAstType.END,
+        rethrowToken: rethrowToken, endToken: endToken);
     seen(data);
   }
 
   @override
   void endTopLevelDeclaration(Token nextToken) {
-    DirectParserASTContentTopLevelDeclarationEnd data =
-        new DirectParserASTContentTopLevelDeclarationEnd(
-            DirectParserASTType.END,
-            nextToken: nextToken);
+    TopLevelDeclarationEnd data =
+        new TopLevelDeclarationEnd(ParserAstType.END, nextToken: nextToken);
     seen(data);
   }
 
   @override
   void handleInvalidTopLevelDeclaration(Token endToken) {
-    DirectParserASTContentInvalidTopLevelDeclarationHandle data =
-        new DirectParserASTContentInvalidTopLevelDeclarationHandle(
-            DirectParserASTType.HANDLE,
+    InvalidTopLevelDeclarationHandle data =
+        new InvalidTopLevelDeclarationHandle(ParserAstType.HANDLE,
             endToken: endToken);
     seen(data);
   }
 
   @override
   void beginTopLevelMember(Token token) {
-    DirectParserASTContentTopLevelMemberBegin data =
-        new DirectParserASTContentTopLevelMemberBegin(DirectParserASTType.BEGIN,
-            token: token);
+    TopLevelMemberBegin data =
+        new TopLevelMemberBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
@@ -1849,16 +1570,15 @@ abstract class AbstractDirectParserASTListener implements Listener {
       Token? lateToken,
       Token? varFinalOrConst,
       Token lastConsumed) {
-    DirectParserASTContentFieldsBegin data =
-        new DirectParserASTContentFieldsBegin(DirectParserASTType.BEGIN,
-            declarationKind: declarationKind,
-            abstractToken: abstractToken,
-            externalToken: externalToken,
-            staticToken: staticToken,
-            covariantToken: covariantToken,
-            lateToken: lateToken,
-            varFinalOrConst: varFinalOrConst,
-            lastConsumed: lastConsumed);
+    FieldsBegin data = new FieldsBegin(ParserAstType.BEGIN,
+        declarationKind: declarationKind,
+        abstractToken: abstractToken,
+        externalToken: externalToken,
+        staticToken: staticToken,
+        covariantToken: covariantToken,
+        lateToken: lateToken,
+        varFinalOrConst: varFinalOrConst,
+        lastConsumed: lastConsumed);
     seen(data);
   }
 
@@ -1872,583 +1592,500 @@ abstract class AbstractDirectParserASTListener implements Listener {
       int count,
       Token beginToken,
       Token endToken) {
-    DirectParserASTContentTopLevelFieldsEnd data =
-        new DirectParserASTContentTopLevelFieldsEnd(DirectParserASTType.END,
-            externalToken: externalToken,
-            staticToken: staticToken,
-            covariantToken: covariantToken,
-            lateToken: lateToken,
-            varFinalOrConst: varFinalOrConst,
-            count: count,
-            beginToken: beginToken,
-            endToken: endToken);
+    TopLevelFieldsEnd data = new TopLevelFieldsEnd(ParserAstType.END,
+        externalToken: externalToken,
+        staticToken: staticToken,
+        covariantToken: covariantToken,
+        lateToken: lateToken,
+        varFinalOrConst: varFinalOrConst,
+        count: count,
+        beginToken: beginToken,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void beginTopLevelMethod(Token lastConsumed, Token? externalToken) {
-    DirectParserASTContentTopLevelMethodBegin data =
-        new DirectParserASTContentTopLevelMethodBegin(DirectParserASTType.BEGIN,
-            lastConsumed: lastConsumed, externalToken: externalToken);
+    TopLevelMethodBegin data = new TopLevelMethodBegin(ParserAstType.BEGIN,
+        lastConsumed: lastConsumed, externalToken: externalToken);
     seen(data);
   }
 
   @override
   void endTopLevelMethod(Token beginToken, Token? getOrSet, Token endToken) {
-    DirectParserASTContentTopLevelMethodEnd data =
-        new DirectParserASTContentTopLevelMethodEnd(DirectParserASTType.END,
-            beginToken: beginToken, getOrSet: getOrSet, endToken: endToken);
+    TopLevelMethodEnd data = new TopLevelMethodEnd(ParserAstType.END,
+        beginToken: beginToken, getOrSet: getOrSet, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginTryStatement(Token token) {
-    DirectParserASTContentTryStatementBegin data =
-        new DirectParserASTContentTryStatementBegin(DirectParserASTType.BEGIN,
-            token: token);
+    TryStatementBegin data =
+        new TryStatementBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void handleCaseMatch(Token caseKeyword, Token colon) {
-    DirectParserASTContentCaseMatchHandle data =
-        new DirectParserASTContentCaseMatchHandle(DirectParserASTType.HANDLE,
-            caseKeyword: caseKeyword, colon: colon);
+    CaseMatchHandle data = new CaseMatchHandle(ParserAstType.HANDLE,
+        caseKeyword: caseKeyword, colon: colon);
     seen(data);
   }
 
   @override
   void beginCatchClause(Token token) {
-    DirectParserASTContentCatchClauseBegin data =
-        new DirectParserASTContentCatchClauseBegin(DirectParserASTType.BEGIN,
-            token: token);
+    CatchClauseBegin data =
+        new CatchClauseBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endCatchClause(Token token) {
-    DirectParserASTContentCatchClauseEnd data =
-        new DirectParserASTContentCatchClauseEnd(DirectParserASTType.END,
-            token: token);
+    CatchClauseEnd data = new CatchClauseEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void handleCatchBlock(Token? onKeyword, Token? catchKeyword, Token? comma) {
-    DirectParserASTContentCatchBlockHandle data =
-        new DirectParserASTContentCatchBlockHandle(DirectParserASTType.HANDLE,
-            onKeyword: onKeyword, catchKeyword: catchKeyword, comma: comma);
+    CatchBlockHandle data = new CatchBlockHandle(ParserAstType.HANDLE,
+        onKeyword: onKeyword, catchKeyword: catchKeyword, comma: comma);
     seen(data);
   }
 
   @override
   void handleFinallyBlock(Token finallyKeyword) {
-    DirectParserASTContentFinallyBlockHandle data =
-        new DirectParserASTContentFinallyBlockHandle(DirectParserASTType.HANDLE,
-            finallyKeyword: finallyKeyword);
+    FinallyBlockHandle data = new FinallyBlockHandle(ParserAstType.HANDLE,
+        finallyKeyword: finallyKeyword);
     seen(data);
   }
 
   @override
   void endTryStatement(
       int catchCount, Token tryKeyword, Token? finallyKeyword) {
-    DirectParserASTContentTryStatementEnd data =
-        new DirectParserASTContentTryStatementEnd(DirectParserASTType.END,
-            catchCount: catchCount,
-            tryKeyword: tryKeyword,
-            finallyKeyword: finallyKeyword);
+    TryStatementEnd data = new TryStatementEnd(ParserAstType.END,
+        catchCount: catchCount,
+        tryKeyword: tryKeyword,
+        finallyKeyword: finallyKeyword);
     seen(data);
   }
 
   @override
   void handleType(Token beginToken, Token? questionMark) {
-    DirectParserASTContentTypeHandle data =
-        new DirectParserASTContentTypeHandle(DirectParserASTType.HANDLE,
-            beginToken: beginToken, questionMark: questionMark);
+    TypeHandle data = new TypeHandle(ParserAstType.HANDLE,
+        beginToken: beginToken, questionMark: questionMark);
     seen(data);
   }
 
   @override
   void handleNonNullAssertExpression(Token bang) {
-    DirectParserASTContentNonNullAssertExpressionHandle data =
-        new DirectParserASTContentNonNullAssertExpressionHandle(
-            DirectParserASTType.HANDLE,
-            bang: bang);
+    NonNullAssertExpressionHandle data =
+        new NonNullAssertExpressionHandle(ParserAstType.HANDLE, bang: bang);
     seen(data);
   }
 
   @override
   void handleNoName(Token token) {
-    DirectParserASTContentNoNameHandle data =
-        new DirectParserASTContentNoNameHandle(DirectParserASTType.HANDLE,
-            token: token);
+    NoNameHandle data = new NoNameHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void beginFunctionType(Token beginToken) {
-    DirectParserASTContentFunctionTypeBegin data =
-        new DirectParserASTContentFunctionTypeBegin(DirectParserASTType.BEGIN,
-            beginToken: beginToken);
+    FunctionTypeBegin data =
+        new FunctionTypeBegin(ParserAstType.BEGIN, beginToken: beginToken);
     seen(data);
   }
 
   @override
   void endFunctionType(Token functionToken, Token? questionMark) {
-    DirectParserASTContentFunctionTypeEnd data =
-        new DirectParserASTContentFunctionTypeEnd(DirectParserASTType.END,
-            functionToken: functionToken, questionMark: questionMark);
+    FunctionTypeEnd data = new FunctionTypeEnd(ParserAstType.END,
+        functionToken: functionToken, questionMark: questionMark);
     seen(data);
   }
 
   @override
   void beginTypeArguments(Token token) {
-    DirectParserASTContentTypeArgumentsBegin data =
-        new DirectParserASTContentTypeArgumentsBegin(DirectParserASTType.BEGIN,
-            token: token);
+    TypeArgumentsBegin data =
+        new TypeArgumentsBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
-    DirectParserASTContentTypeArgumentsEnd data =
-        new DirectParserASTContentTypeArgumentsEnd(DirectParserASTType.END,
-            count: count, beginToken: beginToken, endToken: endToken);
+    TypeArgumentsEnd data = new TypeArgumentsEnd(ParserAstType.END,
+        count: count, beginToken: beginToken, endToken: endToken);
     seen(data);
   }
 
   @override
   void handleInvalidTypeArguments(Token token) {
-    DirectParserASTContentInvalidTypeArgumentsHandle data =
-        new DirectParserASTContentInvalidTypeArgumentsHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    InvalidTypeArgumentsHandle data =
+        new InvalidTypeArgumentsHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleNoTypeArguments(Token token) {
-    DirectParserASTContentNoTypeArgumentsHandle data =
-        new DirectParserASTContentNoTypeArgumentsHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    NoTypeArgumentsHandle data =
+        new NoTypeArgumentsHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void beginTypeVariable(Token token) {
-    DirectParserASTContentTypeVariableBegin data =
-        new DirectParserASTContentTypeVariableBegin(DirectParserASTType.BEGIN,
-            token: token);
+    TypeVariableBegin data =
+        new TypeVariableBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void handleTypeVariablesDefined(Token token, int count) {
-    DirectParserASTContentTypeVariablesDefinedHandle data =
-        new DirectParserASTContentTypeVariablesDefinedHandle(
-            DirectParserASTType.HANDLE,
-            token: token,
-            count: count);
+    TypeVariablesDefinedHandle data = new TypeVariablesDefinedHandle(
+        ParserAstType.HANDLE,
+        token: token,
+        count: count);
     seen(data);
   }
 
   @override
   void endTypeVariable(
       Token token, int index, Token? extendsOrSuper, Token? variance) {
-    DirectParserASTContentTypeVariableEnd data =
-        new DirectParserASTContentTypeVariableEnd(DirectParserASTType.END,
-            token: token,
-            index: index,
-            extendsOrSuper: extendsOrSuper,
-            variance: variance);
+    TypeVariableEnd data = new TypeVariableEnd(ParserAstType.END,
+        token: token,
+        index: index,
+        extendsOrSuper: extendsOrSuper,
+        variance: variance);
     seen(data);
   }
 
   @override
   void beginTypeVariables(Token token) {
-    DirectParserASTContentTypeVariablesBegin data =
-        new DirectParserASTContentTypeVariablesBegin(DirectParserASTType.BEGIN,
-            token: token);
+    TypeVariablesBegin data =
+        new TypeVariablesBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endTypeVariables(Token beginToken, Token endToken) {
-    DirectParserASTContentTypeVariablesEnd data =
-        new DirectParserASTContentTypeVariablesEnd(DirectParserASTType.END,
-            beginToken: beginToken, endToken: endToken);
+    TypeVariablesEnd data = new TypeVariablesEnd(ParserAstType.END,
+        beginToken: beginToken, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginFunctionExpression(Token token) {
-    DirectParserASTContentFunctionExpressionBegin data =
-        new DirectParserASTContentFunctionExpressionBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    FunctionExpressionBegin data =
+        new FunctionExpressionBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endFunctionExpression(Token beginToken, Token token) {
-    DirectParserASTContentFunctionExpressionEnd data =
-        new DirectParserASTContentFunctionExpressionEnd(DirectParserASTType.END,
-            beginToken: beginToken, token: token);
+    FunctionExpressionEnd data = new FunctionExpressionEnd(ParserAstType.END,
+        beginToken: beginToken, token: token);
     seen(data);
   }
 
   @override
   void beginVariablesDeclaration(
       Token token, Token? lateToken, Token? varFinalOrConst) {
-    DirectParserASTContentVariablesDeclarationBegin data =
-        new DirectParserASTContentVariablesDeclarationBegin(
-            DirectParserASTType.BEGIN,
-            token: token,
-            lateToken: lateToken,
-            varFinalOrConst: varFinalOrConst);
+    VariablesDeclarationBegin data = new VariablesDeclarationBegin(
+        ParserAstType.BEGIN,
+        token: token,
+        lateToken: lateToken,
+        varFinalOrConst: varFinalOrConst);
     seen(data);
   }
 
   @override
   void endVariablesDeclaration(int count, Token? endToken) {
-    DirectParserASTContentVariablesDeclarationEnd data =
-        new DirectParserASTContentVariablesDeclarationEnd(
-            DirectParserASTType.END,
-            count: count,
-            endToken: endToken);
+    VariablesDeclarationEnd data = new VariablesDeclarationEnd(
+        ParserAstType.END,
+        count: count,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void beginWhileStatement(Token token) {
-    DirectParserASTContentWhileStatementBegin data =
-        new DirectParserASTContentWhileStatementBegin(DirectParserASTType.BEGIN,
-            token: token);
+    WhileStatementBegin data =
+        new WhileStatementBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endWhileStatement(Token whileKeyword, Token endToken) {
-    DirectParserASTContentWhileStatementEnd data =
-        new DirectParserASTContentWhileStatementEnd(DirectParserASTType.END,
-            whileKeyword: whileKeyword, endToken: endToken);
+    WhileStatementEnd data = new WhileStatementEnd(ParserAstType.END,
+        whileKeyword: whileKeyword, endToken: endToken);
     seen(data);
   }
 
   @override
   void beginAsOperatorType(Token operator) {
-    DirectParserASTContentAsOperatorTypeBegin data =
-        new DirectParserASTContentAsOperatorTypeBegin(DirectParserASTType.BEGIN,
-            operator: operator);
+    AsOperatorTypeBegin data =
+        new AsOperatorTypeBegin(ParserAstType.BEGIN, operator: operator);
     seen(data);
   }
 
   @override
   void endAsOperatorType(Token operator) {
-    DirectParserASTContentAsOperatorTypeEnd data =
-        new DirectParserASTContentAsOperatorTypeEnd(DirectParserASTType.END,
-            operator: operator);
+    AsOperatorTypeEnd data =
+        new AsOperatorTypeEnd(ParserAstType.END, operator: operator);
     seen(data);
   }
 
   @override
   void handleAsOperator(Token operator) {
-    DirectParserASTContentAsOperatorHandle data =
-        new DirectParserASTContentAsOperatorHandle(DirectParserASTType.HANDLE,
-            operator: operator);
+    AsOperatorHandle data =
+        new AsOperatorHandle(ParserAstType.HANDLE, operator: operator);
     seen(data);
   }
 
   @override
   void handleAssignmentExpression(Token token) {
-    DirectParserASTContentAssignmentExpressionHandle data =
-        new DirectParserASTContentAssignmentExpressionHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    AssignmentExpressionHandle data =
+        new AssignmentExpressionHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void beginBinaryExpression(Token token) {
-    DirectParserASTContentBinaryExpressionBegin data =
-        new DirectParserASTContentBinaryExpressionBegin(
-            DirectParserASTType.BEGIN,
-            token: token);
+    BinaryExpressionBegin data =
+        new BinaryExpressionBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endBinaryExpression(Token token) {
-    DirectParserASTContentBinaryExpressionEnd data =
-        new DirectParserASTContentBinaryExpressionEnd(DirectParserASTType.END,
-            token: token);
+    BinaryExpressionEnd data =
+        new BinaryExpressionEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void handleEndingBinaryExpression(Token token) {
-    DirectParserASTContentEndingBinaryExpressionHandle data =
-        new DirectParserASTContentEndingBinaryExpressionHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    EndingBinaryExpressionHandle data =
+        new EndingBinaryExpressionHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void beginConditionalExpression(Token question) {
-    DirectParserASTContentConditionalExpressionBegin data =
-        new DirectParserASTContentConditionalExpressionBegin(
-            DirectParserASTType.BEGIN,
-            question: question);
+    ConditionalExpressionBegin data =
+        new ConditionalExpressionBegin(ParserAstType.BEGIN, question: question);
     seen(data);
   }
 
   @override
   void handleConditionalExpressionColon() {
-    DirectParserASTContentConditionalExpressionColonHandle data =
-        new DirectParserASTContentConditionalExpressionColonHandle(
-            DirectParserASTType.HANDLE);
+    ConditionalExpressionColonHandle data =
+        new ConditionalExpressionColonHandle(ParserAstType.HANDLE);
     seen(data);
   }
 
   @override
   void endConditionalExpression(Token question, Token colon) {
-    DirectParserASTContentConditionalExpressionEnd data =
-        new DirectParserASTContentConditionalExpressionEnd(
-            DirectParserASTType.END,
-            question: question,
-            colon: colon);
+    ConditionalExpressionEnd data = new ConditionalExpressionEnd(
+        ParserAstType.END,
+        question: question,
+        colon: colon);
     seen(data);
   }
 
   @override
   void beginConstExpression(Token constKeyword) {
-    DirectParserASTContentConstExpressionBegin data =
-        new DirectParserASTContentConstExpressionBegin(
-            DirectParserASTType.BEGIN,
-            constKeyword: constKeyword);
+    ConstExpressionBegin data = new ConstExpressionBegin(ParserAstType.BEGIN,
+        constKeyword: constKeyword);
     seen(data);
   }
 
   @override
   void endConstExpression(Token token) {
-    DirectParserASTContentConstExpressionEnd data =
-        new DirectParserASTContentConstExpressionEnd(DirectParserASTType.END,
-            token: token);
+    ConstExpressionEnd data =
+        new ConstExpressionEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void handleConstFactory(Token constKeyword) {
-    DirectParserASTContentConstFactoryHandle data =
-        new DirectParserASTContentConstFactoryHandle(DirectParserASTType.HANDLE,
-            constKeyword: constKeyword);
+    ConstFactoryHandle data = new ConstFactoryHandle(ParserAstType.HANDLE,
+        constKeyword: constKeyword);
     seen(data);
   }
 
   @override
   void beginForControlFlow(Token? awaitToken, Token forToken) {
-    DirectParserASTContentForControlFlowBegin data =
-        new DirectParserASTContentForControlFlowBegin(DirectParserASTType.BEGIN,
-            awaitToken: awaitToken, forToken: forToken);
+    ForControlFlowBegin data = new ForControlFlowBegin(ParserAstType.BEGIN,
+        awaitToken: awaitToken, forToken: forToken);
     seen(data);
   }
 
   @override
   void endForControlFlow(Token token) {
-    DirectParserASTContentForControlFlowEnd data =
-        new DirectParserASTContentForControlFlowEnd(DirectParserASTType.END,
-            token: token);
+    ForControlFlowEnd data =
+        new ForControlFlowEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void endForInControlFlow(Token token) {
-    DirectParserASTContentForInControlFlowEnd data =
-        new DirectParserASTContentForInControlFlowEnd(DirectParserASTType.END,
-            token: token);
+    ForInControlFlowEnd data =
+        new ForInControlFlowEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void beginIfControlFlow(Token ifToken) {
-    DirectParserASTContentIfControlFlowBegin data =
-        new DirectParserASTContentIfControlFlowBegin(DirectParserASTType.BEGIN,
-            ifToken: ifToken);
+    IfControlFlowBegin data =
+        new IfControlFlowBegin(ParserAstType.BEGIN, ifToken: ifToken);
     seen(data);
   }
 
   @override
   void handleThenControlFlow(Token token) {
-    DirectParserASTContentThenControlFlowHandle data =
-        new DirectParserASTContentThenControlFlowHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    ThenControlFlowHandle data =
+        new ThenControlFlowHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleElseControlFlow(Token elseToken) {
-    DirectParserASTContentElseControlFlowHandle data =
-        new DirectParserASTContentElseControlFlowHandle(
-            DirectParserASTType.HANDLE,
-            elseToken: elseToken);
+    ElseControlFlowHandle data =
+        new ElseControlFlowHandle(ParserAstType.HANDLE, elseToken: elseToken);
     seen(data);
   }
 
   @override
   void endIfControlFlow(Token token) {
-    DirectParserASTContentIfControlFlowEnd data =
-        new DirectParserASTContentIfControlFlowEnd(DirectParserASTType.END,
-            token: token);
+    IfControlFlowEnd data =
+        new IfControlFlowEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void endIfElseControlFlow(Token token) {
-    DirectParserASTContentIfElseControlFlowEnd data =
-        new DirectParserASTContentIfElseControlFlowEnd(DirectParserASTType.END,
-            token: token);
+    IfElseControlFlowEnd data =
+        new IfElseControlFlowEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void handleSpreadExpression(Token spreadToken) {
-    DirectParserASTContentSpreadExpressionHandle data =
-        new DirectParserASTContentSpreadExpressionHandle(
-            DirectParserASTType.HANDLE,
-            spreadToken: spreadToken);
+    SpreadExpressionHandle data = new SpreadExpressionHandle(
+        ParserAstType.HANDLE,
+        spreadToken: spreadToken);
     seen(data);
   }
 
   @override
   void beginFunctionTypedFormalParameter(Token token) {
-    DirectParserASTContentFunctionTypedFormalParameterBegin data =
-        new DirectParserASTContentFunctionTypedFormalParameterBegin(
-            DirectParserASTType.BEGIN,
+    FunctionTypedFormalParameterBegin data =
+        new FunctionTypedFormalParameterBegin(ParserAstType.BEGIN,
             token: token);
     seen(data);
   }
 
   @override
   void endFunctionTypedFormalParameter(Token nameToken, Token? question) {
-    DirectParserASTContentFunctionTypedFormalParameterEnd data =
-        new DirectParserASTContentFunctionTypedFormalParameterEnd(
-            DirectParserASTType.END,
-            nameToken: nameToken,
-            question: question);
+    FunctionTypedFormalParameterEnd data = new FunctionTypedFormalParameterEnd(
+        ParserAstType.END,
+        nameToken: nameToken,
+        question: question);
     seen(data);
   }
 
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
-    DirectParserASTContentIdentifierHandle data =
-        new DirectParserASTContentIdentifierHandle(DirectParserASTType.HANDLE,
-            token: token, context: context);
+    IdentifierHandle data = new IdentifierHandle(ParserAstType.HANDLE,
+        token: token, context: context);
     seen(data);
   }
 
   @override
   void handleShowHideIdentifier(Token? modifier, Token identifier) {
-    DirectParserASTContentShowHideIdentifierHandle data =
-        new DirectParserASTContentShowHideIdentifierHandle(
-            DirectParserASTType.HANDLE,
-            modifier: modifier,
-            identifier: identifier);
+    ShowHideIdentifierHandle data = new ShowHideIdentifierHandle(
+        ParserAstType.HANDLE,
+        modifier: modifier,
+        identifier: identifier);
     seen(data);
   }
 
   @override
   void handleIndexedExpression(
       Token? question, Token openSquareBracket, Token closeSquareBracket) {
-    DirectParserASTContentIndexedExpressionHandle data =
-        new DirectParserASTContentIndexedExpressionHandle(
-            DirectParserASTType.HANDLE,
-            question: question,
-            openSquareBracket: openSquareBracket,
-            closeSquareBracket: closeSquareBracket);
+    IndexedExpressionHandle data = new IndexedExpressionHandle(
+        ParserAstType.HANDLE,
+        question: question,
+        openSquareBracket: openSquareBracket,
+        closeSquareBracket: closeSquareBracket);
     seen(data);
   }
 
   @override
   void beginIsOperatorType(Token operator) {
-    DirectParserASTContentIsOperatorTypeBegin data =
-        new DirectParserASTContentIsOperatorTypeBegin(DirectParserASTType.BEGIN,
-            operator: operator);
+    IsOperatorTypeBegin data =
+        new IsOperatorTypeBegin(ParserAstType.BEGIN, operator: operator);
     seen(data);
   }
 
   @override
   void endIsOperatorType(Token operator) {
-    DirectParserASTContentIsOperatorTypeEnd data =
-        new DirectParserASTContentIsOperatorTypeEnd(DirectParserASTType.END,
-            operator: operator);
+    IsOperatorTypeEnd data =
+        new IsOperatorTypeEnd(ParserAstType.END, operator: operator);
     seen(data);
   }
 
   @override
   void handleIsOperator(Token isOperator, Token? not) {
-    DirectParserASTContentIsOperatorHandle data =
-        new DirectParserASTContentIsOperatorHandle(DirectParserASTType.HANDLE,
-            isOperator: isOperator, not: not);
+    IsOperatorHandle data = new IsOperatorHandle(ParserAstType.HANDLE,
+        isOperator: isOperator, not: not);
     seen(data);
   }
 
   @override
   void handleLiteralBool(Token token) {
-    DirectParserASTContentLiteralBoolHandle data =
-        new DirectParserASTContentLiteralBoolHandle(DirectParserASTType.HANDLE,
-            token: token);
+    LiteralBoolHandle data =
+        new LiteralBoolHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleBreakStatement(
       bool hasTarget, Token breakKeyword, Token endToken) {
-    DirectParserASTContentBreakStatementHandle data =
-        new DirectParserASTContentBreakStatementHandle(
-            DirectParserASTType.HANDLE,
-            hasTarget: hasTarget,
-            breakKeyword: breakKeyword,
-            endToken: endToken);
+    BreakStatementHandle data = new BreakStatementHandle(ParserAstType.HANDLE,
+        hasTarget: hasTarget, breakKeyword: breakKeyword, endToken: endToken);
     seen(data);
   }
 
   @override
   void handleContinueStatement(
       bool hasTarget, Token continueKeyword, Token endToken) {
-    DirectParserASTContentContinueStatementHandle data =
-        new DirectParserASTContentContinueStatementHandle(
-            DirectParserASTType.HANDLE,
-            hasTarget: hasTarget,
-            continueKeyword: continueKeyword,
-            endToken: endToken);
+    ContinueStatementHandle data = new ContinueStatementHandle(
+        ParserAstType.HANDLE,
+        hasTarget: hasTarget,
+        continueKeyword: continueKeyword,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void handleEmptyStatement(Token token) {
-    DirectParserASTContentEmptyStatementHandle data =
-        new DirectParserASTContentEmptyStatementHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    EmptyStatementHandle data =
+        new EmptyStatementHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void beginAssert(Token assertKeyword, Assert kind) {
-    DirectParserASTContentAssertBegin data =
-        new DirectParserASTContentAssertBegin(DirectParserASTType.BEGIN,
-            assertKeyword: assertKeyword, kind: kind);
+    AssertBegin data = new AssertBegin(ParserAstType.BEGIN,
+        assertKeyword: assertKeyword, kind: kind);
     seen(data);
   }
 
   @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
       Token? commaToken, Token semicolonToken) {
-    DirectParserASTContentAssertEnd data = new DirectParserASTContentAssertEnd(
-        DirectParserASTType.END,
+    AssertEnd data = new AssertEnd(ParserAstType.END,
         assertKeyword: assertKeyword,
         kind: kind,
         leftParenthesis: leftParenthesis,
@@ -2459,30 +2096,26 @@ abstract class AbstractDirectParserASTListener implements Listener {
 
   @override
   void handleLiteralDouble(Token token) {
-    DirectParserASTContentLiteralDoubleHandle data =
-        new DirectParserASTContentLiteralDoubleHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    LiteralDoubleHandle data =
+        new LiteralDoubleHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleLiteralInt(Token token) {
-    DirectParserASTContentLiteralIntHandle data =
-        new DirectParserASTContentLiteralIntHandle(DirectParserASTType.HANDLE,
-            token: token);
+    LiteralIntHandle data =
+        new LiteralIntHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleLiteralList(
       int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
-    DirectParserASTContentLiteralListHandle data =
-        new DirectParserASTContentLiteralListHandle(DirectParserASTType.HANDLE,
-            count: count,
-            leftBracket: leftBracket,
-            constKeyword: constKeyword,
-            rightBracket: rightBracket);
+    LiteralListHandle data = new LiteralListHandle(ParserAstType.HANDLE,
+        count: count,
+        leftBracket: leftBracket,
+        constKeyword: constKeyword,
+        rightBracket: rightBracket);
     seen(data);
   }
 
@@ -2494,178 +2127,151 @@ abstract class AbstractDirectParserASTListener implements Listener {
     Token rightBrace,
     bool hasSetEntry,
   ) {
-    DirectParserASTContentLiteralSetOrMapHandle data =
-        new DirectParserASTContentLiteralSetOrMapHandle(
-            DirectParserASTType.HANDLE,
-            count: count,
-            leftBrace: leftBrace,
-            constKeyword: constKeyword,
-            rightBrace: rightBrace,
-            hasSetEntry: hasSetEntry);
+    LiteralSetOrMapHandle data = new LiteralSetOrMapHandle(ParserAstType.HANDLE,
+        count: count,
+        leftBrace: leftBrace,
+        constKeyword: constKeyword,
+        rightBrace: rightBrace,
+        hasSetEntry: hasSetEntry);
     seen(data);
   }
 
   @override
   void handleLiteralNull(Token token) {
-    DirectParserASTContentLiteralNullHandle data =
-        new DirectParserASTContentLiteralNullHandle(DirectParserASTType.HANDLE,
-            token: token);
+    LiteralNullHandle data =
+        new LiteralNullHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleNativeClause(Token nativeToken, bool hasName) {
-    DirectParserASTContentNativeClauseHandle data =
-        new DirectParserASTContentNativeClauseHandle(DirectParserASTType.HANDLE,
-            nativeToken: nativeToken, hasName: hasName);
+    NativeClauseHandle data = new NativeClauseHandle(ParserAstType.HANDLE,
+        nativeToken: nativeToken, hasName: hasName);
     seen(data);
   }
 
   @override
   void handleNamedArgument(Token colon) {
-    DirectParserASTContentNamedArgumentHandle data =
-        new DirectParserASTContentNamedArgumentHandle(
-            DirectParserASTType.HANDLE,
-            colon: colon);
+    NamedArgumentHandle data =
+        new NamedArgumentHandle(ParserAstType.HANDLE, colon: colon);
     seen(data);
   }
 
   @override
   void beginNewExpression(Token token) {
-    DirectParserASTContentNewExpressionBegin data =
-        new DirectParserASTContentNewExpressionBegin(DirectParserASTType.BEGIN,
-            token: token);
+    NewExpressionBegin data =
+        new NewExpressionBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endNewExpression(Token token) {
-    DirectParserASTContentNewExpressionEnd data =
-        new DirectParserASTContentNewExpressionEnd(DirectParserASTType.END,
-            token: token);
+    NewExpressionEnd data =
+        new NewExpressionEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
   @override
   void handleNoArguments(Token token) {
-    DirectParserASTContentNoArgumentsHandle data =
-        new DirectParserASTContentNoArgumentsHandle(DirectParserASTType.HANDLE,
-            token: token);
+    NoArgumentsHandle data =
+        new NoArgumentsHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
-    DirectParserASTContentNoConstructorReferenceContinuationAfterTypeArgumentsHandle
-        data =
-        new DirectParserASTContentNoConstructorReferenceContinuationAfterTypeArgumentsHandle(
-            DirectParserASTType.HANDLE,
+    NoConstructorReferenceContinuationAfterTypeArgumentsHandle data =
+        new NoConstructorReferenceContinuationAfterTypeArgumentsHandle(
+            ParserAstType.HANDLE,
             token: token);
     seen(data);
   }
 
   @override
   void handleNoType(Token lastConsumed) {
-    DirectParserASTContentNoTypeHandle data =
-        new DirectParserASTContentNoTypeHandle(DirectParserASTType.HANDLE,
-            lastConsumed: lastConsumed);
+    NoTypeHandle data =
+        new NoTypeHandle(ParserAstType.HANDLE, lastConsumed: lastConsumed);
     seen(data);
   }
 
   @override
   void handleNoTypeVariables(Token token) {
-    DirectParserASTContentNoTypeVariablesHandle data =
-        new DirectParserASTContentNoTypeVariablesHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    NoTypeVariablesHandle data =
+        new NoTypeVariablesHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleOperator(Token token) {
-    DirectParserASTContentOperatorHandle data =
-        new DirectParserASTContentOperatorHandle(DirectParserASTType.HANDLE,
-            token: token);
+    OperatorHandle data =
+        new OperatorHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleSymbolVoid(Token token) {
-    DirectParserASTContentSymbolVoidHandle data =
-        new DirectParserASTContentSymbolVoidHandle(DirectParserASTType.HANDLE,
-            token: token);
+    SymbolVoidHandle data =
+        new SymbolVoidHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleOperatorName(Token operatorKeyword, Token token) {
-    DirectParserASTContentOperatorNameHandle data =
-        new DirectParserASTContentOperatorNameHandle(DirectParserASTType.HANDLE,
-            operatorKeyword: operatorKeyword, token: token);
+    OperatorNameHandle data = new OperatorNameHandle(ParserAstType.HANDLE,
+        operatorKeyword: operatorKeyword, token: token);
     seen(data);
   }
 
   @override
   void handleInvalidOperatorName(Token operatorKeyword, Token token) {
-    DirectParserASTContentInvalidOperatorNameHandle data =
-        new DirectParserASTContentInvalidOperatorNameHandle(
-            DirectParserASTType.HANDLE,
-            operatorKeyword: operatorKeyword,
-            token: token);
+    InvalidOperatorNameHandle data = new InvalidOperatorNameHandle(
+        ParserAstType.HANDLE,
+        operatorKeyword: operatorKeyword,
+        token: token);
     seen(data);
   }
 
   @override
   void handleParenthesizedCondition(Token token) {
-    DirectParserASTContentParenthesizedConditionHandle data =
-        new DirectParserASTContentParenthesizedConditionHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    ParenthesizedConditionHandle data =
+        new ParenthesizedConditionHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleParenthesizedExpression(Token token) {
-    DirectParserASTContentParenthesizedExpressionHandle data =
-        new DirectParserASTContentParenthesizedExpressionHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    ParenthesizedExpressionHandle data =
+        new ParenthesizedExpressionHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleQualified(Token period) {
-    DirectParserASTContentQualifiedHandle data =
-        new DirectParserASTContentQualifiedHandle(DirectParserASTType.HANDLE,
-            period: period);
+    QualifiedHandle data =
+        new QualifiedHandle(ParserAstType.HANDLE, period: period);
     seen(data);
   }
 
   @override
   void handleStringPart(Token token) {
-    DirectParserASTContentStringPartHandle data =
-        new DirectParserASTContentStringPartHandle(DirectParserASTType.HANDLE,
-            token: token);
+    StringPartHandle data =
+        new StringPartHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleSuperExpression(Token token, IdentifierContext context) {
-    DirectParserASTContentSuperExpressionHandle data =
-        new DirectParserASTContentSuperExpressionHandle(
-            DirectParserASTType.HANDLE,
-            token: token,
-            context: context);
+    SuperExpressionHandle data = new SuperExpressionHandle(ParserAstType.HANDLE,
+        token: token, context: context);
     seen(data);
   }
 
   @override
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
-    DirectParserASTContentSwitchCaseBegin data =
-        new DirectParserASTContentSwitchCaseBegin(DirectParserASTType.BEGIN,
-            labelCount: labelCount,
-            expressionCount: expressionCount,
-            firstToken: firstToken);
+    SwitchCaseBegin data = new SwitchCaseBegin(ParserAstType.BEGIN,
+        labelCount: labelCount,
+        expressionCount: expressionCount,
+        firstToken: firstToken);
     seen(data);
   }
 
@@ -2678,242 +2284,211 @@ abstract class AbstractDirectParserASTListener implements Listener {
       int statementCount,
       Token firstToken,
       Token endToken) {
-    DirectParserASTContentSwitchCaseEnd data =
-        new DirectParserASTContentSwitchCaseEnd(DirectParserASTType.END,
-            labelCount: labelCount,
-            expressionCount: expressionCount,
-            defaultKeyword: defaultKeyword,
-            colonAfterDefault: colonAfterDefault,
-            statementCount: statementCount,
-            firstToken: firstToken,
-            endToken: endToken);
+    SwitchCaseEnd data = new SwitchCaseEnd(ParserAstType.END,
+        labelCount: labelCount,
+        expressionCount: expressionCount,
+        defaultKeyword: defaultKeyword,
+        colonAfterDefault: colonAfterDefault,
+        statementCount: statementCount,
+        firstToken: firstToken,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void handleThisExpression(Token token, IdentifierContext context) {
-    DirectParserASTContentThisExpressionHandle data =
-        new DirectParserASTContentThisExpressionHandle(
-            DirectParserASTType.HANDLE,
-            token: token,
-            context: context);
+    ThisExpressionHandle data = new ThisExpressionHandle(ParserAstType.HANDLE,
+        token: token, context: context);
     seen(data);
   }
 
   @override
   void handleUnaryPostfixAssignmentExpression(Token token) {
-    DirectParserASTContentUnaryPostfixAssignmentExpressionHandle data =
-        new DirectParserASTContentUnaryPostfixAssignmentExpressionHandle(
-            DirectParserASTType.HANDLE,
+    UnaryPostfixAssignmentExpressionHandle data =
+        new UnaryPostfixAssignmentExpressionHandle(ParserAstType.HANDLE,
             token: token);
     seen(data);
   }
 
   @override
   void handleUnaryPrefixExpression(Token token) {
-    DirectParserASTContentUnaryPrefixExpressionHandle data =
-        new DirectParserASTContentUnaryPrefixExpressionHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    UnaryPrefixExpressionHandle data =
+        new UnaryPrefixExpressionHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleUnaryPrefixAssignmentExpression(Token token) {
-    DirectParserASTContentUnaryPrefixAssignmentExpressionHandle data =
-        new DirectParserASTContentUnaryPrefixAssignmentExpressionHandle(
-            DirectParserASTType.HANDLE,
+    UnaryPrefixAssignmentExpressionHandle data =
+        new UnaryPrefixAssignmentExpressionHandle(ParserAstType.HANDLE,
             token: token);
     seen(data);
   }
 
   @override
   void beginFormalParameterDefaultValueExpression() {
-    DirectParserASTContentFormalParameterDefaultValueExpressionBegin data =
-        new DirectParserASTContentFormalParameterDefaultValueExpressionBegin(
-            DirectParserASTType.BEGIN);
+    FormalParameterDefaultValueExpressionBegin data =
+        new FormalParameterDefaultValueExpressionBegin(ParserAstType.BEGIN);
     seen(data);
   }
 
   @override
   void endFormalParameterDefaultValueExpression() {
-    DirectParserASTContentFormalParameterDefaultValueExpressionEnd data =
-        new DirectParserASTContentFormalParameterDefaultValueExpressionEnd(
-            DirectParserASTType.END);
+    FormalParameterDefaultValueExpressionEnd data =
+        new FormalParameterDefaultValueExpressionEnd(ParserAstType.END);
     seen(data);
   }
 
   @override
   void handleValuedFormalParameter(Token equals, Token token) {
-    DirectParserASTContentValuedFormalParameterHandle data =
-        new DirectParserASTContentValuedFormalParameterHandle(
-            DirectParserASTType.HANDLE,
-            equals: equals,
-            token: token);
+    ValuedFormalParameterHandle data = new ValuedFormalParameterHandle(
+        ParserAstType.HANDLE,
+        equals: equals,
+        token: token);
     seen(data);
   }
 
   @override
   void handleFormalParameterWithoutValue(Token token) {
-    DirectParserASTContentFormalParameterWithoutValueHandle data =
-        new DirectParserASTContentFormalParameterWithoutValueHandle(
-            DirectParserASTType.HANDLE,
+    FormalParameterWithoutValueHandle data =
+        new FormalParameterWithoutValueHandle(ParserAstType.HANDLE,
             token: token);
     seen(data);
   }
 
   @override
   void handleVoidKeyword(Token token) {
-    DirectParserASTContentVoidKeywordHandle data =
-        new DirectParserASTContentVoidKeywordHandle(DirectParserASTType.HANDLE,
-            token: token);
+    VoidKeywordHandle data =
+        new VoidKeywordHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleVoidKeywordWithTypeArguments(Token token) {
-    DirectParserASTContentVoidKeywordWithTypeArgumentsHandle data =
-        new DirectParserASTContentVoidKeywordWithTypeArgumentsHandle(
-            DirectParserASTType.HANDLE,
+    VoidKeywordWithTypeArgumentsHandle data =
+        new VoidKeywordWithTypeArgumentsHandle(ParserAstType.HANDLE,
             token: token);
     seen(data);
   }
 
   @override
   void beginYieldStatement(Token token) {
-    DirectParserASTContentYieldStatementBegin data =
-        new DirectParserASTContentYieldStatementBegin(DirectParserASTType.BEGIN,
-            token: token);
+    YieldStatementBegin data =
+        new YieldStatementBegin(ParserAstType.BEGIN, token: token);
     seen(data);
   }
 
   @override
   void endYieldStatement(Token yieldToken, Token? starToken, Token endToken) {
-    DirectParserASTContentYieldStatementEnd data =
-        new DirectParserASTContentYieldStatementEnd(DirectParserASTType.END,
-            yieldToken: yieldToken, starToken: starToken, endToken: endToken);
+    YieldStatementEnd data = new YieldStatementEnd(ParserAstType.END,
+        yieldToken: yieldToken, starToken: starToken, endToken: endToken);
     seen(data);
   }
 
   @override
   void endInvalidYieldStatement(Token beginToken, Token? starToken,
       Token endToken, MessageCode errorCode) {
-    DirectParserASTContentInvalidYieldStatementEnd data =
-        new DirectParserASTContentInvalidYieldStatementEnd(
-            DirectParserASTType.END,
-            beginToken: beginToken,
-            starToken: starToken,
-            endToken: endToken,
-            errorCode: errorCode);
+    InvalidYieldStatementEnd data = new InvalidYieldStatementEnd(
+        ParserAstType.END,
+        beginToken: beginToken,
+        starToken: starToken,
+        endToken: endToken,
+        errorCode: errorCode);
     seen(data);
   }
 
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    DirectParserASTContentRecoverableErrorHandle data =
-        new DirectParserASTContentRecoverableErrorHandle(
-            DirectParserASTType.HANDLE,
-            message: message,
-            startToken: startToken,
-            endToken: endToken);
+    RecoverableErrorHandle data = new RecoverableErrorHandle(
+        ParserAstType.HANDLE,
+        message: message,
+        startToken: startToken,
+        endToken: endToken);
     seen(data);
   }
 
   @override
   void handleErrorToken(ErrorToken token) {
-    DirectParserASTContentErrorTokenHandle data =
-        new DirectParserASTContentErrorTokenHandle(DirectParserASTType.HANDLE,
-            token: token);
+    ErrorTokenHandle data =
+        new ErrorTokenHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleUnescapeError(
       Message message, Token location, int stringOffset, int length) {
-    DirectParserASTContentUnescapeErrorHandle data =
-        new DirectParserASTContentUnescapeErrorHandle(
-            DirectParserASTType.HANDLE,
-            message: message,
-            location: location,
-            stringOffset: stringOffset,
-            length: length);
+    UnescapeErrorHandle data = new UnescapeErrorHandle(ParserAstType.HANDLE,
+        message: message,
+        location: location,
+        stringOffset: stringOffset,
+        length: length);
     seen(data);
   }
 
   @override
   void handleInvalidStatement(Token token, Message message) {
-    DirectParserASTContentInvalidStatementHandle data =
-        new DirectParserASTContentInvalidStatementHandle(
-            DirectParserASTType.HANDLE,
-            token: token,
-            message: message);
+    InvalidStatementHandle data = new InvalidStatementHandle(
+        ParserAstType.HANDLE,
+        token: token,
+        message: message);
     seen(data);
   }
 
   @override
   void handleScript(Token token) {
-    DirectParserASTContentScriptHandle data =
-        new DirectParserASTContentScriptHandle(DirectParserASTType.HANDLE,
-            token: token);
+    ScriptHandle data = new ScriptHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 
   @override
   void handleCommentReferenceText(String referenceSource, int referenceOffset) {
-    DirectParserASTContentCommentReferenceTextHandle data =
-        new DirectParserASTContentCommentReferenceTextHandle(
-            DirectParserASTType.HANDLE,
-            referenceSource: referenceSource,
-            referenceOffset: referenceOffset);
+    CommentReferenceTextHandle data = new CommentReferenceTextHandle(
+        ParserAstType.HANDLE,
+        referenceSource: referenceSource,
+        referenceOffset: referenceOffset);
     seen(data);
   }
 
   @override
   void handleCommentReference(
       Token? newKeyword, Token? prefix, Token? period, Token token) {
-    DirectParserASTContentCommentReferenceHandle data =
-        new DirectParserASTContentCommentReferenceHandle(
-            DirectParserASTType.HANDLE,
-            newKeyword: newKeyword,
-            prefix: prefix,
-            period: period,
-            token: token);
+    CommentReferenceHandle data = new CommentReferenceHandle(
+        ParserAstType.HANDLE,
+        newKeyword: newKeyword,
+        prefix: prefix,
+        period: period,
+        token: token);
     seen(data);
   }
 
   @override
   void handleNoCommentReference() {
-    DirectParserASTContentNoCommentReferenceHandle data =
-        new DirectParserASTContentNoCommentReferenceHandle(
-            DirectParserASTType.HANDLE);
+    NoCommentReferenceHandle data =
+        new NoCommentReferenceHandle(ParserAstType.HANDLE);
     seen(data);
   }
 
   @override
   void handleTypeArgumentApplication(Token openAngleBracket) {
-    DirectParserASTContentTypeArgumentApplicationHandle data =
-        new DirectParserASTContentTypeArgumentApplicationHandle(
-            DirectParserASTType.HANDLE,
-            openAngleBracket: openAngleBracket);
+    TypeArgumentApplicationHandle data = new TypeArgumentApplicationHandle(
+        ParserAstType.HANDLE,
+        openAngleBracket: openAngleBracket);
     seen(data);
   }
 
   @override
   void handleNewAsIdentifier(Token token) {
-    DirectParserASTContentNewAsIdentifierHandle data =
-        new DirectParserASTContentNewAsIdentifierHandle(
-            DirectParserASTType.HANDLE,
-            token: token);
+    NewAsIdentifierHandle data =
+        new NewAsIdentifierHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
 }
 
-class DirectParserASTContentArgumentsBegin extends DirectParserASTContent {
+class ArgumentsBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentArgumentsBegin(DirectParserASTType type,
-      {required this.token})
+  ArgumentsBegin(ParserAstType type, {required this.token})
       : super("Arguments", type);
 
   @override
@@ -2922,12 +2497,12 @@ class DirectParserASTContentArgumentsBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentArgumentsEnd extends DirectParserASTContent {
+class ArgumentsEnd extends ParserAstNode {
   final int count;
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentArgumentsEnd(DirectParserASTType type,
+  ArgumentsEnd(ParserAstType type,
       {required this.count, required this.beginToken, required this.endToken})
       : super("Arguments", type);
 
@@ -2939,12 +2514,11 @@ class DirectParserASTContentArgumentsEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentAsyncModifierHandle extends DirectParserASTContent {
+class AsyncModifierHandle extends ParserAstNode {
   final Token? asyncToken;
   final Token? starToken;
 
-  DirectParserASTContentAsyncModifierHandle(DirectParserASTType type,
-      {this.asyncToken, this.starToken})
+  AsyncModifierHandle(ParserAstType type, {this.asyncToken, this.starToken})
       : super("AsyncModifier", type);
 
   @override
@@ -2954,12 +2528,10 @@ class DirectParserASTContentAsyncModifierHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentAwaitExpressionBegin
-    extends DirectParserASTContent {
+class AwaitExpressionBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentAwaitExpressionBegin(DirectParserASTType type,
-      {required this.token})
+  AwaitExpressionBegin(ParserAstType type, {required this.token})
       : super("AwaitExpression", type);
 
   @override
@@ -2968,11 +2540,11 @@ class DirectParserASTContentAwaitExpressionBegin
       };
 }
 
-class DirectParserASTContentAwaitExpressionEnd extends DirectParserASTContent {
+class AwaitExpressionEnd extends ParserAstNode {
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentAwaitExpressionEnd(DirectParserASTType type,
+  AwaitExpressionEnd(ParserAstType type,
       {required this.beginToken, required this.endToken})
       : super("AwaitExpression", type);
 
@@ -2983,13 +2555,12 @@ class DirectParserASTContentAwaitExpressionEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentInvalidAwaitExpressionEnd
-    extends DirectParserASTContent {
+class InvalidAwaitExpressionEnd extends ParserAstNode {
   final Token beginToken;
   final Token endToken;
   final MessageCode errorCode;
 
-  DirectParserASTContentInvalidAwaitExpressionEnd(DirectParserASTType type,
+  InvalidAwaitExpressionEnd(ParserAstType type,
       {required this.beginToken,
       required this.endToken,
       required this.errorCode})
@@ -3003,12 +2574,11 @@ class DirectParserASTContentInvalidAwaitExpressionEnd
       };
 }
 
-class DirectParserASTContentBlockBegin extends DirectParserASTContent {
+class BlockBegin extends ParserAstNode {
   final Token token;
   final BlockKind blockKind;
 
-  DirectParserASTContentBlockBegin(DirectParserASTType type,
-      {required this.token, required this.blockKind})
+  BlockBegin(ParserAstType type, {required this.token, required this.blockKind})
       : super("Block", type);
 
   @override
@@ -3018,13 +2588,13 @@ class DirectParserASTContentBlockBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentBlockEnd extends DirectParserASTContent {
+class BlockEnd extends ParserAstNode {
   final int count;
   final Token beginToken;
   final Token endToken;
   final BlockKind blockKind;
 
-  DirectParserASTContentBlockEnd(DirectParserASTType type,
+  BlockEnd(ParserAstType type,
       {required this.count,
       required this.beginToken,
       required this.endToken,
@@ -3040,12 +2610,10 @@ class DirectParserASTContentBlockEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentInvalidTopLevelBlockHandle
-    extends DirectParserASTContent {
+class InvalidTopLevelBlockHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentInvalidTopLevelBlockHandle(DirectParserASTType type,
-      {required this.token})
+  InvalidTopLevelBlockHandle(ParserAstType type, {required this.token})
       : super("InvalidTopLevelBlock", type);
 
   @override
@@ -3054,11 +2622,10 @@ class DirectParserASTContentInvalidTopLevelBlockHandle
       };
 }
 
-class DirectParserASTContentCascadeBegin extends DirectParserASTContent {
+class CascadeBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentCascadeBegin(DirectParserASTType type,
-      {required this.token})
+  CascadeBegin(ParserAstType type, {required this.token})
       : super("Cascade", type);
 
   @override
@@ -3067,19 +2634,17 @@ class DirectParserASTContentCascadeBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentCascadeEnd extends DirectParserASTContent {
-  DirectParserASTContentCascadeEnd(DirectParserASTType type)
-      : super("Cascade", type);
+class CascadeEnd extends ParserAstNode {
+  CascadeEnd(ParserAstType type) : super("Cascade", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
-class DirectParserASTContentCaseExpressionBegin extends DirectParserASTContent {
+class CaseExpressionBegin extends ParserAstNode {
   final Token caseKeyword;
 
-  DirectParserASTContentCaseExpressionBegin(DirectParserASTType type,
-      {required this.caseKeyword})
+  CaseExpressionBegin(ParserAstType type, {required this.caseKeyword})
       : super("CaseExpression", type);
 
   @override
@@ -3088,11 +2653,10 @@ class DirectParserASTContentCaseExpressionBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentCaseExpressionEnd extends DirectParserASTContent {
+class CaseExpressionEnd extends ParserAstNode {
   final Token colon;
 
-  DirectParserASTContentCaseExpressionEnd(DirectParserASTType type,
-      {required this.colon})
+  CaseExpressionEnd(ParserAstType type, {required this.colon})
       : super("CaseExpression", type);
 
   @override
@@ -3101,15 +2665,12 @@ class DirectParserASTContentCaseExpressionEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentClassOrMixinOrExtensionBodyBegin
-    extends DirectParserASTContent {
+class ClassOrMixinOrExtensionBodyBegin extends ParserAstNode {
   final DeclarationKind kind;
   final Token token;
 
-  DirectParserASTContentClassOrMixinOrExtensionBodyBegin(
-      DirectParserASTType type,
-      {required this.kind,
-      required this.token})
+  ClassOrMixinOrExtensionBodyBegin(ParserAstType type,
+      {required this.kind, required this.token})
       : super("ClassOrMixinOrExtensionBody", type);
 
   @override
@@ -3119,14 +2680,13 @@ class DirectParserASTContentClassOrMixinOrExtensionBodyBegin
       };
 }
 
-class DirectParserASTContentClassOrMixinOrExtensionBodyEnd
-    extends DirectParserASTContent {
+class ClassOrMixinOrExtensionBodyEnd extends ParserAstNode {
   final DeclarationKind kind;
   final int memberCount;
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentClassOrMixinOrExtensionBodyEnd(DirectParserASTType type,
+  ClassOrMixinOrExtensionBodyEnd(ParserAstType type,
       {required this.kind,
       required this.memberCount,
       required this.beginToken,
@@ -3142,12 +2702,10 @@ class DirectParserASTContentClassOrMixinOrExtensionBodyEnd
       };
 }
 
-class DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin
-    extends DirectParserASTContent {
+class ClassOrMixinOrNamedMixinApplicationPreludeBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin(
-      DirectParserASTType type,
+  ClassOrMixinOrNamedMixinApplicationPreludeBegin(ParserAstType type,
       {required this.token})
       : super("ClassOrMixinOrNamedMixinApplicationPrelude", type);
 
@@ -3157,13 +2715,12 @@ class DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin
       };
 }
 
-class DirectParserASTContentClassDeclarationBegin
-    extends DirectParserASTContent {
+class ClassDeclarationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
   final Token name;
 
-  DirectParserASTContentClassDeclarationBegin(DirectParserASTType type,
+  ClassDeclarationBegin(ParserAstType type,
       {required this.begin, this.abstractToken, required this.name})
       : super("ClassDeclaration", type);
 
@@ -3175,11 +2732,11 @@ class DirectParserASTContentClassDeclarationBegin
       };
 }
 
-class DirectParserASTContentClassExtendsHandle extends DirectParserASTContent {
+class ClassExtendsHandle extends ParserAstNode {
   final Token? extendsKeyword;
   final int typeCount;
 
-  DirectParserASTContentClassExtendsHandle(DirectParserASTType type,
+  ClassExtendsHandle(ParserAstType type,
       {this.extendsKeyword, required this.typeCount})
       : super("ClassExtends", type);
 
@@ -3190,12 +2747,11 @@ class DirectParserASTContentClassExtendsHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentClassOrMixinImplementsHandle
-    extends DirectParserASTContent {
+class ClassOrMixinImplementsHandle extends ParserAstNode {
   final Token? implementsKeyword;
   final int interfacesCount;
 
-  DirectParserASTContentClassOrMixinImplementsHandle(DirectParserASTType type,
+  ClassOrMixinImplementsHandle(ParserAstType type,
       {this.implementsKeyword, required this.interfacesCount})
       : super("ClassOrMixinImplements", type);
 
@@ -3206,14 +2762,13 @@ class DirectParserASTContentClassOrMixinImplementsHandle
       };
 }
 
-class DirectParserASTContentExtensionShowHideHandle
-    extends DirectParserASTContent {
+class ExtensionShowHideHandle extends ParserAstNode {
   final Token? showKeyword;
   final int showElementCount;
   final Token? hideKeyword;
   final int hideElementCount;
 
-  DirectParserASTContentExtensionShowHideHandle(DirectParserASTType type,
+  ExtensionShowHideHandle(ParserAstType type,
       {this.showKeyword,
       required this.showElementCount,
       this.hideKeyword,
@@ -3229,12 +2784,12 @@ class DirectParserASTContentExtensionShowHideHandle
       };
 }
 
-class DirectParserASTContentClassHeaderHandle extends DirectParserASTContent {
+class ClassHeaderHandle extends ParserAstNode {
   final Token begin;
   final Token classKeyword;
   final Token? nativeToken;
 
-  DirectParserASTContentClassHeaderHandle(DirectParserASTType type,
+  ClassHeaderHandle(ParserAstType type,
       {required this.begin, required this.classKeyword, this.nativeToken})
       : super("ClassHeader", type);
 
@@ -3246,20 +2801,19 @@ class DirectParserASTContentClassHeaderHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentRecoverClassHeaderHandle
-    extends DirectParserASTContent {
-  DirectParserASTContentRecoverClassHeaderHandle(DirectParserASTType type)
+class RecoverClassHeaderHandle extends ParserAstNode {
+  RecoverClassHeaderHandle(ParserAstType type)
       : super("RecoverClassHeader", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
-class DirectParserASTContentClassDeclarationEnd extends DirectParserASTContent {
+class ClassDeclarationEnd extends ParserAstNode {
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentClassDeclarationEnd(DirectParserASTType type,
+  ClassDeclarationEnd(ParserAstType type,
       {required this.beginToken, required this.endToken})
       : super("ClassDeclaration", type);
 
@@ -3270,12 +2824,11 @@ class DirectParserASTContentClassDeclarationEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentMixinDeclarationBegin
-    extends DirectParserASTContent {
+class MixinDeclarationBegin extends ParserAstNode {
   final Token mixinKeyword;
   final Token name;
 
-  DirectParserASTContentMixinDeclarationBegin(DirectParserASTType type,
+  MixinDeclarationBegin(ParserAstType type,
       {required this.mixinKeyword, required this.name})
       : super("MixinDeclaration", type);
 
@@ -3286,12 +2839,11 @@ class DirectParserASTContentMixinDeclarationBegin
       };
 }
 
-class DirectParserASTContentMixinOnHandle extends DirectParserASTContent {
+class MixinOnHandle extends ParserAstNode {
   final Token? onKeyword;
   final int typeCount;
 
-  DirectParserASTContentMixinOnHandle(DirectParserASTType type,
-      {this.onKeyword, required this.typeCount})
+  MixinOnHandle(ParserAstType type, {this.onKeyword, required this.typeCount})
       : super("MixinOn", type);
 
   @override
@@ -3301,11 +2853,10 @@ class DirectParserASTContentMixinOnHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentMixinHeaderHandle extends DirectParserASTContent {
+class MixinHeaderHandle extends ParserAstNode {
   final Token mixinKeyword;
 
-  DirectParserASTContentMixinHeaderHandle(DirectParserASTType type,
-      {required this.mixinKeyword})
+  MixinHeaderHandle(ParserAstType type, {required this.mixinKeyword})
       : super("MixinHeader", type);
 
   @override
@@ -3314,20 +2865,19 @@ class DirectParserASTContentMixinHeaderHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentRecoverMixinHeaderHandle
-    extends DirectParserASTContent {
-  DirectParserASTContentRecoverMixinHeaderHandle(DirectParserASTType type)
+class RecoverMixinHeaderHandle extends ParserAstNode {
+  RecoverMixinHeaderHandle(ParserAstType type)
       : super("RecoverMixinHeader", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
-class DirectParserASTContentMixinDeclarationEnd extends DirectParserASTContent {
+class MixinDeclarationEnd extends ParserAstNode {
   final Token mixinKeyword;
   final Token endToken;
 
-  DirectParserASTContentMixinDeclarationEnd(DirectParserASTType type,
+  MixinDeclarationEnd(ParserAstType type,
       {required this.mixinKeyword, required this.endToken})
       : super("MixinDeclaration", type);
 
@@ -3338,12 +2888,10 @@ class DirectParserASTContentMixinDeclarationEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentUncategorizedTopLevelDeclarationBegin
-    extends DirectParserASTContent {
+class UncategorizedTopLevelDeclarationBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentUncategorizedTopLevelDeclarationBegin(
-      DirectParserASTType type,
+  UncategorizedTopLevelDeclarationBegin(ParserAstType type,
       {required this.token})
       : super("UncategorizedTopLevelDeclaration", type);
 
@@ -3353,12 +2901,10 @@ class DirectParserASTContentUncategorizedTopLevelDeclarationBegin
       };
 }
 
-class DirectParserASTContentExtensionDeclarationPreludeBegin
-    extends DirectParserASTContent {
+class ExtensionDeclarationPreludeBegin extends ParserAstNode {
   final Token extensionKeyword;
 
-  DirectParserASTContentExtensionDeclarationPreludeBegin(
-      DirectParserASTType type,
+  ExtensionDeclarationPreludeBegin(ParserAstType type,
       {required this.extensionKeyword})
       : super("ExtensionDeclarationPrelude", type);
 
@@ -3368,12 +2914,11 @@ class DirectParserASTContentExtensionDeclarationPreludeBegin
       };
 }
 
-class DirectParserASTContentExtensionDeclarationBegin
-    extends DirectParserASTContent {
+class ExtensionDeclarationBegin extends ParserAstNode {
   final Token extensionKeyword;
   final Token? name;
 
-  DirectParserASTContentExtensionDeclarationBegin(DirectParserASTType type,
+  ExtensionDeclarationBegin(ParserAstType type,
       {required this.extensionKeyword, this.name})
       : super("ExtensionDeclaration", type);
 
@@ -3384,8 +2929,7 @@ class DirectParserASTContentExtensionDeclarationBegin
       };
 }
 
-class DirectParserASTContentExtensionDeclarationEnd
-    extends DirectParserASTContent {
+class ExtensionDeclarationEnd extends ParserAstNode {
   final Token extensionKeyword;
   final Token? typeKeyword;
   final Token onKeyword;
@@ -3393,7 +2937,7 @@ class DirectParserASTContentExtensionDeclarationEnd
   final Token? hideKeyword;
   final Token endToken;
 
-  DirectParserASTContentExtensionDeclarationEnd(DirectParserASTType type,
+  ExtensionDeclarationEnd(ParserAstType type,
       {required this.extensionKeyword,
       this.typeKeyword,
       required this.onKeyword,
@@ -3413,11 +2957,10 @@ class DirectParserASTContentExtensionDeclarationEnd
       };
 }
 
-class DirectParserASTContentCombinatorsBegin extends DirectParserASTContent {
+class CombinatorsBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentCombinatorsBegin(DirectParserASTType type,
-      {required this.token})
+  CombinatorsBegin(ParserAstType type, {required this.token})
       : super("Combinators", type);
 
   @override
@@ -3426,11 +2969,10 @@ class DirectParserASTContentCombinatorsBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentCombinatorsEnd extends DirectParserASTContent {
+class CombinatorsEnd extends ParserAstNode {
   final int count;
 
-  DirectParserASTContentCombinatorsEnd(DirectParserASTType type,
-      {required this.count})
+  CombinatorsEnd(ParserAstType type, {required this.count})
       : super("Combinators", type);
 
   @override
@@ -3439,12 +2981,10 @@ class DirectParserASTContentCombinatorsEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentCompilationUnitBegin
-    extends DirectParserASTContent {
+class CompilationUnitBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentCompilationUnitBegin(DirectParserASTType type,
-      {required this.token})
+  CompilationUnitBegin(ParserAstType type, {required this.token})
       : super("CompilationUnit", type);
 
   @override
@@ -3453,20 +2993,18 @@ class DirectParserASTContentCompilationUnitBegin
       };
 }
 
-class DirectParserASTContentDirectivesOnlyHandle
-    extends DirectParserASTContent {
-  DirectParserASTContentDirectivesOnlyHandle(DirectParserASTType type)
-      : super("DirectivesOnly", type);
+class DirectivesOnlyHandle extends ParserAstNode {
+  DirectivesOnlyHandle(ParserAstType type) : super("DirectivesOnly", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
-class DirectParserASTContentCompilationUnitEnd extends DirectParserASTContent {
+class CompilationUnitEnd extends ParserAstNode {
   final int count;
   final Token token;
 
-  DirectParserASTContentCompilationUnitEnd(DirectParserASTType type,
+  CompilationUnitEnd(ParserAstType type,
       {required this.count, required this.token})
       : super("CompilationUnit", type);
 
@@ -3477,11 +3015,10 @@ class DirectParserASTContentCompilationUnitEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentConstLiteralBegin extends DirectParserASTContent {
+class ConstLiteralBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentConstLiteralBegin(DirectParserASTType type,
-      {required this.token})
+  ConstLiteralBegin(ParserAstType type, {required this.token})
       : super("ConstLiteral", type);
 
   @override
@@ -3490,11 +3027,10 @@ class DirectParserASTContentConstLiteralBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentConstLiteralEnd extends DirectParserASTContent {
+class ConstLiteralEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentConstLiteralEnd(DirectParserASTType type,
-      {required this.token})
+  ConstLiteralEnd(ParserAstType type, {required this.token})
       : super("ConstLiteral", type);
 
   @override
@@ -3503,12 +3039,10 @@ class DirectParserASTContentConstLiteralEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentConstructorReferenceBegin
-    extends DirectParserASTContent {
+class ConstructorReferenceBegin extends ParserAstNode {
   final Token start;
 
-  DirectParserASTContentConstructorReferenceBegin(DirectParserASTType type,
-      {required this.start})
+  ConstructorReferenceBegin(ParserAstType type, {required this.start})
       : super("ConstructorReference", type);
 
   @override
@@ -3517,14 +3051,13 @@ class DirectParserASTContentConstructorReferenceBegin
       };
 }
 
-class DirectParserASTContentConstructorReferenceEnd
-    extends DirectParserASTContent {
+class ConstructorReferenceEnd extends ParserAstNode {
   final Token start;
   final Token? periodBeforeName;
   final Token endToken;
   final ConstructorReferenceContext constructorReferenceContext;
 
-  DirectParserASTContentConstructorReferenceEnd(DirectParserASTType type,
+  ConstructorReferenceEnd(ParserAstType type,
       {required this.start,
       this.periodBeforeName,
       required this.endToken,
@@ -3540,12 +3073,10 @@ class DirectParserASTContentConstructorReferenceEnd
       };
 }
 
-class DirectParserASTContentDoWhileStatementBegin
-    extends DirectParserASTContent {
+class DoWhileStatementBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentDoWhileStatementBegin(DirectParserASTType type,
-      {required this.token})
+  DoWhileStatementBegin(ParserAstType type, {required this.token})
       : super("DoWhileStatement", type);
 
   @override
@@ -3554,12 +3085,12 @@ class DirectParserASTContentDoWhileStatementBegin
       };
 }
 
-class DirectParserASTContentDoWhileStatementEnd extends DirectParserASTContent {
+class DoWhileStatementEnd extends ParserAstNode {
   final Token doKeyword;
   final Token whileKeyword;
   final Token endToken;
 
-  DirectParserASTContentDoWhileStatementEnd(DirectParserASTType type,
+  DoWhileStatementEnd(ParserAstType type,
       {required this.doKeyword,
       required this.whileKeyword,
       required this.endToken})
@@ -3573,12 +3104,10 @@ class DirectParserASTContentDoWhileStatementEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentDoWhileStatementBodyBegin
-    extends DirectParserASTContent {
+class DoWhileStatementBodyBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentDoWhileStatementBodyBegin(DirectParserASTType type,
-      {required this.token})
+  DoWhileStatementBodyBegin(ParserAstType type, {required this.token})
       : super("DoWhileStatementBody", type);
 
   @override
@@ -3587,12 +3116,10 @@ class DirectParserASTContentDoWhileStatementBodyBegin
       };
 }
 
-class DirectParserASTContentDoWhileStatementBodyEnd
-    extends DirectParserASTContent {
+class DoWhileStatementBodyEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentDoWhileStatementBodyEnd(DirectParserASTType type,
-      {required this.token})
+  DoWhileStatementBodyEnd(ParserAstType type, {required this.token})
       : super("DoWhileStatementBody", type);
 
   @override
@@ -3601,12 +3128,10 @@ class DirectParserASTContentDoWhileStatementBodyEnd
       };
 }
 
-class DirectParserASTContentWhileStatementBodyBegin
-    extends DirectParserASTContent {
+class WhileStatementBodyBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentWhileStatementBodyBegin(DirectParserASTType type,
-      {required this.token})
+  WhileStatementBodyBegin(ParserAstType type, {required this.token})
       : super("WhileStatementBody", type);
 
   @override
@@ -3615,12 +3140,10 @@ class DirectParserASTContentWhileStatementBodyBegin
       };
 }
 
-class DirectParserASTContentWhileStatementBodyEnd
-    extends DirectParserASTContent {
+class WhileStatementBodyEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentWhileStatementBodyEnd(DirectParserASTType type,
-      {required this.token})
+  WhileStatementBodyEnd(ParserAstType type, {required this.token})
       : super("WhileStatementBody", type);
 
   @override
@@ -3629,11 +3152,10 @@ class DirectParserASTContentWhileStatementBodyEnd
       };
 }
 
-class DirectParserASTContentEnumBegin extends DirectParserASTContent {
+class EnumBegin extends ParserAstNode {
   final Token enumKeyword;
 
-  DirectParserASTContentEnumBegin(DirectParserASTType type,
-      {required this.enumKeyword})
+  EnumBegin(ParserAstType type, {required this.enumKeyword})
       : super("Enum", type);
 
   @override
@@ -3642,12 +3164,12 @@ class DirectParserASTContentEnumBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentEnumEnd extends DirectParserASTContent {
+class EnumEnd extends ParserAstNode {
   final Token enumKeyword;
   final Token leftBrace;
   final int count;
 
-  DirectParserASTContentEnumEnd(DirectParserASTType type,
+  EnumEnd(ParserAstType type,
       {required this.enumKeyword, required this.leftBrace, required this.count})
       : super("Enum", type);
 
@@ -3659,11 +3181,10 @@ class DirectParserASTContentEnumEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentExportBegin extends DirectParserASTContent {
+class ExportBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentExportBegin(DirectParserASTType type,
-      {required this.token})
+  ExportBegin(ParserAstType type, {required this.token})
       : super("Export", type);
 
   @override
@@ -3672,11 +3193,11 @@ class DirectParserASTContentExportBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentExportEnd extends DirectParserASTContent {
+class ExportEnd extends ParserAstNode {
   final Token exportKeyword;
   final Token semicolon;
 
-  DirectParserASTContentExportEnd(DirectParserASTType type,
+  ExportEnd(ParserAstType type,
       {required this.exportKeyword, required this.semicolon})
       : super("Export", type);
 
@@ -3687,12 +3208,11 @@ class DirectParserASTContentExportEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentExtraneousExpressionHandle
-    extends DirectParserASTContent {
+class ExtraneousExpressionHandle extends ParserAstNode {
   final Token token;
   final Message message;
 
-  DirectParserASTContentExtraneousExpressionHandle(DirectParserASTType type,
+  ExtraneousExpressionHandle(ParserAstType type,
       {required this.token, required this.message})
       : super("ExtraneousExpression", type);
 
@@ -3703,12 +3223,10 @@ class DirectParserASTContentExtraneousExpressionHandle
       };
 }
 
-class DirectParserASTContentExpressionStatementHandle
-    extends DirectParserASTContent {
+class ExpressionStatementHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentExpressionStatementHandle(DirectParserASTType type,
-      {required this.token})
+  ExpressionStatementHandle(ParserAstType type, {required this.token})
       : super("ExpressionStatement", type);
 
   @override
@@ -3717,13 +3235,13 @@ class DirectParserASTContentExpressionStatementHandle
       };
 }
 
-class DirectParserASTContentFactoryMethodBegin extends DirectParserASTContent {
+class FactoryMethodBegin extends ParserAstNode {
   final DeclarationKind declarationKind;
   final Token lastConsumed;
   final Token? externalToken;
   final Token? constToken;
 
-  DirectParserASTContentFactoryMethodBegin(DirectParserASTType type,
+  FactoryMethodBegin(ParserAstType type,
       {required this.declarationKind,
       required this.lastConsumed,
       this.externalToken,
@@ -3739,13 +3257,12 @@ class DirectParserASTContentFactoryMethodBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentClassFactoryMethodEnd
-    extends DirectParserASTContent {
+class ClassFactoryMethodEnd extends ParserAstNode {
   final Token beginToken;
   final Token factoryKeyword;
   final Token endToken;
 
-  DirectParserASTContentClassFactoryMethodEnd(DirectParserASTType type,
+  ClassFactoryMethodEnd(ParserAstType type,
       {required this.beginToken,
       required this.factoryKeyword,
       required this.endToken})
@@ -3759,13 +3276,12 @@ class DirectParserASTContentClassFactoryMethodEnd
       };
 }
 
-class DirectParserASTContentMixinFactoryMethodEnd
-    extends DirectParserASTContent {
+class MixinFactoryMethodEnd extends ParserAstNode {
   final Token beginToken;
   final Token factoryKeyword;
   final Token endToken;
 
-  DirectParserASTContentMixinFactoryMethodEnd(DirectParserASTType type,
+  MixinFactoryMethodEnd(ParserAstType type,
       {required this.beginToken,
       required this.factoryKeyword,
       required this.endToken})
@@ -3779,13 +3295,12 @@ class DirectParserASTContentMixinFactoryMethodEnd
       };
 }
 
-class DirectParserASTContentExtensionFactoryMethodEnd
-    extends DirectParserASTContent {
+class ExtensionFactoryMethodEnd extends ParserAstNode {
   final Token beginToken;
   final Token factoryKeyword;
   final Token endToken;
 
-  DirectParserASTContentExtensionFactoryMethodEnd(DirectParserASTType type,
+  ExtensionFactoryMethodEnd(ParserAstType type,
       {required this.beginToken,
       required this.factoryKeyword,
       required this.endToken})
@@ -3799,15 +3314,14 @@ class DirectParserASTContentExtensionFactoryMethodEnd
       };
 }
 
-class DirectParserASTContentFormalParameterBegin
-    extends DirectParserASTContent {
+class FormalParameterBegin extends ParserAstNode {
   final Token token;
   final MemberKind kind;
   final Token? requiredToken;
   final Token? covariantToken;
   final Token? varFinalOrConst;
 
-  DirectParserASTContentFormalParameterBegin(DirectParserASTType type,
+  FormalParameterBegin(ParserAstType type,
       {required this.token,
       required this.kind,
       this.requiredToken,
@@ -3825,7 +3339,7 @@ class DirectParserASTContentFormalParameterBegin
       };
 }
 
-class DirectParserASTContentFormalParameterEnd extends DirectParserASTContent {
+class FormalParameterEnd extends ParserAstNode {
   final Token? thisKeyword;
   final Token? superKeyword;
   final Token? periodAfterThisOrSuper;
@@ -3835,7 +3349,7 @@ class DirectParserASTContentFormalParameterEnd extends DirectParserASTContent {
   final FormalParameterKind kind;
   final MemberKind memberKind;
 
-  DirectParserASTContentFormalParameterEnd(DirectParserASTType type,
+  FormalParameterEnd(ParserAstType type,
       {this.thisKeyword,
       this.superKeyword,
       this.periodAfterThisOrSuper,
@@ -3859,12 +3373,11 @@ class DirectParserASTContentFormalParameterEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentNoFormalParametersHandle
-    extends DirectParserASTContent {
+class NoFormalParametersHandle extends ParserAstNode {
   final Token token;
   final MemberKind kind;
 
-  DirectParserASTContentNoFormalParametersHandle(DirectParserASTType type,
+  NoFormalParametersHandle(ParserAstType type,
       {required this.token, required this.kind})
       : super("NoFormalParameters", type);
 
@@ -3875,12 +3388,11 @@ class DirectParserASTContentNoFormalParametersHandle
       };
 }
 
-class DirectParserASTContentFormalParametersBegin
-    extends DirectParserASTContent {
+class FormalParametersBegin extends ParserAstNode {
   final Token token;
   final MemberKind kind;
 
-  DirectParserASTContentFormalParametersBegin(DirectParserASTType type,
+  FormalParametersBegin(ParserAstType type,
       {required this.token, required this.kind})
       : super("FormalParameters", type);
 
@@ -3891,13 +3403,13 @@ class DirectParserASTContentFormalParametersBegin
       };
 }
 
-class DirectParserASTContentFormalParametersEnd extends DirectParserASTContent {
+class FormalParametersEnd extends ParserAstNode {
   final int count;
   final Token beginToken;
   final Token endToken;
   final MemberKind kind;
 
-  DirectParserASTContentFormalParametersEnd(DirectParserASTType type,
+  FormalParametersEnd(ParserAstType type,
       {required this.count,
       required this.beginToken,
       required this.endToken,
@@ -3913,7 +3425,7 @@ class DirectParserASTContentFormalParametersEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentClassFieldsEnd extends DirectParserASTContent {
+class ClassFieldsEnd extends ParserAstNode {
   final Token? abstractToken;
   final Token? externalToken;
   final Token? staticToken;
@@ -3924,7 +3436,7 @@ class DirectParserASTContentClassFieldsEnd extends DirectParserASTContent {
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentClassFieldsEnd(DirectParserASTType type,
+  ClassFieldsEnd(ParserAstType type,
       {this.abstractToken,
       this.externalToken,
       this.staticToken,
@@ -3950,7 +3462,7 @@ class DirectParserASTContentClassFieldsEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentMixinFieldsEnd extends DirectParserASTContent {
+class MixinFieldsEnd extends ParserAstNode {
   final Token? abstractToken;
   final Token? externalToken;
   final Token? staticToken;
@@ -3961,7 +3473,7 @@ class DirectParserASTContentMixinFieldsEnd extends DirectParserASTContent {
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentMixinFieldsEnd(DirectParserASTType type,
+  MixinFieldsEnd(ParserAstType type,
       {this.abstractToken,
       this.externalToken,
       this.staticToken,
@@ -3987,7 +3499,7 @@ class DirectParserASTContentMixinFieldsEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentExtensionFieldsEnd extends DirectParserASTContent {
+class ExtensionFieldsEnd extends ParserAstNode {
   final Token? abstractToken;
   final Token? externalToken;
   final Token? staticToken;
@@ -3998,7 +3510,7 @@ class DirectParserASTContentExtensionFieldsEnd extends DirectParserASTContent {
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentExtensionFieldsEnd(DirectParserASTType type,
+  ExtensionFieldsEnd(ParserAstType type,
       {this.abstractToken,
       this.externalToken,
       this.staticToken,
@@ -4024,13 +3536,10 @@ class DirectParserASTContentExtensionFieldsEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentForInitializerEmptyStatementHandle
-    extends DirectParserASTContent {
+class ForInitializerEmptyStatementHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentForInitializerEmptyStatementHandle(
-      DirectParserASTType type,
-      {required this.token})
+  ForInitializerEmptyStatementHandle(ParserAstType type, {required this.token})
       : super("ForInitializerEmptyStatement", type);
 
   @override
@@ -4039,15 +3548,12 @@ class DirectParserASTContentForInitializerEmptyStatementHandle
       };
 }
 
-class DirectParserASTContentForInitializerExpressionStatementHandle
-    extends DirectParserASTContent {
+class ForInitializerExpressionStatementHandle extends ParserAstNode {
   final Token token;
   final bool forIn;
 
-  DirectParserASTContentForInitializerExpressionStatementHandle(
-      DirectParserASTType type,
-      {required this.token,
-      required this.forIn})
+  ForInitializerExpressionStatementHandle(ParserAstType type,
+      {required this.token, required this.forIn})
       : super("ForInitializerExpressionStatement", type);
 
   @override
@@ -4057,15 +3563,12 @@ class DirectParserASTContentForInitializerExpressionStatementHandle
       };
 }
 
-class DirectParserASTContentForInitializerLocalVariableDeclarationHandle
-    extends DirectParserASTContent {
+class ForInitializerLocalVariableDeclarationHandle extends ParserAstNode {
   final Token token;
   final bool forIn;
 
-  DirectParserASTContentForInitializerLocalVariableDeclarationHandle(
-      DirectParserASTType type,
-      {required this.token,
-      required this.forIn})
+  ForInitializerLocalVariableDeclarationHandle(ParserAstType type,
+      {required this.token, required this.forIn})
       : super("ForInitializerLocalVariableDeclaration", type);
 
   @override
@@ -4075,11 +3578,10 @@ class DirectParserASTContentForInitializerLocalVariableDeclarationHandle
       };
 }
 
-class DirectParserASTContentForStatementBegin extends DirectParserASTContent {
+class ForStatementBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentForStatementBegin(DirectParserASTType type,
-      {required this.token})
+  ForStatementBegin(ParserAstType type, {required this.token})
       : super("ForStatement", type);
 
   @override
@@ -4088,13 +3590,13 @@ class DirectParserASTContentForStatementBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentForLoopPartsHandle extends DirectParserASTContent {
+class ForLoopPartsHandle extends ParserAstNode {
   final Token forKeyword;
   final Token leftParen;
   final Token leftSeparator;
   final int updateExpressionCount;
 
-  DirectParserASTContentForLoopPartsHandle(DirectParserASTType type,
+  ForLoopPartsHandle(ParserAstType type,
       {required this.forKeyword,
       required this.leftParen,
       required this.leftSeparator,
@@ -4110,11 +3612,10 @@ class DirectParserASTContentForLoopPartsHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentForStatementEnd extends DirectParserASTContent {
+class ForStatementEnd extends ParserAstNode {
   final Token endToken;
 
-  DirectParserASTContentForStatementEnd(DirectParserASTType type,
-      {required this.endToken})
+  ForStatementEnd(ParserAstType type, {required this.endToken})
       : super("ForStatement", type);
 
   @override
@@ -4123,12 +3624,10 @@ class DirectParserASTContentForStatementEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentForStatementBodyBegin
-    extends DirectParserASTContent {
+class ForStatementBodyBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentForStatementBodyBegin(DirectParserASTType type,
-      {required this.token})
+  ForStatementBodyBegin(ParserAstType type, {required this.token})
       : super("ForStatementBody", type);
 
   @override
@@ -4137,11 +3636,10 @@ class DirectParserASTContentForStatementBodyBegin
       };
 }
 
-class DirectParserASTContentForStatementBodyEnd extends DirectParserASTContent {
+class ForStatementBodyEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentForStatementBodyEnd(DirectParserASTType type,
-      {required this.token})
+  ForStatementBodyEnd(ParserAstType type, {required this.token})
       : super("ForStatementBody", type);
 
   @override
@@ -4150,14 +3648,13 @@ class DirectParserASTContentForStatementBodyEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentForInLoopPartsHandle
-    extends DirectParserASTContent {
+class ForInLoopPartsHandle extends ParserAstNode {
   final Token? awaitToken;
   final Token forToken;
   final Token leftParenthesis;
   final Token inKeyword;
 
-  DirectParserASTContentForInLoopPartsHandle(DirectParserASTType type,
+  ForInLoopPartsHandle(ParserAstType type,
       {this.awaitToken,
       required this.forToken,
       required this.leftParenthesis,
@@ -4173,12 +3670,10 @@ class DirectParserASTContentForInLoopPartsHandle
       };
 }
 
-class DirectParserASTContentForInEnd extends DirectParserASTContent {
+class ForInEnd extends ParserAstNode {
   final Token endToken;
 
-  DirectParserASTContentForInEnd(DirectParserASTType type,
-      {required this.endToken})
-      : super("ForIn", type);
+  ForInEnd(ParserAstType type, {required this.endToken}) : super("ForIn", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -4186,12 +3681,10 @@ class DirectParserASTContentForInEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentForInExpressionBegin
-    extends DirectParserASTContent {
+class ForInExpressionBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentForInExpressionBegin(DirectParserASTType type,
-      {required this.token})
+  ForInExpressionBegin(ParserAstType type, {required this.token})
       : super("ForInExpression", type);
 
   @override
@@ -4200,11 +3693,10 @@ class DirectParserASTContentForInExpressionBegin
       };
 }
 
-class DirectParserASTContentForInExpressionEnd extends DirectParserASTContent {
+class ForInExpressionEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentForInExpressionEnd(DirectParserASTType type,
-      {required this.token})
+  ForInExpressionEnd(ParserAstType type, {required this.token})
       : super("ForInExpression", type);
 
   @override
@@ -4213,11 +3705,10 @@ class DirectParserASTContentForInExpressionEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentForInBodyBegin extends DirectParserASTContent {
+class ForInBodyBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentForInBodyBegin(DirectParserASTType type,
-      {required this.token})
+  ForInBodyBegin(ParserAstType type, {required this.token})
       : super("ForInBody", type);
 
   @override
@@ -4226,11 +3717,10 @@ class DirectParserASTContentForInBodyBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentForInBodyEnd extends DirectParserASTContent {
+class ForInBodyEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentForInBodyEnd(DirectParserASTType type,
-      {required this.token})
+  ForInBodyEnd(ParserAstType type, {required this.token})
       : super("ForInBody", type);
 
   @override
@@ -4239,12 +3729,10 @@ class DirectParserASTContentForInBodyEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentNamedFunctionExpressionBegin
-    extends DirectParserASTContent {
+class NamedFunctionExpressionBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentNamedFunctionExpressionBegin(DirectParserASTType type,
-      {required this.token})
+  NamedFunctionExpressionBegin(ParserAstType type, {required this.token})
       : super("NamedFunctionExpression", type);
 
   @override
@@ -4253,12 +3741,10 @@ class DirectParserASTContentNamedFunctionExpressionBegin
       };
 }
 
-class DirectParserASTContentNamedFunctionExpressionEnd
-    extends DirectParserASTContent {
+class NamedFunctionExpressionEnd extends ParserAstNode {
   final Token endToken;
 
-  DirectParserASTContentNamedFunctionExpressionEnd(DirectParserASTType type,
-      {required this.endToken})
+  NamedFunctionExpressionEnd(ParserAstType type, {required this.endToken})
       : super("NamedFunctionExpression", type);
 
   @override
@@ -4267,12 +3753,10 @@ class DirectParserASTContentNamedFunctionExpressionEnd
       };
 }
 
-class DirectParserASTContentLocalFunctionDeclarationBegin
-    extends DirectParserASTContent {
+class LocalFunctionDeclarationBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentLocalFunctionDeclarationBegin(DirectParserASTType type,
-      {required this.token})
+  LocalFunctionDeclarationBegin(ParserAstType type, {required this.token})
       : super("LocalFunctionDeclaration", type);
 
   @override
@@ -4281,12 +3765,10 @@ class DirectParserASTContentLocalFunctionDeclarationBegin
       };
 }
 
-class DirectParserASTContentLocalFunctionDeclarationEnd
-    extends DirectParserASTContent {
+class LocalFunctionDeclarationEnd extends ParserAstNode {
   final Token endToken;
 
-  DirectParserASTContentLocalFunctionDeclarationEnd(DirectParserASTType type,
-      {required this.endToken})
+  LocalFunctionDeclarationEnd(ParserAstType type, {required this.endToken})
       : super("LocalFunctionDeclaration", type);
 
   @override
@@ -4295,12 +3777,10 @@ class DirectParserASTContentLocalFunctionDeclarationEnd
       };
 }
 
-class DirectParserASTContentBlockFunctionBodyBegin
-    extends DirectParserASTContent {
+class BlockFunctionBodyBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentBlockFunctionBodyBegin(DirectParserASTType type,
-      {required this.token})
+  BlockFunctionBodyBegin(ParserAstType type, {required this.token})
       : super("BlockFunctionBody", type);
 
   @override
@@ -4309,13 +3789,12 @@ class DirectParserASTContentBlockFunctionBodyBegin
       };
 }
 
-class DirectParserASTContentBlockFunctionBodyEnd
-    extends DirectParserASTContent {
+class BlockFunctionBodyEnd extends ParserAstNode {
   final int count;
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentBlockFunctionBodyEnd(DirectParserASTType type,
+  BlockFunctionBodyEnd(ParserAstType type,
       {required this.count, required this.beginToken, required this.endToken})
       : super("BlockFunctionBody", type);
 
@@ -4327,12 +3806,10 @@ class DirectParserASTContentBlockFunctionBodyEnd
       };
 }
 
-class DirectParserASTContentNoFunctionBodyHandle
-    extends DirectParserASTContent {
+class NoFunctionBodyHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentNoFunctionBodyHandle(DirectParserASTType type,
-      {required this.token})
+  NoFunctionBodyHandle(ParserAstType type, {required this.token})
       : super("NoFunctionBody", type);
 
   @override
@@ -4341,12 +3818,11 @@ class DirectParserASTContentNoFunctionBodyHandle
       };
 }
 
-class DirectParserASTContentFunctionBodySkippedHandle
-    extends DirectParserASTContent {
+class FunctionBodySkippedHandle extends ParserAstNode {
   final Token token;
   final bool isExpressionBody;
 
-  DirectParserASTContentFunctionBodySkippedHandle(DirectParserASTType type,
+  FunctionBodySkippedHandle(ParserAstType type,
       {required this.token, required this.isExpressionBody})
       : super("FunctionBodySkipped", type);
 
@@ -4357,11 +3833,10 @@ class DirectParserASTContentFunctionBodySkippedHandle
       };
 }
 
-class DirectParserASTContentFunctionNameBegin extends DirectParserASTContent {
+class FunctionNameBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentFunctionNameBegin(DirectParserASTType type,
-      {required this.token})
+  FunctionNameBegin(ParserAstType type, {required this.token})
       : super("FunctionName", type);
 
   @override
@@ -4370,11 +3845,11 @@ class DirectParserASTContentFunctionNameBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentFunctionNameEnd extends DirectParserASTContent {
+class FunctionNameEnd extends ParserAstNode {
   final Token beginToken;
   final Token token;
 
-  DirectParserASTContentFunctionNameEnd(DirectParserASTType type,
+  FunctionNameEnd(ParserAstType type,
       {required this.beginToken, required this.token})
       : super("FunctionName", type);
 
@@ -4385,11 +3860,10 @@ class DirectParserASTContentFunctionNameEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTypedefBegin extends DirectParserASTContent {
+class TypedefBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentTypedefBegin(DirectParserASTType type,
-      {required this.token})
+  TypedefBegin(ParserAstType type, {required this.token})
       : super("Typedef", type);
 
   @override
@@ -4398,12 +3872,12 @@ class DirectParserASTContentTypedefBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTypedefEnd extends DirectParserASTContent {
+class TypedefEnd extends ParserAstNode {
   final Token typedefKeyword;
   final Token? equals;
   final Token endToken;
 
-  DirectParserASTContentTypedefEnd(DirectParserASTType type,
+  TypedefEnd(ParserAstType type,
       {required this.typedefKeyword, this.equals, required this.endToken})
       : super("Typedef", type);
 
@@ -4415,12 +3889,10 @@ class DirectParserASTContentTypedefEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentClassWithClauseHandle
-    extends DirectParserASTContent {
+class ClassWithClauseHandle extends ParserAstNode {
   final Token withKeyword;
 
-  DirectParserASTContentClassWithClauseHandle(DirectParserASTType type,
-      {required this.withKeyword})
+  ClassWithClauseHandle(ParserAstType type, {required this.withKeyword})
       : super("ClassWithClause", type);
 
   @override
@@ -4429,22 +3901,20 @@ class DirectParserASTContentClassWithClauseHandle
       };
 }
 
-class DirectParserASTContentClassNoWithClauseHandle
-    extends DirectParserASTContent {
-  DirectParserASTContentClassNoWithClauseHandle(DirectParserASTType type)
+class ClassNoWithClauseHandle extends ParserAstNode {
+  ClassNoWithClauseHandle(ParserAstType type)
       : super("ClassNoWithClause", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
-class DirectParserASTContentNamedMixinApplicationBegin
-    extends DirectParserASTContent {
+class NamedMixinApplicationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
   final Token name;
 
-  DirectParserASTContentNamedMixinApplicationBegin(DirectParserASTType type,
+  NamedMixinApplicationBegin(ParserAstType type,
       {required this.begin, this.abstractToken, required this.name})
       : super("NamedMixinApplication", type);
 
@@ -4456,12 +3926,10 @@ class DirectParserASTContentNamedMixinApplicationBegin
       };
 }
 
-class DirectParserASTContentNamedMixinApplicationWithClauseHandle
-    extends DirectParserASTContent {
+class NamedMixinApplicationWithClauseHandle extends ParserAstNode {
   final Token withKeyword;
 
-  DirectParserASTContentNamedMixinApplicationWithClauseHandle(
-      DirectParserASTType type,
+  NamedMixinApplicationWithClauseHandle(ParserAstType type,
       {required this.withKeyword})
       : super("NamedMixinApplicationWithClause", type);
 
@@ -4471,15 +3939,14 @@ class DirectParserASTContentNamedMixinApplicationWithClauseHandle
       };
 }
 
-class DirectParserASTContentNamedMixinApplicationEnd
-    extends DirectParserASTContent {
+class NamedMixinApplicationEnd extends ParserAstNode {
   final Token begin;
   final Token classKeyword;
   final Token equals;
   final Token? implementsKeyword;
   final Token endToken;
 
-  DirectParserASTContentNamedMixinApplicationEnd(DirectParserASTType type,
+  NamedMixinApplicationEnd(ParserAstType type,
       {required this.begin,
       required this.classKeyword,
       required this.equals,
@@ -4497,11 +3964,10 @@ class DirectParserASTContentNamedMixinApplicationEnd
       };
 }
 
-class DirectParserASTContentHideBegin extends DirectParserASTContent {
+class HideBegin extends ParserAstNode {
   final Token hideKeyword;
 
-  DirectParserASTContentHideBegin(DirectParserASTType type,
-      {required this.hideKeyword})
+  HideBegin(ParserAstType type, {required this.hideKeyword})
       : super("Hide", type);
 
   @override
@@ -4510,11 +3976,10 @@ class DirectParserASTContentHideBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentHideEnd extends DirectParserASTContent {
+class HideEnd extends ParserAstNode {
   final Token hideKeyword;
 
-  DirectParserASTContentHideEnd(DirectParserASTType type,
-      {required this.hideKeyword})
+  HideEnd(ParserAstType type, {required this.hideKeyword})
       : super("Hide", type);
 
   @override
@@ -4523,12 +3988,10 @@ class DirectParserASTContentHideEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentIdentifierListHandle
-    extends DirectParserASTContent {
+class IdentifierListHandle extends ParserAstNode {
   final int count;
 
-  DirectParserASTContentIdentifierListHandle(DirectParserASTType type,
-      {required this.count})
+  IdentifierListHandle(ParserAstType type, {required this.count})
       : super("IdentifierList", type);
 
   @override
@@ -4537,11 +4000,10 @@ class DirectParserASTContentIdentifierListHandle
       };
 }
 
-class DirectParserASTContentTypeListBegin extends DirectParserASTContent {
+class TypeListBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentTypeListBegin(DirectParserASTType type,
-      {required this.token})
+  TypeListBegin(ParserAstType type, {required this.token})
       : super("TypeList", type);
 
   @override
@@ -4550,11 +4012,10 @@ class DirectParserASTContentTypeListBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTypeListEnd extends DirectParserASTContent {
+class TypeListEnd extends ParserAstNode {
   final int count;
 
-  DirectParserASTContentTypeListEnd(DirectParserASTType type,
-      {required this.count})
+  TypeListEnd(ParserAstType type, {required this.count})
       : super("TypeList", type);
 
   @override
@@ -4563,11 +4024,10 @@ class DirectParserASTContentTypeListEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentIfStatementBegin extends DirectParserASTContent {
+class IfStatementBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentIfStatementBegin(DirectParserASTType type,
-      {required this.token})
+  IfStatementBegin(ParserAstType type, {required this.token})
       : super("IfStatement", type);
 
   @override
@@ -4576,12 +4036,11 @@ class DirectParserASTContentIfStatementBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentIfStatementEnd extends DirectParserASTContent {
+class IfStatementEnd extends ParserAstNode {
   final Token ifToken;
   final Token? elseToken;
 
-  DirectParserASTContentIfStatementEnd(DirectParserASTType type,
-      {required this.ifToken, this.elseToken})
+  IfStatementEnd(ParserAstType type, {required this.ifToken, this.elseToken})
       : super("IfStatement", type);
 
   @override
@@ -4591,11 +4050,10 @@ class DirectParserASTContentIfStatementEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentThenStatementBegin extends DirectParserASTContent {
+class ThenStatementBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentThenStatementBegin(DirectParserASTType type,
-      {required this.token})
+  ThenStatementBegin(ParserAstType type, {required this.token})
       : super("ThenStatement", type);
 
   @override
@@ -4604,11 +4062,10 @@ class DirectParserASTContentThenStatementBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentThenStatementEnd extends DirectParserASTContent {
+class ThenStatementEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentThenStatementEnd(DirectParserASTType type,
-      {required this.token})
+  ThenStatementEnd(ParserAstType type, {required this.token})
       : super("ThenStatement", type);
 
   @override
@@ -4617,11 +4074,10 @@ class DirectParserASTContentThenStatementEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentElseStatementBegin extends DirectParserASTContent {
+class ElseStatementBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentElseStatementBegin(DirectParserASTType type,
-      {required this.token})
+  ElseStatementBegin(ParserAstType type, {required this.token})
       : super("ElseStatement", type);
 
   @override
@@ -4630,11 +4086,10 @@ class DirectParserASTContentElseStatementBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentElseStatementEnd extends DirectParserASTContent {
+class ElseStatementEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentElseStatementEnd(DirectParserASTType type,
-      {required this.token})
+  ElseStatementEnd(ParserAstType type, {required this.token})
       : super("ElseStatement", type);
 
   @override
@@ -4643,11 +4098,10 @@ class DirectParserASTContentElseStatementEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentImportBegin extends DirectParserASTContent {
+class ImportBegin extends ParserAstNode {
   final Token importKeyword;
 
-  DirectParserASTContentImportBegin(DirectParserASTType type,
-      {required this.importKeyword})
+  ImportBegin(ParserAstType type, {required this.importKeyword})
       : super("Import", type);
 
   @override
@@ -4656,12 +4110,11 @@ class DirectParserASTContentImportBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentImportPrefixHandle extends DirectParserASTContent {
+class ImportPrefixHandle extends ParserAstNode {
   final Token? deferredKeyword;
   final Token? asKeyword;
 
-  DirectParserASTContentImportPrefixHandle(DirectParserASTType type,
-      {this.deferredKeyword, this.asKeyword})
+  ImportPrefixHandle(ParserAstType type, {this.deferredKeyword, this.asKeyword})
       : super("ImportPrefix", type);
 
   @override
@@ -4671,12 +4124,11 @@ class DirectParserASTContentImportPrefixHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentImportEnd extends DirectParserASTContent {
+class ImportEnd extends ParserAstNode {
   final Token importKeyword;
   final Token? semicolon;
 
-  DirectParserASTContentImportEnd(DirectParserASTType type,
-      {required this.importKeyword, this.semicolon})
+  ImportEnd(ParserAstType type, {required this.importKeyword, this.semicolon})
       : super("Import", type);
 
   @override
@@ -4686,11 +4138,10 @@ class DirectParserASTContentImportEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentRecoverImportHandle extends DirectParserASTContent {
+class RecoverImportHandle extends ParserAstNode {
   final Token? semicolon;
 
-  DirectParserASTContentRecoverImportHandle(DirectParserASTType type,
-      {this.semicolon})
+  RecoverImportHandle(ParserAstType type, {this.semicolon})
       : super("RecoverImport", type);
 
   @override
@@ -4699,12 +4150,10 @@ class DirectParserASTContentRecoverImportHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentConditionalUrisBegin
-    extends DirectParserASTContent {
+class ConditionalUrisBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentConditionalUrisBegin(DirectParserASTType type,
-      {required this.token})
+  ConditionalUrisBegin(ParserAstType type, {required this.token})
       : super("ConditionalUris", type);
 
   @override
@@ -4713,11 +4162,10 @@ class DirectParserASTContentConditionalUrisBegin
       };
 }
 
-class DirectParserASTContentConditionalUrisEnd extends DirectParserASTContent {
+class ConditionalUrisEnd extends ParserAstNode {
   final int count;
 
-  DirectParserASTContentConditionalUrisEnd(DirectParserASTType type,
-      {required this.count})
+  ConditionalUrisEnd(ParserAstType type, {required this.count})
       : super("ConditionalUris", type);
 
   @override
@@ -4726,11 +4174,10 @@ class DirectParserASTContentConditionalUrisEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentConditionalUriBegin extends DirectParserASTContent {
+class ConditionalUriBegin extends ParserAstNode {
   final Token ifKeyword;
 
-  DirectParserASTContentConditionalUriBegin(DirectParserASTType type,
-      {required this.ifKeyword})
+  ConditionalUriBegin(ParserAstType type, {required this.ifKeyword})
       : super("ConditionalUri", type);
 
   @override
@@ -4739,12 +4186,12 @@ class DirectParserASTContentConditionalUriBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentConditionalUriEnd extends DirectParserASTContent {
+class ConditionalUriEnd extends ParserAstNode {
   final Token ifKeyword;
   final Token leftParen;
   final Token? equalSign;
 
-  DirectParserASTContentConditionalUriEnd(DirectParserASTType type,
+  ConditionalUriEnd(ParserAstType type,
       {required this.ifKeyword, required this.leftParen, this.equalSign})
       : super("ConditionalUri", type);
 
@@ -4756,11 +4203,11 @@ class DirectParserASTContentConditionalUriEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentDottedNameHandle extends DirectParserASTContent {
+class DottedNameHandle extends ParserAstNode {
   final int count;
   final Token firstIdentifier;
 
-  DirectParserASTContentDottedNameHandle(DirectParserASTType type,
+  DottedNameHandle(ParserAstType type,
       {required this.count, required this.firstIdentifier})
       : super("DottedName", type);
 
@@ -4771,13 +4218,10 @@ class DirectParserASTContentDottedNameHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentImplicitCreationExpressionBegin
-    extends DirectParserASTContent {
+class ImplicitCreationExpressionBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentImplicitCreationExpressionBegin(
-      DirectParserASTType type,
-      {required this.token})
+  ImplicitCreationExpressionBegin(ParserAstType type, {required this.token})
       : super("ImplicitCreationExpression", type);
 
   @override
@@ -4786,12 +4230,11 @@ class DirectParserASTContentImplicitCreationExpressionBegin
       };
 }
 
-class DirectParserASTContentImplicitCreationExpressionEnd
-    extends DirectParserASTContent {
+class ImplicitCreationExpressionEnd extends ParserAstNode {
   final Token token;
   final Token openAngleBracket;
 
-  DirectParserASTContentImplicitCreationExpressionEnd(DirectParserASTType type,
+  ImplicitCreationExpressionEnd(ParserAstType type,
       {required this.token, required this.openAngleBracket})
       : super("ImplicitCreationExpression", type);
 
@@ -4802,12 +4245,10 @@ class DirectParserASTContentImplicitCreationExpressionEnd
       };
 }
 
-class DirectParserASTContentInitializedIdentifierBegin
-    extends DirectParserASTContent {
+class InitializedIdentifierBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentInitializedIdentifierBegin(DirectParserASTType type,
-      {required this.token})
+  InitializedIdentifierBegin(ParserAstType type, {required this.token})
       : super("InitializedIdentifier", type);
 
   @override
@@ -4816,12 +4257,10 @@ class DirectParserASTContentInitializedIdentifierBegin
       };
 }
 
-class DirectParserASTContentInitializedIdentifierEnd
-    extends DirectParserASTContent {
+class InitializedIdentifierEnd extends ParserAstNode {
   final Token nameToken;
 
-  DirectParserASTContentInitializedIdentifierEnd(DirectParserASTType type,
-      {required this.nameToken})
+  InitializedIdentifierEnd(ParserAstType type, {required this.nameToken})
       : super("InitializedIdentifier", type);
 
   @override
@@ -4830,12 +4269,10 @@ class DirectParserASTContentInitializedIdentifierEnd
       };
 }
 
-class DirectParserASTContentFieldInitializerBegin
-    extends DirectParserASTContent {
+class FieldInitializerBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentFieldInitializerBegin(DirectParserASTType type,
-      {required this.token})
+  FieldInitializerBegin(ParserAstType type, {required this.token})
       : super("FieldInitializer", type);
 
   @override
@@ -4844,11 +4281,11 @@ class DirectParserASTContentFieldInitializerBegin
       };
 }
 
-class DirectParserASTContentFieldInitializerEnd extends DirectParserASTContent {
+class FieldInitializerEnd extends ParserAstNode {
   final Token assignment;
   final Token token;
 
-  DirectParserASTContentFieldInitializerEnd(DirectParserASTType type,
+  FieldInitializerEnd(ParserAstType type,
       {required this.assignment, required this.token})
       : super("FieldInitializer", type);
 
@@ -4859,12 +4296,10 @@ class DirectParserASTContentFieldInitializerEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentNoFieldInitializerHandle
-    extends DirectParserASTContent {
+class NoFieldInitializerHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentNoFieldInitializerHandle(DirectParserASTType type,
-      {required this.token})
+  NoFieldInitializerHandle(ParserAstType type, {required this.token})
       : super("NoFieldInitializer", type);
 
   @override
@@ -4873,12 +4308,10 @@ class DirectParserASTContentNoFieldInitializerHandle
       };
 }
 
-class DirectParserASTContentVariableInitializerBegin
-    extends DirectParserASTContent {
+class VariableInitializerBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentVariableInitializerBegin(DirectParserASTType type,
-      {required this.token})
+  VariableInitializerBegin(ParserAstType type, {required this.token})
       : super("VariableInitializer", type);
 
   @override
@@ -4887,12 +4320,10 @@ class DirectParserASTContentVariableInitializerBegin
       };
 }
 
-class DirectParserASTContentVariableInitializerEnd
-    extends DirectParserASTContent {
+class VariableInitializerEnd extends ParserAstNode {
   final Token assignmentOperator;
 
-  DirectParserASTContentVariableInitializerEnd(DirectParserASTType type,
-      {required this.assignmentOperator})
+  VariableInitializerEnd(ParserAstType type, {required this.assignmentOperator})
       : super("VariableInitializer", type);
 
   @override
@@ -4901,12 +4332,10 @@ class DirectParserASTContentVariableInitializerEnd
       };
 }
 
-class DirectParserASTContentNoVariableInitializerHandle
-    extends DirectParserASTContent {
+class NoVariableInitializerHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentNoVariableInitializerHandle(DirectParserASTType type,
-      {required this.token})
+  NoVariableInitializerHandle(ParserAstType type, {required this.token})
       : super("NoVariableInitializer", type);
 
   @override
@@ -4915,11 +4344,10 @@ class DirectParserASTContentNoVariableInitializerHandle
       };
 }
 
-class DirectParserASTContentInitializerBegin extends DirectParserASTContent {
+class InitializerBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentInitializerBegin(DirectParserASTType type,
-      {required this.token})
+  InitializerBegin(ParserAstType type, {required this.token})
       : super("Initializer", type);
 
   @override
@@ -4928,11 +4356,10 @@ class DirectParserASTContentInitializerBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentInitializerEnd extends DirectParserASTContent {
+class InitializerEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentInitializerEnd(DirectParserASTType type,
-      {required this.token})
+  InitializerEnd(ParserAstType type, {required this.token})
       : super("Initializer", type);
 
   @override
@@ -4941,11 +4368,10 @@ class DirectParserASTContentInitializerEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentInitializersBegin extends DirectParserASTContent {
+class InitializersBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentInitializersBegin(DirectParserASTType type,
-      {required this.token})
+  InitializersBegin(ParserAstType type, {required this.token})
       : super("Initializers", type);
 
   @override
@@ -4954,12 +4380,12 @@ class DirectParserASTContentInitializersBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentInitializersEnd extends DirectParserASTContent {
+class InitializersEnd extends ParserAstNode {
   final int count;
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentInitializersEnd(DirectParserASTType type,
+  InitializersEnd(ParserAstType type,
       {required this.count, required this.beginToken, required this.endToken})
       : super("Initializers", type);
 
@@ -4971,21 +4397,17 @@ class DirectParserASTContentInitializersEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentNoInitializersHandle
-    extends DirectParserASTContent {
-  DirectParserASTContentNoInitializersHandle(DirectParserASTType type)
-      : super("NoInitializers", type);
+class NoInitializersHandle extends ParserAstNode {
+  NoInitializersHandle(ParserAstType type) : super("NoInitializers", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
-class DirectParserASTContentInvalidExpressionHandle
-    extends DirectParserASTContent {
+class InvalidExpressionHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentInvalidExpressionHandle(DirectParserASTType type,
-      {required this.token})
+  InvalidExpressionHandle(ParserAstType type, {required this.token})
       : super("InvalidExpression", type);
 
   @override
@@ -4994,12 +4416,10 @@ class DirectParserASTContentInvalidExpressionHandle
       };
 }
 
-class DirectParserASTContentInvalidFunctionBodyHandle
-    extends DirectParserASTContent {
+class InvalidFunctionBodyHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentInvalidFunctionBodyHandle(DirectParserASTType type,
-      {required this.token})
+  InvalidFunctionBodyHandle(ParserAstType type, {required this.token})
       : super("InvalidFunctionBody", type);
 
   @override
@@ -5008,12 +4428,10 @@ class DirectParserASTContentInvalidFunctionBodyHandle
       };
 }
 
-class DirectParserASTContentInvalidTypeReferenceHandle
-    extends DirectParserASTContent {
+class InvalidTypeReferenceHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentInvalidTypeReferenceHandle(DirectParserASTType type,
-      {required this.token})
+  InvalidTypeReferenceHandle(ParserAstType type, {required this.token})
       : super("InvalidTypeReference", type);
 
   @override
@@ -5022,12 +4440,10 @@ class DirectParserASTContentInvalidTypeReferenceHandle
       };
 }
 
-class DirectParserASTContentLabelHandle extends DirectParserASTContent {
+class LabelHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentLabelHandle(DirectParserASTType type,
-      {required this.token})
-      : super("Label", type);
+  LabelHandle(ParserAstType type, {required this.token}) : super("Label", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5035,12 +4451,11 @@ class DirectParserASTContentLabelHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentLabeledStatementBegin
-    extends DirectParserASTContent {
+class LabeledStatementBegin extends ParserAstNode {
   final Token token;
   final int labelCount;
 
-  DirectParserASTContentLabeledStatementBegin(DirectParserASTType type,
+  LabeledStatementBegin(ParserAstType type,
       {required this.token, required this.labelCount})
       : super("LabeledStatement", type);
 
@@ -5051,11 +4466,10 @@ class DirectParserASTContentLabeledStatementBegin
       };
 }
 
-class DirectParserASTContentLabeledStatementEnd extends DirectParserASTContent {
+class LabeledStatementEnd extends ParserAstNode {
   final int labelCount;
 
-  DirectParserASTContentLabeledStatementEnd(DirectParserASTType type,
-      {required this.labelCount})
+  LabeledStatementEnd(ParserAstType type, {required this.labelCount})
       : super("LabeledStatement", type);
 
   @override
@@ -5064,11 +4478,10 @@ class DirectParserASTContentLabeledStatementEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentLibraryNameBegin extends DirectParserASTContent {
+class LibraryNameBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentLibraryNameBegin(DirectParserASTType type,
-      {required this.token})
+  LibraryNameBegin(ParserAstType type, {required this.token})
       : super("LibraryName", type);
 
   @override
@@ -5077,11 +4490,11 @@ class DirectParserASTContentLibraryNameBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentLibraryNameEnd extends DirectParserASTContent {
+class LibraryNameEnd extends ParserAstNode {
   final Token libraryKeyword;
   final Token semicolon;
 
-  DirectParserASTContentLibraryNameEnd(DirectParserASTType type,
+  LibraryNameEnd(ParserAstType type,
       {required this.libraryKeyword, required this.semicolon})
       : super("LibraryName", type);
 
@@ -5092,12 +4505,11 @@ class DirectParserASTContentLibraryNameEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentLiteralMapEntryHandle
-    extends DirectParserASTContent {
+class LiteralMapEntryHandle extends ParserAstNode {
   final Token colon;
   final Token endToken;
 
-  DirectParserASTContentLiteralMapEntryHandle(DirectParserASTType type,
+  LiteralMapEntryHandle(ParserAstType type,
       {required this.colon, required this.endToken})
       : super("LiteralMapEntry", type);
 
@@ -5108,11 +4520,10 @@ class DirectParserASTContentLiteralMapEntryHandle
       };
 }
 
-class DirectParserASTContentLiteralStringBegin extends DirectParserASTContent {
+class LiteralStringBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentLiteralStringBegin(DirectParserASTType type,
-      {required this.token})
+  LiteralStringBegin(ParserAstType type, {required this.token})
       : super("LiteralString", type);
 
   @override
@@ -5121,12 +4532,11 @@ class DirectParserASTContentLiteralStringBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentInterpolationExpressionHandle
-    extends DirectParserASTContent {
+class InterpolationExpressionHandle extends ParserAstNode {
   final Token leftBracket;
   final Token? rightBracket;
 
-  DirectParserASTContentInterpolationExpressionHandle(DirectParserASTType type,
+  InterpolationExpressionHandle(ParserAstType type,
       {required this.leftBracket, this.rightBracket})
       : super("InterpolationExpression", type);
 
@@ -5137,11 +4547,11 @@ class DirectParserASTContentInterpolationExpressionHandle
       };
 }
 
-class DirectParserASTContentLiteralStringEnd extends DirectParserASTContent {
+class LiteralStringEnd extends ParserAstNode {
   final int interpolationCount;
   final Token endToken;
 
-  DirectParserASTContentLiteralStringEnd(DirectParserASTType type,
+  LiteralStringEnd(ParserAstType type,
       {required this.interpolationCount, required this.endToken})
       : super("LiteralString", type);
 
@@ -5152,12 +4562,11 @@ class DirectParserASTContentLiteralStringEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentStringJuxtapositionHandle
-    extends DirectParserASTContent {
+class StringJuxtapositionHandle extends ParserAstNode {
   final Token startToken;
   final int literalCount;
 
-  DirectParserASTContentStringJuxtapositionHandle(DirectParserASTType type,
+  StringJuxtapositionHandle(ParserAstType type,
       {required this.startToken, required this.literalCount})
       : super("StringJuxtaposition", type);
 
@@ -5168,19 +4577,17 @@ class DirectParserASTContentStringJuxtapositionHandle
       };
 }
 
-class DirectParserASTContentMemberBegin extends DirectParserASTContent {
-  DirectParserASTContentMemberBegin(DirectParserASTType type)
-      : super("Member", type);
+class MemberBegin extends ParserAstNode {
+  MemberBegin(ParserAstType type) : super("Member", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
-class DirectParserASTContentInvalidMemberHandle extends DirectParserASTContent {
+class InvalidMemberHandle extends ParserAstNode {
   final Token endToken;
 
-  DirectParserASTContentInvalidMemberHandle(DirectParserASTType type,
-      {required this.endToken})
+  InvalidMemberHandle(ParserAstType type, {required this.endToken})
       : super("InvalidMember", type);
 
   @override
@@ -5189,15 +4596,14 @@ class DirectParserASTContentInvalidMemberHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentMemberEnd extends DirectParserASTContent {
-  DirectParserASTContentMemberEnd(DirectParserASTType type)
-      : super("Member", type);
+class MemberEnd extends ParserAstNode {
+  MemberEnd(ParserAstType type) : super("Member", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
-class DirectParserASTContentMethodBegin extends DirectParserASTContent {
+class MethodBegin extends ParserAstNode {
   final DeclarationKind declarationKind;
   final Token? externalToken;
   final Token? staticToken;
@@ -5206,7 +4612,7 @@ class DirectParserASTContentMethodBegin extends DirectParserASTContent {
   final Token? getOrSet;
   final Token name;
 
-  DirectParserASTContentMethodBegin(DirectParserASTType type,
+  MethodBegin(ParserAstType type,
       {required this.declarationKind,
       this.externalToken,
       this.staticToken,
@@ -5228,14 +4634,14 @@ class DirectParserASTContentMethodBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentClassMethodEnd extends DirectParserASTContent {
+class ClassMethodEnd extends ParserAstNode {
   final Token? getOrSet;
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
   final Token endToken;
 
-  DirectParserASTContentClassMethodEnd(DirectParserASTType type,
+  ClassMethodEnd(ParserAstType type,
       {this.getOrSet,
       required this.beginToken,
       required this.beginParam,
@@ -5253,14 +4659,14 @@ class DirectParserASTContentClassMethodEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentMixinMethodEnd extends DirectParserASTContent {
+class MixinMethodEnd extends ParserAstNode {
   final Token? getOrSet;
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
   final Token endToken;
 
-  DirectParserASTContentMixinMethodEnd(DirectParserASTType type,
+  MixinMethodEnd(ParserAstType type,
       {this.getOrSet,
       required this.beginToken,
       required this.beginParam,
@@ -5278,14 +4684,14 @@ class DirectParserASTContentMixinMethodEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentExtensionMethodEnd extends DirectParserASTContent {
+class ExtensionMethodEnd extends ParserAstNode {
   final Token? getOrSet;
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
   final Token endToken;
 
-  DirectParserASTContentExtensionMethodEnd(DirectParserASTType type,
+  ExtensionMethodEnd(ParserAstType type,
       {this.getOrSet,
       required this.beginToken,
       required this.beginParam,
@@ -5303,14 +4709,14 @@ class DirectParserASTContentExtensionMethodEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentClassConstructorEnd extends DirectParserASTContent {
+class ClassConstructorEnd extends ParserAstNode {
   final Token? getOrSet;
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
   final Token endToken;
 
-  DirectParserASTContentClassConstructorEnd(DirectParserASTType type,
+  ClassConstructorEnd(ParserAstType type,
       {this.getOrSet,
       required this.beginToken,
       required this.beginParam,
@@ -5328,14 +4734,14 @@ class DirectParserASTContentClassConstructorEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentMixinConstructorEnd extends DirectParserASTContent {
+class MixinConstructorEnd extends ParserAstNode {
   final Token? getOrSet;
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
   final Token endToken;
 
-  DirectParserASTContentMixinConstructorEnd(DirectParserASTType type,
+  MixinConstructorEnd(ParserAstType type,
       {this.getOrSet,
       required this.beginToken,
       required this.beginParam,
@@ -5353,15 +4759,14 @@ class DirectParserASTContentMixinConstructorEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentExtensionConstructorEnd
-    extends DirectParserASTContent {
+class ExtensionConstructorEnd extends ParserAstNode {
   final Token? getOrSet;
   final Token beginToken;
   final Token beginParam;
   final Token? beginInitializers;
   final Token endToken;
 
-  DirectParserASTContentExtensionConstructorEnd(DirectParserASTType type,
+  ExtensionConstructorEnd(ParserAstType type,
       {this.getOrSet,
       required this.beginToken,
       required this.beginParam,
@@ -5379,11 +4784,10 @@ class DirectParserASTContentExtensionConstructorEnd
       };
 }
 
-class DirectParserASTContentMetadataStarBegin extends DirectParserASTContent {
+class MetadataStarBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentMetadataStarBegin(DirectParserASTType type,
-      {required this.token})
+  MetadataStarBegin(ParserAstType type, {required this.token})
       : super("MetadataStar", type);
 
   @override
@@ -5392,11 +4796,10 @@ class DirectParserASTContentMetadataStarBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentMetadataStarEnd extends DirectParserASTContent {
+class MetadataStarEnd extends ParserAstNode {
   final int count;
 
-  DirectParserASTContentMetadataStarEnd(DirectParserASTType type,
-      {required this.count})
+  MetadataStarEnd(ParserAstType type, {required this.count})
       : super("MetadataStar", type);
 
   @override
@@ -5405,11 +4808,10 @@ class DirectParserASTContentMetadataStarEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentMetadataBegin extends DirectParserASTContent {
+class MetadataBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentMetadataBegin(DirectParserASTType type,
-      {required this.token})
+  MetadataBegin(ParserAstType type, {required this.token})
       : super("Metadata", type);
 
   @override
@@ -5418,12 +4820,12 @@ class DirectParserASTContentMetadataBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentMetadataEnd extends DirectParserASTContent {
+class MetadataEnd extends ParserAstNode {
   final Token beginToken;
   final Token? periodBeforeName;
   final Token endToken;
 
-  DirectParserASTContentMetadataEnd(DirectParserASTType type,
+  MetadataEnd(ParserAstType type,
       {required this.beginToken, this.periodBeforeName, required this.endToken})
       : super("Metadata", type);
 
@@ -5435,12 +4837,10 @@ class DirectParserASTContentMetadataEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentOptionalFormalParametersBegin
-    extends DirectParserASTContent {
+class OptionalFormalParametersBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentOptionalFormalParametersBegin(DirectParserASTType type,
-      {required this.token})
+  OptionalFormalParametersBegin(ParserAstType type, {required this.token})
       : super("OptionalFormalParameters", type);
 
   @override
@@ -5449,13 +4849,12 @@ class DirectParserASTContentOptionalFormalParametersBegin
       };
 }
 
-class DirectParserASTContentOptionalFormalParametersEnd
-    extends DirectParserASTContent {
+class OptionalFormalParametersEnd extends ParserAstNode {
   final int count;
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentOptionalFormalParametersEnd(DirectParserASTType type,
+  OptionalFormalParametersEnd(ParserAstType type,
       {required this.count, required this.beginToken, required this.endToken})
       : super("OptionalFormalParameters", type);
 
@@ -5467,12 +4866,10 @@ class DirectParserASTContentOptionalFormalParametersEnd
       };
 }
 
-class DirectParserASTContentPartBegin extends DirectParserASTContent {
+class PartBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentPartBegin(DirectParserASTType type,
-      {required this.token})
-      : super("Part", type);
+  PartBegin(ParserAstType type, {required this.token}) : super("Part", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5480,11 +4877,11 @@ class DirectParserASTContentPartBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentPartEnd extends DirectParserASTContent {
+class PartEnd extends ParserAstNode {
   final Token partKeyword;
   final Token semicolon;
 
-  DirectParserASTContentPartEnd(DirectParserASTType type,
+  PartEnd(ParserAstType type,
       {required this.partKeyword, required this.semicolon})
       : super("Part", type);
 
@@ -5495,11 +4892,10 @@ class DirectParserASTContentPartEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentPartOfBegin extends DirectParserASTContent {
+class PartOfBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentPartOfBegin(DirectParserASTType type,
-      {required this.token})
+  PartOfBegin(ParserAstType type, {required this.token})
       : super("PartOf", type);
 
   @override
@@ -5508,13 +4904,13 @@ class DirectParserASTContentPartOfBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentPartOfEnd extends DirectParserASTContent {
+class PartOfEnd extends ParserAstNode {
   final Token partKeyword;
   final Token ofKeyword;
   final Token semicolon;
   final bool hasName;
 
-  DirectParserASTContentPartOfEnd(DirectParserASTType type,
+  PartOfEnd(ParserAstType type,
       {required this.partKeyword,
       required this.ofKeyword,
       required this.semicolon,
@@ -5530,12 +4926,10 @@ class DirectParserASTContentPartOfEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentRedirectingFactoryBodyBegin
-    extends DirectParserASTContent {
+class RedirectingFactoryBodyBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentRedirectingFactoryBodyBegin(DirectParserASTType type,
-      {required this.token})
+  RedirectingFactoryBodyBegin(ParserAstType type, {required this.token})
       : super("RedirectingFactoryBody", type);
 
   @override
@@ -5544,12 +4938,11 @@ class DirectParserASTContentRedirectingFactoryBodyBegin
       };
 }
 
-class DirectParserASTContentRedirectingFactoryBodyEnd
-    extends DirectParserASTContent {
+class RedirectingFactoryBodyEnd extends ParserAstNode {
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentRedirectingFactoryBodyEnd(DirectParserASTType type,
+  RedirectingFactoryBodyEnd(ParserAstType type,
       {required this.beginToken, required this.endToken})
       : super("RedirectingFactoryBody", type);
 
@@ -5560,12 +4953,10 @@ class DirectParserASTContentRedirectingFactoryBodyEnd
       };
 }
 
-class DirectParserASTContentReturnStatementBegin
-    extends DirectParserASTContent {
+class ReturnStatementBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentReturnStatementBegin(DirectParserASTType type,
-      {required this.token})
+  ReturnStatementBegin(ParserAstType type, {required this.token})
       : super("ReturnStatement", type);
 
   @override
@@ -5574,12 +4965,11 @@ class DirectParserASTContentReturnStatementBegin
       };
 }
 
-class DirectParserASTContentNativeFunctionBodyHandle
-    extends DirectParserASTContent {
+class NativeFunctionBodyHandle extends ParserAstNode {
   final Token nativeToken;
   final Token semicolon;
 
-  DirectParserASTContentNativeFunctionBodyHandle(DirectParserASTType type,
+  NativeFunctionBodyHandle(ParserAstType type,
       {required this.nativeToken, required this.semicolon})
       : super("NativeFunctionBody", type);
 
@@ -5590,15 +4980,12 @@ class DirectParserASTContentNativeFunctionBodyHandle
       };
 }
 
-class DirectParserASTContentNativeFunctionBodyIgnoredHandle
-    extends DirectParserASTContent {
+class NativeFunctionBodyIgnoredHandle extends ParserAstNode {
   final Token nativeToken;
   final Token semicolon;
 
-  DirectParserASTContentNativeFunctionBodyIgnoredHandle(
-      DirectParserASTType type,
-      {required this.nativeToken,
-      required this.semicolon})
+  NativeFunctionBodyIgnoredHandle(ParserAstType type,
+      {required this.nativeToken, required this.semicolon})
       : super("NativeFunctionBodyIgnored", type);
 
   @override
@@ -5608,15 +4995,12 @@ class DirectParserASTContentNativeFunctionBodyIgnoredHandle
       };
 }
 
-class DirectParserASTContentNativeFunctionBodySkippedHandle
-    extends DirectParserASTContent {
+class NativeFunctionBodySkippedHandle extends ParserAstNode {
   final Token nativeToken;
   final Token semicolon;
 
-  DirectParserASTContentNativeFunctionBodySkippedHandle(
-      DirectParserASTType type,
-      {required this.nativeToken,
-      required this.semicolon})
+  NativeFunctionBodySkippedHandle(ParserAstType type,
+      {required this.nativeToken, required this.semicolon})
       : super("NativeFunctionBodySkipped", type);
 
   @override
@@ -5626,12 +5010,10 @@ class DirectParserASTContentNativeFunctionBodySkippedHandle
       };
 }
 
-class DirectParserASTContentEmptyFunctionBodyHandle
-    extends DirectParserASTContent {
+class EmptyFunctionBodyHandle extends ParserAstNode {
   final Token semicolon;
 
-  DirectParserASTContentEmptyFunctionBodyHandle(DirectParserASTType type,
-      {required this.semicolon})
+  EmptyFunctionBodyHandle(ParserAstType type, {required this.semicolon})
       : super("EmptyFunctionBody", type);
 
   @override
@@ -5640,12 +5022,11 @@ class DirectParserASTContentEmptyFunctionBodyHandle
       };
 }
 
-class DirectParserASTContentExpressionFunctionBodyHandle
-    extends DirectParserASTContent {
+class ExpressionFunctionBodyHandle extends ParserAstNode {
   final Token arrowToken;
   final Token? endToken;
 
-  DirectParserASTContentExpressionFunctionBodyHandle(DirectParserASTType type,
+  ExpressionFunctionBodyHandle(ParserAstType type,
       {required this.arrowToken, this.endToken})
       : super("ExpressionFunctionBody", type);
 
@@ -5656,12 +5037,12 @@ class DirectParserASTContentExpressionFunctionBodyHandle
       };
 }
 
-class DirectParserASTContentReturnStatementEnd extends DirectParserASTContent {
+class ReturnStatementEnd extends ParserAstNode {
   final bool hasExpression;
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentReturnStatementEnd(DirectParserASTType type,
+  ReturnStatementEnd(ParserAstType type,
       {required this.hasExpression,
       required this.beginToken,
       required this.endToken})
@@ -5675,11 +5056,11 @@ class DirectParserASTContentReturnStatementEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentSendHandle extends DirectParserASTContent {
+class SendHandle extends ParserAstNode {
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentSendHandle(DirectParserASTType type,
+  SendHandle(ParserAstType type,
       {required this.beginToken, required this.endToken})
       : super("Send", type);
 
@@ -5690,11 +5071,10 @@ class DirectParserASTContentSendHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentShowBegin extends DirectParserASTContent {
+class ShowBegin extends ParserAstNode {
   final Token showKeyword;
 
-  DirectParserASTContentShowBegin(DirectParserASTType type,
-      {required this.showKeyword})
+  ShowBegin(ParserAstType type, {required this.showKeyword})
       : super("Show", type);
 
   @override
@@ -5703,11 +5083,10 @@ class DirectParserASTContentShowBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentShowEnd extends DirectParserASTContent {
+class ShowEnd extends ParserAstNode {
   final Token showKeyword;
 
-  DirectParserASTContentShowEnd(DirectParserASTType type,
-      {required this.showKeyword})
+  ShowEnd(ParserAstType type, {required this.showKeyword})
       : super("Show", type);
 
   @override
@@ -5716,12 +5095,10 @@ class DirectParserASTContentShowEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentSwitchStatementBegin
-    extends DirectParserASTContent {
+class SwitchStatementBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentSwitchStatementBegin(DirectParserASTType type,
-      {required this.token})
+  SwitchStatementBegin(ParserAstType type, {required this.token})
       : super("SwitchStatement", type);
 
   @override
@@ -5730,11 +5107,11 @@ class DirectParserASTContentSwitchStatementBegin
       };
 }
 
-class DirectParserASTContentSwitchStatementEnd extends DirectParserASTContent {
+class SwitchStatementEnd extends ParserAstNode {
   final Token switchKeyword;
   final Token endToken;
 
-  DirectParserASTContentSwitchStatementEnd(DirectParserASTType type,
+  SwitchStatementEnd(ParserAstType type,
       {required this.switchKeyword, required this.endToken})
       : super("SwitchStatement", type);
 
@@ -5745,11 +5122,10 @@ class DirectParserASTContentSwitchStatementEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentSwitchBlockBegin extends DirectParserASTContent {
+class SwitchBlockBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentSwitchBlockBegin(DirectParserASTType type,
-      {required this.token})
+  SwitchBlockBegin(ParserAstType type, {required this.token})
       : super("SwitchBlock", type);
 
   @override
@@ -5758,12 +5134,12 @@ class DirectParserASTContentSwitchBlockBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentSwitchBlockEnd extends DirectParserASTContent {
+class SwitchBlockEnd extends ParserAstNode {
   final int caseCount;
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentSwitchBlockEnd(DirectParserASTType type,
+  SwitchBlockEnd(ParserAstType type,
       {required this.caseCount,
       required this.beginToken,
       required this.endToken})
@@ -5777,11 +5153,10 @@ class DirectParserASTContentSwitchBlockEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentLiteralSymbolBegin extends DirectParserASTContent {
+class LiteralSymbolBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentLiteralSymbolBegin(DirectParserASTType type,
-      {required this.token})
+  LiteralSymbolBegin(ParserAstType type, {required this.token})
       : super("LiteralSymbol", type);
 
   @override
@@ -5790,11 +5165,11 @@ class DirectParserASTContentLiteralSymbolBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentLiteralSymbolEnd extends DirectParserASTContent {
+class LiteralSymbolEnd extends ParserAstNode {
   final Token hashToken;
   final int identifierCount;
 
-  DirectParserASTContentLiteralSymbolEnd(DirectParserASTType type,
+  LiteralSymbolEnd(ParserAstType type,
       {required this.hashToken, required this.identifierCount})
       : super("LiteralSymbol", type);
 
@@ -5805,12 +5180,11 @@ class DirectParserASTContentLiteralSymbolEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentThrowExpressionHandle
-    extends DirectParserASTContent {
+class ThrowExpressionHandle extends ParserAstNode {
   final Token throwToken;
   final Token endToken;
 
-  DirectParserASTContentThrowExpressionHandle(DirectParserASTType type,
+  ThrowExpressionHandle(ParserAstType type,
       {required this.throwToken, required this.endToken})
       : super("ThrowExpression", type);
 
@@ -5821,12 +5195,10 @@ class DirectParserASTContentThrowExpressionHandle
       };
 }
 
-class DirectParserASTContentRethrowStatementBegin
-    extends DirectParserASTContent {
+class RethrowStatementBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentRethrowStatementBegin(DirectParserASTType type,
-      {required this.token})
+  RethrowStatementBegin(ParserAstType type, {required this.token})
       : super("RethrowStatement", type);
 
   @override
@@ -5835,11 +5207,11 @@ class DirectParserASTContentRethrowStatementBegin
       };
 }
 
-class DirectParserASTContentRethrowStatementEnd extends DirectParserASTContent {
+class RethrowStatementEnd extends ParserAstNode {
   final Token rethrowToken;
   final Token endToken;
 
-  DirectParserASTContentRethrowStatementEnd(DirectParserASTType type,
+  RethrowStatementEnd(ParserAstType type,
       {required this.rethrowToken, required this.endToken})
       : super("RethrowStatement", type);
 
@@ -5850,12 +5222,10 @@ class DirectParserASTContentRethrowStatementEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTopLevelDeclarationEnd
-    extends DirectParserASTContent {
+class TopLevelDeclarationEnd extends ParserAstNode {
   final Token nextToken;
 
-  DirectParserASTContentTopLevelDeclarationEnd(DirectParserASTType type,
-      {required this.nextToken})
+  TopLevelDeclarationEnd(ParserAstType type, {required this.nextToken})
       : super("TopLevelDeclaration", type);
 
   @override
@@ -5864,13 +5234,10 @@ class DirectParserASTContentTopLevelDeclarationEnd
       };
 }
 
-class DirectParserASTContentInvalidTopLevelDeclarationHandle
-    extends DirectParserASTContent {
+class InvalidTopLevelDeclarationHandle extends ParserAstNode {
   final Token endToken;
 
-  DirectParserASTContentInvalidTopLevelDeclarationHandle(
-      DirectParserASTType type,
-      {required this.endToken})
+  InvalidTopLevelDeclarationHandle(ParserAstType type, {required this.endToken})
       : super("InvalidTopLevelDeclaration", type);
 
   @override
@@ -5879,11 +5246,10 @@ class DirectParserASTContentInvalidTopLevelDeclarationHandle
       };
 }
 
-class DirectParserASTContentTopLevelMemberBegin extends DirectParserASTContent {
+class TopLevelMemberBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentTopLevelMemberBegin(DirectParserASTType type,
-      {required this.token})
+  TopLevelMemberBegin(ParserAstType type, {required this.token})
       : super("TopLevelMember", type);
 
   @override
@@ -5892,7 +5258,7 @@ class DirectParserASTContentTopLevelMemberBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentFieldsBegin extends DirectParserASTContent {
+class FieldsBegin extends ParserAstNode {
   final DeclarationKind declarationKind;
   final Token? abstractToken;
   final Token? externalToken;
@@ -5902,7 +5268,7 @@ class DirectParserASTContentFieldsBegin extends DirectParserASTContent {
   final Token? varFinalOrConst;
   final Token lastConsumed;
 
-  DirectParserASTContentFieldsBegin(DirectParserASTType type,
+  FieldsBegin(ParserAstType type,
       {required this.declarationKind,
       this.abstractToken,
       this.externalToken,
@@ -5926,7 +5292,7 @@ class DirectParserASTContentFieldsBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTopLevelFieldsEnd extends DirectParserASTContent {
+class TopLevelFieldsEnd extends ParserAstNode {
   final Token? externalToken;
   final Token? staticToken;
   final Token? covariantToken;
@@ -5936,7 +5302,7 @@ class DirectParserASTContentTopLevelFieldsEnd extends DirectParserASTContent {
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentTopLevelFieldsEnd(DirectParserASTType type,
+  TopLevelFieldsEnd(ParserAstType type,
       {this.externalToken,
       this.staticToken,
       this.covariantToken,
@@ -5960,11 +5326,11 @@ class DirectParserASTContentTopLevelFieldsEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTopLevelMethodBegin extends DirectParserASTContent {
+class TopLevelMethodBegin extends ParserAstNode {
   final Token lastConsumed;
   final Token? externalToken;
 
-  DirectParserASTContentTopLevelMethodBegin(DirectParserASTType type,
+  TopLevelMethodBegin(ParserAstType type,
       {required this.lastConsumed, this.externalToken})
       : super("TopLevelMethod", type);
 
@@ -5975,12 +5341,12 @@ class DirectParserASTContentTopLevelMethodBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTopLevelMethodEnd extends DirectParserASTContent {
+class TopLevelMethodEnd extends ParserAstNode {
   final Token beginToken;
   final Token? getOrSet;
   final Token endToken;
 
-  DirectParserASTContentTopLevelMethodEnd(DirectParserASTType type,
+  TopLevelMethodEnd(ParserAstType type,
       {required this.beginToken, this.getOrSet, required this.endToken})
       : super("TopLevelMethod", type);
 
@@ -5992,11 +5358,10 @@ class DirectParserASTContentTopLevelMethodEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTryStatementBegin extends DirectParserASTContent {
+class TryStatementBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentTryStatementBegin(DirectParserASTType type,
-      {required this.token})
+  TryStatementBegin(ParserAstType type, {required this.token})
       : super("TryStatement", type);
 
   @override
@@ -6005,11 +5370,11 @@ class DirectParserASTContentTryStatementBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentCaseMatchHandle extends DirectParserASTContent {
+class CaseMatchHandle extends ParserAstNode {
   final Token caseKeyword;
   final Token colon;
 
-  DirectParserASTContentCaseMatchHandle(DirectParserASTType type,
+  CaseMatchHandle(ParserAstType type,
       {required this.caseKeyword, required this.colon})
       : super("CaseMatch", type);
 
@@ -6020,11 +5385,10 @@ class DirectParserASTContentCaseMatchHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentCatchClauseBegin extends DirectParserASTContent {
+class CatchClauseBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentCatchClauseBegin(DirectParserASTType type,
-      {required this.token})
+  CatchClauseBegin(ParserAstType type, {required this.token})
       : super("CatchClause", type);
 
   @override
@@ -6033,11 +5397,10 @@ class DirectParserASTContentCatchClauseBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentCatchClauseEnd extends DirectParserASTContent {
+class CatchClauseEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentCatchClauseEnd(DirectParserASTType type,
-      {required this.token})
+  CatchClauseEnd(ParserAstType type, {required this.token})
       : super("CatchClause", type);
 
   @override
@@ -6046,12 +5409,12 @@ class DirectParserASTContentCatchClauseEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentCatchBlockHandle extends DirectParserASTContent {
+class CatchBlockHandle extends ParserAstNode {
   final Token? onKeyword;
   final Token? catchKeyword;
   final Token? comma;
 
-  DirectParserASTContentCatchBlockHandle(DirectParserASTType type,
+  CatchBlockHandle(ParserAstType type,
       {this.onKeyword, this.catchKeyword, this.comma})
       : super("CatchBlock", type);
 
@@ -6063,11 +5426,10 @@ class DirectParserASTContentCatchBlockHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentFinallyBlockHandle extends DirectParserASTContent {
+class FinallyBlockHandle extends ParserAstNode {
   final Token finallyKeyword;
 
-  DirectParserASTContentFinallyBlockHandle(DirectParserASTType type,
-      {required this.finallyKeyword})
+  FinallyBlockHandle(ParserAstType type, {required this.finallyKeyword})
       : super("FinallyBlock", type);
 
   @override
@@ -6076,12 +5438,12 @@ class DirectParserASTContentFinallyBlockHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTryStatementEnd extends DirectParserASTContent {
+class TryStatementEnd extends ParserAstNode {
   final int catchCount;
   final Token tryKeyword;
   final Token? finallyKeyword;
 
-  DirectParserASTContentTryStatementEnd(DirectParserASTType type,
+  TryStatementEnd(ParserAstType type,
       {required this.catchCount, required this.tryKeyword, this.finallyKeyword})
       : super("TryStatement", type);
 
@@ -6093,12 +5455,11 @@ class DirectParserASTContentTryStatementEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTypeHandle extends DirectParserASTContent {
+class TypeHandle extends ParserAstNode {
   final Token beginToken;
   final Token? questionMark;
 
-  DirectParserASTContentTypeHandle(DirectParserASTType type,
-      {required this.beginToken, this.questionMark})
+  TypeHandle(ParserAstType type, {required this.beginToken, this.questionMark})
       : super("Type", type);
 
   @override
@@ -6108,12 +5469,10 @@ class DirectParserASTContentTypeHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentNonNullAssertExpressionHandle
-    extends DirectParserASTContent {
+class NonNullAssertExpressionHandle extends ParserAstNode {
   final Token bang;
 
-  DirectParserASTContentNonNullAssertExpressionHandle(DirectParserASTType type,
-      {required this.bang})
+  NonNullAssertExpressionHandle(ParserAstType type, {required this.bang})
       : super("NonNullAssertExpression", type);
 
   @override
@@ -6122,11 +5481,10 @@ class DirectParserASTContentNonNullAssertExpressionHandle
       };
 }
 
-class DirectParserASTContentNoNameHandle extends DirectParserASTContent {
+class NoNameHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentNoNameHandle(DirectParserASTType type,
-      {required this.token})
+  NoNameHandle(ParserAstType type, {required this.token})
       : super("NoName", type);
 
   @override
@@ -6135,11 +5493,10 @@ class DirectParserASTContentNoNameHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentFunctionTypeBegin extends DirectParserASTContent {
+class FunctionTypeBegin extends ParserAstNode {
   final Token beginToken;
 
-  DirectParserASTContentFunctionTypeBegin(DirectParserASTType type,
-      {required this.beginToken})
+  FunctionTypeBegin(ParserAstType type, {required this.beginToken})
       : super("FunctionType", type);
 
   @override
@@ -6148,11 +5505,11 @@ class DirectParserASTContentFunctionTypeBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentFunctionTypeEnd extends DirectParserASTContent {
+class FunctionTypeEnd extends ParserAstNode {
   final Token functionToken;
   final Token? questionMark;
 
-  DirectParserASTContentFunctionTypeEnd(DirectParserASTType type,
+  FunctionTypeEnd(ParserAstType type,
       {required this.functionToken, this.questionMark})
       : super("FunctionType", type);
 
@@ -6163,11 +5520,10 @@ class DirectParserASTContentFunctionTypeEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTypeArgumentsBegin extends DirectParserASTContent {
+class TypeArgumentsBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentTypeArgumentsBegin(DirectParserASTType type,
-      {required this.token})
+  TypeArgumentsBegin(ParserAstType type, {required this.token})
       : super("TypeArguments", type);
 
   @override
@@ -6176,12 +5532,12 @@ class DirectParserASTContentTypeArgumentsBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTypeArgumentsEnd extends DirectParserASTContent {
+class TypeArgumentsEnd extends ParserAstNode {
   final int count;
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentTypeArgumentsEnd(DirectParserASTType type,
+  TypeArgumentsEnd(ParserAstType type,
       {required this.count, required this.beginToken, required this.endToken})
       : super("TypeArguments", type);
 
@@ -6193,12 +5549,10 @@ class DirectParserASTContentTypeArgumentsEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentInvalidTypeArgumentsHandle
-    extends DirectParserASTContent {
+class InvalidTypeArgumentsHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentInvalidTypeArgumentsHandle(DirectParserASTType type,
-      {required this.token})
+  InvalidTypeArgumentsHandle(ParserAstType type, {required this.token})
       : super("InvalidTypeArguments", type);
 
   @override
@@ -6207,12 +5561,10 @@ class DirectParserASTContentInvalidTypeArgumentsHandle
       };
 }
 
-class DirectParserASTContentNoTypeArgumentsHandle
-    extends DirectParserASTContent {
+class NoTypeArgumentsHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentNoTypeArgumentsHandle(DirectParserASTType type,
-      {required this.token})
+  NoTypeArgumentsHandle(ParserAstType type, {required this.token})
       : super("NoTypeArguments", type);
 
   @override
@@ -6221,11 +5573,10 @@ class DirectParserASTContentNoTypeArgumentsHandle
       };
 }
 
-class DirectParserASTContentTypeVariableBegin extends DirectParserASTContent {
+class TypeVariableBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentTypeVariableBegin(DirectParserASTType type,
-      {required this.token})
+  TypeVariableBegin(ParserAstType type, {required this.token})
       : super("TypeVariable", type);
 
   @override
@@ -6234,12 +5585,11 @@ class DirectParserASTContentTypeVariableBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTypeVariablesDefinedHandle
-    extends DirectParserASTContent {
+class TypeVariablesDefinedHandle extends ParserAstNode {
   final Token token;
   final int count;
 
-  DirectParserASTContentTypeVariablesDefinedHandle(DirectParserASTType type,
+  TypeVariablesDefinedHandle(ParserAstType type,
       {required this.token, required this.count})
       : super("TypeVariablesDefined", type);
 
@@ -6250,13 +5600,13 @@ class DirectParserASTContentTypeVariablesDefinedHandle
       };
 }
 
-class DirectParserASTContentTypeVariableEnd extends DirectParserASTContent {
+class TypeVariableEnd extends ParserAstNode {
   final Token token;
   final int index;
   final Token? extendsOrSuper;
   final Token? variance;
 
-  DirectParserASTContentTypeVariableEnd(DirectParserASTType type,
+  TypeVariableEnd(ParserAstType type,
       {required this.token,
       required this.index,
       this.extendsOrSuper,
@@ -6272,11 +5622,10 @@ class DirectParserASTContentTypeVariableEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTypeVariablesBegin extends DirectParserASTContent {
+class TypeVariablesBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentTypeVariablesBegin(DirectParserASTType type,
-      {required this.token})
+  TypeVariablesBegin(ParserAstType type, {required this.token})
       : super("TypeVariables", type);
 
   @override
@@ -6285,11 +5634,11 @@ class DirectParserASTContentTypeVariablesBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentTypeVariablesEnd extends DirectParserASTContent {
+class TypeVariablesEnd extends ParserAstNode {
   final Token beginToken;
   final Token endToken;
 
-  DirectParserASTContentTypeVariablesEnd(DirectParserASTType type,
+  TypeVariablesEnd(ParserAstType type,
       {required this.beginToken, required this.endToken})
       : super("TypeVariables", type);
 
@@ -6300,12 +5649,10 @@ class DirectParserASTContentTypeVariablesEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentFunctionExpressionBegin
-    extends DirectParserASTContent {
+class FunctionExpressionBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentFunctionExpressionBegin(DirectParserASTType type,
-      {required this.token})
+  FunctionExpressionBegin(ParserAstType type, {required this.token})
       : super("FunctionExpression", type);
 
   @override
@@ -6314,12 +5661,11 @@ class DirectParserASTContentFunctionExpressionBegin
       };
 }
 
-class DirectParserASTContentFunctionExpressionEnd
-    extends DirectParserASTContent {
+class FunctionExpressionEnd extends ParserAstNode {
   final Token beginToken;
   final Token token;
 
-  DirectParserASTContentFunctionExpressionEnd(DirectParserASTType type,
+  FunctionExpressionEnd(ParserAstType type,
       {required this.beginToken, required this.token})
       : super("FunctionExpression", type);
 
@@ -6330,13 +5676,12 @@ class DirectParserASTContentFunctionExpressionEnd
       };
 }
 
-class DirectParserASTContentVariablesDeclarationBegin
-    extends DirectParserASTContent {
+class VariablesDeclarationBegin extends ParserAstNode {
   final Token token;
   final Token? lateToken;
   final Token? varFinalOrConst;
 
-  DirectParserASTContentVariablesDeclarationBegin(DirectParserASTType type,
+  VariablesDeclarationBegin(ParserAstType type,
       {required this.token, this.lateToken, this.varFinalOrConst})
       : super("VariablesDeclaration", type);
 
@@ -6348,12 +5693,11 @@ class DirectParserASTContentVariablesDeclarationBegin
       };
 }
 
-class DirectParserASTContentVariablesDeclarationEnd
-    extends DirectParserASTContent {
+class VariablesDeclarationEnd extends ParserAstNode {
   final int count;
   final Token? endToken;
 
-  DirectParserASTContentVariablesDeclarationEnd(DirectParserASTType type,
+  VariablesDeclarationEnd(ParserAstType type,
       {required this.count, this.endToken})
       : super("VariablesDeclaration", type);
 
@@ -6364,11 +5708,10 @@ class DirectParserASTContentVariablesDeclarationEnd
       };
 }
 
-class DirectParserASTContentWhileStatementBegin extends DirectParserASTContent {
+class WhileStatementBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentWhileStatementBegin(DirectParserASTType type,
-      {required this.token})
+  WhileStatementBegin(ParserAstType type, {required this.token})
       : super("WhileStatement", type);
 
   @override
@@ -6377,11 +5720,11 @@ class DirectParserASTContentWhileStatementBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentWhileStatementEnd extends DirectParserASTContent {
+class WhileStatementEnd extends ParserAstNode {
   final Token whileKeyword;
   final Token endToken;
 
-  DirectParserASTContentWhileStatementEnd(DirectParserASTType type,
+  WhileStatementEnd(ParserAstType type,
       {required this.whileKeyword, required this.endToken})
       : super("WhileStatement", type);
 
@@ -6392,11 +5735,10 @@ class DirectParserASTContentWhileStatementEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentAsOperatorTypeBegin extends DirectParserASTContent {
+class AsOperatorTypeBegin extends ParserAstNode {
   final Token operator;
 
-  DirectParserASTContentAsOperatorTypeBegin(DirectParserASTType type,
-      {required this.operator})
+  AsOperatorTypeBegin(ParserAstType type, {required this.operator})
       : super("AsOperatorType", type);
 
   @override
@@ -6405,11 +5747,10 @@ class DirectParserASTContentAsOperatorTypeBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentAsOperatorTypeEnd extends DirectParserASTContent {
+class AsOperatorTypeEnd extends ParserAstNode {
   final Token operator;
 
-  DirectParserASTContentAsOperatorTypeEnd(DirectParserASTType type,
-      {required this.operator})
+  AsOperatorTypeEnd(ParserAstType type, {required this.operator})
       : super("AsOperatorType", type);
 
   @override
@@ -6418,11 +5759,10 @@ class DirectParserASTContentAsOperatorTypeEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentAsOperatorHandle extends DirectParserASTContent {
+class AsOperatorHandle extends ParserAstNode {
   final Token operator;
 
-  DirectParserASTContentAsOperatorHandle(DirectParserASTType type,
-      {required this.operator})
+  AsOperatorHandle(ParserAstType type, {required this.operator})
       : super("AsOperator", type);
 
   @override
@@ -6431,12 +5771,10 @@ class DirectParserASTContentAsOperatorHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentAssignmentExpressionHandle
-    extends DirectParserASTContent {
+class AssignmentExpressionHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentAssignmentExpressionHandle(DirectParserASTType type,
-      {required this.token})
+  AssignmentExpressionHandle(ParserAstType type, {required this.token})
       : super("AssignmentExpression", type);
 
   @override
@@ -6445,12 +5783,10 @@ class DirectParserASTContentAssignmentExpressionHandle
       };
 }
 
-class DirectParserASTContentBinaryExpressionBegin
-    extends DirectParserASTContent {
+class BinaryExpressionBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentBinaryExpressionBegin(DirectParserASTType type,
-      {required this.token})
+  BinaryExpressionBegin(ParserAstType type, {required this.token})
       : super("BinaryExpression", type);
 
   @override
@@ -6459,11 +5795,10 @@ class DirectParserASTContentBinaryExpressionBegin
       };
 }
 
-class DirectParserASTContentBinaryExpressionEnd extends DirectParserASTContent {
+class BinaryExpressionEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentBinaryExpressionEnd(DirectParserASTType type,
-      {required this.token})
+  BinaryExpressionEnd(ParserAstType type, {required this.token})
       : super("BinaryExpression", type);
 
   @override
@@ -6472,12 +5807,10 @@ class DirectParserASTContentBinaryExpressionEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentEndingBinaryExpressionHandle
-    extends DirectParserASTContent {
+class EndingBinaryExpressionHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentEndingBinaryExpressionHandle(DirectParserASTType type,
-      {required this.token})
+  EndingBinaryExpressionHandle(ParserAstType type, {required this.token})
       : super("EndingBinaryExpression", type);
 
   @override
@@ -6486,12 +5819,10 @@ class DirectParserASTContentEndingBinaryExpressionHandle
       };
 }
 
-class DirectParserASTContentConditionalExpressionBegin
-    extends DirectParserASTContent {
+class ConditionalExpressionBegin extends ParserAstNode {
   final Token question;
 
-  DirectParserASTContentConditionalExpressionBegin(DirectParserASTType type,
-      {required this.question})
+  ConditionalExpressionBegin(ParserAstType type, {required this.question})
       : super("ConditionalExpression", type);
 
   @override
@@ -6500,22 +5831,19 @@ class DirectParserASTContentConditionalExpressionBegin
       };
 }
 
-class DirectParserASTContentConditionalExpressionColonHandle
-    extends DirectParserASTContent {
-  DirectParserASTContentConditionalExpressionColonHandle(
-      DirectParserASTType type)
+class ConditionalExpressionColonHandle extends ParserAstNode {
+  ConditionalExpressionColonHandle(ParserAstType type)
       : super("ConditionalExpressionColon", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
-class DirectParserASTContentConditionalExpressionEnd
-    extends DirectParserASTContent {
+class ConditionalExpressionEnd extends ParserAstNode {
   final Token question;
   final Token colon;
 
-  DirectParserASTContentConditionalExpressionEnd(DirectParserASTType type,
+  ConditionalExpressionEnd(ParserAstType type,
       {required this.question, required this.colon})
       : super("ConditionalExpression", type);
 
@@ -6526,12 +5854,10 @@ class DirectParserASTContentConditionalExpressionEnd
       };
 }
 
-class DirectParserASTContentConstExpressionBegin
-    extends DirectParserASTContent {
+class ConstExpressionBegin extends ParserAstNode {
   final Token constKeyword;
 
-  DirectParserASTContentConstExpressionBegin(DirectParserASTType type,
-      {required this.constKeyword})
+  ConstExpressionBegin(ParserAstType type, {required this.constKeyword})
       : super("ConstExpression", type);
 
   @override
@@ -6540,11 +5866,10 @@ class DirectParserASTContentConstExpressionBegin
       };
 }
 
-class DirectParserASTContentConstExpressionEnd extends DirectParserASTContent {
+class ConstExpressionEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentConstExpressionEnd(DirectParserASTType type,
-      {required this.token})
+  ConstExpressionEnd(ParserAstType type, {required this.token})
       : super("ConstExpression", type);
 
   @override
@@ -6553,11 +5878,10 @@ class DirectParserASTContentConstExpressionEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentConstFactoryHandle extends DirectParserASTContent {
+class ConstFactoryHandle extends ParserAstNode {
   final Token constKeyword;
 
-  DirectParserASTContentConstFactoryHandle(DirectParserASTType type,
-      {required this.constKeyword})
+  ConstFactoryHandle(ParserAstType type, {required this.constKeyword})
       : super("ConstFactory", type);
 
   @override
@@ -6566,11 +5890,11 @@ class DirectParserASTContentConstFactoryHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentForControlFlowBegin extends DirectParserASTContent {
+class ForControlFlowBegin extends ParserAstNode {
   final Token? awaitToken;
   final Token forToken;
 
-  DirectParserASTContentForControlFlowBegin(DirectParserASTType type,
+  ForControlFlowBegin(ParserAstType type,
       {this.awaitToken, required this.forToken})
       : super("ForControlFlow", type);
 
@@ -6581,11 +5905,10 @@ class DirectParserASTContentForControlFlowBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentForControlFlowEnd extends DirectParserASTContent {
+class ForControlFlowEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentForControlFlowEnd(DirectParserASTType type,
-      {required this.token})
+  ForControlFlowEnd(ParserAstType type, {required this.token})
       : super("ForControlFlow", type);
 
   @override
@@ -6594,11 +5917,10 @@ class DirectParserASTContentForControlFlowEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentForInControlFlowEnd extends DirectParserASTContent {
+class ForInControlFlowEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentForInControlFlowEnd(DirectParserASTType type,
-      {required this.token})
+  ForInControlFlowEnd(ParserAstType type, {required this.token})
       : super("ForInControlFlow", type);
 
   @override
@@ -6607,11 +5929,10 @@ class DirectParserASTContentForInControlFlowEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentIfControlFlowBegin extends DirectParserASTContent {
+class IfControlFlowBegin extends ParserAstNode {
   final Token ifToken;
 
-  DirectParserASTContentIfControlFlowBegin(DirectParserASTType type,
-      {required this.ifToken})
+  IfControlFlowBegin(ParserAstType type, {required this.ifToken})
       : super("IfControlFlow", type);
 
   @override
@@ -6620,12 +5941,10 @@ class DirectParserASTContentIfControlFlowBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentThenControlFlowHandle
-    extends DirectParserASTContent {
+class ThenControlFlowHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentThenControlFlowHandle(DirectParserASTType type,
-      {required this.token})
+  ThenControlFlowHandle(ParserAstType type, {required this.token})
       : super("ThenControlFlow", type);
 
   @override
@@ -6634,12 +5953,10 @@ class DirectParserASTContentThenControlFlowHandle
       };
 }
 
-class DirectParserASTContentElseControlFlowHandle
-    extends DirectParserASTContent {
+class ElseControlFlowHandle extends ParserAstNode {
   final Token elseToken;
 
-  DirectParserASTContentElseControlFlowHandle(DirectParserASTType type,
-      {required this.elseToken})
+  ElseControlFlowHandle(ParserAstType type, {required this.elseToken})
       : super("ElseControlFlow", type);
 
   @override
@@ -6648,11 +5965,10 @@ class DirectParserASTContentElseControlFlowHandle
       };
 }
 
-class DirectParserASTContentIfControlFlowEnd extends DirectParserASTContent {
+class IfControlFlowEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentIfControlFlowEnd(DirectParserASTType type,
-      {required this.token})
+  IfControlFlowEnd(ParserAstType type, {required this.token})
       : super("IfControlFlow", type);
 
   @override
@@ -6661,12 +5977,10 @@ class DirectParserASTContentIfControlFlowEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentIfElseControlFlowEnd
-    extends DirectParserASTContent {
+class IfElseControlFlowEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentIfElseControlFlowEnd(DirectParserASTType type,
-      {required this.token})
+  IfElseControlFlowEnd(ParserAstType type, {required this.token})
       : super("IfElseControlFlow", type);
 
   @override
@@ -6675,12 +5989,10 @@ class DirectParserASTContentIfElseControlFlowEnd
       };
 }
 
-class DirectParserASTContentSpreadExpressionHandle
-    extends DirectParserASTContent {
+class SpreadExpressionHandle extends ParserAstNode {
   final Token spreadToken;
 
-  DirectParserASTContentSpreadExpressionHandle(DirectParserASTType type,
-      {required this.spreadToken})
+  SpreadExpressionHandle(ParserAstType type, {required this.spreadToken})
       : super("SpreadExpression", type);
 
   @override
@@ -6689,13 +6001,10 @@ class DirectParserASTContentSpreadExpressionHandle
       };
 }
 
-class DirectParserASTContentFunctionTypedFormalParameterBegin
-    extends DirectParserASTContent {
+class FunctionTypedFormalParameterBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentFunctionTypedFormalParameterBegin(
-      DirectParserASTType type,
-      {required this.token})
+  FunctionTypedFormalParameterBegin(ParserAstType type, {required this.token})
       : super("FunctionTypedFormalParameter", type);
 
   @override
@@ -6704,15 +6013,12 @@ class DirectParserASTContentFunctionTypedFormalParameterBegin
       };
 }
 
-class DirectParserASTContentFunctionTypedFormalParameterEnd
-    extends DirectParserASTContent {
+class FunctionTypedFormalParameterEnd extends ParserAstNode {
   final Token nameToken;
   final Token? question;
 
-  DirectParserASTContentFunctionTypedFormalParameterEnd(
-      DirectParserASTType type,
-      {required this.nameToken,
-      this.question})
+  FunctionTypedFormalParameterEnd(ParserAstType type,
+      {required this.nameToken, this.question})
       : super("FunctionTypedFormalParameter", type);
 
   @override
@@ -6722,11 +6028,11 @@ class DirectParserASTContentFunctionTypedFormalParameterEnd
       };
 }
 
-class DirectParserASTContentIdentifierHandle extends DirectParserASTContent {
+class IdentifierHandle extends ParserAstNode {
   final Token token;
   final IdentifierContext context;
 
-  DirectParserASTContentIdentifierHandle(DirectParserASTType type,
+  IdentifierHandle(ParserAstType type,
       {required this.token, required this.context})
       : super("Identifier", type);
 
@@ -6737,12 +6043,11 @@ class DirectParserASTContentIdentifierHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentShowHideIdentifierHandle
-    extends DirectParserASTContent {
+class ShowHideIdentifierHandle extends ParserAstNode {
   final Token? modifier;
   final Token identifier;
 
-  DirectParserASTContentShowHideIdentifierHandle(DirectParserASTType type,
+  ShowHideIdentifierHandle(ParserAstType type,
       {this.modifier, required this.identifier})
       : super("ShowHideIdentifier", type);
 
@@ -6753,13 +6058,12 @@ class DirectParserASTContentShowHideIdentifierHandle
       };
 }
 
-class DirectParserASTContentIndexedExpressionHandle
-    extends DirectParserASTContent {
+class IndexedExpressionHandle extends ParserAstNode {
   final Token? question;
   final Token openSquareBracket;
   final Token closeSquareBracket;
 
-  DirectParserASTContentIndexedExpressionHandle(DirectParserASTType type,
+  IndexedExpressionHandle(ParserAstType type,
       {this.question,
       required this.openSquareBracket,
       required this.closeSquareBracket})
@@ -6773,11 +6077,10 @@ class DirectParserASTContentIndexedExpressionHandle
       };
 }
 
-class DirectParserASTContentIsOperatorTypeBegin extends DirectParserASTContent {
+class IsOperatorTypeBegin extends ParserAstNode {
   final Token operator;
 
-  DirectParserASTContentIsOperatorTypeBegin(DirectParserASTType type,
-      {required this.operator})
+  IsOperatorTypeBegin(ParserAstType type, {required this.operator})
       : super("IsOperatorType", type);
 
   @override
@@ -6786,11 +6089,10 @@ class DirectParserASTContentIsOperatorTypeBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentIsOperatorTypeEnd extends DirectParserASTContent {
+class IsOperatorTypeEnd extends ParserAstNode {
   final Token operator;
 
-  DirectParserASTContentIsOperatorTypeEnd(DirectParserASTType type,
-      {required this.operator})
+  IsOperatorTypeEnd(ParserAstType type, {required this.operator})
       : super("IsOperatorType", type);
 
   @override
@@ -6799,12 +6101,11 @@ class DirectParserASTContentIsOperatorTypeEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentIsOperatorHandle extends DirectParserASTContent {
+class IsOperatorHandle extends ParserAstNode {
   final Token isOperator;
   final Token? not;
 
-  DirectParserASTContentIsOperatorHandle(DirectParserASTType type,
-      {required this.isOperator, this.not})
+  IsOperatorHandle(ParserAstType type, {required this.isOperator, this.not})
       : super("IsOperator", type);
 
   @override
@@ -6814,11 +6115,10 @@ class DirectParserASTContentIsOperatorHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentLiteralBoolHandle extends DirectParserASTContent {
+class LiteralBoolHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentLiteralBoolHandle(DirectParserASTType type,
-      {required this.token})
+  LiteralBoolHandle(ParserAstType type, {required this.token})
       : super("LiteralBool", type);
 
   @override
@@ -6827,13 +6127,12 @@ class DirectParserASTContentLiteralBoolHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentBreakStatementHandle
-    extends DirectParserASTContent {
+class BreakStatementHandle extends ParserAstNode {
   final bool hasTarget;
   final Token breakKeyword;
   final Token endToken;
 
-  DirectParserASTContentBreakStatementHandle(DirectParserASTType type,
+  BreakStatementHandle(ParserAstType type,
       {required this.hasTarget,
       required this.breakKeyword,
       required this.endToken})
@@ -6847,13 +6146,12 @@ class DirectParserASTContentBreakStatementHandle
       };
 }
 
-class DirectParserASTContentContinueStatementHandle
-    extends DirectParserASTContent {
+class ContinueStatementHandle extends ParserAstNode {
   final bool hasTarget;
   final Token continueKeyword;
   final Token endToken;
 
-  DirectParserASTContentContinueStatementHandle(DirectParserASTType type,
+  ContinueStatementHandle(ParserAstType type,
       {required this.hasTarget,
       required this.continueKeyword,
       required this.endToken})
@@ -6867,12 +6165,10 @@ class DirectParserASTContentContinueStatementHandle
       };
 }
 
-class DirectParserASTContentEmptyStatementHandle
-    extends DirectParserASTContent {
+class EmptyStatementHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentEmptyStatementHandle(DirectParserASTType type,
-      {required this.token})
+  EmptyStatementHandle(ParserAstType type, {required this.token})
       : super("EmptyStatement", type);
 
   @override
@@ -6881,11 +6177,11 @@ class DirectParserASTContentEmptyStatementHandle
       };
 }
 
-class DirectParserASTContentAssertBegin extends DirectParserASTContent {
+class AssertBegin extends ParserAstNode {
   final Token assertKeyword;
   final Assert kind;
 
-  DirectParserASTContentAssertBegin(DirectParserASTType type,
+  AssertBegin(ParserAstType type,
       {required this.assertKeyword, required this.kind})
       : super("Assert", type);
 
@@ -6896,14 +6192,14 @@ class DirectParserASTContentAssertBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentAssertEnd extends DirectParserASTContent {
+class AssertEnd extends ParserAstNode {
   final Token assertKeyword;
   final Assert kind;
   final Token leftParenthesis;
   final Token? commaToken;
   final Token semicolonToken;
 
-  DirectParserASTContentAssertEnd(DirectParserASTType type,
+  AssertEnd(ParserAstType type,
       {required this.assertKeyword,
       required this.kind,
       required this.leftParenthesis,
@@ -6921,11 +6217,10 @@ class DirectParserASTContentAssertEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentLiteralDoubleHandle extends DirectParserASTContent {
+class LiteralDoubleHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentLiteralDoubleHandle(DirectParserASTType type,
-      {required this.token})
+  LiteralDoubleHandle(ParserAstType type, {required this.token})
       : super("LiteralDouble", type);
 
   @override
@@ -6934,11 +6229,10 @@ class DirectParserASTContentLiteralDoubleHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentLiteralIntHandle extends DirectParserASTContent {
+class LiteralIntHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentLiteralIntHandle(DirectParserASTType type,
-      {required this.token})
+  LiteralIntHandle(ParserAstType type, {required this.token})
       : super("LiteralInt", type);
 
   @override
@@ -6947,13 +6241,13 @@ class DirectParserASTContentLiteralIntHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentLiteralListHandle extends DirectParserASTContent {
+class LiteralListHandle extends ParserAstNode {
   final int count;
   final Token leftBracket;
   final Token? constKeyword;
   final Token rightBracket;
 
-  DirectParserASTContentLiteralListHandle(DirectParserASTType type,
+  LiteralListHandle(ParserAstType type,
       {required this.count,
       required this.leftBracket,
       this.constKeyword,
@@ -6969,15 +6263,14 @@ class DirectParserASTContentLiteralListHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentLiteralSetOrMapHandle
-    extends DirectParserASTContent {
+class LiteralSetOrMapHandle extends ParserAstNode {
   final int count;
   final Token leftBrace;
   final Token? constKeyword;
   final Token rightBrace;
   final bool hasSetEntry;
 
-  DirectParserASTContentLiteralSetOrMapHandle(DirectParserASTType type,
+  LiteralSetOrMapHandle(ParserAstType type,
       {required this.count,
       required this.leftBrace,
       this.constKeyword,
@@ -6995,11 +6288,10 @@ class DirectParserASTContentLiteralSetOrMapHandle
       };
 }
 
-class DirectParserASTContentLiteralNullHandle extends DirectParserASTContent {
+class LiteralNullHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentLiteralNullHandle(DirectParserASTType type,
-      {required this.token})
+  LiteralNullHandle(ParserAstType type, {required this.token})
       : super("LiteralNull", type);
 
   @override
@@ -7008,11 +6300,11 @@ class DirectParserASTContentLiteralNullHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentNativeClauseHandle extends DirectParserASTContent {
+class NativeClauseHandle extends ParserAstNode {
   final Token nativeToken;
   final bool hasName;
 
-  DirectParserASTContentNativeClauseHandle(DirectParserASTType type,
+  NativeClauseHandle(ParserAstType type,
       {required this.nativeToken, required this.hasName})
       : super("NativeClause", type);
 
@@ -7023,11 +6315,10 @@ class DirectParserASTContentNativeClauseHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentNamedArgumentHandle extends DirectParserASTContent {
+class NamedArgumentHandle extends ParserAstNode {
   final Token colon;
 
-  DirectParserASTContentNamedArgumentHandle(DirectParserASTType type,
-      {required this.colon})
+  NamedArgumentHandle(ParserAstType type, {required this.colon})
       : super("NamedArgument", type);
 
   @override
@@ -7036,11 +6327,10 @@ class DirectParserASTContentNamedArgumentHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentNewExpressionBegin extends DirectParserASTContent {
+class NewExpressionBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentNewExpressionBegin(DirectParserASTType type,
-      {required this.token})
+  NewExpressionBegin(ParserAstType type, {required this.token})
       : super("NewExpression", type);
 
   @override
@@ -7049,11 +6339,10 @@ class DirectParserASTContentNewExpressionBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentNewExpressionEnd extends DirectParserASTContent {
+class NewExpressionEnd extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentNewExpressionEnd(DirectParserASTType type,
-      {required this.token})
+  NewExpressionEnd(ParserAstType type, {required this.token})
       : super("NewExpression", type);
 
   @override
@@ -7062,11 +6351,10 @@ class DirectParserASTContentNewExpressionEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentNoArgumentsHandle extends DirectParserASTContent {
+class NoArgumentsHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentNoArgumentsHandle(DirectParserASTType type,
-      {required this.token})
+  NoArgumentsHandle(ParserAstType type, {required this.token})
       : super("NoArguments", type);
 
   @override
@@ -7075,12 +6363,11 @@ class DirectParserASTContentNoArgumentsHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentNoConstructorReferenceContinuationAfterTypeArgumentsHandle
-    extends DirectParserASTContent {
+class NoConstructorReferenceContinuationAfterTypeArgumentsHandle
+    extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentNoConstructorReferenceContinuationAfterTypeArgumentsHandle(
-      DirectParserASTType type,
+  NoConstructorReferenceContinuationAfterTypeArgumentsHandle(ParserAstType type,
       {required this.token})
       : super("NoConstructorReferenceContinuationAfterTypeArguments", type);
 
@@ -7090,11 +6377,10 @@ class DirectParserASTContentNoConstructorReferenceContinuationAfterTypeArguments
       };
 }
 
-class DirectParserASTContentNoTypeHandle extends DirectParserASTContent {
+class NoTypeHandle extends ParserAstNode {
   final Token lastConsumed;
 
-  DirectParserASTContentNoTypeHandle(DirectParserASTType type,
-      {required this.lastConsumed})
+  NoTypeHandle(ParserAstType type, {required this.lastConsumed})
       : super("NoType", type);
 
   @override
@@ -7103,12 +6389,10 @@ class DirectParserASTContentNoTypeHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentNoTypeVariablesHandle
-    extends DirectParserASTContent {
+class NoTypeVariablesHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentNoTypeVariablesHandle(DirectParserASTType type,
-      {required this.token})
+  NoTypeVariablesHandle(ParserAstType type, {required this.token})
       : super("NoTypeVariables", type);
 
   @override
@@ -7117,11 +6401,10 @@ class DirectParserASTContentNoTypeVariablesHandle
       };
 }
 
-class DirectParserASTContentOperatorHandle extends DirectParserASTContent {
+class OperatorHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentOperatorHandle(DirectParserASTType type,
-      {required this.token})
+  OperatorHandle(ParserAstType type, {required this.token})
       : super("Operator", type);
 
   @override
@@ -7130,11 +6413,10 @@ class DirectParserASTContentOperatorHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentSymbolVoidHandle extends DirectParserASTContent {
+class SymbolVoidHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentSymbolVoidHandle(DirectParserASTType type,
-      {required this.token})
+  SymbolVoidHandle(ParserAstType type, {required this.token})
       : super("SymbolVoid", type);
 
   @override
@@ -7143,11 +6425,11 @@ class DirectParserASTContentSymbolVoidHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentOperatorNameHandle extends DirectParserASTContent {
+class OperatorNameHandle extends ParserAstNode {
   final Token operatorKeyword;
   final Token token;
 
-  DirectParserASTContentOperatorNameHandle(DirectParserASTType type,
+  OperatorNameHandle(ParserAstType type,
       {required this.operatorKeyword, required this.token})
       : super("OperatorName", type);
 
@@ -7158,12 +6440,11 @@ class DirectParserASTContentOperatorNameHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentInvalidOperatorNameHandle
-    extends DirectParserASTContent {
+class InvalidOperatorNameHandle extends ParserAstNode {
   final Token operatorKeyword;
   final Token token;
 
-  DirectParserASTContentInvalidOperatorNameHandle(DirectParserASTType type,
+  InvalidOperatorNameHandle(ParserAstType type,
       {required this.operatorKeyword, required this.token})
       : super("InvalidOperatorName", type);
 
@@ -7174,12 +6455,10 @@ class DirectParserASTContentInvalidOperatorNameHandle
       };
 }
 
-class DirectParserASTContentParenthesizedConditionHandle
-    extends DirectParserASTContent {
+class ParenthesizedConditionHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentParenthesizedConditionHandle(DirectParserASTType type,
-      {required this.token})
+  ParenthesizedConditionHandle(ParserAstType type, {required this.token})
       : super("ParenthesizedCondition", type);
 
   @override
@@ -7188,12 +6467,10 @@ class DirectParserASTContentParenthesizedConditionHandle
       };
 }
 
-class DirectParserASTContentParenthesizedExpressionHandle
-    extends DirectParserASTContent {
+class ParenthesizedExpressionHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentParenthesizedExpressionHandle(DirectParserASTType type,
-      {required this.token})
+  ParenthesizedExpressionHandle(ParserAstType type, {required this.token})
       : super("ParenthesizedExpression", type);
 
   @override
@@ -7202,11 +6479,10 @@ class DirectParserASTContentParenthesizedExpressionHandle
       };
 }
 
-class DirectParserASTContentQualifiedHandle extends DirectParserASTContent {
+class QualifiedHandle extends ParserAstNode {
   final Token period;
 
-  DirectParserASTContentQualifiedHandle(DirectParserASTType type,
-      {required this.period})
+  QualifiedHandle(ParserAstType type, {required this.period})
       : super("Qualified", type);
 
   @override
@@ -7215,11 +6491,10 @@ class DirectParserASTContentQualifiedHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentStringPartHandle extends DirectParserASTContent {
+class StringPartHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentStringPartHandle(DirectParserASTType type,
-      {required this.token})
+  StringPartHandle(ParserAstType type, {required this.token})
       : super("StringPart", type);
 
   @override
@@ -7228,12 +6503,11 @@ class DirectParserASTContentStringPartHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentSuperExpressionHandle
-    extends DirectParserASTContent {
+class SuperExpressionHandle extends ParserAstNode {
   final Token token;
   final IdentifierContext context;
 
-  DirectParserASTContentSuperExpressionHandle(DirectParserASTType type,
+  SuperExpressionHandle(ParserAstType type,
       {required this.token, required this.context})
       : super("SuperExpression", type);
 
@@ -7244,12 +6518,12 @@ class DirectParserASTContentSuperExpressionHandle
       };
 }
 
-class DirectParserASTContentSwitchCaseBegin extends DirectParserASTContent {
+class SwitchCaseBegin extends ParserAstNode {
   final int labelCount;
   final int expressionCount;
   final Token firstToken;
 
-  DirectParserASTContentSwitchCaseBegin(DirectParserASTType type,
+  SwitchCaseBegin(ParserAstType type,
       {required this.labelCount,
       required this.expressionCount,
       required this.firstToken})
@@ -7263,7 +6537,7 @@ class DirectParserASTContentSwitchCaseBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentSwitchCaseEnd extends DirectParserASTContent {
+class SwitchCaseEnd extends ParserAstNode {
   final int labelCount;
   final int expressionCount;
   final Token? defaultKeyword;
@@ -7272,7 +6546,7 @@ class DirectParserASTContentSwitchCaseEnd extends DirectParserASTContent {
   final Token firstToken;
   final Token endToken;
 
-  DirectParserASTContentSwitchCaseEnd(DirectParserASTType type,
+  SwitchCaseEnd(ParserAstType type,
       {required this.labelCount,
       required this.expressionCount,
       this.defaultKeyword,
@@ -7294,12 +6568,11 @@ class DirectParserASTContentSwitchCaseEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentThisExpressionHandle
-    extends DirectParserASTContent {
+class ThisExpressionHandle extends ParserAstNode {
   final Token token;
   final IdentifierContext context;
 
-  DirectParserASTContentThisExpressionHandle(DirectParserASTType type,
+  ThisExpressionHandle(ParserAstType type,
       {required this.token, required this.context})
       : super("ThisExpression", type);
 
@@ -7310,12 +6583,10 @@ class DirectParserASTContentThisExpressionHandle
       };
 }
 
-class DirectParserASTContentUnaryPostfixAssignmentExpressionHandle
-    extends DirectParserASTContent {
+class UnaryPostfixAssignmentExpressionHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentUnaryPostfixAssignmentExpressionHandle(
-      DirectParserASTType type,
+  UnaryPostfixAssignmentExpressionHandle(ParserAstType type,
       {required this.token})
       : super("UnaryPostfixAssignmentExpression", type);
 
@@ -7325,12 +6596,10 @@ class DirectParserASTContentUnaryPostfixAssignmentExpressionHandle
       };
 }
 
-class DirectParserASTContentUnaryPrefixExpressionHandle
-    extends DirectParserASTContent {
+class UnaryPrefixExpressionHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentUnaryPrefixExpressionHandle(DirectParserASTType type,
-      {required this.token})
+  UnaryPrefixExpressionHandle(ParserAstType type, {required this.token})
       : super("UnaryPrefixExpression", type);
 
   @override
@@ -7339,12 +6608,10 @@ class DirectParserASTContentUnaryPrefixExpressionHandle
       };
 }
 
-class DirectParserASTContentUnaryPrefixAssignmentExpressionHandle
-    extends DirectParserASTContent {
+class UnaryPrefixAssignmentExpressionHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentUnaryPrefixAssignmentExpressionHandle(
-      DirectParserASTType type,
+  UnaryPrefixAssignmentExpressionHandle(ParserAstType type,
       {required this.token})
       : super("UnaryPrefixAssignmentExpression", type);
 
@@ -7354,32 +6621,27 @@ class DirectParserASTContentUnaryPrefixAssignmentExpressionHandle
       };
 }
 
-class DirectParserASTContentFormalParameterDefaultValueExpressionBegin
-    extends DirectParserASTContent {
-  DirectParserASTContentFormalParameterDefaultValueExpressionBegin(
-      DirectParserASTType type)
+class FormalParameterDefaultValueExpressionBegin extends ParserAstNode {
+  FormalParameterDefaultValueExpressionBegin(ParserAstType type)
       : super("FormalParameterDefaultValueExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
-class DirectParserASTContentFormalParameterDefaultValueExpressionEnd
-    extends DirectParserASTContent {
-  DirectParserASTContentFormalParameterDefaultValueExpressionEnd(
-      DirectParserASTType type)
+class FormalParameterDefaultValueExpressionEnd extends ParserAstNode {
+  FormalParameterDefaultValueExpressionEnd(ParserAstType type)
       : super("FormalParameterDefaultValueExpression", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
-class DirectParserASTContentValuedFormalParameterHandle
-    extends DirectParserASTContent {
+class ValuedFormalParameterHandle extends ParserAstNode {
   final Token equals;
   final Token token;
 
-  DirectParserASTContentValuedFormalParameterHandle(DirectParserASTType type,
+  ValuedFormalParameterHandle(ParserAstType type,
       {required this.equals, required this.token})
       : super("ValuedFormalParameter", type);
 
@@ -7390,13 +6652,10 @@ class DirectParserASTContentValuedFormalParameterHandle
       };
 }
 
-class DirectParserASTContentFormalParameterWithoutValueHandle
-    extends DirectParserASTContent {
+class FormalParameterWithoutValueHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentFormalParameterWithoutValueHandle(
-      DirectParserASTType type,
-      {required this.token})
+  FormalParameterWithoutValueHandle(ParserAstType type, {required this.token})
       : super("FormalParameterWithoutValue", type);
 
   @override
@@ -7405,11 +6664,10 @@ class DirectParserASTContentFormalParameterWithoutValueHandle
       };
 }
 
-class DirectParserASTContentVoidKeywordHandle extends DirectParserASTContent {
+class VoidKeywordHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentVoidKeywordHandle(DirectParserASTType type,
-      {required this.token})
+  VoidKeywordHandle(ParserAstType type, {required this.token})
       : super("VoidKeyword", type);
 
   @override
@@ -7418,13 +6676,10 @@ class DirectParserASTContentVoidKeywordHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentVoidKeywordWithTypeArgumentsHandle
-    extends DirectParserASTContent {
+class VoidKeywordWithTypeArgumentsHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentVoidKeywordWithTypeArgumentsHandle(
-      DirectParserASTType type,
-      {required this.token})
+  VoidKeywordWithTypeArgumentsHandle(ParserAstType type, {required this.token})
       : super("VoidKeywordWithTypeArguments", type);
 
   @override
@@ -7433,11 +6688,10 @@ class DirectParserASTContentVoidKeywordWithTypeArgumentsHandle
       };
 }
 
-class DirectParserASTContentYieldStatementBegin extends DirectParserASTContent {
+class YieldStatementBegin extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentYieldStatementBegin(DirectParserASTType type,
-      {required this.token})
+  YieldStatementBegin(ParserAstType type, {required this.token})
       : super("YieldStatement", type);
 
   @override
@@ -7446,12 +6700,12 @@ class DirectParserASTContentYieldStatementBegin extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentYieldStatementEnd extends DirectParserASTContent {
+class YieldStatementEnd extends ParserAstNode {
   final Token yieldToken;
   final Token? starToken;
   final Token endToken;
 
-  DirectParserASTContentYieldStatementEnd(DirectParserASTType type,
+  YieldStatementEnd(ParserAstType type,
       {required this.yieldToken, this.starToken, required this.endToken})
       : super("YieldStatement", type);
 
@@ -7463,14 +6717,13 @@ class DirectParserASTContentYieldStatementEnd extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentInvalidYieldStatementEnd
-    extends DirectParserASTContent {
+class InvalidYieldStatementEnd extends ParserAstNode {
   final Token beginToken;
   final Token? starToken;
   final Token endToken;
   final MessageCode errorCode;
 
-  DirectParserASTContentInvalidYieldStatementEnd(DirectParserASTType type,
+  InvalidYieldStatementEnd(ParserAstType type,
       {required this.beginToken,
       this.starToken,
       required this.endToken,
@@ -7486,13 +6739,12 @@ class DirectParserASTContentInvalidYieldStatementEnd
       };
 }
 
-class DirectParserASTContentRecoverableErrorHandle
-    extends DirectParserASTContent {
+class RecoverableErrorHandle extends ParserAstNode {
   final Message message;
   final Token startToken;
   final Token endToken;
 
-  DirectParserASTContentRecoverableErrorHandle(DirectParserASTType type,
+  RecoverableErrorHandle(ParserAstType type,
       {required this.message, required this.startToken, required this.endToken})
       : super("RecoverableError", type);
 
@@ -7504,11 +6756,10 @@ class DirectParserASTContentRecoverableErrorHandle
       };
 }
 
-class DirectParserASTContentErrorTokenHandle extends DirectParserASTContent {
+class ErrorTokenHandle extends ParserAstNode {
   final ErrorToken token;
 
-  DirectParserASTContentErrorTokenHandle(DirectParserASTType type,
-      {required this.token})
+  ErrorTokenHandle(ParserAstType type, {required this.token})
       : super("ErrorToken", type);
 
   @override
@@ -7517,13 +6768,13 @@ class DirectParserASTContentErrorTokenHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentUnescapeErrorHandle extends DirectParserASTContent {
+class UnescapeErrorHandle extends ParserAstNode {
   final Message message;
   final Token location;
   final int stringOffset;
   final int length;
 
-  DirectParserASTContentUnescapeErrorHandle(DirectParserASTType type,
+  UnescapeErrorHandle(ParserAstType type,
       {required this.message,
       required this.location,
       required this.stringOffset,
@@ -7539,12 +6790,11 @@ class DirectParserASTContentUnescapeErrorHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentInvalidStatementHandle
-    extends DirectParserASTContent {
+class InvalidStatementHandle extends ParserAstNode {
   final Token token;
   final Message message;
 
-  DirectParserASTContentInvalidStatementHandle(DirectParserASTType type,
+  InvalidStatementHandle(ParserAstType type,
       {required this.token, required this.message})
       : super("InvalidStatement", type);
 
@@ -7555,11 +6805,10 @@ class DirectParserASTContentInvalidStatementHandle
       };
 }
 
-class DirectParserASTContentScriptHandle extends DirectParserASTContent {
+class ScriptHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentScriptHandle(DirectParserASTType type,
-      {required this.token})
+  ScriptHandle(ParserAstType type, {required this.token})
       : super("Script", type);
 
   @override
@@ -7568,12 +6817,11 @@ class DirectParserASTContentScriptHandle extends DirectParserASTContent {
       };
 }
 
-class DirectParserASTContentCommentReferenceTextHandle
-    extends DirectParserASTContent {
+class CommentReferenceTextHandle extends ParserAstNode {
   final String referenceSource;
   final int referenceOffset;
 
-  DirectParserASTContentCommentReferenceTextHandle(DirectParserASTType type,
+  CommentReferenceTextHandle(ParserAstType type,
       {required this.referenceSource, required this.referenceOffset})
       : super("CommentReferenceText", type);
 
@@ -7584,14 +6832,13 @@ class DirectParserASTContentCommentReferenceTextHandle
       };
 }
 
-class DirectParserASTContentCommentReferenceHandle
-    extends DirectParserASTContent {
+class CommentReferenceHandle extends ParserAstNode {
   final Token? newKeyword;
   final Token? prefix;
   final Token? period;
   final Token token;
 
-  DirectParserASTContentCommentReferenceHandle(DirectParserASTType type,
+  CommentReferenceHandle(ParserAstType type,
       {this.newKeyword, this.prefix, this.period, required this.token})
       : super("CommentReference", type);
 
@@ -7604,20 +6851,18 @@ class DirectParserASTContentCommentReferenceHandle
       };
 }
 
-class DirectParserASTContentNoCommentReferenceHandle
-    extends DirectParserASTContent {
-  DirectParserASTContentNoCommentReferenceHandle(DirectParserASTType type)
+class NoCommentReferenceHandle extends ParserAstNode {
+  NoCommentReferenceHandle(ParserAstType type)
       : super("NoCommentReference", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
-class DirectParserASTContentTypeArgumentApplicationHandle
-    extends DirectParserASTContent {
+class TypeArgumentApplicationHandle extends ParserAstNode {
   final Token openAngleBracket;
 
-  DirectParserASTContentTypeArgumentApplicationHandle(DirectParserASTType type,
+  TypeArgumentApplicationHandle(ParserAstType type,
       {required this.openAngleBracket})
       : super("TypeArgumentApplication", type);
 
@@ -7627,12 +6872,10 @@ class DirectParserASTContentTypeArgumentApplicationHandle
       };
 }
 
-class DirectParserASTContentNewAsIdentifierHandle
-    extends DirectParserASTContent {
+class NewAsIdentifierHandle extends ParserAstNode {
   final Token token;
 
-  DirectParserASTContentNewAsIdentifierHandle(DirectParserASTType type,
-      {required this.token})
+  NewAsIdentifierHandle(ParserAstType type, {required this.token})
       : super("NewAsIdentifier", type);
 
   @override

@@ -33,13 +33,13 @@ void canParseTopLevelIshOfAllFrontendFiles() {
       try {
         processed++;
         List<int> data = entry.readAsBytesSync();
-        DirectParserASTContentCompilationUnitEnd ast = getAST(data,
+        CompilationUnitEnd ast = getAST(data,
             includeBody: true,
             includeComments: true,
             enableExtensionMethods: true,
             enableNonNullable: false);
         splitIntoChunks(ast, data);
-        for (DirectParserASTContent child in ast.children!) {
+        for (ParserAstNode child in ast.children!) {
           if (child.isClass()) {
             splitIntoChunks(
                 child.asClass().getClassOrMixinOrExtensionBody(), data);
@@ -63,7 +63,7 @@ void testTopLevelStuff() {
   File file = new File.fromUri(
       base.resolve("direct_parser_ast_test_data/top_level_stuff.txt"));
   List<int> data = file.readAsBytesSync();
-  DirectParserASTContentCompilationUnitEnd ast = getAST(data,
+  CompilationUnitEnd ast = getAST(data,
       includeBody: true,
       includeComments: true,
       enableExtensionMethods: true,
@@ -145,27 +145,24 @@ void testClassStuff() {
   File file =
       new File.fromUri(base.resolve("direct_parser_ast_test_data/class.txt"));
   List<int> data = file.readAsBytesSync();
-  DirectParserASTContentCompilationUnitEnd ast = getAST(data,
+  CompilationUnitEnd ast = getAST(data,
       includeBody: true,
       includeComments: true,
       enableExtensionMethods: true,
       enableNonNullable: false);
-  List<DirectParserASTContentTopLevelDeclarationEnd> classes = ast.getClasses();
+  List<TopLevelDeclarationEnd> classes = ast.getClasses();
   expect(2, classes.length);
 
-  DirectParserASTContentTopLevelDeclarationEnd decl = classes[0];
-  DirectParserASTContentClassDeclarationEnd cls = decl.asClass();
+  TopLevelDeclarationEnd decl = classes[0];
+  ClassDeclarationEnd cls = decl.asClass();
   expect("Foo", decl.getIdentifier().token.lexeme);
-  DirectParserASTContentClassExtendsHandle extendsDecl = cls.getClassExtends();
+  ClassExtendsHandle extendsDecl = cls.getClassExtends();
   expect("extends", extendsDecl.extendsKeyword?.lexeme);
-  DirectParserASTContentClassOrMixinImplementsHandle implementsDecl =
-      cls.getClassImplements();
+  ClassOrMixinImplementsHandle implementsDecl = cls.getClassImplements();
   expect("implements", implementsDecl.implementsKeyword?.lexeme);
-  DirectParserASTContentClassWithClauseHandle? withClauseDecl =
-      cls.getClassWithClause();
+  ClassWithClauseHandle? withClauseDecl = cls.getClassWithClause();
   expect(null, withClauseDecl);
-  List<DirectParserASTContentMemberEnd> members =
-      cls.getClassOrMixinOrExtensionBody().getMembers();
+  List<MemberEnd> members = cls.getClassOrMixinOrExtensionBody().getMembers();
   expect(5, members.length);
   expect(members[0].isClassConstructor(), true);
   expect(members[1].isClassFactoryMethod(), true);
@@ -208,8 +205,7 @@ void testClassStuff() {
   }""", chunks[0]);
 
   // TODO: Move (something like) this into the check-all-files-thing.
-  for (DirectParserASTContentMemberEnd member
-      in cls.getClassOrMixinOrExtensionBody().getMembers()) {
+  for (MemberEnd member in cls.getClassOrMixinOrExtensionBody().getMembers()) {
     if (member.isClassConstructor()) continue;
     if (member.isClassFactoryMethod()) continue;
     if (member.isClassFields()) continue;
@@ -234,21 +230,19 @@ void testMixinStuff() {
   File file =
       new File.fromUri(base.resolve("direct_parser_ast_test_data/mixin.txt"));
   List<int> data = file.readAsBytesSync();
-  DirectParserASTContentCompilationUnitEnd ast = getAST(data,
+  CompilationUnitEnd ast = getAST(data,
       includeBody: true,
       includeComments: true,
       enableExtensionMethods: true,
       enableNonNullable: false);
-  List<DirectParserASTContentTopLevelDeclarationEnd> mixins =
-      ast.getMixinDeclarations();
+  List<TopLevelDeclarationEnd> mixins = ast.getMixinDeclarations();
   expect(mixins.length, 1);
 
-  DirectParserASTContentTopLevelDeclarationEnd decl = mixins[0];
-  DirectParserASTContentMixinDeclarationEnd mxn = decl.asMixinDeclaration();
+  TopLevelDeclarationEnd decl = mixins[0];
+  MixinDeclarationEnd mxn = decl.asMixinDeclaration();
   expect("B", decl.getIdentifier().token.lexeme);
 
-  List<DirectParserASTContentMemberEnd> members =
-      mxn.getClassOrMixinOrExtensionBody().getMembers();
+  List<MemberEnd> members = mxn.getClassOrMixinOrExtensionBody().getMembers();
   expect(4, members.length);
   expect(members[0].isMixinFields(), true);
   expect(members[1].isMixinMethod(), true);
@@ -274,28 +268,27 @@ void expect<E>(E expect, E actual) {
   if (expect != actual) throw "Expected '$expect' but got '$actual'";
 }
 
-List<String> splitIntoChunks(DirectParserASTContent ast, List<int> data) {
+List<String> splitIntoChunks(ParserAstNode ast, List<int> data) {
   List<String> foundChunks = [];
-  for (DirectParserASTContent child in ast.children!) {
+  for (ParserAstNode child in ast.children!) {
     foundChunks.addAll(processItem(child, data));
   }
   return foundChunks;
 }
 
-List<String> processItem(DirectParserASTContent item, List<int> data) {
+List<String> processItem(ParserAstNode item, List<int> data) {
   if (item.isClass()) {
-    DirectParserASTContentClassDeclarationEnd cls = item.asClass();
+    ClassDeclarationEnd cls = item.asClass();
     return [
       getCutContent(data, cls.beginToken.offset,
           cls.endToken.offset + cls.endToken.length)
     ];
   } else if (item.isMetadata()) {
-    DirectParserASTContentMetadataStarEnd metadataStar = item.asMetadata();
-    List<DirectParserASTContentMetadataEnd> entries =
-        metadataStar.getMetadataEntries();
+    MetadataStarEnd metadataStar = item.asMetadata();
+    List<MetadataEnd> entries = metadataStar.getMetadataEntries();
     if (entries.isNotEmpty) {
       List<String> chunks = [];
-      for (DirectParserASTContentMetadataEnd metadata in entries) {
+      for (MetadataEnd metadata in entries) {
         chunks.add(getCutContent(
             data, metadata.beginToken.offset, metadata.endToken.offset));
       }
@@ -303,49 +296,49 @@ List<String> processItem(DirectParserASTContent item, List<int> data) {
     }
     return const [];
   } else if (item.isImport()) {
-    DirectParserASTContentImportEnd import = item.asImport();
+    ImportEnd import = item.asImport();
     return [
       getCutContent(data, import.importKeyword.offset,
           import.semicolon!.offset + import.semicolon!.length)
     ];
   } else if (item.isExport()) {
-    DirectParserASTContentExportEnd export = item.asExport();
+    ExportEnd export = item.asExport();
     return [
       getCutContent(data, export.exportKeyword.offset,
           export.semicolon.offset + export.semicolon.length)
     ];
   } else if (item.isLibraryName()) {
-    DirectParserASTContentLibraryNameEnd name = item.asLibraryName();
+    LibraryNameEnd name = item.asLibraryName();
     return [
       getCutContent(data, name.libraryKeyword.offset,
           name.semicolon.offset + name.semicolon.length)
     ];
   } else if (item.isPart()) {
-    DirectParserASTContentPartEnd part = item.asPart();
+    PartEnd part = item.asPart();
     return [
       getCutContent(data, part.partKeyword.offset,
           part.semicolon.offset + part.semicolon.length)
     ];
   } else if (item.isPartOf()) {
-    DirectParserASTContentPartOfEnd partOf = item.asPartOf();
+    PartOfEnd partOf = item.asPartOf();
     return [
       getCutContent(data, partOf.partKeyword.offset,
           partOf.semicolon.offset + partOf.semicolon.length)
     ];
   } else if (item.isTopLevelMethod()) {
-    DirectParserASTContentTopLevelMethodEnd method = item.asTopLevelMethod();
+    TopLevelMethodEnd method = item.asTopLevelMethod();
     return [
       getCutContent(data, method.beginToken.offset,
           method.endToken.offset + method.endToken.length)
     ];
   } else if (item.isTopLevelFields()) {
-    DirectParserASTContentTopLevelFieldsEnd fields = item.asTopLevelFields();
+    TopLevelFieldsEnd fields = item.asTopLevelFields();
     return [
       getCutContent(data, fields.beginToken.offset,
           fields.endToken.offset + fields.endToken.length)
     ];
   } else if (item.isEnum()) {
-    DirectParserASTContentEnumEnd declaration = item.asEnum();
+    EnumEnd declaration = item.asEnum();
     return [
       getCutContent(
           data,
@@ -354,114 +347,107 @@ List<String> processItem(DirectParserASTContent item, List<int> data) {
               declaration.leftBrace.endGroup!.length)
     ];
   } else if (item.isMixinDeclaration()) {
-    DirectParserASTContentMixinDeclarationEnd mixinDecl =
-        item.asMixinDeclaration();
+    MixinDeclarationEnd mixinDecl = item.asMixinDeclaration();
     return [
       getCutContent(data, mixinDecl.mixinKeyword.offset,
           mixinDecl.endToken.offset + mixinDecl.endToken.length)
     ];
   } else if (item.isNamedMixinDeclaration()) {
-    DirectParserASTContentNamedMixinApplicationEnd namedMixinDecl =
-        item.asNamedMixinDeclaration();
+    NamedMixinApplicationEnd namedMixinDecl = item.asNamedMixinDeclaration();
     return [
       getCutContent(data, namedMixinDecl.begin.offset,
           namedMixinDecl.endToken.offset + namedMixinDecl.endToken.length)
     ];
   } else if (item.isTypedef()) {
-    DirectParserASTContentTypedefEnd typedefDecl = item.asTypedef();
+    TypedefEnd typedefDecl = item.asTypedef();
     return [
       getCutContent(data, typedefDecl.typedefKeyword.offset,
           typedefDecl.endToken.offset + typedefDecl.endToken.length)
     ];
   } else if (item.isExtension()) {
-    DirectParserASTContentExtensionDeclarationEnd extensionDecl =
-        item.asExtension();
+    ExtensionDeclarationEnd extensionDecl = item.asExtension();
     return [
       getCutContent(data, extensionDecl.extensionKeyword.offset,
           extensionDecl.endToken.offset + extensionDecl.endToken.length)
     ];
   } else if (item.isScript()) {
-    DirectParserASTContentScriptHandle script = item.asScript();
+    ScriptHandle script = item.asScript();
     return [
       getCutContent(
           data, script.token.offset, script.token.offset + script.token.length)
     ];
-  } else if (item is DirectParserASTContentMemberEnd) {
+  } else if (item is MemberEnd) {
     if (item.isClassConstructor()) {
-      DirectParserASTContentClassConstructorEnd decl =
-          item.getClassConstructor();
+      ClassConstructorEnd decl = item.getClassConstructor();
       return [
         getCutContent(data, decl.beginToken.offset,
             decl.endToken.offset + decl.endToken.length)
       ];
     } else if (item.isClassFactoryMethod()) {
-      DirectParserASTContentClassFactoryMethodEnd decl =
-          item.getClassFactoryMethod();
+      ClassFactoryMethodEnd decl = item.getClassFactoryMethod();
       return [
         getCutContent(data, decl.beginToken.offset,
             decl.endToken.offset + decl.endToken.length)
       ];
     } else if (item.isClassMethod()) {
-      DirectParserASTContentClassMethodEnd decl = item.getClassMethod();
+      ClassMethodEnd decl = item.getClassMethod();
       return [
         getCutContent(data, decl.beginToken.offset,
             decl.endToken.offset + decl.endToken.length)
       ];
     } else if (item.isClassFields()) {
-      DirectParserASTContentClassFieldsEnd decl = item.getClassFields();
+      ClassFieldsEnd decl = item.getClassFields();
       return [
         getCutContent(data, decl.beginToken.offset,
             decl.endToken.offset + decl.endToken.length)
       ];
     } else if (item.isClassFields()) {
-      DirectParserASTContentClassFieldsEnd decl = item.getClassFields();
+      ClassFieldsEnd decl = item.getClassFields();
       return [
         getCutContent(data, decl.beginToken.offset,
             decl.endToken.offset + decl.endToken.length)
       ];
     } else if (item.isMixinFields()) {
-      DirectParserASTContentMixinFieldsEnd decl = item.getMixinFields();
+      MixinFieldsEnd decl = item.getMixinFields();
       return [
         getCutContent(data, decl.beginToken.offset,
             decl.endToken.offset + decl.endToken.length)
       ];
     } else if (item.isMixinMethod()) {
-      DirectParserASTContentMixinMethodEnd decl = item.getMixinMethod();
+      MixinMethodEnd decl = item.getMixinMethod();
       return [
         getCutContent(data, decl.beginToken.offset,
             decl.endToken.offset + decl.endToken.length)
       ];
     } else if (item.isMixinFactoryMethod()) {
-      DirectParserASTContentMixinFactoryMethodEnd decl =
-          item.getMixinFactoryMethod();
+      MixinFactoryMethodEnd decl = item.getMixinFactoryMethod();
       return [
         getCutContent(data, decl.beginToken.offset,
             decl.endToken.offset + decl.endToken.length)
       ];
     } else if (item.isMixinConstructor()) {
-      DirectParserASTContentMixinConstructorEnd decl =
-          item.getMixinConstructor();
+      MixinConstructorEnd decl = item.getMixinConstructor();
       return [
         getCutContent(data, decl.beginToken.offset,
             decl.endToken.offset + decl.endToken.length)
       ];
     } else {
-      if (item.type == DirectParserASTType.BEGIN) return const [];
-      if (item.type == DirectParserASTType.HANDLE) return const [];
+      if (item.type == ParserAstType.BEGIN) return const [];
+      if (item.type == ParserAstType.HANDLE) return const [];
       if (item.isClassRecoverableError()) return const [];
       if (item.isRecoverableError()) return const [];
       if (item.isRecoverImport()) return const [];
       throw "Unknown: $item --- ${item.children}";
     }
   } else if (item.isFunctionBody()) {
-    DirectParserASTContentBlockFunctionBodyEnd decl = item.asFunctionBody();
+    BlockFunctionBodyEnd decl = item.asFunctionBody();
     return [
       getCutContent(data, decl.beginToken.offset,
           decl.endToken.offset + decl.endToken.length)
     ];
   } else {
-    if (item.type == DirectParserASTType.BEGIN) return const [];
-    if (item.type == DirectParserASTType.HANDLE) return const [];
+    if (item.type == ParserAstType.BEGIN) return const [];
+    if (item.type == ParserAstType.HANDLE) return const [];
     if (item.isInvalidTopLevelDeclaration()) return const [];
     if (item.isRecoverableError()) return const [];
     if (item.isRecoverImport()) return const [];

@@ -135,7 +135,7 @@ class _Processor {
     final List<int> bytes2 = utf8.encode(outlined);
     getAstStopwatch.start();
     List<Token> languageVersionsSeen = [];
-    final DirectParserASTContent ast = getAST(bytes2,
+    final ParserAstNode ast = getAST(bytes2,
         enableExtensionMethods: configuration.enableExtensionMethods,
         enableNonNullable: configuration.enableNonNullable,
         enableTripleShift: configuration.enableTripleShift,
@@ -154,13 +154,12 @@ class _Processor {
     extractIdentifierStopwatch.start();
     identifierExtractor.extract(ast);
     extractIdentifierStopwatch.stop();
-    for (DirectParserASTContentIdentifierHandle identifier
-        in identifierExtractor.identifiers) {
+    for (IdentifierHandle identifier in identifierExtractor.identifiers) {
       if (identifier.context == IdentifierContext.typeVariableDeclaration) {
         // Hack: Put type variable declarations into scope so any overlap in
         // name doesn't mark usages (e.g. a class E shouldn't be marked if we're
         // talking about the type variable E).
-        DirectParserASTContent content = identifier;
+        ParserAstNode content = identifier;
         AstNode? nearestAstNode = visitor.map[content];
         while (nearestAstNode == null && content.parent != null) {
           content = content.parent!;
@@ -277,9 +276,8 @@ class _Processor {
         }
         List<AstNode>? prevLookupResult;
         nextIdentifier:
-        for (DirectParserASTContentIdentifierHandle identifier
-            in identifierExtractor.identifiers) {
-          DirectParserASTContent content = identifier;
+        for (IdentifierHandle identifier in identifierExtractor.identifiers) {
+          ParserAstNode content = identifier;
           AstNode? nearestAstNode = entry.topLevel.map[content];
           while (nearestAstNode == null && content.parent != null) {
             content = content.parent!;
@@ -540,43 +538,36 @@ class _TopLevelAndAstNode {
 }
 
 class _IdentifierExtractor {
-  List<DirectParserASTContentIdentifierHandle> identifiers = [];
+  List<IdentifierHandle> identifiers = [];
 
-  void extract(DirectParserASTContent ast) {
-    if (ast is DirectParserASTContentIdentifierHandle) {
+  void extract(ParserAstNode ast) {
+    if (ast is IdentifierHandle) {
       identifiers.add(ast);
     }
-    List<DirectParserASTContent>? children = ast.children;
+    List<ParserAstNode>? children = ast.children;
     if (children != null) {
-      for (DirectParserASTContent child in children) {
+      for (ParserAstNode child in children) {
         extract(child);
       }
     }
   }
 }
 
-class _ParserAstVisitor extends DirectParserASTContentVisitor {
+class _ParserAstVisitor extends ParserAstVisitor {
   final Uri uri;
   final Uri? partOfUri;
   late Container currentContainer;
-  final Map<DirectParserASTContent, AstNode> map = {};
+  final Map<ParserAstNode, AstNode> map = {};
   final int verbosityLevel;
   final List<Token> languageVersionsSeen;
 
-  _ParserAstVisitor(
-      this.verbosityLevel,
-      String sourceText,
-      this.uri,
-      this.partOfUri,
-      DirectParserASTContent rootAst,
-      this.languageVersionsSeen) {
+  _ParserAstVisitor(this.verbosityLevel, String sourceText, this.uri,
+      this.partOfUri, ParserAstNode rootAst, this.languageVersionsSeen) {
     currentContainer = new TopLevel(sourceText, uri, rootAst, map);
     if (languageVersionsSeen.isNotEmpty) {
       // Use first one.
       Token languageVersion = languageVersionsSeen.first;
-      DirectParserASTContent dummyNode =
-          new DirectParserASTContentNoInitializersHandle(
-              DirectParserASTType.HANDLE);
+      ParserAstNode dummyNode = new NoInitializersHandle(ParserAstType.HANDLE);
       LanguageVersion version =
           new LanguageVersion(dummyNode, languageVersion, languageVersion);
       version.marked = Coloring.Marked;
@@ -596,11 +587,10 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitClass(DirectParserASTContentClassDeclarationEnd node,
-      Token startInclusive, Token endInclusive) {
-    DirectParserASTContentTopLevelDeclarationEnd parent =
-        node.parent! as DirectParserASTContentTopLevelDeclarationEnd;
-    DirectParserASTContentIdentifierHandle identifier = parent.getIdentifier();
+  void visitClass(
+      ClassDeclarationEnd node, Token startInclusive, Token endInclusive) {
+    TopLevelDeclarationEnd parent = node.parent! as TopLevelDeclarationEnd;
+    IdentifierHandle identifier = parent.getIdentifier();
 
     log("Hello from class ${identifier.token}");
 
@@ -615,10 +605,10 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitClassConstructor(DirectParserASTContentClassConstructorEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitClassConstructor(
+      ClassConstructorEnd node, Token startInclusive, Token endInclusive) {
     assert(currentContainer is Class);
-    List<DirectParserASTContentIdentifierHandle> ids = node.getIdentifiers();
+    List<IdentifierHandle> ids = node.getIdentifiers();
     if (ids.length == 1) {
       ClassConstructor classConstructor = new ClassConstructor(
           node, ids.single.token.lexeme, startInclusive, endInclusive);
@@ -638,10 +628,10 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitClassFactoryMethod(DirectParserASTContentClassFactoryMethodEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitClassFactoryMethod(
+      ClassFactoryMethodEnd node, Token startInclusive, Token endInclusive) {
     assert(currentContainer is Class);
-    List<DirectParserASTContentIdentifierHandle> ids = node.getIdentifiers();
+    List<IdentifierHandle> ids = node.getIdentifiers();
     if (ids.length == 1) {
       ClassFactoryMethod classFactoryMethod = new ClassFactoryMethod(
           node, ids.single.token.lexeme, startInclusive, endInclusive);
@@ -670,8 +660,8 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitClassFields(DirectParserASTContentClassFieldsEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitClassFields(
+      ClassFieldsEnd node, Token startInclusive, Token endInclusive) {
     assert(currentContainer is Class);
     List<String> fields =
         node.getFieldIdentifiers().map((e) => e.token.lexeme).toList();
@@ -683,8 +673,8 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitClassMethod(DirectParserASTContentClassMethodEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitClassMethod(
+      ClassMethodEnd node, Token startInclusive, Token endInclusive) {
     assert(currentContainer is Class);
 
     String identifier;
@@ -709,9 +699,8 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitEnum(DirectParserASTContentEnumEnd node, Token startInclusive,
-      Token endInclusive) {
-    List<DirectParserASTContentIdentifierHandle> ids = node.getIdentifiers();
+  void visitEnum(EnumEnd node, Token startInclusive, Token endInclusive) {
+    List<IdentifierHandle> ids = node.getIdentifiers();
 
     Enum e = new Enum(
         node,
@@ -727,8 +716,7 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitExport(DirectParserASTContentExportEnd node, Token startInclusive,
-      Token endInclusive) {
+  void visitExport(ExportEnd node, Token startInclusive, Token endInclusive) {
     String uriString = node.getExportUriString();
     Uri exportUri = uri.resolve(uriString);
     List<String>? conditionalUriStrings = node.getConditionalExportUriStrings();
@@ -747,12 +735,11 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitExtension(DirectParserASTContentExtensionDeclarationEnd node,
-      Token startInclusive, Token endInclusive) {
-    DirectParserASTContentExtensionDeclarationBegin begin =
-        node.children!.first as DirectParserASTContentExtensionDeclarationBegin;
-    DirectParserASTContentTopLevelDeclarationEnd parent =
-        node.parent! as DirectParserASTContentTopLevelDeclarationEnd;
+  void visitExtension(
+      ExtensionDeclarationEnd node, Token startInclusive, Token endInclusive) {
+    ExtensionDeclarationBegin begin =
+        node.children!.first as ExtensionDeclarationBegin;
+    TopLevelDeclarationEnd parent = node.parent! as TopLevelDeclarationEnd;
     log("Hello from extension ${begin.name}");
     Extension extension =
         new Extension(parent, begin.name?.lexeme, startInclusive, endInclusive);
@@ -766,25 +753,21 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
 
   @override
   void visitExtensionConstructor(
-      DirectParserASTContentExtensionConstructorEnd node,
-      Token startInclusive,
-      Token endInclusive) {
+      ExtensionConstructorEnd node, Token startInclusive, Token endInclusive) {
     // TODO: implement visitExtensionConstructor
     throw node;
   }
 
   @override
-  void visitExtensionFactoryMethod(
-      DirectParserASTContentExtensionFactoryMethodEnd node,
-      Token startInclusive,
-      Token endInclusive) {
+  void visitExtensionFactoryMethod(ExtensionFactoryMethodEnd node,
+      Token startInclusive, Token endInclusive) {
     // TODO: implement visitExtensionFactoryMethod
     throw node;
   }
 
   @override
-  void visitExtensionFields(DirectParserASTContentExtensionFieldsEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitExtensionFields(
+      ExtensionFieldsEnd node, Token startInclusive, Token endInclusive) {
     assert(currentContainer is Extension);
     List<String> fields =
         node.getFieldIdentifiers().map((e) => e.token.lexeme).toList();
@@ -796,8 +779,8 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitExtensionMethod(DirectParserASTContentExtensionMethodEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitExtensionMethod(
+      ExtensionMethodEnd node, Token startInclusive, Token endInclusive) {
     assert(currentContainer is Extension);
     ExtensionMethod extensionMethod = new ExtensionMethod(
         node, node.getNameIdentifier(), startInclusive, endInclusive);
@@ -807,9 +790,8 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitImport(DirectParserASTContentImportEnd node, Token startInclusive,
-      Token? endInclusive) {
-    DirectParserASTContentIdentifierHandle? prefix = node.getImportPrefix();
+  void visitImport(ImportEnd node, Token startInclusive, Token? endInclusive) {
+    IdentifierHandle? prefix = node.getImportPrefix();
     String uriString = node.getImportUriString();
     Uri importUri = uri.resolve(uriString);
     List<String>? conditionalUriStrings = node.getConditionalImportUriStrings();
@@ -835,26 +817,25 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitLibraryName(DirectParserASTContentLibraryNameEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitLibraryName(
+      LibraryNameEnd node, Token startInclusive, Token endInclusive) {
     LibraryName name = new LibraryName(node, startInclusive, endInclusive);
     name.marked = Coloring.Marked;
     currentContainer.addChild(name, map);
   }
 
   @override
-  void visitMetadata(DirectParserASTContentMetadataEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitMetadata(
+      MetadataEnd node, Token startInclusive, Token endInclusive) {
     Metadata m = new Metadata(node, startInclusive, endInclusive);
     currentContainer.addChild(m, map);
   }
 
   @override
-  void visitMixin(DirectParserASTContentMixinDeclarationEnd node,
-      Token startInclusive, Token endInclusive) {
-    DirectParserASTContentTopLevelDeclarationEnd parent =
-        node.parent! as DirectParserASTContentTopLevelDeclarationEnd;
-    DirectParserASTContentIdentifierHandle identifier = parent.getIdentifier();
+  void visitMixin(
+      MixinDeclarationEnd node, Token startInclusive, Token endInclusive) {
+    TopLevelDeclarationEnd parent = node.parent! as TopLevelDeclarationEnd;
+    IdentifierHandle identifier = parent.getIdentifier();
     log("Hello from mixin ${identifier.token}");
 
     Mixin mixin = new Mixin(
@@ -868,8 +849,8 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitMixinFields(DirectParserASTContentMixinFieldsEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitMixinFields(
+      MixinFieldsEnd node, Token startInclusive, Token endInclusive) {
     assert(currentContainer is Mixin);
     List<String> fields =
         node.getFieldIdentifiers().map((e) => e.token.lexeme).toList();
@@ -881,8 +862,8 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitMixinMethod(DirectParserASTContentMixinMethodEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitMixinMethod(
+      MixinMethodEnd node, Token startInclusive, Token endInclusive) {
     assert(currentContainer is Mixin);
     MixinMethod classMethod = new MixinMethod(
         node, node.getNameIdentifier(), startInclusive, endInclusive);
@@ -892,11 +873,10 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitNamedMixin(DirectParserASTContentNamedMixinApplicationEnd node,
-      Token startInclusive, Token endInclusive) {
-    DirectParserASTContentTopLevelDeclarationEnd parent =
-        node.parent! as DirectParserASTContentTopLevelDeclarationEnd;
-    DirectParserASTContentIdentifierHandle identifier = parent.getIdentifier();
+  void visitNamedMixin(
+      NamedMixinApplicationEnd node, Token startInclusive, Token endInclusive) {
+    TopLevelDeclarationEnd parent = node.parent! as TopLevelDeclarationEnd;
+    IdentifierHandle identifier = parent.getIdentifier();
     log("Hello from named mixin ${identifier.token}");
 
     Mixin mixin = new Mixin(
@@ -910,8 +890,7 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitPart(DirectParserASTContentPartEnd node, Token startInclusive,
-      Token endInclusive) {
+  void visitPart(PartEnd node, Token startInclusive, Token endInclusive) {
     String uriString = node.getPartUriString();
     Uri partUri = uri.resolve(uriString);
 
@@ -921,8 +900,7 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitPartOf(DirectParserASTContentPartOfEnd node, Token startInclusive,
-      Token endInclusive) {
+  void visitPartOf(PartOfEnd node, Token startInclusive, Token endInclusive) {
     // We'll assume we've gotten here via a "part" so we'll ignore that for now.
     // TODO: partOfUri could - in an error case - be null.
     PartOf partof = new PartOf(node, partOfUri!, startInclusive, endInclusive);
@@ -931,8 +909,8 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitTopLevelFields(DirectParserASTContentTopLevelFieldsEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitTopLevelFields(
+      TopLevelFieldsEnd node, Token startInclusive, Token endInclusive) {
     List<String> fields =
         node.getFieldIdentifiers().map((e) => e.token.lexeme).toList();
     TopLevelFields f =
@@ -943,8 +921,8 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitTopLevelMethod(DirectParserASTContentTopLevelMethodEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitTopLevelMethod(
+      TopLevelMethodEnd node, Token startInclusive, Token endInclusive) {
     TopLevelMethod m = new TopLevelMethod(node,
         node.getNameIdentifier().token.lexeme, startInclusive, endInclusive);
     currentContainer.addChild(m, map);
@@ -953,8 +931,7 @@ class _ParserAstVisitor extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitTypedef(DirectParserASTContentTypedefEnd node, Token startInclusive,
-      Token endInclusive) {
+  void visitTypedef(TypedefEnd node, Token startInclusive, Token endInclusive) {
     Typedef t = new Typedef(node, node.getNameIdentifier().token.lexeme,
         startInclusive, endInclusive);
     currentContainer.addChild(t, map);

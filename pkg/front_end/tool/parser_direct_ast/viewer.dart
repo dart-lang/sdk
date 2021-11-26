@@ -7,7 +7,7 @@ import "dart:typed_data" show Uint8List;
 
 import "package:front_end/src/fasta/util/direct_parser_ast.dart" show getAST;
 import "package:front_end/src/fasta/util/direct_parser_ast_helper.dart"
-    show DirectParserASTContent, DirectParserASTType;
+    show ParserAstNode, ParserAstType;
 
 import "console_helper.dart";
 
@@ -17,7 +17,7 @@ void main(List<String> args) {
     uri = Uri.base.resolve(args.first);
   }
   Uint8List bytes = new File.fromUri(uri).readAsBytesSync();
-  DirectParserASTContent ast = getAST(bytes, enableExtensionMethods: true);
+  ParserAstNode ast = getAST(bytes, enableExtensionMethods: true);
 
   Widget widget = new QuitOnQWidget(
     new WithSingleLineBottomWidget(
@@ -33,7 +33,7 @@ void main(List<String> args) {
 
 class PrintedLine {
   final String text;
-  final DirectParserASTContent? ast;
+  final ParserAstNode? ast;
   final List<PrintedLine>? parentShown;
   final int? selected;
 
@@ -53,21 +53,21 @@ class AstWidget extends Widget {
   late List<PrintedLine> shown;
   int selected = 0;
 
-  AstWidget(DirectParserASTContent ast) {
+  AstWidget(ParserAstNode ast) {
     shown = [new PrintedLine.ast(ast, textualize(ast))];
   }
 
-  String textualize(DirectParserASTContent element,
+  String textualize(ParserAstNode element,
       {bool indent: false, bool withEndHeader: false}) {
     String header;
     switch (element.type) {
-      case DirectParserASTType.BEGIN:
+      case ParserAstType.BEGIN:
         header = "begin";
         break;
-      case DirectParserASTType.HANDLE:
+      case ParserAstType.HANDLE:
         header = "handle";
         break;
-      case DirectParserASTType.END:
+      case ParserAstType.END:
         header = withEndHeader ? "end" : "";
         break;
     }
@@ -114,7 +114,7 @@ class AstWidget extends Widget {
       selected = selectedElement.selected!;
     } else {
       shown = [new PrintedLine.parent(shown, selected)];
-      List<DirectParserASTContent>? children = selectedElement.ast!.children;
+      List<ParserAstNode>? children = selectedElement.ast!.children;
       if (children != null) {
         for (int i = 0; i < children.length; i++) {
           shown.add(new PrintedLine.ast(
