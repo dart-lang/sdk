@@ -659,6 +659,7 @@ method1d
 metric
 metrics
 mf
+mfs
 micro
 minimize
 minimizer
@@ -699,6 +700,7 @@ nondefault
 nonexisting
 noo
 noted
+nottest
 numerator
 ob
 obool
@@ -709,6 +711,7 @@ okay
 ol
 onull
 oo
+oobar
 oocf
 ooo
 oovf
@@ -783,6 +786,9 @@ quot
 quux
 quuz
 qux
+qux1
+qux3x
+qux4x
 r"
 r"\s
 r"k
@@ -843,6 +849,7 @@ scroll
 sdkroot
 sdks
 secondary
+secondtest12part1usage
 segment
 selection
 semifuzz
@@ -925,8 +932,19 @@ t\u0008\f\u
 tails
 talk
 templates
+test10
+test12
+test12part1usage
+test13
+test13andahalf
+test15thing
+test16
+test16toplevel
 test3a
 test3b
+test3partfoo
+test8
+test9
 theoretically
 thereof
 thread
@@ -996,6 +1014,7 @@ waited
 waiting
 waits
 walt
+wants
 warmup
 week
 weekly
@@ -1014,8 +1033,10 @@ xrequired
 xxx
 xxxxxxxx
 xxxxxxxxxxxx
+xyz
 y's
 year
 yxxx
 yy
+zyx
 zz

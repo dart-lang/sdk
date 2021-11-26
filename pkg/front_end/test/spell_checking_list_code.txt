@@ -11,6 +11,7 @@
 
 a+b
 abbreviate
+abc
 abcdef
 abs
 accounting
@@ -216,6 +217,7 @@ codebase
 codec
 codes
 collision
+coloring
 colorized
 com
 combinations
@@ -399,6 +401,7 @@ enforcing
 engineered
 enhanced
 enters
+entrypointish
 enumerates
 env
 eof
@@ -458,6 +461,7 @@ field2
 fieldformal
 file's
 filenames
+fileuri
 finally's
 finv
 firsts
@@ -689,6 +693,7 @@ leeway
 len
 lets
 letting
+levels
 lex
 lexemes
 lf
@@ -863,6 +868,7 @@ orphancy
 orphans
 ors
 os
+outlined
 outputs
 outputting
 overlap
@@ -894,6 +900,7 @@ paren
 parens
 parenteses
 particularly
+partof
 patchup
 path
 patterns
@@ -934,7 +941,9 @@ pre
 prebuilt
 preexisted
 preexisting
+premark
 preorder
+preprocess
 presented
 presubmit
 presumably
@@ -945,6 +954,7 @@ printf
 println
 prioritization
 proc
+processor
 producers
 product
 progresses
@@ -1087,6 +1097,7 @@ robust
 role
 room
 rooted
+rough
 roughly
 rounding
 roundtrip
@@ -1201,6 +1212,7 @@ stmt
 stopgap
 stopped
 storage
+story
 str
 strategies
 streak
@@ -1388,6 +1400,7 @@ unshadowed
 unsortable
 unsound
 unsoundness
+untouched
 unwrapper
 unwraps
 unwritten
@@ -1398,6 +1411,7 @@ ur
 uri's
 url
 urls
+usages
 usr
 usual
 usually

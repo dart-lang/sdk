@@ -1,0 +1,17 @@
+org-dartlang-testcase:///main.dart:
+import 'foo.dart' as foo;
+import 'bar.dart';
+var x = foo.bar();
+foo.Baz? baz;
+
+
+
+
+org-dartlang-testcase:///foo.dart:
+String bar() {}
+class Baz {}
+
+
+
+
+org-dartlang-testcase:///bar.dart:

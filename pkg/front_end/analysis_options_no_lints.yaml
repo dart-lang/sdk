@@ -4,6 +4,7 @@
 
 analyzer:
   exclude:
+    - outline_extraction_testcases/**
     - parser_testcases/**
     - test/analyser_ignored/**
     - test/class_hierarchy/data/**

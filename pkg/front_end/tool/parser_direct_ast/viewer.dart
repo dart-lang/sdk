@@ -17,7 +17,7 @@ void main(List<String> args) {
     uri = Uri.base.resolve(args.first);
   }
   Uint8List bytes = new File.fromUri(uri).readAsBytesSync();
-  DirectParserASTContent ast = getAST(bytes);
+  DirectParserASTContent ast = getAST(bytes, enableExtensionMethods: true);
 
   Widget widget = new QuitOnQWidget(
     new WithSingleLineBottomWidget(

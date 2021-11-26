@@ -64,6 +64,7 @@ abstract class DirectParserASTContent {
   final DirectParserASTType type;
   Map<String, Object?> get deprecatedArguments;
   List<DirectParserASTContent>? children;
+  DirectParserASTContent? parent;
 
   DirectParserASTContent(this.what, this.type);
 
