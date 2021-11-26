@@ -576,8 +576,9 @@ abstract class String implements Comparable<String>, Pattern {
   /// and returns the list of the substrings between the matches,
   /// before the first match, and after the last match.
   /// ```dart
-  /// const string = "Hello world!";
-  /// final results = string.split(" "); // ["Hello", "world!"];
+  /// const string = 'Hello world!';
+  /// final splitted = string.split(' ');
+  /// print(splitted); // [Hello, world!];
   /// ```
   /// If the pattern doesn't match this string at all,
   /// the result is always a list containing only the original string.
@@ -603,7 +604,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// // * match of "bb"
   /// // * empty match after "bb", before second "a"
   /// // * empty match after second "a".
-  /// string.split(re);  // ['a', 'a']
+  /// print(string.split(re)); // [a, a]
   /// ```
   ///
   /// A non-empty match at the start or end of the string, or after another
@@ -611,7 +612,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// in the result:
   /// ```dart
   /// const string = 'abbaa';
-  /// string.split('a'); // ['', 'bb', '', '']
+  /// final splitted = string.split('a'); // ['', 'bb', '', '']
   /// ```
   ///
   /// If this string is the empty string, the result is an empty list
@@ -621,19 +622,23 @@ abstract class String implements Comparable<String>, Pattern {
   /// if the pattern doesn't match).
   /// ```dart
   /// const string = '';
-  /// string.split(''); // []
-  /// string.split('a'); // ['']
+  /// print(string.split('')); // []
+  /// print(string.split('a')); // []
   /// ```
   ///
   /// Splitting with an empty pattern splits the string into single-code unit
   /// strings.
   /// ```dart
   /// const string = 'Pub';
-  /// string.split(''); // ["P", "u", "b"]
+  /// print(string.split('')); // [P, u, b]
   ///
   /// // Same as:
-  /// [for (var unit in string.codeUnits)
-  ///     String.fromCharCode(unit)]; // ["P", "u", "b"]
+  /// for (final unit in string.codeUnits) {
+  ///   print(String.fromCharCode(unit));
+  ///   // P
+  ///   // u
+  ///   // b
+  /// }
   /// ```
   ///
   /// Splitting happens at UTF-16 code unit boundaries,
@@ -641,13 +646,17 @@ abstract class String implements Comparable<String>, Pattern {
   /// ```dart
   /// // String made up of two code units, but one rune.
   /// const string = '\u{1D11E}';
-  /// string.split('');  // ["\ud834", "\udd1e"] - 2 unpaired surrogate values
+  /// final splitted = string.split('');
+  /// print(splitted); // ['\ud834', '\udd1e'] - 2 unpaired surrogate values
   /// ```
   /// To get a list of strings containing the individual runes of a string,
   /// you should not use split.
   /// You can instead get a string for each rune as follows:
   /// ```dart
-  /// [for (var run in string.runes) String.fromCharCode(rune)]
+  /// const string = '\u{1F642}';
+  /// for (final rune in string.runes) {
+  ///   print(String.fromCharCode(rune));
+  /// }
   /// ```
   List<String> split(Pattern pattern);
 
