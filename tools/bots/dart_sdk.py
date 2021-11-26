@@ -117,7 +117,6 @@ def UploadDartdocApiDocs(dir_name):
         dir_name,
         dartdocs_destination_gcsdir,
         recursive=True,
-        public=True,
         multithread=True)
 
 
@@ -185,7 +184,7 @@ def GuessExtension(binary):
 
 def DartArchiveFile(local_path, remote_path, checksum_files=False):
     gsutil = bot_utils.GSUtil()
-    gsutil.upload(local_path, remote_path, public=True)
+    gsutil.upload(local_path, remote_path)
     if checksum_files:
         # 'local_path' may have a different filename than 'remote_path'. So we need
         # to make sure the *.md5sum file contains the correct name.
@@ -194,10 +193,10 @@ def DartArchiveFile(local_path, remote_path, checksum_files=False):
         mangled_filename = remote_path[remote_path.rfind('/') + 1:]
         local_md5sum = bot_utils.CreateMD5ChecksumFile(local_path,
                                                        mangled_filename)
-        gsutil.upload(local_md5sum, remote_path + '.md5sum', public=True)
+        gsutil.upload(local_md5sum, remote_path + '.md5sum')
         local_sha256 = bot_utils.CreateSha256ChecksumFile(
             local_path, mangled_filename)
-        gsutil.upload(local_sha256, remote_path + '.sha256sum', public=True)
+        gsutil.upload(local_sha256, remote_path + '.sha256sum')
 
 
 def Run(command, env=None):
