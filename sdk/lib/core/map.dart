@@ -149,8 +149,8 @@ abstract class Map<K, V> {
   /// The map construction iterates over [keys] and [values] simultaneously,
   /// and adds an entry to the map for each pair of key and value.
   /// ```dart
-  /// final rings = [false, false, true, true];
-  /// final planets = {'Earth', 'Mars', 'Jupiter', 'Saturn'};
+  /// final rings = <bool>[false, false, true, true];
+  /// final planets = <String>{'Earth', 'Mars', 'Jupiter', 'Saturn'};
   /// final map = Map<String, bool>.fromIterables(planets, rings);
   /// print(map); // {Earth: false, Mars: false, Jupiter: true, Saturn: true}
   /// ```
