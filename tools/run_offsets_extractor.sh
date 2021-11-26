@@ -52,7 +52,7 @@ echo "#else  // !defined(PRODUCT)" >>"$TEMP_JIT"
 echo "#else  // !defined(PRODUCT)" >>"$TEMP_AOT"
 run product simarm ProductSIMARM
 run product x64 ProductX64
-run product x64 ReleaseTSANX64 --sanitizer=tsan
+run product x64 ProductTSANX64 --sanitizer=tsan
 run product ia32 ProductIA32
 run product simarm64 ProductSIMARM64
 run product x64c ProductX64C
