@@ -26,10 +26,73 @@ const String _hexDigits = "0123456789ABCDEF";
 
 /// A parsed URI, such as a URL.
 ///
+/// To create a URI with specific components, use [Uri.()]:
+/// ```dart
+/// final httpsUri = Uri(
+///     scheme: 'https',
+///     host: 'dart.dev',
+///     path: 'guides/libraries/library-tour',
+///     fragment: 'numbers');
+/// print(httpsUri); // https://dart.dev/guides/libraries/library-tour#numbers
+///
+/// final mailtoUri = Uri(
+///     scheme: 'mailto',
+///     path: 'John.Doe@example.com',
+///     queryParameters: {'subject': 'Example'});
+/// print(mailtoUri); // mailto:John.Doe@example.com?subject=Example
+/// ```
+///
+/// ## HTTP and HTTPS URI
+/// To create a URI with https scheme, use [Uri.https] or [Uri.http]:
+/// ```dart
+/// final httpsUri = Uri.https('example.com', 'api/fetch', {'limit': '10'});
+/// print(httpsUri); // https://example.com/api/fetch?limit=10
+/// ```
+/// ## File URI
+/// To create a URI from file path, use [Uri.file]:
+/// ```dart
+/// final fileWindows = Uri.file('C:/data/images/image.png', windows: true);
+/// print(fileWindows); // file:///C:/data/images/image.png
+///
+/// final fileUri = Uri.file('C:/data/images/image.png', windows: false);
+/// print(fileUri); // C%3A/data/images/image.png
+/// ```
+/// If the URI is not a file URI calling this throws [UnsupportedError].
+///
+/// ## Directory URI
+/// Like [Uri.file] except that a non-empty URI path ends in a slash.
+/// ```dart
+/// final fileDirectory = Uri.directory('data/images', windows: false);
+/// print(fileDirectory); // data/images/
+///
+/// final fileDirectoryWindows = Uri.directory('/data/images', windows: true);
+/// print(fileDirectoryWindows); //  file:///data/images/
+/// ```
+///
+/// ## URI from string
+/// To create a URI from string, use [Uri.parse] or [Uri.tryParse]:
+/// ```dart
+/// final uri = Uri.parse(
+///     'https://dart.dev/guides/libraries/library-tour#utility-classes');
+/// print(uri); // https://api.dart.dev
+/// print(uri.isScheme('https')); // true
+/// print(uri.origin); // https://dart.dev
+/// print(uri.host); // dart.dev
+/// print(uri.authority); // api.dart.dev
+/// print(uri.port); // 443
+/// print(uri.path); // guides/libraries/library-tour
+/// print(uri.pathSegments); // [guides, libraries, library-tour]
+/// print(uri.fragment); // utility-classes
+/// ```
+/// If the uri string is not valid as a URI or URI reference, a
+/// [FormatException] is thrown.
+///
 /// **See also:**
 ///
 /// * [URIs][uris] in the [library tour][libtour]
-/// * [RFC-3986](http://tools.ietf.org/html/rfc3986)
+/// * [RFC-3986](https://tools.ietf.org/html/rfc3986)
+/// * [RFC-2396](https://tools.ietf.org/html/rfc2396)
+/// * [RFC-2045](https://tools.ietf.org/html/rfc2045)
 ///
 /// [uris]: https://dart.dev/guides/libraries/library-tour#uris
 /// [libtour]: https://dart.dev/guides/libraries/library-tour
@@ -125,20 +188,18 @@ abstract class Uri {
 
   /// Creates a new `http` URI from authority, path and query.
   ///
-  /// Examples:
-  ///
   /// ```dart
-  /// // http://example.org/path?q=dart.
-  /// Uri.http("example.org", "/path", { "q" : "dart" });
+  /// var uri = Uri.http('example.org', '/path', { 'q' : 'dart' });
+  /// print(uri); // http://example.org/path?q=dart
   ///
-  /// // http://user:pass@localhost:8080
-  /// Uri.http("user:pass@localhost:8080", "");
+  /// uri = Uri.http('user:pass@localhost:8080', '');
+  /// print(uri); // http://user:pass@localhost:8080
   ///
-  /// // http://example.org/a%20b
-  /// Uri.http("example.org", "a b");
+  /// uri = Uri.http('example.org', 'a b');
+  /// print(uri); // http://example.org/a%20b
   ///
-  /// // http://example.org/a%252F
-  /// Uri.http("example.org", "/a%2F");
+  /// uri = Uri.http('example.org', '/a%2F');
+  /// print(uri); // http://example.org/a%252F
   /// ```
   ///
   /// The `scheme` is always set to `http`.
@@ -161,6 +222,20 @@ abstract class Uri {
   ///
   /// This constructor is the same as [Uri.http] except for the scheme
   /// which is set to `https`.
+  ///
+  /// ```dart
+  /// var uri = Uri.https('example.org', '/path', {'q': 'dart'});
+  /// print(uri); // https://example.org/path?q=dart
+  ///
+  /// uri = Uri.https('user:pass@localhost:8080', '');
+  /// print(uri); // https://user:pass@localhost:8080
+  ///
+  /// uri = Uri.https('example.org', 'a b');
+  /// print(uri); // https://example.org/a%20b
+  ///
+  /// uri = Uri.https('example.org', '/a%2F');
+  /// print(uri); // https://example.org/a%252F
+  /// ```
   factory Uri.https(String authority, String unencodedPath,
       [Map<String, dynamic>? queryParameters]) = _Uri.https;
 
@@ -200,48 +275,48 @@ abstract class Uri {
   ///
   /// ```dart
   /// // xxx/yyy
-  /// Uri.file("xxx/yyy", windows: false);
+  /// Uri.file('xxx/yyy', windows: false);
   ///
   /// // xxx/yyy/
-  /// Uri.file("xxx/yyy/", windows: false);
+  /// Uri.file('xxx/yyy/', windows: false);
   ///
   /// // file:///xxx/yyy
-  /// Uri.file("/xxx/yyy", windows: false);
+  /// Uri.file('/xxx/yyy', windows: false);
   ///
   /// // file:///xxx/yyy/
-  /// Uri.file("/xxx/yyy/", windows: false);
+  /// Uri.file('/xxx/yyy/', windows: false);
   ///
   /// // C%3A
-  /// Uri.file("C:", windows: false);
+  /// Uri.file('C:', windows: false);
   /// ```
   ///
   /// Examples using Windows semantics:
   ///
   /// ```dart
   /// // xxx/yyy
-  /// Uri.file(r"xxx\yyy", windows: true);
+  /// Uri.file(r'xxx\yyy', windows: true);
   ///
   /// // xxx/yyy/
-  /// Uri.file(r"xxx\yyy\", windows: true);
+  /// Uri.file(r'xxx\yyy\', windows: true);
   ///
   /// file:///xxx/yyy
-  /// Uri.file(r"\xxx\yyy", windows: true);
+  /// Uri.file(r'\xxx\yyy', windows: true);
   ///
   /// file:///xxx/yyy/
-  /// Uri.file(r"\xxx\yyy/", windows: true);
+  /// Uri.file(r'\xxx\yyy/', windows: true);
   ///
   /// // file:///C:/xxx/yyy
-  /// Uri.file(r"C:\xxx\yyy", windows: true);
+  /// Uri.file(r'C:\xxx\yyy', windows: true);
   ///
   /// // This throws an error. A path with a drive letter, but no following
   /// // path, is not allowed.
-  /// Uri.file(r"C:", windows: true);
+  /// Uri.file(r'C:', windows: true);
   ///
   /// // This throws an error. A path with a drive letter is not absolute.
-  /// Uri.file(r"C:xxx\yyy", windows: true);
+  /// Uri.file(r'C:xxx\yyy', windows: true);
   ///
   /// // file://server/share/file
-  /// Uri.file(r"\\server\share\file", windows: true);
+  /// Uri.file(r'\\server\share\file', windows: true);
   /// ```
   ///
   /// If the path passed is not a valid file path, an error is thrown.
@@ -252,6 +327,14 @@ abstract class Uri {
   /// If [path] is not empty, and it doesn't end in a directory separator,
   /// then a slash is added to the returned URI's path.
   /// In all other cases, the result is the same as returned by `Uri.file`.
+  ///
+  /// ```dart
+  /// final fileDirectory = Uri.directory('data/images', windows: false);
+  /// print(fileDirectory); // data/images/
+  ///
+  /// final fileDirectoryWindows = Uri.directory('/data/images', windows: true);
+  /// print(fileDirectoryWindows); //  file:///data/images/
+  /// ```
   factory Uri.directory(String path, {bool? windows}) = _Uri.directory;
 
   /// Creates a `data:` URI containing the [content] string.
@@ -395,7 +478,7 @@ abstract class Uri {
 
   /// The URI query split into a map according to the rules
   /// specified for FORM post in the [HTML 4.01 specification section
-  /// 17.13.4](http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
+  /// 17.13.4](https://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
   ///
   /// Each key and value in the resulting map has been decoded.
   /// If there is no query the empty map is returned.
@@ -407,12 +490,18 @@ abstract class Uri {
   /// The [queryParametersAll] getter can provide a map
   /// that maps keys to all of their values.
   ///
+  /// ```dart
+  /// final uri =
+  ///     Uri.parse('https://example.com/api/fetch?limit=10,20,30&max=100');
+  /// print(uri.queryParameters); // {limit: 10,20,30, max: 100}
+  /// ```
+  ///
   /// The map is unmodifiable.
   Map<String, String> get queryParameters;
 
   /// Returns the URI query split into a map according to the rules
   /// specified for FORM post in the [HTML 4.01 specification section
-  /// 17.13.4](http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
+  /// 17.13.4](https://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
   ///
   /// Each key and value in the resulting map has been decoded. If there is no
   /// query the map is empty.
@@ -420,6 +509,12 @@ abstract class Uri {
   /// Keys are mapped to lists of their values. If a key occurs only once,
   /// its value is a singleton list. If a key occurs with no value, the
   /// empty string is used as the value for that occurrence.
+  ///
+  /// ```dart
+  /// final uri =
+  ///     Uri.parse('https://example.com/api/fetch?limit=10,20,30&max=100');
+  /// print(uri.queryParametersAll); // {limit: [10,20,30], max: [100]}
+  /// ```
   ///
   /// The map and the lists it contains are unmodifiable.
   Map<String, List<String>> get queryParametersAll;
@@ -462,7 +557,7 @@ abstract class Uri {
   /// It is an error if the scheme is not "http" or "https", or if the host name
   /// is missing or empty.
   ///
-  /// See: http://www.w3.org/TR/2011/WD-html5-20110405/origin-0.html#origin
+  /// See: https://www.w3.org/TR/2011/WD-html5-20110405/origin-0.html#origin
   String get origin;
 
   /// Whether the scheme of this [Uri] is [scheme].
@@ -472,8 +567,11 @@ abstract class Uri {
   ///
   /// Example:
   /// ```dart
-  /// var uri = Uri.parse("http://example.com/");
-  /// print(uri.isScheme("HTTP"));  // Prints true.
+  /// var uri = Uri.parse('http://example.com');
+  /// print(uri.isScheme('HTTP')); // true
+  ///
+  /// final uriNoScheme = Uri.parse('example.com');
+  /// print(uriNoScheme.isScheme('HTTP')); // false
   /// ```
   ///
   /// An empty [scheme] string matches a URI with no scheme
@@ -582,23 +680,24 @@ abstract class Uri {
   ///
   /// Example:
   /// ```dart
-  /// Uri uri1 = Uri.parse("a://b@c:4/d/e?f#g");
-  /// Uri uri2 = uri1.replace(scheme: "A", path: "D/E/E", fragment: "G");
-  /// print(uri2);  // prints "a://b@c:4/D/E/E?f#G"
+  /// final uri1 = Uri.parse('a://b@c:4/d/e?f#g');
+  /// final uri2 =
+  ///     uri1.replace(scheme: 'C', path: 'D/E/E', fragment: 'G');
+  /// print(uri2); // c://b@c:4/D/E/E?f#G
   /// ```
   /// This method acts similarly to using the `Uri` constructor with
   /// some of the arguments taken from this `Uri`. Example:
-  /// ```dart
-  /// Uri uri3 = Uri(
-  ///     scheme: "A",
+  /// ```
+  /// final uri3 = Uri(
+  ///     scheme: 'A',
   ///     userInfo: uri1.userInfo,
   ///     host: uri1.host,
   ///     port: uri1.port,
-  ///     path: "D/E/E",
+  ///     path: 'D/E/E',
   ///     query: uri1.query,
-  ///     fragment: "G");
-  /// print(uri3);  // prints "a://b@c:4/D/E/E?f#G"
-  /// print(uri2 == uri3);  // prints true.
+  ///     fragment: 'G');
+  /// print(uri3); // a://b@c:4/D/E/E?f#G
+  /// print(uri2 == uri3); // true
   /// ```
   /// Using this method can be seen as a shorthand for the `Uri` constructor
   /// call above, but may also be slightly faster because the parts taken
@@ -617,6 +716,11 @@ abstract class Uri {
   /// Creates a `Uri` that differs from this only in not having a fragment.
   ///
   /// If this `Uri` does not have a fragment, it is itself returned.
+  /// ```dart
+  /// final uri =
+  ///     Uri.parse('https://example.org:8080/foo/bar#frag').removeFragment();
+  /// print(uri); // https://example.org:8080/foo/bar
+  /// ```
   Uri removeFragment();
 
   /// Resolve [reference] as an URI relative to `this`.
@@ -634,7 +738,7 @@ abstract class Uri {
   /// Returns the resolved URI.
   ///
   /// The algorithm "Transform Reference" for resolving a reference is described
-  /// in [RFC-3986 Section 5](http://tools.ietf.org/html/rfc3986#section-5 "RFC-1123").
+  /// in [RFC-3986 Section 5](https://tools.ietf.org/html/rfc3986#section-5 "RFC-1123").
   ///
   /// Updated to handle the case where the base URI is just a relative path -
   /// that is: when it has no scheme and no authority and the path does not start
@@ -666,6 +770,11 @@ abstract class Uri {
   ///
   /// If the [uri] string is not valid as a URI or URI reference,
   /// a [FormatException] is thrown.
+  /// ```dart
+  /// final uri =
+  ///     Uri.parse('https://example.com/api/fetch?limit=10,20,30&max=100');
+  /// print(uri); // https://example.com/api/fetch?limit=10,20,30&max=100
+  /// ```
   static Uri parse(String uri, [int start = 0, int? end]) {
     // This parsing will not validate percent-encoding, IPv6, etc.
     // When done splitting into parts, it will call, e.g., [_makeFragment]
@@ -990,6 +1099,12 @@ abstract class Uri {
   /// To avoid the need for explicitly encoding use the [pathSegments]
   /// and [queryParameters] optional named arguments when constructing
   /// a [Uri].
+  ///
+  /// ```dart
+  /// const request = 'http://example.com/search=Dart';
+  /// final encoded = Uri.encodeComponent(request);
+  /// print(encoded); // http%3A%2F%2Fexample.com%2Fsearch%3DDart
+  /// ```
   static String encodeComponent(String component) {
     return _Uri._uriEncode(_Uri._unreserved2396Table, component, utf8, false);
   }
@@ -1024,7 +1139,7 @@ abstract class Uri {
    * [queryParameters] optional named arguments when constructing a
    * [Uri].
    *
-   * See http://www.w3.org/TR/html401/interact/forms.html#h-17.13.4.2 for more
+   * See https://www.w3.org/TR/html401/interact/forms.html#h-17.13.4.2 for more
    * details.
    */
   static String encodeQueryComponent(String component,
@@ -1043,6 +1158,11 @@ abstract class Uri {
   /// For handling the [path] and [query] components consider using
   /// [pathSegments] and [queryParameters] to get the separated and
   /// decoded component.
+  /// ```dart
+  /// final decoded =
+  ///     Uri.decodeComponent('http%3A%2F%2Fexample.com%2Fsearch%3DDart');
+  /// print(decoded); // http://example.com/search=Dart
+  /// ```
   static String decodeComponent(String encodedComponent) {
     return _Uri._uriDecode(
         encodedComponent, 0, encodedComponent.length, utf8, false);
@@ -1067,6 +1187,12 @@ abstract class Uri {
   /// the characters `!#$&'()*+,-./:;=?@_~` are percent-encoded. This
   /// is the set of characters specified in in ECMA-262 version 5.1 for
   /// the encodeURI function .
+  ///
+  /// ```dart
+  /// final encoded =
+  ///     Uri.encodeFull('https://example.com/api/query?search= dart is');
+  /// print(encoded); // https://example.com/api/query?search=%20dart%20is
+  /// ```
   static String encodeFull(String uri) {
     return _Uri._uriEncode(_Uri._encodeFullTable, uri, utf8, false);
   }
@@ -1077,13 +1203,19 @@ abstract class Uri {
   /// the decoded characters could be reserved characters. In most
   /// cases an encoded URI should be parsed into components using
   /// [Uri.parse] before decoding the separate components.
+  ///
+  /// ```dart
+  /// final decoded =
+  ///     Uri.decodeFull('https://example.com/api/query?search=%20dart%20is');
+  /// print(decoded); // https://example.com/api/query?search= dart is
+  /// ```
   static String decodeFull(String uri) {
     return _Uri._uriDecode(uri, 0, uri.length, utf8, false);
   }
 
   /// Splits the [query] into a map according to the rules
   /// specified for FORM post in the [HTML 4.01 specification section
-  /// 17.13.4](http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
+  /// 17.13.4](https://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
   ///
   /// Each key and value in the returned map has been decoded. If the [query]
   /// is the empty string an empty map is returned.
@@ -1093,6 +1225,12 @@ abstract class Uri {
   ///
   /// Each query component will be decoded using [encoding]. The default encoding
   /// is UTF-8.
+  ///
+  /// ```dart
+  /// final queryMap =
+  ///     Uri.splitQueryString('limit=10&max=100&search=Dart%20is%20fun');
+  /// print(queryMap); // {limit: 10, max: 100, search: Dart is fun}
+  /// ```
   static Map<String, String> splitQueryString(String query,
       {Encoding encoding = utf8}) {
     return query.split("&").fold({}, (map, element) {
