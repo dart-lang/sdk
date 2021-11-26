@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
+import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
 
 enum Coloring { Untouched, Marked }
 

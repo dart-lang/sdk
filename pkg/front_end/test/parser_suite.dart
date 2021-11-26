@@ -15,7 +15,7 @@ import 'package:front_end/src/fasta/messages.dart' show Message;
 import 'package:front_end/src/fasta/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
 
-import 'package:front_end/src/fasta/util/direct_parser_ast.dart' show getAST;
+import 'package:front_end/src/fasta/util/parser_ast.dart' show getAST;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Parser, lengthOfSpan;
@@ -29,7 +29,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
 import 'package:front_end/src/fasta/source/stack_listener_impl.dart'
     show offsetForToken;
 
-import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart'
+import 'package:front_end/src/fasta/util/parser_ast_helper.dart'
     show ParserAstNode;
 
 import 'package:kernel/ast.dart';
@@ -144,7 +144,7 @@ class ContextChecksOnly extends Context {
   @override
   final List<Step> steps = const <Step>[
     const ListenerStep(false),
-    const DirectParserASTStep(),
+    const ParserAstStep(),
   ];
 
   @override
@@ -159,11 +159,10 @@ class ContextChecksOnly extends Context {
   }
 }
 
-class DirectParserASTStep
-    extends Step<TestDescription, TestDescription, Context> {
-  const DirectParserASTStep();
+class ParserAstStep extends Step<TestDescription, TestDescription, Context> {
+  const ParserAstStep();
   @override
-  String get name => "DirectParserAST";
+  String get name => "ParserAst";
   @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {

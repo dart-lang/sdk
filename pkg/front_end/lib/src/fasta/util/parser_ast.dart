@@ -27,7 +27,7 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 
 import '../source/diet_parser.dart';
 
-import 'direct_parser_ast_helper.dart';
+import 'parser_ast_helper.dart';
 
 CompilationUnitEnd getAST(List<int> rawBytes,
     {bool includeBody: true,
@@ -60,7 +60,7 @@ CompilationUnitEnd getAST(List<int> rawBytes,
     throw "firstToken is null";
   }
 
-  DirectParserASTListener listener = new DirectParserASTListener();
+  ParserASTListener listener = new ParserASTListener();
   Parser parser;
   if (includeBody) {
     parser = new Parser(listener,
@@ -73,7 +73,7 @@ CompilationUnitEnd getAST(List<int> rawBytes,
   return listener.data.single as CompilationUnitEnd;
 }
 
-/// Best-effort visitor for DirectParserASTContent that visits top-level entries
+/// Best-effort visitor for ParserAstNode that visits top-level entries
 /// and class members only (i.e. no bodies, no field initializer content, no
 /// names etc).
 class ParserAstVisitor {
@@ -770,7 +770,7 @@ extension CompilationUnitExtension on CompilationUnitEnd {
 
   // List<MetadataStarEnd> getMetadata() {
   //   List<MetadataStarEnd> result = [];
-  //   for (DirectParserASTContent topLevel in children) {
+  //   for (ParserAstNode topLevel in children) {
   //     if (!topLevel.isMetadata()) continue;
   //     result.add(topLevel);
   //   }
@@ -779,7 +779,7 @@ extension CompilationUnitExtension on CompilationUnitEnd {
 
   // List<EnumEnd> getEnums() {
   //   List<EnumEnd> result = [];
-  //   for (DirectParserASTContent topLevel in children) {
+  //   for (ParserAstNode topLevel in children) {
   //     if (!topLevel.isEnum()) continue;
   //     result.add(topLevel.children.last);
   //   }
@@ -788,7 +788,7 @@ extension CompilationUnitExtension on CompilationUnitEnd {
 
   // List<FunctionTypeAliasEnd> getTypedefs() {
   //   List<FunctionTypeAliasEnd> result = [];
-  //   for (DirectParserASTContent topLevel in children) {
+  //   for (ParserAstNode topLevel in children) {
   //     if (!topLevel.isTypedef()) continue;
   //     result.add(topLevel.children.last);
   //   }
@@ -797,7 +797,7 @@ extension CompilationUnitExtension on CompilationUnitEnd {
 
   // List<MixinDeclarationEnd> getMixinDeclarations() {
   //   List<MixinDeclarationEnd> result = [];
-  //   for (DirectParserASTContent topLevel in children) {
+  //   for (ParserAstNode topLevel in children) {
   //     if (!topLevel.isMixinDeclaration()) continue;
   //     result.add(topLevel.children.last);
   //   }
@@ -806,7 +806,7 @@ extension CompilationUnitExtension on CompilationUnitEnd {
 
   // List<TopLevelMethodEnd> getTopLevelMethods() {
   //   List<TopLevelMethodEnd> result = [];
-  //   for (DirectParserASTContent topLevel in children) {
+  //   for (ParserAstNode topLevel in children) {
   //     if (!topLevel.isTopLevelMethod()) continue;
   //     result.add(topLevel.children.last);
   //   }
@@ -1470,7 +1470,7 @@ void main(List<String> args) {
   }
 }
 
-class DirectParserASTListener extends AbstractParserAstListener {
+class ParserASTListener extends AbstractParserAstListener {
   @override
   void seen(ParserAstNode entry) {
     switch (entry.type) {

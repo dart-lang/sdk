@@ -5,8 +5,8 @@
 import "dart:io" show File, Platform;
 import "dart:typed_data" show Uint8List;
 
-import "package:front_end/src/fasta/util/direct_parser_ast.dart" show getAST;
-import "package:front_end/src/fasta/util/direct_parser_ast_helper.dart"
+import "package:front_end/src/fasta/util/parser_ast.dart" show getAST;
+import "package:front_end/src/fasta/util/parser_ast_helper.dart"
     show ParserAstNode, ParserAstType;
 
 import "console_helper.dart";

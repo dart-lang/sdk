@@ -5,8 +5,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:front_end/src/fasta/util/direct_parser_ast.dart';
-import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
+import 'package:front_end/src/fasta/util/parser_ast.dart';
+import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
 
 late Uri base;
 
@@ -61,7 +61,7 @@ void canParseTopLevelIshOfAllFrontendFiles() {
 
 void testTopLevelStuff() {
   File file = new File.fromUri(
-      base.resolve("direct_parser_ast_test_data/top_level_stuff.txt"));
+      base.resolve("parser_ast_test_data/top_level_stuff.txt"));
   List<int> data = file.readAsBytesSync();
   CompilationUnitEnd ast = getAST(data,
       includeBody: true,
@@ -117,7 +117,7 @@ void testTopLevelStuff() {
   expect("@AnnotationAtEOF", foundChunks[21]);
 
   file = new File.fromUri(
-      base.resolve("direct_parser_ast_test_data/top_level_stuff_helper.txt"));
+      base.resolve("parser_ast_test_data/top_level_stuff_helper.txt"));
   data = file.readAsBytesSync();
   ast = getAST(data,
       includeBody: true,
@@ -128,8 +128,8 @@ void testTopLevelStuff() {
   expect(1, foundChunks.length);
   expect("part of 'top_level_stuff.txt';", foundChunks[0]);
 
-  file = new File.fromUri(
-      base.resolve("direct_parser_ast_test_data/script_handle.txt"));
+  file =
+      new File.fromUri(base.resolve("parser_ast_test_data/script_handle.txt"));
   data = file.readAsBytesSync();
   ast = getAST(data,
       includeBody: true,
@@ -142,8 +142,7 @@ void testTopLevelStuff() {
 }
 
 void testClassStuff() {
-  File file =
-      new File.fromUri(base.resolve("direct_parser_ast_test_data/class.txt"));
+  File file = new File.fromUri(base.resolve("parser_ast_test_data/class.txt"));
   List<int> data = file.readAsBytesSync();
   CompilationUnitEnd ast = getAST(data,
       includeBody: true,
@@ -227,8 +226,7 @@ void testClassStuff() {
 }
 
 void testMixinStuff() {
-  File file =
-      new File.fromUri(base.resolve("direct_parser_ast_test_data/mixin.txt"));
+  File file = new File.fromUri(base.resolve("parser_ast_test_data/mixin.txt"));
   List<int> data = file.readAsBytesSync();
   CompilationUnitEnd ast = getAST(data,
       includeBody: true,

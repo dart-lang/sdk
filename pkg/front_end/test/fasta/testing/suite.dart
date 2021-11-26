@@ -85,10 +85,10 @@ import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
 
-import 'package:front_end/src/fasta/util/direct_parser_ast.dart'
+import 'package:front_end/src/fasta/util/parser_ast.dart'
     show ParserAstVisitor, getAST;
 
-import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
+import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
 
 import 'package:kernel/ast.dart'
     show
