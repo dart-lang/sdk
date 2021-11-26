@@ -1,0 +1,16 @@
+org-dartlang-testcase:///main.dart:
+import "bar.dart";
+class Foo = Object with Bar implements Baz;
+
+
+
+
+org-dartlang-testcase:///bar.dart:
+export "baz.dart";
+class Bar {}
+
+
+
+
+org-dartlang-testcase:///baz.dart:
+class Baz {}

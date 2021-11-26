@@ -1,0 +1,24 @@
+org-dartlang-testcase:///main.dart:
+import "main.dart" as self;
+import "test3.dart";
+class Foo<E> extends Bar<int> with Qux1<int> implements Baz<Bar<int>> {
+  Foo<E>? parent;
+  Foo() {}
+  Foo.bar() {}
+  F? fooMethod1<F>() {}
+  E? fooMethod2() {}
+  self.Foo? fooMethod3() {}
+  x fooMethod4() {}
+}
+
+
+
+
+org-dartlang-testcase:///test3.dart:
+class Bar<E> {}
+class Baz<E> {}
+class Qux1<E> {
+  Qux1AndAHalf? qux1AndAHalf() {}
+}
+class Qux1AndAHalf<E> {}
+enum x { A, B, C }

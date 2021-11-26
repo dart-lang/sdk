@@ -1,0 +1,10 @@
+org-dartlang-testcase:///main.dart:
+import "bar.dart";
+void foo(Bar bar) {}
+
+
+
+
+org-dartlang-testcase:///bar.dart:
+// @dart = 2.12
+class Bar {}

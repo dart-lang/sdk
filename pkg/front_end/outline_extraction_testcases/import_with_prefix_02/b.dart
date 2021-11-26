@@ -1,0 +1,3 @@
+String bar() {
+  return "bar";
+}

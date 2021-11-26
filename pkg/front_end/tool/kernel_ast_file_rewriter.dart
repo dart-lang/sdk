@@ -80,7 +80,7 @@ void main(List<String> args) {
       } else if (member.isClassFields()) {
         DirectParserASTContentClassFieldsEnd classFields =
             member.getClassFields();
-        Token identifierToken = classFields.getFieldIdentifiers().single!.token;
+        Token identifierToken = classFields.getFieldIdentifiers().single.token;
         String identifier = identifierToken.toString();
         namedFields.add(identifier);
       }
@@ -152,7 +152,7 @@ void processField(
     throw "Notice ${classFields.count}";
   }
 
-  Token identifierToken = classFields.getFieldIdentifiers().single!.token;
+  Token identifierToken = classFields.getFieldIdentifiers().single.token;
   String identifier = identifierToken.toString();
 
   if (identifier == "frozen" && entry.key == "TreeNode") return;

@@ -1,0 +1,3 @@
+String foo() {
+  return "foo";
+}

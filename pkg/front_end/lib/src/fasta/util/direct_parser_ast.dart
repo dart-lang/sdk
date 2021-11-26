@@ -6,6 +6,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'dart:io' show File;
 
+import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerConfiguration;
 
@@ -17,6 +18,13 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
+import 'package:_fe_analyzer_shared/src/parser/listener.dart'
+    show UnescapeErrorListener;
+
+import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
+
+import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
+
 import '../source/diet_parser.dart';
 
 import 'direct_parser_ast_helper.dart';
@@ -26,7 +34,8 @@ DirectParserASTContentCompilationUnitEnd getAST(List<int> rawBytes,
     bool includeComments: false,
     bool enableExtensionMethods: false,
     bool enableNonNullable: false,
-    bool enableTripleShift: false}) {
+    bool enableTripleShift: false,
+    List<Token>? languageVersionsSeen}) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
 
@@ -42,6 +51,7 @@ DirectParserASTContentCompilationUnitEnd getAST(List<int> rawBytes,
     languageVersionChanged: (scanner, languageVersion) {
       // For now don't do anything, but having it (making it non-null) means the
       // configuration won't be reset.
+      languageVersionsSeen?.add(languageVersion);
     },
   );
   Token firstToken = scanner.tokenize();
@@ -1018,15 +1028,60 @@ extension MemberExtension on DirectParserASTContentMemberEnd {
   }
 }
 
-extension ClassFieldsExtension on DirectParserASTContentClassFieldsEnd {
-  List<DirectParserASTContentIdentifierHandle?> getFieldIdentifiers() {
-    // For now blindly assume that the last count identifiers are the names
-    // of the fields.
+extension MixinFieldsExtension on DirectParserASTContentMixinFieldsEnd {
+  List<DirectParserASTContentIdentifierHandle> getFieldIdentifiers() {
     int countLeft = count;
     List<DirectParserASTContentIdentifierHandle>? identifiers;
     for (int i = children!.length - 1; i >= 0; i--) {
       DirectParserASTContent child = children![i];
-      if (child is DirectParserASTContentIdentifierHandle) {
+      if (child is DirectParserASTContentIdentifierHandle &&
+          child.context == IdentifierContext.fieldDeclaration) {
+        countLeft--;
+        if (identifiers == null) {
+          identifiers = new List<DirectParserASTContentIdentifierHandle>.filled(
+              count, child);
+        } else {
+          identifiers[countLeft] = child;
+        }
+        if (countLeft == 0) break;
+      }
+    }
+    if (countLeft != 0) throw "Didn't find the expected number of identifiers";
+    return identifiers ?? [];
+  }
+}
+
+extension ExtensionFieldsExtension on DirectParserASTContentExtensionFieldsEnd {
+  List<DirectParserASTContentIdentifierHandle> getFieldIdentifiers() {
+    int countLeft = count;
+    List<DirectParserASTContentIdentifierHandle>? identifiers;
+    for (int i = children!.length - 1; i >= 0; i--) {
+      DirectParserASTContent child = children![i];
+      if (child is DirectParserASTContentIdentifierHandle &&
+          child.context == IdentifierContext.fieldDeclaration) {
+        countLeft--;
+        if (identifiers == null) {
+          identifiers = new List<DirectParserASTContentIdentifierHandle>.filled(
+              count, child);
+        } else {
+          identifiers[countLeft] = child;
+        }
+        if (countLeft == 0) break;
+      }
+    }
+    if (countLeft != 0) throw "Didn't find the expected number of identifiers";
+    return identifiers ?? [];
+  }
+}
+
+extension ClassFieldsExtension on DirectParserASTContentClassFieldsEnd {
+  List<DirectParserASTContentIdentifierHandle> getFieldIdentifiers() {
+    int countLeft = count;
+    List<DirectParserASTContentIdentifierHandle>? identifiers;
+    for (int i = children!.length - 1; i >= 0; i--) {
+      DirectParserASTContent child = children![i];
+      if (child is DirectParserASTContentIdentifierHandle &&
+          child.context == IdentifierContext.fieldDeclaration) {
         countLeft--;
         if (identifiers == null) {
           identifiers = new List<DirectParserASTContentIdentifierHandle>.filled(
@@ -1056,6 +1111,190 @@ extension ClassFieldsExtension on DirectParserASTContentClassFieldsEnd {
   }
 }
 
+extension EnumExtension on DirectParserASTContentEnumEnd {
+  List<DirectParserASTContentIdentifierHandle> getIdentifiers() {
+    List<DirectParserASTContentIdentifierHandle> ids = [];
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentIdentifierHandle) ids.add(child);
+    }
+    return ids;
+  }
+}
+
+extension ExtensionDeclarationExtension
+    on DirectParserASTContentExtensionDeclarationEnd {
+  List<DirectParserASTContentIdentifierHandle> getIdentifiers() {
+    List<DirectParserASTContentIdentifierHandle> ids = [];
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentIdentifierHandle) ids.add(child);
+    }
+    return ids;
+  }
+}
+
+extension TopLevelMethodExtension on DirectParserASTContentTopLevelMethodEnd {
+  DirectParserASTContentIdentifierHandle getNameIdentifier() {
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentIdentifierHandle) {
+        if (child.context == IdentifierContext.topLevelFunctionDeclaration) {
+          return child;
+        }
+      }
+    }
+    throw "Didn't find the name identifier!";
+  }
+}
+
+extension TypedefExtension on DirectParserASTContentTypedefEnd {
+  DirectParserASTContentIdentifierHandle getNameIdentifier() {
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentIdentifierHandle) {
+        if (child.context == IdentifierContext.typedefDeclaration) {
+          return child;
+        }
+      }
+    }
+    throw "Didn't find the name identifier!";
+  }
+}
+
+extension ImportExtension on DirectParserASTContentImportEnd {
+  DirectParserASTContentIdentifierHandle? getImportPrefix() {
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentIdentifierHandle) {
+        if (child.context == IdentifierContext.importPrefixDeclaration) {
+          return child;
+        }
+      }
+    }
+  }
+
+  String getImportUriString() {
+    StringBuffer sb = new StringBuffer();
+    bool foundOne = false;
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentLiteralStringEnd) {
+        DirectParserASTContentLiteralStringBegin uri =
+            child.children!.single as DirectParserASTContentLiteralStringBegin;
+        sb.write(unescapeString(
+            uri.token.lexeme, uri.token, const UnescapeErrorListenerDummy()));
+        foundOne = true;
+      }
+    }
+    if (!foundOne) throw "Didn't find any";
+    return sb.toString();
+  }
+
+  List<String>? getConditionalImportUriStrings() {
+    List<String>? result;
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentConditionalUrisEnd) {
+        for (DirectParserASTContent child2 in child.children!) {
+          if (child2 is DirectParserASTContentConditionalUriEnd) {
+            DirectParserASTContentLiteralStringEnd end =
+                child2.children!.last as DirectParserASTContentLiteralStringEnd;
+            DirectParserASTContentLiteralStringBegin uri = end.children!.single
+                as DirectParserASTContentLiteralStringBegin;
+            (result ??= []).add(unescapeString(uri.token.lexeme, uri.token,
+                const UnescapeErrorListenerDummy()));
+          }
+        }
+        return result;
+      }
+    }
+    return result;
+  }
+}
+
+extension ExportExtension on DirectParserASTContentExportEnd {
+  String getExportUriString() {
+    StringBuffer sb = new StringBuffer();
+    bool foundOne = false;
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentLiteralStringEnd) {
+        DirectParserASTContentLiteralStringBegin uri =
+            child.children!.single as DirectParserASTContentLiteralStringBegin;
+        sb.write(unescapeString(
+            uri.token.lexeme, uri.token, const UnescapeErrorListenerDummy()));
+        foundOne = true;
+      }
+    }
+    if (!foundOne) throw "Didn't find any";
+    return sb.toString();
+  }
+
+  List<String>? getConditionalExportUriStrings() {
+    List<String>? result;
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentConditionalUrisEnd) {
+        for (DirectParserASTContent child2 in child.children!) {
+          if (child2 is DirectParserASTContentConditionalUriEnd) {
+            DirectParserASTContentLiteralStringEnd end =
+                child2.children!.last as DirectParserASTContentLiteralStringEnd;
+            DirectParserASTContentLiteralStringBegin uri = end.children!.single
+                as DirectParserASTContentLiteralStringBegin;
+            (result ??= []).add(unescapeString(uri.token.lexeme, uri.token,
+                const UnescapeErrorListenerDummy()));
+          }
+        }
+        return result;
+      }
+    }
+    return result;
+  }
+}
+
+extension PartExtension on DirectParserASTContentPartEnd {
+  String getPartUriString() {
+    StringBuffer sb = new StringBuffer();
+    bool foundOne = false;
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentLiteralStringEnd) {
+        DirectParserASTContentLiteralStringBegin uri =
+            child.children!.single as DirectParserASTContentLiteralStringBegin;
+        sb.write(unescapeString(
+            uri.token.lexeme, uri.token, const UnescapeErrorListenerDummy()));
+        foundOne = true;
+      }
+    }
+    if (!foundOne) throw "Didn't find any";
+    return sb.toString();
+  }
+}
+
+class UnescapeErrorListenerDummy implements UnescapeErrorListener {
+  const UnescapeErrorListenerDummy();
+
+  @override
+  void handleUnescapeError(
+      Message message, covariant location, int offset, int length) {
+    // Purposely doesn't do anything.
+  }
+}
+
+extension TopLevelFieldsExtension on DirectParserASTContentTopLevelFieldsEnd {
+  List<DirectParserASTContentIdentifierHandle> getFieldIdentifiers() {
+    int countLeft = count;
+    List<DirectParserASTContentIdentifierHandle>? identifiers;
+    for (int i = children!.length - 1; i >= 0; i--) {
+      DirectParserASTContent child = children![i];
+      if (child is DirectParserASTContentIdentifierHandle &&
+          child.context == IdentifierContext.topLevelVariableDeclaration) {
+        countLeft--;
+        if (identifiers == null) {
+          identifiers = new List<DirectParserASTContentIdentifierHandle>.filled(
+              count, child);
+        } else {
+          identifiers[countLeft] = child;
+        }
+        if (countLeft == 0) break;
+      }
+    }
+    if (countLeft != 0) throw "Didn't find the expected number of identifiers";
+    return identifiers ?? [];
+  }
+}
+
 extension ClassMethodExtension on DirectParserASTContentClassMethodEnd {
   DirectParserASTContentBlockFunctionBodyEnd? getBlockFunctionBody() {
     for (DirectParserASTContent child in children!) {
@@ -1064,6 +1303,80 @@ extension ClassMethodExtension on DirectParserASTContentClassMethodEnd {
       }
     }
     return null;
+  }
+
+  String getNameIdentifier() {
+    bool foundType = false;
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentTypeHandle ||
+          child is DirectParserASTContentNoTypeHandle ||
+          child is DirectParserASTContentVoidKeywordHandle ||
+          child is DirectParserASTContentFunctionTypeEnd) {
+        foundType = true;
+      }
+      if (foundType && child is DirectParserASTContentIdentifierHandle) {
+        return child.token.lexeme;
+      } else if (foundType &&
+          child is DirectParserASTContentOperatorNameHandle) {
+        return child.token.lexeme;
+      }
+    }
+    throw "No identifier found: $children";
+  }
+}
+
+extension MixinMethodExtension on DirectParserASTContentMixinMethodEnd {
+  String getNameIdentifier() {
+    bool foundType = false;
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentTypeHandle ||
+          child is DirectParserASTContentNoTypeHandle ||
+          child is DirectParserASTContentVoidKeywordHandle) {
+        foundType = true;
+      }
+      if (foundType && child is DirectParserASTContentIdentifierHandle) {
+        return child.token.lexeme;
+      } else if (foundType &&
+          child is DirectParserASTContentOperatorNameHandle) {
+        return child.token.lexeme;
+      }
+    }
+    throw "No identifier found: $children";
+  }
+}
+
+extension ExtensionMethodExtension on DirectParserASTContentExtensionMethodEnd {
+  String getNameIdentifier() {
+    bool foundType = false;
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentTypeHandle ||
+          child is DirectParserASTContentNoTypeHandle ||
+          child is DirectParserASTContentVoidKeywordHandle) {
+        foundType = true;
+      }
+      if (foundType && child is DirectParserASTContentIdentifierHandle) {
+        return child.token.lexeme;
+      } else if (foundType &&
+          child is DirectParserASTContentOperatorNameHandle) {
+        return child.token.lexeme;
+      }
+    }
+    throw "No identifier found: $children";
+  }
+}
+
+extension ClassFactoryMethodExtension
+    on DirectParserASTContentClassFactoryMethodEnd {
+  List<DirectParserASTContentIdentifierHandle> getIdentifiers() {
+    List<DirectParserASTContentIdentifierHandle> result = [];
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentIdentifierHandle) {
+        result.add(child);
+      } else if (child is DirectParserASTContentFormalParametersEnd) {
+        break;
+      }
+    }
+    return result;
   }
 }
 
@@ -1094,6 +1407,16 @@ extension ClassConstructorExtension
       }
     }
     return null;
+  }
+
+  List<DirectParserASTContentIdentifierHandle> getIdentifiers() {
+    List<DirectParserASTContentIdentifierHandle> result = [];
+    for (DirectParserASTContent child in children!) {
+      if (child is DirectParserASTContentIdentifierHandle) {
+        result.add(child);
+      }
+    }
+    return result;
   }
 }
 
@@ -1271,6 +1594,9 @@ class DirectParserASTListener extends AbstractDirectParserASTListener {
           throw "Unknown combination: begin$begin and end$end";
         }
         List<DirectParserASTContent> children = data.sublist(beginIndex);
+        for (DirectParserASTContent child in children) {
+          child.parent = entry;
+        }
         data.length = beginIndex;
         data.add(entry..children = children);
         break;

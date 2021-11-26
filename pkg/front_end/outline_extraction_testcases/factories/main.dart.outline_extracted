@@ -1,0 +1,24 @@
+org-dartlang-testcase:///main.dart:
+import 'package:foo/test11.dart';
+class Abc {
+  Abc() {}
+  factory Abc.a() {}
+  factory Abc.b() => Abc3();
+  var v1 = Abc4();
+  var v2 = new Abc5();
+}
+
+
+
+
+org-dartlang-testcase:///test11.dart:
+import 'package:foo/main.dart';
+class Abc3 extends Abc {
+  Abc3() {}
+}
+class Abc4 extends Abc {
+  Abc4() {}
+}
+class Abc5 extends Abc {
+  Abc5() {}
+}
