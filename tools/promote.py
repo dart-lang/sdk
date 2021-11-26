@@ -152,30 +152,30 @@ def _PromoteDartArchiveBuild(channel, source_channel, revision):
         remove_gs_directory(to_loc)
         has_signed = exists(from_loc)
         if has_signed:
-            Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
+            Gsutil(['-m', 'cp', '-R', from_loc, to_loc])
             # Because gsutil copies differently to existing directories, we need
             # to use the base directory for the next recursive copy.
             to_loc = release_namer.base_directory(to_revision)
 
         # Copy the unsigned sdk directory without clobbering signed files.
         from_loc = raw_namer.sdk_directory(revision)
-        Gsutil(['-m', 'cp', '-n', '-a', 'public-read', '-R', from_loc, to_loc])
+        Gsutil(['-m', 'cp', '-n', '-R', from_loc, to_loc])
 
         # Copy api-docs zipfile.
         from_loc = raw_namer.apidocs_zipfilepath(revision)
         to_loc = release_namer.apidocs_zipfilepath(to_revision)
-        Gsutil(['-m', 'cp', '-a', 'public-read', from_loc, to_loc])
+        Gsutil(['-m', 'cp', from_loc, to_loc])
 
         # Copy linux deb and src packages.
         from_loc = raw_namer.linux_packages_directory(revision)
         to_loc = release_namer.linux_packages_directory(to_revision)
         remove_gs_directory(to_loc)
-        Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
+        Gsutil(['-m', 'cp', '-R', from_loc, to_loc])
 
         # Copy VERSION file.
         from_loc = raw_namer.version_filepath(revision)
         to_loc = release_namer.version_filepath(to_revision)
-        Gsutil(['cp', '-a', 'public-read', from_loc, to_loc])
+        Gsutil(['cp', from_loc, to_loc])
 
     promote(revision)
     promote('latest')
