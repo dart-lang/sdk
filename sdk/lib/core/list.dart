@@ -40,7 +40,7 @@ part of dart.core;
 ///
 /// Example of growable list:
 /// ```dart
-/// final growableList = ['A', 'B', 'C', 'D'];
+/// final growableList = <String>['A', 'B', 'C', 'D'];
 /// growableList[0] = 'G';
 /// print(growableList); // [G, B, C, D]
 ///
@@ -169,8 +169,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// All the [elements] should be instances of [E].
   /// Example:
   /// ```dart
-  /// final numbers = <int>[1, 2, 3];
-  /// final listFrom = List<num>.from(numbers);
+  /// final numbers = <num>[1, 2, 3];
+  /// final listFrom = List<int>.from(numbers);
   /// print(listFrom); // [1, 2, 3]
   /// ```
   /// The `elements` iterable itself may have any element type, so this
@@ -198,7 +198,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// otherwise, it returns a fixed-length list.
   /// ```dart
   /// final numbers = <int>[1, 2, 3];
-  /// final listOf = List<num>.of(numbers); // [1.0, 2.0, 3.0]
+  /// final listOf = List<num>.of(numbers);
+  /// print(listOf); // [1, 2, 3]
   /// ```
   external factory List.of(Iterable<E> elements, {bool growable = true});
 
@@ -355,7 +356,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// The list must be non-empty.
   /// ```dart
-  /// final numbers = [1, 2, 3];
+  /// final numbers = <int>[1, 2, 3];
   /// print(numbers.first); // 1
   /// numbers.first = 10;
   /// print(numbers.first); // 10
@@ -368,7 +369,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// The list must be non-empty.
   /// ```dart
-  /// final numbers = [1, 2, 3];
+  /// final numbers = <int>[1, 2, 3];
   /// print(numbers.last); // 3
   /// numbers.last = 10;
   /// print(numbers.last); // 10
@@ -379,7 +380,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// The valid indices for a list are `0` through `length - 1`.
   /// ```dart
-  /// final numbers = [1, 2, 3];
+  /// final numbers = <int>[1, 2, 3];
   /// print(numbers.length); // 3
   /// ```
   int get length;
@@ -393,7 +394,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// if the element type [E] is non-nullable.
   ///
   /// ```dart
-  /// final numbers = [1, 2, 3];
+  /// final numbers = <int>[1, 2, 3];
   /// numbers.length = 5;
   /// print(numbers); // [1, 2, 3, null, null]
   /// print(numbers.length); // 5
@@ -406,7 +407,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The list must be growable.
   ///
   /// ```dart
-  /// final numbers = [1, 2, 3];
+  /// final numbers = <int>[1, 2, 3];
   /// numbers.add(4);
   /// print(numbers); // [1, 2, 3, 4]
   /// ```
@@ -418,7 +419,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The list must be growable.
   ///
   /// ```dart
-  /// final numbers = [1, 2, 3];
+  /// final numbers = <int>[1, 2, 3];
   /// numbers.addAll([4, 5, 6]);
   /// print(numbers); // [1, 2, 3, 4, 5, 6]
   /// ```
@@ -426,7 +427,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
 
   /// An [Iterable] of the objects in this list in reverse order.
   /// ```dart
-  /// final numbers = ['two', 'three', 'four'];
+  /// final numbers = <String>['two', 'three', 'four'];
   /// final reverseOrder = numbers.reversed;
   /// print(reverseOrder.toList()); // [four, three, two]
   /// ```
@@ -436,7 +437,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// The [compare] function must act as a [Comparator].
   /// ```dart
-  /// final numbers = ['two', 'three', 'four'];
+  /// final numbers = <String>['two', 'three', 'four'];
   /// // Sort from shortest to longest.
   /// numbers.sort((a, b) => a.length.compareTo(b.length));
   /// print(numbers); // [two, four, three]
@@ -444,9 +445,9 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The default [List] implementations use [Comparable.compare] if
   /// [compare] is omitted.
   /// ```dart
-  /// final List<int> numbers = [13, 2, -11];
+  /// final numbers = <int>[13, 2, -11, 0];
   /// numbers.sort();
-  /// print(numbers); // [-11, 2, 13]
+  /// print(numbers); // [-11, 0, 2, 13]
   /// ```
   /// In that case, the elements of the list must be [Comparable] to
   /// each other.
@@ -456,7 +457,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The sort function is not guaranteed to be stable, so distinct objects
   /// that compare as equal may occur in any order in the result:
   /// ```dart
-  /// final numbers = ['one', 'two', 'three', 'four'];
+  /// final numbers = <String>['one', 'two', 'three', 'four'];
   /// numbers.sort((a, b) => a.length.compareTo(b.length));
   /// print(numbers); // [one, two, four, three] OR [two, one, four, three]
   /// ```
@@ -464,7 +465,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
 
   /// Shuffles the elements of this list randomly.
   /// ```dart
-  /// final numbers = [1, 2, 3, 4, 5];
+  /// final numbers = <int>[1, 2, 3, 4, 5];
   /// numbers.shuffle();
   /// print(numbers); // [1, 3, 4, 5, 2] OR some other random result
   /// ```
@@ -476,7 +477,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The first time an object `o` is encountered so that `o == element`,
   /// the index of `o` is returned.
   /// ```dart
-  /// final notes = ['do', 're', 'mi', 're'];
+  /// final notes = <String>['do', 're', 'mi', 're'];
   /// final indexRe = notes.indexOf('re');
   /// print(indexRe); // 1
   ///
@@ -486,7 +487,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// ```
   /// Returns -1 if [element] is not found.
   /// ```dart
-  /// final notes = ['do', 're', 'mi', 're'];
+  /// final notes = <String>['do', 're', 'mi', 're'];
   /// final index = notes.indexOf('fa');
   /// print(index); // -1
   /// ```
@@ -499,7 +500,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// the index of `o` is returned.
   ///
   /// ```dart
-  /// final notes = ['do', 're', 'mi', 're'];
+  /// final notes = <String>['do', 're', 'mi', 're'];
   /// final first = notes.indexWhere((note) => note.startsWith('r'));
   /// print(first); // 1
   /// final second = notes.indexWhere((note) => note.startsWith('r'), 2);
@@ -508,7 +509,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// Returns -1 if [element] is not found.
   /// ```dart
-  /// final notes = ['do', 're', 'mi', 're'];
+  /// final notes = <String>['do', 're', 'mi', 're'];
   /// final index = notes.indexWhere((note) => note.startsWith('k'));
   /// print(index); // -1
   /// ```
@@ -522,7 +523,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// If [start] is omitted, it defaults to the [length] of the list.
   ///
   /// ```dart
-  /// final notes = ['do', 're', 'mi', 're'];
+  /// final notes = <String>['do', 're', 'mi', 're'];
   /// final first = notes.lastIndexWhere((note) => note.startsWith('r'));
   /// print(first); // 3
   /// final second = notes.lastIndexWhere((note) => note.startsWith('r'), 2);
@@ -531,7 +532,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// Returns -1 if [element] is not found.
   /// ```dart
-  /// final notes = ['do', 're', 'mi', 're'];
+  /// final notes = <String>['do', 're', 'mi', 're'];
   /// final index = notes.lastIndexWhere((note) => note.startsWith('k'));
   /// print(index); // -1
   /// ```
@@ -544,7 +545,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The first time an object `o` is encountered so that `o == element`,
   /// the index of `o` is returned.
   /// ```dart
-  /// final notes = ['do', 're', 'mi', 're'];
+  /// final notes = <String>['do', 're', 'mi', 're'];
   /// const startIndex = 2;
   /// final index = notes.lastIndexOf('re', startIndex);
   /// print(index); // 1
@@ -552,13 +553,13 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// If [start] is not provided, this method searches from the end of the
   /// list.
   /// ```dart
-  /// final notes = ['do', 're', 'mi', 're'];
+  /// final notes = <String>['do', 're', 'mi', 're'];
   /// final index = notes.lastIndexOf('re');
   /// print(index); // 3
   /// ```
   /// Returns -1 if [element] is not found.
   /// ```dart
-  /// final notes = ['do', 're', 'mi', 're'];
+  /// final notes = <String>['do', 're', 'mi', 're'];
   /// final index = notes.lastIndexOf('fa');
   /// print(index); // -1
   /// ```
@@ -569,7 +570,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The list must be growable.
   ///
   /// ```dart
-  /// final numbers = [1, 2, 3];
+  /// final numbers = <int>[1, 2, 3];
   /// numbers.clear();
   /// print(numbers.length); // 0
   /// print(numbers); // []
@@ -585,7 +586,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The [index] value must be non-negative and no greater than [length].
   ///
   /// ```dart
-  /// final numbers = [1, 2, 3, 4];
+  /// final numbers = <int>[1, 2, 3, 4];
   /// const index = 2;
   /// numbers.insert(index, 10);
   /// print(numbers); // [1, 2, 10, 3, 4]
@@ -600,7 +601,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The list must be growable.
   /// The [index] value must be non-negative and no greater than [length].
   /// ```dart
-  /// final numbers = [1, 2, 3, 4];
+  /// final numbers = <int>[1, 2, 3, 4];
   /// const index = 2;
   /// final insertItems = [10, 11];
   /// numbers.insertAll(index, insertItems);
@@ -622,7 +623,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// If `iterable` is based on this list, its values may change _during_ the
   /// `setAll` operation.
   /// ```dart
-  /// final list = ['a', 'b', 'c', 'd'];
+  /// final list = <String>['a', 'b', 'c', 'd'];
   /// const index = 1;
   /// list.setAll(index, ['bee', 'sea']);
   /// print(list); // [a, bee, sea, d]
@@ -635,13 +636,13 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The list must be growable.
   ///
   /// ```dart
-  /// final parts = ['head', 'shoulders', 'knees', 'toes'];
+  /// final parts = <String>['head', 'shoulders', 'knees', 'toes'];
   /// final retVal = parts.remove('head'); // true
   /// print(parts); // [shoulders, knees, toes]
   /// ```
   /// The method has no effect if [value] was not in the list.
   /// ```dart
-  /// final parts = ['shoulders', 'knees', 'toes'];
+  /// final parts = <String>['shoulders', 'knees', 'toes'];
   /// // Note: 'head' has already been removed.
   /// final retVal = parts.remove('head'); // false
   /// print(parts); // [shoulders, knees, toes]
@@ -658,7 +659,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The [index] must be in the range `0 ≤ index < length`.
   /// The list must be growable.
   /// ```dart
-  /// final parts = ['head', 'shoulder', 'knees', 'toes'];
+  /// final parts = <String>['head', 'shoulder', 'knees', 'toes'];
   /// const index = 2;
   /// final retVal = parts.removeAt(index); // knees
   /// print(parts); // [head, shoulder, toes]
@@ -669,7 +670,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// The list must be growable and non-empty.
   /// ```dart
-  /// final parts = ['head', 'shoulder', 'knees', 'toes'];
+  /// final parts = <String>['head', 'shoulder', 'knees', 'toes'];
   /// final retVal = parts.removeLast(); // toes
   /// print(parts); // [head, shoulder, knees]
   /// ```
@@ -679,7 +680,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// An object `o` satisfies [test] if `test(o)` is true.
   /// ```dart
-  /// final numbers = ['one', 'two', 'three', 'four'];
+  /// final numbers = <String>['one', 'two', 'three', 'four'];
   /// numbers.removeWhere((item) => item.length == 3);
   /// print(numbers); // [three, four]
   /// ```
@@ -690,7 +691,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// An object `o` satisfies [test] if `test(o)` is true.
   /// ```dart
-  /// final numbers = ['one', 'two', 'three', 'four'];
+  /// final numbers = <String>['one', 'two', 'three', 'four'];
   /// numbers.retainWhere((item) => item.length == 3);
   /// print(numbers); // [one, two]
   /// ```
@@ -714,7 +715,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// order as they occur in this list.
   ///
   /// ```dart
-  /// final colors = ['red', 'green', 'blue', 'orange', 'pink'];
+  /// final colors = <String>['red', 'green', 'blue', 'orange', 'pink'];
   /// const start = 1;
   /// const end = 3;
   /// print(colors.sublist(start, end)); // [green, blue]
@@ -723,7 +724,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// If [end] is omitted, it defaults to the [length] of this list.
   ///
   /// ```dart
-  /// final colors = ['red', 'green', 'blue', 'orange', 'pink'];
+  /// final colors = <String>['red', 'green', 'blue', 'orange', 'pink'];
   /// print(colors.sublist(3)); // [orange, pink]
   /// ```
   ///
@@ -747,7 +748,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// ends early if it reaches the end of the list early
   /// (if `end`, or even `start`, becomes greater than [length]).
   /// ```dart
-  /// final colors = ['red', 'green', 'blue', 'orange', 'pink'];
+  /// final colors = <String>['red', 'green', 'blue', 'orange', 'pink'];
   /// final firstRange = colors.getRange(0, 3);
   /// print(firstRange.join(', ')); // red, green, blue
   ///
@@ -761,8 +762,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// Copies the objects of [iterable], skipping [skipCount] objects first,
   /// into the range from [start], inclusive, to [end], exclusive, of this list.
   /// ```dart
-  /// final list1 = [1, 2, 3, 4];
-  /// final list2 = [5, 6, 7, 8, 9];
+  /// final list1 = <int>[1, 2, 3, 4];
+  /// final list2 = <int>[5, 6, 7, 8, 9];
   /// // Copies the 4th and 5th items in list2 as the 2nd and 3rd items
   /// // of list1.
   /// const start = 1;
@@ -798,7 +799,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   ///
   /// The list must be growable.
   /// ```dart
-  /// final numbers = [1, 2, 3, 4, 5];
+  /// final numbers = <int>[1, 2, 3, 4, 5];
   /// const start = 1;
   /// const end = 4;
   /// numbers.removeRange(start, end);
@@ -835,7 +836,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// Removes the objects in the range from [start] to [end],
   /// then inserts the elements of [replacements] at [start].
   /// ```dart
-  /// final numbers = [1, 2, 3, 4, 5];
+  /// final numbers = <int>[1, 2, 3, 4, 5];
   /// const start = 1;
   /// const end = 4;
   /// final replacements = [6, 7];
@@ -849,7 +850,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// The operation `list.replaceRange(start, end, replacements)`
   /// is roughly equivalent to:
   /// ```dart
-  /// final numbers = [1, 2, 3, 4, 5];
+  /// final numbers = <int>[1, 2, 3, 4, 5];
   /// const start = 1;
   /// const end = 4;
   /// numbers.removeRange(start, end);
@@ -871,7 +872,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// as values. The `Map.keys` [Iterable] iterates the indices of this list
   /// in numerical order.
   /// ```dart
-  /// var words = ['fee', 'fi', 'fo', 'fum'];
+  /// var words = <String>['fee', 'fi', 'fo', 'fum'];
   /// var map = words.asMap();  // {0: fee, 1: fi, 2: fo, 3: fum}
   /// map.keys.toList(); // [0, 1, 2, 3]
   /// ```
