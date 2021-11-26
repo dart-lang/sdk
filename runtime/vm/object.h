@@ -3177,8 +3177,8 @@ class Function : public Object {
   // run.
   bool ForceOptimize() const {
     return IsFfiFromAddress() || IsFfiGetAddress() || IsFfiLoad() ||
-           IsFfiStore() || IsFfiTrampoline() || IsTypedDataViewFactory() ||
-           IsUtf8Scan() || IsGetNativeField();
+           IsFfiStore() || IsFfiTrampoline() || IsFfiAsExternalTypedData() ||
+           IsTypedDataViewFactory() || IsUtf8Scan() || IsGetNativeField();
   }
 
   bool CanBeInlined() const;
@@ -3508,6 +3508,12 @@ class Function : public Object {
   bool IsFfiGetAddress() const {
     const auto kind = recognized_kind();
     return kind == MethodRecognizer::kFfiGetAddress;
+  }
+
+  bool IsFfiAsExternalTypedData() const {
+    const auto kind = recognized_kind();
+    return MethodRecognizer::kFfiAsExternalTypedDataInt8 <= kind &&
+           kind <= MethodRecognizer::kFfiAsExternalTypedDataDouble;
   }
 
   bool IsGetNativeField() const {

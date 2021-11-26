@@ -838,36 +838,20 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kTypedData_Float32x4Array_factory:
     case MethodRecognizer::kTypedData_Int32x4Array_factory:
     case MethodRecognizer::kTypedData_Float64x2Array_factory:
-    case MethodRecognizer::kFfiLoadInt8:
-    case MethodRecognizer::kFfiLoadInt16:
-    case MethodRecognizer::kFfiLoadInt32:
-    case MethodRecognizer::kFfiLoadInt64:
-    case MethodRecognizer::kFfiLoadUint8:
-    case MethodRecognizer::kFfiLoadUint16:
-    case MethodRecognizer::kFfiLoadUint32:
-    case MethodRecognizer::kFfiLoadUint64:
-    case MethodRecognizer::kFfiLoadIntPtr:
-    case MethodRecognizer::kFfiLoadFloat:
-    case MethodRecognizer::kFfiLoadFloatUnaligned:
-    case MethodRecognizer::kFfiLoadDouble:
-    case MethodRecognizer::kFfiLoadDoubleUnaligned:
-    case MethodRecognizer::kFfiLoadPointer:
-    case MethodRecognizer::kFfiStoreInt8:
-    case MethodRecognizer::kFfiStoreInt16:
-    case MethodRecognizer::kFfiStoreInt32:
-    case MethodRecognizer::kFfiStoreInt64:
-    case MethodRecognizer::kFfiStoreUint8:
-    case MethodRecognizer::kFfiStoreUint16:
-    case MethodRecognizer::kFfiStoreUint32:
-    case MethodRecognizer::kFfiStoreUint64:
-    case MethodRecognizer::kFfiStoreIntPtr:
-    case MethodRecognizer::kFfiStoreFloat:
-    case MethodRecognizer::kFfiStoreFloatUnaligned:
-    case MethodRecognizer::kFfiStoreDouble:
-    case MethodRecognizer::kFfiStoreDoubleUnaligned:
-    case MethodRecognizer::kFfiStorePointer:
+#define FFI_LOAD_STORE(type)                                                   \
+  case MethodRecognizer::kFfiLoad##type:                                       \
+  case MethodRecognizer::kFfiStore##type:
+    CLASS_LIST_FFI_NUMERIC(FFI_LOAD_STORE)
+    FFI_LOAD_STORE(FloatUnaligned)
+    FFI_LOAD_STORE(DoubleUnaligned)
+    FFI_LOAD_STORE(Pointer)
+#undef FFI_LOAD_STORE
     case MethodRecognizer::kFfiFromAddress:
     case MethodRecognizer::kFfiGetAddress:
+#define FFI_AS_EXTERNAL_TYPED_DATA(type)                                       \
+  case MethodRecognizer::kFfiAsExternalTypedData##type:
+    CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(FFI_AS_EXTERNAL_TYPED_DATA)
+#undef FFI_AS_EXTERNAL_TYPED_DATA
     case MethodRecognizer::kGetNativeField:
     case MethodRecognizer::kObjectEquals:
     case MethodRecognizer::kStringBaseLength:
@@ -1347,20 +1331,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       ASSERT_EQUAL(function.NumParameters(), 0);
       body += IntConstant(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       break;
-    case MethodRecognizer::kFfiLoadInt8:
-    case MethodRecognizer::kFfiLoadInt16:
-    case MethodRecognizer::kFfiLoadInt32:
-    case MethodRecognizer::kFfiLoadInt64:
-    case MethodRecognizer::kFfiLoadUint8:
-    case MethodRecognizer::kFfiLoadUint16:
-    case MethodRecognizer::kFfiLoadUint32:
-    case MethodRecognizer::kFfiLoadUint64:
-    case MethodRecognizer::kFfiLoadIntPtr:
-    case MethodRecognizer::kFfiLoadFloat:
-    case MethodRecognizer::kFfiLoadFloatUnaligned:
-    case MethodRecognizer::kFfiLoadDouble:
-    case MethodRecognizer::kFfiLoadDoubleUnaligned:
-    case MethodRecognizer::kFfiLoadPointer: {
+#define FFI_LOAD(type) case MethodRecognizer::kFfiLoad##type:
+    CLASS_LIST_FFI_NUMERIC(FFI_LOAD)
+    FFI_LOAD(FloatUnaligned)
+    FFI_LOAD(DoubleUnaligned)
+    FFI_LOAD(Pointer)
+#undef FFI_LOAD
+    {
       const classid_t ffi_type_arg_cid =
           compiler::ffi::RecognizedMethodTypeArgCid(kind);
       const AlignmentType alignment =
@@ -1426,20 +1403,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       }
       body += DropTempsPreserveTop(1);  // Drop [arg_offset].
     } break;
-    case MethodRecognizer::kFfiStoreInt8:
-    case MethodRecognizer::kFfiStoreInt16:
-    case MethodRecognizer::kFfiStoreInt32:
-    case MethodRecognizer::kFfiStoreInt64:
-    case MethodRecognizer::kFfiStoreUint8:
-    case MethodRecognizer::kFfiStoreUint16:
-    case MethodRecognizer::kFfiStoreUint32:
-    case MethodRecognizer::kFfiStoreUint64:
-    case MethodRecognizer::kFfiStoreIntPtr:
-    case MethodRecognizer::kFfiStoreFloat:
-    case MethodRecognizer::kFfiStoreFloatUnaligned:
-    case MethodRecognizer::kFfiStoreDouble:
-    case MethodRecognizer::kFfiStoreDoubleUnaligned:
-    case MethodRecognizer::kFfiStorePointer: {
+#define FFI_STORE(type) case MethodRecognizer::kFfiStore##type:
+    CLASS_LIST_FFI_NUMERIC(FFI_STORE)
+    FFI_STORE(FloatUnaligned)
+    FFI_STORE(DoubleUnaligned)
+    FFI_STORE(Pointer)
+#undef FFI_STORE
+    {
       const classid_t ffi_type_arg_cid =
           compiler::ffi::RecognizedMethodTypeArgCid(kind);
       const AlignmentType alignment =
@@ -1548,6 +1518,45 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 #else
       body += Constant(Bool::False());
 #endif  // defined(ARCH_IS_64_BIT)
+    } break;
+#define FFI_AS_EXTERNAL_TYPED_DATA(type)                                       \
+  case MethodRecognizer::kFfiAsExternalTypedData##type:
+    CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(FFI_AS_EXTERNAL_TYPED_DATA)
+#undef FFI_AS_EXTERNAL_TYPED_DATA
+    {
+      const classid_t ffi_type_arg_cid =
+          compiler::ffi::RecognizedMethodTypeArgCid(kind);
+      const classid_t external_typed_data_cid =
+          compiler::ffi::ElementExternalTypedDataCid(ffi_type_arg_cid);
+
+      auto class_table = thread_->isolate_group()->class_table();
+      ASSERT(class_table->HasValidClassAt(external_typed_data_cid));
+      const auto& typed_data_class = Class::ZoneHandle(
+          H.zone(), class_table->At(external_typed_data_cid));
+
+      // We assume that the caller has checked that the arguments are non-null
+      // and length is in the range [0, kSmiMax/elementSize].
+      ASSERT_EQUAL(function.NumParameters(), 2);
+      LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
+      LocalVariable* arg_length = parsed_function_->RawParameterVariable(1);
+
+      body += AllocateObject(TokenPosition::kNoSource, typed_data_class, 0);
+      LocalVariable* typed_data_object = MakeTemporary();
+
+      // Initialize the result's length field.
+      body += LoadLocal(typed_data_object);
+      body += LoadLocal(arg_length);
+      body += StoreNativeField(Slot::TypedDataBase_length(),
+                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               kNoStoreBarrier);
+
+      // Initialize the result's data pointer field.
+      body += LoadLocal(typed_data_object);
+      body += LoadLocal(arg_pointer);
+      body += LoadNativeField(Slot::Pointer_data_field());
+      body += StoreNativeField(Slot::TypedDataBase_data_field(),
+                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               kNoStoreBarrier);
     } break;
     case MethodRecognizer::kGetNativeField: {
       auto& name = String::ZoneHandle(Z, function.name());

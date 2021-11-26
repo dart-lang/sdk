@@ -4,7 +4,7 @@
 
 // All imports must be in all FFI patch files to not depend on the order
 // the patches are applied.
-import "dart:_internal" show patch;
+import "dart:_internal" show patch, has63BitSmis;
 import 'dart:typed_data';
 import 'dart:isolate';
 
@@ -44,6 +44,29 @@ int get _intPtrSize => (const [
       8, // windowsX64,
     ])[_abi()];
 
+@pragma("vm:prefer-inline")
+int get _smiMax {
+  // See runtime/vm/globals.h for how smiMax is calculated.
+  final smiBits = has63BitSmis ? 62 : 30;
+  return (1 << smiBits) - 1;
+}
+
+@pragma("vm:prefer-inline")
+void _checkExternalTypedDataLength(int length, int elementSize) {
+  final maxElements = _smiMax ~/ elementSize;
+  if (length < 0 || length > maxElements) {
+    throw ArgumentError("length must be in the range [0, $maxElements].");
+  }
+}
+
+@pragma("vm:prefer-inline")
+void _checkPointerAlignment(int address, int elementSize) {
+  if (address & (elementSize - 1) != 0) {
+    throw ArgumentError("Pointer address must be aligned to a multiple of "
+        "the element size ($elementSize).");
+  }
+}
+
 @patch
 int sizeOf<T extends NativeType>() {
   // This case should have been rewritten in pre-processing.
@@ -62,8 +85,46 @@ external Pointer<T> _fromAddress<T extends NativeType>(int ptr);
 external DS _asFunctionInternal<DS extends Function, NS extends Function>(
     Pointer<NativeFunction<NS>> ptr, bool isLeaf);
 
-@pragma("vm:external-name", "Ffi_asExternalTypedData")
-external dynamic _asExternalTypedData(Pointer ptr, int count);
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_asExternalTypedDataInt8")
+external Int8List _asExternalTypedDataInt8(Pointer<Int8> ptr, int length);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_asExternalTypedDataInt16")
+external Int16List _asExternalTypedDataInt16(Pointer<Int16> ptr, int length);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_asExternalTypedDataInt32")
+external Int32List _asExternalTypedDataInt32(Pointer<Int32> ptr, int length);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_asExternalTypedDataInt64")
+external Int64List _asExternalTypedDataInt64(Pointer<Int64> ptr, int length);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_asExternalTypedDataUint8")
+external Uint8List _asExternalTypedDataUint8(Pointer<Uint8> ptr, int length);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_asExternalTypedDataUint16")
+external Uint16List _asExternalTypedDataUint16(Pointer<Uint16> ptr, int length);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_asExternalTypedDataUint32")
+external Uint32List _asExternalTypedDataUint32(Pointer<Uint32> ptr, int length);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_asExternalTypedDataUint64")
+external Uint64List _asExternalTypedDataUint64(Pointer<Uint64> ptr, int length);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_asExternalTypedDataFloat")
+external Float32List _asExternalTypedDataFloat(Pointer<Float> ptr, int length);
+
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_asExternalTypedDataDouble")
+external Float64List _asExternalTypedDataDouble(
+    Pointer<Double> ptr, int length);
 
 // Returns a Function object for a native callback.
 //
@@ -406,7 +467,13 @@ extension Int8Pointer on Pointer<Int8> {
   operator []=(int index, int value) => _storeInt8(this, index, value);
 
   @patch
-  Int8List asTypedList(int elements) => _asExternalTypedData(this, elements);
+  Int8List asTypedList(int length) {
+    ArgumentError.checkNotNull(this, "Pointer<Int8>");
+    ArgumentError.checkNotNull(length, "length");
+    _checkExternalTypedDataLength(length, 1);
+    _checkPointerAlignment(address, 1);
+    return _asExternalTypedDataInt8(this, length);
+  }
 }
 
 extension Int16Pointer on Pointer<Int16> {
@@ -423,7 +490,13 @@ extension Int16Pointer on Pointer<Int16> {
   operator []=(int index, int value) => _storeInt16(this, 2 * index, value);
 
   @patch
-  Int16List asTypedList(int elements) => _asExternalTypedData(this, elements);
+  Int16List asTypedList(int length) {
+    ArgumentError.checkNotNull(this, "Pointer<Int16>");
+    ArgumentError.checkNotNull(length, "length");
+    _checkExternalTypedDataLength(length, 2);
+    _checkPointerAlignment(address, 2);
+    return _asExternalTypedDataInt16(this, length);
+  }
 }
 
 extension Int32Pointer on Pointer<Int32> {
@@ -440,7 +513,13 @@ extension Int32Pointer on Pointer<Int32> {
   operator []=(int index, int value) => _storeInt32(this, 4 * index, value);
 
   @patch
-  Int32List asTypedList(int elements) => _asExternalTypedData(this, elements);
+  Int32List asTypedList(int length) {
+    ArgumentError.checkNotNull(this, "Pointer<Int32>");
+    ArgumentError.checkNotNull(length, "length");
+    _checkExternalTypedDataLength(length, 4);
+    _checkPointerAlignment(address, 4);
+    return _asExternalTypedDataInt32(this, length);
+  }
 }
 
 extension Int64Pointer on Pointer<Int64> {
@@ -457,7 +536,13 @@ extension Int64Pointer on Pointer<Int64> {
   operator []=(int index, int value) => _storeInt64(this, 8 * index, value);
 
   @patch
-  Int64List asTypedList(int elements) => _asExternalTypedData(this, elements);
+  Int64List asTypedList(int length) {
+    ArgumentError.checkNotNull(this, "Pointer<Int64>");
+    ArgumentError.checkNotNull(length, "length");
+    _checkExternalTypedDataLength(length, 8);
+    _checkPointerAlignment(address, 8);
+    return _asExternalTypedDataInt64(this, length);
+  }
 }
 
 extension Uint8Pointer on Pointer<Uint8> {
@@ -474,7 +559,13 @@ extension Uint8Pointer on Pointer<Uint8> {
   operator []=(int index, int value) => _storeUint8(this, index, value);
 
   @patch
-  Uint8List asTypedList(int elements) => _asExternalTypedData(this, elements);
+  Uint8List asTypedList(int length) {
+    ArgumentError.checkNotNull(this, "Pointer<Uint8>");
+    ArgumentError.checkNotNull(length, "length");
+    _checkExternalTypedDataLength(length, 1);
+    _checkPointerAlignment(address, 1);
+    return _asExternalTypedDataUint8(this, length);
+  }
 }
 
 extension Uint16Pointer on Pointer<Uint16> {
@@ -491,7 +582,13 @@ extension Uint16Pointer on Pointer<Uint16> {
   operator []=(int index, int value) => _storeUint16(this, 2 * index, value);
 
   @patch
-  Uint16List asTypedList(int elements) => _asExternalTypedData(this, elements);
+  Uint16List asTypedList(int length) {
+    ArgumentError.checkNotNull(this, "Pointer<Uint16>");
+    ArgumentError.checkNotNull(length, "length");
+    _checkExternalTypedDataLength(length, 2);
+    _checkPointerAlignment(address, 2);
+    return _asExternalTypedDataUint16(this, length);
+  }
 }
 
 extension Uint32Pointer on Pointer<Uint32> {
@@ -508,7 +605,13 @@ extension Uint32Pointer on Pointer<Uint32> {
   operator []=(int index, int value) => _storeUint32(this, 4 * index, value);
 
   @patch
-  Uint32List asTypedList(int elements) => _asExternalTypedData(this, elements);
+  Uint32List asTypedList(int length) {
+    ArgumentError.checkNotNull(this, "Pointer<Uint32>");
+    ArgumentError.checkNotNull(length, "length");
+    _checkExternalTypedDataLength(length, 4);
+    _checkPointerAlignment(address, 4);
+    return _asExternalTypedDataUint32(this, length);
+  }
 }
 
 extension Uint64Pointer on Pointer<Uint64> {
@@ -525,7 +628,13 @@ extension Uint64Pointer on Pointer<Uint64> {
   operator []=(int index, int value) => _storeUint64(this, 8 * index, value);
 
   @patch
-  Uint64List asTypedList(int elements) => _asExternalTypedData(this, elements);
+  Uint64List asTypedList(int length) {
+    ArgumentError.checkNotNull(this, "Pointer<Uint64>");
+    ArgumentError.checkNotNull(length, "length");
+    _checkExternalTypedDataLength(length, 8);
+    _checkPointerAlignment(address, 8);
+    return _asExternalTypedDataUint64(this, length);
+  }
 }
 
 extension IntPtrPointer on Pointer<IntPtr> {
@@ -557,7 +666,13 @@ extension FloatPointer on Pointer<Float> {
   operator []=(int index, double value) => _storeFloat(this, 4 * index, value);
 
   @patch
-  Float32List asTypedList(int elements) => _asExternalTypedData(this, elements);
+  Float32List asTypedList(int length) {
+    ArgumentError.checkNotNull(this, "Pointer<Float>");
+    ArgumentError.checkNotNull(length, "length");
+    _checkExternalTypedDataLength(length, 4);
+    _checkPointerAlignment(address, 4);
+    return _asExternalTypedDataFloat(this, length);
+  }
 }
 
 extension DoublePointer on Pointer<Double> {
@@ -574,7 +689,13 @@ extension DoublePointer on Pointer<Double> {
   operator []=(int index, double value) => _storeDouble(this, 8 * index, value);
 
   @patch
-  Float64List asTypedList(int elements) => _asExternalTypedData(this, elements);
+  Float64List asTypedList(int length) {
+    ArgumentError.checkNotNull(this, "Pointer<Double>");
+    ArgumentError.checkNotNull(length, "length");
+    _checkExternalTypedDataLength(length, 8);
+    _checkPointerAlignment(address, 8);
+    return _asExternalTypedDataDouble(this, length);
+  }
 }
 
 extension BoolPointer on Pointer<Bool> {
