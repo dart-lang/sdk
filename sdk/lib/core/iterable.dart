@@ -163,7 +163,7 @@ abstract class Iterable<E> {
   /// and, after that, the elements of [other], in the same order as in the
   /// original iterables.
   /// ```dart
-  /// var planets = ['Earth', 'Jupiter', 'Saturn'];
+  /// var planets = <String>['Earth', 'Jupiter', 'Saturn'];
   /// planets = planets.followedBy(['Mars', 'Venus']).toList();
   /// print(planets); //[Earth, Jupiter, Saturn, Mars, Venus]
   /// ```
@@ -194,7 +194,7 @@ abstract class Iterable<E> {
   /// For example, [elementAt] may call `toElement` only once.
   ///
   /// Equivalent to:
-  /// ```dart
+  /// ```
   /// Iterable<T> map<T>(T toElement(E e)) sync* {
   ///   for (var value in this) {
   ///     yield toElement(value);
@@ -222,7 +222,7 @@ abstract class Iterable<E> {
   /// the returned [Iterable] may invoke the supplied
   /// function [test] multiple times on the same element.
   /// ```dart
-  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// print(numbers.where((x) => x < 5).toList()); // [1, 2, 3]
   /// print(numbers.where((x) => x > 5).toList()); // [6, 7]
   /// print(numbers.where((x) => x.isEven).toList()); // [2, 6]
@@ -250,17 +250,17 @@ abstract class Iterable<E> {
   ///
   /// Example:
   /// ```dart
-  /// final pairs = [[1, 2], [3, 4]];
+  /// final pairs = <List<int>>[[1, 2], [3, 4]];
   /// final flattened = pairs.expand((pair) => pair).toList();
   /// print(flattened); // [1, 2, 3, 4];
   ///
-  /// final input = [1, 2, 3];
+  /// final input = <int>[1, 2, 3];
   /// final duplicated = input.expand((i) => [i, i]).toList();
   /// print(duplicated); // [1, 1, 2, 2, 3, 3]
   /// ```
   ///
   /// Equivalent to:
-  /// ```dart
+  /// ```
   /// Iterable<T> expand<T>(Iterable<T> toElements(E e)) sync* {
   ///   for (var value in this) {
   ///     yield* toElements(value);
@@ -322,7 +322,7 @@ abstract class Iterable<E> {
   /// Otherwise this method starts with the first element from the iterator,
   /// and then combines it with the remaining elements in iteration order,
   /// as if by:
-  /// ```dart
+  /// ```
   /// E value = iterable.first;
   /// iterable.skip(1).forEach((element) {
   ///   value = combine(value, element);
@@ -353,7 +353,7 @@ abstract class Iterable<E> {
   /// Uses [initialValue] as the initial value,
   /// then iterates through the elements and updates the value with
   /// each element using the [combine] function, as if by:
-  /// ```dart
+  /// ```
   /// var value = initialValue;
   /// for (E element in this) {
   ///   value = combine(value, element);
@@ -429,7 +429,7 @@ abstract class Iterable<E> {
   /// any of them make [test] return `true`, otherwise returns false.
   ///
   /// ```dart
-  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// print(numbers.any((element) => element == 5)); // true;
   /// print(numbers.any((element) => element == 4)); // false;
   /// ```
@@ -495,7 +495,7 @@ abstract class Iterable<E> {
   /// Whether this collection has at least one element.
   ///
   /// ```dart
-  /// final numbers = {1, 2, 3};
+  /// final numbers = <int>{1, 2, 3};
   /// print(numbers.isNotEmpty); // true;
   /// print(numbers.iterator.moveNext()); // true
   /// ```
@@ -511,7 +511,7 @@ abstract class Iterable<E> {
   /// elements have been seen.
   ///
   /// ```dart
-  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// const count = 4;
   /// print(numbers.take(count).toList()); // [1, 2, 3, 5]
   /// ```
@@ -530,7 +530,7 @@ abstract class Iterable<E> {
   /// element is found where `test(element)` is false. At that point,
   /// the returned iterable stops (its `moveNext()` returns false).
   /// ```dart
-  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// print(numbers.takeWhile((x) => x < 5).toList()); // [1, 2, 3, 5]
   /// print(numbers.takeWhile((x) => x != 3).toList()); // [1, 2]
   /// print(numbers.takeWhile((x) => x != 4).toList()); // [1, 2, 3, 5, 6, 7]
@@ -554,7 +554,7 @@ abstract class Iterable<E> {
   /// Such iterables are allowed to ignore the initial skipped elements.
   ///
   /// ```dart
-  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// const count = 4;
   /// print(numbers.skip(count).toList()); // [6, 7]
   /// ```
@@ -576,7 +576,7 @@ abstract class Iterable<E> {
   /// starting with the first element for which `test(element)` returns `false`.
   ///
   /// ```dart
-  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// print(numbers.skipWhile((x) => x < 5).toList()); // [5, 6, 7]
   /// print(numbers.skipWhile((x) => x != 3).toList()); // [3, 5, 6, 7]
   /// print(numbers.skipWhile((x) => x != 4).toList()); // []
@@ -635,7 +635,7 @@ abstract class Iterable<E> {
   /// Iterates through elements and returns the first to satisfy [test].
   ///
   /// ```dart
-  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// print(numbers.firstWhere((element) => element < 5)); // 1
   /// print(numbers.firstWhere((element) => element > 5)); // 6
   /// print(numbers.firstWhere((element) => element > 10,
@@ -663,7 +663,7 @@ abstract class Iterable<E> {
   /// and finally returns that last one that matched.
   ///
   /// ```dart
-  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// print(numbers.lastWhere((element) => element < 5)); // 3
   /// print(numbers.lastWhere((element) => element > 5)); // 7
   /// print(numbers.lastWhere((element) => element > 10,
@@ -696,7 +696,7 @@ abstract class Iterable<E> {
   /// If [orElse] is omitted, it defaults to throwing a [StateError].
   ///
   /// ```dart
-  /// final numbers = [2, 2, 10];
+  /// final numbers = <int>[2, 2, 10];
   /// var result = numbers.singleWhere((element) => element == 10);
   /// print(result); // 10
   ///
@@ -735,7 +735,7 @@ abstract class Iterable<E> {
   /// Some iterables may have a more efficient way to find the element.
   ///
   /// ```dart
-  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// final elementAt = numbers.elementAt(4); // 6
   /// ```
   E elementAt(int index) {
