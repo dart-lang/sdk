@@ -14,18 +14,18 @@ part of dart.core;
 /// ```dart
 /// final buffer = StringBuffer();
 /// ```
-/// To add string to buffer, call [write].
+/// To add a string to the buffer, use [write].
 /// ```
 /// buffer.write('Dart'.toUpperCase());
 /// buffer.write(' is open source');
 /// print(buffer.length); // 19
 /// print(buffer); // DART is open source
 /// ```
-/// To add linebreak to buffer, call [writeln].
+/// To add a newline to the buffer, use [writeln].
 /// ```
 /// buffer.writeln();
 /// ```
-/// To write multiple stings to buffer, call [writeAll].
+/// To write multiple stings to the buffer, use [writeAll].
 /// ```
 /// const separator = '-';
 /// buffer.writeAll(['Dart', 'is', 'fun!'], separator);
@@ -35,15 +35,20 @@ part of dart.core;
 /// // Dart-is-fun!
 /// ```
 /// To add the string representation of `charCode` to the buffer,
-/// call [writeCharCode].
+/// use [writeCharCode].
 /// ```
 /// buffer.writeCharCode(0x0A); // LF (line feed)
 /// buffer.writeCharCode(0x44); // 'D'
 /// buffer.writeCharCode(0x61); // 'a'
 /// buffer.writeCharCode(0x72); // 'r'
 /// buffer.writeCharCode(0x74); // 't'
+/// print(buffer.length); // 37
+/// print(buffer);
+/// // DART is open source
+/// // Dart-is-fun!
+/// // Dart
 /// ```
-/// To get buffer content as single string, call [toString].
+/// Getting the contents of the buffer as a single string, use [toString].
 /// ```
 /// final text = buffer.toString();
 /// print(text);
@@ -51,7 +56,7 @@ part of dart.core;
 /// // Dart-is-fun!
 /// // Dart
 /// ```
-/// To clear the buffer, call [clear]
+/// To clear the buffer, use [clear]
 /// ```
 /// buffer.clear();
 /// print(buffer.isEmpty); // true
