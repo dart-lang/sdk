@@ -155,7 +155,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
 
   /// Whether [value] is in the set.
   /// ```dart
-  /// final characters = {'A', 'B', 'C'};
+  /// final characters = <String>{'A', 'B', 'C'};
   /// final containsB = characters.contains('B'); // true
   /// final containsD = characters.contains('D'); // false
   /// ```
@@ -225,15 +225,17 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// set element.
   /// ```dart
   /// final characters = <String>{'A', 'B', 'C'};
-  /// final b = characters.lookup('B');
-  /// print(b); // B
+  /// final containsB = characters.lookup('B');
+  /// print(containsB); // B
+  /// final containsD = characters.lookup('D');
+  /// print(containsD); // null
   /// ```
   E? lookup(Object? object);
 
   /// Removes each element of [elements] from this set.
   /// ```dart
   /// final characters = <String>{'A', 'B', 'C'};
-  /// characters.removeAll({'A', 'B'});
+  /// characters.removeAll({'A', 'B', 'X'});
   /// print(characters); // {C}
   /// ```
   void removeAll(Iterable<Object?> elements);
@@ -246,7 +248,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// to any element in [elements] are removed.
   /// ```dart
   /// final characters = <String>{'A', 'B', 'C'};
-  /// characters.retainAll({'A', 'B'});
+  /// characters.retainAll({'A', 'B', 'X'});
   /// print(characters); // {A, B}
   /// ```
   void retainAll(Iterable<Object?> elements);
@@ -254,7 +256,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// Removes all elements of this set that satisfy [test].
   /// ```dart
   /// final characters = <String>{'A', 'B', 'C'};
-  /// characters.removeWhere((element) => element == 'B');
+  /// characters.removeWhere((element) => element.startsWith('B'));
   /// print(characters); // {A, C}
   /// ```
   void removeWhere(bool test(E element));
@@ -262,7 +264,8 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// Removes all elements of this set that fail to satisfy [test].
   /// ```dart
   /// final characters = <String>{'A', 'B', 'C'};
-  /// characters.retainWhere((element) => element == 'B' || element == 'C');
+  /// characters.retainWhere(
+  ///     (element) => element.startsWith('B') || element.startsWith('C'));
   /// print(characters); // {B, C}
   /// ```
   void retainWhere(bool test(E element));
