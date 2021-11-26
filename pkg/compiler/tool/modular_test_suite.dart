@@ -267,10 +267,9 @@ class FullDillCompilationStep extends CFEStep {
   @override
   List<DataId> get moduleDataNeeded => const [];
 
-  // TODO(joshualitt): we need a --no-summary argument to cfe.
   @override
   List<String> get stepArguments =>
-      ['--target', 'dart2js', '--no-summary-only'];
+      ['--target', 'dart2js', '--no-summary', '--no-summary-only'];
 
   @override
   DataId get inputData => dillSummaryId;

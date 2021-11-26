@@ -2816,7 +2816,7 @@ class _BigIntImpl implements BigInt {
   ///
   /// The [radix] argument must be an integer in the range 2 to 36.
   String toRadixString(int radix) {
-    if (radix > 36) throw new RangeError.range(radix, 2, 36);
+    if (radix < 2 || radix > 36) throw RangeError.range(radix, 2, 36);
 
     if (_used == 0) return "0";
 

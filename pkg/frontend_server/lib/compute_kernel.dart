@@ -57,6 +57,10 @@ final summaryArgsParser = new ArgParser()
       defaultsTo: true,
       negatable: true,
       help: 'Whether to only build summary files.')
+  ..addFlag('summary',
+      defaultsTo: true,
+      negatable: true,
+      help: 'Whether or not to build summary files.')
   ..addOption('target',
       allowed: const [
         'vm',
@@ -138,6 +142,10 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       ? fe.NnbdMode.Strong
       : fe.NnbdMode.Weak;
   var summaryOnly = parsedArgs['summary-only'] as bool;
+  var summary = parsedArgs['summary'] as bool;
+  if (summaryOnly && !summary) {
+    throw new ArgumentError('--summary-only conflicts with --no-summary');
+  }
   var trackWidgetCreation = parsedArgs['track-widget-creation'] as bool;
 
   // TODO(sigmund,jakemac): make target mandatory. We allow null to be backwards
@@ -324,8 +332,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     kernel = await fe.compileSummary(state, sources, onDiagnostic,
         includeOffsets: false);
   } else {
-    Component component =
-        await fe.compileComponent(state, sources, onDiagnostic);
+    Component component = await fe
+        .compileComponent(state, sources, onDiagnostic, buildSummary: summary);
     kernel = fe.serializeComponent(component,
         filter: excludeNonSources
             ? (library) => sources.contains(library.importUri)
