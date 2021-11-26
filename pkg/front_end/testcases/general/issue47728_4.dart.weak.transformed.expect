@@ -1,0 +1,26 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue47728_4.dart:9:7: Error: The type 'A' which is an alias of 'dynamic Function()?' can't be used as supertype because it is nullable.
+// class C = A with B;
+//       ^
+// pkg/front_end/testcases/general/issue47728_4.dart:5:9: Context: The issue arises via this type alias.
+// typedef A = Function()?;
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef A = () →? dynamic;
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object implements self::B /*isEliminatedMixin*/  {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

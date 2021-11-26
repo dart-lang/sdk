@@ -14,7 +14,7 @@ library /*isNonNullableByDefault*/;
 // typedef F<Glib.=
 //                ^
 //
-// pkg/front_end/testcases/general/error_recovery/issue_39033b.crash_dart:2:16: Error: Can't create typedef from non-function type.
+// pkg/front_end/testcases/general/error_recovery/issue_39033b.crash_dart:2:16: Error: Can't create typedef from non-type.
 // typedef F<Glib.=
 //                ^
 //

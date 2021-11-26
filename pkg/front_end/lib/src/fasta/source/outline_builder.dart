@@ -2260,7 +2260,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeVariableBuilder>? typeVariables;
     Object? name;
     int charOffset;
-    TypeBuilder? aliasedType;
+    TypeBuilder aliasedType;
     if (equals == null) {
       List<FormalParameterBuilder>? formals =
           pop() as List<FormalParameterBuilder>?;
@@ -2310,6 +2310,14 @@ class OutlineBuilder extends StackListenerImpl {
           // elsewhere.
           addProblem(
               messageTypedefNullableType, equals.charOffset, equals.length);
+          aliasedType = new NamedTypeBuilder.fromTypeDeclarationBuilder(
+              new InvalidTypeDeclarationBuilder(
+                  "${name}",
+                  messageTypedefNullableType.withLocation(
+                      uri, equals.charOffset, equals.length)),
+              const NullabilityBuilder.omitted(),
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Allowed);
         } else {
           // TODO(ahe): We need to start a nested declaration when parsing the
           // formals and return type so we can correctly bind
@@ -2323,18 +2331,40 @@ class OutlineBuilder extends StackListenerImpl {
           aliasedType = type;
         } else {
           addProblem(messageTypedefNotType, equals.charOffset, equals.length);
+          aliasedType = new NamedTypeBuilder.fromTypeDeclarationBuilder(
+              new InvalidTypeDeclarationBuilder(
+                  "${name}",
+                  messageTypedefNotType.withLocation(
+                      uri, equals.charOffset, equals.length)),
+              const NullabilityBuilder.omitted(),
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Allowed);
         }
       } else {
+        assert(type is! FunctionTypeBuilder);
         // TODO(ahe): Improve this error message.
-        addProblem(messageTypedefNotFunction, equals.charOffset, equals.length);
-        aliasedType = new NamedTypeBuilder.fromTypeDeclarationBuilder(
-            new InvalidTypeDeclarationBuilder(
-                "${name}",
-                messageTypedefNotType.withLocation(
-                    uri, equals.charOffset, equals.length)),
-            const NullabilityBuilder.omitted(),
-            instanceTypeVariableAccess:
-                InstanceTypeVariableAccessState.Allowed);
+        if (type is TypeBuilder) {
+          addProblem(
+              messageTypedefNotFunction, equals.charOffset, equals.length);
+          aliasedType = new NamedTypeBuilder.fromTypeDeclarationBuilder(
+              new InvalidTypeDeclarationBuilder(
+                  "${name}",
+                  messageTypedefNotFunction.withLocation(
+                      uri, equals.charOffset, equals.length)),
+              const NullabilityBuilder.omitted(),
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Allowed);
+        } else {
+          addProblem(messageTypedefNotType, equals.charOffset, equals.length);
+          aliasedType = new NamedTypeBuilder.fromTypeDeclarationBuilder(
+              new InvalidTypeDeclarationBuilder(
+                  "${name}",
+                  messageTypedefNotType.withLocation(
+                      uri, equals.charOffset, equals.length)),
+              const NullabilityBuilder.omitted(),
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Allowed);
+        }
       }
     }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;

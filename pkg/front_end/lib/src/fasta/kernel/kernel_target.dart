@@ -811,7 +811,8 @@ class KernelTarget extends TargetImplementation {
         supertype is TypeVariableBuilder ||
         supertype is DynamicTypeDeclarationBuilder ||
         supertype is VoidTypeDeclarationBuilder ||
-        supertype is NeverTypeDeclarationBuilder) {
+        supertype is NeverTypeDeclarationBuilder ||
+        supertype is TypeAliasBuilder) {
       builder.addSyntheticConstructor(_makeDefaultConstructor(
           builder, constructorReference, tearOffReference));
     } else {
