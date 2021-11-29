@@ -5487,9 +5487,19 @@ class Instructions : public Object {
   }
 
   static bool Equals(InstructionsPtr a, InstructionsPtr b) {
-    if (Size(a) != Size(b)) return false;
+    // This method should only be called on non-null Instructions objects.
+    ASSERT_EQUAL(a->GetClassId(), kInstructionsCid);
+    ASSERT_EQUAL(b->GetClassId(), kInstructionsCid);
+    // Don't include the object header tags wholesale in the comparison,
+    // because the GC tags may differ in JIT mode. In fact, we can skip checking
+    // the object header entirely, as we're guaranteed that the cids match,
+    // because there are no subclasses for the Instructions class, and the sizes
+    // should match if the content size encoded in size_and_flags_ matches.
+    if (a->untag()->size_and_flags_ != b->untag()->size_and_flags_) {
+      return false;
+    }
     NoSafepointScope no_safepoint;
-    return memcmp(a->untag(), b->untag(), InstanceSize(Size(a))) == 0;
+    return memcmp(a->untag()->data(), b->untag()->data(), Size(a)) == 0;
   }
 
   uint32_t Hash() const {
