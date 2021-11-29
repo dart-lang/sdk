@@ -112,9 +112,6 @@ class MockSource extends BasicSource {
   TimestampedData<String> get contents => TimestampedData<String>(0, '');
 
   @override
-  UriKind get uriKind => UriKind.FILE_URI;
-
-  @override
   bool exists() => false;
 
   @override

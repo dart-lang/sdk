@@ -17,7 +17,6 @@ class SuperGoesLastTest extends LintRuleTest {
   @override
   String get lintRule => 'super_goes_last';
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3069')
   test_invalidSuperInvocation() async {
     await assertDiagnostics(r'''
 class A {
@@ -33,9 +32,7 @@ class C extends A {
 
 ''', [
       error(HintCode.UNUSED_FIELD, 61, 2),
-      // Update to `SUPER_INVOCATION_NOT_LAST` when analyzer 2.8.0+ is published
-      // https://github.com/dart-lang/linter/issues/3069
-      // error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 84, 5),
+      error(CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST, 84, 5),
       lint('super_goes_last', 84, 8),
     ]);
   }

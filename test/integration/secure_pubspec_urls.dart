@@ -37,9 +37,10 @@ void main() {
           stringContainsInOrder([
             'pubspec.yaml 4:11 [lint] The url should only only use secure protocols.',
             'pubspec.yaml 14:12 [lint] The url should only only use secure protocols.',
+            'pubspec.yaml 19:13 [lint] The url should only only use secure protocols.',
             'pubspec.yaml 27:12 [lint] The url should only only use secure protocols.',
             'pubspec.yaml 31:12 [lint] The url should only only use secure protocols.',
-            '1 file analyzed, 4 issues found',
+            '1 file analyzed, 5 issues found',
           ]));
       expect(exitCode, 1);
     });
