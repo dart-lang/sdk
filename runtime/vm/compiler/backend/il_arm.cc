@@ -1448,7 +1448,23 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (is_leaf_) {
+#if !defined(PRODUCT)
+    // Set the thread object's top_exit_frame_info and VMTag to enable the
+    // profiler to determine that thread is no longer executing Dart code.
+    __ StoreToOffset(FPREG, THR,
+                     compiler::target::Thread::top_exit_frame_info_offset());
+    __ StoreToOffset(branch, THR, compiler::target::Thread::vm_tag_offset());
+#endif
+
     __ blx(branch);
+
+#if !defined(PRODUCT)
+    __ LoadImmediate(temp1, compiler::target::Thread::vm_tag_dart_id());
+    __ StoreToOffset(temp1, THR, compiler::target::Thread::vm_tag_offset());
+    __ LoadImmediate(temp1, 0);
+    __ StoreToOffset(temp1, THR,
+                     compiler::target::Thread::top_exit_frame_info_offset());
+#endif
   } else {
     // We need to copy the return address up into the dummy stack frame so the
     // stack walker will know which safepoint to use.
