@@ -29,7 +29,7 @@ head -n $(expr $LINE - 1) "$FILE" >"$TEMP_HEADER"
 
 # Run offsets_extractor for every architecture and append the results.
 run() {
-  tools/build.py --mode=$1 --arch=$2 $4 offsets_extractor offsets_extractor_precompiled_runtime
+  tools/build.py --mode=$1 --arch=$2 offsets_extractor offsets_extractor_precompiled_runtime
   echo "" >>"$TEMP_JIT"
   out/$3/offsets_extractor >>"$TEMP_JIT"
   echo "" >>"$TEMP_AOT"
@@ -41,7 +41,6 @@ echo "#if !defined(PRODUCT)" >>"$TEMP_JIT"
 echo "#if !defined(PRODUCT)" >>"$TEMP_AOT"
 run release simarm ReleaseSIMARM
 run release x64 ReleaseX64
-run release x64 ReleaseTSANX64 --sanitizer=tsan
 run release ia32 ReleaseIA32
 run release simarm64 ReleaseSIMARM64
 run release x64c ReleaseX64C
@@ -52,7 +51,6 @@ echo "#else  // !defined(PRODUCT)" >>"$TEMP_JIT"
 echo "#else  // !defined(PRODUCT)" >>"$TEMP_AOT"
 run product simarm ProductSIMARM
 run product x64 ProductX64
-run product x64 ProductTSANX64 --sanitizer=tsan
 run product ia32 ProductIA32
 run product simarm64 ProductSIMARM64
 run product x64c ProductX64C

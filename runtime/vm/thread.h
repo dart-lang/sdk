@@ -9,8 +9,6 @@
 #error "Should not include runtime"
 #endif
 
-#include <setjmp.h>
-
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"
@@ -200,8 +198,6 @@ class Thread;
   V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
   V(uword, call_native_through_safepoint_entry_point_,                         \
     StubCode::CallNativeThroughSafepoint().EntryPoint(), 0)                    \
-  V(uword, jump_to_frame_entry_point_, StubCode::JumpToFrame().EntryPoint(),   \
-    0)                                                                         \
   V(uword, slow_type_test_entry_point_, StubCode::SlowTypeTest().EntryPoint(), \
     0)
 
@@ -444,25 +440,6 @@ class Thread : public ThreadState {
   static intptr_t double_truncate_round_supported_offset() {
     return OFFSET_OF(Thread, double_truncate_round_supported_);
   }
-
-#if defined(USING_THREAD_SANITIZER)
-  uword exit_through_ffi() const { return exit_through_ffi_; }
-  static intptr_t setjmp_function_offset() {
-    return OFFSET_OF(Thread, setjmp_function_);
-  }
-  static intptr_t setjmp_buffer_offset() {
-    return OFFSET_OF(Thread, setjmp_buffer_);
-  }
-  static intptr_t exception_pc_offset() {
-    return OFFSET_OF(Thread, exception_pc_);
-  }
-  static intptr_t exception_sp_offset() {
-    return OFFSET_OF(Thread, exception_sp_);
-  }
-  static intptr_t exception_fp_offset() {
-    return OFFSET_OF(Thread, exception_fp_);
-  }
-#endif  // defined(USING_THREAD_SANITIZER)
 
   // The isolate that this thread is operating on, or nullptr if none.
   Isolate* isolate() const { return isolate_; }
@@ -1122,14 +1099,6 @@ class Thread : public ThreadState {
   ApiLocalScope* api_top_scope_;
   uint8_t double_truncate_round_supported_;
 
-#if defined(USING_THREAD_SANITIZER)
-  void* setjmp_function_ = reinterpret_cast<void*>(&setjmp);
-  jmp_buf* setjmp_buffer_ = nullptr;
-  uword exception_pc_ = 0;
-  uword exception_sp_ = 0;
-  uword exception_fp_ = 0;
-#endif  // defined(USING_THREAD_SANITIZER)
-
   // ---- End accessed from generated code. ----
 
   // The layout of Thread object up to this point should not depend
@@ -1273,7 +1242,6 @@ class Thread : public ThreadState {
   friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup*,
                                                    const char*,
                                                    char**);
-  friend class Exceptions;  // for setjmp_buffer_/exception_*
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 

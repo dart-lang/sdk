@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <setjmp.h>
-
 #include "vm/exceptions.h"
 
 #include "platform/address_sanitizer.h"
-#include "platform/thread_sanitizer.h"
 
 #include "lib/stacktrace.h"
 
@@ -615,6 +612,13 @@ void Exceptions::JumpToFrame(Thread* thread,
   // in the previous frames.
   StackResource::Unwind(thread);
 
+  // Call a stub to set up the exception object in kExceptionObjectReg,
+  // to set up the stacktrace object in kStackTraceObjectReg, and to
+  // continue execution at the given pc in the given frame.
+  typedef void (*ExcpHandler)(uword, uword, uword, Thread*);
+  ExcpHandler func =
+      reinterpret_cast<ExcpHandler>(StubCode::JumpToFrame().EntryPoint());
+
   // Unpoison the stack before we tear it down in the generated stub code.
   uword current_sp = OSThread::GetCurrentStackPointer() - 1024;
   ASAN_UNPOISON(reinterpret_cast<void*>(current_sp),
@@ -631,24 +635,7 @@ void Exceptions::JumpToFrame(Thread* thread,
   // The shadow call stack register will be restored by the JumpToFrame stub.
 #endif
 
-#if defined(USING_THREAD_SANITIZER)
-  if (thread->exit_through_ffi() == Thread::kExitThroughRuntimeCall) {
-    thread->exception_pc_ = program_counter;
-    thread->exception_sp_ = stack_pointer;
-    thread->exception_fp_ = frame_pointer;
-    longjmp(*(thread->setjmp_buffer_), 1);
-  }
-#endif  // defined(USING_THREAD_SANITIZER)
-
-  // Call a stub to set up the exception object in kExceptionObjectReg,
-  // to set up the stacktrace object in kStackTraceObjectReg, and to
-  // continue execution at the given pc in the given frame.
-  typedef void (*ExcpHandler)(uword, uword, uword, Thread*);
-  ExcpHandler func =
-      reinterpret_cast<ExcpHandler>(StubCode::JumpToFrame().EntryPoint());
-
   func(program_counter, stack_pointer, frame_pointer, thread);
-
 #endif
   UNREACHABLE();
 }

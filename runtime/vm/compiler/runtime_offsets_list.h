@@ -420,13 +420,4 @@
                          RANGE, CONSTANT)                                      \
   FIELD(Closure, entry_point_offset)
 
-#define TSAN_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF, PAYLOAD_SIZEOF,  \
-                          RANGE, CONSTANT)                                     \
-  FIELD(Thread, jump_to_frame_entry_point_offset)                              \
-  FIELD(Thread, setjmp_function_offset)                                        \
-  FIELD(Thread, setjmp_buffer_offset)                                          \
-  FIELD(Thread, exception_pc_offset)                                           \
-  FIELD(Thread, exception_sp_offset)                                           \
-  FIELD(Thread, exception_fp_offset)
-
 #endif  // RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_LIST_H_
