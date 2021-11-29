@@ -689,7 +689,8 @@ class DateTime implements Comparable<DateTime> {
   /// final berlinWallFell = DateTime(1989, DateTime.november, 9);
   /// final dDay = DateTime(1944, DateTime.june, 6);
   /// final difference = berlinWallFell.difference(dDay);
-  /// print(difference.inDays); // 16592
+  /// print(difference.inDays); // 16591
+  /// assert(difference.inDays == 16592);
   /// ```
   /// will fail because the difference is actually 16591 days and 23 hours, and
   /// [Duration.inDays] only returns the number of whole days.
