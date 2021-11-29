@@ -1,8 +1,8 @@
 include: package:pedantic/analysis_options.yaml
 
 analyzer:
-  strong-mode:
-    implicit-casts: false
+  language:
+    strict-casts: true
 
 linter:
   rules:

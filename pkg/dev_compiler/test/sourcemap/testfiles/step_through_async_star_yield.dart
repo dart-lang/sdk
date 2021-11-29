@@ -5,7 +5,7 @@
 // @dart = 2.9
 
 void main() async {
-  await for (var i in foobar()) {
+  await for (var i in foobar() as Stream) {
     print(i);
   }
   print('Done!');
