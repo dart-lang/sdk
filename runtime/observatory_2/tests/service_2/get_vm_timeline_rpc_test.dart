@@ -103,6 +103,11 @@ void allEventsHaveIsolateNumber(List events) {
       // Skip API category events which sometimes don't have an isolate.
       continue;
     }
+    if (event['name'].contains('VirtualMemory')) {
+      // Skip virtual memory events which may or may not have an isolate or
+      // isolate group.
+      continue;
+    }
     if (event['cat'] == 'Embedder' &&
         (event['name'] == 'DFE::ReadScript' ||
             event['name'] == 'CreateIsolateGroupAndSetupHelper')) {
