@@ -124,9 +124,9 @@ def GenerateFromDatabase(common_database,
     generator.CleanupOperationArguments(webkit_database)
 
     emitters = multiemitter.MultiEmitter(logging_level)
-    metadata = DartMetadata(
-        os.path.join(current_dir, '..', 'dom.json'),
-        os.path.join(current_dir, '..', 'docs', 'docs.json'), logging_level)
+    metadata = DartMetadata(os.path.join(current_dir, '..', 'dom.json'),
+                            os.path.join(current_dir, '..', 'docs.json'),
+                            logging_level)
     renamer = HtmlRenamer(webkit_database, metadata)
     type_registry = TypeRegistry(webkit_database, renamer)
 
