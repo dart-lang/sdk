@@ -11,11 +11,13 @@ import 'utils.dart';
 
 class FuchsiaEmulator {
   static final Uri toolsDir =
+      Repository.uri.resolve('third_party/fuchsia/sdk/linux/tools/x64/');
+  static final Uri scriptsDir =
       Repository.uri.resolve('third_party/fuchsia/sdk/linux/bin/');
-  static final String femuTool = toolsDir.resolve('femu.sh').toFilePath();
-  static final String fserveTool = toolsDir.resolve('fserve.sh').toFilePath();
-  static final String fpubTool = toolsDir.resolve('fpublish.sh').toFilePath();
-  static final String fsshTool = toolsDir.resolve('fssh.sh').toFilePath();
+  static final String femuTool = scriptsDir.resolve('femu.sh').toFilePath();
+  static final String fserveTool = toolsDir.resolve('fserve').toFilePath();
+  static final String fpubTool = toolsDir.resolve('fpublish').toFilePath();
+  static final String fsshTool = toolsDir.resolve('fssh').toFilePath();
   static final RegExp emulatorReadyPattern =
       RegExp(r'Using unique host name (.+)\.local\.');
   static final RegExp emulatorPidPattern =
