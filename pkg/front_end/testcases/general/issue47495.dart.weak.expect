@@ -17,20 +17,6 @@ library;
 // typedef MAlias = M;
 //         ^
 //
-// pkg/front_end/testcases/general/issue47495.dart:13:7: Error: The type 'SAlias' which is an alias of 'invalid-type' can't be used as supertype.
-// class C = SAlias with MAlias;
-//       ^
-// pkg/front_end/testcases/general/issue47495.dart:10:9: Context: The issue arises via this type alias.
-// typedef SAlias = S;
-//         ^
-//
-// pkg/front_end/testcases/general/issue47495.dart:13:7: Error: The type 'MAlias' which is an alias of 'invalid-type' can't be used as supertype.
-// class C = SAlias with MAlias;
-//       ^
-// pkg/front_end/testcases/general/issue47495.dart:11:9: Context: The issue arises via this type alias.
-// typedef MAlias = M;
-//         ^
-//
 import self as self;
 import "dart:core" as core;
 

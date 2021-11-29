@@ -3,14 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
+import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
 
 enum Coloring { Untouched, Marked }
 
 abstract class AstNode {
   Map<String, List<AstNode>> scope = {};
   Container? parent;
-  DirectParserASTContent get node;
+  ParserAstNode get node;
   Token get startInclusive;
   Token get endInclusive;
 
@@ -30,7 +30,7 @@ abstract class Container extends AstNode {
   List<AstNode> _children = [];
   Iterable<AstNode> get children => _children;
 
-  void addChild(AstNode child, Map<DirectParserASTContent, AstNode> map) {
+  void addChild(AstNode child, Map<ParserAstNode, AstNode> map) {
     child.parent = this;
     _children.add(child);
     map[child.node] = child;
@@ -42,9 +42,9 @@ class TopLevel extends Container {
   final Uri uri;
 
   @override
-  final DirectParserASTContent node;
+  final ParserAstNode node;
 
-  final Map<DirectParserASTContent, AstNode> map;
+  final Map<ParserAstNode, AstNode> map;
 
   TopLevel(this.sourceText, this.uri, this.node, this.map);
 
@@ -91,7 +91,7 @@ class TopLevel extends Container {
 
 class Class extends Container {
   @override
-  final DirectParserASTContentTopLevelDeclarationEnd node;
+  final TopLevelDeclarationEnd node;
   final String name;
   @override
   final Token startInclusive;
@@ -138,7 +138,7 @@ class Class extends Container {
 
 class Mixin extends Container {
   @override
-  final DirectParserASTContentTopLevelDeclarationEnd node;
+  final TopLevelDeclarationEnd node;
   final String name;
   @override
   final Token startInclusive;
@@ -185,7 +185,7 @@ class Mixin extends Container {
 
 class Extension extends Container {
   @override
-  final DirectParserASTContentTopLevelDeclarationEnd node;
+  final TopLevelDeclarationEnd node;
   final String? name;
   @override
   final Token startInclusive;
@@ -236,7 +236,7 @@ class Extension extends Container {
 
 class ClassConstructor extends AstNode {
   @override
-  final DirectParserASTContentClassConstructorEnd node;
+  final ClassConstructorEnd node;
   final String name;
   @override
   final Token startInclusive;
@@ -269,7 +269,7 @@ class ClassConstructor extends AstNode {
 
 class ClassFactoryMethod extends AstNode {
   @override
-  final DirectParserASTContentClassFactoryMethodEnd node;
+  final ClassFactoryMethodEnd node;
   final String name;
   @override
   final Token startInclusive;
@@ -302,7 +302,7 @@ class ClassFactoryMethod extends AstNode {
 
 class ClassMethod extends AstNode {
   @override
-  final DirectParserASTContentClassMethodEnd node;
+  final ClassMethodEnd node;
   final String name;
   @override
   final Token startInclusive;
@@ -333,7 +333,7 @@ class ClassMethod extends AstNode {
 
 class ExtensionMethod extends AstNode {
   @override
-  final DirectParserASTContentExtensionMethodEnd node;
+  final ExtensionMethodEnd node;
   final String name;
   @override
   final Token startInclusive;
@@ -364,7 +364,7 @@ class ExtensionMethod extends AstNode {
 
 class MixinMethod extends AstNode {
   @override
-  final DirectParserASTContentMixinMethodEnd node;
+  final MixinMethodEnd node;
   final String name;
   @override
   final Token startInclusive;
@@ -395,7 +395,7 @@ class MixinMethod extends AstNode {
 
 class Enum extends AstNode {
   @override
-  final DirectParserASTContentEnumEnd node;
+  final EnumEnd node;
   final String name;
   final List<String> members;
   @override
@@ -432,7 +432,7 @@ class Enum extends AstNode {
 
 class Import extends AstNode {
   @override
-  final DirectParserASTContentImportEnd node;
+  final ImportEnd node;
   final Uri firstUri;
   final List<Uri>? conditionalUris;
   final String? asName;
@@ -475,7 +475,7 @@ class Import extends AstNode {
 
 class Export extends AstNode {
   @override
-  final DirectParserASTContentExportEnd node;
+  final ExportEnd node;
   final Uri firstUri;
   final List<Uri>? conditionalUris;
   @override
@@ -510,7 +510,7 @@ class Export extends AstNode {
 
 class Part extends AstNode {
   @override
-  final DirectParserASTContentPartEnd node;
+  final PartEnd node;
   final Uri uri;
   @override
   final Token startInclusive;
@@ -541,7 +541,7 @@ class Part extends AstNode {
 
 class TopLevelFields extends AstNode {
   @override
-  final DirectParserASTContentTopLevelFieldsEnd node;
+  final TopLevelFieldsEnd node;
   final List<String> names;
   @override
   final Token startInclusive;
@@ -576,7 +576,7 @@ class TopLevelFields extends AstNode {
 
 class TopLevelMethod extends AstNode {
   @override
-  final DirectParserASTContentTopLevelMethodEnd node;
+  final TopLevelMethodEnd node;
   final String name;
   @override
   final Token startInclusive;
@@ -607,7 +607,7 @@ class TopLevelMethod extends AstNode {
 
 class Typedef extends AstNode {
   @override
-  final DirectParserASTContentTypedefEnd node;
+  final TypedefEnd node;
   final String name;
   @override
   final Token startInclusive;
@@ -638,7 +638,7 @@ class Typedef extends AstNode {
 
 class ClassFields extends AstNode {
   @override
-  final DirectParserASTContentClassFieldsEnd node;
+  final ClassFieldsEnd node;
   final List<String> names;
   @override
   final Token startInclusive;
@@ -673,7 +673,7 @@ class ClassFields extends AstNode {
 
 class MixinFields extends AstNode {
   @override
-  final DirectParserASTContentMixinFieldsEnd node;
+  final MixinFieldsEnd node;
   final List<String> names;
   @override
   final Token startInclusive;
@@ -708,7 +708,7 @@ class MixinFields extends AstNode {
 
 class ExtensionFields extends AstNode {
   @override
-  final DirectParserASTContentExtensionFieldsEnd node;
+  final ExtensionFieldsEnd node;
   final List<String> names;
   @override
   final Token startInclusive;
@@ -744,7 +744,7 @@ class ExtensionFields extends AstNode {
 
 class Metadata extends AstNode {
   @override
-  final DirectParserASTContentMetadataEnd node;
+  final MetadataEnd node;
   @override
   final Token startInclusive;
   @override
@@ -774,7 +774,7 @@ class Metadata extends AstNode {
 
 class LibraryName extends AstNode {
   @override
-  final DirectParserASTContentLibraryNameEnd node;
+  final LibraryNameEnd node;
   @override
   final Token startInclusive;
   @override
@@ -804,7 +804,7 @@ class LibraryName extends AstNode {
 
 class PartOf extends AstNode {
   @override
-  final DirectParserASTContentPartOfEnd node;
+  final PartOfEnd node;
   @override
   final Token startInclusive;
   @override
@@ -835,7 +835,7 @@ class PartOf extends AstNode {
 
 class LanguageVersion extends AstNode {
   @override
-  final DirectParserASTContent node;
+  final ParserAstNode node;
   @override
   final Token startInclusive;
   @override

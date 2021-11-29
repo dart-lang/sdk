@@ -85,10 +85,10 @@ import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
 
-import 'package:front_end/src/fasta/util/direct_parser_ast.dart'
-    show DirectParserASTContentVisitor, getAST;
+import 'package:front_end/src/fasta/util/parser_ast.dart'
+    show ParserAstVisitor, getAST;
 
-import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
+import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
 
 import 'package:kernel/ast.dart'
     show
@@ -1475,13 +1475,13 @@ class FuzzAstVisitorSorterChunk {
 
 enum FuzzSorterState { nonSortable, importExportSortable, sortableRest }
 
-class FuzzAstVisitorSorter extends DirectParserASTContentVisitor {
+class FuzzAstVisitorSorter extends ParserAstVisitor {
   final Uint8List bytes;
   final String asString;
   final bool nnbd;
 
   FuzzAstVisitorSorter(this.bytes, this.nnbd) : asString = utf8.decode(bytes) {
-    DirectParserASTContentCompilationUnitEnd ast = getAST(bytes,
+    CompilationUnitEnd ast = getAST(bytes,
         includeBody: false,
         includeComments: true,
         enableExtensionMethods: true,
@@ -1590,48 +1590,45 @@ class FuzzAstVisitorSorter extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitExport(DirectParserASTContentExportEnd node, Token startInclusive,
-      Token endInclusive) {
+  void visitExport(ExportEnd node, Token startInclusive, Token endInclusive) {
     handleData(
         FuzzSorterState.importExportSortable, startInclusive, endInclusive);
   }
 
   @override
-  void visitImport(DirectParserASTContentImportEnd node, Token startInclusive,
-      Token? endInclusive) {
+  void visitImport(ImportEnd node, Token startInclusive, Token? endInclusive) {
     handleData(
         FuzzSorterState.importExportSortable, startInclusive, endInclusive!);
   }
 
   @override
-  void visitClass(DirectParserASTContentClassDeclarationEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitClass(
+      ClassDeclarationEnd node, Token startInclusive, Token endInclusive) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
-  void visitEnum(DirectParserASTContentEnumEnd node, Token startInclusive,
-      Token endInclusive) {
+  void visitEnum(EnumEnd node, Token startInclusive, Token endInclusive) {
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
-  void visitExtension(DirectParserASTContentExtensionDeclarationEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitExtension(
+      ExtensionDeclarationEnd node, Token startInclusive, Token endInclusive) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
-  void visitLibraryName(DirectParserASTContentLibraryNameEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitLibraryName(
+      LibraryNameEnd node, Token startInclusive, Token endInclusive) {
     handleData(FuzzSorterState.nonSortable, startInclusive, endInclusive);
   }
 
   @override
-  void visitMetadata(DirectParserASTContentMetadataEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitMetadata(
+      MetadataEnd node, Token startInclusive, Token endInclusive) {
     if (metadataStart == null) {
       metadataStart = startInclusive;
       metadataEndInclusive = endInclusive;
@@ -1641,46 +1638,43 @@ class FuzzAstVisitorSorter extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitMixin(DirectParserASTContentMixinDeclarationEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitMixin(
+      MixinDeclarationEnd node, Token startInclusive, Token endInclusive) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
-  void visitNamedMixin(DirectParserASTContentNamedMixinApplicationEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitNamedMixin(
+      NamedMixinApplicationEnd node, Token startInclusive, Token endInclusive) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
-  void visitPart(DirectParserASTContentPartEnd node, Token startInclusive,
-      Token endInclusive) {
+  void visitPart(PartEnd node, Token startInclusive, Token endInclusive) {
     handleData(FuzzSorterState.nonSortable, startInclusive, endInclusive);
   }
 
   @override
-  void visitPartOf(DirectParserASTContentPartOfEnd node, Token startInclusive,
-      Token endInclusive) {
+  void visitPartOf(PartOfEnd node, Token startInclusive, Token endInclusive) {
     handleData(FuzzSorterState.nonSortable, startInclusive, endInclusive);
   }
 
   @override
-  void visitTopLevelFields(DirectParserASTContentTopLevelFieldsEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitTopLevelFields(
+      TopLevelFieldsEnd node, Token startInclusive, Token endInclusive) {
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
-  void visitTopLevelMethod(DirectParserASTContentTopLevelMethodEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitTopLevelMethod(
+      TopLevelMethodEnd node, Token startInclusive, Token endInclusive) {
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
-  void visitTypedef(DirectParserASTContentTypedefEnd node, Token startInclusive,
-      Token endInclusive) {
+  void visitTypedef(TypedefEnd node, Token startInclusive, Token endInclusive) {
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 }

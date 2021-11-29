@@ -1052,7 +1052,24 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (is_leaf_) {
+#if !defined(PRODUCT)
+    // Set the thread object's top_exit_frame_info and VMTag to enable the
+    // profiler to determine that thread is no longer executing Dart code.
+    __ movl(compiler::Address(
+                THR, compiler::target::Thread::top_exit_frame_info_offset()),
+            FPREG);
+    __ movl(compiler::Assembler::VMTagAddress(), branch);
+#endif
+
     __ call(branch);
+
+#if !defined(PRODUCT)
+    __ movl(compiler::Assembler::VMTagAddress(),
+            compiler::Immediate(compiler::target::Thread::vm_tag_dart_id()));
+    __ movl(compiler::Address(
+                THR, compiler::target::Thread::top_exit_frame_info_offset()),
+            compiler::Immediate(0));
+#endif
   } else {
     // We need to copy a dummy return address up into the dummy stack frame so
     // the stack walker will know which safepoint to use. Unlike X64, there's no

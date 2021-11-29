@@ -285,6 +285,10 @@ class NamedTypeBuilder extends TypeBuilder {
       Uri fileUri,
       TypeAliasBuilder aliasBuilder,
       DartType type) {
+    // Don't report the error in case of InvalidType. An error has already been
+    // reported in this case.
+    if (type is InvalidType) return null;
+
     Message message;
     if (declaration!.isTypeVariable) {
       message =

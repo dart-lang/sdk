@@ -588,9 +588,17 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
   const Object& left = left_defn->constant_value();
   const Object& right = right_defn->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
-    // TODO(vegorov): incorporate nullability information into the lattice.
-    if ((left.IsNull() && instr->right()->Type()->HasDecidableNullability()) ||
-        (right.IsNull() && instr->left()->Type()->HasDecidableNullability())) {
+    if ((left.ptr() == Object::sentinel().ptr() &&
+         !instr->right()->Type()->can_be_sentinel()) ||
+        (right.ptr() == Object::sentinel().ptr() &&
+         !instr->left()->Type()->can_be_sentinel())) {
+      // Handle provably false (EQ_STRICT) or true (NE_STRICT) sentinel checks.
+      SetValue(instr, Bool::Get(instr->kind() != Token::kEQ_STRICT));
+    } else if ((left.IsNull() &&
+                instr->right()->Type()->HasDecidableNullability()) ||
+               (right.IsNull() &&
+                instr->left()->Type()->HasDecidableNullability())) {
+      // TODO(vegorov): incorporate nullability information into the lattice.
       bool result = left.IsNull() ? instr->right()->Type()->IsNull()
                                   : instr->left()->Type()->IsNull();
       if (instr->kind() == Token::kNE_STRICT) {

@@ -76,6 +76,7 @@ class SafepointHandler {
   void BlockForSafepoint(Thread* T);
 
   bool IsOwnedByTheThread(Thread* thread) {
+    MonitorLocker ml(threads_lock());
     for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
       if (handlers_[level]->owner_ == thread) {
         return true;

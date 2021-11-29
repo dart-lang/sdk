@@ -88,6 +88,8 @@ general/issue43363: FormatterCrash
 general/issue45490: FormatterCrash
 general/issue45700.crash: FormatterCrash
 general/issue47495: FormatterCrash
+general/issue47728_2: FormatterCrash
+general/issue47728_3: FormatterCrash
 general/many_errors: FormatterCrash
 general/missing_prefix_name: FormatterCrash
 general/new_as_selector: FormatterCrash
