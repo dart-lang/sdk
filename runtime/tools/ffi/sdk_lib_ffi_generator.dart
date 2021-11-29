@@ -223,7 +223,13 @@ void generatePatchExtension(
       ? ""
       : """
   @patch
-  $typedListType asTypedList(int elements) => _asExternalTypedData(this, elements);
+  $typedListType asTypedList(int length) {
+    ArgumentError.checkNotNull(this, "Pointer<$nativeType>");
+    ArgumentError.checkNotNull(length, "length");
+    _checkExternalTypedDataLength(length, $elementSize);
+    _checkPointerAlignment(address, $elementSize);
+    return _asExternalTypedData$nativeType(this, length);
+  }
 """;
 
   if (container == "Pointer") {

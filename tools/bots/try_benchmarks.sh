@@ -188,6 +188,8 @@ EOF
     out/ReleaseIA32/dart --sound-null-safety benchmarks/NativeCall/dart/NativeCall.dart
     out/ReleaseIA32/dart benchmarks/FfiBoringssl/dart2/FfiBoringssl.dart
     out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiBoringssl/dart/FfiBoringssl.dart
+    out/ReleaseIA32/dart benchmarks/FfiAsTypedList/dart2/FfiAsTypedList.dart
+    out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiAsTypedList/dart/FfiAsTypedList.dart
     out/ReleaseIA32/dart benchmarks/FfiCall/dart2/FfiCall.dart
     out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiCall/dart/FfiCall.dart
     out/ReleaseIA32/dart benchmarks/FfiMemory/dart2/FfiMemory.dart
