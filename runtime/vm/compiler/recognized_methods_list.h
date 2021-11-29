@@ -221,6 +221,16 @@ namespace dart {
   V(::, _storePointer, FfiStorePointer, 0xea6b7751)                            \
   V(::, _fromAddress, FfiFromAddress, 0xfd8cb1cc)                              \
   V(Pointer, get:address, FfiGetAddress, 0x7cde87be)                           \
+  V(::, _asExternalTypedDataInt8, FfiAsExternalTypedDataInt8, 0x768a0698)      \
+  V(::, _asExternalTypedDataInt16, FfiAsExternalTypedDataInt16, 0xd09cf9c6)    \
+  V(::, _asExternalTypedDataInt32, FfiAsExternalTypedDataInt32, 0x38248946)    \
+  V(::, _asExternalTypedDataInt64, FfiAsExternalTypedDataInt64, 0xafaa47fb)    \
+  V(::, _asExternalTypedDataUint8, FfiAsExternalTypedDataUint8, 0x35228834)    \
+  V(::, _asExternalTypedDataUint16, FfiAsExternalTypedDataUint16, 0x89a51e3a)  \
+  V(::, _asExternalTypedDataUint32, FfiAsExternalTypedDataUint32, 0xd272dc41)  \
+  V(::, _asExternalTypedDataUint64, FfiAsExternalTypedDataUint64, 0x06be71c5)  \
+  V(::, _asExternalTypedDataFloat, FfiAsExternalTypedDataFloat, 0x6f465e0c)    \
+  V(::, _asExternalTypedDataDouble, FfiAsExternalTypedDataDouble, 0x40cdd9e1)  \
   V(::, _getNativeField, GetNativeField, 0xa0139b85)                           \
   V(::, reachabilityFence, ReachabilityFence, 0x619235c1)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x1dcaf73d)                          \

@@ -45,6 +45,33 @@ classid_t ElementTypedDataCid(classid_t class_id) {
   }
 }
 
+classid_t ElementExternalTypedDataCid(classid_t class_id) {
+  switch (class_id) {
+    case kFfiInt8Cid:
+      return kExternalTypedDataInt8ArrayCid;
+    case kFfiUint8Cid:
+      return kExternalTypedDataUint8ArrayCid;
+    case kFfiInt16Cid:
+      return kExternalTypedDataInt16ArrayCid;
+    case kFfiUint16Cid:
+      return kExternalTypedDataUint16ArrayCid;
+    case kFfiInt32Cid:
+      return kExternalTypedDataInt32ArrayCid;
+    case kFfiUint32Cid:
+      return kExternalTypedDataUint32ArrayCid;
+    case kFfiInt64Cid:
+      return kExternalTypedDataInt64ArrayCid;
+    case kFfiUint64Cid:
+      return kExternalTypedDataUint64ArrayCid;
+    case kFfiFloatCid:
+      return kExternalTypedDataFloat32ArrayCid;
+    case kFfiDoubleCid:
+      return kExternalTypedDataFloat64ArrayCid;
+    default:
+      UNREACHABLE();
+  }
+}
+
 classid_t RecognizedMethodTypeArgCid(MethodRecognizer::Kind kind) {
   switch (kind) {
 #define LOAD_STORE(type)                                                       \
@@ -62,6 +89,11 @@ classid_t RecognizedMethodTypeArgCid(MethodRecognizer::Kind kind) {
     case MethodRecognizer::kFfiLoadPointer:
     case MethodRecognizer::kFfiStorePointer:
       return kPointerCid;
+#define AS_EXTERNAL_TYPED_DATA(type)                                           \
+  case MethodRecognizer::kFfiAsExternalTypedData##type:                        \
+    return kFfi##type##Cid;
+    CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(AS_EXTERNAL_TYPED_DATA)
+#undef AS_EXTERNAL_TYPED_DATA
     default:
       UNREACHABLE();
   }

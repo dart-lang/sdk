@@ -400,7 +400,16 @@ namespace dart {
   V(Ffi_dl_lookup, 2)                                                          \
   V(Ffi_dl_getHandle, 1)                                                       \
   V(Ffi_dl_providesSymbol, 2)                                                  \
-  V(Ffi_asExternalTypedData, 2)                                                \
+  V(Ffi_asExternalTypedDataInt8, 2)                                            \
+  V(Ffi_asExternalTypedDataInt16, 2)                                           \
+  V(Ffi_asExternalTypedDataInt32, 2)                                           \
+  V(Ffi_asExternalTypedDataInt64, 2)                                           \
+  V(Ffi_asExternalTypedDataUint8, 2)                                           \
+  V(Ffi_asExternalTypedDataUint16, 2)                                          \
+  V(Ffi_asExternalTypedDataUint32, 2)                                          \
+  V(Ffi_asExternalTypedDataUint64, 2)                                          \
+  V(Ffi_asExternalTypedDataFloat, 2)                                           \
+  V(Ffi_asExternalTypedDataDouble, 2)                                          \
   V(Ffi_dl_processLibrary, 0)                                                  \
   V(Ffi_dl_executableLibrary, 0)                                               \
   V(Ffi_GetFfiNativeResolver, 0)                                               \
