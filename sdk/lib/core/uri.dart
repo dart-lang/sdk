@@ -51,11 +51,12 @@ const String _hexDigits = "0123456789ABCDEF";
 /// ## File URI
 /// To create a URI from file path, use [Uri.file]:
 /// ```dart
-/// final fileWindows = Uri.file('C:/data/images/image.png', windows: true);
-/// print(fileWindows); // file:///C:/data/images/image.png
 ///
 /// final fileUri = Uri.file('C:/data/images/image.png', windows: false);
 /// print(fileUri); // C%3A/data/images/image.png
+///
+/// final fileWindows = Uri.file('C:/data/images/image.png', windows: true);
+/// print(fileWindows); // file:///C:/data/images/image.png
 /// ```
 /// If the URI is not a file URI calling this throws [UnsupportedError].
 ///
@@ -192,8 +193,8 @@ abstract class Uri {
   /// var uri = Uri.http('example.org', '/path', { 'q' : 'dart' });
   /// print(uri); // http://example.org/path?q=dart
   ///
-  /// uri = Uri.http('user:pass@localhost:8080', '');
-  /// print(uri); // http://user:pass@localhost:8080
+  /// uri = Uri.http('user:password@localhost:8080', '');
+  /// print(uri); // http://user:password@localhost:8080
   ///
   /// uri = Uri.http('example.org', 'a b');
   /// print(uri); // http://example.org/a%20b
@@ -227,8 +228,8 @@ abstract class Uri {
   /// var uri = Uri.https('example.org', '/path', {'q': 'dart'});
   /// print(uri); // https://example.org/path?q=dart
   ///
-  /// uri = Uri.https('user:pass@localhost:8080', '');
-  /// print(uri); // https://user:pass@localhost:8080
+  /// uri = Uri.https('user:password@localhost:8080', '');
+  /// print(uri); // https://user:password@localhost:8080
   ///
   /// uri = Uri.https('example.org', 'a b');
   /// print(uri); // https://example.org/a%20b
@@ -680,24 +681,27 @@ abstract class Uri {
   ///
   /// Example:
   /// ```dart
-  /// final uri1 = Uri.parse('a://b@c:4/d/e?f#g');
-  /// final uri2 =
-  ///     uri1.replace(scheme: 'C', path: 'D/E/E', fragment: 'G');
-  /// print(uri2); // c://b@c:4/D/E/E?f#G
+  /// final uri1 = Uri.parse(
+  ///     'http://dart.dev/guides/libraries/library-tour#utility-classes');
+  ///
+  /// final uri2 = uri1.replace(
+  ///     scheme: 'https',
+  ///     path: 'guides/libraries/library-tour',
+  ///     fragment: 'uris');
+  /// print(uri2); // https://dart.dev/guides/libraries/library-tour#uris
   /// ```
   /// This method acts similarly to using the `Uri` constructor with
   /// some of the arguments taken from this `Uri`. Example:
   /// ```
-  /// final uri3 = Uri(
-  ///     scheme: 'A',
+  /// final Uri uri3 = Uri(
+  ///     scheme: 'https',
   ///     userInfo: uri1.userInfo,
   ///     host: uri1.host,
-  ///     port: uri1.port,
-  ///     path: 'D/E/E',
+  ///     port: uri2.port,
+  ///     path: '/guides/language/language-tour',
   ///     query: uri1.query,
-  ///     fragment: 'G');
-  /// print(uri3); // a://b@c:4/D/E/E?f#G
-  /// print(uri2 == uri3); // true
+  ///     fragment: null);
+  /// print(uri3); // https://dart.dev/guides/language/language-tour
   /// ```
   /// Using this method can be seen as a shorthand for the `Uri` constructor
   /// call above, but may also be slightly faster because the parts taken
