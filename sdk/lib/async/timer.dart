@@ -17,27 +17,34 @@ part of dart.async;
 /// following example (taking advantage of the multiplication operator of
 /// the [Duration] class):
 /// ```dart
-/// const timeout = Duration(seconds: 3);
-/// const ms = Duration(milliseconds: 1);
+/// void main(){
+///   startTimeout(5 * 1000); // 5 seconds
+/// }
 ///
 /// Timer startTimeout([int? milliseconds]) {
-///   var duration = milliseconds == null ? timeout : ms * milliseconds;
-///   return Timer(duration, handleTimeout);
-/// }
-/// ...
-/// void handleTimeout() {  // callback function
-///   ...
+///   const timeout = Duration(seconds: 10);
+///   const ms = Duration(milliseconds: 1);
+///
+///   final duration = milliseconds == null ? timeout : ms * milliseconds;
+///   print(duration); // 0:00:05.000000
+///   return Timer(duration, () => print('exampleCallback'));
 /// }
 /// ```
-/// Note: If Dart code using [Timer] is compiled to JavaScript, the finest
+/// **Note:** If Dart code using [Timer] is compiled to JavaScript, the finest
 /// granularity available in the browser is 4 milliseconds.
 ///
-/// See [Stopwatch] for measuring elapsed time.
+/// See also:
+/// * [Stopwatch] for measuring elapsed time.
 abstract class Timer {
   /// Creates a new timer.
   ///
   /// The [callback] function is invoked after the given [duration].
   ///
+  /// ```dart
+  /// final timer =
+  ///     Timer(const Duration(seconds: 5), () => print('Timer finished'));
+  /// // Outputs after 5 seconds: "Timer finished"
+  /// ```
   factory Timer(Duration duration, void Function() callback) {
     if (Zone.current == Zone.root) {
       // No need to bind the callback. We know that the root's timer will
@@ -64,6 +71,24 @@ abstract class Timer {
   /// scheduled for - even if the actual callback was delayed.
   ///
   /// [duration] must a non-negative [Duration].
+  ///
+  /// Example:
+  /// ```dart
+  /// var counter = 3;
+  /// Timer.periodic(const Duration(seconds: 2), (timer) {
+  ///   print('${timer.tick}');
+  ///   counter--;
+  ///   if (counter == 0) {
+  ///     print('Cancel timer');
+  ///     timer.cancel();
+  ///   }
+  /// });
+  /// // Outputs:
+  /// // 1
+  /// // 2
+  /// // 3
+  /// // Cancel timer
+  /// ```
   factory Timer.periodic(Duration duration, void callback(Timer timer)) {
     if (Zone.current == Zone.root) {
       // No need to bind the callback. We know that the root's timer will
@@ -86,6 +111,12 @@ abstract class Timer {
   /// Once a [Timer] has been canceled, the callback function will not be called
   /// by the timer. Calling [cancel] more than once on a [Timer] is allowed, and
   /// will have no further effect.
+  /// ```dart
+  /// final timer =
+  ///     Timer(const Duration(seconds: 5), () => print('Timer finished'));
+  /// // Cancel timer, callback not called.
+  /// timer.cancel();
+  /// ```
   void cancel();
 
   /// The number of durations preceding the most recent timer event.
@@ -99,6 +130,16 @@ abstract class Timer {
   /// and no callback is invoked for them.
   /// The [tick] count reflects the number of durations that have passed and
   /// not the number of callback invocations that have happened.
+  /// ```dart
+  /// var counter = 5;
+  /// Timer.periodic(const Duration(seconds: 1), (timer) {
+  ///   print('${timer.tick}');
+  ///   counter--;
+  ///   if (counter == 0) {
+  ///     timer.cancel();
+  ///   }
+  /// });
+  /// ```
   int get tick;
 
   /// Returns whether the timer is still active.
