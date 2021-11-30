@@ -424,6 +424,17 @@
         "use-sdk": true
       }
     },
+    "web-unittest-asserts-legacy-(linux|mac|win)": {
+      "options": {
+        "builder-tag": "web-legacy",
+        "compiler": "dartk",
+        "enable-asserts": true,
+        "mode": "release",
+        "runtime": "vm",
+        "timeout": 240,
+        "use-sdk": true
+      }
+    },
     "unittest-asserts-(debug|product|release)-(linux|mac|win)": {
       "options": {
         "compiler": "dartk",
@@ -2398,6 +2409,17 @@
           "script": "tools/build.py",
           "arguments": [
             "create_sdk"
+          ]
+        },
+        {
+          "name": "dart2js legacy modular tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/compiler/tool/modular_test_suite_legacy.dart",
+            "-nweb-unittest-asserts-legacy-linux",
+            "--verbose",
+            "--use-sdk"
           ]
         },
         {

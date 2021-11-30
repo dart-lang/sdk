@@ -22,8 +22,7 @@ main(List<String> args) async {
         IOPipeline([
           OutlineDillCompilationStep(),
           FullDillCompilationStep(),
-          ModularAnalysisStep(),
-          ComputeClosedWorldStep(useModularAnalysis: true),
+          ComputeClosedWorldStep(useModularAnalysis: false),
           GlobalAnalysisStep(),
           Dart2jsCodegenStep(codeId0),
           Dart2jsCodegenStep(codeId1),
