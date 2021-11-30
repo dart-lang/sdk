@@ -131,14 +131,18 @@ abstract class Timer {
   /// The [tick] count reflects the number of durations that have passed and
   /// not the number of callback invocations that have happened.
   /// ```dart
-  /// var counter = 5;
-  /// Timer.periodic(const Duration(seconds: 1), (timer) {
+  /// var counter = 3;
+  /// Timer.periodic(const Duration(seconds: 2), (timer) {
   ///   print('${timer.tick}');
   ///   counter--;
   ///   if (counter == 0) {
   ///     timer.cancel();
   ///   }
   /// });
+  /// // Outputs:
+  /// // 1
+  /// // 2
+  /// // 3
   /// ```
   int get tick;
 
