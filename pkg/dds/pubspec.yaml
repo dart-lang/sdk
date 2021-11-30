@@ -16,7 +16,6 @@ dependencies:
   devtools_shared: ^2.3.0
   json_rpc_2: ^3.0.0
   meta: ^1.1.8
-  package_config: ^2.0.0
   path: ^1.8.0
   pedantic: ^1.7.0
   shelf: ^1.0.0

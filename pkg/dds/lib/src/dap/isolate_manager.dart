@@ -4,8 +4,10 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import 'adapters/dart.dart';
@@ -53,6 +55,9 @@ class IsolateManager {
   /// [debugExternalPackageLibraries] in one step.
   bool debugExternalPackageLibraries = true;
 
+  /// The root of the Dart SDK containing the VM running the debug adapter.
+  late final String sdkRoot;
+
   /// Tracks breakpoints last provided by the client so they can be sent to new
   /// isolates that appear after initial breakpoints were sent.
   final Map<String, List<SourceBreakpoint>> _clientBreakpointsByUri = {};
@@ -93,7 +98,10 @@ class IsolateManager {
   /// Any leading character matched in place of the dollar is in the first capture.
   final _braceNotPrefixedByDollarOrBackslashPattern = RegExp(r'(^|[^\\\$]){');
 
-  IsolateManager(this._adapter);
+  IsolateManager(this._adapter) {
+    final vmPath = Platform.resolvedExecutable;
+    sdkRoot = path.dirname(path.dirname(vmPath));
+  }
 
   /// A list of all current active isolates.
   ///
@@ -110,7 +118,7 @@ class IsolateManager {
     await Future.wait(_threadsByThreadId.values.map(
       // debuggable libraries is the only thing currently affected by these
       // changable options.
-      (isolate) => _sendLibraryDebuggables(isolate.isolate),
+      (thread) => _sendLibraryDebuggables(thread),
     ));
   }
 
@@ -175,7 +183,7 @@ class IsolateManager {
     final registrationCompleter =
         _isolateRegistrations.putIfAbsent(isolate.id!, () => Completer<void>());
 
-    final info = _threadsByIsolateId.putIfAbsent(
+    final thread = _threadsByIsolateId.putIfAbsent(
       isolate.id!,
       () {
         // The first time we see an isolate, start tracking it.
@@ -191,13 +199,13 @@ class IsolateManager {
 
     // If it's just become runnable (IsolateRunnable), configure the isolate
     // by sending breakpoints etc.
-    if (eventKind == vm.EventKind.kIsolateRunnable && !info.runnable) {
-      info.runnable = true;
-      await _configureIsolate(isolate);
+    if (eventKind == vm.EventKind.kIsolateRunnable && !thread.runnable) {
+      thread.runnable = true;
+      await _configureIsolate(thread);
       registrationCompleter.complete();
     }
 
-    return info;
+    return thread;
   }
 
   /// Calls reloadSources for all isolates.
@@ -272,7 +280,7 @@ class IsolateManager {
 
     // Send the breakpoints to all existing threads.
     await Future.wait(_threadsByThreadId.values
-        .map((isolate) => _sendBreakpoints(isolate.isolate, uri: uri)));
+        .map((thread) => _sendBreakpoints(thread, uri: uri)));
   }
 
   /// Records exception pause mode as one of 'None', 'Unhandled' or 'All'. All
@@ -282,7 +290,7 @@ class IsolateManager {
 
     // Send to all existing threads.
     await Future.wait(_threadsByThreadId.values.map(
-      (isolate) => _sendExceptionPauseMode(isolate.isolate),
+      (thread) => _sendExceptionPauseMode(thread),
     ));
   }
 
@@ -320,12 +328,15 @@ class IsolateManager {
 
   /// Configures a new isolate, setting it's exception-pause mode, which
   /// libraries are debuggable, and sending all breakpoints.
-  Future<void> _configureIsolate(vm.IsolateRef isolate) async {
+  Future<void> _configureIsolate(ThreadInfo thread) async {
+    // Libraries must be set as debuggable _before_ sending breakpoints, or
+    // they may fail for SDK sources.
     await Future.wait([
-      _sendLibraryDebuggables(isolate),
-      _sendExceptionPauseMode(isolate),
-      _sendBreakpoints(isolate),
+      _sendLibraryDebuggables(thread),
+      _sendExceptionPauseMode(thread),
     ], eagerError: true);
+
+    await _sendBreakpoints(thread);
   }
 
   /// Evaluates an expression, returning the result if it is a [vm.InstanceRef]
@@ -414,7 +425,7 @@ class IsolateManager {
     // For PausePostRequest we need to re-send all breakpoints; this happens
     // after a hot restart.
     if (eventKind == vm.EventKind.kPausePostRequest) {
-      await _configureIsolate(isolate);
+      await _configureIsolate(thread);
       if (resumeIfStarting) {
         await resumeThread(thread.threadId);
       }
@@ -493,6 +504,26 @@ class IsolateManager {
     }
   }
 
+  /// Attempts to resolve [uris] to file:/// URIs via the VM Service.
+  ///
+  /// This method calls the VM service directly. Most requests to resolve URIs
+  /// should go through [ThreadInfo]'s resolveXxx methods which perform caching
+  /// of results.
+  Future<List<Uri?>?> _lookupResolvedPackageUris<T extends vm.Response>(
+    vm.IsolateRef isolate,
+    List<Uri> uris,
+  ) async {
+    final isolateId = isolate.id!;
+    final uriStrings = uris.map((uri) => uri.toString()).toList();
+    final res = await _adapter.vmService
+        ?.lookupResolvedPackageUris(isolateId, uriStrings);
+
+    return res?.uris
+        ?.cast<String?>()
+        .map((uri) => uri != null ? Uri.parse(uri) : null)
+        .toList();
+  }
+
   /// Interpolates and prints messages for any log points.
   ///
   /// Log Points are breakpoints with string messages attached. When the VM hits
@@ -546,13 +577,13 @@ class IsolateManager {
   /// when breakpoints are modified for a single file in the editor). Otherwise
   /// breakpoints for all previously set URIs will be sent (used for
   /// newly-created isolates).
-  Future<void> _sendBreakpoints(vm.IsolateRef isolate, {String? uri}) async {
+  Future<void> _sendBreakpoints(ThreadInfo thread, {String? uri}) async {
     final service = _adapter.vmService;
     if (!debug || service == null) {
       return;
     }
 
-    final isolateId = isolate.id!;
+    final isolateId = thread.isolate.id!;
 
     // If we were passed a single URI, we should send breakpoints only for that
     // (this means the request came from the client), otherwise we should send
@@ -572,8 +603,14 @@ class IsolateManager {
       final newBreakpoints = _clientBreakpointsByUri[uri] ?? const [];
       await Future.forEach<SourceBreakpoint>(newBreakpoints, (bp) async {
         try {
+          // Some file URIs (like SDK sources) need to be converted to
+          // appropriate internal URIs to be able to set breakpoints.
+          final vmUri = await thread.resolvePathToUri(
+            Uri.parse(uri).toFilePath(),
+          );
+
           final vmBp = await service.addBreakpointWithScriptUri(
-              isolateId, uri, bp.line,
+              isolateId, vmUri.toString(), bp.line,
               column: bp.column);
           existingBreakpointsForIsolateAndUri.add(vmBp);
           _clientBreakpointsByVmId[vmBp.id!] = bp;
@@ -588,37 +625,47 @@ class IsolateManager {
   }
 
   /// Sets the exception pause mode for an individual isolate.
-  Future<void> _sendExceptionPauseMode(vm.IsolateRef isolate) async {
+  Future<void> _sendExceptionPauseMode(ThreadInfo thread) async {
     final service = _adapter.vmService;
     if (!debug || service == null) {
       return;
     }
 
     await service.setIsolatePauseMode(
-      isolate.id!,
+      thread.isolate.id!,
       exceptionPauseMode: _exceptionPauseMode,
     );
   }
 
   /// Calls setLibraryDebuggable for all libraries in the given isolate based
   /// on the debug settings.
-  Future<void> _sendLibraryDebuggables(vm.IsolateRef isolateRef) async {
+  Future<void> _sendLibraryDebuggables(ThreadInfo thread) async {
     final service = _adapter.vmService;
     if (!debug || service == null) {
       return;
     }
 
-    final isolateId = isolateRef.id!;
+    final isolateId = thread.isolate.id!;
 
     final isolate = await service.getIsolate(isolateId);
     final libraries = isolate.libraries;
     if (libraries == null) {
       return;
     }
+
+    // Pre-resolve all URIs in batch so the call below does not trigger
+    // many requests to the server.
+    final allUris = libraries
+        .map((library) => library.uri)
+        .whereNotNull()
+        .map(Uri.parse)
+        .toList();
+    await thread.resolveUrisToPackageLibPathsBatch(allUris);
+
     await Future.wait(libraries.map((library) async {
       final libraryUri = library.uri;
       final isDebuggable = libraryUri != null
-          ? _adapter.libaryIsDebuggable(Uri.parse(libraryUri))
+          ? await _adapter.libraryIsDebuggable(thread, Uri.parse(libraryUri))
           : false;
       await service.setLibraryDebuggable(isolateId, library.id!, isDebuggable);
     }));
@@ -673,13 +720,22 @@ class ThreadInfo {
   /// breakpoint or exception that occur early on.
   bool hasBeenStarted = false;
 
-  // The most recent pauseEvent for this isolate.
+  /// The most recent pauseEvent for this isolate.
   vm.Event? pauseEvent;
 
-  // A cache of requests (Futures) to fetch scripts, so that multiple requests
-  // that require scripts (for example looking up locations for stack frames from
-  // tokenPos) can share the same response.
+  /// A cache of requests (Futures) to fetch scripts, so that multiple requests
+  /// that require scripts (for example looking up locations for stack frames from
+  /// tokenPos) can share the same response.
   final _scripts = <String, Future<vm.Script>>{};
+
+  /// A cache of requests (Futures) to resolve URIs to their local file paths.
+  ///
+  /// Used so that multiple requests that require them (for example looking up
+  /// locations for stack frames from tokenPos) can share the same response.
+  ///
+  /// Keys are URIs in string form.
+  /// Values are file paths (not file URIs!).
+  final _resolvedPaths = <String, Future<String?>>{};
 
   /// Whether this isolate has an in-flight resume request that has not yet
   /// been responded to.
@@ -699,9 +755,207 @@ class ThreadInfo {
     return _scripts.putIfAbsent(script.id!, () => getObject<vm.Script>(script));
   }
 
+  /// Resolves a source file path into a URI for the VM.
+  ///
+  /// sdk-path/lib/core/print.dart -> dart:core/print.dart
+  ///
+  /// This is required so that when the user sets a breakpoint in an SDK source
+  /// (which they may have nagivated to via the Analysis Server) we generate a
+  /// vaid URI that the VM would create a breakpoint for.
+  Future<Uri?> resolvePathToUri(String filePath) async {
+    // We don't currently need to call lookupPackageUris because the VM can
+    // handle incoming file:/// URIs for packages, and also the org-dartlang-sdk
+    // URIs directly for SDK sources (we do not need to convert to 'dart:'),
+    // however this method is Future-returning in case this changes in future
+    // and we need to include a call to lookupPackageUris here.
+    return _convertPathToOrgDartlangSdk(filePath) ?? Uri.file(filePath);
+  }
+
+  /// Batch resolves source URIs from the VM to a file path for the package lib
+  /// folder.
+  ///
+  /// This method is more performant than repeatedly calling
+  /// [resolveUrisToPackageLibPath] because it resolves multiple URIs in a
+  /// single request to the VM.
+  ///
+  /// Results are cached and shared with [resolveUrisToPackageLibPath] (and
+  /// [resolveUriToPath]) so it's reasonable to call this method up-front and
+  /// then use [resolveUrisToPackageLibPath] (and [resolveUriToPath]) to read
+  /// the results later.
+  Future<List<String?>> resolveUrisToPackageLibPathsBatch(
+    List<Uri> uris,
+  ) async {
+    final results = await resolveUrisToPathsBatch(uris);
+    return results
+        .mapIndexed((i, filePath) => _trimPathToLibFolder(filePath, uris[i]))
+        .toList();
+  }
+
+  /// Batch resolves source URIs from the VM to a file path.
+  ///
+  /// This method is more performant than repeatedly calling [resolveUriToPath]
+  /// because it resolves multiple URIs in a single request to the VM.
+  ///
+  /// Results are cached and shared with [resolveUriToPath] so it's reasonable
+  /// to call this method up-front and then use [resolveUriToPath] to read
+  /// the results later.
+  Future<List<String?>> resolveUrisToPathsBatch(List<Uri> uris) async {
+    // First find the set of URIs we don't already have results for.
+    final requiredUris = uris
+        .where((uri) => !uri.isScheme('file'))
+        .where((uri) => !_resolvedPaths.containsKey(uri.toString()))
+        .toSet() // Take only distinct values.
+        .toList();
+
+    if (requiredUris.isNotEmpty) {
+      // Populate completers for each URI before we start the request so that
+      // concurrent calls to this method will not start their own requests.
+      final completers = Map<String, Completer<String?>>.fromEntries(
+        requiredUris.map((uri) => MapEntry('$uri', Completer<String?>())),
+      );
+      completers.forEach(
+        (uri, completer) => _resolvedPaths[uri] = completer.future,
+      );
+      final results =
+          await _manager._lookupResolvedPackageUris(isolate, requiredUris);
+      if (results == null) {
+        // If no result, all of the results are null.
+        completers.forEach((uri, completer) => completer.complete(null));
+      } else {
+        // Otherwise, complete each one by index with the corresponding value.
+        results.map(_convertUriToFilePath).forEachIndexed((i, result) {
+          final uri = requiredUris[i].toString();
+          completers[uri]!.complete(result);
+        });
+      }
+    }
+
+    // Finally, assemble a list of the values by using the cached futures and
+    // the original list. Any non-file URI is guaranteed to be in [_resolvedPaths]
+    // because they were either filtered out of [requiredUris] because they were
+    // already there, or we then populated completers for them above.
+    final futures = uris.map((uri) async {
+      return uri.isScheme('file')
+          ? uri.toFilePath()
+          : await _resolvedPaths[uri.toString()]!;
+    });
+    return Future.wait(futures);
+  }
+
+  /// Resolves a source URI to a file path for the lib folder of its package.
+  ///
+  /// package:foo/a/b/c/d.dart -> /code/packages/foo/lib
+  ///
+  /// This method is an optimisation over calling [resolveUriToPath] where only
+  /// the package root is required (for example when determining whether a
+  /// package is within the users workspace). This method allows results to be
+  /// cached per-package to avoid hitting the VM Service for each individual
+  /// library within a package.
+  Future<String?> resolveUriToPackageLibPath(Uri uri) async {
+    final result = await resolveUrisToPackageLibPathsBatch([uri]);
+    return result.first;
+  }
+
+  /// Resolves a source URI from the VM to a file path.
+  ///
+  /// dart:core/print.dart -> sdk-path/lib/core/print.dart
+  ///
+  /// This is required so that when the user stops (or navigates via a stack
+  /// frame) we open the same file on their local disk. If we downloaded the
+  /// source from the VM, they would end up seeing two copies of files (and they
+  /// would each have their own breakpoints) which can be confusing.
+  Future<String?> resolveUriToPath(Uri uri) async {
+    final result = await resolveUrisToPathsBatch([uri]);
+    return result.first;
+  }
+
   /// Stores some basic data indexed by an integer for use in "reference" fields
   /// that are round-tripped to the client.
   int storeData(Object data) => _manager.storeData(this, data);
+
+  /// Converts a URI in the form org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
+  /// to a local file path based on the current SDK.
+  String? _convertOrgDartlangSdkToPath(Uri uri) {
+    // org-dartlang-sdk URIs can be in multiple forms:
+    //
+    //   - org-dartlang-sdk:///sdk/lib/collection/hash_set.dart
+    //   - org-dartlang-sdk:///runtime/lib/convert_patch.dart
+    //
+    // We currently only handle the sdk folder, as we don't know which runtime
+    // is being used (this code is shared) and do not want to map to the wrong
+    // sources.
+    if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'sdk') {
+      // TODO(dantup): Do we need to worry about this content not matching
+      //   up with what's local (eg. for Flutter the VM running the app is
+      //   on another device to the VM running this DA).
+      final sdkRoot = _manager.sdkRoot;
+      return path.joinAll([sdkRoot, ...uri.pathSegments.skip(1)]);
+    }
+
+    return null;
+  }
+
+  /// Converts a file path inside the current SDK root into a URI in the form
+  /// org-dartlang-sdk:///sdk/lib/collection/hash_set.dart.
+  Uri? _convertPathToOrgDartlangSdk(String input) {
+    final sdkRoot = _manager.sdkRoot;
+    if (path.isWithin(sdkRoot, input)) {
+      final relative = path.relative(input, from: sdkRoot);
+      return Uri(
+        scheme: 'org-dartlang-sdk',
+        host: '',
+        pathSegments: ['sdk', ...path.split(relative)],
+      );
+    }
+
+    return null;
+  }
+
+  /// Converts a URI to a file path.
+  ///
+  /// Supports file:// URIs and org-dartlang-sdk:// URIs.
+  String? _convertUriToFilePath(Uri? input) {
+    if (input == null) {
+      return null;
+    } else if (input.isScheme('file')) {
+      return input.toFilePath();
+    } else if (input.isScheme('org-dartlang-sdk')) {
+      return _convertOrgDartlangSdkToPath(input);
+    } else {
+      return null;
+    }
+  }
+
+  /// Helper to remove a libraries path from the a file path so it points at the
+  /// lib folder.
+  ///
+  /// [uri] should be the equivalent package: URI and is used to know how many
+  /// segments to remove from the file path to get to the lib folder.
+  String? _trimPathToLibFolder(String? filePath, Uri uri) {
+    if (filePath == null) {
+      return null;
+    }
+
+    final fileUri = Uri.file(filePath);
+
+    // Track how many segments from the path are from the lib folder to the
+    // libary that will need to be removed later.
+    final libraryPathSegments = uri.pathSegments.length - 1;
+
+    // It should never be the case that the returned value doesn't have at
+    // least as many segments as the path of the URI.
+    assert(fileUri.pathSegments.length > libraryPathSegments);
+    if (fileUri.pathSegments.length <= libraryPathSegments) {
+      return filePath;
+    }
+
+    // Strip off the correct number of segments to the resulting path points
+    // to the root of the package:/ URI.
+    final keepSegments = fileUri.pathSegments.length - libraryPathSegments;
+    return fileUri
+        .replace(pathSegments: fileUri.pathSegments.sublist(0, keepSegments))
+        .toFilePath();
+  }
 }
 
 class _StoredData {
