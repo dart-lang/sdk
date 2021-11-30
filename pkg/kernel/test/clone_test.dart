@@ -155,7 +155,8 @@ class MemberEquivalenceStrategy extends EquivalenceStrategy {
     if (reference1 != null && reference2 != null) {
       ReferenceName referenceName1 = ReferenceName.fromNamedNode(member1);
       ReferenceName referenceName2 = ReferenceName.fromNamedNode(member2);
-      if (referenceName1.memberName == referenceName2.memberName &&
+      if (referenceName1.kind == referenceName2.kind &&
+              referenceName1.memberName == referenceName2.memberName &&
               referenceName1.memberUri == referenceName2.memberUri &&
               referenceName2.declarationName == null ||
           referenceName2.libraryUri == null) {
