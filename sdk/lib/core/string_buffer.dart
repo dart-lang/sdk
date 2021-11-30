@@ -12,11 +12,11 @@ part of dart.core;
 ///
 /// Example:
 /// ```dart
-/// final buffer = StringBuffer();
+/// final buffer = StringBuffer('Dart'.toUpperCase());
+/// print(buffer.length); // 4
 /// ```
-/// To add a string to the buffer, use [write].
+/// To add a string representation of object to the buffer, use [write].
 /// ```
-/// buffer.write('Dart'.toUpperCase());
 /// buffer.write(' is open source');
 /// print(buffer.length); // 19
 /// print(buffer); // DART is open source
@@ -25,7 +25,7 @@ part of dart.core;
 /// ```
 /// buffer.writeln();
 /// ```
-/// To write multiple stings to the buffer, use [writeAll].
+/// To write multiple objects to the buffer, use [writeAll].
 /// ```
 /// const separator = '-';
 /// buffer.writeAll(['Dart', 'is', 'fun!'], separator);
@@ -48,7 +48,7 @@ part of dart.core;
 /// // Dart-is-fun!
 /// // Dart
 /// ```
-/// Getting the contents of the buffer as a single string, use [toString].
+/// To convert the content to a single string, use [toString].
 /// ```
 /// final text = buffer.toString();
 /// print(text);
@@ -56,7 +56,7 @@ part of dart.core;
 /// // Dart-is-fun!
 /// // Dart
 /// ```
-/// To clear the buffer, use [clear]
+/// To clear the buffer, use [clear].
 /// ```
 /// buffer.clear();
 /// print(buffer.isEmpty); // true
