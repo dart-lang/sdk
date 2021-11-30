@@ -43,6 +43,9 @@ final vmServiceAuthCodePathPattern = RegExp(r'^/[\w_\-=]{5,15}/ws$');
 /// by the VM when not using --write-service-info.
 final vmServiceBannerPattern = RegExp(r'Observatory listening on ([^\s]+)\s');
 
+/// The root of the SDK containing the current running VM.
+final sdkRoot = path.dirname(path.dirname(Platform.resolvedExecutable));
+
 /// Expects the lines in [actual] to match the relevant matcher in [expected],
 /// ignoring differences in line endings and trailing whitespace.
 void expectLines(String actual, List<Object> expected) {

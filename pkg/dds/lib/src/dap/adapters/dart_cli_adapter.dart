@@ -108,18 +108,6 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       ...?args.args,
     ];
 
-    // Find the package_config file for this script.
-    // TODO(dantup): Remove this once
-    //   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
-    //   necessary.
-    var possibleRoot = path.isAbsolute(args.program)
-        ? path.dirname(args.program)
-        : path.dirname(path.normalize(path.join(args.cwd ?? '', args.program)));
-    final packageConfig = findPackageConfigFile(possibleRoot);
-    if (packageConfig != null) {
-      this.usePackageConfigFile(packageConfig);
-    }
-
     // If the client supports runInTerminal and args.console is set to either
     // 'terminal' or 'runInTerminal' we won't run the process ourselves, but
     // instead call the client to run it for us (this allows it to run in a
@@ -164,18 +152,6 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       );
       handleSessionTerminate();
       return;
-    }
-
-    // Find the package_config file for this script.
-    // TODO(dantup): Remove this once
-    //   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
-    //   necessary.
-    final cwd = args.cwd;
-    if (cwd != null) {
-      final packageConfig = findPackageConfigFile(cwd);
-      if (packageConfig != null) {
-        this.usePackageConfigFile(packageConfig);
-      }
     }
 
     final uri = vmServiceUri != null

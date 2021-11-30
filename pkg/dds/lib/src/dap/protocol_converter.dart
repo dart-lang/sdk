@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:package_config/package_config_types.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
@@ -25,11 +24,6 @@ class ProtocolConverter {
   /// The parent debug adapter, used to access arguments and the VM Service for
   /// the debug session.
   final DartDebugAdapter _adapter;
-
-  /// Temporary PackageConfig used for resolving package: URIs.
-  /// TODO(dantup): Replace this implementation with one that calls the VM
-  ///   Service once https://github.com/dart-lang/sdk/issues/45530 is done.
-  PackageConfig packageConfig = PackageConfig.empty;
 
   ProtocolConverter(this._adapter);
 
@@ -388,13 +382,15 @@ class ProtocolConverter {
     final tokenPos = location.tokenPos;
     final scriptRefUri = scriptRef?.uri;
     final uri = scriptRefUri != null ? Uri.parse(scriptRefUri) : null;
+    final uriIsDart = uri?.isScheme('dart') ?? false;
     final uriIsPackage = uri?.isScheme('package') ?? false;
-    final sourcePath = uri != null ? await convertVmUriToSourcePath(uri) : null;
+    final sourcePath = uri != null ? await thread.resolveUriToPath(uri) : null;
     var canShowSource = sourcePath != null && File(sourcePath).existsSync();
 
     // Download the source if from a "dart:" uri.
     int? sourceReference;
-    if (uri != null &&
+    if (!canShowSource &&
+        uri != null &&
         (uri.isScheme('dart') || uri.isScheme('org-dartlang-app')) &&
         scriptRef != null) {
       sourceReference = thread.storeData(scriptRef);
@@ -416,17 +412,18 @@ class ProtocolConverter {
     // SDK and debugSdkLibraries=false) then we should also mark it as
     // deemphasized so that the editor can jump up the stack to the first frame
     // of debuggable code.
-    final isDebuggable = uri != null && _adapter.libaryIsDebuggable(uri);
+    final isDebuggable =
+        uri != null && await _adapter.libraryIsDebuggable(thread, uri);
     final presentationHint = isDebuggable ? null : 'deemphasize';
     final origin = uri != null && _adapter.isSdkLibrary(uri)
         ? 'from the SDK'
-        : uri != null && _adapter.isExternalPackageLibrary(uri)
+        : uri != null && await _adapter.isExternalPackageLibrary(thread, uri)
             ? 'from external packages'
             : null;
 
     final source = canShowSource
         ? dap.Source(
-            name: uriIsPackage
+            name: uriIsPackage || uriIsDart
                 ? uri!.toString()
                 : sourcePath != null
                     ? convertToRelativePath(sourcePath)
@@ -455,22 +452,6 @@ class ProtocolConverter {
     );
   }
 
-  /// Converts the source URI from the VM to a file path.
-  ///
-  /// This is required so that when the user stops (or navigates via a stack
-  /// frame) we open the same file on their local disk. If we downloaded the
-  /// source from the VM, they would end up seeing two copies of files (and they
-  /// would each have their own breakpoints) which can be confusing.
-  Future<String?> convertVmUriToSourcePath(Uri uri) async {
-    if (uri.isScheme('file')) {
-      return uri.toFilePath();
-    } else if (uri.isScheme('package')) {
-      return resolvePackageUri(uri);
-    } else {
-      return null;
-    }
-  }
-
   /// Whether [kind] is a simple kind, and does not need to be mapped to a variable.
   bool isSimpleKind(String? kind) {
     return kind == 'String' ||
@@ -480,19 +461,6 @@ class ProtocolConverter {
         kind == 'Double' ||
         kind == 'Null' ||
         kind == 'Closure';
-  }
-
-  /// Resolves a `package: URI` to the real underlying source path.
-  ///
-  /// Returns `null` if no mapping was possible, for example if the package is
-  /// not in the package mapping file.
-  String? resolvePackageUri(Uri uri) {
-    // TODO(dantup): Replace this implementation with one that calls the VM
-    //   Service once https://github.com/dart-lang/sdk/issues/45530 is done.
-    // This implementation makes assumptions about the package file being used
-    // that might not be correct (for example if the user uses the --packages
-    // flag).
-    return packageConfig.resolve(uri)?.toFilePath();
   }
 
   /// Invokes the toString() method on a [vm.InstanceRef] and converts the

@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
-import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
@@ -949,12 +948,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// 'additionalProjectPaths' in the launch arguments. An editor should include
   /// the paths of all open workspace folders in 'additionalProjectPaths' to
   /// support this feature correctly.
-  bool isExternalPackageLibrary(Uri uri) {
+  Future<bool> isExternalPackageLibrary(ThreadInfo thread, Uri uri) async {
     if (!uri.isScheme('package')) {
       return false;
     }
-    final libraryPath = resolvePackageUri(uri);
-    if (libraryPath == null) {
+
+    final packagePath = await thread.resolveUriToPackageLibPath(uri);
+    if (packagePath == null) {
       return false;
     }
 
@@ -962,9 +962,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // may have returned different casing (e.g. Windows drive letters). It's
     // almost certain a user wouldn't have a "local" package and an "external"
     // package with paths differing only be case.
-    final libraryPathLower = libraryPath.toLowerCase();
-    return !projectPaths.any((projectPath) =>
-        path.isWithin(projectPath.toLowerCase(), libraryPathLower));
+    final packagePathLower = packagePath.toLowerCase();
+    return !projectPaths
+        .map((projectPath) => projectPath.toLowerCase())
+        .any((projectPath) => path.isWithin(projectPath, packagePathLower));
   }
 
   /// Checks whether this library is from the SDK.
@@ -1002,10 +1003,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   ///
   /// Initial values are provided in the launch arguments, but may be updated
   /// by the `updateDebugOptions` custom request.
-  bool libaryIsDebuggable(Uri uri) {
+  Future<bool> libraryIsDebuggable(ThreadInfo thread, Uri uri) async {
     if (isSdkLibrary(uri)) {
       return _isolateManager.debugSdkLibraries;
-    } else if (isExternalPackageLibrary(uri)) {
+    } else if (await isExternalPackageLibrary(thread, uri)) {
       return _isolateManager.debugExternalPackageLibraries;
     } else {
       return true;
@@ -1023,12 +1024,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     await _isolateManager.resumeThread(args.threadId, vm.StepOption.kOver);
     sendResponse();
   }
-
-  /// Resolves a `package: URI` to the real underlying source path.
-  ///
-  /// Returns `null` if no mapping was possible, for example if the package is
-  /// not in the package mapping file.
-  String? resolvePackageUri(Uri uri) => _converter.resolvePackageUri(uri);
 
   /// restart is called by the client when the user invokes a restart (for
   /// example with the button on the debug toolbar).
@@ -1296,6 +1291,15 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           (frame) => frame.kind == vm.FrameKind.kAsyncSuspensionMarker,
         );
 
+        // Pre-resolve all URIs in batch so the call below does not trigger
+        // many requests to the server.
+        final allUris = frames
+            .map((frame) => frame.location?.script?.uri)
+            .whereNotNull()
+            .map(Uri.parse)
+            .toList();
+        await thread.resolveUrisToPathsBatch(allUris);
+
         Future<StackFrame> convert(int index, vm.Frame frame) async {
           return _converter.convertVmToDapStackFrame(
             thread,
@@ -1396,14 +1400,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
   /// Sets the package config file to use for `package: URI` resolution.
   ///
-  /// TODO(dantup): Remove this once
-  ///   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
-  ///   necessary.
+  /// It is no longer necessary to call this method as the package config file
+  /// is no longer used. URI lookups are done via the VM Service.
+  @Deprecated('No longer necessary, URI lookups are done via VM Service')
   void usePackageConfigFile(File packageConfig) {
-    _converter.packageConfig = PackageConfig.parseString(
-      packageConfig.readAsStringSync(),
-      Uri.file(packageConfig.path),
-    );
+    // TODO(dantup): Remove this method after Flutter DA is updated not to use
+    // it.
   }
 
   /// [variablesRequest] is called by the client to request child variables for

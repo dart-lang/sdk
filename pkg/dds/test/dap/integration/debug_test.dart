@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dds/src/dap/protocol_generated.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import 'test_client.dart';
@@ -159,6 +160,46 @@ main() {
       // Source code should contain the implementation/signature of print().
       final source = await client.getValidSource(topFrame.source!);
       expect(source.content, contains('void print(Object? object) {'));
+      // Skipped because this test is not currently valid as source for print
+      // is mapped to local sources.
+    }, skip: true);
+
+    test('can map SDK source code to a local path', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Hit the initial breakpoint.
+      final stop = await dap.client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          debugSdkLibraries: true,
+        ),
+      );
+
+      // Step in to go into print.
+      final responses = await Future.wait([
+        client.expectStop('step', sourceName: 'dart:core/print.dart'),
+        client.stepIn(stop.threadId!),
+      ], eagerError: true);
+      final stopResponse = responses.first as StoppedEventBody;
+
+      // Fetch the top stack frame (which should be inside print).
+      final stack = await client.getValidStack(
+        stopResponse.threadId!,
+        startFrame: 0,
+        numFrames: 1,
+      );
+      final topFrame = stack.stackFrames.first;
+
+      // SDK sources that have been mapped have no sourceReference but a path.
+      expect(
+        topFrame.source!.path,
+        equals(path.join(sdkRoot, 'lib', 'core', 'print.dart')),
+      );
+      expect(topFrame.source!.sourceReference, isNull);
     });
 
     test('can shutdown during startup', () async {

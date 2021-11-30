@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
@@ -117,18 +116,6 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       args.program,
       ...?args.args,
     ];
-
-    // Find the package_config file for this script.
-    // TODO(dantup): Remove this once
-    //   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
-    //   necessary.
-    var possibleRoot = path.isAbsolute(args.program)
-        ? path.dirname(args.program)
-        : path.dirname(path.normalize(path.join(args.cwd ?? '', args.program)));
-    final packageConfig = findPackageConfigFile(possibleRoot);
-    if (packageConfig != null) {
-      this.usePackageConfigFile(packageConfig);
-    }
 
     // TODO(dantup): Support passing env to both of these.
 
