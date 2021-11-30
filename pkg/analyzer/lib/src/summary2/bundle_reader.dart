@@ -1406,6 +1406,8 @@ class ResolutionReader {
   List<DartType>? readOptionalTypeList() {
     if (_reader.readBool()) {
       return _readTypeList();
+    } else {
+      return null;
     }
   }
 
@@ -1695,6 +1697,8 @@ class ResolutionReader {
   ExpressionImpl? _readOptionalExpression() {
     if (_reader.readBool()) {
       return _readRequiredNode() as ExpressionImpl;
+    } else {
+      return null;
     }
   }
 

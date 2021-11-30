@@ -1135,8 +1135,7 @@ class AnalysisError implements Diagnostic {
     return errors.toList();
   }
 
-  static List<Object?>? _translateNamedArguments(
-      Map<String, dynamic> arguments) {
+  static Null _translateNamedArguments(Map<String, dynamic> arguments) {
     // All analyzer errors now use positional arguments, so if this method is
     // being called, either no arguments were provided to the
     // AnalysisError.withNamedArguments constructor, or the client was

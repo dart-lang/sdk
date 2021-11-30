@@ -420,6 +420,7 @@ class ContextLocatorImpl implements ContextLocator {
         return file;
       }
     }
+    return null;
   }
 
   /// Return the analysis options file to be used to analyze files in the given
@@ -432,6 +433,7 @@ class ContextLocatorImpl implements ContextLocator {
         return file;
       }
     }
+    return null;
   }
 
   /// Return the packages file to be used to analyze files in the given
@@ -444,6 +446,7 @@ class ContextLocatorImpl implements ContextLocator {
         return _PackagesFile(current, file);
       }
     }
+    return null;
   }
 
   /// Return a list containing the glob patterns used to exclude files from the

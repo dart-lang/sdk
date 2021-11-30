@@ -567,12 +567,13 @@ abstract class _TypeSubstitutor
   InstantiatedTypeAliasElementImpl? _mapAlias(
     InstantiatedTypeAliasElement? alias,
   ) {
-    if (alias != null) {
-      return InstantiatedTypeAliasElementImpl(
-        element: alias.element,
-        typeArguments: _mapList(alias.typeArguments),
-      );
+    if (alias == null) {
+      return null;
     }
+    return InstantiatedTypeAliasElementImpl(
+      element: alias.element,
+      typeArguments: _mapList(alias.typeArguments),
+    );
   }
 
   List<DartType> _mapList(List<DartType> types) {

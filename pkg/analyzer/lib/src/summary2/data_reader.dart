@@ -57,18 +57,24 @@ class SummaryDataReader {
   String? readOptionalStringReference() {
     if (readBool()) {
       return readStringReference();
+    } else {
+      return null;
     }
   }
 
   String? readOptionalStringUtf8() {
     if (readBool()) {
       return readStringUtf8();
+    } else {
+      return null;
     }
   }
 
   int? readOptionalUInt30() {
     if (readBool()) {
       return readUInt30();
+    } else {
+      return null;
     }
   }
 

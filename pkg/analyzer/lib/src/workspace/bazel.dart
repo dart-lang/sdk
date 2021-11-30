@@ -358,6 +358,8 @@ class BazelWorkspace extends Workspace
         return packageRootedAt(folder);
       }
     }
+
+    return null;
   }
 
   /// In some distributed build environments, BUILD files are not preserved.
@@ -497,10 +499,9 @@ class BazelWorkspace extends Workspace
             context.join(root, '$symlinkPrefix-genfiles'),
             lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
       }
-
-      // // Go up the folder.
-      // folder = parent;
     }
+
+    return null;
   }
 
   /// Find the "bin" folder path, by searching for it.
@@ -587,6 +588,8 @@ class BazelWorkspace extends Workspace
     for (var match in pattern.allMatches(content)) {
       return Version.parse('${match.group(1)}.0');
     }
+
+    return null;
   }
 }
 

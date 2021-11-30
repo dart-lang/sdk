@@ -125,8 +125,6 @@ constexpr bool FLAG_support_il_printer = false;
   P(enable_ffi, bool, true, "Disable to make importing dart:ffi an error.")    \
   P(force_clone_compiler_objects, bool, false,                                 \
     "Force cloning of objects needed in compiler (ICData and Field).")         \
-  P(getter_setter_ratio, int, 13,                                              \
-    "Ratio of getter/setter usage used for double field unboxing heuristics")  \
   P(guess_icdata_cid, bool, true,                                              \
     "Artificially create type feedback for arithmetic etc. operations")        \
   P(huge_method_cutoff_in_tokens, int, 20000,                                  \

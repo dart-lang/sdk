@@ -1014,7 +1014,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   LibraryElement? _selectLibrary(NamespaceDirective node) {
     var uri = _selectAbsoluteUri(node);
-    if (uri != null) {
+    if (uri == null) {
+      return null;
+    } else {
       return _linker.elementFactory.libraryOfUri('$uri');
     }
   }
@@ -1270,7 +1272,9 @@ class _EnclosingContext {
 
   Reference? addParameter(String? name, ParameterElementImpl element) {
     parameters.add(element);
-    if (name != null) {
+    if (name == null) {
+      return null;
+    } else {
       return _bindReference('@parameter', name, element);
     }
   }
