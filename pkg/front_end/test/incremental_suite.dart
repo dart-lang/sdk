@@ -1953,7 +1953,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
         .computeDelta(entryPoints: entryPoints, fullComponent: fullComponent);
 
     // We should at least have the SDK builders available. Slight smoke test.
-    if (!dillLoadedData!.loader.libraryImportUris
+    if (!dillTargetForTesting!.loader.libraryImportUris
         .map((uri) => uri.toString())
         .contains("dart:core")) {
       throw "Loaders builder should contain the sdk, "

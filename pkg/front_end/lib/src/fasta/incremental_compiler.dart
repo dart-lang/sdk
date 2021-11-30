@@ -222,14 +222,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   Set<Library>? get neededDillLibraries => _neededDillLibraries;
 
-  DillTarget? get dillLoadedData => _dillLoadedData;
+  DillTarget? get dillTargetForTesting => _dillLoadedData;
 
-  IncrementalKernelTarget? get userCode => _userCode;
+  IncrementalKernelTarget? get kernelTargetForTesting => _userCode;
 
   /// Returns the [Package] used for the package [packageName] in the most
   /// recent compilation.
   Package? getPackageForPackageName(String packageName) =>
       _currentPackagesMap?[packageName];
+
+  /// Returns the [Library] with the given [importUri] from the most recent
+  /// compilation.
+  Library? lookupLibrary(Uri importUri) =>
+      _userCode?.loader.lookupLibraryBuilder(importUri)?.library;
 
   void _enableExperimentsBasedOnEnvironment({Set<String>? enabledExperiments}) {
     // Note that these are all experimental. Use at your own risk.
@@ -1027,7 +1032,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       _incrementalSerializer?.invalidate(builder.fileUri);
 
       LibraryBuilder? dillBuilder =
-          dillLoadedData!.loader.deregisterLibraryBuilder(builder.importUri);
+          _dillLoadedData!.loader.deregisterLibraryBuilder(builder.importUri);
       if (dillBuilder != null) {
         removedDillBuilders = true;
         _userBuilders?.remove(builder.importUri);
@@ -1659,7 +1664,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (builder != null) {
         Library lib = builder.library;
         removedLibraries.add(lib);
-        if (dillLoadedData!.loader.deregisterLibraryBuilder(uri) != null) {
+        if (_dillLoadedData!.loader.deregisterLibraryBuilder(uri) != null) {
           removedDillBuilders = true;
         }
         _cleanupSourcesForBuilder(null, builder, uriTranslator,
@@ -1925,7 +1930,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Internal method.
   void _appendLibraries(IncrementalCompilerData data, int bytesLength) {
     if (data.component != null) {
-      dillLoadedData!.loader
+      _dillLoadedData!.loader
           .appendLibraries(data.component!, byteCount: bytesLength);
     }
     _ticker.logMs("Appended libraries");
