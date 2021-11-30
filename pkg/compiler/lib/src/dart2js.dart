@@ -664,10 +664,17 @@ Future<api.CompilationResult> compile(List<String> argv,
     // Wire up feature flags.
     OptionHandler(Flags.canary, passThrough),
     OptionHandler(Flags.noShipping, passThrough),
+    // Shipped features.
+    for (var feature in features.shipped)
+      OptionHandler('--${feature.flag}', passThrough),
+    for (var feature in features.shipped)
+      OptionHandler('--no-${feature.flag}', passThrough),
+    // Shipping features.
     for (var feature in features.shipping)
       OptionHandler('--${feature.flag}', passThrough),
     for (var feature in features.shipping)
       OptionHandler('--no-${feature.flag}', passThrough),
+    // Canary features.
     for (var feature in features.canary)
       OptionHandler('--${feature.flag}', passThrough),
     for (var feature in features.canary)

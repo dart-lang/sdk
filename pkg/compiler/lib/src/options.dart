@@ -18,6 +18,7 @@ enum NullSafetyMode {
 }
 
 enum FeatureStatus {
+  shipped,
   shipping,
   canary,
 }
@@ -31,6 +32,10 @@ enum FeatureStatus {
 /// passed. The [isNegativeFlag] bool flips things around so while in [canary]
 /// the [FeatureOption] is enabled unless explicitly disabled, and while in
 /// [staging] it is disabled unless explicitly enabled.
+///
+/// Finally, mature features can be moved to [shipped], at which point we ignore
+/// the flag, but throw if the value of the flag is unexpected(i.e. if a
+/// positive flag is disabled, or a negative flag is enabled).
 class FeatureOption {
   final String flag;
   final bool isNegativeFlag;
@@ -71,6 +76,9 @@ class FeatureOptions {
   /// Whether to generate code compliant with Content Security Policy.
   FeatureOption useContentSecurityPolicy = FeatureOption('csp');
 
+  /// [FeatureOption]s which are shipped and cannot be toggled.
+  late final List<FeatureOption> shipped = [];
+
   /// [FeatureOption]s which default to enabled.
   late final List<FeatureOption> shipping = [
     legacyJavaScript,
@@ -107,6 +115,7 @@ class FeatureOptions {
 
   /// Parses a [List<String>] and enables / disables features as necessary.
   void parse(List<String> options) {
+    _verifyShippedFeatures(options, shipped);
     _extractFeatures(options, shipping, FeatureStatus.shipping);
     _extractFeatures(options, canary, FeatureStatus.canary);
   }
@@ -905,6 +914,30 @@ void _extractFeatures(
         (status == FeatureStatus.shipping && !hasNoShippingFlag);
     globalEnable = feature.isNegativeFlag ? !globalEnable : globalEnable;
     feature.state = (enableFeature || globalEnable) && !disableFeature;
+  }
+}
+
+void _verifyShippedFeatures(
+    List<String> options, List<FeatureOption> features) {
+  for (var feature in features) {
+    String featureFlag = feature.flag;
+    String enableFeatureFlag = '--$featureFlag';
+    String disableFeatureFlag = '--no-$featureFlag';
+    bool enableFeature = _hasOption(options, enableFeatureFlag);
+    bool disableFeature = _hasOption(options, disableFeatureFlag);
+    if (enableFeature && disableFeature) {
+      throw ArgumentError("'$enableFeatureFlag' incompatible with "
+          "'$disableFeatureFlag'");
+    }
+    if (enableFeature && feature.isNegativeFlag) {
+      throw ArgumentError(
+          "$disableFeatureFlag has already shipped and cannot be enabled.");
+    }
+    if (disableFeature && !feature.isNegativeFlag) {
+      throw ArgumentError(
+          "$enableFeatureFlag has already shipped and cannot be disabled.");
+    }
+    feature.state = !feature.isNegativeFlag;
   }
 }
 
