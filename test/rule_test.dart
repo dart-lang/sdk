@@ -4,7 +4,10 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/io.dart';
@@ -202,80 +205,21 @@ void defineSoloRuleTest(String ruleToTest) {
 }
 
 void testRule(String ruleName, File file,
-    {bool debug = true, bool failOnErrors = true, String? analysisOptions}) {
+    {bool debug = true,
+    bool failOnErrors = true,
+    bool useMockSdk = true,
+    String? analysisOptions}) {
   test(ruleName, () async {
     if (!file.existsSync()) {
       throw Exception('No rule found defined at: ${file.path}');
     }
 
-    registerLintRules(inTestMode: debug);
-
-    var expected = <AnnotationMatcher>[];
-
-    var lineNumber = 1;
-    for (var line in file.readAsLinesSync()) {
-      var annotation = extractAnnotation(lineNumber, line);
-      if (annotation != null) {
-        expected.add(AnnotationMatcher(annotation));
-      }
-      ++lineNumber;
-    }
-
-    var rule = Registry.ruleRegistry[ruleName];
-    if (rule == null) {
-      fail('rule `$ruleName` is not registered; unable to test.');
-    }
-
-    var driver = buildDriver(rule, file, analysisOptions: analysisOptions);
-
-    var lints = await driver.lintFiles([file]);
-
-    var actual = <Annotation>[];
-    var errors = <String>[];
-    for (var info in lints) {
-      for (var error in info.errors) {
-        var errorType = error.errorCode.type;
-        if (errorType == ErrorType.LINT) {
-          actual.add(Annotation.forError(error, info.lineInfo));
-        } else if (failOnErrors && errorType.severity == ErrorSeverity.ERROR) {
-          var location = info.lineInfo.getLocation(error.offset);
-          errors.add(
-              '${file.path} ${location.lineNumber}:${location.columnNumber} ${error.message}');
-        }
-      }
-    }
-
-    if (errors.isNotEmpty) {
-      fail(['Unexpected diagnostics:\n', ...errors].join('\n'));
-    }
-
-    actual.sort();
-    try {
-      expect(actual, unorderedMatches(expected));
-      // TODO (asashour): to be removed after fixing
-      // https://github.com/dart-lang/linter/issues/909
-      // ignore: avoid_catches_without_on_clauses
-    } catch (_) {
-      if (debug) {
-        // Dump results for debugging purposes.
-
-        // AST
-        var optionsProvider = AnalysisOptionsProvider();
-        var optionMap = optionsProvider.getOptionsFromString(analysisOptions);
-        var optionsImpl = AnalysisOptionsImpl();
-        applyToAnalysisOptions(optionsImpl, optionMap);
-
-        var features = optionsImpl.contextFeatures;
-
-        Spelunker(file.absolute.path, featureSet: features).spelunk();
-        print('');
-        // Lints.
-        ResultReporter(lints).write();
-      }
-
-      // Rethrow and fail.
-      rethrow;
-    }
+    var errorInfos = await _getErrorInfos(ruleName, file,
+        useMockSdk: useMockSdk, debug: debug, analysisOptions: analysisOptions);
+    _validateExpectedLints(file, errorInfos,
+        debug: debug,
+        failOnErrors: failOnErrors,
+        analysisOptions: analysisOptions);
   });
 }
 
@@ -288,6 +232,106 @@ void testRules(String ruleDir, {String? analysisOptions}) {
       continue;
     }
     testRule(ruleName, entry, analysisOptions: analysisOptions);
+  }
+}
+
+Future<Iterable<AnalysisErrorInfo>> _getErrorInfos(String ruleName, File file,
+    {required bool useMockSdk,
+    required bool debug,
+    required String? analysisOptions}) async {
+  registerLintRules(inTestMode: debug);
+  var rule = Registry.ruleRegistry[ruleName];
+  if (rule == null) {
+    fail('rule `$ruleName` is not registered; unable to test.');
+  }
+
+  if (useMockSdk) {
+    var driver = buildDriver(rule, file, analysisOptions: analysisOptions);
+    return await driver.lintFiles([file]);
+  }
+
+  var path = p.normalize(file.absolute.path);
+  var collection = AnalysisContextCollection(
+    includedPaths: [path],
+    resourceProvider: PhysicalResourceProvider.INSTANCE,
+  );
+
+  var context = collection.contexts[0];
+  var options = context.analysisOptions as AnalysisOptionsImpl;
+  options.lintRules = context.analysisOptions.lintRules.toList();
+  options.lintRules.add(rule);
+  options.lint = true;
+
+  var result =
+      await context.currentSession.getResolvedUnit(path) as ResolvedUnitResult;
+  return [
+    AnalysisErrorInfoImpl(
+      result.errors,
+      result.lineInfo,
+    )
+  ];
+}
+
+/// Parse lint annotations in the given [file] and validate that they correspond
+/// with errors in the provided [errorInfos].
+void _validateExpectedLints(File file, Iterable<AnalysisErrorInfo> errorInfos,
+    {bool debug = true, bool failOnErrors = true, String? analysisOptions}) {
+  var expected = <AnnotationMatcher>[];
+
+  var lineNumber = 1;
+  for (var line in file.readAsLinesSync()) {
+    var annotation = extractAnnotation(lineNumber, line);
+    if (annotation != null) {
+      expected.add(AnnotationMatcher(annotation));
+    }
+    ++lineNumber;
+  }
+
+  var actual = <Annotation>[];
+  var errors = <String>[];
+  for (var info in errorInfos) {
+    for (var error in info.errors) {
+      var errorType = error.errorCode.type;
+      if (errorType == ErrorType.LINT) {
+        actual.add(Annotation.forError(error, info.lineInfo));
+      } else if (failOnErrors && errorType.severity == ErrorSeverity.ERROR) {
+        var location = info.lineInfo.getLocation(error.offset);
+        errors.add(
+            '${file.path} ${location.lineNumber}:${location.columnNumber} ${error.message}');
+      }
+    }
+  }
+
+  if (errors.isNotEmpty) {
+    fail(['Unexpected diagnostics:\n', ...errors].join('\n'));
+  }
+
+  actual.sort();
+  try {
+    expect(actual, unorderedMatches(expected));
+    // TODO (asashour): to be removed after fixing
+    // https://github.com/dart-lang/linter/issues/909
+    // ignore: avoid_catches_without_on_clauses
+  } catch (_) {
+    if (debug) {
+      // Dump results for debugging purposes.
+
+      // AST
+      var optionsProvider = AnalysisOptionsProvider();
+      var optionMap = optionsProvider.getOptionsFromString(analysisOptions);
+      var optionsImpl = AnalysisOptionsImpl();
+      applyToAnalysisOptions(optionsImpl, optionMap);
+
+      var features = optionsImpl.contextFeatures;
+
+      Spelunker(file.absolute.path, featureSet: features).spelunk();
+      print('');
+      // Lints.
+      ResultReporter(errorInfos).write();
+    }
+
+    // Rethrow and fail.
+    rethrow;
   }
 }
 
