@@ -4523,7 +4523,7 @@ void Service::SendEmbedderEvent(Isolate* isolate,
   event.set_embedder_kind(event_kind);
   event.set_embedder_stream_id(stream_id);
   event.set_bytes(bytes, bytes_len);
-  Service::HandleEvent(&event);
+  Service::HandleEvent(&event, /*enter_safepoint=*/false);
 }
 
 void Service::SendLogEvent(Isolate* isolate,

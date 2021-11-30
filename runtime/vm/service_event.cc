@@ -20,7 +20,9 @@ ServiceEvent::ServiceEvent(IsolateGroup* isolate_group, EventKind event_kind)
     : ServiceEvent(isolate_group, nullptr, event_kind) {}
 
 ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
-    : ServiceEvent(isolate->group(), isolate, event_kind) {}
+    : ServiceEvent(isolate != nullptr ? isolate->group() : nullptr,
+                   isolate,
+                   event_kind) {}
 
 ServiceEvent::ServiceEvent(IsolateGroup* isolate_group,
                            Isolate* isolate,

@@ -1,4 +1,4 @@
-## 2.8.0-dev
+## 2.8.0
 * Deprecations and renames for `getXyz` methods in `AnalysisDriver`.
 * Removed uppercase named constants from `double` in mock SDK.
 * Deprecated `path` and `uri` from `AnalysisResult`.

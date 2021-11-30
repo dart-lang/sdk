@@ -23,6 +23,7 @@
 #include "platform/utils.h"
 #include "vm/heap/pages.h"
 #include "vm/isolate.h"
+#include "vm/timeline.h"
 #include "vm/virtual_memory_compressed.h"
 
 // #define VIRTUAL_MEMORY_LOGGING 1
@@ -303,6 +304,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               bool is_executable,
                                               bool is_compressed,
                                               const char* name) {
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "VirtualMemory Allocate");
   // When FLAG_write_protect_code is active, code memory (indicated by
   // is_executable = true) is allocated as non-executable and later
   // changed to executable via VirtualMemory::Protect.
@@ -446,6 +448,8 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 }
 
 VirtualMemory* VirtualMemory::Reserve(intptr_t size, intptr_t alignment) {
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "VirtualMemory Reserve");
+
   ASSERT(Utils::IsAligned(size, PageSize()));
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, PageSize()));
@@ -490,6 +494,8 @@ void VirtualMemory::Decommit(void* address, intptr_t size) {
 }
 
 VirtualMemory::~VirtualMemory() {
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "VirtualMemory Deallocate");
+
 #if defined(DART_COMPRESSED_POINTERS)
   if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer())) {
     Decommit(reserved_.pointer(), reserved_.size());
