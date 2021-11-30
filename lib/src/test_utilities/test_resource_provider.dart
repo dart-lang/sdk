@@ -15,7 +15,7 @@ import '../analyzer.dart';
 
 /// Builds the [DartLinter] with appropriate mock SDK, resource providers, and
 /// package config path.
-DartLinter buildDriver(LintRule? rule, File file, {String? analysisOptions}) {
+DartLinter buildDriver(LintRule rule, File file, {String? analysisOptions}) {
   var memoryResourceProvider = MemoryResourceProvider(
       context: PhysicalResourceProvider.INSTANCE.pathContext);
   var resourceProvider = TestResourceProvider(memoryResourceProvider);
@@ -35,7 +35,7 @@ DartLinter buildDriver(LintRule? rule, File file, {String? analysisOptions}) {
     root: sdkRoot,
   );
 
-  var options = LinterOptions([rule!], analysisOptions)
+  var options = LinterOptions([rule], analysisOptions)
     ..dartSdkPath = sdkRoot.path
     ..resourceProvider = resourceProvider
     ..packageConfigPath = packageConfigPath;
