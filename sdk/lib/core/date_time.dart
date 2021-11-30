@@ -68,7 +68,7 @@ part of dart.core;
 /// Use the methods [toLocal] and [toUtc]
 /// to get the equivalent date/time value specified in the other time zone.
 /// ```
-/// final localDay = dDay.toLocal(); // e.g 1944-06-06 02:00:00.000
+/// final localDay = dDay.toLocal(); // e.g. 1944-06-06 02:00:00.000
 /// print(localDay.isUtc); // false
 ///
 /// final utcFromLocal = localDay.toUtc(); // 1944-06-06 00:00:00.000Z
@@ -78,14 +78,14 @@ part of dart.core;
 /// for the `DateTime` object.
 /// ```
 /// print(dDay.timeZoneName); // UTC
-/// print(localDay.timeZoneName); // EET
+/// print(localDay.timeZoneName); // e.g. EET
 /// ```
 /// To find the difference
 /// between UTC and the time zone of a `DateTime` object
 /// call [timeZoneOffset].
 /// ```
 /// print(dDay.timeZoneOffset); // 0:00:00.000000
-/// print(localDay.timeZoneOffset); // 2:00:00.000000
+/// print(localDay.timeZoneOffset); // e.g. 2:00:00.000000
 /// ```
 ///
 /// ## Comparing DateTime objects
