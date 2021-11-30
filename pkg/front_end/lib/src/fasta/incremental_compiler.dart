@@ -147,8 +147,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   final Ticker _ticker;
   final bool _resetTicker;
   final bool outlineOnly;
-  bool trackNeededDillLibraries = false;
-  Set<Library>? _neededDillLibraries;
 
   Set<Uri?> _invalidatedUris = new Set<Uri?>();
 
@@ -220,16 +218,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   bool get initializedIncrementalSerializer =>
       _initializedIncrementalSerializer;
 
-  Set<Library>? get neededDillLibraries => _neededDillLibraries;
+  DillTarget? get dillTargetForTesting => _dillLoadedData;
 
-  DillTarget? get dillLoadedData => _dillLoadedData;
-
-  IncrementalKernelTarget? get userCode => _userCode;
+  IncrementalKernelTarget? get kernelTargetForTesting => _userCode;
 
   /// Returns the [Package] used for the package [packageName] in the most
   /// recent compilation.
   Package? getPackageForPackageName(String packageName) =>
       _currentPackagesMap?[packageName];
+
+  /// Returns the [Library] with the given [importUri] from the most recent
+  /// compilation.
+  Library? lookupLibrary(Uri importUri) =>
+      _userCode?.loader.lookupLibraryBuilder(importUri)?.library;
 
   void _enableExperimentsBasedOnEnvironment({Set<String>? enabledExperiments}) {
     // Note that these are all experimental. Use at your own risk.
@@ -244,7 +245,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   @override
   Future<IncrementalCompilerResult> computeDelta(
-      {List<Uri>? entryPoints, bool fullComponent: false}) async {
+      {List<Uri>? entryPoints,
+      bool fullComponent: false,
+      bool trackNeededDillLibraries: false}) async {
     while (_currentlyCompiling != null) {
       await _currentlyCompiling!.future;
     }
@@ -308,7 +311,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // For modular compilation we can be asked to load components and track
       // which libraries we actually use for the compilation. Set that up now.
       _loadEnsureLoadedComponents(reusedLibraries);
-      _resetTrackingOfUsedLibraries(hierarchy);
+      if (trackNeededDillLibraries) {
+        _resetTrackingOfUsedLibraries(hierarchy);
+      }
 
       // For each computeDelta call we create a new userCode object which needs
       // to be setup, and in the case of experimental invalidation some of the
@@ -351,8 +356,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
       recordNonFullComponentForTesting(componentWithDill!);
 
-      // Perform actual dill usage tracking.
-      _performDillUsageTracking(hierarchy);
+      Set<Library>? neededDillLibraries;
+      if (trackNeededDillLibraries) {
+        // Perform actual dill usage tracking.
+        neededDillLibraries = _performDillUsageTracking(hierarchy);
+      }
 
       // If we actually got a result we can throw away the old userCode and the
       // list of invalidated uris.
@@ -419,7 +427,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       return new IncrementalCompilerResult(result,
           classHierarchy: _userCode?.loader.hierarchy,
-          coreTypes: _userCode?.loader.coreTypes);
+          coreTypes: _userCode?.loader.coreTypes,
+          neededDillLibraries: neededDillLibraries);
     });
   }
 
@@ -650,27 +659,27 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Perform dill usage tracking if asked. Use the marking on dill builders as
   /// well as the class hierarchy to figure out which dill libraries was
   /// actually used by the compilation.
-  void _performDillUsageTracking(ClassHierarchy hierarchy) {
-    if (trackNeededDillLibraries) {
-      // Which dill builders were built?
-      Set<Library> neededDillLibraries = _neededDillLibraries = {};
+  Set<Library> _performDillUsageTracking(ClassHierarchy hierarchy) {
+    // Which dill builders were built?
+    Set<Library> neededDillLibraries = {};
 
-      // Propagate data from constant evaluator: Libraries used in the constant
-      // evaluator - that comes from dill - are marked.
-      Set<Library> librariesUsedByConstantEvaluator = _userCode!.librariesUsed;
+    // Propagate data from constant evaluator: Libraries used in the constant
+    // evaluator - that comes from dill - are marked.
+    Set<Library> librariesUsedByConstantEvaluator = _userCode!.librariesUsed;
 
-      for (LibraryBuilder builder in _dillLoadedData!.loader.libraryBuilders) {
-        if (builder is DillLibraryBuilder) {
-          if (builder.isBuiltAndMarked ||
-              librariesUsedByConstantEvaluator.contains(builder.library)) {
-            neededDillLibraries.add(builder.library);
-          }
+    for (LibraryBuilder builder in _dillLoadedData!.loader.libraryBuilders) {
+      if (builder is DillLibraryBuilder) {
+        if (builder.isBuiltAndMarked ||
+            librariesUsedByConstantEvaluator.contains(builder.library)) {
+          neededDillLibraries.add(builder.library);
         }
       }
-
-      updateNeededDillLibrariesWithHierarchy(
-          hierarchy, _userCode!.loader.builderHierarchy);
     }
+
+    updateNeededDillLibrariesWithHierarchy(
+        neededDillLibraries, hierarchy, _userCode!.loader.builderHierarchy);
+
+    return neededDillLibraries;
   }
 
   /// Fill in the replacement maps that describe the replacements that need to
@@ -941,26 +950,24 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// correctly we have to unmark before the next iteration to not have too much
   /// marked and therefore incorrectly marked something as used when it is not.
   void _resetTrackingOfUsedLibraries(ClassHierarchy? hierarchy) {
-    if (trackNeededDillLibraries) {
-      // Reset dill loaders and kernel class hierarchy.
-      for (LibraryBuilder builder in _dillLoadedData!.loader.libraryBuilders) {
-        if (builder is DillLibraryBuilder) {
-          if (builder.isBuiltAndMarked) {
-            // Clear cached calculations in classes which upon calculation can
-            // mark things as needed.
-            for (Builder builder in builder.scope.localMembers) {
-              if (builder is DillClassBuilder) {
-                builder.clearCachedValues();
-              }
+    // Reset dill loaders and kernel class hierarchy.
+    for (LibraryBuilder builder in _dillLoadedData!.loader.libraryBuilders) {
+      if (builder is DillLibraryBuilder) {
+        if (builder.isBuiltAndMarked) {
+          // Clear cached calculations in classes which upon calculation can
+          // mark things as needed.
+          for (Builder builder in builder.scope.localMembers) {
+            if (builder is DillClassBuilder) {
+              builder.clearCachedValues();
             }
-            builder.isBuiltAndMarked = false;
           }
+          builder.isBuiltAndMarked = false;
         }
       }
+    }
 
-      if (hierarchy is ClosedWorldClassHierarchy) {
-        hierarchy.resetUsed();
-      }
+    if (hierarchy is ClosedWorldClassHierarchy) {
+      hierarchy.resetUsed();
     }
   }
 
@@ -1027,7 +1034,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       _incrementalSerializer?.invalidate(builder.fileUri);
 
       LibraryBuilder? dillBuilder =
-          dillLoadedData!.loader.deregisterLibraryBuilder(builder.importUri);
+          _dillLoadedData!.loader.deregisterLibraryBuilder(builder.importUri);
       if (dillBuilder != null) {
         removedDillBuilders = true;
         _userBuilders?.remove(builder.importUri);
@@ -1358,9 +1365,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// (though handling of the case where all bets are off should probably still
   /// live locally).
   void updateNeededDillLibrariesWithHierarchy(
-      ClassHierarchy hierarchy, ClassHierarchyBuilder? builderHierarchy) {
+      Set<Library> neededDillLibraries, ClassHierarchy hierarchy,
+      [ClassHierarchyBuilder? builderHierarchy]) {
     if (hierarchy is ClosedWorldClassHierarchy && !hierarchy.allBetsOff) {
-      Set<Library> neededDillLibraries = _neededDillLibraries ??= {};
       Set<Class> classes = new Set<Class>();
       List<Class> worklist = <Class>[];
       // Get all classes touched by kernel class hierarchy.
@@ -1411,7 +1418,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Cannot track in other kernel class hierarchies or
       // if all bets are off: Add everything (except for the libraries we just
       // converted from source builders to dill builders).
-      Set<Library> neededDillLibraries = _neededDillLibraries = {};
+      neededDillLibraries.clear();
       for (DillLibraryBuilder builder
           in _dillLoadedData!.loader.libraryBuilders) {
         if (_previousSourceBuilders == null ||
@@ -1659,7 +1666,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (builder != null) {
         Library lib = builder.library;
         removedLibraries.add(lib);
-        if (dillLoadedData!.loader.deregisterLibraryBuilder(uri) != null) {
+        if (_dillLoadedData!.loader.deregisterLibraryBuilder(uri) != null) {
           removedDillBuilders = true;
         }
         _cleanupSourcesForBuilder(null, builder, uriTranslator,
@@ -1925,7 +1932,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Internal method.
   void _appendLibraries(IncrementalCompilerData data, int bytesLength) {
     if (data.component != null) {
-      dillLoadedData!.loader
+      _dillLoadedData!.loader
           .appendLibraries(data.component!, byteCount: bytesLength);
     }
     _ticker.logMs("Appended libraries");

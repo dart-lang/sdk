@@ -797,13 +797,13 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
 
   Future<kernel.Component> compileDartDocTestLibrary(
       String dartDocTestCode, Uri libraryUri) async {
-    assert(dillLoadedData != null && userCode != null);
+    assert(dillTargetForTesting != null && kernelTargetForTesting != null);
 
     return await context.runInContext((_) async {
-      LibraryBuilder libraryBuilder = userCode!.loader
-          .read(libraryUri, -1, accessor: userCode!.loader.first);
+      LibraryBuilder libraryBuilder = kernelTargetForTesting!.loader
+          .read(libraryUri, -1, accessor: kernelTargetForTesting!.loader.first);
 
-      userCode!.loader.resetSeenMessages();
+      kernelTargetForTesting!.loader.resetSeenMessages();
 
       _dartDocTestLibraryBuilder = libraryBuilder;
       _dartDocTestCode = dartDocTestCode;
@@ -815,8 +815,8 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       _dartDocTestLibraryBuilder = null;
       _dartDocTestCode = null;
 
-      userCode!.uriToSource.remove(dartDocTestUri);
-      userCode!.loader.sourceBytes.remove(dartDocTestUri);
+      kernelTargetForTesting!.uriToSource.remove(dartDocTestUri);
+      kernelTargetForTesting!.loader.sourceBytes.remove(dartDocTestUri);
 
       return result;
     });
@@ -828,7 +828,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       dartDocTestUri,
       /*packageUri*/ null,
       new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
-      userCode!.loader,
+      kernelTargetForTesting!.loader,
       null,
       scope: libraryBuilder.scope.createNestedScope("dartdoctest"),
       nameOrigin: libraryBuilder,
@@ -905,7 +905,7 @@ class DocTestSourceLoader extends SourceLoader {
       kernel.Library? referencesFrom,
       bool? referenceIsPartOwner) {
     if (uri == DocTestIncrementalCompiler.dartDocTestUri) {
-      HybridFileSystem hfs = compiler.userCode!.fileSystem as HybridFileSystem;
+      HybridFileSystem hfs = target.fileSystem as HybridFileSystem;
       MemoryFileSystem fs = hfs.memory;
       fs
           .entityForUri(DocTestIncrementalCompiler.dartDocTestUri)

@@ -51,7 +51,7 @@ bool skipNullEnvironment = false;
 
 void benchmark(Component component, List<Library> libraries) {
   if (tryWithNoEnvironment == null) throw "tryWithNoEnvironment not set";
-  KernelTarget target = incrementalCompiler.userCode as KernelTarget;
+  KernelTarget target = incrementalCompiler.kernelTargetForTesting!;
   constants.EvaluationMode evaluationMode =
       target.getConstantEvaluationModeForTesting();
 

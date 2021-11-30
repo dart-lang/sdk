@@ -1351,13 +1351,14 @@ class FuzzCompiles
     // Create lookup-table from file uri to whatever.
     Map<Uri, LibraryBuilder> builders = {};
     for (LibraryBuilder builder
-        in incrementalCompiler.userCode!.loader.libraryBuilders) {
+        in incrementalCompiler.kernelTargetForTesting!.loader.libraryBuilders) {
       if (builder.importUri.scheme == "dart" && !builder.isSynthetic) continue;
       builders[builder.fileUri] = builder;
       for (LibraryPart part in builder.library.parts) {
         Uri thisPartUri = builder.importUri.resolve(part.partUri);
         if (thisPartUri.scheme == "package") {
-          thisPartUri = incrementalCompiler.userCode!.uriTranslator
+          thisPartUri = incrementalCompiler
+              .kernelTargetForTesting!.uriTranslator
               .translate(thisPartUri)!;
         }
         builders[thisPartUri] = builder;

@@ -121,7 +121,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
             new CompilerContext(processedOpts),
             cachedSdkInput.component,
             outlineOnly);
-        incrementalCompiler.trackNeededDillLibraries = trackNeededDillLibraries;
       } else {
         options = oldState.options;
         processedOpts = oldState.processedOpts;
@@ -144,7 +143,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
         // Reuse the incremental compiler, but reset as needed.
         incrementalCompiler = oldState.incrementalCompiler!;
         incrementalCompiler.invalidateAllSources();
-        incrementalCompiler.trackNeededDillLibraries = trackNeededDillLibraries;
         options.packagesFileUri = packagesFile;
         options.fileSystem = fileSystem;
         processedOpts.clearFileSystemCache();
