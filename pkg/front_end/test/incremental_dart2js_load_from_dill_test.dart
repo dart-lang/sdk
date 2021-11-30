@@ -138,8 +138,8 @@ class Strategy extends EquivalenceStrategy {
     if (a != null && b != null) {
       ReferenceName thisName = ReferenceName.fromReference(a)!;
       ReferenceName otherName = ReferenceName.fromReference(b)!;
-      if (thisName.kind == ReferenceNameKind.Member &&
-          otherName.kind == ReferenceNameKind.Member &&
+      if (thisName.isMember &&
+          otherName.isMember &&
           thisName.memberName == otherName.memberName) {
         String? thisClassName = thisName.declarationName;
         String? otherClassName = otherName.declarationName;

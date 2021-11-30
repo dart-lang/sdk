@@ -113,15 +113,14 @@ dev_dependencies:
         ],
         workingDirectory: workingDir ?? dir.path,
         environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'});
-
-    final stdoutContents = await _process.stdout.transform(utf8.decoder).join();
-    final stderrContents = await _process.stderr.transform(utf8.decoder).join();
+    final stdoutContents = _process.stdout.transform(utf8.decoder).join();
+    final stderrContents = _process.stderr.transform(utf8.decoder).join();
     final code = await _process.exitCode;
     return ProcessResult(
       _process.pid,
       code,
-      stdoutContents,
-      stderrContents,
+      await stdoutContents,
+      await stderrContents,
     );
   }
 
