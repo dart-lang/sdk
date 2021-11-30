@@ -74,13 +74,16 @@ class PubWorkspace extends SimpleWorkspace {
         return PubWorkspace._(provider, packageMap, root, pubspec);
       }
     }
+    return null;
   }
 
   /// Return the content of the [file], `null` if cannot be read.
   static String? _fileContentOrNull(File file) {
     try {
       return file.readAsStringSync();
-    } catch (_) {}
+    } catch (_) {
+      return null;
+    }
   }
 }
 

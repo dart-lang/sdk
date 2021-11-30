@@ -749,6 +749,7 @@ class _FileStateLocation {
         }
       }
     }
+    return null;
   }
 
   _ContentWithDigest _getContent() {
@@ -879,13 +880,14 @@ class _FileStateUnlinked {
     }
 
     var libraryUri = unlinked.unit.partOfUri;
-    if (libraryUri != null) {
-      location._fsState.testView.partsDiscoveredLibraries.add(location.path);
-      return _partOfLibrary = location._fileForRelativeUri(
-        relativeUri: libraryUri,
-        performance: performance,
-      );
+    if (libraryUri == null) {
+      return null;
     }
+    location._fsState.testView.partsDiscoveredLibraries.add(location.path);
+    return _partOfLibrary = location._fileForRelativeUri(
+      relativeUri: libraryUri,
+      performance: performance,
+    );
   }
 
   void _prefetchDirectReferences() {

@@ -198,6 +198,7 @@ class ContextBuilderImpl implements ContextBuilder {
         return file;
       }
     }
+    return null;
   }
 
   /// Return the analysis options that should be used to analyze code in the

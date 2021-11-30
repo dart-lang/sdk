@@ -653,6 +653,7 @@ class FileResolver {
         return file;
       }
     }
+    return null;
   }
 
   /// Return the analysis options.
