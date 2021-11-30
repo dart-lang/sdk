@@ -85,9 +85,10 @@ class DdcResult {
   final Component? sdkSummary;
   final List<Component> additionalDills;
   final ClassHierarchy classHierarchy;
+  final Set<Library>? neededDillLibraries;
 
   DdcResult(this.component, this.sdkSummary, this.additionalDills,
-      this.classHierarchy)
+      this.classHierarchy, this.neededDillLibraries)
       // ignore: unnecessary_null_comparison
       : assert(classHierarchy != null);
 
@@ -221,5 +222,5 @@ Future<DdcResult?> compile(InitializedCompilerState compilerState,
   Component? sdkSummary = await processedOpts.loadSdkSummary(null);
   List<Component> summaries = await processedOpts.loadAdditionalDills(null);
   return new DdcResult(
-      component, sdkSummary, summaries, compilerResult.classHierarchy!);
+      component, sdkSummary, summaries, compilerResult.classHierarchy!, null);
 }

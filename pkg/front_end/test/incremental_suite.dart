@@ -305,7 +305,8 @@ Future<Map<String, List<int>>> createModules(
     final List<int> sdkSummaryData,
     Target target,
     Target originalTarget,
-    String sdkSummary) async {
+    String sdkSummary,
+    {required bool trackNeededDillLibraries}) async {
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummaryUri = base.resolve(sdkSummary);
 
@@ -356,8 +357,9 @@ Future<Map<String, List<int>>> createModules(
     }
     TestIncrementalCompiler compiler = new TestIncrementalCompiler(
         options, moduleSources.first, /* initializeFrom = */ null, outlineOnly);
-    IncrementalCompilerResult compilerResult =
-        await compiler.computeDelta(entryPoints: moduleSources);
+    IncrementalCompilerResult compilerResult = await compiler.computeDelta(
+        entryPoints: moduleSources,
+        trackNeededDillLibraries: trackNeededDillLibraries);
     Component c = compilerResult.component;
     c.computeCanonicalNames();
     List<Library> wantedLibs = <Library>[];
@@ -455,7 +457,8 @@ class NewWorldTest {
 
     if (modules != null) {
       moduleData = await createModules(
-          modules, sdkSummaryData, target, originalTarget, sdkSummary);
+          modules, sdkSummaryData, target, originalTarget, sdkSummary,
+          trackNeededDillLibraries: false);
       sdk = newestWholeComponent = new Component();
       new BinaryBuilder(sdkSummaryData,
               filename: null, disableLazyReading: false)
@@ -663,7 +666,6 @@ class NewWorldTest {
       if (modulesToUse != null) {
         compiler!.setModulesToLoadOnNextComputeDelta(modulesToUse);
         compiler.invalidateAllSources();
-        compiler.trackNeededDillLibraries = true;
       }
 
       Stopwatch stopwatch = new Stopwatch()..start();
@@ -671,6 +673,7 @@ class NewWorldTest {
           entryPoints: entries,
           fullComponent:
               brandNewWorld ? false : (noFullComponent ? false : true),
+          trackNeededDillLibraries: modulesToUse != null,
           simulateTransformer: world["simulateTransformer"]);
       component = compilerResult.component;
       if (outlineOnly && !skipOutlineBodyCheck) {
@@ -726,7 +729,7 @@ class NewWorldTest {
       Result? contentResult = checkExpectedContent(world, component!);
       if (contentResult != null) return contentResult.copyWithOutput(data);
       result = checkNeededDillLibraries(
-          world, data, compiler.neededDillLibraries, base);
+          world, data, compilerResult.neededDillLibraries, base);
       if (result != null) return result;
 
       Result? nnbdCheck = checkNNBDSettings(component!);
@@ -1047,13 +1050,13 @@ class NewWorldTest {
         if (modulesToUse != null) {
           compilerFromScratch.setModulesToLoadOnNextComputeDelta(modulesToUse);
           compilerFromScratch.invalidateAllSources();
-          compilerFromScratch.trackNeededDillLibraries = true;
         }
 
         Stopwatch stopwatch = new Stopwatch()..start();
         IncrementalCompilerResult compilerResult3 =
             await compilerFromScratch.computeDelta(
                 entryPoints: entries,
+                trackNeededDillLibraries: modulesToUse != null,
                 simulateTransformer: world["simulateTransformer"]);
         component3 = compilerResult3.component;
         compilerFromScratch = null;
@@ -1948,9 +1951,12 @@ class TestIncrementalCompiler extends IncrementalCompiler {
   Future<IncrementalCompilerResult> computeDelta(
       {List<Uri>? entryPoints,
       bool fullComponent = false,
+      bool trackNeededDillLibraries: false,
       bool? simulateTransformer}) async {
-    IncrementalCompilerResult result = await super
-        .computeDelta(entryPoints: entryPoints, fullComponent: fullComponent);
+    IncrementalCompilerResult result = await super.computeDelta(
+        entryPoints: entryPoints,
+        fullComponent: fullComponent,
+        trackNeededDillLibraries: trackNeededDillLibraries);
 
     // We should at least have the SDK builders available. Slight smoke test.
     if (!dillTargetForTesting!.loader.libraryImportUris

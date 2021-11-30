@@ -10,7 +10,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/kernel.dart'
-    show Component, Procedure, DartType, TypeParameter;
+    show Component, Library, Procedure, DartType, TypeParameter;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
@@ -74,7 +74,9 @@ abstract class IncrementalKernelGenerator {
   /// are the recompiled libraries, or - in the case of [fullComponent] - a full
   /// Component.
   Future<IncrementalCompilerResult> computeDelta(
-      {List<Uri>? entryPoints, bool fullComponent});
+      {List<Uri>? entryPoints,
+      bool fullComponent: false,
+      bool trackNeededDillLibraries: false});
 
   /// Remove the file associated with the given file [uri] from the set of
   /// valid files.  This guarantees that those files will be re-read on the
@@ -148,7 +150,8 @@ class IncrementalCompilerResult {
   final Component component;
   final ClassHierarchy? classHierarchy;
   final CoreTypes? coreTypes;
+  final Set<Library>? neededDillLibraries;
 
   IncrementalCompilerResult(this.component,
-      {this.classHierarchy, this.coreTypes});
+      {this.classHierarchy, this.coreTypes, this.neededDillLibraries});
 }

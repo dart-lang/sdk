@@ -286,14 +286,16 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   bool wroteUsedDills = false;
   if (usingIncrementalCompiler) {
     state.options.onDiagnostic = onDiagnostic;
-    IncrementalCompilerResult incrementalCompilerResult = await state
-        .incrementalCompiler
-        .computeDelta(entryPoints: sources, fullComponent: true);
+    IncrementalCompilerResult incrementalCompilerResult =
+        await state.incrementalCompiler.computeDelta(
+            entryPoints: sources,
+            fullComponent: true,
+            trackNeededDillLibraries: recordUsedInputs);
     Component incrementalComponent = incrementalCompilerResult.component;
 
     if (recordUsedInputs) {
       Set<Uri> usedOutlines = {};
-      for (Library lib in state.incrementalCompiler.neededDillLibraries) {
+      for (Library lib in incrementalCompilerResult.neededDillLibraries) {
         if (lib.importUri.scheme == "dart") continue;
         Uri uri = state.libraryToInputDill[lib.importUri];
         if (uri == null) {
