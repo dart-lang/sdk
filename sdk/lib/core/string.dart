@@ -37,7 +37,7 @@ part of dart.core;
 /// ```dart
 /// const string = 'Dart is fun';
 /// final result = string.substring(0, 5);
-/// print(result); // Dart
+/// print(result); // 'Dart'
 /// ```
 /// You can use the plus (`+`) operator to concatenate strings:
 /// ```dart
@@ -70,7 +70,7 @@ part of dart.core;
 /// ```dart
 /// const string = 'Dart';
 /// final charAtIndex = string[0];
-/// print(charAtIndex); // D
+/// print(charAtIndex); // 'D'
 /// ```
 /// The characters of a string are encoded in UTF-16. Decoding UTF-16, which
 /// combines surrogate pairs, yields Unicode code points. Following a similar
@@ -260,7 +260,8 @@ abstract class String implements Comparable<String>, Pattern {
   ///
   /// For example:
   /// ```dart
-  /// 'Dart'.endsWith('t'); // true
+  /// const string = 'Dart';
+  /// print(string.endsWith('t')); // true
   /// ```
   bool endsWith(String other);
 
@@ -268,16 +269,16 @@ abstract class String implements Comparable<String>, Pattern {
   ///
   /// ```dart
   /// const string = 'Dart';
-  /// string.startsWith('D'); // true
-  /// string.startsWith(RegExp(r'[A-Z][a-z]')); // true
+  /// print(string.startsWith('D')); // true
+  /// print(string.startsWith(RegExp(r'[A-Z][a-z]'))); // true
   /// ```
   /// If [index] is provided, this method checks if the substring starting
   /// at that index starts with a match of [pattern]:
   /// ```dart
   /// const string = 'Dart';
-  /// string.startsWith('art', 0); // false
-  /// string.startsWith('art', 1); // true
-  /// string.startsWith(RegExp(r'\w{3}')); // true
+  /// print(string.startsWith('art', 0)); // false
+  /// print(string.startsWith('art', 1)); // true
+  /// print(string.startsWith(RegExp(r'\w{3}'))); // true
   /// ```
   /// [index] must not be negative or greater than [length].
   ///
@@ -287,8 +288,8 @@ abstract class String implements Comparable<String>, Pattern {
   /// a substring starting at [index] first:
   /// ```dart
   /// const string = 'Dart';
-  /// string.startsWith(RegExp(r'^art'), 1); // false
-  /// string.startsWith(RegExp(r'art'), 1); // true
+  /// print(string.startsWith(RegExp(r'^art'), 1)); // false
+  /// print(string.startsWith(RegExp(r'art'), 1)); // true
   /// ```
   bool startsWith(Pattern pattern, [int index = 0]);
 
@@ -296,8 +297,8 @@ abstract class String implements Comparable<String>, Pattern {
   /// starting at [start], inclusive:
   /// ```dart
   /// const string = 'Dartisans';
-  /// string.indexOf('art'); // 1
-  /// string.indexOf(RegExp(r'[A-Z][a-z]')); // 0
+  /// print(string.indexOf('art')); // 1
+  /// print(string.indexOf(RegExp(r'[A-Z][a-z]'))); // 0
   /// ```
   /// Returns -1 if no match is found:
   /// ```dart
@@ -312,13 +313,13 @@ abstract class String implements Comparable<String>, Pattern {
   /// Finds a match of pattern by searching backward starting at [start]:
   /// ```dart
   /// const string = 'Dartisans';
-  /// string.lastIndexOf('a'); // 6
-  /// string.lastIndexOf(RegExp(r'a(r|n)')); // 6
+  /// print(string.lastIndexOf('a')); // 6
+  /// print(string.lastIndexOf(RegExp(r'a(r|n)'))); // 6
   /// ```
   /// Returns -1 if [pattern] could not be found in this string.
   /// ```dart
   /// const string = 'Dartisans';
-  /// string.lastIndexOf(RegExp(r'DART')); // -1
+  /// print(string.lastIndexOf(RegExp(r'DART'))); // -1
   /// ```
   /// If [start] is omitted, search starts from the end of the string.
   /// If supplied, [start] must be non-negative and not greater than [length].
@@ -361,9 +362,9 @@ abstract class String implements Comparable<String>, Pattern {
   /// ```
   /// Otherwise, the original string itself is returned:
   /// ```dart
-  /// const str1 = 'Dart';
-  /// final str2 = str1.trim(); // 'Dart'
-  /// final result = identical(str1, str2);
+  /// const string1 = 'Dart';
+  /// final string2 = string1.trim(); // 'Dart'
+  /// final result = identical(string1, string2);
   /// print(result); // true
   /// ```
   /// Whitespace is defined by the Unicode White_Space property (as defined in
@@ -680,10 +681,10 @@ abstract class String implements Comparable<String>, Pattern {
   ///
   /// Then all the converted parts are concatenated into the resulting string.
   /// ```dart
-  /// final res = 'Eats shoots leaves'.splitMapJoin(RegExp(r'shoots'),
+  /// final result = 'Eats shoots leaves'.splitMapJoin(RegExp(r'shoots'),
   ///     onMatch: (m) => '${m[0]}', // (or no onMatch at all)
   ///     onNonMatch: (n) => '*');
-  /// print(res); // *shoots*
+  /// print(result); // *shoots*
   /// ```
   String splitMapJoin(Pattern pattern,
       {String Function(Match)? onMatch, String Function(String)? onNonMatch});
