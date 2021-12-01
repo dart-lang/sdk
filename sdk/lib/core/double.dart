@@ -56,9 +56,8 @@ abstract class double extends num {
   /// Throws an [UnsupportedError] if this number is not finite
   /// (NaN or an infinity).
   /// ```dart
-  /// print(2.5.round()); // 3
-  /// print(0.round()); // 0
-  /// print(-2.5.round()); // -3
+  /// print(3.5.round()); // 4
+  /// print((-3.5).round()); // -4
   /// ```
   int round();
 
@@ -71,7 +70,6 @@ abstract class double extends num {
   /// ```dart
   /// print(2.5.floor()); // 2
   /// print(0.5.floor()); // 0
-  /// print(0.floor()); // 0
   /// print((-0.5).floor()); // -1
   /// print((-2.5).floor()); // -3
   /// ```
@@ -86,7 +84,6 @@ abstract class double extends num {
   /// ```dart
   /// print(2.5.ceil()); // 3
   /// print(1.5.ceil()); // 2
-  /// print(0.ceil()); // 0
   /// print((-0.5).ceil()); // 0
   /// print((-1.5).ceil()); // -1
   /// print((-2.5).ceil()); // -2
@@ -102,10 +99,10 @@ abstract class double extends num {
   /// (NaN or an infinity).
   /// ```dart
   /// print(2.5.truncate()); // 2
-  /// print(0.truncate()); // 0
+  /// print(0.5.truncate()); // 0
   /// print((-0.5).truncate()); // 0
   /// print((-1.5).truncate()); // -1
-  /// print(-2.5.truncate()); // -2
+  /// print((-2.5).truncate()); // -2
   /// ```
   int truncate();
 
@@ -123,8 +120,7 @@ abstract class double extends num {
   /// the result is `-0.0`.
   /// ```dart
   /// print(2.5.roundToDouble()); // 3.0
-  /// print(0.25.roundToDouble()); // 0.0
-  /// print(0.roundToDouble()); // 0.0
+  /// print(0.5.roundToDouble()); // 1.0
   /// print((-0.25).roundToDouble()); // -0.0
   /// print(-2.5.roundToDouble()); // -3.0
   /// ```
@@ -140,7 +136,6 @@ abstract class double extends num {
   /// ```dart
   /// print(2.5.floorToDouble()); // 2.0
   /// print(0.75.floorToDouble()); // 0.0
-  /// print(0.floorToDouble()); // 0.0
   /// print((-0.25).floorToDouble()); // -1.0
   /// print((-2.5).floorToDouble()); // -3.0
   /// ```
@@ -156,8 +151,7 @@ abstract class double extends num {
   /// ```dart
   /// print(2.ceilToDouble()); // 2.0
   /// print(0.75.ceilToDouble()); // 1.0
-  /// print(0.ceilToDouble()); // 0.0
-  /// print((-0.75).ceilToDouble()); // -0.0
+  /// print((-0.25).ceilToDouble()); // -0.0
   /// print((-2.5).ceilToDouble()); // -2.0
   /// ```
   double ceilToDouble();
@@ -174,8 +168,7 @@ abstract class double extends num {
   /// ```dart
   /// print(2.5.truncateToDouble()); // 2.0
   /// print(0.75.truncateToDouble()); // 0.0
-  /// print(0.truncateToDouble()); // 0.0
-  /// print((-0.75).truncateToDouble()); // -0.0
+  /// print((-0.5).truncateToDouble()); // -0.0
   /// print(-2.5.truncateToDouble()); // -2.0
   /// ```
   double truncateToDouble();
@@ -247,6 +240,7 @@ abstract class double extends num {
   /// value = double.tryParse('+.12e-9'); // 1.2e-10
   /// value = double.tryParse('-NaN'); // NaN
   /// value = double.tryParse('0xFF'); // null
+  /// value = double.tryParse((2.0 / 0).toString()); // Infinity
   /// ```
   external static double? tryParse(String source);
 }
