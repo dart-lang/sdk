@@ -316,7 +316,7 @@ class KernelTarget extends TargetImplementation {
           getEntryPointUri(entryPoint, issueProblem: true);
       result.add(translatedEntryPoint);
       loader.read(translatedEntryPoint, -1,
-          accessor: loader.first,
+          accessorUri: loader.firstUri,
           fileUri: translatedEntryPoint != entryPoint ? entryPoint : null);
     }
     return result;

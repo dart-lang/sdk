@@ -197,7 +197,15 @@ class SourceLoader extends Loader {
 
   /// The first library that we've been asked to compile. When compiling a
   /// program (aka script), this is the library that should have a main method.
-  LibraryBuilder? first;
+  Uri? _firstUri;
+
+  LibraryBuilder? get first => _builders[_firstUri];
+
+  Uri? get firstUri => _firstUri;
+
+  void set firstUri(Uri? value) {
+    _firstUri = value;
+  }
 
   int byteCount = 0;
 
@@ -373,7 +381,7 @@ class SourceLoader extends Loader {
     // firstSourceUri and first library should be done as early as
     // possible.
     firstSourceUri ??= uri;
-    first ??= libraryBuilder;
+    firstUri ??= libraryBuilder.importUri;
 
     _checkForDartCore(uri, libraryBuilder);
 
@@ -473,6 +481,7 @@ class SourceLoader extends Loader {
   LibraryBuilder read(Uri uri, int charOffset,
       {Uri? fileUri,
       LibraryBuilder? accessor,
+      Uri? accessorUri,
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner}) {
@@ -492,6 +501,7 @@ class SourceLoader extends Loader {
 
       _builders[uri] = libraryBuilder;
     }
+    accessor ??= _builders[accessorUri];
     if (accessor == null) {
       if (libraryBuilder.loader == this && first != libraryBuilder) {
         unhandled("null", "accessor", charOffset, uri);
@@ -511,11 +521,11 @@ class SourceLoader extends Loader {
 
   void _ensureCoreLibrary() {
     if (_coreLibrary == null) {
-      read(Uri.parse("dart:core"), 0, accessor: first);
+      read(Uri.parse("dart:core"), 0, accessorUri: firstUri);
       // TODO(askesc): When all backends support set literals, we no longer
       // need to index dart:collection, as it is only needed for desugaring of
       // const sets. We can remove it from this list at that time.
-      read(Uri.parse("dart:collection"), 0, accessor: first);
+      read(Uri.parse("dart:collection"), 0, accessorUri: firstUri);
       assert(_coreLibrary != null);
     }
   }
@@ -1067,7 +1077,10 @@ severity: $severity
     }
     for (Uri uri in parts) {
       if (usedParts.contains(uri)) {
-        _builders.remove(uri);
+        LibraryBuilder? part = _builders.remove(uri);
+        if (_firstUri == uri) {
+          firstUri = part!.partOfLibrary!.importUri;
+        }
       } else {
         SourceLibraryBuilder part =
             lookupLibraryBuilder(uri) as SourceLibraryBuilder;
@@ -2161,7 +2174,7 @@ severity: $severity
     _typeInferenceEngine = null;
     _builders.clear();
     libraries.clear();
-    first = null;
+    firstUri = null;
     sourceBytes.clear();
     target.releaseAncillaryResources();
     _coreTypes = null;

@@ -457,9 +457,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             builder.isPatch ? builder.fileUri : null);
         _userBuilders![builder.importUri] = dillBuilder;
         newDillLibraryBuilders.add(builder.library);
-        if (_userCode!.loader.first == builder) {
-          _userCode!.loader.first = dillBuilder;
-        }
         changed = true;
         if (experimentalInvalidation != null) {
           convertedLibraries ??=
@@ -733,7 +730,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (LibraryBuilder library in experimentalInvalidation.rebuildBodies) {
         LibraryBuilder newBuilder = _userCode!.loader.read(
             library.importUri, -1,
-            accessor: _userCode!.loader.first,
+            accessorUri: _userCode!.loader.firstUri,
             fileUri: library.fileUri,
             referencesFrom: library.library);
         List<LibraryBuilder> builders = [newBuilder];
@@ -912,38 +909,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
 
-    // The entry point(s) has to be set first for loader.first to be setup
-    // correctly. If the first one is in the rebuildBodies, we have to add it
-    // from there first.
-    Uri firstEntryPointImportUri =
+    // The entry point(s) has to be set first for loader.firstUri to be setup
+    // correctly.
+    _userCode!.loader.firstUri =
         _userCode!.getEntryPointUri(firstEntryPoint, issueProblem: false);
-    bool wasFirstSet = false;
-    if (experimentalInvalidation != null) {
-      for (LibraryBuilder library in experimentalInvalidation.rebuildBodies) {
-        if (library.importUri == firstEntryPointImportUri) {
-          _userCode!.loader.read(library.importUri, -1,
-              accessor: _userCode!.loader.first,
-              fileUri: library.fileUri,
-              referencesFrom: library.library);
-          wasFirstSet = true;
-          break;
-        }
-      }
-    }
-    if (!wasFirstSet) {
-      _userCode!.loader.read(firstEntryPointImportUri, -1,
-          accessor: _userCode!.loader.first,
-          fileUri: firstEntryPointImportUri != firstEntryPoint
-              ? firstEntryPoint
-              : null);
-    }
-    if (_userCode!.loader.first == null) {
-      LibraryBuilder? libraryBuilder =
-          _userCode!.loader.lookupLibraryBuilder(firstEntryPointImportUri);
-      if (libraryBuilder != null) {
-        _userCode!.loader.first = libraryBuilder;
-      }
-    }
   }
 
   /// When tracking used libraries we mark them when we use them. To track
@@ -1952,7 +1921,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     return await context.runInContext((_) async {
       LibraryBuilder libraryBuilder = _userCode!.loader
-          .read(libraryUri, -1, accessor: _userCode!.loader.first);
+          .read(libraryUri, -1, accessorUri: _userCode!.loader.firstUri);
       _ticker.logMs("Loaded library $libraryUri");
 
       Class? cls;

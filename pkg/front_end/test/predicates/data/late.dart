@@ -153,6 +153,10 @@ late int? topLevelNullableWithInitializer = 3;
 */
 late final int? finalTopLevelNullableWithInitializer = 4;
 
+/*member: Class._#new#tearOff:
+ tearoffConstructor,
+ tearoffLowering
+*/
 class Class {
   /*member: Class._#Class#instanceNonNullableWithoutInitializer:
    lateField,
