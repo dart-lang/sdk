@@ -939,7 +939,7 @@ class ThreadInfo {
     final fileUri = Uri.file(filePath);
 
     // Track how many segments from the path are from the lib folder to the
-    // libary that will need to be removed later.
+    // library that will need to be removed later.
     final libraryPathSegments = uri.pathSegments.length - 1;
 
     // It should never be the case that the returned value doesn't have at

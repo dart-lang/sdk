@@ -1897,6 +1897,24 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
   /// simplest) way, but prevents the user from being able to type into `stdin`.
   final String? console;
 
+  /// An optional tool to run instead of "dart".
+  ///
+  /// In combination with [customToolReplacesArgs] allows invoking a custom
+  /// tool instead of "dart" to launch scripts/tests. The custom tool must be
+  /// completely compatible with the tool/command it is replacing.
+  ///
+  /// This field should be a full absolute path if the tool may not be available
+  /// in `PATH`.
+  final String? customTool;
+
+  /// The number of arguments to delete from the beginning of the argument list
+  /// when invoking [customTool].
+  ///
+  /// For example, setting [customTool] to `dart_test` and
+  /// `customToolReplacesArgs` to `2` for a test run would invoke
+  /// `dart_test foo_test.dart` instead of `dart run test:test foo_test.dart`.
+  final int? customToolReplacesArgs;
+
   DartLaunchRequestArguments({
     this.noDebug,
     required this.program,
@@ -1905,6 +1923,8 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     this.toolArgs,
     this.console,
     this.enableAsserts,
+    this.customTool,
+    this.customToolReplacesArgs,
     Object? restart,
     String? name,
     String? cwd,
@@ -1934,6 +1954,8 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         vmServicePort = obj['vmServicePort'] as int?,
         console = obj['console'] as String?,
         enableAsserts = obj['enableAsserts'] as bool?,
+        customTool = obj['customTool'] as String?,
+        customToolReplacesArgs = obj['customToolReplacesArgs'] as int?,
         super.fromMap(obj);
 
   @override
@@ -1946,6 +1968,9 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         if (vmServicePort != null) 'vmServicePort': vmServicePort,
         if (console != null) 'console': console,
         if (enableAsserts != null) 'enableAsserts': enableAsserts,
+        if (customTool != null) 'customTool': customTool,
+        if (customToolReplacesArgs != null)
+          'customToolReplacesArgs': customToolReplacesArgs,
       };
 
   static DartLaunchRequestArguments fromJson(Map<String, Object?> obj) =>
