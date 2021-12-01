@@ -1114,7 +1114,7 @@ int f() => null;
               path: '/_preview/navigationTree.json',
               queryParameters: {'authToken': authToken}),
           headers: {'Content-Type': 'application/json; charset=UTF-8'});
-      var navRoots = jsonDecode(treeResponse.body);
+      var navRoots = jsonDecode(treeResponse.body) as List<Object?>;
       for (final root in navRoots) {
         var navTree =
             NavigationTreeNode.fromJson(root) as NavigationTreeDirectoryNode;

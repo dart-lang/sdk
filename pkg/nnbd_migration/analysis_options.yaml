@@ -11,8 +11,8 @@ analyzer:
     # There are currently 20 violations.
     unawaited_futures: ignore
 
-  strong-mode:
-    implicit-casts: false
+  language:
+    strict-casts: true
 
 linter:
   rules:
