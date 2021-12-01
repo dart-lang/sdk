@@ -59,6 +59,11 @@ abstract class int extends num {
   ///
   /// If both operands are negative, the result is negative, otherwise
   /// the result is non-negative.
+  /// ```dart
+  /// print((2 & 1).toRadixString(2)); //  0010 & 0001 -> 0000
+  /// print((3 & 1).toRadixString(2)); //  0011 & 0001 -> 0001
+  /// print((10 & 2).toRadixString(2)); //  1010 & 0010 -> 0010
+  /// ```
   int operator &(int other);
 
   /// Bit-wise or operator.
@@ -69,6 +74,13 @@ abstract class int extends num {
   ///
   /// If both operands are non-negative, the result is non-negative,
   /// otherwise the result is negative.
+  ///
+  /// Example:
+  /// ```dart
+  /// print((2 | 1).toRadixString(2)); //  0010 | 0001 -> 0011
+  /// print((3 | 1).toRadixString(2)); //  0011 | 0001 -> 0011
+  /// print((10 | 2).toRadixString(2)); //  1010 | 0010 -> 1010
+  /// ```
   int operator |(int other);
 
   /// Bit-wise exclusive-or operator.
@@ -79,6 +91,13 @@ abstract class int extends num {
   ///
   /// If the operands have the same sign, the result is non-negative,
   /// otherwise the result is negative.
+  ///
+  /// Example:
+  /// ```dart
+  /// print((2 ^ 1).toRadixString(2)); //  0010 ^ 0001 -> 0011
+  /// print((3 ^ 1).toRadixString(2)); //  0011 ^ 0001 -> 0010
+  /// print((10 ^ 2).toRadixString(2)); //  1010 ^ 0010 -> 1000
+  /// ```
   int operator ^(int other);
 
   /// The bit-wise negate operator.
@@ -99,6 +118,14 @@ abstract class int extends num {
   /// mask.
   ///
   /// It is an error if [shiftAmount] is negative.
+  ///
+  /// Example:
+  /// ```dart
+  /// print((3 << 1).toRadixString(2)); // 0011 -> 0110 == 6
+  /// print(int.tryParse('0110', radix: 2)); // 6
+  /// print((10 << 3).toRadixString(2)); // 1010 -> 01010000
+  /// print(int.tryParse('01010000', radix: 2)); // 80
+  /// ```
   int operator <<(int shiftAmount);
 
   /// Shift the bits of this integer to the right by [shiftAmount].
@@ -108,6 +135,16 @@ abstract class int extends num {
   ///`pow(2, shiftIndex)`.
   ///
   /// It is an error if [shiftAmount] is negative.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// print((3 >> 1).toRadixString(2)); // 0011 -> 0001
+  /// print((3 >> 2).toRadixString(2)); // 0011 -> 0000
+  /// print(int.tryParse('0001', radix: 2)); // 1
+  /// print((10 >> 2).toRadixString(2)); // 1010 -> 0010
+  /// print(int.tryParse('0010', radix: 2)); // 2
+  /// ```
   int operator >>(int shiftAmount);
 
   /// Bitwise unsigned right shift by [shiftAmount] bits.
@@ -117,6 +154,15 @@ abstract class int extends num {
   /// and zero-bits are shifted in as the new most significant bits.
   ///
   /// The [shiftAmount] must be non-negative.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// print((3 >>> 2).toRadixString(2)); // 0011 -> 0000
+  /// print((10 >>> 2).toRadixString(2)); // 1010 -> 0010
+  /// print((2021 >>> 1).toRadixString(2)); // 11111100101 -> 1111110010
+  /// print((2021 >>> 4).toRadixString(2)); // 11111100101 -> 1111110
+  /// ```
   int operator >>>(int shiftAmount);
 
   /// Returns this integer to the power of [exponent] modulo [modulus].
@@ -144,6 +190,13 @@ abstract class int extends num {
   /// For any integer `x`, `x.gcd(x)` is `x.abs()`.
   ///
   /// If both `this` and `other` is zero, the result is also zero.
+  ///
+  /// Example:
+  /// ```dart
+  /// print(4.gcd(2)); // 2
+  /// print(8.gcd(4)); // 4
+  /// print(10.gcd(12)); // 2
+  /// ```
   int gcd(int other);
 
   /// Returns true if and only if this integer is even.
@@ -279,6 +332,22 @@ abstract class int extends num {
   /// '9', with 'a' being 10 an 'z' being 35.
   ///
   /// The [radix] argument must be an integer in the range 2 to 36.
+  ///
+  /// Example:
+  /// ```dart
+  /// // Binary (base 2).
+  /// print(12.toRadixString(2)); // 1100
+  /// print(31.toRadixString(2)); // 00011111
+  /// print(2021.toRadixString(2)); // 011111100101
+  /// // Octal (base 8).
+  /// print(12.toRadixString(8)); // 14
+  /// print(31.toRadixString(8)); // 37
+  /// print(2021.toRadixString(8)); // 3745
+  /// // Hexadecimal (base 16).
+  /// print(12.toRadixString(16)); // c
+  /// print(31.toRadixString(16)); // 1f
+  /// print(2021.toRadixString(16)); // 7e5
+  /// ```
   String toRadixString(int radix);
 
   /// Parse [source] as a, possibly signed, integer literal and return its value.
@@ -333,5 +402,24 @@ abstract class int extends num {
   ///
   /// Like [parse] except that this function returns `null` where a
   /// similar call to [parse] would throw a [FormatException].
+  ///
+  /// Example:
+  /// ```dart
+  /// print(int.tryParse('2021')); // 2021
+  /// print(int.tryParse('1f')); // null
+  ///
+  /// // From binary (base 2) value.
+  /// print(int.tryParse('1100', radix: 2)); // 12
+  /// print(int.tryParse('00011111', radix: 2)); // 31
+  /// print(int.tryParse('011111100101', radix: 2)); // 2021
+  /// // From octal (base 8) value.
+  /// print(int.tryParse('14', radix: 8)); // 12
+  /// print(int.tryParse('37', radix: 8)); // 31
+  /// print(int.tryParse('3745', radix: 8)); // 2021
+  /// // From hexadecimal (base 16) value.
+  /// print(int.tryParse('c', radix: 16)); // 12
+  /// print(int.tryParse('1f', radix: 16)); // 31
+  /// print(int.tryParse('7e5', radix: 16)); // 2021
+  /// ```
   external static int? tryParse(String source, {int? radix});
 }
