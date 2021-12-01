@@ -1396,7 +1396,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
         if (i == errorEvent) {
           if (!isClosing) {
-            reportError(nativeGetError(), null, "");
+            final err = nativeGetError();
+            reportError(err, null, err.message);
           }
         } else if (!isClosed) {
           // If the connection is closed right after it's accepted, there's a

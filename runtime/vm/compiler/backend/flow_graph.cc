@@ -132,20 +132,6 @@ Representation FlowGraph::ReturnRepresentationOf(const Function& function) {
   }
 }
 
-Representation FlowGraph::UnboxedFieldRepresentationOf(const Field& field) {
-  switch (field.UnboxedFieldCid()) {
-    case kDoubleCid:
-      return kUnboxedDouble;
-    case kFloat32x4Cid:
-      return kUnboxedFloat32x4;
-    case kFloat64x2Cid:
-      return kUnboxedFloat64x2;
-    default:
-      RELEASE_ASSERT(field.is_non_nullable_integer());
-      return kUnboxedInt64;
-  }
-}
-
 void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
                                           Instruction* current,
                                           Instruction* replacement) {
