@@ -32,6 +32,8 @@ Future<void> main(List<String> args) async {
               ExperimentalFlag.nonNullable: true
             },
             targetFlags: const TestTargetFlags(
+                forceConstructorTearOffLoweringForTesting:
+                    ConstructorTearOffLowering.all,
                 forceLateLoweringsForTesting: LateLowering.all,
                 forceLateLoweringSentinelForTesting: false),
             nnbdMode: NnbdMode.Strong),
@@ -40,6 +42,8 @@ Future<void> main(List<String> args) async {
               ExperimentalFlag.nonNullable: true
             },
             targetFlags: const TestTargetFlags(
+                forceConstructorTearOffLoweringForTesting:
+                    ConstructorTearOffLowering.all,
                 forceLateLoweringsForTesting: LateLowering.all,
                 forceLateLoweringSentinelForTesting: true),
             nnbdMode: NnbdMode.Strong)
@@ -61,6 +65,10 @@ class Tags {
   static const String lateLocalSetter = 'lateLocalSetter';
 
   static const String extensionThis = 'extensionThis';
+
+  static const String tearoffLowering = 'tearoffLowering';
+  static const String tearoffConstructor = 'tearoffConstructor';
+  static const String tearoffTypedef = 'tearoffTypedef';
 }
 
 class PredicateDataComputer extends DataComputer<Features> {
@@ -110,8 +118,8 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
 
   @override
   Features? computeMemberValue(Id id, Member node) {
+    Features features = new Features();
     if (node is Field) {
-      Features features = new Features();
       if (isLateLoweredField(node)) {
         features.add(Tags.lateField);
         features[Tags.lateFieldName] =
@@ -131,9 +139,7 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
         features[Tags.lateFieldInitializer] =
             initializer.toText(astTextStrategyForTesting);
       }
-      return features;
     } else if (node is Procedure) {
-      Features features = new Features();
       if (isLateLoweredFieldGetter(node)) {
         features.add(Tags.lateFieldGetter);
         features[Tags.lateFieldName] =
@@ -153,9 +159,17 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
         features[Tags.lateFieldInitializer] =
             initializer.toText(astTextStrategyForTesting);
       }
-      return features;
+      if (isConstructorTearOffLowering(node)) {
+        features.add(Tags.tearoffConstructor);
+      }
+      if (isTypedefTearOffLowering(node)) {
+        features.add(Tags.tearoffTypedef);
+      }
     }
-    return null;
+    if (isTearOffLowering(node)) {
+      features.add(Tags.tearoffLowering);
+    }
+    return features;
   }
 
   @override

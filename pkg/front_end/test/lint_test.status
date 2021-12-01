@@ -14,6 +14,7 @@ front_end/lib/src/api_prototype/constant_evaluator/Exports: Fail
 front_end/lib/src/api_prototype/front_end/Exports: Fail
 front_end/lib/src/api_prototype/incremental_kernel_generator/Exports: Fail
 front_end/lib/src/api_prototype/language_version/Exports: Fail
+front_end/lib/src/api_prototype/lowering_predicates/Exports: Fail
 front_end/lib/src/api_prototype/terminal_color_support/Exports: Fail
 front_end/lib/src/fasta/fasta_codes/Exports: Fail
 front_end/lib/src/fasta/incremental_compiler/ImportsTwice: Fail
