@@ -7,6 +7,7 @@ import 'dart:io' as io;
 
 import 'package:analysis_server_client/protocol.dart' hide AnalysisError;
 import 'package:intl/intl.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../analysis_server.dart';
@@ -220,15 +221,22 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       }
       try {
         var expectedCode = expectFile.readAsStringSync();
-        var actualCode =
-            fileContentCache[filePath] ?? originalFile.readAsStringSync();
+        var actualIsOriginal = !fileContentCache.containsKey(filePath);
+        var actualCode = actualIsOriginal
+            ? originalFile.readAsStringSync()
+            : fileContentCache[filePath];
         // Use a whitespace insensitive comparison.
         if (_compressWhitespace(actualCode) !=
             _compressWhitespace(expectedCode)) {
           result.failCount++;
           // TODO(brianwilkerson) Do a better job of displaying the differences.
           //  It's very hard to see the diff with large files.
-          _reportFailure(filePath, actualCode, expectedCode);
+          _reportFailure(
+            filePath,
+            actualCode,
+            expectedCode,
+            actualIsOriginal: actualIsOriginal,
+          );
         } else {
           result.passCount++;
         }
@@ -314,12 +322,17 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
 
   /// Report that the [actualCode] produced by applying fixes to the content of
   /// [filePath] did not match the [expectedCode].
-  void _reportFailure(String filePath, String actualCode, String expectedCode) {
+  void _reportFailure(String filePath, String actualCode, String expectedCode,
+      {@required bool actualIsOriginal}) {
     log.stdout('Failed when applying fixes to $filePath');
     log.stdout('Expected:');
     log.stdout(expectedCode);
     log.stdout('');
-    log.stdout('Actual:');
+    if (actualIsOriginal) {
+      log.stdout('Actual (original code was unchanged):');
+    } else {
+      log.stdout('Actual:');
+    }
     log.stdout(actualCode);
   }
 
