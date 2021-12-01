@@ -25,40 +25,33 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef DOUBLE_CONVERSION_CACHED_POWERS_H_
-#define DOUBLE_CONVERSION_CACHED_POWERS_H_
 
 #include "diy-fp.h"
+#include "utils.h"
 
 namespace double_conversion {
 
-class PowersOfTenCache {
- public:
-
-  // Not all powers of ten are cached. The decimal exponent of two neighboring
-  // cached numbers will differ by kDecimalExponentDistance.
-  static const int kDecimalExponentDistance;
-
-  static const int kMinDecimalExponent;
-  static const int kMaxDecimalExponent;
-
-  // Returns a cached power-of-ten with a binary exponent in the range
-  // [min_exponent; max_exponent] (boundaries included).
-  static void GetCachedPowerForBinaryExponentRange(int min_exponent,
-                                                   int max_exponent,
-                                                   DiyFp* power,
-                                                   int* decimal_exponent);
-
-  // Returns a cached power of ten x ~= 10^k such that
-  //   k <= decimal_exponent < k + kCachedPowersDecimalDistance.
-  // The given decimal_exponent must satisfy
-  //   kMinDecimalExponent <= requested_exponent, and
-  //   requested_exponent < kMaxDecimalExponent + kDecimalExponentDistance.
-  static void GetCachedPowerForDecimalExponent(int requested_exponent,
-                                               DiyFp* power,
-                                               int* found_exponent);
-};
+void DiyFp::Multiply(const DiyFp& other) {
+  // Simply "emulates" a 128 bit multiplication.
+  // However: the resulting number only contains 64 bits. The least
+  // significant 64 bits are only used for rounding the most significant 64
+  // bits.
+  const uint64_t kM32 = 0xFFFFFFFFU;
+  uint64_t a = f_ >> 32;
+  uint64_t b = f_ & kM32;
+  uint64_t c = other.f_ >> 32;
+  uint64_t d = other.f_ & kM32;
+  uint64_t ac = a * c;
+  uint64_t bc = b * c;
+  uint64_t ad = a * d;
+  uint64_t bd = b * d;
+  uint64_t tmp = (bd >> 32) + (ad & kM32) + (bc & kM32);
+  // By adding 1U << 31 to tmp we round the final result.
+  // Halfway cases will be round up.
+  tmp += 1U << 31;
+  uint64_t result_f = ac + (ad >> 32) + (bc >> 32) + (tmp >> 32);
+  e_ += other.e_ + 64;
+  f_ = result_f;
+}
 
 }  // namespace double_conversion
-
-#endif  // DOUBLE_CONVERSION_CACHED_POWERS_H_

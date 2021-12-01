@@ -41,15 +41,12 @@ static float uint32_to_float(uint32_t d32) { return BitCast<float>(d32); }
 // Helper functions for doubles.
 class Double {
  public:
-  static const uint64_t kSignMask = DOUBLE_CONVERSION_UINT64_2PART_C(0x80000000, 00000000);
-  static const uint64_t kExponentMask = DOUBLE_CONVERSION_UINT64_2PART_C(0x7FF00000, 00000000);
-  static const uint64_t kSignificandMask = DOUBLE_CONVERSION_UINT64_2PART_C(0x000FFFFF, FFFFFFFF);
-  static const uint64_t kHiddenBit = DOUBLE_CONVERSION_UINT64_2PART_C(0x00100000, 00000000);
-  static const uint64_t kQuietNanBit = DOUBLE_CONVERSION_UINT64_2PART_C(0x00080000, 00000000);
+  static const uint64_t kSignMask = UINT64_2PART_C(0x80000000, 00000000);
+  static const uint64_t kExponentMask = UINT64_2PART_C(0x7FF00000, 00000000);
+  static const uint64_t kSignificandMask = UINT64_2PART_C(0x000FFFFF, FFFFFFFF);
+  static const uint64_t kHiddenBit = UINT64_2PART_C(0x00100000, 00000000);
   static const int kPhysicalSignificandSize = 52;  // Excludes the hidden bit.
   static const int kSignificandSize = 53;
-  static const int kExponentBias = 0x3FF + kPhysicalSignificandSize;
-  static const int kMaxExponent = 0x7FF - kExponentBias;
 
   Double() : d64_(0) {}
   explicit Double(double d) : d64_(double_to_uint64(d)) {}
@@ -60,14 +57,14 @@ class Double {
   // The value encoded by this Double must be greater or equal to +0.0.
   // It must not be special (infinity, or NaN).
   DiyFp AsDiyFp() const {
-    DOUBLE_CONVERSION_ASSERT(Sign() > 0);
-    DOUBLE_CONVERSION_ASSERT(!IsSpecial());
+    ASSERT(Sign() > 0);
+    ASSERT(!IsSpecial());
     return DiyFp(Significand(), Exponent());
   }
 
   // The value encoded by this Double must be strictly greater than 0.
   DiyFp AsNormalizedDiyFp() const {
-    DOUBLE_CONVERSION_ASSERT(value() > 0.0);
+    ASSERT(value() > 0.0);
     uint64_t f = Significand();
     int e = Exponent();
 
@@ -102,7 +99,7 @@ class Double {
   }
 
   double PreviousDouble() const {
-    if (d64_ == (kInfinity | kSignMask)) return -Infinity();
+    if (d64_ == (kInfinity | kSignMask)) return -Double::Infinity();
     if (Sign() < 0) {
       return Double(d64_ + 1).value();
     } else {
@@ -149,15 +146,6 @@ class Double {
         ((d64 & kSignificandMask) != 0);
   }
 
-  bool IsQuietNan() const {
-    return IsNan() && ((AsUint64() & kQuietNanBit) != 0);
-  }
-
-  bool IsSignalingNan() const {
-    return IsNan() && ((AsUint64() & kQuietNanBit) == 0);
-  }
-
-
   bool IsInfinite() const {
     uint64_t d64 = AsUint64();
     return ((d64 & kExponentMask) == kExponentMask) &&
@@ -172,7 +160,7 @@ class Double {
   // Precondition: the value encoded by this Double must be greater or equal
   // than +0.0.
   DiyFp UpperBoundary() const {
-    DOUBLE_CONVERSION_ASSERT(Sign() > 0);
+    ASSERT(Sign() > 0);
     return DiyFp(Significand() * 2 + 1, Exponent() - 1);
   }
 
@@ -181,7 +169,7 @@ class Double {
   // exponent as m_plus.
   // Precondition: the value encoded by this Double must be greater than 0.
   void NormalizedBoundaries(DiyFp* out_m_minus, DiyFp* out_m_plus) const {
-    DOUBLE_CONVERSION_ASSERT(value() > 0.0);
+    ASSERT(value() > 0.0);
     DiyFp v = this->AsDiyFp();
     DiyFp m_plus = DiyFp::Normalize(DiyFp((v.f() << 1) + 1, v.e() - 1));
     DiyFp m_minus;
@@ -234,9 +222,11 @@ class Double {
   }
 
  private:
+  static const int kExponentBias = 0x3FF + kPhysicalSignificandSize;
   static const int kDenormalExponent = -kExponentBias + 1;
-  static const uint64_t kInfinity = DOUBLE_CONVERSION_UINT64_2PART_C(0x7FF00000, 00000000);
-  static const uint64_t kNaN = DOUBLE_CONVERSION_UINT64_2PART_C(0x7FF80000, 00000000);
+  static const int kMaxExponent = 0x7FF - kExponentBias;
+  static const uint64_t kInfinity = UINT64_2PART_C(0x7FF00000, 00000000);
+  static const uint64_t kNaN = UINT64_2PART_C(0x7FF80000, 00000000);
 
   const uint64_t d64_;
 
@@ -267,7 +257,7 @@ class Double {
         (biased_exponent << kPhysicalSignificandSize);
   }
 
-  DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN(Double);
+  DISALLOW_COPY_AND_ASSIGN(Double);
 };
 
 class Single {
@@ -276,7 +266,6 @@ class Single {
   static const uint32_t kExponentMask = 0x7F800000;
   static const uint32_t kSignificandMask = 0x007FFFFF;
   static const uint32_t kHiddenBit = 0x00800000;
-  static const uint32_t kQuietNanBit = 0x00400000;
   static const int kPhysicalSignificandSize = 23;  // Excludes the hidden bit.
   static const int kSignificandSize = 24;
 
@@ -287,8 +276,8 @@ class Single {
   // The value encoded by this Single must be greater or equal to +0.0.
   // It must not be special (infinity, or NaN).
   DiyFp AsDiyFp() const {
-    DOUBLE_CONVERSION_ASSERT(Sign() > 0);
-    DOUBLE_CONVERSION_ASSERT(!IsSpecial());
+    ASSERT(Sign() > 0);
+    ASSERT(!IsSpecial());
     return DiyFp(Significand(), Exponent());
   }
 
@@ -335,15 +324,6 @@ class Single {
         ((d32 & kSignificandMask) != 0);
   }
 
-  bool IsQuietNan() const {
-    return IsNan() && ((AsUint32() & kQuietNanBit) != 0);
-  }
-
-  bool IsSignalingNan() const {
-    return IsNan() && ((AsUint32() & kQuietNanBit) == 0);
-  }
-
-
   bool IsInfinite() const {
     uint32_t d32 = AsUint32();
     return ((d32 & kExponentMask) == kExponentMask) &&
@@ -360,7 +340,7 @@ class Single {
   // exponent as m_plus.
   // Precondition: the value encoded by this Single must be greater than 0.
   void NormalizedBoundaries(DiyFp* out_m_minus, DiyFp* out_m_plus) const {
-    DOUBLE_CONVERSION_ASSERT(value() > 0.0);
+    ASSERT(value() > 0.0);
     DiyFp v = this->AsDiyFp();
     DiyFp m_plus = DiyFp::Normalize(DiyFp((v.f() << 1) + 1, v.e() - 1));
     DiyFp m_minus;
@@ -378,7 +358,7 @@ class Single {
   // Precondition: the value encoded by this Single must be greater or equal
   // than +0.0.
   DiyFp UpperBoundary() const {
-    DOUBLE_CONVERSION_ASSERT(Sign() > 0);
+    ASSERT(Sign() > 0);
     return DiyFp(Significand() * 2 + 1, Exponent() - 1);
   }
 
@@ -414,7 +394,7 @@ class Single {
 
   const uint32_t d32_;
 
-  DOUBLE_CONVERSION_DISALLOW_COPY_AND_ASSIGN(Single);
+  DISALLOW_COPY_AND_ASSIGN(Single);
 };
 
 }  // namespace double_conversion
