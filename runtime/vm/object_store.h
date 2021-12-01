@@ -215,6 +215,8 @@ class ObjectPointerVisitor;
   RW(Code, assert_boolean_stub)                                                \
   RW(Code, instance_of_stub)                                                   \
   RW(Code, init_static_field_stub)                                             \
+  RW(Code, init_late_static_field_stub)                                        \
+  RW(Code, init_late_final_static_field_stub)                                  \
   RW(Code, init_instance_field_stub)                                           \
   RW(Code, init_late_instance_field_stub)                                      \
   RW(Code, init_late_final_instance_field_stub)                                \
@@ -296,6 +298,8 @@ class ObjectPointerVisitor;
   DO(re_throw_stub, ReThrow)                                                   \
   DO(assert_boolean_stub, AssertBoolean)                                       \
   DO(init_static_field_stub, InitStaticField)                                  \
+  DO(init_late_static_field_stub, InitLateStaticField)                         \
+  DO(init_late_final_static_field_stub, InitLateFinalStaticField)              \
   DO(init_instance_field_stub, InitInstanceField)                              \
   DO(init_late_instance_field_stub, InitLateInstanceField)                     \
   DO(init_late_final_instance_field_stub, InitLateFinalInstanceField)          \

@@ -48,6 +48,68 @@ void StubCodeCompiler::GenerateInitStaticFieldStub(Assembler* assembler) {
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateInitLateStaticFieldStub(Assembler* assembler,
+                                                       bool is_final) {
+  const Register kResultReg = InitStaticFieldABI::kResultReg;
+  const Register kFunctionReg = InitLateStaticFieldInternalRegs::kFunctionReg;
+  const Register kFieldReg = InitStaticFieldABI::kFieldReg;
+  const Register kAddressReg = InitLateStaticFieldInternalRegs::kAddressReg;
+  const Register kScratchReg = InitLateStaticFieldInternalRegs::kScratchReg;
+
+  __ EnterStubFrame();
+
+  __ Comment("Calling initializer function");
+  __ PushRegister(kFieldReg);
+  __ LoadCompressedFieldFromOffset(
+      kFunctionReg, InitInstanceFieldABI::kFieldReg,
+      target::Field::initializer_function_offset());
+  if (!FLAG_precompiled_mode) {
+    __ LoadCompressedFieldFromOffset(CODE_REG, kFunctionReg,
+                                     target::Function::code_offset());
+    // Load a GC-safe value for the arguments descriptor (unused but tagged).
+    __ LoadImmediate(ARGS_DESC_REG, 0);
+  }
+  __ Call(FieldAddress(kFunctionReg, target::Function::entry_point_offset()));
+  __ MoveRegister(kResultReg, CallingConventions::kReturnReg);
+  __ PopRegister(kFieldReg);
+  __ LoadStaticFieldAddress(kAddressReg, kFieldReg, kScratchReg);
+
+  Label throw_exception;
+  if (is_final) {
+    __ Comment("Checking that initializer did not set late final field");
+    __ LoadFromOffset(kScratchReg, kAddressReg, 0);
+    __ CompareObject(kScratchReg, SentinelObject());
+    __ BranchIf(NOT_EQUAL, &throw_exception);
+  }
+
+  __ StoreToOffset(kResultReg, kAddressReg, 0);
+  __ LeaveStubFrame();
+  __ Ret();
+
+  if (is_final) {
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    // We are jumping over LeaveStubFrame so restore LR state to match one
+    // at the jump point.
+    __ set_lr_state(compiler::LRState::OnEntry().EnterFrame());
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    __ Bind(&throw_exception);
+    __ PushObject(NullObject());  // Make room for (unused) result.
+    __ PushRegister(kFieldReg);
+    __ CallRuntime(kLateFieldAssignedDuringInitializationErrorRuntimeEntry,
+                   /*argument_count=*/1);
+    __ Breakpoint();
+  }
+}
+
+void StubCodeCompiler::GenerateInitLateStaticFieldStub(Assembler* assembler) {
+  GenerateInitLateStaticFieldStub(assembler, /*is_final=*/false);
+}
+
+void StubCodeCompiler::GenerateInitLateFinalStaticFieldStub(
+    Assembler* assembler) {
+  GenerateInitLateStaticFieldStub(assembler, /*is_final=*/true);
+}
+
 void StubCodeCompiler::GenerateInitInstanceFieldStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for result.

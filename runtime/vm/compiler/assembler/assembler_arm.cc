@@ -3747,6 +3747,18 @@ void Assembler::LoadElementAddressForRegIndex(Register address,
   }
 }
 
+void Assembler::LoadStaticFieldAddress(Register address,
+                                       Register field,
+                                       Register scratch) {
+  LoadCompressedFieldFromOffset(
+      scratch, field, target::Field::host_offset_or_field_id_offset());
+  const intptr_t field_table_offset =
+      compiler::target::Thread::field_table_values_offset();
+  LoadMemoryValue(address, THR, static_cast<int32_t>(field_table_offset));
+  add(address, address,
+      Operand(scratch, LSL, target::kWordSizeLog2 - kSmiTagShift));
+}
+
 void Assembler::LoadFieldAddressForRegOffset(Register address,
                                              Register instance,
                                              Register offset_in_words_as_smi) {
