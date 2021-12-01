@@ -388,9 +388,11 @@ class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
 
 class LateInitializationErrorSlowPath : public ThrowErrorSlowPathCode {
  public:
-  explicit LateInitializationErrorSlowPath(LoadFieldInstr* instruction)
+  explicit LateInitializationErrorSlowPath(Instruction* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               kLateFieldNotInitializedErrorRuntimeEntry) {}
+                               kLateFieldNotInitializedErrorRuntimeEntry) {
+    ASSERT(instruction->IsLoadField() || instruction->IsLoadStaticField());
+  }
   virtual const char* name() { return "late initialization error"; }
 
   virtual intptr_t GetNumberOfArgumentsForRuntimeCall() {
@@ -401,6 +403,13 @@ class LateInitializationErrorSlowPath : public ThrowErrorSlowPathCode {
 
   virtual void EmitSharedStubCall(FlowGraphCompiler* compiler,
                                   bool save_fpu_registers);
+
+ private:
+  FieldPtr OriginalField() const {
+    return instruction()->IsLoadField()
+               ? instruction()->AsLoadField()->slot().field().Original()
+               : instruction()->AsLoadStaticField()->field().Original();
+  }
 };
 
 class FlowGraphCompiler : public ValueObject {

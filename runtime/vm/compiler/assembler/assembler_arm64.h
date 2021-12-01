@@ -2212,6 +2212,10 @@ class Assembler : public AssemblerBase {
                                         Register array,
                                         Register index);
 
+  void LoadStaticFieldAddress(Register address,
+                              Register field,
+                              Register scratch);
+
   void LoadCompressedFieldAddressForRegOffset(Register address,
                                               Register instance,
                                               Register offset_in_words_as_smi);

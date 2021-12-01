@@ -5585,27 +5585,82 @@ class GuardFieldTypeInstr : public GuardFieldInstr {
   DISALLOW_COPY_AND_ASSIGN(GuardFieldTypeInstr);
 };
 
-class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
+template <intptr_t N>
+class TemplateLoadField : public TemplateDefinition<N, Throws> {
+  using Base = TemplateDefinition<N, Throws>;
+
+ public:
+  TemplateLoadField(const InstructionSource& source,
+                    bool calls_initializer = false,
+                    intptr_t deopt_id = DeoptId::kNone,
+                    const Field* field = nullptr)
+      : Base(source, deopt_id),
+        token_pos_(source.token_pos),
+        calls_initializer_(calls_initializer),
+        throw_exception_on_initialization_(false) {
+    ASSERT(!calls_initializer || (deopt_id != DeoptId::kNone));
+    if (calls_initializer_) {
+      ASSERT(field != nullptr);
+      throw_exception_on_initialization_ = !field->needs_load_guard() &&
+                                           field->is_late() &&
+                                           !field->has_initializer();
+    }
+  }
+
+  virtual TokenPosition token_pos() const { return token_pos_; }
+  bool calls_initializer() const { return calls_initializer_; }
+  void set_calls_initializer(bool value) { calls_initializer_ = value; }
+
+  bool throw_exception_on_initialization() const {
+    return throw_exception_on_initialization_;
+  }
+
+  // Slow path is used if load throws exception on initialization.
+  virtual bool UseSharedSlowPathStub(bool is_optimizing) const {
+    return Base::SlowPathSharingSupported(is_optimizing);
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return Base::GetDeoptId(); }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
+    return calls_initializer() && !CompilerState::Current().is_aot();
+  }
+  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
+    return Base::InputCount();
+  }
+
+  virtual bool HasUnknownSideEffects() const {
+    return calls_initializer() && !throw_exception_on_initialization();
+  }
+
+  virtual bool CanCallDart() const {
+    return calls_initializer() && !throw_exception_on_initialization();
+  }
+  virtual bool CanTriggerGC() const { return calls_initializer(); }
+  virtual bool MayThrow() const { return calls_initializer(); }
+
+ private:
+  const TokenPosition token_pos_;
+  bool calls_initializer_;
+  bool throw_exception_on_initialization_;
+
+  DISALLOW_COPY_AND_ASSIGN(TemplateLoadField);
+};
+
+class LoadStaticFieldInstr : public TemplateLoadField<0> {
  public:
   LoadStaticFieldInstr(const Field& field,
                        const InstructionSource& source,
                        bool calls_initializer = false,
                        intptr_t deopt_id = DeoptId::kNone)
-      : TemplateDefinition(source, deopt_id),
-        field_(field),
-        token_pos_(source.token_pos),
-        calls_initializer_(calls_initializer) {
-    ASSERT(!calls_initializer || (deopt_id != DeoptId::kNone));
-  }
+      : TemplateLoadField<0>(source, calls_initializer, deopt_id, &field),
+        field_(field) {}
 
   DECLARE_INSTRUCTION(LoadStaticField)
 
   virtual CompileType ComputeType() const;
 
   const Field& field() const { return field_; }
-
-  bool calls_initializer() const { return calls_initializer_; }
-  void set_calls_initializer(bool value) { calls_initializer_ = value; }
 
   virtual bool AllowsCSE() const {
     // If two loads of a static-final-late field call the initializer and one
@@ -5619,23 +5674,12 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
            (!field().is_late() || field().has_initializer());
   }
 
-  virtual bool ComputeCanDeoptimize() const {
-    return calls_initializer() && !CompilerState::Current().is_aot();
-  }
-  virtual bool HasUnknownSideEffects() const { return calls_initializer(); }
-  virtual bool CanTriggerGC() const { return calls_initializer(); }
-  virtual bool MayThrow() const { return calls_initializer(); }
-
   virtual bool AttributesEqual(const Instruction& other) const;
-
-  virtual TokenPosition token_pos() const { return token_pos_; }
 
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
   const Field& field_;
-  const TokenPosition token_pos_;
-  bool calls_initializer_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
 };
@@ -6648,45 +6692,23 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
 // Note: if slot was a subject of the field unboxing optimization then this load
 // would both load the box stored in the field and then load the content of
 // the box.
-class LoadFieldInstr : public TemplateDefinition<1, Throws> {
+class LoadFieldInstr : public TemplateLoadField<1> {
  public:
   LoadFieldInstr(Value* instance,
                  const Slot& slot,
                  const InstructionSource& source,
                  bool calls_initializer = false,
                  intptr_t deopt_id = DeoptId::kNone)
-      : TemplateDefinition(source, deopt_id),
-        slot_(slot),
-        token_pos_(source.token_pos),
-        calls_initializer_(calls_initializer),
-        throw_exception_on_initialization_(false) {
-    ASSERT(!calls_initializer || (deopt_id != DeoptId::kNone));
-    ASSERT(!calls_initializer || slot.IsDartField());
+      : TemplateLoadField(source,
+                          calls_initializer,
+                          deopt_id,
+                          slot.IsDartField() ? &slot.field() : nullptr),
+        slot_(slot) {
     SetInputAt(0, instance);
-    if (calls_initializer_) {
-      const Field& field = slot.field();
-      throw_exception_on_initialization_ = !field.needs_load_guard() &&
-                                           field.is_late() &&
-                                           !field.has_initializer();
-    }
   }
 
   Value* instance() const { return inputs_[0]; }
   const Slot& slot() const { return slot_; }
-
-  virtual TokenPosition token_pos() const { return token_pos_; }
-
-  bool calls_initializer() const { return calls_initializer_; }
-  void set_calls_initializer(bool value) { calls_initializer_ = value; }
-
-  bool throw_exception_on_initialization() const {
-    return throw_exception_on_initialization_;
-  }
-
-  // Slow path is used if load throws exception on initialization.
-  virtual bool UseSharedSlowPathStub(bool is_optimizing) const {
-    return SlowPathSharingSupported(is_optimizing);
-  }
 
   virtual Representation representation() const;
 
@@ -6703,25 +6725,6 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   DECLARE_ATTRIBUTES(&slot())
 
   virtual CompileType ComputeType() const;
-
-  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
-  virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual bool ComputeCanDeoptimizeAfterCall() const {
-    return calls_initializer() && !CompilerState::Current().is_aot();
-  }
-  virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
-    return InputCount();
-  }
-
-  virtual bool HasUnknownSideEffects() const {
-    return calls_initializer() && !throw_exception_on_initialization();
-  }
-
-  virtual bool CanCallDart() const {
-    return calls_initializer() && !throw_exception_on_initialization();
-  }
-  virtual bool CanTriggerGC() const { return calls_initializer(); }
-  virtual bool MayThrow() const { return calls_initializer(); }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
@@ -6761,9 +6764,6 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
   void EmitNativeCodeForInitializerCall(FlowGraphCompiler* compiler);
 
   const Slot& slot_;
-  const TokenPosition token_pos_;
-  bool calls_initializer_;
-  bool throw_exception_on_initialization_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
 };

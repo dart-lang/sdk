@@ -3381,9 +3381,7 @@ void RangeErrorSlowPath::PushArgumentsForRuntimeCall(
 
 void LateInitializationErrorSlowPath::PushArgumentsForRuntimeCall(
     FlowGraphCompiler* compiler) {
-  const Field& original_field = Field::ZoneHandle(
-      instruction()->AsLoadField()->slot().field().Original());
-  __ PushObject(original_field);
+  __ PushObject(Field::ZoneHandle(OriginalField()));
 }
 
 void LateInitializationErrorSlowPath::EmitSharedStubCall(
@@ -3394,9 +3392,8 @@ void LateInitializationErrorSlowPath::EmitSharedStubCall(
 #else
   ASSERT(instruction()->locs()->temp(0).reg() ==
          LateInitializationErrorABI::kFieldReg);
-  const Field& original_field = Field::ZoneHandle(
-      instruction()->AsLoadField()->slot().field().Original());
-  __ LoadObject(LateInitializationErrorABI::kFieldReg, original_field);
+  __ LoadObject(LateInitializationErrorABI::kFieldReg,
+                Field::ZoneHandle(OriginalField()));
   auto object_store = compiler->isolate_group()->object_store();
   const auto& stub = Code::ZoneHandle(
       compiler->zone(),
