@@ -15,12 +15,13 @@ import 'dart:_internal' show Since;
 import 'dart:isolate';
 import 'dart:typed_data';
 
-part "native_type.dart";
-part "allocation.dart";
-part "annotations.dart";
-part "dynamic_library.dart";
-part "struct.dart";
-part "union.dart";
+part 'abi.dart';
+part 'native_type.dart';
+part 'allocation.dart';
+part 'annotations.dart';
+part 'dynamic_library.dart';
+part 'struct.dart';
+part 'union.dart';
 
 /// Number of bytes used by native type T.
 ///
@@ -29,12 +30,12 @@ part "union.dart";
 /// This function must be invoked with a compile-time constant [T].
 external int sizeOf<T extends NativeType>();
 
-/// Represents a pointer into the native C memory corresponding to "NULL", e.g.
+/// Represents a pointer into the native C memory corresponding to 'NULL', e.g.
 /// a pointer with address 0.
 final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
 /// Represents a pointer into the native C memory. Cannot be extended.
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 class Pointer<T extends NativeType> extends NativeType {
   /// Construction from raw integer.
   external factory Pointer.fromAddress(int ptr);
@@ -56,7 +57,7 @@ class Pointer<T extends NativeType> extends NativeType {
   /// Does not accept dynamic invocations -- where the type of the receiver is
   /// [dynamic].
   external static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
-      @DartRepresentationOf("T") Function f,
+      @DartRepresentationOf('T') Function f,
       [Object? exceptionalReturn]);
 
   /// Access to the raw pointer value.
@@ -150,7 +151,7 @@ extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
   /// Convert to Dart function, automatically marshalling the arguments
   /// and return value.
-  external DF asFunction<@DartRepresentationOf("NF") DF extends Function>(
+  external DF asFunction<@DartRepresentationOf('NF') DF extends Function>(
       {bool isLeaf: false});
 }
 
@@ -827,7 +828,7 @@ abstract class NativeApi {
 ///
 /// Example:
 ///```dart template:none
-/// @FfiNative<Int64 Function(Int64, Int64)>("FfiNative_Sum", isLeaf:true)
+/// @FfiNative<Int64 Function(Int64, Int64)>('FfiNative_Sum', isLeaf:true)
 /// external int sum(int a, int b);
 ///```
 /// Calling such functions will throw an exception if no resolver
@@ -844,7 +845,7 @@ class FfiNative<T> {
 
 // Bootstrapping native for getting the FFI native C function pointer to look
 // up the FFI resolver.
-@pragma("vm:external-name", "Ffi_GetFfiNativeResolver")
+@pragma('vm:external-name', 'Ffi_GetFfiNativeResolver')
 external Pointer<NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>>
     _get_ffi_native_resolver<T extends NativeFunction>();
 
