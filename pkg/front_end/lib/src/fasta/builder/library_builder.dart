@@ -220,7 +220,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   bool get isPart => false;
 
   @override
-  String get debugName => "LibraryBuilder";
+  String get debugName => "$runtimeType";
 
   @override
   Loader get loader;
@@ -434,6 +434,11 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     return isNullable
         ? const NullabilityBuilder.nullable()
         : const NullabilityBuilder.omitted();
+  }
+
+  @override
+  StringBuffer printOn(StringBuffer buffer) {
+    return buffer..write(name ?? importUri);
   }
 }
 

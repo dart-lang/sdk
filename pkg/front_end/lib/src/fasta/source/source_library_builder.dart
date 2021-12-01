@@ -711,7 +711,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           resolve(this.importUri,
               new Uri(scheme: "dart", path: "core").toString(), -1),
           -1,
-          accessor: loader.first);
+          accessorUri: loader.firstUri);
       imported = coreLibrary.loader
           .lookupLibraryBuilder(new Uri(scheme: 'dart', path: dottedName));
     }
@@ -787,13 +787,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (uri != null) {
       partOfUri = resolve(this.importUri, uri, uriOffset);
       Uri newFileUri = resolve(fileUri, uri, uriOffset);
-      LibraryBuilder library = loader.read(partOfUri!, uriOffset,
-          fileUri: newFileUri, accessor: this);
-      if (loader.first == this) {
-        // This is a part, and it was the first input. Let the loader know
-        // about that.
-        loader.first = library;
-      }
+      loader.read(partOfUri!, uriOffset, fileUri: newFileUri, accessor: this);
     }
   }
 
