@@ -228,6 +228,14 @@ class Array<T extends NativeType> {
     "Recognized method: IR graph is built in the flow graph builder.")
 external int _abi();
 
+@patch
+@pragma("vm:entry-point")
+class Abi {
+  @patch
+  @pragma("vm:prefer-inline")
+  factory Abi.current() => values[_abi()];
+}
+
 /// Copies data byte-wise from [source] to [target].
 ///
 /// [source] and [target] should either be [Pointer] or [TypedData].
@@ -943,14 +951,14 @@ extension StructArray<T extends Struct> on Array<T> {
   @patch
   T operator [](int index) {
     throw ArgumentError(
-        "S ($T) should be a subtype of Struct at compile-time.");
+        "T ($T) should be a subtype of Struct at compile-time.");
   }
 }
 
 extension UnionArray<T extends Union> on Array<T> {
   @patch
   T operator [](int index) {
-    throw ArgumentError("S ($T) should be a subtype of Union at compile-time.");
+    throw ArgumentError("T ($T) should be a subtype of Union at compile-time.");
   }
 }
 

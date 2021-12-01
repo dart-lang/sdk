@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:pedantic/pedantic.dart';
 import 'package:vm_service/vm_service.dart' as vm;
@@ -72,7 +73,6 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// breakpoints, and resume.
   Future<void> launchImpl() async {
     final args = this.args as DartLaunchRequestArguments;
-    final vmPath = Platform.resolvedExecutable;
     File? vmServiceInfoFile;
 
     final debug = !(args.noDebug ?? false);
@@ -110,6 +110,14 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       '-r',
       'json',
     ];
+
+    // Handle customTool and deletion of any arguments for it.
+    final executable = args.customTool ?? Platform.resolvedExecutable;
+    final removeArgs = args.customToolReplacesArgs;
+    if (args.customTool != null && removeArgs != null) {
+      vmArgs.removeRange(0, math.min(removeArgs, vmArgs.length));
+    }
+
     final processArgs = [
       ...vmArgs,
       ...?args.toolArgs,
@@ -117,11 +125,19 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       ...?args.args,
     ];
 
-    // TODO(dantup): Support passing env to both of these.
+    // TODO(dantup): Support passing env.
 
-    logger?.call('Spawning $vmPath with $processArgs in ${args.cwd}');
+    await launchAsProcess(executable, processArgs);
+  }
+
+  /// Launches the test script as a process controlled by the debug adapter.
+  Future<void> launchAsProcess(
+    String executable,
+    List<String> processArgs,
+  ) async {
+    logger?.call('Spawning $executable with $processArgs in ${args.cwd}');
     final process = await Process.start(
-      vmPath,
+      executable,
       processArgs,
       workingDirectory: args.cwd,
     );

@@ -547,7 +547,7 @@ class FfiTransformer extends Transformer {
     return InstanceInvocation(
         InstanceAccessKind.Instance,
         intListConstantExpression([
-          for (final abi in supportedAbisOrdered) values[abi]!,
+          for (final abi in Abi.values) values[abi]!,
         ]),
         listElementAt.name,
         Arguments([StaticInvocation(abiMethod, Arguments([]))]),

@@ -849,8 +849,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   void _addSizeOfField(Class compound, IndexedClass? indexedClass,
       [Map<Abi, int>? sizes = null]) {
     if (sizes == null) {
-      sizes =
-          Map.fromEntries(supportedAbisOrdered.map((abi) => MapEntry(abi, 0)));
+      sizes = {for (var abi in Abi.values) abi: 0};
     }
     final name = Name("#sizeOf");
     final getterReference = indexedClass?.lookupGetterReference(name);
@@ -1096,14 +1095,14 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
     if (size == WORD_SIZE) {
       return wordSize;
     }
-    return Map.fromEntries(
-        supportedAbisOrdered.map((abi) => MapEntry(abi, size)));
+    return {for (var abi in Abi.values) abi: size};
   }
 
   @override
-  Map<Abi, int> get alignment =>
-      Map.fromEntries(supportedAbisOrdered.map((abi) =>
-          MapEntry(abi, nonSizeAlignment[abi]![nativeType] ?? size[abi]!)));
+  Map<Abi, int> get alignment => {
+        for (var abi in Abi.values)
+          abi: nonSizeAlignment[abi]![nativeType] ?? size[abi]!
+      };
 
   @override
   Constant generateConstant(FfiTransformer transformer) =>
@@ -1324,8 +1323,9 @@ class StructNativeTypeCfe extends CompoundNativeTypeCfe {
 
   factory StructNativeTypeCfe(Class clazz, List<NativeTypeCfe> members,
       {int? packing}) {
-    final layout = Map.fromEntries(supportedAbisOrdered
-        .map((abi) => MapEntry(abi, _calculateLayout(members, packing, abi))));
+    final layout = {
+      for (var abi in Abi.values) abi: _calculateLayout(members, packing, abi)
+    };
     return StructNativeTypeCfe._(clazz, members, packing, layout);
   }
 
@@ -1360,8 +1360,9 @@ class StructNativeTypeCfe extends CompoundNativeTypeCfe {
 
 class UnionNativeTypeCfe extends CompoundNativeTypeCfe {
   factory UnionNativeTypeCfe(Class clazz, List<NativeTypeCfe> members) {
-    final layout = Map.fromEntries(supportedAbisOrdered
-        .map((abi) => MapEntry(abi, _calculateLayout(members, abi))));
+    final layout = {
+      for (var abi in Abi.values) abi: _calculateLayout(members, abi)
+    };
     return UnionNativeTypeCfe._(clazz, members, layout);
   }
 

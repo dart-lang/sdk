@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
@@ -76,7 +77,6 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// breakpoints, and resume.
   Future<void> launchImpl() async {
     final args = this.args as DartLaunchRequestArguments;
-    final vmPath = Platform.resolvedExecutable;
     File? vmServiceInfoFile;
 
     final debug = !(args.noDebug ?? false);
@@ -101,6 +101,14 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       // editor-spawned debug sessions.
       if (args.enableAsserts ?? true) '--enable-asserts',
     ];
+
+    // Handle customTool and deletion of any arguments for it.
+    final executable = args.customTool ?? Platform.resolvedExecutable;
+    final removeArgs = args.customToolReplacesArgs;
+    if (args.customTool != null && removeArgs != null) {
+      vmArgs.removeRange(0, math.min(removeArgs, vmArgs.length));
+    }
+
     final processArgs = [
       ...vmArgs,
       ...?args.toolArgs,
@@ -127,9 +135,14 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     // TODO(dantup): Support passing env to both of these.
 
     if (terminalKind != null) {
-      await launchInEditorTerminal(debug, terminalKind, vmPath, processArgs);
+      await launchInEditorTerminal(
+        debug,
+        terminalKind,
+        executable,
+        processArgs,
+      );
     } else {
-      await launchAsProcess(vmPath, processArgs);
+      await launchAsProcess(executable, processArgs);
     }
 
     // Delay responding until the debugger is connected.
@@ -166,11 +179,11 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   Future<void> launchInEditorTerminal(
     bool debug,
     String terminalKind,
-    String vmPath,
+    String executable,
     List<String> processArgs,
   ) async {
     final args = this.args as DartLaunchRequestArguments;
-    logger?.call('Spawning $vmPath with $processArgs in ${args.cwd}'
+    logger?.call('Spawning $executable with $processArgs in ${args.cwd}'
         ' via client ${terminalKind} terminal');
 
     // runInTerminal is a DAP request that goes from server-to-client that
@@ -179,7 +192,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     // for debugging will rely on the process writing the service-info file that
     // we can detect with the normal watching code.
     final requestArgs = RunInTerminalRequestArguments(
-      args: [vmPath, ...processArgs],
+      args: [executable, ...processArgs],
       cwd: args.cwd ?? path.dirname(args.program),
       kind: terminalKind,
       title: args.name ?? 'Dart',
@@ -210,10 +223,13 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   ///
   /// Output to `stdout`/`stderr` will be sent to the editor using
   /// [OutputEvent]s.
-  Future<void> launchAsProcess(String vmPath, List<String> processArgs) async {
-    logger?.call('Spawning $vmPath with $processArgs in ${args.cwd}');
+  Future<void> launchAsProcess(
+    String executable,
+    List<String> processArgs,
+  ) async {
+    logger?.call('Spawning $executable with $processArgs in ${args.cwd}');
     final process = await Process.start(
-      vmPath,
+      executable,
       processArgs,
       workingDirectory: args.cwd,
     );
