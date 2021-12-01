@@ -1421,9 +1421,6 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     } else if (msg_handler.IsNull()) {
       // If the port has been closed then the message will be dropped at this
       // point. Make sure to post to the delivery failure port in that case.
-      if (message->RedirectToDeliveryFailurePort()) {
-        PortMap::PostMessage(std::move(message));
-      }
     } else {
       // The handler closure which was used to successfully handle the message.
     }
