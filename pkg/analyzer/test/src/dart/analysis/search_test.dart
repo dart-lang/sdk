@@ -1417,6 +1417,25 @@ main() {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_ParameterElement_optionalNamed_anywhere() async {
+    await resolveTestCode('''
+foo(int a, int b, {p}) {
+  p;
+}
+main() {
+  foo(0, p: 1, 2);
+}
+''');
+    var element = findElement.parameter('p');
+    var foo = findElement.function('foo');
+    var main = findElement.function('main');
+    var expected = [
+      _expectId(foo, SearchResultKind.READ, 'p;'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'p: 1')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_ParameterElement_optionalPositional() async {
     await resolveTestCode('''
 foo([p]) {

@@ -34,8 +34,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart'
     show Namespace, NamespaceBuilder;
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
@@ -1572,9 +1571,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// of formal parameters, are evaluated.
   void computeConstantDependencies() {
     if (!isConstantEvaluated) {
-      var analysisOptions = context.analysisOptions as AnalysisOptionsImpl;
       computeConstants(library.typeProvider, library.typeSystem,
-          context.declaredVariables, [this], analysisOptions.experimentStatus);
+          context.declaredVariables, [this], library.featureSet);
     }
   }
 }
@@ -1650,9 +1648,8 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// of this variable could not be computed because of errors.
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
-      var analysisOptions = context.analysisOptions as AnalysisOptionsImpl;
       computeConstants(library!.typeProvider, library!.typeSystem,
-          context.declaredVariables, [this], analysisOptions.experimentStatus);
+          context.declaredVariables, [this], library!.featureSet);
     }
     return evaluationResult?.value;
   }
@@ -1982,10 +1979,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
-      var analysisOptions = context.analysisOptions as AnalysisOptionsImpl;
       var library = compilationUnit.library;
       computeConstants(library.typeProvider, library.typeSystem,
-          context.declaredVariables, [this], analysisOptions.experimentStatus);
+          context.declaredVariables, [this], library.featureSet);
     }
     return evaluationResult?.value;
   }

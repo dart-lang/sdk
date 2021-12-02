@@ -1155,6 +1155,18 @@ void() {
     assertThat(element)..isReferencedAt('test: 0', true);
   }
 
+  test_isReferencedBy_ParameterElement_optionalNamed_ofTopFunction_anywhere() async {
+    await _indexTestUnit('''
+void foo(int a, int b, {int? test}) {}
+
+void() {
+  foo(1, test: 0, 2);
+}
+''');
+    Element element = findElement.parameter('test');
+    assertThat(element)..isReferencedAt('test: 0', true);
+  }
+
   test_isReferencedBy_ParameterElement_optionalPositional() async {
     await _indexTestUnit('''
 foo([p]) {

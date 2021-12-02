@@ -41,8 +41,11 @@ abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
 class ElementMatcherComponentAndKindTest extends AbstractElementMatcherTest {
   /// The kinds that are expected where a getter or setter is allowed.
   static List<ElementKind> accessorKinds = [
+    ElementKind.constantKind,
     ElementKind.fieldKind,
+    ElementKind.functionKind, // tear-off
     ElementKind.getterKind,
+    ElementKind.methodKind, // tear-off
     ElementKind.setterKind,
   ];
 

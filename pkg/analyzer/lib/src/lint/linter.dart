@@ -16,7 +16,6 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
@@ -29,11 +28,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show
-        AnalysisErrorInfo,
-        AnalysisErrorInfoImpl,
-        AnalysisOptions,
-        AnalysisOptionsImpl;
+    show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions;
 import 'package:analyzer/src/generated/resolver.dart' show ScopeResolverVisitor;
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/lint/analysis.dart';
@@ -384,7 +379,7 @@ class LinterContextImpl implements LinterContext {
       typeSystem,
       declaredVariables,
       dependencies,
-      libraryElement.featureSet as ExperimentStatus,
+      libraryElement.featureSet,
     );
 
     var visitor = ConstantVisitor(
@@ -492,7 +487,7 @@ class LinterContextImpl implements LinterContext {
       typeSystem,
       declaredVariables,
       dependenciesFinder.dependencies.toList(),
-      (analysisOptions as AnalysisOptionsImpl).experimentStatus,
+      libraryElement.featureSet,
     );
 
     var listener = _ConstantAnalysisErrorListener();

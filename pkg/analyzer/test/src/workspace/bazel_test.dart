@@ -545,6 +545,15 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
         'package:third_party.something/foo.dart');
   }
 
+  void test_restoreAbsolute_workspace_nestedLib() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/my/components/lib/src/foo/lib/foo.dart',
+    ]);
+    _assertRestore('/workspace/my/components/lib/src/foo/lib/foo.dart',
+        'package:my.components.lib.src.foo/foo.dart');
+  }
+
   void _addResources(List<String> paths,
       {String workspacePath = '/workspace'}) {
     for (String path in paths) {

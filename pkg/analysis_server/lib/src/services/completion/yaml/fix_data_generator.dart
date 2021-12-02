@@ -16,27 +16,7 @@ class FixDataGenerator extends YamlCompletionGenerator {
       'title': EmptyProducer(),
       'date': EmptyProducer(),
       'bulkApply': BooleanProducer(),
-      'element': MapProducer({
-        // TODO(brianwilkerson) Support suggesting uris.
-        'uris': EmptyProducer(),
-        'class': EmptyProducer(),
-        'constant': EmptyProducer(),
-        'constructor': EmptyProducer(),
-        'enum': EmptyProducer(),
-        'extension': EmptyProducer(),
-        'field': EmptyProducer(),
-        'function': EmptyProducer(),
-        'getter': EmptyProducer(),
-        'method': EmptyProducer(),
-        'mixin': EmptyProducer(),
-        'setter': EmptyProducer(),
-        'typedef': EmptyProducer(),
-        'variable': EmptyProducer(),
-        'inClass': EmptyProducer(),
-        'inEnum': EmptyProducer(),
-        'inExtension': EmptyProducer(),
-        'inMixin': EmptyProducer(),
-      }),
+      'element': _elementProducer,
       'changes': _changesProducer,
       'oneOf': ListProducer(MapProducer({
         'if': EmptyProducer(),
@@ -56,6 +36,7 @@ class FixDataGenerator extends YamlCompletionGenerator {
       'removeParameter',
       'rename',
       'renameParameter',
+      'replacedBy',
     ]),
     'index': EmptyProducer(),
     'name': EmptyProducer(),
@@ -69,7 +50,31 @@ class FixDataGenerator extends YamlCompletionGenerator {
     'extends': EmptyProducer(),
     'oldName': EmptyProducer(),
     'newName': EmptyProducer(),
+    'newElement': _elementProducer,
   }));
+
+  /// The producer representing the known valid structure of an element.
+  static const MapProducer _elementProducer = MapProducer({
+    // TODO(brianwilkerson) Support suggesting uris.
+    'uris': EmptyProducer(),
+    'class': EmptyProducer(),
+    'constant': EmptyProducer(),
+    'constructor': EmptyProducer(),
+    'enum': EmptyProducer(),
+    'extension': EmptyProducer(),
+    'field': EmptyProducer(),
+    'function': EmptyProducer(),
+    'getter': EmptyProducer(),
+    'method': EmptyProducer(),
+    'mixin': EmptyProducer(),
+    'setter': EmptyProducer(),
+    'typedef': EmptyProducer(),
+    'variable': EmptyProducer(),
+    'inClass': EmptyProducer(),
+    'inEnum': EmptyProducer(),
+    'inExtension': EmptyProducer(),
+    'inMixin': EmptyProducer(),
+  });
 
   /// Initialize a newly created suggestion generator for fix data files.
   FixDataGenerator(ResourceProvider resourceProvider)

@@ -36,9 +36,7 @@ bin/flutter update-packages
 $dart --enable-asserts dev/bots/analyze.dart --dart-sdk $sdk
 
 # Test flutter's use of data-driven fixes.
-pushd packages/flutter/test_fixes
-../../../bin/dart fix --compare-to-golden
-popd
+$dart fix packages/flutter/test_fixes --compare-to-golden
 
 # Analyze the sample code in dartdoc snippets.
-./bin/dart dev/bots/analyze_sample_code.dart
+$dart dev/bots/analyze_sample_code.dart
