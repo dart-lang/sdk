@@ -838,20 +838,46 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kTypedData_Float32x4Array_factory:
     case MethodRecognizer::kTypedData_Int32x4Array_factory:
     case MethodRecognizer::kTypedData_Float64x2Array_factory:
-#define FFI_LOAD_STORE(type)                                                   \
-  case MethodRecognizer::kFfiLoad##type:                                       \
-  case MethodRecognizer::kFfiStore##type:
-    CLASS_LIST_FFI_NUMERIC(FFI_LOAD_STORE)
-    FFI_LOAD_STORE(FloatUnaligned)
-    FFI_LOAD_STORE(DoubleUnaligned)
-    FFI_LOAD_STORE(Pointer)
-#undef FFI_LOAD_STORE
+    case MethodRecognizer::kFfiLoadInt8:
+    case MethodRecognizer::kFfiLoadInt16:
+    case MethodRecognizer::kFfiLoadInt32:
+    case MethodRecognizer::kFfiLoadInt64:
+    case MethodRecognizer::kFfiLoadUint8:
+    case MethodRecognizer::kFfiLoadUint16:
+    case MethodRecognizer::kFfiLoadUint32:
+    case MethodRecognizer::kFfiLoadUint64:
+    case MethodRecognizer::kFfiLoadIntPtr:
+    case MethodRecognizer::kFfiLoadFloat:
+    case MethodRecognizer::kFfiLoadFloatUnaligned:
+    case MethodRecognizer::kFfiLoadDouble:
+    case MethodRecognizer::kFfiLoadDoubleUnaligned:
+    case MethodRecognizer::kFfiLoadPointer:
+    case MethodRecognizer::kFfiStoreInt8:
+    case MethodRecognizer::kFfiStoreInt16:
+    case MethodRecognizer::kFfiStoreInt32:
+    case MethodRecognizer::kFfiStoreInt64:
+    case MethodRecognizer::kFfiStoreUint8:
+    case MethodRecognizer::kFfiStoreUint16:
+    case MethodRecognizer::kFfiStoreUint32:
+    case MethodRecognizer::kFfiStoreUint64:
+    case MethodRecognizer::kFfiStoreIntPtr:
+    case MethodRecognizer::kFfiStoreFloat:
+    case MethodRecognizer::kFfiStoreFloatUnaligned:
+    case MethodRecognizer::kFfiStoreDouble:
+    case MethodRecognizer::kFfiStoreDoubleUnaligned:
+    case MethodRecognizer::kFfiStorePointer:
     case MethodRecognizer::kFfiFromAddress:
     case MethodRecognizer::kFfiGetAddress:
-#define FFI_AS_EXTERNAL_TYPED_DATA(type)                                       \
-  case MethodRecognizer::kFfiAsExternalTypedData##type:
-    CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(FFI_AS_EXTERNAL_TYPED_DATA)
-#undef FFI_AS_EXTERNAL_TYPED_DATA
+    case MethodRecognizer::kFfiAsExternalTypedDataInt8:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt16:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt32:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt64:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint8:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint16:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint32:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint64:
+    case MethodRecognizer::kFfiAsExternalTypedDataFloat:
+    case MethodRecognizer::kFfiAsExternalTypedDataDouble:
     case MethodRecognizer::kGetNativeField:
     case MethodRecognizer::kObjectEquals:
     case MethodRecognizer::kStringBaseLength:
@@ -1331,13 +1357,20 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       ASSERT_EQUAL(function.NumParameters(), 0);
       body += IntConstant(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       break;
-#define FFI_LOAD(type) case MethodRecognizer::kFfiLoad##type:
-    CLASS_LIST_FFI_NUMERIC(FFI_LOAD)
-    FFI_LOAD(FloatUnaligned)
-    FFI_LOAD(DoubleUnaligned)
-    FFI_LOAD(Pointer)
-#undef FFI_LOAD
-    {
+    case MethodRecognizer::kFfiLoadInt8:
+    case MethodRecognizer::kFfiLoadInt16:
+    case MethodRecognizer::kFfiLoadInt32:
+    case MethodRecognizer::kFfiLoadInt64:
+    case MethodRecognizer::kFfiLoadUint8:
+    case MethodRecognizer::kFfiLoadUint16:
+    case MethodRecognizer::kFfiLoadUint32:
+    case MethodRecognizer::kFfiLoadUint64:
+    case MethodRecognizer::kFfiLoadIntPtr:
+    case MethodRecognizer::kFfiLoadFloat:
+    case MethodRecognizer::kFfiLoadFloatUnaligned:
+    case MethodRecognizer::kFfiLoadDouble:
+    case MethodRecognizer::kFfiLoadDoubleUnaligned:
+    case MethodRecognizer::kFfiLoadPointer: {
       const classid_t ffi_type_arg_cid =
           compiler::ffi::RecognizedMethodTypeArgCid(kind);
       const AlignmentType alignment =
@@ -1403,13 +1436,20 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       }
       body += DropTempsPreserveTop(1);  // Drop [arg_offset].
     } break;
-#define FFI_STORE(type) case MethodRecognizer::kFfiStore##type:
-    CLASS_LIST_FFI_NUMERIC(FFI_STORE)
-    FFI_STORE(FloatUnaligned)
-    FFI_STORE(DoubleUnaligned)
-    FFI_STORE(Pointer)
-#undef FFI_STORE
-    {
+    case MethodRecognizer::kFfiStoreInt8:
+    case MethodRecognizer::kFfiStoreInt16:
+    case MethodRecognizer::kFfiStoreInt32:
+    case MethodRecognizer::kFfiStoreInt64:
+    case MethodRecognizer::kFfiStoreUint8:
+    case MethodRecognizer::kFfiStoreUint16:
+    case MethodRecognizer::kFfiStoreUint32:
+    case MethodRecognizer::kFfiStoreUint64:
+    case MethodRecognizer::kFfiStoreIntPtr:
+    case MethodRecognizer::kFfiStoreFloat:
+    case MethodRecognizer::kFfiStoreFloatUnaligned:
+    case MethodRecognizer::kFfiStoreDouble:
+    case MethodRecognizer::kFfiStoreDoubleUnaligned:
+    case MethodRecognizer::kFfiStorePointer: {
       const classid_t ffi_type_arg_cid =
           compiler::ffi::RecognizedMethodTypeArgCid(kind);
       const AlignmentType alignment =
@@ -1519,11 +1559,16 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Constant(Bool::False());
 #endif  // defined(ARCH_IS_64_BIT)
     } break;
-#define FFI_AS_EXTERNAL_TYPED_DATA(type)                                       \
-  case MethodRecognizer::kFfiAsExternalTypedData##type:
-    CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(FFI_AS_EXTERNAL_TYPED_DATA)
-#undef FFI_AS_EXTERNAL_TYPED_DATA
-    {
+    case MethodRecognizer::kFfiAsExternalTypedDataInt8:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt16:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt32:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt64:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint8:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint16:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint32:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint64:
+    case MethodRecognizer::kFfiAsExternalTypedDataFloat:
+    case MethodRecognizer::kFfiAsExternalTypedDataDouble: {
       const classid_t ffi_type_arg_cid =
           compiler::ffi::RecognizedMethodTypeArgCid(kind);
       const classid_t external_typed_data_cid =
@@ -1531,8 +1576,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 
       auto class_table = thread_->isolate_group()->class_table();
       ASSERT(class_table->HasValidClassAt(external_typed_data_cid));
-      const auto& typed_data_class = Class::ZoneHandle(
-          H.zone(), class_table->At(external_typed_data_cid));
+      const auto& typed_data_class =
+          Class::ZoneHandle(H.zone(), class_table->At(external_typed_data_cid));
 
       // We assume that the caller has checked that the arguments are non-null
       // and length is in the range [0, kSmiMax/elementSize].
