@@ -16,6 +16,9 @@ import 'package:analyzer/src/dart/error/ffi_code.dart';
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
 /// of the desired hints.
 class FfiVerifier extends RecursiveAstVisitor<void> {
+  static const _abiSpecificIntegerClassName = 'AbiSpecificInteger';
+  static const _abiSpecificIntegerMappingClassName =
+      'AbiSpecificIntegerMapping';
   static const _allocatorClassName = 'Allocator';
   static const _allocateExtensionMethodName = 'call';
   static const _allocatorExtensionName = 'AllocatorAlloc';
@@ -25,7 +28,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _opaqueClassName = 'Opaque';
   static const _ffiNativeName = 'FfiNative';
 
-  static const Set<String> _primitiveIntegerNativeTypes = {
+  static const Set<String> _primitiveIntegerNativeTypesFixedSize = {
     'Int8',
     'Int16',
     'Int32',
@@ -34,6 +37,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     'Uint16',
     'Uint32',
     'Uint64',
+  };
+  static const Set<String> _primitiveIntegerNativeTypes = {
+    ..._primitiveIntegerNativeTypesFixedSize,
     'IntPtr'
   };
 
@@ -85,8 +91,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           if (className == _structClassName) {
             _validatePackedAnnotation(node.metadata);
           }
+        } else if (className == _abiSpecificIntegerClassName) {
+          _validateAbiSpecificIntegerMappingAnnotation(
+              node.name, node.metadata);
         } else if (className != _allocatorClassName &&
-            className != _opaqueClassName) {
+            className != _opaqueClassName &&
+            className != _abiSpecificIntegerClassName) {
           _errorReporter.reportErrorForNode(
               FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
               superclass.name,
@@ -452,6 +462,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (nativeType.isArray) {
       return true;
     }
+    if (nativeType.isAbiSpecificIntegerSubtype) {
+      return true;
+    }
     return false;
   }
 
@@ -523,6 +536,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (nativeType.isOpaqueSubtype) {
         return true;
       }
+      if (nativeType.isAbiSpecificIntegerSubtype) {
+        return true;
+      }
       if (allowArray && nativeType.isArray) {
         return _isValidFfiNativeType(nativeType.typeArguments.single,
             allowVoid: false, allowEmptyStruct: false);
@@ -591,8 +607,49 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       } else if (_primitiveBoolNativeType == name) {
         return _PrimitiveDartType.bool;
       }
+      if (element.type.returnType.isAbiSpecificIntegerSubtype) {
+        return _PrimitiveDartType.int;
+      }
     }
     return _PrimitiveDartType.none;
+  }
+
+  /// Validate that the [annotations] include at most one mapping annotation.
+  void _validateAbiSpecificIntegerMappingAnnotation(
+      AstNode errorNode, NodeList<Annotation> annotations) {
+    final ffiPackedAnnotations = annotations
+        .where((annotation) => annotation.isAbiSpecificIntegerMapping)
+        .toList();
+
+    if (ffiPackedAnnotations.isEmpty) {
+      _errorReporter.reportErrorForNode(
+          FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING, errorNode);
+      return;
+    }
+
+    if (ffiPackedAnnotations.length > 1) {
+      final extraAnnotations = ffiPackedAnnotations.skip(1);
+      for (final annotation in extraAnnotations) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_EXTRA, annotation.name);
+      }
+    }
+
+    final annotationConstant =
+        ffiPackedAnnotations.first.elementAnnotation?.computeConstantValue();
+    final mappingValues = annotationConstant?.getField('mapping')?.toMapValue();
+    if (mappingValues == null) {
+      return;
+    }
+    for (final nativeType in mappingValues.values) {
+      final nativeTypeName = nativeType?.type?.element?.name;
+      if (nativeTypeName != null &&
+          !_primitiveIntegerNativeTypesFixedSize.contains(nativeTypeName)) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
+            ffiPackedAnnotations.first.name);
+      }
+    }
   }
 
   void _validateAllocate(FunctionExpressionInvocation node) {
@@ -619,7 +676,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     bool requiredFound = false;
     List<Annotation> extraAnnotations = [];
     for (Annotation annotation in annotations) {
-      if (annotation.element.ffiClass != null) {
+      if (annotation.element.ffiClass != null ||
+          annotation.element?.enclosingElement.isAbiSpecificIntegerSubclass ==
+              true) {
         if (requiredFound) {
           extraAnnotations.add(annotation);
         } else {
@@ -744,7 +803,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   bool _validateCompatibleNativeType(
       DartType dartType, DartType nativeType, bool checkCovariance) {
     final nativeReturnType = _primitiveNativeType(nativeType);
-    if (nativeReturnType == _PrimitiveDartType.int) {
+    if (nativeReturnType == _PrimitiveDartType.int ||
+        (nativeType is InterfaceType &&
+            nativeType.superclass?.element.name ==
+                _abiSpecificIntegerClassName)) {
       return dartType.isDartCoreInt;
     } else if (nativeReturnType == _PrimitiveDartType.double) {
       return dartType.isDartCoreDouble;
@@ -1197,6 +1259,14 @@ extension on Annotation {
         element.ffiClass != null &&
         element.enclosingElement.name == 'Packed';
   }
+
+  bool get isAbiSpecificIntegerMapping {
+    final element = this.element;
+    return element is ConstructorElement &&
+        element.ffiClass != null &&
+        element.enclosingElement.name ==
+            FfiVerifier._abiSpecificIntegerMappingClassName;
+  }
 }
 
 extension on ElementAnnotation {
@@ -1332,6 +1402,21 @@ extension on Element? {
     return element is ClassElement && element.supertype.isUnion;
   }
 
+  /// Return `true` if this represents the class `AbiSpecificInteger`.
+  bool get isAbiSpecificInteger {
+    final element = this;
+    return element is ClassElement &&
+        element.name == FfiVerifier._abiSpecificIntegerClassName &&
+        element.isFfiClass;
+  }
+
+  /// Return `true` if this represents a subclass of the class
+  /// `AbiSpecificInteger`.
+  bool get isAbiSpecificIntegerSubclass {
+    final element = this;
+    return element is ClassElement && element.supertype.isAbiSpecificInteger;
+  }
+
   /// If this is a class element from `dart:ffi`, return it.
   ClassElement? get ffiClass {
     var element = this;
@@ -1398,6 +1483,11 @@ extension on DartType? {
     final self = this;
     return self is InterfaceType && self.element.isUnion;
   }
+
+  bool get isAbiSpecificInteger {
+    final self = this;
+    return self is InterfaceType && self.element.isAbiSpecificInteger;
+  }
 }
 
 extension on DartType {
@@ -1463,6 +1553,22 @@ extension on DartType {
     if (self is InterfaceType) {
       final element = self.element;
       return element.name == 'NativeType' && element.isFfiClass;
+    }
+    return false;
+  }
+
+  /// Returns `true` iff this is an Abi-specific integer type,
+  /// i.e. a subtype of `AbiSpecificInteger`.
+  bool get isAbiSpecificIntegerSubtype {
+    final self = this;
+    if (self is InterfaceType) {
+      final superType = self.element.supertype;
+      if (superType != null) {
+        final superClassElement = superType.element;
+        return superClassElement.name ==
+                FfiVerifier._abiSpecificIntegerClassName &&
+            superClassElement.isFfiClass;
+      }
     }
     return false;
   }
