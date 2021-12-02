@@ -84,6 +84,9 @@ class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
   }
 
   @override
+  DecoratedType? _getCallMethodType(DecoratedType type) => null;
+
+  @override
   DecoratedType _getTypeParameterTypeBound(DecoratedType type) {
     return bounds[(type.type as TypeParameterType).element] ??
         (throw StateError('Unknown bound for $type'));
@@ -241,8 +244,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// assigned to so far inside it.  Otherwise `null`.
   Set<Element>? _elementsWrittenToInLocalFunction;
 
+  final LibraryElement _library;
+
   EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
-      this.source, this.listener, this._decoratedClassHierarchy,
+      this.source, this.listener, this._decoratedClassHierarchy, this._library,
       {this.instrumentation})
       : _inheritanceManager = InheritanceManager3(),
         _whereOrNullTransformer =
@@ -2365,6 +2370,20 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           typeArguments: [type]);
 
   @override
+  DecoratedType? _getCallMethodType(DecoratedType type) {
+    var typeType = type.type;
+    if (typeType is InterfaceType) {
+      var callMethod = typeType.lookUpMethod2('call', _library);
+      if (callMethod != null) {
+        return _variables!
+            .decoratedElementType(callMethod.declaration)
+            .substitute(type.asSubstitution);
+      }
+    }
+    return null;
+  }
+
+  @override
   DecoratedType? _getTypeParameterTypeBound(DecoratedType type) {
     // TODO(paulberry): once we've wired up flow analysis, return promoted
     // bounds if applicable.
@@ -3528,6 +3547,19 @@ mixin _AssignmentChecker {
             source: source, destination: destination, hard: hard);
         return;
       }
+      if (destinationType is FunctionType) {
+        var callMethodType = _getCallMethodType(source);
+        if (callMethodType != null) {
+          // Handle implicit `.call` coercion
+          _checkAssignment(origin, edgeTarget,
+              source: callMethodType,
+              destination: destination,
+              hard: false,
+              checkable: false,
+              sourceIsFunctionLiteral: sourceIsFunctionLiteral);
+          return;
+        }
+      }
       // A side cast. This may be an explicit side cast, or illegal code. There
       // is no nullability we can infer here.
       assert(
@@ -3797,6 +3829,11 @@ mixin _AssignmentChecker {
   void _connect(NullabilityNode? source, NullabilityNode? destination,
       EdgeOrigin origin, FixReasonTarget edgeTarget,
       {bool hard = false, bool checkable = true});
+
+  /// If [type] represents a class containing a `call` method, returns the
+  /// decorated type of the `call` method, with appropriate substitutions.
+  /// Otherwise returns `null`.
+  DecoratedType? _getCallMethodType(DecoratedType type);
 
   /// Given a [type] representing a type parameter, retrieves the type's bound.
   DecoratedType? _getTypeParameterTypeBound(DecoratedType type);

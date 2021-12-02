@@ -672,6 +672,31 @@ class MigrationResolutionHooksImpl
     return null;
   }
 
+  bool _isSubtypeOrCoercible(DartType type, DartType context) {
+    var fixBuilder = _fixBuilder!;
+    var typeSystem = fixBuilder._typeSystem;
+    if (typeSystem.isSubtypeOf(type, context)) {
+      return true;
+    }
+    if (context is FunctionType && type is InterfaceType) {
+      var callMethod =
+          type.lookUpMethod2('call', fixBuilder.unit!.declaredElement!.library);
+      if (callMethod != null) {
+        var variables = fixBuilder._variables!;
+        var callMethodType = variables.toFinalType(
+            variables.decoratedElementType(callMethod.declaration));
+        if (callMethod is MethodMember) {
+          callMethodType =
+              callMethod.substitution.substituteType(callMethodType);
+        }
+        if (typeSystem.isSubtypeOf(callMethodType, context)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   DartType _modifyRValueType(Expression node, DartType type,
       {DartType? context}) {
     if (node is MethodInvocation) {
@@ -697,7 +722,7 @@ class MigrationResolutionHooksImpl
     var ancestor = _findNullabilityContextAncestor(node);
     context ??=
         InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
-    if (!_fixBuilder!._typeSystem.isSubtypeOf(type, context)) {
+    if (!_isSubtypeOrCoercible(type, context)) {
       var transformationInfo =
           _fixBuilder!._whereOrNullTransformer.tryTransformOrElseArgument(node);
       if (transformationInfo != null) {

@@ -147,8 +147,15 @@ class EdgeBuilderTestBase extends MigrationVisitorTestBase {
   Future<CompilationUnit> analyze(String code) async {
     var unit = await super.analyze(code);
     decoratedClassHierarchy = DecoratedClassHierarchy(variables, graph);
-    unit.accept(EdgeBuilder(typeProvider, typeSystem, variables, graph,
-        testSource, null, decoratedClassHierarchy));
+    unit.accept(EdgeBuilder(
+        typeProvider,
+        typeSystem,
+        variables,
+        graph,
+        testSource,
+        null,
+        decoratedClassHierarchy,
+        unit.declaredElement!.library));
     return unit;
   }
 }

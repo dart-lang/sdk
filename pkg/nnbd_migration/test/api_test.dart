@@ -877,6 +877,135 @@ int? f(M<int> m) => m['x'];
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_call_tearoff() async {
+    var content = '''
+class C {
+  void call() {}
+}
+void Function() f(C c) => c;
+''';
+    var expected = '''
+class C {
+  void call() {}
+}
+void Function() f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_call_tearoff_already_migrated() async {
+    var content = '''
+import 'already_migrated.dart';
+void Function() f(C c) => c;
+''';
+    var alreadyMigrated = '''
+// @dart=2.12
+class C {
+  void call() {}
+}
+''';
+    var expected = '''
+import 'already_migrated.dart';
+void Function() f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '$projectPath/lib/already_migrated.dart': alreadyMigrated
+    });
+  }
+
+  Future<void>
+      test_call_tearoff_already_migrated_propagate_nullability() async {
+    var content = '''
+import 'already_migrated.dart';
+Map<int, String> Function() f(C c) => c;
+''';
+    var alreadyMigrated = '''
+// @dart=2.12
+class C {
+  Map<int, String?> call() => {};
+}
+''';
+    var expected = '''
+import 'already_migrated.dart';
+Map<int, String?> Function() f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '$projectPath/lib/already_migrated.dart': alreadyMigrated
+    });
+  }
+
+  Future<void> test_call_tearoff_already_migrated_with_substitution() async {
+    var content = '''
+import 'already_migrated.dart';
+Map<int, String> Function() f(C<String/*?*/> c) => c;
+''';
+    var alreadyMigrated = '''
+// @dart=2.12
+class C<T> {
+  Map<int, T> call() => {};
+}
+''';
+    var expected = '''
+import 'already_migrated.dart';
+Map<int, String?> Function() f(C<String?> c) => c;
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '$projectPath/lib/already_migrated.dart': alreadyMigrated
+    });
+  }
+
+  Future<void> test_call_tearoff_inherited() async {
+    var content = '''
+class B {
+  void call() {}
+}
+class C extends B {}
+void Function() f(C c) => c;
+''';
+    var expected = '''
+class B {
+  void call() {}
+}
+class C extends B {}
+void Function() f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_call_tearoff_inherited_propagate_nullability() async {
+    var content = '''
+class B {
+  Map<int, String> call() => {1: null};
+}
+class C extends B {}
+Map<int, String> Function() f(C c) => c;
+''';
+    var expected = '''
+class B {
+  Map<int, String?> call() => {1: null};
+}
+class C extends B {}
+Map<int, String?> Function() f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_call_tearoff_propagate_nullability() async {
+    var content = '''
+class C {
+  Map<int, String> call() => {1: null};
+}
+Map<int, String> Function() f(C c) => c;
+''';
+    var expected = '''
+class C {
+  Map<int, String?> call() => {1: null};
+}
+Map<int, String?> Function() f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_catch_simple() async {
     var content = '''
 void f() {
@@ -4938,6 +5067,18 @@ class C implements A, B {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_implicit_tearoff_type_arguments() async {
+    var content = '''
+T f<T>(T t) => t;
+int Function(int) g() => f;
+''';
+    var expected = '''
+T f<T>(T t) => t;
+int Function(int) g() => f;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_implicit_type_parameter_bound_nullable() async {
     var content = '''
 class C<T> {
@@ -5179,6 +5320,16 @@ void main() {
 class C {
   int get length => 0;
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_int_double_coercion() async {
+    var content = '''
+double f() => 0;
+''';
+    var expected = '''
+double f() => 0;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
