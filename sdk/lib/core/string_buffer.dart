@@ -12,58 +12,68 @@ part of dart.core;
 ///
 /// Example:
 /// ```dart
-/// final buffer = StringBuffer('Dart'.toUpperCase());
+/// final buffer = StringBuffer('DART');
 /// print(buffer.length); // 4
 /// ```
-/// To add a string representation of object to the buffer, use [write].
+/// To add the string representation of an object, as returned by
+/// [Object.toString], to the buffer, use [write].
+/// Is also used for adding a string directly.
 /// ```
 /// buffer.write(' is open source');
 /// print(buffer.length); // 19
 /// print(buffer); // DART is open source
+///
+/// const int dartYear = 2011;
+/// buffer
+///   ..write(' since ') // Writes a string.
+///   ..write(dartYear); // Writes an int.
+/// print(buffer); // DART is open source since 2011
+/// print(buffer.length); // 30
 /// ```
-/// To add a newline to the buffer, use [writeln].
+/// To add a newline after the object's string representation, use [writeln].
+/// Calling [writeln] with no argument adds a single newline to the buffer.
 /// ```
-/// buffer.writeln();
+/// buffer.writeln(); // Contains "DART is open source\n".
+/// buffer.writeln('-------------------'); // 19 '-'s
+/// print(buffer.length); // 51
 /// ```
 /// To write multiple objects to the buffer, use [writeAll].
 /// ```
 /// const separator = '-';
 /// buffer.writeAll(['Dart', 'is', 'fun!'], separator);
-/// print(buffer.length); // 32
+/// print(buffer.length); // 63
 /// print(buffer);
-/// // DART is open source
+/// // DART is open source since 2011
+/// // -------------------
 /// // Dart-is-fun!
 /// ```
-/// To add the string representation of `charCode` to the buffer,
-/// use [writeCharCode].
+/// To add the string representation of a Unicode code point, `charCode`,
+/// to the buffer, use [writeCharCode].
 /// ```
 /// buffer.writeCharCode(0x0A); // LF (line feed)
 /// buffer.writeCharCode(0x44); // 'D'
 /// buffer.writeCharCode(0x61); // 'a'
 /// buffer.writeCharCode(0x72); // 'r'
 /// buffer.writeCharCode(0x74); // 't'
-/// print(buffer.length); // 37
-/// print(buffer);
-/// // DART is open source
-/// // Dart-is-fun!
-/// // Dart
+/// print(buffer.length); // 68
 /// ```
 /// To convert the content to a single string, use [toString].
 /// ```
 /// final text = buffer.toString();
 /// print(text);
-/// // DART is open source
+/// // DART is open source since 2011
+/// // -------------------
 /// // Dart-is-fun!
 /// // Dart
 /// ```
-/// To clear the buffer, use [clear].
+/// To clear the buffer, so that it can be reused, use [clear].
 /// ```
 /// buffer.clear();
 /// print(buffer.isEmpty); // true
 /// print(buffer.length); // 0
 /// ```
 class StringBuffer implements StringSink {
-  /// Creates the string buffer with initial content.
+  /// Creates a string buffer containing the provided [content].
   external StringBuffer([Object content = ""]);
 
   /// Returns the length of the content that has been accumulated so far.
