@@ -45,11 +45,11 @@ class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
-    registry.addCompilationUnit(this, visitor);
+    registry.addAdjacentStrings(this, visitor);
   }
 }
 
-class _Visitor extends RecursiveAstVisitor<void> {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
