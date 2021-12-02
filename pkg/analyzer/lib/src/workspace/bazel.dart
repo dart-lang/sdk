@@ -140,7 +140,7 @@ class BazelPackageUriResolver extends UriResolver {
         String pathInLib = components.skip(4).join('/');
         return [packageName, pathInLib];
       } else {
-        for (int i = 2; i < components.length - 1; i++) {
+        for (int i = components.length - 2; i >= 2; i--) {
           String component = components[i];
           if (component == 'lib') {
             String packageName = components.getRange(0, i).join('.');
