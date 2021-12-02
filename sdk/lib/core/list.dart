@@ -50,9 +50,10 @@ part of dart.core;
 /// growableList.addAll({'C', 'B'});
 /// print(growableList); // [G, B, X, C, B]
 /// ```
-/// To check whether the element is in the list, use [indexOf] or [lastIndexOf].
+/// To check whether, and where, the element is in the list, use [indexOf] or
+/// [lastIndexOf].
 /// ```
-/// final indexA = growableList.indexOf('A'); // -1
+/// final indexA = growableList.indexOf('A'); // -1 (not in the list)
 /// final firstIndexB = growableList.indexOf('B'); // 1
 /// final lastIndexB = growableList.lastIndexOf('B'); // 4
 /// ```
@@ -68,8 +69,8 @@ part of dart.core;
 /// growableList.insert(1, 'New');
 /// print(growableList); // [G, New, B, X]
 /// ```
-/// To replace elements of the list, use [fillRange], [replaceRange] or
-/// [setRange].
+/// To replace a range of elements in the list, use [fillRange], [replaceRange]
+/// or [setRange].
 /// ```
 /// growableList.replaceRange(0, 2, ['AB', 'A']);
 /// print(growableList); // [AB, A, B, X]
@@ -190,7 +191,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// final growableList = List.empty(growable: true); // []
   /// growableList.add(1); // [1]
   ///
-  /// final fixedLengthList = List.empty(growable: false); // []
+  /// final fixedLengthList = List.empty(growable: false);
   /// fixedLengthList.add(1); // error
   /// ```
   @Since("2.9")
