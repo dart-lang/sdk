@@ -532,7 +532,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 /// final queue = ListQueue<int>();
 /// ```
 /// To add objects to a queue, use [add], [addAll], [addFirst] or[addLast].
-/// ```
+/// ```dart continued
 /// queue.add(5);
 /// queue.addFirst(0);
 /// queue.addLast(10);
@@ -541,44 +541,44 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
 /// ```
 /// To check if the queue is empty, use [isEmpty] or [isNotEmpty].
 /// To find the number of queue entries, use [length].
-/// ```
+/// ```dart continued
 /// final isEmpty = queue.isEmpty; // false
 /// final queueSize = queue.length; // 6
 /// ```
 /// To get first or last item from queue, use [first] or [last].
-/// ```
+/// ```dart continued
 /// final first = queue.first; // 0
 /// final last = queue.last; // 3
 /// ```
 /// To get item value using index, use [elementAt].
-/// ```
+/// ```dart continued
 /// final itemAt = queue.elementAt(2); // 10
 /// ```
 /// To convert queue to list, call [toList].
-/// ```
+/// ```dart continued
 /// final numbers = queue.toList();
 /// print(numbers); // [0, 5, 10, 1, 2, 3]
 /// ```
 /// To remove item from queue, call [remove], [removeFirst] or [removeLast].
-/// ```
+/// ```dart continued
 /// queue.remove(10);
 /// queue.removeFirst();
 /// queue.removeLast();
 /// print(queue); // {5, 1, 2}
 /// ```
 /// To remove multiple elements at the same time, use [removeWhere].
-/// ```
+/// ```dart continued
 /// queue.removeWhere((element) => element == 1);
 /// print(queue); // {5, 2}
 /// ```
 /// To remove all elements in this queue that do not meet a condition,
 /// use [retainWhere].
-/// ```
+/// ```dart continued
 /// queue.retainWhere((element) => element < 4);
 /// print(queue); // {2}
 /// ```
 /// To remove all items and empty the set, use [clear].
-/// ```
+/// ```dart continued
 /// queue.clear();
 /// print(queue.isEmpty); // true
 /// print(queue); // {}

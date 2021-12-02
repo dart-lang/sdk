@@ -245,7 +245,7 @@ class NullRejectionException implements Exception {
 
 /// Converts a JavaScript Promise to a Dart [Future].
 ///
-/// ```dart template:none
+/// ```dart template:top
 /// @JS()
 /// external Promise<num> get threePromise; // Resolves to 3
 ///

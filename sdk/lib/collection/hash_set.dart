@@ -38,24 +38,24 @@ part of dart.collection;
 /// final letters = HashSet<String>();
 /// ```
 /// To add data to a set, use  [add] or [addAll].
-/// ```
+/// ```dart continued
 /// letters.add('A');
 /// letters.addAll({'B', 'C', 'D'});
 /// ```
 /// To check if the set is empty, use [isEmpty] or [isNotEmpty].
 /// To find the number of elements in the set, use [length].
-/// ```
+/// ```dart continued
 /// print(letters.isEmpty); // false
 /// print(letters.length); // 4
 /// print(letters); // fx {A, D, C, B}
 /// ```
 /// To check whether the set has an element with a specific value,
 /// use [contains].
-/// ```
+/// ```dart continued
 /// final bExists = letters.contains('B'); // true
 /// ```
 /// The [forEach] method calls a function with each element of the set.
-/// ```
+/// ```dart continued
 /// letters.forEach(print);
 /// // A
 /// // D
@@ -63,29 +63,29 @@ part of dart.collection;
 /// // B
 /// ```
 /// To make a copy of the set, use [toSet].
-/// ```
+/// ```dart continued
 /// final anotherSet = letters.toSet();
 /// print(anotherSet); // fx {A, C, D, B}
 /// ```
 /// To remove an element, use [remove].
-/// ```
+/// ```dart continued
 /// final removedValue = letters.remove('A'); // true
 /// print(letters); // fx {B, C, D}
 /// ```
 /// To remove multiple elements at the same time, use [removeWhere] or
 /// [removeAll].
-/// ```
+/// ```dart continued
 /// letters.removeWhere((element) => element.startsWith('B'));
 /// print(letters); // fx {D, C}
 /// ```
 /// To removes all elements in this set that do not meet a condition,
 /// use [retainWhere].
-/// ```
+/// ```dart continued
 /// letters.retainWhere((element) => element.contains('C'));
 /// print(letters); // {C}
 /// ```
 /// To remove all elements and empty the set, use [clear].
-/// ```
+/// ```dart continued
 /// letters.clear();
 /// print(letters.isEmpty); // true
 /// print(letters); // {}
@@ -118,7 +118,7 @@ abstract class HashSet<E> implements Set<E> {
   /// instance of [E], which means that:
   /// ```dart template:expression
   /// HashSet<int>(equals: (int e1, int e2) => (e1 - e2) % 5 == 0,
-  ///              hashCode: (int e) => e % 5);
+  ///              hashCode: (int e) => e % 5)
   /// ```
   /// does not need an `isValidKey` argument because it defaults to only
   /// accepting `int` values which are accepted by both `equals` and `hashCode`.

@@ -44,24 +44,24 @@ part of dart.collection;
 /// final planets = <String>{}; // LinkedHashSet
 /// ```
 /// To add data to a set, use [add] or [addAll].
-/// ```
+/// ```dart continued
 /// final uranusAdded = planets.add('Uranus'); // true
 /// planets.addAll({'Venus', 'Mars', 'Earth', 'Jupiter'});
 /// print(planets); // {Uranus, Venus, Mars, Earth, Jupiter}
 /// ```
 /// To check if the set is empty, use [isEmpty] or [isNotEmpty].
 /// To find the number of elements in the set, use [length].
-/// ```
+/// ```dart continued
 /// print(planets.isEmpty); // false
 /// print(planets.length); // 5
 /// ```
 /// To check whether the set has an element with a specific value,
 /// use [contains].
-/// ```
+/// ```dart continued
 /// final marsExists = planets.contains('Mars'); // true
 /// ```
 /// The [forEach] method calls a function with each element of the set.
-/// ```
+/// ```dart continued
 /// planets.forEach(print);
 /// // Uranus
 /// // Venus
@@ -71,29 +71,29 @@ part of dart.collection;
 /// ```
 ///
 /// To make a copy of the set, use [toSet].
-/// ```
+/// ```dart continued
 /// final copySet = planets.toSet();
 /// print(copySet); // {Uranus, Venus, Mars, Earth, Jupiter}
 /// ```
 /// To remove an element, use [remove].
-/// ```
+/// ```dart continued
 /// final removedValue = planets.remove('Mars'); // Mars
 /// print(planets); // {Uranus, Venus, Earth, Jupiter}
 /// ```
 /// To remove multiple elements at the same time, use [removeWhere] or
 /// [removeAll].
-/// ```
+/// ```dart continued
 /// planets.removeWhere((element) => element.startsWith('E'));
 /// print(planets); // {Uranus, Venus, Jupiter}
 /// ```
 /// To removes all elements in this set that do not meet a condition,
 /// use [retainWhere].
-/// ```
+/// ```dart continued
 /// planets.retainWhere((element) => element.contains('Jupiter'));
 /// print(planets); // {Jupiter}
-/// ```
+/// ```dart continued
 /// To remove all elements and empty the set, use [clear].
-/// ```
+/// ```dart continued
 /// planets.clear();
 /// print(planets.isEmpty); // true
 /// print(planets); // {}
