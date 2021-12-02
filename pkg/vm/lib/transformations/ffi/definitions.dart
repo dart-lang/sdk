@@ -448,9 +448,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         // This class is invalid, but continue reporting other errors on it.
         success = false;
       } else {
-        final DartType nativeType = InterfaceType(
-            nativeTypesClasses[_getFieldType(nativeTypeAnnos.first)!]!,
-            Nullability.legacy);
+        final DartType nativeType =
+            InterfaceType(nativeTypeAnnos.first, Nullability.legacy);
         final DartType? shouldBeDartType = convertNativeTypeToDartType(
             nativeType,
             allowCompounds: true,
@@ -704,7 +703,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
   static const vmFfiStructFields = "vm:ffi:struct-fields";
 
-  // return value is nullable.
   InstanceConstant? _compoundAnnotatedFields(Class node) {
     for (final annotation in node.annotations) {
       if (annotation is ConstantExpression) {
@@ -774,7 +772,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return UnionNativeTypeCfe(compoundClass, members);
   }
 
-  // packing is `int?`.
   void _annoteCompoundWithFields(
       Class node, List<NativeTypeCfe> types, int? packing) {
     List<Constant> constants =
@@ -794,8 +791,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         InterfaceType(pragmaClass, Nullability.nonNullable, [])));
   }
 
-  void _generateMethodsForField(Class node, Field field, NativeTypeCfe type,
-      Map<Abi, int> offsets, bool unalignedAccess, IndexedClass? indexedClass) {
+  void _generateMethodsForField(
+      Class node,
+      Field field,
+      NativeTypeCfe type,
+      Map<Abi, int?> offsets,
+      bool unalignedAccess,
+      IndexedClass? indexedClass) {
     // TODO(johnniwinther): Avoid passing [indexedClass]. When compiling
     // incrementally, [field] should already carry the references from
     // [indexedClass].
@@ -846,7 +848,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   /// If sizes are not supplied still emits a field so that the use site
   /// transformer can still rewrite to it.
   void _addSizeOfField(Class compound, IndexedClass? indexedClass,
-      [Map<Abi, int>? sizes = null]) {
+      [Map<Abi, int?>? sizes = null]) {
     if (sizes == null) {
       sizes = {for (var abi in Abi.values) abi: 0};
     }

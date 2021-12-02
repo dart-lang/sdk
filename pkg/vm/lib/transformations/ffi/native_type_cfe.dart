@@ -52,12 +52,12 @@ abstract class NativeTypeCfe {
   }
 
   /// The size in bytes per [Abi].
-  Map<Abi, int> get size;
+  Map<Abi, int?> get size;
 
   /// The alignment inside structs in bytes per [Abi].
   ///
   /// This is not the alignment on stack, this is only calculated in the VM.
-  Map<Abi, int> get alignment;
+  Map<Abi, int?> get alignment;
 
   /// Generates a Constant representing the type which is consumed by the VM.
   ///
@@ -70,7 +70,7 @@ abstract class NativeTypeCfe {
   ///
   /// Takes [transformer] to be able to lookup classes and methods.
   ReturnStatement generateGetterStatement(DartType dartType, int fileOffset,
-      Map<Abi, int> offsets, bool unalignedAccess, FfiTransformer transformer);
+      Map<Abi, int?> offsets, bool unalignedAccess, FfiTransformer transformer);
 
   /// Generates the return statement for a compound field setter with this type.
   ///
@@ -78,7 +78,7 @@ abstract class NativeTypeCfe {
   ReturnStatement generateSetterStatement(
       DartType dartType,
       int fileOffset,
-      Map<Abi, int> offsets,
+      Map<Abi, int?> offsets,
       bool unalignedAccess,
       VariableDeclaration argument,
       FfiTransformer transformer);
@@ -90,7 +90,7 @@ class InvalidNativeTypeCfe implements NativeTypeCfe {
   InvalidNativeTypeCfe(this.reason);
 
   @override
-  Map<Abi, int> get alignment => throw reason;
+  Map<Abi, int?> get alignment => throw reason;
 
   @override
   Constant generateConstant(FfiTransformer transformer) => throw reason;
@@ -99,7 +99,7 @@ class InvalidNativeTypeCfe implements NativeTypeCfe {
   ReturnStatement generateGetterStatement(
           DartType dartType,
           int fileOffset,
-          Map<Abi, int> offsets,
+          Map<Abi, int?> offsets,
           bool unalignedAccess,
           FfiTransformer transformer) =>
       throw reason;
@@ -108,14 +108,14 @@ class InvalidNativeTypeCfe implements NativeTypeCfe {
   ReturnStatement generateSetterStatement(
           DartType dartType,
           int fileOffset,
-          Map<Abi, int> offsets,
+          Map<Abi, int?> offsets,
           bool unalignedAccess,
           VariableDeclaration argument,
           FfiTransformer transformer) =>
       throw reason;
 
   @override
-  Map<Abi, int> get size => throw reason;
+  Map<Abi, int?> get size => throw reason;
 }
 
 class PrimitiveNativeTypeCfe implements NativeTypeCfe {
@@ -126,7 +126,7 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
   PrimitiveNativeTypeCfe(this.nativeType, this.clazz);
 
   @override
-  Map<Abi, int> get size {
+  Map<Abi, int?> get size {
     final int size = nativeTypeSizes[nativeType]!;
     if (size == WORD_SIZE) {
       return wordSize;
@@ -147,7 +147,7 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
   bool get isFloat =>
       nativeType == NativeType.kFloat || nativeType == NativeType.kDouble;
 
-  bool isUnaligned(Map<Abi, int> offsets) {
+  bool isUnaligned(Map<Abi, int?> offsets) {
     final alignments = alignment;
     for (final abi in offsets.keys) {
       final offset = offsets[abi]!;
@@ -168,7 +168,7 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
   ReturnStatement generateGetterStatement(
           DartType dartType,
           int fileOffset,
-          Map<Abi, int> offsets,
+          Map<Abi, int?> offsets,
           bool unalignedAccess,
           FfiTransformer transformer) =>
       ReturnStatement(StaticInvocation(
@@ -191,7 +191,7 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
   ReturnStatement generateSetterStatement(
           DartType dartType,
           int fileOffset,
-          Map<Abi, int> offsets,
+          Map<Abi, int?> offsets,
           bool unalignedAccess,
           VariableDeclaration argument,
           FfiTransformer transformer) =>
@@ -210,10 +210,10 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
 
 class PointerNativeTypeCfe implements NativeTypeCfe {
   @override
-  Map<Abi, int> get size => wordSize;
+  Map<Abi, int?> get size => wordSize;
 
   @override
-  Map<Abi, int> get alignment => wordSize;
+  Map<Abi, int?> get alignment => wordSize;
 
   @override
   Constant generateConstant(FfiTransformer transformer) => TypeLiteralConstant(
@@ -231,7 +231,7 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
   ReturnStatement generateGetterStatement(
           DartType dartType,
           int fileOffset,
-          Map<Abi, int> offsets,
+          Map<Abi, int?> offsets,
           bool unalignedAccess,
           FfiTransformer transformer) =>
       ReturnStatement(StaticInvocation(
@@ -259,7 +259,7 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
   ReturnStatement generateSetterStatement(
           DartType dartType,
           int fileOffset,
-          Map<Abi, int> offsets,
+          Map<Abi, int?> offsets,
           bool unalignedAccess,
           VariableDeclaration argument,
           FfiTransformer transformer) =>
@@ -281,15 +281,15 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
 /// The layout of a `Struct` or `Union` in one [Abi].
 class CompoundLayout {
   /// Size of the entire struct or union.
-  final int size;
+  final int? size;
 
   /// Alignment of struct or union when nested in a struct.
-  final int alignment;
+  final int? alignment;
 
   /// Offset in bytes for each field, indexed by field number.
   ///
   /// Always 0 for unions.
-  final List<int> offsets;
+  final List<int?> offsets;
 
   CompoundLayout(this.size, this.alignment, this.offsets);
 }
@@ -304,11 +304,11 @@ abstract class CompoundNativeTypeCfe implements NativeTypeCfe {
   CompoundNativeTypeCfe._(this.clazz, this.members, this.layout);
 
   @override
-  Map<Abi, int> get size =>
+  Map<Abi, int?> get size =>
       layout.map((abi, layout) => MapEntry(abi, layout.size));
 
   @override
-  Map<Abi, int> get alignment =>
+  Map<Abi, int?> get alignment =>
       layout.map((abi, layout) => MapEntry(abi, layout.alignment));
 
   @override
@@ -323,8 +323,12 @@ abstract class CompoundNativeTypeCfe implements NativeTypeCfe {
   /// );
   /// ```
   @override
-  ReturnStatement generateGetterStatement(DartType dartType, int fileOffset,
-      Map<Abi, int> offsets, bool unalignedAccess, FfiTransformer transformer) {
+  ReturnStatement generateGetterStatement(
+      DartType dartType,
+      int fileOffset,
+      Map<Abi, int?> offsets,
+      bool unalignedAccess,
+      FfiTransformer transformer) {
     final constructor = clazz.constructors
         .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
 
@@ -351,7 +355,7 @@ abstract class CompoundNativeTypeCfe implements NativeTypeCfe {
   ReturnStatement generateSetterStatement(
           DartType dartType,
           int fileOffset,
-          Map<Abi, int> offsets,
+          Map<Abi, int?> offsets,
           bool unalignedAccess,
           VariableDeclaration argument,
           FfiTransformer transformer) =>
@@ -389,23 +393,23 @@ class StructNativeTypeCfe extends CompoundNativeTypeCfe {
   // NativeStructType::FromNativeTypes.
   static CompoundLayout _calculateLayout(
       List<NativeTypeCfe> types, int? packing, Abi abi) {
-    int offset = 0;
-    final offsets = <int>[];
-    int structAlignment = 1;
+    int? offset = 0;
+    final offsets = <int?>[];
+    int? structAlignment = 1;
     for (int i = 0; i < types.length; i++) {
-      final int size = types[i].size[abi]!;
-      int alignment = types[i].alignment[abi]!;
-      if (packing != null && packing < alignment) {
-        alignment = packing;
+      final int? size = types[i].size[abi];
+      int? alignment = types[i].alignment[abi];
+      if (packing != null) {
+        alignment = min(packing, alignment);
       }
-      if (alignment > 0) {
-        offset = _alignOffset(offset, alignment);
+      if (alignment != null && alignment > 0) {
+        offset = offset.align(alignment);
       }
       offsets.add(offset);
       offset += size;
-      structAlignment = math.max(structAlignment, alignment);
+      structAlignment = max(structAlignment, alignment);
     }
-    final int size = _alignOffset(offset, structAlignment);
+    final int? size = offset.align(structAlignment);
     return CompoundLayout(size, structAlignment, offsets);
   }
 }
@@ -425,15 +429,15 @@ class UnionNativeTypeCfe extends CompoundNativeTypeCfe {
   // Keep consistent with runtime/vm/compiler/ffi/native_type.cc
   // NativeUnionType::FromNativeTypes.
   static CompoundLayout _calculateLayout(List<NativeTypeCfe> types, Abi abi) {
-    int unionSize = 1;
-    int unionAlignment = 1;
+    int? unionSize = 1;
+    int? unionAlignment = 1;
     for (int i = 0; i < types.length; i++) {
-      final int size = types[i].size[abi]!;
-      int alignment = types[i].alignment[abi]!;
-      unionSize = math.max(unionSize, size);
-      unionAlignment = math.max(unionAlignment, alignment);
+      final int? size = types[i].size[abi];
+      int? alignment = types[i].alignment[abi];
+      unionSize = max(unionSize, size);
+      unionAlignment = max(unionAlignment, alignment);
     }
-    final int size = _alignOffset(unionSize, unionAlignment);
+    final int? size = unionSize.align(unionAlignment);
     return CompoundLayout(size, unionAlignment, List.filled(types.length, 0));
   }
 }
@@ -476,11 +480,11 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
   }
 
   @override
-  Map<Abi, int> get size =>
+  Map<Abi, int?> get size =>
       elementType.size.map((abi, size) => MapEntry(abi, size * length));
 
   @override
-  Map<Abi, int> get alignment => elementType.alignment;
+  Map<Abi, int?> get alignment => elementType.alignment;
 
   // Note that we flatten multi dimensional arrays.
   @override
@@ -500,8 +504,12 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
   /// );
   /// ```
   @override
-  ReturnStatement generateGetterStatement(DartType dartType, int fileOffset,
-      Map<Abi, int> offsets, bool unalignedAccess, FfiTransformer transformer) {
+  ReturnStatement generateGetterStatement(
+      DartType dartType,
+      int fileOffset,
+      Map<Abi, int?> offsets,
+      bool unalignedAccess,
+      FfiTransformer transformer) {
     InterfaceType typeArgument =
         (dartType as InterfaceType).typeArguments.single as InterfaceType;
     return ReturnStatement(ConstructorInvocation(
@@ -531,7 +539,7 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
   ReturnStatement generateSetterStatement(
           DartType dartType,
           int fileOffset,
-          Map<Abi, int> offsets,
+          Map<Abi, int?> offsets,
           bool unalignedAccess,
           VariableDeclaration argument,
           FfiTransformer transformer) =>
@@ -549,5 +557,71 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
         ..fileOffset = fileOffset);
 }
 
-int _alignOffset(int offset, int alignment) =>
-    ((offset + alignment - 1) ~/ alignment) * alignment;
+extension on int? {
+  int? align(int? alignment) =>
+      ((this + alignment - 1) ~/ alignment) * alignment;
+
+  int? operator *(int? other) {
+    final this_ = this;
+    if (this_ == null) {
+      return null;
+    }
+    if (other == null) {
+      return null;
+    }
+    return this_ * other;
+  }
+
+  int? operator +(int? other) {
+    final this_ = this;
+    if (this_ == null) {
+      return null;
+    }
+    if (other == null) {
+      return null;
+    }
+    return this_ + other;
+  }
+
+  int? operator -(int? other) {
+    final this_ = this;
+    if (this_ == null) {
+      return null;
+    }
+    if (other == null) {
+      return null;
+    }
+    return this_ - other;
+  }
+
+  int? operator ~/(int? other) {
+    final this_ = this;
+    if (this_ == null) {
+      return null;
+    }
+    if (other == null) {
+      return null;
+    }
+    return this_ ~/ other;
+  }
+}
+
+int? max(int? a, int? b) {
+  if (a == null) {
+    return null;
+  }
+  if (b == null) {
+    return null;
+  }
+  return math.max(a, b);
+}
+
+int? min(int? a, int? b) {
+  if (a == null) {
+    return null;
+  }
+  if (b == null) {
+    return null;
+  }
+  return math.min(a, b);
+}
