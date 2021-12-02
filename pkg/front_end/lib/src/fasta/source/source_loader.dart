@@ -1258,8 +1258,8 @@ severity: $severity
 
       Graph<List<Uri>> strongGraph =
           new StrongComponentGraph(libraryGraph, stronglyConnectedComponents);
-      List<List<List<Uri>>> componentLayers = [];
-      topologicalSort(strongGraph, layers: componentLayers);
+      List<List<List<Uri>>> componentLayers =
+          topologicalSort(strongGraph).layers;
       List<List<Uri>> layeredComponents = [];
       List<Uri> currentLayer = [];
       for (List<List<Uri>> layer in componentLayers) {
@@ -1493,20 +1493,6 @@ severity: $severity
   /// pipeline (including backends) can assume that there are no hierarchy
   /// cycles.
   List<SourceClassBuilder> handleHierarchyCycles(ClassBuilder objectClass) {
-    // Compute the initial work list of all classes declared in this loader.
-    List<SourceClassBuilder> workList = <SourceClassBuilder>[];
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        Iterator<Builder> members = library.iterator;
-        while (members.moveNext()) {
-          Builder member = members.current;
-          if (member is SourceClassBuilder) {
-            workList.add(member);
-          }
-        }
-      }
-    }
-
     Set<ClassBuilder> denyListedClasses = new Set<ClassBuilder>();
     for (int i = 0; i < denylistedCoreClasses.length; i++) {
       denyListedClasses.add(coreLibrary.lookupLocalMember(
@@ -1523,42 +1509,16 @@ severity: $severity
     }
 
     // Sort the classes topologically.
-    Set<SourceClassBuilder> topologicallySortedClasses =
-        new Set<SourceClassBuilder>();
-    List<SourceClassBuilder> previousWorkList;
-    do {
-      previousWorkList = workList;
-      workList = <SourceClassBuilder>[];
-      for (int i = 0; i < previousWorkList.length; i++) {
-        SourceClassBuilder cls = previousWorkList[i];
-        Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypeMap =
-            cls.computeDirectSupertypes(objectClass);
-        List<TypeDeclarationBuilder?> directSupertypes =
-            directSupertypeMap.keys.toList();
-        bool allSupertypesProcessed = true;
-        for (int i = 0; i < directSupertypes.length; i++) {
-          Builder? supertype = directSupertypes[i];
-          if (supertype is SourceClassBuilder &&
-              supertype.library.loader == this &&
-              !topologicallySortedClasses.contains(supertype)) {
-            allSupertypesProcessed = false;
-            break;
-          }
-        }
-        if (allSupertypesProcessed && cls.isPatch) {
-          allSupertypesProcessed =
-              topologicallySortedClasses.contains(cls.origin);
-        }
-        if (allSupertypesProcessed) {
-          topologicallySortedClasses.add(cls);
-          checkClassSupertypes(cls, directSupertypeMap, denyListedClasses);
-        } else {
-          workList.add(cls);
-        }
-      }
-    } while (previousWorkList.length != workList.length);
-    List<SourceClassBuilder> classes = topologicallySortedClasses.toList();
-    List<SourceClassBuilder> classesWithCycles = previousWorkList;
+    _SourceClassGraph classGraph = new _SourceClassGraph(this, objectClass);
+    TopologicalSortResult<SourceClassBuilder> result =
+        topologicalSort(classGraph);
+    List<SourceClassBuilder> classes = result.sortedVertices;
+    for (SourceClassBuilder cls in classes) {
+      checkClassSupertypes(
+          cls, classGraph.directSupertypeMap[cls]!, denyListedClasses);
+    }
+
+    List<SourceClassBuilder> classesWithCycles = result.cyclicVertices;
 
     // Once the work list doesn't change in size, it's either empty, or
     // contains all classes with cycles.
@@ -2477,4 +2437,45 @@ class SourceLoaderDataForTesting {
   final MacroDeclarationData macroDeclarationData = new MacroDeclarationData();
 
   final MacroApplicationData macroApplicationData = new MacroApplicationData();
+}
+
+class _SourceClassGraph implements Graph<SourceClassBuilder> {
+  @override
+  final List<SourceClassBuilder> vertices = [];
+  final ClassBuilder _objectClass;
+  final Map<SourceClassBuilder, Map<TypeDeclarationBuilder?, TypeAliasBuilder?>>
+      directSupertypeMap = {};
+  final Map<SourceClassBuilder, List<SourceClassBuilder>> _supertypeMap = {};
+
+  _SourceClassGraph(SourceLoader loader, this._objectClass) {
+    // Compute the vertices as all classes declared in this loader.
+    for (LibraryBuilder library in loader.libraryBuilders) {
+      if (library.loader == loader) {
+        Iterator<Builder> members = library.iterator;
+        while (members.moveNext()) {
+          Builder member = members.current;
+          if (member is SourceClassBuilder && !member.isPatch) {
+            vertices.add(member);
+          }
+        }
+      }
+    }
+  }
+
+  List<SourceClassBuilder> computeSuperClasses(SourceClassBuilder cls) {
+    Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypes =
+        directSupertypeMap[cls] = cls.computeDirectSupertypes(_objectClass);
+    List<SourceClassBuilder> superClasses = [];
+    for (TypeDeclarationBuilder? directSupertype in directSupertypes.keys) {
+      if (directSupertype is SourceClassBuilder) {
+        superClasses.add(directSupertype);
+      }
+    }
+    return superClasses;
+  }
+
+  @override
+  Iterable<SourceClassBuilder> neighborsOf(SourceClassBuilder vertex) {
+    return _supertypeMap[vertex] ??= computeSuperClasses(vertex);
+  }
 }

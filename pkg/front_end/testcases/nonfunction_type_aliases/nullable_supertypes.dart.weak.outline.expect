@@ -37,13 +37,6 @@ library /*isNonNullableByDefault*/;
 // typedef TAlias<T> = T?;
 //                ^
 //
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:40:7: Error: The type 'TAlias' can't be mixed in.
-// class D3 = A with TAlias<B>;
-//       ^
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
-// typedef TAlias<T> = T?;
-//         ^
-//
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:42:32: Error: Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
 // class D4 = A with B implements TAlias<C>;
 //                                ^
@@ -57,13 +50,6 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:16: Context: This is the type variable ultimately denoted.
 // typedef TAlias<T> = T?;
 //                ^
-//
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:44:7: Error: The type 'TAlias' can't be mixed in.
-// class D5 extends A with TAlias<B> {}
-//       ^
-// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
-// typedef TAlias<T> = T?;
-//         ^
 //
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:46:13: Error: Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
 // mixin N1 on TAlias<A> {}
@@ -99,6 +85,20 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:16: Context: This is the type variable ultimately denoted.
 // typedef TAlias<T> = T?;
 //                ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:40:7: Error: The type 'TAlias' can't be mixed in.
+// class D3 = A with TAlias<B>;
+//       ^
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
+// typedef TAlias<T> = T?;
+//         ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:44:7: Error: The type 'TAlias' can't be mixed in.
+// class D5 extends A with TAlias<B> {}
+//       ^
+// pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:14:9: Context: The issue arises via this type alias.
+// typedef TAlias<T> = T?;
+//         ^
 //
 // pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart:16:7: Error: The type 'AAlias' which is an alias of 'A?' can't be used as supertype because it is nullable.
 //  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/nullable_supertypes.dart'.

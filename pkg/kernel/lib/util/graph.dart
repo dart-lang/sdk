@@ -148,52 +148,63 @@ class StrongComponentGraph<T> implements Graph<List<T>> {
   Iterable<List<T>> get vertices => components;
 }
 
-/// Returns the non-cyclic vertices of [graph] sorted in topological order.
-///
-/// If [indexMap] is provided, it is filled with "index" of each vertex.
-/// If [layers] is provided, it is filled with a list of the vertices for each
-/// "index".
-///
-/// Here, the "index" of a vertex is the length of the longest path through
-/// neighbors. For vertices with no neighbors, the index is 0. For any other
-/// vertex, it is 1 plus max of the index of its neighbors.
-List<T> topologicalSort<T>(Graph<T> graph,
-    {Map<T, int>? indexMap, List<List<T>>? layers}) {
-  List<T> workList = graph.vertices.toList();
-  indexMap ??= {};
-  List<T> topologicallySortedVertices = [];
-  List<T> previousWorkList;
-  do {
-    previousWorkList = workList;
-    workList = [];
-    for (int i = 0; i < previousWorkList.length; i++) {
-      T vertex = previousWorkList[i];
-      int index = 0;
-      bool allSupertypesProcessed = true;
-      for (T neighbor in graph.neighborsOf(vertex)) {
-        int? neighborIndex = indexMap[neighbor];
-        if (neighborIndex == null) {
-          allSupertypesProcessed = false;
-          break;
-        } else {
-          index = max(index, neighborIndex + 1);
-        }
-      }
-      if (allSupertypesProcessed) {
-        indexMap[vertex] = index;
-        topologicallySortedVertices.add(vertex);
-        if (layers != null) {
-          if (index >= layers.length) {
-            assert(index == layers.length);
-            layers.add([vertex]);
-          } else {
-            layers[index].add(vertex);
-          }
-        }
+const int cyclicMarker = -1;
+
+int _topologicalSortInternal<T>(
+    Graph<T> graph, TopologicalSortResult<T> result, T vertex) {
+  int? index = result.indexMap[vertex];
+  if (index == null) {
+    result.indexMap[vertex] = cyclicMarker;
+    int index = 0;
+    for (T neighbor in graph.neighborsOf(vertex)) {
+      int neighborIndex = _topologicalSortInternal(graph, result, neighbor);
+      if (neighborIndex == cyclicMarker) {
+        result.cyclicVertices.add(vertex);
+        return cyclicMarker;
       } else {
-        workList.add(vertex);
+        index = max(index, neighborIndex + 1);
       }
     }
-  } while (previousWorkList.length != workList.length);
-  return topologicallySortedVertices;
+    result.sortedVertices.add(vertex);
+    if (index >= result.layers.length) {
+      assert(index == result.layers.length);
+      result.layers.add([vertex]);
+    } else {
+      result.layers[index].add(vertex);
+    }
+    return result.indexMap[vertex] = index;
+  }
+  return index;
+}
+
+/// Perform a topological sorting of the vertices in [graph], returning a
+/// [TopologicalSortResult] object with the result.
+TopologicalSortResult<T> topologicalSort<T>(Graph<T> graph) {
+  TopologicalSortResult<T> result = new TopologicalSortResult();
+
+  for (T vertex in graph.vertices) {
+    _topologicalSortInternal(graph, result, vertex);
+  }
+  return result;
+}
+
+/// The result of computing the [topologicalSort] on a [Graph].
+class TopologicalSortResult<T> {
+  /// The non-cyclic vertices of the graph sorted in topological order.
+  final List<T> sortedVertices = [];
+
+  /// The cyclic vertices of graph, including vertices that have a path to
+  /// a vertex.
+  final List<T> cyclicVertices = [];
+
+  /// The topological index of all non-cyclic vertices of the graph.
+  ///
+  /// The "topological index" of a vertex is the length of the longest path
+  /// through neighbors. For vertices with no neighbors, the index is 0.
+  /// For any other vertex, it is 1 plus max of the index of its neighbors.
+  final Map<T, int> indexMap = {};
+
+  /// The non-cyclic vertices in layers according to their topological index.
+  /// That is, `layers[i]` contain the list of vertices with index `i`.
+  final List<List<T>> layers = [];
 }
