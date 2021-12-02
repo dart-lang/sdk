@@ -71,10 +71,11 @@ class _Visitor extends SimpleAstVisitor {
     for (var i = arguments.length - 1; i >= 0; --i) {
       var arg = arguments[i];
       var param = arg.staticParameterElement;
-      if (param == null || param.hasRequired || param.isRequiredNamed) {
+      if (param == null ||
+          param.hasRequired ||
+          param.isRequiredNamed ||
+          param.isRequiredPositional) {
         continue;
-      } else if (param.isRequiredPositional) {
-        break;
       }
       var value = param.computeConstantValue();
       if (value != null) {

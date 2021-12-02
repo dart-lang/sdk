@@ -1,0 +1,35 @@
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AvoidRedundantArgumentValuesTest);
+  });
+}
+
+@reflectiveTest
+class AvoidRedundantArgumentValuesTest extends LintRuleTest {
+  @override
+  List<String> get experiments => [EnableString.named_arguments_anywhere];
+
+  @override
+  String get lintRule => 'avoid_redundant_argument_values';
+
+  test_namedArgumentBeforePositional() async {
+    await assertDiagnostics(r'''
+void foo(int a, int b, {bool c = true}) {}
+
+void f() {
+  foo(0, c: true, 1);
+}
+''', [
+      lint('avoid_redundant_argument_values', 67, 4),
+    ]);
+  }
+}

@@ -5,6 +5,8 @@
 import 'avoid_function_literals_in_foreach_calls.dart'
     as avoid_function_literals_in_foreach_calls;
 import 'avoid_init_to_null.dart' as avoid_init_to_null;
+import 'avoid_redundant_argument_values.dart'
+    as avoid_redundant_argument_values;
 import 'avoid_shadowing_type_parameters.dart'
     as avoid_shadowing_type_parameters;
 import 'conditional_uri_does_not_exist.dart' as conditional_uri_does_not_exist;
@@ -39,6 +41,7 @@ import 'void_checks.dart' as void_checks;
 void main() {
   avoid_function_literals_in_foreach_calls.main();
   avoid_init_to_null.main();
+  avoid_redundant_argument_values.main();
   avoid_shadowing_type_parameters.main();
   conditional_uri_does_not_exist.main();
   file_names.main();
