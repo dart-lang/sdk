@@ -85,6 +85,7 @@ abstract class Map<K, V> {
   /// ```dart
   /// final planets = <int, String>{1: 'Mercury', 2: 'Venus', 3: 'Earth'};
   /// final unmodifiableMap = Map.unmodifiable(planets);
+  /// unmodifiableMap[4] = 'Mars'; // Throws
   /// ```
   external factory Map.unmodifiable(Map<dynamic, dynamic> other);
 
@@ -118,7 +119,7 @@ abstract class Map<K, V> {
   /// final map = Map<String, int>.fromIterable(numbers,
   ///     key: (item) => item.toString(),
   ///     value: (item) => item * item);
-  /// print(map); // {"1": 1, "2": 4, "3": 9}
+  /// print(map); // {1: 1, 2: 4, 3: 9}
   /// ```
   /// If no values are specified for [key] and [value],
   /// the default is the identity function.
@@ -200,9 +201,9 @@ abstract class Map<K, V> {
   /// ```
   /// Example:
   /// ```dart
-  /// final planetsByMoon = <String, int>{'Mercury': 0, 'Venus': 0, 'Earth': 1,
+  /// final moonCount = <String, int>{'Mercury': 0, 'Venus': 0, 'Earth': 1,
   ///   'Mars': 2, 'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14};
-  /// final map = Map.fromEntries(planetsByMoon.entries);
+  /// final map = Map.fromEntries(moonCount.entries);
   /// ```
   factory Map.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       <K, V>{}..addEntries(entries);
@@ -233,10 +234,10 @@ abstract class Map<K, V> {
   /// Returns true if any of the values in the map are equal to `value`
   /// according to the `==` operator.
   /// ```dart
-  /// final planetsByMoon = <String, int>{'Mercury': 0, 'Venus': 0, 'Earth': 1,
+  /// final moonCount = <String, int>{'Mercury': 0, 'Venus': 0, 'Earth': 1,
   ///   'Mars': 2, 'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14 };
-  /// final moons3 = planetsByMoon.containsValue(3); // false
-  /// final moons82 = planetsByMoon.containsValue(82); // true
+  /// final moons3 = moonCount.containsValue(3); // false
+  /// final moons82 = moonCount.containsValue(82); // true
   /// ```
   bool containsValue(Object? value);
 
@@ -245,10 +246,10 @@ abstract class Map<K, V> {
   /// Returns true if any of the keys in the map are equal to `key`
   /// according to the equality used by the map.
   /// ```dart
-  /// final planetsByMoon = <String, int>{'Mercury': 0, 'Venus': 0, 'Earth': 1,
+  /// final moonCount = <String, int>{'Mercury': 0, 'Venus': 0, 'Earth': 1,
   ///   'Mars': 2, 'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14 };
-  /// final containsUranus = planetsByMoon.containsKey('Uranus'); // true
-  /// final containsPluto = planetsByMoon.containsKey('Pluto'); // false
+  /// final containsUranus = moonCount.containsKey('Uranus'); // true
+  /// final containsPluto = moonCount.containsKey('Pluto'); // false
   /// ```
   bool containsKey(Object? key);
 
@@ -306,14 +307,15 @@ abstract class Map<K, V> {
   ///
   /// If the key is not present, [ifAbsent] must be provided.
   /// ```dart
-  /// final planetsFromSun = <int, String>{1: 'Mercury', 2: '', 3: 'Earth'};
+  /// final planetsFromSun = <int, String>{1: 'Mercury', 2: 'unknown',
+  ///   3: 'Earth'};
   /// // Update value for known key value 2.
   /// planetsFromSun.update(2, (value) => 'Venus');
   /// print(planetsFromSun); // {1: Mercury, 2: Venus, 3: Earth}
   ///
   /// final largestPlanets = <int, String>{1: 'Jupiter', 2: 'Saturn',
   ///   3: 'Neptune'};
-  /// // Key value 8 is missing from list, add it with ifAbsent value 'Mercury'.
+  /// // Key value 8 is missing from list, add it using [ifAbsent].
   /// largestPlanets.update(8, (value) => 'New', ifAbsent: () => 'Mercury');
   /// print(largestPlanets); // {1: Jupiter, 2: Saturn, 3: Neptune, 8: Mercury}
   /// ```
@@ -401,10 +403,10 @@ abstract class Map<K, V> {
   ///
   /// Calling `action` must not add or remove keys from the map.
   /// ```dart
-  /// final massByPlanets = <num, String>{0.81: 'Venus', 1: 'Earth',
+  /// final planetsByMass = <num, String>{0.81: 'Venus', 1: 'Earth',
   ///   0.11: 'Mars', 17.15: 'Neptune'};
   ///
-  /// massByPlanets.forEach((key, value) {
+  /// planetsByMass.forEach((key, value) {
   ///   print('$key: $value');
   ///   // 0.81: Venus
   ///   // 1: Earth
