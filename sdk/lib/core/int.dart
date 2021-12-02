@@ -20,6 +20,11 @@ part of dart.core;
 /// operands to 32-bit integers when compiled to JavaScript.
 ///
 /// Classes cannot extend, implement, or mix in `int`.
+///
+/// **See also:**
+/// * [num] is a super class for [int].
+/// * [Numbers](https://dart.dev/guides/language/numbers)  in
+/// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
 abstract class int extends num {
   /// Returns the integer value of the given environment declaration [name].
   ///
