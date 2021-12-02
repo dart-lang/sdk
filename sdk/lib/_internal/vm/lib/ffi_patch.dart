@@ -448,6 +448,16 @@ Pointer<Pointer<S>> _elementAtPointer<S extends NativeType>(
         Pointer<Pointer<S>> pointer, int index) =>
     Pointer.fromAddress(pointer.address + _intPtrSize * index);
 
+@pragma("vm:prefer-inline")
+@pragma("vm:entry-point")
+T _checkAbiSpecificIntegerMapping<T>(T? object) {
+  if (object == null) {
+    throw ArgumentError(
+        'AbiSpecificInteger is missing mapping for "${Abi.current()}".');
+  }
+  return object;
+}
+
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
   @patch

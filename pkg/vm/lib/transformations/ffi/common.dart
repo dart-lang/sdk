@@ -234,6 +234,7 @@ class FfiTransformer extends Transformer {
   final Procedure lookupFunctionTearoff;
   final Procedure getNativeFieldFunction;
   final Procedure reachabilityFenceFunction;
+  final Procedure checkAbiSpecificIntegerMappingFunction;
 
   late final InterfaceType nativeFieldWrapperClass1Type;
   late final InterfaceType voidType;
@@ -417,7 +418,9 @@ class FfiTransformer extends Transformer {
         getNativeFieldFunction = index.getTopLevelProcedure(
             'dart:nativewrappers', '_getNativeField'),
         reachabilityFenceFunction =
-            index.getTopLevelProcedure('dart:_internal', 'reachabilityFence') {
+            index.getTopLevelProcedure('dart:_internal', 'reachabilityFence'),
+        checkAbiSpecificIntegerMappingFunction = index.getTopLevelProcedure(
+            'dart:ffi', "_checkAbiSpecificIntegerMapping") {
     nativeFieldWrapperClass1Type = nativeFieldWrapperClass1Class.getThisType(
         coreTypes, Nullability.nonNullable);
     voidType = nativeTypesClasses[NativeType.kVoid]!
@@ -453,7 +456,7 @@ class FfiTransformer extends Transformer {
   /// [Bool]                               -> [bool]
   /// [Void]                               -> [void]
   /// [Pointer]<T>                         -> [Pointer]<T>
-  /// T extends [Pointer]                  -> T
+  /// T extends [Compound]                 -> T
   /// [Handle]                             -> [Object]
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
@@ -535,26 +538,41 @@ class FfiTransformer extends Transformer {
   InterfaceType _listOfIntType() => InterfaceType(
       listClass, Nullability.legacy, [coreTypes.intLegacyRawType]);
 
-  ConstantExpression intListConstantExpression(List<int> values) =>
+  ConstantExpression intListConstantExpression(List<int?> values) =>
       ConstantExpression(
-          ListConstant(coreTypes.intLegacyRawType,
-              [for (var v in values) IntConstant(v)]),
+          ListConstant(coreTypes.intLegacyRawType, [
+            for (var v in values)
+              if (v != null) IntConstant(v) else NullConstant()
+          ]),
           _listOfIntType());
 
   /// Expression that queries VM internals at runtime to figure out on which ABI
   /// we are.
-  Expression runtimeBranchOnLayout(Map<Abi, int> values) {
-    return InstanceInvocation(
+  Expression runtimeBranchOnLayout(Map<Abi, int?> values) {
+    final result = InstanceInvocation(
         InstanceAccessKind.Instance,
         intListConstantExpression([
-          for (final abi in Abi.values) values[abi]!,
+          for (final abi in Abi.values) values[abi],
         ]),
         listElementAt.name,
         Arguments([StaticInvocation(abiMethod, Arguments([]))]),
         interfaceTarget: listElementAt,
         functionType: Substitution.fromInterfaceType(_listOfIntType())
             .substituteType(listElementAt.getterType) as FunctionType);
+    if (values.isPartial) {
+      return checkAbiSpecificIntegerMapping(result);
+    }
+    return result;
   }
+
+  Expression checkAbiSpecificIntegerMapping(Expression nullableExpression) =>
+      StaticInvocation(
+        checkAbiSpecificIntegerMappingFunction,
+        Arguments(
+          [nullableExpression],
+          types: [InterfaceType(intClass, Nullability.nonNullable)],
+        ),
+      );
 
   /// Generates an expression that returns a new `Pointer<dartType>` offset
   /// by [offset] from [pointer].
@@ -818,4 +836,9 @@ bool importsFfi(Component component, List<Library> libraries) {
     }
   }
   return false;
+}
+
+extension on Map<Abi, Object?> {
+  bool get isPartial =>
+      [for (final abi in Abi.values) this[abi]].contains(null);
 }

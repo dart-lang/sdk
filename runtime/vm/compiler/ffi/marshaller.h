@@ -28,6 +28,13 @@ namespace ffi {
 // Values below 0 index result (result might be multiple if composite).
 const intptr_t kResultIndex = -1;
 
+// Inspects the function signature and transitively any class and field
+// definitions and annotations.
+const NativeFunctionType* NativeFunctionTypeFromFunctionType(
+    Zone* zone,
+    const FunctionType& c_signature,
+    const char** error);
+
 // Provides the mapping from the native calling convention to the Dart calling
 // convention.
 //
@@ -114,11 +121,7 @@ class BaseMarshaller : public ZoneAllocated {
            kFfiBoolCid;
   }
 
-  bool IsCompound(intptr_t arg_index) const {
-    const auto& type = AbstractType::Handle(zone_, CType(arg_index));
-    const bool predefined = IsFfiTypeClassId(type.type_class_id());
-    return !predefined;
-  }
+  bool IsCompound(intptr_t arg_index) const;
 
   // Treated as a null constant in Dart.
   bool IsVoid(intptr_t arg_index) const {
@@ -131,7 +134,14 @@ class BaseMarshaller : public ZoneAllocated {
   StringPtr function_name() const { return dart_signature_.name(); }
 
  protected:
-  BaseMarshaller(Zone* zone, const Function& dart_signature);
+  BaseMarshaller(Zone* zone,
+                 const Function& dart_signature,
+                 const FunctionType& c_signature,
+                 const NativeCallingConvention& native_calling_convention)
+      : zone_(zone),
+        dart_signature_(dart_signature),
+        c_signature_(c_signature),
+        native_calling_convention_(native_calling_convention) {}
 
   ~BaseMarshaller() {}
 
@@ -145,8 +155,18 @@ class BaseMarshaller : public ZoneAllocated {
 
 class CallMarshaller : public BaseMarshaller {
  public:
-  CallMarshaller(Zone* zone, const Function& dart_signature)
-      : BaseMarshaller(zone, dart_signature) {}
+  static CallMarshaller* FromFunction(Zone* zone,
+                                      const Function& function,
+                                      const char** error);
+
+  CallMarshaller(Zone* zone,
+                 const Function& dart_signature,
+                 const FunctionType& c_signature,
+                 const NativeCallingConvention& native_calling_convention)
+      : BaseMarshaller(zone,
+                       dart_signature,
+                       c_signature,
+                       native_calling_convention) {}
 
   virtual Representation RepInFfiCall(intptr_t def_index_global) const;
 
@@ -173,7 +193,20 @@ class CallMarshaller : public BaseMarshaller {
 
 class CallbackMarshaller : public BaseMarshaller {
  public:
-  CallbackMarshaller(Zone* zone, const Function& dart_signature);
+  static CallbackMarshaller* FromFunction(Zone* zone,
+                                          const Function& function,
+                                          const char** error);
+
+  CallbackMarshaller(Zone* zone,
+                     const Function& dart_signature,
+                     const FunctionType& c_signature,
+                     const NativeCallingConvention& native_calling_convention,
+                     const NativeLocations& callback_locs)
+      : BaseMarshaller(zone,
+                       dart_signature,
+                       c_signature,
+                       native_calling_convention),
+        callback_locs_(callback_locs) {}
 
   virtual Representation RepInFfiCall(intptr_t def_index_global) const;
 

@@ -7553,12 +7553,26 @@ bool Function::FfiCSignatureContainsHandles() const {
          kFfiHandleCid;
 }
 
+// Keep consistent with BaseMarshaller::IsCompound.
 bool Function::FfiCSignatureReturnsStruct() const {
   ASSERT(IsFfiTrampoline());
-  const FunctionType& c_signature = FunctionType::Handle(FfiCSignature());
-  const auto& return_type = AbstractType::Handle(c_signature.result_type());
-  const bool predefined = IsFfiTypeClassId(return_type.type_class_id());
-  return !predefined;
+  Zone* zone = Thread::Current()->zone();
+  const auto& c_signature = FunctionType::Handle(zone, FfiCSignature());
+  const auto& type = AbstractType::Handle(zone, c_signature.result_type());
+  if (IsFfiTypeClassId(type.type_class_id())) {
+    return false;
+  }
+  // TODO(http://dartbug.com/42563): Implement AbiSpecificInt.
+#ifdef DEBUG
+  const auto& cls = Class::Handle(zone, type.type_class());
+  const auto& superClass = Class::Handle(zone, cls.SuperClass());
+  const bool is_struct = String::Handle(zone, superClass.UserVisibleName())
+                             .Equals(Symbols::Struct());
+  const bool is_union = String::Handle(zone, superClass.UserVisibleName())
+                            .Equals(Symbols::Union());
+  RELEASE_ASSERT(is_struct || is_union);
+#endif
+  return true;
 }
 
 int32_t Function::FfiCallbackId() const {

@@ -17,7 +17,9 @@ ISOLATE_UNIT_TEST_CASE(Ffi_NativeType_Primitive_FromAbstractType) {
   const auto& ffi_library = Library::Handle(Library::FfiLibrary());
   const auto& int8_class = Class::Handle(GetClass(ffi_library, "Int8"));
   const auto& int8_type = Type::Handle(int8_class.DeclarationType());
-  const auto& native_type = NativeType::FromAbstractType(Z, int8_type);
+  const char* error = nullptr;
+  const auto& native_type = *NativeType::FromAbstractType(Z, int8_type, &error);
+  EXPECT_NULLPTR(error);
 
   EXPECT_EQ(1, native_type.SizeInBytes());
   EXPECT_STREQ("int8", native_type.ToCString());
@@ -36,7 +38,10 @@ ISOLATE_UNIT_TEST_CASE(Ffi_NativeType_Bool_FromAbstractType) {
   const auto& ffi_library = Library::Handle(Library::FfiLibrary());
   const auto& bool_class = Class::Handle(GetClass(ffi_library, "Bool"));
   const auto& bool_type = Type::Handle(bool_class.DeclarationType());
-  const auto& bool_native_type = NativeType::FromAbstractType(Z, bool_type);
+  const char* error = nullptr;
+  const auto& bool_native_type =
+      *NativeType::FromAbstractType(Z, bool_type, &error);
+  EXPECT_NULLPTR(error);
 
   const auto& uint8_native_type = *new (Z) NativePrimitiveType(kUint8);
 
@@ -67,8 +72,10 @@ ISOLATE_UNIT_TEST_CASE(Ffi_NativeType_Struct_FromAbstractType) {
   const auto& struct_class = Class::Handle(GetClass(root_library, "MyStruct"));
   const auto& struct_type = Type::Handle(struct_class.DeclarationType());
 
+  const char* error = nullptr;
   const auto& native_type =
-      NativeType::FromAbstractType(Z, struct_type).AsCompound();
+      NativeType::FromAbstractType(Z, struct_type, &error)->AsCompound();
+  EXPECT_NULLPTR(error);
 
   EXPECT_EQ(2, native_type.members().length());
 

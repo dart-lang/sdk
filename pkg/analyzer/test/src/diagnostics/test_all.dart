@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'abi_specific_integer_mapping_test.dart' as abi_specific_integer_mapping;
 import 'abstract_class_member_test.dart' as abstract_class_member;
 import 'abstract_field_constructor_initializer_test.dart'
     as abstract_field_constructor_initializer;
@@ -721,6 +722,7 @@ import 'yield_of_invalid_type_test.dart' as yield_of_invalid_type;
 
 main() {
   defineReflectiveSuite(() {
+    abi_specific_integer_mapping.main();
     abstract_class_member.main();
     abstract_field_constructor_initializer.main();
     abstract_field_initializer.main();
