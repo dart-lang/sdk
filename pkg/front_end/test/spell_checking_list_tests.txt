@@ -799,6 +799,7 @@ reachability
 reality
 recompile
 recompiles
+recorder
 redir
 redirections
 rediscover

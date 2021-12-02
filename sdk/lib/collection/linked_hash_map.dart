@@ -41,20 +41,20 @@ part of dart.collection;
 /// final planetsByDiameter = {0.949: 'Venus'}; // A new LinkedHashMap
 /// ```
 /// To add data to a map, use [operator[]=], [addAll] or [addEntries].
-/// ```
+/// ```dart continued
 /// planetsByDiameter[1] = 'Earth';
 /// planetsByDiameter.addAll({0.532: 'Mars', 11.209: 'Jupiter'});
 /// ```
 /// To check if the map is empty, use [isEmpty] or [isNotEmpty].
 /// To find the number of map entries, use [length].
-/// ```
+/// ```dart continued
 /// print(planetsByDiameter.isEmpty); // false
 /// print(planetsByDiameter.length); // 4
 /// print(planetsByDiameter);
 /// // {0.949: Venus, 1.0: Earth, 0.532: Mars, 11.209: Jupiter}
 /// ```
 /// The [forEach] method calls a function for each key/value entry of the map.
-/// ```
+/// ```dart continued
 /// planetsByDiameter.forEach((key, value) {
 ///   print('$key \t $value');
 ///   // 0.949    Venus
@@ -64,44 +64,44 @@ part of dart.collection;
 /// });
 /// ```
 /// To check whether the map has an entry with a specific key, use [containsKey].
-/// ```
+/// ```dart continued
 /// final keyOneExists = planetsByDiameter.containsKey(1); // true
 /// final keyFiveExists = planetsByDiameter.containsKey(5); // false
 /// ```
 /// To check whether the map has an entry with a specific value,
 /// use [containsValue].
-/// ```
+/// ```dart continued
 /// final earthExists = planetsByDiameter.containsValue('Earth'); // true
 /// final saturnExists =  planetsByDiameter.containsValue('Saturn'); // false
 /// ```
 /// To remove an entry with a specific key, use [remove].
-/// ```
+/// ```dart continued
 /// final removedValue = planetsByDiameter.remove(1);
 /// print(removedValue); // Earth
 /// print(planetsByDiameter); // {0.949: Venus, 0.532: Mars, 11.209: Jupiter}
 /// ```
 /// To remove multiple entries at the same time, based on their keys and values,
 /// use [removeWhere].
-/// ```
+/// ```dart continued
 /// planetsByDiameter.removeWhere((key, value) => key == 0.949);
 /// print(planetsByDiameter); // {0.532: Mars, 11.209: Jupiter}
 /// ```
 /// To conditionally add or modify a value for a specific key, depending on
 /// whether there already is an entry with that key,
 /// use [putIfAbsent] or [update].
-/// ```
+/// ```dart continued
 /// planetsByDiameter.update(0.949, (v) => 'Venus', ifAbsent: () => 'Venus');
 /// planetsByDiameter.putIfAbsent(0.532, () => "Another Mars if needed");
 /// print(planetsByDiameter); // {0.532: Mars, 11.209: Jupiter, 0.949: Venus}
 /// ```
 /// To update the values of all keys, based on the existing key and value,
 /// use [updateAll].
-/// ```
+/// ```dart continued
 /// planetsByDiameter.updateAll((key, value) => 'X');
 /// print(planetsByDiameter); // {0.532: X, 11.209: X, 0.949: X}
 /// ```
 /// To remove all entries and empty the map, use [clear].
-/// ```
+/// ```dart continued
 /// planetsByDiameter.clear();
 /// print(planetsByDiameter); // {}
 /// print(planetsByDiameter.isEmpty); // true

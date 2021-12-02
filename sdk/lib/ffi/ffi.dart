@@ -827,7 +827,7 @@ abstract class NativeApi {
 /// Annotation to be used for marking an external function as FFI native.
 ///
 /// Example:
-///```dart template:none
+///```dart template:top
 /// @FfiNative<Int64 Function(Int64, Int64)>('FfiNative_Sum', isLeaf:true)
 /// external int sum(int a, int b);
 ///```

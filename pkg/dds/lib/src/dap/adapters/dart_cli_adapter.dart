@@ -87,6 +87,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     }
 
     final vmArgs = <String>[
+      ...?args.vmAdditionalArgs,
       if (debug) ...[
         '--enable-vm-service=${args.vmServicePort ?? 0}${ipv6 ? '/::1' : ''}',
         '--pause_isolates_on_start',
@@ -132,17 +133,22 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
                 : null
         : null;
 
-    // TODO(dantup): Support passing env to both of these.
-
     if (terminalKind != null) {
       await launchInEditorTerminal(
         debug,
         terminalKind,
         executable,
         processArgs,
+        workingDirectory: args.cwd,
+        env: args.env,
       );
     } else {
-      await launchAsProcess(executable, processArgs);
+      await launchAsProcess(
+        executable,
+        processArgs,
+        workingDirectory: args.cwd,
+        env: args.env,
+      );
     }
 
     // Delay responding until the debugger is connected.
@@ -180,10 +186,12 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     bool debug,
     String terminalKind,
     String executable,
-    List<String> processArgs,
-  ) async {
+    List<String> processArgs, {
+    required String? workingDirectory,
+    required Map<String, String>? env,
+  }) async {
     final args = this.args as DartLaunchRequestArguments;
-    logger?.call('Spawning $executable with $processArgs in ${args.cwd}'
+    logger?.call('Spawning $executable with $processArgs in $workingDirectory'
         ' via client ${terminalKind} terminal');
 
     // runInTerminal is a DAP request that goes from server-to-client that
@@ -193,7 +201,8 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     // we can detect with the normal watching code.
     final requestArgs = RunInTerminalRequestArguments(
       args: [executable, ...processArgs],
-      cwd: args.cwd ?? path.dirname(args.program),
+      cwd: workingDirectory ?? path.dirname(args.program),
+      env: env,
       kind: terminalKind,
       title: args.name ?? 'Dart',
     );
@@ -225,13 +234,16 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// [OutputEvent]s.
   Future<void> launchAsProcess(
     String executable,
-    List<String> processArgs,
-  ) async {
-    logger?.call('Spawning $executable with $processArgs in ${args.cwd}');
+    List<String> processArgs, {
+    required String? workingDirectory,
+    required Map<String, String>? env,
+  }) async {
+    logger?.call('Spawning $executable with $processArgs in $workingDirectory');
     final process = await Process.start(
       executable,
       processArgs,
-      workingDirectory: args.cwd,
+      workingDirectory: workingDirectory,
+      environment: env,
     );
     _process = process;
     pidsToTerminate.add(process.pid);

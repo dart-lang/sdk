@@ -149,6 +149,9 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   final String? name;
   final String? cwd;
 
+  /// Environment variables to pass to the launched process.
+  final Map<String, String>? env;
+
   /// Paths that should be considered the users local code.
   ///
   /// These paths will generally be all of the open folders in the users editor
@@ -199,6 +202,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
     required this.restart,
     required this.name,
     required this.cwd,
+    // TODO(dantup): This can be made required after Flutter DAP is passing it.
+    this.env,
     required this.additionalProjectPaths,
     required this.debugSdkLibraries,
     required this.debugExternalPackageLibraries,
@@ -211,6 +216,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
       : restart = obj['restart'],
         name = obj['name'] as String?,
         cwd = obj['cwd'] as String?,
+        env = obj['env'] as Map<String, String>?,
         additionalProjectPaths =
             (obj['additionalProjectPaths'] as List?)?.cast<String>(),
         debugSdkLibraries = obj['debugSdkLibraries'] as bool?,
@@ -226,6 +232,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
         if (restart != null) 'restart': restart,
         if (name != null) 'name': name,
         if (cwd != null) 'cwd': cwd,
+        if (env != null) 'env': env,
         if (additionalProjectPaths != null)
           'additionalProjectPaths': additionalProjectPaths,
         if (debugSdkLibraries != null) 'debugSdkLibraries': debugSdkLibraries,
@@ -1881,6 +1888,15 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
   /// the VM or Flutter tool).
   final List<String>? toolArgs;
 
+  /// Arguments to be passed directly to the Dart VM that will run [program].
+  ///
+  /// Unlike [toolArgs] which always go after the complete tool, these args
+  /// always go directly after `dart`:
+  ///
+  ///   - dart {vmAdditionalArgs} {toolArgs}
+  ///   - dart {vmAdditionalArgs} run test:test {toolArgs}
+  final List<String>? vmAdditionalArgs;
+
   final int? vmServicePort;
 
   final bool? enableAsserts;
@@ -1921,6 +1937,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     this.args,
     this.vmServicePort,
     this.toolArgs,
+    this.vmAdditionalArgs,
     this.console,
     this.enableAsserts,
     this.customTool,
@@ -1928,6 +1945,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     Object? restart,
     String? name,
     String? cwd,
+    Map<String, String>? env,
     List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
@@ -1938,6 +1956,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
           restart: restart,
           name: name,
           cwd: cwd,
+          env: env,
           additionalProjectPaths: additionalProjectPaths,
           debugSdkLibraries: debugSdkLibraries,
           debugExternalPackageLibraries: debugExternalPackageLibraries,
@@ -1951,6 +1970,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         program = obj['program'] as String,
         args = (obj['args'] as List?)?.cast<String>(),
         toolArgs = (obj['toolArgs'] as List?)?.cast<String>(),
+        vmAdditionalArgs = (obj['vmAdditionalArgs'] as List?)?.cast<String>(),
         vmServicePort = obj['vmServicePort'] as int?,
         console = obj['console'] as String?,
         enableAsserts = obj['enableAsserts'] as bool?,
@@ -1965,6 +1985,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         'program': program,
         if (args != null) 'args': args,
         if (toolArgs != null) 'toolArgs': toolArgs,
+        if (vmAdditionalArgs != null) 'vmAdditionalArgs': vmAdditionalArgs,
         if (vmServicePort != null) 'vmServicePort': vmServicePort,
         if (console != null) 'console': console,
         if (enableAsserts != null) 'enableAsserts': enableAsserts,

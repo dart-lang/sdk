@@ -42,7 +42,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
         codeInitializeFromDillUnknownProblemNoDump;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler;
+    show IncrementalCompiler, RecorderForTesting;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 
@@ -84,7 +84,7 @@ class Tester {
             new ProcessedOptions(options: options, inputs: [entryPoint])),
         initializeFrom);
     await compiler.computeDelta();
-    if (compiler.initializedFromDill) {
+    if (compiler.initializedFromDillForTesting) {
       Expect.fail("Expected to not be able to initialized from dill, but did.");
     }
     if (errorMessages.isNotEmpty) {
@@ -112,9 +112,9 @@ class Tester {
     IncrementalCompilerResult compilerResult = await compiler.computeDelta();
     Component component = compilerResult.component;
 
-    if (compiler.initializedFromDill != initializedFromDill) {
+    if (compiler.initializedFromDillForTesting != initializedFromDill) {
       Expect.fail("Expected initializedFromDill to be $initializedFromDill "
-          "but was ${compiler.initializedFromDill}");
+          "but was ${compiler.initializedFromDillForTesting}");
     }
     if (errorMessages.isNotEmpty) {
       Expect.fail("Got unexpected errors: " + joinMessages(errorMessages));
@@ -316,7 +316,15 @@ class DeleteTempFilesIncrementalCompiler extends IncrementalCompiler {
       : super(context, initializeFromDillUri);
 
   @override
-  void recordTemporaryFileForTesting(Uri uri) {
+  final RecorderForTesting recorderForTesting =
+      const DeleteTempFilesRecorderForTesting();
+}
+
+class DeleteTempFilesRecorderForTesting extends RecorderForTesting {
+  const DeleteTempFilesRecorderForTesting();
+
+  @override
+  void recordTemporaryFile(Uri uri) {
     File f = new File.fromUri(uri);
     if (f.existsSync()) f.deleteSync();
   }

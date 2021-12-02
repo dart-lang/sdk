@@ -8,9 +8,9 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
-import 'package:analysis_server/src/search/workspace_symbols.dart' as search;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/search.dart' as search;
 
 /// Instances of the class [SearchDomainHandler] implement a [RequestHandler]
 /// that handles requests in the search domain.
@@ -161,21 +161,21 @@ class SearchDomainHandler implements protocol.RequestHandler {
       }
     }
 
-    var tracker = server.declarationsTracker;
-    if (tracker == null) {
+    if (!server.options.featureSet.completion) {
       server.sendResponse(Response.unsupportedFeature(
           request.id, 'Completion is not enabled.'));
       return;
     }
-    var files = <String>{};
-    var remainingMaxResults = params.maxResults;
-    var declarations = search.WorkspaceSymbols(tracker).declarations(
-      regExp,
-      remainingMaxResults,
-      files,
-      onlyForFile: params.file,
-    );
 
+    var workspaceSymbols = search.WorkspaceSymbols();
+    var analysisDrivers = server.driverMap.values.toList();
+    for (var analysisDriver in analysisDrivers) {
+      await analysisDriver.search.declarations(
+          workspaceSymbols, regExp, params.maxResults,
+          onlyForFile: params.file);
+    }
+
+    var declarations = workspaceSymbols.declarations;
     var elementDeclarations = declarations.map((declaration) {
       return protocol.ElementDeclaration(
           declaration.name,
@@ -192,7 +192,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     }).toList();
 
     server.sendResponse(protocol.SearchGetElementDeclarationsResult(
-            elementDeclarations, files.toList())
+            elementDeclarations, workspaceSymbols.files)
         .toResponse(request.id));
   }
 

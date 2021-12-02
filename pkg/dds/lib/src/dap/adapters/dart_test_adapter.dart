@@ -83,6 +83,7 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     }
 
     final vmArgs = <String>[
+      ...?args.vmAdditionalArgs,
       if (debug) ...[
         '--enable-vm-service=${args.vmServicePort ?? 0}${ipv6 ? '/::1' : ''}',
         '--pause_isolates_on_start',
@@ -125,21 +126,27 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       ...?args.args,
     ];
 
-    // TODO(dantup): Support passing env.
-
-    await launchAsProcess(executable, processArgs);
+    await launchAsProcess(
+      executable,
+      processArgs,
+      workingDirectory: args.cwd,
+      env: args.env,
+    );
   }
 
   /// Launches the test script as a process controlled by the debug adapter.
   Future<void> launchAsProcess(
     String executable,
-    List<String> processArgs,
-  ) async {
-    logger?.call('Spawning $executable with $processArgs in ${args.cwd}');
+    List<String> processArgs, {
+    required String? workingDirectory,
+    required Map<String, String>? env,
+  }) async {
+    logger?.call('Spawning $executable with $processArgs in $workingDirectory');
     final process = await Process.start(
       executable,
       processArgs,
-      workingDirectory: args.cwd,
+      workingDirectory: workingDirectory,
+      environment: env,
     );
     _process = process;
     pidsToTerminate.add(process.pid);

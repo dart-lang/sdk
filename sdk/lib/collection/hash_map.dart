@@ -43,7 +43,7 @@ typedef _Hasher<K> = int Function(K object);
 /// final Map<int, String> planets = HashMap(); // Is a HashMap
 /// ```
 /// To add data to a map, use [operator[]=], [addAll] or [addEntries].
-/// ```
+/// ```dart continued
 /// planets[3] = 'Earth';
 /// planets.addAll({4: 'Mars'});
 /// final gasGiants = {6: 'Jupiter', 5: 'Saturn'};
@@ -52,12 +52,12 @@ typedef _Hasher<K> = int Function(K object);
 /// ```
 /// To check if the map is empty, use [isEmpty] or [isNotEmpty].
 /// To find the number of map entries, use [length].
-/// ```
+/// ```dart continued
 /// final isEmpty = planets.isEmpty; // false
 /// final length = planets.length; // 4
 /// ```
 /// The [forEach] iterates through all entries of a map.
-/// ```
+/// ```dart continued
 /// planets.forEach((key, value) {
 ///   print('$key \t $value');
 ///   // 5        Saturn
@@ -67,32 +67,32 @@ typedef _Hasher<K> = int Function(K object);
 /// });
 /// ```
 /// To check whether the map has an entry with a specific key, use [containsKey].
-/// ```
+/// ```dart continued
 /// final keyOneExists = planets.containsKey(4); // true
 /// final keyFiveExists = planets.containsKey(1); // false
-/// ```
+/// ```dart continued
 /// To check whether the map has an entry with a specific value,
 /// use [containsValue].
-/// ```
+/// ```dart continued
 /// final marsExists = planets.containsValue('Mars'); // true
 /// final venusExists = planets.containsValue('Venus'); // false
 /// ```
 /// To remove an entry with a specific key, use [remove].
-/// ```
+/// ```dart continued
 /// final removeValue = planets.remove(5);
 /// print(removeValue); // Jupiter
 /// print(planets); // fx {4: Mars, 3: Earth, 5: Saturn}
 /// ```
 /// To remove multiple entries at the same time, based on their keys and values,
 /// use [removeWhere].
-/// ```
+/// ```dart continued
 /// planets.removeWhere((key, value) => key == 5);
 /// print(planets); // fx {3: Earth, 4: Mars}
 /// ```
 /// To conditionally add or modify a value for a specific key, depending on
 /// whether there already is an entry with that key,
 /// use [putIfAbsent] or [update].
-/// ```
+/// ```dart continued
 /// planets.update(4, (v) => 'Saturn');
 /// planets.update(8, (v) => '', ifAbsent: () => 'Neptune');
 /// planets.putIfAbsent(4, () => 'Another Saturn');
@@ -100,12 +100,12 @@ typedef _Hasher<K> = int Function(K object);
 /// ```
 /// To update the values of all keys, based on the existing key and value,
 /// use [updateAll].
-/// ```
+/// ```dart continued
 /// planets.updateAll((key, value) => 'X');
 /// print(planets); // fx {8: X, 3: X, 4: X}
 /// ```
 /// To remove all entries and empty the map, use [clear].
-/// ```
+/// ```dart continued
 /// planets.clear();
 /// print(planets); // {}
 /// print(planets.isEmpty); // true
@@ -152,7 +152,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
   /// Example:
   /// ```dart template:expression
   /// HashMap<int,int>(equals: (int a, int b) => (b - a) % 5 == 0,
-  ///                  hashCode: (int e) => e % 5);
+  ///                  hashCode: (int e) => e % 5)
   /// ```
   /// This example map does not need an `isValidKey` function to be passed.
   /// The default function accepts precisely `int` values, which can safely be

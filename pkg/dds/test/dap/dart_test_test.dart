@@ -12,7 +12,28 @@ import 'mocks.dart';
 
 main() {
   group('dart test adapter', () {
-    test('includes toolArgs', () async {
+    test('includes vmAdditionalArgs before run test:test', () async {
+      final adapter = MockDartTestDebugAdapter();
+      final responseCompleter = Completer<void>();
+      final request = MockRequest();
+      final args = DartLaunchRequestArguments(
+        program: 'foo.dart',
+        vmAdditionalArgs: ['vm_arg'],
+        noDebug: true,
+      );
+
+      await adapter.configurationDoneRequest(request, null, () {});
+      await adapter.launchRequest(request, args, responseCompleter.complete);
+      await responseCompleter.future;
+
+      expect(adapter.executable, equals(Platform.resolvedExecutable));
+      expect(
+        adapter.processArgs,
+        containsAllInOrder(['vm_arg', 'run', 'test:test', 'foo.dart']),
+      );
+    });
+
+    test('includes toolArgs after run test:test', () async {
       final adapter = MockDartTestDebugAdapter();
       final responseCompleter = Completer<void>();
       final request = MockRequest();
@@ -27,8 +48,32 @@ main() {
       await responseCompleter.future;
 
       expect(adapter.executable, equals(Platform.resolvedExecutable));
-      expect(adapter.processArgs, containsAllInOrder(['run', 'test:test']));
-      expect(adapter.processArgs, contains('tool_arg'));
+      expect(
+        adapter.processArgs,
+        containsAllInOrder(['run', 'test:test', 'tool_arg', 'foo.dart']),
+      );
+    });
+
+    test('includes env', () async {
+      final adapter = MockDartTestDebugAdapter();
+      final responseCompleter = Completer<void>();
+      final request = MockRequest();
+      final args = DartLaunchRequestArguments(
+        program: 'foo.dart',
+        env: {
+          'ENV1': 'VAL1',
+          'ENV2': 'VAL2',
+        },
+        noDebug: true,
+      );
+
+      await adapter.configurationDoneRequest(request, null, () {});
+      await adapter.launchRequest(request, args, responseCompleter.complete);
+      await responseCompleter.future;
+
+      expect(adapter.executable, equals(Platform.resolvedExecutable));
+      expect(adapter.env!['ENV1'], 'VAL1');
+      expect(adapter.env!['ENV2'], 'VAL2');
     });
 
     group('includes customTool', () {

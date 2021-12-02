@@ -8,8 +8,6 @@
 // These cloud functions write a success/failure result to the
 // builder table based on the approvals in Firestore.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -20,27 +18,26 @@ import 'package:http/http.dart' as http;
 const numAttempts = 20;
 const failuresPerConfiguration = 20;
 
-/*late*/ bool useStagingDatabase;
+late bool useStagingDatabase;
 
 Uri get _queryUrl {
-  var project = useStagingDatabase ? 'dart-ci-staging' : 'dart-ci';
+  final project = useStagingDatabase ? 'dart-ci-staging' : 'dart-ci';
   return Uri.https('firestore.googleapis.com',
       '/v1/projects/$project/databases/(default)/documents:runQuery');
 }
 
-/*late*/ String builder;
-/*late*/ String builderBase;
-/*late*/ int buildNumber;
-/*late*/ String token;
-/*late*/ http.Client client;
+late String builder;
+late String builderBase;
+late int buildNumber;
+late String token;
+late http.Client client;
 
 String get buildTable => builder.endsWith('-try') ? 'try_builds' : 'builds';
 String get resultsTable => builder.endsWith('-try') ? 'try_results' : 'results';
 
 bool booleanFieldOrFalse(Map<String, dynamic> document, String field) {
-  Map<String, dynamic> fieldObject = document['fields'][field];
-  if (fieldObject == null) return false;
-  return fieldObject['booleanValue'] ?? false;
+  final fieldObject = document['fields'][field];
+  return fieldObject?['booleanValue'] ?? false;
 }
 
 void usage(ArgParser parser) {
@@ -56,12 +53,12 @@ ${parser.usage}''');
 }
 
 Future<String> readGcloudAuthToken(String path) async {
-  String token = await File(path).readAsString();
-  return token.split("\n").first;
+  final token = await File(path).readAsString();
+  return token.split('\n').first;
 }
 
-main(List<String> args) async {
-  final parser = new ArgParser();
+void main(List<String> args) async {
+  final parser = ArgParser();
   parser.addFlag('help', help: 'Show the program usage.', negatable: false);
   parser.addOption('auth_token',
       abbr: 'a', help: 'Authorization token with cloud-platform scope');
@@ -75,9 +72,9 @@ main(List<String> args) async {
     usage(parser);
   }
 
-  useStagingDatabase = options['staging'] /*!*/;
-  builder = options['builder'] /*!*/;
-  buildNumber = int.parse(options['build_number'] /*!*/);
+  useStagingDatabase = options['staging'];
+  builder = options['builder'];
+  buildNumber = int.parse(options['build_number']);
   builderBase = builder.replaceFirst(RegExp('-try\$'), '');
   if (options['auth_token'] == null) {
     print('Option "--auth_token (-a)" is required\n');
@@ -85,83 +82,60 @@ main(List<String> args) async {
   }
   token = await readGcloudAuthToken(options['auth_token']);
   client = http.Client();
-  for (int count = 0; count < numAttempts; ++count) {
-    if (count > 0) {
-      await Future.delayed(Duration(seconds: 10));
-    }
-    final response = await runFirestoreQuery(buildQuery());
-    if (response.statusCode == HttpStatus.ok) {
-      final documents = jsonDecode(response.body);
-      final document = documents.first['document'];
-      if (document != null) {
-        bool success = booleanFieldOrFalse(document, 'success');
-        bool completed = booleanFieldOrFalse(document, 'completed');
-        if (completed) {
-          print(success
-              ? 'No new unapproved failures'
-              : 'There are new unapproved failures on this build');
-          if (builder.endsWith('-try')) exit(success ? 0 : 1);
-          final configurations = await getConfigurations();
-          final failures = await fetchActiveFailures(configurations);
-          if (failures.isNotEmpty) {
-            print('There are unapproved failures');
-            printActiveFailures(failures);
-            exit(1);
-          } else {
-            print('There are no unapproved failures');
-            exit(0);
-          }
-        }
-        String chunks =
-            (document['fields']['num_chunks'] ?? const {})['integerValue'];
-        String processedChunks = (document['fields']['processed_chunks'] ??
-            const {})['integerValue'];
-        if (processedChunks != null) {
-          print([
-            'Received',
-            processedChunks,
-            if (chunks != null) ...['out of', chunks],
-            'chunks.'
-          ].join(' '));
-        }
-      } else {
-        print('No results received for build $buildNumber of $builder');
-      }
-    } else {
-      print('HTTP status ${response.statusCode} received '
-          'when fetching build data');
-    }
+  final response = await runFirestoreQuery(buildQuery());
+  if (response.statusCode != HttpStatus.ok) {
+    print('HTTP status ${response.statusCode} received '
+        'when fetching build data');
+    exit(2);
   }
-  print('No status received for build $buildNumber of $builder '
-      'after $numAttempts attempts, with 10 second waits.');
-  exit(2);
+  final documents = jsonDecode(response.body);
+  final document = documents.first['document'];
+  if (document == null) {
+    print('No results received for build $buildNumber of $builder');
+    exit(2);
+  }
+  final success = booleanFieldOrFalse(document, 'success');
+  print(success
+      ? 'No new unapproved failures'
+      : 'There are new unapproved failures on this build');
+  if (builder.endsWith('-try')) exit(success ? 0 : 1);
+  final configurations = await getConfigurations();
+  final failures = await fetchActiveFailures(configurations);
+  if (failures.isNotEmpty) {
+    print('There are unapproved failures');
+    printActiveFailures(failures);
+    exit(1);
+  } else {
+    print('There are no unapproved failures');
+    exit(0);
+  }
 }
 
 Future<List<String>> getConfigurations() async {
   final response = await runFirestoreQuery(configurationsQuery());
-  if (response.statusCode == HttpStatus.ok) {
-    final documents = jsonDecode(response.body);
-    final groups = <String /*!*/ >{
-      for (Map document in documents)
-        if (document.containsKey('document'))
-          document['document']['name'].split('/').last
-    };
-    return groups.toList();
+  if (response.statusCode != HttpStatus.ok) {
+    print('Could not fetch configurations for $builderBase');
+    return [];
   }
-  print('Could not fetch configurations for $builderBase');
-  return [];
+  final documents = jsonDecode(response.body);
+  final groups = <String>{
+    for (Map document in documents)
+      if (document.containsKey('document'))
+        document['document']['name'].split('/').last
+  };
+  return groups.toList();
 }
 
 Map<int, Future<String>> commitHashes = {};
 Future<String> commitHash(int index) =>
     commitHashes.putIfAbsent(index, () => fetchCommitHash(index));
 
-Future<String /*!*/ > fetchCommitHash(int index) async {
+Future<String> fetchCommitHash(int index) async {
   final response = await runFirestoreQuery(commitQuery(index));
   if (response.statusCode == HttpStatus.ok) {
     final document = jsonDecode(response.body).first['document'];
     if (document != null) {
-      return document['name'] /*!*/ .split('/').last;
+      return document['name'].split('/').last;
     }
   }
   print('Could not fetch commit with index $index');
@@ -169,7 +143,7 @@ Future<String /*!*/ > fetchCommitHash(int index) async {
 }
 
 Future<Map<String, List<Map<String, dynamic>>>> fetchActiveFailures(
-    List<String /*!*/ > configurations) async {
+    List<String> configurations) async {
   final failures = <String, List<Map<String, dynamic>>>{};
   for (final configuration in configurations) {
     final response =
@@ -197,9 +171,9 @@ Future<Map<String, List<Map<String, dynamic>>>> fetchActiveFailures(
 }
 
 void printActiveFailures(Map<String, List<Map<String, dynamic>>> failures) {
-  for (final configuration in failures.keys) {
+  failures.forEach((configuration, failureList) {
     print('($configuration):');
-    for (final failure in failures[configuration]) {
+    for (final failure in failureList) {
       print([
         '    ',
         failure['name'],
@@ -217,7 +191,7 @@ void printActiveFailures(Map<String, List<Map<String, dynamic>>> failures) {
         ]
       ].join(''));
     }
-  }
+  });
 }
 
 Future<http.Response> runFirestoreQuery(String query) {
