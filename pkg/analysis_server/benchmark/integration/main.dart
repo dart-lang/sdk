@@ -130,8 +130,8 @@ PerfArgs parseArgs(List<String> rawArgs) {
     printHelp();
     exit(1);
   }
-
-  var showHelp = args[HELP_CMDLINE_OPTION] || args.rest.isNotEmpty;
+  var helpArg = args[HELP_CMDLINE_OPTION] as bool;
+  var showHelp = helpArg || args.rest.isNotEmpty;
 
   var inputArg = args[INPUT_CMDLINE_OPTION];
   if (inputArg is! String || inputArg.isEmpty) {
@@ -141,7 +141,8 @@ PerfArgs parseArgs(List<String> rawArgs) {
     perfArgs.inputPath = inputArg;
   }
 
-  for (var pair in args[MAP_OPTION]) {
+  var mapArg = args[MAP_OPTION] as List<Object?>;
+  for (var pair in mapArg) {
     if (pair is String) {
       var index = pair.indexOf(',');
       if (index != -1 && !pair.contains(',', index + 1)) {
@@ -175,9 +176,10 @@ PerfArgs parseArgs(List<String> rawArgs) {
     }
   }
 
-  if (args[VERY_VERBOSE_CMDLINE_OPTION] || rawArgs.contains('-vv')) {
+  var verboseArg = args[VERY_VERBOSE_CMDLINE_OPTION] as bool;
+  if (verboseArg || rawArgs.contains('-vv')) {
     Logger.root.level = Level.FINE;
-  } else if (args[VERBOSE_CMDLINE_OPTION]) {
+  } else if (verboseArg) {
     Logger.root.level = Level.INFO;
   } else {
     Logger.root.level = Level.WARNING;

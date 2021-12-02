@@ -18,6 +18,8 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
+    show HasToJson;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1580,7 +1582,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
   }
 
   /// Send an `updateContent` request for [testFile].
-  void sendContentChange(dynamic contentChange) {
+  void sendContentChange(HasToJson contentChange) {
     var request =
         AnalysisUpdateContentParams({testFile: contentChange}).toRequest('0');
     handleSuccessfulRequest(request);

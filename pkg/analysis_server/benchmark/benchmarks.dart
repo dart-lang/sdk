@@ -222,16 +222,20 @@ class RunCommand extends Command {
 
   @override
   Future run() async {
-    if (argResults!.rest.isEmpty) {
+    var args = argResults;
+    if (args == null) {
+      throw StateError('argResults have not been set');
+    }
+    if (args.rest.isEmpty) {
       printUsage();
       exit(1);
     }
 
-    var benchmarkId = argResults!.rest.first;
-    var repeatCount = int.parse(argResults!['repeat'] as String);
-    var flutterRepository = argResults!['flutter-repository'] as String?;
-    var quick = argResults!['quick'];
-    var verbose = argResults!['verbose'];
+    var benchmarkId = args.rest.first;
+    var repeatCount = int.parse(args['repeat'] as String);
+    var flutterRepository = args['flutter-repository'] as String?;
+    var quick = args['quick'] as bool;
+    var verbose = args['verbose'] as bool;
 
     var benchmark =
         benchmarks.firstWhere((b) => b.id == benchmarkId, orElse: () {

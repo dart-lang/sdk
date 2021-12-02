@@ -11565,7 +11565,7 @@ class FlutterWidgetPropertyValue implements HasToJson {
       double? doubleValue;
       if (json.containsKey('doubleValue')) {
         doubleValue = jsonDecoder.decodeDouble(
-            jsonPath + '.doubleValue', json['doubleValue']);
+            jsonPath + '.doubleValue', json['doubleValue'] as Object);
       }
       int? intValue;
       if (json.containsKey('intValue')) {

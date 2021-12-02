@@ -261,9 +261,11 @@ mixin ClientCapabilitiesHelperMixin {
 
   void mergeJson(Map<String, dynamic> source, Map<String, dynamic> dest) {
     source.keys.forEach((key) {
-      if (source[key] is Map<String, dynamic> &&
-          dest[key] is Map<String, dynamic>) {
-        mergeJson(source[key], dest[key]);
+      var sourceValue = source[key];
+      var destValue = dest[key];
+      if (sourceValue is Map<String, dynamic> &&
+          destValue is Map<String, dynamic>) {
+        mergeJson(sourceValue, destValue);
       } else {
         dest[key] = source[key];
       }
@@ -878,7 +880,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo(request, (result) => result);
   }
 
-  void expect(actual, matcher, {String? reason}) =>
+  void expect(Object? actual, Matcher matcher, {String? reason}) =>
       test.expect(actual, matcher, reason: reason);
 
   void expectDocumentVersion(
@@ -1194,7 +1196,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<List<Location>> getReferences(
     Uri uri,
     Position pos, {
-    includeDeclarations = false,
+    bool includeDeclarations = false,
   }) {
     final request = makeRequest(
       Method.textDocument_references,
