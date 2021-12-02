@@ -43,7 +43,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
     show DiagnosticMessageFromJson, FormattedMessage;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler;
+    show IncrementalCompiler, RecorderForTesting;
 
 import 'package:front_end/src/fasta/incremental_serializer.dart'
     show IncrementalSerializer;
@@ -850,7 +850,8 @@ class NewWorldTest {
       }
 
       if (world["expectsRebuildBodiesOnly"] != null) {
-        bool didRebuildBodiesOnly = compiler.rebuildBodiesCount! > 0;
+        bool didRebuildBodiesOnly =
+            compiler.recorderForTesting.rebuildBodiesCount! > 0;
         if (world["expectsRebuildBodiesOnly"] != didRebuildBodiesOnly) {
           return new Result<TestData>(
               data,
@@ -878,19 +879,20 @@ class NewWorldTest {
           }
         }
       }
-      if (compiler.initializedFromDill != expectInitializeFromDill) {
+      if (compiler.initializedFromDillForTesting != expectInitializeFromDill) {
         return new Result<TestData>(
             data,
             InitializedFromDillMismatch,
             "Expected that initializedFromDill would be "
             "$expectInitializeFromDill but was "
-            "${compiler.initializedFromDill}");
+            "${compiler.initializedFromDillForTesting}");
       }
 
-      if (incrementalSerialization == true && compiler.initializedFromDill) {
-        Expect.isTrue(compiler.initializedIncrementalSerializer);
+      if (incrementalSerialization == true &&
+          compiler.initializedFromDillForTesting) {
+        Expect.isTrue(compiler.initializedIncrementalSerializerForTesting);
       } else {
-        Expect.isFalse(compiler.initializedIncrementalSerializer);
+        Expect.isFalse(compiler.initializedIncrementalSerializerForTesting);
       }
 
       if (world["checkInvalidatedFiles"] != false) {
@@ -1774,7 +1776,7 @@ Future<bool> normalCompile(Uri input, Uri output,
   List<int> bytes =
       await normalCompileToBytes(input, options: options, compiler: compiler);
   new File.fromUri(output).writeAsBytesSync(bytes);
-  return compiler.initializedFromDill;
+  return compiler.initializedFromDillForTesting;
 }
 
 Future<List<int>> normalCompileToBytes(Uri input,
@@ -1814,7 +1816,7 @@ Future<bool> initializedCompile(
   Component initializedComponent = initializedCompilerResult.component;
   util.throwOnEmptyMixinBodies(initializedComponent);
   await util.throwOnInsufficientUriToSource(initializedComponent);
-  bool result = compiler.initializedFromDill;
+  bool result = compiler.initializedFromDillForTesting;
   new File.fromUri(output)
       .writeAsBytesSync(util.postProcess(initializedComponent));
   int actuallyInvalidatedCount = compiler
@@ -1875,8 +1877,9 @@ Future<bool> initializedCompile(
 }
 
 class TestIncrementalCompiler extends IncrementalCompiler {
-  Set<Uri>? invalidatedImportUrisForTesting;
-  int? rebuildBodiesCount;
+  @override
+  final TestRecorderForTesting recorderForTesting =
+      new TestRecorderForTesting();
   final Uri entryPoint;
 
   /// Filter out the automatically added entryPoint, unless it's explicitly
@@ -1886,12 +1889,12 @@ class TestIncrementalCompiler extends IncrementalCompiler {
   /// This is not perfect, but works for what it's currently used for.
   Set<Uri>? getFilteredInvalidatedImportUrisForTesting(
       List<Uri> invalidatedUris) {
-    if (invalidatedImportUrisForTesting == null) return null;
+    if (recorderForTesting.invalidatedImportUrisForTesting == null) return null;
 
     Set<String> invalidatedFilenames =
         invalidatedUris.map((uri) => uri.pathSegments.last).toSet();
     Set<Uri> result = new Set<Uri>();
-    for (Uri uri in invalidatedImportUrisForTesting!) {
+    for (Uri uri in recorderForTesting.invalidatedImportUrisForTesting!) {
       if (uri.pathSegments.isNotEmpty &&
           uri.pathSegments.last == "nonexisting.dart") {
         continue;
@@ -1927,27 +1930,6 @@ class TestIncrementalCompiler extends IncrementalCompiler {
             incrementalSerializer);
 
   @override
-  void recordInvalidatedImportUrisForTesting(List<Uri> uris) {
-    invalidatedImportUrisForTesting = uris.isEmpty ? null : uris.toSet();
-  }
-
-  @override
-  void recordNonFullComponentForTesting(Component component) {
-    // It should at least contain the sdk. Slight smoke test.
-    if (!component.libraries
-        .map((lib) => lib.importUri.toString())
-        .contains("dart:core")) {
-      throw "Loaders builder should contain the sdk, "
-          "but didn't even contain dart:core.";
-    }
-  }
-
-  @override
-  void recordRebuildBodiesCountForTesting(int count) {
-    rebuildBodiesCount = count;
-  }
-
-  @override
   Future<IncrementalCompilerResult> computeDelta(
       {List<Uri>? entryPoints,
       bool fullComponent = false,
@@ -1971,9 +1953,35 @@ class TestIncrementalCompiler extends IncrementalCompiler {
     }
     return result;
   }
+}
+
+class TestRecorderForTesting extends RecorderForTesting {
+  Set<Uri>? invalidatedImportUrisForTesting;
+  int? rebuildBodiesCount;
 
   @override
-  void recordTemporaryFileForTesting(Uri uri) {
+  void recordInvalidatedImportUris(List<Uri> uris) {
+    invalidatedImportUrisForTesting = uris.isEmpty ? null : uris.toSet();
+  }
+
+  @override
+  void recordNonFullComponent(Component component) {
+    // It should at least contain the sdk. Slight smoke test.
+    if (!component.libraries
+        .map((lib) => lib.importUri.toString())
+        .contains("dart:core")) {
+      throw "Loaders builder should contain the sdk, "
+          "but didn't even contain dart:core.";
+    }
+  }
+
+  @override
+  void recordRebuildBodiesCount(int count) {
+    rebuildBodiesCount = count;
+  }
+
+  @override
+  void recordTemporaryFile(Uri uri) {
     File f = new File.fromUri(uri);
     if (f.existsSync()) f.deleteSync();
   }

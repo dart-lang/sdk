@@ -153,20 +153,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   DillTarget? _dillLoadedData;
   List<LibraryBuilder>? _platformBuilders;
   Map<Uri, LibraryBuilder>? _userBuilders;
-  final Uri? _initializeFromDillUri;
-  Component? _componentToInitializeFrom;
-  bool _initializedFromDill = false;
-  bool _initializedIncrementalSerializer = false;
+
+  final _InitializationStrategy _initializationStrategy;
+
   Uri? _previousPackagesUri;
   Map<String, Package>? _previousPackagesMap;
   Map<String, Package>? _currentPackagesMap;
   bool _hasToCheckPackageUris = false;
   final bool _initializedForExpressionCompilationOnly;
   bool _computeDeltaRunOnce = false;
-  Map<Uri, List<DiagnosticMessageFromJson>> _remainingComponentProblems =
-      new Map<Uri, List<DiagnosticMessageFromJson>>();
   List<Component>? _modulesToLoad;
-  IncrementalSerializer? _incrementalSerializer;
+  final IncrementalSerializer? _incrementalSerializer;
+  final _ComponentProblems _componentProblems = new _ComponentProblems();
+
+  RecorderForTesting? get recorderForTesting => null;
 
   static final Uri debugExprUri =
       new Uri(scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
@@ -179,44 +179,48 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   Completer<dynamic>? _currentlyCompiling;
 
   IncrementalCompiler.fromComponent(
-      this.context, this._componentToInitializeFrom,
+      this.context, Component? _componentToInitializeFrom,
       [bool? outlineOnly, this._incrementalSerializer])
       : _ticker = context.options.ticker,
         _resetTicker = true,
-        _initializeFromDillUri = null,
+        _initializationStrategy = new _InitializationStrategy.fromComponent(
+            _componentToInitializeFrom),
         this.outlineOnly = outlineOnly ?? false,
         this._initializedForExpressionCompilationOnly = false {
     _enableExperimentsBasedOnEnvironment();
   }
 
   IncrementalCompiler(this.context,
-      [this._initializeFromDillUri,
+      [Uri? _initializeFromDillUri,
       bool? outlineOnly,
       this._incrementalSerializer])
       : _ticker = context.options.ticker,
         _resetTicker = true,
-        _componentToInitializeFrom = null,
+        _initializationStrategy =
+            new _InitializationStrategy.fromUri(_initializeFromDillUri),
         this.outlineOnly = outlineOnly ?? false,
         this._initializedForExpressionCompilationOnly = false {
     _enableExperimentsBasedOnEnvironment();
   }
 
   IncrementalCompiler.forExpressionCompilationOnly(
-      this.context, this._componentToInitializeFrom,
+      this.context, Component? _componentToInitializeFrom,
       [bool? resetTicker])
       : _ticker = context.options.ticker,
         this._resetTicker = resetTicker ?? true,
-        _initializeFromDillUri = null,
+        _initializationStrategy = new _InitializationStrategy.fromComponent(
+            _componentToInitializeFrom),
         this.outlineOnly = false,
         this._incrementalSerializer = null,
         this._initializedForExpressionCompilationOnly = true {
     _enableExperimentsBasedOnEnvironment();
   }
 
-  bool get initializedFromDill => _initializedFromDill;
+  bool get initializedFromDillForTesting =>
+      _initializationStrategy.initializedFromDillForTesting;
 
-  bool get initializedIncrementalSerializer =>
-      _initializedIncrementalSerializer;
+  bool get initializedIncrementalSerializerForTesting =>
+      _initializationStrategy.initializedIncrementalSerializerForTesting;
 
   DillTarget? get dillTargetForTesting => _dillLoadedData;
 
@@ -289,12 +293,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Experimental invalidation initialization (e.g. figure out if we can).
       ExperimentalInvalidation? experimentalInvalidation =
           await _initializeExperimentalInvalidation(reusedResult, c);
-      recordRebuildBodiesCountForTesting(
+      recorderForTesting?.recordRebuildBodiesCount(
           experimentalInvalidation?.missingSources.length ?? 0);
 
       // Cleanup: After (potentially) removing builders we have stuff to cleanup
       // to not leak, and we might need to re-create the dill target.
-      _cleanupRemovedBuilders(reusedResult, uriTranslator);
+      _cleanupRemovedBuilders(_userCode, reusedResult, uriTranslator);
       _recreateDillTargetIfPackageWasUpdated(uriTranslator, c);
       ClassHierarchy? hierarchy = _userCode?.loader.hierarchy;
       _cleanupHierarchy(hierarchy, experimentalInvalidation, reusedResult);
@@ -319,13 +323,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // to be setup, and in the case of experimental invalidation some of the
       // builders needs to be patched up.
       IncrementalKernelTarget? userCodeOld = _userCode;
-      _setupNewUserCode(c, uriTranslator, hierarchy, reusedLibraries,
-          experimentalInvalidation, entryPoints!.first);
+      IncrementalKernelTarget userCode = _userCode = _setupNewUserCode(
+          c,
+          uriTranslator,
+          hierarchy,
+          reusedLibraries,
+          experimentalInvalidation,
+          entryPoints!.first);
       Map<LibraryBuilder, List<LibraryBuilder>>? rebuildBodiesMap =
           _experimentalInvalidationCreateRebuildBodiesBuilders(
-              experimentalInvalidation, uriTranslator);
-      entryPoints = _userCode!.setEntryPoints(entryPoints!);
-      await _userCode!.loader.buildOutlines();
+              userCode, experimentalInvalidation, uriTranslator);
+      entryPoints = userCode.setEntryPoints(entryPoints!);
+      await userCode.loader.buildOutlines();
       _experimentalInvalidationPatchUpScopes(
           experimentalInvalidation, rebuildBodiesMap);
       rebuildBodiesMap = null;
@@ -336,35 +345,31 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // libraries loaded from .dill files or directly from components.
       // Technically, it's the combination of userCode.loader.libraries and
       // dillLoadedData.loader.libraries.
-      Component? componentWithDill = await _userCode!.buildOutlines();
+      Component? componentWithDill = await userCode.buildOutlines();
 
       if (!outlineOnly) {
         // Checkpoint: Build the actual bodies.
         componentWithDill =
-            await _userCode!.buildComponent(verify: c.options.verify);
+            await userCode.buildComponent(verify: c.options.verify);
       }
-      hierarchy ??= _userCode!.loader.hierarchy;
-      // ignore: unnecessary_null_comparison
-      if (hierarchy != null) {
-        if (_userCode!.classHierarchyChanges != null) {
-          hierarchy.applyTreeChanges([], [], _userCode!.classHierarchyChanges!);
-        }
-        if (_userCode!.classMemberChanges != null) {
-          hierarchy.applyMemberChanges(_userCode!.classMemberChanges!,
-              findDescendants: true);
-        }
+      hierarchy ??= userCode.loader.hierarchy;
+      if (userCode.classHierarchyChanges != null) {
+        hierarchy.applyTreeChanges([], [], userCode.classHierarchyChanges!);
       }
-      recordNonFullComponentForTesting(componentWithDill!);
+      if (userCode.classMemberChanges != null) {
+        hierarchy.applyMemberChanges(userCode.classMemberChanges!,
+            findDescendants: true);
+      }
+      recorderForTesting?.recordNonFullComponent(componentWithDill!);
 
       Set<Library>? neededDillLibraries;
       if (trackNeededDillLibraries) {
         // Perform actual dill usage tracking.
-        neededDillLibraries = _performDillUsageTracking(hierarchy);
+        neededDillLibraries = _performDillUsageTracking(userCode, hierarchy);
       }
 
       // If we actually got a result we can throw away the old userCode and the
       // list of invalidated uris.
-      // ignore: unnecessary_null_comparison
       if (componentWithDill != null) {
         this._invalidatedUris.clear();
         _hasToCheckPackageUris = false;
@@ -375,12 +380,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Compute which libraries to output and which (previous) errors/warnings
       // we have to reissue. In the process do some cleanup too.
       List<Library> compiledLibraries =
-          new List<Library>.from(_userCode!.loader.libraries);
-      Map<Uri, Source> uriToSource = componentWithDill.uriToSource;
+          new List<Library>.from(userCode.loader.libraries);
+      Map<Uri, Source> uriToSource = componentWithDill!.uriToSource;
       _experimentalCompilationPostCompilePatchup(
           experimentalInvalidation, compiledLibraries, uriToSource);
       List<Library> outputLibraries =
           _calculateOutputLibrariesAndIssueLibraryProblems(
+              userCode,
               data.component != null || fullComponent,
               compiledLibraries,
               entryPoints!,
@@ -389,19 +395,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               uriTranslator,
               uriToSource,
               c);
-      List<String> problemsAsJson =
-          _reissueComponentProblems(componentWithDill);
+      List<String> problemsAsJson = _componentProblems.reissueProblems(
+          context, userCode, componentWithDill);
 
       // If we didn't get a result, go back to the previous one so expression
       // calculation has the potential to work.
       // ignore: unnecessary_null_comparison
       if (componentWithDill == null) {
-        _userCode!.loader.clearLibraryBuilders();
-        _userCode = userCodeOld;
-        _dillLoadedData!.loader.currentSourceLoader = _userCode!.loader;
+        userCode.loader.clearLibraryBuilders();
+        userCode = _userCode = userCodeOld!;
+        _dillLoadedData!.loader.currentSourceLoader = userCode.loader;
       } else {
-        _previousSourceBuilders =
-            _convertSourceLibraryBuildersToDill(experimentalInvalidation);
+        _previousSourceBuilders = _convertSourceLibraryBuildersToDill(
+            userCode, experimentalInvalidation);
       }
 
       experimentalInvalidation = null;
@@ -441,16 +447,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   ///
   /// Returns the set of Libraries that now has new (dill) builders.
   Set<Library> _convertSourceLibraryBuildersToDill(
+      IncrementalKernelTarget userCode,
       ExperimentalInvalidation? experimentalInvalidation) {
     bool changed = false;
     Set<Library> newDillLibraryBuilders = new Set<Library>();
     _userBuilders ??= <Uri, LibraryBuilder>{};
     Map<LibraryBuilder, List<LibraryBuilder>>? convertedLibraries;
-    for (LibraryBuilder builder in _userCode!.loader.libraryBuilders) {
+    for (LibraryBuilder builder in userCode.loader.libraryBuilders) {
       if (builder is SourceLibraryBuilder) {
         DillLibraryBuilder dillBuilder =
             _dillLoadedData!.loader.appendLibrary(builder.library);
-        _userCode!.loader.registerLibraryBuilder(
+        userCode.loader.registerLibraryBuilder(
             // TODO(johnniwinther): Why do we need to create
             //  [DillLibraryBuilder]s for the patch library file uris?
             dillBuilder,
@@ -469,8 +476,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // We suppress finalization errors because they have already been
       // reported.
       _dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
-      assert(
-          _checkEquivalentScopes(_userCode!.loader, _dillLoadedData!.loader));
+      assert(_checkEquivalentScopes(userCode.loader, _dillLoadedData!.loader));
 
       if (experimentalInvalidation != null) {
         /// If doing experimental invalidation that means that some of the old
@@ -506,9 +512,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         replacementSettersMap = null;
       }
     }
-    _userCode!.loader.buildersCreatedWithReferences.clear();
-    _userCode!.loader.builderHierarchy.clear();
-    _userCode!.loader.referenceFromIndex = null;
+    userCode.loader.buildersCreatedWithReferences.clear();
+    userCode.loader.builderHierarchy.clear();
+    userCode.loader.referenceFromIndex = null;
     convertedLibraries = null;
     experimentalInvalidation = null;
     if (_userBuilders!.isEmpty) _userBuilders = null;
@@ -594,6 +600,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Compute which libraries to output and which (previous) errors/warnings we
   /// have to reissue. In the process do some cleanup too.
   List<Library> _calculateOutputLibrariesAndIssueLibraryProblems(
+      IncrementalKernelTarget userCode,
       bool fullComponent,
       List<Library> compiledLibraries,
       List<Uri> entryPoints,
@@ -605,7 +612,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Library> outputLibraries;
     Set<Library> allLibraries;
     if (fullComponent) {
-      outputLibraries = _computeTransitiveClosure(compiledLibraries,
+      outputLibraries = _computeTransitiveClosure(userCode, compiledLibraries,
           entryPoints, reusedLibraries, hierarchy, uriTranslator, uriToSource);
       allLibraries = outputLibraries.toSet();
       if (!c.options.omitPlatform) {
@@ -617,6 +624,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     } else {
       outputLibraries = <Library>[];
       allLibraries = _computeTransitiveClosure(
+              userCode,
               compiledLibraries,
               entryPoints,
               reusedLibraries,
@@ -656,13 +664,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Perform dill usage tracking if asked. Use the marking on dill builders as
   /// well as the class hierarchy to figure out which dill libraries was
   /// actually used by the compilation.
-  Set<Library> _performDillUsageTracking(ClassHierarchy hierarchy) {
+  Set<Library> _performDillUsageTracking(
+      IncrementalKernelTarget target, ClassHierarchy hierarchy) {
     // Which dill builders were built?
     Set<Library> neededDillLibraries = {};
 
     // Propagate data from constant evaluator: Libraries used in the constant
     // evaluator - that comes from dill - are marked.
-    Set<Library> librariesUsedByConstantEvaluator = _userCode!.librariesUsed;
+    Set<Library> librariesUsedByConstantEvaluator = target.librariesUsed;
 
     for (LibraryBuilder builder in _dillLoadedData!.loader.libraryBuilders) {
       if (builder is DillLibraryBuilder) {
@@ -674,7 +683,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     updateNeededDillLibrariesWithHierarchy(
-        neededDillLibraries, hierarchy, _userCode!.loader.builderHierarchy);
+        neededDillLibraries, hierarchy, target.loader.builderHierarchy);
 
     return neededDillLibraries;
   }
@@ -719,6 +728,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// references from the original [Library] for things to work.
   Map<LibraryBuilder, List<LibraryBuilder>>
       _experimentalInvalidationCreateRebuildBodiesBuilders(
+          IncrementalKernelTarget userCode,
           ExperimentalInvalidation? experimentalInvalidation,
           UriTranslator uriTranslator) {
     // Any builder(s) in [rebuildBodies] should be semi-reused: Create source
@@ -728,9 +738,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         new Map<LibraryBuilder, List<LibraryBuilder>>.identity();
     if (experimentalInvalidation != null) {
       for (LibraryBuilder library in experimentalInvalidation.rebuildBodies) {
-        LibraryBuilder newBuilder = _userCode!.loader.read(
-            library.importUri, -1,
-            accessorUri: _userCode!.loader.firstUri,
+        LibraryBuilder newBuilder = userCode.loader.read(library.importUri, -1,
+            accessorUri: userCode.loader.firstUri,
             fileUri: library.fileUri,
             referencesFrom: library.library);
         List<LibraryBuilder> builders = [newBuilder];
@@ -742,8 +751,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           // libraries.
           Uri partUri = getPartUri(library.importUri, part);
           Uri? fileUri =
-              _getPartFileUri(library.library.fileUri, part, uriTranslator);
-          LibraryBuilder newPartBuilder = _userCode!.loader.read(partUri, -1,
+              uriTranslator.getPartFileUri(library.library.fileUri, part);
+          LibraryBuilder newPartBuilder = userCode.loader.read(partUri, -1,
               accessor: library,
               fileUri: fileUri,
               referencesFrom: library.library,
@@ -850,14 +859,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   /// Create a new [_userCode] object, and add the reused builders to it.
-  void _setupNewUserCode(
+  IncrementalKernelTarget _setupNewUserCode(
       CompilerContext c,
       UriTranslator uriTranslator,
       ClassHierarchy? hierarchy,
       List<LibraryBuilder> reusedLibraries,
       ExperimentalInvalidation? experimentalInvalidation,
       Uri firstEntryPoint) {
-    _userCode = createIncrementalKernelTarget(
+    IncrementalKernelTarget userCode = createIncrementalKernelTarget(
         new HybridFileSystem(
             new MemoryFileSystem(
                 new Uri(scheme: "org-dartlang-debug", path: "/")),
@@ -865,14 +874,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         false,
         _dillLoadedData!,
         uriTranslator);
-    _userCode!.loader.hierarchy = hierarchy;
-    _dillLoadedData!.loader.currentSourceLoader = _userCode!.loader;
+    userCode.loader.hierarchy = hierarchy;
+    _dillLoadedData!.loader.currentSourceLoader = userCode.loader;
 
     // Re-use the libraries we've deemed re-usable.
     List<bool> seenModes = [false, false, false, false];
     for (LibraryBuilder library in reusedLibraries) {
       seenModes[library.library.nonNullableByDefaultCompiledMode.index] = true;
-      _userCode!.loader.registerLibraryBuilder(library);
+      userCode.loader.registerLibraryBuilder(library);
     }
     // Check compilation mode up against what we've seen here and set
     // `hasInvalidNnbdModeLibrary` accordingly.
@@ -882,14 +891,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           // Don't expect strong or invalid.
           if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
               seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-            _userCode!.loader.hasInvalidNnbdModeLibrary = true;
+            userCode.loader.hasInvalidNnbdModeLibrary = true;
           }
           break;
         case NnbdMode.Strong:
           // Don't expect weak or invalid.
           if (seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
               seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-            _userCode!.loader.hasInvalidNnbdModeLibrary = true;
+            userCode.loader.hasInvalidNnbdModeLibrary = true;
           }
           break;
         case NnbdMode.Agnostic:
@@ -897,7 +906,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
               seenModes[NonNullableByDefaultCompiledMode.Weak.index] ||
               seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-            _userCode!.loader.hasInvalidNnbdModeLibrary = true;
+            userCode.loader.hasInvalidNnbdModeLibrary = true;
           }
           break;
       }
@@ -905,14 +914,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Don't expect strong or invalid.
       if (seenModes[NonNullableByDefaultCompiledMode.Strong.index] ||
           seenModes[NonNullableByDefaultCompiledMode.Invalid.index]) {
-        _userCode!.loader.hasInvalidNnbdModeLibrary = true;
+        userCode.loader.hasInvalidNnbdModeLibrary = true;
       }
     }
 
     // The entry point(s) has to be set first for loader.firstUri to be setup
     // correctly.
-    _userCode!.loader.firstUri =
-        _userCode!.getEntryPointUri(firstEntryPoint, issueProblem: false);
+    userCode.loader.firstUri =
+        userCode.getEntryPointUri(firstEntryPoint, issueProblem: false);
+    return userCode;
   }
 
   /// When tracking used libraries we mark them when we use them. To track
@@ -994,11 +1004,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// We also have to remove any component problems beloning to any such
   /// no-longer-used library (to avoid re-issuing errors about no longer
   /// relevant stuff).
-  void _cleanupRemovedBuilders(
+  void _cleanupRemovedBuilders(IncrementalKernelTarget? userCode,
       ReusageResult reusedResult, UriTranslator uriTranslator) {
     bool removedDillBuilders = false;
     for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
-      _cleanupSourcesForBuilder(reusedResult, builder, uriTranslator,
+      _cleanupSourcesForBuilder(userCode, reusedResult, builder, uriTranslator,
           CompilerContext.current.uriToSource);
       _incrementalSerializer?.invalidate(builder.fileUri);
 
@@ -1010,10 +1020,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       // Remove component problems for libraries we don't reuse.
-      if (_remainingComponentProblems.isNotEmpty) {
-        Library lib = builder.library;
-        _removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
-      }
+      _componentProblems.removeLibrary(builder.library, uriTranslator);
     }
 
     if (removedDillBuilders) {
@@ -1219,76 +1226,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Load platform and (potentially) initialize from dill,
   /// or initialize from component.
   Future<IncrementalCompilerData> _ensurePlatformAndInitialize(
-      UriTranslator uriTranslator, CompilerContext c) async {
+      UriTranslator uriTranslator, CompilerContext context) async {
     IncrementalCompilerData data = new IncrementalCompilerData();
     if (_dillLoadedData == null) {
-      int bytesLength = 0;
-      if (_componentToInitializeFrom != null) {
-        // If initializing from a component it has to include the sdk,
-        // so we explicitly don't load it here.
-        _initializeFromComponent(uriTranslator, c, data);
-        assert(_dillLoadedData != null);
-        _componentToInitializeFrom = null;
-      } else {
-        List<int>? summaryBytes = await c.options.loadSdkSummaryBytes();
-        bytesLength = _prepareSummary(summaryBytes, uriTranslator, c, data);
-        assert(_dillLoadedData != null);
-        if (_initializeFromDillUri != null) {
-          try {
-            bytesLength += await _initializeFromDill(uriTranslator, c, data);
-          } catch (e, st) {
-            // We might have loaded x out of y libraries into the component.
-            // To avoid any unforeseen problems start over.
-            bytesLength = _prepareSummary(summaryBytes, uriTranslator, c, data);
-
-            if (e is InvalidKernelVersionError ||
-                e is InvalidKernelSdkVersionError ||
-                e is PackageChangedError ||
-                e is CanonicalNameSdkError ||
-                e is CompilationModeError) {
-              // Don't report any warning.
-            } else {
-              Uri? gzInitializedFrom;
-              if (c.options.writeFileOnCrashReport) {
-                gzInitializedFrom = saveAsGzip(
-                    data.initializationBytes!, "initialize_from.dill");
-                recordTemporaryFileForTesting(gzInitializedFrom);
-              }
-              if (e is CanonicalNameError) {
-                Message message = gzInitializedFrom != null
-                    ? templateInitializeFromDillNotSelfContained.withArguments(
-                        _initializeFromDillUri.toString(), gzInitializedFrom)
-                    : templateInitializeFromDillNotSelfContainedNoDump
-                        .withArguments(_initializeFromDillUri.toString());
-                _dillLoadedData!.loader
-                    .addProblem(message, TreeNode.noOffset, 1, null);
-              } else {
-                // Unknown error: Report problem as such.
-                Message message = gzInitializedFrom != null
-                    ? templateInitializeFromDillUnknownProblem.withArguments(
-                        _initializeFromDillUri.toString(),
-                        "$e",
-                        "$st",
-                        gzInitializedFrom)
-                    : templateInitializeFromDillUnknownProblemNoDump
-                        .withArguments(
-                            _initializeFromDillUri.toString(), "$e", "$st");
-                _dillLoadedData!.loader
-                    .addProblem(message, TreeNode.noOffset, 1, null);
-              }
-            }
-          }
-        }
-      }
+      DillTarget dillLoadedData = _dillLoadedData =
+          new DillTarget(_ticker, uriTranslator, context.options.target);
+      int bytesLength = await _initializationStrategy.initialize(
+          dillLoadedData,
+          uriTranslator,
+          context,
+          data,
+          _componentProblems,
+          _incrementalSerializer,
+          recorderForTesting);
       _appendLibraries(data, bytesLength);
 
       // We suppress finalization errors because they will reported via
       // problemsAsJson fields (with better precision).
-      _dillLoadedData!.buildOutlines(suppressFinalizationErrors: true);
+      dillLoadedData.buildOutlines(suppressFinalizationErrors: true);
       _userBuilders = <Uri, LibraryBuilder>{};
       _platformBuilders = <LibraryBuilder>[];
       for (DillLibraryBuilder builder
-          in _dillLoadedData!.loader.libraryBuilders) {
+          in dillLoadedData.loader.libraryBuilders) {
         if (builder.importUri.scheme == "dart") {
           _platformBuilders!.add(builder);
         } else {
@@ -1482,75 +1441,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   /// Internal method.
-  /// Re-issue problems on the component and return the filtered list.
-  List<String> _reissueComponentProblems(Component componentWithDill) {
-    // These problems have already been reported.
-    Set<String> issuedProblems = new Set<String>();
-    if (componentWithDill.problemsAsJson != null) {
-      issuedProblems.addAll(componentWithDill.problemsAsJson!);
-    }
-
-    // Report old problems that wasn't reported again.
-    Set<Uri>? strongModeNNBDPackageOptOutUris;
-    for (MapEntry<Uri, List<DiagnosticMessageFromJson>> entry
-        in _remainingComponentProblems.entries) {
-      List<DiagnosticMessageFromJson> messages = entry.value;
-      for (int i = 0; i < messages.length; i++) {
-        DiagnosticMessageFromJson message = messages[i];
-        if (message.codeName == "StrongModeNNBDPackageOptOut") {
-          // Special case this: Don't issue them here; instead collect them
-          // to get their uris and re-issue a new error.
-          strongModeNNBDPackageOptOutUris ??= {};
-          strongModeNNBDPackageOptOutUris.add(entry.key);
-          continue;
-        }
-        if (issuedProblems.add(message.toJsonString())) {
-          context.options.reportDiagnosticMessage(message);
-        }
-      }
-    }
-    if (strongModeNNBDPackageOptOutUris != null) {
-      // Get the builders for these uris; then call
-      // `SourceLoader.giveCombinedErrorForNonStrongLibraries` on them to issue
-      // a new error.
-      Set<LibraryBuilder> builders = {};
-      SourceLoader loader = _userCode!.loader;
-      for (LibraryBuilder builder in loader.libraryBuilders) {
-        if (strongModeNNBDPackageOptOutUris.contains(builder.fileUri)) {
-          builders.add(builder);
-        }
-      }
-      FormattedMessage message = loader.giveCombinedErrorForNonStrongLibraries(
-          builders,
-          emitNonPackageErrors: false)!;
-      issuedProblems.add(message.toJsonString());
-      // The problem was issued by the call so don't re-issue it here.
-    }
-
-    // Save any new component-problems.
-    _addProblemsAsJsonToRemainingProblems(componentWithDill.problemsAsJson);
-    return new List<String>.from(issuedProblems);
-  }
-
-  /// Internal method.
-  Uri? _getPartFileUri(
-      Uri parentFileUri, LibraryPart part, UriTranslator uriTranslator) {
-    Uri? fileUri = getPartUri(parentFileUri, part);
-    if (fileUri.scheme == "package") {
-      // Part was specified via package URI and the resolve above thus
-      // did not go as expected. Translate the package URI to get the
-      // actual file URI.
-      fileUri = uriTranslator.translate(fileUri, false);
-    }
-    return fileUri;
-  }
-
-  /// Internal method.
   /// Compute the transitive closure.
   ///
   /// As a side-effect, this also cleans-up now-unreferenced builders as well as
   /// any saved component problems for such builders.
   List<Library> _computeTransitiveClosure(
+      IncrementalKernelTarget userCode,
       List<Library> inputLibraries,
       List<Uri> entryPoints,
       List<LibraryBuilder> reusedLibraries,
@@ -1620,7 +1516,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
           for (LibraryPart part in library.parts) {
             Uri? partFileUri =
-                _getPartFileUri(library.fileUri, part, uriTranslator);
+                uriTranslator.getPartFileUri(library.fileUri, part);
             partsUsed.add(partFileUri);
           }
         }
@@ -1631,18 +1527,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     bool removedDillBuilders = false;
     for (Uri uri in potentiallyReferencedLibraries.keys) {
       if (uri.scheme == "package") continue;
-      LibraryBuilder? builder = _userCode!.loader.deregisterLibraryBuilder(uri);
+      LibraryBuilder? builder = userCode.loader.deregisterLibraryBuilder(uri);
       if (builder != null) {
         Library lib = builder.library;
         removedLibraries.add(lib);
         if (_dillLoadedData!.loader.deregisterLibraryBuilder(uri) != null) {
           removedDillBuilders = true;
         }
-        _cleanupSourcesForBuilder(null, builder, uriTranslator,
+        _cleanupSourcesForBuilder(userCode, null, builder, uriTranslator,
             CompilerContext.current.uriToSource, uriToSource, partsUsed);
         _userBuilders?.remove(uri);
-        _removeLibraryFromRemainingComponentProblems(
-            lib, uriTranslator, partsUsed);
+        _componentProblems.removeLibrary(lib, uriTranslator, partsUsed);
 
         // Technically this isn't necessary as the uri is not a package-uri.
         _incrementalSerializer?.invalidate(builder.fileUri);
@@ -1674,6 +1569,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Those parts will not be cleaned up. This is useful when a part has been
   /// "moved" to be part of another library.
   void _cleanupSourcesForBuilder(
+      IncrementalKernelTarget? userCode,
       ReusageResult? reusedResult,
       LibraryBuilder builder,
       UriTranslator uriTranslator,
@@ -1684,15 +1580,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     uriToSourceExtra?.remove(builder.fileUri);
     Library lib = builder.library;
     for (LibraryPart part in lib.parts) {
-      Uri? partFileUri = _getPartFileUri(lib.fileUri, part, uriTranslator);
+      Uri? partFileUri = uriTranslator.getPartFileUri(lib.fileUri, part);
       if (partsUsed != null && partsUsed.contains(partFileUri)) continue;
 
       // If the builders map contain the "parts" import uri, it's a real library
       // (erroneously) used as a part so we don't want to remove that.
-      if (_userCode?.loader != null) {
+      if (userCode?.loader != null) {
         Uri? partImportUri = uriToSource[partFileUri]?.importUri;
         if (partImportUri != null &&
-            _userCode!.loader.containsLibraryBuilder(partImportUri)) {
+            userCode!.loader.containsLibraryBuilder(partImportUri)) {
           continue;
         }
       } else if (reusedResult != null) {
@@ -1713,189 +1609,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       uriToSource.remove(partFileUri);
       uriToSourceExtra?.remove(partFileUri);
     }
-  }
-
-  /// Internal method.
-  ///
-  /// [partsUsed] indicates part uris that are used by (other/alive) libraries.
-  /// Those parts will not be removed from the component problems.
-  /// This is useful when a part has been "moved" to be part of another library.
-  void _removeLibraryFromRemainingComponentProblems(
-      Library lib, UriTranslator uriTranslator,
-      [Set<Uri?>? partsUsed]) {
-    _remainingComponentProblems.remove(lib.fileUri);
-    // Remove parts too.
-    for (LibraryPart part in lib.parts) {
-      Uri? partFileUri = _getPartFileUri(lib.fileUri, part, uriTranslator);
-      _remainingComponentProblems.remove(partFileUri);
-    }
-  }
-
-  /// Internal method.
-  int _prepareSummary(List<int>? summaryBytes, UriTranslator uriTranslator,
-      CompilerContext c, IncrementalCompilerData data) {
-    _dillLoadedData = new DillTarget(_ticker, uriTranslator, c.options.target);
-    int bytesLength = 0;
-
-    data.component = c.options.target.configureComponent(new Component());
-    if (summaryBytes != null) {
-      _ticker.logMs("Read ${c.options.sdkSummary}");
-      new BinaryBuilderWithMetadata(summaryBytes,
-              disableLazyReading: false, disableLazyClassReading: true)
-          .readComponent(data.component!);
-      _ticker.logMs("Deserialized ${c.options.sdkSummary}");
-      bytesLength += summaryBytes.length;
-    }
-
-    return bytesLength;
-  }
-
-  /// Internal method.
-  // This procedure will try to load the dill file and will crash if it cannot.
-  Future<int> _initializeFromDill(UriTranslator uriTranslator,
-      CompilerContext c, IncrementalCompilerData data) async {
-    int bytesLength = 0;
-    FileSystemEntity entity =
-        c.options.fileSystem.entityForUri(_initializeFromDillUri!);
-    if (await entity.exists()) {
-      List<int> initializationBytes = await entity.readAsBytes();
-      // ignore: unnecessary_null_comparison
-      if (initializationBytes != null && initializationBytes.isNotEmpty) {
-        _ticker.logMs("Read $_initializeFromDillUri");
-        data.initializationBytes = initializationBytes;
-
-        // We're going to output all we read here so lazy loading it
-        // doesn't make sense.
-        List<SubComponentView> views = new BinaryBuilderWithMetadata(
-                initializationBytes,
-                disableLazyReading: true)
-            .readComponent(data.component!,
-                checkCanonicalNames: true, createView: true)!;
-
-        // Compute "output nnbd mode".
-        NonNullableByDefaultCompiledMode compiledMode;
-        if (c.options
-            .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
-          switch (c.options.nnbdMode) {
-            case NnbdMode.Weak:
-              compiledMode = NonNullableByDefaultCompiledMode.Weak;
-              break;
-            case NnbdMode.Strong:
-              compiledMode = NonNullableByDefaultCompiledMode.Strong;
-              break;
-            case NnbdMode.Agnostic:
-              compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
-              break;
-          }
-        } else {
-          compiledMode = NonNullableByDefaultCompiledMode.Weak;
-        }
-
-        // Check the any package-urls still point to the same file
-        // (e.g. the package still exists and hasn't been updated).
-        // Also verify NNBD settings.
-        for (Library lib in data.component!.libraries) {
-          if (lib.importUri.scheme == "package" &&
-              uriTranslator.translate(lib.importUri, false) != lib.fileUri) {
-            // Package has been removed or updated.
-            // This library should be thrown away.
-            // Everything that depends on it should be thrown away.
-            // TODO(jensj): Anything that doesn't depend on it can be kept.
-            // For now just don't initialize from this dill.
-            throw const PackageChangedError();
-          }
-          // Note: If a library has a NonNullableByDefaultCompiledMode.invalid
-          // we will throw and we won't initialize from it.
-          // That's wanted behavior.
-          if (compiledMode !=
-              mergeCompilationModeOrThrow(
-                  compiledMode, lib.nonNullableByDefaultCompiledMode)) {
-            throw new CompilationModeError(
-                "Can't compile to $compiledMode with library with mode "
-                "${lib.nonNullableByDefaultCompiledMode}.");
-          }
-        }
-
-        // Only initialize the incremental serializer when we know we'll
-        // actually use the data loaded from dill.
-        _initializedIncrementalSerializer =
-            _incrementalSerializer?.initialize(initializationBytes, views) ??
-                false;
-
-        _initializedFromDill = true;
-        bytesLength += initializationBytes.length;
-        _saveComponentProblems(data);
-      }
-    }
-    return bytesLength;
-  }
-
-  /// Internal method.
-  void _saveComponentProblems(IncrementalCompilerData data) {
-    List<String>? problemsAsJson = data.component!.problemsAsJson;
-    _addProblemsAsJsonToRemainingProblems(problemsAsJson);
-  }
-
-  void _addProblemsAsJsonToRemainingProblems(List<String>? problemsAsJson) {
-    if (problemsAsJson != null) {
-      for (String jsonString in problemsAsJson) {
-        DiagnosticMessageFromJson message =
-            new DiagnosticMessageFromJson.fromJson(jsonString);
-        assert(message.uri != null ||
-            (message.involvedFiles != null &&
-                message.involvedFiles!.isNotEmpty));
-        if (message.uri != null) {
-          List<DiagnosticMessageFromJson> messages =
-              _remainingComponentProblems[message.uri!] ??=
-                  <DiagnosticMessageFromJson>[];
-          messages.add(message);
-        }
-        if (message.involvedFiles != null) {
-          // This indexes the same message under several uris - this way it will
-          // be issued as long as it's a problem. It will because of
-          // deduplication when we re-issue these (in reissueComponentProblems)
-          // only be reported once.
-          for (Uri uri in message.involvedFiles!) {
-            List<DiagnosticMessageFromJson> messages =
-                _remainingComponentProblems[uri] ??=
-                    <DiagnosticMessageFromJson>[];
-            messages.add(message);
-          }
-        }
-      }
-    }
-  }
-
-  /// Internal method.
-  // This procedure will set up compiler from [componentToInitializeFrom].
-  void _initializeFromComponent(UriTranslator uriTranslator, CompilerContext c,
-      IncrementalCompilerData data) {
-    _ticker.logMs("About to initializeFromComponent");
-
-    _dillLoadedData = new DillTarget(_ticker, uriTranslator, c.options.target);
-    data.component = new Component(
-        libraries: _componentToInitializeFrom!.libraries,
-        uriToSource: _componentToInitializeFrom!.uriToSource)
-      ..setMainMethodAndMode(_componentToInitializeFrom!.mainMethod?.reference,
-          true, _componentToInitializeFrom!.mode);
-    _saveComponentProblems(data);
-
-    bool foundDartCore = false;
-    for (int i = 0; i < data.component!.libraries.length; i++) {
-      Library library = data.component!.libraries[i];
-      if (library.importUri.scheme == "dart" &&
-          library.importUri.path == "core") {
-        foundDartCore = true;
-        break;
-      }
-    }
-
-    if (!foundDartCore) {
-      throw const InitializeFromComponentError("Did not find dart:core when "
-          "tried to initialize from component.");
-    }
-
-    _ticker.logMs("Ran initializeFromComponent");
   }
 
   /// Internal method.
@@ -2177,8 +1890,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       } else if (libraryBuilder is DillLibraryBuilder) {
         for (LibraryPart part in libraryBuilder.library.parts) {
           Uri partUri = getPartUri(libraryBuilder.importUri, part);
-          Uri? fileUri = _getPartFileUri(
-              libraryBuilder.library.fileUri, part, uriTranslator);
+          Uri? fileUri = uriTranslator.getPartFileUri(
+              libraryBuilder.library.fileUri, part);
           partUriToParent[partUri] = libraryBuilder;
           partUriToParent[fileUri] = libraryBuilder;
 
@@ -2208,7 +1921,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       _userBuilders!.forEach(addBuilderAndInvalidateUris);
     }
 
-    recordInvalidatedImportUrisForTesting(invalidatedImportUris);
+    recorderForTesting?.recordInvalidatedImportUris(invalidatedImportUris);
     for (Uri uri in invalidatedImportUris) {
       directlyInvalidated.add(builders[uri]!);
     }
@@ -2305,18 +2018,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   void setModulesToLoadOnNextComputeDelta(List<Component> components) {
     _modulesToLoad = components.toList();
   }
-
-  /// Internal method.
-  void recordNonFullComponentForTesting(Component component) {}
-
-  /// Internal method.
-  void recordInvalidatedImportUrisForTesting(List<Uri> uris) {}
-
-  /// Internal method.
-  void recordRebuildBodiesCountForTesting(int count) {}
-
-  /// Internal method.
-  void recordTemporaryFileForTesting(Uri uri) {}
 }
 
 /// Translate a parts "partUri" to an actual uri with handling of invalid uris.
@@ -2479,4 +2180,411 @@ class IncrementalKernelTarget extends KernelTarget
   void markLibrariesUsed(Set<Library> visitedLibraries) {
     librariesUsed.addAll(visitedLibraries);
   }
+}
+
+abstract class _InitializationStrategy {
+  const _InitializationStrategy();
+
+  factory _InitializationStrategy.fromComponent(Component? component) {
+    return component != null
+        ? new _InitializationFromComponent(component)
+        : const _InitializationFromSdkSummary();
+  }
+
+  factory _InitializationStrategy.fromUri(Uri? uri) {
+    return uri != null
+        ? new _InitializationFromUri(uri)
+        : const _InitializationFromSdkSummary();
+  }
+
+  bool get initializedFromDillForTesting => false;
+
+  bool get initializedIncrementalSerializerForTesting => false;
+
+  Future<int> initialize(
+      DillTarget dillLoadedData,
+      UriTranslator uriTranslator,
+      CompilerContext context,
+      IncrementalCompilerData data,
+      _ComponentProblems componentProblems,
+      IncrementalSerializer? incrementalSerializer,
+      RecorderForTesting? recorderForTesting);
+}
+
+class _InitializationFromSdkSummary extends _InitializationStrategy {
+  const _InitializationFromSdkSummary();
+
+  @override
+  Future<int> initialize(
+      DillTarget dillLoadedData,
+      UriTranslator uriTranslator,
+      CompilerContext context,
+      IncrementalCompilerData data,
+      _ComponentProblems componentProblems,
+      IncrementalSerializer? incrementalSerializer,
+      RecorderForTesting? recorderForTesting) async {
+    List<int>? summaryBytes = await context.options.loadSdkSummaryBytes();
+    return _prepareSummary(
+        dillLoadedData, summaryBytes, uriTranslator, context, data);
+  }
+
+  int _prepareSummary(
+      DillTarget dillLoadedTarget,
+      List<int>? summaryBytes,
+      UriTranslator uriTranslator,
+      CompilerContext context,
+      IncrementalCompilerData data) {
+    int bytesLength = 0;
+
+    data.component = context.options.target.configureComponent(new Component());
+    if (summaryBytes != null) {
+      dillLoadedTarget.ticker.logMs("Read ${context.options.sdkSummary}");
+      new BinaryBuilderWithMetadata(summaryBytes,
+              disableLazyReading: false, disableLazyClassReading: true)
+          .readComponent(data.component!);
+      dillLoadedTarget.ticker
+          .logMs("Deserialized ${context.options.sdkSummary}");
+      bytesLength += summaryBytes.length;
+    }
+
+    return bytesLength;
+  }
+}
+
+class _InitializationFromComponent extends _InitializationStrategy {
+  Component componentToInitializeFrom;
+
+  _InitializationFromComponent(this.componentToInitializeFrom);
+
+  @override
+  Future<int> initialize(
+      DillTarget dillLoadedData,
+      UriTranslator uriTranslator,
+      CompilerContext context,
+      IncrementalCompilerData data,
+      _ComponentProblems componentProblems,
+      IncrementalSerializer? incrementalSerializer,
+      RecorderForTesting? recorderForTesting) {
+    dillLoadedData.ticker.logMs("About to initializeFromComponent");
+
+    Component component = data.component = new Component(
+        libraries: componentToInitializeFrom.libraries,
+        uriToSource: componentToInitializeFrom.uriToSource)
+      ..setMainMethodAndMode(componentToInitializeFrom.mainMethod?.reference,
+          true, componentToInitializeFrom.mode);
+    componentProblems.saveComponentProblems(component);
+
+    bool foundDartCore = false;
+    for (int i = 0; i < component.libraries.length; i++) {
+      Library library = component.libraries[i];
+      if (library.importUri.scheme == "dart" &&
+          library.importUri.path == "core") {
+        foundDartCore = true;
+        break;
+      }
+    }
+
+    if (!foundDartCore) {
+      throw const InitializeFromComponentError("Did not find dart:core when "
+          "tried to initialize from component.");
+    }
+
+    dillLoadedData.ticker.logMs("Ran initializeFromComponent");
+    return new Future<int>.value(0);
+  }
+}
+
+class _InitializationFromUri extends _InitializationFromSdkSummary {
+  Uri initializeFromDillUri;
+
+  _InitializationFromUri(this.initializeFromDillUri);
+
+  @override
+  Future<int> initialize(
+      DillTarget dillLoadedData,
+      UriTranslator uriTranslator,
+      CompilerContext context,
+      IncrementalCompilerData data,
+      _ComponentProblems componentProblems,
+      IncrementalSerializer? incrementalSerializer,
+      RecorderForTesting? recorderForTesting) async {
+    List<int>? summaryBytes = await context.options.loadSdkSummaryBytes();
+    int bytesLength = _prepareSummary(
+        dillLoadedData, summaryBytes, uriTranslator, context, data);
+    try {
+      bytesLength += await _initializeFromDill(
+          dillLoadedData,
+          initializeFromDillUri,
+          uriTranslator,
+          context,
+          data,
+          componentProblems,
+          incrementalSerializer);
+    } catch (e, st) {
+      // We might have loaded x out of y libraries into the component.
+      // To avoid any unforeseen problems start over.
+      bytesLength = _prepareSummary(
+          dillLoadedData, summaryBytes, uriTranslator, context, data);
+
+      if (e is InvalidKernelVersionError ||
+          e is InvalidKernelSdkVersionError ||
+          e is PackageChangedError ||
+          e is CanonicalNameSdkError ||
+          e is CompilationModeError) {
+        // Don't report any warning.
+      } else {
+        Uri? gzInitializedFrom;
+        if (context.options.writeFileOnCrashReport) {
+          gzInitializedFrom =
+              saveAsGzip(data.initializationBytes!, "initialize_from.dill");
+          recorderForTesting?.recordTemporaryFile(gzInitializedFrom);
+        }
+        if (e is CanonicalNameError) {
+          Message message = gzInitializedFrom != null
+              ? templateInitializeFromDillNotSelfContained.withArguments(
+                  initializeFromDillUri.toString(), gzInitializedFrom)
+              : templateInitializeFromDillNotSelfContainedNoDump
+                  .withArguments(initializeFromDillUri.toString());
+          dillLoadedData.loader.addProblem(message, TreeNode.noOffset, 1, null);
+        } else {
+          // Unknown error: Report problem as such.
+          Message message = gzInitializedFrom != null
+              ? templateInitializeFromDillUnknownProblem.withArguments(
+                  initializeFromDillUri.toString(),
+                  "$e",
+                  "$st",
+                  gzInitializedFrom)
+              : templateInitializeFromDillUnknownProblemNoDump.withArguments(
+                  initializeFromDillUri.toString(), "$e", "$st");
+          dillLoadedData.loader.addProblem(message, TreeNode.noOffset, 1, null);
+        }
+      }
+    }
+    return bytesLength;
+  }
+
+  bool _initializedFromDill = false;
+  bool _initializedIncrementalSerializer = false;
+
+  @override
+  bool get initializedFromDillForTesting => _initializedFromDill;
+
+  @override
+  bool get initializedIncrementalSerializerForTesting =>
+      _initializedIncrementalSerializer;
+
+  // This procedure will try to load the dill file and will crash if it cannot.
+  Future<int> _initializeFromDill(
+      DillTarget dillLoadedData,
+      Uri initializeFromDillUri,
+      UriTranslator uriTranslator,
+      CompilerContext context,
+      IncrementalCompilerData data,
+      _ComponentProblems _componentProblems,
+      IncrementalSerializer? incrementalSerializer) async {
+    int bytesLength = 0;
+    FileSystemEntity entity =
+        context.options.fileSystem.entityForUri(initializeFromDillUri);
+    if (await entity.exists()) {
+      List<int> initializationBytes = await entity.readAsBytes();
+      // ignore: unnecessary_null_comparison
+      if (initializationBytes != null && initializationBytes.isNotEmpty) {
+        dillLoadedData.ticker.logMs("Read $initializeFromDillUri");
+        data.initializationBytes = initializationBytes;
+
+        // We're going to output all we read here so lazy loading it
+        // doesn't make sense.
+        List<SubComponentView> views = new BinaryBuilderWithMetadata(
+                initializationBytes,
+                disableLazyReading: true)
+            .readComponent(data.component!,
+                checkCanonicalNames: true, createView: true)!;
+
+        // Compute "output nnbd mode".
+        NonNullableByDefaultCompiledMode compiledMode;
+        if (context.options
+            .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+          switch (context.options.nnbdMode) {
+            case NnbdMode.Weak:
+              compiledMode = NonNullableByDefaultCompiledMode.Weak;
+              break;
+            case NnbdMode.Strong:
+              compiledMode = NonNullableByDefaultCompiledMode.Strong;
+              break;
+            case NnbdMode.Agnostic:
+              compiledMode = NonNullableByDefaultCompiledMode.Agnostic;
+              break;
+          }
+        } else {
+          compiledMode = NonNullableByDefaultCompiledMode.Weak;
+        }
+
+        // Check the any package-urls still point to the same file
+        // (e.g. the package still exists and hasn't been updated).
+        // Also verify NNBD settings.
+        for (Library lib in data.component!.libraries) {
+          if (lib.importUri.scheme == "package" &&
+              uriTranslator.translate(lib.importUri, false) != lib.fileUri) {
+            // Package has been removed or updated.
+            // This library should be thrown away.
+            // Everything that depends on it should be thrown away.
+            // TODO(jensj): Anything that doesn't depend on it can be kept.
+            // For now just don't initialize from this dill.
+            throw const PackageChangedError();
+          }
+          // Note: If a library has a NonNullableByDefaultCompiledMode.invalid
+          // we will throw and we won't initialize from it.
+          // That's wanted behavior.
+          if (compiledMode !=
+              mergeCompilationModeOrThrow(
+                  compiledMode, lib.nonNullableByDefaultCompiledMode)) {
+            throw new CompilationModeError(
+                "Can't compile to $compiledMode with library with mode "
+                "${lib.nonNullableByDefaultCompiledMode}.");
+          }
+        }
+
+        // Only initialize the incremental serializer when we know we'll
+        // actually use the data loaded from dill.
+        _initializedIncrementalSerializer =
+            incrementalSerializer?.initialize(initializationBytes, views) ??
+                false;
+
+        _initializedFromDill = true;
+        bytesLength += initializationBytes.length;
+        _componentProblems.saveComponentProblems(data.component!);
+      }
+    }
+    return bytesLength;
+  }
+}
+
+class _ComponentProblems {
+  Map<Uri, List<DiagnosticMessageFromJson>> _remainingComponentProblems =
+      new Map<Uri, List<DiagnosticMessageFromJson>>();
+
+  /// [partsUsed] indicates part uris that are used by (other/alive) libraries.
+  /// Those parts will not be removed from the component problems.
+  /// This is useful when a part has been "moved" to be part of another library.
+  void removeLibrary(Library lib, UriTranslator uriTranslator,
+      [Set<Uri?>? partsUsed]) {
+    if (_remainingComponentProblems.isNotEmpty) {
+      _remainingComponentProblems.remove(lib.fileUri);
+      // Remove parts too.
+      for (LibraryPart part in lib.parts) {
+        Uri? partFileUri = uriTranslator.getPartFileUri(lib.fileUri, part);
+        _remainingComponentProblems.remove(partFileUri);
+      }
+    }
+  }
+
+  /// Re-issue problems on the component and return the filtered list.
+  List<String> reissueProblems(CompilerContext context,
+      IncrementalKernelTarget userCode, Component componentWithDill) {
+    // These problems have already been reported.
+    Set<String> issuedProblems = new Set<String>();
+    if (componentWithDill.problemsAsJson != null) {
+      issuedProblems.addAll(componentWithDill.problemsAsJson!);
+    }
+
+    // Report old problems that wasn't reported again.
+    Set<Uri>? strongModeNNBDPackageOptOutUris;
+    for (MapEntry<Uri, List<DiagnosticMessageFromJson>> entry
+        in _remainingComponentProblems.entries) {
+      List<DiagnosticMessageFromJson> messages = entry.value;
+      for (int i = 0; i < messages.length; i++) {
+        DiagnosticMessageFromJson message = messages[i];
+        if (message.codeName == "StrongModeNNBDPackageOptOut") {
+          // Special case this: Don't issue them here; instead collect them
+          // to get their uris and re-issue a new error.
+          strongModeNNBDPackageOptOutUris ??= {};
+          strongModeNNBDPackageOptOutUris.add(entry.key);
+          continue;
+        }
+        if (issuedProblems.add(message.toJsonString())) {
+          context.options.reportDiagnosticMessage(message);
+        }
+      }
+    }
+    if (strongModeNNBDPackageOptOutUris != null) {
+      // Get the builders for these uris; then call
+      // `SourceLoader.giveCombinedErrorForNonStrongLibraries` on them to issue
+      // a new error.
+      Set<LibraryBuilder> builders = {};
+      SourceLoader loader = userCode.loader;
+      for (LibraryBuilder builder in loader.libraryBuilders) {
+        if (strongModeNNBDPackageOptOutUris.contains(builder.fileUri)) {
+          builders.add(builder);
+        }
+      }
+      FormattedMessage message = loader.giveCombinedErrorForNonStrongLibraries(
+          builders,
+          emitNonPackageErrors: false)!;
+      issuedProblems.add(message.toJsonString());
+      // The problem was issued by the call so don't re-issue it here.
+    }
+
+    // Save any new component-problems.
+    _addProblemsAsJson(componentWithDill.problemsAsJson);
+    return new List<String>.from(issuedProblems);
+  }
+
+  void saveComponentProblems(Component component) {
+    _addProblemsAsJson(component.problemsAsJson);
+  }
+
+  void _addProblemsAsJson(List<String>? problemsAsJson) {
+    if (problemsAsJson != null) {
+      for (String jsonString in problemsAsJson) {
+        DiagnosticMessageFromJson message =
+            new DiagnosticMessageFromJson.fromJson(jsonString);
+        assert(message.uri != null ||
+            (message.involvedFiles != null &&
+                message.involvedFiles!.isNotEmpty));
+        if (message.uri != null) {
+          List<DiagnosticMessageFromJson> messages =
+              _remainingComponentProblems[message.uri!] ??=
+                  <DiagnosticMessageFromJson>[];
+          messages.add(message);
+        }
+        if (message.involvedFiles != null) {
+          // This indexes the same message under several uris - this way it will
+          // be issued as long as it's a problem. It will because of
+          // deduplication when we re-issue these (in reissueComponentProblems)
+          // only be reported once.
+          for (Uri uri in message.involvedFiles!) {
+            List<DiagnosticMessageFromJson> messages =
+                _remainingComponentProblems[uri] ??=
+                    <DiagnosticMessageFromJson>[];
+            messages.add(message);
+          }
+        }
+      }
+    }
+  }
+}
+
+extension on UriTranslator {
+  Uri? getPartFileUri(Uri parentFileUri, LibraryPart part) {
+    Uri? fileUri = getPartUri(parentFileUri, part);
+    if (fileUri.scheme == "package") {
+      // Part was specified via package URI and the resolve above thus
+      // did not go as expected. Translate the package URI to get the
+      // actual file URI.
+      fileUri = translate(fileUri, false);
+    }
+    return fileUri;
+  }
+}
+
+class RecorderForTesting {
+  const RecorderForTesting();
+
+  void recordNonFullComponent(Component component) {}
+
+  void recordInvalidatedImportUris(List<Uri> uris) {}
+
+  void recordRebuildBodiesCount(int count) {}
+
+  void recordTemporaryFile(Uri uri) {}
 }

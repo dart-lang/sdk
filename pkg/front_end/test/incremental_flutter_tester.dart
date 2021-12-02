@@ -140,8 +140,9 @@ Future<void> main(List<String> args) async {
     Component c2 = compilerResult.component;
     print("Recompiled in ${localStopwatch.elapsedMilliseconds} ms");
     print("invalidatedImportUrisForTesting: "
-        "${compiler.invalidatedImportUrisForTesting}");
-    print("rebuildBodiesCount: ${compiler.rebuildBodiesCount}");
+        "${compiler.recorderForTesting.invalidatedImportUrisForTesting}");
+    print("rebuildBodiesCount: "
+        "${compiler.recorderForTesting.rebuildBodiesCount}");
     localStopwatch.reset();
     Set<Uri> thisUris = new Set<Uri>.from(c2.libraries.map((l) => l.importUri));
     if (componentUris.isNotEmpty) {
