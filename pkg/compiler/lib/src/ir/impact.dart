@@ -858,4 +858,11 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   void visitNullConstant(ir.NullConstant node) {
     registry.registerNullLiteral();
   }
+
+  @override
+  void visitConstructorTearOffConstant(ir.ConstructorTearOffConstant node) {
+    // The CFE encoding of redirecting factories, which dart2js doesn't use,
+    // uses ConstructorTearOff(Constant) to point to its effective target.
+    // However, these should be safe to ignore.
+  }
 }

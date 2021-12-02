@@ -160,6 +160,13 @@ class CompilerOptions implements DiagnosticOptions {
   /// Returns the compilation target specified by these options.
   Uri? get compilationTarget => inputDillUri ?? entryUri;
 
+  bool get fromDill {
+    var targetPath = compilationTarget!.path;
+    return targetPath.endsWith('.dill') ||
+        targetPath.endsWith('.gdill') ||
+        targetPath.endsWith('.mdill');
+  }
+
   /// Location of the package configuration file.
   ///
   /// If not null then [packageRoot] should be null.
@@ -184,6 +191,8 @@ class CompilerOptions implements DiagnosticOptions {
   bool get modularMode => writeModularAnalysisUri != null;
 
   List<Uri>? modularAnalysisInputs;
+
+  bool get hasModularAnalysisInputs => modularAnalysisInputs != null;
 
   /// Location from which serialized inference data is read.
   ///

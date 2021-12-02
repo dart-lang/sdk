@@ -178,8 +178,7 @@ abstract class Compiler {
     enqueuer = EnqueueTask(this);
 
     tasks = [
-      kernelLoader = KernelLoaderTask(
-          options, provider, _outputProvider, reporter, measurer),
+      kernelLoader = KernelLoaderTask(options, provider, reporter, measurer),
       kernelFrontEndTask,
       globalInference = GlobalTypeInferenceTask(this),
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
@@ -306,7 +305,6 @@ abstract class Compiler {
       if (retainDataForTesting) {
         componentForTesting = result.component;
       }
-      if (options.cfeOnly) return;
 
       frontendStrategy.registerLoadedLibraries(result);
 
@@ -314,12 +312,34 @@ abstract class Compiler {
         await runModularAnalysis(result);
       } else {
         List<ModuleData> data;
-        if (options.modularAnalysisInputs != null) {
+        if (options.hasModularAnalysisInputs) {
           data =
               await serializationTask.deserializeModuleData(result.component);
         }
         frontendStrategy.registerModuleData(data);
-        await compileFromKernel(result.rootLibraryUri, result.libraries);
+
+        // After we've deserialized modular data, we set and verify the main
+        // method as well as trim the component of any unnecessary dependencies.
+        // Note: It is critical we wait to trim the dill until after we've
+        // deserialized modular data because some of this data may reference
+        // 'trimmed' elements.
+        if (options.fromDill) {
+          if (options.entryUri != null) {
+            result.setMainAndTrimComponent(options.entryUri);
+          }
+          if (result.component.mainMethod == null) {
+            // TODO(sigmund): move this so that we use the same error template
+            // from the CFE.
+            _reporter.reportError(_reporter.createMessage(NO_LOCATION_SPANNABLE,
+                MessageKind.GENERIC, {'text': "No 'main' method found."}));
+            return;
+          }
+        }
+        if (options.cfeOnly) {
+          await serializationTask.serializeComponent(result.component);
+        } else {
+          await compileFromKernel(result.rootLibraryUri, result.libraries);
+        }
       }
     }
   }
