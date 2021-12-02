@@ -163,9 +163,9 @@ abstract class Iterable<E> {
   /// and, after that, the elements of [other], in the same order as in the
   /// original iterables.
   /// ```dart
-  /// var planets = <String>['Earth', 'Jupiter', 'Saturn'];
-  /// planets = planets.followedBy(['Mars', 'Venus']).toList();
-  /// print(planets); //[Earth, Jupiter, Saturn, Mars, Venus]
+  /// var planets = <String>['Earth', 'Jupiter'];
+  /// var updated = planets.followedBy(['Mars', 'Venus']);
+  /// print(updated); // (Earth, Jupiter, Mars, Venus)
   /// ```
   Iterable<E> followedBy(Iterable<E> other) {
     var self = this; // TODO(lrn): Remove when we can promote `this`.
@@ -204,8 +204,8 @@ abstract class Iterable<E> {
   /// Example:
   /// ```dart
   /// final gasPlanets = <int, String>{1: 'Jupiter', 2: 'Saturn'};
-  /// final altered = gasPlanets.map((key, value) => MapEntry(value, key));
-  /// print(altered); // {Jupiter: 1, Saturn: 2}
+  /// final map = gasPlanets
+  ///     .map((key, value) => MapEntry(value, key)); // {Jupiter: 1, Saturn: 2}
   /// ```
   Iterable<T> map<T>(T toElement(E e)) => MappedIterable<E, T>(this, toElement);
 
@@ -223,9 +223,9 @@ abstract class Iterable<E> {
   /// function [test] multiple times on the same element.
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
-  /// print(numbers.where((x) => x < 5).toList()); // [1, 2, 3]
-  /// print(numbers.where((x) => x > 5).toList()); // [6, 7]
-  /// print(numbers.where((x) => x.isEven).toList()); // [2, 6]
+  /// var result = numbers.where((x) => x < 5); // (1, 2, 3)
+  /// result = numbers.where((x) => x > 5); // (6, 7)
+  /// result = numbers.where((x) => x.isEven); // (2, 6)
   /// ```
   Iterable<E> where(bool test(E element)) => WhereIterable<E>(this, test);
 
@@ -286,10 +286,10 @@ abstract class Iterable<E> {
   /// should use the same equality that the `Map` uses for keys.
   /// ```dart
   /// final gasPlanets = <int, String>{1: 'Jupiter', 2: 'Saturn'};
-  /// print(gasPlanets.keys.contains(1)); // true
-  /// print(gasPlanets.keys.contains(5)); // false
-  /// print(gasPlanets.values.contains('Jupiter')); // true
-  /// print(gasPlanets.values.contains('Mercury')); // false
+  /// final containsOne = gasPlanets.keys.contains(1); // true
+  /// final containsFive = gasPlanets.keys.contains(5); // false
+  /// final containsJupiter = gasPlanets.values.contains('Jupiter'); // true
+  /// final containsMercury = gasPlanets.values.contains('Mercury'); // false
   /// ```
   bool contains(Object? element) {
     for (E e in this) {
@@ -382,8 +382,8 @@ abstract class Iterable<E> {
   /// final massByPlanets = <double,String>{0.06: 'Mercury', 0.81: 'Venus',
   ///   0.11: 'Mars'};
   /// // Checks whether all keys smaller than 1.
-  /// final every = massByPlanets.entries.every((element) => element.key < 1.0);
-  /// print(every); // true
+  /// final every =
+  ///     massByPlanets.entries.every((element) => element.key < 1.0); // true
   /// ```
   bool every(bool test(E element)) {
     for (E element in this) {
@@ -402,8 +402,7 @@ abstract class Iterable<E> {
   /// ```dart
   /// final massByPlanets = <double,String>{0.06: 'Mercury', 0.81: 'Venus',
   ///   0.11: 'Mars'};
-  /// final joinedNames = massByPlanets.values.join('-');
-  /// print(joinedNames); // Mercury-Venus-Mars
+  /// final joinedNames = massByPlanets.values.join('-'); // Mercury-Venus-Mars
   /// ```
   String join([String separator = ""]) {
     Iterator<E> iterator = this.iterator;
@@ -430,8 +429,8 @@ abstract class Iterable<E> {
   ///
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
-  /// print(numbers.any((element) => element == 5)); // true;
-  /// print(numbers.any((element) => element == 4)); // false;
+  /// var result = numbers.any((element) => element == 5); // true;
+  /// result = numbers.any((element) => element == 4); // false;
   /// ```
   bool any(bool test(E element)) {
     for (E element in this) {
@@ -446,8 +445,8 @@ abstract class Iterable<E> {
   /// The list is fixed-length if [growable] is false.
   /// ```dart
   /// final planets = <int, String>{1: 'Mercury', 2: 'Venus', 3: 'Mars'};
-  /// final keysList = planets.keys.toList(growable: true);
-  /// print(keysList); // [1, 2, 3]
+  /// final keysList = planets.keys.toList(); // [1, 2, 3]
+  /// final valuesList = planets.values.toList(); // [Mercury, Venus, Mars]
   /// ```
   List<E> toList({bool growable = true}) {
     return List<E>.of(this, growable: growable);
@@ -462,8 +461,7 @@ abstract class Iterable<E> {
   /// as for the iterable.
   /// ```dart
   /// final planets = <int, String>{1: 'Mercury', 2: 'Venus', 3: 'Mars'};
-  /// final valueSet = planets.values.toSet();
-  /// print(valueSet); // {Mercury, Venus, Mars}
+  /// final valueSet = planets.values.toSet(); // {Mercury, Venus, Mars}
   /// ```
   Set<E> toSet() => Set<E>.of(this);
 
@@ -512,8 +510,7 @@ abstract class Iterable<E> {
   ///
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
-  /// const count = 4;
-  /// print(numbers.take(count).toList()); // [1, 2, 3, 5]
+  /// final takeList = numbers.take(4); // (1, 2, 3, 5)
   /// ```
   ///
   /// The `count` must not be negative.
@@ -531,10 +528,10 @@ abstract class Iterable<E> {
   /// the returned iterable stops (its `moveNext()` returns false).
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
-  /// print(numbers.takeWhile((x) => x < 5).toList()); // [1, 2, 3, 5]
-  /// print(numbers.takeWhile((x) => x != 3).toList()); // [1, 2]
-  /// print(numbers.takeWhile((x) => x != 4).toList()); // [1, 2, 3, 5, 6, 7]
-  /// print(numbers.takeWhile((x) => x.isOdd).toList()); // [1]
+  /// var result = numbers.takeWhile((x) => x < 5); // (1, 2, 3)
+  /// result = numbers.takeWhile((x) => x != 3); // (1, 2)
+  /// result = numbers.takeWhile((x) => x != 4); // (1, 2, 3, 5, 6, 7)
+  /// result = numbers.takeWhile((x) => x.isOdd); // (1)
   /// ```
   Iterable<E> takeWhile(bool test(E value)) {
     return TakeWhileIterable<E>(this, test);
@@ -555,8 +552,7 @@ abstract class Iterable<E> {
   ///
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
-  /// const count = 4;
-  /// print(numbers.skip(count).toList()); // [6, 7]
+  /// final skipList = numbers.skip(4); // (6, 7)
   /// ```
   ///
   /// The [count] must not be negative.
@@ -577,10 +573,10 @@ abstract class Iterable<E> {
   ///
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
-  /// print(numbers.skipWhile((x) => x < 5).toList()); // [5, 6, 7]
-  /// print(numbers.skipWhile((x) => x != 3).toList()); // [3, 5, 6, 7]
-  /// print(numbers.skipWhile((x) => x != 4).toList()); // []
-  /// print(numbers.skipWhile((x) => x.isOdd).toList()); // [2, 3, 5, 6, 7]
+  /// var result = numbers.skipWhile((x) => x < 5); // (5, 6, 7)
+  /// result = numbers.skipWhile((x) => x != 3); // (3, 5, 6, 7)
+  /// result = numbers.skipWhile((x) => x != 4); // ()
+  /// result = numbers.skipWhile((x) => x.isOdd); // (2, 3, 5, 6, 7)
   /// ```
   Iterable<E> skipWhile(bool test(E value)) {
     return SkipWhileIterable<E>(this, test);
@@ -636,10 +632,10 @@ abstract class Iterable<E> {
   ///
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
-  /// print(numbers.firstWhere((element) => element < 5)); // 1
-  /// print(numbers.firstWhere((element) => element > 5)); // 6
-  /// print(numbers.firstWhere((element) => element > 10,
-  ///     orElse: () => -1)); // -1
+  /// var result = numbers.firstWhere((element) => element < 5); // 1
+  /// result = numbers.firstWhere((element) => element > 5); // 6
+  /// result =
+  ///     numbers.firstWhere((element) => element > 10, orElse: () => -1); // -1
   /// ```
   ///
   /// If no element satisfies [test], the result of invoking the [orElse]
@@ -664,10 +660,10 @@ abstract class Iterable<E> {
   ///
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
-  /// print(numbers.lastWhere((element) => element < 5)); // 3
-  /// print(numbers.lastWhere((element) => element > 5)); // 7
-  /// print(numbers.lastWhere((element) => element > 10,
-  ///     orElse: () => -1)); // -1
+  /// var result = numbers.lastWhere((element) => element < 5); // 3
+  /// result = numbers.lastWhere((element) => element > 5); // 7
+  /// result = numbers.lastWhere((element) => element > 10,
+  ///     orElse: () => -1); // -1
   /// ```
   ///
   /// If no element satisfies [test], the result of invoking the [orElse]
@@ -697,15 +693,14 @@ abstract class Iterable<E> {
   ///
   /// ```dart
   /// final numbers = <int>[2, 2, 10];
-  /// var result = numbers.singleWhere((element) => element == 10);
-  /// print(result); // 10
+  /// var result = numbers.singleWhere((element) => element > 5); // 10
   ///
   /// // When no matching element is found, returns result from orElse.
-  /// result = numbers.singleWhere((element) => element == 1, orElse: () => -1);
-  /// print(result); // -1
+  /// result = numbers.singleWhere((element) => element == 1,
+  ///     orElse: () => -1); // -1
   ///
-  /// // Multiple matches, error is thrown.
-  /// result = numbers.singleWhere((element) => element == 2); // StateError
+  /// // Multiple matches, throws an error.
+  /// result = numbers.singleWhere((element) => element == 2); // StateError.
   /// ```
   E singleWhere(bool test(E element), {E orElse()?}) {
     late E result;
