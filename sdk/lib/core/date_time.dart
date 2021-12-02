@@ -14,8 +14,8 @@ part of dart.core;
 /// which complies with a subset of ISO 8601.
 /// **Note:** hours are specified between 0 and 23,
 /// as in a 24-hour clock.
-/// For example:
 ///
+/// For example:
 /// ```dart
 /// final now = DateTime.now();
 /// final berlinWallFell = DateTime.utc(1989, 11, 9);
@@ -90,9 +90,8 @@ part of dart.core;
 ///
 /// ## Comparing DateTime objects
 ///
-/// The `DateTime` class contains several handy methods,
-/// such as [isAfter], [isBefore], and [isAtSameMomentAs],
-/// for comparing `DateTime` objects.
+/// The `DateTime` class contains methods for comparing `DateTime`s
+/// chronologically, such as [isAfter], [isBefore], and [isAtSameMomentAs].
 /// ```
 /// print(berlinWallFell.isAfter(moonLanding)); // true
 /// print(berlinWallFell.isBefore(moonLanding)); // false
@@ -103,12 +102,11 @@ part of dart.core;
 ///
 /// Use the [add] and [subtract] methods with a [Duration] object
 /// to create a `DateTime` object based on another.
-/// For example, to find the date that is sixty days (24 * 60 hours) from today,
-/// write:
-///
+/// For example, to find the point in time that is 36 hours after now,
+/// you can write:
 /// ```dart
 /// final now = DateTime.now();
-/// final sixtyDaysFromNow = now.add(const Duration(days: 60));
+/// final later = now.add(const Duration(hours: 36));
 /// ```
 ///
 /// To find out how much time is between two `DateTime` objects use
@@ -758,11 +756,11 @@ class DateTime implements Comparable<DateTime> {
   ///
   /// For example, using local time in San Francisco, United States:
   /// ```dart
-  /// final dateUSA = DateTime.parse('2021-11-01 20:18:04Z').toLocal();
-  /// print(dateUSA); // 2021-11-01 13:18:04.000
-  /// print(dateUSA.timeZoneName); // PDT ( Pacific Daylight Time )
-  /// print(dateUSA.timeZoneOffset.inHours); // -7
-  /// print(dateUSA.timeZoneOffset.inMinutes); // -420
+  /// final dateUS = DateTime.parse('2021-11-01 20:18:04Z').toLocal();
+  /// print(dateUS); // 2021-11-01 13:18:04.000
+  /// print(dateUS.timeZoneName); // PDT ( Pacific Daylight Time )
+  /// print(dateUS.timeZoneOffset.inHours); // -7
+  /// print(dateUS.timeZoneOffset.inMinutes); // -420
   /// ```
   ///
   /// For example, using local time in Canberra, Australia:
@@ -827,16 +825,16 @@ class DateTime implements Comparable<DateTime> {
   /// The millisecond `[0...999]`.
   ///
   /// ```dart
-  /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
-  /// print(moonLanding.millisecond); // 0
+  /// final date = DateTime.parse('1970-01-01 05:01:01.234567Z');
+  /// print(date.millisecond); // 234
   /// ```
   external int get millisecond;
 
   /// The microsecond `[0...999]`.
   ///
   /// ```dart
-  /// final moonLanding = DateTime.parse('1969-07-20 20:18:04Z');
-  /// print(moonLanding.microsecond); // 0
+  /// final date = DateTime.parse('1970-01-01 05:01:01.234567Z');
+  /// print(date.microsecond); // 567
   /// ```
   external int get microsecond;
 
