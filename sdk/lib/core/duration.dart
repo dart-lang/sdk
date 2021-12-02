@@ -20,14 +20,19 @@ part of dart.core;
 /// only uses these arguments to compute the length of the corresponding time
 /// interval.
 ///
-/// To create a new Duration object, use this class's single constructor
+/// To create a new `Duration` object, use this class's single constructor
 /// giving the appropriate arguments:
 /// ```dart
 /// const fastestMarathon = Duration(hours: 2, minutes: 3, seconds: 2);
 /// ```
-/// The [Duration] is the sum of all individual parts.
-/// This means that individual parts can be larger than the next-bigger unit.
-/// For example, [inMinutes] can be greater than 59.
+/// The [Duration] represents a single number of microseconds,
+/// which is the sum of all the individual arguments to the constructor.
+///
+/// Properties can access that single number in different ways.
+/// For example the [inMinutes] gives the number of whole minutes
+/// in the total duration, which includes the minutes that were provided
+/// as "hours" to the constructor, and can be larger then 59.
+///
 /// ```dart
 /// const fastestMarathon = Duration(hours: 2, minutes: 3, seconds: 2);
 /// print(fastestMarathon.inDays); // 0
@@ -36,7 +41,8 @@ part of dart.core;
 /// print(fastestMarathon.inSeconds); // 7382
 /// print(fastestMarathon.inMilliseconds); // 7382000
 /// ```
-/// All individual parts are allowed to be negative.
+/// The duration can be negative, in which case
+/// all the properties derived from the duration are also non-positive.
 /// ```dart
 /// const overDayAgo = Duration(days: -1, hours: -10);
 /// print(overDayAgo.inDays); // -1
@@ -44,7 +50,7 @@ part of dart.core;
 /// print(overDayAgo.inMinutes); // -2040
 /// ```
 /// Use one of the properties, such as [inDays],
-/// to retrieve the integer value of the Duration in the specified time unit.
+/// to retrieve the integer value of the `Duration` in the specified time unit.
 /// Note that the returned value is rounded down.
 /// For example,
 /// ```dart
@@ -52,7 +58,7 @@ part of dart.core;
 /// print(aLongWeekend.inDays); // 3
 /// ```
 /// This class provides a collection of arithmetic
-/// and comparison [operators],
+/// and comparison operators,
 /// plus a set of constants useful for converting time units.
 /// ```dart
 /// const firstHalf = Duration(minutes: 45); // 00:45:00.000000
@@ -65,13 +71,13 @@ part of dart.core;
 /// var result = firstHalf.compareTo(secondHalf);
 /// print(result); // 0
 ///
-/// // Duration of overTime is shorter than firstHalf, returns -1.
+/// // Duration of overTime is shorter than firstHalf, returns < 0.
 /// result = overTime.compareTo(firstHalf);
-/// print(result); // -1
+/// print(result); // < 0
 ///
-/// // Duration of secondHalf is longer than overTime, returns 1.
+/// // Duration of secondHalf is longer than overTime, returns > 0.
 /// result = secondHalf.compareTo(overTime);
-/// print(result); // 1
+/// print(result); // > 0
 /// ```
 ///
 /// **See also:**
