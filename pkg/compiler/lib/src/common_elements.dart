@@ -2228,13 +2228,13 @@ abstract class ElementEnvironment {
   /// Return `null` if the member is not found in the class or any superclass.
   MemberEntity lookupClassMember(ClassEntity cls, String name,
       {bool setter = false}) {
-    var entity = lookupLocalClassMember(cls, name, setter: setter);
-    if (entity != null) return entity;
+    while (true) {
+      final entity = lookupLocalClassMember(cls, name, setter: setter);
+      if (entity != null) return entity;
 
-    var superclass = getSuperClass(cls);
-    if (superclass == null) return null;
-
-    return lookupClassMember(superclass, name, setter: setter);
+      cls = getSuperClass(cls);
+      if (cls == null) return null;
+    }
   }
 
   /// Lookup the constructor [name] in [cls], fail if the class is missing and

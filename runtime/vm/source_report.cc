@@ -262,6 +262,27 @@ intptr_t SourceReport::GetTokenPosOrLine(const Script& script,
   return line;
 }
 
+bool SourceReport::ShouldCoverageSkipCallSite(const ICData* ic_data) {
+  if (ic_data == NULL) return true;
+  if (!ic_data->is_static_call()) return false;
+  Function& func = Function::Handle(ic_data->GetTargetAt(0));
+
+  // Ignore calls to the LateError functions. These are used to throw errors to
+  // do with late variables. These errors shouldn't be hit in working code, so
+  // shouldn't count against the coverage total.
+  // See https://github.com/dart-lang/coverage/issues/341
+  if (late_error_class_id_ == ClassId::kIllegalCid) {
+    const Class& lateErrorClass =
+        Class::Handle(Library::LookupCoreClass(Symbols::LateError()));
+    late_error_class_id_ = lateErrorClass.id();
+  }
+  Class& cls = Class::Handle(func.Owner());
+  if (late_error_class_id_ == cls.id()) {
+    return true;
+  }
+  return false;
+}
+
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
                                      const Function& function,
                                      const Code& code) {
@@ -315,7 +336,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
     HANDLESCOPE(thread());
     ASSERT(iter.DeoptId() < ic_data_array->length());
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
-    if (ic_data != NULL) {
+    if (!ShouldCoverageSkipCallSite(ic_data)) {
       const TokenPosition& token_pos = iter.TokenPos();
       update_coverage(token_pos, ic_data->AggregateCount() > 0);
     }
