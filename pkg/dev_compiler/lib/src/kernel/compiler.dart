@@ -5373,7 +5373,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // setter, or method. For the case of tearing off a `super` method in
     // contexts where `super` isn't allowed, see [_emitSuperTearoff].
     var name = member.name.text;
-    var jsMethod = _superHelpers.putIfAbsent(name, () {
+    var getter = (member is Field && !setter) ||
+        (member is Procedure && member.isGetter);
+    // Prefix applied to the name only used in the compiler for a map key. This
+    // name does not make its way into the compiled program.
+    var lookupPrefix = setter
+        ? r'set$'
+        : getter
+            ? r'get$'
+            : '';
+    var jsMethod = _superHelpers.putIfAbsent('$lookupPrefix$name', () {
       var isAccessor = member is Procedure ? member.isAccessor : true;
       if (isAccessor) {
         assert(member is Procedure
