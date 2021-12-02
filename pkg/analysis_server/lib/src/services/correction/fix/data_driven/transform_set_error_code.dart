@@ -25,6 +25,26 @@ class TransformSetErrorCode extends ErrorCode {
 
   /**
    * Parameters:
+   * 0: the old kind
+   * 1: the new kind
+   */
+  static const TransformSetErrorCode incompatibleElementKind =
+      TransformSetErrorCode(
+          'incompatible_element_kind',
+          "An element of kind '{0}' can't be replaced by "
+              "an element of kind '{1}'.");
+
+  /**
+   * Parameters:
+   * 0: the change kind that is invalid
+   * 1: the element kind for the transform
+   */
+  static const TransformSetErrorCode invalidChangeForKind =
+      TransformSetErrorCode('invalid_change_for_kind',
+          "A change of type '{0}' can't be used for an element of kind '{1}'.");
+
+  /**
+   * Parameters:
    * 0: the character that is invalid
    */
   static const TransformSetErrorCode invalidCharacter =
@@ -132,6 +152,14 @@ class TransformSetErrorCode extends ErrorCode {
    */
   static const TransformSetErrorCode unsupportedKey = TransformSetErrorCode(
       'unsupported_key', "The key '{0}' isn't supported.");
+
+  /**
+   * No parameters.
+   */
+  static const TransformSetErrorCode unsupportedUriChange = TransformSetErrorCode(
+      'unsupported_uri_change',
+      "The set of URIs for the replacement element must match the transformed "
+          "element.");
 
   /**
    * No parameters.

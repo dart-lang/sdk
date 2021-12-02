@@ -7,11 +7,13 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/add_type
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/changes_selector.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/expression.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/replaced_by.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
@@ -671,6 +673,34 @@ transforms:
     expect(changes, hasLength(1));
     var rename = changes[0] as Rename;
     expect(rename.newName, 'B');
+  }
+
+  void test_replacedBy() {
+    assertNoErrors('''
+version: 1
+transforms:
+- title: 'Replace'
+  date: 2021-11-30
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'replacedBy'
+      newElement:
+        uris: ['test.dart']
+        method: 'm'
+        inClass: 'C'
+''');
+    var transforms = _transforms('f');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Replace');
+    var changes = _changes(transform);
+    expect(changes, hasLength(1));
+    var change = changes[0] as ReplacedBy;
+    var newElement = change.newElement;
+    expect(newElement.kind, ElementKind.methodKind);
+    expect(newElement.components, ['m', 'C']);
   }
 
   void test_requiredIf() {
