@@ -29,6 +29,7 @@ Arguments common to both `launchRequest` and `attachRequest` are:
 - `int? vmServicePort` - the port to bind the VM Service too
 - `List<String>? additionalProjectPaths` - paths of any projects (outside of `cwd`) that are open in the users workspace
 - `String? cwd` - the working directory for the Dart process to be spawned in
+- `Map<String, String>? env` - environment variables to be passed to any spawned process
 
 Arguments specific to `launchRequest` are:
 

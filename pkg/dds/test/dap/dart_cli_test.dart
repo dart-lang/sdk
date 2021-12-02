@@ -30,6 +30,28 @@ main() {
       expect(adapter.processArgs, contains('tool_arg'));
     });
 
+    test('includes env', () async {
+      final adapter = MockDartCliDebugAdapter();
+      final responseCompleter = Completer<void>();
+      final request = MockRequest();
+      final args = DartLaunchRequestArguments(
+        program: 'foo.dart',
+        env: {
+          'ENV1': 'VAL1',
+          'ENV2': 'VAL2',
+        },
+        noDebug: true,
+      );
+
+      await adapter.configurationDoneRequest(request, null, () {});
+      await adapter.launchRequest(request, args, responseCompleter.complete);
+      await responseCompleter.future;
+
+      expect(adapter.executable, equals(Platform.resolvedExecutable));
+      expect(adapter.env!['ENV1'], 'VAL1');
+      expect(adapter.env!['ENV2'], 'VAL2');
+    });
+
     group('includes customTool', () {
       test('with no args replaced', () async {
         final adapter = MockDartCliDebugAdapter();

@@ -149,6 +149,9 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   final String? name;
   final String? cwd;
 
+  /// Environment variables to pass to the launched process.
+  final Map<String, String>? env;
+
   /// Paths that should be considered the users local code.
   ///
   /// These paths will generally be all of the open folders in the users editor
@@ -199,6 +202,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
     required this.restart,
     required this.name,
     required this.cwd,
+    // TODO(dantup): This can be made required after Flutter DAP is passing it.
+    this.env,
     required this.additionalProjectPaths,
     required this.debugSdkLibraries,
     required this.debugExternalPackageLibraries,
@@ -211,6 +216,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
       : restart = obj['restart'],
         name = obj['name'] as String?,
         cwd = obj['cwd'] as String?,
+        env = obj['env'] as Map<String, String>?,
         additionalProjectPaths =
             (obj['additionalProjectPaths'] as List?)?.cast<String>(),
         debugSdkLibraries = obj['debugSdkLibraries'] as bool?,
@@ -226,6 +232,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
         if (restart != null) 'restart': restart,
         if (name != null) 'name': name,
         if (cwd != null) 'cwd': cwd,
+        if (env != null) 'env': env,
         if (additionalProjectPaths != null)
           'additionalProjectPaths': additionalProjectPaths,
         if (debugSdkLibraries != null) 'debugSdkLibraries': debugSdkLibraries,
@@ -1928,6 +1935,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     Object? restart,
     String? name,
     String? cwd,
+    Map<String, String>? env,
     List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
@@ -1938,6 +1946,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
           restart: restart,
           name: name,
           cwd: cwd,
+          env: env,
           additionalProjectPaths: additionalProjectPaths,
           debugSdkLibraries: debugSdkLibraries,
           debugExternalPackageLibraries: debugExternalPackageLibraries,

@@ -8,7 +8,8 @@ import 'package:dds/dap.dart';
 import 'package:dds/src/dap/adapters/dart_cli_adapter.dart';
 import 'package:dds/src/dap/adapters/dart_test_adapter.dart';
 
-/// A [DartCliDebugAdapter] that captures what process/args will be launched.
+/// A [DartCliDebugAdapter] that captures information about the process that
+/// will be launched.
 class MockDartCliDebugAdapter extends DartCliDebugAdapter {
   final StreamSink<List<int>> stdin;
   final Stream<List<int>> stdout;
@@ -16,6 +17,8 @@ class MockDartCliDebugAdapter extends DartCliDebugAdapter {
   late bool launchedInTerminal;
   late String executable;
   late List<String> processArgs;
+  late String? workingDirectory;
+  late Map<String, String>? env;
 
   factory MockDartCliDebugAdapter() {
     final stdinController = StreamController<List<int>>();
@@ -33,32 +36,43 @@ class MockDartCliDebugAdapter extends DartCliDebugAdapter {
 
   Future<void> launchAsProcess(
     String executable,
-    List<String> processArgs,
-  ) async {
+    List<String> processArgs, {
+    required String? workingDirectory,
+    required Map<String, String>? env,
+  }) async {
     this.launchedInTerminal = false;
     this.executable = executable;
     this.processArgs = processArgs;
+    this.workingDirectory = workingDirectory;
+    this.env = env;
   }
 
   Future<void> launchInEditorTerminal(
     bool debug,
     String terminalKind,
     String executable,
-    List<String> processArgs,
-  ) async {
+    List<String> processArgs, {
+    required String? workingDirectory,
+    required Map<String, String>? env,
+  }) async {
     this.launchedInTerminal = true;
     this.executable = executable;
     this.processArgs = processArgs;
+    this.workingDirectory = workingDirectory;
+    this.env = env;
   }
 }
 
-/// A [DartTestDebugAdapter] that captures what process/args will be launched.
+/// A [DartTestDebugAdapter] that captures information about the process that
+/// will be launched.
 class MockDartTestDebugAdapter extends DartTestDebugAdapter {
   final StreamSink<List<int>> stdin;
   final Stream<List<int>> stdout;
 
   late String executable;
   late List<String> processArgs;
+  late String? workingDirectory;
+  late Map<String, String>? env;
 
   factory MockDartTestDebugAdapter() {
     final stdinController = StreamController<List<int>>();
@@ -79,10 +93,14 @@ class MockDartTestDebugAdapter extends DartTestDebugAdapter {
 
   Future<void> launchAsProcess(
     String executable,
-    List<String> processArgs,
-  ) async {
+    List<String> processArgs, {
+    required String? workingDirectory,
+    required Map<String, String>? env,
+  }) async {
     this.executable = executable;
     this.processArgs = processArgs;
+    this.workingDirectory = workingDirectory;
+    this.env = env;
   }
 }
 
