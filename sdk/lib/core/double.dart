@@ -16,6 +16,11 @@ part of dart.core;
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// double.
+///
+/// **See also:**
+/// * [num] is a super class for [double].
+/// * [Numbers](https://dart.dev/guides/language/numbers)  in
+/// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
 abstract class double extends num {
   static const double nan = 0.0 / 0.0;
   static const double infinity = 1.0 / 0.0;
