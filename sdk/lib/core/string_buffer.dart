@@ -28,23 +28,23 @@ part of dart.core;
 ///   ..write(' since ') // Writes a string.
 ///   ..write(dartYear); // Writes an int.
 /// print(buffer); // DART is open source since 2011
-/// print(buffer.length); // 30
+/// print(buffer.length); // 31
 /// ```
 /// To add a newline after the object's string representation, use [writeln].
 /// Calling [writeln] with no argument adds a single newline to the buffer.
 /// ```
-/// buffer.writeln(); // Contains "DART is open source\n".
-/// buffer.writeln('-------------------'); // 19 '-'s
-/// print(buffer.length); // 51
+/// buffer.writeln(); // Contains "DART is open source since 2011\n".
+/// buffer.writeln('-' * (buffer.length - 1)); // 30 '-'s and a newline.
+/// print(buffer.length); // 62
 /// ```
 /// To write multiple objects to the buffer, use [writeAll].
 /// ```
 /// const separator = '-';
 /// buffer.writeAll(['Dart', 'is', 'fun!'], separator);
-/// print(buffer.length); // 63
+/// print(buffer.length); // 74
 /// print(buffer);
 /// // DART is open source since 2011
-/// // -------------------
+/// // ------------------------------
 /// // Dart-is-fun!
 /// ```
 /// To add the string representation of a Unicode code point, `charCode`,
@@ -55,14 +55,14 @@ part of dart.core;
 /// buffer.writeCharCode(0x61); // 'a'
 /// buffer.writeCharCode(0x72); // 'r'
 /// buffer.writeCharCode(0x74); // 't'
-/// print(buffer.length); // 68
+/// print(buffer.length); // 79
 /// ```
 /// To convert the content to a single string, use [toString].
 /// ```
 /// final text = buffer.toString();
 /// print(text);
 /// // DART is open source since 2011
-/// // -------------------
+/// // ------------------------------
 /// // Dart-is-fun!
 /// // Dart
 /// ```
