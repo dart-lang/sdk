@@ -4488,7 +4488,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   Fragment function_body(instruction_cursor);
   function_body += CheckStackOverflowInPrologue(function.token_pos());
 
-  const auto& marshaller = *new (Z) compiler::ffi::CallMarshaller(Z, function);
+  const char* error = nullptr;
+  const auto marshaller_ptr =
+      compiler::ffi::CallMarshaller::FromFunction(Z, function, &error);
+  RELEASE_ASSERT(error == nullptr);
+  RELEASE_ASSERT(marshaller_ptr != nullptr);
+  const auto& marshaller = *marshaller_ptr;
 
   const bool signature_contains_handles = marshaller.ContainsHandles();
 
@@ -4634,8 +4639,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
-  const auto& marshaller =
-      *new (Z) compiler::ffi::CallbackMarshaller(Z, function);
+  const char* error = nullptr;
+  const auto marshaller_ptr =
+      compiler::ffi::CallbackMarshaller::FromFunction(Z, function, &error);
+  RELEASE_ASSERT(error == nullptr);
+  RELEASE_ASSERT(marshaller_ptr != nullptr);
+  const auto& marshaller = *marshaller_ptr;
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
