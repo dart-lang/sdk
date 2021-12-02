@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -17,8 +17,8 @@ void computeConstants(
     TypeSystemImpl typeSystem,
     DeclaredVariables declaredVariables,
     List<ConstantEvaluationTarget> constants,
-    ExperimentStatus experimentStatus) {
-  var walker = _ConstantWalker(declaredVariables, experimentStatus);
+    FeatureSet featureSet) {
+  var walker = _ConstantWalker(declaredVariables, featureSet);
 
   for (var constant in constants) {
     var node = walker._getNode(constant);
@@ -47,10 +47,10 @@ class _ConstantNode extends graph.Node<_ConstantNode> {
 /// [graph.DependencyWalker] for computing constants and detecting cycles.
 class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
   final DeclaredVariables declaredVariables;
-  final ExperimentStatus experimentStatus;
+  final FeatureSet featureSet;
   final Map<ConstantEvaluationTarget, _ConstantNode> nodeMap = {};
 
-  _ConstantWalker(this.declaredVariables, this.experimentStatus);
+  _ConstantWalker(this.declaredVariables, this.featureSet);
 
   @override
   void evaluate(_ConstantNode node) {
@@ -79,7 +79,7 @@ class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
   ConstantEvaluationEngine _getEvaluationEngine(_ConstantNode node) {
     return ConstantEvaluationEngine(
       declaredVariables: declaredVariables,
-      isNonNullableByDefault: experimentStatus.non_nullable,
+      isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
     );
   }
 

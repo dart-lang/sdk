@@ -335,7 +335,7 @@ class LibraryAnalyzer {
   /// Compute [_constants] in all units.
   void _computeConstants() {
     computeConstants(_typeProvider, _typeSystem, _declaredVariables,
-        _constants.toList(), _analysisOptions.experimentStatus);
+        _constants.toList(), _libraryElement.featureSet);
   }
 
   void _computeHints(FileState file, CompilationUnit unit) {
