@@ -33,11 +33,10 @@ part of dart.core;
 /// string""";
 /// ```
 /// Strings are immutable. Although you cannot change a string, you can perform
-/// an operation on a string that creates a new string:
+/// an operation on a string which creates a new string:
 /// ```dart
 /// const string = 'Dart is fun';
-/// final result = string.substring(0, 5);
-/// print(result); // 'Dart'
+/// print(string.substring(0, 4)); // 'Dart'
 /// ```
 /// You can use the plus (`+`) operator to concatenate strings:
 /// ```dart
@@ -53,8 +52,7 @@ part of dart.core;
 /// within strings. The curly braces can be omitted when evaluating identifiers:
 /// ```dart
 /// const string = 'dartlang';
-/// const text = '$string has ${string.length} letters';
-/// print(text); // 'dartlang has 8 letters'
+/// print('$string has ${string.length} letters'); // dartlang has 8 letters
 /// ```
 /// A string is represented by a sequence of Unicode UTF-16 code units
 /// accessible through the [codeUnitAt] or the [codeUnits] members:
@@ -65,8 +63,8 @@ part of dart.core;
 /// final allCodeUnits = string.codeUnits;
 /// print(allCodeUnits); // [68, 97, 114, 116]
 /// ```
-/// The string representation of code units is accessible through the index
-/// operator:
+/// A string representation of the individual code units is accessible through
+/// the index operator:
 /// ```dart
 /// const string = 'Dart';
 /// final charAtIndex = string[0];
@@ -74,7 +72,7 @@ part of dart.core;
 /// ```
 /// The characters of a string are encoded in UTF-16. Decoding UTF-16, which
 /// combines surrogate pairs, yields Unicode code points. Following a similar
-/// terminology to Go, we use the name 'rune' for an integer representing a
+/// terminology to Go, Dart uses the name 'rune' for an integer representing a
 /// Unicode code point. Use the [runes] property to get the runes of a string:
 /// ```dart
 /// const string = 'Dart';
@@ -110,7 +108,7 @@ part of dart.core;
 abstract class String implements Comparable<String>, Pattern {
   /// Allocates a new string containing the specified [charCodes].
   ///
-  /// The [charCodes] can be both UTF-16 code units or runes.
+  /// The [charCodes] can be both UTF-16 code units and runes.
   /// If a char-code value is 16-bit, it is used as a code unit:
   /// ```dart
   /// final string = String.fromCharCodes([68]);
@@ -238,7 +236,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// a positive value if `this` is ordered after `other`,
   /// or zero if `this` and `other` are equivalent.
   ///
-  /// The ordering is the same as the ordering of the code points at the first
+  /// The ordering is the same as the ordering of the code units at the first
   /// position where the two strings differ.
   /// If one string is a prefix of the other,
   /// then the shorter string is ordered before the longer string.
@@ -248,9 +246,9 @@ abstract class String implements Comparable<String>, Pattern {
   /// The comparison is case sensitive.
   /// ```dart
   /// var isEqual = 'Dart'.compareTo('Go');
-  /// print(isEqual); // -1
+  /// print(isEqual); // < 0
   /// isEqual = 'Go'.compareTo('Forward');
-  /// print(isEqual); // 1
+  /// print(isEqual); // > 0
   /// isEqual = 'Forward'.compareTo('Forward');
   /// print(isEqual); // 0
   /// ```
@@ -260,16 +258,16 @@ abstract class String implements Comparable<String>, Pattern {
   ///
   /// For example:
   /// ```dart
-  /// const string = 'Dart';
-  /// print(string.endsWith('t')); // true
+  /// const string = 'Dart is open source';
+  /// print(string.endsWith('urce')); // true
   /// ```
   bool endsWith(String other);
 
   /// Whether this string starts with a match of [pattern].
   ///
   /// ```dart
-  /// const string = 'Dart';
-  /// print(string.startsWith('D')); // true
+  /// const string = 'Dart is open source';
+  /// print(string.startsWith('Dar')); // true
   /// print(string.startsWith(RegExp(r'[A-Z][a-z]'))); // true
   /// ```
   /// If [index] is provided, this method checks if the substring starting
@@ -278,7 +276,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// const string = 'Dart';
   /// print(string.startsWith('art', 0)); // false
   /// print(string.startsWith('art', 1)); // true
-  /// print(string.startsWith(RegExp(r'\w{3}'))); // true
+  /// print(string.startsWith(RegExp(r'\w{3}'), 2)); // false
   /// ```
   /// [index] must not be negative or greater than [length].
   ///
@@ -364,8 +362,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// ```dart
   /// const string1 = 'Dart';
   /// final string2 = string1.trim(); // 'Dart'
-  /// final result = identical(string1, string2);
-  /// print(result); // true
+  /// print(identical(string1, string2)); // true
   /// ```
   /// Whitespace is defined by the Unicode White_Space property (as defined in
   /// version 6.2 or later) and the BOM character, 0xFEFF.
@@ -503,9 +500,11 @@ abstract class String implements Comparable<String>, Pattern {
   ///
   /// ```dart
   /// const string = 'Dart is fun';
-  /// print(string.replaceFirstMapped('fun', (m) {
-  ///   return 'open source';
-  /// })); // Dart is open source
+  /// print(string.replaceFirstMapped(
+  ///     'fun', (m) => 'open source')); // Dart is open source
+  ///
+  /// print(string.replaceFirstMapped(
+  ///     RegExp(r'\w(\w*)'), (m) => '<${m[0]}-${m[1]}>')); // <Dart-art> is fun
   /// ```
   ///
   /// Returns a new string, which is this string
@@ -634,12 +633,10 @@ abstract class String implements Comparable<String>, Pattern {
   /// print(string.split('')); // [P, u, b]
   ///
   /// // Same as:
-  /// for (final unit in string.codeUnits) {
-  ///   print(String.fromCharCode(unit));
-  ///   // P
-  ///   // u
-  ///   // b
-  /// }
+  /// var codeUnitStrings = [
+  ///   for (final unit in string.codeUnits) String.fromCharCode(unit)
+  /// ];
+  /// print(codeUnitStrings); // [P, u, b]
   /// ```
   ///
   /// Splitting happens at UTF-16 code unit boundaries,
@@ -788,7 +785,7 @@ class RuneIterator implements BidirectionalIterator<int> {
   ///
   /// When created, there is no [current] value.
   /// A [moveNext] will use the rune starting at [index] the current value,
-  /// and a [movePrevious] will use the rune ending just before [index] as 
+  /// and a [movePrevious] will use the rune ending just before [index] as
   /// the current value.
   ///
   /// The [index] position must not be in the middle of a surrogate pair.
