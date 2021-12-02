@@ -236,6 +236,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
           unit.declaredElement!.source,
           _permissive! ? listener : null,
           _decoratedClassHierarchy,
+          result.libraryElement,
           instrumentation: _instrumentation));
     } finally {
       DecoratedTypeParameterBounds.current = null;
