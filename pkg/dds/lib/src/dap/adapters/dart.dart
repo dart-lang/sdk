@@ -1888,6 +1888,15 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
   /// the VM or Flutter tool).
   final List<String>? toolArgs;
 
+  /// Arguments to be passed directly to the Dart VM that will run [program].
+  ///
+  /// Unlike [toolArgs] which always go after the complete tool, these args
+  /// always go directly after `dart`:
+  ///
+  ///   - dart {vmAdditionalArgs} {toolArgs}
+  ///   - dart {vmAdditionalArgs} run test:test {toolArgs}
+  final List<String>? vmAdditionalArgs;
+
   final int? vmServicePort;
 
   final bool? enableAsserts;
@@ -1928,6 +1937,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     this.args,
     this.vmServicePort,
     this.toolArgs,
+    this.vmAdditionalArgs,
     this.console,
     this.enableAsserts,
     this.customTool,
@@ -1960,6 +1970,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         program = obj['program'] as String,
         args = (obj['args'] as List?)?.cast<String>(),
         toolArgs = (obj['toolArgs'] as List?)?.cast<String>(),
+        vmAdditionalArgs = (obj['vmAdditionalArgs'] as List?)?.cast<String>(),
         vmServicePort = obj['vmServicePort'] as int?,
         console = obj['console'] as String?,
         enableAsserts = obj['enableAsserts'] as bool?,
@@ -1974,6 +1985,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         'program': program,
         if (args != null) 'args': args,
         if (toolArgs != null) 'toolArgs': toolArgs,
+        if (vmAdditionalArgs != null) 'vmAdditionalArgs': vmAdditionalArgs,
         if (vmServicePort != null) 'vmServicePort': vmServicePort,
         if (console != null) 'console': console,
         if (enableAsserts != null) 'enableAsserts': enableAsserts,

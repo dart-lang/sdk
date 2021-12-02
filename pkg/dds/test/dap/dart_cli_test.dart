@@ -12,6 +12,24 @@ import 'mocks.dart';
 
 main() {
   group('dart cli adapter', () {
+    test('includes vmAdditionalArgs', () async {
+      final adapter = MockDartCliDebugAdapter();
+      final responseCompleter = Completer<void>();
+      final request = MockRequest();
+      final args = DartLaunchRequestArguments(
+        program: 'foo.dart',
+        vmAdditionalArgs: ['vm_arg'],
+        noDebug: true,
+      );
+
+      await adapter.configurationDoneRequest(request, null, () {});
+      await adapter.launchRequest(request, args, responseCompleter.complete);
+      await responseCompleter.future;
+
+      expect(adapter.executable, equals(Platform.resolvedExecutable));
+      expect(adapter.processArgs, containsAllInOrder(['vm_arg', 'foo.dart']));
+    });
+
     test('includes toolArgs', () async {
       final adapter = MockDartCliDebugAdapter();
       final responseCompleter = Completer<void>();
@@ -27,7 +45,7 @@ main() {
       await responseCompleter.future;
 
       expect(adapter.executable, equals(Platform.resolvedExecutable));
-      expect(adapter.processArgs, contains('tool_arg'));
+      expect(adapter.processArgs, containsAllInOrder(['tool_arg', 'foo.dart']));
     });
 
     test('includes env', () async {
