@@ -300,9 +300,9 @@ abstract class Iterable<E> {
 
   /// Invokes [action] on each element of this iterable in iteration order.
   /// ```dart
-  /// final planets = <double, String>{0.06: 'Mercury', 0.81: 'Venus',
+  /// final planetsByMass = <double, String>{0.06: 'Mercury', 0.81: 'Venus',
   ///   0.11: 'Mars'};
-  /// planets.forEach((key, value) {
+  /// planetsByMass.forEach((key, value) {
   ///   print('$key : $value');
   ///   // 0.06 : Mercury
   ///   // 0.81 : Venus
@@ -379,11 +379,11 @@ abstract class Iterable<E> {
   /// Checks every element in iteration order, and returns `false` if
   /// any of them make [test] return `false`, otherwise returns `true`.
   /// ```dart
-  /// final massByPlanets = <double,String>{0.06: 'Mercury', 0.81: 'Venus',
+  /// final planetsByMass = <double,String>{0.06: 'Mercury', 0.81: 'Venus',
   ///   0.11: 'Mars'};
   /// // Checks whether all keys smaller than 1.
   /// final every =
-  ///     massByPlanets.entries.every((element) => element.key < 1.0); // true
+  ///     planetsByMass.entries.every((element) => element.key < 1.0); // true
   /// ```
   bool every(bool test(E element)) {
     for (E element in this) {
@@ -400,9 +400,9 @@ abstract class Iterable<E> {
   /// [separator] string interleaved between the elements.
   ///
   /// ```dart
-  /// final massByPlanets = <double,String>{0.06: 'Mercury', 0.81: 'Venus',
+  /// final planetsByMass = <double,String>{0.06: 'Mercury', 0.81: 'Venus',
   ///   0.11: 'Mars'};
-  /// final joinedNames = massByPlanets.values.join('-'); // Mercury-Venus-Mars
+  /// final joinedNames = planetsByMass.values.join('-'); // Mercury-Venus-Mars
   /// ```
   String join([String separator = ""]) {
     Iterator<E> iterator = this.iterator;
@@ -510,7 +510,7 @@ abstract class Iterable<E> {
   ///
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
-  /// final takeList = numbers.take(4); // (1, 2, 3, 5)
+  /// final result = numbers.take(4); // (1, 2, 3, 5)
   /// ```
   ///
   /// The `count` must not be negative.
@@ -552,7 +552,7 @@ abstract class Iterable<E> {
   ///
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
-  /// final skipList = numbers.skip(4); // (6, 7)
+  /// final result = numbers.skip(4); // (6, 7)
   /// ```
   ///
   /// The [count] must not be negative.
