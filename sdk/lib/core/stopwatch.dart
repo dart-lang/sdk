@@ -4,47 +4,46 @@
 
 part of dart.core;
 
-/// A simple stopwatch interface to measure elapsed time.
+/// A stopwatch which measures time while it's running.
 ///
-/// The [elapsed] count increases monotonically. If the Stopwatch has
-/// been stopped, then calling [start] again restarts it without resetting the
-/// [elapsed] count. Calling [reset] does not stop the [elapsed] counter, but
-/// resets the [elapsed] count. Call [stop] to pause or end counter.
+/// A stopwatch is either running or stopped.
+/// It measures the elapsed time that passes while the stopwatch is running.
+///
+/// When a stopwatch is initially created, it is stopped and has measured no
+/// elapsed time.
+///
+/// The elapsed time can be accessed in various formats using
+/// [elapsed], [elapsedMilliseconds], [elapsedMicroseconds] or [elapsedTicks].
+///
+/// The stopwatch is started by calling [start].
 ///
 /// Example:
 /// ```dart
 /// final stopwatch = Stopwatch();
-///
-/// // To start stopwatch counter, call 'start'.
+/// print(stopwatch.elapsedMilliseconds); // 0
+/// print(stopwatch.isRunning); // false
 /// stopwatch.start();
 /// print(stopwatch.isRunning); // true
-///
-/// // Delay for behavior demo.
-/// sleep(const Duration(seconds: 2));
-///
-/// // Stopwatch provides 'Duration' type object via 'elapsed'.
-/// print(stopwatch.elapsed.inSeconds); // 2
-///
-/// // To pause or end counter, call 'stop'.
+/// ```
+/// To stop or pause the stopwatch, use [stop].
+/// Use [start] to continue again when only pausing temporarily.
+/// ```
 /// stopwatch.stop();
 /// print(stopwatch.isRunning); // false
-///
-/// // Continue counter, call 'start' again.
-/// stopwatch.start();
-///
-/// // Delay for behavior demo.
-/// sleep(const Duration(seconds: 2));
-///
-/// // To pause or end counter, call 'stop'.
+/// Duration elapsed = stopwatch.elapsed;
+/// await Future.delayed(const Duration(seconds: 1));
+/// assert(stopwatch.elapsed == elapsed); // No measured time elapsed.
+/// stopwatch.start(); // Continue measuring.
+/// ```
+/// The [reset] method sets the elapsed time back to zero.
+/// It can be called whether the stopwatch is running or not,
+/// and doesn't change whether it's running.
+/// ```
+/// // Do some work.
 /// stopwatch.stop();
-/// print(stopwatch.elapsed.inSeconds); // 4
-/// print(stopwatch.isRunning); // false;
-///
-/// // Call 'reset' to initialize counter.
+/// print(stopwatch.elapsedMilliseconds); // Likely > 0.
 /// stopwatch.reset();
-/// print(stopwatch.elapsed); // 0:00:00.000000
-/// print(stopwatch.elapsedTicks); // 0
-/// print(stopwatch.isRunning); // false
+/// print(stopwatch.elapsedMilliseconds); // 0
 /// ```
 class Stopwatch {
   /// Cached frequency of the system in Hz (ticks per second).
