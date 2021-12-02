@@ -86,7 +86,7 @@ class ExpectedDiagnostic {
     if (!diagnosticMatcher(error)) return false;
     if (error.offset != offset) return false;
     if (error.length != length) return false;
-    if (messageContains != null && error.message.contains(messageContains!)) {
+    if (messageContains != null && !error.message.contains(messageContains!)) {
       return false;
     }
 

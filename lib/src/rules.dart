@@ -59,6 +59,7 @@ import 'rules/cascade_invocations.dart';
 import 'rules/cast_nullable_to_non_nullable.dart';
 import 'rules/close_sinks.dart';
 import 'rules/comment_references.dart';
+import 'rules/conditional_uri_does_not_exist.dart';
 import 'rules/constant_identifier_names.dart';
 import 'rules/control_flow_in_finally.dart';
 import 'rules/curly_braces_in_flow_control_structures.dart';
@@ -264,6 +265,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(CastNullableToNonNullable())
     ..register(CloseSinks())
     ..register(CommentReferences())
+    ..register(ConditionalUriDoesNotExist())
     ..register(ConstantIdentifierNames())
     ..register(ControlFlowInFinally())
     ..register(CurlyBracesInFlowControlStructures())

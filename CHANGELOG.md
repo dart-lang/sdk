@@ -1,3 +1,7 @@
+# 1.16.0
+
+- new lint: `conditional_uri_does_not_exist`
+
 # 1.15.0
 
 - new lint: `use_decorated_box`

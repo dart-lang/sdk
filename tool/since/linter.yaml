@@ -51,6 +51,7 @@ cascade_invocations: 0.1.29
 cast_nullable_to_non_nullable : 0.1.120
 close_sinks: 0.1.19
 comment_references: 0.1.17
+conditional_uri_does_not_exist: 1.16.0
 control_flow_in_finally: 0.1.16
 constant_identifier_names: 0.1.1
 curly_braces_in_flow_control_structures: 0.1.57
