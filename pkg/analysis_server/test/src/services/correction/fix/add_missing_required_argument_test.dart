@@ -338,6 +338,28 @@ main() {
 ''');
   }
 
+  Future<void> test_constructor_single_namedAnywhere() async {
+    addSource('/home/test/lib/a.dart', r'''
+class A {
+  A(int a, int b, {int? c, required int d}) {}
+}
+''');
+    await resolveTestCode('''
+import 'package:test/a.dart';
+
+void f() {
+  A(0, c: 1, 2);
+}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f() {
+  A(0, c: 1, 2, d: null);
+}
+''');
+  }
+
   Future<void> test_multiple() async {
     await resolveTestCode('''
 test({required int a, required int bcd}) {}

@@ -442,6 +442,35 @@ void f() {
 ''');
   }
 
+  Future<void> test_createChange_parameter_named_anywhere() async {
+    await indexTestUnit('''
+myFunction(int a, int b, {required int test}) {
+  test = 1;
+  test += 2;
+  print(test);
+}
+void f() {
+  myFunction(0, test: 2, 1);
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test}) {');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    expect(refactoring.elementKindName, 'parameter');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+myFunction(int a, int b, {required int newName}) {
+  newName = 1;
+  newName += 2;
+  print(newName);
+}
+void f() {
+  myFunction(0, newName: 2, 1);
+}
+''');
+  }
+
   Future<void> test_createChange_parameter_named_inOtherFile() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');

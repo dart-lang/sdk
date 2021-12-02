@@ -65,6 +65,13 @@ class AbstractContextTest with ResourceProviderMixin {
     throw 0;
   }
 
+  /// Return a list of the experiments that are to be enabled for tests in this
+  /// class, an empty list if there are no experiments that should be enabled.
+  List<String> get experiments => [
+        EnableString.constructor_tearoffs,
+        EnableString.named_arguments_anywhere,
+      ];
+
   String get latestLanguageVersion =>
       '${ExperimentStatus.currentVersion.major}.'
       '${ExperimentStatus.currentVersion.minor}';
@@ -192,6 +199,10 @@ class AbstractContextTest with ResourceProviderMixin {
     );
 
     writeTestPackageConfig();
+
+    createAnalysisOptionsFile(
+      experiments: experiments,
+    );
   }
 
   void setupResourceProvider() {}
