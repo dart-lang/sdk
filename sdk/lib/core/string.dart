@@ -426,10 +426,11 @@ abstract class String implements Comparable<String>, Pattern {
   /// one time for each position the length is less than [width].
   ///
   /// ```dart
-  /// const dart = 'D';
-  /// print(dart.padLeft(4)); // '   D'
-  /// print(dart.padLeft(2, 'x')); // 'xD'
-  /// print(dart.padLeft(4, 'y')); // 'yyyD'
+  /// const string = 'D';
+  /// print(string.padLeft(4)); // '   D'
+  /// print(string.padLeft(2, 'x')); // 'xD'
+  /// print(string.padLeft(4, 'y')); // 'yyyD'
+  /// print(string.padLeft(4, '>>')); // '>>>>>>D'
   /// ```
   ///
   /// If [width] is already smaller than or equal to `this.length`,
@@ -449,10 +450,11 @@ abstract class String implements Comparable<String>, Pattern {
   /// one time for each position the length is less than [width].
   ///
   /// ```dart
-  /// const dart = 'D';
-  /// print(dart.padRight(4)); // 'D    '
-  /// print(dart.padRight(2, 'x')); // 'Dx'
-  /// print(dart.padRight(4, 'y')); // 'Dyyy'
+  /// const string = 'D';
+  /// print(string.padRight(4)); // 'D    '
+  /// print(string.padRight(2, 'x')); // 'Dx'
+  /// print(string.padRight(4, 'y')); // 'Dyyy'
+  /// print(string.padRight(4, '>>')); // 'D>>>>>>'
   /// ```
   ///
   /// If [width] is already smaller than or equal to `this.length`,
