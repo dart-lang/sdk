@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 
 class FindNode {
   final String content;
@@ -14,6 +15,16 @@ class FindNode {
   LibraryDirective get libraryDirective {
     return unit.directives.singleWhere((d) => d is LibraryDirective)
         as LibraryDirective;
+  }
+
+  List<MethodInvocation> get methodInvocations {
+    var result = <MethodInvocation>[];
+    unit.accept(
+      FunctionAstVisitor(
+        methodInvocation: result.add,
+      ),
+    );
+    return result;
   }
 
   Annotation annotation(String search) {
@@ -90,6 +101,10 @@ class FindNode {
 
   ConstructorName constructorName(String search) {
     return _node(search, (n) => n is ConstructorName);
+  }
+
+  ConstructorReference constructorReference(String search) {
+    return _node(search, (n) => n is ConstructorReference);
   }
 
   ContinueStatement continueStatement(String search) {
@@ -188,6 +203,10 @@ class FindNode {
     return _node(search, (n) => n is IfStatement);
   }
 
+  ImplicitCallReference implicitCallReference(String search) {
+    return _node(search, (n) => n is ImplicitCallReference);
+  }
+
   ImportDirective import(String search) {
     return _node(search, (n) => n is ImportDirective);
   }
@@ -238,6 +257,10 @@ class FindNode {
 
   NamedExpression namedExpression(String search) {
     return _node(search, (n) => n is NamedExpression);
+  }
+
+  NamedType namedType(String search) {
+    return _node(search, (n) => n is NamedType);
   }
 
   NullLiteral nullLiteral(String search) {
@@ -364,10 +387,6 @@ class FindNode {
 
   TypeLiteral typeLiteral(String search) {
     return _node(search, (n) => n is TypeLiteral);
-  }
-
-  TypeName typeName(String search) {
-    return _node(search, (n) => n is TypeName);
   }
 
   TypeParameter typeParameter(String search) {

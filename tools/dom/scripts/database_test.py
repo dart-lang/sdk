@@ -51,7 +51,7 @@ class DatabaseTestCase(unittest.TestCase):
     def testListInterfaces(self):
         db = database.Database(self._database_dir)
         db.Load()
-        self.assertEquals(self._ListInterfaces(db), ['I1'])
+        self.assertEqual(self._ListInterfaces(db), ['I1'])
 
     def testHasInterface(self):
         db = database.Database(self._database_dir)
@@ -67,7 +67,7 @@ class DatabaseTestCase(unittest.TestCase):
         db.Save()
         self.assertTrue(
             os.path.exists(os.path.join(self._database_dir, 'I2.idl')))
-        self.assertEquals(self._ListInterfaces(db), ['I1', 'I2'])
+        self.assertEqual(self._ListInterfaces(db), ['I1', 'I2'])
 
     def testDeleteInterface(self):
         db = database.Database(self._database_dir)
@@ -76,13 +76,13 @@ class DatabaseTestCase(unittest.TestCase):
         db.Save()
         self.assertFalse(
             os.path.exists(os.path.join(self._database_dir, 'I1.idl')))
-        self.assertEquals(self._ListInterfaces(db), [])
+        self.assertEqual(self._ListInterfaces(db), [])
 
     def testGetInterface(self):
         db = database.Database(self._database_dir)
         db.Load()
         interface = db.GetInterface('I1')
-        self.assertEquals(interface.id, 'I1')
+        self.assertEqual(interface.id, 'I1')
 
 
 if __name__ == '__main__':

@@ -71,7 +71,7 @@ constants  {
   #C1 = #getter
   #C2 = <dart.core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = dart.core::_ImmutableMap<dart.core::Symbol*, dynamic> {_kvPairs:#C3}
+  #C4 = <dart.core::Symbol*, dynamic>{)
   #C5 = #method
   #C6 = #setter=
   #C7 = #field

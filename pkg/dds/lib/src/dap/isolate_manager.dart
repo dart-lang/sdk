@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
 import 'adapters/dart.dart';
@@ -55,6 +57,10 @@ class IsolateManager {
   /// isolates that appear after initial breakpoints were sent.
   final Map<String, List<SourceBreakpoint>> _clientBreakpointsByUri = {};
 
+  /// Tracks client breakpoints by the ID assigned by the VM so we can look up
+  /// conditions/logpoints when hitting breakpoints.
+  final Map<String, SourceBreakpoint> _clientBreakpointsByVmId = {};
+
   /// Tracks breakpoints created in the VM so they can be removed when the
   /// editor sends new breakpoints (currently the editor just sends a new list
   /// and not requests to add/remove).
@@ -80,6 +86,12 @@ class IsolateManager {
   /// Stored data is thread-scoped but the client will not provide the thread
   /// when asking for data so it's all stored together here.
   final _storedData = <int, _StoredData>{};
+
+  /// A pattern that matches an opening brace `{` that was not preceeded by a
+  /// dollar.
+  ///
+  /// Any leading character matched in place of the dollar is in the first capture.
+  final _braceNotPrefixedByDollarOrBackslashPattern = RegExp(r'(^|[^\\\$]){');
 
   IsolateManager(this._adapter);
 
@@ -116,8 +128,14 @@ class IsolateManager {
 
   ThreadInfo? getThread(int threadId) => _threadsByThreadId[threadId];
 
-  /// Handles Isolate and Debug events
-  Future<void> handleEvent(vm.Event event) async {
+  /// Handles Isolate and Debug events.
+  ///
+  /// If [resumeIfStarting] is `true`, PauseStart/PausePostStart events will be
+  /// automatically resumed from.
+  Future<void> handleEvent(
+    vm.Event event, {
+    bool resumeIfStarting = true,
+  }) async {
     final isolateId = event.isolate?.id;
     if (isolateId == null) {
       return;
@@ -139,7 +157,7 @@ class IsolateManager {
     if (eventKind == vm.EventKind.kIsolateExit) {
       _handleExit(event);
     } else if (eventKind?.startsWith('Pause') ?? false) {
-      await _handlePause(event);
+      await _handlePause(event, resumeIfStarting: resumeIfStarting);
     } else if (eventKind == vm.EventKind.kResume) {
       _handleResumed(event);
     }
@@ -151,7 +169,7 @@ class IsolateManager {
   /// New isolates will be configured with the correct pause-exception behaviour,
   /// libraries will be marked as debuggable if appropriate, and breakpoints
   /// sent.
-  Future<void> registerIsolate(
+  Future<ThreadInfo> registerIsolate(
     vm.IsolateRef isolate,
     String eventKind,
   ) async {
@@ -181,6 +199,8 @@ class IsolateManager {
       await _configureIsolate(isolate);
       registrationCompleter.complete();
     }
+
+    return info;
   }
 
   Future<void> resumeIsolate(vm.IsolateRef isolateRef,
@@ -233,6 +253,11 @@ class IsolateManager {
     }
   }
 
+  /// Sends an event informing the client that a thread is stopped at entry.
+  void sendStoppedOnEntryEvent(int threadId) {
+    _adapter.sendEvent(StoppedEventBody(reason: 'entry', threadId: threadId));
+  }
+
   /// Records breakpoints for [uri].
   ///
   /// [breakpoints] represents the new set and entirely replaces anything given
@@ -271,6 +296,27 @@ class IsolateManager {
   ThreadInfo? threadForIsolate(vm.IsolateRef? isolate) =>
       isolate?.id != null ? _threadsByIsolateId[isolate!.id!] : null;
 
+  /// Evaluates breakpoint condition [condition] and returns whether the result
+  /// is true (or non-zero for a numeric), sending any evaluation error to the
+  /// client.
+  Future<bool> _breakpointConditionEvaluatesTrue(
+    ThreadInfo thread,
+    String condition,
+  ) async {
+    final result =
+        await _evaluateAndPrintErrors(thread, condition, 'condition');
+    if (result == null) {
+      return false;
+    }
+
+    // Values we consider true for breakpoint conditions are boolean true,
+    // or non-zero numerics.
+    return (result.kind == vm.InstanceKind.kBool &&
+            result.valueAsString == 'true') ||
+        (result.kind == vm.InstanceKind.kInt && result.valueAsString != '0') ||
+        (result.kind == vm.InstanceKind.kDouble && result.valueAsString != '0');
+  }
+
   /// Configures a new isolate, setting it's exception-pause mode, which
   /// libraries are debuggable, and sending all breakpoints.
   Future<void> _configureIsolate(vm.IsolateRef isolate) async {
@@ -279,6 +325,44 @@ class IsolateManager {
       _sendExceptionPauseMode(isolate),
       _sendBreakpoints(isolate),
     ], eagerError: true);
+  }
+
+  /// Evaluates an expression, returning the result if it is a [vm.InstanceRef]
+  /// and sending any error as an [OutputEvent].
+  Future<vm.InstanceRef?> _evaluateAndPrintErrors(
+    ThreadInfo thread,
+    String expression,
+    String type,
+  ) async {
+    try {
+      final result = await _adapter.vmService?.evaluateInFrame(
+        thread.isolate.id!,
+        0,
+        expression,
+        disableBreakpoints: true,
+      );
+
+      if (result is vm.InstanceRef) {
+        return result;
+      } else if (result is vm.ErrorRef) {
+        final message = result.message ?? '<error ref>';
+        _adapter.sendOutput(
+          'console',
+          'Debugger failed to evaluate breakpoint $type "$expression": $message\n',
+        );
+      } else if (result is vm.Sentinel) {
+        final message = result.valueAsString ?? '<collected>';
+        _adapter.sendOutput(
+          'console',
+          'Debugger failed to evaluate breakpoint $type "$expression": $message\n',
+        );
+      }
+    } catch (e) {
+      _adapter.sendOutput(
+        'console',
+        'Debugger failed to evaluate breakpoint $type "$expression": $e\n',
+      );
+    }
   }
 
   void _handleExit(vm.Event event) {
@@ -297,18 +381,23 @@ class IsolateManager {
 
   /// Handles a pause event.
   ///
-  /// For [vm.EventKind.kPausePostRequest] which occurs after a restart, the isolate
-  /// will be re-configured (pause-exception behaviour, debuggable libraries,
-  /// breakpoints) and then resumed.
+  /// For [vm.EventKind.kPausePostRequest] which occurs after a restart, the
+  /// isolate will be re-configured (pause-exception behaviour, debuggable
+  /// libraries, breakpoints) and then (if [resumeIfStarting] is `true`)
+  /// resumed.
   ///
-  /// For [vm.EventKind.kPauseStart], the isolate will be resumed.
+  /// For [vm.EventKind.kPauseStart] and [resumeIfStarting] is `true`, the
+  /// isolate will be resumed.
   ///
   /// For breakpoints with conditions that are not met and for logpoints, the
   /// isolate will be automatically resumed.
   ///
   /// For all other pause types, the isolate will remain paused and a
   /// corresponding "Stopped" event sent to the editor.
-  Future<void> _handlePause(vm.Event event) async {
+  Future<void> _handlePause(
+    vm.Event event, {
+    bool resumeIfStarting = true,
+  }) async {
     final eventKind = event.kind;
     final isolate = event.isolate!;
     final thread = _threadsByIsolateId[isolate.id!];
@@ -325,13 +414,21 @@ class IsolateManager {
     // after a hot restart.
     if (eventKind == vm.EventKind.kPausePostRequest) {
       await _configureIsolate(isolate);
-      await resumeThread(thread.threadId);
+      if (resumeIfStarting) {
+        await resumeThread(thread.threadId);
+      }
     } else if (eventKind == vm.EventKind.kPauseStart) {
       // Don't resume from a PauseStart if this has already happened (see
       // comments on [thread.hasBeenStarted]).
       if (!thread.hasBeenStarted) {
-        thread.hasBeenStarted = true;
-        await resumeThread(thread.threadId);
+        // If requested, automatically resume. Otherwise send a Stopped event to
+        // inform the client UI the thread is paused.
+        if (resumeIfStarting) {
+          thread.hasBeenStarted = true;
+          await resumeThread(thread.threadId);
+        } else {
+          sendStoppedOnEntryEvent(thread.threadId);
+        }
       }
     } else {
       // PauseExit, PauseBreakpoint, PauseInterrupted, PauseException
@@ -340,6 +437,29 @@ class IsolateManager {
       if (eventKind == vm.EventKind.kPauseBreakpoint &&
           (event.pauseBreakpoints?.isNotEmpty ?? false)) {
         reason = 'breakpoint';
+        // Look up the client breakpoints that correspond to the VM breakpoint(s)
+        // we hit. It's possible some of these may be missing because we could
+        // hit a breakpoint that was set before we were attached.
+        final clientBreakpoints = event.pauseBreakpoints!
+            .map((bp) => _clientBreakpointsByVmId[bp.id!])
+            .toSet();
+
+        // Split into logpoints (which just print messages) and breakpoints.
+        final logPoints = clientBreakpoints
+            .whereNotNull()
+            .where((bp) => bp.logMessage?.isNotEmpty ?? false)
+            .toSet();
+        final breakpoints = clientBreakpoints.difference(logPoints);
+
+        await _processLogPoints(thread, logPoints);
+
+        // Resume if there are no (non-logpoint) breakpoints, of any of the
+        // breakpoints don't have false conditions.
+        if (breakpoints.isEmpty ||
+            !await _shouldHitBreakpoint(thread, breakpoints)) {
+          await resumeThread(thread.threadId);
+          return;
+        }
       } else if (eventKind == vm.EventKind.kPauseBreakpoint) {
         reason = 'step';
       } else if (eventKind == vm.EventKind.kPauseException) {
@@ -350,6 +470,7 @@ class IsolateManager {
       // can add a variables scope for it so it can be examined.
       final exception = event.exception;
       if (exception != null) {
+        _adapter.storeEvaluateName(exception, threadExceptionExpression);
         thread.exceptionReference = thread.storeData(exception);
       }
 
@@ -371,32 +492,38 @@ class IsolateManager {
     }
   }
 
-  bool _isExternalPackageLibrary(vm.LibraryRef library) =>
-      // TODO(dantup): This needs to check if it's _external_, eg.
-      //
-      // - is from the flutter SDK (flutter, flutter_test, ...)
-      // - is from pub/pubcache
-      //
-      // This is intended to match the users idea of "my code". For example
-      // they may wish to debug the current app being run, as well as any other
-      // projects that are references with path: dependencies (which are likely
-      // their own supporting projects).
-      false /*library.uri?.startsWith('package:') ?? false*/;
-
-  bool _isSdkLibrary(vm.LibraryRef library) =>
-      library.uri?.startsWith('dart:') ?? false;
-
-  /// Checks whether a library should be considered debuggable.
+  /// Interpolates and prints messages for any log points.
   ///
-  /// Initial values are provided in the launch arguments, but may be updated
-  /// by the `updateDebugOptions` custom request.
-  bool _libaryIsDebuggable(vm.LibraryRef library) {
-    if (_isSdkLibrary(library)) {
-      return debugSdkLibraries;
-    } else if (_isExternalPackageLibrary(library)) {
-      return debugExternalPackageLibraries;
-    } else {
-      return true;
+  /// Log Points are breakpoints with string messages attached. When the VM hits
+  /// the breakpoint, we evaluate/print the message and then automatically
+  /// resume (as long as there was no other breakpoint).
+  Future<void> _processLogPoints(
+    ThreadInfo thread,
+    Set<SourceBreakpoint> logPoints,
+  ) async {
+    // Otherwise, we need to evaluate all of the conditions and see if any are
+    // true, in which case we will also hit.
+    final messages = logPoints.map((bp) => bp.logMessage!).toList();
+
+    final results = await Future.wait(messages.map(
+      (message) {
+        // Log messages are bare so use jsonEncode to make them valid string
+        // expressions.
+        final expression = jsonEncode(message)
+            // The DAP spec says "Expressions within {} are interpolated" so to
+            // avoid any clever parsing, just prefix them with $ and treat them
+            // like other Dart interpolation expressions.
+            .replaceAllMapped(_braceNotPrefixedByDollarOrBackslashPattern,
+                (match) => '${match.group(1)}\${')
+            // Remove any backslashes the user added to "escape" braces.
+            .replaceAll(r'\\{', '{');
+        return _evaluateAndPrintErrors(thread, expression, 'log message');
+      },
+    ));
+
+    for (final messageResult in results) {
+      // TODO(dantup): Format this using other existing code in protocol converter?
+      _adapter.sendOutput('console', '${messageResult?.valueAsString}\n');
     }
   }
 
@@ -431,10 +558,18 @@ class IsolateManager {
       // Set new breakpoints.
       final newBreakpoints = _clientBreakpointsByUri[uri] ?? const [];
       await Future.forEach<SourceBreakpoint>(newBreakpoints, (bp) async {
-        final vmBp = await service.addBreakpointWithScriptUri(
-            isolateId, uri, bp.line,
-            column: bp.column);
-        existingBreakpointsForIsolateAndUri.add(vmBp);
+        try {
+          final vmBp = await service.addBreakpointWithScriptUri(
+              isolateId, uri, bp.line,
+              column: bp.column);
+          existingBreakpointsForIsolateAndUri.add(vmBp);
+          _clientBreakpointsByVmId[vmBp.id!] = bp;
+        } catch (e) {
+          // Swallow errors setting breakpoints rather than failing the whole
+          // request as it's very easy for editors to send us breakpoints that
+          // aren't valid any more.
+          _adapter.logger?.call('Failed to add breakpoint $e');
+        }
       });
     }
   }
@@ -468,9 +603,39 @@ class IsolateManager {
       return;
     }
     await Future.wait(libraries.map((library) async {
-      final isDebuggable = _libaryIsDebuggable(library);
+      final libraryUri = library.uri;
+      final isDebuggable = libraryUri != null
+          ? _adapter.libaryIsDebuggable(Uri.parse(libraryUri))
+          : false;
       await service.setLibraryDebuggable(isolateId, library.id!, isDebuggable);
     }));
+  }
+
+  /// Checks whether a breakpoint the VM paused at is one we should actually
+  /// remain at. That is, it either has no condition, or its condition evaluates
+  /// to something truthy.
+  Future<bool> _shouldHitBreakpoint(
+    ThreadInfo thread,
+    Set<SourceBreakpoint?> breakpoints,
+  ) async {
+    // If any were missing (they're null) or do not have a condition, we should
+    // hit the breakpoint.
+    final clientBreakpointsWithConditions =
+        breakpoints.where((bp) => bp?.condition?.isNotEmpty ?? false).toList();
+    if (breakpoints.length != clientBreakpointsWithConditions.length) {
+      return true;
+    }
+
+    // Otherwise, we need to evaluate all of the conditions and see if any are
+    // true, in which case we will also hit.
+    final conditions =
+        clientBreakpointsWithConditions.map((bp) => bp!.condition!).toSet();
+
+    final results = await Future.wait(conditions.map(
+      (condition) => _breakpointConditionEvaluatesTrue(thread, condition),
+    ));
+
+    return results.any((result) => result);
   }
 }
 

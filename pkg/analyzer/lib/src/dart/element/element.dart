@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
-import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -42,7 +41,6 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -898,16 +896,22 @@ class ClassElementImpl extends AbstractClassElementImpl
           ParameterElementImpl implicitParameter;
           if (superParameter is ConstVariableElement) {
             var constVariable = superParameter as ConstVariableElement;
-            implicitParameter =
-                DefaultParameterElementImpl(superParameter.name, -1)
-                  ..constantInitializer = constVariable.constantInitializer;
+            implicitParameter = DefaultParameterElementImpl(
+              name: superParameter.name,
+              nameOffset: -1,
+              // ignore: deprecated_member_use_from_same_package
+              parameterKind: superParameter.parameterKind,
+            )..constantInitializer = constVariable.constantInitializer;
           } else {
-            implicitParameter = ParameterElementImpl(superParameter.name, -1);
+            implicitParameter = ParameterElementImpl(
+              name: superParameter.name,
+              nameOffset: -1,
+              // ignore: deprecated_member_use_from_same_package
+              parameterKind: superParameter.parameterKind,
+            );
           }
           implicitParameter.isConst = superParameter.isConst;
           implicitParameter.isFinal = superParameter.isFinal;
-          // ignore: deprecated_member_use_from_same_package
-          implicitParameter.parameterKind = superParameter.parameterKind;
           implicitParameter.isSynthetic = true;
           implicitParameter.type =
               substitution.substituteType(superParameter.type);
@@ -949,7 +953,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   static ConstructorElement? getNamedConstructorFromList(
       String name, List<ConstructorElement> constructors) {
     if (name == 'new') {
-      // An unnamed constructor declared with `C.new(` is modeled as unnamed.
+      // A constructor declared as `C.new` is unnamed, and is modeled as such.
       name = '';
     }
     for (ConstructorElement element in constructors) {
@@ -967,10 +971,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// The source that corresponds to this compilation unit.
   @override
   late Source source;
-
-  /// The content of the [source] for which this element model was built.
-  /// Might be `null` if we don't have it (for example in google3 summaries).
-  String? sourceContent;
 
   @override
   LineInfo? lineInfo;
@@ -1409,16 +1409,13 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 /// A concrete implementation of a [ConstructorElement].
 class ConstructorElementImpl extends ExecutableElementImpl
     with ConstructorElementMixin
-    implements ConstructorElement, HasMacroGenerationData {
+    implements ConstructorElement {
   /// The constructor to which this constructor is redirecting.
   ConstructorElement? _redirectedConstructor;
 
   /// The initializers for this constructor (used for evaluating constant
   /// instance creation expressions).
   List<ConstructorInitializer> _constantInitializers = const [];
-
-  @override
-  MacroGenerationData? macro;
 
   @override
   int? periodOffset;
@@ -1454,12 +1451,13 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   String get displayName {
-    final linkedData = this.linkedData;
-    if (linkedData != null) {
-      return linkedData.reference.name;
+    var className = enclosingElement.name;
+    var name = this.name;
+    if (name.isNotEmpty) {
+      return '$className.$name';
+    } else {
+      return className;
     }
-
-    return super.displayName;
   }
 
   @override
@@ -1501,6 +1499,16 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   ElementKind get kind => ElementKind.CONSTRUCTOR;
+
+  @override
+  int get nameLength {
+    final nameEnd = this.nameEnd;
+    if (nameEnd == null || periodOffset == null) {
+      return 0;
+    } else {
+      return nameEnd - nameOffset;
+    }
+  }
 
   @override
   Element get nonSynthetic {
@@ -1655,8 +1663,15 @@ class DefaultFieldFormalParameterElementImpl
     extends FieldFormalParameterElementImpl with ConstVariableElement {
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
-  DefaultFieldFormalParameterElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
+  DefaultFieldFormalParameterElementImpl({
+    required String name,
+    required int nameOffset,
+    required ParameterKind parameterKind,
+  }) : super(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: parameterKind,
+        );
 
   @override
   String? get defaultValueCode {
@@ -1669,8 +1684,15 @@ class DefaultParameterElementImpl extends ParameterElementImpl
     with ConstVariableElement {
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
-  DefaultParameterElementImpl(String? name, int nameOffset)
-      : super(name, nameOffset);
+  DefaultParameterElementImpl({
+    required String? name,
+    required int nameOffset,
+    required ParameterKind parameterKind,
+  }) : super(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: parameterKind,
+        );
 
   @override
   String? get defaultValueCode {
@@ -2638,14 +2660,7 @@ class ElementLocationImpl implements ElementLocation {
   }
 
   @override
-  int get hashCode {
-    int result = 0;
-    for (int i = 0; i < _components.length; i++) {
-      String component = _components[i];
-      result = JenkinsSmiHash.combine(result, component.hashCode);
-    }
-    return result;
-  }
+  int get hashCode => Object.hashAll(_components);
 
   @override
   bool operator ==(Object object) {
@@ -3299,8 +3314,15 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
-  FieldFormalParameterElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
+  FieldFormalParameterElementImpl({
+    required String name,
+    required int nameOffset,
+    required ParameterKind parameterKind,
+  }) : super(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: parameterKind,
+        );
 
   /// Initializing formals are visible only in the "formal parameter
   /// initializer scope", which is the current scope of the initializer list
@@ -3477,13 +3499,6 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   }
 }
 
-/// This interface is implemented by [Element]s that can be added by macros.
-abstract class HasMacroGenerationData {
-  /// If this element was added by a macro, the code of a declaration that
-  /// was produced by the macro.
-  MacroGenerationData? macro;
-}
-
 /// A concrete implementation of a [HideElementCombinator].
 class HideElementCombinatorImpl implements HideElementCombinator {
   @override
@@ -3624,6 +3639,12 @@ class LibraryElementImpl extends _ExistingElementImpl
   @override
   final AnalysisSession session;
 
+  /// If `true`, then this library is valid in the session.
+  ///
+  /// A library becomes invalid when one of its files, or one of its
+  /// dependencies, changes.
+  bool isValid = true;
+
   /// The language version for the library.
   LibraryLanguageVersion? _languageVersion;
 
@@ -3687,6 +3708,9 @@ class LibraryElementImpl extends _ExistingElementImpl
       this.nameLength, this.featureSet)
       : linkedData = null,
         super(name, offset);
+
+  @override
+  List<ExtensionElement> get accessibleExtensions => scope.extensions;
 
   @override
   CompilationUnitElement get definingCompilationUnit =>
@@ -3763,15 +3787,9 @@ class LibraryElementImpl extends _ExistingElementImpl
     return _exports;
   }
 
+  @Deprecated('Support for dart-ext is replaced with FFI')
   @override
-  bool get hasExtUri {
-    return hasModifier(Modifier.HAS_EXT_URI);
-  }
-
-  /// Set whether this library has an import of a "dart-ext" URI.
-  set hasExtUri(bool hasExtUri) {
-    setModifier(Modifier.HAS_EXT_URI, hasExtUri);
-  }
+  bool get hasExtUri => false;
 
   @Deprecated('Not useful for clients')
   @override
@@ -3942,7 +3960,7 @@ class LibraryElementImpl extends _ExistingElementImpl
   }
 
   @override
-  Scope get scope {
+  LibraryScope get scope {
     return _scope ??= LibraryScope(this);
   }
 
@@ -4159,36 +4177,8 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
       visitor.visitLocalVariableElement(this);
 }
 
-/// Information about a macro-produced [Element].
-class MacroGenerationData {
-  /// The sequential id of this macro-produced element, for an element created
-  /// for a declaration that was macro-generated later this value is greater.
-  ///
-  /// This is different from [ElementImpl.id], which is also incrementing,
-  /// but shows the order in which elements were built from declarations,
-  /// not the order of declarations, and we process all field declarations
-  /// before method declarations.
-  final int id;
-
-  /// The code that was produced by the macro. It is used to compose full
-  /// code of a unit to display to the user, so that new declarations are
-  /// added to the unit or existing classes.
-  ///
-  /// When a class is generated, its code might have some members, or might
-  /// be empty, and new elements might be macro-generated into it.
-  final String code;
-
-  /// When we build elements from macro-produced code, we remember informative
-  /// data, such as offsets - to store it into bytes. This field is set to
-  /// an empty list when reading from bytes.
-  final Uint8List informative;
-
-  MacroGenerationData(this.id, this.code, this.informative);
-}
-
 /// A concrete implementation of a [MethodElement].
-class MethodElementImpl extends ExecutableElementImpl
-    implements MethodElement, HasMacroGenerationData {
+class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /// Is `true` if this method is `operator==`, and there is no explicit
   /// type specified for its formal parameter, in this method or in any
   /// overridden methods other than the one declared in `Object`.
@@ -4198,15 +4188,17 @@ class MethodElementImpl extends ExecutableElementImpl
   /// this variable is not a subject of type inference, or there was no error.
   TopLevelInferenceError? typeInferenceError;
 
-  @override
-  MacroGenerationData? macro;
+  /// If this method is a synthetic element which is based on another method
+  /// with some modifications (such as making some parameters covariant),
+  /// this field contains the base method.
+  MethodElement? prototype;
 
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
   MethodElementImpl(String name, int offset) : super(name, offset);
 
   @override
-  MethodElement get declaration => this;
+  MethodElement get declaration => prototype ?? this;
 
   @override
   String get displayName {
@@ -4362,47 +4354,42 @@ class Modifier implements Comparable<Modifier> {
   /// Indicates that the pseudo-modifier 'get' was applied to the element.
   static const Modifier GETTER = Modifier('GETTER', 11);
 
-  /// A flag used for libraries indicating that the defining compilation unit
-  /// contains at least one import directive whose URI uses the "dart-ext"
-  /// scheme.
-  static const Modifier HAS_EXT_URI = Modifier('HAS_EXT_URI', 12);
-
   /// A flag used for libraries indicating that the variable has an explicit
   /// initializer.
-  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 13);
+  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 12);
 
   /// A flag used for fields and top-level variables that have implicit type,
   /// and specify when the type has been inferred.
-  static const Modifier HAS_TYPE_INFERRED = Modifier('HAS_TYPE_INFERRED', 14);
+  static const Modifier HAS_TYPE_INFERRED = Modifier('HAS_TYPE_INFERRED', 13);
 
   /// A flag used for libraries indicating that the defining compilation unit
   /// has a `part of` directive, meaning that this unit should be a part,
   /// but is used as a library.
   static const Modifier HAS_PART_OF_DIRECTIVE =
-      Modifier('HAS_PART_OF_DIRECTIVE', 15);
+      Modifier('HAS_PART_OF_DIRECTIVE', 14);
 
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 16);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 15);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 17);
+  static const Modifier LATE = Modifier('LATE', 16);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 18);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 17);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 19);
+  static const Modifier SETTER = Modifier('SETTER', 18);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 20);
+  static const Modifier STATIC = Modifier('STATIC', 19);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 21);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 20);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -4417,7 +4404,6 @@ class Modifier implements Comparable<Modifier> {
     FINAL,
     GENERATOR,
     GETTER,
-    HAS_EXT_URI,
     HAS_INITIALIZER,
     HAS_PART_OF_DIRECTIVE,
     IMPLICIT_TYPE,
@@ -4722,8 +4708,8 @@ class ParameterElementImpl extends VariableElementImpl
   /// typed parameter.
   List<TypeParameterElement> _typeParameters = const [];
 
-  /// The kind of this parameter.
-  ParameterKind? _parameterKind;
+  @override
+  final ParameterKind parameterKind;
 
   /// The Dart code of the default value.
   String? _defaultValueCode;
@@ -4735,15 +4721,22 @@ class ParameterElementImpl extends VariableElementImpl
 
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
-  ParameterElementImpl(String? name, int nameOffset) : super(name, nameOffset);
+  ParameterElementImpl({
+    required String? name,
+    required int nameOffset,
+    required this.parameterKind,
+  }) : super(name, nameOffset);
 
-  /// Creates a synthetic parameter with [name], [type] and [kind].
+  /// Creates a synthetic parameter with [name], [type] and [parameterKind].
   factory ParameterElementImpl.synthetic(
-      String? name, DartType type, ParameterKind kind) {
-    ParameterElementImpl element = ParameterElementImpl(name, -1);
+      String? name, DartType type, ParameterKind parameterKind) {
+    var element = ParameterElementImpl(
+      name: name,
+      nameOffset: -1,
+      parameterKind: parameterKind,
+    );
     element.type = type;
     element.isSynthetic = true;
-    element.parameterKind = kind;
     return element;
   }
 
@@ -4796,18 +4789,6 @@ class ParameterElementImpl extends VariableElementImpl
   ElementKind get kind => ElementKind.PARAMETER;
 
   @override
-  ParameterKind get parameterKind {
-    if (_parameterKind != null) return _parameterKind!;
-
-    // TODO(migration): Make it impossible by construction.
-    throw StateError('The kind must set.');
-  }
-
-  set parameterKind(ParameterKind parameterKind) {
-    _parameterKind = parameterKind;
-  }
-
-  @override
   List<ParameterElement> get parameters {
     return _parameters;
   }
@@ -4858,10 +4839,13 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   ParameterElementImpl_ofImplicitSetter(
       PropertyAccessorElementImpl_ImplicitSetter setter)
       : setter = setter,
-        super('_${setter.variable.name}', -1) {
+        super(
+          name: '_${setter.variable.name}',
+          nameOffset: -1,
+          parameterKind: ParameterKind.REQUIRED,
+        ) {
     enclosingElement = setter;
     isSynthetic = true;
-    parameterKind = ParameterKind.REQUIRED;
   }
 
   @override
@@ -5004,13 +4988,15 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 
 /// A concrete implementation of a [PropertyAccessorElement].
 class PropertyAccessorElementImpl extends ExecutableElementImpl
-    implements PropertyAccessorElement, HasMacroGenerationData {
+    implements PropertyAccessorElement {
   /// The variable associated with this accessor.
   @override
   late PropertyInducingElement variable;
 
-  @override
-  MacroGenerationData? macro;
+  /// If this method is a synthetic element which is based on another method
+  /// with some modifications (such as making some parameters covariant),
+  /// this field contains the base method.
+  PropertyAccessorElement? prototype;
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
@@ -5044,7 +5030,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  PropertyAccessorElement get declaration => this;
+  PropertyAccessorElement get declaration => prototype ?? this;
 
   @override
   String get identifier {
@@ -5594,6 +5580,37 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     } else {
       return (type as TypeImpl).withNullability(resultNullability);
     }
+  }
+
+  /// Returns whether this alias is a "proper rename" of [aliasedClass], as
+  /// defined in the constructor-tearoffs specification.
+  bool isProperRename() {
+    var aliasedType_ = aliasedType;
+    if (aliasedType_ is! InterfaceType) {
+      return false;
+    }
+    var aliasedClass = aliasedType_.element;
+    var typeArguments = aliasedType_.typeArguments;
+    var typeParameterCount = typeParameters.length;
+    if (typeParameterCount != aliasedClass.typeParameters.length) {
+      return false;
+    }
+    if (typeParameterCount != typeArguments.length) {
+      return false;
+    }
+    for (var i = 0; i < typeParameterCount; i++) {
+      var bound = typeParameters[i].bound ?? library.typeProvider.dynamicType;
+      var aliasedBound = aliasedClass.typeParameters[i].bound ??
+          library.typeProvider.dynamicType;
+      if (!library.typeSystem.isSubtypeOf(bound, aliasedBound) ||
+          !library.typeSystem.isSubtypeOf(aliasedBound, bound)) {
+        return false;
+      }
+      if (typeParameters[i] != typeArguments[i].element) {
+        return false;
+      }
+    }
+    return true;
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {

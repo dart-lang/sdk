@@ -91,6 +91,7 @@ class TopLevelDeclarationsProvider {
       case DeclarationKind.CLASS_TYPE_ALIAS:
       case DeclarationKind.ENUM:
       case DeclarationKind.FUNCTION_TYPE_ALIAS:
+      case DeclarationKind.TYPE_ALIAS:
       case DeclarationKind.MIXIN:
         return TopLevelDeclarationKind.type;
       case DeclarationKind.EXTENSION:

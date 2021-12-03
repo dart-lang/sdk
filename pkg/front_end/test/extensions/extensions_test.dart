@@ -23,7 +23,7 @@ import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests<Features>(dataDir,
       args: args,
@@ -59,6 +59,7 @@ class ExtensionsDataComputer extends DataComputer<Features> {
     new ExtensionsDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,
@@ -88,11 +89,11 @@ class ExtensionsDataComputer extends DataComputer<Features> {
       Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     for (FormattedMessage error in errors) {
-      if (error.message.contains(',')) {
+      if (error.problemMessage.contains(',')) {
         // TODO(johnniwinther): Support escaping of , in Features.
         features.addElement(Tags.errors, error.code);
       } else {
-        features.addElement(Tags.errors, error.message);
+        features.addElement(Tags.errors, error.problemMessage);
       }
     }
     return features;

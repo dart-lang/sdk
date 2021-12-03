@@ -1,0 +1,9 @@
+X id<X>(X x) => x;
+X other<X>(X x) => throw '$x';
+
+class A {
+  const A(bool b) : x = (b ? id : other)<int>;
+  final int Function(int) x;
+}
+
+void main() {}

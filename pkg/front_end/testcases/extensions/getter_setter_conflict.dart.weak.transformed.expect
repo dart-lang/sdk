@@ -113,32 +113,32 @@ static method errors() → dynamic {
  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'm2'.
   expect(0, c.m2);
-              ^^");
+              ^^" in c{<unresolved>}.m2);
   invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:31:5: Error: The setter 'm1' isn't defined for the class 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'm1'.
   c.m1 = 2;
-    ^^";
+    ^^" in c{<unresolved>}.m1 = 2;
   invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:32:5: Error: The property 'm3' is defined in multiple extensions for 'Class' and neither is more specific.
  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.m3;
-    ^^";
+    ^^" in c{<unresolved>}.m3;
   invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:33:5: Error: The property 'm3' is defined in multiple extensions for 'Class' and neither is more specific.
  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.m3 = 2;
-    ^^";
+    ^^" in c{<unresolved>}.m3 = 2;
   invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:34:5: Error: The property 'm4' is defined in multiple extensions for 'Class' and neither is more specific.
  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.m4;
-    ^^";
+    ^^" in c{<unresolved>}.m4;
   invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:35:5: Error: The property 'm4' is defined in multiple extensions for 'Class' and neither is more specific.
  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.m4 = 2;
-    ^^";
+    ^^" in c{<unresolved>}.m4 = 2;
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {

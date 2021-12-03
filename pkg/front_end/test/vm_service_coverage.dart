@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'vm_service_helper.dart' as vmService;
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   CoverageHelper coverageHelper = new CoverageHelper();
 
   List<String> allArgs = <String>[];
@@ -19,7 +19,7 @@ main(List<String> args) async {
   ]);
   allArgs.addAll(args);
 
-  coverageHelper.start(allArgs);
+  await coverageHelper.start(allArgs);
 }
 
 class CoverageHelper extends vmService.LaunchingVMServiceHelper {
@@ -108,6 +108,7 @@ class CoverageHelper extends vmService.LaunchingVMServiceHelper {
   }
 
   Completer<String> cProcessExited = new Completer();
+  @override
   void processExited(int exitCode) {
     cProcessExited.complete("Exit");
   }
@@ -137,6 +138,7 @@ class StartEndPair implements Comparable {
 
   StartEndPair(this.startPos, this.endPos);
 
+  @override
   String toString() => "[$startPos - $endPos]";
 
   @override

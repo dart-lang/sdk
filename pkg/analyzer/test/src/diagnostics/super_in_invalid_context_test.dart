@@ -23,6 +23,60 @@ var v = super + 0;
     ]);
   }
 
+  test_class_field_instance() async {
+    await assertErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  var f = super.foo;
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 63, 5),
+    ]);
+  }
+
+  test_class_field_instance_late() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo() => 0;
+}
+
+class B extends A {
+  late var f = super.foo();
+}
+''');
+  }
+
+  test_class_field_static() async {
+    await assertErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  static var f = super.foo;
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 70, 5),
+    ]);
+  }
+
+  test_class_field_static_late() async {
+    await assertErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  static late var f = super.foo;
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 75, 5),
+    ]);
+  }
+
   test_constructorFieldInitializer() async {
     await assertErrorsInCode(r'''
 class A {
@@ -34,6 +88,34 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 62, 5),
+    ]);
+  }
+
+  test_extension_field_static() async {
+    await assertErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+extension E on int {
+  static var f = super.foo;
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 71, 5),
+    ]);
+  }
+
+  test_extension_field_static_late() async {
+    await assertErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+extension E on int {
+  static late var f = super.foo;
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 76, 5),
     ]);
   }
 
@@ -64,6 +146,60 @@ class B extends A {
 }
 ''', [
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 50, 5),
+    ]);
+  }
+
+  test_mixin_field_instance() async {
+    await assertErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  var f = super.foo;
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 58, 5),
+    ]);
+  }
+
+  test_mixin_field_instance_late() async {
+    await assertNoErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  late var f = super.foo;
+}
+''');
+  }
+
+  test_mixin_field_static() async {
+    await assertErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  static var f = super.foo;
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 65, 5),
+    ]);
+  }
+
+  test_mixin_field_static_late() async {
+    await assertErrorsInCode('''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  static late var f = super.foo;
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 70, 5),
     ]);
   }
 

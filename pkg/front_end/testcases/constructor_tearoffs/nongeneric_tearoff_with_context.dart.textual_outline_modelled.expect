@@ -1,9 +1,15 @@
-A Function() bar1() => A.foo1;
-A Function() bar2() => A.foo2;
+A Function() test1() => A.foo1;
+A Function() test2() => A.foo2;
+A Function() test3() => A.new;
+A Function() test5() => A.bar1;
+A Function(int) test4() => A.new;
+A Function(int) test6() => A.bar1;
 
 class A {
+  A() {}
   A.foo1() {}
   A.foo2(int x) {}
+  factory A.bar1() => new A();
 }
 
 main() {}

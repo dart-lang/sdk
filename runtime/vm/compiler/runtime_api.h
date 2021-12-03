@@ -451,6 +451,12 @@ class UntaggedAbstractType : public AllStatic {
   static const word kTypeStateFinalizedInstantiated;
 };
 
+class UntaggedType : public AllStatic {
+ public:
+  static const bool kTypeClassIdIsSigned;
+  static const word kTypeClassIdBitSize;
+};
+
 class Object : public AllStatic {
  public:
   // Offset of the tags word.
@@ -646,6 +652,12 @@ class LinkedHashBase : public AllStatic {
   static word deleted_keys_offset();
   static word type_arguments_offset();
   static word InstanceSize();
+};
+
+class ImmutableLinkedHashBase : public LinkedHashBase {
+ public:
+  // The data slot is an immutable list and final in immutable maps and sets.
+  static word data_offset();
 };
 
 class LinkedHashMap : public LinkedHashBase {
@@ -1050,6 +1062,7 @@ class MonomorphicSmiableCall : public AllStatic {
 class Thread : public AllStatic {
  public:
   static word api_top_scope_offset();
+  static word double_truncate_round_supported_offset();
   static word exit_through_ffi_offset();
   static uword exit_through_runtime_call();
   static uword exit_through_ffi();
@@ -1105,6 +1118,7 @@ class Thread : public AllStatic {
   static word stack_limit_offset();
   static word saved_stack_limit_offset();
   static word unboxed_int64_runtime_arg_offset();
+  static word unboxed_double_runtime_arg_offset();
 
   static word callback_code_offset();
   static word callback_stack_return_offset();
@@ -1316,6 +1330,8 @@ class Context : public AllStatic {
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
   FINAL_CLASS();
+
+  static const word kMaxElements;
 };
 
 class Closure : public AllStatic {

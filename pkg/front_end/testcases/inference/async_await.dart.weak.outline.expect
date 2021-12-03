@@ -22,7 +22,7 @@ abstract class MyFuture extends core::Object implements asy::Future<core::int*> 
   abstract member-signature method catchError(core::Function* onError, {(core::Object*) →* core::bool* test}) → asy::Future<core::int*>*; -> asy::Future::catchError
   abstract member-signature method whenComplete(() →* FutureOr<void>* action) → asy::Future<core::int*>*; -> asy::Future::whenComplete
   abstract member-signature method asStream() → asy::Stream<core::int*>*; -> asy::Future::asStream
-  abstract member-signature method timeout(core::Duration* timeLimit, {generic-covariant-impl () →* FutureOr<core::int*>* onTimeout}) → asy::Future<core::int*>*; -> asy::Future::timeout
+  abstract member-signature method timeout(core::Duration* timeLimit, {covariant-by-class () →* FutureOr<core::int*>* onTimeout}) → asy::Future<core::int*>*; -> asy::Future::timeout
 }
 static method test() → void async 
   ;

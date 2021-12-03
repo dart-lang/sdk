@@ -1,7 +1,7 @@
 name: meta
 # Note, because version `2.0.0` was mistakenly released, the next major version must be `3.x.y`.
-version: 1.7.0
-homepage: https://github.com/dart-lang/sdk/tree/master/pkg/meta
+version: 1.7.1-dev
+homepage: https://github.com/dart-lang/sdk/tree/main/pkg/meta
 description: >-
  Annotations that developers can use to express the intentions that otherwise
  can't be deduced by statically analyzing the source code. These annotations

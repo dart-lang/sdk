@@ -51,7 +51,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   @override
   WorldImpact registerClosurizedMember(FunctionEntity element) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl impactBuilder = WorldImpactBuilderImpl();
     impactBuilder
         .addImpact(_impacts.memberClosure.createImpact(_elementEnvironment));
     FunctionType type = _elementEnvironment.getFunctionType(element);
@@ -72,7 +72,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   @override
   void registerInstantiatedType(InterfaceType type,
-      {bool isGlobal: false, bool nativeUsage: false}) {
+      {bool isGlobal = false, bool nativeUsage = false}) {
     if (nativeUsage) {
       _nativeEnqueuer.onInstantiatedType(type);
     }
@@ -80,19 +80,19 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
   WorldImpact _computeMainImpact(FunctionEntity mainMethod) {
-    WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl mainImpact = WorldImpactBuilderImpl();
     CallStructure callStructure = mainMethod.parameterStructure.callStructure;
     if (callStructure.argumentCount > 0) {
       _impacts.mainWithArguments
           .registerImpact(mainImpact, _elementEnvironment);
-      mainImpact.registerStaticUse(
-          new StaticUse.staticInvoke(mainMethod, callStructure));
+      mainImpact
+          .registerStaticUse(StaticUse.staticInvoke(mainMethod, callStructure));
     }
     if (mainMethod.isGetter) {
-      mainImpact.registerStaticUse(new StaticUse.staticGet(mainMethod));
+      mainImpact.registerStaticUse(StaticUse.staticGet(mainMethod));
     } else {
       mainImpact.registerStaticUse(
-          new StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
+          StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
     }
     return mainImpact;
   }
@@ -123,7 +123,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
     // TODO(fishythefish): Avoid registering unnecessary impacts.
     if (!_isNewRtiUsed) {
-      WorldImpactBuilderImpl newRtiImpact = new WorldImpactBuilderImpl();
+      WorldImpactBuilderImpl newRtiImpact = WorldImpactBuilderImpl();
       newRtiImpact.registerStaticUse(StaticUse.staticInvoke(
           _commonElements.rtiAddRulesMethod, CallStructure.TWO_ARGS));
       newRtiImpact.registerStaticUse(StaticUse.staticInvoke(
@@ -166,7 +166,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
     if (constant.isFunction) {
       FunctionConstantValue function = constant;
       impactBuilder
-          .registerStaticUse(new StaticUse.staticTearOff(function.element));
+          .registerStaticUse(StaticUse.staticTearOff(function.element));
     } else if (constant.isInterceptor) {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstantValue interceptor = constant;
@@ -175,7 +175,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
           _elementEnvironment.getThisType(cls), impactBuilder);
     } else if (constant.isType) {
       impactBuilder
-          .registerTypeUse(new TypeUse.instantiation(_commonElements.typeType));
+          .registerTypeUse(TypeUse.instantiation(_commonElements.typeType));
       // If the type is a web component, we need to ensure the constructors are
       // available to 'upgrade' the native object.
       TypeConstantValue type = constant;
@@ -185,7 +185,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       }
     } else if (constant is InstantiationConstantValue) {
       // TODO(johnniwinther): Register these using `BackendImpact`.
-      impactBuilder.registerTypeUse(new TypeUse.instantiation(
+      impactBuilder.registerTypeUse(TypeUse.instantiation(
           _elementEnvironment.getThisType(_commonElements
               .getInstantiationClass(constant.typeArguments.length))));
 
@@ -200,10 +200,10 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   void _computeImpactForInstantiatedConstantType(
       DartType type, WorldImpactBuilder impactBuilder) {
     if (type is InterfaceType) {
-      impactBuilder.registerTypeUse(new TypeUse.instantiation(type));
+      impactBuilder.registerTypeUse(TypeUse.instantiation(type));
       if (_rtiNeed.classNeedsTypeArguments(type.element)) {
         FunctionEntity helper = _commonElements.setArrayType;
-        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+        impactBuilder.registerStaticUse(StaticUse.staticInvoke(
             helper, helper.parameterStructure.callStructure));
       }
       if (type.element == _commonElements.typeLiteralClass) {
@@ -217,15 +217,15 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   @override
   WorldImpact registerUsedConstant(ConstantValue constant) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl impactBuilder = WorldImpactBuilderImpl();
     _computeImpactForCompileTimeConstant(
-        constant, impactBuilder, new LinkedHashSet.identity());
+        constant, impactBuilder, LinkedHashSet.identity());
     return impactBuilder;
   }
 
   @override
   WorldImpact registerUsedElement(MemberEntity member) {
-    WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl worldImpact = WorldImpactBuilderImpl();
     _customElementsAnalysis.registerStaticUse(member);
 
     if (member.isFunction && member.isInstanceMember) {
@@ -241,14 +241,14 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   }
 
   WorldImpact _processClass(ClassEntity cls) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl impactBuilder = WorldImpactBuilderImpl();
     if (cls == _commonElements.closureClass) {
       _impacts.closureClass.registerImpact(impactBuilder, _elementEnvironment);
     }
 
     void registerInstantiation(ClassEntity cls) {
       impactBuilder.registerTypeUse(
-          new TypeUse.instantiation(_elementEnvironment.getRawType(cls)));
+          TypeUse.instantiation(_elementEnvironment.getRawType(cls)));
     }
 
     if (cls == _commonElements.stringClass ||

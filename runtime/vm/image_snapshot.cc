@@ -100,13 +100,7 @@ const uint8_t* Image::build_id() const {
   if (extra_info_->build_id_offset_ != kNoBuildId) {
     auto const note = reinterpret_cast<elf::Note*>(
         raw_memory_ + extra_info_->build_id_offset_);
-    // Check that we have a final build ID. A non-final build ID will either
-    // have a description length of 0 or an initial byte of 0.
-    auto const description = note->data + note->name_size;
-    auto const length = note->description_size;
-    if (length != 0 && description[0] != 0) {
-      return description;
-    }
+    return note->data + note->name_size;
   }
 #endif
   return nullptr;
@@ -118,13 +112,7 @@ intptr_t Image::build_id_length() const {
   if (extra_info_->build_id_offset_ != kNoBuildId) {
     auto const note = reinterpret_cast<elf::Note*>(
         raw_memory_ + extra_info_->build_id_offset_);
-    // Check that we have a final build ID. A non-final build ID will either
-    // have a description length of 0 or an initial byte of 0.
-    auto const description = note->data + note->name_size;
-    auto const length = note->description_size;
-    if (length != 0 && description[0] != 0) {
-      return length;
-    }
+    return note->description_size;
   }
 #endif
   return 0;
@@ -403,12 +391,14 @@ void ImageWriter::DumpInstructionsSizes() {
   auto file_close = Dart::file_close_callback();
   if ((file_open == nullptr) || (file_write == nullptr) ||
       (file_close == nullptr)) {
+    OS::PrintErr("warning: Could not access file callbacks.");
     return;
   }
 
-  auto file = file_open(FLAG_print_instructions_sizes_to, /*write=*/true);
+  const char* filename = FLAG_print_instructions_sizes_to;
+  void* file = file_open(filename, /*write=*/true);
   if (file == nullptr) {
-    OS::PrintErr("Failed to open file %s\n", FLAG_print_instructions_sizes_to);
+    OS::PrintErr("warning: Failed to write instruction sizes: %s\n", filename);
     return;
   }
 

@@ -16,7 +16,7 @@ final String repoDir = computeRepoDir();
 
 String get dartVm => Platform.executable;
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   ProcessResult result = await Process.run(
       "python3", ["tools/make_version.py", "--no_git", "-q"],
       workingDirectory: repoDir);

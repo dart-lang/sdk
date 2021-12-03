@@ -22,7 +22,7 @@ import "package:front_end/src/fasta/dill/dill_loader.dart" show DillLoader;
 
 import "package:front_end/src/fasta/dill/dill_target.dart" show DillTarget;
 
-import "package:front_end/src/fasta/kernel/kernel_builder.dart"
+import "package:front_end/src/fasta/kernel/class_hierarchy_builder.dart"
     show ClassHierarchyBuilder;
 
 import "package:front_end/src/fasta/ticker.dart" show Ticker;
@@ -63,7 +63,7 @@ class FastaLegacyUpperBoundTest extends LegacyUpperBoundTest {
   }
 }
 
-main() {
+void main() {
   final Ticker ticker = new Ticker();
   final CompilerContext context = new CompilerContext(new ProcessedOptions(
       options: new CompilerOptions()

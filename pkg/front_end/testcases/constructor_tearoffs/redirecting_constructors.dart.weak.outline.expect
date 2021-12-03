@@ -7,11 +7,11 @@ class A extends core::Object {
   constructor •() → self::A
     ;
   static factory redirectingFactory() → self::A
-    let dynamic #redirecting_factory = self::A::• in invalid-expression;
+    return new self::A::•();
   static factory redirectingFactoryChild() → self::A
-    let dynamic #redirecting_factory = self::B::• in invalid-expression;
+    return new self::B::•();
   static factory redirectingTwice() → self::A
-    let dynamic #redirecting_factory = self::A::redirectingFactory in invalid-expression;
+    return self::A::redirectingFactory();
 }
 class B extends self::A {
   synthetic constructor •() → self::B
@@ -21,3 +21,10 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_constructors.dart:5:7 -> ConstructorTearOffConstant(A.redirectingFactory)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_constructors.dart:5:7 -> ConstructorTearOffConstant(A.redirectingFactoryChild)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_constructors.dart:5:7 -> ConstructorTearOffConstant(A.redirectingTwice)
+Extra constant evaluation: evaluated: 7, effectively constant: 3

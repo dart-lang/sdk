@@ -227,8 +227,6 @@ class KernelLoader : public ValueObject {
   bool IsClassName(NameIndex name, const String& library, const String& klass);
 
   void AnnotateNativeProcedures();
-  void LoadNativeExtensionLibraries();
-  void LoadNativeExtension(const Library& library, const String& uri_path);
   void EvaluateDelayedPragmas();
 
   void ReadVMAnnotations(const Library& library,
@@ -353,8 +351,12 @@ class KernelLoader : public ValueObject {
       const Library& core_lib =
           Library::Handle(zone_, dart::Library::CoreLibrary());
       pragma_class_ = core_lib.LookupLocalClass(Symbols::Pragma());
+      pragma_name_field_ = pragma_class_.LookupField(Symbols::name());
+      pragma_options_field_ = pragma_class_.LookupField(Symbols::options());
     }
     ASSERT(!pragma_class_.IsNull());
+    ASSERT(!pragma_name_field_.IsNull());
+    ASSERT(!pragma_options_field_.IsNull());
     ASSERT(pragma_class_.is_declaration_loaded());
   }
 
@@ -377,7 +379,7 @@ class KernelLoader : public ValueObject {
 
   Thread* thread_;
   Zone* zone_;
-  Isolate* isolate_;
+  NoActiveIsolateScope no_active_isolate_scope_;
   Array& patch_classes_;
   ActiveClass active_class_;
   // This is the offset of the current library within
@@ -406,6 +408,8 @@ class KernelLoader : public ValueObject {
   Object& static_field_value_;
 
   Class& pragma_class_;
+  Field& pragma_name_field_;
+  Field& pragma_options_field_;
 
   Smi& name_index_handle_;
 

@@ -5,13 +5,16 @@
 import 'dart:convert';
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
@@ -27,9 +30,10 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
 
   final StringBuffer logBuffer = StringBuffer();
   late PerformanceLog logger;
-  late MockSdk sdk;
 
   late FileResolver fileResolver;
+
+  Folder get sdkRoot => newFolder('/sdk');
 
   @override
   void addTestFile(String content) {
@@ -50,7 +54,10 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
       logger: logger,
       resourceProvider: resourceProvider,
       byteStore: byteStore,
-      sourceFactory: workspace.createSourceFactory(sdk, null),
+      sourceFactory: workspace.createSourceFactory(
+        FolderBasedDartSdk(resourceProvider, sdkRoot),
+        null,
+      ),
       getFileDigest: (String path) => _getDigest(path),
       workspace: workspace,
       prefetchFiles: null,
@@ -65,8 +72,14 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   }
 
   @override
-  Future<ResolvedUnitResult> resolveFile(String path) async {
-    result = fileResolver.resolve(path: path);
+  Future<ResolvedUnitResult> resolveFile(
+    String path, {
+    OperationPerformanceImpl? performance,
+  }) async {
+    result = fileResolver.resolve(
+      path: path,
+      performance: performance,
+    );
     return result;
   }
 
@@ -82,7 +95,10 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     registerLintRules();
 
     logger = PerformanceLog(logBuffer);
-    sdk = MockSdk(resourceProvider: resourceProvider);
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
 
     newFile('/workspace/WORKSPACE', content: '');
     newFile('/workspace/dart/test/BUILD', content: '');

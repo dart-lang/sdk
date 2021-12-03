@@ -92,8 +92,9 @@ void ServiceIsolate::RequestServerInfo(const SendPort& sp) {
       sp, VM_SERVICE_SERVER_INFO_MESSAGE_ID, false /* ignored */,
       Bool::Handle() /* ignored */));
   ASSERT(!message.IsNull());
-  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false, message,
-                                    port_, Message::kNormalPriority));
+  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
+                                    /* same_group */ false, message, port_,
+                                    Message::kNormalPriority));
 }
 
 void ServiceIsolate::ControlWebServer(const SendPort& sp,
@@ -102,8 +103,9 @@ void ServiceIsolate::ControlWebServer(const SendPort& sp,
   const Array& message = Array::Handle(MakeServerControlMessage(
       sp, VM_SERVICE_WEB_SERVER_CONTROL_MESSAGE_ID, enable, silenceOutput));
   ASSERT(!message.IsNull());
-  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false, message,
-                                    port_, Message::kNormalPriority));
+  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
+                                    /* same_group */ false, message, port_,
+                                    Message::kNormalPriority));
 }
 
 void ServiceIsolate::SetServerAddress(const char* address) {
@@ -186,11 +188,14 @@ bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
   request.value.as_array.length = ARRAY_SIZE(request_array);
   ServiceIsolate::WaitForServiceIsolateStartup();
   Dart_Port service_port = ServiceIsolate::Port();
-
-  const bool success = Dart_PostCObject(service_port, &request);
-
-  if (!success && error != nullptr) {
-    if (service_port == ILLEGAL_PORT) {
+  bool success = false;
+  if (service_port != ILLEGAL_PORT) {
+    success = Dart_PostCObject(service_port, &request);
+    if (!success && error != nullptr) {
+      *error = Utils::StrDup("Was unable to post message to service isolate.");
+    }
+  } else {
+    if (error != nullptr) {
       if (startup_failure_reason_ != nullptr) {
         *error = OS::SCreate(/*zone=*/nullptr,
                              "Service isolate failed to start up: %s.",
@@ -198,11 +203,8 @@ bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
       } else {
         *error = Utils::StrDup("No service isolate port was found.");
       }
-    } else {
-      *error = Utils::StrDup("Was unable to post message to service isolate.");
     }
   }
-
   return success;
 }
 
@@ -228,7 +230,8 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
                  name.ToCString(), Dart_GetMainPortId());
   }
   return PortMap::PostMessage(WriteMessage(
-      /* can_send_any_object */ false, list, port_, Message::kNormalPriority));
+      /* can_send_any_object */ false, /* same_group */ false, list, port_,
+      Message::kNormalPriority));
 }
 
 bool ServiceIsolate::SendIsolateShutdownMessage() {
@@ -253,7 +256,8 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
                  name.ToCString(), Dart_GetMainPortId());
   }
   return PortMap::PostMessage(WriteMessage(
-      /* can_send_any_object */ false, list, port_, Message::kNormalPriority));
+      /* can_send_any_object */ false, /* same_group */ false, list, port_,
+      Message::kNormalPriority));
 }
 
 void ServiceIsolate::SendServiceExitMessage() {
@@ -314,6 +318,8 @@ void ServiceIsolate::FinishedExiting() {
   MonitorLocker ml(monitor_);
   ASSERT(state_ == kStarted || state_ == kStopping);
   state_ = kStopped;
+  port_ = ILLEGAL_PORT;
+  isolate_ = nullptr;
   ml.NotifyAll();
 }
 
@@ -328,6 +334,7 @@ void ServiceIsolate::InitializingFailed(char* error) {
   MonitorLocker ml(monitor_);
   ASSERT(state_ == kStarting);
   state_ = kStopped;
+  port_ = ILLEGAL_PORT;
   startup_failure_reason_ = error;
   ml.NotifyAll();
 }
@@ -431,7 +438,6 @@ class RunServiceTask : public ThreadPool::Task {
     Thread* T = Thread::Current();
     ASSERT(I == T->isolate());
     StackZone zone(T);
-    HANDLESCOPE(T);
     // Invoke main which will set up the service port.
     const Library& root_library =
         Library::Handle(Z, I->group()->object_store()->root_library());

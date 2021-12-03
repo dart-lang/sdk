@@ -25,10 +25,6 @@ void _sdk() {
     expectFileExists(Sdk().analysisServerSnapshot);
   });
 
-  test('pub snapshot', () {
-    expectFileExists(Sdk().pubSnapshot);
-  });
-
   test('dds snapshot', () {
     expectFileExists(Sdk().ddsSnapshot);
   });

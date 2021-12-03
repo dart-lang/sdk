@@ -8,7 +8,7 @@ class Class1 extends core::Object {
   constructor _() → self::Class1
     ;
   static factory •() → self::Class1
-    let dynamic #redirecting_factory = self::Class1::_ in invalid-expression;
+    return new self::Class1::_();
   get getter() → core::int
     ;
 }
@@ -23,3 +23,8 @@ class Class2 extends self::Class1 {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_invocation_in_invalid.dart:5:7 -> ConstructorTearOffConstant(Class1.)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

@@ -20,8 +20,8 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
 
   Dart2jsConstantEvaluator(
       ir.TypeEnvironment typeEnvironment, ReportErrorFunction reportError,
-      {Map<String, String> environment: const {},
-      bool supportReevaluationForTesting: false,
+      {Map<String, String> environment = const {},
+      bool supportReevaluationForTesting = false,
       ir.EvaluationMode evaluationMode})
       : _supportReevaluationForTesting = supportReevaluationForTesting,
         assert(evaluationMode != null),
@@ -29,7 +29,7 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
             const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
             environment,
             typeEnvironment,
-            new ErrorReporter(reportError),
+            ErrorReporter(reportError),
             enableTripleShift: true,
             evaluationMode: evaluationMode);
 
@@ -49,8 +49,8 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
   ir.Constant evaluate(
       ir.StaticTypeContext staticTypeContext, ir.Expression node,
       {ir.TreeNode contextNode,
-      bool requireConstant: true,
-      bool replaceImplicitConstant: true}) {
+      bool requireConstant = true,
+      bool replaceImplicitConstant = true}) {
     errorReporter.requiresConstant = requireConstant;
     if (node is ir.ConstantExpression) {
       ir.Constant constant = node.constant;
@@ -100,12 +100,7 @@ class ErrorReporter implements ir.ErrorReporter {
   ErrorReporter(this._reportError);
 
   @override
-  void reportInvalidExpression(ir.InvalidExpression node) {
-    // Ignore.
-  }
-
-  @override
-  void report(ir.LocatedMessage message, List<ir.LocatedMessage> context) {
+  void report(ir.LocatedMessage message, [List<ir.LocatedMessage> context]) {
     if (requiresConstant) {
       _reportError(message, context);
     }
@@ -194,27 +189,27 @@ class ConstantReference extends ir.TreeNode {
 
   @override
   void visitChildren(ir.Visitor v) {
-    throw new UnsupportedError("ConstantReference.visitChildren");
+    throw UnsupportedError("ConstantReference.visitChildren");
   }
 
   @override
   R accept<R>(ir.TreeVisitor<R> v) {
-    throw new UnsupportedError("ConstantReference.accept");
+    throw UnsupportedError("ConstantReference.accept");
   }
 
   @override
   R accept1<R, A>(ir.TreeVisitor1<R, A> v, A arg) {
-    throw new UnsupportedError("ConstantReference.accept");
+    throw UnsupportedError("ConstantReference.accept");
   }
 
   @override
   transformChildren(ir.Transformer v) {
-    throw new UnsupportedError("ConstantReference.transformChildren");
+    throw UnsupportedError("ConstantReference.transformChildren");
   }
 
   @override
   transformOrRemoveChildren(ir.RemovingTransformer v) {
-    throw new UnsupportedError("ConstantReference.transformOrRemoveChildren");
+    throw UnsupportedError("ConstantReference.transformOrRemoveChildren");
   }
 
   @override

@@ -98,6 +98,7 @@ class TypedLiteralResolver {
     }
 
     node.visitChildren(_resolver);
+    _insertImplicitCallReferences(node);
     _resolveListLiteral2(node);
   }
 
@@ -154,6 +155,7 @@ class TypedLiteralResolver {
     }
 
     node.visitChildren(_resolver);
+    _insertImplicitCallReferences(node);
     _resolveSetOrMapLiteral2(node);
   }
 
@@ -595,6 +597,34 @@ class TypedLiteralResolver {
       typeArguments: typeArguments,
       nullabilitySuffix: _noneOrStarSuffix,
     );
+  }
+
+  void _insertImplicitCallReference(CollectionElement? node) {
+    if (node is Expression) {
+      _resolver.insertImplicitCallReference(node);
+    } else if (node is MapLiteralEntry) {
+      _insertImplicitCallReference(node.key);
+      _insertImplicitCallReference(node.value);
+    } else if (node is IfElement) {
+      _insertImplicitCallReference(node.thenElement);
+      _insertImplicitCallReference(node.elseElement);
+    } else if (node is ForElement) {
+      _insertImplicitCallReference(node.body);
+    }
+    // Nothing to do for [SpreadElement] as analyzer does not desugar this
+    // element.
+  }
+
+  void _insertImplicitCallReferences(TypedLiteral node) {
+    if (node is ListLiteral) {
+      for (var element in node.elements) {
+        _insertImplicitCallReference(element);
+      }
+    } else if (node is SetOrMapLiteral) {
+      for (var element in node.elements) {
+        _insertImplicitCallReference(element);
+      }
+    }
   }
 
   void _pushCollectionTypesDown(CollectionElement? element,

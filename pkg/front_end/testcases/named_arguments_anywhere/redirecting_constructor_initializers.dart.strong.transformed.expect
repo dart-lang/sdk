@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor •(core::int x, core::bool y, {required core::String z = #C2}) → self::A
+    : super core::Object::•()
+    ;
+  constructor foo() → self::A
+    : final core::int #t1 = 42, final core::String #t2 = "foo", this self::A::•(#t1, false, z: #t2)
+    ;
+  static factory bar(core::int x, core::bool y, {required core::String z = #C2}) → self::A
+    return new self::A::•(x, y, z: z);
+}
+class B extends self::A {
+  constructor •() → self::B
+    : final core::int #t3 = 42, final core::String #t4 = "foo", super self::A::•(#t3, false, z: #t4)
+    ;
+}
+static method test() → dynamic {
+  new self::A::•(42, false, z: "bar");
+  let final core::int #t5 = 42 in let final core::String #t6 = "bar" in new self::A::•(#t5, false, z: #t6);
+  let final core::String #t7 = "bar" in new self::A::•(42, false, z: #t7);
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::A::bar
+  #C2 = null
+}
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///redirecting_constructor_initializers.dart:19:13 -> IntConstant(42)
+Evaluated: VariableGet @ org-dartlang-testcase:///redirecting_constructor_initializers.dart:19:20 -> StringConstant("bar")
+Evaluated: VariableGet @ org-dartlang-testcase:///redirecting_constructor_initializers.dart:20:16 -> StringConstant("bar")
+Extra constant evaluation: evaluated: 18, effectively constant: 3

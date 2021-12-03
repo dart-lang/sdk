@@ -159,7 +159,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
       intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
   Fragment EvaluateAssertion();
   Fragment RethrowException(TokenPosition position, int catch_try_index);
-  Fragment ThrowNoSuchMethodError(const Function& target);
+  Fragment ThrowNoSuchMethodError(const Function& target,
+                                  bool incompatible_arguments);
   Fragment Constant(const Object& value);
   Fragment IntConstant(int64_t value);
   Fragment LoadStaticField(const Field& field, bool calls_initializer);

@@ -16,6 +16,7 @@ import '../fasta_codes.dart'
         messageTypeVariableInStaticContext,
         messageTypedefCause,
         noLength,
+        templateExperimentNotEnabled,
         templateExtendingRestricted,
         templateNotAType,
         templateSupertypeIsIllegal,
@@ -47,11 +48,57 @@ import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
 import 'void_type_declaration_builder.dart';
 
+/// Enum used to determine how instance type variable access is allowed.
+enum InstanceTypeVariableAccessState {
+  /// Instance type variable access is allowed.
+  ///
+  /// This is used for valid references to instance type variables, like
+  ///
+  ///     class Class<T> {
+  ///       void instanceMethod(T t) {}
+  ///     }
+  Allowed,
+
+  /// Instance type variable access is disallowed and results in a compile-time
+  /// error.
+  ///
+  /// This is used for static references to instance type variables, like
+  ///
+  ///     class Class<T> {
+  ///       static void staticMethod(T t) {}
+  ///     }
+  ///
+  /// The type is resolved as an [InvalidType].
+  Disallowed,
+
+  /// Instance type variable access is invalid since it occurs in an invalid
+  /// context. The occurrence _doesn't_ result in a compile-time error.
+  ///
+  /// This is used for references to instance type variables where they might
+  /// be valid if the context where, like
+  ///
+  ///     class Extension<T> {
+  ///       T field; // Instance extension fields are not allowed.
+  ///     }
+  ///
+  /// The type is resolved as an [InvalidType].
+  Invalid,
+
+  /// Instance type variable access is unexpected and results in an assertion
+  /// failure.
+  ///
+  /// This is used for [NamedTypeBuilder]s for known non-type variable types,
+  /// like for `Object` and `String`.
+  Unexpected,
+}
+
 class NamedTypeBuilder extends TypeBuilder {
+  @override
   final Object name;
 
   List<TypeBuilder>? arguments;
 
+  @override
   final NullabilityBuilder nullabilityBuilder;
 
   @override
@@ -63,19 +110,26 @@ class NamedTypeBuilder extends TypeBuilder {
   @override
   TypeDeclarationBuilder? declaration;
 
+  final InstanceTypeVariableAccessState instanceTypeVariableAccess;
+
   NamedTypeBuilder(this.name, this.nullabilityBuilder, this.arguments,
-      this.fileUri, this.charOffset);
+      this.fileUri, this.charOffset,
+      {required this.instanceTypeVariableAccess});
 
   NamedTypeBuilder.fromTypeDeclarationBuilder(
       TypeDeclarationBuilder this.declaration, this.nullabilityBuilder,
-      [this.arguments, this.fileUri, this.charOffset])
+      {this.arguments,
+      this.fileUri,
+      this.charOffset,
+      required this.instanceTypeVariableAccess})
       : this.name = declaration.name;
 
+  @override
   bool get isVoidType => declaration is VoidTypeDeclarationBuilder;
 
   @override
   void bind(TypeDeclarationBuilder declaration) {
-    this.declaration = declaration.origin as TypeDeclarationBuilder;
+    this.declaration = declaration.origin;
   }
 
   int get nameOffset {
@@ -136,7 +190,7 @@ class NamedTypeBuilder extends TypeBuilder {
       }
       return;
     } else if (member is TypeDeclarationBuilder) {
-      declaration = member.origin as TypeDeclarationBuilder;
+      declaration = member.origin;
       if (!declaration!.isExtension ||
           library is SourceLibraryBuilder &&
               library.enableExtensionTypesInLibrary) {
@@ -146,16 +200,27 @@ class NamedTypeBuilder extends TypeBuilder {
     Template<Message Function(String name)> template =
         member == null ? templateTypeNotFound : templateNotAType;
     String flatName = flattenName(name, charOffset, fileUri);
+    int length =
+        name is Identifier ? name.endCharOffset - charOffset : flatName.length;
+    Message message;
     List<LocatedMessage>? context;
-    if (member != null) {
+    if (member == null) {
+      template = templateTypeNotFound;
+      message = template.withArguments(flatName);
+    } else if (declaration != null &&
+        declaration!.isExtension &&
+        library is SourceLibraryBuilder &&
+        !library.enableExtensionTypesInLibrary) {
+      message = templateExperimentNotEnabled.withArguments('extension-types',
+          library.enableExtensionTypesVersionInLibrary.toText());
+    } else {
+      template = templateNotAType;
       context = <LocatedMessage>[
         messageNotATypeContext.withLocation(member.fileUri!, member.charOffset,
             name is Identifier ? name.name.length : "$name".length)
       ];
+      message = template.withArguments(flatName);
     }
-    int length =
-        name is Identifier ? name.endCharOffset - charOffset : flatName.length;
-    Message message = template.withArguments(flatName);
     library.addProblem(message, charOffset, length, fileUri, context: context);
     declaration = buildInvalidTypeDeclarationBuilder(
         message.withLocation(fileUri, charOffset, length),
@@ -174,8 +239,10 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
+  @override
   String get debugName => "NamedTypeBuilder";
 
+  @override
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write(flattenName(name, charOffset ?? TreeNode.noOffset, fileUri));
     if (arguments?.isEmpty ?? true) return buffer;
@@ -239,62 +306,58 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   @override
-  DartType build(LibraryBuilder library,
-      {TypedefType? origin, bool? nonInstanceContext}) {
-    return buildInternal(library,
-        origin: origin,
-        nonInstanceContext: nonInstanceContext,
-        forTypeLiteral: false);
+  DartType build(LibraryBuilder library, {TypedefType? origin}) {
+    return buildInternal(library, origin: origin, forTypeLiteral: false);
   }
 
   @override
-  DartType buildTypeLiteralType(LibraryBuilder library,
-      {TypedefType? origin, bool? nonInstanceContext}) {
-    return buildInternal(library,
-        origin: origin,
-        nonInstanceContext: nonInstanceContext,
-        forTypeLiteral: true);
+  DartType buildTypeLiteralType(LibraryBuilder library, {TypedefType? origin}) {
+    return buildInternal(library, origin: origin, forTypeLiteral: true);
   }
 
   DartType declarationBuildType(LibraryBuilder library,
-      {bool? nonInstanceContext, required bool forTypeLiteral}) {
+      {required bool forTypeLiteral}) {
     if (forTypeLiteral) {
-      return declaration!.buildTypeLiteralType(
-          library, nullabilityBuilder, arguments,
-          nonInstanceContext: nonInstanceContext);
+      return declaration!
+          .buildTypeLiteralType(library, nullabilityBuilder, arguments);
     } else {
-      return declaration!.buildType(library, nullabilityBuilder, arguments,
-          nonInstanceContext: nonInstanceContext);
+      return declaration!.buildType(library, nullabilityBuilder, arguments);
     }
   }
 
   // TODO(johnniwinther): Store [origin] on the built type.
   DartType buildInternal(LibraryBuilder library,
-      {TypedefType? origin,
-      bool? nonInstanceContext,
-      required bool forTypeLiteral}) {
+      {TypedefType? origin, required bool forTypeLiteral}) {
     assert(declaration != null, "Declaration has not been resolved on $this.");
-    // TODO(johnniwinther): Change `nonInstanceContext == true` to
-    // `nonInstanceContext` when it's passed everywhere.
-    if (nonInstanceContext == true && declaration!.isTypeVariable) {
+    if (declaration!.isTypeVariable) {
       TypeVariableBuilder typeParameterBuilder =
           declaration as TypeVariableBuilder;
       TypeParameter typeParameter = typeParameterBuilder.parameter;
       if (typeParameter.parent is Class || typeParameter.parent is Extension) {
-        library.addProblem(
-            messageTypeVariableInStaticContext,
-            charOffset ?? TreeNode.noOffset,
-            noLength,
-            fileUri ?? library.fileUri);
-        return const InvalidType();
+        switch (instanceTypeVariableAccess) {
+          case InstanceTypeVariableAccessState.Disallowed:
+            library.addProblem(
+                messageTypeVariableInStaticContext,
+                charOffset ?? TreeNode.noOffset,
+                noLength,
+                fileUri ?? library.fileUri);
+            return const InvalidType();
+          case InstanceTypeVariableAccessState.Invalid:
+            return const InvalidType();
+          case InstanceTypeVariableAccessState.Unexpected:
+            assert(false,
+                "Unexpected instance type variable $typeParameterBuilder");
+            break;
+          case InstanceTypeVariableAccessState.Allowed:
+            break;
+        }
       }
     }
 
     if (library is SourceLibraryBuilder) {
       int uncheckedTypedefTypeCount = library.uncheckedTypedefTypes.length;
-      DartType builtType = declarationBuildType(library,
-          nonInstanceContext: nonInstanceContext,
-          forTypeLiteral: forTypeLiteral);
+      DartType builtType =
+          declarationBuildType(library, forTypeLiteral: forTypeLiteral);
       // Set locations for new unchecked TypedefTypes for error reporting.
       for (int i = uncheckedTypedefTypeCount;
           i < library.uncheckedTypedefTypes.length;
@@ -307,12 +370,11 @@ class NamedTypeBuilder extends TypeBuilder {
       }
       return builtType;
     } else {
-      return declarationBuildType(library,
-          nonInstanceContext: nonInstanceContext,
-          forTypeLiteral: forTypeLiteral);
+      return declarationBuildType(library, forTypeLiteral: forTypeLiteral);
     }
   }
 
+  @override
   Supertype? buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration!;
@@ -385,6 +447,7 @@ class NamedTypeBuilder extends TypeBuilder {
     return handleInvalidSupertype(library, charOffset, fileUri);
   }
 
+  @override
   Supertype? buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration!;
@@ -410,6 +473,7 @@ class NamedTypeBuilder extends TypeBuilder {
     return handleInvalidSupertype(library, charOffset, fileUri);
   }
 
+  @override
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {
     TypeBuilder? result = substitution[declaration];
     if (result != null) {
@@ -428,7 +492,8 @@ class NamedTypeBuilder extends TypeBuilder {
       }
       if (arguments != null) {
         NamedTypeBuilder result = new NamedTypeBuilder(
-            name, nullabilityBuilder, arguments, fileUri, charOffset);
+            name, nullabilityBuilder, arguments, fileUri, charOffset,
+            instanceTypeVariableAccess: instanceTypeVariableAccess);
         if (declaration != null) {
           result.bind(declaration!);
         } else {
@@ -440,8 +505,9 @@ class NamedTypeBuilder extends TypeBuilder {
     return this;
   }
 
+  @override
   NamedTypeBuilder clone(
-      List<TypeBuilder> newTypes,
+      List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
     List<TypeBuilder>? clonedArguments;
@@ -453,7 +519,8 @@ class NamedTypeBuilder extends TypeBuilder {
       }, growable: false);
     }
     NamedTypeBuilder newType = new NamedTypeBuilder(
-        name, nullabilityBuilder, clonedArguments, fileUri, charOffset);
+        name, nullabilityBuilder, clonedArguments, fileUri, charOffset,
+        instanceTypeVariableAccess: instanceTypeVariableAccess);
     if (declaration is BuiltinTypeDeclarationBuilder) {
       newType.declaration = declaration;
     } else {
@@ -462,10 +529,12 @@ class NamedTypeBuilder extends TypeBuilder {
     return newType;
   }
 
+  @override
   NamedTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
     return new NamedTypeBuilder(
-        name, nullabilityBuilder, arguments, fileUri, charOffset)
+        name, nullabilityBuilder, arguments, fileUri, charOffset,
+        instanceTypeVariableAccess: instanceTypeVariableAccess)
       ..bind(declaration!);
   }
 }

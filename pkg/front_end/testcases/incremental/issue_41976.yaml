@@ -9,6 +9,7 @@ worlds:
   - entry: foo.dart
     sources:
       foo.dart: |
+        // @dart=2.9
         abstract class Key {
           const factory Key(String value) = ValueKey;
           const Key.empty();

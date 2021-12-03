@@ -45,6 +45,12 @@ class AnalyzeCommand extends DartdevCommand {
 
       // Options hidden by default.
       ..addOption(
+        'cache',
+        valueHelp: 'path',
+        help: 'Override the location of the analysis cache.',
+        hide: !verbose,
+      )
+      ..addOption(
         'format',
         valueHelp: 'value',
         help: 'Specifies the format to display errors.',
@@ -60,6 +66,13 @@ class AnalyzeCommand extends DartdevCommand {
               'Note that the pipe character is escaped with backslashes for '
               'the file path and error message fields.',
         },
+        hide: !verbose,
+      )
+      ..addOption(
+        'packages',
+        valueHelp: 'path',
+        help: 'The path to the package resolution configuration file, which '
+            'supplies a mapping of package names\ninto paths.',
         hide: !verbose,
       );
   }
@@ -97,8 +110,10 @@ class AnalyzeCommand extends DartdevCommand {
         machineFormat ? null : log.progress('Analyzing $targetsNames');
 
     final AnalysisServer server = AnalysisServer(
+      _packagesFile(),
       io.Directory(sdk.sdkPath),
       targets,
+      cacheDirectoryPath: argResults['cache'],
       commandName: 'analyze',
       argResults: argResults,
     );
@@ -113,7 +128,6 @@ class AnalyzeCommand extends DartdevCommand {
 
     bool analysisFinished = false;
 
-    // ignore: unawaited_futures
     server.onExit.then((int exitCode) {
       if (!analysisFinished) {
         io.exitCode = exitCode;
@@ -176,6 +190,19 @@ class AnalyzeCommand extends DartdevCommand {
       return 1;
     } else {
       return 0;
+    }
+  }
+
+  io.File _packagesFile() {
+    var path = argResults['packages'];
+    if (path is String) {
+      var file = io.File(path);
+      if (!file.existsSync()) {
+        usageException("The file doesn't exist: $path");
+      }
+      return file;
+    } else {
+      return null;
     }
   }
 
@@ -303,13 +330,6 @@ class AnalyzeCommand extends DartdevCommand {
     }));
   }
 
-  /// Return a relative path if it is a shorter reference than the given dir.
-  static String _relativePath(String givenPath, io.Directory fromDir) {
-    String fromPath = fromDir?.absolute?.resolveSymbolicLinksSync();
-    String relative = path.relative(givenPath, from: fromPath);
-    return relative.length <= givenPath.length ? relative : givenPath;
-  }
-
   @visibleForTesting
   static void emitMachineFormat(Logger log, List<AnalysisError> errors) {
     for (final AnalysisError error in errors) {
@@ -341,5 +361,12 @@ class AnalyzeCommand extends DartdevCommand {
       }
     }
     return result.toString();
+  }
+
+  /// Return a relative path if it is a shorter reference than the given dir.
+  static String _relativePath(String givenPath, io.Directory fromDir) {
+    String fromPath = fromDir?.absolute?.resolveSymbolicLinksSync();
+    String relative = path.relative(givenPath, from: fromPath);
+    return relative.length <= givenPath.length ? relative : givenPath;
   }
 }

@@ -46,7 +46,7 @@ class F<T extends core::Object? = dynamic, U extends core::Object? = dynamic, V 
   const constructor •() → self::F<self::F::T%, self::F::U%, self::F::V%>
     : super core::Object::•()
     ;
-  method fn(generic-covariant-impl self::F::U% x) → self::F::U%
+  method fn(covariant-by-class self::F::U% x) → self::F::U%
     return x;
 }
 class G<T extends core::Object? = dynamic> extends self::F<self::G::T%, core::String, core::num> /*hasConstConstructor*/  {
@@ -71,26 +71,26 @@ static const field core::String fnVal5 = #C7;
 static const field core::String var8 = #C7;
 static const field core::String fnVal6 = #C7;
 static method fn() → core::String
-  return (#C8).{core::Object::toString}(){() → core::String};
+  return #C8.{core::Object::toString}(){() → core::String};
 static method fn2() → core::String
-  return (#C9).{self::B::toString}(){() → core::String};
+  return #C9.{self::B::toString}(){() → core::String};
 static method fn3() → core::int
-  return (#C11).{self::C::fn}(){() → core::int};
+  return #C11.{self::C::fn}(){() → core::int};
 static method fn4() → core::int
-  return (#C13).{self::C::fn}(){() → core::int};
+  return #C13.{self::C::fn}(){() → core::int};
 static method fn5() → core::int
-  return (#C14).{self::D::fn}(){() → core::int};
+  return #C14.{self::D::fn}(){() → core::int};
 static method fn6() → core::int
-  return (#C15).{self::C::fn}(){() → core::int};
+  return #C15.{self::C::fn}(){() → core::int};
 static method fn7() → core::String
-  return (#C16).{self::F::fn}("string"){(core::String) → core::String};
+  return #C16.{self::F::fn}("string"){(core::String) → core::String};
 static method fn8() → core::String
-  return (#C17).{self::F::fn}("string"){(core::String) → core::String};
+  return #C17.{self::F::fn}("string"){(core::String) → core::String};
 static method main() → void {
-  exp::Expect::equals(#C2, (#C8).{core::Object::toString}(){() → core::String});
-  exp::Expect::equals(#C2, (#C8).{core::Object::toString}(){() → core::String});
-  exp::Expect::equals(#C3, (#C9).{self::B::toString}(){() → core::String});
-  exp::Expect::equals(#C3, (#C9).{self::B::toString}(){() → core::String});
+  exp::Expect::equals(#C2, #C8.{core::Object::toString}(){() → core::String});
+  exp::Expect::equals(#C2, #C8.{core::Object::toString}(){() → core::String});
+  exp::Expect::equals(#C3, #C9.{self::B::toString}(){() → core::String});
+  exp::Expect::equals(#C3, #C9.{self::B::toString}(){() → core::String});
   exp::Expect::equals(#C4, 200);
   exp::Expect::equals(#C5, 100);
   exp::Expect::equals(#C4, 200);

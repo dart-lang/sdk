@@ -46,7 +46,7 @@ void usage(String extraMessage) {
   exit(1);
 }
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   bool fast = false;
   bool useExperimentalInvalidation = false;
   File inputFile;
@@ -298,6 +298,7 @@ class PrinterPrime extends Printer {
             annotator: annotator,
             metadata: metadata);
 
+  @override
   PrinterPrime createInner(ImportTable importTable,
       Map<String, MetadataRepository<Object>> metadata) {
     return new PrinterPrime(sink,
@@ -309,6 +310,7 @@ class PrinterPrime extends Printer {
         showMetadata: showMetadata);
   }
 
+  @override
   void writeInterfaceTarget(Name name, Reference target) {
     // Skipped!
   }

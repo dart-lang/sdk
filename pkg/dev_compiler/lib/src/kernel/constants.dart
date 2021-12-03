@@ -99,7 +99,11 @@ class DevCompilerConstantsBackend extends ConstantsBackend {
   NumberSemantics get numberSemantics => NumberSemantics.js;
 
   @override
+  bool get alwaysInlineConstants => false;
+
+  @override
   bool shouldInlineConstant(ConstantExpression initializer) {
+    assert(!alwaysInlineConstants);
     var constant = initializer.constant;
     if (constant is StringConstant) {
       // Only inline small string constants, not large ones.

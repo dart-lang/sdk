@@ -9,7 +9,7 @@ import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
 import '../../common_elements.dart' show JCommonElements, JElementEnvironment;
-import '../../deferred_load/deferred_load.dart'
+import '../../deferred_load/output_unit.dart'
     show deferredPartFileName, OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
 import '../../elements/types.dart';
@@ -130,7 +130,7 @@ class ProgramBuilder {
       this._sorter,
       this._rtiNeededClasses,
       this._mainFunction)
-      : this.collector = new Collector(
+      : this.collector = Collector(
             _commonElements,
             _elementEnvironment,
             _outputUnitData,
@@ -143,11 +143,11 @@ class ProgramBuilder {
             _rtiNeededClasses,
             _generatedCode,
             _sorter),
-        this._registry = new Registry(_outputUnitData.mainOutputUnit, _sorter);
+        this._registry = Registry(_outputUnitData.mainOutputUnit, _sorter);
 
   /// Mapping from [ClassEntity] to constructed [Class]. We need this to
   /// update the superclass in the [Class].
-  final Map<ClassEntity, Class> _classes = <ClassEntity, Class>{};
+  final Map<ClassEntity, Class> _classes = {};
 
   /// Mapping from [ClassEntity] to constructed [ClassTypeData] object. Used to build
   /// libraries.
@@ -155,20 +155,20 @@ class ProgramBuilder {
 
   /// Mapping from [OutputUnit] to constructed [Fragment]. We need this to
   /// generate the deferredLoadingMap (to know which hunks to load).
-  final Map<OutputUnit, Fragment> _outputs = <OutputUnit, Fragment>{};
+  final Map<OutputUnit, Fragment> _outputs = {};
 
   /// Mapping from [ConstantValue] to constructed [Constant]. We need this to
   /// update field-initializers to point to the ConstantModel.
-  final Map<ConstantValue, Constant> _constants = <ConstantValue, Constant>{};
+  final Map<ConstantValue, Constant> _constants = {};
 
   Set<Class> _unneededNativeClasses;
 
   ClassEntity get _jsInteropInterceptor =>
       _commonElements.jsJavaScriptObjectClass;
-  List<StubMethod> _jsInteropIsChecks = [];
+  final List<StubMethod> _jsInteropIsChecks = [];
   final Set<TypeCheck> _jsInteropTypeChecks = {};
 
-  Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
+  Program buildProgram({bool storeFunctionTypesInMetadata = false}) {
     collector.collect();
 
     this._storeFunctionTypesInMetadata = storeFunctionTypesInMetadata;
@@ -237,7 +237,7 @@ class ProgramBuilder {
         _registry.deferredLibrariesMap.map(_buildDeferredFragment);
 
     List<Fragment> fragments =
-        new List<Fragment>.filled(_registry.librariesMapCount, null);
+        List<Fragment>.filled(_registry.librariesMapCount, null);
     fragments[0] = mainFragment;
     fragments.setAll(1, deferredFragments);
 
@@ -257,7 +257,7 @@ class ProgramBuilder {
       finalizers.add(namingFinalizer as js.TokenFinalizer);
     }
 
-    return new Program(fragments, _buildTypeToInterceptorMap(),
+    return Program(fragments, _buildTypeToInterceptorMap(),
         _task.metadataCollector, finalizers,
         needsNativeSupport: needsNativeSupport,
         outputContainsConstantList: collector.outputContainsConstantList);
@@ -268,7 +268,7 @@ class ProgramBuilder {
   }
 
   js.Expression _buildTypeToInterceptorMap() {
-    InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
+    InterceptorStubGenerator stubGenerator = InterceptorStubGenerator(
         _commonElements,
         _task.emitter,
         _nativeCodegenEnqueuer,
@@ -281,7 +281,7 @@ class ProgramBuilder {
 
   MainFragment _buildMainFragment(LibrariesMap librariesMap) {
     // Construct the main output from the libraries and the registered holders.
-    MainFragment result = new MainFragment(
+    MainFragment result = MainFragment(
         librariesMap.outputUnit,
         "", // The empty string is the name for the main output file.
         _buildInvokeMain(),
@@ -294,12 +294,12 @@ class ProgramBuilder {
   }
 
   js.Statement _buildInvokeMain() {
-    return MainCallStubGenerator.generateInvokeMain(
-        _commonElements, _task.emitter, _mainFunction);
+    return MainCallStubGenerator.generateInvokeMain(_commonElements,
+        _task.emitter, _mainFunction, _backendUsage.requiresStartupMetrics);
   }
 
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {
-    DeferredFragment result = new DeferredFragment(
+    DeferredFragment result = DeferredFragment(
         librariesMap.outputUnit,
         deferredPartFileName(_options, librariesMap.name, addExtension: false),
         librariesMap.name,
@@ -314,7 +314,7 @@ class ProgramBuilder {
   List<Constant> _buildConstants(LibrariesMap librariesMap) {
     List<ConstantValue> constantValues =
         collector.outputConstantLists[librariesMap.outputUnit];
-    if (constantValues == null) return const <Constant>[];
+    if (constantValues == null) return const [];
     return constantValues
         .map((ConstantValue value) => _constants[value])
         .toList(growable: false);
@@ -323,7 +323,7 @@ class ProgramBuilder {
   List<StaticField> _buildStaticNonFinalFields(LibrariesMap librariesMap) {
     List<FieldEntity> staticNonFinalFields =
         collector.outputStaticNonFinalFieldLists[librariesMap.outputUnit];
-    if (staticNonFinalFields == null) return const <StaticField>[];
+    if (staticNonFinalFields == null) return const [];
 
     return staticNonFinalFields.map(_buildStaticField).toList(growable: false);
   }
@@ -344,7 +344,7 @@ class ProgramBuilder {
     // building a static field. (Note that the static-state holder was
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
-    return new StaticField(element, name, null, code,
+    return StaticField(element, name, null, code,
         isFinal: false,
         isLazy: false,
         isInitializedByConstant: initialValue != null,
@@ -375,15 +375,14 @@ class ProgramBuilder {
     // building a static field. (Note that the static-state holder was
     // already registered earlier, and that we just call the register to get
     // the holder-instance.
-    return new StaticField(element, name, getterName, code,
+    return StaticField(element, name, getterName, code,
         isFinal: !element.isAssignable,
         isLazy: true,
         usesNonNullableInitialization: element.library.isNonNullableByDefault);
   }
 
   List<Library> _buildLibraries(LibrariesMap librariesMap) {
-    List<Library> libraries =
-        new List<Library>.filled(librariesMap.length, null);
+    List<Library> libraries = List<Library>.filled(librariesMap.length, null);
     int count = 0;
     librariesMap.forEach((LibraryEntity library, List<ClassEntity> classes,
         List<MemberEntity> members, List<ClassEntity> classTypeElements) {
@@ -399,7 +398,7 @@ class ProgramBuilder {
       // TODO(jacobr): register toString as used so that it is always accessible
       // from JavaScript.
       _classes[_commonElements.objectClass].callStubs.add(_buildStubMethod(
-          new StringBackedName("toString"),
+          StringBackedName("toString"),
           js.js('function() { return this.#(this) }', toStringInvocation)));
     }
 
@@ -491,7 +490,7 @@ class ProgramBuilder {
                   var stubName = _namer.invocationName(selector);
                   if (!stubNames.add(stubName.key)) continue;
                   var parameters =
-                      new List<String>.generate(argumentCount, (i) => 'p$i');
+                      List<String>.generate(argumentCount, (i) => 'p$i');
 
                   // We intentionally generate the same stub method for direct
                   // calls and call-throughs of getters so that calling a
@@ -573,10 +572,10 @@ class ProgramBuilder {
     List<Method> methods = [];
     List<StubMethod> callStubs = [];
 
-    ClassStubGenerator classStubGenerator = new ClassStubGenerator(
+    ClassStubGenerator classStubGenerator = ClassStubGenerator(
         _task.emitter, _commonElements, _namer, _codegenWorld, _closedWorld,
         enableMinification: _options.enableMinification);
-    RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
+    RuntimeTypeGenerator runtimeTypeGenerator = RuntimeTypeGenerator(
         _commonElements, _outputUnitData, _task, _namer, _rtiChecks);
 
     void visitInstanceMember(MemberEntity member) {
@@ -605,7 +604,7 @@ class ProgramBuilder {
       }
     }
 
-    List<StubMethod> noSuchMethodStubs = <StubMethod>[];
+    List<StubMethod> noSuchMethodStubs = [];
 
     if (_backendUsage.isNoSuchMethodUsed &&
         cls == _commonElements.objectClass) {
@@ -636,7 +635,7 @@ class ProgramBuilder {
     bool isMixinApplicationWithMembers = false;
     if (!onlyForConstructorOrRti) {
       if (_elementEnvironment.isMixinApplicationWithMembers(cls)) {
-        List<MemberEntity> members = <MemberEntity>[];
+        List<MemberEntity> members = [];
         void add(MemberEntity member) {
           if (member.enclosingClass == cls) {
             members.add(member);
@@ -651,7 +650,7 @@ class ProgramBuilder {
           _sorter.sortMembers(members).forEach(visitMember);
         }
       } else if (!_elementEnvironment.isMixinApplication(cls)) {
-        List<MemberEntity> members = <MemberEntity>[];
+        List<MemberEntity> members = [];
         _elementEnvironment.forEachLocalClassMember(cls, members.add);
         _elementEnvironment.forEachInjectedClassMember(cls, members.add);
         _elementEnvironment.forEachConstructorBody(cls, members.add);
@@ -677,8 +676,8 @@ class ProgramBuilder {
         cls, _generatedCode,
         storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
 
-    List<StubMethod> checkedSetters = <StubMethod>[];
-    List<StubMethod> isChecks = <StubMethod>[];
+    List<StubMethod> checkedSetters = [];
+    List<StubMethod> isChecks = [];
     if (_nativeData.isJsInteropClass(cls)) {
       // TODO(johnniwinther): Instead of generating all stubs for each
       // js-interop class we should generate a stub for each implemented class.
@@ -794,7 +793,7 @@ class ProgramBuilder {
     var /* Map | List */ optionalParameterDefaultValues;
     ParameterStructure parameterStructure = method.parameterStructure;
     if (parameterStructure.namedParameters.isNotEmpty) {
-      optionalParameterDefaultValues = new Map<String, ConstantValue>();
+      optionalParameterDefaultValues = Map<String, ConstantValue>();
       _elementEnvironment.forEachParameter(method,
           (DartType type, String name, ConstantValue defaultValue) {
         if (parameterStructure.namedParameters.contains(name)) {
@@ -874,8 +873,7 @@ class ProgramBuilder {
 
     js.Name callName = null;
     if (canTearOff) {
-      Selector callSelector =
-          new Selector.fromElement(element).toCallSelector();
+      Selector callSelector = Selector.fromElement(element).toCallSelector();
       callName = _namer.invocationName(callSelector);
     }
 
@@ -900,7 +898,7 @@ class ProgramBuilder {
       }
     }
 
-    return new InstanceMethod(element, name, code,
+    return InstanceMethod(element, name, code,
         _generateParameterStubs(element, canTearOff, canBeApplied), callName,
         needsTearOff: canTearOff,
         tearOffName: tearOffName,
@@ -950,7 +948,7 @@ class ProgramBuilder {
 
   List<ParameterStubMethod> _generateParameterStubs(
       FunctionEntity element, bool canTearOff, bool canBeApplied) {
-    if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];
+    if (!_methodNeedsStubs(element)) return const [];
 
     ParameterStubGenerator generator = ParameterStubGenerator(
         _task.emitter,
@@ -966,7 +964,7 @@ class ProgramBuilder {
   }
 
   List<StubMethod> _generateInstantiationStubs(ClassEntity instantiationClass) {
-    InstantiationStubGenerator generator = new InstantiationStubGenerator(
+    InstantiationStubGenerator generator = InstantiationStubGenerator(
         _task, _namer, _closedWorld, _codegenWorld, _sourceInformationStrategy);
     return generator.generateStubs(instantiationClass, null);
   }
@@ -977,7 +975,7 @@ class ProgramBuilder {
   /// attribution.
   Method _buildStubMethod(js.Name name, js.Expression code,
       {MemberEntity element}) {
-    return new StubMethod(name, code, element: element);
+    return StubMethod(name, code, element: element);
   }
 
   // The getInterceptor methods directly access the prototype of classes.
@@ -995,7 +993,7 @@ class ProgramBuilder {
   }
 
   Iterable<StaticStubMethod> _generateGetInterceptorMethods() {
-    InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
+    InterceptorStubGenerator stubGenerator = InterceptorStubGenerator(
         _commonElements,
         _task.emitter,
         _nativeCodegenEnqueuer,
@@ -1021,14 +1019,13 @@ class ProgramBuilder {
       SpecializedGetInterceptor interceptor = interceptorMap[name];
       js.Expression code =
           stubGenerator.generateGetInterceptorMethod(interceptor);
-      return new StaticStubMethod(
-          _commonElements.interceptorsLibrary, name, code);
+      return StaticStubMethod(_commonElements.interceptorsLibrary, name, code);
     });
   }
 
   List<Field> _buildFields(
-      {bool isHolderInterceptedClass: false, ClassEntity cls}) {
-    List<Field> fields = <Field>[];
+      {bool isHolderInterceptedClass = false, ClassEntity cls}) {
+    List<Field> fields = [];
 
     void visitField(FieldEntity field, js.Name name, bool needsGetter,
         bool needsSetter, bool needsCheckedSetter) {
@@ -1091,7 +1088,7 @@ class ProgramBuilder {
   }
 
   Iterable<StaticStubMethod> _generateOneShotInterceptors() {
-    InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
+    InterceptorStubGenerator stubGenerator = InterceptorStubGenerator(
         _commonElements,
         _task.emitter,
         _nativeCodegenEnqueuer,
@@ -1118,8 +1115,7 @@ class ProgramBuilder {
       OneShotInterceptor interceptor = interceptorMap[name];
       js.Expression code =
           stubGenerator.generateOneShotInterceptor(interceptor);
-      return new StaticStubMethod(
-          _commonElements.interceptorsLibrary, name, code);
+      return StaticStubMethod(_commonElements.interceptorsLibrary, name, code);
     });
   }
 
@@ -1139,8 +1135,7 @@ class ProgramBuilder {
 
     js.Name callName = null;
     if (needsTearOff) {
-      Selector callSelector =
-          new Selector.fromElement(element).toCallSelector();
+      Selector callSelector = Selector.fromElement(element).toCallSelector();
       callName = _namer.invocationName(callSelector);
     }
     js.Expression functionType;
@@ -1163,7 +1158,7 @@ class ProgramBuilder {
       }
     }
 
-    return new StaticDartMethod(element, name, code,
+    return StaticDartMethod(element, name, code,
         _generateParameterStubs(element, needsTearOff, canBeApplied), callName,
         needsTearOff: needsTearOff,
         tearOffName: tearOffName,
@@ -1182,7 +1177,7 @@ class ProgramBuilder {
       _registry.registerConstant(outputUnit, constantValue);
       assert(!_constants.containsKey(constantValue));
       js.Name name = _namer.constantName(constantValue);
-      Constant constant = new Constant(name, constantValue);
+      Constant constant = Constant(name, constantValue);
       _constants[constantValue] = constant;
     }
   }

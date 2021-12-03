@@ -35,20 +35,20 @@ class Class extends core::Object {
 }
 static method error() → dynamic {
   () →? void f;
-  let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/call.dart:12:4: Error: Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+  invalid-expression "pkg/front_end/testcases/nnbd/call.dart:12:4: Error: Can't use an expression of type 'void Function()?' as a function because it's potentially null.
 Try calling using ?.call instead.
   f();
    ^" in f{<nullable>}.(){() →? void};
-  let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/call.dart:13:5: Error: Method 'call' cannot be called on 'void Function()?' because it is potentially null.
+  invalid-expression "pkg/front_end/testcases/nnbd/call.dart:13:5: Error: Method 'call' cannot be called on 'void Function()?' because it is potentially null.
 Try calling using ?. instead.
   f.call();
     ^^^^" in f{<nullable>}.(){() →? void};
   self::Class c = new self::Class::•();
-  let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd/call.dart:15:10: Error: Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+  invalid-expression "pkg/front_end/testcases/nnbd/call.dart:15:10: Error: Can't use an expression of type 'void Function()?' as a function because it's potentially null.
 Try calling using ?.call instead.
   c.field();
          ^" in c.{self::Class::field}{() →? void}{<nullable>}.(){() →? void};
-  let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd/call.dart:16:11: Error: Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+  invalid-expression "pkg/front_end/testcases/nnbd/call.dart:16:11: Error: Can't use an expression of type 'void Function()?' as a function because it's potentially null.
 Try calling using ?.call instead.
   c.getter();
           ^" in c.{self::Class::getter}{() →? void}{<nullable>}.(){() →? void};

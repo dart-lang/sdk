@@ -33,7 +33,7 @@ static method bar() → dynamic {
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'unknown'.
   wrap2(() => foo()..property?.unknown());
-                               ^^^^^^^";
+                               ^^^^^^^" in #t3{core::Object}{<unresolved>}.unknown();
   } =>#t2);
 }
 static method main() → dynamic {}

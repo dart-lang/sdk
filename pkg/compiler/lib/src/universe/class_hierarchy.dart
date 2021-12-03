@@ -172,23 +172,22 @@ class ClassHierarchyImpl implements ClassHierarchy {
       DataSource source, CommonElements commonElements) {
     source.begin(tag);
     Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes =
-        new ClassHierarchyNodesMap();
+        ClassHierarchyNodesMap();
     int classCount = source.readInt();
     for (int i = 0; i < classCount; i++) {
-      ClassHierarchyNode node = new ClassHierarchyNode.readFromDataSource(
-          source, classHierarchyNodes);
+      ClassHierarchyNode node =
+          ClassHierarchyNode.readFromDataSource(source, classHierarchyNodes);
       classHierarchyNodes[node.cls] = node;
     }
     Map<ClassEntity, ClassSet> classSets = {};
     for (int i = 0; i < classCount; i++) {
       ClassSet classSet =
-          new ClassSet.readFromDataSource(source, classHierarchyNodes);
+          ClassSet.readFromDataSource(source, classHierarchyNodes);
       classSets[classSet.cls] = classSet;
     }
 
     source.end(tag);
-    return new ClassHierarchyImpl(
-        commonElements, classHierarchyNodes, classSets);
+    return ClassHierarchyImpl(commonElements, classHierarchyNodes, classSets);
   }
 
   @override
@@ -262,7 +261,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   @override
   Iterable<ClassEntity> subclassesOf(ClassEntity cls) {
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls];
-    if (hierarchy == null) return const <ClassEntity>[];
+    if (hierarchy == null) return const [];
     return hierarchy
         .subclassesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
   }
@@ -270,7 +269,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   @override
   Iterable<ClassEntity> strictSubclassesOf(ClassEntity cls) {
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls];
-    if (subclasses == null) return const <ClassEntity>[];
+    if (subclasses == null) return const [];
     return subclasses.subclassesByMask(
         ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
@@ -305,7 +304,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   Iterable<ClassEntity> subtypesOf(ClassEntity cls) {
     ClassSet classSet = _classSets[cls];
     if (classSet == null) {
-      return const <ClassEntity>[];
+      return const [];
     } else {
       return classSet
           .subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
@@ -316,7 +315,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   Iterable<ClassEntity> strictSubtypesOf(ClassEntity cls) {
     ClassSet classSet = _classSets[cls];
     if (classSet == null) {
-      return const <ClassEntity>[];
+      return const [];
     } else {
       return classSet.subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
           strict: true);
@@ -327,7 +326,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
   Iterable<ClassEntity> allSubtypesOf(ClassEntity cls) {
     ClassSet classSet = _classSets[cls];
     if (classSet == null) {
-      return const <ClassEntity>[];
+      return const [];
     } else {
       return classSet.subtypesByMask(ClassHierarchyNode.ALL);
     }
@@ -473,7 +472,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
       // the common subclasses of "subclass of A" and "subtype of I" returns
       // "subclasses of {B, D}". The inclusion of class `C` is implied because
       // it is a subclass of `B`.
-      List<ClassEntity> classes = <ClassEntity>[];
+      List<ClassEntity> classes = [];
       forEachStrictSubclassOf(cls1, (ClassEntity subclass) {
         if (isSubtypeOf(subclass, cls2)) {
           classes.add(subclass);
@@ -483,7 +482,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
         }
         return IterationStep.CONTINUE;
       });
-      return new SubclassResult(classes);
+      return SubclassResult(classes);
     } else if (query2 == ClassQuery.SUBCLASS) {
       if (isSubtypeOf(cls2, cls1)) {
         // The subclasses of [cls2] are all subtypes of [cls1].
@@ -495,7 +494,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
         return SubclassResult.SUBTYPE1;
       }
       // Find all the root subclasses of [cls2] of that implement [cls1].
-      List<ClassEntity> classes = <ClassEntity>[];
+      List<ClassEntity> classes = [];
       forEachStrictSubclassOf(cls2, (ClassEntity subclass) {
         if (isSubtypeOf(subclass, cls1)) {
           classes.add(subclass);
@@ -505,7 +504,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
         }
         return IterationStep.CONTINUE;
       });
-      return new SubclassResult(classes);
+      return SubclassResult(classes);
     } else {
       if (cls1 == cls2 || isSubtypeOf(cls1, cls2)) {
         // The subtypes of [cls1] are contained within the subtypes of [cls2].
@@ -529,7 +528,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
       // the common subclasses of "subtype of A" and "subtype of I" returns
       // "subclasses of {B, D, E}". The inclusion of classes `C` and `F` is
       // implied because they are subclasses of `B` and `E`, respectively.
-      List<ClassEntity> classes = <ClassEntity>[];
+      List<ClassEntity> classes = [];
       forEachStrictSubtypeOf(cls1, (ClassEntity subclass) {
         if (isSubtypeOf(subclass, cls2)) {
           classes.add(subclass);
@@ -539,7 +538,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
         }
         return IterationStep.CONTINUE;
       });
-      return new SubclassResult(classes);
+      return SubclassResult(classes);
     }
   }
 
@@ -555,7 +554,7 @@ class ClassHierarchyImpl implements ClassHierarchy {
 
   @override
   String dump([ClassEntity cls]) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     if (cls != null) {
       sb.write("Classes in the closed world related to $cls:\n");
     } else {
@@ -570,11 +569,9 @@ class ClassHierarchyImpl implements ClassHierarchy {
 class ClassHierarchyBuilder {
   // We keep track of subtype and subclass relationships in four
   // distinct sets to make class hierarchy analysis faster.
-  final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes =
-      <ClassEntity, ClassHierarchyNode>{};
-  final Map<ClassEntity, ClassSet> _classSets = <ClassEntity, ClassSet>{};
-  final Map<ClassEntity, Set<ClassEntity>> mixinUses =
-      new Map<ClassEntity, Set<ClassEntity>>();
+  final Map<ClassEntity, ClassHierarchyNode> _classHierarchyNodes = {};
+  final Map<ClassEntity, ClassSet> _classSets = {};
+  final Map<ClassEntity, Set<ClassEntity>> mixinUses = {};
 
   final CommonElements _commonElements;
   final ClassQueries _classQueries;
@@ -587,7 +584,7 @@ class ClassHierarchyBuilder {
         "ClassHierarchyNode/ClassSet mismatch: "
         "${_classHierarchyNodes} vs "
         "${_classSets}");
-    return new ClassHierarchyImpl(
+    return ClassHierarchyImpl(
         _commonElements, _classHierarchyNodes, _classSets);
   }
 
@@ -602,7 +599,7 @@ class ClassHierarchyBuilder {
       if (superclass != null) {
         parentNode = _ensureClassHierarchyNode(superclass);
       }
-      return new ClassHierarchyNode(
+      return ClassHierarchyNode(
           parentNode, cls, _classQueries.getHierarchyDepth(cls));
     });
   }
@@ -610,7 +607,7 @@ class ClassHierarchyBuilder {
   ClassSet _ensureClassSet(ClassEntity cls) {
     return _classSets.putIfAbsent(cls, () {
       ClassHierarchyNode node = _ensureClassHierarchyNode(cls);
-      ClassSet classSet = new ClassSet(node);
+      ClassSet classSet = ClassSet(node);
 
       for (InterfaceType type in _classQueries.getSupertypes(cls)) {
         // TODO(johnniwinther): Optimization: Avoid adding [cls] to
@@ -654,7 +651,8 @@ class ClassHierarchyBuilder {
   }
 
   void updateClassHierarchyNodeForClass(ClassEntity cls,
-      {bool directlyInstantiated: false, bool abstractlyInstantiated: false}) {
+      {bool directlyInstantiated = false,
+      bool abstractlyInstantiated = false}) {
     ClassHierarchyNode node = _ensureClassSet(cls).node;
     _updateSuperClassHierarchyNodeForClass(node);
     if (directlyInstantiated) {
@@ -668,8 +666,7 @@ class ClassHierarchyBuilder {
   void registerMixinUse(ClassEntity mixinApplication, ClassEntity mixin) {
     // TODO(johnniwinther): Add map restricted to live classes.
     // We don't support patch classes as mixin.
-    Set<ClassEntity> users =
-        mixinUses.putIfAbsent(mixin, () => new Set<ClassEntity>());
+    Set<ClassEntity> users = mixinUses.putIfAbsent(mixin, () => {});
     users.add(mixinApplication);
   }
 
@@ -710,8 +707,8 @@ class ClassHierarchyBuilder {
     return false;
   }
 
-  Map<ClassEntity, _InheritedInThisClassCache> _inheritedInThisClassCacheMap =
-      {};
+  final Map<ClassEntity, _InheritedInThisClassCache>
+      _inheritedInThisClassCacheMap = {};
 
   /// Returns `true` if a `this` expression in [thisClass] can target a member
   /// declared in [memberHoldingClass].
@@ -719,15 +716,16 @@ class ClassHierarchyBuilder {
       ClassEntity memberHoldingClass, ClassEntity thisClass) {
     _InheritedInThisClassCache cache =
         _inheritedInThisClassCacheMap[memberHoldingClass] ??=
-            new _InheritedInThisClassCache();
+            _InheritedInThisClassCache();
     return cache.isInheritedInThisClassOf(this, memberHoldingClass, thisClass);
   }
 
-  Map<ClassEntity, _InheritedInSubtypeCache> _inheritedInSubtypeCacheMap = {};
+  final Map<ClassEntity, _InheritedInSubtypeCache> _inheritedInSubtypeCacheMap =
+      {};
 
   bool isInheritedInSubtypeOf(ClassEntity x, ClassEntity y) {
     _InheritedInSubtypeCache cache =
-        _inheritedInSubtypeCacheMap[x] ??= new _InheritedInSubtypeCache();
+        _inheritedInSubtypeCacheMap[x] ??= _InheritedInSubtypeCache();
     return cache.isInheritedInSubtypeOf(this, x, y);
   }
 }
@@ -764,7 +762,7 @@ class _InheritedInThisClassCache {
         builder._classHierarchyNodes[memberHoldingClass];
 
     if (_inheritingClasses == null) {
-      _inheritingClasses = new Set<ClassEntity>();
+      _inheritingClasses = {};
       _inheritingClasses.addAll(memberHoldingClassNode
           .subclassesByMask(ClassHierarchyNode.ALL, strict: false));
       for (ClassHierarchyNode mixinApplication
@@ -774,7 +772,7 @@ class _InheritedInThisClassCache {
       }
     }
 
-    Set<ClassEntity> validatingSet = new Set<ClassEntity>();
+    Set<ClassEntity> validatingSet = {};
 
     void processHierarchy(ClassHierarchyNode mixerNode) {
       for (ClassEntity inheritingClass in _inheritingClasses) {
@@ -804,7 +802,7 @@ class _InheritedInThisClassCache {
       processHierarchy(mixinApplication);
     }
 
-    return new _LiveSet(validatingSet);
+    return _LiveSet(validatingSet);
   }
 }
 
@@ -839,7 +837,7 @@ class _InheritedInSubtypeCache {
         failedAt(
             x, "No ClassSet for $x (${x.runtimeType}): ${builder._classSets}"));
 
-    Set<ClassEntity> classes = new Set<ClassEntity>();
+    Set<ClassEntity> classes = {};
 
     if (builder._isSubtypeOf(x, y)) {
       // [x] implements [y] itself, possible through supertypes.
@@ -865,7 +863,7 @@ class _InheritedInSubtypeCache {
       subclassImplements(mixinApplication, strict: false);
     }
 
-    return new _LiveSet(classes);
+    return _LiveSet(classes);
   }
 }
 
@@ -990,19 +988,19 @@ class SubclassResult {
   const SubclassResult.internal(this.kind) : classes = null;
 
   static const SubclassResult EMPTY =
-      const SubclassResult.internal(SubclassResultKind.EMPTY);
+      SubclassResult.internal(SubclassResultKind.EMPTY);
   static const SubclassResult EXACT1 =
-      const SubclassResult.internal(SubclassResultKind.EXACT1);
+      SubclassResult.internal(SubclassResultKind.EXACT1);
   static const SubclassResult EXACT2 =
-      const SubclassResult.internal(SubclassResultKind.EXACT2);
+      SubclassResult.internal(SubclassResultKind.EXACT2);
   static const SubclassResult SUBCLASS1 =
-      const SubclassResult.internal(SubclassResultKind.SUBCLASS1);
+      SubclassResult.internal(SubclassResultKind.SUBCLASS1);
   static const SubclassResult SUBCLASS2 =
-      const SubclassResult.internal(SubclassResultKind.SUBCLASS2);
+      SubclassResult.internal(SubclassResultKind.SUBCLASS2);
   static const SubclassResult SUBTYPE1 =
-      const SubclassResult.internal(SubclassResultKind.SUBTYPE1);
+      SubclassResult.internal(SubclassResultKind.SUBTYPE1);
   static const SubclassResult SUBTYPE2 =
-      const SubclassResult.internal(SubclassResultKind.SUBTYPE2);
+      SubclassResult.internal(SubclassResultKind.SUBTYPE2);
 
   @override
   String toString() => 'SubclassResult($kind,classes=$classes)';

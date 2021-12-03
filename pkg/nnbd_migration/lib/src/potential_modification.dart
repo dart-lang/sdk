@@ -27,7 +27,7 @@ class ConditionalModification {
       return ConditionalModification._(
           node.offset,
           node.end,
-          node is Statement,
+          true,
           discard,
           _KeepNode(node.condition),
           _KeepNode(node.thenStatement),

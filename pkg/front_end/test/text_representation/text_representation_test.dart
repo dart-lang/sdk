@@ -64,7 +64,7 @@ AstTextStrategy getStrategy(String marker) {
   throw new UnsupportedError("Unexpected marker '${marker}'.");
 }
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests<String>(dataDir,
       args: args,
@@ -86,6 +86,7 @@ class TextRepresentationConfig extends TestConfig {
             },
             nnbdMode: NnbdMode.Strong);
 
+  @override
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {
     if (testData.name.endsWith('_opt_out.dart')) {
       options.nnbdMode = NnbdMode.Weak;
@@ -96,6 +97,7 @@ class TextRepresentationConfig extends TestConfig {
 class TextRepresentationDataComputer extends DataComputer<String> {
   const TextRepresentationDataComputer();
 
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,
@@ -135,7 +137,7 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
   }
 
   @override
-  visitProcedure(Procedure node) {
+  void visitProcedure(Procedure node) {
     if (!node.name.text.startsWith(expressionMarker) &&
         !node.name.text.startsWith(statementMarker)) {
       node.function.accept(this);
@@ -144,7 +146,7 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
   }
 
   @override
-  visitField(Field node) {
+  void visitField(Field node) {
     if (!node.name.text.startsWith(expressionMarker) &&
         !node.name.text.startsWith(statementMarker)) {
       node.initializer?.accept(this);

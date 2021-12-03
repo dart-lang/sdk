@@ -5,7 +5,7 @@
 **Version**: 0.8 (2017-06-20)
 
 **Status**: This is background material for
-[implicit-creation.md](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/implicit-creation.md).
+[implicit-creation.md](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/implicit-creation.md).
 
 This informal specification documents a group of four related features.
 * Optional `const`

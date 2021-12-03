@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::A::baz]/*isLegacy*/;
+  constructor foo() → self::A<self::A::X%>
+    ;
+  static factory bar<X extends core::Object? = dynamic>() → self::A<self::A::bar::X%>
+    ;
+  static factory baz<X extends core::Object? = dynamic>() → self::A<self::A::baz::X%>
+    return self::A::bar<self::A::baz::X%>();
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue46890.dart:5:7 -> ConstructorTearOffConstant(A.baz)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

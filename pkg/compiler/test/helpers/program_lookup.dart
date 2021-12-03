@@ -4,14 +4,14 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
-import 'package:compiler/src/deferred_load/deferred_load.dart';
+import 'package:compiler/src/deferred_load/output_unit.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js_backend/namer.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
-import 'package:compiler/src/js/js.dart' as js;
+import 'package:expect/expect.dart';
 
 ClassEntity lookupClass(JElementEnvironment elementEnvironment, String name) {
   ClassEntity cls =
@@ -111,10 +111,10 @@ class ProgramLookup {
 
 class LibraryData {
   final Library library;
-  Map<ClassEntity, ClassData> _classMap = {};
-  Map<FunctionEntity, StaticMethod> _methodMap = {};
-  Map<FieldEntity, Field> _fieldMap = {};
-  Map<FieldEntity, StaticField> _staticFieldMap = {};
+  final Map<ClassEntity, ClassData> _classMap = {};
+  final Map<FunctionEntity, StaticMethod> _methodMap = {};
+  final Map<FieldEntity, Field> _fieldMap = {};
+  final Map<FieldEntity, StaticField> _staticFieldMap = {};
 
   LibraryData(this.library, Fragment fragment) {
     for (Class cls in library.classes) {
@@ -178,10 +178,10 @@ class LibraryData {
 
 class ClassData {
   final Class cls;
-  Map<FunctionEntity, Method> _methodMap = {};
-  Map<FieldEntity, Field> _fieldMap = {};
-  Map<FieldEntity, StaticField> _staticFieldMap = {};
-  Map<FieldEntity, StubMethod> _checkedSetterMap = {};
+  final Map<FunctionEntity, Method> _methodMap = {};
+  final Map<FieldEntity, Field> _fieldMap = {};
+  final Map<FieldEntity, StaticField> _staticFieldMap = {};
+  final Map<FieldEntity, StubMethod> _checkedSetterMap = {};
 
   ClassData(this.cls) {
     if (cls != null) {

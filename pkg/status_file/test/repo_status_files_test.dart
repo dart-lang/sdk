@@ -19,8 +19,8 @@ void main() {
       if (!entry.path.endsWith(".status")) continue;
       try {
         new StatusFile.read(entry.path);
-      } catch (err) {
-        Expect.fail("Could not parse '${entry.path}'.\n$err");
+      } catch (err, stack) {
+        Expect.fail("Could not parse '${entry.path}'.\n$err\n$stack");
       }
     }
   }

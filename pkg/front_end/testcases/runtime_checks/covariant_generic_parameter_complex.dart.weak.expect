@@ -6,9 +6,9 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
-  method f1(generic-covariant-impl core::List<self::C::T*>* x) → void {}
-  method f2(generic-covariant-impl () →* self::C::T* callback) → void {}
-  method f3(generic-covariant-impl (self::C::T*) →* self::C::T* callback) → void {}
+  method f1(covariant-by-class core::List<self::C::T*>* x) → void {}
+  method f2(covariant-by-class () →* self::C::T* callback) → void {}
+  method f3(covariant-by-class (self::C::T*) →* self::C::T* callback) → void {}
   method f4((self::C::T*) →* void callback) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

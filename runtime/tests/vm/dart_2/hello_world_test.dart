@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Classic "Hello, world!". Used in the VM build (runtime/bin/BUILD.gn) as
 // a tiny script for precompilation.
 

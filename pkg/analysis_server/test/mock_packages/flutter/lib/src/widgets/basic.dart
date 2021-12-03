@@ -162,6 +162,5 @@ typedef WidgetBuilder = Widget Function(BuildContext context);
 
 class Builder {
   final WidgetBuilder builder;
-  const Builder(
-      {Key key, @required this.builder});
+  const Builder({Key key, @required this.builder});
 }

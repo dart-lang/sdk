@@ -13,7 +13,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CharSequenceReaderTest);
     defineReflectiveTests(TokenTypeTest);
@@ -1544,7 +1544,7 @@ class TestError {
   TestError(this.offset, this.errorCode, this.arguments);
 
   @override
-  get hashCode {
+  int get hashCode {
     int h = combineHash(combineHash(0, offset), errorCode.hashCode);
     if (arguments != null) {
       for (Object argument in arguments) {
@@ -1555,7 +1555,7 @@ class TestError {
   }
 
   @override
-  operator ==(Object other) {
+  bool operator ==(Object other) {
     if (other is TestError &&
         offset == other.offset &&
         errorCode == other.errorCode) {
@@ -1571,7 +1571,7 @@ class TestError {
   }
 
   @override
-  toString() {
+  String toString() {
     var argString = arguments == null ? '' : '(${arguments.join(', ')})';
     return 'Error($offset, $errorCode$argString)';
   }

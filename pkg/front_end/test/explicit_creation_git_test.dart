@@ -16,20 +16,20 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'package:front_end/src/fasta/builder/declaration_builder.dart';
 import 'package:front_end/src/fasta/builder/field_builder.dart';
 import 'package:front_end/src/fasta/builder/modifier_builder.dart';
+import 'package:front_end/src/fasta/builder/type_builder.dart';
 import 'package:front_end/src/fasta/builder/type_declaration_builder.dart';
-import 'package:front_end/src/fasta/builder/unresolved_type.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/constant_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart' as fasta;
 import 'package:front_end/src/fasta/kernel/body_builder.dart';
 import 'package:front_end/src/fasta/kernel/constness.dart';
+import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/scope.dart';
 import 'package:front_end/src/fasta/source/diet_listener.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/source/source_loader.dart';
-import 'package:front_end/src/fasta/source/stack_listener_impl.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
@@ -135,6 +135,7 @@ class SourceLoaderTest extends SourceLoader {
         library, hierarchy, coreTypes, typeInferenceEngine);
   }
 
+  @override
   BodyBuilder createBodyBuilderForOutlineExpression(
       SourceLibraryBuilder library,
       DeclarationBuilder declarationBuilder,
@@ -145,6 +146,7 @@ class SourceLoaderTest extends SourceLoader {
         library, declarationBuilder, member, scope, fileUri);
   }
 
+  @override
   BodyBuilder createBodyBuilderForField(
       FieldBuilder field, TypeInferrer typeInferrer) {
     return new BodyBuilderTest.forField(field, typeInferrer);
@@ -157,7 +159,7 @@ class DietListenerTest extends DietListener {
       : super(library, hierarchy, coreTypes, typeInferenceEngine);
 
   @override
-  StackListenerImpl createListenerInternal(
+  BodyBuilder createListenerInternal(
       ModifierBuilder builder,
       Scope memberScope,
       Scope formalParameterScope,
@@ -233,11 +235,12 @@ class BodyBuilderTest extends BodyBuilder {
       Token nameLastToken,
       Arguments arguments,
       String name,
-      List<UnresolvedType> typeArguments,
+      List<TypeBuilder> typeArguments,
       int charOffset,
       Constness constness,
       {bool isTypeArgumentsInForest = false,
-      TypeDeclarationBuilder typeAliasBuilder}) {
+      TypeDeclarationBuilder typeAliasBuilder,
+      UnresolvedKind unresolvedKind}) {
     Token maybeNewOrConst = nameToken.previous;
     bool doReport = true;
     if (maybeNewOrConst is KeywordToken) {
@@ -270,7 +273,8 @@ class BodyBuilderTest extends BodyBuilder {
     }
     return super.buildConstructorInvocation(type, nameToken, nameLastToken,
         arguments, name, typeArguments, charOffset, constness,
-        isTypeArgumentsInForest: isTypeArgumentsInForest);
+        isTypeArgumentsInForest: isTypeArgumentsInForest,
+        unresolvedKind: unresolvedKind);
   }
 }
 

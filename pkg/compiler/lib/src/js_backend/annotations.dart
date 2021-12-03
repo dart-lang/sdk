@@ -23,9 +23,9 @@ class PragmaAnnotation {
   final bool internalOnly;
 
   const PragmaAnnotation(this._index, this.name,
-      {this.forFunctionsOnly: false,
-      this.forFieldsOnly: false,
-      this.internalOnly: false});
+      {this.forFunctionsOnly = false,
+      this.forFieldsOnly = false,
+      this.internalOnly = false});
 
   int get index {
     assert(_index == values.indexOf(this));
@@ -34,23 +34,22 @@ class PragmaAnnotation {
 
   /// Tells the optimizing compiler to not inline the annotated method.
   static const PragmaAnnotation noInline =
-      const PragmaAnnotation(0, 'noInline', forFunctionsOnly: true);
+      PragmaAnnotation(0, 'noInline', forFunctionsOnly: true);
 
   /// Tells the optimizing compiler to always inline the annotated method, if
   /// possible.
   static const PragmaAnnotation tryInline =
-      const PragmaAnnotation(1, 'tryInline', forFunctionsOnly: true);
+      PragmaAnnotation(1, 'tryInline', forFunctionsOnly: true);
 
-  static const PragmaAnnotation disableFinal = const PragmaAnnotation(
+  static const PragmaAnnotation disableFinal = PragmaAnnotation(
       2, 'disableFinal',
       forFunctionsOnly: true, internalOnly: true);
 
-  static const PragmaAnnotation noElision =
-      const PragmaAnnotation(3, 'noElision');
+  static const PragmaAnnotation noElision = PragmaAnnotation(3, 'noElision');
 
   /// Tells the optimizing compiler that the annotated method cannot throw.
   /// Requires @pragma('dart2js:noInline') to function correctly.
-  static const PragmaAnnotation noThrows = const PragmaAnnotation(4, 'noThrows',
+  static const PragmaAnnotation noThrows = PragmaAnnotation(4, 'noThrows',
       forFunctionsOnly: true, internalOnly: true);
 
   /// Tells the optimizing compiler that the annotated method has no
@@ -58,7 +57,7 @@ class PragmaAnnotation {
   /// dropped without changing the semantics of the program.
   ///
   /// Requires @pragma('dart2js:noInline') to function correctly.
-  static const PragmaAnnotation noSideEffects = const PragmaAnnotation(
+  static const PragmaAnnotation noSideEffects = PragmaAnnotation(
       5, 'noSideEffects',
       forFunctionsOnly: true, internalOnly: true);
 
@@ -66,45 +65,43 @@ class PragmaAnnotation {
   /// assumptions on parameters, effectively assuming that the runtime arguments
   /// could be any value. Note that the constraints due to static types still
   /// apply.
-  static const PragmaAnnotation assumeDynamic = const PragmaAnnotation(
+  static const PragmaAnnotation assumeDynamic = PragmaAnnotation(
       6, 'assumeDynamic',
       forFunctionsOnly: true, internalOnly: true);
 
-  static const PragmaAnnotation asTrust = const PragmaAnnotation(7, 'as:trust',
+  static const PragmaAnnotation asTrust = PragmaAnnotation(7, 'as:trust',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation asCheck = const PragmaAnnotation(8, 'as:check',
+  static const PragmaAnnotation asCheck = PragmaAnnotation(8, 'as:check',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation typesTrust = const PragmaAnnotation(
-      9, 'types:trust',
+  static const PragmaAnnotation typesTrust = PragmaAnnotation(9, 'types:trust',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation typesCheck = const PragmaAnnotation(
-      10, 'types:check',
+  static const PragmaAnnotation typesCheck = PragmaAnnotation(10, 'types:check',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation parameterTrust = const PragmaAnnotation(
+  static const PragmaAnnotation parameterTrust = PragmaAnnotation(
       11, 'parameter:trust',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation parameterCheck = const PragmaAnnotation(
+  static const PragmaAnnotation parameterCheck = PragmaAnnotation(
       12, 'parameter:check',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation downcastTrust = const PragmaAnnotation(
+  static const PragmaAnnotation downcastTrust = PragmaAnnotation(
       13, 'downcast:trust',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation downcastCheck = const PragmaAnnotation(
+  static const PragmaAnnotation downcastCheck = PragmaAnnotation(
       14, 'downcast:check',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation indexBoundsTrust = const PragmaAnnotation(
+  static const PragmaAnnotation indexBoundsTrust = PragmaAnnotation(
       15, 'index-bounds:trust',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation indexBoundsCheck = const PragmaAnnotation(
+  static const PragmaAnnotation indexBoundsCheck = PragmaAnnotation(
       16, 'index-bounds:check',
       forFunctionsOnly: false, internalOnly: false);
 
@@ -155,7 +152,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
     DiagnosticReporter reporter,
     ir.Member member,
     List<PragmaAnnotationData> pragmaAnnotationData) {
-  EnumSet<PragmaAnnotation> annotations = new EnumSet<PragmaAnnotation>();
+  EnumSet<PragmaAnnotation> annotations = EnumSet<PragmaAnnotation>();
 
   Uri uri = member.enclosingLibrary.importUri;
   bool platformAnnotationsAllowed =
@@ -236,7 +233,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
             'text': "@pragma('dart2js:${annotation.name}') must not be used "
                 "with @pragma('dart2js:${other.name}')."
           });
-          (reportedExclusions[annotation] ??= new EnumSet()).add(other);
+          (reportedExclusions[annotation] ??= EnumSet()).add(other);
         }
       }
     }
@@ -265,15 +262,15 @@ abstract class AnnotationsData {
   /// Serializes this [AnnotationsData] to [sink].
   void writeToDataSink(DataSink sink);
 
-  /// Returns `true` if [member] has an `@pragma('dart2js:assumeDynamic')` annotation.
+  /// Returns `true` if [member] has an `@pragma('dart2js:assumeDynamic')`
+  /// annotation.
   bool hasAssumeDynamic(MemberEntity member);
 
-  /// Returns `true` if [member] has a `@pragma('dart2js:noInline')`, or
-  /// `@pragma('dart2js:noInline')` annotation.
+  /// Returns `true` if [member] has a `@pragma('dart2js:noInline')` annotation.
   bool hasNoInline(MemberEntity member);
 
-  /// Returns `true` if [member] has a `@pragma('dart2js:tryInline')`, or
-  /// `@pragma('dart2js:tryInline')` annotation.
+  /// Returns `true` if [member] has a `@pragma('dart2js:tryInline')`
+  /// annotation.
   bool hasTryInline(MemberEntity member);
 
   /// Returns `true` if [member] has a `@pragma('dart2js:disableFinal')`
@@ -284,18 +281,19 @@ abstract class AnnotationsData {
   /// annotation.
   bool hasNoElision(MemberEntity member);
 
-  /// Returns `true` if [member] has a `@NoThrows()` annotation.
+  /// Returns `true` if [member] has a `@pragma('dart2js:noThrows')` annotation.
   bool hasNoThrows(MemberEntity member);
 
-  /// Returns `true` if [member] has a `@NoSideEffects()` annotation.
+  /// Returns `true` if [member] has a `@pragma('dart2js:noSideEffects')`
+  /// annotation.
   bool hasNoSideEffects(MemberEntity member);
 
-  /// Calls [f] for all functions with a `@pragma('dart2js:noInline')`, or
-  /// `@pragma('dart2js:noInline')` annotation.
+  /// Calls [f] for all functions with a `@pragma('dart2js:noInline')`
+  /// annotation.
   void forEachNoInline(void f(FunctionEntity function));
 
-  /// Calls [f] for all functions with a `@pragma('dart2js:tryInline')`, or
-  /// `@pragma('dart2js:tryInline')` annotation.
+  /// Calls [f] for all functions with a `@pragma('dart2js:tryInline')`
+  /// annotation.
   void forEachTryInline(void f(FunctionEntity function));
 
   /// Calls [f] for all functions with a `@pragma('dart2js:noThrows')`
@@ -362,9 +360,9 @@ class AnnotationsDataImpl implements AnnotationsData {
     source.begin(tag);
     Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations =
         source.readMemberMap(
-            (MemberEntity member) => new EnumSet.fromValue(source.readInt()));
+            (MemberEntity member) => EnumSet.fromValue(source.readInt()));
     source.end(tag);
-    return new AnnotationsDataImpl(options, pragmaAnnotations);
+    return AnnotationsDataImpl(options, pragmaAnnotations);
   }
 
   @override
@@ -549,6 +547,6 @@ class AnnotationsDataBuilder {
   }
 
   AnnotationsData close(CompilerOptions options) {
-    return new AnnotationsDataImpl(options, pragmaAnnotations);
+    return AnnotationsDataImpl(options, pragmaAnnotations);
   }
 }

@@ -109,15 +109,15 @@ class Super extends core::Object {
   field core::num field1 = 0;
   field core::num field2 = 0;
   field core::num field3 = 0;
-  covariant field core::num field4 = 0;
-  covariant field core::int field5 = 0;
+  covariant-by-declaration field core::num field4 = 0;
+  covariant-by-declaration field core::int field5 = 0;
   synthetic constructor •() → self::Super
     : super core::Object::•()
     ;
 }
 class Interface extends core::Object {
-  covariant field core::int field1 = 0;
-  covariant field core::int field2 = 0;
+  covariant-by-declaration field core::int field1 = 0;
+  covariant-by-declaration field core::int field2 = 0;
   field core::int field4 = 0;
   field core::int field5 = 0;
   synthetic constructor •() → self::Interface
@@ -129,16 +129,16 @@ class Class extends self::Super implements self::Interface {
     : super self::Super::•()
     ;
   abstract get field1() → core::int;
-  forwarding-stub forwarding-semi-stub set field1(covariant core::int #externalFieldValue) → void
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::int) → void */ field1(covariant-by-declaration core::num #externalFieldValue) → void
     return super.{self::Super::field1} = #externalFieldValue;
   abstract get field2() → core::String;
-  forwarding-stub forwarding-semi-stub set field2(covariant core::String #externalFieldValue) → void
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::String) → void */ field2(covariant-by-declaration core::num #externalFieldValue) → void
     return super.{self::Super::field2} = #externalFieldValue;
   abstract get field3() → core::int;
   abstract set field3(core::int #externalFieldValue) → void;
   abstract get field4() → core::int;
-  abstract set field4(covariant core::int #externalFieldValue) → void;
+  abstract set field4(covariant-by-declaration core::int #externalFieldValue) → void;
   abstract get field5() → core::num;
-  abstract set field5(covariant core::num #externalFieldValue) → void;
+  abstract set field5(covariant-by-declaration core::num #externalFieldValue) → void;
 }
 static method main() → dynamic {}

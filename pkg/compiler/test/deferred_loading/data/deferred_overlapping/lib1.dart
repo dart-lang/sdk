@@ -7,8 +7,8 @@
 import "deferred_overlapping_lib3.dart";
 
 /*class: C1:
- class_unit=2{lib1},
- type_unit=2{lib1}
+ class_unit=1{lib1},
+ type_unit=1{lib1}
 */
-/*member: C1.:member_unit=2{lib1}*/
+/*member: C1.:member_unit=1{lib1}*/
 class C1 extends C3 {}

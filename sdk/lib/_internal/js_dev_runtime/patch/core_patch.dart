@@ -12,7 +12,6 @@ import 'dart:_js_helper'
         getRuntimeType,
         LinkedMap,
         JSSyntaxRegExp,
-        NoInline,
         notNull,
         nullCheck,
         Primitives,
@@ -903,7 +902,6 @@ class _Uri {
 @patch
 class StackTrace {
   @patch
-  @NoInline()
   static StackTrace get current {
     return dart.stackTrace(JS('', 'Error()'));
   }

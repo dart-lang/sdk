@@ -120,26 +120,26 @@ class Cat2 extends core::Object implements self::Animal2 {
 static method main() → dynamic {
   self::Cat firstCat = invalid-expression "pkg/front_end/testcases/value_class/value_implements_non_value.dart:29:22: Error: No named parameter with the name 'numberOfLegs'.
   Cat firstCat = Cat(numberOfLegs: 4, numberOfWhiskers: 10);
-                     ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat;
+                     ^^^^^^^^^^^^";
   self::Cat secondCat = invalid-expression "pkg/front_end/testcases/value_class/value_implements_non_value.dart:30:23: Error: No named parameter with the name 'numberOfLegs'.
   Cat secondCat = Cat(numberOfLegs: 4, numberOfWhiskers: 10);
-                      ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat;
+                      ^^^^^^^^^^^^";
   self::Cat thirdCat = invalid-expression "pkg/front_end/testcases/value_class/value_implements_non_value.dart:31:22: Error: No named parameter with the name 'numberOfLegs'.
   Cat thirdCat = Cat(numberOfLegs: 4, numberOfWhiskers: 0);
-                     ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat;
+                     ^^^^^^^^^^^^";
   self::expect(true, firstCat =={core::Object::==}{(core::Object) → core::bool} secondCat);
   self::expect(false, firstCat =={core::Object::==}{(core::Object) → core::bool} thirdCat);
   self::expect(true, firstCat.{core::Object::hashCode}{core::int} =={core::num::==}{(core::Object) → core::bool} secondCat.{core::Object::hashCode}{core::int});
   self::expect(false, firstCat.{core::Object::hashCode}{core::int} =={core::num::==}{(core::Object) → core::bool} thirdCat.{core::Object::hashCode}{core::int});
   self::Cat2 firstCat2 = invalid-expression "pkg/front_end/testcases/value_class/value_implements_non_value.dart:39:25: Error: No named parameter with the name 'numberOfLegs'.
   Cat2 firstCat2 = Cat2(numberOfLegs: 4, numberOfWhiskers: 10);
-                        ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat2;
+                        ^^^^^^^^^^^^";
   self::Cat2 secondCat2 = invalid-expression "pkg/front_end/testcases/value_class/value_implements_non_value.dart:40:26: Error: No named parameter with the name 'numberOfLegs'.
   Cat2 secondCat2 = Cat2(numberOfLegs: 4, numberOfWhiskers: 10);
-                         ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat2;
+                         ^^^^^^^^^^^^";
   self::Cat2 thirdCat2 = invalid-expression "pkg/front_end/testcases/value_class/value_implements_non_value.dart:41:25: Error: No named parameter with the name 'numberOfLegs'.
   Cat2 thirdCat2 = Cat2(numberOfLegs: 4, numberOfWhiskers: 0);
-                        ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat2;
+                        ^^^^^^^^^^^^";
   self::expect(true, firstCat2 =={core::Object::==}{(core::Object) → core::bool} secondCat2);
   self::expect(false, firstCat2 =={core::Object::==}{(core::Object) → core::bool} thirdCat2);
   self::expect(true, firstCat2.{core::Object::hashCode}{core::int} =={core::num::==}{(core::Object) → core::bool} secondCat2.{core::Object::hashCode}{core::int});

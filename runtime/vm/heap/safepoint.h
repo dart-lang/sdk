@@ -461,6 +461,37 @@ class TransitionToVM : public TransitionSafepointState {
   DISALLOW_COPY_AND_ASSIGN(TransitionToVM);
 };
 
+// TransitionToNative is used to transition the safepoint state of a
+// thread from "running VM code" to "running native code"
+// and ensures that the state is reverted back to the initial state
+// when exiting the scope/frame.
+class TransitionToNative : public TransitionSafepointState {
+ public:
+  explicit TransitionToNative(Thread* T)
+      : TransitionSafepointState(T), execution_state_(T->execution_state()) {
+    ASSERT(T == Thread::Current());
+    ASSERT((execution_state_ == Thread::kThreadInVM) ||
+           (execution_state_ == Thread::kThreadInNative));
+    if (execution_state_ == Thread::kThreadInVM) {
+      T->set_execution_state(Thread::kThreadInNative);
+      T->EnterSafepoint();
+    }
+    ASSERT(T->execution_state() == Thread::kThreadInNative);
+  }
+
+  ~TransitionToNative() {
+    ASSERT(thread()->execution_state() == Thread::kThreadInNative);
+    if (execution_state_ == Thread::kThreadInVM) {
+      thread()->ExitSafepoint();
+      thread()->set_execution_state(Thread::kThreadInVM);
+    }
+  }
+
+ private:
+  uint32_t execution_state_;
+  DISALLOW_COPY_AND_ASSIGN(TransitionToNative);
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_HEAP_SAFEPOINT_H_

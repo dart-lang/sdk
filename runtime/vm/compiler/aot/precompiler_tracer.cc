@@ -18,15 +18,22 @@ DEFINE_FLAG(charp,
 
 PrecompilerTracer* PrecompilerTracer::StartTracingIfRequested(
     Precompiler* precompiler) {
-  if (FLAG_trace_precompiler_to != nullptr &&
-      Dart::file_write_callback() != nullptr &&
-      Dart::file_open_callback() != nullptr &&
-      Dart::file_close_callback() != nullptr) {
-    return new PrecompilerTracer(
-        precompiler, Dart::file_open_callback()(FLAG_trace_precompiler_to,
-                                                /*write=*/true));
+  const char* filename = FLAG_trace_precompiler_to;
+  if (filename == nullptr) {
+    return nullptr;
   }
-  return nullptr;
+  if ((Dart::file_write_callback() == nullptr) ||
+      (Dart::file_open_callback() == nullptr) ||
+      (Dart::file_close_callback() == nullptr)) {
+    OS::PrintErr("warning: Could not access file callbacks.");
+    return nullptr;
+  }
+  void* file = Dart::file_open_callback()(filename, /*write=*/true);
+  if (file == NULL) {
+    OS::PrintErr("warning: Failed to write precompiler trace: %s\n", filename);
+    return nullptr;
+  }
+  return new PrecompilerTracer(precompiler, file);
 }
 
 PrecompilerTracer::PrecompilerTracer(Precompiler* precompiler, void* stream)

@@ -91,7 +91,7 @@ class Class<T extends self::A> extends core::Object /*hasConstConstructor*/  {
     : this self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class::T)
     ;
   const constructor method(self::Class::T t) → self::Class<self::Class::T>
-    : this self::Class::•(let final Never #t1 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
+    : this self::Class::•(invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
   const Class.method(T t) : this(-t);
                                  ^" in t.{self::A::unary-}(){() → self::A} as{TypeError,ForNonNullableByDefault} Never)
@@ -181,8 +181,8 @@ static method main() → dynamic {
   core::print(#C38);
   core::print(#C39);
   core::print(#C20);
-  core::print((#C20).{self::Foo::saved}{core::bool});
-  core::print((#C20).{self::Foo::value}{core::int});
+  core::print(#C20.{self::Foo::saved}{core::bool});
+  core::print(#C20.{self::Foo::value}{core::int});
 }
 
 library /*isNonNullableByDefault*/;
@@ -207,9 +207,9 @@ constants  {
   #C13 = false
   #C14 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) ?{core::bool} #C8 : #C13
   #C15 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) == null ?{core::bool} #C8 : const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!)
-  #C16 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) && (#C8)
-  #C17 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) || (#C8)
-  #C18 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) || (#C13)
+  #C16 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) && #C8
+  #C17 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) || #C8
+  #C18 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) || #C13
   #C19 = 42
   #C20 = eval self::Foo<core::int*>{saved:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), saved2:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), initialized:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), value:#C19}
   #C21 = eval const core::bool::fromEnvironment(#C1) ?{core::Object} #C19 : #C8

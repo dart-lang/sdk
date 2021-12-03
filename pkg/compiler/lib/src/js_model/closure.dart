@@ -55,19 +55,19 @@ class ClosureDataImpl implements ClosureData {
     source.begin(tag);
     // TODO(johnniwinther): Support shared [ScopeInfo].
     Map<MemberEntity, ScopeInfo> scopeMap = source.readMemberMap(
-        (MemberEntity member) => new ScopeInfo.readFromDataSource(source));
-    Map<ir.TreeNode, CapturedScope> capturedScopesMap = source
-        .readTreeNodeMap(() => new CapturedScope.readFromDataSource(source));
+        (MemberEntity member) => ScopeInfo.readFromDataSource(source));
+    Map<ir.TreeNode, CapturedScope> capturedScopesMap =
+        source.readTreeNodeMap(() => CapturedScope.readFromDataSource(source));
     Map<MemberEntity, CapturedScope> capturedScopeForSignatureMap =
-        source.readMemberMap((MemberEntity member) =>
-            new CapturedScope.readFromDataSource(source));
+        source.readMemberMap(
+            (MemberEntity member) => CapturedScope.readFromDataSource(source));
     Map<ir.LocalFunction, ClosureRepresentationInfo>
         localClosureRepresentationMap = source.readTreeNodeMap(
-            () => new ClosureRepresentationInfo.readFromDataSource(source));
+            () => ClosureRepresentationInfo.readFromDataSource(source));
     Map<MemberEntity, MemberEntity> enclosingMembers =
         source.readMemberMap((member) => source.readMember());
     source.end(tag);
-    return new ClosureDataImpl(
+    return ClosureDataImpl(
         elementMap,
         scopeMap,
         capturedScopesMap,
@@ -174,16 +174,16 @@ class ClosureDataBuilder {
   final AnnotationsData _annotationsData;
 
   /// Map of the scoping information that corresponds to a particular entity.
-  Map<MemberEntity, ScopeInfo> _scopeMap = {};
-  Map<ir.TreeNode, CapturedScope> _capturedScopesMap = {};
+  final Map<MemberEntity, ScopeInfo> _scopeMap = {};
+  final Map<ir.TreeNode, CapturedScope> _capturedScopesMap = {};
   // Indicates the type variables (if any) that are captured in a given
   // Signature function.
-  Map<MemberEntity, CapturedScope> _capturedScopeForSignatureMap = {};
+  final Map<MemberEntity, CapturedScope> _capturedScopeForSignatureMap = {};
 
-  Map<ir.LocalFunction, ClosureRepresentationInfo>
+  final Map<ir.LocalFunction, ClosureRepresentationInfo>
       _localClosureRepresentationMap = {};
 
-  Map<MemberEntity, MemberEntity> _enclosingMembers = {};
+  final Map<MemberEntity, MemberEntity> _enclosingMembers = {};
 
   ClosureDataBuilder(this._elementMap, this._annotationsData);
 
@@ -326,7 +326,7 @@ class ClosureDataBuilder {
     closureModels.forEach((MemberEntity member, ClosureScopeModel model) {
       Map<ir.VariableDeclaration, JRecordField> allBoxedVariables =
           _elementMap.makeRecordContainer(model.scopeInfo, member);
-      _scopeMap[member] = new JsScopeInfo.from(
+      _scopeMap[member] = JsScopeInfo.from(
           allBoxedVariables, model.scopeInfo, member.enclosingClass);
 
       model.capturedScopesMap
@@ -336,10 +336,10 @@ class ClosureDataBuilder {
         _updateScopeBasedOnRtiNeed(scope, rtiNeed, member);
 
         if (scope is KernelCapturedLoopScope) {
-          _capturedScopesMap[node] = new JsCapturedLoopScope.from(
+          _capturedScopesMap[node] = JsCapturedLoopScope.from(
               boxedVariables, scope, member.enclosingClass);
         } else {
-          _capturedScopesMap[node] = new JsCapturedScope.from(
+          _capturedScopesMap[node] = JsCapturedScope.from(
               boxedVariables, scope, member.enclosingClass);
         }
         allBoxedVariables.addAll(boxedVariables);
@@ -372,17 +372,17 @@ class ClosureDataBuilder {
                 model.capturedScopesMap[functionNode];
             assert(capturedScope is! KernelCapturedLoopScope);
             KernelCapturedScope signatureCapturedScope =
-                new KernelCapturedScope.forSignature(capturedScope);
+                KernelCapturedScope.forSignature(capturedScope);
             _updateScopeBasedOnRtiNeed(signatureCapturedScope, rtiNeed, member);
             _capturedScopeForSignatureMap[closureClassInfo.signatureMethod] =
-                new JsCapturedScope.from(
+                JsCapturedScope.from(
                     {}, signatureCapturedScope, member.enclosingClass);
           }
         }
         callMethods.add(closureClassInfo.callMethod);
       }
     });
-    return new ClosureDataImpl(
+    return ClosureDataImpl(
         _elementMap,
         _scopeMap,
         _capturedScopesMap,
@@ -447,8 +447,7 @@ class JsScopeInfo extends ScopeInfo {
 
   JsScopeInfo.from(
       this._boxedVariables, KernelScopeInfo info, ClassEntity enclosingClass)
-      : this.thisLocal =
-            info.hasThisLocal ? new ThisLocal(enclosingClass) : null,
+      : this.thisLocal = info.hasThisLocal ? ThisLocal(enclosingClass) : null,
         this._localsUsedInTryOrSync = info.localsUsedInTryOrSync;
 
   void _ensureBoxedVariableCache(KernelToLocalsMap localsMap) {
@@ -489,7 +488,7 @@ class JsScopeInfo extends ScopeInfo {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('this=$thisLocal,');
     sb.write('localsUsedInTryOrSync={${_localsUsedInTryOrSync.join(', ')}}');
     return sb.toString();
@@ -560,7 +559,7 @@ class JsCapturedScope extends JsScopeInfo implements CapturedScope {
             () => source.readMember());
     Local context = source.readLocalOrNull();
     source.end(tag);
-    return new JsCapturedScope.internal(
+    return JsCapturedScope.internal(
         localsUsedInTryOrSync, thisLocal, boxedVariables, context);
   }
 
@@ -614,7 +613,7 @@ class JsCapturedLoopScope extends JsCapturedScope implements CapturedLoopScope {
     List<ir.VariableDeclaration> boxedLoopVariables =
         source.readTreeNodes<ir.VariableDeclaration>();
     source.end(tag);
-    return new JsCapturedLoopScope.internal(localsUsedInTryOrSync, thisLocal,
+    return JsCapturedLoopScope.internal(localsUsedInTryOrSync, thisLocal,
         boxedVariables, context, boxedLoopVariables);
   }
 
@@ -854,7 +853,7 @@ class JClosureClass extends JClass {
     JLibrary library = source.readLibrary();
     String name = source.readString();
     source.end(tag);
-    return new JClosureClass(library, name);
+    return JClosureClass(library, name);
   }
 
   @override
@@ -910,7 +909,7 @@ class JClosureField extends JField implements PrivatelyNamedJSEntity {
       : this.internal(
             containingClass.closureClassEntity.library,
             containingClass.closureClassEntity,
-            new Name(name, containingClass.closureClassEntity.library),
+            Name(name, containingClass.closureClassEntity.library),
             declaredName,
             isAssignable: isAssignable,
             isConst: isConst);
@@ -928,8 +927,8 @@ class JClosureField extends JField implements PrivatelyNamedJSEntity {
     bool isConst = source.readBool();
     bool isAssignable = source.readBool();
     source.end(tag);
-    return new JClosureField.internal(
-        cls.library, cls, new Name(name, cls.library), declaredName,
+    return JClosureField.internal(
+        cls.library, cls, Name(name, cls.library), declaredName,
         isAssignable: isAssignable, isConst: isConst);
   }
 
@@ -971,13 +970,12 @@ class RecordClassData implements JClassData {
 
   factory RecordClassData.readFromDataSource(DataSource source) {
     source.begin(tag);
-    ClassDefinition definition = new ClassDefinition.readFromDataSource(source);
+    ClassDefinition definition = ClassDefinition.readFromDataSource(source);
     InterfaceType thisType = source.readDartType();
     InterfaceType supertype = source.readDartType();
-    OrderedTypeSet orderedTypeSet =
-        new OrderedTypeSet.readFromDataSource(source);
+    OrderedTypeSet orderedTypeSet = OrderedTypeSet.readFromDataSource(source);
     source.end(tag);
-    return new RecordClassData(definition, thisType, supertype, orderedTypeSet);
+    return RecordClassData(definition, thisType, supertype, orderedTypeSet);
   }
 
   @override
@@ -1036,7 +1034,7 @@ class JRecord extends JClass {
     JLibrary library = source.readLibrary();
     String name = source.readString();
     source.end(tag);
-    return new JRecord(library, name);
+    return JRecord(library, name);
   }
 
   @override
@@ -1067,7 +1065,7 @@ class JRecordField extends JField {
 
   JRecordField(String name, this.box, {bool isConst})
       : super(box.container.library, box.container,
-            new Name(name, box.container.library),
+            Name(name, box.container.library),
             isStatic: false, isAssignable: true, isConst: isConst);
 
   factory JRecordField.readFromDataSource(DataSource source) {
@@ -1076,8 +1074,7 @@ class JRecordField extends JField {
     JClass enclosingClass = source.readClass();
     bool isConst = source.readBool();
     source.end(tag);
-    return new JRecordField(name, new BoxLocal(enclosingClass),
-        isConst: isConst);
+    return JRecordField(name, BoxLocal(enclosingClass), isConst: isConst);
   }
 
   @override
@@ -1116,14 +1113,13 @@ class ClosureClassData extends RecordClassData {
 
   factory ClosureClassData.readFromDataSource(DataSource source) {
     source.begin(tag);
-    ClassDefinition definition = new ClassDefinition.readFromDataSource(source);
+    ClassDefinition definition = ClassDefinition.readFromDataSource(source);
     InterfaceType thisType = source.readDartType();
     InterfaceType supertype = source.readDartType();
-    OrderedTypeSet orderedTypeSet =
-        new OrderedTypeSet.readFromDataSource(source);
+    OrderedTypeSet orderedTypeSet = OrderedTypeSet.readFromDataSource(source);
     FunctionType callType = source.readDartType();
     source.end(tag);
-    return new ClosureClassData(definition, thisType, supertype, orderedTypeSet)
+    return ClosureClassData(definition, thisType, supertype, orderedTypeSet)
       ..callType = callType;
   }
 
@@ -1154,7 +1150,7 @@ class ClosureClassDefinition implements ClassDefinition {
     source.begin(tag);
     SourceSpan location = source.readSourceSpan();
     source.end(tag);
-    return new ClosureClassDefinition(location);
+    return ClosureClassDefinition(location);
   }
 
   @override
@@ -1170,7 +1166,7 @@ class ClosureClassDefinition implements ClassDefinition {
 
   @override
   ir.Node get node =>
-      throw new UnsupportedError('ClosureClassDefinition.node for $location');
+      throw UnsupportedError('ClosureClassDefinition.node for $location');
 
   @override
   String toString() => 'ClosureClassDefinition(kind:$kind,location:$location)';
@@ -1186,7 +1182,7 @@ abstract class ClosureMemberData implements JMemberData {
   @override
   StaticTypeCache get staticTypes {
     // The cached types are stored in the data for enclosing member.
-    throw new UnsupportedError("ClosureMemberData.staticTypes");
+    throw UnsupportedError("ClosureMemberData.staticTypes");
   }
 
   @override
@@ -1221,14 +1217,14 @@ class ClosureFunctionData extends ClosureMemberData
   factory ClosureFunctionData.readFromDataSource(DataSource source) {
     source.begin(tag);
     ClosureMemberDefinition definition =
-        new MemberDefinition.readFromDataSource(source);
+        MemberDefinition.readFromDataSource(source);
     InterfaceType memberThisType = source.readDartType(allowNull: true);
     FunctionType functionType = source.readDartType();
     ir.FunctionNode functionNode = source.readTreeNode();
     ClassTypeVariableAccess classTypeVariableAccess =
         source.readEnum(ClassTypeVariableAccess.values);
     source.end(tag);
-    return new ClosureFunctionData(definition, memberThisType, functionType,
+    return ClosureFunctionData(definition, memberThisType, functionType,
         functionNode, classTypeVariableAccess);
   }
 
@@ -1274,11 +1270,10 @@ class ClosureFieldData extends ClosureMemberData implements JFieldData {
 
   factory ClosureFieldData.readFromDataSource(DataSource source) {
     source.begin(tag);
-    MemberDefinition definition =
-        new MemberDefinition.readFromDataSource(source);
+    MemberDefinition definition = MemberDefinition.readFromDataSource(source);
     InterfaceType memberThisType = source.readDartType(allowNull: true);
     source.end(tag);
-    return new ClosureFieldData(definition, memberThisType);
+    return ClosureFieldData(definition, memberThisType);
   }
 
   @override
@@ -1344,7 +1339,7 @@ class ClosureMemberDefinition implements MemberDefinition {
     SourceSpan location = source.readSourceSpan();
     ir.TreeNode node = source.readTreeNode();
     source.end(tag);
-    return new ClosureMemberDefinition(location, kind, node);
+    return ClosureMemberDefinition(location, kind, node);
   }
 
   @override
@@ -1374,7 +1369,7 @@ class RecordContainerDefinition implements ClassDefinition {
     source.begin(tag);
     SourceSpan location = source.readSourceSpan();
     source.end(tag);
-    return new RecordContainerDefinition(location);
+    return RecordContainerDefinition(location);
   }
 
   @override
@@ -1389,8 +1384,8 @@ class RecordContainerDefinition implements ClassDefinition {
   ClassKind get kind => ClassKind.record;
 
   @override
-  ir.Node get node => throw new UnsupportedError(
-      'RecordContainerDefinition.node for $location');
+  ir.Node get node =>
+      throw UnsupportedError('RecordContainerDefinition.node for $location');
 
   @override
   String toString() =>

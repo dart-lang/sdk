@@ -12,7 +12,6 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/api_prototype/language_version.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart';
-import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:kernel/ast.dart';
 
 /// The version used in this test as the experiment release version.
@@ -21,7 +20,7 @@ const Version experimentReleaseVersion = const Version(2, 9);
 /// The version used in this test as the experiment enabled version.
 const Version experimentEnabledVersion = const Version(2, 10);
 
-main() async {
+Future<void> main() async {
   print('--------------------------------------------------------------------');
   print('Test off-by-default with command-line flag');
   print('--------------------------------------------------------------------');
@@ -59,7 +58,7 @@ main() async {
       versionOptsInAllowed: experimentReleaseVersion);
 }
 
-test(
+Future<void> test(
     {bool enableNonNullableByDefault,
     bool enableNonNullableExplicitly,
     Version versionImpliesOptIn,
@@ -142,8 +141,7 @@ test(
           " (package) uri=${versionAndPackageUri.packageUri}");
       Expect.isTrue(
           library.languageVersion < versionImpliesOptIn ||
-              library.isNonNullableByDefault ||
-              SourceLibraryBuilder.isOptOutTest(library.fileUri),
+              library.isNonNullableByDefault,
           "Expected library ${library.importUri} with version "
           "${library.languageVersion} to be opted in.");
       Expect.isTrue(
@@ -151,8 +149,7 @@ test(
               !versionAndPackageUri.packageUri.path
                   .startsWith('allowed_package') ||
               library.languageVersion < versionOptsInAllowed ||
-              library.isNonNullableByDefault ||
-              SourceLibraryBuilder.isOptOutTest(library.fileUri),
+              library.isNonNullableByDefault,
           "Expected allowed library ${library.importUri} with version "
           "${library.languageVersion} to be opted in.");
     }

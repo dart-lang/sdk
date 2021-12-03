@@ -370,6 +370,12 @@ class Address : public ValueObject {
 
 class FieldAddress : public Address {
  public:
+  static bool CanHoldOffset(int32_t offset,
+                            AddressType at = Offset,
+                            OperandSize sz = kEightBytes) {
+    return Address::CanHoldOffset(offset - kHeapObjectTag, at, sz);
+  }
+
   FieldAddress(Register base, int32_t disp, OperandSize sz = kEightBytes)
       : Address(base, disp - kHeapObjectTag, Offset, sz) {}
 
@@ -595,19 +601,32 @@ class Assembler : public AssemblerBase {
     }
   }
 
-  void StoreRelease(Register dst, Register address, int32_t offset = 0) {
+  void StoreRelease(Register src,
+                    Register address,
+                    int32_t offset = 0) override {
+    Register kDestReg = address;
     if (offset != 0) {
-      AddImmediate(TMP2, address, offset);
-      stlr(dst, TMP2);
-#if defined(USING_THREAD_SANITIZER)
-      TsanStoreRelease(TMP2);
-#endif
-    } else {
-      stlr(dst, address);
-#if defined(USING_THREAD_SANITIZER)
-      TsanStoreRelease(address);
-#endif
+      kDestReg = TMP;
+      AddImmediate(kDestReg, address, offset);
     }
+    stlr(src, kDestReg);
+#if defined(USING_THREAD_SANITIZER)
+    TsanStoreRelease(kDestReg);
+#endif
+  }
+
+  void StoreReleaseCompressed(Register src,
+                              Register address,
+                              int32_t offset = 0) {
+    Register kResultReg = address;
+    if (offset != 0) {
+      kResultReg = TMP;
+      AddImmediate(kResultReg, address, offset);
+    }
+    stlr(src, kResultReg, kObjectBytes);
+#if defined(USING_THREAD_SANITIZER)
+    TsanStoreRelease(kResultReg);
+#endif
   }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {
@@ -627,7 +646,17 @@ class Assembler : public AssemblerBase {
     cmp(value, Operand(TMP), sz);
   }
 
-  void CompareTypeNullabilityWith(Register type, int8_t value) {
+  void CompareFunctionTypeNullabilityWith(Register type,
+                                          int8_t value) override {
+    EnsureHasClassIdInDEBUG(kFunctionTypeCid, type, TMP);
+    ldr(TMP,
+        FieldAddress(type, compiler::target::FunctionType::nullability_offset(),
+                     kByte),
+        kUnsignedByte);
+    cmp(TMP, Operand(value));
+  }
+  void CompareTypeNullabilityWith(Register type, int8_t value) override {
+    EnsureHasClassIdInDEBUG(kTypeCid, type, TMP);
     ldr(TMP,
         FieldAddress(type, compiler::target::Type::nullability_offset(), kByte),
         kUnsignedByte);
@@ -1192,7 +1221,11 @@ class Assembler : public AssemblerBase {
 
   // Conditional branch.
   void b(Label* label, Condition cond = AL) {
-    EmitConditionalBranch(BCOND, cond, label);
+    if (cond == AL) {
+      EmitUnconditionalBranch(B, label);
+    } else {
+      EmitConditionalBranch(BCOND, cond, label);
+    }
   }
 
   void b(int32_t offset) { EmitUnconditionalBranchOp(B, offset); }
@@ -1312,17 +1345,41 @@ class Assembler : public AssemblerBase {
     const Register crn = ConcreteRegister(rn);
     EmitFPIntCvtOp(SCVTFD, static_cast<Register>(vd), crn, kFourBytes);
   }
-  void fcvtzdsx(Register rd, VRegister vn) {
+  void fcvtzsxd(Register rd, VRegister vn) {
     ASSERT(rd != R31);
     ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
-    EmitFPIntCvtOp(FCVTZDS, crd, static_cast<Register>(vn));
+    EmitFPIntCvtOp(FCVTZS_D, crd, static_cast<Register>(vn));
   }
-  void fcvtzdsw(Register rd, VRegister vn) {
+  void fcvtzswd(Register rd, VRegister vn) {
     ASSERT(rd != R31);
     ASSERT(rd != CSP);
     const Register crd = ConcreteRegister(rd);
-    EmitFPIntCvtOp(FCVTZDS, crd, static_cast<Register>(vn), kFourBytes);
+    EmitFPIntCvtOp(FCVTZS_D, crd, static_cast<Register>(vn), kFourBytes);
+  }
+  void fcvtmsxd(Register rd, VRegister vn) {
+    ASSERT(rd != R31);
+    ASSERT(rd != CSP);
+    const Register crd = ConcreteRegister(rd);
+    EmitFPIntCvtOp(FCVTMS_D, crd, static_cast<Register>(vn));
+  }
+  void fcvtmswd(Register rd, VRegister vn) {
+    ASSERT(rd != R31);
+    ASSERT(rd != CSP);
+    const Register crd = ConcreteRegister(rd);
+    EmitFPIntCvtOp(FCVTMS_D, crd, static_cast<Register>(vn), kFourBytes);
+  }
+  void fcvtpsxd(Register rd, VRegister vn) {
+    ASSERT(rd != R31);
+    ASSERT(rd != CSP);
+    const Register crd = ConcreteRegister(rd);
+    EmitFPIntCvtOp(FCVTPS_D, crd, static_cast<Register>(vn));
+  }
+  void fcvtpswd(Register rd, VRegister vn) {
+    ASSERT(rd != R31);
+    ASSERT(rd != CSP);
+    const Register crd = ConcreteRegister(rd);
+    EmitFPIntCvtOp(FCVTPS_D, crd, static_cast<Register>(vn), kFourBytes);
   }
   void fmovdd(VRegister vd, VRegister vn) { EmitFPOneSourceOp(FMOVDD, vd, vn); }
   void fabsd(VRegister vd, VRegister vn) { EmitFPOneSourceOp(FABSD, vd, vn); }
@@ -1696,7 +1753,8 @@ class Assembler : public AssemblerBase {
   // Macros accepting a pp Register argument may attempt to load values from
   // the object pool when possible. Unless you are sure that the untagged object
   // pool pointer is in another register, or that it is not available at all,
-  // PP should be passed for pp. `dest` can be TMP2, `rn` cannot.
+  // PP should be passed for pp. `dest` can be TMP2, `rn` cannot. `dest` can be
+  // TMP.
   void AddImmediate(Register dest,
                     Register rn,
                     int64_t imm,
@@ -1808,6 +1866,18 @@ class Assembler : public AssemblerBase {
     StoreQToOffset(src, base, offset - kHeapObjectTag);
   }
 
+  void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset) {
+    LoadDFromOffset(dst, base, offset);
+  }
+  void StoreUnboxedDouble(FpuRegister src, Register base, int32_t offset) {
+    StoreDToOffset(src, base, offset);
+  }
+  void MoveUnboxedDouble(FpuRegister dst, FpuRegister src) {
+    if (src != dst) {
+      fmovdd(dst, src);
+    }
+  }
+
   void LoadCompressed(Register dest, const Address& slot);
   void LoadCompressedFromOffset(Register dest, Register base, int32_t offset);
   void LoadCompressedSmi(Register dest, const Address& slot);
@@ -1823,12 +1893,14 @@ class Assembler : public AssemblerBase {
   void StoreIntoObject(Register object,
                        const Address& dest,
                        Register value,
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                       MemoryOrder memory_order = kRelaxedNonAtomic) override;
   void StoreCompressedIntoObject(
       Register object,
       const Address& dest,
       Register value,
-      CanBeSmi can_value_be_smi = kValueCanBeSmi) override;
+      CanBeSmi can_value_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
   void StoreBarrier(Register object, Register value, CanBeSmi can_value_be_smi);
   void StoreIntoArray(Register object,
                       Register slot,
@@ -1846,36 +1918,52 @@ class Assembler : public AssemblerBase {
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                             MemoryOrder memory_order = kRelaxedNonAtomic);
   void StoreCompressedIntoObjectOffset(
       Register object,
       int32_t offset,
       Register value,
-      CanBeSmi can_value_be_smi = kValueCanBeSmi);
-  void StoreIntoObjectNoBarrier(Register object,
-                                const Address& dest,
-                                Register value) override;
-  void StoreCompressedIntoObjectNoBarrier(Register object,
-                                          const Address& dest,
-                                          Register value) override;
-  void StoreIntoObjectOffsetNoBarrier(Register object,
-                                      int32_t offset,
-                                      Register value);
-  void StoreCompressedIntoObjectOffsetNoBarrier(Register object,
-                                                int32_t offset,
-                                                Register value);
+      CanBeSmi can_value_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
+  void StoreIntoObjectNoBarrier(
+      Register object,
+      const Address& dest,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
+  void StoreCompressedIntoObjectNoBarrier(
+      Register object,
+      const Address& dest,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic) override;
+  void StoreIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
+  void StoreCompressedIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      Register value,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 const Object& value);
-  void StoreCompressedIntoObjectNoBarrier(Register object,
-                                          const Address& dest,
-                                          const Object& value);
-  void StoreIntoObjectOffsetNoBarrier(Register object,
-                                      int32_t offset,
-                                      const Object& value);
-  void StoreCompressedIntoObjectOffsetNoBarrier(Register object,
-                                                int32_t offset,
-                                                const Object& value);
+  void StoreCompressedIntoObjectNoBarrier(
+      Register object,
+      const Address& dest,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
+  void StoreIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
+  void StoreCompressedIntoObjectOffsetNoBarrier(
+      Register object,
+      int32_t offset,
+      const Object& value,
+      MemoryOrder memory_order = kRelaxedNonAtomic);
 
   // Stores a non-tagged value into a heap object.
   void StoreInternalPointer(Register object,
@@ -2285,6 +2373,7 @@ class Assembler : public AssemblerBase {
     Emit(encoding);
   }
 
+  int32_t BindImm26Branch(int64_t position, int64_t dest);
   int32_t BindImm19Branch(int64_t position, int64_t dest);
   int32_t BindImm14Branch(int64_t position, int64_t dest);
 
@@ -2320,6 +2409,11 @@ class Assembler : public AssemblerBase {
     int32_t insns = (static_cast<uint32_t>(instr) & kImm14Mask) >> kImm14Shift;
     const int32_t off = static_cast<int32_t>(insns << 18) >> 16;
     return static_cast<int64_t>(off);
+  }
+
+  bool IsUnconditionalBranch(int32_t instr) {
+    return (instr & UnconditionalBranchMask) ==
+           (UnconditionalBranchFixed & UnconditionalBranchMask);
   }
 
   bool IsConditionalBranch(int32_t instr) {
@@ -2402,6 +2496,7 @@ class Assembler : public AssemblerBase {
   void EmitConditionalBranchOp(ConditionalBranchOp op,
                                Condition cond,
                                int64_t imm) {
+    ASSERT(cond != AL);
     const int32_t off = EncodeImm19BranchOffset(imm, 0);
     const int32_t encoding =
         op | (static_cast<int32_t>(cond) << kCondShift) | off;
@@ -2421,21 +2516,16 @@ class Assembler : public AssemblerBase {
   void EmitConditionalBranch(ConditionalBranchOp op,
                              Condition cond,
                              Label* label) {
+    ASSERT(cond != AL);
     if (label->IsBound()) {
       const int64_t dest = label->Position() - buffer_.Size();
       if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
-        if (cond == AL) {
-          // If the condition is AL, we must always branch to dest. There is
-          // no need for a guard branch.
-          b(dest);
-        } else {
-          EmitConditionalBranchOp(op, InvertCondition(cond),
-                                  2 * Instr::kInstrSize);
-          // Make a new dest that takes the new position into account after the
-          // inverted test.
-          const int64_t dest = label->Position() - buffer_.Size();
-          b(dest);
-        }
+        EmitConditionalBranchOp(op, InvertCondition(cond),
+                                2 * Instr::kInstrSize);
+        // Make a new dest that takes the new position into account after the
+        // inverted test.
+        const int64_t dest = label->Position() - buffer_.Size();
+        b(dest);
       } else {
         EmitConditionalBranchOp(op, cond, dest);
       }
@@ -2526,6 +2616,18 @@ class Assembler : public AssemblerBase {
     const int32_t off = ((offset >> 2) << kImm26Shift) & kImm26Mask;
     const int32_t encoding = op | off;
     Emit(encoding);
+  }
+
+  void EmitUnconditionalBranch(UnconditionalBranchOp op, Label* label) {
+    if (label->IsBound()) {
+      const int64_t dest = label->Position() - buffer_.Size();
+      EmitUnconditionalBranchOp(op, dest);
+      label->UpdateLRState(lr_state());
+    } else {
+      const int64_t position = buffer_.Size();
+      EmitUnconditionalBranchOp(op, label->position_);
+      label->LinkTo(position, lr_state());
+    }
   }
 
   void EmitUnconditionalBranchRegOp(UnconditionalBranchRegOp op, Register rn) {

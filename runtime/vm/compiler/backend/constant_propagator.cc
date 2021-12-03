@@ -758,6 +758,10 @@ void ConstantPropagator::VisitDebugStepCheck(DebugStepCheckInstr* instr) {
   // Nothing to do.
 }
 
+void ConstantPropagator::VisitRecordCoverage(RecordCoverageInstr* instr) {
+  // Nothing to do.
+}
+
 void ConstantPropagator::VisitOneByteStringFromCharCode(
     OneByteStringFromCharCodeInstr* instr) {
   const Object& o = instr->char_code()->definition()->constant_value();

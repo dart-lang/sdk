@@ -336,6 +336,7 @@ abstract class _ProcedureEtcChunk extends _SortableChunk {
   _ProcedureEtcChunk(Token startToken, Token endToken)
       : super(startToken, endToken);
 
+  @override
   void _printOnWithoutHeaderAndMetadata(StringBuffer sb) {
     printTokenRange(startToken, endToken, sb,
         skipContentOnEndGroupUntilToToken: true);
@@ -393,6 +394,7 @@ class _UnknownChunk extends _TokenChunk {
       this.addMarkerForUnknownForTest, Token startToken, Token endToken)
       : super(startToken, endToken);
 
+  @override
   void _printOnWithoutHeaderAndMetadata(StringBuffer sb) {
     if (addMarkerForUnknownForTest) {
       sb.write("---- unknown chunk starts ----\n");
@@ -654,7 +656,7 @@ void outputUnknownChunk(
   _currentUnknown.interimEnd = null;
 }
 
-main(List<String> args) {
+void main(List<String> args) {
   File f = new File(args[0]);
   Uint8List data = f.readAsBytesSync();
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration();
@@ -750,12 +752,13 @@ class TextualOutlineListener extends Listener {
         new _TopLevelFieldsChunk(beginToken, endToken);
   }
 
-  void endFunctionTypeAlias(
-      Token typedefKeyword, Token? equals, Token endToken) {
+  @override
+  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
     elementStartToChunk[typedefKeyword] =
         new _FunctionTypeAliasChunk(typedefKeyword, endToken);
   }
 
+  @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     elementStartToChunk[enumKeyword] =
         new _EnumChunk(enumKeyword, leftBrace.endGroup!);
@@ -801,7 +804,7 @@ class TextualOutlineListener extends Listener {
 
   @override
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token endToken) {
+      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
     classStartToChunk[extensionKeyword] =
         new _ExtensionDeclarationChunk(extensionKeyword, endToken);
   }
@@ -818,12 +821,12 @@ class TextualOutlineListener extends Listener {
   List<String>? _combinatorNames;
 
   @override
-  beginExport(Token export) {
+  void beginExport(Token export) {
     _combinators = <_NamespaceCombinator>[];
   }
 
   @override
-  beginImport(Token import) {
+  void beginImport(Token import) {
     _combinators = <_NamespaceCombinator>[];
   }
 

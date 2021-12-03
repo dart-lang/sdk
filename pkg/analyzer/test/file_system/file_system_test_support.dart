@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart' as path;
@@ -11,6 +13,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 final isFile = TypeMatcher<File>();
 final isFileSystemException = TypeMatcher<FileSystemException>();
 final isFolder = TypeMatcher<Folder>();
+
+final throwsFileSystemException = throwsA(isFileSystemException);
 
 abstract class FileSystemTestSupport {
   /// The content used for the file at the [defaultFilePath] if it is created
@@ -108,9 +112,11 @@ mixin FileTestMixin implements FileSystemTestSupport {
   test_delete_existing() {
     File file = getFile(exists: true);
     expect(file.exists, isTrue);
+    expect(file.parent2.getChildren(), contains(file));
 
     file.delete();
     expect(file.exists, isFalse);
+    expect(file.parent2.getChildren(), isNot(contains(file)));
   }
 
   test_delete_notExisting();
@@ -199,8 +205,8 @@ mixin FileTestMixin implements FileSystemTestSupport {
   }
 
   test_lengthSync_existing() {
-    File file = getFile(exists: true);
-    List<int> bytes = <int>[1, 2, 3, 4, 5];
+    var file = getFile(exists: true);
+    var bytes = Uint8List.fromList([1, 2, 3, 4, 5]);
     file.writeAsBytesSync(bytes);
 
     expect(file.lengthSync, bytes.length);
@@ -389,8 +395,9 @@ mixin FileTestMixin implements FileSystemTestSupport {
   test_writeAsBytesSync_existing() {
     File file = getFile(exists: true);
 
-    file.writeAsBytesSync(<int>[99, 99]);
-    expect(file.readAsBytesSync(), <int>[99, 99]);
+    var bytes = Uint8List.fromList([99, 99]);
+    file.writeAsBytesSync(bytes);
+    expect(file.readAsBytesSync(), bytes);
   }
 
   test_writeAsBytesSync_notExisting();
@@ -919,6 +926,7 @@ mixin ResourceProviderTestMixin implements FileSystemTestSupport {
     expect(folder.exists, isFalse);
   }
 
+  @Deprecated('Not used by clients')
   test_getModificationTimes_existing() async {
     Source source = getFile(exists: true).createSource();
 
@@ -926,6 +934,7 @@ mixin ResourceProviderTestMixin implements FileSystemTestSupport {
     expect(times, [source.modificationStamp]);
   }
 
+  @Deprecated('Not used by clients')
   test_getModificationTimes_notExisting() async {
     Source source = getFile(exists: false).createSource();
 

@@ -3209,7 +3209,7 @@ ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
 }
 
 ISOLATE_UNIT_TEST_CASE(MegamorphicCache) {
-  const auto& name = String::Handle(String::New("name"));
+  const auto& name = String::Handle(Symbols::New(thread, "name"));
   const auto& args_descriptor =
       Array::Handle(ArgumentsDescriptor::NewBoxed(1, 1, Object::null_array()));
 
@@ -4551,7 +4551,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":"
         "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-patch\\/"
         "array.dart\",\"_kind\":\"kernel\"},\"tokenPos\":248,\"endTokenPos\":"
-        "7758},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
+        "7917},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"},\"typeParameters\":[{"
         "\"type\":\"@"
         "Instance\",\"_vmType\":\"TypeParameter\",\"class\":{\"type\":\"@"
@@ -4559,8 +4559,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "vmName\":\"\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
         "\"id\":\"\",\"uri\":\"dart:core-patch\\/"
-        "type_patch.dart\",\"_kind\":\"kernel\"},\"tokenPos\":1584,"
-        "\"endTokenPos\":1729},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "type_patch.dart\",\"_kind\":\"kernel\"},\"tokenPos\":1749,"
+        "\"endTokenPos\":1894},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"identityHashCode\":",
         buffer);
@@ -5029,64 +5029,6 @@ TEST_CASE(HashCode_Type_Int) {
                                         /*check_identity=*/false));
 }
 
-// Because we want to reuse CanonicalizeHash for hashCode, we should not have
-// collisions.
-TEST_CASE(CanonicalizeHash_Const_Instances) {
-  const char* kScript =
-      "class A {\n"
-      "  final int n;\n"
-      "  \n"
-      "  const A(this.n);\n"
-      "}\n"
-      "\n"
-      "class B {\n"
-      "  final int n;\n"
-      "  \n"
-      "  const B(this.n);\n"
-      "}\n"
-      "\n"
-      "valueA() {\n"
-      "  return const A(5);\n"
-      "}\n"
-      "\n"
-      "valueB() {\n"
-      "  return const B(5);\n"
-      "}\n";
-
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID(lib);
-
-  Dart_Handle value_a_result =
-      Dart_Invoke(lib, NewString("valueA"), 0, nullptr);
-  EXPECT_VALID(value_a_result);
-  Dart_Handle value_b_result =
-      Dart_Invoke(lib, NewString("valueB"), 0, nullptr);
-  EXPECT_VALID(value_b_result);
-
-  TransitionNativeToVM transition(Thread::Current());
-
-  const auto& value_a_dart = Instance::CheckedHandle(
-      Thread::Current()->zone(), Api::UnwrapHandle(value_a_result));
-  const auto& value_b_dart = Instance::CheckedHandle(
-      Thread::Current()->zone(), Api::UnwrapHandle(value_b_result));
-
-  const uint32_t canonicalize_hash_a = value_a_dart.CanonicalizeHash();
-  const uint32_t canonicalize_hash_b = value_b_dart.CanonicalizeHash();
-
-  bool success = canonicalize_hash_a != canonicalize_hash_b;
-
-  if (!success) {
-    LogBlock lb;
-    THR_Print("Hash collision between %s and %s\n", value_a_dart.ToCString(),
-              value_b_dart.ToCString());
-    THR_Print("VM CanonicalizeHash a %" Px32 " %" Pd32 "\n",
-              canonicalize_hash_a, canonicalize_hash_a);
-    THR_Print("VM CanonicalizeHash b %" Px32 " %" Pd32 "\n",
-              canonicalize_hash_b, canonicalize_hash_b);
-  }
-  EXPECT(success);
-}
-
 TEST_CASE(LinkedHashMap_iteration) {
   const char* kScript =
       "makeMap() {\n"
@@ -5126,14 +5068,461 @@ TEST_CASE(LinkedHashMap_iteration) {
   EXPECT(!iterator.MoveNext());
 }
 
+template <class LinkedHashBase>
+static bool LinkedHashBaseEqual(const LinkedHashBase& map1,
+                                const LinkedHashBase& map2,
+                                bool print_diff,
+                                bool check_data = true) {
+  if (check_data) {
+    // Check data, only for non-nested.
+    const auto& data1 = Array::Handle(map1.data());
+    const auto& data2 = Array::Handle(map2.data());
+    const bool data_length_equal = data1.Length() == data2.Length();
+    bool data_equal = data_length_equal;
+    if (data_length_equal) {
+      auto& object1 = Instance::Handle();
+      auto& object2 = Instance::Handle();
+      for (intptr_t i = 0; i < data1.Length(); i++) {
+        object1 ^= data1.At(i);
+        object2 ^= data2.At(i);
+        data_equal &= object1.CanonicalizeEquals(object2);
+      }
+    }
+    if (!data_equal) {
+      if (print_diff) {
+        THR_Print("LinkedHashBaseEqual Data not equal.\n");
+        THR_Print("LinkedHashBaseEqual data1.length %" Pd " data1.length %" Pd
+                  " \n",
+                  data1.Length(), data2.Length());
+        auto& object1 = Instance::Handle();
+        for (intptr_t i = 0; i < data1.Length(); i++) {
+          object1 ^= data1.At(i);
+          THR_Print("LinkedHashBaseEqual data1[%" Pd "] %s\n", i,
+                    object1.ToCString());
+        }
+        for (intptr_t i = 0; i < data2.Length(); i++) {
+          object1 ^= data2.At(i);
+          THR_Print("LinkedHashBaseEqual data2[%" Pd "] %s\n", i,
+                    object1.ToCString());
+        }
+      }
+      return false;
+    }
+  }
+
+  // Check hashing.
+  intptr_t hash_mask1 = Smi::Value(map1.hash_mask());
+  EXPECT(!Integer::Handle(map2.hash_mask()).IsNull());
+  intptr_t hash_mask2 = Smi::Value(map2.hash_mask());
+  const bool hash_masks_equal = hash_mask1 == hash_mask2;
+  if (!hash_masks_equal) {
+    if (print_diff) {
+      THR_Print("LinkedHashBaseEqual Hash masks not equal.\n");
+      THR_Print("LinkedHashBaseEqual hash_mask1 %" Px " hash_mask2 %" Px " \n",
+                hash_mask1, hash_mask2);
+    }
+  }
+
+  // Check indices.
+  const auto& index1 = TypedData::Handle(map1.index());
+  const auto& index2 = TypedData::Handle(map2.index());
+  EXPECT(!index2.IsNull());
+  ASSERT(index1.ElementType() == kUint32ArrayElement);
+  ASSERT(index2.ElementType() == kUint32ArrayElement);
+  const intptr_t kElementSize = 4;
+  ASSERT(kElementSize == index1.ElementSizeInBytes());
+  const bool index_length_equal = index1.Length() == index2.Length();
+  bool index_equal = index_length_equal;
+  if (index_length_equal) {
+    for (intptr_t i = 0; i < index1.Length(); i++) {
+      const uint32_t index1_val = index1.GetUint32(i * kElementSize);
+      const uint32_t index2_val = index2.GetUint32(i * kElementSize);
+      index_equal &= index1_val == index2_val;
+    }
+  }
+  if (!index_equal && print_diff) {
+    THR_Print("LinkedHashBaseEqual Indices not equal.\n");
+    THR_Print("LinkedHashBaseEqual index1.length %" Pd " index2.length %" Pd
+              " \n",
+              index1.Length(), index2.Length());
+    for (intptr_t i = 0; i < index1.Length(); i++) {
+      const uint32_t index_val = index1.GetUint32(i * kElementSize);
+      THR_Print("LinkedHashBaseEqual index1[%" Pd "] %" Px32 "\n", i,
+                index_val);
+    }
+    for (intptr_t i = 0; i < index2.Length(); i++) {
+      const uint32_t index_val = index2.GetUint32(i * kElementSize);
+      THR_Print("LinkedHashBaseEqual index2[%" Pd "] %" Px32 "\n", i,
+                index_val);
+    }
+  }
+  return index_equal;
+}
+
+// Copies elements from data.
+static LinkedHashMapPtr ConstructImmutableMap(
+    const Array& input_data,
+    intptr_t used_data,
+    const TypeArguments& type_arguments) {
+  auto& map = LinkedHashMap::Handle(ImmutableLinkedHashMap::NewUninitialized());
+
+  const auto& data = Array::Handle(Array::New(input_data.Length()));
+  for (intptr_t i = 0; i < used_data; i++) {
+    data.SetAt(i, Object::Handle(input_data.At(i)));
+  }
+  map.set_data(data);
+  map.set_used_data(used_data);
+  map.SetTypeArguments(type_arguments);
+  map.set_deleted_keys(0);
+  map.ComputeAndSetHashMask();
+  map ^= map.Canonicalize(Thread::Current());
+
+  return map.ptr();
+}
+
+// Constructs an immutable hashmap from a mutable one in this test.
+TEST_CASE(ImmutableLinkedHashMap_vm) {
+  const char* kScript = R"(
+enum ExperimentalFlag {
+  alternativeInvalidationStrategy,
+  constFunctions,
+  constantUpdate2018,
+  constructorTearoffs,
+  controlFlowCollections,
+  extensionMethods,
+  extensionTypes,
+  genericMetadata,
+  nonNullable,
+  nonfunctionTypeAliases,
+  setLiterals,
+  spreadCollections,
+  testExperiment,
+  tripleShift,
+  valueClass,
+  variance,
+}
+
+final Map<ExperimentalFlag?, bool> expiredExperimentalFlagsNonConst = {
+  ExperimentalFlag.alternativeInvalidationStrategy: false,
+  ExperimentalFlag.constFunctions: false,
+  ExperimentalFlag.constantUpdate2018: true,
+  ExperimentalFlag.constructorTearoffs: false,
+  ExperimentalFlag.controlFlowCollections: true,
+  ExperimentalFlag.extensionMethods: false,
+  ExperimentalFlag.extensionTypes: false,
+  ExperimentalFlag.genericMetadata: false,
+  ExperimentalFlag.nonNullable: false,
+  ExperimentalFlag.nonfunctionTypeAliases: false,
+  ExperimentalFlag.setLiterals: true,
+  ExperimentalFlag.spreadCollections: true,
+  ExperimentalFlag.testExperiment: false,
+  ExperimentalFlag.tripleShift: false,
+  ExperimentalFlag.valueClass: false,
+  ExperimentalFlag.variance: false,
+};
+
+makeNonConstMap() {
+  return expiredExperimentalFlagsNonConst;
+}
+
+firstKey() {
+  return ExperimentalFlag.alternativeInvalidationStrategy;
+}
+
+firstKeyHashCode() {
+  return firstKey().hashCode;
+}
+
+firstKeyIdentityHashCode() {
+  return identityHashCode(firstKey());
+}
+
+bool lookupSpreadCollections(Map map) =>
+    map[ExperimentalFlag.spreadCollections];
+
+bool? lookupNull(Map map) => map[null];
+)";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle non_const_result =
+      Dart_Invoke(lib, NewString("makeNonConstMap"), 0, NULL);
+  EXPECT_VALID(non_const_result);
+  Dart_Handle first_key_result =
+      Dart_Invoke(lib, NewString("firstKey"), 0, NULL);
+  EXPECT_VALID(first_key_result);
+  Dart_Handle first_key_hashcode_result =
+      Dart_Invoke(lib, NewString("firstKeyHashCode"), 0, NULL);
+  EXPECT_VALID(first_key_hashcode_result);
+  Dart_Handle first_key_identity_hashcode_result =
+      Dart_Invoke(lib, NewString("firstKeyIdentityHashCode"), 0, NULL);
+  EXPECT_VALID(first_key_identity_hashcode_result);
+
+  Dart_Handle const_argument;
+
+  {
+    TransitionNativeToVM transition(thread);
+    const auto& non_const_map = LinkedHashMap::Cast(
+        Object::Handle(Api::UnwrapHandle(non_const_result)));
+    const auto& non_const_type_args =
+        TypeArguments::Handle(non_const_map.GetTypeArguments());
+    const auto& non_const_data = Array::Handle(non_const_map.data());
+    const auto& const_map = LinkedHashMap::Handle(ConstructImmutableMap(
+        non_const_data, Smi::Value(non_const_map.used_data()),
+        non_const_type_args));
+    ASSERT(non_const_map.GetClassId() == kLinkedHashMapCid);
+    ASSERT(const_map.GetClassId() == kImmutableLinkedHashMapCid);
+    ASSERT(!non_const_map.IsCanonical());
+    ASSERT(const_map.IsCanonical());
+
+    const_argument = Api::NewHandle(thread, const_map.ptr());
+  }
+
+  Dart_Handle lookup_result = Dart_Invoke(
+      lib, NewString("lookupSpreadCollections"), 1, &const_argument);
+  EXPECT_VALID(lookup_result);
+  EXPECT_TRUE(lookup_result);
+
+  Dart_Handle lookup_null_result =
+      Dart_Invoke(lib, NewString("lookupNull"), 1, &const_argument);
+  EXPECT_VALID(lookup_null_result);
+  EXPECT_NULL(lookup_null_result);
+
+  {
+    TransitionNativeToVM transition(thread);
+    const auto& non_const_object =
+        Object::Handle(Api::UnwrapHandle(non_const_result));
+    const auto& non_const_map = LinkedHashMap::Cast(non_const_object);
+    const auto& const_object =
+        Object::Handle(Api::UnwrapHandle(const_argument));
+    const auto& const_map = LinkedHashMap::Cast(const_object);
+
+    EXPECT(non_const_map.GetClassId() != const_map.GetClassId());
+
+    // Check that the index is identical.
+    EXPECT(LinkedHashBaseEqual(non_const_map, const_map,
+                               /*print_diff=*/true));
+  }
+}
+
+static bool IsLinkedHashBase(const Object& object) {
+  return object.IsLinkedHashMap() || object.IsLinkedHashSet();
+}
+
+// Checks that the non-constant and constant HashMap and HashSets are equal.
+//
+// Expects a script with a methods named `nonConstValue`, `constValue`, and
+// `init`.
+template <class LinkedHashBase, int kMutableCid, int kImmutableCid>
+static void HashBaseNonConstEqualsConst(const char* script,
+                                        bool check_data = true) {
+  Dart_Handle lib = TestCase::LoadTestScript(script, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle init_result = Dart_Invoke(lib, NewString("init"), 0, NULL);
+  EXPECT_VALID(init_result);
+  Dart_Handle non_const_result =
+      Dart_Invoke(lib, NewString("nonConstValue"), 0, NULL);
+  EXPECT_VALID(non_const_result);
+  Dart_Handle const_result = Dart_Invoke(lib, NewString("constValue"), 0, NULL);
+  EXPECT_VALID(const_result);
+
+  TransitionNativeToVM transition(Thread::Current());
+  const auto& non_const_object =
+      Object::Handle(Api::UnwrapHandle(non_const_result));
+  const auto& const_object = Object::Handle(Api::UnwrapHandle(const_result));
+  non_const_object.IsLinkedHashMap();
+  EXPECT(IsLinkedHashBase(non_const_object));
+  if (!IsLinkedHashBase(non_const_object)) return;
+  const auto& non_const_value = LinkedHashBase::Cast(non_const_object);
+  EXPECT(IsLinkedHashBase(const_object));
+  if (!IsLinkedHashBase(const_object)) return;
+  const auto& const_value = LinkedHashBase::Cast(const_object);
+  EXPECT_EQ(non_const_value.GetClassId(), kMutableCid);
+  EXPECT_EQ(const_value.GetClassId(), kImmutableCid);
+  EXPECT(!non_const_value.IsCanonical());
+  EXPECT(const_value.IsCanonical());
+  EXPECT(LinkedHashBaseEqual(non_const_value, const_value,
+                             /*print_diff=*/true, check_data));
+}
+
+static void HashMapNonConstEqualsConst(const char* script,
+                                       bool check_data = true) {
+  HashBaseNonConstEqualsConst<LinkedHashMap, kLinkedHashMapCid,
+                              kImmutableLinkedHashMapCid>(script, check_data);
+}
+
+static void HashSetNonConstEqualsConst(const char* script,
+                                       bool check_data = true) {
+  HashBaseNonConstEqualsConst<LinkedHashSet, kLinkedHashSetCid,
+                              kImmutableLinkedHashSetCid>(script, check_data);
+}
+
+TEST_CASE(ImmutableLinkedHashMap_small) {
+  const char* kScript = R"(
+constValue() => const {1: 42, 'foo': 499, 2: 'bar'};
+
+nonConstValue() => {1: 42, 'foo': 499, 2: 'bar'};
+
+void init() {
+  constValue()[null];
+}
+)";
+  HashMapNonConstEqualsConst(kScript);
+}
+
+TEST_CASE(ImmutableLinkedHashMap_null) {
+  const char* kScript = R"(
+constValue() => const {1: 42, 'foo': 499, null: 'bar'};
+
+nonConstValue() => {1: 42, 'foo': 499, null: 'bar'};
+
+void init() {
+  constValue()[null];
+}
+)";
+  HashMapNonConstEqualsConst(kScript);
+}
+
+TEST_CASE(ImmutableLinkedHashMap_larger) {
+  const char* kScript = R"(
+enum ExperimentalFlag {
+  alternativeInvalidationStrategy,
+  constFunctions,
+  constantUpdate2018,
+  constructorTearoffs,
+  controlFlowCollections,
+  extensionMethods,
+  extensionTypes,
+  genericMetadata,
+  nonNullable,
+  nonfunctionTypeAliases,
+  setLiterals,
+  spreadCollections,
+  testExperiment,
+  tripleShift,
+  valueClass,
+  variance,
+}
+
+const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
+  ExperimentalFlag.alternativeInvalidationStrategy: false,
+  ExperimentalFlag.constFunctions: false,
+  ExperimentalFlag.constantUpdate2018: true,
+  ExperimentalFlag.constructorTearoffs: false,
+  ExperimentalFlag.controlFlowCollections: true,
+  ExperimentalFlag.extensionMethods: false,
+  ExperimentalFlag.extensionTypes: false,
+  ExperimentalFlag.genericMetadata: false,
+  ExperimentalFlag.nonNullable: false,
+  ExperimentalFlag.nonfunctionTypeAliases: false,
+  ExperimentalFlag.setLiterals: true,
+  ExperimentalFlag.spreadCollections: true,
+  ExperimentalFlag.testExperiment: false,
+  ExperimentalFlag.tripleShift: false,
+  ExperimentalFlag.valueClass: false,
+  ExperimentalFlag.variance: false,
+};
+
+final Map<ExperimentalFlag, bool> expiredExperimentalFlagsNonConst = {
+  ExperimentalFlag.alternativeInvalidationStrategy: false,
+  ExperimentalFlag.constFunctions: false,
+  ExperimentalFlag.constantUpdate2018: true,
+  ExperimentalFlag.constructorTearoffs: false,
+  ExperimentalFlag.controlFlowCollections: true,
+  ExperimentalFlag.extensionMethods: false,
+  ExperimentalFlag.extensionTypes: false,
+  ExperimentalFlag.genericMetadata: false,
+  ExperimentalFlag.nonNullable: false,
+  ExperimentalFlag.nonfunctionTypeAliases: false,
+  ExperimentalFlag.setLiterals: true,
+  ExperimentalFlag.spreadCollections: true,
+  ExperimentalFlag.testExperiment: false,
+  ExperimentalFlag.tripleShift: false,
+  ExperimentalFlag.valueClass: false,
+  ExperimentalFlag.variance: false,
+};
+
+constValue() => expiredExperimentalFlags;
+
+nonConstValue() => expiredExperimentalFlagsNonConst;
+
+void init() {
+  constValue()[null];
+}
+)";
+  HashMapNonConstEqualsConst(kScript);
+}
+
+TEST_CASE(ImmutableLinkedHashMap_nested) {
+  const char* kScript = R"(
+enum Abi {
+  wordSize64,
+  wordSize32Align32,
+  wordSize32Align64,
+}
+
+enum NativeType {
+  kNativeType,
+  kNativeInteger,
+  kNativeDouble,
+  kPointer,
+  kNativeFunction,
+  kInt8,
+  kInt16,
+  kInt32,
+  kInt64,
+  kUint8,
+  kUint16,
+  kUint32,
+  kUint64,
+  kIntptr,
+  kFloat,
+  kDouble,
+  kVoid,
+  kOpaque,
+  kStruct,
+  kHandle,
+}
+
+const nonSizeAlignment = <Abi, Map<NativeType, int>>{
+  Abi.wordSize64: {},
+  Abi.wordSize32Align32: {
+    NativeType.kDouble: 4,
+    NativeType.kInt64: 4,
+    NativeType.kUint64: 4
+  },
+  Abi.wordSize32Align64: {},
+};
+
+final nonSizeAlignmentNonConst = <Abi, Map<NativeType, int>>{
+  Abi.wordSize64: {},
+  Abi.wordSize32Align32: {
+    NativeType.kDouble: 4,
+    NativeType.kInt64: 4,
+    NativeType.kUint64: 4
+  },
+  Abi.wordSize32Align64: {},
+};
+
+constValue() => nonSizeAlignment;
+
+nonConstValue() => nonSizeAlignmentNonConst;
+
+void init() {
+  constValue()[null];
+}
+)";
+  HashMapNonConstEqualsConst(kScript, false);
+}
+
 TEST_CASE(LinkedHashSet_iteration) {
-  const char* kScript =
-      "makeSet() {\n"
-      "  var set = {'x', 'y', 'z', 'w'};\n"
-      "  set.remove('y');\n"
-      "  set.remove('w');\n"
-      "  return set;\n"
-      "}";
+  const char* kScript = R"(
+makeSet() {
+  var set = {'x', 'y', 'z', 'w'};
+  set.remove('y');
+  set.remove('w');
+  return set;
+}
+)";
   Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(h_lib);
   Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeSet"), 0, NULL);
@@ -5159,6 +5548,163 @@ TEST_CASE(LinkedHashSet_iteration) {
   EXPECT_STREQ("z", object.ToCString());
 
   EXPECT(!iterator.MoveNext());
+}
+
+// Copies elements from data.
+static LinkedHashSetPtr ConstructImmutableSet(
+    const Array& input_data,
+    intptr_t used_data,
+    const TypeArguments& type_arguments) {
+  auto& set = LinkedHashSet::Handle(ImmutableLinkedHashSet::NewUninitialized());
+
+  const auto& data = Array::Handle(Array::New(input_data.Length()));
+  for (intptr_t i = 0; i < used_data; i++) {
+    data.SetAt(i, Object::Handle(input_data.At(i)));
+  }
+  set.set_data(data);
+  set.set_used_data(used_data);
+  set.SetTypeArguments(type_arguments);
+  set.set_deleted_keys(0);
+  set.ComputeAndSetHashMask();
+  set ^= set.Canonicalize(Thread::Current());
+
+  return set.ptr();
+}
+
+TEST_CASE(ImmutableLinkedHashSet_vm) {
+  const char* kScript = R"(
+makeNonConstSet() {
+  return {1, 2, 3, 5, 8, 13};
+}
+
+bool containsFive(Set set) => set.contains(5);
+)";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle non_const_result =
+      Dart_Invoke(lib, NewString("makeNonConstSet"), 0, NULL);
+  EXPECT_VALID(non_const_result);
+
+  Dart_Handle const_argument;
+
+  {
+    TransitionNativeToVM transition(thread);
+    const auto& non_const_object =
+        Object::Handle(Api::UnwrapHandle(non_const_result));
+    const auto& non_const_set = LinkedHashSet::Cast(non_const_object);
+    ASSERT(non_const_set.GetClassId() == kLinkedHashSetCid);
+    ASSERT(!non_const_set.IsCanonical());
+
+    const auto& non_const_data = Array::Handle(non_const_set.data());
+    const auto& non_const_type_args =
+        TypeArguments::Handle(non_const_set.GetTypeArguments());
+    const auto& const_set = LinkedHashSet::Handle(ConstructImmutableSet(
+        non_const_data, Smi::Value(non_const_set.used_data()),
+        non_const_type_args));
+    ASSERT(const_set.GetClassId() == kImmutableLinkedHashSetCid);
+    ASSERT(const_set.IsCanonical());
+
+    const_argument = Api::NewHandle(thread, const_set.ptr());
+  }
+
+  Dart_Handle contains_5_result =
+      Dart_Invoke(lib, NewString("containsFive"), 1, &const_argument);
+  EXPECT_VALID(contains_5_result);
+  EXPECT_TRUE(contains_5_result);
+
+  {
+    TransitionNativeToVM transition(thread);
+    const auto& non_const_object =
+        Object::Handle(Api::UnwrapHandle(non_const_result));
+    const auto& non_const_set = LinkedHashSet::Cast(non_const_object);
+    const auto& const_object =
+        Object::Handle(Api::UnwrapHandle(const_argument));
+    const auto& const_set = LinkedHashSet::Cast(const_object);
+
+    EXPECT(non_const_set.GetClassId() != const_set.GetClassId());
+
+    // Check that the index is identical.
+    EXPECT(LinkedHashBaseEqual(non_const_set, const_set,
+                               /*print_diff=*/true));
+  }
+}
+
+TEST_CASE(ImmutableLinkedHashSet_small) {
+  const char* kScript = R"(
+constValue() => const {1, 2, 3, 5, 8, 13};
+
+nonConstValue() => {1, 2, 3, 5, 8, 13};
+
+void init() {
+  constValue().contains(null);
+}
+)";
+  HashSetNonConstEqualsConst(kScript);
+}
+
+TEST_CASE(ImmutableLinkedHashSet_larger) {
+  const char* kScript = R"(
+const Set<String> tokensThatMayFollowTypeArg = {
+  '(',
+  ')',
+  ']',
+  '}',
+  ':',
+  ';',
+  ',',
+  '.',
+  '?',
+  '==',
+  '!=',
+  '..',
+  '?.',
+  '\?\?',
+  '?..',
+  '&',
+  '|',
+  '^',
+  '+',
+  '*',
+  '%',
+  '/',
+  '~/'
+};
+
+final Set<String> tokensThatMayFollowTypeArgNonConst = {
+  '(',
+  ')',
+  ']',
+  '}',
+  ':',
+  ';',
+  ',',
+  '.',
+  '?',
+  '==',
+  '!=',
+  '..',
+  '?.',
+  '\?\?',
+  '?..',
+  '&',
+  '|',
+  '^',
+  '+',
+  '*',
+  '%',
+  '/',
+  '~/'
+};
+
+constValue() => tokensThatMayFollowTypeArg;
+
+nonConstValue() => tokensThatMayFollowTypeArgNonConst;
+
+void init() {
+  constValue().contains(null);
+}
+)";
+  HashSetNonConstEqualsConst(kScript);
 }
 
 static void CheckConcatAll(const String* data[], intptr_t n) {
@@ -5302,6 +5848,230 @@ TEST_CASE(TypeParameterTypeRef) {
   const TypeParameter& t = TypeParameter::Handle(foo.TypeParameterAt(0));
   const TypeParameter& m = TypeParameter::Handle(bar.TypeParameterAt(0));
   EXPECT(!m.IsSubtypeOf(t, Heap::kNew));
+}
+
+static void FinalizeAndCanonicalize(AbstractType* type) {
+  *type ^= ClassFinalizer::FinalizeType(*type);
+  ASSERT(type->IsCanonical());
+}
+
+static void CheckSubtypeRelation(const Expect& expect,
+                                 const AbstractType& sub,
+                                 const AbstractType& super,
+                                 bool is_subtype) {
+  if (sub.IsSubtypeOf(super, Heap::kNew) != is_subtype) {
+    TextBuffer buffer(128);
+    buffer.AddString("Expected ");
+    sub.PrintName(Object::kScrubbedName, &buffer);
+    buffer.Printf(" to %s a subtype of ", is_subtype ? "be" : "not be");
+    super.PrintName(Object::kScrubbedName, &buffer);
+    expect.Fail("%s", buffer.buffer());
+  }
+}
+
+#define EXPECT_SUBTYPE(sub, super)                                             \
+  CheckSubtypeRelation(Expect(__FILE__, __LINE__), sub, super, true);
+#define EXPECT_NOT_SUBTYPE(sub, super)                                         \
+  CheckSubtypeRelation(Expect(__FILE__, __LINE__), sub, super, false);
+
+ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
+  const auto& closure_class =
+      Class::Handle(IsolateGroup::Current()->object_store()->closure_class());
+  const auto& closure_type = Type::Handle(closure_class.DeclarationType());
+  auto& closure_type_nullable = Type::Handle(
+      closure_type.ToNullability(Nullability::kNullable, Heap::kNew));
+  FinalizeAndCanonicalize(&closure_type_nullable);
+  auto& closure_type_legacy = Type::Handle(
+      closure_type.ToNullability(Nullability::kLegacy, Heap::kNew));
+  FinalizeAndCanonicalize(&closure_type_legacy);
+  auto& closure_type_nonnullable = Type::Handle(
+      closure_type.ToNullability(Nullability::kNonNullable, Heap::kNew));
+  FinalizeAndCanonicalize(&closure_type_nonnullable);
+
+  const auto& function_type =
+      Type::Handle(IsolateGroup::Current()->object_store()->function_type());
+  auto& function_type_nullable = Type::Handle(
+      function_type.ToNullability(Nullability::kNullable, Heap::kNew));
+  FinalizeAndCanonicalize(&function_type_nullable);
+  auto& function_type_legacy = Type::Handle(
+      function_type.ToNullability(Nullability::kLegacy, Heap::kNew));
+  FinalizeAndCanonicalize(&function_type_legacy);
+  auto& function_type_nonnullable = Type::Handle(
+      function_type.ToNullability(Nullability::kNonNullable, Heap::kNew));
+  FinalizeAndCanonicalize(&function_type_nonnullable);
+
+  EXPECT_SUBTYPE(closure_type_nonnullable, function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_nonnullable, function_type_legacy);
+  EXPECT_SUBTYPE(closure_type_nonnullable, function_type_nonnullable);
+  EXPECT_SUBTYPE(closure_type_legacy, function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_legacy, function_type_legacy);
+  EXPECT_SUBTYPE(closure_type_legacy, function_type_nonnullable);
+  EXPECT_SUBTYPE(closure_type_nullable, function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_nullable, function_type_legacy);
+  // Nullable types are not a subtype of non-nullable types in strict mode.
+  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
+    EXPECT_NOT_SUBTYPE(closure_type_nullable, function_type_nonnullable);
+  } else {
+    EXPECT_SUBTYPE(closure_type_nullable, function_type_nonnullable);
+  }
+
+  const auto& async_lib = Library::Handle(Library::AsyncLibrary());
+  const auto& future_or_class =
+      Class::Handle(async_lib.LookupClass(Symbols::FutureOr()));
+  auto& tav_function_nullable = TypeArguments::Handle(TypeArguments::New(1));
+  tav_function_nullable.SetTypeAt(0, function_type_nullable);
+  tav_function_nullable = tav_function_nullable.Canonicalize(thread, nullptr);
+  auto& tav_function_legacy = TypeArguments::Handle(TypeArguments::New(1));
+  tav_function_legacy.SetTypeAt(0, function_type_legacy);
+  tav_function_legacy = tav_function_legacy.Canonicalize(thread, nullptr);
+  auto& tav_function_nonnullable = TypeArguments::Handle(TypeArguments::New(1));
+  tav_function_nonnullable.SetTypeAt(0, function_type_nonnullable);
+  tav_function_nonnullable =
+      tav_function_nonnullable.Canonicalize(thread, nullptr);
+
+  auto& future_or_function_type_nullable =
+      Type::Handle(Type::New(future_or_class, tav_function_nullable));
+  FinalizeAndCanonicalize(&future_or_function_type_nullable);
+  auto& future_or_function_type_legacy =
+      Type::Handle(Type::New(future_or_class, tav_function_legacy));
+  FinalizeAndCanonicalize(&future_or_function_type_legacy);
+  auto& future_or_function_type_nonnullable =
+      Type::Handle(Type::New(future_or_class, tav_function_nonnullable));
+  FinalizeAndCanonicalize(&future_or_function_type_nonnullable);
+
+  EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_legacy);
+  EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_nonnullable);
+  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_legacy);
+  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_nonnullable);
+  EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_legacy);
+  // Nullable types are not a subtype of non-nullable types in strict mode.
+  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
+    EXPECT_NOT_SUBTYPE(closure_type_nullable,
+                       future_or_function_type_nonnullable);
+  } else {
+    EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_nonnullable);
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(FunctionType_IsSubtypeOfNonNullableObject) {
+  const auto& type_object = Type::Handle(
+      IsolateGroup::Current()->object_store()->non_nullable_object_type());
+
+  auto& type_function_int_nullary =
+      FunctionType::Handle(FunctionType::New(0, Nullability::kNonNullable));
+  type_function_int_nullary.set_result_type(Type::Handle(Type::IntType()));
+  FinalizeAndCanonicalize(&type_function_int_nullary);
+
+  auto& type_nullable_function_int_nullary =
+      FunctionType::Handle(type_function_int_nullary.ToNullability(
+          Nullability::kNullable, Heap::kOld));
+  FinalizeAndCanonicalize(&type_nullable_function_int_nullary);
+
+  EXPECT_SUBTYPE(type_function_int_nullary, type_object);
+  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
+    EXPECT_NOT_SUBTYPE(type_nullable_function_int_nullary, type_object);
+  } else {
+    EXPECT_SUBTYPE(type_nullable_function_int_nullary, type_object);
+  }
+}
+
+#undef EXPECT_NOT_SUBTYPE
+#undef EXPECT_SUBTYPE
+
+TEST_CASE(Class_GetInstantiationOf) {
+  const char* kScript = R"(
+    class B<T> {}
+    class A1<X, Y> implements B<List<Y>> {}
+    class A2<X, Y> extends A1<Y, X> {}
+  )";
+  Dart_Handle api_lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(api_lib);
+  TransitionNativeToVM transition(thread);
+  Zone* const zone = thread->zone();
+
+  const auto& root_lib =
+      Library::CheckedHandle(zone, Api::UnwrapHandle(api_lib));
+  EXPECT(!root_lib.IsNull());
+  const auto& class_b = Class::Handle(zone, GetClass(root_lib, "B"));
+  const auto& class_a1 = Class::Handle(zone, GetClass(root_lib, "A1"));
+  const auto& class_a2 = Class::Handle(zone, GetClass(root_lib, "A2"));
+
+  const auto& core_lib = Library::Handle(zone, Library::CoreLibrary());
+  const auto& class_list = Class::Handle(zone, GetClass(core_lib, "List"));
+
+  auto expect_type_equal = [](const AbstractType& expected,
+                              const AbstractType& got) {
+    if (got.Equals(expected)) return;
+    TextBuffer buffer(128);
+    buffer.AddString("Expected type ");
+    expected.PrintName(Object::kScrubbedName, &buffer);
+    buffer.AddString(", got ");
+    got.PrintName(Object::kScrubbedName, &buffer);
+    dart::Expect(__FILE__, __LINE__).Fail("%s", buffer.buffer());
+  };
+
+  const auto& decl_type_b = Type::Handle(zone, class_b.DeclarationType());
+  const auto& decl_type_list = Type::Handle(zone, class_list.DeclarationType());
+  const auto& null_tav = Object::null_type_arguments();
+
+  // Test that A1.GetInstantiationOf(B) returns B<List<A1::Y>>.
+  {
+    const auto& decl_type_a1 = Type::Handle(zone, class_a1.DeclarationType());
+    const auto& decl_type_args_a1 =
+        TypeArguments::Handle(zone, decl_type_a1.arguments());
+    const auto& type_arg_a1_y =
+        TypeParameter::CheckedHandle(zone, decl_type_args_a1.TypeAt(1));
+    auto& tav_a1_y = TypeArguments::Handle(TypeArguments::New(1));
+    tav_a1_y.SetTypeAt(0, type_arg_a1_y);
+    tav_a1_y = tav_a1_y.Canonicalize(thread, nullptr);
+    auto& type_list_a1_y = Type::CheckedHandle(
+        zone, decl_type_list.InstantiateFrom(tav_a1_y, null_tav, kAllFree,
+                                             Heap::kNew));
+    type_list_a1_y ^= type_list_a1_y.Canonicalize(thread, nullptr);
+    auto& tav_list_a1_y = TypeArguments::Handle(TypeArguments::New(1));
+    tav_list_a1_y.SetTypeAt(0, type_list_a1_y);
+    tav_list_a1_y = tav_list_a1_y.Canonicalize(thread, nullptr);
+    auto& type_b_list_a1_y = Type::CheckedHandle(
+        zone, decl_type_b.InstantiateFrom(tav_list_a1_y, null_tav, kAllFree,
+                                          Heap::kNew));
+    type_b_list_a1_y ^= type_b_list_a1_y.Canonicalize(thread, nullptr);
+
+    const auto& inst_b_a1 =
+        Type::Handle(zone, class_a1.GetInstantiationOf(zone, class_b));
+    EXPECT(!inst_b_a1.IsNull());
+    expect_type_equal(type_b_list_a1_y, inst_b_a1);
+  }
+
+  // Test that A2.GetInstantiationOf(B) returns B<List<A2::X>>.
+  {
+    const auto& decl_type_a2 = Type::Handle(zone, class_a2.DeclarationType());
+    const auto& decl_type_args_a2 =
+        TypeArguments::Handle(zone, decl_type_a2.arguments());
+    const auto& type_arg_a2_x =
+        TypeParameter::CheckedHandle(zone, decl_type_args_a2.TypeAt(1));
+    auto& tav_a2_x = TypeArguments::Handle(TypeArguments::New(1));
+    tav_a2_x.SetTypeAt(0, type_arg_a2_x);
+    tav_a2_x = tav_a2_x.Canonicalize(thread, nullptr);
+    auto& type_list_a2_x = Type::CheckedHandle(
+        zone, decl_type_list.InstantiateFrom(tav_a2_x, null_tav, kAllFree,
+                                             Heap::kNew));
+    type_list_a2_x ^= type_list_a2_x.Canonicalize(thread, nullptr);
+    auto& tav_list_a2_x = TypeArguments::Handle(TypeArguments::New(1));
+    tav_list_a2_x.SetTypeAt(0, type_list_a2_x);
+    tav_list_a2_x = tav_list_a2_x.Canonicalize(thread, nullptr);
+    auto& type_b_list_a2_x = Type::CheckedHandle(
+        zone, decl_type_b.InstantiateFrom(tav_list_a2_x, null_tav, kAllFree,
+                                          Heap::kNew));
+    type_b_list_a2_x ^= type_b_list_a2_x.Canonicalize(thread, nullptr);
+
+    const auto& inst_b_a2 =
+        Type::Handle(zone, class_a2.GetInstantiationOf(zone, class_b));
+    EXPECT(!inst_b_a2.IsNull());
+    expect_type_equal(type_b_list_a2_x, inst_b_a2);
+  }
 }
 
 }  // namespace dart

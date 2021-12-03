@@ -10,13 +10,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NotMapSpreadTest);
-    defineReflectiveTests(NotMapSpreadNullSafetyTest);
+    defineReflectiveTests(NotMapSpreadWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class NotMapSpreadNullSafetyTest extends NotMapSpreadTest
-    with WithNullSafetyMixin {
+class NotMapSpreadTest extends PubPackageResolutionTest
+    with NotMapSpreadTestCases {
   test_map_typeParameter_bound_mapQuestion() async {
     await assertNoErrorsInCode('''
 void f<T extends Map<int, String>?>(T a) {
@@ -27,9 +27,7 @@ void f<T extends Map<int, String>?>(T a) {
   }
 }
 
-@reflectiveTest
-class NotMapSpreadTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+mixin NotMapSpreadTestCases on PubPackageResolutionTest {
   test_map() async {
     await assertNoErrorsInCode('''
 var a = {0: 0};
@@ -100,3 +98,7 @@ void f<T extends num>(T a) {
     ]);
   }
 }
+
+@reflectiveTest
+class NotMapSpreadWithoutNullSafetyTest extends PubPackageResolutionTest
+    with NotMapSpreadTestCases, WithoutNullSafetyMixin {}

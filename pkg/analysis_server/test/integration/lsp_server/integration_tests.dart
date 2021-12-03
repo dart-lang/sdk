@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_byte_stream_channel.dart';
+import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -164,7 +165,11 @@ class LspServerClient {
     }
 
     final arguments = [...?vmArgs, serverPath, '--lsp', '--suppress-analytics'];
-    final process = await Process.start(dartBinary, arguments);
+    final process = await Process.start(
+      dartBinary,
+      arguments,
+      environment: {PubCommand.disablePubCommandEnvironmentKey: 'true'},
+    );
     _process = process;
     process.exitCode.then((int code) {
       if (code != 0) {

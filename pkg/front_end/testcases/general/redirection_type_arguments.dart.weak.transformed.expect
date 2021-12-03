@@ -6,12 +6,12 @@ import "package:expect/expect.dart" as exp;
 import "package:expect/expect.dart";
 
 class A extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[self::A::•];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   const constructor empty() → self::A*
     : super core::Object::•()
     ;
   static factory •() → self::A*
-    let Never #redirecting_factory = self::B::• in let core::String* #typeArg0 = null in invalid-expression;
+    return new self::B::•<core::String*>();
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -31,11 +31,12 @@ class B<T extends core::Object* = dynamic> extends self::A /*hasConstConstructor
     return "${self::B::T*}";
 }
 static method main() → void {
-  exp::Expect::equals("${#C1}", "String");
+  exp::Expect::equals("${#C2}", "String");
 }
 
 constants  {
-  #C1 = self::B<core::String*> {}
+  #C1 = constructor-tearoff self::A::•
+  #C2 = self::B<core::String*> {}
 }
 
 

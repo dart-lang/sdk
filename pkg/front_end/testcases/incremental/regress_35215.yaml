@@ -11,11 +11,13 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "b.dart";
         main() {
           b(42);
         }
       b.dart: |
+        // @dart=2.9
         b({int named}) {
           print("b");
         }
@@ -27,11 +29,13 @@ worlds:
       - b.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "b.dart";
         main() {
           b(42);
         }
       b.dart: |
+        // @dart=2.9
         // lots of comments
         // forcing offsets down
         // and also adding more lines

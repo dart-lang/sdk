@@ -47,7 +47,7 @@ class TypeSchemaPrinter extends Printer {
             annotator: annotator);
 
   @override
-  defaultDartType(covariant UnknownType node) {
+  void defaultDartType(covariant UnknownType node) {
     writeWord('?');
   }
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Test case that tests boxing mint
 
 // VMOptions=--optimization_counter_threshold=10 --deterministic --use-slow-path --shared-slow-path-triggers-gc --stacktrace_filter=foobar

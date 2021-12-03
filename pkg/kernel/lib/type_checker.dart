@@ -118,9 +118,9 @@ abstract class TypeChecker {
 class TypeCheckingVisitor
     implements
         ExpressionVisitor<DartType>,
-        StatementVisitor<Null>,
-        MemberVisitor<Null>,
-        InitializerVisitor<Null> {
+        StatementVisitor<void>,
+        MemberVisitor<void>,
+        InitializerVisitor<void> {
   final TypeChecker checker;
   final TypeEnvironment environment;
   final ClassHierarchy hierarchy;
@@ -170,45 +170,54 @@ class TypeCheckingVisitor
     node.accept(this);
   }
 
-  defaultMember(Member node) => throw 'Unused';
+  @override
+  TreeNode defaultMember(Member node) => throw 'Unused';
 
+  @override
   DartType defaultBasicLiteral(BasicLiteral node) {
     return defaultExpression(node);
   }
 
+  @override
   DartType defaultExpression(Expression node) {
     throw 'Unexpected expression ${node.runtimeType}';
   }
 
-  defaultStatement(Statement node) {
+  @override
+  TreeNode defaultStatement(Statement node) {
     throw 'Unexpected statement ${node.runtimeType}';
   }
 
-  defaultInitializer(Initializer node) {
+  @override
+  TreeNode defaultInitializer(Initializer node) {
     throw 'Unexpected initializer ${node.runtimeType}';
   }
 
-  visitField(Field node) {
+  @override
+  void visitField(Field node) {
     if (node.initializer != null) {
       node.initializer =
           checkAndDowncastExpression(node.initializer!, node.type);
     }
   }
 
-  visitConstructor(Constructor node) {
+  @override
+  void visitConstructor(Constructor node) {
     currentReturnType = null;
     currentYieldType = null;
     node.initializers.forEach(visitInitializer);
     handleFunctionNode(node.function);
   }
 
-  visitProcedure(Procedure node) {
+  @override
+  void visitProcedure(Procedure node) {
     currentReturnType = _getInternalReturnType(node.function);
     currentYieldType = _getYieldType(node.function);
     handleFunctionNode(node.function);
   }
 
-  visitRedirectingFactory(RedirectingFactory node) {
+  @override
+  void visitRedirectingFactory(RedirectingFactory node) {
     currentReturnType = null;
     currentYieldType = null;
   }
@@ -253,7 +262,7 @@ class TypeCheckingVisitor
     while (type is TypeParameterType) {
       type = type.bound;
     }
-    if (type is NeverType || type is NullType) {
+    if (type is NeverType || type is NullType || type is InvalidType) {
       // The bottom type is a subtype of all types, so it should be allowed.
       return Substitution.bottomForClass(superclass);
     }
@@ -478,7 +487,8 @@ class TypeCheckingVisitor
 
   @override
   DartType visitInvalidExpression(InvalidExpression node) {
-    return const DynamicType();
+    // Don't type check `node.expression`.
+    return const InvalidType();
   }
 
   @override
@@ -505,6 +515,9 @@ class TypeCheckingVisitor
   @override
   DartType visitInstantiation(Instantiation node) {
     DartType type = visitExpression(node.expression);
+    if (type is InvalidType || type is NeverType) {
+      return type;
+    }
     if (type is! FunctionType) {
       fail(node, 'Not a function type: $type');
       return NeverType.fromNullability(currentLibrary!.nonNullable);
@@ -532,6 +545,9 @@ class TypeCheckingVisitor
   @override
   DartType visitTypedefTearOff(TypedefTearOff node) {
     DartType type = visitExpression(node.expression);
+    if (type is InvalidType || type is NeverType) {
+      return type;
+    }
     if (type is! FunctionType) {
       fail(node, 'Not a function type: $type');
       return NeverType.fromNullability(currentLibrary!.nonNullable);
@@ -744,7 +760,7 @@ class TypeCheckingVisitor
       checkUnresolvedInvocation(currentThisType!, node);
       return handleDynamicCall(currentThisType!, node.arguments);
     } else {
-      return handleCall(node.arguments, target.getterType,
+      return handleCall(node.arguments, target.superGetterType,
           receiver: getSuperReceiverType(target));
     }
   }
@@ -757,7 +773,7 @@ class TypeCheckingVisitor
       return const DynamicType();
     } else {
       Substitution receiver = getSuperReceiverType(target);
-      return receiver.substituteType(target.getterType);
+      return receiver.substituteType(target.superGetterType);
     }
   }
 
@@ -768,7 +784,7 @@ class TypeCheckingVisitor
     if (target != null) {
       Substitution receiver = getSuperReceiverType(target);
       checkAssignable(node.value, value,
-          receiver.substituteType(target.setterType, contravariant: true));
+          receiver.substituteType(target.superSetterType, contravariant: true));
     } else {
       checkUnresolvedInvocation(currentThisType!, node);
     }
@@ -820,12 +836,12 @@ class TypeCheckingVisitor
   }
 
   @override
-  visitConstantExpression(ConstantExpression node) {
+  DartType visitConstantExpression(ConstantExpression node) {
     return node.type;
   }
 
   @override
-  visitAssertStatement(AssertStatement node) {
+  void visitAssertStatement(AssertStatement node) {
     visitExpression(node.condition);
     if (node.message != null) {
       visitExpression(node.message!);
@@ -833,38 +849,38 @@ class TypeCheckingVisitor
   }
 
   @override
-  visitBlock(Block node) {
+  void visitBlock(Block node) {
     node.statements.forEach(visitStatement);
   }
 
   @override
-  visitAssertBlock(AssertBlock node) {
+  void visitAssertBlock(AssertBlock node) {
     node.statements.forEach(visitStatement);
   }
 
   @override
-  visitBreakStatement(BreakStatement node) {}
+  void visitBreakStatement(BreakStatement node) {}
 
   @override
-  visitContinueSwitchStatement(ContinueSwitchStatement node) {}
+  void visitContinueSwitchStatement(ContinueSwitchStatement node) {}
 
   @override
-  visitDoStatement(DoStatement node) {
+  void visitDoStatement(DoStatement node) {
     visitStatement(node.body);
     node.condition = checkAndDowncastExpression(
         node.condition, environment.coreTypes.boolLegacyRawType);
   }
 
   @override
-  visitEmptyStatement(EmptyStatement node) {}
+  void visitEmptyStatement(EmptyStatement node) {}
 
   @override
-  visitExpressionStatement(ExpressionStatement node) {
+  void visitExpressionStatement(ExpressionStatement node) {
     visitExpression(node.expression);
   }
 
   @override
-  visitForInStatement(ForInStatement node) {
+  void visitForInStatement(ForInStatement node) {
     DartType iterable = visitExpression(node.iterable);
     // TODO(asgerf): Store interface targets on for-in loops or desugar them,
     // instead of doing the ad-hoc resolution here.
@@ -919,7 +935,7 @@ class TypeCheckingVisitor
   }
 
   @override
-  visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     node.variables.forEach(visitVariableDeclaration);
     if (node.condition != null) {
       node.condition = checkAndDowncastExpression(
@@ -930,12 +946,12 @@ class TypeCheckingVisitor
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     handleNestedFunctionNode(node.function);
   }
 
   @override
-  visitIfStatement(IfStatement node) {
+  void visitIfStatement(IfStatement node) {
     node.condition = checkAndDowncastExpression(
         node.condition, environment.coreTypes.boolLegacyRawType);
     visitStatement(node.then);
@@ -945,12 +961,12 @@ class TypeCheckingVisitor
   }
 
   @override
-  visitLabeledStatement(LabeledStatement node) {
+  void visitLabeledStatement(LabeledStatement node) {
     visitStatement(node.body);
   }
 
   @override
-  visitReturnStatement(ReturnStatement node) {
+  void visitReturnStatement(ReturnStatement node) {
     Expression? expression = node.expression;
     if (expression != null) {
       if (currentReturnType == null) {
@@ -966,7 +982,7 @@ class TypeCheckingVisitor
   }
 
   @override
-  visitSwitchStatement(SwitchStatement node) {
+  void visitSwitchStatement(SwitchStatement node) {
     visitExpression(node.expression);
     for (SwitchCase switchCase in node.cases) {
       switchCase.expressions.forEach(visitExpression);
@@ -975,7 +991,7 @@ class TypeCheckingVisitor
   }
 
   @override
-  visitTryCatch(TryCatch node) {
+  void visitTryCatch(TryCatch node) {
     visitStatement(node.body);
     for (Catch catchClause in node.catches) {
       visitStatement(catchClause.body);
@@ -983,13 +999,13 @@ class TypeCheckingVisitor
   }
 
   @override
-  visitTryFinally(TryFinally node) {
+  void visitTryFinally(TryFinally node) {
     visitStatement(node.body);
     visitStatement(node.finalizer);
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     if (node.initializer != null) {
       node.initializer =
           checkAndDowncastExpression(node.initializer!, node.type);
@@ -997,14 +1013,14 @@ class TypeCheckingVisitor
   }
 
   @override
-  visitWhileStatement(WhileStatement node) {
+  void visitWhileStatement(WhileStatement node) {
     node.condition = checkAndDowncastExpression(
         node.condition, environment.coreTypes.boolLegacyRawType);
     visitStatement(node.body);
   }
 
   @override
-  visitYieldStatement(YieldStatement node) {
+  void visitYieldStatement(YieldStatement node) {
     if (node.isYieldStar) {
       Class container = currentAsyncMarker == AsyncMarker.AsyncStar
           ? coreTypes.streamClass
@@ -1016,7 +1032,7 @@ class TypeCheckingVisitor
       if (asContainerArguments != null) {
         checkAssignable(
             node.expression, asContainerArguments[0], currentYieldType!);
-      } else {
+      } else if (type is! InvalidType && type is! NeverType) {
         fail(node.expression, '$type is not an instance of $container');
       }
     } else {
@@ -1026,41 +1042,49 @@ class TypeCheckingVisitor
   }
 
   @override
-  visitFieldInitializer(FieldInitializer node) {
+  void visitFieldInitializer(FieldInitializer node) {
     node.value = checkAndDowncastExpression(node.value, node.field.type);
   }
 
   @override
-  visitRedirectingInitializer(RedirectingInitializer node) {
+  void visitRedirectingInitializer(RedirectingInitializer node) {
     handleCall(node.arguments, node.target.getterType,
         typeParameters: const <TypeParameter>[]);
   }
 
   @override
-  visitSuperInitializer(SuperInitializer node) {
+  void visitSuperInitializer(SuperInitializer node) {
     handleCall(node.arguments, node.target.getterType,
         typeParameters: const <TypeParameter>[],
         receiver: getSuperReceiverType(node.target));
   }
 
   @override
-  visitLocalInitializer(LocalInitializer node) {
+  void visitLocalInitializer(LocalInitializer node) {
     visitVariableDeclaration(node.variable);
   }
 
   @override
-  visitAssertInitializer(AssertInitializer node) {
+  void visitAssertInitializer(AssertInitializer node) {
     visitAssertStatement(node.statement);
   }
 
   @override
-  visitInvalidInitializer(InvalidInitializer node) {}
+  void visitInvalidInitializer(InvalidInitializer node) {}
 
   @override
   DartType visitDynamicGet(DynamicGet node) {
     DartType receiverType = visitExpression(node.receiver);
     checkUnresolvedInvocation(receiverType, node);
-    return const DynamicType();
+    switch (node.kind) {
+      case DynamicAccessKind.Dynamic:
+        return const DynamicType();
+      case DynamicAccessKind.Never:
+        return new NeverType.internal(currentLibrary!.nonNullable);
+      case DynamicAccessKind.Invalid:
+      case DynamicAccessKind.Unresolved:
+        return const InvalidType();
+    }
   }
 
   @override
@@ -1070,7 +1094,15 @@ class TypeCheckingVisitor
     node.arguments.positional.forEach(visitExpression);
     node.arguments.named
         .forEach((NamedExpression n) => visitExpression(n.value));
-    return const DynamicType();
+    switch (node.kind) {
+      case DynamicAccessKind.Dynamic:
+        return const DynamicType();
+      case DynamicAccessKind.Never:
+        return new NeverType.internal(currentLibrary!.nonNullable);
+      case DynamicAccessKind.Invalid:
+      case DynamicAccessKind.Unresolved:
+        return const InvalidType();
+    }
   }
 
   @override

@@ -43,6 +43,6 @@ static method test() → dynamic {
   let final self::C* #t1 = c in invalid-expression "pkg/front_end/testcases/extensions/issue43218.dart:24:10: Error: The setter 'id' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'id'.
   Ext(c).id++;
-         ^^";
+         ^^" in #t1{<unresolved>}.id = self::Ext|get#id(#t1).{core::num::+}(1){(core::num*) →* core::int*};
 }
 static method main() → dynamic {}

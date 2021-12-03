@@ -1,0 +1,346 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:13:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   Class<int>;
+//        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:15:12: Error: A comparison expression can't be an operand of another comparison expression.
+// Try putting parentheses around one of the comparisons.
+//   Class<int><int>;
+//            ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:15:18: Error: Expected '[' before this.
+//   Class<int><int>;
+//                  ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:16:12: Error: A comparison expression can't be an operand of another comparison expression.
+// Try putting parentheses around one of the comparisons.
+//   Class<int><int>();
+//            ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:16:20: Error: Unexpected token ';'.
+//   Class<int><int>();
+//                    ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:16:20: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   Class<int><int>();
+//                    ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:16:20: Error: Expected ';' after this.
+//   Class<int><int>();
+//                    ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:17:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   Class<int>.named;
+//        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:17:14: Error: Member not found: 'named'.
+//   Class<int>.named;
+//              ^^^^^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:19:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   Class<int>.named<int>;
+//        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:19:19: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   Class<int>.named<int>;
+//                   ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:19:14: Error: Member not found: 'named'.
+//   Class<int>.named<int>;
+//              ^^^^^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:20:8: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   Class<int>.named<int>();
+//        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:20:14: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   Class<int>.named<int>();
+//              ^^^^^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:21:12: Error: A comparison expression can't be an operand of another comparison expression.
+// Try putting parentheses around one of the comparisons.
+//   Class<int><int>.named;
+//            ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:21:18: Error: Expected '[' before this.
+//   Class<int><int>.named;
+//                  ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:22:12: Error: A comparison expression can't be an operand of another comparison expression.
+// Try putting parentheses around one of the comparisons.
+//   Class<int><int>.named();
+//            ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:22:18: Error: Expected '[' before this.
+//   Class<int><int>.named();
+//                  ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:23:12: Error: A comparison expression can't be an operand of another comparison expression.
+// Try putting parentheses around one of the comparisons.
+//   Class<int><int>.named<int>;
+//            ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:23:18: Error: Expected '[' before this.
+//   Class<int><int>.named<int>;
+//                  ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:23:24: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   Class<int><int>.named<int>;
+//                        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:24:12: Error: A comparison expression can't be an operand of another comparison expression.
+// Try putting parentheses around one of the comparisons.
+//   Class<int><int>.named<int>();
+//            ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:24:18: Error: Expected '[' before this.
+//   Class<int><int>.named<int>();
+//                  ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:25:12: Error: A comparison expression can't be an operand of another comparison expression.
+// Try putting parentheses around one of the comparisons.
+//   Class<int><int>.named<int><int>;
+//            ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:25:18: Error: Expected '[' before this.
+//   Class<int><int>.named<int><int>;
+//                  ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:25:24: Error: A comparison expression can't be an operand of another comparison expression.
+// Try putting parentheses around one of the comparisons.
+//   Class<int><int>.named<int><int>;
+//                        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:25:28: Error: A comparison expression can't be an operand of another comparison expression.
+// Try putting parentheses around one of the comparisons.
+//   Class<int><int>.named<int><int>;
+//                            ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:25:34: Error: Expected '[' before this.
+//   Class<int><int>.named<int><int>;
+//                                  ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:26:12: Error: A comparison expression can't be an operand of another comparison expression.
+// Try putting parentheses around one of the comparisons.
+//   Class<int><int>.named<int><int>();
+//            ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:26:18: Error: Expected '[' before this.
+//   Class<int><int>.named<int><int>();
+//                  ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:26:24: Error: A comparison expression can't be an operand of another comparison expression.
+// Try putting parentheses around one of the comparisons.
+//   Class<int><int>.named<int><int>();
+//                        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:26:28: Error: A comparison expression can't be an operand of another comparison expression.
+// Try putting parentheses around one of the comparisons.
+//   Class<int><int>.named<int><int>();
+//                            ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:26:36: Error: Unexpected token ';'.
+//   Class<int><int>.named<int><int>();
+//                                    ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:26:36: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   Class<int><int>.named<int><int>();
+//                                    ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:26:36: Error: Expected ';' after this.
+//   Class<int><int>.named<int><int>();
+//                                    ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:15:8: Error: The operator '<' isn't defined for the class 'Type'.
+//  - 'Type' is from 'dart:core'.
+// Try correcting the operator to an existing operator, or defining a '<' operator.
+//   Class<int><int>;
+//        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:16:8: Error: The operator '<' isn't defined for the class 'Type'.
+//  - 'Type' is from 'dart:core'.
+// Try correcting the operator to an existing operator, or defining a '<' operator.
+//   Class<int><int>();
+//        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:21:8: Error: The operator '<' isn't defined for the class 'Type'.
+//  - 'Type' is from 'dart:core'.
+// Try correcting the operator to an existing operator, or defining a '<' operator.
+//   Class<int><int>.named;
+//        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:21:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+//  - 'List' is from 'dart:core'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
+//   Class<int><int>.named;
+//                   ^^^^^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:22:8: Error: The operator '<' isn't defined for the class 'Type'.
+//  - 'Type' is from 'dart:core'.
+// Try correcting the operator to an existing operator, or defining a '<' operator.
+//   Class<int><int>.named();
+//        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:22:19: Error: The method 'named' isn't defined for the class 'List<int>'.
+//  - 'List' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'named'.
+//   Class<int><int>.named();
+//                   ^^^^^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:23:8: Error: The operator '<' isn't defined for the class 'Type'.
+//  - 'Type' is from 'dart:core'.
+// Try correcting the operator to an existing operator, or defining a '<' operator.
+//   Class<int><int>.named<int>;
+//        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:23:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+//  - 'List' is from 'dart:core'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
+//   Class<int><int>.named<int>;
+//                   ^^^^^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:24:8: Error: The operator '<' isn't defined for the class 'Type'.
+//  - 'Type' is from 'dart:core'.
+// Try correcting the operator to an existing operator, or defining a '<' operator.
+//   Class<int><int>.named<int>();
+//        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:24:19: Error: The method 'named' isn't defined for the class 'List<int>'.
+//  - 'List' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'named'.
+//   Class<int><int>.named<int>();
+//                   ^^^^^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:25:8: Error: The operator '<' isn't defined for the class 'Type'.
+//  - 'Type' is from 'dart:core'.
+// Try correcting the operator to an existing operator, or defining a '<' operator.
+//   Class<int><int>.named<int><int>;
+//        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:25:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+//  - 'List' is from 'dart:core'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
+//   Class<int><int>.named<int><int>;
+//                   ^^^^^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:26:8: Error: The operator '<' isn't defined for the class 'Type'.
+//  - 'Type' is from 'dart:core'.
+// Try correcting the operator to an existing operator, or defining a '<' operator.
+//   Class<int><int>.named<int><int>();
+//        ^
+//
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:26:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+//  - 'List' is from 'dart:core'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
+//   Class<int><int>.named<int><int>();
+//                   ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+  constructor named() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+}
+static method test() → dynamic {
+  #C1;
+  new self::Class::•<core::int>();
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:15:8: Error: The operator '<' isn't defined for the class 'Type'.
+ - 'Type' is from 'dart:core'.
+Try correcting the operator to an existing operator, or defining a '<' operator.
+  Class<int><int>;
+       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(core::_GrowableList::•<core::int>(0));
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:16:8: Error: The operator '<' isn't defined for the class 'Type'.
+ - 'Type' is from 'dart:core'.
+Try correcting the operator to an existing operator, or defining a '<' operator.
+  Class<int><int>();
+       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(<int extends core::Object? = dynamic>() → Null
+    ;
+);
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:17:14: Error: Member not found: 'named'.
+  Class<int>.named;
+             ^^^^^";
+  new self::Class::named<core::int>();
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:19:14: Error: Member not found: 'named'.
+  Class<int>.named<int>;
+             ^^^^^";
+  new self::Class::named<core::int>();
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:21:8: Error: The operator '<' isn't defined for the class 'Type'.
+ - 'Type' is from 'dart:core'.
+Try correcting the operator to an existing operator, or defining a '<' operator.
+  Class<int><int>.named;
+       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:21:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+ - 'List' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
+  Class<int><int>.named;
+                  ^^^^^" in core::_GrowableList::•<core::int>(0){<unresolved>}.named);
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:22:8: Error: The operator '<' isn't defined for the class 'Type'.
+ - 'Type' is from 'dart:core'.
+Try correcting the operator to an existing operator, or defining a '<' operator.
+  Class<int><int>.named();
+       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:22:19: Error: The method 'named' isn't defined for the class 'List<int>'.
+ - 'List' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'named'.
+  Class<int><int>.named();
+                  ^^^^^" in core::_GrowableList::•<core::int>(0){<unresolved>}.named());
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:23:8: Error: The operator '<' isn't defined for the class 'Type'.
+ - 'Type' is from 'dart:core'.
+Try correcting the operator to an existing operator, or defining a '<' operator.
+  Class<int><int>.named<int>;
+       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:23:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+ - 'List' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
+  Class<int><int>.named<int>;
+                  ^^^^^" in core::_GrowableList::•<core::int>(0){<unresolved>}.named);
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:24:8: Error: The operator '<' isn't defined for the class 'Type'.
+ - 'Type' is from 'dart:core'.
+Try correcting the operator to an existing operator, or defining a '<' operator.
+  Class<int><int>.named<int>();
+       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:24:19: Error: The method 'named' isn't defined for the class 'List<int>'.
+ - 'List' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'named'.
+  Class<int><int>.named<int>();
+                  ^^^^^" in core::_GrowableList::•<core::int>(0){<unresolved>}.named<core::int>());
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:25:8: Error: The operator '<' isn't defined for the class 'Type'.
+ - 'Type' is from 'dart:core'.
+Try correcting the operator to an existing operator, or defining a '<' operator.
+  Class<int><int>.named<int><int>;
+       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:25:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+ - 'List' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
+  Class<int><int>.named<int><int>;
+                  ^^^^^" in core::_GrowableList::•<core::int>(0){<unresolved>}.named){dynamic}.<(#C2){dynamic}.>(core::_GrowableList::•<core::int>(0));
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:26:8: Error: The operator '<' isn't defined for the class 'Type'.
+ - 'Type' is from 'dart:core'.
+Try correcting the operator to an existing operator, or defining a '<' operator.
+  Class<int><int>.named<int><int>();
+       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:26:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+ - 'List' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
+  Class<int><int>.named<int><int>();
+                  ^^^^^" in core::_GrowableList::•<core::int>(0){<unresolved>}.named){dynamic}.<(#C2){dynamic}.>(<int extends core::Object? = dynamic>() → Null
+    ;
+);
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = TypeLiteralConstant(self::Class<dynamic>*)
+  #C2 = TypeLiteralConstant(core::int*)
+}

@@ -15,6 +15,7 @@ import '../util/helpers.dart';
 
 import 'builder.dart';
 import 'declaration_builder.dart';
+import 'field_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
@@ -82,15 +83,13 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
 
   @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
     if (library is SourceLibraryBuilder &&
         library.enableExtensionTypesInLibrary) {
-      return buildTypesWithBuiltArguments(
+      return buildTypeWithBuiltArguments(
           library,
           nullabilityBuilder.build(library),
-          buildTypeArguments(library, arguments,
-              nonInstanceContext: nonInstanceContext));
+          _buildTypeArguments(library, arguments));
     } else {
       throw new UnsupportedError("ExtensionBuilder.buildType is not supported"
           "in library '${library.importUri}'.");
@@ -98,7 +97,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
     if (library is SourceLibraryBuilder &&
         library.enableExtensionTypesInLibrary) {
@@ -113,9 +112,8 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   @override
   int get typeVariablesCount => typeParameters?.length ?? 0;
 
-  List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+  List<DartType> _buildTypeArguments(
+      LibraryBuilder library, List<TypeBuilder>? arguments) {
     if (arguments == null && typeParameters == null) {
       return <DartType>[];
     }
@@ -136,7 +134,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
       return unhandled(
           templateTypeArgumentMismatch
               .withArguments(typeVariablesCount)
-              .message,
+              .problemMessage,
           "buildTypeArguments",
           -1,
           null);
@@ -181,8 +179,20 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
       {bool setter: false, bool required: false}) {
     Builder? builder =
         lookupLocalMember(name.text, setter: setter, required: required);
+    if (builder == null && setter) {
+      // When looking up setters, we include assignable fields.
+      builder = lookupLocalMember(name.text, setter: false, required: required);
+      if (builder is! FieldBuilder || !builder.isAssignable) {
+        builder = null;
+      }
+    }
     if (builder != null) {
       if (name.isPrivate && library.library != name.library) {
+        builder = null;
+      } else if (builder is FieldBuilder &&
+          !builder.isStatic &&
+          !builder.isExternal) {
+        // Non-external extension instance fields are invalid.
         builder = null;
       } else if (builder.isDuplicate) {
         // Duplicates are not visible in the instance scope.

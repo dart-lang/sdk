@@ -54,30 +54,15 @@ DEFINE_FLAG(bool,
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, use_slow_path);
 
-class SubclassFinder {
+class SubtypeFinder {
  public:
-  SubclassFinder(Zone* zone,
-                 GrowableArray<intptr_t>* cids,
-                 bool include_abstract)
+  SubtypeFinder(Zone* zone,
+                GrowableArray<intptr_t>* cids,
+                bool include_abstract)
       : array_handles_(zone),
         class_handles_(zone),
         cids_(cids),
         include_abstract_(include_abstract) {}
-
-  void ScanSubClasses(const Class& klass) {
-    if (include_abstract_ || !klass.is_abstract()) {
-      cids_->Add(klass.id());
-    }
-    ScopedHandle<GrowableObjectArray> array(&array_handles_);
-    ScopedHandle<Class> subclass(&class_handles_);
-    *array = klass.direct_subclasses();
-    if (!array->IsNull()) {
-      for (intptr_t i = 0; i < array->Length(); ++i) {
-        *subclass ^= array->At(i);
-        ScanSubClasses(*subclass);
-      }
-    }
-  }
 
   void ScanImplementorClasses(const Class& klass) {
     // An implementor of [klass] is
@@ -133,154 +118,120 @@ const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(
   }
   CidRangeVector& ranges = (*cid_ranges)[klass.id()];
   if (ranges.length() == 0) {
-    if (!FLAG_precompiled_mode) {
-      BuildRangesForJIT(table, &ranges, klass, /*use_subtype_test=*/true,
-                        include_abstract, exclude_null);
-    } else {
-      BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/true,
-                     include_abstract, exclude_null);
-    }
+    BuildRangesFor(table, &ranges, klass, include_abstract, exclude_null);
   }
   return ranges;
 }
 
-const CidRangeVector& HierarchyInfo::SubclassRangesForClass(
-    const Class& klass) {
-  ClassTable* table = thread()->isolate_group()->class_table();
-  const intptr_t cid_count = table->NumCids();
-  if (cid_subclass_ranges_ == nullptr) {
-    cid_subclass_ranges_.reset(new CidRangeVector[cid_count]);
+class CidCheckerForRanges : public ValueObject {
+ public:
+  CidCheckerForRanges(Thread* thread,
+                      ClassTable* table,
+                      const Class& cls,
+                      bool include_abstract,
+                      bool exclude_null)
+      : thread_(thread),
+        table_(table),
+        supertype_(AbstractType::Handle(zone(), cls.RareType())),
+        include_abstract_(include_abstract),
+        exclude_null_(exclude_null),
+        to_check_(Class::Handle(zone())),
+        subtype_(AbstractType::Handle(zone())) {}
+
+  bool MayInclude(intptr_t cid) {
+    if (!table_->HasValidClassAt(cid)) return true;
+    if (cid == kTypeArgumentsCid) return true;
+    if (cid == kVoidCid) return true;
+    if (cid == kDynamicCid) return true;
+    if (cid == kNeverCid) return true;
+    if (!exclude_null_ && cid == kNullCid) return true;
+    to_check_ = table_->At(cid);
+    ASSERT(!to_check_.IsNull());
+    if (!include_abstract_ && to_check_.is_abstract()) return true;
+    return to_check_.IsTopLevel();
   }
 
-  CidRangeVector& ranges = cid_subclass_ranges_[klass.id()];
-  if (ranges.length() == 0) {
-    if (!FLAG_precompiled_mode) {
-      BuildRangesForJIT(table, &ranges, klass,
-                        /*use_subtype_test=*/true,
-                        /*include_abstract=*/false,
-                        /*exclude_null=*/false);
-    } else {
-      BuildRangesFor(table, &ranges, klass,
-                     /*use_subtype_test=*/false,
-                     /*include_abstract=*/false,
-                     /*exclude_null=*/false);
-    }
+  bool MustInclude(intptr_t cid) {
+    ASSERT(!MayInclude(cid));
+    if (cid == kNullCid) return false;
+    to_check_ = table_->At(cid);
+    subtype_ = to_check_.RareType();
+    // Create local zone because deep hierarchies may allocate lots of handles.
+    StackZone stack_zone(thread_);
+    HANDLESCOPE(thread_);
+    return subtype_.IsSubtypeOf(supertype_, Heap::kNew);
   }
-  return ranges;
-}
+
+ private:
+  Zone* zone() const { return thread_->zone(); }
+
+  Thread* const thread_;
+  ClassTable* const table_;
+  const AbstractType& supertype_;
+  const bool include_abstract_;
+  const bool exclude_null_;
+  Class& to_check_;
+  AbstractType& subtype_;
+};
 
 // Build the ranges either for:
 //    "<obj> as <Type>", or
 //    "<obj> is <Type>"
-void HierarchyInfo::BuildRangesFor(ClassTable* table,
-                                   CidRangeVector* ranges,
-                                   const Class& klass,
-                                   bool use_subtype_test,
-                                   bool include_abstract,
-                                   bool exclude_null) {
-  Zone* zone = thread()->zone();
-  ClassTable* class_table = thread()->isolate_group()->class_table();
-
-  // Only really used if `use_subtype_test == true`.
-  const Type& dst_type = Type::Handle(zone, Type::RawCast(klass.RareType()));
-  AbstractType& cls_type = AbstractType::Handle(zone);
-
-  Class& cls = Class::Handle(zone);
-  AbstractType& super_type = AbstractType::Handle(zone);
-  const intptr_t cid_count = table->NumCids();
-
+void HierarchyInfo::BuildRangesUsingClassTableFor(ClassTable* table,
+                                                  CidRangeVector* ranges,
+                                                  const Class& klass,
+                                                  bool include_abstract,
+                                                  bool exclude_null) {
+  CidCheckerForRanges checker(thread(), table, klass, include_abstract,
+                              exclude_null);
   // Iterate over all cids to find the ones to be included in the ranges.
+  const intptr_t cid_count = table->NumCids();
   intptr_t start = -1;
   intptr_t end = -1;
   for (intptr_t cid = kInstanceCid; cid < cid_count; ++cid) {
-    // Create local zone because deep hierarchies may allocate lots of handles
-    // within one iteration of this loop.
-    StackZone stack_zone(thread());
-    HANDLESCOPE(thread());
-
     // Some cases are "don't care", i.e., they may or may not be included,
     // whatever yields the least number of ranges for efficiency.
-    if (!table->HasValidClassAt(cid)) continue;
-    if (cid == kTypeArgumentsCid) continue;
-    if (cid == kVoidCid) continue;
-    if (cid == kDynamicCid) continue;
-    if (cid == kNeverCid) continue;
-    if (cid == kNullCid && !exclude_null) continue;
-    cls = table->At(cid);
-    if (!include_abstract && cls.is_abstract()) continue;
-    if (cls.IsTopLevel()) continue;
-
-    // We are either interested in [CidRange]es of subclasses or subtypes.
-    bool test_succeeded = false;
-    if (cid == kNullCid) {
-      ASSERT(exclude_null);
-      test_succeeded = false;
-    } else if (use_subtype_test) {
-      cls_type = cls.RareType();
-      test_succeeded = cls_type.IsSubtypeOf(dst_type, Heap::kNew);
-    } else {
-      while (!cls.IsObjectClass()) {
-        if (cls.ptr() == klass.ptr()) {
-          test_succeeded = true;
-          break;
-        }
-        super_type = cls.super_type();
-        const intptr_t type_class_id = super_type.type_class_id();
-        cls = class_table->At(type_class_id);
-      }
-    }
-
-    if (test_succeeded) {
+    if (checker.MayInclude(cid)) continue;
+    if (checker.MustInclude(cid)) {
       // On success, open a new or continue any open range.
       if (start == -1) start = cid;
       end = cid;
     } else if (start != -1) {
       // On failure, close any open range from start to end
       // (the latter is the most recent succesful "do-care" cid).
-      ASSERT(start <= end);
-      CidRange range(start, end);
-      ranges->Add(range);
-      start = -1;
-      end = -1;
+      ranges->Add({start, end});
+      start = end = -1;
     }
   }
 
-  // Construct last range (either close open one, or add invalid).
+  // Construct last range if there is a open one.
   if (start != -1) {
-    ASSERT(start <= end);
-    CidRange range(start, end);
-    ranges->Add(range);
-  } else if (ranges->length() == 0) {
-    CidRange range;
-    ASSERT(range.IsIllegalRange());
-    ranges->Add(range);
+    ranges->Add({start, end});
   }
 }
 
-void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
-                                      CidRangeVector* ranges,
-                                      const Class& dst_klass,
-                                      bool use_subtype_test,
-                                      bool include_abstract,
-                                      bool exclude_null) {
-  if (dst_klass.InVMIsolateHeap()) {
-    BuildRangesFor(table, ranges, dst_klass, use_subtype_test, include_abstract,
-                   exclude_null);
+void HierarchyInfo::BuildRangesFor(ClassTable* table,
+                                   CidRangeVector* ranges,
+                                   const Class& dst_klass,
+                                   bool include_abstract,
+                                   bool exclude_null) {
+  // Use the class table in cases where the direct subclasses and implementors
+  // are not filled out.
+  if (dst_klass.InVMIsolateHeap() || dst_klass.id() == kInstanceCid) {
+    BuildRangesUsingClassTableFor(table, ranges, dst_klass, include_abstract,
+                                  exclude_null);
     return;
   }
 
   Zone* zone = thread()->zone();
   GrowableArray<intptr_t> cids;
-  SubclassFinder finder(zone, &cids, include_abstract);
+  SubtypeFinder finder(zone, &cids, include_abstract);
   {
     SafepointReadRwLocker ml(thread(),
                              thread()->isolate_group()->program_lock());
-    if (use_subtype_test) {
-      finder.ScanImplementorClasses(dst_klass);
-    } else {
-      finder.ScanSubClasses(dst_klass);
-    }
+    finder.ScanImplementorClasses(dst_klass);
   }
+  if (cids.is_empty()) return;
 
   // Sort all collected cids.
   intptr_t* cids_array = cids.data();
@@ -296,68 +247,57 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
         });
 
   // Build ranges of all the cids.
-  Class& klass = Class::Handle();
+  CidCheckerForRanges checker(thread(), table, dst_klass, include_abstract,
+                              exclude_null);
   intptr_t left_cid = -1;
-  intptr_t last_cid = -1;
+  intptr_t right_cid = -1;
+  intptr_t previous_cid = -1;
   for (intptr_t i = 0; i < cids.length(); ++i) {
-    if (left_cid == -1) {
-      left_cid = last_cid = cids[i];
-    } else {
-      const intptr_t current_cid = cids[i];
+    const intptr_t current_cid = cids[i];
+    if (current_cid == previous_cid) continue;  // Skip duplicates.
 
-      // Skip duplicates.
-      if (current_cid == last_cid) continue;
+    // We sorted, after all!
+    RELEASE_ASSERT(previous_cid < current_cid);
 
-      // Consecutive numbers cids are ok.
-      if (current_cid == (last_cid + 1)) {
-        last_cid = current_cid;
-      } else {
-        // We sorted, after all!
-        RELEASE_ASSERT(last_cid < current_cid);
-
-        intptr_t j = last_cid + 1;
-        for (; j < current_cid; ++j) {
-          if (table->HasValidClassAt(j)) {
-            klass = table->At(j);
-            if (!klass.IsTopLevel()) {
-              // If we care about abstract classes also, we cannot skip over any
-              // arbitrary abstract class, only those which are subtypes.
-              if (include_abstract) {
-                break;
-              }
-
-              // If the class is concrete we cannot skip over it.
-              if (!klass.is_abstract()) {
-                break;
-              }
-            }
-          }
-        }
-
-        if (current_cid == j) {
-          // If there's only abstract cids between [last_cid] and the
-          // [current_cid] then we connect them.
-          last_cid = current_cid;
-        } else {
-          // Finish the current open cid range and start a new one.
-          ranges->Add(CidRange{left_cid, last_cid});
-          left_cid = last_cid = current_cid;
+    if (left_cid != -1) {
+      ASSERT(previous_cid != -1);
+      // Check the cids between the previous cid from cids and this one.
+      for (intptr_t j = previous_cid + 1; j < current_cid; ++j) {
+        // Stop if we find a do-care class before reaching the current cid.
+        if (!checker.MayInclude(j)) {
+          ranges->Add({left_cid, right_cid});
+          left_cid = right_cid = -1;
+          break;
         }
       }
+    }
+    previous_cid = current_cid;
+
+    if (checker.MayInclude(current_cid)) continue;
+    if (checker.MustInclude(current_cid)) {
+      if (left_cid == -1) {
+        // Open a new range starting at this cid.
+        left_cid = current_cid;
+      }
+      right_cid = current_cid;
+    } else if (left_cid != -1) {
+      // Close the existing range.
+      ranges->Add({left_cid, right_cid});
+      left_cid = right_cid = -1;
     }
   }
 
   // If there is an open cid-range which we haven't finished yet, we'll
   // complete it.
   if (left_cid != -1) {
-    ranges->Add(CidRange{left_cid, last_cid});
+    ranges->Add(CidRange{left_cid, right_cid});
   }
 }
 
 bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
   ASSERT(type.IsFinalized());
 
-  if (!type.IsInstantiated() || !type.IsType() || type.IsDartFunctionType()) {
+  if (!type.IsInstantiated() || !type.IsType()) {
     return false;
   }
 
@@ -429,17 +369,6 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
   ASSERT(type_class.NumTypeParameters() > 0 &&
          type.arguments() != TypeArguments::null());
 
-  // If the type class is implemented the different implementations might have
-  // their type argument vector stored at different offsets and we can therefore
-  // not perform our optimized [CidRange]-based implementation.
-  //
-  // TODO(kustermann): If the class is implemented but all implementations
-  // store the instantator type argument vector at the same offset we can
-  // still do it!
-  if (type_class.is_implemented()) {
-    return false;
-  }
-
   const TypeArguments& ta =
       TypeArguments::Handle(zone, Type::Cast(type).arguments());
   ASSERT(ta.Length() == num_type_arguments);
@@ -477,11 +406,10 @@ bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
                               /*exclude_null=*/true);
     if (ranges.length() == 1) {
       const CidRangeValue& range = ranges[0];
-      if (!range.IsIllegalRange()) {
-        *lower_limit = range.cid_start;
-        *upper_limit = range.cid_end;
-        return true;
-      }
+      ASSERT(!range.IsIllegalRange());
+      *lower_limit = range.cid_start;
+      *upper_limit = range.cid_end;
+      return true;
     }
   }
   return false;
@@ -975,7 +903,7 @@ bool LoadFieldInstr::IsPotentialUnboxedDartFieldLoad() const {
 }
 
 Representation LoadFieldInstr::representation() const {
-  if (IsUnboxedDartFieldLoad()) {
+  if (IsUnboxedDartFieldLoad() && CompilerState::Current().is_optimizing()) {
     return FlowGraph::UnboxedFieldRepresentationOf(slot().field());
   }
   return slot().representation();
@@ -1050,7 +978,7 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
     // The instance is always tagged.
     return kTagged;
   }
-  if (IsUnboxedDartFieldStore()) {
+  if (IsUnboxedDartFieldStore() && CompilerState::Current().is_optimizing()) {
     return FlowGraph::UnboxedFieldRepresentationOf(slot().field());
   }
   return slot().representation();
@@ -2897,6 +2825,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       switch (call->function().recognized_kind()) {
         case MethodRecognizer::kByteDataFactory:
         case MethodRecognizer::kLinkedHashBase_getData:
+        case MethodRecognizer::kImmutableLinkedHashBase_getData:
           return flow_graph->constant_null();
         default:
           break;
@@ -3071,6 +3000,11 @@ LocationSummary* DebugStepCheckInstr::MakeLocationSummary(Zone* zone,
 
 Instruction* DebugStepCheckInstr::Canonicalize(FlowGraph* flow_graph) {
   return NULL;
+}
+
+Instruction* RecordCoverageInstr::Canonicalize(FlowGraph* flow_graph) {
+  ASSERT(!coverage_array_.IsNull());
+  return coverage_array_.At(coverage_index_) != Smi::New(0) ? nullptr : this;
 }
 
 Definition* BoxInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -5675,6 +5609,32 @@ void BoxAllocationSlowPath::Allocate(FlowGraphCompiler* compiler,
   }
 }
 
+void DoubleToIntegerSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Comment("DoubleToIntegerSlowPath");
+  __ Bind(entry_label());
+
+  LocationSummary* locs = instruction()->locs();
+  locs->live_registers()->Remove(locs->out(0));
+
+  compiler->SaveLiveRegisters(locs);
+
+  auto slow_path_env =
+      compiler->SlowPathEnvironmentFor(instruction(), /*num_slow_path_args=*/0);
+
+  __ MoveUnboxedDouble(DoubleToIntegerStubABI::kInputReg, value_reg_);
+  __ LoadImmediate(
+      DoubleToIntegerStubABI::kRecognizedKindReg,
+      compiler::target::ToRawSmi(instruction()->recognized_kind()));
+  compiler->GenerateStubCall(instruction()->source(),
+                             StubCode::DoubleToInteger(),
+                             UntaggedPcDescriptors::kOther, locs,
+                             instruction()->deopt_id(), slow_path_env);
+  __ MoveRegister(instruction()->locs()->out(0).reg(),
+                  DoubleToIntegerStubABI::kResultReg);
+  compiler->RestoreLiveRegisters(instruction()->locs());
+  __ Jump(exit_label());
+}
+
 void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
                                             bool save_fpu_registers) {
 #if defined(TARGET_ARCH_IA32)
@@ -6248,13 +6208,10 @@ InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
 intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
     MethodRecognizer::Kind kind) {
   switch (kind) {
-    case MethodRecognizer::kDoubleTruncate:
-    case MethodRecognizer::kDoubleFloor:
-    case MethodRecognizer::kDoubleCeil: {
-      ASSERT(!TargetCPUFeatures::double_truncate_round_supported());
-      return 1;
-    }
-    case MethodRecognizer::kDoubleRound:
+    case MethodRecognizer::kDoubleTruncateToDouble:
+    case MethodRecognizer::kDoubleFloorToDouble:
+    case MethodRecognizer::kDoubleCeilToDouble:
+    case MethodRecognizer::kDoubleRoundToDouble:
     case MethodRecognizer::kMathAtan:
     case MethodRecognizer::kMathTan:
     case MethodRecognizer::kMathAcos:
@@ -6276,13 +6233,13 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
 
 const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
   switch (recognized_kind_) {
-    case MethodRecognizer::kDoubleTruncate:
+    case MethodRecognizer::kDoubleTruncateToDouble:
       return kLibcTruncRuntimeEntry;
-    case MethodRecognizer::kDoubleRound:
+    case MethodRecognizer::kDoubleRoundToDouble:
       return kLibcRoundRuntimeEntry;
-    case MethodRecognizer::kDoubleFloor:
+    case MethodRecognizer::kDoubleFloorToDouble:
       return kLibcFloorRuntimeEntry;
-    case MethodRecognizer::kDoubleCeil:
+    case MethodRecognizer::kDoubleCeilToDouble:
       return kLibcCeilRuntimeEntry;
     case MethodRecognizer::kMathDoublePow:
       return kLibcPowRuntimeEntry;
@@ -6829,6 +6786,28 @@ LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
     locs->set_in(0, native_return_loc.AsLocation());
   }
   return locs;
+}
+
+LocationSummary* RecordCoverageInstr::MakeLocationSummary(Zone* zone,
+                                                          bool opt) const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 2;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_temp(1, Location::RequiresRegister());
+  return locs;
+}
+
+void RecordCoverageInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const auto array_temp = locs()->temp(0).reg();
+  const auto value_temp = locs()->temp(1).reg();
+
+  __ LoadObject(array_temp, coverage_array_);
+  __ LoadImmediate(value_temp, Smi::RawValue(1));
+  __ StoreFieldToOffset(value_temp, array_temp,
+                        Array::element_offset(coverage_index_),
+                        compiler::kObjectBytes);
 }
 
 #undef Z

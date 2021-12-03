@@ -65,7 +65,6 @@ namespace dart {
   V(SendPortImpl_get_id, 1)                                                    \
   V(SendPortImpl_get_hashcode, 1)                                              \
   V(SendPortImpl_sendInternal_, 2)                                             \
-  V(SendPortImpl_sendAndExitInternal_, 2)                                      \
   V(Smi_bitNegate, 1)                                                          \
   V(Smi_bitLength, 1)                                                          \
   V(Mint_bitNegate, 1)                                                         \
@@ -89,7 +88,6 @@ namespace dart {
   V(Double_sub, 2)                                                             \
   V(Double_mul, 2)                                                             \
   V(Double_div, 2)                                                             \
-  V(Double_trunc_div, 2)                                                       \
   V(Double_remainder, 2)                                                       \
   V(Double_modulo, 2)                                                          \
   V(Double_greaterThanFromInteger, 2)                                          \
@@ -317,12 +315,13 @@ namespace dart {
   V(Int32x4_setFlagZ, 2)                                                       \
   V(Int32x4_setFlagW, 2)                                                       \
   V(Int32x4_select, 3)                                                         \
-  V(Isolate_spawnFunction, 11)                                                 \
-  V(Isolate_spawnUri, 12)                                                      \
-  V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
+  V(Isolate_exit_, 2)                                                          \
   V(Isolate_getCurrentRootUriStr, 0)                                           \
-  V(Isolate_sendOOB, 2)                                                        \
   V(Isolate_getDebugName, 1)                                                   \
+  V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
+  V(Isolate_sendOOB, 2)                                                        \
+  V(Isolate_spawnFunction, 10)                                                 \
+  V(Isolate_spawnUri, 12)                                                      \
   V(GrowableList_allocate, 2)                                                  \
   V(GrowableList_getIndexed, 2)                                                \
   V(GrowableList_setIndexed, 3)                                                \
@@ -357,7 +356,6 @@ namespace dart {
   V(UserTag_defaultTag, 0)                                                     \
   V(UserTag_makeCurrent, 1)                                                    \
   V(Profiler_getCurrentTag, 0)                                                 \
-  V(ClassID_getID, 1)                                                          \
   V(VMService_SendIsolateServiceMessage, 2)                                    \
   V(VMService_SendRootServiceMessage, 1)                                       \
   V(VMService_SendObjectRootServiceMessage, 1)                                 \

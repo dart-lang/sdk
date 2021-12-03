@@ -198,6 +198,16 @@ class TimerScope : public StackResource {
   Timer* const timer_;
 };
 
+class PrintTimeScope : public ValueObject {
+ public:
+  explicit PrintTimeScope(const char* name) : name_(name) { timer_.Start(); }
+  ~PrintTimeScope();
+
+ private:
+  Timer timer_;
+  const char* name_;
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_TIMER_H_

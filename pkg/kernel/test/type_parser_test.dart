@@ -6,11 +6,11 @@ import 'package:expect/expect.dart' show Expect;
 
 import 'package:kernel/testing/type_parser.dart';
 
-testParse(String text) {
+void testParse(String text) {
   Expect.stringEquals(text.trim(), "${parse(text).join('\n')}");
 }
 
-main() {
+void main() {
   testParse("""
 () ->* void
 () ->? void

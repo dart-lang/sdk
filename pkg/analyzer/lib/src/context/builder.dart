@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
-import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:yaml/yaml.dart';

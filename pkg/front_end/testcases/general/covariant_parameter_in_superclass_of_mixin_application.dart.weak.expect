@@ -6,7 +6,7 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
-  method foo(covariant core::num* x) → void {}
+  method foo(covariant-by-declaration core::num* x) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -54,13 +54,13 @@ abstract class _D&A&B = self::A with self::B /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_D&A&B*
     : super self::A::•()
     ;
-  forwarding-stub method foo(covariant core::num* x) → void
+  forwarding-stub method foo(covariant-by-declaration core::num* x) → void
     return super.{self::B::foo}(x);
 }
 class D extends self::_D&A&B implements self::C {
   synthetic constructor •() → self::D*
     : super self::_D&A&B::•()
     ;
-  method foo(covariant core::int* x) → void {}
+  method foo(covariant-by-declaration core::int* x) → void {}
 }
 static method main() → dynamic {}

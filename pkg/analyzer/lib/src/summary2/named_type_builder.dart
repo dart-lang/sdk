@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 
-/// The type builder for a [TypeName].
+/// The type builder for a [NamedType].
 class NamedTypeBuilder extends TypeBuilder {
   /// TODO(scheglov) Replace with `DartType` in `TypeAliasElementImpl`.
   static const _aliasedTypeKey = '_aliasedType';
@@ -40,7 +40,7 @@ class NamedTypeBuilder extends TypeBuilder {
   /// The node for which this builder is created, or `null` if the builder
   /// was detached from its node, e.g. during computing default types for
   /// type parameters.
-  final TypeNameImpl? node;
+  final NamedTypeImpl? node;
 
   /// The actual built type, not a [TypeBuilder] anymore.
   ///
@@ -55,7 +55,7 @@ class NamedTypeBuilder extends TypeBuilder {
   factory NamedTypeBuilder.of(
     Linker linker,
     TypeSystemImpl typeSystem,
-    TypeNameImpl node,
+    NamedTypeImpl node,
     Element element,
     NullabilitySuffix nullabilitySuffix,
   ) {

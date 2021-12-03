@@ -16,15 +16,17 @@ class NullTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
       DartType type, LibraryBuilder compilationUnit, int charOffset)
       : super("Null", type, compilationUnit, charOffset);
 
+  @override
   String get debugName => "NullTypeBuilder";
 
+  @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
     return type;
   }
 
-  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+  @override
+  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
     return type;
   }

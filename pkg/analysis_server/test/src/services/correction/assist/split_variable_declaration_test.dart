@@ -118,4 +118,22 @@ main() {
 }
 ''');
   }
+
+  Future<void> test_privateType() async {
+    addSource('/home/test/lib/a.dart', '''
+class A {
+  _B b => _B();
+}
+class _B {}
+''');
+
+    await resolveTestCode('''
+import 'package:test/a.dart';
+
+f(A a) {
+  var x = a.b();
+}
+''');
+    await assertNoAssistAt('var ');
+  }
 }

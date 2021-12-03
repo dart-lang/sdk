@@ -7,8 +7,8 @@
 #include "include/dart_tools_api.h"
 #include "platform/assert.h"
 #include "platform/unicode.h"
+#include "vm/app_snapshot.h"
 #include "vm/class_finalizer.h"
-#include "vm/clustered_snapshot.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
@@ -129,8 +129,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeNull) {
   // Write snapshot with object content.
   const Object& null_object = Object::Handle();
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, null_object, ILLEGAL_PORT,
-                   Message::kNormalPriority);
+      WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
+                   null_object, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   const Object& serialized_object =
@@ -151,8 +151,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeSmi1) {
   // Write snapshot with object content.
   const Smi& smi = Smi::Handle(Smi::New(124));
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, smi, ILLEGAL_PORT,
-                   Message::kNormalPriority);
+      WriteMessage(/* can_send_any_object */ true, /* same_group */ false, smi,
+                   ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   const Object& serialized_object =
@@ -174,8 +174,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeSmi2) {
   // Write snapshot with object content.
   const Smi& smi = Smi::Handle(Smi::New(-1));
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, smi, ILLEGAL_PORT,
-                   Message::kNormalPriority);
+      WriteMessage(/* can_send_any_object */ true, /* same_group */ false, smi,
+                   ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   const Object& serialized_object =
@@ -194,8 +194,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeSmi2) {
 Dart_CObject* SerializeAndDeserializeMint(Zone* zone, const Mint& mint) {
   // Write snapshot with object content.
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, mint, ILLEGAL_PORT,
-                   Message::kNormalPriority);
+      WriteMessage(/* can_send_any_object */ true, /* same_group */ false, mint,
+                   ILLEGAL_PORT, Message::kNormalPriority);
 
   {
     // Switch to a regular zone, where VM handle allocation is allowed.
@@ -265,8 +265,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeDouble) {
   // Write snapshot with object content.
   const Double& dbl = Double::Handle(Double::New(101.29));
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, dbl, ILLEGAL_PORT,
-                   Message::kNormalPriority);
+      WriteMessage(/* can_send_any_object */ true, /* same_group */ false, dbl,
+                   ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   const Object& serialized_object =
@@ -288,7 +288,7 @@ ISOLATE_UNIT_TEST_CASE(SerializeTrue) {
   // Write snapshot with true object.
   const Bool& bl = Bool::True();
   std::unique_ptr<Message> message = WriteMessage(
-      /* can_send_any_object */ true, bl, ILLEGAL_PORT,
+      /* can_send_any_object */ true, /* same_group */ false, bl, ILLEGAL_PORT,
       Message::kNormalPriority);
 
   // Read object back from the snapshot.
@@ -313,7 +313,7 @@ ISOLATE_UNIT_TEST_CASE(SerializeFalse) {
   // Write snapshot with false object.
   const Bool& bl = Bool::False();
   std::unique_ptr<Message> message = WriteMessage(
-      /* can_send_any_object */ true, bl, ILLEGAL_PORT,
+      /* can_send_any_object */ true, /* same_group */ false, bl, ILLEGAL_PORT,
       Message::kNormalPriority);
 
   // Read object back from the snapshot.
@@ -334,8 +334,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeCapability) {
   // Write snapshot with object content.
   const Capability& capability = Capability::Handle(Capability::New(12345));
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, capability, ILLEGAL_PORT,
-                   Message::kNormalPriority);
+      WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
+                   capability, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   Capability& obj = Capability::Handle();
@@ -357,8 +357,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeCapability) {
   {                                                                            \
     const Object& before = Object::Handle(object);                             \
     std::unique_ptr<Message> message =                                         \
-        WriteMessage(/* can_send_any_object */ true, before, ILLEGAL_PORT,     \
-                     Message::kNormalPriority);                                \
+        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,   \
+                     before, ILLEGAL_PORT, Message::kNormalPriority);          \
     const Object& after = Object::Handle(ReadMessage(thread, message.get()));  \
     EXPECT(before.ptr() == after.ptr());                                       \
   }
@@ -384,8 +384,8 @@ static void TestString(const char* cstr) {
   // Write snapshot with object content.
   String& str = String::Handle(String::New(cstr));
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, str, ILLEGAL_PORT,
-                   Message::kNormalPriority);
+      WriteMessage(/* can_send_any_object */ true, /* same_group */ false, str,
+                   ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   String& serialized_str = String::Handle();
@@ -425,8 +425,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeArray) {
     array.SetAt(i, smi);
   }
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, array, ILLEGAL_PORT,
-                   Message::kNormalPriority);
+      WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
+                   array, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   Array& serialized_array = Array::Handle();
@@ -458,8 +458,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeArrayWithTypeArgument) {
     array.SetAt(i, smi);
   }
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, array, ILLEGAL_PORT,
-                   Message::kNormalPriority);
+      WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
+                   array, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   Array& serialized_array = Array::Handle();
@@ -537,8 +537,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeEmptyArray) {
   const int kArrayLength = 0;
   Array& array = Array::Handle(Array::New(kArrayLength));
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, array, ILLEGAL_PORT,
-                   Message::kNormalPriority);
+      WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
+                   array, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   Array& serialized_array = Array::Handle();
@@ -563,8 +563,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeByteArray) {
     typed_data.SetUint8(i, i);
   }
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, typed_data, ILLEGAL_PORT,
-                   Message::kNormalPriority);
+      WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
+                   typed_data, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   TypedData& serialized_typed_data = TypedData::Handle();
@@ -593,8 +593,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeByteArray) {
       array.Set##darttype((i * scale), i);                                     \
     }                                                                          \
     std::unique_ptr<Message> message =                                         \
-        WriteMessage(/* can_send_any_object */ true, array, ILLEGAL_PORT,      \
-                     Message::kNormalPriority);                                \
+        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,   \
+                     array, ILLEGAL_PORT, Message::kNormalPriority);           \
     TypedData& serialized_array = TypedData::Handle();                         \
     serialized_array ^= ReadMessage(thread, message.get());                    \
     for (int i = 0; i < kArrayLength; i++) {                                   \
@@ -613,8 +613,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeByteArray) {
                                reinterpret_cast<uint8_t*>(data), length));     \
     intptr_t scale = array.ElementSizeInBytes();                               \
     std::unique_ptr<Message> message =                                         \
-        WriteMessage(/* can_send_any_object */ true, array, ILLEGAL_PORT,      \
-                     Message::kNormalPriority);                                \
+        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,   \
+                     array, ILLEGAL_PORT, Message::kNormalPriority);           \
     ExternalTypedData& serialized_array = ExternalTypedData::Handle();         \
     serialized_array ^= ReadMessage(thread, message.get());                    \
     for (int i = 0; i < length; i++) {                                         \
@@ -655,8 +655,8 @@ ISOLATE_UNIT_TEST_CASE(SerializeEmptyByteArray) {
   TypedData& typed_data = TypedData::Handle(
       TypedData::New(kTypedDataUint8ArrayCid, kTypedDataLength));
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ true, typed_data, ILLEGAL_PORT,
-                   Message::kNormalPriority);
+      WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
+                   typed_data, ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot.
   TypedData& serialized_typed_data = TypedData::Handle();
@@ -772,8 +772,8 @@ static std::unique_ptr<Message> GetSerialized(Dart_Handle lib,
   Object& obj = Object::Handle(Api::UnwrapHandle(result));
 
   // Serialize the object into a message.
-  return WriteMessage(/* can_send_any_object */ false, obj, ILLEGAL_PORT,
-                      Message::kNormalPriority);
+  return WriteMessage(/* can_send_any_object */ false, /* same_group */ false,
+                      obj, ILLEGAL_PORT, Message::kNormalPriority);
 }
 
 static void CheckString(Dart_Handle dart_string, const char* expected) {
@@ -781,8 +781,8 @@ static void CheckString(Dart_Handle dart_string, const char* expected) {
   String& str = String::Handle();
   str ^= Api::UnwrapHandle(dart_string);
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ false, str, ILLEGAL_PORT,
-                   Message::kNormalPriority);
+      WriteMessage(/* can_send_any_object */ false, /* same_group */ false, str,
+                   ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
@@ -798,8 +798,8 @@ static void CheckStringInvalid(Dart_Handle dart_string) {
   String& str = String::Handle();
   str ^= Api::UnwrapHandle(dart_string);
   std::unique_ptr<Message> message =
-      WriteMessage(/* can_send_any_object */ false, str, ILLEGAL_PORT,
-                   Message::kNormalPriority);
+      WriteMessage(/* can_send_any_object */ false, /* same_group */ false, str,
+                   ILLEGAL_PORT, Message::kNormalPriority);
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
@@ -902,8 +902,8 @@ VM_UNIT_TEST_CASE(DartGeneratedMessages) {
       Smi& smi = Smi::Handle();
       smi ^= Api::UnwrapHandle(smi_result);
       std::unique_ptr<Message> message =
-          WriteMessage(/* can_send_any_object */ false, smi, ILLEGAL_PORT,
-                       Message::kNormalPriority);
+          WriteMessage(/* can_send_any_object */ false, /* same_group */ false,
+                       smi, ILLEGAL_PORT, Message::kNormalPriority);
 
       // Read object back from the snapshot into a C structure.
       ApiNativeScope scope;
@@ -1776,13 +1776,13 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
         Dart_TypedData_Type type;
         int size;
       } expected[] = {
-          {Dart_TypedData_kInt8, 256},       {Dart_TypedData_kUint8, 256},
-          {Dart_TypedData_kInt16, 512},      {Dart_TypedData_kUint16, 512},
-          {Dart_TypedData_kInt32, 1024},     {Dart_TypedData_kUint32, 1024},
-          {Dart_TypedData_kInt64, 2048},     {Dart_TypedData_kUint64, 2048},
-          {Dart_TypedData_kFloat32, 1024},   {Dart_TypedData_kFloat64, 2048},
-          {Dart_TypedData_kInt32x4, 4096},   {Dart_TypedData_kFloat32x4, 4096},
-          {Dart_TypedData_kFloat64x2, 4096}, {Dart_TypedData_kInvalid, -1}};
+          {Dart_TypedData_kInt8, 256},      {Dart_TypedData_kUint8, 256},
+          {Dart_TypedData_kInt16, 256},     {Dart_TypedData_kUint16, 256},
+          {Dart_TypedData_kInt32, 256},     {Dart_TypedData_kUint32, 256},
+          {Dart_TypedData_kInt64, 256},     {Dart_TypedData_kUint64, 256},
+          {Dart_TypedData_kFloat32, 256},   {Dart_TypedData_kFloat64, 256},
+          {Dart_TypedData_kInt32x4, 256},   {Dart_TypedData_kFloat32x4, 256},
+          {Dart_TypedData_kFloat64x2, 256}, {Dart_TypedData_kInvalid, -1}};
 
       int i = 0;
       while (expected[i].type != Dart_TypedData_kInvalid) {
@@ -1804,31 +1804,31 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
         Dart_TypedData_Type type;
         int size;
       } expected[] = {
-          {Dart_TypedData_kInt8, 256},       {Dart_TypedData_kUint8, 256},
-          {Dart_TypedData_kInt16, 512},      {Dart_TypedData_kUint16, 512},
-          {Dart_TypedData_kInt32, 1024},     {Dart_TypedData_kUint32, 1024},
-          {Dart_TypedData_kInt64, 2048},     {Dart_TypedData_kUint64, 2048},
-          {Dart_TypedData_kFloat32, 1024},   {Dart_TypedData_kFloat64, 2048},
-          {Dart_TypedData_kInt32x4, 4096},   {Dart_TypedData_kFloat32x4, 4096},
-          {Dart_TypedData_kFloat64x2, 4096},
+          {Dart_TypedData_kInt8, 256},      {Dart_TypedData_kUint8, 256},
+          {Dart_TypedData_kInt16, 256},     {Dart_TypedData_kUint16, 256},
+          {Dart_TypedData_kInt32, 256},     {Dart_TypedData_kUint32, 256},
+          {Dart_TypedData_kInt64, 256},     {Dart_TypedData_kUint64, 256},
+          {Dart_TypedData_kFloat32, 256},   {Dart_TypedData_kFloat64, 256},
+          {Dart_TypedData_kInt32x4, 256},   {Dart_TypedData_kFloat32x4, 256},
+          {Dart_TypedData_kFloat64x2, 256},
 
-          {Dart_TypedData_kInt8, 512},       {Dart_TypedData_kUint8, 512},
-          {Dart_TypedData_kInt8, 1024},      {Dart_TypedData_kUint8, 1024},
-          {Dart_TypedData_kInt8, 2048},      {Dart_TypedData_kUint8, 2048},
-          {Dart_TypedData_kInt8, 1024},      {Dart_TypedData_kUint8, 1024},
-          {Dart_TypedData_kInt8, 2048},      {Dart_TypedData_kUint8, 2048},
-          {Dart_TypedData_kInt8, 4096},      {Dart_TypedData_kUint8, 4096},
-          {Dart_TypedData_kInt8, 4096},      {Dart_TypedData_kUint8, 4096},
-          {Dart_TypedData_kInt8, 4096},      {Dart_TypedData_kUint8, 4096},
+          {Dart_TypedData_kInt8, 512},      {Dart_TypedData_kUint8, 512},
+          {Dart_TypedData_kInt8, 1024},     {Dart_TypedData_kUint8, 1024},
+          {Dart_TypedData_kInt8, 2048},     {Dart_TypedData_kUint8, 2048},
+          {Dart_TypedData_kInt8, 1024},     {Dart_TypedData_kUint8, 1024},
+          {Dart_TypedData_kInt8, 2048},     {Dart_TypedData_kUint8, 2048},
+          {Dart_TypedData_kInt8, 4096},     {Dart_TypedData_kUint8, 4096},
+          {Dart_TypedData_kInt8, 4096},     {Dart_TypedData_kUint8, 4096},
+          {Dart_TypedData_kInt8, 4096},     {Dart_TypedData_kUint8, 4096},
 
-          {Dart_TypedData_kInt16, 256},      {Dart_TypedData_kUint16, 256},
-          {Dart_TypedData_kInt16, 1024},     {Dart_TypedData_kUint16, 1024},
-          {Dart_TypedData_kInt16, 2048},     {Dart_TypedData_kUint16, 2048},
-          {Dart_TypedData_kInt16, 1024},     {Dart_TypedData_kUint16, 1024},
-          {Dart_TypedData_kInt16, 2048},     {Dart_TypedData_kUint16, 2048},
-          {Dart_TypedData_kInt16, 4096},     {Dart_TypedData_kUint16, 4096},
-          {Dart_TypedData_kInt16, 4096},     {Dart_TypedData_kUint16, 4096},
-          {Dart_TypedData_kInt16, 4096},     {Dart_TypedData_kUint16, 4096},
+          {Dart_TypedData_kInt16, 128},     {Dart_TypedData_kUint16, 128},
+          {Dart_TypedData_kInt16, 512},     {Dart_TypedData_kUint16, 512},
+          {Dart_TypedData_kInt16, 1024},    {Dart_TypedData_kUint16, 1024},
+          {Dart_TypedData_kInt16, 512},     {Dart_TypedData_kUint16, 512},
+          {Dart_TypedData_kInt16, 1024},    {Dart_TypedData_kUint16, 1024},
+          {Dart_TypedData_kInt16, 2048},    {Dart_TypedData_kUint16, 2048},
+          {Dart_TypedData_kInt16, 2048},    {Dart_TypedData_kUint16, 2048},
+          {Dart_TypedData_kInt16, 2048},    {Dart_TypedData_kUint16, 2048},
 
           {Dart_TypedData_kInvalid, -1}};
 
@@ -1852,13 +1852,13 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
         Dart_TypedData_Type type;
         int size;
       } expected[] = {
-          {Dart_TypedData_kInt8, 256},      {Dart_TypedData_kUint8, 256},
-          {Dart_TypedData_kInt16, 256},     {Dart_TypedData_kUint16, 256},
-          {Dart_TypedData_kInt32, 256},     {Dart_TypedData_kUint32, 256},
-          {Dart_TypedData_kInt64, 256},     {Dart_TypedData_kUint64, 256},
-          {Dart_TypedData_kFloat32, 256},   {Dart_TypedData_kFloat64, 256},
-          {Dart_TypedData_kInt32x4, 256},   {Dart_TypedData_kFloat32x4, 256},
-          {Dart_TypedData_kFloat64x2, 256}, {Dart_TypedData_kInvalid, -1}};
+          {Dart_TypedData_kInt8, 256},     {Dart_TypedData_kUint8, 256},
+          {Dart_TypedData_kInt16, 128},    {Dart_TypedData_kUint16, 128},
+          {Dart_TypedData_kInt32, 64},     {Dart_TypedData_kUint32, 64},
+          {Dart_TypedData_kInt64, 32},     {Dart_TypedData_kUint64, 32},
+          {Dart_TypedData_kFloat32, 64},   {Dart_TypedData_kFloat64, 32},
+          {Dart_TypedData_kInt32x4, 16},   {Dart_TypedData_kFloat32x4, 16},
+          {Dart_TypedData_kFloat64x2, 16}, {Dart_TypedData_kInvalid, -1}};
 
       int i = 0;
       while (expected[i].type != Dart_TypedData_kInvalid) {

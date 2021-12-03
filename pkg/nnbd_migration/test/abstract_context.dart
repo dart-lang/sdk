@@ -41,9 +41,38 @@ class AbstractContextTest with ResourceProviderMixin {
 
   String get homePath => '/home';
 
+  Folder get sdkRoot => newFolder('/sdk');
+
   AnalysisSession get session => driver!.currentSession;
 
   String get testsPath => '$homePath/tests';
+
+  /// Makes a mock version of the Angular package available for unit testing.
+  ///
+  /// If optional argument [internalUris] is `true`, the mock Angular package
+  /// will be located in a package called `third_party.dart_src.angular.angular`
+  /// (as it is in Google3), and `package:angular` will simply re-export it;
+  /// this allows the test to reflect usage in internal sources.
+  void addAngularPackage({bool internalUris = false}) {
+    addPackageFile(
+        internalUris ? 'third_party.dart_src.angular.angular' : 'angular',
+        'angular.dart', '''
+class ContentChild {
+  const ContentChild(Object selector, {Object? read});
+}
+class Optional {
+  const Optional();
+}
+class ViewChild {
+  const ViewChild(Object selector, {Object? read});
+}
+''');
+    if (internalUris) {
+      addPackageFile('angular', 'angular.dart', '''
+export 'package:third_party.dart_src.angular.angular/angular.dart';
+''');
+    }
+  }
 
   void addBuiltValuePackage() {
     addPackageFile('built_value', 'built_value.dart', '''
@@ -137,7 +166,10 @@ export 'package:test_core/test_core.dart';
     setupResourceProvider();
     overlayResourceProvider = OverlayResourceProvider(resourceProvider);
 
-    MockSdk(resourceProvider: resourceProvider);
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
 
     newFolder(testsPath);
     newFile('$testsPath/.packages', content: '''
@@ -190,7 +222,7 @@ environment:
       includedPaths: [convertPath(homePath)],
       enableIndex: true,
       resourceProvider: overlayResourceProvider,
-      sdkPath: convertPath('/sdk'),
+      sdkPath: sdkRoot.path,
     );
 
     _driver = getDriver(convertPath(testsPath));

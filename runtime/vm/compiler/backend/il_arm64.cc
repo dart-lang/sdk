@@ -2410,6 +2410,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(offset_in_bytes > 0);  // Field is finalized and points after header.
 
   if (slot().representation() != kTagged) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     ASSERT(RepresentationUtils::IsUnboxedInteger(slot().representation()));
     const Register value = locs()->in(kValuePos).reg();
     __ Comment("NativeUnboxedStoreInstanceFieldInstr");
@@ -2420,6 +2421,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (IsUnboxedDartFieldStore() && compiler->is_optimizing()) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     const VRegister value = locs()->in(kValuePos).fpu_reg();
     const intptr_t cid = slot().field().UnboxedFieldCid();
 
@@ -2489,6 +2491,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (IsPotentialUnboxedDartFieldStore()) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     const Register value_reg = locs()->in(kValuePos).reg();
     const Register temp = locs()->temp(0).reg();
     const Register temp2 = locs()->temp(1).reg();
@@ -2574,28 +2577,30 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Register value_reg = locs()->in(kValuePos).reg();
     if (!compressed) {
       __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, value_reg,
-                               CanValueBeSmi());
+                               CanValueBeSmi(), memory_order_);
     } else {
       __ StoreCompressedIntoObjectOffset(instance_reg, offset_in_bytes,
-                                         value_reg, CanValueBeSmi());
+                                         value_reg, CanValueBeSmi(),
+                                         memory_order_);
     }
   } else {
     if (locs()->in(kValuePos).IsConstant()) {
       const auto& value = locs()->in(kValuePos).constant();
       if (!compressed) {
-        __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes, value);
+        __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes, value,
+                                          memory_order_);
       } else {
-        __ StoreCompressedIntoObjectOffsetNoBarrier(instance_reg,
-                                                    offset_in_bytes, value);
+        __ StoreCompressedIntoObjectOffsetNoBarrier(
+            instance_reg, offset_in_bytes, value, memory_order_);
       }
     } else {
       const Register value_reg = locs()->in(kValuePos).reg();
       if (!compressed) {
         __ StoreIntoObjectOffsetNoBarrier(instance_reg, offset_in_bytes,
-                                          value_reg);
+                                          value_reg, memory_order_);
       } else {
-        __ StoreCompressedIntoObjectOffsetNoBarrier(instance_reg,
-                                                    offset_in_bytes, value_reg);
+        __ StoreCompressedIntoObjectOffsetNoBarrier(
+            instance_reg, offset_in_bytes, value_reg, memory_order_);
       }
     }
   }
@@ -3217,10 +3222,9 @@ class CheckStackOverflowSlowPath
       }
       compiler->RecordSafepoint(locs, kNumSlowPathArgs);
       compiler->RecordCatchEntryMoves(env);
-      compiler->AddDescriptor(
-          UntaggedPcDescriptors::kOther, compiler->assembler()->CodeSize(),
-          instruction()->deopt_id(), instruction()->source(),
-          compiler->CurrentTryIndex());
+      compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kOther,
+                                     instruction()->deopt_id(),
+                                     instruction()->source());
     } else {
       __ CallRuntime(kStackOverflowRuntimeEntry, kNumSlowPathArgs);
       compiler->EmitCallsiteMetadata(
@@ -3541,8 +3545,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         const intptr_t kCountLimit = 0x3F;
         intptr_t value = Smi::Cast(constant).Value();
         ASSERT((value >= 0) && (value <= kCountLimit));
-        __ SmiUntag(left);
-        __ LsrImmediate(result, left, value);
+        __ SmiUntag(result, left);
+        __ LsrImmediate(result, result, value);
         if (deopt != nullptr) {
           __ SmiTagAndBranchIfOverflow(result, deopt);
         } else {
@@ -3960,13 +3964,12 @@ void BoxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (ValueFitsSmi()) {
       return;
     }
-    __ cmp(out, compiler::Operand(value, LSL, 1));
+    __ cmpw(value, compiler::Operand(out, ASR, 1));
     __ b(&done, EQ);  // Jump if the sbfiz instruction didn't lose info.
   } else {
     ASSERT(from_representation() == kUnboxedUint32);
     // A 32 bit positive Smi has one tag bit and one unused sign bit,
     // leaving only 30 bits for the payload.
-    // __ ubfiz(out, value, kSmiTagSize, compiler::target::kSmiBits);
     __ LslImmediate(out, value, kSmiTagSize, compiler::kFourBytes);
     if (ValueFitsSmi()) {
       return;
@@ -4008,10 +4011,9 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
                                      !stubs_in_vm_isolate;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
-      ValueFitsSmi()
-          ? LocationSummary::kNoCall
-          : shared_slow_path_call ? LocationSummary::kCallOnSharedSlowPath
-                                  : LocationSummary::kCallOnSlowPath);
+      ValueFitsSmi()          ? LocationSummary::kNoCall
+      : shared_slow_path_call ? LocationSummary::kCallOnSharedSlowPath
+                              : LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
   if (ValueFitsSmi()) {
     summary->set_out(0, Location::RequiresRegister());
@@ -4727,7 +4729,7 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
-  const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
+  const bool is_min = (op_kind() == MethodRecognizer::kMathMin);
   if (result_cid() == kDoubleCid) {
     compiler::Label done, returns_nan, are_equal;
     const VRegister left = locs()->in(0).fpu_reg();
@@ -4894,57 +4896,53 @@ LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
-  LocationSummary* result = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  result->set_in(0, Location::RegisterLocation(R1));
-  result->set_out(0, Location::RegisterLocation(R0));
+  LocationSummary* result = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(0, Location::RequiresRegister());
   return result;
 }
 
 void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
-  const Register value_obj = locs()->in(0).reg();
-  ASSERT(result == R0);
-  ASSERT(result != value_obj);
-  __ LoadDFieldFromOffset(VTMP, value_obj, Double::value_offset());
+  const VRegister value_double = locs()->in(0).fpu_reg();
 
-  compiler::Label do_call, done;
+  DoubleToIntegerSlowPath* slow_path =
+      new DoubleToIntegerSlowPath(this, value_double);
+  compiler->AddSlowPathCode(slow_path);
+
   // First check for NaN. Checking for minint after the conversion doesn't work
-  // on ARM64 because fcvtzds gives 0 for NaN.
-  __ fcmpd(VTMP, VTMP);
-  __ b(&do_call, VS);
+  // on ARM64 because fcvtzs gives 0 for NaN.
+  __ fcmpd(value_double, value_double);
+  __ b(slow_path->entry_label(), VS);
 
-  __ fcvtzdsx(result, VTMP);
-  // Overflow is signaled with minint.
+  switch (recognized_kind()) {
+    case MethodRecognizer::kDoubleToInteger:
+      __ fcvtzsxd(result, value_double);
+      break;
+    case MethodRecognizer::kDoubleFloorToInt:
+      __ fcvtmsxd(result, value_double);
+      break;
+    case MethodRecognizer::kDoubleCeilToInt:
+      __ fcvtpsxd(result, value_double);
+      break;
+    default:
+      UNREACHABLE();
+  }
+    // Overflow is signaled with minint.
 
 #if !defined(DART_COMPRESSED_POINTERS)
   // Check for overflow and that it fits into Smi.
   __ CompareImmediate(result, 0xC000000000000000);
-  __ b(&do_call, MI);
+  __ b(slow_path->entry_label(), MI);
 #else
   // Check for overflow and that it fits into Smi.
   __ AsrImmediate(TMP, result, 30);
   __ cmp(TMP, compiler::Operand(result, ASR, 63));
-  __ b(&do_call, NE);
+  __ b(slow_path->entry_label(), NE);
 #endif
   __ SmiTag(result);
-  __ b(&done);
-  __ Bind(&do_call);
-  __ Push(value_obj);
-  ASSERT(instance_call()->HasICData());
-  const ICData& ic_data = *instance_call()->ic_data();
-  ASSERT(ic_data.NumberOfChecksIs(1));
-  const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
-  const int kTypeArgsLen = 0;
-  const int kNumberOfArguments = 1;
-  constexpr int kSizeOfArguments = 1;
-  const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
-                          kNoArgumentNames);
-  compiler->GenerateStaticCall(deopt_id(), instance_call()->source(), target,
-                               args_info, locs(), ICData::Handle(),
-                               ICData::kStatic);
-  __ Bind(&done);
+  __ Bind(slow_path->exit_label());
 }
 
 LocationSummary* DoubleToSmiInstr::MakeLocationSummary(Zone* zone,
@@ -4964,12 +4962,12 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
   const VRegister value = locs()->in(0).fpu_reg();
   // First check for NaN. Checking for minint after the conversion doesn't work
-  // on ARM64 because fcvtzds gives 0 for NaN.
+  // on ARM64 because fcvtzs gives 0 for NaN.
   // TODO(zra): Check spec that this is true.
   __ fcmpd(value, value);
   __ b(deopt, VS);
 
-  __ fcvtzdsx(result, value);
+  __ fcvtzsxd(result, value);
 
 #if !defined(DART_COMPRESSED_POINTERS)
   // Check for overflow and that it fits into Smi.
@@ -6084,14 +6082,14 @@ void SpeculativeShiftUint32OpInstr::EmitNativeCode(
       compiler::Label* deopt =
           compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
 
-      __ tbnz(deopt, right, kBitsPerWord - 1);
+      __ tbnz(deopt, right, compiler::target::kSmiBits + 1);
     }
 
     EmitShiftUint32ByRegister(compiler, op_kind(), out, left, right);
 
     if (!shift_count_in_range) {
       // If shift value is > 31, return zero.
-      __ CompareImmediate(right, 31);
+      __ CompareImmediate(right, 31, compiler::kObjectBytes);
       __ csel(out, out, ZR, LE);
     }
   }

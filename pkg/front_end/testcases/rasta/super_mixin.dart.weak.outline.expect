@@ -41,11 +41,11 @@ abstract class _C&Super&Mixin<V extends core::Object* = dynamic> = self::Super<s
     return super.{mix::Mixin::z} = value;
   mixin-super-stub get t() → self::_C&Super&Mixin::V*
     return super.{mix::Mixin::t};
-  mixin-super-stub set t(generic-covariant-impl self::_C&Super&Mixin::V* value) → void
+  mixin-super-stub set t(covariant-by-class self::_C&Super&Mixin::V* value) → void
     return super.{mix::Mixin::t} = value;
   mixin-super-stub method foo() → dynamic
     return super.{mix::Mixin::foo}();
-  mixin-super-stub method g(generic-covariant-impl self::_C&Super&Mixin::V* a) → self::_C&Super&Mixin::V*
+  mixin-super-stub method g(covariant-by-class self::_C&Super&Mixin::V* a) → self::_C&Super&Mixin::V*
     return super.{mix::Mixin::g}(a);
   mixin-super-stub method h() → dynamic
     return super.{mix::Mixin::h}();
@@ -78,11 +78,11 @@ abstract class _D&Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> /*
     return super.{mix::Mixin::z} = value;
   mixin-super-stub get t() → dynamic
     return super.{mix::Mixin::t};
-  mixin-super-stub set t(generic-covariant-impl dynamic value) → void
+  mixin-super-stub set t(covariant-by-class dynamic value) → void
     return super.{mix::Mixin::t} = value;
   mixin-super-stub method foo() → dynamic
     return super.{mix::Mixin::foo}();
-  mixin-super-stub method g(generic-covariant-impl dynamic a) → dynamic
+  mixin-super-stub method g(covariant-by-class dynamic a) → dynamic
     return super.{mix::Mixin::g}(a);
   mixin-super-stub method h() → dynamic
     return super.{mix::Mixin::h}();
@@ -115,11 +115,11 @@ class C2<V extends core::Object* = dynamic> = self::Super<self::C2::V*> with mix
     return super.{mix::Mixin::z} = value;
   mixin-super-stub get t() → self::C2::V*
     return super.{mix::Mixin::t};
-  mixin-super-stub set t(generic-covariant-impl self::C2::V* value) → void
+  mixin-super-stub set t(covariant-by-class self::C2::V* value) → void
     return super.{mix::Mixin::t} = value;
   mixin-super-stub method foo() → dynamic
     return super.{mix::Mixin::foo}();
-  mixin-super-stub method g(generic-covariant-impl self::C2::V* a) → self::C2::V*
+  mixin-super-stub method g(covariant-by-class self::C2::V* a) → self::C2::V*
     return super.{mix::Mixin::g}(a);
   mixin-super-stub method h() → dynamic
     return super.{mix::Mixin::h}();
@@ -148,11 +148,11 @@ class D2 = self::Super<dynamic> with mix::Mixin<dynamic> {
     return super.{mix::Mixin::z} = value;
   mixin-super-stub get t() → dynamic
     return super.{mix::Mixin::t};
-  mixin-super-stub set t(generic-covariant-impl dynamic value) → void
+  mixin-super-stub set t(covariant-by-class dynamic value) → void
     return super.{mix::Mixin::t} = value;
   mixin-super-stub method foo() → dynamic
     return super.{mix::Mixin::foo}();
-  mixin-super-stub method g(generic-covariant-impl dynamic a) → dynamic
+  mixin-super-stub method g(covariant-by-class dynamic a) → dynamic
     return super.{mix::Mixin::g}(a);
   mixin-super-stub method h() → dynamic
     return super.{mix::Mixin::h}();
@@ -174,12 +174,12 @@ class Mixin<T extends core::Object* = dynamic> extends core::Object {
   field dynamic x;
   field dynamic y;
   field dynamic z;
-  generic-covariant-impl field mix::Mixin::T* t;
+  covariant-by-class field mix::Mixin::T* t;
   synthetic constructor •() → mix::Mixin<mix::Mixin::T*>*
     ;
   method foo() → dynamic
     ;
-  method g(generic-covariant-impl mix::Mixin::T* a) → mix::Mixin::T*
+  method g(covariant-by-class mix::Mixin::T* a) → mix::Mixin::T*
     ;
   method h() → dynamic
     ;

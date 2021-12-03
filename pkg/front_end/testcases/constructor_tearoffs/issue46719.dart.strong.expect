@@ -1,0 +1,67 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue46719.dart:24:10: Error: A constructor tear-off can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   A.named<int>.toString(); // error
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue46719.dart" as self;
+
+class A<T extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+  constructor named() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+  method m<X extends core::Object? = dynamic>(self::A::m::X% x) → core::List<self::A::m::X%>
+    return <self::A::m::X%>[x];
+  static method n<X extends core::Object? = dynamic>(self::A::n::X% x) → core::List<self::A::n::X%>
+    return <self::A::n::X%>[x];
+}
+extension FunctionApplier on core::Function {
+  method applyAndPrint = self::FunctionApplier|applyAndPrint;
+  tearoff applyAndPrint = self::FunctionApplier|get#applyAndPrint;
+}
+static method m<X extends core::Object? = dynamic>(self::m::X% x) → core::List<self::m::X%>
+  return <self::m::X%>[x];
+static method FunctionApplier|applyAndPrint(lowered final core::Function #this, core::List<core::Object?> positionalArguments) → void
+  return core::print(core::Function::apply(#this, positionalArguments, #C1));
+static method FunctionApplier|get#applyAndPrint(lowered final core::Function #this) → (core::List<core::Object?>) → void
+  return (core::List<core::Object?> positionalArguments) → void => self::FunctionApplier|applyAndPrint(#this, positionalArguments);
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/issue46719.dart:24:10: Error: A constructor tear-off can't have type arguments after the constructor name.
+Try removing the type arguments or placing them after the class name.
+  A.named<int>.toString(); // error
+         ^";
+}
+static method main() → void {
+  self::A<dynamic> a = new self::A::•<dynamic>();
+  self::FunctionApplier|applyAndPrint(a.{self::A::m}{<X extends core::Object? = dynamic>(X%) → core::List<X%>}<core::int>, <core::Object?>[2]);
+  self::FunctionApplier|applyAndPrint(a.{self::A::m}{<X extends core::Object? = dynamic>(X%) → core::List<X%>}<core::String>, <core::Object?>["three"]);
+  self::FunctionApplier|applyAndPrint(#C3, <core::Object?>[2]);
+  self::FunctionApplier|applyAndPrint(#C4, <core::Object?>["three"]);
+  self::FunctionApplier|applyAndPrint(#C6, <core::Object?>[2]);
+  self::FunctionApplier|applyAndPrint(#C7, <core::Object?>["three"]);
+  self::FunctionApplier|applyAndPrint(#C3, <core::Object?>[2]);
+  self::FunctionApplier|applyAndPrint(#C4, <core::Object?>["three"]);
+  #C8.{core::Object::toString}(){() → core::String};
+  #C9.{core::Object::toString}(){() → core::String};
+}
+
+constants  {
+  #C1 = <core::Symbol, dynamic>{)
+  #C2 = static-tearoff self::A::n
+  #C3 = instantiation #C2 <core::int>
+  #C4 = instantiation #C2 <core::String>
+  #C5 = static-tearoff self::m
+  #C6 = instantiation #C5 <core::int>
+  #C7 = instantiation #C5 <core::String>
+  #C8 = constructor-tearoff self::A::named
+  #C9 = instantiation #C8 <core::int>
+}

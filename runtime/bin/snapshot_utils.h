@@ -41,7 +41,8 @@ class Snapshot {
   static AppSnapshot* TryReadAppendedAppSnapshotElf(const char* container_path);
   static AppSnapshot* TryReadAppSnapshot(
       const char* script_uri,
-      bool force_load_elf_from_memory = false);
+      bool force_load_elf_from_memory = false,
+      bool decode_uri = true);
   static void WriteAppSnapshot(const char* filename,
                                uint8_t* vm_data_buffer,
                                intptr_t vm_data_size,

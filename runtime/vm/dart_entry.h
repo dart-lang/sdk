@@ -291,12 +291,13 @@ class DartLibraryCalls : public AllStatic {
   // Returns the handler if one has been registered for this port id.
   static ObjectPtr LookupHandler(Dart_Port port_id);
 
+  // Returns handler on success, an ErrorPtr on failure, null if can't find
+  // handler for this port id.
+  static ObjectPtr HandleMessage(Dart_Port port_id, const Instance& message);
+
   // Returns a list of open ReceivePorts.
   static ObjectPtr LookupOpenPorts();
 
-  // Returns null on success, an ErrorPtr on failure.
-  static ObjectPtr HandleMessage(const Object& handler,
-                                 const Instance& dart_message);
 
   // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr DrainMicrotaskQueue();
@@ -306,9 +307,15 @@ class DartLibraryCalls : public AllStatic {
   // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr EnsureScheduleImmediate();
 
-  // Runs the `_rehashObjects()` function.
-  static ObjectPtr RehashObjects(Thread* thread,
-                                 const Object& array_or_growable_array);
+  // Runs the `_rehashObjects()` function in `dart:collection`.
+  static ObjectPtr RehashObjectsInDartCollection(
+      Thread* thread,
+      const Object& array_or_growable_array);
+
+  // Runs the `_rehashObjects()` function in `dart:core`.
+  static ObjectPtr RehashObjectsInDartCore(
+      Thread* thread,
+      const Object& array_or_growable_array);
 };
 
 }  // namespace dart

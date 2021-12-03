@@ -7,8 +7,9 @@ library front_end.kernel_generator_impl;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/kernel.dart'
-    show CanonicalName, Component, NonNullableByDefaultCompiledMode;
+import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 
 import 'base/nnbd_mode.dart';
 
@@ -22,15 +23,13 @@ import 'fasta/dill/dill_target.dart' show DillTarget;
 
 import 'fasta/fasta_codes.dart' show LocatedMessage;
 
-import 'fasta/kernel/kernel_api.dart';
-
 import 'fasta/kernel/kernel_target.dart' show KernelTarget;
 
 import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
 
 import 'fasta/kernel/verifier.dart' show verifyComponent;
 
-import 'fasta/loader.dart' show Loader;
+import 'fasta/source/source_loader.dart' show SourceLoader;
 
 import 'fasta/uri_translator.dart' show UriTranslator;
 
@@ -68,7 +67,7 @@ Future<CompilerResult> generateKernelInternal(
   options.reportNullSafetyCompilationModeInfo();
   FileSystem fs = options.fileSystem;
 
-  Loader? sourceLoader;
+  SourceLoader? sourceLoader;
   return withCrashReporting<CompilerResult>(() async {
     UriTranslator uriTranslator = await options.getUriTranslator();
 
@@ -78,7 +77,7 @@ Future<CompilerResult> generateKernelInternal(
     List<Component> loadedComponents = <Component>[];
 
     Component? sdkSummary = await options.loadSdkSummary(null);
-    // By using the nameRoot of the the summary, we enable sharing the
+    // By using the nameRoot of the summary, we enable sharing the
     // sdkSummary between multiple invocations.
     CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
     if (sdkSummary != null) {
@@ -91,7 +90,7 @@ Future<CompilerResult> generateKernelInternal(
       dillTarget.loader.appendLibraries(additionalDill);
     }
 
-    await dillTarget.buildOutlines();
+    dillTarget.buildOutlines();
 
     KernelTarget kernelTarget =
         new KernelTarget(fs, false, dillTarget, uriTranslator);
@@ -115,7 +114,7 @@ Future<CompilerResult> generateKernelInternal(
       // Create the requested component ("truncating" or not).
       //
       // Note: we don't pass the library argument to the constructor to
-      // preserve the the libraries parent pointer (it should continue to point
+      // preserve the libraries parent pointer (it should continue to point
       // to the component within KernelTarget).
       Component trimmedSummaryComponent =
           new Component(nameRoot: summaryComponent.root)
@@ -185,23 +184,30 @@ Future<CompilerResult> generateKernelInternal(
 /// Result object of [generateKernel].
 class InternalCompilerResult implements CompilerResult {
   /// The generated summary bytes, if it was requested.
+  @override
   final List<int>? summary;
 
   /// The generated component, if it was requested.
+  @override
   final Component? component;
 
+  @override
   final Component? sdkComponent;
 
+  @override
   final List<Component> loadedComponents;
 
   /// Dependencies traversed by the compiler. Used only for generating
   /// dependency .GN files in the dart-sdk build system.
   /// Note this might be removed when we switch to compute dependencies without
   /// using the compiler itself.
+  @override
   final List<Uri> deps;
 
+  @override
   final ClassHierarchy? classHierarchy;
 
+  @override
   final CoreTypes? coreTypes;
 
   /// The [KernelTarget] used to generated the component.

@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/abstract_instantiation.dart:8:17: Error: Factory redirects to class 'A', which is abstract and can't be instantiated.
+//   factory B() = A;
+//                 ^
+//
+// pkg/front_end/testcases/general/abstract_instantiation.dart:8:17: Error: The constructor function type 'A Function()' isn't a subtype of 'B Function()'.
+//  - 'A' is from 'pkg/front_end/testcases/general/abstract_instantiation.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/general/abstract_instantiation.dart'.
+//   factory B() = A;
+//                 ^
+//
+// pkg/front_end/testcases/general/abstract_instantiation.dart:12:7: Error: The class 'A' is abstract and can't be instantiated.
+//   new A();
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+abstract class B extends core::Object implements self::A {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  static factory •() → self::B
+    return invalid-expression "pkg/front_end/testcases/general/abstract_instantiation.dart:8:17: Error: The constructor function type 'A Function()' isn't a subtype of 'B Function()'.
+ - 'A' is from 'pkg/front_end/testcases/general/abstract_instantiation.dart'.
+ - 'B' is from 'pkg/front_end/testcases/general/abstract_instantiation.dart'.
+  factory B() = A;
+                ^";
+}
+static method test() → dynamic {
+  throw new core::AbstractClassInstantiationError::•("A");
+  invalid-expression "pkg/front_end/testcases/general/abstract_instantiation.dart:8:17: Error: The constructor function type 'A Function()' isn't a subtype of 'B Function()'.
+ - 'A' is from 'pkg/front_end/testcases/general/abstract_instantiation.dart'.
+ - 'B' is from 'pkg/front_end/testcases/general/abstract_instantiation.dart'.
+  factory B() = A;
+                ^";
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::B::•
+}

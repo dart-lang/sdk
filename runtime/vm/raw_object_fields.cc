@@ -156,15 +156,23 @@ namespace dart {
   F(String, length_)                                                           \
   F(Array, type_arguments_)                                                    \
   F(Array, length_)                                                            \
+  F(ImmutableArray, type_arguments_)                                           \
+  F(ImmutableArray, length_)                                                   \
   F(GrowableObjectArray, type_arguments_)                                      \
   F(GrowableObjectArray, length_)                                              \
   F(GrowableObjectArray, data_)                                                \
-  F(LinkedHashBase, type_arguments_)                                           \
-  F(LinkedHashBase, index_)                                                    \
-  F(LinkedHashBase, hash_mask_)                                                \
-  F(LinkedHashBase, data_)                                                     \
-  F(LinkedHashBase, used_data_)                                                \
-  F(LinkedHashBase, deleted_keys_)                                             \
+  F(LinkedHashMap, type_arguments_)                                            \
+  F(LinkedHashMap, index_)                                                     \
+  F(LinkedHashMap, hash_mask_)                                                 \
+  F(LinkedHashMap, data_)                                                      \
+  F(LinkedHashMap, used_data_)                                                 \
+  F(LinkedHashSet, deleted_keys_)                                              \
+  F(LinkedHashSet, type_arguments_)                                            \
+  F(LinkedHashSet, index_)                                                     \
+  F(LinkedHashSet, hash_mask_)                                                 \
+  F(LinkedHashSet, data_)                                                      \
+  F(LinkedHashSet, used_data_)                                                 \
+  F(LinkedHashSet, deleted_keys_)                                              \
   F(TypedData, length_)                                                        \
   F(ExternalTypedData, length_)                                                \
   F(ReceivePort, send_port_)                                                   \

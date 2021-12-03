@@ -141,7 +141,7 @@ static method fisk() → dynamic async {
   function #s1#get() → core::String
     return let final core::String? #t8 = #s1 in #t8 == null ?{core::String} #s1 = invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:40:20: Error: `await` expressions are not supported in late local initializers.
   late String s1 = await hest(); // Error.
-                   ^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} core::String : #t8{core::String};
+                   ^^^^^" : #t8{core::String};
   function #s1#set(core::String #t9) → dynamic
     return #s1 = #t9;
   lowered core::String? #s2;

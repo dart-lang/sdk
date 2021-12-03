@@ -328,7 +328,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   void registerStaticUse(StaticUse staticUse, MemberUsedCallback memberUsed) {
     MemberEntity element = staticUse.element;
-    EnumSet<MemberUse> useSet = EnumSet<MemberUse>();
+    EnumSet<MemberUse> useSet = EnumSet();
     MemberUsage usage = _getMemberUsage(element, useSet);
     switch (staticUse.kind) {
       case StaticUseKind.STATIC_TEAR_OFF:
@@ -409,7 +409,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   }
 
   void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
-      {bool checkEnqueuerConsistency: false}) {
+      {bool checkEnqueuerConsistency = false}) {
     _elementEnvironment.forEachClassMember(cls,
         (ClassEntity cls, MemberEntity member) {
       _processInstantiatedClassMember(cls, member, memberUsed,
@@ -419,9 +419,9 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   void _processInstantiatedClassMember(
       ClassEntity cls, MemberEntity member, MemberUsedCallback memberUsed,
-      {bool checkEnqueuerConsistency: false}) {
+      {bool checkEnqueuerConsistency = false}) {
     if (!member.isInstanceMember) return;
-    EnumSet<MemberUse> useSet = EnumSet<MemberUse>();
+    EnumSet<MemberUse> useSet = EnumSet();
     MemberUsage usage = _getMemberUsage(member, useSet);
     if (useSet.isNotEmpty) {
       if (checkEnqueuerConsistency) {
@@ -434,7 +434,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   }
 
   MemberUsage _getMemberUsage(MemberEntity member, EnumSet<MemberUse> useSet,
-      {bool checkEnqueuerConsistency: false}) {
+      {bool checkEnqueuerConsistency = false}) {
     // TODO(johnniwinther): Change [TypeMask] to not apply to a superclass
     // member unless the class has been instantiated. Similar to
     // [StrongModeConstraint].
@@ -604,7 +604,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 }
 
 class CodegenWorldImpl implements CodegenWorld {
-  JClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
 
   final Map<MemberEntity, MemberUsage> _liveMemberUsage;
 

@@ -20,7 +20,7 @@ class A extends core::Object {
   @#C1
   external get covariantInstanceField() → core::num;
   @#C1
-  external set covariantInstanceField(covariant core::num #externalFieldValue) → void;
+  external set covariantInstanceField(covariant-by-declaration core::num #externalFieldValue) → void;
   @#C1
   external static get staticField() → core::int;
   @#C1
@@ -31,7 +31,7 @@ class A extends core::Object {
   external set untypedInstanceField(dynamic #externalFieldValue) → void;
   external get untypedFinalInstanceField() → dynamic;
   external get untypedCovariantInstanceField() → dynamic;
-  external set untypedCovariantInstanceField(covariant dynamic #externalFieldValue) → void;
+  external set untypedCovariantInstanceField(covariant-by-declaration dynamic #externalFieldValue) → void;
   external static get untypedStaticField() → dynamic;
   external static set untypedStaticField(dynamic #externalFieldValue) → void;
   external static get untypedFinalStaticField() → dynamic;
@@ -46,7 +46,7 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
   @#C1
   external get covariantInstanceField() → core::num;
   @#C1
-  external set covariantInstanceField(covariant core::num #externalFieldValue) → void;
+  external set covariantInstanceField(covariant-by-declaration core::num #externalFieldValue) → void;
   @#C1
   external static get staticField() → core::int;
   @#C1
@@ -57,7 +57,7 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
   external set untypedInstanceField(dynamic #externalFieldValue) → void;
   external get untypedFinalInstanceField() → dynamic;
   external get untypedCovariantInstanceField() → dynamic;
-  external set untypedCovariantInstanceField(covariant dynamic #externalFieldValue) → void;
+  external set untypedCovariantInstanceField(covariant-by-declaration dynamic #externalFieldValue) → void;
   external static get untypedStaticField() → dynamic;
   external static set untypedStaticField(dynamic #externalFieldValue) → void;
   external static get untypedFinalStaticField() → dynamic;
@@ -70,23 +70,23 @@ class C extends core::Object implements self::A {
   external set instanceField(core::int #externalFieldValue) → void;
   external get finalInstanceField() → core::int;
   external get covariantInstanceField() → core::num;
-  external set covariantInstanceField(covariant core::num #externalFieldValue) → void;
+  external set covariantInstanceField(covariant-by-declaration core::num #externalFieldValue) → void;
   external get untypedInstanceField() → dynamic;
   external set untypedInstanceField(dynamic #externalFieldValue) → void;
   external get untypedFinalInstanceField() → dynamic;
   external get untypedCovariantInstanceField() → dynamic;
-  external set untypedCovariantInstanceField(covariant dynamic #externalFieldValue) → void;
+  external set untypedCovariantInstanceField(covariant-by-declaration dynamic #externalFieldValue) → void;
 }
 extension Extension on self::A {
-  get extensionInstanceField = get self::Extension|extensionInstanceField;
-  set extensionInstanceField = set self::Extension|extensionInstanceField;
-  get finalExtensionInstanceField = get self::Extension|finalExtensionInstanceField;
+  get extensionInstanceField = self::Extension|get#extensionInstanceField;
+  set extensionInstanceField = self::Extension|set#extensionInstanceField;
+  get finalExtensionInstanceField = self::Extension|get#finalExtensionInstanceField;
   static get extensionStaticField = get self::Extension|extensionStaticField;
   static set extensionStaticField = set self::Extension|extensionStaticField;
   static get finalExtensionStaticField = get self::Extension|finalExtensionStaticField;
-  get untypedExtensionInstanceField = get self::Extension|untypedExtensionInstanceField;
-  set untypedExtensionInstanceField = set self::Extension|untypedExtensionInstanceField;
-  get untypedFinalExtensionInstanceField = get self::Extension|untypedFinalExtensionInstanceField;
+  get untypedExtensionInstanceField = self::Extension|get#untypedExtensionInstanceField;
+  set untypedExtensionInstanceField = self::Extension|set#untypedExtensionInstanceField;
+  get untypedFinalExtensionInstanceField = self::Extension|get#untypedFinalExtensionInstanceField;
   static get untypedExtensionStaticField = get self::Extension|untypedExtensionStaticField;
   static set untypedExtensionStaticField = set self::Extension|untypedExtensionStaticField;
   static get untypedFinalExtensionStaticField = get self::Extension|untypedFinalExtensionStaticField;
@@ -101,20 +101,20 @@ external static get untypedTopLevelField() → dynamic;
 external static set untypedTopLevelField(dynamic #externalFieldValue) → void;
 external static get untypedFinalTopLevelField() → dynamic;
 @#C1
-external static get Extension|extensionInstanceField() → core::int;
+external static method Extension|get#extensionInstanceField(self::A #this) → core::int;
 @#C1
-external static set Extension|extensionInstanceField(core::int #externalFieldValue) → void;
+external static method Extension|set#extensionInstanceField(self::A #this, core::int #externalFieldValue) → void;
 @#C1
-external static get Extension|finalExtensionInstanceField() → core::int;
+external static method Extension|get#finalExtensionInstanceField(self::A #this) → core::int;
 @#C1
 external static get Extension|extensionStaticField() → core::int;
 @#C1
 external static set Extension|extensionStaticField(core::int #externalFieldValue) → void;
 @#C1
 external static get Extension|finalExtensionStaticField() → core::int;
-external static get Extension|untypedExtensionInstanceField() → dynamic;
-external static set Extension|untypedExtensionInstanceField(dynamic #externalFieldValue) → void;
-external static get Extension|untypedFinalExtensionInstanceField() → dynamic;
+external static method Extension|get#untypedExtensionInstanceField(self::A #this) → dynamic;
+external static method Extension|set#untypedExtensionInstanceField(self::A #this, dynamic #externalFieldValue) → void;
+external static method Extension|get#untypedFinalExtensionInstanceField(self::A #this) → dynamic;
 external static get Extension|untypedExtensionStaticField() → dynamic;
 external static set Extension|untypedExtensionStaticField(dynamic #externalFieldValue) → void;
 external static get Extension|untypedFinalExtensionStaticField() → dynamic;

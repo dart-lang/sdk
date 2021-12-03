@@ -37,7 +37,7 @@ class DirectiveListener extends Listener {
   DirectiveListener();
 
   @override
-  beginExport(Token export) {
+  void beginExport(Token export) {
     _combinators = <NamespaceCombinator>[];
   }
 
@@ -47,7 +47,7 @@ class DirectiveListener extends Listener {
   }
 
   @override
-  beginImport(Token import) {
+  void beginImport(Token import) {
     _combinators = <NamespaceCombinator>[];
   }
 
@@ -59,7 +59,7 @@ class DirectiveListener extends Listener {
   }
 
   @override
-  beginPart(Token part) {
+  void beginPart(Token part) {
     _inPart = true;
   }
 
@@ -69,7 +69,7 @@ class DirectiveListener extends Listener {
   }
 
   @override
-  endExport(Token export, Token semicolon) {
+  void endExport(Token export, Token semicolon) {
     exports.add(new NamespaceDirective.export(_uri, _combinators));
     _uri = null;
     _combinators = null;
@@ -82,14 +82,14 @@ class DirectiveListener extends Listener {
   }
 
   @override
-  endImport(Token? import, Token? semicolon) {
+  void endImport(Token? import, Token? semicolon) {
     imports.add(new NamespaceDirective.import(_uri, _combinators));
     _uri = null;
     _combinators = null;
   }
 
   @override
-  endPart(Token part, Token semicolon) {
+  void endPart(Token part, Token semicolon) {
     parts.add(_uri);
     _uri = null;
     _inPart = false;

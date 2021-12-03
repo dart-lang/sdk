@@ -524,6 +524,49 @@ void f() {
     assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(42)');
   }
 
+  Future<void> test_CONSTRUCTOR_TEAR_OFF_named() async {
+    addTestFile('''
+class A<T> {
+  A.named();
+}
+void f() {
+  A<int>.named;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'A<int');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR_TEAR_OFF, 'named;');
+  }
+
+  Future<void> test_CONSTRUCTOR_TEAR_OFF_new_declared() async {
+    addTestFile('''
+class A<T> {
+  A.new();
+}
+void f() {
+  A<int>.new;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'A<int');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR_TEAR_OFF, 'new;');
+  }
+
+  Future<void> test_CONSTRUCTOR_TEAR_OFF_new_synthetic() async {
+    addTestFile('''
+class A<T> {}
+void f() {
+  A<int>.new;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'A<int');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR_TEAR_OFF, 'new;');
+  }
+
   Future<void> test_DIRECTIVE() async {
     addTestFile('''
 library lib;
@@ -1011,7 +1054,7 @@ void f() {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.LOCAL_FUNCTION_DECLARATION, 'fff() {}');
     assertHasRegion(HighlightRegionType.LOCAL_FUNCTION_REFERENCE, 'fff();');
-    assertHasRegion(HighlightRegionType.LOCAL_FUNCTION_REFERENCE, 'fff;');
+    assertHasRegion(HighlightRegionType.LOCAL_FUNCTION_TEAR_OFF, 'fff;');
   }
 
   Future<void> test_LOCAL_VARIABLE() async {
@@ -1046,9 +1089,9 @@ void f(A a) {
         HighlightRegionType.INSTANCE_METHOD_DECLARATION, 'aaa() {}');
     assertHasRegion(HighlightRegionType.STATIC_METHOD_DECLARATION, 'bbb() {}');
     assertHasRegion(HighlightRegionType.INSTANCE_METHOD_REFERENCE, 'aaa();');
-    assertHasRegion(HighlightRegionType.INSTANCE_METHOD_REFERENCE, 'aaa;');
+    assertHasRegion(HighlightRegionType.INSTANCE_METHOD_TEAR_OFF, 'aaa;');
     assertHasRegion(HighlightRegionType.STATIC_METHOD_REFERENCE, 'bbb();');
-    assertHasRegion(HighlightRegionType.STATIC_METHOD_REFERENCE, 'bbb;');
+    assertHasRegion(HighlightRegionType.STATIC_METHOD_TEAR_OFF, 'bbb;');
   }
 
   Future<void> test_METHOD_bestType() async {
@@ -1140,6 +1183,7 @@ void f() {
 fff(p) {}
 void f() {
   fff(42);
+  fff;
 }
 ''');
     await prepareHighlights();
@@ -1147,6 +1191,7 @@ void f() {
         HighlightRegionType.TOP_LEVEL_FUNCTION_DECLARATION, 'fff(p) {}');
     assertHasRegion(
         HighlightRegionType.TOP_LEVEL_FUNCTION_REFERENCE, 'fff(42)');
+    assertHasRegion(HighlightRegionType.TOP_LEVEL_FUNCTION_TEAR_OFF, 'fff;');
   }
 
   Future<void> test_TOP_LEVEL_VARIABLE() async {
@@ -1168,6 +1213,16 @@ void f() {
         HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'V1 // annotation');
     assertHasRegion(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'V1);');
     assertHasRegion(HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE, 'V2 = 3');
+  }
+
+  Future<void> test_TYPE_ALIAS() async {
+    addTestFile('''
+typedef A = double;
+void f(A a) {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.TYPE_ALIAS, 'A');
+    assertHasRegion(HighlightRegionType.TYPE_ALIAS, 'A a');
   }
 
   Future<void> test_TYPE_ALIAS_dynamicType() async {

@@ -47,65 +47,12 @@
     "Dynamic access of 'memberContext'.": 1,
     "Dynamic access of 'name'.": 1
   },
-  "pkg/compiler/lib/src/inferrer/typemasks/container_type_mask.dart": {
-    "Dynamic access of 'isNullable'.": 2,
-    "Dynamic access of 'isEmptyOrNull'.": 1,
-    "Dynamic access of 'isContainer'.": 1,
-    "Dynamic access of 'elementType'.": 2,
-    "Dynamic access of 'length'.": 1,
-    "Dynamic access of 'forwardTo'.": 1,
-    "Dynamic access of 'allocationNode'.": 1,
-    "Dynamic access of 'allocationElement'.": 1
-  },
-  "pkg/compiler/lib/src/inferrer/typemasks/dictionary_type_mask.dart": {
-    "Dynamic access of 'isNullable'.": 2,
-    "Dynamic access of 'isEmptyOrNull'.": 1,
-    "Dynamic access of 'isDictionary'.": 1,
-    "Dynamic access of 'forwardTo'.": 2,
-    "Dynamic access of 'keyType'.": 3,
-    "Dynamic access of 'valueType'.": 3,
-    "Dynamic access of 'masks::_typeMap'.": 2,
-    "Dynamic invocation of 'containsKey'.": 1,
-    "Dynamic invocation of 'nullable'.": 2,
-    "Dynamic invocation of 'union'.": 1,
-    "Dynamic invocation of 'forEach'.": 1,
-    "Dynamic access of 'isMap'.": 1
-  },
-  "pkg/compiler/lib/src/inferrer/typemasks/forwarding_type_mask.dart": {
-    "Dynamic access of 'isNullable'.": 1
-  },
-  "pkg/compiler/lib/src/inferrer/typemasks/map_type_mask.dart": {
-    "Dynamic access of 'isNullable'.": 2,
-    "Dynamic access of 'isEmptyOrNull'.": 1,
-    "Dynamic access of 'isMap'.": 1,
-    "Dynamic access of 'keyType'.": 4,
-    "Dynamic access of 'valueType'.": 2,
-    "Dynamic access of 'forwardTo'.": 2,
-    "Dynamic access of 'isDictionary'.": 1,
-    "Dynamic invocation of 'union'.": 1,
-    "Dynamic access of 'typeMap'.": 1,
-    "Dynamic access of 'values'.": 1,
-    "Dynamic invocation of 'fold'.": 1,
-    "Dynamic access of 'allocationNode'.": 1,
-    "Dynamic access of 'allocationElement'.": 1
-  },
-  "pkg/compiler/lib/src/inferrer/typemasks/set_type_mask.dart": {
-    "Dynamic access of 'isNullable'.": 2,
-    "Dynamic access of 'isEmptyOrNull'.": 1,
-    "Dynamic access of 'isSet'.": 1,
-    "Dynamic access of 'elementType'.": 2,
-    "Dynamic access of 'forwardTo'.": 1
-  },
   "pkg/compiler/lib/src/inferrer/typemasks/type_mask.dart": {
     "Dynamic access of 'isForwarding'.": 1,
     "Dynamic access of 'forwardTo'.": 1
   },
-  "pkg/compiler/lib/src/inferrer/typemasks/union_type_mask.dart": {
-    "Dynamic invocation of 'nonNullable'.": 2,
-    "Dynamic access of 'isNullable'.": 3,
-    "Dynamic access of 'isUnion'.": 2,
-    "Dynamic access of 'disjointMasks'.": 3,
-    "Dynamic invocation of 'contains'.": 1
+  "pkg/compiler/lib/src/serialization/binary_sink.dart": {
+    "Dynamic access of 'index'.": 1
   },
   "pkg/compiler/lib/src/helpers/expensive_map.dart": {
     "Dynamic access of 'length'.": 1,
@@ -145,9 +92,6 @@
     "Dynamic invocation of '-'.": 1,
     "Dynamic invocation of '+'.": 1
   },
-  "pkg/compiler/lib/src/serialization/binary_sink.dart": {
-    "Dynamic access of 'index'.": 1
-  },
   "pkg/compiler/lib/src/util/enumset.dart": {
     "Dynamic access of 'index'.": 4
   },
@@ -170,13 +114,13 @@
     "Dynamic invocation of '>='.": 1,
     "Dynamic invocation of 'codeUnitAt'.": 1
   },
-  "third_party/pkg/dart2js_info/lib/json_info_codec.dart": {
-    "Dynamic invocation of '[]'.": 11,
+  "pkg/dart2js_info/lib/json_info_codec.dart": {
+    "Dynamic invocation of '[]'.": 12,
     "Dynamic invocation of 'forEach'.": 2,
     "Dynamic invocation of 'map'.": 2,
     "Dynamic invocation of 'compareTo'.": 1
   },
-  "third_party/pkg/dart2js_info/lib/binary_serialization.dart": {
+  "pkg/dart2js_info/lib/binary_serialization.dart": {
     "Dynamic invocation of 'cast'.": 1
   },
   "pkg/compiler/lib/src/universe/side_effects.dart": {
@@ -209,11 +153,11 @@
     "Dynamic invocation of '[]'.": 9,
     "Dynamic invocation of 'toStatement'.": 3
   },
-  "third_party/pkg/dart2js_info/lib/src/util.dart": {
+  "pkg/dart2js_info/lib/src/util.dart": {
     "Dynamic access of 'name'.": 1,
     "Dynamic invocation of '-'.": 1
   },
-  "third_party/pkg/dart2js_info/lib/src/binary/sink.dart": {
+  "pkg/dart2js_info/lib/src/binary/sink.dart": {
     "Dynamic access of 'index'.": 1
   },
   "pkg/compiler/lib/src/inferrer/type_graph_nodes.dart": {

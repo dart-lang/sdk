@@ -42,20 +42,4 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
   return snapshot;
 }
 
-#if 0
-void SnapshotReader::RunDelayedTypePostprocessing() {
-  if (types_to_postprocess_.IsNull()) {
-    return;
-  }
-
-  AbstractType& type = AbstractType::Handle();
-  Code& code = Code::Handle();
-  for (intptr_t i = 0; i < types_to_postprocess_.Length(); ++i) {
-    type ^= types_to_postprocess_.At(i);
-    code = TypeTestingStubGenerator::DefaultCodeForType(type);
-    type.InitializeTypeTestingStubNonAtomic(code);
-  }
-}
-#endif
-
 }  // namespace dart

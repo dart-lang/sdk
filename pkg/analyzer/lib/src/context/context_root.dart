@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:path/path.dart' as path;
 
 /// Information about the root directory associated with an analysis context.
@@ -29,12 +28,7 @@ class ContextRoot {
   ContextRoot(this.root, this.exclude, {required this.pathContext});
 
   @override
-  int get hashCode {
-    int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, root.hashCode);
-    hash = JenkinsSmiHash.combine(hash, exclude.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(root, exclude);
 
   @override
   bool operator ==(Object other) {

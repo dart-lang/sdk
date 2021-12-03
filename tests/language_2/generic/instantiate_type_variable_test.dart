@@ -14,7 +14,7 @@ class Foo<T> {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_NEW_EXPR
     //         ^
     // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-    // [cfe] Method not found: 'T'.
+    // [cfe] Couldn't find constructor 'T'.
   }
 }
 

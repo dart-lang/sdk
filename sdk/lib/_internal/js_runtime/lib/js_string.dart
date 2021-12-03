@@ -431,7 +431,11 @@ class JSString extends Interceptor implements String, JSIndexable {
 
   int compareTo(String other) {
     if (other is! String) throw argumentErrorValue(other);
-    return this == other ? 0 : JS('bool', r'# < #', this, other) ? -1 : 1;
+    return this == other
+        ? 0
+        : JS('bool', r'# < #', this, other)
+            ? -1
+            : 1;
   }
 
   // Note: if you change this, also change the function [S].
@@ -461,7 +465,8 @@ class JSString extends Interceptor implements String, JSIndexable {
 
   String operator [](int index) {
     if (index is! int) throw diagnoseIndexError(this, index);
-    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
+    // This form of the range test correctly rejects NaN.
+    if (!(index >= 0 && index < length)) throw diagnoseIndexError(this, index);
     return JS('String', '#[#]', this, index);
   }
 }

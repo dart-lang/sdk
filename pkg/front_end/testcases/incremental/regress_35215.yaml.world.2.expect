@@ -9,11 +9,11 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:3:4: Error: Too many positional arguments: 0 allowed, but 1 found.
+// org-dartlang-test:///main.dart:4:4: Error: Too many positional arguments: 0 allowed, but 1 found.
 // Try removing the extra positional arguments.
 //   b(42);
 //    ^
-// org-dartlang-test:///b.dart:5:1: Context: Found this candidate, but the arguments don't match.
+// org-dartlang-test:///b.dart:6:1: Context: Found this candidate, but the arguments don't match.
 // b({int named}) {
 // ^
 //
@@ -21,7 +21,7 @@ library from "org-dartlang-test:///main.dart" as main {
   import "org-dartlang-test:///b.dart";
 
   static method main() → dynamic {
-    invalid-expression "org-dartlang-test:///main.dart:3:4: Error: Too many positional arguments: 0 allowed, but 1 found.\nTry removing the extra positional arguments.\n  b(42);\n   ^";
+    invalid-expression "org-dartlang-test:///main.dart:4:4: Error: Too many positional arguments: 0 allowed, but 1 found.\nTry removing the extra positional arguments.\n  b(42);\n   ^";
   }
 }
 constants  {

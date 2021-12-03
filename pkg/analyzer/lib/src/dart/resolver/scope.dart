@@ -6,9 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
@@ -348,22 +346,5 @@ class PrefixedNamespace implements Namespace {
       return _definedNames[name];
     }
     return null;
-  }
-}
-
-extension ScopeExtension on Scope {
-  List<ExtensionElement> get extensions {
-    return _enclosingLibraryScope.extensions;
-  }
-
-  LibraryScope get _enclosingLibraryScope {
-    Scope? scope = this;
-    while (scope != null) {
-      if (scope is LibraryScope) {
-        return scope;
-      }
-      scope = (scope as EnclosedScope).parent;
-    }
-    throw StateError('Can only be used in a LibraryScope.');
   }
 }

@@ -488,6 +488,7 @@ closure
 closures
 clue
 code
+coincides
 coinductively
 collapses
 collect
@@ -1397,6 +1398,7 @@ hint
 historically
 hoist
 hoisted
+hoisting
 hold
 holder
 holding
@@ -1539,6 +1541,7 @@ innermost
 inout
 input
 inputs
+inscrutable
 insert
 inserted
 inserting
@@ -1866,6 +1869,8 @@ met
 metadata
 method
 methods
+metric
+metrics
 microseconds
 microtask
 mid
@@ -2410,6 +2415,7 @@ reasoning
 reasons
 reassign
 rebase
+recalculates
 receive
 receiver
 recent
@@ -2571,6 +2577,7 @@ resume
 resynthesize
 retain
 retained
+retains
 rethrow
 rethrowing
 retired
@@ -3154,6 +3161,7 @@ unalias
 unaliased
 unaliasing
 unambiguous
+unambiguously
 unary
 unassignable
 unassigned
@@ -3214,6 +3222,7 @@ unrelated
 unresolved
 unsafe
 unsatisfied
+unscheduled
 unserializable
 unsigned
 unsized

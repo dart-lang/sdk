@@ -62,6 +62,50 @@ f(C c) {
     ]);
   }
 
+  test_functionAlias_notInstantiated() async {
+    await assertNoErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn.foo();
+}
+
+extension E on Type {
+  void foo() {}
+}
+''');
+  }
+
+  test_functionAlias_typeInstantiated() async {
+    await assertErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn<int>.foo();
+}
+
+extension E on Type {
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE, 58, 3),
+    ]);
+  }
+
+  test_functionAlias_typeInstantiated_parenthesized() async {
+    await assertNoErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  (Fn<int>).foo();
+}
+
+extension E on Type {
+  void foo() {}
+}
+''');
+  }
+
   test_functionExpression_callMethod_defined() async {
     await assertNoErrorsInCode(r'''
 main() {

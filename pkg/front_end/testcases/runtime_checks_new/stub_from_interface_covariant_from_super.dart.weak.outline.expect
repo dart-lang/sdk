@@ -5,7 +5,7 @@ import "dart:core" as core;
 class B extends core::Object {
   synthetic constructor •() → self::B*
     ;
-  method f(covariant core::int* x, core::int* y) → void
+  method f(covariant-by-declaration core::int* x, core::int* y) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -36,7 +36,7 @@ abstract class I extends core::Object {
 abstract class C extends self::B implements self::I {
   synthetic constructor •() → self::C*
     ;
-  abstract forwarding-stub method f(covariant core::int* x, core::Object* y) → void;
+  abstract forwarding-stub method f(covariant-by-declaration core::int* x, core::Object* y) → void;
 }
 static method main() → void
   ;

@@ -221,6 +221,7 @@ void DFE::CompileAndReadScript(const char* script_uri,
       *exit_code = kDartFrontendErrorExitCode;
       break;
     case Dart_KernelCompilationStatus_Unknown:
+    case Dart_KernelCompilationStatus_MsgFailed:
       free(result.kernel);
       *error = result.error;  // Copy error message.
       *exit_code = kErrorExitCode;
@@ -230,9 +231,11 @@ void DFE::CompileAndReadScript(const char* script_uri,
 
 void DFE::ReadScript(const char* script_uri,
                      uint8_t** kernel_buffer,
-                     intptr_t* kernel_buffer_size) const {
+                     intptr_t* kernel_buffer_size,
+                     bool decode_uri) const {
   int64_t start = Dart_TimelineGetMicros();
-  if (!TryReadKernelFile(script_uri, kernel_buffer, kernel_buffer_size)) {
+  if (!TryReadKernelFile(script_uri, kernel_buffer, kernel_buffer_size,
+                         decode_uri)) {
     return;
   }
   if (!Dart_IsKernel(*kernel_buffer, *kernel_buffer_size)) {
@@ -273,9 +276,12 @@ static bool TryReadSimpleKernelBuffer(uint8_t* buffer,
 ///
 /// If successful, newly allocated buffer with file contents is returned in
 /// [buffer], file contents byte count - in [size].
-static bool TryReadFile(const char* script_uri, uint8_t** buffer,
-                        intptr_t* size) {
-  void* script_file = DartUtils::OpenFileUri(script_uri, false);
+static bool TryReadFile(const char* script_uri,
+                        uint8_t** buffer,
+                        intptr_t* size,
+                        bool decode_uri = true) {
+  void* script_file = decode_uri ? DartUtils::OpenFileUri(script_uri, false)
+                                 : DartUtils::OpenFile(script_uri, false);
   if (script_file == nullptr) {
     return false;
   }
@@ -416,12 +422,13 @@ static bool TryReadKernelListBuffer(const char* script_uri,
 
 bool DFE::TryReadKernelFile(const char* script_uri,
                             uint8_t** kernel_ir,
-                            intptr_t* kernel_ir_size) {
+                            intptr_t* kernel_ir_size,
+                            bool decode_uri) {
   *kernel_ir = nullptr;
   *kernel_ir_size = -1;
 
   uint8_t* buffer;
-  if (!TryReadFile(script_uri, &buffer, kernel_ir_size)) {
+  if (!TryReadFile(script_uri, &buffer, kernel_ir_size, decode_uri)) {
     return false;
   }
 

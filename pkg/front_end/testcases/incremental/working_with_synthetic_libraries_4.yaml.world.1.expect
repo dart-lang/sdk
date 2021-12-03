@@ -3,7 +3,7 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:1:6: Error: Can't use 'org-dartlang-untranslatable-uri:package%3Afoo%2Fnonexisting.dart' as a part, because it has no 'part of' declaration.
+// org-dartlang-test:///main.dart:2:6: Error: Can't use 'org-dartlang-untranslatable-uri:package%3Afoo%2Fnonexisting.dart' as a part, because it has no 'part of' declaration.
 // part "package:foo/nonexisting.dart";
 //      ^
 //
@@ -14,7 +14,7 @@ library from "package:foo/nonexisting.dart" as non {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:1:6: Error: Not found: 'package:foo/nonexisting.dart'
+// org-dartlang-test:///main.dart:2:6: Error: Not found: 'package:foo/nonexisting.dart'
 // part "package:foo/nonexisting.dart";
 //      ^
 //

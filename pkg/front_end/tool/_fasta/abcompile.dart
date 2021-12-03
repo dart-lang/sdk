@@ -18,7 +18,7 @@ const int iterations = int.fromEnvironment("iterations", defaultValue: 15);
 /// by alternately launching the compile application in this directory
 /// and the compile application location in the repo specified by "bRoot"
 /// via -DbRoot=/absolute/path/to/other/sdk/repo
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   print(args);
   if (bRootPath == null) {
     print('Expected -DbRoot=/absolute/path/to/other/sdk/repo');

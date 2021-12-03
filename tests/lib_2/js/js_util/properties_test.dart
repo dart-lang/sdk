@@ -87,6 +87,19 @@ class CallMethodTest {
   external five(a, b, c, d, e);
 }
 
+@JS()
+external get Zero;
+@JS()
+external get One;
+@JS()
+external get Two;
+@JS()
+external get Three;
+@JS()
+external get Four;
+@JS()
+external get Five;
+
 main() {
   eval(r"""
     function Foo(a) {
@@ -158,6 +171,25 @@ main() {
     }
     CallMethodTest.prototype.five = function(a, b, c, d, e) {
       return 'five';
+    }
+
+    function Zero() {
+      this.count = 0;
+    }
+    function One(a) {
+      this.count = 1;
+    }
+    function Two(a, b) {
+      this.count = 2;
+    }
+    function Three(a, b, c) {
+      this.count = 3;
+    }
+    function Four(a, b, c, d) {
+      this.count = 4;
+    }
+    function Five(a, b, c, d, e) {
+      this.count = 5;
     }
     """);
 
@@ -547,8 +579,138 @@ main() {
 
   group('callConstructor', () {
     test('typed object', () {
-      Foo f = js_util.callConstructor(JSFooType, [42]);
+      var f = js_util.callConstructor(JSFooType, [42]);
       expect(f.a, equals(42));
+
+      var f2 =
+          js_util.callConstructor(js_util.getProperty(f, 'constructor'), [5]);
+      expect(f2.a, equals(5));
+    });
+
+    test('typed literal', () {
+      ExampleTypedLiteral literal = js_util.callConstructor(
+          js_util.getProperty(ExampleTypedLiteral(), 'constructor'), []);
+      expect(literal.a, equals(null));
+    });
+
+    test('callConstructor with List edge cases', () {
+      expect(
+          js_util.getProperty(js_util.callConstructor(Zero, List()), 'count'),
+          equals(0));
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Zero, List<int>()), 'count'),
+          equals(0));
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Zero, List.empty()), 'count'),
+          equals(0));
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Zero, List<int>.empty()), 'count'),
+          equals(0));
+
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Two, List<int>.filled(2, 0)), 'count'),
+          equals(2));
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Three, List<int>.generate(3, (i) => i)),
+              'count'),
+          equals(3));
+
+      Iterable<String> iterableStrings = <String>['foo', 'bar'];
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Two, List.of(iterableStrings)), 'count'),
+          equals(2));
+
+      const l1 = [1, 2];
+      const l2 = [3, 4];
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Four, List.from(l1)..addAll(l2)),
+              'count'),
+          equals(4));
+      expect(
+          js_util.getProperty(js_util.callConstructor(Four, l1 + l2), 'count'),
+          equals(4));
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Four, List.unmodifiable([1, 2, 3, 4])),
+              'count'),
+          equals(4));
+
+      var setElements = {1, 2};
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Two, setElements.toList()), 'count'),
+          equals(2));
+
+      var spreadList = [1, 2, 3];
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Four, [1, ...spreadList]), 'count'),
+          equals(4));
+    });
+
+    test('edge cases for lowering to _callConstructorUncheckedN', () {
+      expect(js_util.getProperty(js_util.callConstructor(Zero, []), 'count'),
+          equals(0));
+      expect(js_util.getProperty(js_util.callConstructor(One, [1]), 'count'),
+          equals(1));
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Four, [1, 2, 3, 4]), 'count'),
+          equals(4));
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Five, [1, 2, 3, 4, 5]), 'count'),
+          equals(5));
+
+      // List with a type declaration, short circuits element checking
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Two, <int>[1, 2]), 'count'),
+          equals(2));
+
+      // List as a variable instead of a List Literal or constant
+      var list = [1, 2];
+      expect(js_util.getProperty(js_util.callConstructor(Two, list), 'count'),
+          equals(2));
+
+      // Mixed types of elements to check in the given list.
+      var x = 4;
+      var str = 'cat';
+      var b = false;
+      var evens = [2, 4, 6];
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Four, [x, str, b, evens]), 'count'),
+          equals(4));
+      var obj = Object();
+      expect(js_util.getProperty(js_util.callConstructor(One, [obj]), 'count'),
+          equals(1));
+      var nullElement = null;
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(One, [nullElement]), 'count'),
+          equals(1));
+
+      // const lists.
+      expect(
+          js_util.getProperty(js_util.callConstructor(One, const [3]), 'count'),
+          equals(1));
+      const constList = [10, 20, 30];
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(Three, constList), 'count'),
+          equals(3));
+      expect(
+          js_util.getProperty(
+              js_util.callConstructor(One, DartClass.staticConstList), 'count'),
+          equals(1));
     });
   });
 }

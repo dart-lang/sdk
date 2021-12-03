@@ -7,9 +7,9 @@
 @patch
 class _EventHandler {
   @patch
-  static void _sendData(Object? sender, SendPort sendPort, int data)
-      native "EventHandler_SendData";
+  @pragma("vm:external-name", "EventHandler_SendData")
+  external static void _sendData(Object? sender, SendPort sendPort, int data);
 
-  static int _timerMillisecondClock()
-      native "EventHandler_TimerMillisecondClock";
+  @pragma("vm:external-name", "EventHandler_TimerMillisecondClock")
+  external static int _timerMillisecondClock();
 }

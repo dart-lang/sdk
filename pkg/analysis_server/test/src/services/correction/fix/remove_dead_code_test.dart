@@ -6,13 +6,11 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveDeadCodeTest);
-    defineReflectiveTests(RemoveDeadCodeWithNullSafetyTest);
   });
 }
 
@@ -105,46 +103,6 @@ void f(int p) {
 ''');
   }
 
-  Future<void> test_statements_one() async {
-    await resolveTestCode('''
-int f() {
-  print(0);
-  return 42;
-  print(1);
-}
-''');
-    await assertHasFix('''
-int f() {
-  print(0);
-  return 42;
-}
-''');
-  }
-
-  Future<void> test_statements_two() async {
-    await resolveTestCode('''
-int f() {
-  print(0);
-  return 42;
-  print(1);
-  print(2);
-}
-''');
-    await assertHasFix('''
-int f() {
-  print(0);
-  return 42;
-}
-''');
-  }
-}
-
-@reflectiveTest
-class RemoveDeadCodeWithNullSafetyTest extends FixProcessorTest
-    with WithNullSafetyMixin {
-  @override
-  FixKind get kind => DartFixKind.REMOVE_DEAD_CODE;
-
   @failingTest
   Future<void> test_do_returnInBody() async {
     // https://github.com/dart-lang/sdk/issues/43511
@@ -177,6 +135,39 @@ void f() {
     await assertHasFix('''
 void f() {
   print(0);
+}
+''');
+  }
+
+  Future<void> test_statements_one() async {
+    await resolveTestCode('''
+int f() {
+  print(0);
+  return 42;
+  print(1);
+}
+''');
+    await assertHasFix('''
+int f() {
+  print(0);
+  return 42;
+}
+''');
+  }
+
+  Future<void> test_statements_two() async {
+    await resolveTestCode('''
+int f() {
+  print(0);
+  return 42;
+  print(1);
+  print(2);
+}
+''');
+    await assertHasFix('''
+int f() {
+  print(0);
+  return 42;
 }
 ''');
   }

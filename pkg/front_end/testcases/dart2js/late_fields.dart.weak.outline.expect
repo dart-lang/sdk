@@ -3,19 +3,14 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  field core::int? _#C#a;
-  field core::int? _#C#b;
-  field core::int? _#C#c;
-  field core::int? _#C#d;
+  late field core::int a;
+  late final [setter] field core::int b;
+  late field core::int c;
+  late final field core::int d;
   synthetic constructor •() → self::C
     ;
-  get a() → core::int;
-  set a(core::int #t1) → void;
-  get b() → core::int;
-  set b(core::int #t2) → void;
-  get c() → core::int;
-  set c(core::int #t3) → void;
-  get d() → core::int;
+  static method _#new#tearOff() → self::C
+    return new self::C::•();
 }
 static field self::C c;
 static method main() → void

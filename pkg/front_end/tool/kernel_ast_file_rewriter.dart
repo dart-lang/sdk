@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import "dart:io" show File, Platform, stdout;
 import "dart:typed_data" show Uint8List;
 
@@ -30,7 +28,7 @@ void main(List<String> args) {
     classes[identifier.token.toString()] = cls;
   }
 
-  Set<String> goodNames = {"TreeNode"};
+  Set<String?> goodNames = {"TreeNode"};
   Map<Token, Replacement> replacements = {};
   for (MapEntry<String, DirectParserASTContentTopLevelDeclarationEnd> entry
       in classes.entries) {
@@ -41,9 +39,9 @@ void main(List<String> args) {
       // Cached good.
     } else {
       // Check if good.
-      String parent = getExtends(cls);
-      DirectParserASTContentTopLevelDeclarationEnd parentCls = classes[parent];
-      List<String> allParents = [parent];
+      String? parent = getExtends(cls);
+      DirectParserASTContentTopLevelDeclarationEnd? parentCls = classes[parent];
+      List<String?> allParents = [parent];
       while (
           parent != null && parentCls != null && !goodNames.contains(parent)) {
         parent = getExtends(parentCls);
@@ -59,8 +57,8 @@ void main(List<String> args) {
 
     DirectParserASTContentClassDeclarationEnd classDeclaration =
         cls.getClassDeclaration();
-    DirectParserASTContentClassOrMixinBodyEnd classOrMixinBody =
-        classDeclaration.getClassOrMixinBody();
+    DirectParserASTContentClassOrMixinOrExtensionBodyEnd classOrMixinBody =
+        classDeclaration.getClassOrMixinOrExtensionBody();
 
     Set<String> namedClassConstructors = {};
     Set<String> namedFields = {};
@@ -71,18 +69,18 @@ void main(List<String> args) {
             member.getClassConstructor();
         Token nameToken = constructor.beginToken;
         // String name = nameToken.lexeme;
-        if (nameToken.next.lexeme == ".") {
-          nameToken = nameToken.next.next;
+        if (nameToken.next!.lexeme == ".") {
+          nameToken = nameToken.next!.next!;
           // name += ".$nameToken";
           namedClassConstructors.add(nameToken.lexeme);
         }
-        if (nameToken.next.lexeme == ".") {
+        if (nameToken.next!.lexeme == ".") {
           throw "Unexpected";
         }
       } else if (member.isClassFields()) {
         DirectParserASTContentClassFieldsEnd classFields =
             member.getClassFields();
-        Token identifierToken = classFields.getFieldIdentifiers().single.token;
+        Token identifierToken = classFields.getFieldIdentifiers().single!.token;
         String identifier = identifierToken.toString();
         namedFields.add(identifier);
       }
@@ -106,11 +104,11 @@ void main(List<String> args) {
       }
     }
   }
-  Token token = ast.getBegin().token;
+  Token? token = ast.getBegin().token;
 
   int endOfLast = token.end;
   while (token != null) {
-    CommentToken comment = token.precedingComments;
+    CommentToken? comment = token.precedingComments;
     while (comment != null) {
       if (comment.offset > endOfLast) {
         for (int i = endOfLast; i < comment.offset; i++) {
@@ -121,7 +119,7 @@ void main(List<String> args) {
 
       stdout.write(comment.value());
       endOfLast = comment.end;
-      comment = comment.next;
+      comment = comment.next as CommentToken?;
     }
 
     if (token.isEof) break;
@@ -132,7 +130,7 @@ void main(List<String> args) {
       }
     }
 
-    Replacement replacement = replacements[token];
+    Replacement? replacement = replacements[token];
     if (replacement != null) {
       stdout.write(replacement.replacement);
       token = replacement.endToken;
@@ -154,7 +152,7 @@ void processField(
     throw "Notice ${classFields.count}";
   }
 
-  Token identifierToken = classFields.getFieldIdentifiers().single.token;
+  Token identifierToken = classFields.getFieldIdentifiers().single!.token;
   String identifier = identifierToken.toString();
 
   if (identifier == "frozen" && entry.key == "TreeNode") return;
@@ -167,19 +165,19 @@ void processField(
     isFinal = true;
   }
 
-  DirectParserASTContentTypeHandle type = classFields.getFirstType();
+  DirectParserASTContentTypeHandle? type = classFields.getFirstType();
   String typeString = "dynamic";
   if (type != null) {
     Token token = type.beginToken;
     typeString = "";
     while (token != identifierToken) {
       typeString += " ${token.lexeme}";
-      token = token.next;
+      token = token.next!;
     }
     typeString = typeString.trim();
   }
 
-  DirectParserASTContentFieldInitializerEnd initializer =
+  DirectParserASTContentFieldInitializerEnd? initializer =
       classFields.getFieldInitializer();
   String initializerString = "";
   if (initializer != null) {
@@ -187,14 +185,16 @@ void processField(
     Token endToken = initializer.token;
     while (token != endToken) {
       initializerString += " ${token.lexeme}";
-      token = token.next;
+      token = token.next!;
     }
     initializerString = initializerString.trim();
   }
 
   Token beginToken = classFields.beginToken;
   Token endToken = classFields.endToken;
+  // ignore: unnecessary_null_comparison
   assert(beginToken != null);
+  // ignore: unnecessary_null_comparison
   assert(endToken != null);
 
   String frozenCheckCode =
@@ -254,15 +254,15 @@ void processConstructor(
 
   for (DirectParserASTContentFormalParameterEnd parameter in parameters) {
     Token token = parameter.getBegin().token;
-    if (token?.lexeme != "this") {
+    if (token.lexeme != "this") {
       continue;
     }
     // Here `this.foo` can just be replace with `this._foo`.
-    Token afterDot = token.next.next;
+    Token afterDot = token.next!.next!;
     replacements[afterDot] = new Replacement(afterDot, afterDot, "_$afterDot");
   }
 
-  DirectParserASTContentOptionalFormalParametersEnd optionalFormalParameters =
+  DirectParserASTContentOptionalFormalParametersEnd? optionalFormalParameters =
       formalParameters.getOptionalFormalParameters();
   Set<String> addInitializers = {};
   if (optionalFormalParameters != null) {
@@ -271,20 +271,20 @@ void processConstructor(
 
     for (DirectParserASTContentFormalParameterEnd parameter in parameters) {
       Token token = parameter.getBegin().token;
-      if (token?.lexeme != "this") {
+      if (token.lexeme != "this") {
         continue;
       }
       // Here `this.foo` can't just be replace with `this._foo` as it is
       // (possibly) named and we can't use private stuff in named.
       // Instead we replace it with `dynamic foo` here and add an
       // initializer `this._foo = foo`.
-      Token afterDot = token.next.next;
+      Token afterDot = token.next!.next!;
       addInitializers.add(afterDot.lexeme);
-      replacements[token] = new Replacement(token, token.next, "dynamic ");
+      replacements[token] = new Replacement(token, token.next!, "dynamic ");
     }
   }
 
-  DirectParserASTContentInitializersEnd initializers =
+  DirectParserASTContentInitializersEnd? initializers =
       constructor.getInitializers();
 
   // First patch up any existing initializers.
@@ -296,7 +296,7 @@ void processConstructor(
       Token token = initializer.getBegin().token;
       // This is only afterDot if there's a dot --- which (probably) is
       // only there if there's a `this`.
-      Token afterDot = token.next.next;
+      Token afterDot = token.next!.next!;
 
       // We need to check it's not a redirecting call!
       // TODO(jensj): Handle redirects like this:
@@ -345,7 +345,7 @@ void processConstructor(
   } else if (addInitializers.isNotEmpty) {
     // Add to existing initializer list. We add them as the first one(s)
     // so we don't have to insert before the potential super call.
-    DirectParserASTContentInitializersBegin firstOne = initializers.getBegin();
+    DirectParserASTContentInitializersBegin firstOne = initializers!.getBegin();
     Token colon = firstOne.token;
     assert(colon.lexeme == ":");
     String initializerString =
@@ -365,7 +365,7 @@ void processConstructor(
   //    C(this.field1) : field2 = field1 + 1;
   //  }
   if (addInitializers.isNotEmpty) {
-    DirectParserASTContentBlockFunctionBodyEnd blockFunctionBody =
+    DirectParserASTContentBlockFunctionBodyEnd? blockFunctionBody =
         constructor.getBlockFunctionBody();
     if (blockFunctionBody != null) {
       List<DirectParserASTContentIdentifierHandle> identifiers =
@@ -395,13 +395,13 @@ class Replacement {
   Replacement(this.beginToken, this.endToken, this.replacement);
 }
 
-String getExtends(DirectParserASTContentTopLevelDeclarationEnd cls) {
+String? getExtends(DirectParserASTContentTopLevelDeclarationEnd cls) {
   DirectParserASTContentClassDeclarationEnd classDeclaration =
       cls.getClassDeclaration();
 
   DirectParserASTContentClassExtendsHandle classExtends =
       classDeclaration.getClassExtends();
-  Token extendsKeyword = classExtends.extendsKeyword;
+  Token? extendsKeyword = classExtends.extendsKeyword;
   if (extendsKeyword == null) {
     return null;
   } else {
@@ -410,7 +410,7 @@ String getExtends(DirectParserASTContentTopLevelDeclarationEnd cls) {
 }
 
 void debugDumpNode(DirectParserASTContent node) {
-  node.children.forEach((element) {
+  node.children!.forEach((element) {
     print("${element.what} (${element.deprecatedArguments}) "
         "(${element.children})");
   });
@@ -420,10 +420,10 @@ void debugDumpNodeRecursively(DirectParserASTContent node,
     {String indent = ""}) {
   print("$indent${node.what} (${node.deprecatedArguments})");
   if (node.children == null) return;
-  node.children.forEach((element) {
+  node.children!.forEach((element) {
     print("$indent${element.what} (${element.deprecatedArguments})");
     if (element.children != null) {
-      element.children.forEach((element) {
+      element.children!.forEach((element) {
         debugDumpNodeRecursively(element, indent: "  $indent");
       });
     }

@@ -17,7 +17,9 @@ namespace dart {
 // Size of the class-id part of the object header. See UntaggedObject.
 typedef uint16_t ClassIdTagType;
 
-#define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(V)                   \
+// Classes that are not subclasses of Instance and only handled by the VM,
+// but do not require any special handling other than being a predefined class.
+#define CLASS_LIST_INTERNAL_ONLY(V)                                            \
   V(Class)                                                                     \
   V(PatchClass)                                                                \
   V(Function)                                                                  \
@@ -55,7 +57,12 @@ typedef uint16_t ClassIdTagType;
   V(ApiError)                                                                  \
   V(LanguageError)                                                             \
   V(UnhandledException)                                                        \
-  V(UnwindError)                                                               \
+  V(UnwindError)
+
+// Classes that are subclasses of Instance and neither part of a specific cid
+// grouping like strings, arrays, etc. nor require special handling outside of
+// being a predefined class.
+#define CLASS_LIST_INSTANCE_SINGLETONS(V)                                      \
   V(Instance)                                                                  \
   V(LibraryPrefix)                                                             \
   V(TypeArguments)                                                             \
@@ -71,7 +78,6 @@ typedef uint16_t ClassIdTagType;
   V(Mint)                                                                      \
   V(Double)                                                                    \
   V(Bool)                                                                      \
-  V(GrowableObjectArray)                                                       \
   V(Float32x4)                                                                 \
   V(Int32x4)                                                                   \
   V(Float64x2)                                                                 \
@@ -92,15 +98,24 @@ typedef uint16_t ClassIdTagType;
   V(UserTag)                                                                   \
   V(TransferableTypedData)
 
-// TODO(http://dartbug.com/45908): Add ImmutableLinkedHashMap.
-#define CLASS_LIST_MAPS(V) V(LinkedHashMap)
+#define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(V)                   \
+  CLASS_LIST_INTERNAL_ONLY(V) CLASS_LIST_INSTANCE_SINGLETONS(V)
 
-// TODO(http://dartbug.com/45908): Add ImmutableLinkedHashSet.
-#define CLASS_LIST_SETS(V) V(LinkedHashSet)
+#define CLASS_LIST_MAPS(V)                                                     \
+  V(LinkedHashMap)                                                             \
+  V(ImmutableLinkedHashMap)
 
-#define CLASS_LIST_ARRAYS(V)                                                   \
+#define CLASS_LIST_SETS(V)                                                     \
+  V(LinkedHashSet)                                                             \
+  V(ImmutableLinkedHashSet)
+
+#define CLASS_LIST_FIXED_LENGTH_ARRAYS(V)                                      \
   V(Array)                                                                     \
   V(ImmutableArray)
+
+#define CLASS_LIST_ARRAYS(V)                                                   \
+  CLASS_LIST_FIXED_LENGTH_ARRAYS(V)                                            \
+  V(GrowableObjectArray)
 
 #define CLASS_LIST_STRINGS(V)                                                  \
   V(String)                                                                    \
@@ -141,14 +156,13 @@ typedef uint16_t ClassIdTagType;
 #define CLASS_LIST_FFI_TYPE_MARKER(V)                                          \
   CLASS_LIST_FFI_NUMERIC(V)                                                    \
   V(Void)                                                                      \
-  V(Handle)
+  V(Handle)                                                                    \
+  V(Bool)
 
 #define CLASS_LIST_FFI(V)                                                      \
-  V(Pointer)                                                                   \
   V(NativeFunction)                                                            \
   CLASS_LIST_FFI_TYPE_MARKER(V)                                                \
   V(NativeType)                                                                \
-  V(DynamicLibrary)                                                            \
   V(Struct)
 
 #define DART_CLASS_LIST_TYPED_DATA(V)                                          \
@@ -172,6 +186,7 @@ typedef uint16_t ClassIdTagType;
   V(LinkedHashMap)                                                             \
   V(LinkedHashSet)                                                             \
   V(Array)                                                                     \
+  V(GrowableObjectArray)                                                       \
   V(String)
 
 #define CLASS_LIST_NO_OBJECT(V)                                                \
@@ -188,6 +203,10 @@ typedef uint16_t ClassIdTagType;
 enum ClassId : intptr_t {
   // Illegal class id.
   kIllegalCid = 0,
+
+  // Pseudo class id for native pointers, the heap should never see an
+  // object with this class id.
+  kNativePointer,
 
   // The following entries describes classes for pseudo-objects in the heap
   // that should never be reachable from live objects. Free list elements
@@ -234,6 +253,7 @@ const int kTypedDataCidRemainderExternal = 2;
 
 // Class Id predicates.
 
+bool IsInternalOnlyClassId(intptr_t index);
 bool IsErrorClassId(intptr_t index);
 bool IsNumberClassId(intptr_t index);
 bool IsIntegerClassId(intptr_t index);
@@ -252,13 +272,37 @@ bool IsFfiDynamicLibraryClassId(intptr_t index);
 bool IsInternalVMdefinedClassId(intptr_t index);
 bool IsImplicitFieldClassId(intptr_t index);
 
+// Should be used for looping over non-Object internal-only cids.
+constexpr intptr_t kFirstInternalOnlyCid = kClassCid;
+constexpr intptr_t kLastInternalOnlyCid = kUnwindErrorCid;
+// Use the currently surrounding cids to check that no new classes have been
+// added to the beginning or end of CLASS_LIST_INTERNAL_ONLY without adjusting
+// the above definitions.
+COMPILE_ASSERT(kFirstInternalOnlyCid == kObjectCid + 1);
+COMPILE_ASSERT(kInstanceCid == kLastInternalOnlyCid + 1);
+
+// Returns true for any class id that either does not correspond to a real
+// class, like kIllegalCid or kForwardingCorpse, or that is internal to the VM
+// and should not be exposed directly to user code.
+inline bool IsInternalOnlyClassId(intptr_t index) {
+  // Fix the condition below if these become non-contiguous.
+  COMPILE_ASSERT(kIllegalCid + 1 == kNativePointer &&
+                 kIllegalCid + 2 == kFreeListElement &&
+                 kIllegalCid + 3 == kForwardingCorpse &&
+                 kIllegalCid + 4 == kObjectCid &&
+                 kIllegalCid + 5 == kFirstInternalOnlyCid);
+  return index <= kLastInternalOnlyCid;
+}
+
 inline bool IsErrorClassId(intptr_t index) {
   // Make sure this function is updated when new Error types are added.
-  COMPILE_ASSERT(
-      kApiErrorCid == kErrorCid + 1 && kLanguageErrorCid == kErrorCid + 2 &&
-      kUnhandledExceptionCid == kErrorCid + 3 &&
-      kUnwindErrorCid == kErrorCid + 4 && kInstanceCid == kErrorCid + 5);
-  return (index >= kErrorCid && index < kInstanceCid);
+  COMPILE_ASSERT(kApiErrorCid == kErrorCid + 1 &&
+                 kLanguageErrorCid == kErrorCid + 2 &&
+                 kUnhandledExceptionCid == kErrorCid + 3 &&
+                 kUnwindErrorCid == kErrorCid + 4 &&
+                 // Change if needed for detecting a new error added at the end.
+                 kLastInternalOnlyCid == kUnwindErrorCid);
+  return (index >= kErrorCid && index <= kUnwindErrorCid);
 }
 
 inline bool IsNumberClassId(intptr_t index) {
@@ -293,11 +337,15 @@ inline bool IsExternalStringClassId(intptr_t index) {
           index == kExternalTwoByteStringCid);
 }
 
+inline bool IsArrayClassId(intptr_t index) {
+  COMPILE_ASSERT(kImmutableArrayCid == kArrayCid + 1);
+  COMPILE_ASSERT(kGrowableObjectArrayCid == kArrayCid + 2);
+  return (index >= kArrayCid && index <= kGrowableObjectArrayCid);
+}
+
 inline bool IsBuiltinListClassId(intptr_t index) {
   // Make sure this function is updated when new builtin List types are added.
-  COMPILE_ASSERT(kImmutableArrayCid == kArrayCid + 1);
-  return ((index >= kArrayCid && index <= kImmutableArrayCid) ||
-          (index == kGrowableObjectArrayCid) || IsTypedDataBaseClassId(index) ||
+  return (IsArrayClassId(index) || IsTypedDataBaseClassId(index) ||
           (index == kByteBufferCid));
 }
 
@@ -340,7 +388,7 @@ inline bool IsExternalTypedDataClassId(intptr_t index) {
 
 inline bool IsFfiTypeClassId(intptr_t index) {
   switch (index) {
-    case kFfiPointerCid:
+    case kPointerCid:
     case kFfiNativeFunctionCid:
 #define CASE_FFI_CID(name) case kFfi##name##Cid:
       CLASS_LIST_FFI_TYPE_MARKER(CASE_FFI_CID)
@@ -354,10 +402,12 @@ inline bool IsFfiTypeClassId(intptr_t index) {
 
 inline bool IsFfiPredefinedClassId(classid_t class_id) {
   switch (class_id) {
+    case kPointerCid:
+    case kDynamicLibraryCid:
 #define CASE_FFI_CID(name) case kFfi##name##Cid:
-    CLASS_LIST_FFI(CASE_FFI_CID)
+      CLASS_LIST_FFI(CASE_FFI_CID)
 #undef CASE_FFI_CID
-    return true;
+      return true;
     default:
       return false;
   }
@@ -365,11 +415,11 @@ inline bool IsFfiPredefinedClassId(classid_t class_id) {
 }
 
 inline bool IsFfiPointerClassId(intptr_t index) {
-  return index == kFfiPointerCid;
+  return index == kPointerCid;
 }
 
 inline bool IsFfiDynamicLibraryClassId(intptr_t index) {
-  return index == kFfiDynamicLibraryCid;
+  return index == kDynamicLibraryCid;
 }
 
 inline bool IsInternalVMdefinedClassId(intptr_t index) {

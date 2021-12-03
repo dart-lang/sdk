@@ -18,6 +18,8 @@ enum _Enum6 { I, _J }
 
 enum _IsNot { IsNot }
 
+enum NamedName { name, address }
+
 // Regression test for https://github.com/dart-lang/sdk/issues/33348
 enum JSFunctionPrototype {
   length,
@@ -95,6 +97,34 @@ main() {
   Expect.type<Enum>(Enum1._);
   Enum enumValue = Enum1._;
   Expect.equals(0, enumValue.index);
+
+  // Enum.compareByIndex orders enums correctly.
+  var enumValues = [Enum5.G, Enum5.H, Enum5.F];
+  for (var i = 0; i < 10; i++) {
+    enumValues.sort(Enum.compareByIndex);
+    enumValues.fold<int>(-1, (previousValue, element) {
+      Expect.isTrue(previousValue < element.index, "$enumValues");
+      return element.index;
+    });
+    enumValues.shuffle();
+  }
+  // Can be used at the type `Enum` to compare different enums.
+  Expect.isTrue(Enum.compareByIndex<Enum>(Enum4.D, Enum5.H) < 0);
+  Expect.isTrue(Enum.compareByIndex<Enum>(Enum4.E, Enum5.F) > 0);
+  Expect.isTrue(Enum.compareByIndex<Enum>(Enum4.D, Enum5.F) == 0);
+
+  Expect.equals("A", Enum2.A.name);
+  Expect.equals("_", Enum1._.name);
+  Expect.equals("name", EnumName(NamedName.name).name);
+
+  Expect.identical(Enum2.A, Enum2.values.byName("A"));
+  Expect.identical(Enum1._, Enum1.values.byName("_"));
+  Expect.identical(NamedName.name, NamedName.values.byName("name"));
+
+  var map = NamedName.values.asNameMap();
+  Expect.type<Map<String, NamedName>>(map);
+  Expect.identical(NamedName.name, map["name"]);
+  Expect.identical(NamedName.address, map["address"]);
 }
 
 test1(Enum1 e) {

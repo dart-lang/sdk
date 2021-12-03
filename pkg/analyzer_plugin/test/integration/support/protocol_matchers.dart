@@ -164,7 +164,8 @@ final Matcher isCompletionSuggestion =
           'requiredParameterCount': isInt,
           'hasNamedParameters': isBool,
           'parameterName': isString,
-          'parameterType': isString
+          'parameterType': isString,
+          'libraryUriToImportIndex': isInt
         }));
 
 /// CompletionSuggestionKind
@@ -368,6 +369,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   COMMENT_DOCUMENTATION
 ///   COMMENT_END_OF_LINE
 ///   CONSTRUCTOR
+///   CONSTRUCTOR_TEAR_OFF
 ///   DIRECTIVE
 ///   DYNAMIC_TYPE
 ///   DYNAMIC_LOCAL_VARIABLE_DECLARATION
@@ -390,6 +392,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   INSTANCE_GETTER_REFERENCE
 ///   INSTANCE_METHOD_DECLARATION
 ///   INSTANCE_METHOD_REFERENCE
+///   INSTANCE_METHOD_TEAR_OFF
 ///   INSTANCE_SETTER_DECLARATION
 ///   INSTANCE_SETTER_REFERENCE
 ///   INVALID_STRING_ESCAPE
@@ -404,6 +407,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   LITERAL_STRING
 ///   LOCAL_FUNCTION_DECLARATION
 ///   LOCAL_FUNCTION_REFERENCE
+///   LOCAL_FUNCTION_TEAR_OFF
 ///   LOCAL_VARIABLE
 ///   LOCAL_VARIABLE_DECLARATION
 ///   LOCAL_VARIABLE_REFERENCE
@@ -421,10 +425,12 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   STATIC_GETTER_REFERENCE
 ///   STATIC_METHOD_DECLARATION
 ///   STATIC_METHOD_REFERENCE
+///   STATIC_METHOD_TEAR_OFF
 ///   STATIC_SETTER_DECLARATION
 ///   STATIC_SETTER_REFERENCE
 ///   TOP_LEVEL_FUNCTION_DECLARATION
 ///   TOP_LEVEL_FUNCTION_REFERENCE
+///   TOP_LEVEL_FUNCTION_TEAR_OFF
 ///   TOP_LEVEL_GETTER_DECLARATION
 ///   TOP_LEVEL_GETTER_REFERENCE
 ///   TOP_LEVEL_SETTER_DECLARATION
@@ -444,6 +450,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'COMMENT_DOCUMENTATION',
   'COMMENT_END_OF_LINE',
   'CONSTRUCTOR',
+  'CONSTRUCTOR_TEAR_OFF',
   'DIRECTIVE',
   'DYNAMIC_TYPE',
   'DYNAMIC_LOCAL_VARIABLE_DECLARATION',
@@ -466,6 +473,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'INSTANCE_GETTER_REFERENCE',
   'INSTANCE_METHOD_DECLARATION',
   'INSTANCE_METHOD_REFERENCE',
+  'INSTANCE_METHOD_TEAR_OFF',
   'INSTANCE_SETTER_DECLARATION',
   'INSTANCE_SETTER_REFERENCE',
   'INVALID_STRING_ESCAPE',
@@ -480,6 +488,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'LITERAL_STRING',
   'LOCAL_FUNCTION_DECLARATION',
   'LOCAL_FUNCTION_REFERENCE',
+  'LOCAL_FUNCTION_TEAR_OFF',
   'LOCAL_VARIABLE',
   'LOCAL_VARIABLE_DECLARATION',
   'LOCAL_VARIABLE_REFERENCE',
@@ -497,10 +506,12 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'STATIC_GETTER_REFERENCE',
   'STATIC_METHOD_DECLARATION',
   'STATIC_METHOD_REFERENCE',
+  'STATIC_METHOD_TEAR_OFF',
   'STATIC_SETTER_DECLARATION',
   'STATIC_SETTER_REFERENCE',
   'TOP_LEVEL_FUNCTION_DECLARATION',
   'TOP_LEVEL_FUNCTION_REFERENCE',
+  'TOP_LEVEL_FUNCTION_TEAR_OFF',
   'TOP_LEVEL_GETTER_DECLARATION',
   'TOP_LEVEL_GETTER_REFERENCE',
   'TOP_LEVEL_SETTER_DECLARATION',

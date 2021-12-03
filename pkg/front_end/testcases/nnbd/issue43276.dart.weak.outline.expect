@@ -22,7 +22,7 @@ class C extends core::Object {
   static factory fact({core::int i}) → self::C
     ;
   static factory redirect({core::int i}) → self::C
-    let dynamic #redirecting_factory = self::C::gen in invalid-expression;
+    return new self::C::gen(i: i);
 }
 class D extends core::Object {
   synthetic constructor •() → self::D
@@ -30,3 +30,8 @@ class D extends core::Object {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue43276.dart:5:7 -> ConstructorTearOffConstant(C.redirect)
+Extra constant evaluation: evaluated: 4, effectively constant: 1

@@ -1,0 +1,46 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::List<self::A::X%> x;
+  const constructor •(dynamic x) → self::A<self::A::X%>
+    : self::A::x = x is{ForNonNullableByDefault} core::List<self::A::X%> ?{core::List<self::A::X%>} x{core::List<self::A::X%>} : x as{ForNonNullableByDefault} core::List<self::A::X%>, super core::Object::•()
+    ;
+}
+class B<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field (self::B::X%) → void f;
+  const constructor •() → self::B<self::B::X%>
+    : self::B::f = #C1<self::B::X%>, super core::Object::•()
+    ;
+}
+class C<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field dynamic f;
+  const constructor •() → self::C<self::C::X%>
+    : self::C::f = #C1<self::C::X%>, super core::Object::•()
+    ;
+}
+static method m<X extends core::Object? = dynamic>(self::m::X% x) → void {}
+static method main() → void {
+  #C4;
+  core::print((#C6.{self::B::f}{(core::String) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::String) → void).{core::Object::runtimeType}{core::Type});
+  core::print(#C7.{self::C::f}{dynamic}.{core::Object::runtimeType}{core::Type});
+}
+
+constants  {
+  #C1 = static-tearoff self::m
+  #C2 = 1
+  #C3 = <core::int>[#C2]
+  #C4 = self::A<core::int> {x:#C3}
+  #C5 = instantiation #C1 <core::String>
+  #C6 = self::B<core::String> {f:#C5}
+  #C7 = self::C<core::String> {f:#C5}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue47154c.dart:
+- A. (from org-dartlang-testcase:///issue47154c.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- B. (from org-dartlang-testcase:///issue47154c.dart:16:9)
+- C. (from org-dartlang-testcase:///issue47154c.dart:22:9)

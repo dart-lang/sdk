@@ -1,0 +1,15 @@
+NOTICE: Stream was rewritten by parser!
+
+class A {
+
+stream<T extends List<T>>(T foo) {}
+stream2<T extends List<*synthetic*>>(T foo) {}
+stream3<T>(T foo) {}
+}
+
+class[KeywordToken] A[StringToken] {[BeginToken]
+
+stream[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] List[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]>[SimpleToken]([BeginToken]T[StringToken] foo[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+stream2[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] List[StringToken]<[BeginToken][SyntheticStringToken]>[SimpleToken]>[SimpleToken]([BeginToken]T[StringToken] foo[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+stream3[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]T[StringToken] foo[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken][SimpleToken]

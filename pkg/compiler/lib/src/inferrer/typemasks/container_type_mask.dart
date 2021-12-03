@@ -27,20 +27,20 @@ class ContainerTypeMask extends AllocationTypeMask {
   // The length of the container.
   final int length;
 
-  ContainerTypeMask(this.forwardTo, this.allocationNode, this.allocationElement,
-      this.elementType, this.length);
+  const ContainerTypeMask(this.forwardTo, this.allocationNode,
+      this.allocationElement, this.elementType, this.length);
 
   /// Deserializes a [ContainerTypeMask] object from [source].
   factory ContainerTypeMask.readFromDataSource(
       DataSource source, CommonMasks domain) {
     source.begin(tag);
-    TypeMask forwardTo = new TypeMask.readFromDataSource(source, domain);
+    TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
     ir.TreeNode allocationNode = source.readTreeNodeOrNull();
     MemberEntity allocationElement = source.readMemberOrNull();
-    TypeMask elementType = new TypeMask.readFromDataSource(source, domain);
+    TypeMask elementType = TypeMask.readFromDataSource(source, domain);
     int length = source.readIntOrNull();
     source.end(tag);
-    return new ContainerTypeMask(
+    return ContainerTypeMask(
         forwardTo, allocationNode, allocationElement, elementType, length);
   }
 
@@ -58,19 +58,20 @@ class ContainerTypeMask extends AllocationTypeMask {
   }
 
   @override
-  TypeMask nullable() {
-    return isNullable
-        ? this
-        : new ContainerTypeMask(forwardTo.nullable(), allocationNode,
-            allocationElement, elementType, length);
-  }
-
-  @override
-  TypeMask nonNullable() {
-    return isNullable
-        ? new ContainerTypeMask(forwardTo.nonNullable(), allocationNode,
-            allocationElement, elementType, length)
-        : this;
+  ContainerTypeMask withFlags({bool isNullable, bool hasLateSentinel}) {
+    isNullable ??= this.isNullable;
+    hasLateSentinel ??= this.hasLateSentinel;
+    if (isNullable == this.isNullable &&
+        hasLateSentinel == this.hasLateSentinel) {
+      return this;
+    }
+    return ContainerTypeMask(
+        forwardTo.withFlags(
+            isNullable: isNullable, hasLateSentinel: hasLateSentinel),
+        allocationNode,
+        allocationElement,
+        elementType,
+        length);
   }
 
   @override
@@ -79,36 +80,17 @@ class ContainerTypeMask extends AllocationTypeMask {
   bool get isExact => true;
 
   @override
-  bool equalsDisregardNull(other) {
-    if (other is! ContainerTypeMask) return false;
-    return super.equalsDisregardNull(other) &&
-        allocationNode == other.allocationNode &&
-        elementType == other.elementType &&
-        length == other.length;
-  }
-
-  @override
-  TypeMask intersection(TypeMask other, CommonMasks domain) {
-    TypeMask forwardIntersection = forwardTo.intersection(other, domain);
-    if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
-    return forwardIntersection.isNullable ? nullable() : nonNullable();
-  }
-
-  @override
-  TypeMask union(dynamic other, CommonMasks domain) {
-    if (this == other) {
-      return this;
-    } else if (equalsDisregardNull(other)) {
-      return other.isNullable ? other : this;
-    } else if (other.isEmptyOrNull) {
-      return other.isNullable ? this.nullable() : this;
-    } else if (other.isContainer &&
+  TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
+      {bool isNullable, bool hasLateSentinel}) {
+    assert(isNullable != null);
+    assert(hasLateSentinel != null);
+    if (other is ContainerTypeMask &&
         elementType != null &&
         other.elementType != null) {
       TypeMask newElementType = elementType.union(other.elementType, domain);
       int newLength = (length == other.length) ? length : null;
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
-      return new ContainerTypeMask(
+      return ContainerTypeMask(
           newForwardTo,
           allocationNode == other.allocationNode ? allocationNode : null,
           allocationElement == other.allocationElement
@@ -116,19 +98,22 @@ class ContainerTypeMask extends AllocationTypeMask {
               : null,
           newElementType,
           newLength);
-    } else {
-      return forwardTo.union(other, domain);
     }
+    return null;
   }
 
   @override
-  bool operator ==(other) => super == other;
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! ContainerTypeMask) return false;
+    return super == other &&
+        elementType == other.elementType &&
+        length == other.length;
+  }
 
   @override
-  int get hashCode {
-    return computeHashCode(
-        allocationNode, isNullable, elementType, length, forwardTo);
-  }
+  int get hashCode => Hashing.objectHash(
+      length, Hashing.objectHash(elementType, super.hashCode));
 
   @override
   String toString() {

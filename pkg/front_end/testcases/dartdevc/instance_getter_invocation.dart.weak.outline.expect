@@ -9,6 +9,8 @@ class Class extends core::Object {
     ;
   get dynFunction() → dynamic
     ;
+  static method _#new#tearOff() → self::Class
+    return new self::Class::•();
 }
 static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
   ;

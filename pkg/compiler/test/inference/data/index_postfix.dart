@@ -15,20 +15,18 @@ main() {
 listIndexPostfixIncrement() {
   var list = [0];
   return list
-          /*Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 1)*/
-          /*update: Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 1)*/
-          [0]
-      /*invoke: [subclass=JSPositiveInt]*/ ++;
+      /*Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 1)*/
+      /*update: Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 1)*/
+      [0] /*invoke: [subclass=JSPositiveInt]*/ ++;
 }
 
 /*member: listIndexPostfixDecrement:[subclass=JSInt]*/
 listIndexPostfixDecrement() {
   var list = [0];
   return list
-          /*Container([exact=JSExtendableArray], element: [subclass=JSInt], length: 1)*/
-          /*update: Container([exact=JSExtendableArray], element: [subclass=JSInt], length: 1)*/
-          [0]
-      /*invoke: [subclass=JSInt]*/ --;
+      /*Container([exact=JSExtendableArray], element: [subclass=JSInt], length: 1)*/
+      /*update: Container([exact=JSExtendableArray], element: [subclass=JSInt], length: 1)*/
+      [0] /*invoke: [subclass=JSInt]*/ --;
 }
 
 /*member: Super1.:[exact=Super1]*/

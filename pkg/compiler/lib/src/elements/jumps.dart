@@ -34,5 +34,5 @@ abstract class JumpTarget extends Local {
   bool get isSwitchCase;
 
   LabelDefinition addLabel(String labelName,
-      {bool isBreakTarget: false, bool isContinueTarget: false});
+      {bool isBreakTarget = false, bool isContinueTarget = false});
 }

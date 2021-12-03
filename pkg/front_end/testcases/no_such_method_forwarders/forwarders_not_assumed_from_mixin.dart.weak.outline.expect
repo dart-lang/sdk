@@ -64,9 +64,9 @@ Extra constant evaluation status:
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:10:8 -> SymbolConstant(#foo)
 Evaluated: ListLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:10:8 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:10:8 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:10:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:10:8 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:10:8 -> SymbolConstant(#foo)
 Evaluated: ListLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:10:8 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:10:8 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:10:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///forwarders_not_assumed_from_mixin.dart:10:8 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 18, effectively constant: 8

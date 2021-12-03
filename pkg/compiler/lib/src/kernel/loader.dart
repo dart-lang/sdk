@@ -55,24 +55,51 @@ class KernelLoaderTask extends CompilerTask {
   @override
   String get name => 'kernel loader';
 
+  ir.Reference findMainMethod(Component component, Uri entryUri) {
+    var entryLibrary = component.libraries
+        .firstWhere((l) => l.fileUri == entryUri, orElse: () => null);
+    if (entryLibrary == null) {
+      throw ArgumentError('Entry uri $entryUri not found in dill.');
+    }
+    var mainMethod = entryLibrary.procedures
+        .firstWhere((p) => p.name.text == 'main', orElse: () => null);
+
+    // In some cases, a main method is defined in another file, and then
+    // exported. In these cases, we search for the main method in
+    // [additionalExports].
+    ir.Reference mainMethodReference;
+    if (mainMethod == null) {
+      mainMethodReference = entryLibrary.additionalExports.firstWhere(
+          (p) => p.canonicalName.name == 'main',
+          orElse: () => null);
+    } else {
+      mainMethodReference = mainMethod.reference;
+    }
+    if (mainMethodReference == null) {
+      throw ArgumentError('Entry uri $entryUri has no main method.');
+    }
+    return mainMethodReference;
+  }
+
   /// Loads an entire Kernel [Component] from a file on disk.
-  Future<KernelResult> load(Uri resolvedUri) {
+  Future<KernelResult> load() {
     return measure(() async {
       String targetName =
           _options.compileForServer ? "dart2js_server" : "dart2js";
 
-      // We defer selecting the platform until we've resolved the NNBD mode.
+      // We defer selecting the platform until we've resolved the null safety
+      // mode.
       String getPlatformFilename() {
-        String platform = targetName;
-        if (!_options.useLegacySubtyping) {
-          platform += "_nnbd_strong";
-        }
-        platform += "_platform.dill";
-        return platform;
+        String unsoundMarker = _options.useLegacySubtyping ? "_unsound" : "";
+        return "${targetName}_platform$unsoundMarker.dill";
       }
 
+      var resolvedUri = _options.compilationTarget;
       ir.Component component;
-      var isDill = resolvedUri.path.endsWith('.dill');
+      List<Uri> moduleLibraries = const [];
+      var isDill = resolvedUri.path.endsWith('.dill') ||
+          resolvedUri.path.endsWith('.gdill') ||
+          resolvedUri.path.endsWith('.mdill');
 
       void inferNullSafetyMode(bool isSound) {
         if (_options.nullSafetyMode == NullSafetyMode.unspecified) {
@@ -86,14 +113,26 @@ class KernelLoaderTask extends CompilerTask {
       }
 
       if (isDill) {
-        component = new ir.Component();
+        component = ir.Component();
         Future<void> read(Uri uri) async {
           api.Input input = await _compilerInput.readFromUri(uri,
               inputKind: api.InputKind.binary);
-          new BinaryBuilder(input.data).readComponent(component);
+          BinaryBuilder(input.data).readComponent(component);
         }
 
         await read(resolvedUri);
+
+        // If an entryUri is supplied, we use it to manually select the main
+        // method.
+        if (_options.entryUri != null) {
+          var mainMethod = findMainMethod(component, _options.entryUri);
+          component.setMainMethodAndMode(mainMethod, true, component.mode);
+        }
+
+        if (_options.modularMode) {
+          moduleLibraries =
+              component.libraries.map((lib) => lib.importUri).toList();
+        }
 
         var isStrongDill =
             component.mode == ir.NonNullableByDefaultCompiledMode.Strong;
@@ -109,21 +148,32 @@ class KernelLoaderTask extends CompilerTask {
         inferNullSafetyMode(isStrongDill);
         validateNullSafetyMode();
 
+        // Modular compiles do not include the platform on the input dill
+        // either.
+        if (_options.platformBinaries != null) {
+          var platformUri =
+              _options.platformBinaries.resolve(getPlatformFilename());
+          // Modular analysis can be run on the sdk by providing directly the
+          // path to the platform.dill file. In that case, we do not load the
+          // platform file implicitly.
+          // TODO(joshualitt): Change how we detect this case so it is less
+          // brittle.
+          if (platformUri != resolvedUri) await read(platformUri);
+        }
+
+        // Concatenate dills and then reset main method.
+        var mainMethod = component.mainMethodName;
+        var mainMode = component.mode;
         if (_options.dillDependencies != null) {
-          // Modular compiles do not include the platform on the input dill
-          // either.
-          if (_options.platformBinaries != null) {
-            await read(
-                _options.platformBinaries.resolve(getPlatformFilename()));
-          }
           for (Uri dependency in _options.dillDependencies) {
             await read(dependency);
           }
         }
+        component.setMainMethodAndMode(mainMethod, true, mainMode);
 
         // This is not expected to be null when creating a whole-program .dill
         // file, but needs to be checked for modular inputs.
-        if (component.mainMethod == null) {
+        if (component.mainMethod == null && !_options.modularMode) {
           // TODO(sigmund): move this so that we use the same error template
           // from the CFE.
           _reporter.reportError(_reporter.createMessage(NO_LOCATION_SPANNABLE,
@@ -187,9 +237,8 @@ class KernelLoaderTask extends CompilerTask {
           _reporter.log('Writing dill to ${_options.outputUri}');
           api.BinaryOutputSink dillOutput =
               _compilerOutput.createBinarySink(_options.outputUri);
-          BinaryOutputSinkAdapter irSink =
-              new BinaryOutputSinkAdapter(dillOutput);
-          BinaryPrinter printer = new BinaryPrinter(irSink);
+          BinaryOutputSinkAdapter irSink = BinaryOutputSinkAdapter(dillOutput);
+          BinaryPrinter printer = BinaryPrinter(irSink);
           printer.writeComponentFile(component);
           irSink.close();
         });
@@ -198,17 +247,17 @@ class KernelLoaderTask extends CompilerTask {
       if (forceSerialization) {
         // TODO(johnniwinther): Remove this when #34942 is fixed.
         List<int> data = serializeComponent(component);
-        component = new ir.Component();
-        new BinaryBuilder(data).readComponent(component);
+        component = ir.Component();
+        BinaryBuilder(data).readComponent(component);
       }
-      return _toResult(component);
+      return _toResult(component, moduleLibraries);
     });
   }
 
-  KernelResult _toResult(ir.Component component) {
+  KernelResult _toResult(ir.Component component, List<Uri> moduleLibraries) {
     Uri rootLibraryUri = null;
     Iterable<ir.Library> libraries = component.libraries;
-    if (component.mainMethod != null) {
+    if (!_options.modularMode && component.mainMethod != null) {
       var root = component.mainMethod.enclosingLibrary;
       rootLibraryUri = root.importUri;
 
@@ -216,7 +265,7 @@ class KernelLoaderTask extends CompilerTask {
       // entire SDK libraries, not all of them are used. We include anything
       // that is reachable from `main`. Note that all internal libraries that
       // the compiler relies on are reachable from `dart:core`.
-      var seen = new Set<Library>();
+      var seen = Set<Library>();
       search(ir.Library current) {
         if (!seen.add(current)) return;
         for (ir.LibraryDependency dep in current.dependencies) {
@@ -234,8 +283,8 @@ class KernelLoaderTask extends CompilerTask {
 
       libraries = libraries.where(seen.contains);
     }
-    return new KernelResult(component, rootLibraryUri,
-        libraries.map((lib) => lib.importUri).toList());
+    return KernelResult(component, rootLibraryUri,
+        libraries.map((lib) => lib.importUri).toList(), moduleLibraries);
   }
 }
 
@@ -244,6 +293,8 @@ class KernelResult {
   final ir.Component component;
 
   /// The [Uri] of the root library containing main.
+  /// Note: rootLibraryUri will be null for some modules, for example in the
+  /// case of dependent libraries processed modularly.
   final Uri rootLibraryUri;
 
   /// Returns the [Uri]s of all libraries that have been loaded that are
@@ -252,10 +303,18 @@ class KernelResult {
   /// Note that [component] may contain some libraries that are excluded here.
   final Iterable<Uri> libraries;
 
-  KernelResult(this.component, this.rootLibraryUri, this.libraries) {
-    assert(rootLibraryUri != null);
-  }
+  /// When running only dart2js modular analysis, returns the [Uri]s for
+  /// libraries loaded in the input module.
+  ///
+  /// This excludes other libraries reachable from them that were loaded as
+  /// dependencies. The result of [moduleLibraries] is always a subset of
+  /// [libraries].
+  final Iterable<Uri> moduleLibraries;
+
+  KernelResult(this.component, this.rootLibraryUri, this.libraries,
+      this.moduleLibraries);
 
   @override
-  String toString() => 'root=$rootLibraryUri,libraries=${libraries}';
+  String toString() =>
+      'root=$rootLibraryUri,libraries=$libraries,module=$moduleLibraries';
 }

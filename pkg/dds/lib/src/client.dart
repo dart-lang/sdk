@@ -206,6 +206,19 @@ class DartDevelopmentServiceClient {
       return supportedProtocols;
     });
 
+    _clientPeer.registerMethod(
+      'getAvailableCachedCpuSamples',
+      (_) => {
+        'type': 'AvailableCachedCpuSamples',
+        'cacheNames': dds.cachedUserTags,
+      },
+    );
+
+    _clientPeer.registerMethod(
+      'getCachedCpuSamples',
+      dds.isolateManager.getCachedCpuSamples,
+    );
+
     // `evaluate` and `evaluateInFrame` actually consist of multiple RPC
     // invocations, including a call to `compileExpression` which can be
     // overridden by clients which provide their own implementation (e.g.,

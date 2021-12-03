@@ -9,18 +9,16 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
 import '../../../generated/test_analysis_context.dart';
+import '../../../generated/type_system_test.dart';
 import '../resolution/context_collection_resolution.dart';
 
 main() {
@@ -41,33 +39,8 @@ main() {
   });
 }
 
-class AbstractTypeTest with ElementsTypesMixin {
-  late final TestAnalysisContext _analysisContext;
-
-  @override
-  late final LibraryElementImpl testLibrary;
-
-  @override
-  late final TypeProvider typeProvider;
-
-  late final TypeSystemImpl typeSystem;
-
-  void setUp() {
-    _analysisContext = TestAnalysisContext();
-    typeProvider = _analysisContext.typeProviderLegacy;
-    typeSystem = _analysisContext.typeSystemLegacy;
-
-    testLibrary = library_(
-      uriStr: 'package:test/test.dart',
-      analysisContext: _analysisContext,
-      analysisSession: _analysisContext.analysisSession,
-      typeSystem: typeSystem,
-    );
-  }
-}
-
 @reflectiveTest
-class ClassElementImplTest extends AbstractTypeTest {
+class ClassElementImplTest extends AbstractTypeSystemTest {
   void test_getField() {
     var classA = class_(name: 'A');
     String fieldName = "f";
@@ -488,7 +461,7 @@ class ClassElementImplTest extends AbstractTypeTest {
   }
 
   LibraryElementImpl _newLibrary() =>
-      ElementFactory.library(_analysisContext, 'lib');
+      ElementFactory.library(analysisContext, 'lib');
 }
 
 @reflectiveTest
@@ -539,10 +512,9 @@ main() {
 }
 
 @reflectiveTest
-class ElementImplTest extends AbstractTypeTest {
+class ElementImplTest extends AbstractTypeSystemTest {
   void test_equals() {
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     ClassElementImpl classElement = ElementFactory.classElement2("C");
     (library.definingCompilationUnit as CompilationUnitElementImpl).classes =
         <ClassElement>[classElement];
@@ -567,18 +539,17 @@ class ElementImplTest extends AbstractTypeTest {
 
   void test_isAccessibleIn_private_differentLibrary() {
     LibraryElementImpl library1 =
-        ElementFactory.library(_analysisContext, "lib1");
+        ElementFactory.library(analysisContext, "lib1");
     ClassElement classElement = ElementFactory.classElement2("_C");
     (library1.definingCompilationUnit as CompilationUnitElementImpl).classes =
         <ClassElement>[classElement];
     LibraryElementImpl library2 =
-        ElementFactory.library(_analysisContext, "lib2");
+        ElementFactory.library(analysisContext, "lib2");
     expect(classElement.isAccessibleIn(library2), isFalse);
   }
 
   void test_isAccessibleIn_private_sameLibrary() {
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     ClassElement classElement = ElementFactory.classElement2("_C");
     (library.definingCompilationUnit as CompilationUnitElementImpl).classes =
         <ClassElement>[classElement];
@@ -587,18 +558,17 @@ class ElementImplTest extends AbstractTypeTest {
 
   void test_isAccessibleIn_public_differentLibrary() {
     LibraryElementImpl library1 =
-        ElementFactory.library(_analysisContext, "lib1");
+        ElementFactory.library(analysisContext, "lib1");
     ClassElement classElement = ElementFactory.classElement2("C");
     (library1.definingCompilationUnit as CompilationUnitElementImpl).classes =
         <ClassElement>[classElement];
     LibraryElementImpl library2 =
-        ElementFactory.library(_analysisContext, "lib2");
+        ElementFactory.library(analysisContext, "lib2");
     expect(classElement.isAccessibleIn(library2), isTrue);
   }
 
   void test_isAccessibleIn_public_sameLibrary() {
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     ClassElement classElement = ElementFactory.classElement2("C");
     (library.definingCompilationUnit as CompilationUnitElementImpl).classes =
         <ClassElement>[classElement];
@@ -729,7 +699,7 @@ enum B {B1, B2, B3}
 }
 
 @reflectiveTest
-class FunctionTypeImplTest extends AbstractTypeTest {
+class FunctionTypeImplTest extends AbstractTypeSystemTest {
   void assertType(DartType type, String expected) {
     var typeStr = type.getDisplayString(withNullability: false);
     expect(typeStr, expected);
@@ -866,7 +836,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
 }
 
 @reflectiveTest
-class InterfaceTypeImplTest extends AbstractTypeTest {
+class InterfaceTypeImplTest extends AbstractTypeSystemTest {
   void test_allSupertypes() {
     void check(InterfaceType type, List<String> expected) {
       var actual = type.allSupertypes.map((e) {
@@ -1310,8 +1280,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
         ElementFactory.getterElement(getterName, false, intNone);
     classA.accessors = <PropertyAccessorElement>[getterG];
     InterfaceType typeA = interfaceTypeStar(classA);
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).classes = <ClassElement>[classA];
     expect(typeA.lookUpGetter(getterName, library), same(getterG));
@@ -1331,8 +1300,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     InterfaceType typeB = interfaceTypeStar(classB);
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).classes = <ClassElement>[
       classA,
@@ -1366,8 +1334,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
       interfaceTypeStar(classM1),
       interfaceTypeStar(classM2)
     ];
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     var unit = library.definingCompilationUnit as CompilationUnitElementImpl;
     unit.classes = <ClassElement>[classB, classM1, classM2, classC];
     expect(
@@ -1384,8 +1351,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     InterfaceType typeA = interfaceTypeStar(classA);
     var classB = ElementFactory.classElement("B", typeA);
     classA.supertype = interfaceTypeStar(classB);
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).classes = <ClassElement>[
       classA,
@@ -1401,8 +1367,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     //
     var classA = class_(name: 'A');
     InterfaceType typeA = interfaceTypeStar(classA);
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).classes = <ClassElement>[classA];
     expect(typeA.lookUpGetter("g", library), isNull);
@@ -1419,8 +1384,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
         ElementFactory.methodElement(methodName, intNone);
     classA.methods = <MethodElement>[methodM];
     InterfaceType typeA = interfaceTypeStar(classA);
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).classes = <ClassElement>[classA];
     expect(typeA.lookUpMethod(methodName, library), same(methodM));
@@ -1440,8 +1404,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     InterfaceType typeB = interfaceTypeStar(classB);
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).classes = <ClassElement>[
       classA,
@@ -1474,8 +1437,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
       interfaceTypeStar(classM1),
       interfaceTypeStar(classM2)
     ];
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     var unit = library.definingCompilationUnit as CompilationUnitElementImpl;
     unit.classes = <ClassElement>[classB, classM1, classM2, classC];
     expect(
@@ -1505,8 +1467,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
         typeParameterTypeStar(F),
       ]),
     );
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).classes = <ClassElement>[A];
     //
@@ -1533,8 +1494,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     InterfaceType typeA = interfaceTypeStar(classA);
     var classB = ElementFactory.classElement("B", typeA);
     classA.supertype = interfaceTypeStar(classB);
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).classes = <ClassElement>[
       classA,
@@ -1550,8 +1510,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     //
     var classA = class_(name: 'A');
     InterfaceType typeA = interfaceTypeStar(classA);
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).classes = <ClassElement>[classA];
     expect(typeA.lookUpMethod("m", library), isNull);
@@ -1568,8 +1527,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
         ElementFactory.setterElement(setterName, false, intNone);
     classA.accessors = <PropertyAccessorElement>[setterS];
     InterfaceType typeA = interfaceTypeStar(classA);
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).classes = <ClassElement>[classA];
     expect(typeA.lookUpSetter(setterName, library), same(setterS));
@@ -1589,8 +1547,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     ClassElementImpl classB =
         ElementFactory.classElement("B", interfaceTypeStar(classA));
     InterfaceType typeB = interfaceTypeStar(classB);
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).classes = <ClassElement>[
       classA,
@@ -1624,8 +1581,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
       interfaceTypeStar(classM1),
       interfaceTypeStar(classM2)
     ];
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     var unit = library.definingCompilationUnit as CompilationUnitElementImpl;
     unit.classes = <ClassElement>[classB, classM1, classM2, classC];
     expect(
@@ -1642,8 +1598,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     InterfaceType typeA = interfaceTypeStar(classA);
     var classB = ElementFactory.classElement("B", typeA);
     classA.supertype = interfaceTypeStar(classB);
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).classes = <ClassElement>[
       classA,
@@ -1659,8 +1614,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     //
     var classA = class_(name: 'A');
     InterfaceType typeA = interfaceTypeStar(classA);
-    LibraryElementImpl library =
-        ElementFactory.library(_analysisContext, "lib");
+    LibraryElementImpl library = ElementFactory.library(analysisContext, "lib");
     CompilationUnitElement unit = library.definingCompilationUnit;
     (unit as CompilationUnitElementImpl).classes = <ClassElement>[classA];
     expect(typeA.lookUpSetter("s", library), isNull);
@@ -1779,7 +1733,7 @@ main() {
 }
 
 @reflectiveTest
-class TypeParameterTypeImplTest extends AbstractTypeTest {
+class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_asInstanceOf_hasBound_element() {
     var T = typeParameter('T', bound: listNone(intNone));
     _assert_asInstanceOf(
@@ -2016,7 +1970,7 @@ f() {
 }
 
 @reflectiveTest
-class VoidTypeImplTest extends AbstractTypeTest {
+class VoidTypeImplTest extends AbstractTypeSystemTest {
   /// Reference {code VoidTypeImpl.getInstance()}.
   final DartType _voidType = VoidTypeImpl.instance;
 

@@ -17,6 +17,7 @@ abstract class DillExtensionMemberBuilder extends DillMemberBuilder {
   @override
   bool get isStatic => _descriptor.isStatic;
 
+  @override
   bool get isExternal => member.isExternal;
 
   @override
@@ -47,6 +48,7 @@ class DillExtensionFieldBuilder extends DillExtensionMemberBuilder {
       this.field, ExtensionMemberDescriptor descriptor, Builder parent)
       : super(field, descriptor, parent);
 
+  @override
   Member get member => field;
 
   @override
@@ -73,6 +75,7 @@ class DillExtensionSetterBuilder extends DillExtensionMemberBuilder {
       : assert(descriptor.kind == ExtensionMemberKind.Setter),
         super(procedure, descriptor, parent);
 
+  @override
   Member get member => procedure;
 
   @override
@@ -93,6 +96,7 @@ class DillExtensionGetterBuilder extends DillExtensionMemberBuilder {
       : assert(descriptor.kind == ExtensionMemberKind.Getter),
         super(procedure, descriptor, parent);
 
+  @override
   Member get member => procedure;
 
   @override
@@ -113,6 +117,7 @@ class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder {
       : assert(descriptor.kind == ExtensionMemberKind.Operator),
         super(procedure, descriptor, parent);
 
+  @override
   Member get member => procedure;
 
   @override

@@ -8,7 +8,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
-import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 
 /// Class with the capability of writing out a machine-readable summary of
 /// migration results.

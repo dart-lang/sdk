@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:http/http.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../mocks.dart';
 import 'completion.dart';
 import 'server_abstract.dart';
 
@@ -432,8 +431,8 @@ dependencies:
       ]
     }
     ''';
-    processRunner.runHandler =
-        (executable, args, {dir, env}) => ProcessResult(1, 0, json, '');
+    processRunner.startHandler =
+        (executable, args, {dir, env}) => MockProcess(1, 0, json, '');
 
     final content = '''
 name: foo
@@ -486,8 +485,8 @@ dependencies:
       ]
     }
     ''';
-    processRunner.runHandler =
-        (executable, args, {dir, env}) => ProcessResult(1, 0, initialJson, '');
+    processRunner.startHandler =
+        (executable, args, {dir, env}) => MockProcess(1, 0, initialJson, '');
 
     final content = '''
 name: foo
@@ -510,8 +509,8 @@ dependencies:
 
     // Modify the underlying file which should trigger an update of the
     // cached data.
-    processRunner.runHandler =
-        (executable, args, {dir, env}) => ProcessResult(1, 0, updatedJson, '');
+    processRunner.startHandler =
+        (executable, args, {dir, env}) => MockProcess(1, 0, updatedJson, '');
     modifyFile(pubspecFilePath, '$content# trailing comment');
     await pumpEventQueue(times: 500);
 
@@ -524,7 +523,7 @@ dependencies:
       openCloseFile: false,
     );
 
-    // Also veryify the detail fields were populated as expected.
+    // Also verify the detail fields were populated as expected.
     expect(
       completionResults.singleWhere((c) => c.label == '^2.3.4').detail,
       equals('latest compatible'),
@@ -547,8 +546,8 @@ dependencies:
       ]
     }
     ''';
-    processRunner.runHandler =
-        (executable, args, {dir, env}) => ProcessResult(1, 0, initialJson, '');
+    processRunner.startHandler =
+        (executable, args, {dir, env}) => MockProcess(1, 0, initialJson, '');
 
     final content = '''
 name: foo

@@ -6,8 +6,8 @@
 
 import 'dart:typed_data';
 
-// TODO(johnniwinther): Fix inference for spec:nnbd-off mode. List elements should not
-// be [empty].
+// TODO(johnniwinther): Fix inference for spec mode. List elements should not be
+// [empty].
 
 /*member: myList:Container([null|exact=NativeFloat32List], element: [subclass=JSNumber], length: 42)*/
 var myList = new Float32List(42);

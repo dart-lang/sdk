@@ -129,12 +129,12 @@ abstract class DartType {
 ///
 /// This is used to compute the equivalence relation on types coinductively.
 class _Assumptions {
-  Map<FunctionTypeVariable, Set<FunctionTypeVariable>> _assumptionMap =
+  final Map<FunctionTypeVariable, Set<FunctionTypeVariable>> _assumptionMap =
       <FunctionTypeVariable, Set<FunctionTypeVariable>>{};
 
   void _addAssumption(FunctionTypeVariable a, FunctionTypeVariable b) {
     _assumptionMap
-        .putIfAbsent(a, () => new Set<FunctionTypeVariable>.identity())
+        .putIfAbsent(a, () => Set<FunctionTypeVariable>.identity())
         .add(b);
   }
 
@@ -185,7 +185,7 @@ class _Assumptions {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('_Assumptions(');
     String comma = '';
     _assumptionMap
@@ -478,6 +478,9 @@ class FunctionTypeVariable extends DartType {
     assert(_bound == null, "Bound has already been set.");
     _bound = value;
   }
+
+  @override
+  int get hashCode => index * 113; // ignore bound which can have cycles.
 
   @override
   bool _equals(DartType other, _Assumptions assumptions) {
@@ -1051,7 +1054,7 @@ abstract class DartTypeSubstitutionVisitor<A>
   DartTypes get dartTypes;
 
   // The input type is a DAG and we must preserve the sharing.
-  Map<DartType, DartType> _map = Map.identity();
+  final Map<DartType, DartType> _map = Map.identity();
 
   DartType _mapped(DartType oldType, DartType newType) {
     assert(_map[oldType] == null);
@@ -1704,7 +1707,7 @@ abstract class DartTypes {
 
   DartType nullableType(DartType baseType) {
     bool _isNullable(DartType t) =>
-        // Note that we can assume NNBD is enabled here.
+        // Note that we can assume null safety is enabled here.
         t.isNull ||
         t is NullableType ||
         t is LegacyType && _isNullable(t.baseType) ||
@@ -1882,13 +1885,14 @@ abstract class DartTypes {
   /// If [assumeInstantiations], generic function types are assumed to be
   /// potentially instantiated.
   bool isPotentialSubtype(DartType s, DartType t,
-          {bool assumeInstantiations: true}) =>
+          {bool assumeInstantiations = true}) =>
       _subtypeHelper(s, t,
           allowPotentialSubtypes: true,
           assumeInstantiations: assumeInstantiations);
 
   bool _subtypeHelper(DartType s, DartType t,
-      {bool allowPotentialSubtypes: false, bool assumeInstantiations: false}) {
+      {bool allowPotentialSubtypes = false,
+      bool assumeInstantiations = false}) {
     assert(allowPotentialSubtypes || !assumeInstantiations);
 
     // TODO(fishythefish): Add constraint solving for potential subtypes.

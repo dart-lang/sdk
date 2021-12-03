@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-typedef void DebugCallback(String methodName, var arg1, var arg2);
+typedef DebugCallback = void Function(
+    String methodName, dynamic arg1, dynamic arg2);
 
 class DebugMap<K, V> implements Map<K, V> {
   final Map<K, V> sourceMap;
@@ -160,7 +161,7 @@ class DebugIterable<E> implements Iterable<E> {
   bool any(bool test(E element)) => iterable.any(test);
 
   @override
-  List<E> toList({bool growable: true}) {
+  List<E> toList({bool growable = true}) {
     return iterable.toList(growable: growable);
   }
 
@@ -431,7 +432,7 @@ class DebugSet<E> extends DebugIterable<E> implements Set<E> {
 /// at the call site by running test programs and adding to [runtimeTypes] when
 /// new type are found.
 void assertType(String name, List<String> runtimeTypes, var object,
-    {bool showObjects: false}) {
+    {bool showObjects = false}) {
   String runtimeType = '${object.runtimeType}';
   if (runtimeTypes != null && runtimeTypes.contains(runtimeType)) return;
   throw '$name: $runtimeType'
@@ -450,7 +451,7 @@ class MapTypeAsserter {
   final bool showObjects;
 
   const MapTypeAsserter(this.name, this.runtimeTypes,
-      {bool this.showObjects: false});
+      {bool this.showObjects = false});
 
   void call(String methodName, var key, var value) {
     check(key, value, '$methodName: ');
@@ -478,7 +479,7 @@ class CollectionTypeAsserter {
   final bool showObjects;
 
   const CollectionTypeAsserter(this.name, this.runtimeTypes,
-      {bool this.showObjects: false});
+      {bool this.showObjects = false});
 
   void call(String methodName, var element, _) {
     check(element, '$methodName: ');

@@ -159,7 +159,7 @@ main() {}
 '''
   }, options: [
     Flags.disableInlining,
-  ]);
+  ], entryPoint: Uri.parse('memory:main.dart'));
 
   void checkInvariant(
       Enqueuer enqueuer, ElementEnvironment elementEnvironment) {
@@ -277,7 +277,7 @@ main() {}
     }
   };
 
-  await compiler.run(Uri.parse('memory:main.dart'));
+  await compiler.run();
 
   checkLiveMembers(
       compiler.enqueuer.resolutionEnqueuerForTesting,

@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 import 'ast_model.dart';
 
 /// Generates a visitor library into [sb] based on [astModel] and [strategy].
-String generateVisitor(AstModel astModel, VisitorStrategy strategy) {
+///
+/// If [format] is `false`, the generated output will _not_ be formatted using
+/// the Dart formatter. Use this during development to support incomplete
+/// generation.
+String generateVisitor(AstModel astModel, VisitorStrategy strategy,
+    {bool format: true}) {
   StringBuffer sb = new StringBuffer();
   strategy.generateHeader(astModel, sb);
 
@@ -18,7 +21,7 @@ String generateVisitor(AstModel astModel, VisitorStrategy strategy) {
       case AstClassKind.root:
       case AstClassKind.inner:
         if (astClass.hasVisitMethod) {
-          strategy.generateDefaultVisit(astClass, sb);
+          strategy.generateDefaultVisit(astModel, astClass, sb);
         }
         for (AstClass subclass in astClass.subclasses) {
           addVisitNode(subclass);
@@ -28,7 +31,7 @@ String generateVisitor(AstModel astModel, VisitorStrategy strategy) {
       case AstClassKind.named:
       case AstClassKind.declarative:
         if (astClass.hasVisitMethod) {
-          strategy.generateVisit(astClass, sb);
+          strategy.generateVisit(astModel, astClass, sb);
         }
         break;
       case AstClassKind.implementation:
@@ -44,7 +47,7 @@ String generateVisitor(AstModel astModel, VisitorStrategy strategy) {
       case AstClassKind.root:
       case AstClassKind.inner:
         if (astClass.hasVisitReferenceMethod) {
-          strategy.generateDefaultVisitReference(astClass, sb);
+          strategy.generateDefaultVisitReference(astModel, astClass, sb);
         }
         for (AstClass subclass in astClass.subclasses) {
           addVisitReference(subclass);
@@ -54,7 +57,7 @@ String generateVisitor(AstModel astModel, VisitorStrategy strategy) {
       case AstClassKind.named:
       case AstClassKind.declarative:
         if (astClass.hasVisitReferenceMethod) {
-          strategy.generateVisitReference(astClass, sb);
+          strategy.generateVisitReference(astModel, astClass, sb);
         }
         break;
       case AstClassKind.implementation:
@@ -71,7 +74,9 @@ String generateVisitor(AstModel astModel, VisitorStrategy strategy) {
   strategy.generateFooter(astModel, sb);
 
   String result = sb.toString();
-  result = new DartFormatter().format(result);
+  if (format) {
+    result = new DartFormatter().format(result);
+  }
   return result;
 }
 
@@ -79,21 +84,44 @@ String generateVisitor(AstModel astModel, VisitorStrategy strategy) {
 abstract class VisitorStrategy {
   const VisitorStrategy();
 
+  /// Preamble comment used in the generated file.
+  String get preamble => '''
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
+//
+// Run '$generatorCommand' to update.
+''';
+
+  /// The command used to generate the visitor.
+  ///
+  /// This is inserted in the [preamble] along with a comment that the file
+  /// is generated.
+  String get generatorCommand;
+
+  /// Comment used as doc comment for the generated visitor class.
+  String get visitorComment => '';
+
   /// Generates the header of the visitor library, including preamble, imports
   /// and visitor class declaration start.
   void generateHeader(AstModel astModel, StringBuffer sb);
 
   /// Generates a `defaultX` visitor method for [astClass].
-  void generateDefaultVisit(AstClass astClass, StringBuffer sb);
+  void generateDefaultVisit(
+      AstModel astModel, AstClass astClass, StringBuffer sb);
 
   /// Generates a `visitX` visitor method for [astClass].
-  void generateVisit(AstClass astClass, StringBuffer sb);
+  void generateVisit(AstModel astModel, AstClass astClass, StringBuffer sb);
 
   /// Generates a `defaultXReference` visitor method for [astClass].
-  void generateDefaultVisitReference(AstClass astClass, StringBuffer sb);
+  void generateDefaultVisitReference(
+      AstModel astModel, AstClass astClass, StringBuffer sb);
 
   /// Generates a `visitXReference` visitor method for [astClass].
-  void generateVisitReference(AstClass astClass, StringBuffer sb);
+  void generateVisitReference(
+      AstModel astModel, AstClass astClass, StringBuffer sb);
 
   /// Generates the footer of the visitor library, including the visitor class
   /// declaration end.
@@ -115,73 +143,84 @@ abstract class Visitor0Strategy extends VisitorStrategy {
   /// The generated visitor will implement `Visitor<$returnType>`.
   String get returnType;
 
+  @override
   void generateHeader(AstModel astModel, StringBuffer sb) {
     sb.writeln('''
+$preamble
+
 import 'package:kernel/ast.dart';
 
+$visitorComment
 class $visitorName$visitorTypeParameters implements Visitor<$returnType> {''');
   }
 
+  @override
   void generateFooter(AstModel astModel, StringBuffer sb) {
     sb.writeln('''
 }''');
   }
 
   @override
-  void generateDefaultVisit(AstClass astClass, StringBuffer sb) {
+  void generateDefaultVisit(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
   @override
   ${returnType} default${astClass.name}(
       ${astClass.name} node) {''');
-    handleDefaultVisit(astClass, sb);
+    handleDefaultVisit(astModel, astClass, sb);
     sb.writeln('}');
   }
 
   /// Generates the body of a `defaultX` visitor method of [astClass].
-  void handleDefaultVisit(AstClass astClass, StringBuffer sb) {}
+  void handleDefaultVisit(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {}
 
   @override
-  void generateVisit(AstClass astClass, StringBuffer sb) {
+  void generateVisit(AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
   @override
   ${returnType} visit${astClass.name}(
       ${astClass.name} node) {''');
-    handleVisit(astClass, sb);
+    handleVisit(astModel, astClass, sb);
     sb.writeln('}');
   }
 
   /// Generates the body of a `visitX` visitor method of [astClass].
-  void handleVisit(AstClass astClass, StringBuffer sb) {}
+  void handleVisit(AstModel astModel, AstClass astClass, StringBuffer sb) {}
 
   @override
-  void generateDefaultVisitReference(AstClass astClass, StringBuffer sb) {
-    sb.writeln(''''
+  void generateDefaultVisitReference(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {
+    sb.writeln('''
   @override
   ${returnType} default${astClass.name}Reference(
-      '${astClass.name} node) {''');
-    handleDefaultVisitReference(astClass, sb);
+      ${astClass.name} node) {''');
+    handleDefaultVisitReference(astModel, astClass, sb);
     sb.writeln('}');
   }
 
   /// Generates the body of a `defaultXReference` visitor method of [astClass].
-  void handleDefaultVisitReference(AstClass astClass, StringBuffer sb) {}
+  void handleDefaultVisitReference(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {}
 
   @override
-  void generateVisitReference(AstClass astClass, StringBuffer sb) {
+  void generateVisitReference(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
   @override
   ${returnType} visit${astClass.name}Reference(
       ${astClass.name} node) {''');
-    handleVisitReference(astClass, sb);
+    handleVisitReference(astModel, astClass, sb);
     sb.writeln('}');
   }
 
   /// Generates the body of a `visitXReference` visitor method of [astClass].
-  void handleVisitReference(AstClass astClass, StringBuffer sb) {}
+  void handleVisitReference(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {}
 }
 
 /// Strategy for creating an empty `Visitor<void>` implementation.
-class VoidVisitor0Strategy extends Visitor0Strategy {
+abstract class VoidVisitor0Strategy extends Visitor0Strategy {
   const VoidVisitor0Strategy();
 
   @override
@@ -216,78 +255,87 @@ abstract class Visitor1Strategy extends VisitorStrategy {
   /// `Visitor1<$returnType, $argumentType>`.
   String get returnType;
 
+  @override
   void generateHeader(AstModel astModel, StringBuffer sb) {
     sb.writeln('''
 import 'package:kernel/ast.dart';
 
+$visitorComment
 class $visitorName$visitorTypeParameters
     implements Visitor1<$returnType, $argumentType> {''');
   }
 
+  @override
   void generateFooter(AstModel astModel, StringBuffer sb) {
     sb.writeln('''
 }''');
   }
 
   @override
-  void generateDefaultVisit(AstClass astClass, StringBuffer sb) {
+  void generateDefaultVisit(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
   @override
   ${returnType} default${astClass.name}(
       ${astClass.name} node, $argumentType $argumentName) {''');
-    handleDefaultVisit(astClass, sb);
+    handleDefaultVisit(astModel, astClass, sb);
     sb.writeln('''
   }''');
   }
 
   /// Generates the body of a `defaultX` visitor method of [astClass].
-  void handleDefaultVisit(AstClass astClass, StringBuffer sb) {}
+  void handleDefaultVisit(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {}
 
   @override
-  void generateVisit(AstClass astClass, StringBuffer sb) {
+  void generateVisit(AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
   @override
   ${returnType} visit${astClass.name}(
       ${astClass.name} node, $argumentType $argumentName) {''');
-    handleVisit(astClass, sb);
+    handleVisit(astModel, astClass, sb);
     sb.writeln('''
   }''');
   }
 
   /// Generates the body of a `visitX` visitor method of [astClass].
-  void handleVisit(AstClass astClass, StringBuffer sb) {}
+  void handleVisit(AstModel astModel, AstClass astClass, StringBuffer sb) {}
 
   @override
-  void generateDefaultVisitReference(AstClass astClass, StringBuffer sb) {
+  void generateDefaultVisitReference(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
   @override
   ${returnType} default${astClass.name}Reference(
       ${astClass.name} node, $argumentType $argumentName) {''');
-    handleDefaultVisitReference(astClass, sb);
+    handleDefaultVisitReference(astModel, astClass, sb);
     sb.writeln('''
   }''');
   }
 
   /// Generates the body of a `defaultXReference` visitor method of [astClass].
-  void handleDefaultVisitReference(AstClass astClass, StringBuffer sb) {}
+  void handleDefaultVisitReference(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {}
 
   @override
-  void generateVisitReference(AstClass astClass, StringBuffer sb) {
+  void generateVisitReference(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
   @override
   ${returnType} visit${astClass.name}Reference(
       ${astClass.name} node, $argumentType $argumentName) {''');
-    handleVisitReference(astClass, sb);
+    handleVisitReference(astModel, astClass, sb);
     sb.writeln('''
   }''');
   }
 
   /// Generates the body of a `visitXReference` visitor method of [astClass].
-  void handleVisitReference(AstClass astClass, StringBuffer sb) {}
+  void handleVisitReference(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {}
 }
 
 /// Strategy for creating an empty `Visitor1<void,Null>` implementation.
-class VoidVisitor1Strategy extends Visitor1Strategy {
+abstract class VoidVisitor1Strategy extends Visitor1Strategy {
   const VoidVisitor1Strategy();
 
   @override

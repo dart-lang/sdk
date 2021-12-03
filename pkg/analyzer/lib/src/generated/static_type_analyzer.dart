@@ -59,7 +59,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     expression.staticType = type;
     if (_typeSystem.isBottom(type)) {
-      _resolver.flowAnalysis?.flow?.handleExit();
+      _resolver.flowAnalysis.flow?.handleExit();
     }
   }
 
@@ -180,7 +180,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitInstanceCreationExpression(
       covariant InstanceCreationExpressionImpl node) {
     _inferInstanceCreationExpression(node);
-    recordStaticType(node, node.constructorName.type.typeOrThrow);
+    recordStaticType(node, node.constructorName.type2.typeOrThrow);
   }
 
   /// <blockquote>
@@ -270,7 +270,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitSuperExpression(covariant SuperExpressionImpl node) {
     var thisType = _resolver.thisType;
-    _resolver.flowAnalysis?.flow?.thisOrSuper(node, thisType ?? _dynamicType);
+    _resolver.flowAnalysis.flow?.thisOrSuper(node, thisType ?? _dynamicType);
     if (thisType == null ||
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
@@ -291,7 +291,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitThisExpression(covariant ThisExpressionImpl node) {
     var thisType = _resolver.thisType;
-    _resolver.flowAnalysis?.flow?.thisOrSuper(node, thisType ?? _dynamicType);
+    _resolver.flowAnalysis.flow?.thisOrSuper(node, thisType ?? _dynamicType);
     if (thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
@@ -365,7 +365,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return;
     }
 
-    var typeName = constructorName.type;
+    var typeName = constructorName.type2;
     var typeArguments = typeName.typeArguments;
 
     var constructorType = elementToInfer.asType;

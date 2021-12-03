@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core';
-
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
@@ -22,12 +20,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:collection/collection.dart';
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
 /// one or more files.
@@ -230,64 +226,17 @@ class BulkFixProcessor {
     return builder;
   }
 
-  /// Returns the potential [FixKind]s that may be available for a given diagnostic.
-  ///
-  /// The presence of a kind does not guarantee a fix will be produced, nor does
-  /// the absence of a kind mean that it definitely will not (some producers
-  /// do not provide FixKinds up-front). These results are intended as a hint
-  /// for populating something like a quick-fix menu with possible apply-all fixes.
-  Iterable<FixKind> producableFixesForError(
-    ResolvedUnitResult result,
-    AnalysisError diagnostic,
-  ) sync* {
-    final errorCode = diagnostic.errorCode;
-    if (errorCode is LintCode) {
-      yield* _producableFixesFromGenerators(
-          FixProcessor.lintProducerMap[errorCode.name]);
-      return;
-    }
-
-    yield* _producableFixesFromGenerators(
-        FixProcessor.nonLintProducerMap[errorCode]);
-
-    final multiGenerators = nonLintMultiProducerMap[errorCode];
-    if (multiGenerators != null) {
-      final fixContext = DartFixContextImpl(
-        instrumentationService,
-        workspace,
-        result,
-        diagnostic,
-        (name) => [],
-      );
-
-      var context = CorrectionProducerContext.create(
-        applyingBulkFixes: true,
-        dartFixContext: fixContext,
-        diagnostic: diagnostic,
-        resolvedResult: result,
-        selectionOffset: diagnostic.offset,
-        selectionLength: diagnostic.length,
-        workspace: workspace,
-      );
-      if (context == null) {
-        return;
-      }
-
-      for (final multiGenerator in multiGenerators) {
-        final multiProducer = multiGenerator();
-        multiProducer.configure(context);
-        yield* multiProducer.producers.map((p) => p.fixKind).whereNotNull();
-      }
-    }
-  }
-
   /// Use the change [builder] to create fixes for the diagnostics in the
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result) async {
     var analysisOptions = result.session.analysisContext.analysisOptions;
     for (var unitResult in result.units) {
       var overrideSet = _readOverrideSet(unitResult);
-      for (var error in unitResult.errors) {
+
+      var errors = List.from(unitResult.errors, growable: false);
+      errors.sort((a, b) => a.offset.compareTo(b.offset));
+
+      for (var error in errors) {
         var processor = ErrorProcessor.getProcessor(analysisOptions, error);
         // Only fix errors not filtered out in analysis options.
         if (processor == null || processor.severity != null) {
@@ -338,14 +287,7 @@ class BulkFixProcessor {
       }
     }
 
-    int computeChangeHash() {
-      var hash = 0;
-      var edits = builder.sourceChange.edits;
-      for (var i = 0; i < edits.length; ++i) {
-        hash = JenkinsSmiHash.combine(hash, edits[i].hashCode);
-      }
-      return JenkinsSmiHash.finish(hash);
-    }
+    int computeChangeHash() => (builder as ChangeBuilderImpl).changeHash;
 
     Future<void> generate(CorrectionProducer producer, String code) async {
       var oldHash = computeChangeHash();
@@ -391,22 +333,6 @@ class BulkFixProcessor {
           'Exception generating fix for ${errorCode.name} in ${result.path}',
           e,
           s);
-    }
-  }
-
-  Iterable<FixKind> _producableFixesFromGenerators(
-      List<ProducerGenerator>? generators) sync* {
-    if (generators == null) {
-      return;
-    }
-    for (var generator in generators) {
-      var producer = generator();
-      if (producer.canBeAppliedInBulk) {
-        var fixKind = producer.fixKind;
-        if (fixKind != null) {
-          yield fixKind;
-        }
-      }
     }
   }
 

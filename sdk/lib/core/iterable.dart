@@ -412,12 +412,12 @@ abstract class Iterable<E> {
     return count;
   }
 
-  /// Returns `true` if there are no elements in this collection.
+  /// Whether this collection has no elements.
   ///
   /// May be computed by checking if `iterator.moveNext()` returns `false`.
   bool get isEmpty => !iterator.moveNext();
 
-  /// Returns true if there is at least one element in this collection.
+  /// Whether this collection has at least one element.
   ///
   /// May be computed by checking if `iterator.moveNext()` returns `true`.
   bool get isNotEmpty => !isEmpty;

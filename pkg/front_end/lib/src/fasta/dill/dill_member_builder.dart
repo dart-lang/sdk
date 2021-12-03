@@ -14,7 +14,7 @@ import '../builder/library_builder.dart';
 import '../kernel/class_hierarchy_builder.dart'
     show ClassHierarchyBuilder, ClassMember;
 import '../kernel/member_covariance.dart';
-import '../kernel/kernel_builder.dart'
+import '../kernel/utils.dart'
     show isRedirectingGenerativeConstructorImplementation;
 
 import '../modifier.dart'
@@ -23,42 +23,56 @@ import '../modifier.dart'
 import '../problems.dart' show unhandled;
 
 abstract class DillMemberBuilder extends MemberBuilderImpl {
+  @override
   final int modifiers;
 
   DillMemberBuilder(Member member, Builder parent)
       : modifiers = computeModifiers(member),
         super(parent, member.fileOffset, member.fileUri);
 
+  @override
   Member get member;
 
+  @override
   Iterable<Member> get exportedMembers => [member];
 
+  @override
   String get debugName => "DillMemberBuilder";
 
+  @override
   String get name => member.name.text;
 
+  @override
   bool get isConstructor => member is Constructor;
 
+  @override
   ProcedureKind? get kind {
     final Member member = this.member;
     return member is Procedure ? member.kind : null;
   }
 
+  @override
   bool get isRegularMethod => identical(ProcedureKind.Method, kind);
 
+  @override
   bool get isGetter => identical(ProcedureKind.Getter, kind);
 
+  @override
   bool get isSetter => identical(ProcedureKind.Setter, kind);
 
+  @override
   bool get isOperator => identical(ProcedureKind.Operator, kind);
 
+  @override
   bool get isFactory => identical(ProcedureKind.Factory, kind);
 
+  @override
   bool get isRedirectingGenerativeConstructor {
     return isConstructor &&
         isRedirectingGenerativeConstructorImplementation(member as Constructor);
   }
 
+  @override
   bool get isSynthetic {
     final Member member = this.member;
     return member is Constructor && member.isSynthetic;
@@ -93,6 +107,7 @@ class DillFieldBuilder extends DillMemberBuilder {
 
   DillFieldBuilder(this.field, Builder parent) : super(field, parent);
 
+  @override
   Member get member => field;
 
   @override
@@ -104,6 +119,7 @@ class DillFieldBuilder extends DillMemberBuilder {
   @override
   Member? get invokeTarget => field;
 
+  @override
   bool get isField => true;
 
   @override
@@ -117,6 +133,7 @@ class DillGetterBuilder extends DillMemberBuilder {
       : assert(procedure.kind == ProcedureKind.Getter),
         super(procedure, parent);
 
+  @override
   Member get member => procedure;
 
   @override
@@ -136,6 +153,7 @@ class DillSetterBuilder extends DillMemberBuilder {
       : assert(procedure.kind == ProcedureKind.Setter),
         super(procedure, parent);
 
+  @override
   Member get member => procedure;
 
   @override
@@ -155,6 +173,7 @@ class DillMethodBuilder extends DillMemberBuilder {
       : assert(procedure.kind == ProcedureKind.Method),
         super(procedure, parent);
 
+  @override
   Member get member => procedure;
 
   @override
@@ -174,6 +193,7 @@ class DillOperatorBuilder extends DillMemberBuilder {
       : assert(procedure.kind == ProcedureKind.Operator),
         super(procedure, parent);
 
+  @override
   Member get member => procedure;
 
   @override
@@ -193,6 +213,7 @@ class DillFactoryBuilder extends DillMemberBuilder {
   DillFactoryBuilder(this.procedure, this._factoryTearOff, Builder parent)
       : super(procedure, parent);
 
+  @override
   Member get member => procedure;
 
   @override
@@ -284,6 +305,7 @@ class DillClassMember extends BuilderClassMember {
     return other is DillClassMember && memberBuilder == other.memberBuilder;
   }
 
+  @override
   String toString() => 'DillClassMember($memberBuilder,forSetter=${forSetter})';
 }
 

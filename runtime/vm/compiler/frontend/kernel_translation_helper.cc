@@ -27,6 +27,7 @@ TranslationHelper::TranslationHelper(Thread* thread)
     : thread_(thread),
       zone_(thread->zone()),
       isolate_(thread->isolate()),
+      isolate_group_(thread->isolate_group()),
       allocation_space_(Heap::kNew),
       string_offsets_(TypedData::Handle(Z)),
       string_data_(ExternalTypedData::Handle(Z)),
@@ -42,6 +43,7 @@ TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
     : thread_(thread),
       zone_(thread->zone()),
       isolate_(thread->isolate()),
+      isolate_group_(thread->isolate_group()),
       allocation_space_(space),
       string_offsets_(TypedData::Handle(Z)),
       string_data_(ExternalTypedData::Handle(Z)),
@@ -314,8 +316,22 @@ bool TranslationHelper::IsFactory(NameIndex name) {
   return StringEquals(CanonicalNameString(kind), "@factories");
 }
 
+bool TranslationHelper::IsField(NameIndex name) {
+  // Fields with private names have the import URI of the library where they
+  // are visible as the parent and the string "@fields" as the parent's parent.
+  // Fields with non-private names have the string "@fields" as the parent.
+  if (IsRoot(name)) {
+    return false;
+  }
+  NameIndex kind = CanonicalNameParent(name);
+  if (IsPrivate(name)) {
+    kind = CanonicalNameParent(kind);
+  }
+  return StringEquals(CanonicalNameString(kind), "@fields");
+}
+
 NameIndex TranslationHelper::EnclosingName(NameIndex name) {
-  ASSERT(IsConstructor(name) || IsProcedure(name));
+  ASSERT(IsConstructor(name) || IsProcedure(name) || IsField(name));
   NameIndex enclosing = CanonicalNameParent(CanonicalNameParent(name));
   if (IsPrivate(name)) {
     enclosing = CanonicalNameParent(enclosing);
@@ -570,6 +586,27 @@ ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
   ASSERT(!klass.IsNull());
   name_index_handle_ = Smi::New(kernel_class);
   return info_.InsertClass(thread_, name_index_handle_, klass);
+}
+
+FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
+  ASSERT(IsField(kernel_field));
+  NameIndex enclosing = EnclosingName(kernel_field);
+
+  Class& klass = Class::Handle(Z);
+  if (IsLibrary(enclosing)) {
+    Library& library =
+        Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
+    klass = library.toplevel_class();
+    CheckStaticLookup(klass);
+  } else {
+    ASSERT(IsClass(enclosing));
+    klass = LookupClassByKernelClass(enclosing);
+  }
+  Field& field = Field::Handle(
+      Z, klass.LookupFieldAllowPrivate(
+             DartSymbolObfuscate(CanonicalNameString(kernel_field))));
+  CheckStaticLookup(field);
+  return field.ptr();
 }
 
 FieldPtr TranslationHelper::LookupFieldByKernelGetterOrSetter(
@@ -832,7 +869,8 @@ String& TranslationHelper::ManglePrivateName(const Library& library,
                                              String* name_to_modify,
                                              bool symbolize,
                                              bool obfuscate) {
-  if (name_to_modify->Length() >= 1 && name_to_modify->CharAt(0) == '_') {
+  if (name_to_modify->Length() >= 1 && name_to_modify->CharAt(0) == '_' &&
+      !library.IsNull()) {
     *name_to_modify = library.PrivateName(*name_to_modify);
     if (obfuscate && IG->obfuscate()) {
       const String& library_key = String::Handle(library.private_key());
@@ -1003,6 +1041,11 @@ void FieldHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
     }
       FALL_THROUGH;
+    case kCanonicalNameField:
+      canonical_name_field_ =
+          helper_->ReadCanonicalNameReference();  // read canonical_name_field.
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
     case kCanonicalNameGetter:
       canonical_name_getter_ =
           helper_->ReadCanonicalNameReference();  // read canonical_name_getter.
@@ -1121,6 +1164,10 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       } else {
         helper_->ReadCanonicalNameReference();
       }
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
+    case kSignatureType:
+      helper_->SkipOptionalDartType();  // read signature type.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFunction:
@@ -2180,7 +2227,7 @@ void KernelReaderHelper::SkipOptionalDartType() {
 
 void KernelReaderHelper::SkipInterfaceType(bool simple) {
   ReadNullability();  // read nullability.
-  ReadUInt();  // read klass_name.
+  ReadUInt();         // read klass_name.
   if (!simple) {
     SkipListOfDartTypes();  // read list of types.
   }
@@ -2250,6 +2297,13 @@ void KernelReaderHelper::SkipListOfVariableDeclarations() {
   }
 }
 
+void KernelReaderHelper::SkipListOfCanonicalNameReferences() {
+  intptr_t list_length = ReadListLength();  // read list length.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    SkipCanonicalNameReference();
+  }
+}
+
 void KernelReaderHelper::SkipTypeParametersList() {
   intptr_t list_length = ReadListLength();  // read list length.
   for (intptr_t i = 0; i < list_length; ++i) {
@@ -2297,6 +2351,9 @@ void KernelReaderHelper::SkipExpression() {
     case kInvalidExpression:
       ReadPosition();
       SkipStringReference();
+      if (ReadTag() == kSomething) {
+        SkipExpression();  // read expression.
+      }
       return;
     case kVariableGet:
       ReadPosition();          // read position.
@@ -2361,14 +2418,14 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();  // read value.
       return;
     case kSuperPropertyGet:
-      ReadPosition();                // read position.
-      SkipName();                    // read name.
+      ReadPosition();                      // read position.
+      SkipName();                          // read name.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kSuperPropertySet:
-      ReadPosition();                // read position.
-      SkipName();                    // read name.
-      SkipExpression();              // read value.
+      ReadPosition();                      // read position.
+      SkipName();                          // read name.
+      SkipExpression();                    // read value.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kStaticGet:
@@ -2423,9 +2480,9 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();  // read expression.
       return;
     case kSuperMethodInvocation:
-      ReadPosition();                // read position.
-      SkipName();                    // read name.
-      SkipArguments();               // read arguments.
+      ReadPosition();                      // read position.
+      SkipName();                          // read name.
+      SkipArguments();                     // read arguments.
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kStaticInvocation:
@@ -2461,7 +2518,7 @@ void KernelReaderHelper::SkipExpression() {
       SkipListOfExpressions();  // read list of expressions.
       return;
     case kIsExpression:
-      ReadPosition();    // read position.
+      ReadPosition();  // read position.
       if (translation_helper_.info().kernel_binary_version() >= 38) {
         SkipFlags();  // read flags.
       }
@@ -2849,8 +2906,8 @@ TypedDataPtr KernelReaderHelper::GetLineStartsFor(intptr_t index) {
   // can store them as tighly as possible.
   AlternativeReadingScope alt(&reader_);
   SetOffset(GetOffsetForSourceInfo(index));
-  SkipBytes(ReadUInt());                         // skip uri.
-  SkipBytes(ReadUInt());                         // skip source.
+  SkipBytes(ReadUInt());  // skip uri.
+  SkipBytes(ReadUInt());  // skip source.
   const intptr_t line_start_count = ReadUInt();
   return reader_.ReadLineStartsData(line_start_count);
 }
@@ -3120,7 +3177,6 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   result_ = Type::New(klass, type_arguments, nullability);
   result_ = result_.NormalizeFutureOrType(Heap::kOld);
   if (finalize_) {
-    ASSERT(active_class_->klass != NULL);
     result_ = ClassFinalizer::FinalizeType(result_);
   }
 }

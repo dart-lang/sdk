@@ -57,6 +57,8 @@ import 'case_expression_type_implements_equals_test.dart'
 import 'case_expression_type_is_not_switch_expression_subtype_test.dart'
     as case_expression_type_is_not_switch_expression_subtype;
 import 'cast_to_non_type_test.dart' as cast_to_non_type;
+import 'class_instantiation_access_to_member_test.dart'
+    as class_instantiation_access_to_member;
 import 'concrete_class_with_abstract_member_test.dart'
     as concrete_class_with_abstract_member;
 import 'conflicting_generic_interfaces_test.dart'
@@ -189,8 +191,6 @@ import 'extra_annotation_on_struct_field_test.dart'
     as extra_annotation_on_struct_field;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
 import 'extra_size_annotation_carray_test.dart' as extra_size_annotation_carray;
-import 'ffi_array_multi_non_positive_input_test.dart'
-    as ffi_array_multi_non_positive_input_test;
 import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
 import 'ffi_native_test.dart' as ffi_native_test;
@@ -402,7 +402,6 @@ import 'missing_enum_constant_in_switch_test.dart'
     as missing_enum_constant_in_switch;
 import 'missing_exception_value_test.dart' as missing_exception_value;
 import 'missing_field_type_in_struct_test.dart' as missing_field_type_in_struct;
-import 'missing_js_lib_annotation_test.dart' as missing_js_lib_annotation;
 import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
 import 'missing_size_annotation_carray_test.dart'
@@ -486,6 +485,7 @@ import 'non_generative_implicit_constructor_test.dart'
 import 'non_native_function_type_argument_to_pointer_test.dart'
     as non_native_function_type_argument_to_pointer;
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
+import 'non_positive_array_dimension_test.dart' as non_positive_array_dimension;
 import 'non_sized_type_argument_test.dart' as non_sized_type_argument;
 import 'non_type_as_type_argument_test.dart' as non_type_as_type_argument;
 import 'non_type_in_catch_clause_test.dart' as non_type_in_catch_clause;
@@ -628,6 +628,9 @@ import 'switch_case_completes_normally_test.dart'
     as switch_case_completes_normally;
 import 'switch_expression_not_assignable_test.dart'
     as switch_expression_not_assignable;
+import 'tearoff_of_generative_constructor_of_abstract_class_test.dart'
+    as tearoff_of_generative_constructor_of_abstract_class;
+import 'text_direction_code_point_test.dart' as text_direction_code_point;
 import 'throw_of_invalid_type_test.dart' as throw_of_invalid_type;
 import 'todo_test.dart' as todo_test;
 import 'top_level_cycle_test.dart' as top_level_cycle;
@@ -667,6 +670,8 @@ import 'undefined_method_test.dart' as undefined_method;
 import 'undefined_named_parameter_test.dart' as undefined_named_parameter;
 import 'undefined_operator_test.dart' as undefined_operator;
 import 'undefined_prefixed_name_test.dart' as undefined_prefixed_name;
+import 'undefined_referenced_parameter_test.dart'
+    as undefined_referenced_parameter;
 import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
@@ -754,6 +759,7 @@ main() {
     case_expression_type_implements_equals.main();
     case_expression_type_is_not_switch_expression_subtype.main();
     cast_to_non_type.main();
+    class_instantiation_access_to_member.main();
     concrete_class_with_abstract_member.main();
     conflicting_generic_interfaces.main();
     conflicting_static_and_instance.main();
@@ -843,7 +849,6 @@ main() {
     extra_annotation_on_struct_field.main();
     extra_positional_arguments.main();
     extra_size_annotation_carray.main();
-    ffi_array_multi_non_positive_input_test.main();
     ffi_leaf_call_must_not_use_handle.main();
     ffi_native_test.main();
     field_in_struct_with_initializer.main();
@@ -976,7 +981,6 @@ main() {
     missing_enum_constant_in_switch.main();
     missing_exception_value.main();
     missing_field_type_in_struct.main();
-    missing_js_lib_annotation.main();
     missing_required_param.main();
     missing_return.main();
     missing_size_annotation_carray.main();
@@ -1033,6 +1037,7 @@ main() {
     non_generative_implicit_constructor.main();
     non_native_function_type_argument_to_pointer.main();
     non_null_opt_out.main();
+    non_positive_array_dimension.main();
     non_sized_type_argument.main();
     non_type_as_type_argument.main();
     non_type_in_catch_clause.main();
@@ -1127,6 +1132,8 @@ main() {
     super_initializer_in_object.main();
     switch_case_completes_normally.main();
     switch_expression_not_assignable.main();
+    tearoff_of_generative_constructor_of_abstract_class.main();
+    text_direction_code_point.main();
     throw_of_invalid_type.main();
     todo_test.main();
     top_level_cycle.main();
@@ -1158,6 +1165,7 @@ main() {
     undefined_named_parameter.main();
     undefined_operator.main();
     undefined_prefixed_name.main();
+    undefined_referenced_parameter.main();
     undefined_setter.main();
     undefined_shown_name.main();
     unignorable_ignore.main();

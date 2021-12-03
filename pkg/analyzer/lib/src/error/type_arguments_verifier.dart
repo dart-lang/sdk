@@ -8,12 +8,14 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -32,8 +34,67 @@ class TypeArgumentsVerifier {
   TypeSystemImpl get _typeSystem =>
       _libraryElement.typeSystem as TypeSystemImpl;
 
+  void checkConstructorReference(ConstructorReference node) {
+    var classElement = node.constructorName.type2.name.staticElement;
+    List<TypeParameterElement> typeParameters;
+    if (classElement is TypeAliasElement) {
+      typeParameters = classElement.typeParameters;
+    } else if (classElement is ClassElement) {
+      typeParameters = classElement.typeParameters;
+    } else {
+      return;
+    }
+
+    if (typeParameters.isEmpty) {
+      return;
+    }
+    var typeArgumentList = node.constructorName.type2.typeArguments;
+    if (typeArgumentList == null) {
+      return;
+    }
+    var constructorType = node.staticType;
+    if (constructorType is DynamicType) {
+      // An erroneous constructor reference.
+      return;
+    }
+    if (constructorType is! FunctionType) {
+      return;
+    }
+    var typeArguments = [
+      for (var type in typeArgumentList.arguments) type.type!,
+    ];
+    if (typeArguments.length != typeParameters.length) {
+      // Wrong number of type arguments to be reported elsewhere.
+      return;
+    }
+    var typeArgumentListLength = typeArgumentList.arguments.length;
+    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    for (var i = 0; i < typeArguments.length; i++) {
+      var typeParameter = typeParameters[i];
+      var typeArgument = typeArguments[i];
+
+      var bound = typeParameter.bound;
+      if (bound == null) {
+        continue;
+      }
+
+      bound = _libraryElement.toLegacyTypeIfOptOut(bound);
+      bound = substitution.substituteType(bound);
+
+      if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
+        var errorNode =
+            i < typeArgumentListLength ? typeArgumentList.arguments[i] : node;
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          errorNode,
+          [typeArgument, typeParameter.name, bound],
+        );
+      }
+    }
+  }
+
   void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _checkTypeArguments(
+    _checkInvocationTypeArguments(
       node.typeArguments?.arguments,
       node.function.staticType,
       node.staticInvokeType,
@@ -42,7 +103,7 @@ class TypeArgumentsVerifier {
   }
 
   void checkFunctionReference(FunctionReference node) {
-    _checkTypeArguments(
+    _checkInvocationTypeArguments(
       node.typeArguments?.arguments,
       node.function.staticType,
       node.staticType,
@@ -80,12 +141,21 @@ class TypeArgumentsVerifier {
   }
 
   void checkMethodInvocation(MethodInvocation node) {
-    _checkTypeArguments(
+    _checkInvocationTypeArguments(
       node.typeArguments?.arguments,
       node.function.staticType,
       node.staticInvokeType,
     );
     _checkForImplicitDynamicInvoke(node);
+  }
+
+  void checkNamedType(NamedType node) {
+    _checkForTypeArgumentNotMatchingBounds(node);
+    var parent = node.parent;
+    if (parent is! ConstructorName ||
+        parent.parent is! InstanceCreationExpression) {
+      _checkForRawTypeName(node);
+    }
   }
 
   void checkSetLiteral(SetOrMapLiteral node) {
@@ -101,15 +171,6 @@ class TypeArgumentsVerifier {
           CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
     }
     _checkForImplicitDynamicTypedLiteral(node);
-  }
-
-  void checkTypeName(TypeName node) {
-    _checkForTypeArgumentNotMatchingBounds(node);
-    var parent = node.parent;
-    if (parent is! ConstructorName ||
-        parent.parent is! InstanceCreationExpression) {
-      _checkForRawTypeName(node);
-    }
   }
 
   void _checkForImplicitDynamicInvoke(InvocationExpression node) {
@@ -173,10 +234,10 @@ class TypeArgumentsVerifier {
   /// This checks if [node] refers to a generic type and does not have explicit
   /// or inferred type arguments. When that happens, it reports error code
   /// [HintCode.STRICT_RAW_TYPE].
-  void _checkForRawTypeName(TypeName node) {
-    AstNode parentEscapingTypeArguments(TypeName node) {
+  void _checkForRawTypeName(NamedType node) {
+    AstNode parentEscapingTypeArguments(NamedType node) {
       var parent = node.parent!;
-      while (parent is TypeArgumentList || parent is TypeName) {
+      while (parent is TypeArgumentList || parent is NamedType) {
         if (parent.parent == null) {
           return parent;
         }
@@ -190,31 +251,37 @@ class TypeArgumentsVerifier {
       // Type has explicit type arguments.
       return;
     }
-    if (_isMissingTypeArguments(
-        node, node.typeOrThrow, node.name.staticElement, null)) {
+    var type = node.typeOrThrow;
+    if (_isMissingTypeArguments(node, type, node.name.staticElement, null)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
       if (unwrappedParent is AsExpression || unwrappedParent is IsExpression) {
         // Do not report a "Strict raw type" error in this case; too noisy.
         // See https://github.com/dart-lang/language/blob/master/resources/type-system/strict-raw-types.md#conditions-for-a-raw-type-hint
       } else {
         _errorReporter
-            .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [node.type]);
+            .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [type]);
       }
     }
   }
 
-  /// Verify that the type arguments in the given [typeName] are all within
+  /// Verify that the type arguments in the given [namedType] are all within
   /// their bounds.
-  void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
-    var type = typeName.typeOrThrow;
+  void _checkForTypeArgumentNotMatchingBounds(NamedType namedType) {
+    final type = namedType.type;
+    if (type == null) {
+      return;
+    }
 
-    List<TypeParameterElement> typeParameters;
-    List<DartType> typeArguments;
-    var alias = type.alias;
+    final List<TypeParameterElement> typeParameters;
+    final String elementName;
+    final List<DartType> typeArguments;
+    final alias = type.alias;
     if (alias != null) {
+      elementName = alias.element.name;
       typeParameters = alias.element.typeParameters;
       typeArguments = alias.typeArguments;
     } else if (type is InterfaceType) {
+      elementName = type.element.name;
       typeParameters = type.element.typeParameters;
       typeArguments = type.typeArguments;
     } else {
@@ -227,7 +294,7 @@ class TypeArgumentsVerifier {
 
     // Check for regular-bounded.
     List<_TypeArgumentIssue>? issues;
-    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    final substitution = Substitution.fromPairs(typeParameters, typeArguments);
     for (var i = 0; i < typeArguments.length; i++) {
       var typeParameter = typeParameters[i];
       var typeArgument = typeArguments[i];
@@ -236,7 +303,7 @@ class TypeArgumentsVerifier {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
           _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-            _typeArgumentErrorNode(typeName, i),
+            _typeArgumentErrorNode(namedType, i),
           );
           continue;
         }
@@ -263,34 +330,82 @@ class TypeArgumentsVerifier {
       return;
     }
 
+    List<DiagnosticMessage>? buildContextMessages({
+      List<DartType>? invertedTypeArguments,
+    }) {
+      final messages = <DiagnosticMessage>[];
+
+      void addMessage(String message) {
+        messages.add(
+          DiagnosticMessageImpl(
+            filePath: _errorReporter.source.fullName,
+            length: namedType.length,
+            message: message,
+            offset: namedType.offset,
+            url: null,
+          ),
+        );
+      }
+
+      String typeArgumentsToString(List<DartType> typeArguments) {
+        return typeArguments
+            .map((e) => e.getDisplayString(withNullability: true))
+            .join(', ');
+      }
+
+      if (namedType.typeArguments == null) {
+        var typeStr = '$elementName<${typeArgumentsToString(typeArguments)}>';
+        addMessage(
+          "The raw type was instantiated as '$typeStr', "
+          "and is not regular-bounded.",
+        );
+      }
+
+      if (invertedTypeArguments != null) {
+        var invertedTypeStr =
+            '$elementName<${typeArgumentsToString(invertedTypeArguments)}>';
+        addMessage(
+          "The inverted type '$invertedTypeStr' is also not regular-bounded, "
+          "so the type is not well-bounded.",
+        );
+      }
+
+      return messages.isNotEmpty ? messages : null;
+    }
+
     // If not allowed to be super-bounded, report issues.
-    if (!_shouldAllowSuperBoundedTypes(typeName)) {
+    if (!_shouldAllowSuperBoundedTypes(namedType)) {
       for (var issue in issues) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          _typeArgumentErrorNode(typeName, issue.index),
+          _typeArgumentErrorNode(namedType, issue.index),
           [issue.argument, issue.parameter.name, issue.parameterBound],
+          buildContextMessages(),
         );
       }
       return;
     }
 
     // Prepare type arguments for checking for super-bounded.
-    type = _typeSystem.replaceTopAndBottom(type);
-    alias = type.alias;
-    if (alias != null) {
-      typeArguments = alias.typeArguments;
-    } else if (type is InterfaceType) {
-      typeArguments = type.typeArguments;
+    final invertedType = _typeSystem.replaceTopAndBottom(type);
+    final List<DartType> invertedTypeArguments;
+    final invertedAlias = invertedType.alias;
+    if (invertedAlias != null) {
+      invertedTypeArguments = invertedAlias.typeArguments;
+    } else if (invertedType is InterfaceType) {
+      invertedTypeArguments = invertedType.typeArguments;
     } else {
       return;
     }
 
     // Check for super-bounded.
-    substitution = Substitution.fromPairs(typeParameters, typeArguments);
-    for (var i = 0; i < typeArguments.length; i++) {
+    final invertedSubstitution = Substitution.fromPairs(
+      typeParameters,
+      invertedTypeArguments,
+    );
+    for (var i = 0; i < invertedTypeArguments.length; i++) {
       var typeParameter = typeParameters[i];
-      var typeArgument = typeArguments[i];
+      var typeArgument = invertedTypeArguments[i];
 
       var bound = typeParameter.bound;
       if (bound == null) {
@@ -298,52 +413,24 @@ class TypeArgumentsVerifier {
       }
 
       bound = _libraryElement.toLegacyTypeIfOptOut(bound);
-      bound = substitution.substituteType(bound);
+      bound = invertedSubstitution.substituteType(bound);
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          _typeArgumentErrorNode(typeName, i),
+          _typeArgumentErrorNode(namedType, i),
           [typeArgument, typeParameter.name, bound],
+          buildContextMessages(
+            invertedTypeArguments: invertedTypeArguments,
+          ),
         );
       }
     }
   }
 
-  /// Checks to ensure that the given list of type [arguments] does not have a
-  /// type parameter as a type argument. The [errorCode] is either
-  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST] or
-  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP].
-  void _checkTypeArgumentConst(
-      NodeList<TypeAnnotation> arguments, ErrorCode errorCode) {
-    for (TypeAnnotation type in arguments) {
-      if (type is TypeName && type.type is TypeParameterType) {
-        _errorReporter.reportErrorForNode(errorCode, type, [type.name]);
-      }
-    }
-  }
-
-  /// Verify that the given list of [typeArguments] contains exactly the
-  /// [expectedCount] of elements, reporting an error with the [errorCode]
-  /// if not.
-  void _checkTypeArgumentCount(
-    TypeArgumentList typeArguments,
-    int expectedCount,
-    ErrorCode errorCode,
-  ) {
-    int actualCount = typeArguments.arguments.length;
-    if (actualCount != expectedCount) {
-      _errorReporter.reportErrorForNode(
-        errorCode,
-        typeArguments,
-        [actualCount],
-      );
-    }
-  }
-
   /// Verify that each type argument in [typeArgumentList] is within its bounds,
   /// as defined by [genericType].
-  void _checkTypeArguments(
+  void _checkInvocationTypeArguments(
     List<TypeAnnotation>? typeArgumentList,
     DartType? genericType,
     DartType? instantiatedType,
@@ -404,6 +491,37 @@ class TypeArgumentsVerifier {
     }
   }
 
+  /// Checks to ensure that the given list of type [arguments] does not have a
+  /// type parameter as a type argument. The [errorCode] is either
+  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST] or
+  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP].
+  void _checkTypeArgumentConst(
+      NodeList<TypeAnnotation> arguments, ErrorCode errorCode) {
+    for (TypeAnnotation type in arguments) {
+      if (type is NamedType && type.type is TypeParameterType) {
+        _errorReporter.reportErrorForNode(errorCode, type, [type.name]);
+      }
+    }
+  }
+
+  /// Verify that the given list of [typeArguments] contains exactly the
+  /// [expectedCount] of elements, reporting an error with the [errorCode]
+  /// if not.
+  void _checkTypeArgumentCount(
+    TypeArgumentList typeArguments,
+    int expectedCount,
+    ErrorCode errorCode,
+  ) {
+    int actualCount = typeArguments.arguments.length;
+    if (actualCount != expectedCount) {
+      _errorReporter.reportErrorForNode(
+        errorCode,
+        typeArguments,
+        [actualCount],
+      );
+    }
+  }
+
   /// Given a [node] without type arguments that refers to [element], issues
   /// an error if [type] is a generic type, and the type arguments were not
   /// supplied from inference or a non-dynamic default instantiation.
@@ -453,10 +571,10 @@ class TypeArgumentsVerifier {
     return false;
   }
 
-  /// Determines if the given [typeName] occurs in a context where super-bounded
-  /// types are allowed.
-  bool _shouldAllowSuperBoundedTypes(TypeName typeName) {
-    var parent = typeName.parent;
+  /// Determines if the given [namedType] occurs in a context where
+  /// super-bounded types are allowed.
+  bool _shouldAllowSuperBoundedTypes(NamedType namedType) {
+    var parent = namedType.parent;
     if (parent is ExtendsClause) return false;
     if (parent is OnClause) return false;
     if (parent is ClassTypeAlias) return false;
@@ -468,7 +586,7 @@ class TypeArgumentsVerifier {
   }
 
   /// Return the type arguments at [index] from [node], or the [node] itself.
-  static TypeAnnotation _typeArgumentErrorNode(TypeName node, int index) {
+  static TypeAnnotation _typeArgumentErrorNode(NamedType node, int index) {
     var typeArguments = node.typeArguments?.arguments;
     if (typeArguments != null && index < typeArguments.length) {
       return typeArguments[index];

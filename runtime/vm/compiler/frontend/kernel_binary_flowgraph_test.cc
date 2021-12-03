@@ -333,11 +333,54 @@ ISOLATE_UNIT_TEST_CASE(StreamingFlowGraphBuilder_TypedClosureCall) {
     kMatchAndMoveCheckNull,
     kMatchAndMoveLoadField,
     kMoveDebugStepChecks,
+#if !defined(PRODUCT)
+    kMatchAndMoveRecordCoverage,
+#endif
     kMatchAndMoveClosureCall,
     kMoveDebugStepChecks,
     kMatchReturn,
   }));
   // clang-format on
+}
+
+ISOLATE_UNIT_TEST_CASE(
+    StreamingFlowGraphBuilder_StaticGetFinalFieldWithTrivialInitializer) {
+  const char* kScript = R"(
+    final int x = 0xFEEDFEED;
+    test() {
+      return x;
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "test"));
+
+  Invoke(root_library, "test");
+
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+  });
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  ReturnInstr* return_instr = nullptr;
+
+  ILMatcher cursor(flow_graph, entry);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMatchAndMoveFunctionEntry,
+      kMatchAndMoveCheckStackOverflow,
+      kMoveDebugStepChecks,
+      {kMatchReturn, &return_instr},
+  }));
+
+  EXPECT(return_instr != nullptr);
+  ConstantInstr* const_value =
+      return_instr->value()->definition()->AsConstant();
+  EXPECT(const_value != nullptr);
+  EXPECT(const_value->value().IsInteger());
+  EXPECT_EQ(0xFEEDFEED, Integer::Cast(const_value->value()).AsInt64Value());
 }
 
 }  // namespace dart

@@ -1,0 +1,4 @@
+method() {}
+const tearOff = method;
+const invocation = tearOff();
+main() {}

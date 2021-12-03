@@ -10,7 +10,7 @@ import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  field () →* dynamic f = () → dynamic => invalid-expression "pkg/front_end/testcases/general/field_initializer_capture_this.dart:6:17: Error: Can't access 'this' in a field initializer to read 'x'.
+  field () →* invalid-type f = () → invalid-type => invalid-expression "pkg/front_end/testcases/general/field_initializer_capture_this.dart:6:17: Error: Can't access 'this' in a field initializer to read 'x'.
   var f = () => x; // error
                 ^";
   field dynamic x = null;

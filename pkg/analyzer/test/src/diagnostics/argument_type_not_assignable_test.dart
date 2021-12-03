@@ -83,6 +83,82 @@ n(int i) {}
 ''');
   }
 
+  test_expressionFromConstructorTearoff_withoutTypeArgs() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C(T a);
+}
+
+var g = C.new;
+var x = g('Hello');
+''');
+  }
+
+  test_expressionFromConstructorTearoff_withTypeArgs_assignable() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C(T a);
+}
+
+var g = C<int>.new;
+var x = g(0);
+''');
+  }
+
+  test_expressionFromConstructorTearoff_withTypeArgs_notAssignable() async {
+    await assertErrorsInCode('''
+class C<T> {
+  C(T a);
+}
+
+var g = C<int>.new;
+var x = g('Hello');
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 56, 7),
+    ]);
+  }
+
+  test_expressionFromFunctionTearoff_withoutTypeArgs() async {
+    await assertNoErrorsInCode('''
+void f<T>(T a) {}
+
+var g = f;
+var x = g('Hello');
+''');
+  }
+
+  test_expressionFromFunctionTearoff_withTypeArgs_assignable() async {
+    await assertNoErrorsInCode('''
+void f<T>(T a) {}
+
+var g = f<int>;
+var x = g(0);
+''');
+  }
+
+  test_expressionFromFunctionTearoff_withTypeArgs_notAssignable() async {
+    await assertErrorsInCode('''
+void f<T>(T a) {}
+
+var g = f<int>;
+var x = g('Hello');
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 7),
+    ]);
+  }
+
+  test_implicitCallReference_namedAndRequired() async {
+    await assertNoErrorsInCode('''
+class A {
+  void call(int p) {}
+}
+void f({required void Function(int) a}) {}
+void g(A a) {
+  f(a: a);
+}
+''');
+  }
+
   test_invocation_functionTypes_optional() async {
     await assertErrorsInCode('''
 void acceptFunOptBool(void funNumOptBool([bool b])) {}
@@ -135,8 +211,8 @@ class A {
   const A.fromInt(int p);
 }
 @A.fromInt('0')
-main() {
-}''', [
+main() {}
+''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 49, 3),
     ]);
   }
@@ -264,6 +340,44 @@ class A {
 ''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 31, 7),
     ]);
+  }
+
+  test_implicitCallReference() async {
+    await assertNoErrorsInCode('''
+class A {
+  void call(int p) {}
+}
+void f(void Function(int) a) {}
+void g(A a) {
+  f(a);
+}
+''');
+  }
+
+  test_implicitCallReference_named() async {
+    await assertNoErrorsInCode('''
+class A {
+  void call(int p) {}
+}
+void defaultFunc(int p) {}
+void f({void Function(int) a = defaultFunc}) {}
+void g(A a) {
+  f(a: a);
+}
+''');
+  }
+
+  test_implicitCallReference_this() async {
+    await assertNoErrorsInCode('''
+class A {
+  void call(int p) {}
+
+  void f(void Function(int) a) {}
+  void g() {
+    f(this);
+  }
+}
+''');
   }
 
   test_index_invalidRead() async {

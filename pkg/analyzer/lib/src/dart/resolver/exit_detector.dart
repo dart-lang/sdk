@@ -129,6 +129,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
+  bool visitConstructorReference(ConstructorReference node) => false;
+
+  @override
   bool visitContinueStatement(ContinueStatement node) {
     _enclosingBlockContainsContinue = true;
     return false;
@@ -366,6 +369,11 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
+  bool visitImplicitCallReference(ImplicitCallReference node) {
+    return _nodeExits(node.expression);
+  }
+
+  @override
   bool visitIndexExpression(IndexExpression node) {
     Expression target = node.realTarget;
     if (_nodeExits(target)) {
@@ -438,6 +446,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   @override
   bool visitNamedExpression(NamedExpression node) =>
       node.expression.accept(this)!;
+
+  @override
+  bool visitNamedType(NamedType node) => false;
 
   @override
   bool visitNode(AstNode node) {
@@ -551,10 +562,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
-  bool visitTypeLiteral(TypeLiteral node) => _nodeExits(node.typeName);
-
-  @override
-  bool visitTypeName(TypeName node) => false;
+  bool visitTypeLiteral(TypeLiteral node) => _nodeExits(node.type);
 
   @override
   bool visitVariableDeclaration(VariableDeclaration node) {

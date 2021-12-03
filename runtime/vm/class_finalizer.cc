@@ -206,6 +206,7 @@ bool ClassFinalizer::ProcessPendingClasses() {
 #if defined(DEBUG)
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
+      // Recognized a new class, but forgot to add @pragma('vm:entrypoint')?
       ASSERT(cls.is_declaration_loaded());
     }
 #endif
@@ -266,8 +267,12 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT_EQUAL(WeakProperty::InstanceSize(), cls.host_instance_size());
   cls = object_store->linked_hash_map_class();
   ASSERT_EQUAL(LinkedHashMap::InstanceSize(), cls.host_instance_size());
-  cls = object_store->linked_hash_set_class();
+  cls = object_store->immutable_linked_hash_map_class();
   ASSERT_EQUAL(LinkedHashMap::InstanceSize(), cls.host_instance_size());
+  cls = object_store->linked_hash_set_class();
+  ASSERT_EQUAL(LinkedHashSet::InstanceSize(), cls.host_instance_size());
+  cls = object_store->immutable_linked_hash_set_class();
+  ASSERT_EQUAL(LinkedHashSet::InstanceSize(), cls.host_instance_size());
 #endif  // defined(DEBUG)
 
   // Remember the currently pending classes.
@@ -1221,12 +1226,16 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
+  // The enum_cls is the actual declared class.
+  // The shared super-class holds the fields for index and name.
+  const Class& super_cls = Class::Handle(zone, enum_cls.SuperClass());
+
   const Field& index_field =
-      Field::Handle(zone, enum_cls.LookupInstanceField(Symbols::Index()));
+      Field::Handle(zone, super_cls.LookupInstanceField(Symbols::Index()));
   ASSERT(!index_field.IsNull());
 
   const Field& name_field = Field::Handle(
-      zone, enum_cls.LookupInstanceFieldAllowPrivate(Symbols::_name()));
+      zone, super_cls.LookupInstanceFieldAllowPrivate(Symbols::_name()));
   ASSERT(!name_field.IsNull());
 
   const String& enum_name = String::Handle(zone, enum_cls.ScrubbedName());
@@ -1370,7 +1379,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
 
   // Now verify field offsets of 'Pointer' class.
-  cls = class_table.At(kFfiPointerCid);
+  cls = class_table.At(kPointerCid);
   error = cls.EnsureIsFinalized(thread);
   ASSERT(error.IsNull());
   ASSERT(cls.NumTypeParameters() == 1);
@@ -1381,6 +1390,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
 
 void ClassFinalizer::SortClasses() {
   auto T = Thread::Current();
+  StackZone stack_zone(T);
   auto Z = T->zone();
   auto IG = T->isolate_group();
 
@@ -1488,11 +1498,7 @@ class CidRewriteVisitor : public ObjectVisitor {
           Map(param->untag()->parameterized_class_id_);
     } else if (obj->IsType()) {
       TypePtr type = Type::RawCast(obj);
-      ObjectPtr id = type->untag()->type_class_id();
-      if (!id->IsHeapObject()) {
-        type->untag()->set_type_class_id(
-            Smi::New(Map(Smi::Value(Smi::RawCast(id)))));
-      }
+      type->untag()->type_class_id_ = Map(type->untag()->type_class_id_);
     } else {
       intptr_t old_cid = obj->GetClassId();
       intptr_t new_cid = Map(old_cid);
@@ -1722,7 +1728,6 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
   auto const isolate_group = thread->isolate_group();
   SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
   StackZone stack_zone(thread);
-  HANDLESCOPE(thread);
   auto const zone = thread->zone();
 
   class ClearCodeVisitor : public FunctionVisitor {

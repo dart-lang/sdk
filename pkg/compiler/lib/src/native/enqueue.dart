@@ -37,8 +37,8 @@ class NativeEnqueuer {
 }
 
 abstract class NativeEnqueuerBase implements NativeEnqueuer {
-  final Set<ClassEntity> _registeredClasses = new Set<ClassEntity>();
-  final Set<ClassEntity> _unusedClasses = new Set<ClassEntity>();
+  final Set<ClassEntity> _registeredClasses = {};
+  final Set<ClassEntity> _unusedClasses = {};
 
   @override
   bool get hasInstantiatedNativeClasses => !_registeredClasses.isEmpty;
@@ -75,7 +75,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         continue;
       }
       impactBuilder.registerTypeUse(
-          new TypeUse.nativeInstantiation(_elementEnvironment.getRawType(cls)));
+          TypeUse.nativeInstantiation(_elementEnvironment.getRawType(cls)));
     }
   }
 
@@ -88,11 +88,11 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   void _processNativeBehavior(
       WorldImpactBuilder impactBuilder, NativeBehavior behavior, cause) {
     void registerInstantiation(InterfaceType type) {
-      impactBuilder.registerTypeUse(new TypeUse.nativeInstantiation(type));
+      impactBuilder.registerTypeUse(TypeUse.nativeInstantiation(type));
     }
 
     int unusedBefore = _unusedClasses.length;
-    Set<ClassEntity> matchingClasses = new Set<ClassEntity>();
+    Set<ClassEntity> matchingClasses = {};
     for (var type in behavior.typesInstantiated) {
       if (type is SpecialType) {
         if (type == SpecialType.JsObject) {
@@ -182,7 +182,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 
   /// The set of all native classes.  Each native class is in [nativeClasses]
   /// and exactly one of [unusedClasses] and [registeredClasses].
-  final Set<ClassEntity> _nativeClasses = new Set<ClassEntity>();
+  final Set<ClassEntity> _nativeClasses = {};
 
   NativeResolutionEnqueuer(
       CompilerOptions options,
@@ -200,7 +200,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
 
   @override
   WorldImpact processNativeClasses(Iterable<Uri> libraries) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl impactBuilder = WorldImpactBuilderImpl();
     Iterable<ClassEntity> nativeClasses =
         _nativeClassFinder.computeNativeClasses(libraries);
     _nativeClasses.addAll(nativeClasses);
@@ -224,7 +224,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
   final Iterable<ClassEntity> _nativeClasses;
   final NativeData _nativeData;
 
-  final Set<ClassEntity> _doneAddSubtypes = new Set<ClassEntity>();
+  final Set<ClassEntity> _doneAddSubtypes = {};
 
   NativeCodegenEnqueuer(
       CompilerOptions options,
@@ -238,7 +238,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
 
   @override
   WorldImpact processNativeClasses(Iterable<Uri> libraries) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl impactBuilder = WorldImpactBuilderImpl();
     _unusedClasses.addAll(_nativeClasses);
 
     if (!enableLiveTypeAnalysis) {
@@ -246,7 +246,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     }
 
     // HACK HACK - add all the resolved classes.
-    Set<ClassEntity> matchingClasses = new Set<ClassEntity>();
+    Set<ClassEntity> matchingClasses = {};
     for (ClassEntity classElement in _nativeClasses) {
       if (_unusedClasses.contains(classElement)) {
         matchingClasses.add(classElement);

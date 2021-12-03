@@ -45,7 +45,7 @@ static method test1<T extends core::Object* = dynamic>(self::test1::T* t1) → s
   return new self::Class::•();
 }
 static method test2<T extends self::Class*>(self::test2::T* t2) → dynamic {
-  if(self::test2::T* =={core::Type::==}{(core::Object*) →* core::bool*} (#C1)) {
+  if(self::test2::T* =={core::Type::==}{(core::Object*) →* core::bool*} #C1) {
     self::SubClass* subClass = self::BoundExtension|method2<self::Class*>(t2) as{TypeError} self::SubClass*;
   }
 }

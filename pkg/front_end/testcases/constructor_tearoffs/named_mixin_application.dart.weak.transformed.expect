@@ -1,0 +1,130 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/named_mixin_application.dart:26:25: Error: Member not found: 'fact'.
+//   NamedMixinApplication.fact;
+//                         ^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/named_mixin_application.dart:27:25: Error: Member not found: 'redirectingFactory'.
+//   NamedMixinApplication.redirectingFactory;
+//                         ^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/named_mixin_application.dart:29:33: Error: Constructors on abstract classes can't be torn off.
+//   AbstractNamedMixinApplication.new;
+//                                 ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/named_mixin_application.dart:30:33: Error: Constructors on abstract classes can't be torn off.
+//   AbstractNamedMixinApplication.named;
+//                                 ^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/named_mixin_application.dart:31:33: Error: Constructors on abstract classes can't be torn off.
+//   AbstractNamedMixinApplication.redirectingGenerative;
+//                                 ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/named_mixin_application.dart:32:33: Error: Member not found: 'fact'.
+//   AbstractNamedMixinApplication.fact;
+//                                 ^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/named_mixin_application.dart:33:33: Error: Member not found: 'redirectingFactory'.
+//   AbstractNamedMixinApplication.redirectingFactory;
+//                                 ^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  abstract get field() → core::int;
+}
+class Class<T extends core::Object? = dynamic> extends core::Object implements self::Interface {
+  field core::int field;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor •([core::int field = #C2]) → self::Class<self::Class::T%>
+    : self::Class::field = field, super core::Object::•()
+    ;
+  constructor named(core::int field) → self::Class<self::Class::T%>
+    : self::Class::field = field, super core::Object::•()
+    ;
+  constructor redirectingGenerative(core::int field) → self::Class<self::Class::T%>
+    : this self::Class::•(field)
+    ;
+  static factory fact<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::fact::T%>
+    return new self::Class::•<self::Class::fact::T%>(field);
+  static factory redirectingFactory<T extends core::Object? = dynamic>(core::int field) → self::Class<self::Class::redirectingFactory::T%>
+    return new self::Class::•<self::Class::redirectingFactory::T%>(field);
+}
+abstract class Mixin<S extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+}
+class NamedMixinApplication<T extends core::Object? = dynamic, S extends core::Object? = dynamic> extends self::Class<self::NamedMixinApplication::T%> implements self::Mixin<self::NamedMixinApplication::S%> /*isEliminatedMixin*/  {
+  synthetic constructor •([core::int field = #C2]) → self::NamedMixinApplication<self::NamedMixinApplication::T%, self::NamedMixinApplication::S%>
+    : super self::Class::•(field)
+    ;
+  synthetic constructor named(core::int field) → self::NamedMixinApplication<self::NamedMixinApplication::T%, self::NamedMixinApplication::S%>
+    : super self::Class::named(field)
+    ;
+  synthetic constructor redirectingGenerative(core::int field) → self::NamedMixinApplication<self::NamedMixinApplication::T%, self::NamedMixinApplication::S%>
+    : super self::Class::redirectingGenerative(field)
+    ;
+}
+abstract class AbstractNamedMixinApplication<T extends core::Object? = dynamic, S extends core::Object? = dynamic> extends self::Class<self::AbstractNamedMixinApplication::T%> implements self::Mixin<self::AbstractNamedMixinApplication::S%> /*isEliminatedMixin*/  {
+  synthetic constructor •([core::int field = #C2]) → self::AbstractNamedMixinApplication<self::AbstractNamedMixinApplication::T%, self::AbstractNamedMixinApplication::S%>
+    : super self::Class::•(field)
+    ;
+  synthetic constructor named(core::int field) → self::AbstractNamedMixinApplication<self::AbstractNamedMixinApplication::T%, self::AbstractNamedMixinApplication::S%>
+    : super self::Class::named(field)
+    ;
+  synthetic constructor redirectingGenerative(core::int field) → self::AbstractNamedMixinApplication<self::AbstractNamedMixinApplication::T%, self::AbstractNamedMixinApplication::S%>
+    : super self::Class::redirectingGenerative(field)
+    ;
+}
+static field <T extends core::Object? = dynamic, S extends core::Object? = dynamic>([core::int]) → self::NamedMixinApplication<T%, S%> f1 = #C3;
+static field <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(core::int) → self::NamedMixinApplication<T%, S%> f2 = #C4;
+static field <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(core::int) → self::NamedMixinApplication<T%, S%> f3 = #C5;
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/named_mixin_application.dart:26:25: Error: Member not found: 'fact'.
+  NamedMixinApplication.fact;
+                        ^^^^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/named_mixin_application.dart:27:25: Error: Member not found: 'redirectingFactory'.
+  NamedMixinApplication.redirectingFactory;
+                        ^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/named_mixin_application.dart:29:33: Error: Constructors on abstract classes can't be torn off.
+  AbstractNamedMixinApplication.new;
+                                ^^^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/named_mixin_application.dart:30:33: Error: Constructors on abstract classes can't be torn off.
+  AbstractNamedMixinApplication.named;
+                                ^^^^^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/named_mixin_application.dart:31:33: Error: Constructors on abstract classes can't be torn off.
+  AbstractNamedMixinApplication.redirectingGenerative;
+                                ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/named_mixin_application.dart:32:33: Error: Member not found: 'fact'.
+  AbstractNamedMixinApplication.fact;
+                                ^^^^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/named_mixin_application.dart:33:33: Error: Member not found: 'redirectingFactory'.
+  AbstractNamedMixinApplication.redirectingFactory;
+                                ^^^^^^^^^^^^^^^^^^";
+}
+static method main() → dynamic {
+  <T extends core::Object? = dynamic, S extends core::Object? = dynamic>([core::int]) → self::NamedMixinApplication<T%, S%> f1 = #C3;
+  <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(core::int) → self::NamedMixinApplication<T%, S%> f2 = #C4;
+  <T extends core::Object? = dynamic, S extends core::Object? = dynamic>(core::int) → self::NamedMixinApplication<T%, S%> f3 = #C5;
+  #C6;
+  #C7;
+  #C8;
+  ([core::int]) → self::NamedMixinApplication<core::int, core::String> n1 = f1<core::int, core::String>;
+  (core::int) → self::NamedMixinApplication<core::int, core::String> n2 = f2<core::int, core::String>;
+  (core::int) → self::NamedMixinApplication<core::int, core::String> n3 = f3<core::int, core::String>;
+}
+
+constants  {
+  #C1 = constructor-tearoff self::Class::redirectingFactory
+  #C2 = 0
+  #C3 = constructor-tearoff self::NamedMixinApplication::•
+  #C4 = constructor-tearoff self::NamedMixinApplication::named
+  #C5 = constructor-tearoff self::NamedMixinApplication::redirectingGenerative
+  #C6 = instantiation #C3 <core::int*, core::String*>
+  #C7 = instantiation #C4 <core::int*, core::String*>
+  #C8 = instantiation #C5 <core::int*, core::String*>
+}

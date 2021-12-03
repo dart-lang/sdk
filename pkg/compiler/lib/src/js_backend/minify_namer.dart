@@ -13,7 +13,7 @@ class MinifyNamer extends Namer
   MinifyNamer(JClosedWorld closedWorld, FixedNames fixedNames)
       : super(closedWorld, fixedNames) {
     reserveBackendNames();
-    fieldRegistry = new _FieldNamingRegistry(this);
+    fieldRegistry = _FieldNamingRegistry(this);
   }
 
   @override
@@ -32,7 +32,7 @@ class MinifyNamer extends Namer
   /// minified names will always avoid clashing with annotated names or natives.
   @override
   String _generateFreshStringForName(String proposedName, NamingScope scope,
-      {bool sanitizeForNatives: false, bool sanitizeForAnnotations: false}) {
+      {bool sanitizeForNatives = false, bool sanitizeForAnnotations = false}) {
     String freshName;
     String suggestion = scope.suggestName(proposedName);
     if (suggestion != null && scope.isUnused(suggestion)) {
@@ -48,7 +48,7 @@ class MinifyNamer extends Namer
   // variables) because they clash with names from the DOM. However, it is
   // OK to use them as fields, as we only access fields directly if we know
   // the receiver type.
-  static const List<String> _reservedNativeProperties = const <String>[
+  static const List<String> _reservedNativeProperties = [
     'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z', 'Q',
     // 2-letter:
     'ch', 'cx', 'cy', 'db', 'dx', 'dy', 'fr', 'fx', 'fy', 'go', 'id', 'k1',
@@ -95,7 +95,7 @@ class MinifyNamer extends Namer
     // individually per program, but that would mean that the output of the
     // minifier was less stable from version to version of the program being
     // minified.
-    _populateSuggestedNames(instanceScope, const <String>[
+    _populateSuggestedNames(instanceScope, const [
       r'$add',
       r'add$1',
       r'$and',
@@ -136,7 +136,7 @@ class MinifyNamer extends Namer
       r'toString$0'
     ]);
 
-    _populateSuggestedNames(globalScope, const <String>[
+    _populateSuggestedNames(globalScope, const [
       r'Object',
       'wrapException',
       r'$eq',
@@ -184,7 +184,7 @@ class MinifyNamer extends Namer
       do {
         assert(c != $Z);
         c = (c == $z) ? $A : c + 1;
-        letter = new String.fromCharCodes([c]);
+        letter = String.fromCharCodes([c]);
       } while (_hasBannedPrefix(letter) || scope.isUsed(letter));
       assert(!scope.hasSuggestion(name));
       scope.addSuggestion(name, letter);
@@ -208,13 +208,13 @@ class MinifyNamer extends Namer
     for (int n = 1; n <= 3; n++) {
       int h = hash;
       while (h > 10) {
-        List<int> codes = <int>[_letterNumber(h)];
+        List<int> codes = [_letterNumber(h)];
         int h2 = h ~/ ALPHABET_CHARACTERS;
         for (int i = 1; i < n; i++) {
           codes.add(_alphaNumericNumber(h2));
           h2 ~/= ALPHANUMERIC_CHARACTERS;
         }
-        final candidate = new String.fromCharCodes(codes);
+        final candidate = String.fromCharCodes(codes);
         if (scope.isUnused(candidate) &&
             !jsReserved.contains(candidate) &&
             !_hasBannedPrefix(candidate) &&
@@ -251,14 +251,13 @@ class MinifyNamer extends Namer
 
   /// Remember bad hashes to avoid using a the same character with long numbers
   /// for frequent hashes. For example, `closure` is a very common name.
-  Map<int, int> _badNames = new Map<int, int>();
+  final Map<int, int> _badNames = {};
 
   /// If we can't find a hash based name in the three-letter space, then base
   /// the name on a letter and a counter.
   String _badName(int hash, NamingScope scope) {
     int count = _badNames.putIfAbsent(hash, () => 0);
-    String startLetter =
-        new String.fromCharCodes([_letterNumber(hash + count)]);
+    String startLetter = String.fromCharCodes([_letterNumber(hash + count)]);
     _badNames[hash] = count + 1;
     String name;
     int i = 0;
@@ -333,14 +332,14 @@ class _ConstructorBodyNamingScope {
     return registry.putIfAbsent(cls, () {
       ClassEntity superclass = environment.getSuperClass(cls);
       if (superclass == null) {
-        return new _ConstructorBodyNamingScope.rootScope(cls, environment);
+        return _ConstructorBodyNamingScope.rootScope(cls, environment);
       } else if (environment.isMixinApplication(cls)) {
-        return new _ConstructorBodyNamingScope.forMixinApplication(cls,
-            new _ConstructorBodyNamingScope(superclass, registry, environment));
+        return _ConstructorBodyNamingScope.forMixinApplication(cls,
+            _ConstructorBodyNamingScope(superclass, registry, environment));
       } else {
-        return new _ConstructorBodyNamingScope.forClass(
+        return _ConstructorBodyNamingScope.forClass(
             cls,
-            new _ConstructorBodyNamingScope(superclass, registry, environment),
+            _ConstructorBodyNamingScope(superclass, registry, environment),
             environment);
       }
     });
@@ -361,12 +360,12 @@ class _ConstructorBodyNamingScope {
 }
 
 abstract class _MinifyConstructorBodyNamer implements Namer {
-  Map<ClassEntity, _ConstructorBodyNamingScope> _constructorBodyScopes =
-      new Map<ClassEntity, _ConstructorBodyNamingScope>();
+  final Map<ClassEntity, _ConstructorBodyNamingScope> _constructorBodyScopes =
+      {};
 
   @override
   jsAst.Name constructorBodyName(ConstructorBodyEntity method) {
-    _ConstructorBodyNamingScope scope = new _ConstructorBodyNamingScope(
+    _ConstructorBodyNamingScope scope = _ConstructorBodyNamingScope(
         method.enclosingClass, _constructorBodyScopes, _elementEnvironment);
     String key = scope.constructorBodyKeyFor(method);
     return _disambiguateMemberByKey(

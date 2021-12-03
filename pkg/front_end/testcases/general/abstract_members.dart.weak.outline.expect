@@ -2,37 +2,37 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/abstract_members.dart:19:16: Error: Can't inherit members that conflict with each other.
+// pkg/front_end/testcases/general/abstract_members.dart:21:16: Error: Can't inherit members that conflict with each other.
 // abstract class A implements Interface1, Interface2, Interface3 {
 //                ^
-// pkg/front_end/testcases/general/abstract_members.dart:6:8: Context: This is one inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:8:8: Context: This is one inherited member.
 //   void interfaceMethod1() {}
 //        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:12:7: Context: This is the other inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:14:7: Context: This is the other inherited member.
 //   var interfaceMethod1;
 //       ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:27:16: Error: Can't inherit members that conflict with each other.
+// pkg/front_end/testcases/general/abstract_members.dart:29:16: Error: Can't inherit members that conflict with each other.
 // abstract class B extends A {
 //                ^
-// pkg/front_end/testcases/general/abstract_members.dart:6:8: Context: This is one inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:8:8: Context: This is one inherited member.
 //   void interfaceMethod1() {}
 //        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:12:7: Context: This is the other inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:14:7: Context: This is the other inherited member.
 //   var interfaceMethod1;
 //       ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:33:7: Error: Can't inherit members that conflict with each other.
+// pkg/front_end/testcases/general/abstract_members.dart:35:7: Error: Can't inherit members that conflict with each other.
 // class MyClass extends B {
 //       ^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:6:8: Context: This is one inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:8:8: Context: This is one inherited member.
 //   void interfaceMethod1() {}
 //        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:12:7: Context: This is the other inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:14:7: Context: This is the other inherited member.
 //   var interfaceMethod1;
 //       ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:33:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
+// pkg/front_end/testcases/general/abstract_members.dart:35:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
 //  - A.abstractMethod
 //  - A.property1=
 //  - A.property3=
@@ -48,59 +48,59 @@ library;
 //
 // class MyClass extends B {
 //       ^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:21:3: Context: 'A.abstractMethod' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:23:3: Context: 'A.abstractMethod' is defined here.
 //   abstractMethod();
 //   ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:22:12: Context: 'A.property1=' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:24:12: Context: 'A.property1=' is defined here.
 //   void set property1(_);
 //            ^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:24:12: Context: 'A.property3=' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:26:12: Context: 'A.property3=' is defined here.
 //   void set property3(_);
 //            ^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:6:8: Context: 'Interface1.interfaceMethod1' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:8:8: Context: 'Interface1.interfaceMethod1' is defined here.
 //   void interfaceMethod1() {}
 //        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:12:7: Context: 'Interface2.interfaceMethod1' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:14:7: Context: 'Interface2.interfaceMethod1' is defined here.
 //   var interfaceMethod1;
 //       ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:10:8: Context: 'Interface2.interfaceMethod2' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:12:8: Context: 'Interface2.interfaceMethod2' is defined here.
 //   void interfaceMethod2() {}
 //        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:16:8: Context: 'Interface3.interfaceMethod3' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:18:8: Context: 'Interface3.interfaceMethod3' is defined here.
 //   void interfaceMethod3() {}
 //        ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:42:7: Error: Can't inherit members that conflict with each other.
+// pkg/front_end/testcases/general/abstract_members.dart:44:7: Error: Can't inherit members that conflict with each other.
 // class MyMock1 extends B {
 //       ^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:6:8: Context: This is one inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:8:8: Context: This is one inherited member.
 //   void interfaceMethod1() {}
 //        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:12:7: Context: This is the other inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:14:7: Context: This is the other inherited member.
 //   var interfaceMethod1;
 //       ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:48:7: Error: Can't inherit members that conflict with each other.
+// pkg/front_end/testcases/general/abstract_members.dart:50:7: Error: Can't inherit members that conflict with each other.
 // class MyMock2 extends MyMock1 {
 //       ^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:6:8: Context: This is one inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:8:8: Context: This is one inherited member.
 //   void interfaceMethod1() {}
 //        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:12:7: Context: This is the other inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:14:7: Context: This is the other inherited member.
 //   var interfaceMethod1;
 //       ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:54:7: Error: Can't inherit members that conflict with each other.
+// pkg/front_end/testcases/general/abstract_members.dart:56:7: Error: Can't inherit members that conflict with each other.
 // class MyMock3 extends B {
 //       ^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:6:8: Context: This is one inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:8:8: Context: This is one inherited member.
 //   void interfaceMethod1() {}
 //        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:12:7: Context: This is the other inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:14:7: Context: This is the other inherited member.
 //   var interfaceMethod1;
 //       ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:54:7: Error: The non-abstract class 'MyMock3' is missing implementations for these members:
+// pkg/front_end/testcases/general/abstract_members.dart:56:7: Error: The non-abstract class 'MyMock3' is missing implementations for these members:
 //  - A.abstractMethod
 //  - A.property1=
 //  - A.property2=
@@ -117,68 +117,68 @@ library;
 //
 // class MyMock3 extends B {
 //       ^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:21:3: Context: 'A.abstractMethod' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:23:3: Context: 'A.abstractMethod' is defined here.
 //   abstractMethod();
 //   ^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:22:12: Context: 'A.property1=' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:24:12: Context: 'A.property1=' is defined here.
 //   void set property1(_);
 //            ^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:23:12: Context: 'A.property2=' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:25:12: Context: 'A.property2=' is defined here.
 //   void set property2(_);
 //            ^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:24:12: Context: 'A.property3=' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:26:12: Context: 'A.property3=' is defined here.
 //   void set property3(_);
 //            ^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:6:8: Context: 'Interface1.interfaceMethod1' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:8:8: Context: 'Interface1.interfaceMethod1' is defined here.
 //   void interfaceMethod1() {}
 //        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:12:7: Context: 'Interface2.interfaceMethod1' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:14:7: Context: 'Interface2.interfaceMethod1' is defined here.
 //   var interfaceMethod1;
 //       ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:10:8: Context: 'Interface2.interfaceMethod2' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:12:8: Context: 'Interface2.interfaceMethod2' is defined here.
 //   void interfaceMethod2() {}
 //        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:16:8: Context: 'Interface3.interfaceMethod3' is defined here.
+// pkg/front_end/testcases/general/abstract_members.dart:18:8: Context: 'Interface3.interfaceMethod3' is defined here.
 //   void interfaceMethod3() {}
 //        ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:64:16: Error: Can't inherit members that conflict with each other.
+// pkg/front_end/testcases/general/abstract_members.dart:66:16: Error: Can't inherit members that conflict with each other.
 // abstract class D extends C implements Interface2 {}
 //                ^
-// pkg/front_end/testcases/general/abstract_members.dart:12:7: Context: This is one inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:14:7: Context: This is one inherited member.
 //   var interfaceMethod1;
 //       ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:59:8: Context: This is the other inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:61:8: Context: This is the other inherited member.
 //   void interfaceMethod1(_) {}
 //        ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:72:16: Error: Can't inherit members that conflict with each other.
+// pkg/front_end/testcases/general/abstract_members.dart:74:16: Error: Can't inherit members that conflict with each other.
 // abstract class F extends E implements Interface1 {}
 //                ^
-// pkg/front_end/testcases/general/abstract_members.dart:6:8: Context: This is one inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:8:8: Context: This is one inherited member.
 //   void interfaceMethod1() {}
 //        ^^^^^^^^^^^^^^^^
-// pkg/front_end/testcases/general/abstract_members.dart:67:12: Context: This is the other inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:69:12: Context: This is the other inherited member.
 //   void set interfaceMethod1(_) {}
 //            ^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:84:16: Error: Can't inherit members that conflict with each other.
+// pkg/front_end/testcases/general/abstract_members.dart:86:16: Error: Can't inherit members that conflict with each other.
 // abstract class H extends G implements Foo {}
 //                ^
-// pkg/front_end/testcases/general/abstract_members.dart:75:8: Context: This is one inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:77:8: Context: This is one inherited member.
 //   void foo() {}
 //        ^^^
-// pkg/front_end/testcases/general/abstract_members.dart:79:14: Context: This is the other inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:81:14: Context: This is the other inherited member.
 //   Object get foo => null;
 //              ^^^
 //
-// pkg/front_end/testcases/general/abstract_members.dart:96:16: Error: Can't inherit members that conflict with each other.
+// pkg/front_end/testcases/general/abstract_members.dart:98:16: Error: Can't inherit members that conflict with each other.
 // abstract class J extends I implements Bar {}
 //                ^
-// pkg/front_end/testcases/general/abstract_members.dart:87:14: Context: This is one inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:89:14: Context: This is one inherited member.
 //   Object get foo => null;
 //              ^^^
-// pkg/front_end/testcases/general/abstract_members.dart:91:10: Context: This is the other inherited member.
+// pkg/front_end/testcases/general/abstract_members.dart:93:10: Context: This is the other inherited member.
 //   Object foo() {}
 //          ^^^
 //
@@ -425,32 +425,32 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:10:8 -> SymbolConstant(#interfaceMethod2)
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:10:8 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:10:8 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:10:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:21:3 -> SymbolConstant(#abstractMethod)
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:21:3 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:21:3 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:21:3 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:6:8 -> SymbolConstant(#interfaceMethod1)
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:6:8 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:6:8 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:6:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:16:8 -> SymbolConstant(#interfaceMethod3)
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:16:8 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:16:8 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:16:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:24:12 -> SymbolConstant(#property3=)
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:12:8 -> SymbolConstant(#interfaceMethod2)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:12:8 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:12:8 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:12:8 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:23:3 -> SymbolConstant(#abstractMethod)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:23:3 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:23:3 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:23:3 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:8:8 -> SymbolConstant(#interfaceMethod1)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:8:8 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:8:8 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:8:8 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:18:8 -> SymbolConstant(#interfaceMethod3)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:18:8 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:18:8 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:18:8 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:26:12 -> SymbolConstant(#property3=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:26:12 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:26:12 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:14:7 -> SymbolConstant(#interfaceMethod1=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:14:7 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:14:7 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:24:12 -> SymbolConstant(#property1=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:24:12 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:24:12 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:12:7 -> SymbolConstant(#interfaceMethod1=)
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:12:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:12:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:22:12 -> SymbolConstant(#property1=)
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:22:12 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:22:12 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:23:12 -> SymbolConstant(#property2=)
-Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:23:12 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:23:12 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:24:12 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_members.dart:25:12 -> SymbolConstant(#property2=)
+Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_members.dart:25:12 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_members.dart:25:12 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 73, effectively constant: 28

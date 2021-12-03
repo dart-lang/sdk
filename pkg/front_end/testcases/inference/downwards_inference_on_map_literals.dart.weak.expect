@@ -75,22 +75,22 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method foo([core::Map<core::int*, core::String*>* m1 = #C4, core::Map<core::int*, core::String*>* m2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:12:79: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+static method foo([core::Map<core::int*, core::String*>* m1 = #C3, core::Map<core::int*, core::String*>* m2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:12:79: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ \"hello\":
                                                                               ^"]) → void {}
 static method test() → void {
   {
     core::Map<core::int*, core::String*>* l0 = <core::int*, core::String*>{};
     core::Map<core::int*, core::String*>* l1 = <core::int*, core::String*>{3: "hello"};
-    core::Map<core::int*, core::String*>* l2 = <core::int*, core::String*>{let final Never* #t1 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:20:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    core::Map<core::int*, core::String*>* l2 = <core::int*, core::String*>{invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:20:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ \"hello\": \"hello\"
                                             ^" in "hello" as{TypeError} core::int*: "hello"};
-    core::Map<core::int*, core::String*>* l3 = <core::int*, core::String*>{3: let final Never* #t2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:23:50: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    core::Map<core::int*, core::String*>* l3 = <core::int*, core::String*>{3: invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:23:50: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
       3: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/ 3
                                                  ^" in 3 as{TypeError} core::String*};
-    core::Map<core::int*, core::String*>* l4 = <core::int*, core::String*>{3: "hello", let final Never* #t3 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:27:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    core::Map<core::int*, core::String*>* l4 = <core::int*, core::String*>{3: "hello", invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:27:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ \"hello\":
-                                            ^" in "hello" as{TypeError} core::int*: let final Never* #t4 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:28:51: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+                                            ^" in "hello" as{TypeError} core::int*: invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:28:51: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
           /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/ 3
                                                   ^" in 3 as{TypeError} core::String*};
   }
@@ -105,36 +105,36 @@ static method test() → void {
     core::Map<dynamic, core::String*>* l0 = <dynamic, core::String*>{};
     core::Map<dynamic, core::String*>* l1 = <dynamic, core::String*>{3: "hello"};
     core::Map<dynamic, core::String*>* l2 = <dynamic, core::String*>{"hello": "hello"};
-    core::Map<dynamic, core::String*>* l3 = <dynamic, core::String*>{3: let final Never* #t5 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:48:50: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    core::Map<dynamic, core::String*>* l3 = <dynamic, core::String*>{3: invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:48:50: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
       3: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/ 3
                                                  ^" in 3 as{TypeError} core::String*};
-    core::Map<dynamic, core::String*>* l4 = <dynamic, core::String*>{3: "hello", "hello": let final Never* #t6 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:52:56: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    core::Map<dynamic, core::String*>* l4 = <dynamic, core::String*>{3: "hello", "hello": invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:52:56: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
       \"hello\": /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/ 3
                                                        ^" in 3 as{TypeError} core::String*};
   }
   {
     core::Map<core::int*, dynamic>* l0 = <core::int*, dynamic>{};
     core::Map<core::int*, dynamic>* l1 = <core::int*, dynamic>{3: "hello"};
-    core::Map<core::int*, dynamic>* l2 = <core::int*, dynamic>{let final Never* #t7 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:59:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    core::Map<core::int*, dynamic>* l2 = <core::int*, dynamic>{invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:59:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ \"hello\": \"hello\"
                                             ^" in "hello" as{TypeError} core::int*: "hello"};
     core::Map<core::int*, dynamic>* l3 = <core::int*, dynamic>{3: 3};
-    core::Map<core::int*, dynamic>* l4 = <core::int*, dynamic>{3: "hello", let final Never* #t8 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:64:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    core::Map<core::int*, dynamic>* l4 = <core::int*, dynamic>{3: "hello", invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:64:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ \"hello\": 3
                                             ^" in "hello" as{TypeError} core::int*: 3};
   }
   {
-    core::Map<core::int*, core::String*>* l0 = let final Never* #t9 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:68:76: Error: The map literal type 'Map<num, dynamic>' isn't of expected type 'Map<int, String>'.
+    core::Map<core::int*, core::String*>* l0 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:68:76: Error: The map literal type 'Map<num, dynamic>' isn't of expected type 'Map<int, String>'.
  - 'Map' is from 'dart:core'.
 Change the type of the map literal or the context in which it is used.
     Map<int, String> l0 = /*error:INVALID_CAST_LITERAL_MAP*/ <num, dynamic>{};
                                                                            ^" in <core::num*, dynamic>{};
-    core::Map<core::int*, core::String*>* l1 = let final Never* #t10 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:69:76: Error: The map literal type 'Map<num, dynamic>' isn't of expected type 'Map<int, String>'.
+    core::Map<core::int*, core::String*>* l1 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:69:76: Error: The map literal type 'Map<num, dynamic>' isn't of expected type 'Map<int, String>'.
  - 'Map' is from 'dart:core'.
 Change the type of the map literal or the context in which it is used.
     Map<int, String> l1 = /*error:INVALID_CAST_LITERAL_MAP*/ <num, dynamic>{
                                                                            ^" in <core::num*, dynamic>{3: "hello"};
-    core::Map<core::int*, core::String*>* l3 = let final Never* #t11 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:72:76: Error: The map literal type 'Map<num, dynamic>' isn't of expected type 'Map<int, String>'.
+    core::Map<core::int*, core::String*>* l3 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:72:76: Error: The map literal type 'Map<num, dynamic>' isn't of expected type 'Map<int, String>'.
  - 'Map' is from 'dart:core'.
 Change the type of the map literal or the context in which it is used.
     Map<int, String> l3 = /*error:INVALID_CAST_LITERAL_MAP*/ <num, dynamic>{
@@ -157,6 +157,5 @@ static method main() → dynamic {}
 constants  {
   #C1 = 1
   #C2 = "hello"
-  #C3 = <dynamic>[#C1, #C2]
-  #C4 = core::_ImmutableMap<core::int*, core::String*> {_kvPairs:#C3}
+  #C3 = <core::int*, core::String*>{#C1:#C2)
 }

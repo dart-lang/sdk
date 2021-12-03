@@ -1,33 +1,17 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
-import "dart:_internal" as _in;
 
 class C extends core::Object {
-  field core::int? _#C#a = _in::createSentinel<core::int>();
-  field core::int? _#C#b = _in::createSentinel<core::int>();
-  field core::int? _#C#c = _in::createSentinel<core::int>();
-  field core::int? _#C#d = _in::createSentinel<core::int>();
+  late field core::int a;
+  late final [setter] field core::int b;
+  late field core::int c = 1.{core::int::unary-}(){() → core::int};
+  late final field core::int d = 1.{core::int::unary-}(){() → core::int};
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  get a() → core::int
-    return let final core::int? #t1 = this.{self::C::_#C#a}{core::int?} in _in::isSentinel(#t1) ?{core::int} throw new _in::LateError::fieldNI("a") : #t1{core::int};
-  set a(core::int #t2) → void
-    this.{self::C::_#C#a} = #t2;
-  get b() → core::int
-    return let final core::int? #t3 = this.{self::C::_#C#b}{core::int?} in _in::isSentinel(#t3) ?{core::int} throw new _in::LateError::fieldNI("b") : #t3{core::int};
-  set b(core::int #t4) → void
-    if(_in::isSentinel(this.{self::C::_#C#b}{core::int?}))
-      this.{self::C::_#C#b} = #t4;
-    else
-      throw new _in::LateError::fieldAI("b");
-  get c() → core::int
-    return let final core::int? #t5 = this.{self::C::_#C#c}{core::int?} in _in::isSentinel(#t5) ?{core::int} this.{self::C::_#C#c} = 1.{core::int::unary-}(){() → core::int} : #t5{core::int};
-  set c(core::int #t6) → void
-    this.{self::C::_#C#c} = #t6;
-  get d() → core::int
-    return let final core::int #t7 = this.{self::C::_#C#d}{core::int?} in _in::isSentinel(#t7) ?{core::int} let final core::int #t8 = 1.{core::int::unary-}(){() → core::int} in _in::isSentinel(this.{self::C::_#C#d}{core::int?}) ?{core::int} this.{self::C::_#C#d} = #t8 : throw new _in::LateError::fieldADI("d") : #t7;
+  static method _#new#tearOff() → self::C
+    return new self::C::•();
 }
 static field self::C c = new self::C::•();
 static method main() → void {

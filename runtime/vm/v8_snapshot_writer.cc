@@ -16,6 +16,7 @@ const V8SnapshotProfileWriter::ObjectId
 
 V8SnapshotProfileWriter::V8SnapshotProfileWriter(Zone* zone)
     : zone_(zone),
+      nodes_(zone_),
       node_types_(zone_),
       edge_types_(zone_),
       strings_(zone_),
@@ -41,7 +42,7 @@ void V8SnapshotProfileWriter::SetObjectTypeAndName(const ObjectId& object_id,
   const intptr_t type_index = node_types_.Add(type);
   if (info->type != kInvalidString && info->type != type_index) {
     FATAL("Attempting to assign mismatching type %s to node %s", type,
-          info->ToCString(zone_));
+          info->ToCString(this, zone_));
   }
   info->type = type_index;
   // Don't overwrite any existing name.
@@ -103,26 +104,30 @@ V8SnapshotProfileWriter::NodeInfo* V8SnapshotProfileWriter::EnsureId(
   return nodes_.Lookup(object_id);
 }
 
-const char* V8SnapshotProfileWriter::NodeInfo::ToCString(Zone* zone) const {
+const char* V8SnapshotProfileWriter::NodeInfo::ToCString(
+    V8SnapshotProfileWriter* profile_writer,
+    Zone* zone) const {
   JSONWriter writer;
-  WriteDebug(&writer);
+  WriteDebug(profile_writer, &writer);
   return OS::SCreate(zone, "%s", writer.buffer()->buffer());
 }
 
-void V8SnapshotProfileWriter::NodeInfo::Write(JSONWriter* writer) const {
+void V8SnapshotProfileWriter::NodeInfo::Write(
+    V8SnapshotProfileWriter* profile_writer,
+    JSONWriter* writer) const {
   ASSERT(id.space() != IdSpace::kInvalid);
   if (type == kInvalidString) {
-    FATAL("No type given for node %s", id.ToCString(profile_writer_->zone_));
+    FATAL("No type given for node %s", id.ToCString(profile_writer->zone_));
   }
   writer->PrintValue(type);
   if (name != kInvalidString) {
     writer->PrintValue(name);
   } else {
-    ASSERT(profile_writer_ != nullptr);
+    ASSERT(profile_writer != nullptr);
     // If we don't already have a name for the node, we lazily create a default
     // one. This is safe since the strings table is written out after the nodes.
-    const intptr_t name = profile_writer_->strings_.AddFormatted(
-        "Unnamed [%s] (nil)", profile_writer_->node_types_.At(type));
+    const intptr_t name = profile_writer->strings_.AddFormatted(
+        "Unnamed [%s] (nil)", profile_writer->node_types_.At(type));
     writer->PrintValue(name);
   }
   id.Write(writer);
@@ -130,17 +135,19 @@ void V8SnapshotProfileWriter::NodeInfo::Write(JSONWriter* writer) const {
   writer->PrintValue64(edges->Length());
 }
 
-void V8SnapshotProfileWriter::NodeInfo::WriteDebug(JSONWriter* writer) const {
+void V8SnapshotProfileWriter::NodeInfo::WriteDebug(
+    V8SnapshotProfileWriter* profile_writer,
+    JSONWriter* writer) const {
   writer->OpenObject();
   if (type != kInvalidString) {
-    writer->PrintProperty("type", profile_writer_->node_types_.At(type));
+    writer->PrintProperty("type", profile_writer->node_types_.At(type));
   }
   if (name != kInvalidString) {
-    writer->PrintProperty("name", profile_writer_->strings_.At(name));
+    writer->PrintProperty("name", profile_writer->strings_.At(name));
   }
   id.WriteDebug(writer, "id");
   writer->PrintProperty("self_size", self_size);
-  edges->WriteDebug(writer, "edges");
+  edges->WriteDebug(profile_writer, writer, "edges");
   writer->CloseObject();
 }
 
@@ -188,45 +195,52 @@ const char* V8SnapshotProfileWriter::ObjectId::IdSpaceToCString(IdSpace space) {
   }
 }
 
-const char* V8SnapshotProfileWriter::EdgeMap::ToCString(Zone* zone) const {
+const char* V8SnapshotProfileWriter::EdgeMap::ToCString(
+    V8SnapshotProfileWriter* profile_writer,
+    Zone* zone) const {
   JSONWriter writer;
-  WriteDebug(&writer);
+  WriteDebug(profile_writer, &writer);
   return OS::SCreate(zone, "%s", writer.buffer()->buffer());
 }
 
-void V8SnapshotProfileWriter::EdgeMap::WriteDebug(JSONWriter* writer,
-                                                  const char* property) const {
+void V8SnapshotProfileWriter::EdgeMap::WriteDebug(
+    V8SnapshotProfileWriter* profile_writer,
+    JSONWriter* writer,
+    const char* property) const {
   writer->OpenArray(property);
   auto edge_it = GetIterator();
   while (auto const pair = edge_it.Next()) {
-    pair->edge.WriteDebug(writer, pair->target);
+    pair->edge.WriteDebug(profile_writer, writer, pair->target);
   }
   writer->CloseArray();
 }
 
-void V8SnapshotProfileWriter::Edge::Write(JSONWriter* writer,
-                                          const ObjectId& target_id) const {
+void V8SnapshotProfileWriter::Edge::Write(
+    V8SnapshotProfileWriter* profile_writer,
+    JSONWriter* writer,
+    const ObjectId& target_id) const {
   ASSERT(type != Type::kInvalid);
   writer->PrintValue64(static_cast<intptr_t>(type));
   writer->PrintValue64(name_or_offset);
-  auto const target = profile_writer_->nodes_.LookupValue(target_id);
+  auto const target = profile_writer->nodes_.LookupValue(target_id);
   writer->PrintValue64(target.offset());
 }
 
 void V8SnapshotProfileWriter::Edge::WriteDebug(
+    V8SnapshotProfileWriter* profile_writer,
     JSONWriter* writer,
     const ObjectId& target_id) const {
   writer->OpenObject();
   if (type != Type::kInvalid) {
     writer->PrintProperty(
-        "type", profile_writer_->edge_types_.At(static_cast<intptr_t>(type)));
+        "type", profile_writer->edge_types_.At(static_cast<intptr_t>(type)));
   }
   if (type == Type::kProperty) {
-    writer->PrintProperty("name", profile_writer_->strings_.At(name_or_offset));
+    writer->PrintProperty("name", profile_writer->strings_.At(name_or_offset));
   } else {
     writer->PrintProperty64("offset", name_or_offset);
   }
-  auto const target = profile_writer_->nodes_.LookupValue(target_id);
+  auto const target = profile_writer->nodes_.LookupValue(target_id);
   target.id.WriteDebug(writer, "target");
   writer->CloseObject();
 }
@@ -349,14 +363,14 @@ void V8SnapshotProfileWriter::Write(JSONWriter* writer) {
     ASSERT(root != nullptr);
     intptr_t offset = 0;
     root->set_offset(offset);
-    root->Write(writer);
+    root->Write(this, writer);
     offset += kNumNodeFields;
     auto nodes_it = nodes_.GetIterator();
     for (auto entry = nodes_it.Next(); entry != nullptr;
          entry = nodes_it.Next()) {
       if (entry->id == kArtificialRootId) continue;
       entry->set_offset(offset);
-      entry->Write(writer);
+      entry->Write(this, writer);
       offset += kNumNodeFields;
     }
     writer->CloseArray();
@@ -366,7 +380,7 @@ void V8SnapshotProfileWriter::Write(JSONWriter* writer) {
     auto write_edges = [&](const NodeInfo& info) {
       auto edges_it = info.edges->GetIterator();
       while (auto const pair = edges_it.Next()) {
-        pair->edge.Write(writer, pair->target);
+        pair->edge.Write(this, writer, pair->target);
       }
     };
     writer->OpenArray("edges");
@@ -398,13 +412,13 @@ void V8SnapshotProfileWriter::Write(const char* filename) {
   auto file_close = Dart::file_close_callback();
   if ((file_open == nullptr) || (file_write == nullptr) ||
       (file_close == nullptr)) {
-    OS::PrintErr("Could not access file callbacks to write snapshot profile.");
+    OS::PrintErr("warning: Could not access file callbacks.");
     return;
   }
 
   auto file = file_open(filename, /*write=*/true);
   if (file == nullptr) {
-    OS::PrintErr("Failed to open file %s\n", filename);
+    OS::PrintErr("warning: Failed to write snapshot profile: %s\n", filename);
   } else {
     char* output = nullptr;
     intptr_t output_length = 0;

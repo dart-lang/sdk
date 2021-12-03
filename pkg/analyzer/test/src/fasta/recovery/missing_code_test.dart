@@ -571,10 +571,10 @@ class C {
   int f;
   C(this);
 }
-''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
+''', [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD], '''
 class C {
   int f;
-  C(this._s_);
+  C(_k_);
 }
 ''');
   }
@@ -585,10 +585,10 @@ class C {
   int f;
   C(this, p);
 }
-''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
+''', [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD], '''
 class C {
   int f;
-  C(this._s_, p);
+  C(_k_, p);
 }
 ''');
   }

@@ -266,7 +266,7 @@ Future<CompilerResult> _compile(List<String> args,
   var additionalDills = summaryModules.keys.toList();
 
   if (!useIncrementalCompiler) {
-    compilerState = await fe.initializeCompiler(
+    compilerState = fe.initializeCompiler(
         oldCompilerState,
         compileSdk,
         sourcePathToUri(getSdkPath()),
@@ -819,7 +819,8 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
   }
 
   // Add platform defined variables
-  declaredVariables.addAll(sdkLibraryVariables);
+  // TODO(47243) Remove when all code paths read these from the `Target`.
+  declaredVariables.addAll(sdkLibraryEnvironmentDefines);
 
   return declaredVariables;
 }

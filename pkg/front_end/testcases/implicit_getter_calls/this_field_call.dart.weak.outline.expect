@@ -6,7 +6,7 @@ class A<T extends core::Object* = dynamic> extends core::Object {
   field (self::A::T*) →* void f;
   constructor •((self::A::T*) →* void f) → self::A<self::A::T*>*
     ;
-  method foo(generic-covariant-impl self::A::T* x) → dynamic
+  method foo(covariant-by-class self::A::T* x) → dynamic
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

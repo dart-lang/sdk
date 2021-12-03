@@ -61,7 +61,6 @@ import 'package:js/js.dart';
   native:PositionError,
   native:SensorErrorEvent,
   native:SpeechRecognitionError,
-  native:SqlError,
   param:Function*]
 */
 @JS()

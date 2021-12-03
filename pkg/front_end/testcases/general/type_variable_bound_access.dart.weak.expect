@@ -11,8 +11,8 @@ import self as self;
 import "dart:core" as core;
 
 class DynamicClass<T extends dynamic, S extends self::DynamicClass::T* = dynamic> extends core::Object {
-  generic-covariant-impl field self::DynamicClass::T* field1;
-  generic-covariant-impl field self::DynamicClass::T* field2;
+  covariant-by-class field self::DynamicClass::T* field1;
+  covariant-by-class field self::DynamicClass::T* field2;
   constructor •(self::DynamicClass::T* field1, self::DynamicClass::T* field2) → self::DynamicClass<self::DynamicClass::T*, self::DynamicClass::S*>*
     : self::DynamicClass::field1 = field1, self::DynamicClass::field2 = field2, super core::Object::•()
     ;
@@ -30,8 +30,8 @@ class DynamicClass<T extends dynamic, S extends self::DynamicClass::T* = dynamic
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class NumClass<T extends core::num*, S extends self::NumClass::T* = core::num*> extends core::Object {
-  generic-covariant-impl field self::NumClass::T* field1;
-  generic-covariant-impl field self::NumClass::S* field2;
+  covariant-by-class field self::NumClass::T* field1;
+  covariant-by-class field self::NumClass::S* field2;
   constructor •(self::NumClass::T* field1, self::NumClass::S* field2) → self::NumClass<self::NumClass::T*, self::NumClass::S*>*
     : self::NumClass::field1 = field1, self::NumClass::field2 = field2, super core::Object::•()
     ;
@@ -41,7 +41,7 @@ class NumClass<T extends core::num*, S extends self::NumClass::T* = core::num*> 
     return this.{self::NumClass::field1}{self::NumClass::T*}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general/type_variable_bound_access.dart:22:36: Error: The getter 'length' isn't defined for the class 'num'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'length'.
   num method2() => field1 + field2.length;
-                                   ^^^^^^" as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
+                                   ^^^^^^" in this.{self::NumClass::field2}{self::NumClass::S*}{<unresolved>}.length as{TypeError,ForDynamic} core::num*){(core::num*) →* core::num*};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -54,12 +54,12 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Class<X5 extends self::Class::X4* = core::int*, X4 extends self::Class::X3* = core::int*, X3 extends self::Class::X2* = core::int*, X2 extends self::Class::X1* = core::int*, X1 extends self::Class::X0* = core::int*, X0 extends core::int*> extends core::Object {
-  generic-covariant-impl field self::Class::X0* field0 = null;
-  generic-covariant-impl field self::Class::X1* field1 = null;
-  generic-covariant-impl field self::Class::X2* field2 = null;
-  generic-covariant-impl field self::Class::X3* field3 = null;
-  generic-covariant-impl field self::Class::X4* field4 = null;
-  generic-covariant-impl field self::Class::X5* field5 = null;
+  covariant-by-class field self::Class::X0* field0 = null;
+  covariant-by-class field self::Class::X1* field1 = null;
+  covariant-by-class field self::Class::X2* field2 = null;
+  covariant-by-class field self::Class::X3* field3 = null;
+  covariant-by-class field self::Class::X4* field4 = null;
+  covariant-by-class field self::Class::X5* field5 = null;
   synthetic constructor •() → self::Class<self::Class::X5*, self::Class::X4*, self::Class::X3*, self::Class::X2*, self::Class::X1*, self::Class::X0*>*
     : super core::Object::•()
     ;

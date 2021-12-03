@@ -12,5 +12,5 @@ abstract class Environment {
   void validate(String name, String value, List<String> errors);
 
   /// Looks up the value of the variable with [name].
-  String lookUp(String name);
+  String? lookUp(String name);
 }

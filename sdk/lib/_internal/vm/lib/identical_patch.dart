@@ -7,7 +7,8 @@
 @patch
 @pragma("vm:recognized", "other")
 @pragma("vm:exact-result-type", bool)
-bool identical(Object? a, Object? b) native "Identical_comparison";
+@pragma("vm:external-name", "Identical_comparison")
+external bool identical(Object? a, Object? b);
 
 @patch
 @pragma("vm:entry-point", "call")

@@ -95,13 +95,12 @@ class Const extends Member {
   String get name => nameToken.lexeme;
 
   String get valueAsLiteral {
-    if (type.dartType == 'String') {
-      // Write strings as raw strings, since some have dollars in them (eg. for
-      // LSP method names). valueToken.lexeme already includes the quotes as
-      // read from the spec.
-      return 'r${valueToken.lexeme}';
+    var lexeme = valueToken.lexeme;
+    if (type.dartType == 'String' && lexeme.contains(r'$')) {
+      // lexeme already includes the quotes as read from the spec.
+      return 'r$lexeme';
     } else {
-      return valueToken.lexeme;
+      return lexeme;
     }
   }
 }

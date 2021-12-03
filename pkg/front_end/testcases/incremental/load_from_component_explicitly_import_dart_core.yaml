@@ -17,12 +17,14 @@ worlds:
     warnings: false
     sources:
       main.dart: |
+        // @dart=2.9
         import "b.dart";
 
         main() {
           useString("hello");
         }
       b.dart: |
+        // @dart=2.9
         import "dart:core";
 
         void useString(String s) {
@@ -39,12 +41,14 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "b.dart";
 
         main() {
           useString("hello");
         }
       b.dart: |
+        // @dart=2.9
         import "dart:core";
 
         void useString(String s) {

@@ -10,6 +10,7 @@ These pragmas are part of the VM's API and are safe for use in external code.
 | `vm:never-inline` | [Never inline a function or method](compiler/pragmas_recognized_by_compiler.md#requesting-a-function-never-be-inlined) |
 | `vm:prefer-inline` | [Inline a function or method when possible](compiler/pragmas_recognized_by_compiler.md#requesting-a-function-be-inlined) |
 | `vm:notify-debugger-on-exception` | Marks a function that catches exceptions, making the VM treat any caught exception as if they were uncaught. This can be used to notify an attached debugger during debugging, without pausing the app during regular execution. |
+| `vm:external-name` | Allows to specify an external (native) name for an `external` function. This name is used to lookup native implementation via native resolver associated with the current library through embedding APIs. This is a replacement for legacy VM specific `native "name"` syntax. |
 
 ## Unsafe pragmas for general use
 

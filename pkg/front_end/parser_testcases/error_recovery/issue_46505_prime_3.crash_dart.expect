@@ -1,21 +1,21 @@
 Problems reported:
 
-parser/error_recovery/issue_46505_prime_3.crash:2:10: Expected '>' after this.
+parser/error_recovery/issue_46505_prime_3.crash:2:19: Expected a type, but got '>>>'.
   Stream<List<Set<>>>
-         ^^^^
+                  ^^^
 
-parser/error_recovery/issue_46505_prime_3.crash:2:3: A method declaration needs an explicit list of parameters.
-  Stream<List<Set<>>>
-  ^^^^^^
-
-parser/error_recovery/issue_46505_prime_3.crash:3:1: Expected a function body, but got '}'.
+parser/error_recovery/issue_46505_prime_3.crash:3:1: Expected an identifier, but got '}'.
 }
 ^
+
+parser/error_recovery/issue_46505_prime_3.crash:2:21: Expected ';' after this.
+  Stream<List<Set<>>>
+                    ^
 
 beginCompilationUnit(class)
   beginMetadataStar(class)
   endMetadataStar(0)
-  beginClassOrNamedMixinApplicationPrelude(class)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
     handleIdentifier(A, classOrMixinDeclaration)
     handleNoTypeVariables({)
     beginClassDeclaration(class, null, A)
@@ -24,33 +24,34 @@ beginCompilationUnit(class)
       handleClassNoWithClause()
       handleClassOrMixinImplements(null, 0)
       handleClassHeader(class, class, null)
-      beginClassOrMixinBody(DeclarationKind.Class, {)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
         beginMetadataStar(Stream)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, Stream)
-            handleNoType({)
-            handleIdentifier(Stream, methodDeclaration)
-            beginTypeVariables(<)
-              beginMetadataStar(List)
-              endMetadataStar(0)
-              handleIdentifier(List, typeVariableDeclaration)
-              beginTypeVariable(List)
-                handleTypeVariablesDefined(List, 1)
-                handleNoType(List)
-              endTypeVariable(<, 0, null, null)
-              handleRecoverableError(Message[ExpectedAfterButGot, Expected '>' after this., null, {string: >}], List, List)
-            endTypeVariables(<, >)
-            handleRecoverableError(MissingMethodParameters, Stream, Stream)
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
-            handleAsyncModifier(null, null)
-            handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got '}'., null, {lexeme: }}], }, })
-            handleInvalidFunctionBody({)
-          endClassMethod(null, Stream, (, null, })
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, {)
+            handleIdentifier(Stream, typeReference)
+            beginTypeArguments(<)
+              handleIdentifier(List, typeReference)
+              beginTypeArguments(<)
+                handleIdentifier(Set, typeReference)
+                beginTypeArguments(<)
+                  handleRecoverableError(Message[ExpectedType, Expected a type, but got '>>>'., null, {lexeme: >>>}], >>>, >>>)
+                  handleIdentifier(, typeReference)
+                  handleNoTypeArguments(>>>)
+                  handleType(, null)
+                endTypeArguments(1, <, >)
+                handleType(Set, null)
+              endTypeArguments(1, <, >)
+              handleType(List, null)
+            endTypeArguments(1, <, >)
+            handleType(Stream, null)
+            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '}'., Try inserting an identifier before '}'., {lexeme: }}], }, })
+            handleIdentifier(, fieldDeclaration)
+            handleNoFieldInitializer(})
+            handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], >, >)
+          endClassFields(null, null, null, null, null, null, 1, Stream, ;)
         endMember()
-      endClassOrMixinBody(DeclarationKind.Class, 1, {, })
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 1, {, })
     endClassDeclaration(class, })
   endTopLevelDeclaration()
 endCompilationUnit(1, )

@@ -15,7 +15,7 @@
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 3
-#define SERVICE_PROTOCOL_MINOR_VERSION 50
+#define SERVICE_PROTOCOL_MINOR_VERSION 52
 
 class Array;
 class EmbedderServiceHandler;
@@ -98,7 +98,7 @@ class Service : public AllStatic {
   // Handles a message which is directed to a particular isolate.
   static ErrorPtr HandleIsolateMessage(Isolate* isolate, const Array& message);
 
-  static void HandleEvent(ServiceEvent* event);
+  static void HandleEvent(ServiceEvent* event, bool enter_safepoint = true);
 
   static void RegisterIsolateEmbedderCallback(
       const char* name,
@@ -231,7 +231,13 @@ class Service : public AllStatic {
   static void PostEvent(Isolate* isolate,
                         const char* stream_id,
                         const char* kind,
-                        JSONStream* event);
+                        JSONStream* event,
+                        bool enter_safepoint);
+
+  static void PostEventImpl(Isolate* isolate,
+                            const char* stream_id,
+                            const char* kind,
+                            JSONStream* event);
 
   static ErrorPtr MaybePause(Isolate* isolate, const Error& error);
 

@@ -18,13 +18,13 @@ static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
-static method _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b, core::int c}) → mai::A<self::_#H#fact#tearOff::Y%>
+static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b, core::int c}) → mai::A<self::_#H#fact#tearOff::Y%>
   return mai::A::fact<self::_#H#fact#tearOff::Y%>(a, b: b, c: c);
-static method _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<self::_#H#redirect#tearOff::Y%>
+static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<self::_#H#redirect#tearOff::Y%>
   return mai::A::_#redirect#tearOff<self::_#H#redirect#tearOff::Y%>();
-static method _#H#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<self::_#H#new#tearOff::Y%>
+static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<self::_#H#new#tearOff::Y%>
   return new mai::A::•<self::_#H#new#tearOff::Y%>();
-static method _#H#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#named#tearOff::Y% a, [core::int? b]) → mai::A<self::_#H#named#tearOff::Y%>
+static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#named#tearOff::Y% a, [core::int? b]) → mai::A<self::_#H#named#tearOff::Y%>
   return new mai::A::named<self::_#H#named#tearOff::Y%>(a, b);
 
 library /*isNonNullableByDefault*/;
@@ -34,7 +34,7 @@ import "dart:core" as core;
 typedef F<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = mai::A<Y%>;
 typedef G<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = mai::A<Y%>;
 class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[mai::A::redirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor •() → mai::A<mai::A::T%>
     ;
   constructor named(mai::A::T% a, [core::int? b]) → mai::A<mai::A::T%>
@@ -48,7 +48,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
   static method _#fact#tearOff<T extends core::Object? = dynamic>(mai::A::_#fact#tearOff::T% a, {core::int? b, core::int c}) → mai::A<mai::A::_#fact#tearOff::T%>
     return mai::A::fact<mai::A::_#fact#tearOff::T%>(a, b: b, c: c);
   static factory redirect<T extends core::Object? = dynamic>() → mai::A<mai::A::redirect::T%>
-    let dynamic #redirecting_factory = mai::A::• in let mai::A::redirect::T% #typeArg0 = null in invalid-expression;
+    return new mai::A::•<mai::A::redirect::T%>();
   static method _#redirect#tearOff<T extends core::Object? = dynamic>() → mai::A<mai::A::_#redirect#tearOff::T%>
     return new mai::A::•<mai::A::_#redirect#tearOff::T%>();
 }
@@ -76,3 +76,7 @@ static method _#G#fact#tearOff<unrelated X extends core::Object? = dynamic, Y ex
   return mai::A::fact<mai::_#G#fact#tearOff::Y%>(a, b: b, c: c);
 static method _#G#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<mai::_#G#redirect#tearOff::Y%>
   return mai::A::_#redirect#tearOff<mai::_#G#redirect#tearOff::Y%>();
+
+constants  {
+  #C1 = constructor-tearoff mai::A::redirect
+}

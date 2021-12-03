@@ -1,0 +1,377 @@
+Problems reported:
+
+parser/error_recovery/issue_46505_prime_5.crash:4:45: Expected a type, but got '>>>'.
+  Stream<List<Set<List</* user curser here*/>>>>
+                                            ^^^
+
+parser/error_recovery/issue_46505_prime_5.crash:5:1: Expected an identifier, but got '}'.
+}
+^
+
+parser/error_recovery/issue_46505_prime_5.crash:4:48: Expected ';' after this.
+  Stream<List<Set<List</* user curser here*/>>>>
+                                               ^
+
+parser/error_recovery/issue_46505_prime_5.crash:11:45: Expected a type, but got '>>>'.
+  Stream<List<Set<List</* user curser here*/>>>>
+                                            ^^^
+
+parser/error_recovery/issue_46505_prime_5.crash:12:1: Expected an identifier, but got '}'.
+}
+^
+
+parser/error_recovery/issue_46505_prime_5.crash:11:48: Expected ';' after this.
+  Stream<List<Set<List</* user curser here*/>>>>
+                                               ^
+
+parser/error_recovery/issue_46505_prime_5.crash:19:45: Expected a type, but got '>>>'.
+  Stream<List<Set<List</* user curser here*/>>>>
+                                            ^^^
+
+parser/error_recovery/issue_46505_prime_5.crash:20:10: Expected '>' after this.
+  Stream<List<Set<List<String>>>> baz;
+         ^^^^
+
+parser/error_recovery/issue_46505_prime_5.crash:20:3: A method declaration needs an explicit list of parameters.
+  Stream<List<Set<List<String>>>> baz;
+  ^^^^^^
+
+parser/error_recovery/issue_46505_prime_5.crash:20:35: Expected a function body, but got 'baz'.
+  Stream<List<Set<List<String>>>> baz;
+                                  ^^^
+
+parser/error_recovery/issue_46505_prime_5.crash:20:35: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  Stream<List<Set<List<String>>>> baz;
+                                  ^^^
+
+parser/error_recovery/issue_46505_prime_5.crash:26:43: Expected a type, but got '>>>'.
+Stream<List<Set<List</* user curser here*/>>>>
+                                          ^^^
+
+parser/error_recovery/issue_46505_prime_5.crash:27:8: Expected '>' after this.
+Stream<List<Set<List<String>>>> baz;
+       ^^^^
+
+parser/error_recovery/issue_46505_prime_5.crash:27:1: A function declaration needs an explicit list of parameters.
+Stream<List<Set<List<String>>>> baz;
+^^^^^^
+
+parser/error_recovery/issue_46505_prime_5.crash:27:33: Expected a function body, but got 'baz'.
+Stream<List<Set<List<String>>>> baz;
+                                ^^^
+
+parser/error_recovery/issue_46505_prime_5.crash:27:33: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+Stream<List<Set<List<String>>>> baz;
+                                ^^^
+
+parser/error_recovery/issue_46505_prime_5.crash:33:1: Expected an identifier, but got ''.
+
+WARNING: Reporting at eof --- see below for details.
+
+parser/error_recovery/issue_46505_prime_5.crash:32:43: Expected a type, but got '>>>'.
+Stream<List<Set<List</* user curser here*/>>>>
+                                          ^^^
+
+parser/error_recovery/issue_46505_prime_5.crash:32:46: Expected ';' after this.
+Stream<List<Set<List</* user curser here*/>>>>
+                                             ^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(A, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, A)
+      handleNoType(A)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleClassOrMixinImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+        beginMetadataStar(Stream)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, {)
+            handleIdentifier(Stream, typeReference)
+            beginTypeArguments(<)
+              handleIdentifier(List, typeReference)
+              beginTypeArguments(<)
+                handleIdentifier(Set, typeReference)
+                beginTypeArguments(<)
+                  handleIdentifier(List, typeReference)
+                  beginTypeArguments(<)
+                    handleRecoverableError(Message[ExpectedType, Expected a type, but got '>>>'., null, {lexeme: >>>}], >>>, >>>)
+                    handleIdentifier(, typeReference)
+                    handleNoTypeArguments(>>>)
+                    handleType(, null)
+                  endTypeArguments(1, <, >)
+                  handleType(List, null)
+                endTypeArguments(1, <, >)
+                handleType(Set, null)
+              endTypeArguments(1, <, >)
+              handleType(List, null)
+            endTypeArguments(1, <, >)
+            handleType(Stream, null)
+            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '}'., Try inserting an identifier before '}'., {lexeme: }}], }, })
+            handleIdentifier(, fieldDeclaration)
+            handleNoFieldInitializer(})
+            handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], >, >)
+          endClassFields(null, null, null, null, null, null, 1, Stream, ;)
+        endMember()
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 1, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(B, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, B)
+      handleNoType(B)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleClassOrMixinImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+        beginMetadataStar(Stream)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, {)
+            handleIdentifier(Stream, typeReference)
+            beginTypeArguments(<)
+              handleIdentifier(List, typeReference)
+              beginTypeArguments(<)
+                handleIdentifier(Set, typeReference)
+                beginTypeArguments(<)
+                  handleIdentifier(List, typeReference)
+                  beginTypeArguments(<)
+                    handleIdentifier(String, typeReference)
+                    handleNoTypeArguments(>>>)
+                    handleType(String, null)
+                  endTypeArguments(1, <, >)
+                  handleType(List, null)
+                endTypeArguments(1, <, >)
+                handleType(Set, null)
+              endTypeArguments(1, <, >)
+              handleType(List, null)
+            endTypeArguments(1, <, >)
+            handleType(Stream, null)
+            handleIdentifier(foo, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, null, null, null, null, null, 1, Stream, ;)
+        endMember()
+        beginMetadataStar(Stream)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, ;)
+            handleIdentifier(Stream, typeReference)
+            beginTypeArguments(<)
+              handleIdentifier(List, typeReference)
+              beginTypeArguments(<)
+                handleIdentifier(Set, typeReference)
+                beginTypeArguments(<)
+                  handleIdentifier(List, typeReference)
+                  beginTypeArguments(<)
+                    handleRecoverableError(Message[ExpectedType, Expected a type, but got '>>>'., null, {lexeme: >>>}], >>>, >>>)
+                    handleIdentifier(, typeReference)
+                    handleNoTypeArguments(>>>)
+                    handleType(, null)
+                  endTypeArguments(1, <, >)
+                  handleType(List, null)
+                endTypeArguments(1, <, >)
+                handleType(Set, null)
+              endTypeArguments(1, <, >)
+              handleType(List, null)
+            endTypeArguments(1, <, >)
+            handleType(Stream, null)
+            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '}'., Try inserting an identifier before '}'., {lexeme: }}], }, })
+            handleIdentifier(, fieldDeclaration)
+            handleNoFieldInitializer(})
+            handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], >, >)
+          endClassFields(null, null, null, null, null, null, 1, Stream, ;)
+        endMember()
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 2, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, C)
+      handleNoType(C)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleClassOrMixinImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+        beginMetadataStar(Stream)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, {)
+            handleIdentifier(Stream, typeReference)
+            beginTypeArguments(<)
+              handleIdentifier(List, typeReference)
+              beginTypeArguments(<)
+                handleIdentifier(Set, typeReference)
+                beginTypeArguments(<)
+                  handleIdentifier(List, typeReference)
+                  beginTypeArguments(<)
+                    handleIdentifier(String, typeReference)
+                    handleNoTypeArguments(>>>)
+                    handleType(String, null)
+                  endTypeArguments(1, <, >)
+                  handleType(List, null)
+                endTypeArguments(1, <, >)
+                handleType(Set, null)
+              endTypeArguments(1, <, >)
+              handleType(List, null)
+            endTypeArguments(1, <, >)
+            handleType(Stream, null)
+            handleIdentifier(foo, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, null, null, null, null, null, 1, Stream, ;)
+        endMember()
+        beginMetadataStar(Stream)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, Stream)
+            handleIdentifier(Stream, typeReference)
+            beginTypeArguments(<)
+              handleIdentifier(List, typeReference)
+              beginTypeArguments(<)
+                handleIdentifier(Set, typeReference)
+                beginTypeArguments(<)
+                  handleIdentifier(List, typeReference)
+                  beginTypeArguments(<)
+                    handleRecoverableError(Message[ExpectedType, Expected a type, but got '>>>'., null, {lexeme: >>>}], >>>, >>>)
+                    handleIdentifier(, typeReference)
+                    handleNoTypeArguments(>>>)
+                    handleType(, null)
+                  endTypeArguments(1, <, >)
+                  handleType(List, null)
+                endTypeArguments(1, <, >)
+                handleType(Set, null)
+              endTypeArguments(1, <, >)
+              handleType(List, null)
+            endTypeArguments(1, <, >)
+            handleType(Stream, null)
+            handleIdentifier(Stream, methodDeclaration)
+            beginTypeVariables(<)
+              beginMetadataStar(List)
+              endMetadataStar(0)
+              handleIdentifier(List, typeVariableDeclaration)
+              beginTypeVariable(List)
+                handleTypeVariablesDefined(List, 1)
+                handleNoType(List)
+              endTypeVariable(<, 0, null, null)
+              handleRecoverableError(Message[ExpectedAfterButGot, Expected '>' after this., null, {string: >}], List, List)
+            endTypeVariables(<, >)
+            handleRecoverableError(MissingMethodParameters, Stream, Stream)
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got 'baz'., null, {lexeme: baz}], baz, baz)
+            handleInvalidFunctionBody({)
+          endClassMethod(null, Stream, (, null, })
+        endMember()
+        beginMetadataStar(baz)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, })
+            handleRecoverableError(MissingConstFinalVarOrType, baz, baz)
+            handleNoType(})
+            handleIdentifier(baz, fieldDeclaration)
+            handleNoFieldInitializer(;)
+          endClassFields(null, null, null, null, null, null, 1, baz, ;)
+        endMember()
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 3, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(Stream)
+  beginMetadataStar(Stream)
+  endMetadataStar(0)
+  beginTopLevelMember(Stream)
+    beginTopLevelMethod(}, null)
+      handleIdentifier(Stream, typeReference)
+      beginTypeArguments(<)
+        handleIdentifier(List, typeReference)
+        beginTypeArguments(<)
+          handleIdentifier(Set, typeReference)
+          beginTypeArguments(<)
+            handleIdentifier(List, typeReference)
+            beginTypeArguments(<)
+              handleRecoverableError(Message[ExpectedType, Expected a type, but got '>>>'., null, {lexeme: >>>}], >>>, >>>)
+              handleIdentifier(, typeReference)
+              handleNoTypeArguments(>>>)
+              handleType(, null)
+            endTypeArguments(1, <, >)
+            handleType(List, null)
+          endTypeArguments(1, <, >)
+          handleType(Set, null)
+        endTypeArguments(1, <, >)
+        handleType(List, null)
+      endTypeArguments(1, <, >)
+      handleType(Stream, null)
+      handleIdentifier(Stream, topLevelFunctionDeclaration)
+      beginTypeVariables(<)
+        beginMetadataStar(List)
+        endMetadataStar(0)
+        handleIdentifier(List, typeVariableDeclaration)
+        beginTypeVariable(List)
+          handleTypeVariablesDefined(List, 1)
+          handleNoType(List)
+        endTypeVariable(<, 0, null, null)
+        handleRecoverableError(Message[ExpectedAfterButGot, Expected '>' after this., null, {string: >}], List, List)
+      endTypeVariables(<, >)
+      handleRecoverableError(MissingFunctionParameters, Stream, Stream)
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got 'baz'., null, {lexeme: baz}], baz, baz)
+      handleInvalidFunctionBody({)
+    endTopLevelMethod(Stream, null, })
+  endTopLevelDeclaration(baz)
+  beginMetadataStar(baz)
+  endMetadataStar(0)
+  beginTopLevelMember(baz)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, })
+      handleRecoverableError(MissingConstFinalVarOrType, baz, baz)
+      handleNoType(})
+      handleIdentifier(baz, topLevelVariableDeclaration)
+      handleNoFieldInitializer(;)
+    endTopLevelFields(null, null, null, null, null, 1, baz, ;)
+  endTopLevelDeclaration(Stream)
+  beginMetadataStar(Stream)
+  endMetadataStar(0)
+  beginTopLevelMember(Stream)
+    handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ''., Try inserting an identifier before ''., {lexeme: }], , )
+    // WARNING: Reporting at eof for .
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, ;)
+      handleIdentifier(Stream, typeReference)
+      beginTypeArguments(<)
+        handleIdentifier(List, typeReference)
+        beginTypeArguments(<)
+          handleIdentifier(Set, typeReference)
+          beginTypeArguments(<)
+            handleIdentifier(List, typeReference)
+            beginTypeArguments(<)
+              handleRecoverableError(Message[ExpectedType, Expected a type, but got '>>>'., null, {lexeme: >>>}], >>>, >>>)
+              handleIdentifier(, typeReference)
+              handleNoTypeArguments(>>>)
+              handleType(, null)
+            endTypeArguments(1, <, >)
+            handleType(List, null)
+          endTypeArguments(1, <, >)
+          handleType(Set, null)
+        endTypeArguments(1, <, >)
+        handleType(List, null)
+      endTypeArguments(1, <, >)
+      handleType(Stream, null)
+      handleIdentifier(, topLevelVariableDeclaration)
+      handleNoFieldInitializer()
+      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], >, >)
+    endTopLevelFields(null, null, null, null, null, 1, Stream, ;)
+  endTopLevelDeclaration()
+endCompilationUnit(6, )

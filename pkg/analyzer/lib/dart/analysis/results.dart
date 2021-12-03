@@ -16,18 +16,18 @@ import 'package:analyzer/src/generated/source.dart';
 /// Clients may not extend, implement or mix-in this class.
 abstract class AnalysisResult {
   /// The absolute and normalized path of the file that was analyzed.
-  /// If [state] is not [ResultState.VALID], throws [StateError].
+  @Deprecated('Use FileResult.path instead')
   String get path;
 
   /// Return the session used to compute this result.
-  /// If [state] is not [ResultState.VALID], throws [StateError].
   AnalysisSession get session;
 
   /// The state of the results.
+  @Deprecated('Check for specific Result subtypes instead')
   ResultState get state;
 
   /// The absolute URI of the file that was analyzed.
-  /// If [state] is not [ResultState.VALID], throws [StateError].
+  @Deprecated('Use FileResult.uri instead')
   Uri get uri;
 }
 
@@ -36,7 +36,6 @@ abstract class AnalysisResult {
 /// Clients may not extend, implement or mix-in this class.
 abstract class AnalysisResultWithErrors implements FileResult {
   /// The analysis errors that were computed during analysis.
-  /// If [state] is not [ResultState.VALID], throws [StateError].
   List<AnalysisError> get errors;
 }
 
@@ -82,12 +81,18 @@ abstract class ErrorsResult
 /// Clients may not extend, implement or mix-in this class.
 abstract class FileResult implements SomeFileResult, AnalysisResult {
   /// Whether the file is a part.
-  /// If [state] is not [ResultState.VALID], throws [StateError].
   bool get isPart;
 
   /// Information about lines in the content.
-  /// If [state] is not [ResultState.VALID], throws [StateError].
   LineInfo get lineInfo;
+
+  /// The absolute and normalized path of the file that was analyzed.
+  @override
+  String get path;
+
+  /// The absolute URI of the file that was analyzed.
+  @override
+  Uri get uri;
 }
 
 /// The type of [InvalidResult] returned when the given file path is invalid,
@@ -250,6 +255,7 @@ abstract class ResolvedUnitResult
 }
 
 /// An indication of whether an analysis result is valid, and if not why.
+@Deprecated('Check for specific Result subtypes instead')
 enum ResultState {
   /// An indication that analysis could not be performed because the path
   /// represents a file of a type that cannot be analyzed.
@@ -258,6 +264,7 @@ enum ResultState {
   /// An indication that analysis could not be performed because the path does
   /// not represent a file. It might represent something else, such as a
   /// directory, or it might not represent anything.
+  @Deprecated("Check 'get exists' flag instead")
   NOT_A_FILE,
 
   /// An indication that analysis could not be performed because the path does
@@ -343,8 +350,7 @@ abstract class SomeUnitElementResult {}
 /// The result of building the element model for a single file.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class UnitElementResult
-    implements SomeUnitElementResult, AnalysisResult {
+abstract class UnitElementResult implements SomeUnitElementResult, FileResult {
   /// The element of the file.
   CompilationUnitElement get element;
 

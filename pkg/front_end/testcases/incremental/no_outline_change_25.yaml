@@ -15,6 +15,7 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         class Foo {
           void bar() {
             print("bar 1");
@@ -36,6 +37,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         class Foo {
           void bar() {
             print("bar 1");

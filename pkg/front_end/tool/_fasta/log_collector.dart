@@ -10,7 +10,7 @@ import 'dart:io';
 
 import 'package:front_end/src/fasta/crash.dart' show defaultServerAddress;
 
-badRequest(HttpRequest request, int status, String message) {
+void badRequest(HttpRequest request, int status, String message) {
   request.response.statusCode = status;
   request.response.write('''
 <!DOCTYPE html>
@@ -30,7 +30,7 @@ badRequest(HttpRequest request, int status, String message) {
   print("${request.uri}: $message");
 }
 
-collectLog(DateTime time, HttpRequest request) async {
+Future<void> collectLog(DateTime time, HttpRequest request) async {
   String json = await request.cast<List<int>>().transform(utf8.decoder).join();
   var data;
   try {
@@ -81,7 +81,7 @@ $trace
 """);
 }
 
-main(List<String> arguments) async {
+Future<void> main(List<String> arguments) async {
   RawReceivePort keepAlive = new RawReceivePort();
   Uri uri;
   if (arguments.length == 1) {
@@ -104,7 +104,7 @@ main(List<String> arguments) async {
       badRequest(request, HttpStatus.notFound, "Not found.");
       continue;
     }
-    collectLog(new DateTime.now(), request);
+    await collectLog(new DateTime.now(), request);
   }
   keepAlive.close();
 }

@@ -378,7 +378,7 @@ void main() {
 }
 
 Future<WorkResponse> _readResponse(MessageGrouper messageGrouper) async {
-  var buffer = (await messageGrouper.next) as List<int>;
+  var buffer = await messageGrouper.next as List<int>;
   try {
     return WorkResponse.fromBuffer(buffer);
   } catch (_) {

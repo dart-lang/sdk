@@ -7,12 +7,12 @@ environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
-  http: ^0.12.0
+  http: ^0.13.0
   meta:
     path: ../meta
   path: ^1.4.0
   stack_trace: ^1.7.0
-  usage: ^3.2.0+1
+  usage: ^4.0.0
 
 dev_dependencies:
   test: ^1.0.0

@@ -3,14 +3,14 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::first, self::A::second];
+  static final field dynamic _redirecting# = <dynamic>[#C1, #C2];
   constructor •() → self::A*
     : super core::Object::•()
     ;
   static factory first() → self::A*
-    let Never #redirecting_factory = self::A::• in invalid-expression;
+    return new self::A::•();
   static factory second() → self::A*
-    let () →* self::A* #redirecting_factory = self::A::first in invalid-expression;
+    return self::A::first();
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -24,4 +24,9 @@ class A extends core::Object {
 }
 static method main() → dynamic {
   new self::A::•();
+}
+
+constants  {
+  #C1 = constructor-tearoff self::A::first
+  #C2 = constructor-tearoff self::A::second
 }

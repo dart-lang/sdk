@@ -100,7 +100,7 @@ library /*isNonNullableByDefault*/;
 //   topLevelMethodAndSetter = topLevelMethodAndSetter();
 //   ^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:48:22: Error: Method not found: 'typedefAndSetter'.
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:48:22: Error: Couldn't find constructor 'typedefAndSetter'.
 //   typedefAndSetter = typedefAndSetter();
 //                      ^^^^^^^^^^^^^^^^
 //
@@ -202,11 +202,11 @@ static method test() → dynamic {
  - 'Class' is from 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'Class'.
   c.Class = c.Class;
-              ^^^^^";
+              ^^^^^" in c{<unresolved>}.Class;
   invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:63:5: Error: The setter 'extensionInstanceFieldAndSetter' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'extensionInstanceFieldAndSetter'.
   0.extensionInstanceFieldAndSetter = 0.extensionInstanceMethodAndSetter();
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.extensionInstanceFieldAndSetter = self::Extension|extensionInstanceMethodAndSetter(0);
   invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:65:13: Error: Setter not found: 'extensionStaticMethodAndSetter'.
   Extension.extensionStaticMethodAndSetter =
             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";

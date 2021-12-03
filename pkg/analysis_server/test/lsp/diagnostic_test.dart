@@ -378,10 +378,11 @@ version: latest
     }
   }
 
-  Future<void> test_todos() async {
+  Future<void> test_todos_boolean() async {
     // TODOs only show up if there's also some code in the file.
     const contents = '''
     // TODO: This
+    // FIXME: This
     String a = "";
     ''';
     newFile(mainFilePath, content: contents);
@@ -394,7 +395,7 @@ version: latest
       {'showTodos': true},
     );
     final initialDiagnostics = await firstDiagnosticsUpdate;
-    expect(initialDiagnostics, hasLength(1));
+    expect(initialDiagnostics, hasLength(2));
   }
 
   Future<void> test_todos_disabled() async {
@@ -438,5 +439,34 @@ version: latest
     await replaceFile(222, mainFileUri, contents);
     final updatedDiagnostics = await secondDiagnosticsUpdate;
     expect(updatedDiagnostics, hasLength(1));
+  }
+
+  Future<void> test_todos_specific() async {
+    // TODOs only show up if there's also some code in the file.
+    const contents = '''
+    // TODO: This
+    // HACK: This
+    // FIXME: This
+    String a = "";
+    ''';
+    newFile(mainFilePath, content: contents);
+
+    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities:
+              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      {
+        // Include both casings, since this comes from the user we should handle
+        // either.
+        'showTodos': ['TODO', 'fixme']
+      },
+    );
+    final initialDiagnostics = (await firstDiagnosticsUpdate)!;
+    expect(initialDiagnostics, hasLength(2));
+    expect(
+      initialDiagnostics.map((e) => e.code!),
+      containsAll(['todo', 'fixme']),
+    );
   }
 }

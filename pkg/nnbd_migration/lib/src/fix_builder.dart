@@ -35,7 +35,6 @@ import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
-import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/utilities/where_or_null_transformer.dart';
@@ -186,11 +185,6 @@ class FixBuilder {
     var inheritanceManager = InheritanceManager3();
     // TODO(paulberry): is it a bad idea to throw away errors?
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
-    // TODO(paulberry): once the feature is no longer experimental, change the
-    // way we enable it in the resolver.
-    // ignore: invalid_use_of_visible_for_testing_member
-    var featureSet = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
     _resolver = ResolverVisitorForMigration(
         inheritanceManager,
         definingLibrary,
@@ -198,7 +192,10 @@ class FixBuilder {
         typeProvider,
         errorListener,
         _typeSystem,
-        featureSet,
+        FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: Feature.non_nullable.releaseVersion!,
+          flags: [],
+        ),
         migrationResolutionHooks);
   }
 
@@ -638,7 +635,7 @@ class MigrationResolutionHooksImpl
     var resultType =
         _fixBuilder!._typeSystem.promoteToNonNull(type as TypeImpl);
     _flowAnalysis!.nonNullAssert_end(node);
-    return node is NullLiteral && hint == null
+    return type.isDartCoreNull && hint == null
         ? NoValidMigrationChange(resultType)
         : NullCheckChange(resultType, hint: hint);
   }
@@ -1226,7 +1223,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   }
 
   @override
-  void visitTypeName(TypeName node) {
+  void visitNamedType(NamedType node) {
     var decoratedType = _fixBuilder._variables!
         .decoratedTypeAnnotation(_fixBuilder.source, node);
     if (!typeIsNonNullableByContext(node)) {
@@ -1234,9 +1231,9 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
         _makeTypeNameNullable(node, decoratedType);
       }
     }
-    (node as TypeNameImpl).type =
+    (node as NamedTypeImpl).type =
         _fixBuilder._variables!.toFinalType(decoratedType);
-    super.visitTypeName(node);
+    super.visitNamedType(node);
   }
 
   void _addRequiredKeyword(DefaultFormalParameter parameter,

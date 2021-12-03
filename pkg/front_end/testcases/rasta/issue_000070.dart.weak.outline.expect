@@ -17,7 +17,7 @@ class A<N extends core::Object* = dynamic, S extends core::Object* = dynamic, U 
     ;
   get getter() → core::List<self::A::U*>*
     ;
-  set setter(generic-covariant-impl self::A::S* s) → void
+  set setter(covariant-by-class self::A::S* s) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

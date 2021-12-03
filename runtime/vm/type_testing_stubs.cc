@@ -4,7 +4,11 @@
 
 #include <functional>
 
+#include "platform/globals.h"
+#include "vm/class_id.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/runtime_api.h"
+#include "vm/hash_map.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/stub_code.h"
@@ -19,8 +23,6 @@
 #define __ assembler->
 
 namespace dart {
-
-DECLARE_FLAG(bool, disassemble_stubs);
 
 TypeTestingStubNamer::TypeTestingStubNamer()
     : lib_(Library::Handle()),
@@ -146,13 +148,11 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void TypeTestingStubGenerator::SpecializeStubFor(Thread* thread,
-                                                 const AbstractType& type) {
+CodePtr TypeTestingStubGenerator::SpecializeStubFor(Thread* thread,
+                                                    const AbstractType& type) {
   HierarchyInfo hi(thread);
   TypeTestingStubGenerator generator;
-  const Code& code =
-      Code::Handle(thread->zone(), generator.OptimizedCodeForType(type));
-  type.SetTypeTestingStub(code);
+  return generator.OptimizedCodeForType(type);
 }
 #endif
 
@@ -180,6 +180,14 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
           TypeTestingStubGenerator::BuildCodeForType(Type::Cast(type)));
       if (!code.IsNull()) {
         return code.ptr();
+      }
+      const Error& error = Error::Handle(Thread::Current()->StealStickyError());
+      if (!error.IsNull()) {
+        if (error.ptr() == Object::out_of_memory_error().ptr()) {
+          Exceptions::ThrowOOM();
+        } else {
+          UNREACHABLE();
+        }
       }
 
       // Fall back to default.
@@ -220,6 +228,9 @@ static CodePtr RetryCompilationWithFarBranches(
       if (error.ptr() == Object::branch_offset_error().ptr()) {
         ASSERT(!use_far_branches);
         use_far_branches = true;
+      } else if (error.ptr() == Object::out_of_memory_error().ptr()) {
+        thread->set_sticky_error(error);
+        return Code::null();
       } else {
         UNREACHABLE();
       }
@@ -310,6 +321,18 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   return code.ptr();
 }
 
+void TypeTestingStubGenerator::BuildOptimizedTypeTestStub(
+    compiler::Assembler* assembler,
+    compiler::UnresolvedPcRelativeCalls* unresolved_calls,
+    const Code& slow_type_test_stub,
+    HierarchyInfo* hi,
+    const Type& type,
+    const Class& type_class) {
+  BuildOptimizedTypeTestStubFastCases(assembler, hi, type, type_class);
+  __ Jump(compiler::Address(
+      THR, compiler::target::Thread::slow_type_test_entry_point_offset()));
+}
+
 void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     compiler::Assembler* assembler,
     HierarchyInfo* hi,
@@ -318,28 +341,24 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
   // These are handled via the TopTypeTypeTestStub!
   ASSERT(!type.IsTopTypeForSubtyping());
 
+  if (type.IsObjectType()) {
+    ASSERT(type.IsNonNullable() &&
+           hi->thread()->isolate_group()->use_strict_null_safety_checks());
+    compiler::Label is_null;
+    __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
+    __ BranchIf(EQUAL, &is_null, compiler::Assembler::kNearJump);
+    __ Ret();
+    __ Bind(&is_null);
+    return;  // No further checks needed.
+  }
+
   // Fast case for 'int' and '_Smi' (which can appear in core libraries).
   if (type.IsIntType() || type.IsSmiType()) {
     compiler::Label non_smi_value;
-    __ BranchIfNotSmi(TypeTestABI::kInstanceReg, &non_smi_value);
+    __ BranchIfNotSmi(TypeTestABI::kInstanceReg, &non_smi_value,
+                      compiler::Assembler::kNearJump);
     __ Ret();
     __ Bind(&non_smi_value);
-  } else if (type.IsDartFunctionType()) {
-    compiler::Label continue_checking;
-    __ CompareImmediate(TTSInternalRegs::kScratchReg, kClosureCid);
-    __ BranchIf(NOT_EQUAL, &continue_checking);
-    __ Ret();
-    __ Bind(&continue_checking);
-
-  } else if (type.IsObjectType()) {
-    ASSERT(type.IsNonNullable() &&
-           IsolateGroup::Current()->use_strict_null_safety_checks());
-    compiler::Label continue_checking;
-    __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
-    __ BranchIf(EQUAL, &continue_checking);
-    __ Ret();
-    __ Bind(&continue_checking);
-
   } else {
     // TODO(kustermann): Make more fast cases, e.g. Type::Number()
     // is implemented by Smi.
@@ -352,52 +371,226 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
         /*include_abstract=*/false,
         /*exclude_null=*/!Instance::NullIsAssignableTo(type));
 
-    const Type& smi_type = Type::Handle(Type::SmiType());
-    const bool smi_is_ok = smi_type.IsSubtypeOf(type, Heap::kNew);
-
-    BuildOptimizedSubtypeRangeCheck(assembler, ranges, smi_is_ok);
+    compiler::Label is_subtype, is_not_subtype;
+    const bool smi_is_ok =
+        Type::Handle(Type::SmiType()).IsSubtypeOf(type, Heap::kNew);
+    if (smi_is_ok) {
+      __ LoadClassIdMayBeSmi(TTSInternalRegs::kScratchReg,
+                             TypeTestABI::kInstanceReg);
+    } else {
+      __ BranchIfSmi(TypeTestABI::kInstanceReg, &is_not_subtype);
+      __ LoadClassId(TTSInternalRegs::kScratchReg, TypeTestABI::kInstanceReg);
+    }
+    BuildOptimizedSubtypeRangeCheck(assembler, ranges,
+                                    TTSInternalRegs::kScratchReg, &is_subtype,
+                                    &is_not_subtype);
+    __ Bind(&is_subtype);
+    __ Ret();
+    __ Bind(&is_not_subtype);
   } else {
-    ASSERT(hi->CanUseGenericSubtypeRangeCheckFor(type));
-
-    const intptr_t num_type_arguments = type_class.NumTypeArguments();
-
-    const TypeArguments& ta = TypeArguments::Handle(type.arguments());
-    ASSERT(ta.Length() == num_type_arguments);
-
     BuildOptimizedSubclassRangeCheckWithTypeArguments(assembler, hi, type,
-                                                      type_class, ta);
+                                                      type_class);
   }
 
   if (Instance::NullIsAssignableTo(type)) {
     // Fast case for 'null'.
     compiler::Label non_null;
     __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
-    __ BranchIf(NOT_EQUAL, &non_null);
+    __ BranchIf(NOT_EQUAL, &non_null, compiler::Assembler::kNearJump);
     __ Ret();
     __ Bind(&non_null);
   }
 }
 
+static void CommentCheckedClasses(compiler::Assembler* assembler,
+                                  const CidRangeVector& ranges) {
+  if (!assembler->EmittingComments()) return;
+  Thread* const thread = Thread::Current();
+  ClassTable* const class_table = thread->isolate_group()->class_table();
+  Zone* const zone = thread->zone();
+  if (ranges.is_empty()) {
+    __ Comment("No valid cids to check");
+    return;
+  }
+  if ((ranges.length() == 1) && ranges[0].IsSingleCid()) {
+    const auto& cls = Class::Handle(zone, class_table->At(ranges[0].cid_start));
+    __ Comment("Checking for cid %" Pd " (%s)", cls.id(),
+               cls.ScrubbedNameCString());
+    return;
+  }
+  __ Comment("Checking for concrete finalized classes:");
+  auto& cls = Class::Handle(zone);
+  for (const auto& range : ranges) {
+    ASSERT(!range.IsIllegalRange());
+    for (classid_t cid = range.cid_start; cid <= range.cid_end; cid++) {
+      // Invalid entries can be included to keep range count low.
+      if (!class_table->HasValidClassAt(cid)) continue;
+      cls = class_table->At(cid);
+      if (cls.is_abstract()) continue;  // Only output concrete classes.
+      __ Comment(" * %" Pd32 " (%s)", cid, cls.ScrubbedNameCString());
+    }
+  }
+}
+
+// Represents the following needs for runtime checks to see if an instance of
+// [cls] is a subtype of [type] that has type class [type_class]:
+//
+// * kCannotBeChecked: Instances of [cls] cannot be checked with any of the
+//   currently implemented runtime checks, so must fall back on the runtime.
+//
+// * kNotSubtype: A [cls] instance is guaranteed to not be a subtype of [type]
+//   regardless of any instance type arguments.
+//
+// * kCidCheckOnly: A [cls] instance is guaranteed to be a subtype of [type]
+//   regardless of any instance type arguments.
+//
+// * kNeedsFinalization: Checking that an instance of [cls] is a subtype of
+//   [type] requires instance type arguments, but [cls] is not finalized, and
+//   so the appropriate type arguments field offset cannot be determined.
+//
+// * kInstanceTypeArgumentsAreSubtypes: [cls] implements a fully uninstantiated
+//   type with type class [type_class] which can be directly instantiated with
+//   the instance type arguments. Thus, each type argument of [type] should be
+//   compared with the corresponding (index-wise) instance type argument.
+enum class CheckType {
+  kCannotBeChecked,
+  kNotSubtype,
+  kCidCheckOnly,
+  kNeedsFinalization,
+  kInstanceTypeArgumentsAreSubtypes,
+};
+
+// Returns a CheckType describing how to check instances of [to_check] as
+// subtypes of [type].
+static CheckType SubtypeChecksForClass(Zone* zone,
+                                       const Type& type,
+                                       const Class& type_class,
+                                       const Class& to_check) {
+  ASSERT_EQUAL(type.type_class_id(), type_class.id());
+  ASSERT(type_class.is_type_finalized());
+  ASSERT(!to_check.is_abstract());
+  ASSERT(to_check.is_type_finalized());
+  ASSERT(AbstractType::Handle(zone, to_check.RareType())
+             .IsSubtypeOf(AbstractType::Handle(zone, type_class.RareType()),
+                          Heap::kNew));
+  if (!type_class.IsGeneric()) {
+    // All instances of [to_check] are subtypes of [type].
+    return CheckType::kCidCheckOnly;
+  }
+  if (to_check.FindInstantiationOf(zone, type_class,
+                                   /*only_super_classes=*/true)) {
+    // No need to check for type argument consistency, as [to_check] is the same
+    // as or a subclass of [type_class].
+    return to_check.is_finalized()
+               ? CheckType::kInstanceTypeArgumentsAreSubtypes
+               : CheckType::kCannotBeChecked;
+  }
+  auto& calculated_type =
+      AbstractType::Handle(zone, to_check.GetInstantiationOf(zone, type_class));
+  if (calculated_type.IsInstantiated()) {
+    if (type.IsInstantiated()) {
+      return calculated_type.IsSubtypeOf(type, Heap::kNew)
+                 ? CheckType::kCidCheckOnly
+                 : CheckType::kNotSubtype;
+    }
+    // TODO(dartbug.com/46920): Requires walking both types, checking
+    // corresponding instantiated parts at compile time (assuming uninstantiated
+    // parts check successfully) and then creating appropriate runtime checks
+    // for uninstantiated parts of [type].
+    return CheckType::kCannotBeChecked;
+  }
+  if (!to_check.is_finalized()) {
+    return CheckType::kNeedsFinalization;
+  }
+  ASSERT(to_check.NumTypeArguments() > 0);
+  ASSERT(compiler::target::Class::TypeArgumentsFieldOffset(to_check) !=
+         compiler::target::Class::kNoTypeArguments);
+  // If the calculated type arguments are a prefix of the declaration type
+  // arguments, then we can just treat the instance type arguments as if they
+  // were used to instantiate the type class during checking.
+  const auto& decl_type_args = TypeArguments::Handle(
+      zone, Type::Handle(zone, to_check.DeclarationType()).arguments());
+  const auto& calculated_type_args =
+      TypeArguments::Handle(zone, calculated_type.arguments());
+  const bool type_args_consistent = calculated_type_args.IsSubvectorEquivalent(
+      decl_type_args, 0, type_class.NumTypeArguments(),
+      TypeEquality::kCanonical);
+  // TODO(dartbug.com/46920): Currently we require subtyping to be checkable
+  // by comparing the instance type arguments against the type arguments of
+  // [type] piecewise, but we could check other cases as well.
+  return type_args_consistent ? CheckType::kInstanceTypeArgumentsAreSubtypes
+                              : CheckType::kCannotBeChecked;
+}
+
+static void CommentSkippedClasses(compiler::Assembler* assembler,
+                                  const Type& type,
+                                  const Class& type_class,
+                                  const CidRangeVector& ranges) {
+  if (!assembler->EmittingComments() || ranges.is_empty()) return;
+  if (ranges.is_empty()) return;
+  ASSERT(type_class.is_implemented());
+  __ Comment("Not checking the following concrete implementors of %s:",
+             type_class.ScrubbedNameCString());
+  Thread* const thread = Thread::Current();
+  auto* const class_table = thread->isolate_group()->class_table();
+  Zone* const zone = thread->zone();
+  auto& cls = Class::Handle(zone);
+  auto& calculated_type = Type::Handle(zone);
+  for (const auto& range : ranges) {
+    ASSERT(!range.IsIllegalRange());
+    for (classid_t cid = range.cid_start; cid <= range.cid_end; cid++) {
+      // Invalid entries can be included to keep range count low.
+      if (!class_table->HasValidClassAt(cid)) continue;
+      cls = class_table->At(cid);
+      if (cls.is_abstract()) continue;  // Only output concrete classes.
+      ASSERT(cls.is_type_finalized());
+      TextBuffer buffer(128);
+      buffer.Printf(" * %" Pd32 "(%s): ", cid, cls.ScrubbedNameCString());
+      switch (SubtypeChecksForClass(zone, type, type_class, cls)) {
+        case CheckType::kCannotBeChecked:
+          calculated_type = cls.GetInstantiationOf(zone, type_class);
+          buffer.AddString("cannot check that ");
+          calculated_type.PrintName(Object::kScrubbedName, &buffer);
+          buffer.AddString(" is a subtype of ");
+          type.PrintName(Object::kScrubbedName, &buffer);
+          break;
+        case CheckType::kNotSubtype:
+          calculated_type = cls.GetInstantiationOf(zone, type_class);
+          calculated_type.PrintName(Object::kScrubbedName, &buffer);
+          buffer.AddString(" is not a subtype of ");
+          type.PrintName(Object::kScrubbedName, &buffer);
+          break;
+        case CheckType::kNeedsFinalization:
+          buffer.AddString("is not finalized");
+          break;
+        case CheckType::kInstanceTypeArgumentsAreSubtypes:
+          buffer.AddString("was not finalized during class splitting");
+          break;
+        default:
+          // Either the CheckType was kCidCheckOnly, which should never happen
+          // since it only requires type finalization, or a new CheckType has
+          // been added.
+          UNREACHABLE();
+          break;
+      }
+      __ Comment("%s", buffer.buffer());
+    }
+  }
+}
+
+// Builds a cid range check for the concrete subclasses and implementors of
+// type. Assumes cid to check is already in TTSInternalRegs::kScratchReg. Falls
+// through or jumps to check_succeeded if the range contains the cid, else
+// jumps to check_failed.
 void TypeTestingStubGenerator::BuildOptimizedSubtypeRangeCheck(
     compiler::Assembler* assembler,
     const CidRangeVector& ranges,
-    bool smi_is_ok) {
-  compiler::Label cid_range_failed, is_subtype;
-
-  if (smi_is_ok) {
-    __ LoadClassIdMayBeSmi(TTSInternalRegs::kScratchReg,
-                           TypeTestABI::kInstanceReg);
-  } else {
-    __ BranchIfSmi(TypeTestABI::kInstanceReg, &cid_range_failed);
-    __ LoadClassId(TTSInternalRegs::kScratchReg, TypeTestABI::kInstanceReg);
-  }
-
+    Register class_id_reg,
+    compiler::Label* check_succeeded,
+    compiler::Label* check_failed) {
+  CommentCheckedClasses(assembler, ranges);
   FlowGraphCompiler::GenerateCidRangesCheck(
-      assembler, TTSInternalRegs::kScratchReg, ranges, &is_subtype,
-      &cid_range_failed, true);
-  __ Bind(&is_subtype);
-  __ Ret();
-  __ Bind(&cid_range_failed);
+      assembler, class_id_reg, ranges, check_succeeded, check_failed, true);
 }
 
 void TypeTestingStubGenerator::
@@ -405,72 +598,511 @@ void TypeTestingStubGenerator::
         compiler::Assembler* assembler,
         HierarchyInfo* hi,
         const Type& type,
-        const Class& type_class,
-        const TypeArguments& ta) {
-  // a) First we make a quick sub*class* cid-range check.
+        const Class& type_class) {
+  ASSERT(hi->CanUseGenericSubtypeRangeCheckFor(type));
   compiler::Label check_failed;
-  ASSERT(!type_class.is_implemented());
-  const CidRangeVector& ranges = hi->SubclassRangesForClass(type_class);
-  BuildOptimizedSubclassRangeCheck(assembler, ranges, &check_failed);
-  // fall through to continue
+  // a) First we perform subtype cid-range checks and load the instance type
+  // arguments based on which check succeeded.
+  __ LoadClassIdMayBeSmi(TTSInternalRegs::kScratchReg,
+                         TypeTestABI::kInstanceReg);
+  compiler::Label load_succeeded;
+  if (BuildLoadInstanceTypeArguments(assembler, hi, type, type_class,
+                                     TTSInternalRegs::kScratchReg,
+                                     TTSInternalRegs::kInstanceTypeArgumentsReg,
+                                     &load_succeeded, &check_failed)) {
+    // Only build type argument checking if any checked cid ranges require it.
+    __ Bind(&load_succeeded);
 
-  // b) Then we'll load the values for the type parameters.
-  __ LoadCompressedFieldFromOffset(
-      TTSInternalRegs::kInstanceTypeArgumentsReg, TypeTestABI::kInstanceReg,
-      compiler::target::Class::TypeArgumentsFieldOffset(type_class));
+    // b) We check for "rare" types, where the instance type arguments are null.
+    //
+    // The kernel frontend should fill in any non-assigned type parameters on
+    // construction with dynamic/Object, so we should never get the null type
+    // argument vector in created instances.
+    //
+    // TODO(kustermann): We could consider not using "null" as type argument
+    // vector representing all-dynamic to avoid this extra check (which will be
+    // uncommon because most Dart code in 2.0 will be strongly typed)!
+    __ CompareObject(TTSInternalRegs::kInstanceTypeArgumentsReg,
+                     Object::null_object());
+    const Type& rare_type = Type::Handle(Type::RawCast(type_class.RareType()));
+    if (rare_type.IsSubtypeOf(type, Heap::kNew)) {
+      compiler::Label process_done;
+      __ BranchIf(NOT_EQUAL, &process_done, compiler::Assembler::kNearJump);
+      __ Ret();
+      __ Bind(&process_done);
+    } else {
+      __ BranchIf(EQUAL, &check_failed);
+    }
 
-  // The kernel frontend should fill in any non-assigned type parameters on
-  // construction with dynamic/Object, so we should never get the null type
-  // argument vector in created instances.
-  //
-  // TODO(kustermann): We could consider not using "null" as type argument
-  // vector representing all-dynamic to avoid this extra check (which will be
-  // uncommon because most Dart code in 2.0 will be strongly typed)!
-  __ CompareObject(TTSInternalRegs::kInstanceTypeArgumentsReg,
-                   Object::null_object());
-  const Type& rare_type = Type::Handle(Type::RawCast(type_class.RareType()));
-  if (rare_type.IsSubtypeOf(type, Heap::kNew)) {
-    compiler::Label process_done;
-    __ BranchIf(NOT_EQUAL, &process_done);
+    // c) Then we'll check each value of the type argument.
+    compiler::Label pop_saved_registers_on_failure;
+    const RegisterSet saved_registers(
+        TTSInternalRegs::kSavedTypeArgumentRegisters);
+    __ PushRegisters(saved_registers);
+
+    AbstractType& type_arg = AbstractType::Handle();
+    const TypeArguments& ta = TypeArguments::Handle(type.arguments());
+    const intptr_t num_type_parameters = type_class.NumTypeParameters();
+    const intptr_t num_type_arguments = type_class.NumTypeArguments();
+    ASSERT(ta.Length() >= num_type_arguments);
+    for (intptr_t i = 0; i < num_type_parameters; ++i) {
+      const intptr_t type_param_value_offset_i =
+          num_type_arguments - num_type_parameters + i;
+
+      type_arg = ta.TypeAt(type_param_value_offset_i);
+      ASSERT(type_arg.IsTypeParameter() ||
+             hi->CanUseSubtypeRangeCheckFor(type_arg));
+
+      if (type_arg.IsTypeParameter()) {
+        BuildOptimizedTypeParameterArgumentValueCheck(
+            assembler, hi, TypeParameter::Cast(type_arg),
+            type_param_value_offset_i, &pop_saved_registers_on_failure);
+      } else {
+        BuildOptimizedTypeArgumentValueCheck(
+            assembler, hi, Type::Cast(type_arg), type_param_value_offset_i,
+            &pop_saved_registers_on_failure);
+      }
+    }
+    __ PopRegisters(saved_registers);
     __ Ret();
-    __ Bind(&process_done);
-  } else {
-    __ BranchIf(EQUAL, &check_failed);
+    __ Bind(&pop_saved_registers_on_failure);
+    __ PopRegisters(saved_registers);
   }
-
-  // c) Then we'll check each value of the type argument.
-  AbstractType& type_arg = AbstractType::Handle();
-
-  const intptr_t num_type_parameters = type_class.NumTypeParameters();
-  const intptr_t num_type_arguments = type_class.NumTypeArguments();
-  for (intptr_t i = 0; i < num_type_parameters; ++i) {
-    const intptr_t type_param_value_offset_i =
-        num_type_arguments - num_type_parameters + i;
-
-    type_arg = ta.TypeAt(type_param_value_offset_i);
-    ASSERT(type_arg.IsTypeParameter() ||
-           hi->CanUseSubtypeRangeCheckFor(type_arg));
-
-    BuildOptimizedTypeArgumentValueCheck(
-        assembler, hi, type_arg, type_param_value_offset_i, &check_failed);
-  }
-  __ Ret();
 
   // If anything fails.
   __ Bind(&check_failed);
 }
 
-void TypeTestingStubGenerator::BuildOptimizedSubclassRangeCheck(
-    compiler::Assembler* assembler,
+// Splits [ranges] into multiple ranges in [output], where the concrete,
+// finalized classes in each range share the same type arguments field offset.
+//
+// The first range in [output] contains [type_class], if any do, and otherwise
+// prioritizes ranges that include predefined cids before ranges that only
+// contain user-defined classes.
+//
+// Any cids that do not have valid class table entries, correspond to abstract
+// or unfinalized classes, or have no TAV field offset are treated as don't
+// cares, in that the cid may appear in any of the CidRangeVectors as needed to
+// reduce the number of ranges.
+//
+// Note that CidRangeVectors are MallocGrowableArrays, so the elements in
+// output must be freed after use!
+static void SplitByTypeArgumentsFieldOffset(
+    Thread* T,
+    const Class& type_class,
     const CidRangeVector& ranges,
-    compiler::Label* check_failed) {
-  __ LoadClassIdMayBeSmi(TTSInternalRegs::kScratchReg,
-                         TypeTestABI::kInstanceReg);
+    GrowableArray<CidRangeVector*>* output) {
+  ASSERT(output != nullptr);
+  ASSERT(!ranges.is_empty());
 
+  Zone* const Z = T->zone();
+  ClassTable* const class_table = T->isolate_group()->class_table();
+  IntMap<CidRangeVector*> offset_map(Z);
+  IntMap<intptr_t> predefined_offsets(Z);
+  IntMap<intptr_t> user_defined_offsets(Z);
+
+  auto add_to_vector = [&](intptr_t tav_offset, const CidRange& range) {
+    if (range.cid_start == -1) return;
+    ASSERT(tav_offset != compiler::target::Class::kNoTypeArguments);
+    if (CidRangeVector* vector = offset_map.Lookup(tav_offset)) {
+      vector->Add(range);
+    } else {
+      vector = new CidRangeVector(1);
+      vector->Add(range);
+      offset_map.Insert(tav_offset, vector);
+    }
+  };
+
+  auto increment_count = [&](intptr_t cid, intptr_t tav_offset) {
+    if (cid <= kNumPredefinedCids) {
+      predefined_offsets.Update(
+          {tav_offset, predefined_offsets.Lookup(tav_offset) + 1});
+    } else if (auto* const kv = predefined_offsets.LookupPair(tav_offset)) {
+      predefined_offsets.Update({kv->key, kv->value + 1});
+    } else {
+      user_defined_offsets.Update(
+          {tav_offset, user_defined_offsets.Lookup(tav_offset) + 1});
+    }
+  };
+
+  // First populate offset_map.
+  auto& cls = Class::Handle(Z);
+  for (const auto& range : ranges) {
+    intptr_t last_offset = compiler::target::Class::kNoTypeArguments;
+    intptr_t cid_start = -1;
+    intptr_t cid_end = -1;
+    for (intptr_t cid = range.cid_start; cid <= range.cid_end; cid++) {
+      if (!class_table->HasValidClassAt(cid)) continue;
+      cls = class_table->At(cid);
+      if (cls.is_abstract()) continue;
+      // Only finalized concrete classes are present due to the conditions on
+      // returning kInstanceTypeArgumentsAreSubtypes in SubtypeChecksForClass.
+      ASSERT(cls.is_finalized());
+      const intptr_t tav_offset =
+          compiler::target::Class::TypeArgumentsFieldOffset(cls);
+      if (tav_offset == compiler::target::Class::kNoTypeArguments) continue;
+      if (tav_offset == last_offset && cid_start >= 0) {
+        cid_end = cid;
+        increment_count(cid, tav_offset);
+        continue;
+      }
+      add_to_vector(last_offset, {cid_start, cid_end});
+      last_offset = tav_offset;
+      cid_start = cid_end = cid;
+      increment_count(cid, tav_offset);
+    }
+    add_to_vector(last_offset, {cid_start, cid_end});
+  }
+
+  ASSERT(!offset_map.IsEmpty());
+
+  // Add the CidRangeVector for the type_class's offset, if it has one.
+  if (!type_class.is_abstract() && type_class.is_finalized()) {
+    const intptr_t type_class_offset =
+        compiler::target::Class::TypeArgumentsFieldOffset(type_class);
+    ASSERT(predefined_offsets.LookupPair(type_class_offset) != nullptr ||
+           user_defined_offsets.LookupPair(type_class_offset) != nullptr);
+    CidRangeVector* const vector = offset_map.Lookup(type_class_offset);
+    ASSERT(vector != nullptr);
+    output->Add(vector);
+    // Remove this CidRangeVector from consideration in the following loops.
+    predefined_offsets.Remove(type_class_offset);
+    user_defined_offsets.Remove(type_class_offset);
+  }
+  // Now add CidRangeVectors that include predefined cids.
+  // For now, we do this in an arbitrary order, but we could use the counts
+  // to prioritize offsets that are more shared if desired.
+  auto predefined_it = predefined_offsets.GetIterator();
+  while (auto* const kv = predefined_it.Next()) {
+    CidRangeVector* const vector = offset_map.Lookup(kv->key);
+    ASSERT(vector != nullptr);
+    output->Add(vector);
+  }
+  // Finally, add CidRangeVectors that only include user-defined cids.
+  // For now, we do this in an arbitrary order, but we could use the counts
+  // to prioritize offsets that are more shared if desired.
+  auto user_defined_it = user_defined_offsets.GetIterator();
+  while (auto* const kv = user_defined_it.Next()) {
+    CidRangeVector* const vector = offset_map.Lookup(kv->key);
+    ASSERT(vector != nullptr);
+    output->Add(vector);
+  }
+  ASSERT(output->length() > 0);
+}
+
+// Given [type], its type class [type_class], and a CidRangeVector [ranges],
+// populates the output CidRangeVectors from cids in [ranges], based on what
+// runtime checks are needed to determine whether the runtime type of
+// an instance is a subtype of [type].
+//
+// Concrete, type finalized classes whose cids are added to [cid_check_only]
+// implement a particular instantiation of [type_class] that is guaranteed to
+// be a subtype of [type]. Thus, these instances do not require any checking
+// of type arguments.
+//
+// Concrete, finalized classes whose cids are added to [type_argument_checks]
+// implement a fully uninstantiated version of [type_class] that can be directly
+// instantiated with the type arguments of the class's instance. Thus, each
+// type argument of [type] should be checked against the corresponding
+// instance type argument.
+//
+// Classes whose cids are in [not_checked]:
+// * Instances of the class are guaranteed to not be a subtype of [type].
+// * The class is not finalized.
+// * The subtype relation cannot be checked with our current approach and
+//   thus the stub must fall back to the STC/VM runtime.
+//
+// Any cids that do not have valid class table entries or correspond to
+// abstract classes are treated as don't cares, in that the cid may or may not
+// appear as needed to reduce the number of ranges.
+static void SplitOnTypeArgumentTests(HierarchyInfo* hi,
+                                     const Type& type,
+                                     const Class& type_class,
+                                     const CidRangeVector& ranges,
+                                     CidRangeVector* cid_check_only,
+                                     CidRangeVector* type_argument_checks,
+                                     CidRangeVector* not_checked) {
+  ASSERT(type_class.is_implemented());  // No need to split if not implemented.
+  ASSERT(cid_check_only->is_empty());
+  ASSERT(type_argument_checks->is_empty());
+  ASSERT(not_checked->is_empty());
+  ClassTable* const class_table = hi->thread()->isolate_group()->class_table();
+  Zone* const zone = hi->thread()->zone();
+  auto& to_check = Class::Handle(zone);
+  auto add_cid_range = [&](CheckType check, const CidRange& range) {
+    if (range.cid_start == -1) return;
+    switch (check) {
+      case CheckType::kCidCheckOnly:
+        cid_check_only->Add(range);
+        break;
+      case CheckType::kInstanceTypeArgumentsAreSubtypes:
+        type_argument_checks->Add(range);
+        break;
+      default:
+        not_checked->Add(range);
+    }
+  };
+  for (const auto& range : ranges) {
+    CheckType last_check = CheckType::kCannotBeChecked;
+    classid_t cid_start = -1, cid_end = -1;
+    for (classid_t cid = range.cid_start; cid <= range.cid_end; cid++) {
+      // Invalid entries can be included to keep range count low.
+      if (!class_table->HasValidClassAt(cid)) continue;
+      to_check = class_table->At(cid);
+      if (to_check.is_abstract()) continue;
+      const CheckType current_check =
+          SubtypeChecksForClass(zone, type, type_class, to_check);
+      ASSERT(current_check != CheckType::kInstanceTypeArgumentsAreSubtypes ||
+             to_check.is_finalized());
+      if (last_check == current_check && cid_start >= 0) {
+        cid_end = cid;
+        continue;
+      }
+      add_cid_range(last_check, {cid_start, cid_end});
+      last_check = current_check;
+      cid_start = cid_end = cid;
+    }
+    add_cid_range(last_check, {cid_start, cid_end});
+  }
+}
+
+bool TypeTestingStubGenerator::BuildLoadInstanceTypeArguments(
+    compiler::Assembler* assembler,
+    HierarchyInfo* hi,
+    const Type& type,
+    const Class& type_class,
+    const Register class_id_reg,
+    const Register instance_type_args_reg,
+    compiler::Label* load_succeeded,
+    compiler::Label* load_failed) {
+  const CidRangeVector& ranges =
+      hi->SubtypeRangesForClass(type_class, /*include_abstract=*/false,
+                                !Instance::NullIsAssignableTo(type));
+  if (ranges.is_empty()) {
+    // Fall through and signal type argument checks should not be generated.
+    CommentCheckedClasses(assembler, ranges);
+    return false;
+  }
+  if (!type_class.is_implemented()) {
+    ASSERT(type_class.is_finalized());
+    const intptr_t tav_offset =
+        compiler::target::Class::TypeArgumentsFieldOffset(type_class);
+    compiler::Label is_subtype;
+    BuildOptimizedSubtypeRangeCheck(assembler, ranges, class_id_reg,
+                                    &is_subtype, load_failed);
+    __ Bind(&is_subtype);
+    if (tav_offset != compiler::target::Class::kNoTypeArguments) {
+      // The class and its subclasses have trivially consistent type arguments.
+      __ LoadCompressedFieldFromOffset(instance_type_args_reg,
+                                       TypeTestABI::kInstanceReg, tav_offset);
+      return true;
+    } else {
+      // Not a generic type, so cid checks are sufficient.
+      __ Ret();
+      return false;
+    }
+  }
+  Thread* const T = hi->thread();
+  Zone* const Z = T->zone();
+  CidRangeVector cid_checks_only, type_argument_checks, not_checked;
+  SplitOnTypeArgumentTests(hi, type, type_class, ranges, &cid_checks_only,
+                           &type_argument_checks, &not_checked);
+  if (!cid_checks_only.is_empty()) {
+    compiler::Label is_subtype, keep_looking;
+    compiler::Label* check_failed =
+        type_argument_checks.is_empty() ? load_failed : &keep_looking;
+    BuildOptimizedSubtypeRangeCheck(assembler, cid_checks_only, class_id_reg,
+                                    &is_subtype, check_failed);
+    __ Bind(&is_subtype);
+    __ Ret();
+    __ Bind(&keep_looking);
+  }
+  if (!type_argument_checks.is_empty()) {
+    GrowableArray<CidRangeVector*> vectors;
+    SplitByTypeArgumentsFieldOffset(T, type_class, type_argument_checks,
+                                    &vectors);
+    ASSERT(vectors.length() > 0);
+    ClassTable* const class_table = T->isolate_group()->class_table();
+    auto& cls = Class::Handle(Z);
+    for (intptr_t i = 0; i < vectors.length(); i++) {
+      CidRangeVector* const vector = vectors[i];
+      ASSERT(!vector->is_empty());
+      const intptr_t first_cid = vector->At(0).cid_start;
+      ASSERT(class_table->HasValidClassAt(first_cid));
+      cls = class_table->At(first_cid);
+      ASSERT(cls.is_finalized());
+      const intptr_t tav_offset =
+          compiler::target::Class::TypeArgumentsFieldOffset(cls);
+      compiler::Label load_tav, keep_looking;
+      // For the last vector, just jump to load_failed if the check fails
+      // and avoid emitting a jump to load_succeeded.
+      compiler::Label* check_failed =
+          i < vectors.length() - 1 ? &keep_looking : load_failed;
+      BuildOptimizedSubtypeRangeCheck(assembler, *vector, class_id_reg,
+                                      &load_tav, check_failed);
+      __ Bind(&load_tav);
+      __ LoadCompressedFieldFromOffset(instance_type_args_reg,
+                                       TypeTestABI::kInstanceReg, tav_offset);
+      if (i < vectors.length() - 1) {
+        __ Jump(load_succeeded);
+        __ Bind(&keep_looking);
+      }
+      // Free the CidRangeVector allocated by SplitByTypeArgumentsFieldOffset.
+      delete vector;
+    }
+  }
+  if (!not_checked.is_empty()) {
+    CommentSkippedClasses(assembler, type, type_class, not_checked);
+  }
+  return !type_argument_checks.is_empty();
+}
+
+// Unwraps TypeRefs, jumping to the appropriate label for the unwrapped type
+// if that label is not nullptr and otherwise falling through.
+//
+// [type_reg] must contain an AbstractTypePtr, and [scratch] must be distinct
+// from [type_reg]. Clobbers [type_reg] with the unwrapped type.
+static void UnwrapAbstractType(compiler::Assembler* assembler,
+                               Register type_reg,
+                               Register scratch,
+                               compiler::Label* is_type = nullptr,
+                               compiler::Label* is_function_type = nullptr,
+                               compiler::Label* is_type_parameter = nullptr) {
+  ASSERT(scratch != type_reg);
+  compiler::Label cid_checks, fall_through;
+  // TypeRefs never wrap other TypeRefs, so we only need to unwrap once.
+  __ LoadClassId(scratch, type_reg);
+  __ CompareImmediate(scratch, kTypeRefCid);
+  __ BranchIf(NOT_EQUAL, &cid_checks, compiler::Assembler::kNearJump);
+  __ LoadCompressedFieldFromOffset(type_reg, type_reg,
+                                   compiler::target::TypeRef::type_offset());
+  // Only load the class id of the unwrapped type if it will be checked below.
+  if (is_type != nullptr || is_function_type != nullptr ||
+      is_type_parameter != nullptr) {
+    __ LoadClassId(scratch, type_reg);
+  }
+  __ Bind(&cid_checks);
+  if (is_type != nullptr) {
+    __ CompareImmediate(scratch, kTypeCid);
+    __ BranchIf(EQUAL, is_type);
+  }
+  if (is_function_type != nullptr) {
+    __ CompareImmediate(scratch, kFunctionTypeCid);
+    __ BranchIf(EQUAL, is_function_type);
+  }
+  if (is_type_parameter != nullptr) {
+    __ CompareImmediate(scratch, kTypeParameterCid);
+    __ BranchIf(EQUAL, is_type_parameter);
+  }
+}
+
+void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
+    compiler::Assembler* assembler,
+    HierarchyInfo* hi,
+    const TypeParameter& type_param,
+    intptr_t type_param_value_offset_i,
+    compiler::Label* check_failed) {
+  if (assembler->EmittingComments()) {
+    TextBuffer buffer(128);
+    buffer.Printf("Generating check for type argument %" Pd ": ",
+                  type_param_value_offset_i);
+    type_param.PrintName(Object::kScrubbedName, &buffer);
+    __ Comment("%s", buffer.buffer());
+  }
+
+  const Register kTypeArgumentsReg =
+      type_param.IsClassTypeParameter()
+          ? TypeTestABI::kInstantiatorTypeArgumentsReg
+          : TypeTestABI::kFunctionTypeArgumentsReg;
+
+  const bool strict_null_safety =
+      hi->thread()->isolate_group()->use_strict_null_safety_checks();
   compiler::Label is_subtype;
-  FlowGraphCompiler::GenerateCidRangesCheck(
-      assembler, TTSInternalRegs::kScratchReg, ranges, &is_subtype,
-      check_failed, true);
+  // TODO(dartbug.com/46920): Currently only canonical equality (identity)
+  // and some top and bottom types are checked.
+  __ CompareObject(kTypeArgumentsReg, Object::null_object());
+  __ BranchIf(EQUAL, &is_subtype);
+
+  __ LoadCompressedFieldFromOffset(
+      TTSInternalRegs::kSuperTypeArgumentReg, kTypeArgumentsReg,
+      compiler::target::TypeArguments::type_at_offset(type_param.index()));
+  __ LoadCompressedFieldFromOffset(
+      TTSInternalRegs::kSubTypeArgumentReg,
+      TTSInternalRegs::kInstanceTypeArgumentsReg,
+      compiler::target::TypeArguments::type_at_offset(
+          type_param_value_offset_i));
+  __ CompareRegisters(TTSInternalRegs::kSuperTypeArgumentReg,
+                      TTSInternalRegs::kSubTypeArgumentReg);
+  __ BranchIf(EQUAL, &is_subtype);
+
+  __ Comment("Checking instantiated type parameter for possible top types");
+  compiler::Label check_subtype_type_class_ids;
+  UnwrapAbstractType(assembler, TTSInternalRegs::kSuperTypeArgumentReg,
+                     TTSInternalRegs::kScratchReg, /*is_type=*/nullptr,
+                     &check_subtype_type_class_ids);
+  __ LoadTypeClassId(TTSInternalRegs::kScratchReg,
+                     TTSInternalRegs::kSuperTypeArgumentReg);
+  __ CompareImmediate(TTSInternalRegs::kScratchReg, kDynamicCid);
+  __ BranchIf(EQUAL, &is_subtype);
+  __ CompareImmediate(TTSInternalRegs::kScratchReg, kVoidCid);
+  __ BranchIf(EQUAL, &is_subtype);
+  __ CompareImmediate(TTSInternalRegs::kScratchReg, kInstanceCid);
+  if (strict_null_safety) {
+    __ BranchIf(NOT_EQUAL, &check_subtype_type_class_ids);
+    // If non-nullable Object, then the subtype must be legacy or non-nullable.
+    __ CompareTypeNullabilityWith(
+        TTSInternalRegs::kSuperTypeArgumentReg,
+        static_cast<int8_t>(Nullability::kNonNullable));
+    __ BranchIf(NOT_EQUAL, &is_subtype);
+    __ Comment("Checking for legacy or non-nullable instance type argument");
+    compiler::Label subtype_is_type;
+    UnwrapAbstractType(assembler, TTSInternalRegs::kSubTypeArgumentReg,
+                       TTSInternalRegs::kScratchReg, &subtype_is_type);
+    __ CompareFunctionTypeNullabilityWith(
+        TTSInternalRegs::kSubTypeArgumentReg,
+        static_cast<int8_t>(Nullability::kNullable));
+    __ BranchIf(EQUAL, check_failed);
+    __ Jump(&is_subtype);
+    __ Bind(&subtype_is_type);
+    __ CompareTypeNullabilityWith(TTSInternalRegs::kSubTypeArgumentReg,
+                                  static_cast<int8_t>(Nullability::kNullable));
+    __ BranchIf(EQUAL, check_failed);
+    __ Jump(&is_subtype);
+  } else {
+    __ BranchIf(EQUAL, &is_subtype, compiler::Assembler::kNearJump);
+  }
+
+  __ Bind(&check_subtype_type_class_ids);
+  __ Comment("Checking instance type argument for possible bottom types");
+  // Nothing else to check for non-Types, so fall back to the slow stub.
+  UnwrapAbstractType(assembler, TTSInternalRegs::kSubTypeArgumentReg,
+                     TTSInternalRegs::kScratchReg, /*is_type=*/nullptr,
+                     check_failed);
+  __ LoadTypeClassId(TTSInternalRegs::kScratchReg,
+                     TTSInternalRegs::kSubTypeArgumentReg);
+  __ CompareImmediate(TTSInternalRegs::kScratchReg, kNeverCid);
+  __ BranchIf(EQUAL, &is_subtype);
+  __ CompareImmediate(TTSInternalRegs::kScratchReg, kNullCid);
+  // Last possible check, so fall back to slow stub on failure.
+  __ BranchIf(NOT_EQUAL, check_failed);
+  if (strict_null_safety) {
+    // Only nullable or legacy types can be a supertype of Null.
+    __ Comment("Checking for legacy or nullable instantiated type parameter");
+    compiler::Label supertype_is_type;
+    UnwrapAbstractType(assembler, TTSInternalRegs::kSuperTypeArgumentReg,
+                       TTSInternalRegs::kScratchReg, &supertype_is_type);
+    __ CompareFunctionTypeNullabilityWith(
+        TTSInternalRegs::kSuperTypeArgumentReg,
+        static_cast<int8_t>(Nullability::kNonNullable));
+    __ BranchIf(EQUAL, check_failed);
+    __ Jump(&is_subtype, compiler::Assembler::kNearJump);
+    __ Bind(&supertype_is_type);
+    __ CompareTypeNullabilityWith(
+        TTSInternalRegs::kSuperTypeArgumentReg,
+        static_cast<int8_t>(Nullability::kNonNullable));
+    __ BranchIf(EQUAL, check_failed);
+  }
+
   __ Bind(&is_subtype);
 }
 
@@ -479,86 +1111,93 @@ void TypeTestingStubGenerator::BuildOptimizedSubclassRangeCheck(
 void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     compiler::Assembler* assembler,
     HierarchyInfo* hi,
-    const AbstractType& type_arg,
+    const Type& type,
     intptr_t type_param_value_offset_i,
     compiler::Label* check_failed) {
-  if (type_arg.IsTopTypeForSubtyping()) {
+  ASSERT(type.IsInstantiated());
+  if (type.IsTopTypeForSubtyping()) {
     return;
   }
 
-  // If the upper bound is a type parameter and its value is "dynamic"
-  // we always succeed.
-  compiler::Label is_dynamic;
-  if (type_arg.IsTypeParameter()) {
-    const TypeParameter& type_param = TypeParameter::Cast(type_arg);
-    const Register kTypeArgumentsReg =
-        type_param.IsClassTypeParameter()
-            ? TypeTestABI::kInstantiatorTypeArgumentsReg
-            : TypeTestABI::kFunctionTypeArgumentsReg;
+  const bool strict_null_safety =
+      hi->thread()->isolate_group()->use_strict_null_safety_checks();
+  ASSERT(!type.IsObjectType() || (strict_null_safety && type.IsNonNullable()));
 
-    __ CompareObject(kTypeArgumentsReg, Object::null_object());
-    __ BranchIf(EQUAL, &is_dynamic);
+  if (assembler->EmittingComments()) {
+    TextBuffer buffer(128);
+    buffer.Printf("Generating check for type argument %" Pd ": ",
+                  type_param_value_offset_i);
+    type.PrintName(Object::kScrubbedName, &buffer);
+    __ Comment("%s", buffer.buffer());
+  }
 
-    __ LoadCompressedFieldFromOffset(
-        TTSInternalRegs::kScratchReg, kTypeArgumentsReg,
-        compiler::target::TypeArguments::type_at_offset(type_param.index()));
-    __ CompareWithCompressedFieldFromOffset(
-        TTSInternalRegs::kScratchReg,
-        TTSInternalRegs::kInstanceTypeArgumentsReg,
-        compiler::target::TypeArguments::type_at_offset(
-            type_param_value_offset_i));
-    __ BranchIf(NOT_EQUAL, check_failed);
+  compiler::Label is_subtype, check_subtype_cid, sub_is_function_type,
+      sub_is_type;
+  __ LoadCompressedFieldFromOffset(
+      TTSInternalRegs::kSubTypeArgumentReg,
+      TTSInternalRegs::kInstanceTypeArgumentsReg,
+      compiler::target::TypeArguments::type_at_offset(
+          type_param_value_offset_i));
+  __ Bind(&check_subtype_cid);
+  UnwrapAbstractType(assembler, TTSInternalRegs::kSubTypeArgumentReg,
+                     TTSInternalRegs::kScratchReg, &sub_is_type);
+  __ Comment("Checks for FunctionType");
+  __ EnsureHasClassIdInDEBUG(kFunctionTypeCid,
+                             TTSInternalRegs::kSubTypeArgumentReg,
+                             TTSInternalRegs::kScratchReg);
+  if (type.IsObjectType() || type.IsDartFunctionType()) {
+    if (strict_null_safety && type.IsNonNullable()) {
+      // Nullable types cannot be a subtype of a non-nullable type.
+      __ CompareFunctionTypeNullabilityWith(
+          TTSInternalRegs::kSubTypeArgumentReg,
+          compiler::target::Nullability::kNullable);
+      __ BranchIf(EQUAL, check_failed);
+    }
+    // No further checks needed for non-nullable Object or Function.
+    __ Jump(&is_subtype, compiler::Assembler::kNearJump);
   } else {
-    const Class& type_class = Class::Handle(type_arg.type_class());
-    const bool null_is_assignable = Instance::NullIsAssignableTo(type_arg);
-    const CidRangeVector& ranges =
-        hi->SubtypeRangesForClass(type_class,
-                                  /*include_abstract=*/true,
-                                  /*exclude_null=*/!null_is_assignable);
+    // _Closure <: Function, and T <: Function for any FunctionType T, but
+    // T </: _Closure, so we _don't_ want to fall back to cid tests. Instead,
+    // just let the STC/runtime handle any possible false negatives here.
+    __ Jump(check_failed);
+  }
 
-    __ LoadCompressedFieldFromOffset(
-        TTSInternalRegs::kScratchReg,
-        TTSInternalRegs::kInstanceTypeArgumentsReg,
-        compiler::target::TypeArguments::type_at_offset(
-            type_param_value_offset_i));
-    __ LoadCompressedFieldFromOffset(
-        TTSInternalRegs::kScratchReg, TTSInternalRegs::kScratchReg,
-        compiler::target::Type::type_class_id_offset());
+  __ Comment("Checks for Type");
+  __ Bind(&sub_is_type);
+  if (strict_null_safety && type.IsNonNullable()) {
+    // Nullable types cannot be a subtype of a non-nullable type in strict mode.
+    __ CompareTypeNullabilityWith(TTSInternalRegs::kSubTypeArgumentReg,
+                                  compiler::target::Nullability::kNullable);
+    __ BranchIf(EQUAL, check_failed);
+    // Fall through to bottom type checks.
+  }
 
-    compiler::Label is_subtype;
-    __ SmiUntag(TTSInternalRegs::kScratchReg);
+  // No further checks needed for non-nullable object.
+  if (!type.IsObjectType()) {
+    __ LoadTypeClassId(TTSInternalRegs::kScratchReg,
+                       TTSInternalRegs::kSubTypeArgumentReg);
+
+    const bool null_is_assignable = Instance::NullIsAssignableTo(type);
+    // Check bottom types.
+    __ CompareImmediate(TTSInternalRegs::kScratchReg, kNeverCid);
+    __ BranchIf(EQUAL, &is_subtype);
     if (null_is_assignable) {
       __ CompareImmediate(TTSInternalRegs::kScratchReg, kNullCid);
       __ BranchIf(EQUAL, &is_subtype);
     }
-    // Never is a bottom type.
-    __ CompareImmediate(TTSInternalRegs::kScratchReg, kNeverCid);
-    __ BranchIf(EQUAL, &is_subtype);
-    FlowGraphCompiler::GenerateCidRangesCheck(
-        assembler, TTSInternalRegs::kScratchReg, ranges, &is_subtype,
-        check_failed, true);
-    __ Bind(&is_subtype);
 
-    // Weak NNBD mode uses LEGACY_SUBTYPE which ignores nullability.
-    // We don't need to check nullability of LHS for nullable and legacy RHS
-    // ("Right Legacy", "Right Nullable" rules).
-    if (IsolateGroup::Current()->use_strict_null_safety_checks() &&
-        !type_arg.IsNullable() && !type_arg.IsLegacy()) {
-      // Nullable type is not a subtype of non-nullable type.
-      // TODO(dartbug.com/40736): Allocate a register for instance type argument
-      // and avoid reloading it.
-      __ LoadCompressedFieldFromOffset(
-          TTSInternalRegs::kScratchReg,
-          TTSInternalRegs::kInstanceTypeArgumentsReg,
-          compiler::target::TypeArguments::type_at_offset(
-              type_param_value_offset_i));
-      __ CompareTypeNullabilityWith(TTSInternalRegs::kScratchReg,
-                                    compiler::target::Nullability::kNullable);
-      __ BranchIf(EQUAL, check_failed);
-    }
+    // Not a bottom type, so check cid ranges.
+    const Class& type_class = Class::Handle(type.type_class());
+    const CidRangeVector& ranges =
+        hi->SubtypeRangesForClass(type_class,
+                                  /*include_abstract=*/true,
+                                  /*exclude_null=*/!null_is_assignable);
+    BuildOptimizedSubtypeRangeCheck(assembler, ranges,
+                                    TTSInternalRegs::kScratchReg, &is_subtype,
+                                    check_failed);
   }
 
-  __ Bind(&is_dynamic);
+  __ Bind(&is_subtype);
 }
 
 void RegisterTypeArgumentsUse(const Function& function,
@@ -1002,43 +1641,40 @@ bool TypeUsageInfo::IsUsedInTypeTest(const AbstractType& type) {
 void DeoptimizeTypeTestingStubs() {
   class CollectTypes : public ObjectVisitor {
    public:
-    CollectTypes(GrowableArray<AbstractType*>* types, Zone* zone)
-        : types_(types), object_(Object::Handle(zone)), zone_(zone) {}
+    CollectTypes(Zone* zone, GrowableArray<AbstractType*>* types)
+        : zone_(zone), types_(types), cache_(SubtypeTestCache::Handle(zone)) {}
 
     void VisitObject(ObjectPtr object) {
-      if (object->IsPseudoObject()) {
-        // Cannot even be wrapped in handles.
-        return;
-      }
-      object_ = object;
-      if (object_.IsAbstractType()) {
-        types_->Add(
-            &AbstractType::Handle(zone_, AbstractType::RawCast(object)));
+      // Only types and function types may have optimized TTSes.
+      if (object->IsType() || object->IsFunctionType()) {
+        types_->Add(&AbstractType::CheckedHandle(zone_, object));
+      } else if (object->IsSubtypeTestCache()) {
+        cache_ ^= object;
+        cache_.Reset();
       }
     }
 
    private:
-    GrowableArray<AbstractType*>* types_;
-    Object& object_;
-    Zone* zone_;
+    Zone* const zone_;
+    GrowableArray<AbstractType*>* const types_;
+    TypeTestingStubGenerator generator_;
+    SubtypeTestCache& cache_;
   };
 
   Thread* thread = Thread::Current();
   TIMELINE_DURATION(thread, Isolate, "DeoptimizeTypeTestingStubs");
   HANDLESCOPE(thread);
   Zone* zone = thread->zone();
-  GrowableArray<AbstractType*> types;
+  GrowableArray<AbstractType*> types(zone, 0);
   {
     HeapIterationScope iter(thread);
-    CollectTypes visitor(&types, zone);
+    CollectTypes visitor(zone, &types);
     iter.IterateObjects(&visitor);
   }
-
-  TypeTestingStubGenerator generator;
-  Code& code = Code::Handle(zone);
-  for (intptr_t i = 0; i < types.length(); i++) {
-    code = generator.DefaultCodeForType(*types[i]);
-    types[i]->SetTypeTestingStub(code);
+  auto& stub = Code::Handle(zone);
+  for (auto* const type : types) {
+    stub = TypeTestingStubGenerator::DefaultCodeForType(*type);
+    type->SetTypeTestingStub(stub);
   }
 }
 

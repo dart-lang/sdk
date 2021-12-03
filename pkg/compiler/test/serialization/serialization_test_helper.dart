@@ -4,11 +4,16 @@
 
 // @dart = 2.7
 
+import 'dart:io';
+
 import 'package:compiler/compiler_new.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/inferrer/types.dart';
+import 'package:compiler/src/serialization/serialization.dart';
 import 'package:compiler/src/serialization/strategies.dart';
+import 'package:compiler/src/serialization/task.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../helpers/memory_compiler.dart';
@@ -30,16 +35,18 @@ void finishCompileAndCompare(
     bool stoppedAfterTypeInference = false}) {
   if (stoppedAfterClosedWorld) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
-    JsClosedWorld newClosedWorld =
+    var newClosedWorldAndIndices =
         cloneClosedWorld(compiler, closedWorld, strategy);
-    compiler.performGlobalTypeInference(newClosedWorld);
+    compiler.performGlobalTypeInference(newClosedWorldAndIndices.closedWorld);
   }
 
   if (stoppedAfterClosedWorld || stoppedAfterTypeInference) {
     GlobalTypeInferenceResults globalInferenceResults =
         compiler.globalInference.resultsForTesting;
+    var indices = compiler.closedWorldIndicesForTesting;
     GlobalTypeInferenceResults newGlobalInferenceResults =
-        cloneInferenceResults(compiler, globalInferenceResults, strategy);
+        cloneInferenceResults(
+            indices, compiler, globalInferenceResults, strategy);
     compiler.generateJavaScriptCode(newGlobalInferenceResults);
   }
   var actualOutput = actualOutputCollector.clear();
@@ -88,13 +95,14 @@ runTest(
     List<String> options,
     SerializationStrategy strategy: const BytesInMemorySerializationStrategy(),
     bool useDataKinds: false}) async {
+  var commonOptions = options + ['--out=out.js'];
   OutputCollector collector = new OutputCollector();
   CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       packageConfig: packageConfig,
       librariesSpecificationUri: librariesSpecificationUri,
-      options: options,
+      options: commonOptions,
       outputProvider: collector,
       beforeRun: (Compiler compiler) {
         compiler.kernelLoader.forceSerialization = true;
@@ -108,7 +116,7 @@ runTest(
       memorySourceFiles: memorySourceFiles,
       packageConfig: packageConfig,
       librariesSpecificationUri: librariesSpecificationUri,
-      options: options,
+      options: commonOptions,
       outputProvider: collector2,
       beforeRun: (Compiler compiler) {
         compiler.kernelLoader.forceSerialization = true;
@@ -116,26 +124,58 @@ runTest(
       });
   Expect.isTrue(result2.isSuccess);
 
-  OutputCollector collector3 = new OutputCollector();
-  CompilationResult result3 = await runCompiler(
+  var dillUri = Uri.parse('out.dill');
+  var closedWorldUri = Uri.parse('world.data');
+  OutputCollector collector3a = new OutputCollector();
+  CompilationResult result3a = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       packageConfig: packageConfig,
       librariesSpecificationUri: librariesSpecificationUri,
-      options: options,
-      outputProvider: collector3,
+      options: options +
+          ['--out=$dillUri', '${Flags.writeClosedWorld}=$closedWorldUri'],
+      outputProvider: collector3a,
+      beforeRun: (Compiler compiler) {
+        compiler.kernelLoader.forceSerialization = true;
+      });
+  Expect.isTrue(result3a.isSuccess);
+  Expect.isTrue(collector3a.binaryOutputMap.containsKey(dillUri));
+  Expect.isTrue(collector3a.binaryOutputMap.containsKey(closedWorldUri));
+
+  Directory dir =
+      await Directory.systemTemp.createTemp('serialization_test_helper');
+  var dillFileUri = dir.uri.resolve('out.dill');
+  var closedWorldFileUri = dir.uri.resolve('world.data');
+  var dillBytes = collector3a.binaryOutputMap[dillUri].list;
+  var closedWorldBytes = collector3a.binaryOutputMap[closedWorldUri].list;
+  File(dillFileUri.path).writeAsBytesSync(dillBytes);
+  File(closedWorldFileUri.path).writeAsBytesSync(closedWorldBytes);
+  OutputCollector collector3b = new OutputCollector();
+  CompilationResult result3b = await runCompiler(
+      entryPoint: entryPoint,
+      memorySourceFiles: memorySourceFiles,
+      packageConfig: packageConfig,
+      librariesSpecificationUri: librariesSpecificationUri,
+      options: commonOptions +
+          [
+            '${Flags.inputDill}=$dillFileUri',
+            '${Flags.readClosedWorld}=$closedWorldFileUri',
+            '${Flags.writeData}=global.data'
+          ],
+      outputProvider: collector3b,
       beforeRun: (Compiler compiler) {
         compiler.kernelLoader.forceSerialization = true;
         compiler.stopAfterTypeInference = true;
       });
-  Expect.isTrue(result3.isSuccess);
+  Expect.isTrue(result3b.isSuccess);
 
   finishCompileAndCompare(
       expectedOutput, collector2, result2.compiler, strategy,
       stoppedAfterClosedWorld: true);
   finishCompileAndCompare(
-      expectedOutput, collector3, result3.compiler, strategy,
+      expectedOutput, collector3b, result3b.compiler, strategy,
       stoppedAfterTypeInference: true);
+  await dir.delete(recursive: true);
 }
 
 void checkData(List<int> data, List<int> newData) {
@@ -161,35 +201,48 @@ void checkData(List<int> data, List<int> newData) {
   Expect.listEquals(data, newData);
 }
 
-JsClosedWorld cloneClosedWorld(Compiler compiler, JsClosedWorld closedWorld,
-    SerializationStrategy strategy) {
+ClosedWorldAndIndices cloneClosedWorld(Compiler compiler,
+    JsClosedWorld closedWorld, SerializationStrategy strategy) {
   ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
   List<int> irData = strategy.serializeComponent(component);
   List<int> closedWorldData = strategy.serializeClosedWorld(closedWorld);
   print('data size: ${closedWorldData.length}');
 
   ir.Component newComponent = strategy.deserializeComponent(irData);
-  JsClosedWorld newClosedWorld = strategy.deserializeClosedWorld(
+  var newClosedWorldAndIndices = strategy.deserializeClosedWorld(
       compiler.options,
       compiler.reporter,
       compiler.environment,
       compiler.abstractValueStrategy,
       newComponent,
       closedWorldData);
-  List<int> newClosedWorldData = strategy.serializeClosedWorld(newClosedWorld);
+  List<int> newClosedWorldData =
+      strategy.serializeClosedWorld(newClosedWorldAndIndices.closedWorld);
   checkData(closedWorldData, newClosedWorldData);
-  return newClosedWorld;
+  return newClosedWorldAndIndices;
 }
 
-GlobalTypeInferenceResults cloneInferenceResults(Compiler compiler,
-    GlobalTypeInferenceResults results, SerializationStrategy strategy) {
+GlobalTypeInferenceResults cloneInferenceResults(
+    DataSourceIndices indices,
+    Compiler compiler,
+    GlobalTypeInferenceResults results,
+    SerializationStrategy strategy) {
   List<int> irData = strategy.unpackAndSerializeComponent(results);
   List<int> closedWorldData =
       strategy.serializeClosedWorld(results.closedWorld);
-  List<int> worldData = strategy.serializeGlobalTypeInferenceResults(results);
+  List<int> worldData =
+      strategy.serializeGlobalTypeInferenceResults(indices, results);
   print('data size: ${worldData.length}');
 
   ir.Component newComponent = strategy.deserializeComponent(irData);
+  var newClosedWorldAndIndices = strategy.deserializeClosedWorld(
+      compiler.options,
+      compiler.reporter,
+      compiler.environment,
+      compiler.abstractValueStrategy,
+      newComponent,
+      closedWorldData);
+  var newIndices = indices == null ? null : newClosedWorldAndIndices.indices;
   GlobalTypeInferenceResults newResults =
       strategy.deserializeGlobalTypeInferenceResults(
           compiler.options,
@@ -197,10 +250,11 @@ GlobalTypeInferenceResults cloneInferenceResults(Compiler compiler,
           compiler.environment,
           compiler.abstractValueStrategy,
           newComponent,
-          closedWorldData,
+          newClosedWorldAndIndices.closedWorld,
+          newIndices,
           worldData);
   List<int> newWorldData =
-      strategy.serializeGlobalTypeInferenceResults(newResults);
+      strategy.serializeGlobalTypeInferenceResults(newIndices, newResults);
   checkData(worldData, newWorldData);
   return newResults;
 }

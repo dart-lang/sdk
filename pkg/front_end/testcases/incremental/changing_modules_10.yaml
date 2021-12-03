@@ -10,11 +10,13 @@ type: newworld
 modules:
   module:
     module/a.dart: |
+      // @dart=2.9
       import 'package:module/b.dart';
 
       class A extends A2<B> { }
       class A2<T> { }
     module/b.dart: |
+      // @dart=2.9
       class B { }
     module/.packages: |
       module:.
@@ -23,6 +25,7 @@ worlds:
     fromComponent: true
     sources:
       main.dart: |
+        // @dart=2.9
         import 'package:module/a.dart';
         class Foo extends A {}
       .packages: |

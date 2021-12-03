@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::C<self::C::_#new#tearOff::T%>
+    return new self::C::•<self::C::_#new#tearOff::T%>();
+}
+static const field <T extends core::Object? = dynamic>() → self::C<T%> constructorTearOff = #C1;
+static method main() → dynamic {
+  const () → self::C<core::int> instantiatedTearOff = #C2;
+  const () → self::C<core::int> instantiatedTearOff2 = #C2;
+  core::print(core::identical(instantiatedTearOff, instantiatedTearOff2));
+  core::print(core::identical(#C3, #C3));
+}
+
+constants  {
+  #C1 = static-tearoff self::C::_#new#tearOff
+  #C2 = instantiation #C1 <core::int>
+  #C3 = instantiation #C1 <core::String>
+}

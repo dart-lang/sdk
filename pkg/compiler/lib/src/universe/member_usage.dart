@@ -17,7 +17,7 @@ abstract class AbstractUsage<T> {
 
   AbstractUsage.cloned(this._pendingUse);
 
-  AbstractUsage() : this._pendingUse = new EnumSet<T>() {
+  AbstractUsage() : this._pendingUse = EnumSet() {
     _pendingUse.addAll(_originalUse);
   }
 
@@ -41,7 +41,7 @@ abstract class AbstractUsage<T> {
 abstract class MemberUsage extends AbstractUsage<MemberUse> {
   /// Constant empty access set used as the potential access set for impossible
   /// accesses, for instance writing to a final field or invoking a setter.
-  static const EnumSet<Access> emptySet = const EnumSet.fixed(0);
+  static const EnumSet<Access> emptySet = EnumSet.fixed(0);
 
   final MemberEntity entity;
 
@@ -60,12 +60,12 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
       }
       if (member.isTopLevel || member.isStatic || member.isConstructor) {
         // TODO(johnniwinther): Track super constructor invocations?
-        return new EnumSet.fromValues([Access.staticAccess]);
+        return EnumSet.fromValues([Access.staticAccess]);
       } else if (member.isInstanceMember) {
-        return new EnumSet.fromValues(Access.values);
+        return EnumSet.fromValues(Access.values);
       } else {
         assert(member is JRecordField, "Unexpected member: $member");
-        return new EnumSet();
+        return EnumSet();
       }
     }
 
@@ -89,33 +89,33 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
 
     if (member.isField) {
       if (member.isAssignable) {
-        return new FieldUsage(member,
+        return FieldUsage(member,
             potentialReads: createPotentialReads(),
             potentialWrites: createPotentialWrites(),
             potentialInvokes: createPotentialInvokes());
       } else {
-        return new FieldUsage(member,
+        return FieldUsage(member,
             potentialReads: createPotentialReads(),
             potentialWrites: emptySet,
             potentialInvokes: createPotentialInvokes());
       }
     } else if (member.isGetter) {
-      return new PropertyUsage(member,
+      return PropertyUsage(member,
           potentialReads: createPotentialReads(),
           potentialWrites: emptySet,
           potentialInvokes: createPotentialInvokes());
     } else if (member.isSetter) {
-      return new PropertyUsage(member,
+      return PropertyUsage(member,
           potentialReads: emptySet,
           potentialWrites: createPotentialWrites(),
           potentialInvokes: emptySet);
     } else if (member.isConstructor) {
-      return new MethodUsage(member,
+      return MethodUsage(member,
           potentialReads: emptySet, potentialInvokes: createPotentialInvokes());
     } else {
       assert(member is FunctionEntity,
           failedAt(member, "Unexpected member: $member"));
-      return new MethodUsage(member,
+      return MethodUsage(member,
           potentialReads: createPotentialReads(),
           potentialInvokes: createPotentialInvokes());
     }
@@ -293,9 +293,9 @@ class PropertyUsage extends MemberUsage {
 
   PropertyUsage(MemberEntity member,
       {this.potentialReads, this.potentialWrites, this.potentialInvokes})
-      : reads = new EnumSet(),
-        writes = new EnumSet(),
-        invokes = new EnumSet(),
+      : reads = EnumSet(),
+        writes = EnumSet(),
+        invokes = EnumSet(),
         assert(potentialReads != null),
         assert(potentialWrites != null),
         assert(potentialInvokes != null),
@@ -338,7 +338,7 @@ class PropertyUsage extends MemberUsage {
 
   @override
   MemberUsage clone() {
-    return new PropertyUsage.cloned(entity, _pendingUse.clone(),
+    return PropertyUsage.cloned(entity, _pendingUse.clone(),
         potentialReads: potentialReads.clone(),
         potentialWrites: potentialWrites.clone(),
         potentialInvokes: potentialInvokes.clone(),
@@ -403,9 +403,9 @@ class FieldUsage extends MemberUsage {
   FieldUsage(FieldEntity field,
       {this.potentialReads, this.potentialWrites, this.potentialInvokes})
       : hasInit = false,
-        reads = new EnumSet(),
-        writes = new EnumSet(),
-        invokes = new EnumSet(),
+        reads = EnumSet(),
+        writes = EnumSet(),
+        invokes = EnumSet(),
         assert(potentialReads != null),
         assert(potentialWrites != null),
         assert(potentialInvokes != null),
@@ -473,7 +473,7 @@ class FieldUsage extends MemberUsage {
 
   @override
   MemberUsage clone() {
-    return new FieldUsage.cloned(entity, _pendingUse.clone(),
+    return FieldUsage.cloned(entity, _pendingUse.clone(),
         potentialReads: potentialReads.clone(),
         potentialWrites: potentialWrites.clone(),
         potentialInvokes: potentialInvokes.clone(),
@@ -522,9 +522,9 @@ class MethodUsage extends MemberUsage {
 
   MethodUsage(FunctionEntity function,
       {this.potentialReads, this.potentialInvokes})
-      : reads = new EnumSet(),
-        invokes = new EnumSet(),
-        parameterUsage = new ParameterUsage(function.parameterStructure),
+      : reads = EnumSet(),
+        invokes = EnumSet(),
+        parameterUsage = ParameterUsage(function.parameterStructure),
         assert(potentialReads != null),
         assert(potentialInvokes != null),
         super.internal(function);
@@ -583,7 +583,7 @@ class MethodUsage extends MemberUsage {
 
   @override
   MemberUsage clone() {
-    return new MethodUsage.cloned(
+    return MethodUsage.cloned(
         entity, parameterUsage.clone(), _pendingUse.clone(),
         reads: reads.clone(),
         potentialReads: potentialReads.clone(),
@@ -615,20 +615,16 @@ enum MemberUse {
 
 /// Common [EnumSet]s used for [MemberUse].
 class MemberUses {
-  static const EnumSet<MemberUse> NONE = const EnumSet<MemberUse>.fixed(0);
-  static const EnumSet<MemberUse> NORMAL_ONLY =
-      const EnumSet<MemberUse>.fixed(1);
-  static const EnumSet<MemberUse> CLOSURIZE_INSTANCE_ONLY =
-      const EnumSet<MemberUse>.fixed(2);
-  static const EnumSet<MemberUse> CLOSURIZE_STATIC_ONLY =
-      const EnumSet<MemberUse>.fixed(4);
-  static const EnumSet<MemberUse> ALL_INSTANCE =
-      const EnumSet<MemberUse>.fixed(3);
-  static const EnumSet<MemberUse> ALL_STATIC =
-      const EnumSet<MemberUse>.fixed(5);
+  static const EnumSet<MemberUse> NONE = EnumSet.fixed(0);
+  static const EnumSet<MemberUse> NORMAL_ONLY = EnumSet.fixed(1);
+  static const EnumSet<MemberUse> CLOSURIZE_INSTANCE_ONLY = EnumSet.fixed(2);
+  static const EnumSet<MemberUse> CLOSURIZE_STATIC_ONLY = EnumSet.fixed(4);
+  static const EnumSet<MemberUse> ALL_INSTANCE = EnumSet.fixed(3);
+  static const EnumSet<MemberUse> ALL_STATIC = EnumSet.fixed(5);
 }
 
-typedef void MemberUsedCallback(MemberEntity member, EnumSet<MemberUse> useSet);
+typedef MemberUsedCallback = void Function(
+    MemberEntity member, EnumSet<MemberUse> useSet);
 
 /// Registry for the observed use of a class [entity] in the open world.
 // TODO(johnniwinther): Merge this with [InstantiationInfo].
@@ -668,15 +664,14 @@ enum ClassUse { INSTANTIATED, IMPLEMENTED }
 
 /// Common [EnumSet]s used for [ClassUse].
 class ClassUses {
-  static const EnumSet<ClassUse> NONE = const EnumSet<ClassUse>.fixed(0);
-  static const EnumSet<ClassUse> INSTANTIATED_ONLY =
-      const EnumSet<ClassUse>.fixed(1);
-  static const EnumSet<ClassUse> IMPLEMENTED_ONLY =
-      const EnumSet<ClassUse>.fixed(2);
-  static const EnumSet<ClassUse> ALL = const EnumSet<ClassUse>.fixed(3);
+  static const EnumSet<ClassUse> NONE = EnumSet.fixed(0);
+  static const EnumSet<ClassUse> INSTANTIATED_ONLY = EnumSet.fixed(1);
+  static const EnumSet<ClassUse> IMPLEMENTED_ONLY = EnumSet.fixed(2);
+  static const EnumSet<ClassUse> ALL = EnumSet.fixed(3);
 }
 
-typedef void ClassUsedCallback(ClassEntity cls, EnumSet<ClassUse> useSet);
+typedef ClassUsedCallback = void Function(
+    ClassEntity cls, EnumSet<ClassUse> useSet);
 
 /// Object used for tracking parameter use in constructor and method
 /// invocations.
@@ -712,7 +707,7 @@ class ParameterUsage {
         : 0;
     if (!_parameterStructure.namedParameters.isEmpty) {
       _unprovidedNamedParameters =
-          new Set<String>.from(_parameterStructure.namedParameters);
+          Set<String>.from(_parameterStructure.namedParameters);
     }
   }
 
@@ -776,7 +771,7 @@ class ParameterUsage {
   ParameterStructure get invokedParameters {
     if (!_hasInvoke) return null;
     if (isFullyUsed) return _parameterStructure;
-    return new ParameterStructure(
+    return ParameterStructure(
         _parameterStructure.requiredPositionalParameters,
         _providedPositionalParameters ??
             _parameterStructure.positionalParameters,
@@ -790,7 +785,7 @@ class ParameterUsage {
   }
 
   ParameterUsage clone() {
-    return new ParameterUsage.cloned(_parameterStructure,
+    return ParameterUsage.cloned(_parameterStructure,
         hasInvoke: _hasInvoke,
         providedPositionalParameters: _providedPositionalParameters,
         areAllTypeParametersProvided: _areAllTypeParametersProvided,
@@ -823,15 +818,15 @@ enum Access {
 /// Access sets used for registration of member usage.
 class Accesses {
   /// Statically bound access of a member.
-  static const EnumSet<Access> staticAccess = const EnumSet<Access>.fixed(1);
+  static const EnumSet<Access> staticAccess = EnumSet.fixed(1);
 
   /// Dynamically bound access of a member. This implies the statically bound
   /// access of the member.
-  static const EnumSet<Access> dynamicAccess = const EnumSet<Access>.fixed(3);
+  static const EnumSet<Access> dynamicAccess = EnumSet.fixed(3);
 
   /// Direct access of a super class member. This implies the statically bound
   /// access of the member.
-  static const EnumSet<Access> superAccess = const EnumSet<Access>.fixed(5);
+  static const EnumSet<Access> superAccess = EnumSet.fixed(5);
 }
 
 /// The accesses of a member collected during closed world computation.
@@ -846,11 +841,11 @@ class MemberAccess {
 
   factory MemberAccess.readFromDataSource(DataSource source) {
     source.begin(tag);
-    EnumSet<Access> reads = new EnumSet.fixed(source.readInt());
-    EnumSet<Access> writes = new EnumSet.fixed(source.readInt());
-    EnumSet<Access> invokes = new EnumSet.fixed(source.readInt());
+    EnumSet<Access> reads = EnumSet.fixed(source.readInt());
+    EnumSet<Access> writes = EnumSet.fixed(source.readInt());
+    EnumSet<Access> invokes = EnumSet.fixed(source.readInt());
     source.end(tag);
-    return new MemberAccess(reads, writes, invokes);
+    return MemberAccess(reads, writes, invokes);
   }
 
   void writeToDataSink(DataSink sink) {

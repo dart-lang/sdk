@@ -60,7 +60,6 @@ main() {
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //              ^
     // [cfe] A value of type 'int?' can't be assigned to a variable of type 'String?'.
-    //              ^
     // [cfe] Operand of null-aware operation '?.' has type 'C' which excludes null.
     //                     ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
@@ -128,9 +127,12 @@ main() {
   Expect.throwsNoSuchMethodError(() => C?.hashCode);
   //                                      ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] Getter not found: 'hashCode'.
+  // [cfe] Member not found: 'hashCode'.
   Expect.throwsNoSuchMethodError(() => h.C?.hashCode);
   //                                        ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] Getter not found: 'hashCode'.
+  // [cfe] Member not found: 'hashCode'.
+
+  // (C.staticInt?.floor())! can be assigned to int.
+  int y = (C.staticInt?.floor())!;
 }

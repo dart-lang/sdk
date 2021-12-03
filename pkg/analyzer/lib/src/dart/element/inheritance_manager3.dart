@@ -5,11 +5,10 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/correct_override.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 /// Failure because of there is no most specific signature in [candidates].
 class CandidatesConflict extends Conflict {
@@ -44,7 +43,8 @@ class GetterMethodConflict extends Conflict {
 
 /// Manages knowledge about interface types and their members.
 class InheritanceManager3 {
-  static final _noSuchMethodName = Name(null, 'noSuchMethod');
+  static final _noSuchMethodName =
+      Name(null, FunctionElement.NO_SUCH_METHOD_METHOD_NAME);
 
   /// Cached instance interfaces for [ClassElement].
   final Map<ClassElement, Interface> _interfaces = {};
@@ -76,16 +76,16 @@ class InheritanceManager3 {
       return null;
     }
 
+    var targetLibrary = targetClass.library as LibraryElementImpl;
+    var typeSystem = targetLibrary.typeSystem;
+
     var validOverrides = <ExecutableElement>[];
     for (var i = 0; i < candidates.length; i++) {
       ExecutableElement? validOverride = candidates[i];
-      var overrideHelper = CorrectOverrideHelper(
-        library: targetClass.library as LibraryElementImpl,
-        thisMember: validOverride,
-      );
+      var validOverrideType = validOverride.type;
       for (var j = 0; j < candidates.length; j++) {
         var candidate = candidates[j];
-        if (!overrideHelper.isCorrectOverrideOf(superMember: candidate)) {
+        if (!typeSystem.isSubtypeOf(validOverrideType, candidate.type)) {
           validOverride = null;
           break;
         }
@@ -252,7 +252,7 @@ class InheritanceManager3 {
 
   /// Return the member with the given [name].
   ///
-  /// If [concrete] is `true`, the the concrete implementation is returned,
+  /// If [concrete] is `true`, the concrete implementation is returned,
   /// from the given [element], or its superclass.
   ///
   /// If [forSuper] is `true`, then [concrete] is implied, and only concrete
@@ -627,6 +627,11 @@ class InheritanceManager3 {
       }
     }
 
+    implemented = implemented.map<Name, ExecutableElement>((key, value) {
+      var result = _inheritCovariance(element, namedCandidates, key, value);
+      return MapEntry(key, result);
+    });
+
     return Interface._(
       interface,
       declared,
@@ -696,6 +701,102 @@ class InheritanceManager3 {
       [superInterface],
       <Conflict>[...superConflicts, ...interfaceConflicts],
     );
+  }
+
+  /// If a candidate from [namedCandidates] has covariant parameters, return
+  /// a copy of the [executable] with the corresponding parameters marked
+  /// covariant. If there are no covariant parameters, or parameters to
+  /// update are already covariant, return the [executable] itself.
+  ExecutableElement _inheritCovariance(
+    ClassElement class_,
+    Map<Name, List<ExecutableElement>> namedCandidates,
+    Name name,
+    ExecutableElement executable,
+  ) {
+    if (executable.enclosingElement == class_) {
+      return executable;
+    }
+
+    var parameters = executable.parameters;
+    if (parameters.isEmpty) {
+      return executable;
+    }
+
+    var candidates = namedCandidates[name];
+    if (candidates == null) {
+      return executable;
+    }
+
+    // Find parameters that are covariant (by declaration) in any overridden.
+    Set<_ParameterDesc>? covariantParameters;
+    for (var candidate in candidates) {
+      var parameters = candidate.parameters;
+      for (var i = 0; i < parameters.length; i++) {
+        var parameter = parameters[i];
+        if (parameter.isCovariant) {
+          covariantParameters ??= {};
+          covariantParameters.add(
+            _ParameterDesc(i, parameter),
+          );
+        }
+      }
+    }
+
+    if (covariantParameters == null) {
+      return executable;
+    }
+
+    // Update covariance of the parameters of the chosen executable.
+    List<ParameterElement>? transformedParameters;
+    for (var index = 0; index < parameters.length; index++) {
+      var parameter = parameters[index];
+      var shouldBeCovariant = covariantParameters.contains(
+        _ParameterDesc(index, parameter),
+      );
+      if (parameter.isCovariant != shouldBeCovariant) {
+        transformedParameters ??= parameters.toList();
+        transformedParameters[index] = parameter.copyWith(
+          isCovariant: shouldBeCovariant,
+        );
+      }
+    }
+
+    if (transformedParameters == null) {
+      return executable;
+    }
+
+    if (executable is MethodElement) {
+      var result = MethodElementImpl(executable.name, -1);
+      result.enclosingElement = class_;
+      result.isSynthetic = true;
+      result.parameters = transformedParameters;
+      result.prototype = executable;
+      result.returnType = executable.returnType;
+      result.typeParameters = executable.typeParameters;
+      return result;
+    }
+
+    if (executable is PropertyAccessorElement) {
+      assert(executable.isSetter);
+      var result = PropertyAccessorElementImpl(executable.name, -1);
+      result.enclosingElement = class_;
+      result.isSynthetic = true;
+      result.parameters = transformedParameters;
+      result.prototype = executable;
+      result.returnType = executable.returnType;
+
+      var field = executable.variable;
+      var resultField = FieldElementImpl(field.name, -1);
+      resultField.enclosingElement = class_;
+      resultField.getter = field.getter;
+      resultField.setter = executable;
+      resultField.type = executable.parameters[0].type;
+      result.variable = resultField;
+
+      return result;
+    }
+
+    return executable;
   }
 
   /// Given one or more [validOverrides], merge them into a single resulting
@@ -885,7 +986,7 @@ class Name {
 
   factory Name(Uri? libraryUri, String name) {
     if (name.startsWith('_')) {
-      var hashCode = JenkinsSmiHash.hash2(libraryUri.hashCode, name.hashCode);
+      var hashCode = Object.hash(libraryUri, name);
       return Name._internal(libraryUri, name, false, hashCode);
     } else {
       return Name._internal(null, name, true, name.hashCode);
@@ -907,4 +1008,35 @@ class Name {
 
   @override
   String toString() => libraryUri != null ? '$libraryUri::$name' : name;
+}
+
+class _ParameterDesc {
+  final int? index;
+  final String? name;
+
+  factory _ParameterDesc(int index, ParameterElement element) {
+    return element.isNamed
+        ? _ParameterDesc.name(element.name)
+        : _ParameterDesc.index(index);
+  }
+
+  _ParameterDesc.index(int index)
+      : index = index,
+        name = null;
+
+  _ParameterDesc.name(String name)
+      : index = null,
+        name = name;
+
+  @override
+  int get hashCode {
+    return index?.hashCode ?? name?.hashCode ?? 0;
+  }
+
+  @override
+  bool operator ==(other) {
+    return other is _ParameterDesc &&
+        other.index == index &&
+        other.name == name;
+  }
 }

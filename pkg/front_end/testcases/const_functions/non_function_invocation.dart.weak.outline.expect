@@ -1,0 +1,12 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static const field dynamic a = null;
+static const field dynamic b = self::a{dynamic}.call();
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///non_function_invocation.dart:6:19 -> NullConstant(null)
+Extra constant evaluation: evaluated: 2, effectively constant: 1

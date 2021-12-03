@@ -11,6 +11,7 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         class A1 {}
 
         extension A2 on A1 {
@@ -36,6 +37,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         class A1 {}
 
         extension A2 on A1 {

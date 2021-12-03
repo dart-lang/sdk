@@ -20,6 +20,18 @@ main() {
 
 @reflectiveTest
 class ConstantEvaluatorTest extends PubPackageResolutionTest {
+  void assertTypeArguments(DartObject value, List<String>? typeArgumentNames) {
+    var typeArguments = (value as DartObjectImpl).typeArguments;
+    if (typeArguments == null) {
+      expect(typeArguments, typeArgumentNames);
+      return;
+    }
+    expect(
+      typeArguments.map((arg) => arg.getDisplayString(withNullability: true)),
+      equals(typeArgumentNames),
+    );
+  }
+
   test_bitAnd_int_int() async {
     await _assertValueInt(74 & 42, "74 & 42");
   }
@@ -34,50 +46,6 @@ class ConstantEvaluatorTest extends PubPackageResolutionTest {
 
   test_bitXor_int_int() async {
     await _assertValueInt(74 ^ 42, "74 ^ 42");
-  }
-
-  test_constructorInvocation_assert_false() async {
-    var result = await _getExpressionValue("const C(0)", context: '''
-class C {
-  const C(int x) : assert(x > 0);
-}
-''');
-    expect(result.isValid, isFalse);
-  }
-
-  test_constructorInvocation_assert_inherited() async {
-    var result = await _getExpressionValue(
-      "const Center(name: 'v')",
-      context: '''
-class Align {
-  final double? widthFactor;
-  const Align({String name, this.widthFactor})
-        assert(widthFactor == null || widthFactor >= 0.0);
-}
-class Center extends Align {
-  const Center({String name})
-    : super(name: name);
-}
-''',
-    );
-    expect(result.isValid, isTrue);
-    DartObject value = result.value!;
-    assertType(value.type, 'Center');
-    DartObject superclassFields =
-        value.getField(GenericState.SUPERCLASS_FIELD)!;
-    DartObject widthFactor = superclassFields.getField('widthFactor')!;
-    expect(widthFactor.isNull, isTrue);
-  }
-
-  test_constructorInvocation_assert_true() async {
-    var result = await _getExpressionValue("const C(3)", context: '''
-class C {
-  const C(int x) : assert(x > 0);
-}
-''');
-    expect(result.isValid, isTrue);
-    DartObject value = result.value!;
-    assertType(value.type, 'C');
   }
 
   test_constructorInvocation_fieldInitializer() async {
@@ -124,6 +92,50 @@ class C {
     expect(result.isValid, isTrue);
     DartObject value = result.value!;
     assertType(value.type, 'C');
+  }
+
+  test_constructorReference_generic_named() async {
+    var result = await _getExpressionValue("C<int>.foo", context: '''
+class C<T> {
+  C.foo();
+}
+''');
+    expect(result.isValid, isTrue);
+    DartObject value = result.value!;
+    assertType(value.type, 'C<int> Function()');
+  }
+
+  test_constructorReference_generic_unnamed() async {
+    var result = await _getExpressionValue("C<int>.new", context: '''
+class C<T> {
+  C.new();
+}
+''');
+    expect(result.isValid, isTrue);
+    DartObject value = result.value!;
+    assertType(value.type, 'C<int> Function()');
+  }
+
+  test_constructorReference_nonGeneric_named() async {
+    var result = await _getExpressionValue("C.foo", context: '''
+class C {
+  const C.foo();
+}
+''');
+    expect(result.isValid, isTrue);
+    DartObject value = result.value!;
+    assertType(value.type, 'C Function()');
+  }
+
+  test_constructorReference_nonGeneric_unnamed() async {
+    var result = await _getExpressionValue("C.new", context: '''
+class C {
+  const C();
+}
+''');
+    expect(result.isValid, isTrue);
+    DartObject value = result.value!;
+    assertType(value.type, 'C Function()');
   }
 
   test_divide_double_double() async {
@@ -225,10 +237,6 @@ class C {
     expect(value, null);
   }
 
-  test_leftShift_int_int() async {
-    await _assertValueInt(64, "16 << 2");
-  }
-
   test_lessThan_int_int() async {
     await _assertValueBool(true, "2 < 3");
   }
@@ -247,6 +255,16 @@ class C {
 
   test_literal_list() async {
     var result = await _getExpressionValue("const ['a', 'b', 'c']");
+    expect(result.isValid, isTrue);
+  }
+
+  test_literal_list_explicitType() async {
+    var result = await _getExpressionValue("const <String>['a', 'b', 'c']");
+    expect(result.isValid, isTrue);
+  }
+
+  test_literal_list_explicitType_functionType() async {
+    var result = await _getExpressionValue("const <void Function()>[]");
     expect(result.isValid, isTrue);
   }
 
@@ -402,18 +420,6 @@ const [for (var i = 0; i < 4; i++) i]
     expect(value, null);
   }
 
-  test_remainder_double_double() async {
-    await _assertValueDouble(3.2 % 2.3, "3.2 % 2.3");
-  }
-
-  test_remainder_int_int() async {
-    await _assertValueInt(2, "8 % 3");
-  }
-
-  test_rightShift() async {
-    await _assertValueInt(16, "64 >> 2");
-  }
-
   @failingTest
   test_simpleIdentifier_invalid() async {
     var result = await _getExpressionValue("?");
@@ -436,26 +442,6 @@ const [for (var i = 0; i < 4; i++) i]
 
   test_stringLength_simple() async {
     await _assertValueInt(6, "'Dvorak'.length");
-  }
-
-  test_times_double_double() async {
-    await _assertValueDouble(2.3 * 3.2, "2.3 * 3.2");
-  }
-
-  test_times_int_int() async {
-    await _assertValueInt(6, "2 * 3");
-  }
-
-  test_tripleShift() async {
-    await _assertValueInt(16, "64 >>> 2");
-  }
-
-  test_truncatingDivide_double_double() async {
-    await _assertValueInt(1, "3.2 ~/ 2.3");
-  }
-
-  test_truncatingDivide_int_int() async {
-    await _assertValueInt(3, "10 ~/ 3");
   }
 
   Future<void> _assertValueBool(bool expectedValue, String contents) async {

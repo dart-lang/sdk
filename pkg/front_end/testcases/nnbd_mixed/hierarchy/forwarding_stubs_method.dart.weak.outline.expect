@@ -100,12 +100,12 @@ import "dart:core" as core;
 abstract class Super extends core::Object {
   synthetic constructor •() → self::Super
     ;
-  method extendedConcreteCovariantMethod(covariant core::int i) → void
+  method extendedConcreteCovariantMethod(covariant-by-declaration core::int i) → void
     ;
-  abstract method extendedAbstractCovariantMethod(covariant core::int i) → void;
-  method extendedConcreteCovariantImplementedMethod(covariant core::int i) → void
+  abstract method extendedAbstractCovariantMethod(covariant-by-declaration core::int i) → void;
+  method extendedConcreteCovariantImplementedMethod(covariant-by-declaration core::int i) → void
     ;
-  abstract method extendedAbstractCovariantImplementedMethod(covariant core::int i) → void;
+  abstract method extendedAbstractCovariantImplementedMethod(covariant-by-declaration core::int i) → void;
   method extendedConcreteImplementedCovariantMethod(core::int i) → void
     ;
   abstract method extendedAbstractImplementedCovariantMethod(core::int i) → void;
@@ -117,11 +117,11 @@ class Interface1 extends core::Object {
     ;
   method extendedAbstractCovariantImplementedMethod(core::int i) → void
     ;
-  method extendedConcreteImplementedCovariantMethod(covariant core::int i) → void
+  method extendedConcreteImplementedCovariantMethod(covariant-by-declaration core::int i) → void
     ;
-  method extendedAbstractImplementedCovariantMethod(covariant core::int i) → void
+  method extendedAbstractImplementedCovariantMethod(covariant-by-declaration core::int i) → void
     ;
-  method implementsMultipleCovariantMethod1(covariant core::int i) → void
+  method implementsMultipleCovariantMethod1(covariant-by-declaration core::int i) → void
     ;
   method implementsMultipleCovariantMethod2(core::int i) → void
     ;
@@ -131,16 +131,16 @@ class Interface2 extends core::Object {
     ;
   method implementsMultipleCovariantMethod1(core::int i) → void
     ;
-  method implementsMultipleCovariantMethod2(covariant core::int i) → void
+  method implementsMultipleCovariantMethod2(covariant-by-declaration core::int i) → void
     ;
 }
 abstract class AbstractClass extends self::Super implements self::Interface1, self::Interface2 {
   synthetic constructor •() → self::AbstractClass
     ;
-  forwarding-stub method extendedConcreteImplementedCovariantMethod(covariant core::int i) → void
+  forwarding-stub method extendedConcreteImplementedCovariantMethod(covariant-by-declaration core::int i) → void
     return super.{self::Super::extendedConcreteImplementedCovariantMethod}(i);
-  abstract forwarding-stub method extendedAbstractImplementedCovariantMethod(covariant core::int i) → void;
-  abstract forwarding-stub method implementsMultipleCovariantMethod2(covariant core::int i) → void;
+  abstract forwarding-stub method extendedAbstractImplementedCovariantMethod(covariant-by-declaration core::int i) → void;
+  abstract forwarding-stub method implementsMultipleCovariantMethod2(covariant-by-declaration core::int i) → void;
 }
 class ConcreteSub extends self::AbstractClass {
   synthetic constructor •() → self::ConcreteSub
@@ -149,10 +149,10 @@ class ConcreteSub extends self::AbstractClass {
 class ConcreteClass extends self::Super implements self::Interface1, self::Interface2 {
   synthetic constructor •() → self::ConcreteClass
     ;
-  forwarding-stub method extendedConcreteImplementedCovariantMethod(covariant core::int i) → void
+  forwarding-stub method extendedConcreteImplementedCovariantMethod(covariant-by-declaration core::int i) → void
     return super.{self::Super::extendedConcreteImplementedCovariantMethod}(i);
-  abstract forwarding-stub method extendedAbstractImplementedCovariantMethod(covariant core::int i) → void;
-  abstract forwarding-stub method implementsMultipleCovariantMethod2(covariant core::int i) → void;
+  abstract forwarding-stub method extendedAbstractImplementedCovariantMethod(covariant-by-declaration core::int i) → void;
+  abstract forwarding-stub method implementsMultipleCovariantMethod2(covariant-by-declaration core::int i) → void;
 }
 static method main() → dynamic
   ;

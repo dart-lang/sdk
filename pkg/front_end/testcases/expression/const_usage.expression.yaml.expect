@@ -1,7 +1,7 @@
 Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return (#C2).{main::ConstClass::x}{dart.core::int*};
+  return #C2.{main::ConstClass::x}{dart.core::int*};
 constants  {
   #C1 = 42
   #C2 = main::ConstClass {x:#C1}

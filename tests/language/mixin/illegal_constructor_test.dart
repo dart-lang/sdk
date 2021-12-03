@@ -97,21 +97,21 @@ main() {
   new D6();
 
   new C0(1,2,3);
+  //    ^
+  // [cfe] Too many positional arguments: 0 allowed, but 3 found.
   //     ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
-  //    ^^^^^^^
-  // [cfe] Too many positional arguments: 0 allowed, but 3 found.
   new C0.named();
   //     ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
-  // [cfe] Method not found: 'C0.named'.
+  // [cfe] Couldn't find constructor 'C0.named'.
   new D0(1,2,3);
+  //    ^
+  // [cfe] Too many positional arguments: 0 allowed, but 3 found.
   //     ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
-  //    ^^^^^^^
-  // [cfe] Too many positional arguments: 0 allowed, but 3 found.
   new D0.named();
   //     ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
-  // [cfe] Method not found: 'D0.named'.
+  // [cfe] Couldn't find constructor 'D0.named'.
 }

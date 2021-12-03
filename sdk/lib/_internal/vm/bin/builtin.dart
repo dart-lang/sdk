@@ -4,7 +4,6 @@
 
 library builtin;
 
-// NOTE: Do not import 'dart:io' in builtin.
 import 'dart:async';
 import 'dart:collection' hide LinkedList, LinkedListEntry;
 import 'dart:_internal' hide Symbol;
@@ -24,7 +23,8 @@ bool _setupCompleted = false;
 // 'print' implementation.
 // The standalone embedder registers the closurized _print function with the
 // dart:core library.
-void _printString(String s) native "Builtin_PrintString";
+@pragma("vm:external-name", "Builtin_PrintString")
+external void _printString(String s);
 
 void _print(arg) {
   _printString(arg.toString());

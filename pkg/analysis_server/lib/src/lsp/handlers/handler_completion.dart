@@ -14,7 +14,6 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
@@ -180,8 +179,8 @@ class CompletionHandler
     int offset,
   ) async {
     final requestParams = plugin.CompletionGetSuggestionsParams(path, offset);
-    final pluginResponses =
-        await requestFromPlugins(path, requestParams, timeout: 100);
+    final pluginResponses = await requestFromPlugins(path, requestParams,
+        timeout: const Duration(milliseconds: 100));
 
     final pluginResults = pluginResponses
         .map((e) => plugin.CompletionGetSuggestionsResult.fromResponse(e))
@@ -209,13 +208,13 @@ class CompletionHandler
     server.performanceStats.completion.add(performance);
 
     return await performance.runRequestOperation((perf) async {
-      final completionRequest =
-          CompletionRequestImpl(unit, offset, performance);
-      final directiveInfo =
-          server.getDartdocDirectiveInfoFor(completionRequest.result);
-      final dartCompletionRequest = await DartCompletionRequestImpl.from(
-          perf, completionRequest, directiveInfo);
-      final target = dartCompletionRequest.target;
+      final completionRequest = DartCompletionRequest(
+        resolvedUnit: unit,
+        offset: offset,
+        dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(unit),
+        completionPreference: CompletionPreference.replace,
+      );
+      final target = completionRequest.target;
 
       if (triggerCharacter != null) {
         if (!_triggerCharacterValid(offset, triggerCharacter, target)) {
@@ -234,16 +233,15 @@ class CompletionHandler
 
       try {
         var contributor = DartCompletionManager(
-          dartdocDirectiveInfo: directiveInfo,
+          budget: CompletionBudget(CompletionBudget.defaultDuration),
           includedElementKinds: includedElementKinds,
           includedElementNames: includedElementNames,
           includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
         );
 
         final serverSuggestions = await contributor.computeSuggestions(
-          perf,
           completionRequest,
-          completionPreference: CompletionPreference.replace,
+          perf,
         );
 
         final insertLength = _computeInsertLength(
@@ -400,7 +398,7 @@ class CompletionHandler
 
         // Perform fuzzy matching based on the identifier in front of the caret to
         // reduce the size of the payload.
-        final fuzzyPattern = dartCompletionRequest.targetPrefix;
+        final fuzzyPattern = completionRequest.targetPrefix;
         final fuzzyMatcher =
             FuzzyMatcher(fuzzyPattern, matchStyle: MatchStyle.TEXT);
 

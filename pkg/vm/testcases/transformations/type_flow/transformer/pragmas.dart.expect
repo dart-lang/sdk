@@ -16,9 +16,9 @@ class Foo extends core::Object {
   synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  @#C13
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  @#C12
   method bar() → void {
-    @#C17
+    @#C16
     function bazz() → void {}
     bazz(){() → void};
   }
@@ -37,11 +37,10 @@ constants  {
   #C8 = self::B {y:#C7}
   #C9 = 4
   #C10 = "hey"
-  #C11 = <dynamic>[#C6, #C8, #C9, #C10]
-  #C12 = core::_ImmutableMap<core::int*, core::Object*> {_kvPairs:#C11}
-  #C13 = core::pragma {name:#C5, options:#C12}
-  #C14 = "test3"
-  #C15 = 12
-  #C16 = self::C {z:#C15}
-  #C17 = core::pragma {name:#C14, options:#C16}
+  #C11 = <core::int*, core::Object*>{#C6:#C8, #C9:#C10)
+  #C12 = core::pragma {name:#C5, options:#C11}
+  #C13 = "test3"
+  #C14 = 12
+  #C15 = self::C {z:#C14}
+  #C16 = core::pragma {name:#C13, options:#C15}
 }

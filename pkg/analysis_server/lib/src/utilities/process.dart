@@ -3,30 +3,26 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 /// An abstraction over [Process] from 'dart:io' to allow mocking in tests.
 class ProcessRunner {
-  Future<ProcessResult> run(
+  Future<Process> start(
     String executable,
     List<String> arguments, {
     String? workingDirectory,
     Map<String, String>? environment,
     bool includeParentEnvironment = true,
     bool runInShell = false,
-    Encoding? stdoutEncoding = systemEncoding,
-    Encoding? stderrEncoding = systemEncoding,
-  }) async {
-    return Process.run(
+    ProcessStartMode mode = ProcessStartMode.normal,
+  }) {
+    return Process.start(
       executable,
       arguments,
       workingDirectory: workingDirectory,
       environment: environment,
       includeParentEnvironment: includeParentEnvironment,
       runInShell: runInShell,
-      stdoutEncoding: stdoutEncoding,
-      stderrEncoding: stderrEncoding,
     );
   }
 }

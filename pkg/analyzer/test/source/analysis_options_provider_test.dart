@@ -2,19 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core';
-
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
-import '../resource_utils.dart';
 import '../src/util/yaml_test.dart';
 
 main() {
@@ -99,31 +96,17 @@ analyzer:
 }
 
 @reflectiveTest
-class AnalysisOptionsProviderTest {
-  late final TestPathTranslator pathTranslator;
-  late final ResourceProvider resourceProvider;
-
-  late final AnalysisOptionsProvider provider;
-
+class AnalysisOptionsProviderTest with ResourceProviderMixin {
   String get analysisOptionsYaml => file_paths.analysisOptionsYaml;
 
-  void setUp() {
-    var rawProvider = MemoryResourceProvider();
-    resourceProvider = TestResourceProvider(rawProvider);
-    pathTranslator = TestPathTranslator(rawProvider);
-    provider = AnalysisOptionsProvider(SourceFactory([
-      ResourceUriResolver(rawProvider),
-    ]));
-  }
-
   void test_getOptions_crawlUp_hasInFolder() {
-    pathTranslator.newFolder('/foo/bar');
-    pathTranslator.newFile('/foo/$analysisOptionsYaml', r'''
+    newFolder('/foo/bar');
+    newFile('/foo/$analysisOptionsYaml', content: r'''
 analyzer:
   ignore:
     - foo
 ''');
-    pathTranslator.newFile('/foo/bar/$analysisOptionsYaml', r'''
+    newFile('/foo/bar/$analysisOptionsYaml', content: r'''
 analyzer:
   ignore:
     - bar
@@ -138,13 +121,13 @@ analyzer:
   }
 
   void test_getOptions_crawlUp_hasInParent() {
-    pathTranslator.newFolder('/foo/bar/baz');
-    pathTranslator.newFile('/foo/$analysisOptionsYaml', r'''
+    newFolder('/foo/bar/baz');
+    newFile('/foo/$analysisOptionsYaml', content: r'''
 analyzer:
   ignore:
     - foo
 ''');
-    pathTranslator.newFile('/foo/bar/$analysisOptionsYaml', r'''
+    newFile('/foo/bar/$analysisOptionsYaml', content: r'''
 analyzer:
   ignore:
     - bar
@@ -159,26 +142,26 @@ analyzer:
   }
 
   void test_getOptions_doesNotExist() {
-    pathTranslator.newFolder('/notFile');
+    newFolder('/notFile');
     YamlMap options = _getOptions('/notFile');
     expect(options, isEmpty);
   }
 
   void test_getOptions_empty() {
-    pathTranslator.newFile('/$analysisOptionsYaml', r'''#empty''');
+    newFile('/$analysisOptionsYaml', content: r'''#empty''');
     YamlMap options = _getOptions('/');
     expect(options, isNotNull);
     expect(options, isEmpty);
   }
 
   void test_getOptions_include() {
-    pathTranslator.newFile('/foo.include', r'''
+    newFile('/foo.include', content: r'''
 analyzer:
   ignore:
     - ignoreme.dart
     - 'sdk_ext/**'
 ''');
-    pathTranslator.newFile('/$analysisOptionsYaml', r'''
+    newFile('/$analysisOptionsYaml', content: r'''
 include: foo.include
 ''');
     YamlMap options = _getOptions('/');
@@ -196,12 +179,12 @@ include: foo.include
   }
 
   void test_getOptions_include_emptyLints() {
-    pathTranslator.newFile('/foo.include', r'''
+    newFile('/foo.include', content: r'''
 linter:
   rules:
     - prefer_single_quotes
 ''');
-    pathTranslator.newFile('/$analysisOptionsYaml', r'''
+    newFile('/$analysisOptionsYaml', content: r'''
 include: foo.include
 linter:
   rules:
@@ -221,7 +204,7 @@ linter:
   }
 
   void test_getOptions_include_missing() {
-    pathTranslator.newFile('/$analysisOptionsYaml', r'''
+    newFile('/$analysisOptionsYaml', content: r'''
 include: /foo.include
 ''');
     YamlMap options = _getOptions('/');
@@ -229,13 +212,13 @@ include: /foo.include
   }
 
   void test_getOptions_invalid() {
-    pathTranslator.newFile('/$analysisOptionsYaml', r''':''');
+    newFile('/$analysisOptionsYaml', content: r''':''');
     YamlMap options = _getOptions('/');
     expect(options, hasLength(1));
   }
 
   void test_getOptions_simple() {
-    pathTranslator.newFile('/$analysisOptionsYaml', r'''
+    newFile('/$analysisOptionsYaml', content: r'''
 analyzer:
   ignore:
     - ignoreme.dart
@@ -256,7 +239,10 @@ analyzer:
   }
 
   YamlMap _getOptions(String posixPath) {
-    var resource = pathTranslator.getResource(posixPath) as Folder;
-    return provider.getOptions(resource);
+    var folder = getFolder(posixPath);
+    var provider = AnalysisOptionsProvider(SourceFactory([
+      ResourceUriResolver(resourceProvider),
+    ]));
+    return provider.getOptions(folder);
   }
 }

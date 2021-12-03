@@ -541,4 +541,55 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RegressFlutter76919) {
   FlowGraphTypePropagator::Propagate(H.flow_graph());  // Should not crash.
 }
 
+#if defined(DART_PRECOMPILER)
+
+// This test verifies that LoadStaticField for non-nullable field
+// is non-nullable with sound null safety.
+// Regression test for https://github.com/dart-lang/sdk/issues/47119.
+ISOLATE_UNIT_TEST_CASE(TypePropagator_NonNullableLoadStaticField) {
+  if (!IsolateGroup::Current()->null_safety()) {
+    // This test requires sound null safety.
+    return;
+  }
+
+  const char* kScript = R"(
+    const y = 0xDEADBEEF;
+    final int x = int.parse('0xFEEDFEED');
+
+    void main(List<String> args) {
+      print(x);
+      print(x + y);
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "main"));
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true,
+                   ParallelMovesHandling::kSkip);
+
+  Instruction* load = nullptr;
+
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchAndMoveLoadStaticField, &load},
+      kMatchAndMovePushArgument,
+      kMatchAndMoveStaticCall,
+      kMatchAndMoveUnboxInt64,
+      kMatchAndMoveBinaryInt64Op,
+      kMatchAndMoveBoxInt64,
+      kMatchAndMovePushArgument,
+      kMatchAndMoveStaticCall,
+      kMatchReturn,
+  }));
+
+  EXPECT_PROPERTY(load->AsLoadStaticField()->Type(), !it.is_nullable());
+}
+
+#endif  // defined(DART_PRECOMPILER)
+
 }  // namespace dart

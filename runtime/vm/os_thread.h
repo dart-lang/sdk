@@ -12,11 +12,6 @@
 #include "vm/allocation.h"
 #include "vm/globals.h"
 
-// On iOS, thread_local requires iOS 9+.
-#if !DART_HOST_OS_IOS
-#define HAS_C11_THREAD_LOCAL 1
-#endif
-
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(DART_HOST_OS_ANDROID)
 #include "vm/os_thread_android.h"
@@ -62,7 +57,6 @@ class Mutex {
   friend class MutexLocker;
   friend class SafepointMutexLocker;
   friend class OSThreadIterator;
-  friend class TimelineEventBlockIterator;
   friend class TimelineEventRecorder;
   friend class PageSpace;
   friend void Dart_TestMutex();
@@ -183,9 +177,7 @@ class OSThread : public BaseThread {
   }
   static void SetCurrent(OSThread* current) { SetCurrentTLS(current); }
 
-#if defined(HAS_C11_THREAD_LOCAL)
   static ThreadState* CurrentVMThread() { return current_vm_thread_; }
-#endif
 
   // TODO(5411455): Use flag to override default value and Validate the
   // stack size by querying OS.
@@ -309,14 +301,13 @@ class OSThread : public BaseThread {
   static OSThread* thread_list_head_;
   static bool creation_enabled_;
 
-#if defined(HAS_C11_THREAD_LOCAL)
   static thread_local ThreadState* current_vm_thread_;
-#endif
 
   friend class IsolateGroup;  // to access set_thread(Thread*).
   friend class OSThreadIterator;
-  friend class ThreadInterrupterWin;
   friend class ThreadInterrupterFuchsia;
+  friend class ThreadInterrupterMacOS;
+  friend class ThreadInterrupterWin;
   friend class ThreadPool;  // to access owning_thread_pool_worker_
 };
 

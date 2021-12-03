@@ -7,6 +7,8 @@
 vm_sources = [
   "allocation.cc",
   "allocation.h",
+  "app_snapshot.cc",
+  "app_snapshot.h",
   "base64.cc",
   "base64.h",
   "base_isolate.h",
@@ -30,8 +32,6 @@ vm_sources = [
   "class_table.h",
   "closure_functions_cache.cc",
   "closure_functions_cache.h",
-  "clustered_snapshot.cc",
-  "clustered_snapshot.h",
   "code_comments.cc",
   "code_comments.h",
   "code_descriptors.cc",

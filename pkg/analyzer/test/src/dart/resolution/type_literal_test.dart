@@ -70,6 +70,19 @@ var t = C<int, int>;
     assertTypeLiteral(typeLiteral, findElement.class_('C'), 'C<dynamic>');
   }
 
+  test_class_typeArgumentDoesNotMatchBound() async {
+    await assertErrorsInCode('''
+class C<T extends num> {}
+var t = C<String>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 36, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 34, 9)]),
+    ]);
+
+    var typeLiteral = findNode.typeLiteral('C<String>;');
+    assertTypeLiteral(typeLiteral, findElement.class_('C'), 'C<String>');
+  }
+
   test_classAlias() async {
     await assertNoErrorsInCode('''
 class C<T> {}
@@ -124,6 +137,20 @@ var t = a.CA<int>;
     );
   }
 
+  test_classAlias_typeArgumentDoesNotMatchBound() async {
+    await assertErrorsInCode('''
+class C<T> {}
+typedef CA<T extends num> = C<T>;
+var t = CA<String>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 59, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 56, 10)]),
+    ]);
+
+    var typeLiteral = findNode.typeLiteral('CA<String>;');
+    assertTypeLiteral(typeLiteral, findElement.typeAlias('CA'), 'C<String>');
+  }
+
   test_functionAlias() async {
     await assertNoErrorsInCode('''
 typedef Fn<T> = void Function(T);
@@ -133,6 +160,232 @@ var t = Fn<int>;
     var typeLiteral = findNode.typeLiteral('Fn<int>;');
     assertTypeLiteral(
         typeLiteral, findElement.typeAlias('Fn'), 'void Function(int)');
+  }
+
+  test_functionAlias_importPrefix() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+typedef Fn<T> = void Function(T);
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as a;
+var t = a.Fn<int>;
+''');
+
+    var typeLiteral = findNode.typeLiteral('Fn<int>;');
+    assertTypeLiteral(
+      typeLiteral,
+      findElement.importFind('package:test/a.dart').typeAlias('Fn'),
+      'void Function(int)',
+      expectedPrefix: findElement.prefix('a'),
+    );
+  }
+
+  test_functionAlias_targetOfMethodCall() async {
+    await assertErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn<int>.foo();
+}
+
+extension E on Type {
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE, 58, 3),
+    ]);
+
+    var typeLiteral = findNode.typeLiteral('Fn<int>');
+    assertTypeLiteral(
+      typeLiteral,
+      findElement.typeAlias('Fn'),
+      'void Function(int)',
+    );
+  }
+
+  test_functionAlias_targetOfMethodCall_importPrefix() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+typedef Fn<T> = void Function(T);
+''');
+    await assertErrorsInCode('''
+import 'a.dart' as a;
+
+void bar() {
+  a.Fn<int>.foo();
+}
+
+extension E on Type {
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE, 48, 3),
+    ]);
+
+    var typeLiteral = findNode.typeLiteral('Fn<int>');
+    assertTypeLiteral(
+      typeLiteral,
+      findElement.importFind('package:test/a.dart').typeAlias('Fn'),
+      'void Function(int)',
+      expectedPrefix: findElement.prefix('a'),
+    );
+  }
+
+  test_functionAlias_targetOfMethodCall_parenthesized() async {
+    await assertNoErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  (Fn<int>).foo();
+}
+
+extension E on Type {
+  void foo() {}
+}
+''');
+
+    var typeLiteral = findNode.typeLiteral('Fn<int>');
+    assertTypeLiteral(
+      typeLiteral,
+      findElement.typeAlias('Fn'),
+      'void Function(int)',
+    );
+  }
+
+  test_functionAlias_targetOfPropertyAccess_getter() async {
+    await assertErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn<int>.foo;
+}
+
+extension E on Type {
+  int get foo => 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE, 58, 3),
+    ]);
+
+    var typeLiteral = findNode.typeLiteral('Fn<int>');
+    assertTypeLiteral(
+      typeLiteral,
+      findElement.typeAlias('Fn'),
+      'void Function(int)',
+    );
+  }
+
+  test_functionAlias_targetOfPropertyAccess_getter_parenthesized() async {
+    await assertNoErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  (Fn<int>).foo;
+}
+
+extension E on Type {
+  int get foo => 1;
+}
+''');
+
+    var typeLiteral = findNode.typeLiteral('Fn<int>');
+    assertTypeLiteral(
+      typeLiteral,
+      findElement.typeAlias('Fn'),
+      'void Function(int)',
+    );
+  }
+
+  test_functionAlias_targetOfPropertyAccess_setter() async {
+    await assertErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn<int>.foo = 7;
+}
+
+extension E on Type {
+  set foo(int value) {}
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE, 58, 3),
+    ]);
+
+    var typeLiteral = findNode.typeLiteral('Fn<int>');
+    assertTypeLiteral(
+      typeLiteral,
+      findElement.typeAlias('Fn'),
+      'void Function(int)',
+    );
+  }
+
+  test_functionAlias_targetOfPropertyAccess_setter_parenthesized() async {
+    await assertNoErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  (Fn<int>).foo = 7;
+}
+
+extension E on Type {
+  set foo(int value) {}
+}
+''');
+
+    var typeLiteral = findNode.typeLiteral('Fn<int>');
+    assertTypeLiteral(
+      typeLiteral,
+      findElement.typeAlias('Fn'),
+      'void Function(int)',
+    );
+  }
+
+  test_functionAlias_tooFewTypeArgs() async {
+    await assertErrorsInCode('''
+typedef Fn<T, U> = void Function(T, U);
+var t = Fn<int>;
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 50, 5),
+    ]);
+
+    var typeLiteral = findNode.typeLiteral('Fn<int>;');
+    assertTypeLiteral(
+      typeLiteral,
+      findElement.typeAlias('Fn'),
+      'void Function(dynamic, dynamic)',
+    );
+  }
+
+  test_functionAlias_tooManyTypeArgs() async {
+    await assertErrorsInCode('''
+typedef Fn<T> = void Function(T);
+var t = Fn<int, String>;
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 44, 13),
+    ]);
+
+    var typeLiteral = findNode.typeLiteral('Fn<int, String>;');
+    assertTypeLiteral(
+      typeLiteral,
+      findElement.typeAlias('Fn'),
+      'void Function(dynamic)',
+    );
+  }
+
+  test_functionAlias_typeArgumentDoesNotMatchBound() async {
+    await assertErrorsInCode('''
+typedef Fn<T extends num> = void Function(T);
+var t = Fn<String>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 57, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 54, 10)]),
+    ]);
+
+    var typeLiteral = findNode.typeLiteral('Fn<String>;');
+    assertTypeLiteral(
+      typeLiteral,
+      findElement.typeAlias('Fn'),
+      'void Function(String)',
+    );
   }
 
   test_mixin() async {

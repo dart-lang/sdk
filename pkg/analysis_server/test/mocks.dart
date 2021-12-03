@@ -50,9 +50,44 @@ class MockHttpClient extends http.BaseClient {
   }
 }
 
+class MockProcess implements Process {
+  static int killedExitCode = -1;
+
+  final int _pid;
+  final _exitCodeCompleter = Completer<int>();
+  final String _stdout, _stderr;
+
+  MockProcess(this._pid, FutureOr<int> _exitCode, this._stdout, this._stderr) {
+    Future.value(_exitCode).then(_exitCodeCompleter.complete);
+  }
+
+  @override
+  Future<int> get exitCode => _exitCodeCompleter.future;
+
+  @override
+  int get pid => _pid;
+
+  @override
+  Stream<List<int>> get stderr => Future.value(utf8.encode(_stderr)).asStream();
+
+  @override
+  Stream<List<int>> get stdout => Future.value(utf8.encode(_stdout)).asStream();
+
+  @override
+  bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
+    _exitCodeCompleter.complete(killedExitCode);
+    return true;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
+}
+
 class MockProcessRunner implements ProcessRunner {
-  FutureOr<ProcessResult> Function(String executable, List<String> arguments,
-          {String? dir, Map<String, String>? env})? runHandler =
+  FutureOr<Process> Function(String executable, List<String> arguments,
+          {String? dir, Map<String, String>? env}) startHandler =
       (executable, arguments, {dir, env}) => throw UnimplementedError();
 
   @override
@@ -61,17 +96,16 @@ class MockProcessRunner implements ProcessRunner {
   }
 
   @override
-  Future<ProcessResult> run(
+  Future<Process> start(
     String executable,
     List<String> arguments, {
     String? workingDirectory,
     Map<String, String>? environment,
     bool includeParentEnvironment = true,
     bool runInShell = false,
-    Encoding? stdoutEncoding = systemEncoding,
-    Encoding? stderrEncoding = systemEncoding,
+    ProcessStartMode mode = ProcessStartMode.normal,
   }) async {
-    return runHandler!(executable, arguments,
+    return await startHandler(executable, arguments,
         dir: workingDirectory, env: environment);
   }
 }

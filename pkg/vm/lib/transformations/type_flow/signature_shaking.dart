@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/external_name.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -189,7 +190,7 @@ class _ParameterInfo {
     // Covariant parameters have implicit type checks, which count as reads.
     // When run in weak mode with null assertions enabled, parameters with
     // non-nullable types have implicit null checks, which count as reads.
-    if ((param.isCovariant || param.isGenericCovariantImpl) ||
+    if ((param.isCovariantByDeclaration || param.isCovariantByClass) ||
         (!shaker.typeFlowAnalysis.target.flags.enableNullSafety &&
             param.type.nullability == Nullability.nonNullable &&
             (type == null || type is NullableType))) {
@@ -200,6 +201,7 @@ class _ParameterInfo {
 
 class _Collect extends RecursiveVisitor {
   final SignatureShaker shaker;
+  final CoreTypes coreTypes;
 
   /// Parameters of the current function.
   final Map<VariableDeclaration, _ParameterInfo> localParameters = {};
@@ -209,7 +211,8 @@ class _Collect extends RecursiveVisitor {
   /// via [_ParameterInfo.useDependencies] and not marked as read immediately.
   final Set<VariableGet> useDependencies = {};
 
-  _Collect(this.shaker);
+  _Collect(this.shaker)
+      : coreTypes = shaker.typeFlowAnalysis.environment.coreTypes;
 
   void enterFunction(Member member) {
     final _ProcedureInfo? info = shaker._infoForMember(member);
@@ -233,7 +236,7 @@ class _Collect extends RecursiveVisitor {
         shaker.typeFlowAnalysis.nativeCodeOracle
             .isMemberReferencedFromNativeCode(member) ||
         shaker.typeFlowAnalysis.nativeCodeOracle.isRecognized(member) ||
-        getExternalName(member) != null ||
+        getExternalName(coreTypes, member) != null ||
         member.name.text == '==') {
       info.eligible = false;
     }

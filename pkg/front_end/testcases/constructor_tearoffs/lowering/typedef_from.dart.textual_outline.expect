@@ -1,0 +1,11 @@
+import 'typedef_from_lib.dart';
+part 'typedef_from_part.dart';
+
+main() {}
+
+class Class<S, T> {
+  Class(S a, T b);
+  Class.named(S a, [T? b, int c = 42]);
+  factory Class.fact(S a, {T? b, int c: 42}) => Class.named(a, b, c);
+  factory Class.redirect(S a) = Class.named;
+}

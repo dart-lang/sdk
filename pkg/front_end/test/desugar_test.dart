@@ -23,7 +23,7 @@ import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-main() async {
+Future<void> main() async {
   await asyncTest(() async {
     await testRedirectingFactoryDirect();
     await testRedirectingFactorySerialized();
@@ -31,13 +31,13 @@ main() async {
   });
 }
 
-testRedirectingFactoryDirect() async {
+Future<void> testRedirectingFactoryDirect() async {
   var component = await compileUnit(['a.dart'], {'a.dart': aSource});
   checkIsRedirectingFactory(component, 'a.dart', 'A', 'foo');
   checkIsRedirectingFactory(component, 'core', 'Uri', 'file');
 }
 
-testRedirectingFactorySerialized() async {
+Future<void> testRedirectingFactorySerialized() async {
   var component = await compileUnit(['a.dart'], {'a.dart': aSource});
   var bytes = serializeComponent(component);
   component = new ir.Component();
@@ -48,7 +48,7 @@ testRedirectingFactorySerialized() async {
 
 // regression test: redirecting factories from patch files don't have the
 // redirecting-factory flag stored in kernel.
-testRedirectingFactoryPatchFile() async {
+Future<void> testRedirectingFactoryPatchFile() async {
   var componentUri =
       computePlatformBinariesLocation().resolve('dart2js_platform.dill');
   var component = new ir.Component();

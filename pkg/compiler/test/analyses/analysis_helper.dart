@@ -59,8 +59,9 @@ run(Uri entryPoint, String allowedListPath,
         memorySourceFiles: memorySourceFiles,
         librariesSpecificationUri: librariesSpecificationUri,
         packageConfig: packageConfig,
+        entryPoint: entryPoint,
         options: options);
-    KernelResult result = await compiler.kernelLoader.load(entryPoint);
+    KernelResult result = await compiler.kernelLoader.load();
     new DynamicVisitor(compiler.reporter, result.component, allowedListPath,
             analyzedUrisFilter)
         .run(verbose: verbose, generate: generate);
@@ -141,7 +142,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
   final bool Function(Uri uri) analyzedUrisFilter;
 
   Map _expectedJson = {};
-  Map<String, Map<String, List<DiagnosticMessage>>> _actualMessages = {};
+  final Map<String, Map<String, List<DiagnosticMessage>>> _actualMessages = {};
 
   DynamicVisitor(this.reporter, this.component, this._allowedListPath,
       this.analyzedUrisFilter)

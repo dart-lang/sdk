@@ -1671,8 +1671,11 @@ void Assembler::LoadObjectHelper(Register rd,
   RELEASE_ASSERT(CanLoadFromObjectPool(object));
   // Make sure that class CallPattern is able to decode this load from the
   // object pool.
-  const auto index = is_unique ? object_pool_builder().AddObject(object)
-                               : object_pool_builder().FindObject(object);
+  const auto index = is_unique
+                         ? object_pool_builder().AddObject(
+                               object, ObjectPoolBuilderEntry::kPatchable)
+                         : object_pool_builder().FindObject(
+                               object, ObjectPoolBuilderEntry::kNotPatchable);
   LoadWordFromPoolIndex(rd, index, pp, cond);
 }
 
@@ -1766,7 +1769,8 @@ Register AllocateRegister(RegList* used) {
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
-                                CanBeSmi can_be_smi) {
+                                CanBeSmi can_be_smi,
+                                MemoryOrder memory_order) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
   ASSERT(object != LINK_REGISTER);
@@ -1774,7 +1778,11 @@ void Assembler::StoreIntoObject(Register object,
   ASSERT(object != TMP);
   ASSERT(value != TMP);
 
-  str(value, dest);
+  if (memory_order == kRelease) {
+    StoreRelease(value, dest);
+  } else {
+    str(value, dest);
+  }
 
   // In parallel, test whether
   //  - object is old and not remembered and value is new, or
@@ -1889,22 +1897,28 @@ void Assembler::StoreIntoArray(Register object,
 void Assembler::StoreIntoObjectOffset(Register object,
                                       int32_t offset,
                                       Register value,
-                                      CanBeSmi can_value_be_smi) {
+                                      CanBeSmi can_value_be_smi,
+                                      MemoryOrder memory_order) {
   int32_t ignored = 0;
   if (Address::CanHoldStoreOffset(kFourBytes, offset - kHeapObjectTag,
                                   &ignored)) {
     StoreIntoObject(object, FieldAddress(object, offset), value,
-                    can_value_be_smi);
+                    can_value_be_smi, memory_order);
   } else {
     AddImmediate(IP, object, offset - kHeapObjectTag);
-    StoreIntoObject(object, Address(IP), value, can_value_be_smi);
+    StoreIntoObject(object, Address(IP), value, can_value_be_smi, memory_order);
   }
 }
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         Register value) {
-  str(value, dest);
+                                         Register value,
+                                         MemoryOrder memory_order) {
+  if (memory_order == kRelease) {
+    StoreRelease(value, dest);
+  } else {
+    str(value, dest);
+  }
 #if defined(DEBUG)
   Label done;
   StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
@@ -1921,43 +1935,52 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         const Object& value) {
+                                         const Object& value,
+                                         MemoryOrder memory_order) {
   ASSERT(IsOriginalObject(value));
   ASSERT(IsNotTemporaryScopedHandle(value));
   // No store buffer update.
   LoadObject(IP, value);
-  str(IP, dest);
+  if (memory_order == kRelease) {
+    StoreRelease(IP, dest);
+  } else {
+    str(IP, dest);
+  }
 }
 
 void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
                                                int32_t offset,
-                                               Register value) {
+                                               Register value,
+                                               MemoryOrder memory_order) {
   int32_t ignored = 0;
   if (Address::CanHoldStoreOffset(kFourBytes, offset - kHeapObjectTag,
                                   &ignored)) {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                             memory_order);
   } else {
     Register base = object == R9 ? R8 : R9;
     Push(base);
     AddImmediate(base, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(base), value);
+    StoreIntoObjectNoBarrier(object, Address(base), value, memory_order);
     Pop(base);
   }
 }
 
 void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
                                                int32_t offset,
-                                               const Object& value) {
+                                               const Object& value,
+                                               MemoryOrder memory_order) {
   ASSERT(IsOriginalObject(value));
   int32_t ignored = 0;
   if (Address::CanHoldStoreOffset(kFourBytes, offset - kHeapObjectTag,
                                   &ignored)) {
-    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value);
+    StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
+                             memory_order);
   } else {
     Register base = object == R9 ? R8 : R9;
     Push(base);
     AddImmediate(base, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(base), value);
+    StoreIntoObjectNoBarrier(object, Address(base), value, memory_order);
     Pop(base);
   }
 }
@@ -2278,6 +2301,16 @@ void Assembler::BindARMv7(Label* label) {
 
 void Assembler::Bind(Label* label) {
   BindARMv7(label);
+}
+
+void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
+  ldr(dest, slot);
+#if defined(DEBUG)
+  Label done;
+  BranchIfSmi(dest, &done);
+  Stop("Expected Smi");
+  Bind(&done);
+#endif
 }
 
 OperandSize Address::OperandSizeFor(intptr_t cid) {

@@ -65,7 +65,7 @@ class SourceMapperProviderImpl implements SourceMapperProvider {
 
   @override
   SourceMapper createSourceMapper(String name) {
-    return new SourceLocationsMapper(provider.createSourceLocations(name));
+    return SourceLocationsMapper(provider.createSourceLocations(name));
   }
 }
 
@@ -83,7 +83,7 @@ abstract class SourceMapper {
   ///
   /// If [isEmpty] is true, also associate that the inlining stack is empty at
   /// [codeOffset].
-  void registerPop(int codeOffset, {bool isEmpty: false});
+  void registerPop(int codeOffset, {bool isEmpty = false});
 }
 
 /// An implementation of [SourceMapper] that stores the information directly
@@ -105,7 +105,7 @@ class SourceLocationsMapper implements SourceMapper {
   }
 
   @override
-  void registerPop(int codeOffset, {bool isEmpty: false}) {
+  void registerPop(int codeOffset, {bool isEmpty = false}) {
     sourceLocations.addPop(codeOffset, isEmpty);
   }
 }

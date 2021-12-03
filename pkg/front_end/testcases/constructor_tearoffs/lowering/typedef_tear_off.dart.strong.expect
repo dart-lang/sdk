@@ -124,7 +124,7 @@ static method main() → dynamic {
   self::A c1a = f1a(){() → self::A};
   self::expect(true, c1a is{ForNonNullableByDefault} self::A);
   () → Null {
-    let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:34:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:34:8: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     f1a(0); // error
        ^" in f1a{<inapplicable>}.(0);
@@ -137,7 +137,7 @@ Try removing the extra positional arguments.
   self::A c2a = f2a<core::num>(){() → self::A};
   self::expect(true, c2a is{ForNonNullableByDefault} self::A);
   () → Null {
-    let final Never #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:46:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:46:8: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     f2a(0); // error
        ^" in f2a{<inapplicable>}.<core::num>(0);
@@ -157,11 +157,11 @@ Try removing the extra positional arguments.
   self::expect(0, c3a.{self::B::field1}{core::int});
   self::expect("", c3a.{self::B::field2}{core::String});
   () → Null {
-    let final Never #t3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:65:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:65:8: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     f3a(0); // error
        ^" in f3a{<inapplicable>}.(0);
-    let final Never #t4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:66:8: Error: Expected 0 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:66:8: Error: Expected 0 type arguments.
     f3a<String>(); // error
        ^" in f3a{<inapplicable>}.<core::String>();
   };
@@ -180,14 +180,14 @@ Try removing the extra positional arguments.
   self::expect(42, c3c.{self::B::field1}{core::int});
   self::expect("", c3c.{self::B::field2}{core::String});
   () → Null {
-    let final Never #t5 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:85:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:85:8: Error: Too few positional arguments: 1 required, 0 given.
     f3c(); // error
        ^" in f3c{<inapplicable>}.();
-    let final Never #t6 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:86:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:86:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     f3c(0, 0); // error
        ^" in f3c{<inapplicable>}.(0, 0);
-    let final Never #t7 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:87:8: Error: Expected 0 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:87:8: Error: Expected 0 type arguments.
     f3c<String>(0); // error
        ^" in f3c{<inapplicable>}.<core::String>(0);
   };
@@ -207,13 +207,13 @@ Try removing the extra positional arguments.
   self::expect(42, c3e.{self::B::field1}{core::int});
   self::expect("foo", c3e.{self::B::field2}{core::String});
   () → Null {
-    let final Never #t8 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:107:8: Error: Too few positional arguments: 2 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:107:8: Error: Too few positional arguments: 2 required, 0 given.
     f3e(); // error
        ^" in f3e{<inapplicable>}.();
-    let final Never #t9 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:108:8: Error: Too few positional arguments: 2 required, 1 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:108:8: Error: Too few positional arguments: 2 required, 1 given.
     f3e(0); // error
        ^" in f3e{<inapplicable>}.(0);
-    let final Never #t10 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:109:8: Error: Expected 0 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:109:8: Error: Expected 0 type arguments.
     f3e<String>(0, ''); // error
        ^" in f3e{<inapplicable>}.<core::String>(0, "");
   };
@@ -234,7 +234,7 @@ Try removing the extra positional arguments.
   self::expect(true, c4b is{ForNonNullableByDefault} self::B<core::int>);
   self::expect(false, c4b is{ForNonNullableByDefault} self::B<core::double>);
   () → Null {
-    let final Never #t11 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:130:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:130:8: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     f4a(0); // error
        ^" in f4a{<inapplicable>}.<core::num>(0);
@@ -257,11 +257,11 @@ Try removing the extra positional arguments.
   self::expect(true, c5b is{ForNonNullableByDefault} self::B<core::int>);
   self::expect(false, c5b is{ForNonNullableByDefault} self::B<core::double>);
   () → Null {
-    let final Never #t12 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:152:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:152:8: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     f5a(0); // error
        ^" in f5a{<inapplicable>}.<core::num, core::String>(0);
-    let final Never #t13 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:153:8: Error: Expected 2 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:153:8: Error: Expected 2 type arguments.
     f5a<String>(); // error
        ^" in f5a{<inapplicable>}.<core::String>();
     f5a<core::String, core::String>(){() → self::B<core::String>};
@@ -319,11 +319,11 @@ constants  {
   #C1 = static-tearoff self::A::_#new#tearOff
   #C2 = static-tearoff self::_#DA2#new#tearOff
   #C3 = static-tearoff self::B::_#new#tearOff
-  #C4 = instantiation self::B::_#new#tearOff <core::String>
+  #C4 = instantiation #C3 <core::String>
   #C5 = static-tearoff self::B::_#foo#tearOff
-  #C6 = instantiation self::B::_#foo#tearOff <core::String>
+  #C6 = instantiation #C5 <core::String>
   #C7 = static-tearoff self::B::_#bar#tearOff
-  #C8 = instantiation self::B::_#bar#tearOff <core::String>
+  #C8 = instantiation #C7 <core::String>
   #C9 = static-tearoff self::_#DB2#new#tearOff
   #C10 = static-tearoff self::_#DB3#new#tearOff
   #C11 = false

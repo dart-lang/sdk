@@ -22,6 +22,13 @@ abstract class Instantiation extends Closure {
     }
   }
 
+  bool operator ==(Object other) =>
+      other is Instantiation &&
+      this._genericClosure == other._genericClosure &&
+      this.runtimeType == other.runtimeType;
+
+  int get hashCode => Object.hash(_genericClosure, runtimeType);
+
   /// Returns a list of the bound types.
   List get _types;
 

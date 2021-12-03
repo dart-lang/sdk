@@ -13,7 +13,7 @@ import 'package:kernel/kernel.dart';
 Uri uri1 = Uri.parse("foo://lib1.dart");
 Uri uri2 = Uri.parse("foo://lib2.dart");
 
-main() {
+void main() {
   Library library1 = new Library(uri1, fileUri: uri1);
   Library library2 = new Library(uri2, fileUri: uri2);
   Procedure p1 = new Procedure(new Name("p1"), ProcedureKind.Method,

@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class _Closure1 extends core::Object {
+  synthetic constructor •() → self::_Closure1
+    ;
+  get call() → self::_Closure1
+    ;
+}
+class _Closure2 extends core::Object {
+  final field self::_Closure2 call;
+  constructor •(self::_Closure2 call) → self::_Closure2
+    ;
+}
+late static field self::_Closure1 closure1;
+late static field self::_Closure2 closure2;
+static field invalid-type field1;
+static field invalid-type field2;
+static method test(self::_Closure1 foo, self::_Closure2 bar) → dynamic
+  ;
+static method main() → dynamic
+  ;

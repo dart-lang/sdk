@@ -32,7 +32,7 @@ mixin M<T> on A<T> {}
 class X extends A<int> with M {}
 ''');
 
-    assertType(findNode.typeName('M {}'), 'M<int>');
+    assertType(findNode.namedType('M {}'), 'M<int>');
   }
 }
 
@@ -55,7 +55,7 @@ import 'a.dart';
 class D extends A<int> with B<int>, C {}
 ''');
 
-    assertType(findNode.typeName('B<int>'), 'B<int*>*');
-    assertType(findNode.typeName('C {}'), 'C<int*>*');
+    assertType(findNode.namedType('B<int>'), 'B<int*>*');
+    assertType(findNode.namedType('C {}'), 'C<int*>*');
   }
 }

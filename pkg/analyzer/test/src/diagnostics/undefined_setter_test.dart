@@ -143,6 +143,104 @@ f(C c) {
 @reflectiveTest
 class UndefinedSetterWithNullSafetyTest extends PubPackageResolutionTest
     with UndefinedSetterTestCases {
+  test_functionAlias_typeInstantiated() async {
+    await assertErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn<int>.foo = 7;
+}
+
+extension E on Type {
+  set foo(int value) {}
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE, 58, 3),
+    ]);
+  }
+
+  test_functionAlias_typeInstantiated_parenthesized() async {
+    await assertNoErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  (Fn<int>).foo = 7;
+}
+
+extension E on Type {
+  set foo(int value) {}
+}
+''');
+  }
+
+  test_new_cascade() async {
+    await assertErrorsInCode('''
+class C {}
+
+f(C? c) {
+  c..new = 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 3),
+    ]);
+  }
+
+  test_new_dynamic() async {
+    await assertErrorsInCode('''
+f(dynamic d) {
+  d.new = 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 19, 3),
+    ]);
+  }
+
+  test_new_instance() async {
+    await assertErrorsInCode('''
+class C {}
+
+f(C c) {
+  c.new = 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 25, 3),
+    ]);
+  }
+
+  test_new_interfaceType() async {
+    await assertErrorsInCode('''
+class C {}
+
+f() {
+  C.new = 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 22, 3),
+    ]);
+  }
+
+  test_new_nullAware() async {
+    await assertErrorsInCode('''
+class C {}
+
+f(C? c) {
+  c?.new = 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 3),
+    ]);
+  }
+
+  test_new_typeVariable() async {
+    await assertErrorsInCode('''
+f<T>(T t) {
+  t.new = 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 16, 3),
+    ]);
+  }
+
   test_set_abstract_field_valid() async {
     await assertNoErrorsInCode('''
 abstract class A {

@@ -8,6 +8,7 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
+import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:test/test.dart';
 import 'package:vm/transformations/pragma.dart'
     show ConstantPragmaAnnotationParser;
@@ -16,13 +17,14 @@ import 'package:vm/transformations/type_flow/transformer.dart'
 
 import '../../common_test_utils.dart';
 
-final String pkgVmDir = Platform.script.resolve('../../..').toFilePath();
+final Uri pkgVmDir = Platform.script.resolve('../../..');
 
-runTestCase(Uri source, bool enableNullSafety) async {
+runTestCase(
+    Uri source, bool enableNullSafety, List<Uri>? linkedDependencies) async {
   final target =
       new TestingVmTarget(new TargetFlags(enableNullSafety: enableNullSafety));
-  Component component =
-      await compileTestCaseToKernelProgram(source, target: target);
+  Component component = await compileTestCaseToKernelProgram(source,
+      target: target, linkedDependencies: linkedDependencies);
 
   final coreTypes = new CoreTypes(component);
 
@@ -32,6 +34,8 @@ runTestCase(Uri source, bool enableNullSafety) async {
 
   String actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 
+  Set<Library> dependencies = {};
+
   // Tests in /protobuf_handler consist of multiple libraries.
   // Include libraries with protobuf generated messages into the result.
   if (source.toString().contains('/protobuf_handler/')) {
@@ -39,12 +43,23 @@ runTestCase(Uri source, bool enableNullSafety) async {
       if (lib.importUri
           .toString()
           .contains('/protobuf_handler/lib/generated/')) {
-        lib.name ??= lib.importUri.pathSegments.last;
-        actual += kernelLibraryToString(lib);
+        dependencies.add(lib);
       }
     }
+  }
+  for (var lib in component.libraries) {
+    if (lib.fileUri.path.endsWith('.lib.dart')) {
+      dependencies.add(lib);
+    }
+  }
+
+  if (dependencies.isNotEmpty) {
+    for (var lib in dependencies) {
+      lib.name ??= lib.importUri.pathSegments.last;
+      actual += kernelLibraryToString(lib);
+    }
     // Remove library paths.
-    actual = actual.replaceAll(Uri.file(pkgVmDir).toString(), 'file:pkg/vm');
+    actual = actual.replaceAll(pkgVmDir.toString(), 'file:pkg/vm/');
   }
 
   compareResultWithExpectationsFile(source, actual);
@@ -59,21 +74,57 @@ String? argsTestName(List<String> args) {
   return null;
 }
 
+class TestOptions {
+  /// List of libraries the should be precompiled to .dill before compiling the
+  /// main library from source.
+  static const Option<List<String>?> linked =
+      Option('--linked', StringListValue());
+
+  /// If set, the test should be compiled with sound null safety.
+  static const Option<bool> nnbdStrong =
+      Option('--nnbd-strong', BoolValue(false));
+
+  static const List<Option> options = [linked, nnbdStrong];
+}
+
 main(List<String> args) {
   final testNameFilter = argsTestName(args);
 
   group('transform-component', () {
-    final testCasesDir = new Directory(
-        pkgVmDir + '/testcases/transformations/type_flow/transformer');
+    final testCasesDir = new Directory.fromUri(
+        pkgVmDir.resolve('testcases/transformations/type_flow/transformer/'));
 
     for (var entry
         in testCasesDir.listSync(recursive: true, followLinks: false)) {
       final path = entry.path;
       if (path.endsWith('.dart') &&
           !path.endsWith('.pb.dart') &&
-          (testNameFilter == null || path.contains(testNameFilter))) {
-        final bool enableNullSafety = path.endsWith('_nnbd_strong.dart');
-        test(path, () => runTestCase(entry.uri, enableNullSafety));
+          !path.endsWith('.lib.dart')) {
+        String name = entry.uri.pathSegments.last;
+        if (testNameFilter != null && !path.contains(testNameFilter)) {
+          print('Skipping ${name}');
+          continue;
+        }
+        List<Uri>? linkDependencies;
+        bool enableNullSafety = path.endsWith('_nnbd_strong.dart');
+
+        File optionsFile = new File('${path}.options');
+        if (optionsFile.existsSync()) {
+          ParsedOptions parsedOptions = ParsedOptions.parse(
+              ParsedOptions.readOptionsFile(optionsFile.readAsStringSync()),
+              TestOptions.options);
+          List<String>? linked = TestOptions.linked.read(parsedOptions);
+          if (linked != null) {
+            linkDependencies =
+                linked.map((String name) => entry.uri.resolve(name)).toList();
+          }
+          if (TestOptions.nnbdStrong.read(parsedOptions)) {
+            enableNullSafety = true;
+          }
+        }
+
+        test(path,
+            () => runTestCase(entry.uri, enableNullSafety, linkDependencies));
       }
     }
   }, timeout: Timeout.none);

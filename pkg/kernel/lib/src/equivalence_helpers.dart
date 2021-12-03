@@ -13,6 +13,7 @@ abstract class State {
 
 /// State for visiting two AST nodes in [EquivalenceVisitor].
 class NodeState extends State {
+  @override
   final State? parent;
   final Node a;
   final Node b;
@@ -22,6 +23,7 @@ class NodeState extends State {
 
 /// State for visiting an AST property in [EquivalenceVisitor]
 class PropertyState extends State {
+  @override
   final State? parent;
   final String name;
 
@@ -265,7 +267,7 @@ class ReferenceName {
       return new ReferenceName.internal(ReferenceNameKind.Member, node.name,
           new ReferenceName.fromNamedNode(node.enclosingLibrary));
     } else if (node is Member) {
-      Class? enclosingClass = node.enclosingClass;
+      TreeNode? parent = node.parent;
       Reference? libraryReference = node.name.libraryName;
       String? uri;
       if (libraryReference != null) {
@@ -276,18 +278,15 @@ class ReferenceName {
           uri = libraryReference.canonicalName?.name;
         }
       }
-      if (enclosingClass != null) {
-        return new ReferenceName.internal(
-            ReferenceNameKind.Member,
-            node.name.text,
-            new ReferenceName.fromNamedNode(enclosingClass),
-            uri);
+      if (parent is Class) {
+        return new ReferenceName.internal(ReferenceNameKind.Member,
+            node.name.text, new ReferenceName.fromNamedNode(parent), uri);
+      } else if (parent is Library) {
+        return new ReferenceName.internal(ReferenceNameKind.Member,
+            node.name.text, new ReferenceName.fromNamedNode(parent), uri);
       } else {
         return new ReferenceName.internal(
-            ReferenceNameKind.Member,
-            node.name.text,
-            new ReferenceName.fromNamedNode(node.enclosingLibrary),
-            uri);
+            ReferenceNameKind.Member, node.name.text, null, uri);
       }
     } else {
       throw new ArgumentError(

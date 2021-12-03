@@ -69,7 +69,7 @@ class DynamicUse {
     }
     List<DartType> typeArguments = source.readDartTypes(emptyAsNull: true);
     source.end(tag);
-    return new DynamicUse(selector, receiverConstraint, typeArguments);
+    return DynamicUse(selector, receiverConstraint, typeArguments);
   }
 
   void writeToDataSink(DataSink sink) {
@@ -80,7 +80,7 @@ class DynamicUse {
       if (receiverConstraint is AbstractValue) {
         sink.writeAbstractValue(receiverConstraint);
       } else {
-        throw new UnsupportedError(
+        throw UnsupportedError(
             "Unsupported receiver constraint: ${receiverConstraint}");
       }
     }
@@ -90,7 +90,7 @@ class DynamicUse {
 
   /// Short textual representation use for testing.
   String get shortText {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     if (receiverConstraint != null) {
       var constraint = receiverConstraint;
       if (constraint is StrongModeConstraint) {
@@ -129,7 +129,7 @@ class DynamicUse {
     }
   }
 
-  List<DartType> get typeArguments => _typeArguments ?? const <DartType>[];
+  List<DartType> get typeArguments => _typeArguments ?? const [];
 
   @override
   int get hashCode => Hashing.listHash(
@@ -226,7 +226,7 @@ class StaticUse {
     ConstantValue constant = source.readConstantOrNull();
     List<DartType> typeArguments = source.readDartTypes(emptyAsNull: true);
     source.end(tag);
-    return new StaticUse.internal(element, kind,
+    return StaticUse.internal(element, kind,
         type: type,
         callStructure: callStructure,
         deferredImport: deferredImport,
@@ -250,7 +250,7 @@ class StaticUse {
 
   /// Short textual representation use for testing.
   String get shortText {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     switch (kind) {
       case StaticUseKind.INSTANCE_FIELD_SET:
       case StaticUseKind.SUPER_FIELD_SET:
@@ -322,7 +322,7 @@ class StaticUse {
         failedAt(element,
             "Not CallStructure for static invocation of element $element."));
 
-    StaticUse staticUse = new StaticUse.internal(
+    StaticUse staticUse = StaticUse.internal(
         element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure,
         typeArguments: typeArguments,
@@ -342,7 +342,7 @@ class StaticUse {
             "or static method."));
     assert(element.isFunction,
         failedAt(element, "Static get element $element must be a function."));
-    return new StaticUse.internal(element, StaticUseKind.STATIC_TEAR_OFF,
+    return StaticUse.internal(element, StaticUseKind.STATIC_TEAR_OFF,
         deferredImport: deferredImport);
   }
 
@@ -359,7 +359,7 @@ class StaticUse {
         element.isField || element.isGetter,
         failedAt(element,
             "Static get element $element must be a field or a getter."));
-    return new StaticUse.internal(element, StaticUseKind.STATIC_GET,
+    return StaticUse.internal(element, StaticUseKind.STATIC_GET,
         deferredImport: deferredImport);
   }
 
@@ -376,7 +376,7 @@ class StaticUse {
         (element.isField && element.isAssignable) || element.isSetter,
         failedAt(element,
             "Static set element $element must be a field or a setter."));
-    return new StaticUse.internal(element, StaticUseKind.STATIC_SET,
+    return StaticUse.internal(element, StaticUseKind.STATIC_SET,
         deferredImport: deferredImport);
   }
 
@@ -391,7 +391,7 @@ class StaticUse {
             "or static method."));
     assert(element.isField,
         failedAt(element, "Static init element $element must be a field."));
-    return new StaticUse.internal(element, StaticUseKind.FIELD_INIT);
+    return StaticUse.internal(element, StaticUseKind.FIELD_INIT);
   }
 
   /// Invocation of a super method [element] with the given [callStructure].
@@ -406,7 +406,7 @@ class StaticUse {
         callStructure != null,
         failedAt(element,
             "Not CallStructure for super invocation of element $element."));
-    StaticUse staticUse = new StaticUse.internal(
+    StaticUse staticUse = StaticUse.internal(
         element, StaticUseKind.SUPER_INVOKE,
         callStructure: callStructure, typeArguments: typeArguments);
     assert(staticUse._checkGenericInvariants());
@@ -423,7 +423,7 @@ class StaticUse {
         element.isField || element.isGetter,
         failedAt(element,
             "Super get element $element must be a field or a getter."));
-    return new StaticUse.internal(element, StaticUseKind.SUPER_GET);
+    return StaticUse.internal(element, StaticUseKind.SUPER_GET);
   }
 
   /// Write access of a super field [element].
@@ -434,7 +434,7 @@ class StaticUse {
             element, "Super set element $element must be an instance method."));
     assert(element.isField,
         failedAt(element, "Super set element $element must be a field."));
-    return new StaticUse.internal(element, StaticUseKind.SUPER_FIELD_SET);
+    return StaticUse.internal(element, StaticUseKind.SUPER_FIELD_SET);
   }
 
   /// Write access of a super setter [element].
@@ -445,7 +445,7 @@ class StaticUse {
             element, "Super set element $element must be an instance method."));
     assert(element.isSetter,
         failedAt(element, "Super set element $element must be a setter."));
-    return new StaticUse.internal(element, StaticUseKind.SUPER_SETTER_SET);
+    return StaticUse.internal(element, StaticUseKind.SUPER_SETTER_SET);
   }
 
   /// Closurization of a super method [element].
@@ -454,7 +454,7 @@ class StaticUse {
         element.isInstanceMember && element.isFunction,
         failedAt(element,
             "Super invoke element $element must be an instance method."));
-    return new StaticUse.internal(element, StaticUseKind.SUPER_TEAR_OFF);
+    return StaticUse.internal(element, StaticUseKind.SUPER_TEAR_OFF);
   }
 
   /// Invocation of a constructor [element] through a this or super
@@ -473,7 +473,7 @@ class StaticUse {
             element,
             "Not CallStructure for super constructor invocation of element "
             "$element."));
-    return new StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
+    return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure);
   }
 
@@ -487,14 +487,14 @@ class StaticUse {
             element,
             "Not CallStructure for constructor body invocation of element "
             "$element."));
-    return new StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
+    return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure);
   }
 
   /// Direct invocation of a generator (body) [element], as a static call or
   /// through a this or super constructor call.
   factory StaticUse.generatorBodyInvoke(FunctionEntity element) {
-    return new StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
+    return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: CallStructure.NO_ARGS);
   }
 
@@ -507,7 +507,7 @@ class StaticUse {
             "Direct invoke element $element must be an instance member."));
     assert(element.isFunction,
         failedAt(element, "Direct invoke element $element must be a method."));
-    StaticUse staticUse = new StaticUse.internal(
+    StaticUse staticUse = StaticUse.internal(
         element, StaticUseKind.DIRECT_INVOKE,
         callStructure: callStructure, typeArguments: typeArguments);
     assert(staticUse._checkGenericInvariants());
@@ -524,7 +524,7 @@ class StaticUse {
         element.isField || element.isGetter,
         failedAt(element,
             "Direct get element $element must be a field or a getter."));
-    return new StaticUse.internal(element, StaticUseKind.STATIC_GET);
+    return StaticUse.internal(element, StaticUseKind.STATIC_GET);
   }
 
   /// Direct write access of a field [element].
@@ -535,7 +535,7 @@ class StaticUse {
             "Direct set element $element must be an instance member."));
     assert(element.isField,
         failedAt(element, "Direct set element $element must be a field."));
-    return new StaticUse.internal(element, StaticUseKind.STATIC_SET);
+    return StaticUse.internal(element, StaticUseKind.STATIC_SET);
   }
 
   /// Constructor invocation of [element] with the given [callStructure].
@@ -551,7 +551,7 @@ class StaticUse {
             element,
             "Not CallStructure for constructor invocation of element "
             "$element."));
-    return new StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
+    return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: callStructure);
   }
 
@@ -570,7 +570,7 @@ class StaticUse {
             element,
             "Typed constructor invocation element $element "
             "must be a constructor."));
-    return new StaticUse.internal(element, StaticUseKind.CONSTRUCTOR_INVOKE,
+    return StaticUse.internal(element, StaticUseKind.CONSTRUCTOR_INVOKE,
         type: type,
         callStructure: callStructure,
         deferredImport: deferredImport);
@@ -591,8 +591,7 @@ class StaticUse {
             element,
             "Const constructor invocation element $element "
             "must be a constructor."));
-    return new StaticUse.internal(
-        element, StaticUseKind.CONST_CONSTRUCTOR_INVOKE,
+    return StaticUse.internal(element, StaticUseKind.CONST_CONSTRUCTOR_INVOKE,
         type: type,
         callStructure: callStructure,
         deferredImport: deferredImport);
@@ -604,7 +603,7 @@ class StaticUse {
         element.isInstanceMember,
         failedAt(
             element, "Field init element $element must be an instance field."));
-    return new StaticUse.internal(element, StaticUseKind.FIELD_INIT);
+    return StaticUse.internal(element, StaticUseKind.FIELD_INIT);
   }
 
   /// Constant initialization of an instance field [element].
@@ -614,7 +613,7 @@ class StaticUse {
         element.isInstanceMember,
         failedAt(
             element, "Field init element $element must be an instance field."));
-    return new StaticUse.internal(element, StaticUseKind.FIELD_CONSTANT_INIT,
+    return StaticUse.internal(element, StaticUseKind.FIELD_CONSTANT_INIT,
         constant: constant);
   }
 
@@ -624,7 +623,7 @@ class StaticUse {
         element.isInstanceMember || element is JRecordField,
         failedAt(element,
             "Field init element $element must be an instance or boxed field."));
-    return new StaticUse.internal(element, StaticUseKind.INSTANCE_FIELD_GET);
+    return StaticUse.internal(element, StaticUseKind.INSTANCE_FIELD_GET);
   }
 
   /// Write access of an instance field or boxed field [element].
@@ -633,19 +632,19 @@ class StaticUse {
         element.isInstanceMember || element is JRecordField,
         failedAt(element,
             "Field init element $element must be an instance or boxed field."));
-    return new StaticUse.internal(element, StaticUseKind.INSTANCE_FIELD_SET);
+    return StaticUse.internal(element, StaticUseKind.INSTANCE_FIELD_SET);
   }
 
   /// Read of a local function [element].
   factory StaticUse.closure(Local element) {
-    return new StaticUse.internal(element, StaticUseKind.CLOSURE);
+    return StaticUse.internal(element, StaticUseKind.CLOSURE);
   }
 
   /// An invocation of a local function [element] with the provided
   /// [callStructure] and [typeArguments].
   factory StaticUse.closureCall(Local element, CallStructure callStructure,
       List<DartType> typeArguments) {
-    StaticUse staticUse = new StaticUse.internal(
+    StaticUse staticUse = StaticUse.internal(
         element, StaticUseKind.CLOSURE_CALL,
         callStructure: callStructure, typeArguments: typeArguments);
     assert(staticUse._checkGenericInvariants());
@@ -654,27 +653,27 @@ class StaticUse {
 
   /// Read of a call [method] on a closureClass.
   factory StaticUse.callMethod(FunctionEntity method) {
-    return new StaticUse.internal(method, StaticUseKind.CALL_METHOD);
+    return StaticUse.internal(method, StaticUseKind.CALL_METHOD);
   }
 
   /// Implicit method/constructor invocation of [element] created by the
   /// backend.
   factory StaticUse.implicitInvoke(FunctionEntity element) {
-    return new StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
+    return StaticUse.internal(element, StaticUseKind.STATIC_INVOKE,
         callStructure: element.parameterStructure.callStructure);
   }
 
   /// Inlining of [element].
   factory StaticUse.constructorInlining(
       ConstructorEntity element, InterfaceType instanceType) {
-    return new StaticUse.internal(element, StaticUseKind.INLINING,
+    return StaticUse.internal(element, StaticUseKind.INLINING,
         type: instanceType);
   }
 
   /// Inlining of [element].
   factory StaticUse.methodInlining(
       FunctionEntity element, List<DartType> typeArguments) {
-    return new StaticUse.internal(element, StaticUseKind.INLINING,
+    return StaticUse.internal(element, StaticUseKind.INLINING,
         typeArguments: typeArguments);
   }
 
@@ -734,7 +733,7 @@ class TypeUse {
     TypeUseKind kind = source.readEnum(TypeUseKind.values);
     ImportEntity deferredImport = source.readImportOrNull();
     source.end(tag);
-    return new TypeUse.internal(type, kind, deferredImport);
+    return TypeUse.internal(type, kind, deferredImport);
   }
 
   void writeToDataSink(DataSink sink) {
@@ -747,7 +746,7 @@ class TypeUse {
 
   /// Short textual representation use for testing.
   String get shortText {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     switch (kind) {
       case TypeUseKind.IS_CHECK:
         sb.write('is:');
@@ -803,12 +802,12 @@ class TypeUse {
 
   /// [type] used in an is check, like `e is T` or `e is! T`.
   factory TypeUse.isCheck(DartType type) {
-    return new TypeUse.internal(type, TypeUseKind.IS_CHECK);
+    return TypeUse.internal(type, TypeUseKind.IS_CHECK);
   }
 
   /// [type] used in an as cast, like `e as T`.
   factory TypeUse.asCast(DartType type) {
-    return new TypeUse.internal(type, TypeUseKind.AS_CAST);
+    return TypeUse.internal(type, TypeUseKind.AS_CAST);
   }
 
   /// [type] used as a parameter type or field type in Dart 2, like `T` in:
@@ -817,7 +816,7 @@ class TypeUse {
   ///    T field;
   ///
   factory TypeUse.parameterCheck(DartType type) {
-    return new TypeUse.internal(type, TypeUseKind.PARAMETER_CHECK);
+    return TypeUse.internal(type, TypeUseKind.PARAMETER_CHECK);
   }
 
   /// [type] used in an implicit cast in Dart 2, like `T` in
@@ -826,44 +825,44 @@ class TypeUse {
   ///    T bar = foo; // Implicitly `T bar = foo as T`.
   ///
   factory TypeUse.implicitCast(DartType type) {
-    return new TypeUse.internal(type, TypeUseKind.IMPLICIT_CAST);
+    return TypeUse.internal(type, TypeUseKind.IMPLICIT_CAST);
   }
 
   /// [type] used in a on type catch clause, like `try {} on T catch (e) {}`.
   factory TypeUse.catchType(DartType type) {
-    return new TypeUse.internal(type, TypeUseKind.CATCH_TYPE);
+    return TypeUse.internal(type, TypeUseKind.CATCH_TYPE);
   }
 
   /// [type] used as a type literal, like `foo() => T;`.
   factory TypeUse.typeLiteral(DartType type, ImportEntity deferredImport) {
-    return new TypeUse.internal(type, TypeUseKind.TYPE_LITERAL, deferredImport);
+    return TypeUse.internal(type, TypeUseKind.TYPE_LITERAL, deferredImport);
   }
 
   /// [type] used in an instantiation, like `new T();`.
   factory TypeUse.instantiation(InterfaceType type) {
-    return new TypeUse.internal(type, TypeUseKind.INSTANTIATION);
+    return TypeUse.internal(type, TypeUseKind.INSTANTIATION);
   }
 
   /// [type] used in a constant instantiation, like `const T();`.
   factory TypeUse.constInstantiation(
       InterfaceType type, ImportEntity deferredImport) {
-    return new TypeUse.internal(
+    return TypeUse.internal(
         type, TypeUseKind.CONST_INSTANTIATION, deferredImport);
   }
 
   /// [type] used in a native instantiation.
   factory TypeUse.nativeInstantiation(InterfaceType type) {
-    return new TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
+    return TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
   }
 
   /// [type] used as a direct RTI value.
   factory TypeUse.constTypeLiteral(DartType type) {
-    return new TypeUse.internal(type, TypeUseKind.RTI_VALUE);
+    return TypeUse.internal(type, TypeUseKind.RTI_VALUE);
   }
 
   /// [type] constructor used, for example in a `instanceof` check.
   factory TypeUse.constructorReference(DartType type) {
-    return new TypeUse.internal(type, TypeUseKind.CONSTRUCTOR_REFERENCE);
+    return TypeUse.internal(type, TypeUseKind.CONSTRUCTOR_REFERENCE);
   }
 
   /// [type] used directly as a type argument.
@@ -871,7 +870,7 @@ class TypeUse {
   /// The happens during optimization where a type variable can be replaced by
   /// an invariable type argument derived from a constant receiver.
   factory TypeUse.typeArgument(DartType type) {
-    return new TypeUse.internal(type, TypeUseKind.TYPE_ARGUMENT);
+    return TypeUse.internal(type, TypeUseKind.TYPE_ARGUMENT);
   }
 
   /// [type] used as a named type variable in a recipe.
@@ -905,7 +904,7 @@ class ConstantUse {
     source.begin(tag);
     ConstantValue value = source.readConstant();
     source.end(tag);
-    return new ConstantUse._(value);
+    return ConstantUse._(value);
   }
 
   void writeToDataSink(DataSink sink) {

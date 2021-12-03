@@ -37,7 +37,7 @@ class ImplicitTypeArgument extends DartType {
   }
 
   @override
-  visitChildren(Visitor v) {
+  Never visitChildren(Visitor v) {
     unhandled("$runtimeType", "${v.runtimeType}", -1, null);
   }
 

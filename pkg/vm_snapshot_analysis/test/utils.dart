@@ -8,16 +8,15 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-final dart2native = () {
+final dartCompile = () {
   final sdkBin = path.dirname(Platform.executable);
-  final dart2native =
-      path.join(sdkBin, Platform.isWindows ? 'dart2native.bat' : 'dart2native');
+  final dartCmd = path.join(sdkBin, Platform.isWindows ? 'dart.exe' : 'dart');
 
-  if (!File(dart2native).existsSync()) {
-    throw 'Failed to locate dart2native in the SDK';
+  if (!File(dartCmd).existsSync()) {
+    throw 'Failed to locate `dart` in the SDK';
   }
 
-  return path.canonicalize(dart2native);
+  return path.canonicalize(dartCmd);
 }();
 
 class AotSnapshot {
@@ -61,6 +60,8 @@ void main(List<String> args) => input.main(args);
     ];
 
     final args = [
+      'compile',
+      'exe',
       '-o',
       snapshot.outputBinary,
       '--packages=$packages',
@@ -69,12 +70,12 @@ void main(List<String> args) => input.main(args);
     ];
 
     // Compile input.dart to native and output instruction sizes.
-    final result = await Process.run(dart2native, args);
+    final result = await Process.run(dartCompile, args);
 
     expect(result.exitCode, equals(0), reason: '''
 Compilation completed with exit code ${result.exitCode}.
 
-Command line: $dart2native ${args.join(' ')}
+Command line: $dartCompile ${args.join(' ')}
 
 stdout: ${result.stdout}
 stderr: ${result.stderr}

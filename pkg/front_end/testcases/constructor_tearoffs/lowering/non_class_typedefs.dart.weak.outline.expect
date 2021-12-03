@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+typedef S1<unrelated T extends core::Object? = dynamic> = dynamic;
+typedef S2<unrelated T extends core::Object? = dynamic> = Null;
+typedef S3<unrelated T extends core::Object? = dynamic> = void;
+typedef S4<unrelated T extends core::Object? = dynamic> = FutureOr<dynamic>;
+typedef S5<T extends core::Object? = dynamic> = FutureOr<T%>;
+static method main() → dynamic
+  ;

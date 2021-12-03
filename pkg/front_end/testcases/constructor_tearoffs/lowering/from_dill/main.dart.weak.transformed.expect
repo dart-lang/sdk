@@ -69,10 +69,10 @@ static method main() → dynamic {
   mai::Class3 c3a = f3a(42){(core::int) → mai::Class3};
   self::expect(42, c3a.{mai::Class3::field}{core::int});
   () → Null {
-    let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:44:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:44:8: Error: Too few positional arguments: 1 required, 0 given.
     f3a(); // error
        ^" in f3a{<inapplicable>}.();
-    let final Never #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:45:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:45:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     f3a(42, 87); // error
        ^" in f3a{<inapplicable>}.(42, 87);
@@ -90,7 +90,7 @@ Try removing the extra positional arguments.
   self::expect(true, c4b is{ForNonNullableByDefault} mai::Class4<core::int>);
   self::expect(false, c4b is{ForNonNullableByDefault} mai::Class4<core::String>);
   () → Null {
-    let final Never #t3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:62:8: Error: Expected 1 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:62:8: Error: Expected 1 type arguments.
     f4a<int, String>(); // error
        ^" in f4a{<inapplicable>}.<core::int, core::String>();
   };
@@ -99,7 +99,7 @@ Try removing the extra positional arguments.
   self::expect(true, c4c is{ForNonNullableByDefault} mai::Class4<core::int>);
   self::expect(false, c4c is{ForNonNullableByDefault} mai::Class4<core::String>);
   () → Null {
-    let final Never #t4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:70:8: Error: Expected 0 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:70:8: Error: Expected 0 type arguments.
     f4b<int>(); // error
        ^" in f4b{<inapplicable>}.<core::int>();
   };
@@ -116,7 +116,7 @@ Try removing the extra positional arguments.
   self::expect(true, c4f is{ForNonNullableByDefault} mai::Class4<core::int>);
   self::expect(false, c4f is{ForNonNullableByDefault} mai::Class4<core::String>);
   () → Null {
-    let final Never #t5 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:87:8: Error: Expected 1 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:87:8: Error: Expected 1 type arguments.
     f4d<int, String>(); // error
        ^" in f4d{<inapplicable>}.<core::int, core::String>();
   };
@@ -125,7 +125,7 @@ Try removing the extra positional arguments.
   self::expect(true, c4g is{ForNonNullableByDefault} mai::Class4<core::int>);
   self::expect(false, c4g is{ForNonNullableByDefault} mai::Class4<core::String>);
   () → Null {
-    let final Never #t6 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:95:8: Error: Expected 0 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:95:8: Error: Expected 0 type arguments.
     f4e<int>(); // error
        ^" in f4e{<inapplicable>}.<core::int>();
   };
@@ -143,7 +143,7 @@ Try removing the extra positional arguments.
   self::expect(false, c5b is{ForNonNullableByDefault} mai::Class5<core::double>);
   () → Null {
     f5a<core::String>(){() → mai::Class5<core::String>};
-    let final Never #t7 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:113:8: Error: Expected 1 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:113:8: Error: Expected 1 type arguments.
     f5a<int, String>(); // error
        ^" in f5a{<inapplicable>}.<core::int, core::String>();
   };
@@ -187,14 +187,14 @@ class Class1 extends core::Object {
     return new mai::Class1::•();
 }
 class Class2 extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[mai::Class2::redirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C9]/*isLegacy*/;
   constructor named() → mai::Class2
     : super core::Object::•()
     ;
   static method _#named#tearOff() → mai::Class2
     return new mai::Class2::named();
   static factory redirect() → mai::Class2
-    let Never #redirecting_factory = mai::Class2::named in invalid-expression;
+    return new mai::Class2::named();
   static method _#redirect#tearOff() → mai::Class2
     return new mai::Class2::named();
 }
@@ -207,7 +207,7 @@ class Class3 extends core::Object {
     return new mai::Class3::•(field);
 }
 class Class4<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[mai::Class4::redirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C10]/*isLegacy*/;
   constructor _() → mai::Class4<mai::Class4::T%>
     : super core::Object::•()
     ;
@@ -218,7 +218,7 @@ class Class4<T extends core::Object? = dynamic> extends core::Object {
   static method _#new#tearOff<T extends core::Object? = dynamic>() → mai::Class4<mai::Class4::_#new#tearOff::T%>
     return mai::Class4::•<mai::Class4::_#new#tearOff::T%>();
   static factory redirect<T extends core::Object? = dynamic>() → mai::Class4<mai::Class4::redirect::T%>
-    let Never #redirecting_factory = mai::Class4::_ in let mai::Class4::redirect::T% #typeArg0 = null in invalid-expression;
+    return new mai::Class4::_<mai::Class4::redirect::T%>();
   static method _#redirect#tearOff<T extends core::Object? = dynamic>() → mai::Class4<mai::Class4::_#redirect#tearOff::T%>
     return new mai::Class4::_<mai::Class4::_#redirect#tearOff::T%>();
 }
@@ -243,4 +243,6 @@ constants  {
   #C6 = static-tearoff mai::Class4::_#redirect#tearOff
   #C7 = static-tearoff mai::Class5::_#new#tearOff
   #C8 = false
+  #C9 = constructor-tearoff mai::Class2::redirect
+  #C10 = constructor-tearoff mai::Class4::redirect
 }

@@ -68,11 +68,18 @@ class FeatureOptions {
   /// Whether to use optimized holders.
   FeatureOption newHolders = FeatureOption('new-holders');
 
+  /// Whether to generate code compliant with Content Security Policy.
+  FeatureOption useContentSecurityPolicy = FeatureOption('csp');
+
   /// [FeatureOption]s which default to enabled.
-  late final List<FeatureOption> shipping = [legacyJavaScript];
+  late final List<FeatureOption> shipping = [
+    legacyJavaScript,
+    newHolders,
+    useContentSecurityPolicy
+  ];
 
   /// [FeatureOption]s which default to disabled.
-  late final List<FeatureOption> canary = [newHolders];
+  late final List<FeatureOption> canary = [];
 
   /// Forces canary feature on. This must run after [Option].parse.
   void forceCanary() {
@@ -86,12 +93,15 @@ class FeatureOptions {
     bool _shouldPrint(FeatureOption feature) {
       return feature.isNegativeFlag ? feature.isDisabled : feature.isEnabled;
     }
+
     String _toString(FeatureOption feature) {
       return feature.isNegativeFlag ? 'no-${feature.flag}' : feature.flag;
     }
+
     Iterable<String> _listToString(List<FeatureOption> options) {
       return options.where(_shouldPrint).map(_toString);
     }
+
     return _listToString(shipping).followedBy(_listToString(canary)).join(', ');
   }
 
@@ -133,7 +143,13 @@ abstract class DiagnosticOptions {
 /// as few as possible.
 class CompilerOptions implements DiagnosticOptions {
   /// The entry point of the application that is being compiled.
-  Uri? entryPoint;
+  Uri? entryUri;
+
+  /// The input dill to compile.
+  Uri? inputDillUri;
+
+  /// Returns the compilation target specified by these options.
+  Uri? get compilationTarget => inputDillUri ?? entryUri;
 
   /// Location of the package configuration file.
   ///
@@ -153,9 +169,16 @@ class CompilerOptions implements DiagnosticOptions {
   /// files for linking.
   List<Uri>? dillDependencies;
 
+  Uri? writeModularAnalysisUri;
+
+  /// Helper to determine if compiler is being run just for modular analysis.
+  bool get modularMode => writeModularAnalysisUri != null;
+
+  List<Uri>? modularAnalysisInputs;
+
   /// Location from which serialized inference data is read.
   ///
-  /// If this is set, the [entryPoint] is expected to be a .dill file and the
+  /// If this is set, the [entryUri] is expected to be a .dill file and the
   /// frontend work is skipped.
   Uri? readDataUri;
 
@@ -171,7 +194,7 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Location from which the serialized closed world is read.
   ///
-  /// If this is set, the [entryPoint] is expected to be a .dill file and the
+  /// If this is set, the [entryUri] is expected to be a .dill file and the
   /// frontend work is skipped.
   Uri? readClosedWorldUri;
 
@@ -267,6 +290,10 @@ class CompilerOptions implements DiagnosticOptions {
 
   // Whether or not to stop compilation after splitting the
   bool stopAfterProgramSplit = false;
+
+  /// Reads a program split json file and applies the parsed constraints to
+  /// deferred loading.
+  Uri? readProgramSplit;
 
   /// Diagnostic option: If `true`, warnings cause the compilation to fail.
   @override
@@ -422,9 +449,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// This is an internal configuration option derived from other flags.
   late CheckPolicy defaultIndexBoundsCheckPolicy;
 
-  /// Whether to generate code compliant with content security policy (CSP).
-  bool useContentSecurityPolicy = false;
-
   /// When obfuscating for minification, whether to use the frequency of a name
   /// as an heuristic to pick shorter names.
   bool useFrequencyNamer = true;
@@ -476,10 +500,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// If [true], the compiler will emit code that logs whenever a method is
   /// called.
   bool experimentCallInstrumentation = false;
-
-  /// Use the dart2js lowering of late instance variables rather than the CFE
-  /// lowering.
-  bool experimentLateInstanceVariables = false;
 
   /// When null-safety is enabled, whether the compiler should emit code with
   /// unsound or sound semantics.
@@ -549,6 +569,8 @@ class CompilerOptions implements DiagnosticOptions {
     // sdk with the correct flags.
     platformBinaries ??= fe.computePlatformBinariesLocation();
     return CompilerOptions()
+      ..entryUri = _extractUriOption(options, '${Flags.entryUri}=')
+      ..inputDillUri = _extractUriOption(options, '${Flags.inputDill}=')
       ..librariesSpecificationUri = librariesSpecificationUri
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
       ..benchmarkingProduction =
@@ -605,8 +627,6 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.experimentUnreachableMethodsThrow)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
-      ..experimentLateInstanceVariables =
-          _hasOption(options, Flags.experimentLateInstanceVariables)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries = platformBinaries
@@ -618,8 +638,6 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.laxRuntimeTypeToString)
       ..testMode = _hasOption(options, Flags.testMode)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
-      ..useContentSecurityPolicy =
-          _hasOption(options, Flags.useContentSecurityPolicy)
       ..useFrequencyNamer =
           !_hasOption(options, Flags.noFrequencyBasedMinification)
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
@@ -631,6 +649,12 @@ class CompilerOptions implements DiagnosticOptions {
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..dillDependencies =
           _extractUriListOption(options, '${Flags.dillDependencies}')
+      ..readProgramSplit =
+          _extractUriOption(options, '${Flags.readProgramSplit}=')
+      ..writeModularAnalysisUri =
+          _extractUriOption(options, '${Flags.writeModularAnalysis}=')
+      ..modularAnalysisInputs =
+          _extractUriListOption(options, '${Flags.readModularAnalysis}')
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
       ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
       ..noClosedWorldInData = _hasOption(options, Flags.noClosedWorldInData)
@@ -663,18 +687,18 @@ class CompilerOptions implements DiagnosticOptions {
     // null? In unittests we use the same compiler to analyze or build multiple
     // entrypoints.
     if (librariesSpecificationUri == null) {
-      throw new ArgumentError("[librariesSpecificationUri] is null.");
+      throw ArgumentError("[librariesSpecificationUri] is null.");
     }
     if (librariesSpecificationUri!.path.endsWith('/')) {
-      throw new ArgumentError(
+      throw ArgumentError(
           "[librariesSpecificationUri] should be a file: $librariesSpecificationUri");
     }
     Map<fe.ExperimentalFlag, bool> experimentalFlags =
-        new Map.from(fe.defaultExperimentalFlags);
+        Map.from(fe.defaultExperimentalFlags);
     experimentalFlags.addAll(explicitExperimentalFlags);
     if (platformBinaries == null &&
         equalMaps(experimentalFlags, fe.defaultExperimentalFlags)) {
-      throw new ArgumentError("Missing required ${Flags.platformBinaries}");
+      throw ArgumentError("Missing required ${Flags.platformBinaries}");
     }
     if (_soundNullSafety && _noSoundNullSafety) {
       throw ArgumentError("'${Flags.soundNullSafety}' incompatible with "
@@ -694,8 +718,7 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (benchmarkingExperiment) {
       // Set flags implied by '--benchmarking-x'.
-      // TODO(sra): Use this for some NNBD variant.
-      useContentSecurityPolicy = true;
+      // TODO(sra): Use this for some null safety variant.
       features.forceCanary();
     }
 
@@ -795,10 +818,10 @@ class CheckPolicy {
   /// Whether the type assertion should be emitted and checked.
   final bool isEmitted;
 
-  const CheckPolicy({this.isTrusted: false, this.isEmitted: false});
+  const CheckPolicy({this.isTrusted = false, this.isEmitted = false});
 
-  static const trusted = const CheckPolicy(isTrusted: true);
-  static const checked = const CheckPolicy(isEmitted: true);
+  static const trusted = CheckPolicy(isTrusted: true);
+  static const checked = CheckPolicy(isEmitted: true);
 
   @override
   String toString() => 'CheckPolicy(isTrusted=$isTrusted,'
@@ -858,7 +881,7 @@ Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options,
     {void Function(String)? onError, void Function(String)? onWarning}) {
   List<String>? experiments =
       _extractOptionalCsvOption(options, Flags.enableLanguageExperiments);
-  onError ??= (String error) => throw new ArgumentError(error);
+  onError ??= (String error) => throw ArgumentError(error);
   onWarning ??= (String warning) => print(warning);
   return fe.parseExperimentalFlags(fe.parseExperimentalArguments(experiments),
       onError: onError, onWarning: onWarning);

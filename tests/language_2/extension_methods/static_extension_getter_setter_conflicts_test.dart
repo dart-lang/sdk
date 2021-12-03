@@ -67,7 +67,7 @@ void test0() {
   E0(c0)[0];
   //    ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_OPERATOR
-  // [cfe] Getter not found: '[]'.
+  // [cfe] Method not found: '[]'.
   E0(c0)[0] = 0;
 
   c0[0] += 0;
@@ -182,7 +182,6 @@ void test1() {
 // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
 //   ^
 // [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
-//   ^
 // [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
 
   c1b[0]++;
@@ -190,7 +189,6 @@ void test1() {
 // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
 //   ^
 // [cfe] The operator '[]' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
-//   ^
 // [cfe] The operator '[]=' is defined in multiple extensions for 'C1<Object>' and neither is more specific.
 }
 

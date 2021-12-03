@@ -39,6 +39,10 @@ class SuperContext {
             : SuperContext.static;
       } else if (node is ConstructorFieldInitializer) {
         return SuperContext.static;
+      } else if (node is FieldDeclaration) {
+        return node.staticKeyword == null && node.fields.lateKeyword != null
+            ? SuperContext.valid
+            : SuperContext.static;
       } else if (node is MethodDeclaration) {
         if (node.isStatic) {
           return SuperContext.static;

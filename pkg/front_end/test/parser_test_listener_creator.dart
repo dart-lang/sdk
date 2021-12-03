@@ -15,7 +15,7 @@ import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 import 'utils/io_utils.dart' show computeRepoDirUri;
 
-main(List<String> args) {
+void main(List<String> args) {
   final Uri repoDir = computeRepoDirUri();
   String generated = generateTestListener(repoDir);
   new File.fromUri(computeTestListenerUri(repoDir))
@@ -45,6 +45,7 @@ String generateTestListener(Uri repoDir) {
 
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
+import 'package:_fe_analyzer_shared/src/parser/constructor_reference_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/declaration_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
@@ -126,22 +127,33 @@ class ParserCreatorListener extends Listener {
 
   ParserCreatorListener(this.out);
 
+  @override
   void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
     if (name.lexeme == "Listener") insideListenerClass = true;
   }
 
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     insideListenerClass = false;
   }
 
-  void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
-      Token varFinalOrConst, Token getOrSet, Token name) {
+  @override
+  void beginMethod(
+      DeclarationKind declarationKind,
+      Token externalToken,
+      Token staticToken,
+      Token covariantToken,
+      Token varFinalOrConst,
+      Token getOrSet,
+      Token name) {
     currentMethodName = name.lexeme;
   }
 
+  @override
   void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     if (insideListenerClass) {
+      out.writeln("  @override");
       out.write("  ");
       Token token = beginToken;
       Token latestToken;
@@ -211,10 +223,12 @@ class ParserCreatorListener extends Listener {
     latestSeenParameterTypeToken = null;
   }
 
+  @override
   void handleType(Token beginToken, Token questionMark) {
     latestSeenParameterTypeToken = beginToken.lexeme;
   }
 
+  @override
   void endFormalParameter(
       Token thisKeyword,
       Token periodAfterThis,

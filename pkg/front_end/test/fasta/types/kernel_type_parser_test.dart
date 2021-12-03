@@ -114,7 +114,7 @@ Component parseSdk(Uri uri, TypeParserEnvironment environment) {
   return new Component(libraries: <Library>[library]);
 }
 
-main() {
+void main() {
   Uri uri = Uri.parse("dart:core");
   TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
   Component component = parseSdk(uri, environment);
@@ -135,15 +135,18 @@ class KernelSubtypeTest extends SubtypeTest<DartType, TypeParserEnvironment> {
   @override
   bool get skipFutureOrPromotion => true;
 
+  @override
   DartType toType(String text, TypeParserEnvironment environment) {
     return environment.parseType(text);
   }
 
+  @override
   IsSubtypeOf isSubtypeImpl(DartType subtype, DartType supertype) {
     return new TypeEnvironment(coreTypes, hierarchy)
         .performNullabilityAwareSubtypeCheck(subtype, supertype);
   }
 
+  @override
   TypeParserEnvironment extend(String typeParameters) {
     return environment.extendWithTypeParameters(typeParameters);
   }

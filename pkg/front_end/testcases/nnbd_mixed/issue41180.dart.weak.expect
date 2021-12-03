@@ -56,7 +56,7 @@ class Iterable<E extends core::Object? = dynamic> extends core::Object {
   constructor •(iss::Iterable::E% element) → iss::Iterable<iss::Iterable::E%>
     : iss::Iterable::element = element, super core::Object::•()
     ;
-  method singleWhere((iss::Iterable::E%) → core::bool test, {generic-covariant-impl () →? iss::Iterable::E% orElse = #C1}) → iss::Iterable::E% {
+  method singleWhere((iss::Iterable::E%) → core::bool test, {covariant-by-class () →? iss::Iterable::E% orElse = #C1}) → iss::Iterable::E% {
     if(test(this.{iss::Iterable::element}{iss::Iterable::E%}){(iss::Iterable::E%) → core::bool}) {
       return this.{iss::Iterable::element}{iss::Iterable::E%};
     }

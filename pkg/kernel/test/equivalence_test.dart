@@ -67,23 +67,22 @@ Values true and false are not equivalent
 '''),
   Test(component1, component2),
   Test(component1.libraries[0], component2.libraries[0]),
-  Test(component1.libraries[0], component2.libraries[0]),
   Test(component1.libraries[0], component2.libraries[1], inequivalence: '''
 Inequivalent nodes
-1: library file://uri1/
-2: library file://uri2/
+1: library import://uri1
+2: library import://uri2
 .root
 '''),
   Test(component1.libraries[1], component2.libraries[2], inequivalence: '''
 Inequivalent nodes
-1: library file://uri2/
-2: library file://uri3/
+1: library import://uri2
+2: library import://uri3
 .root
 '''),
   Test(component1.libraries[1], component2.libraries[3], inequivalence: '''
 Values file://uri2/ and file://uri3/ are not equivalent
 .root
- Library(library file://uri2/).fileUri
+ Library(library import://uri2).fileUri
 '''),
   Test(component1.libraries[0].procedures[0],
       component2.libraries[0].procedures[1],
@@ -126,7 +125,7 @@ Inequivalent references:
 '''),
 ];
 
-main() {
+void main() {
   for (Test test in tests) {
     EquivalenceResult result =
         checkEquivalence(test.a, test.b, strategy: test.strategy);
@@ -173,31 +172,34 @@ class IgnoreIntLiteralValue extends EquivalenceStrategy {
 
 Component createComponent() {
   Component component = new Component();
-  Uri uri1 = Uri.parse('file://uri1');
-  Uri uri2 = Uri.parse('file://uri2');
-  Uri uri3 = Uri.parse('file://uri3');
-  Library library1 = new Library(uri1, fileUri: uri1);
+  Uri fileUri1 = Uri.parse('file://uri1');
+  Uri fileUri2 = Uri.parse('file://uri2');
+  Uri fileUri3 = Uri.parse('file://uri3');
+  Uri importUri1 = Uri.parse('import://uri1');
+  Uri importUri2 = Uri.parse('import://uri2');
+  Uri importUri3 = Uri.parse('import://uri3');
+  Library library1 = new Library(importUri1, fileUri: fileUri1);
   component.libraries.add(library1);
   Procedure procedure1foo = new Procedure(
       new Name('foo'), ProcedureKind.Method, new FunctionNode(null),
-      fileUri: uri1);
+      fileUri: fileUri1);
   library1.addProcedure(procedure1foo);
   Procedure procedure1bar = new Procedure(
       new Name('bar'), ProcedureKind.Method, new FunctionNode(null),
-      fileUri: uri1);
+      fileUri: fileUri1);
   library1.addProcedure(procedure1bar);
 
-  Library library2 = new Library(uri2, fileUri: uri2);
+  Library library2 = new Library(importUri2, fileUri: fileUri2);
   component.libraries.add(library2);
 
-  Library library3 = new Library(uri3, fileUri: uri2);
+  Library library3 = new Library(importUri3, fileUri: fileUri2);
   component.libraries.add(library3);
   Procedure procedure3foo = new Procedure(
       new Name('foo'), ProcedureKind.Method, new FunctionNode(null),
-      fileUri: uri1);
+      fileUri: fileUri1);
   library3.addProcedure(procedure3foo);
 
-  Library library4 = new Library(uri2, fileUri: uri3);
+  Library library4 = new Library(importUri2, fileUri: fileUri3);
   component.libraries.add(library4);
 
   return component;

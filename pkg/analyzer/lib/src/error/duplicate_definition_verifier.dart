@@ -14,7 +14,7 @@ class DuplicateDefinitionVerifier {
   static final Set<String> _enumInstanceMembers = {
     'hashCode',
     'index',
-    'noSuchMethod',
+    FunctionElement.NO_SUCH_METHOD_METHOD_NAME,
     'runtimeType',
     'toString',
   };
@@ -112,7 +112,7 @@ class DuplicateDefinitionVerifier {
               _errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
                 identifier,
-                [node.declaredElement!.name, name],
+                [name],
               );
             }
           }
@@ -126,7 +126,7 @@ class DuplicateDefinitionVerifier {
             _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
               identifier,
-              [node.declaredElement!.name, name],
+              [name],
             );
           }
         }
@@ -253,15 +253,22 @@ class DuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void _checkClassMembers(ClassElement element, List<ClassMember> members) {
-    Set<String> constructorNames = HashSet<String>();
-    Map<String, Element> instanceGetters = HashMap<String, Element>();
-    Map<String, Element> instanceSetters = HashMap<String, Element>();
-    Map<String, Element> staticGetters = HashMap<String, Element>();
-    Map<String, Element> staticSetters = HashMap<String, Element>();
+    var constructorNames = HashSet<String>();
+    var instanceGetters = HashMap<String, Element>();
+    var instanceSetters = HashMap<String, Element>();
+    var staticGetters = HashMap<String, Element>();
+    var staticSetters = HashMap<String, Element>();
 
     for (ClassMember member in members) {
       if (member is ConstructorDeclaration) {
+        if (member.returnType.name != element.name) {
+          // [member] is erroneous; do not count it as a possible duplicate.
+          continue;
+        }
         var name = member.name?.name ?? '';
+        if (name == 'new') {
+          name = '';
+        }
         if (!constructorNames.add(name)) {
           if (name.isEmpty) {
             _errorReporter.reportErrorForName(
@@ -299,11 +306,18 @@ class DuplicateDefinitionVerifier {
           var staticMember = staticGetters[name] ?? staticSetters[name];
           if (staticMember != null) {
             if (staticMember is PropertyAccessorElement) {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
-                nameNode,
-                [name],
-              );
+              CompileTimeErrorCode errorCode;
+              if (staticMember.isSynthetic) {
+                errorCode = CompileTimeErrorCode
+                    .CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD;
+              } else if (staticMember.isGetter) {
+                errorCode = CompileTimeErrorCode
+                    .CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER;
+              } else {
+                errorCode = CompileTimeErrorCode
+                    .CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER;
+              }
+              _errorReporter.reportErrorForNode(errorCode, nameNode, [name]);
             } else {
               _errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,

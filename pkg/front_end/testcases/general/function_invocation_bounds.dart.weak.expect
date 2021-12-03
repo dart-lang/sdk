@@ -41,7 +41,7 @@ static method test() → dynamic {
   local<core::String>(throw ""){(core::String) → core::String};
   local<core::int>(0){(core::int) → core::int};
   local<core::int>(throw ""){(core::int) → core::int};
-  let final Never #t1 = invalid-expression "pkg/front_end/testcases/general/function_invocation_bounds.dart:13:8: Error: Expected 1 type arguments.
+  invalid-expression "pkg/front_end/testcases/general/function_invocation_bounds.dart:13:8: Error: Expected 1 type arguments.
   local<int, String>(throw '');
        ^" in local{<inapplicable>}.<core::int, core::String>(throw "");
   <T extends core::num>(T) → T f = local;
@@ -49,7 +49,7 @@ static method test() → dynamic {
   f<core::String>(throw ""){(core::String) → core::String};
   f<core::int>(0){(core::int) → core::int};
   f<core::int>(throw ""){(core::int) → core::int};
-  let final Never #t2 = invalid-expression "pkg/front_end/testcases/general/function_invocation_bounds.dart:19:4: Error: Expected 1 type arguments.
+  invalid-expression "pkg/front_end/testcases/general/function_invocation_bounds.dart:19:4: Error: Expected 1 type arguments.
   f<int, String>(throw '');
    ^" in f{<inapplicable>}.<core::int, core::String>(throw "");
 }

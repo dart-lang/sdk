@@ -27,17 +27,17 @@ class MoveTypeArgumentsToClass extends CorrectionProducer {
       return;
     }
 
-    var typeName = creation.constructorName.type;
-    if (typeName.typeArguments != null) {
+    var namedType = creation.constructorName.type2;
+    if (namedType.typeArguments != null) {
       return;
     }
 
-    var element = typeName.typeOrThrow.element;
+    var element = namedType.typeOrThrow.element;
     if (element is ClassElement &&
         element.typeParameters.length == typeArguments.arguments.length) {
       await builder.addDartFileEdit(file, (builder) {
         var argumentText = utils.getNodeText(typeArguments);
-        builder.addSimpleInsertion(typeName.end, argumentText);
+        builder.addSimpleInsertion(namedType.end, argumentText);
         builder.addDeletion(range.node(typeArguments));
       });
     }

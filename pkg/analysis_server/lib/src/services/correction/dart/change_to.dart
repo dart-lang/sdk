@@ -68,7 +68,7 @@ class ChangeTo extends CorrectionProducer {
     // Prepare the optional import prefix name.
     String? prefixName;
     if (node is PrefixedIdentifier &&
-        node.parent is TypeName &&
+        node.parent is NamedType &&
         node.prefix.staticElement is PrefixElement) {
       prefixName = node.prefix.name;
       node = node.identifier;

@@ -10,6 +10,7 @@ import 'add_const_test.dart' as add_const;
 import 'add_curly_braces_test.dart' as add_curly_braces;
 import 'add_diagnostic_property_reference_test.dart'
     as add_diagnostic_property_reference;
+import 'add_eol_at_end_of_file_test.dart' as add_eol_at_end_of_file;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
 import 'add_key_to_constructors_test.dart' as add_key_to_constructors;
@@ -33,6 +34,8 @@ import 'add_return_type_test.dart' as add_return_type;
 import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
+import 'add_switch_case_break_test.dart' as add_switch_case_break;
+import 'add_trailing_comma_test.dart' as add_trailing_comma;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'analysis_options/test_all.dart' as analysis_options;
 import 'bulk_fix_processor_test.dart' as bulk_fix_processor;
@@ -47,9 +50,13 @@ import 'convert_documentation_into_line_test.dart'
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
 import 'convert_flutter_children_test.dart' as convert_flutter_children;
 import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
+import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
+import 'convert_quotes_test.dart' as convert_quotes;
 import 'convert_to_contains_test.dart' as convert_to_contains;
+import 'convert_to_double_quoted_string_test.dart'
+    as convert_to_double_quoted_string;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
 import 'convert_to_generic_function_syntax_test.dart'
     as convert_to_generic_function_syntax;
@@ -101,7 +108,10 @@ import 'inline_invocation_test.dart' as inline_invocation;
 import 'inline_typedef_test.dart' as inline_typedef;
 import 'insert_semicolon_test.dart' as insert_semicolon;
 import 'make_class_abstract_test.dart' as make_class_abstract;
+import 'make_conditional_on_debug_mode_test.dart'
+    as make_conditional_on_debug_mode;
 import 'make_field_not_final_test.dart' as make_field_not_final;
+import 'make_field_public_test.dart' as make_field_public;
 import 'make_final_test.dart' as make_final;
 import 'make_return_type_nullable_test.dart' as make_return_type_nullable;
 import 'make_variable_not_final_test.dart' as make_variable_not_final;
@@ -110,12 +120,16 @@ import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
 import 'organize_imports_test.dart' as organize_imports;
 import 'pubspec/test_all.dart' as pubspec;
 import 'qualify_reference_test.dart' as qualify_reference;
+import 'remove_abstract_test.dart' as remove_abstract;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_argument_test.dart' as remove_argument;
 import 'remove_await_test.dart' as remove_await;
 import 'remove_comparison_test.dart' as remove_comparison;
 import 'remove_const_test.dart' as remove_const;
+import 'remove_constructor_name_test.dart' as remove_constructor_name;
 import 'remove_dead_code_test.dart' as remove_dead_code;
+import 'remove_deprecated_new_in_comment_reference_test.dart'
+    as remove_deprecated_new_in_comment_reference;
 import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
 import 'remove_empty_catch_test.dart' as remove_empty_catch;
 import 'remove_empty_constructor_body_test.dart'
@@ -143,6 +157,8 @@ import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
 import 'remove_unnecessary_parentheses_test.dart'
     as remove_unnecessary_parentheses;
+import 'remove_unnecessary_raw_string_test.dart'
+    as remove_unnecessary_raw_string;
 import 'remove_unnecessary_string_escapes_test.dart'
     as remove_unnecessary_string_escapes;
 import 'remove_unnecessary_string_interpolation_test.dart'
@@ -167,6 +183,7 @@ import 'replace_final_with_var_test.dart' as replace_final_with_var;
 import 'replace_new_with_const_test.dart' as replace_new_with_const;
 import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
+import 'replace_return_type_test.dart' as replace_return_type;
 import 'replace_var_with_dynamic_test.dart' as replace_var_with_dynamic;
 import 'replace_with_brackets_test.dart' as replace_with_brackets;
 import 'replace_with_conditional_assignment_test.dart'
@@ -202,6 +219,7 @@ void main() {
     add_const.main();
     add_curly_braces.main();
     add_diagnostic_property_reference.main();
+    add_eol_at_end_of_file.main();
     add_explicit_cast.main();
     add_field_formal_parameters.main();
     add_key_to_constructors.main();
@@ -219,6 +237,8 @@ void main() {
     add_return_type.main();
     add_static.main();
     add_super_constructor_invocation.main();
+    add_switch_case_break.main();
+    add_trailing_comma.main();
     add_type_annotation.main();
     analysis_options.main();
     bulk_fix_processor.main();
@@ -231,9 +251,12 @@ void main() {
     convert_flutter_child.main();
     convert_flutter_children.main();
     convert_for_each_to_for_loop.main();
+    convert_into_block_body.main();
     convert_into_expression_body.main();
     convert_into_is_not.main();
+    convert_quotes.main();
     convert_to_contains.main();
+    convert_to_double_quoted_string.main();
     convert_to_for_element.main();
     convert_to_generic_function_syntax.main();
     convert_to_if_element.main();
@@ -281,7 +304,9 @@ void main() {
     inline_typedef.main();
     insert_semicolon.main();
     make_class_abstract.main();
+    make_conditional_on_debug_mode.main();
     make_field_not_final.main();
+    make_field_public.main();
     make_final.main();
     make_return_type_nullable.main();
     make_variable_not_final.main();
@@ -290,12 +315,15 @@ void main() {
     organize_imports.main();
     pubspec.main();
     qualify_reference.main();
+    remove_abstract.main();
     remove_annotation.main();
     remove_argument.main();
     remove_await.main();
     remove_comparison.main();
     remove_const.main();
+    remove_constructor_name.main();
     remove_dead_code.main();
+    remove_deprecated_new_in_comment_reference.main();
     remove_duplicate_case.main();
     remove_empty_catch.main();
     remove_empty_constructor_body.main();
@@ -319,6 +347,7 @@ void main() {
     remove_unnecessary_const.main();
     remove_unnecessary_new.main();
     remove_unnecessary_parentheses.main();
+    remove_unnecessary_raw_string.main();
     remove_unnecessary_string_escapes.main();
     remove_unnecessary_string_interpolation.main();
     remove_unused_catch_clause.main();
@@ -339,6 +368,7 @@ void main() {
     replace_new_with_const.main();
     replace_null_with_closure.main();
     replace_null_with_void.main();
+    replace_return_type.main();
     replace_return_type_future.main();
     replace_var_with_dynamic.main();
     replace_with_brackets.main();

@@ -86,5 +86,5 @@ static method errors() → dynamic {
  - 'Class2' is from 'pkg/front_end/testcases/extensions/conflicts.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'uniqueMethod2'.
   c2.uniqueMethod2();
-     ^^^^^^^^^^^^^";
+     ^^^^^^^^^^^^^" in c2{<unresolved>}.uniqueMethod2();
 }

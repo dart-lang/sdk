@@ -4,6 +4,10 @@
 
 // @dart = 2.9
 
+// Test the treatment of a method whose signature has a covariant parameter
+// in the interface of a class `C`, when the implementation of that method
+// is inherited and its parameter is not covariant.
+
 class I0 {}
 
 class A {}
@@ -18,9 +22,7 @@ abstract class I {
   void f(covariant A x);
 }
 
+// As of dart-lang/language#1833 this is not a compile-time error.
 class D extends C implements I {}
-//    ^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_IMPLEMENTATION_OVERRIDE
-// [cfe] unspecified
 
 main() {}

@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  final field (core::int) → core::int x;
+  const constructor •(core::bool b) → self::A
+    : self::A::x = b ?{(core::int) → core::int} self::id<core::int> : self::other<core::int>, super core::Object::•()
+    ;
+}
+static method id<X extends core::Object? = dynamic>(self::id::X% x) → self::id::X%
+  ;
+static method other<X extends core::Object? = dynamic>(self::other::X% x) → self::other::X%
+  ;
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: Instantiation @ org-dartlang-testcase:///issue47154b.dart:8:18 -> InstantiationConstant(id<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///issue47154b.dart:8:23 -> InstantiationConstant(other<int*>)
+Extra constant evaluation: evaluated: 4, effectively constant: 2

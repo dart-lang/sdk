@@ -7,18 +7,21 @@
 @patch
 class FileStat {
   @patch
-  static _statSync(_Namespace namespace, String path) native "File_Stat";
+  @pragma("vm:external-name", "File_Stat")
+  external static _statSync(_Namespace namespace, String path);
 }
 
 @patch
 class FileSystemEntity {
   @patch
-  static _getTypeNative(_Namespace namespace, Uint8List rawPath,
-      bool followLinks) native "File_GetType";
+  @pragma("vm:external-name", "File_GetType")
+  external static _getTypeNative(
+      _Namespace namespace, Uint8List rawPath, bool followLinks);
   @patch
-  static _identicalNative(_Namespace namespace, String path1, String path2)
-      native "File_AreIdentical";
+  @pragma("vm:external-name", "File_AreIdentical")
+  external static _identicalNative(
+      _Namespace namespace, String path1, String path2);
   @patch
-  static _resolveSymbolicLinks(_Namespace namespace, Uint8List path)
-      native "File_ResolveSymbolicLinks";
+  @pragma("vm:external-name", "File_ResolveSymbolicLinks")
+  external static _resolveSymbolicLinks(_Namespace namespace, Uint8List path);
 }

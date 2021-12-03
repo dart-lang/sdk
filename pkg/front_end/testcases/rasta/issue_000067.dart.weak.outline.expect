@@ -9,7 +9,7 @@ class A extends core::Object {
   constructor •() → self::A*
     ;
   static factory foo() → self::A*
-    let dynamic #redirecting_factory = self::C::bar in invalid-expression;
+    return self::C::bar();
   method m() → core::int*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -28,7 +28,7 @@ class C extends self::A {
   constructor •() → self::C*
     ;
   static factory bar() → self::C*
-    let dynamic #redirecting_factory = self::D::• in invalid-expression;
+    return new self::D::•();
   method m() → core::int*
     ;
 }
@@ -40,3 +40,9 @@ class D extends self::C {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_000067.dart:7:7 -> ConstructorTearOffConstant(A.foo)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_000067.dart:13:7 -> ConstructorTearOffConstant(C.bar)
+Extra constant evaluation: evaluated: 6, effectively constant: 2

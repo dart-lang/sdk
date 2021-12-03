@@ -15,26 +15,22 @@ library;
 import self as mai;
 import "dart:core" as core;
 
-static const field core::Map<core::int*, core::String*>* map = #C4;
-static const field core::Set<core::int*>* set = #C9;
-static const field core::List<core::int*>* list = #C11;
+static const field core::Map<core::int*, core::String*>* map = #C3;
+static const field core::Set<core::int*>* set = #C5;
+static const field core::List<core::int*>* list = #C7;
 
 constants  {
   #C1 = 1
   #C2 = "a"
-  #C3 = <dynamic>[#C1, #C2]
-  #C4 = core::_ImmutableMap<core::int*, core::String*> {_kvPairs:#C3}
-  #C5 = 2
-  #C6 = null
-  #C7 = <dynamic>[#C5, #C6]
-  #C8 = core::_ImmutableMap<core::int*, Null> {_kvPairs:#C7}
-  #C9 = col::_UnmodifiableSet<core::int*> {_map:#C8}
-  #C10 = 3
-  #C11 = <core::int*>[#C10]
+  #C3 = <core::int*, core::String*>{#C1:#C2)
+  #C4 = 2
+  #C5 = <core::int*>{#C4}
+  #C6 = 3
+  #C7 = <core::int*>[#C6]
 }
 
 Extra constant evaluation status:
-Evaluated: MapConcatenation @ org-dartlang-testcase:///main.dart:7:7 -> InstanceConstant(const _ImmutableMap<int*, String*>{_ImmutableMap._kvPairs: const <dynamic>[1, "a"]})
-Evaluated: SetConcatenation @ org-dartlang-testcase:///main.dart:11:18 -> InstanceConstant(const _UnmodifiableSet<int*>{_UnmodifiableSet._map: const _ImmutableMap<int*, Null>{_ImmutableMap._kvPairs: const <dynamic>[2, null, 3, null]}})
+Evaluated: MapConcatenation @ org-dartlang-testcase:///main.dart:7:7 -> MapConstant(const <int*, String*>{1: "a"})
+Evaluated: SetConcatenation @ org-dartlang-testcase:///main.dart:11:18 -> SetConstant(const <int*>{2, 3})
 Evaluated: ListConcatenation @ org-dartlang-testcase:///main.dart:16:19 -> ListConstant(const <int*>[3, 2])
 Extra constant evaluation: evaluated: 3, effectively constant: 3

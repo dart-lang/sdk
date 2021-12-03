@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'spell_checking_utils.dart' as spell;
 
-main() {
+void main() {
   {
     spell.ensureDictionariesLoaded([spell.Dictionaries.common]);
     Set<String> commonWords =

@@ -6,7 +6,7 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
-  operator +(covariant core::int* a) → dynamic
+  operator +(covariant-by-declaration core::int* a) → dynamic
     return null;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -50,7 +50,7 @@ abstract class C extends core::Object implements self::A, self::B {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract forwarding-stub operator +(covariant dynamic b) → dynamic;
+  abstract forwarding-stub operator +(covariant-by-declaration dynamic b) → dynamic;
 }
 class D extends core::Object {
   synthetic constructor •() → self::D*
@@ -73,7 +73,7 @@ class E extends self::D {
   synthetic constructor •() → self::E*
     : super self::D::•()
     ;
-  forwarding-stub forwarding-semi-stub operator +(covariant core::int* e) → dynamic
+  forwarding-stub forwarding-semi-stub operator /* signature-type: (core::int*) →* dynamic */ +(covariant-by-declaration dynamic e) → dynamic
     return super.{self::D::+}(e);
 }
 static method main() → dynamic {}

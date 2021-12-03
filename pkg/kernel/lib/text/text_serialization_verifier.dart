@@ -39,6 +39,7 @@ abstract class RoundTripStatus implements Comparable<RoundTripStatus> {
 
   String get nameForDebugging;
 
+  @override
   int compareTo(RoundTripStatus other) {
     Node thisNode = this.node;
     Node otherNode = other.node;
@@ -111,6 +112,7 @@ abstract class RoundTripStatus implements Comparable<RoundTripStatus> {
     }
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     printOn(sb);

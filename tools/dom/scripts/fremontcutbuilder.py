@@ -58,10 +58,10 @@ def ResolveAllTypedefs(all_interfaces):
                     continue
             return True
 
-        interface.constants = filter(IsIdentified, interface.constants)
-        interface.attributes = filter(IsIdentified, interface.attributes)
-        interface.operations = filter(IsIdentified, interface.operations)
-        interface.parents = filter(IsIdentified, interface.parents)
+        interface.constants = list(filter(IsIdentified, interface.constants))
+        interface.attributes = list(filter(IsIdentified, interface.attributes))
+        interface.operations = list(filter(IsIdentified, interface.operations))
+        interface.parents = list(filter(IsIdentified, interface.parents))
 
 
 def build_database(idl_files,
@@ -183,6 +183,7 @@ def main(parallel=False, logging_level=logging.WARNING, examine_idls=False):
         'networkinfo',  # Not yet used in Blink yet
         'vibration',  # Not yet used in Blink yet
         'inspector',
+        'idl_parser',  # idl_parser has test IDL files.
     ]
 
     # TODO(terry): Integrate this into the htmlrenamer's _removed_html_interfaces
@@ -193,16 +194,15 @@ def main(parallel=False, logging_level=logging.WARNING, examine_idls=False):
         'WebKitGamepadList.idl',  # GamepadList is the new one.
     ]
 
-    def visitor(arg, dir_name, names):
+    for (dir_name, dirs, files) in os.walk(webcore_dir):
         if os.path.basename(dir_name) in DIRS_TO_IGNORE:
-            names[:] = []  # Do not go underneath
-        for name in names:
-            file_name = os.path.join(dir_name, name)
-            (interface, ext) = os.path.splitext(file_name)
-            if ext == '.idl' and not (name in FILES_TO_IGNORE):
-                idl_files.append(file_name)
-
-    os.path.walk(webcore_dir, visitor, webcore_dir)
+            dirs[:] = []  # Do not go underneath
+        else:
+            for name in files:
+                file_name = os.path.join(dir_name, name)
+                (interface, ext) = os.path.splitext(file_name)
+                if ext == '.idl' and not (name in FILES_TO_IGNORE):
+                    idl_files.append(file_name)
 
     database_dir = os.path.join(current_dir, '..', 'database')
 

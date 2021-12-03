@@ -10,7 +10,7 @@ import 'package:front_end/src/fasta/kernel/type_labeler.dart';
 
 import 'package:expect/expect.dart';
 
-main() {
+void main() {
   void check(Map<Node, String> expectations, int bulletCount) {
     TypeLabeler labeler = new TypeLabeler(false);
     Map<Node, List<Object>> conversions = {};
@@ -240,20 +240,20 @@ main() {
   check({symConst: "#foo", symLibConst: "#dart:core::bar"}, 0);
 
   Constant fooConst = new InstanceConstant(
-      fooClass.reference, [], {booField.getterReference: trueConst});
+      fooClass.reference, [], {booField.fieldReference: trueConst});
   check({fooConst: "Foo {boo: true}"}, 1);
 
   Constant foo2Const = new InstanceConstant(foo2Class.reference, [], {
-    nextField.getterReference: nullConst,
-    valueField.getterReference: intConst
+    nextField.fieldReference: nullConst,
+    valueField.fieldReference: intConst
   });
   check({foo2Const: "Foo {value: 2, next: null}"}, 1);
 
   Constant foo2nConst = new InstanceConstant(foo2Class.reference, [], {
-    valueField.getterReference: intConst,
-    nextField.getterReference: new InstanceConstant(foo2Class.reference, [], {
-      valueField.getterReference: intConst,
-      nextField.getterReference: nullConst
+    valueField.fieldReference: intConst,
+    nextField.fieldReference: new InstanceConstant(foo2Class.reference, [], {
+      valueField.fieldReference: intConst,
+      nextField.fieldReference: nullConst
     }),
   });
   check({foo2nConst: "Foo {value: 2, next: Foo {value: 2, next: null}}"}, 1);
@@ -261,7 +261,7 @@ main() {
   Constant bazFooFoo2Const = new InstanceConstant(
       bazClass.reference,
       [foo, foo2],
-      {xField.getterReference: fooConst, yField.getterReference: foo2Const});
+      {xField.fieldReference: fooConst, yField.fieldReference: foo2Const});
   check({
     bazFooFoo2Const: "Baz<Foo/*1*/, Foo/*2*/> "
         "{x: Foo/*1*/ {boo: true}, y: Foo/*2*/ {value: 2, next: null}}"

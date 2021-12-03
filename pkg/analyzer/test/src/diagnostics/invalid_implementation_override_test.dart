@@ -10,13 +10,24 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidImplementationOverrideTest);
-    defineReflectiveTests(InvalidImplementationOverrideWithNullSafetyTest);
+    defineReflectiveTests(InvalidImplementationOverrideWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class InvalidImplementationOverrideTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with InvalidImplementationOverrideTestCases {}
+
+mixin InvalidImplementationOverrideTestCases on PubPackageResolutionTest {
+  test_class_generic_method_generic_hasCovariantParameter() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  void foo<U>(covariant Object a, U b) {}
+}
+class B extends A<int> {}
+''');
+  }
+
   test_getter_abstractOverridesConcrete() async {
     await assertErrorsInCode('''
 class A {
@@ -109,8 +120,29 @@ class B	extends A with M {}
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1),
     ]);
   }
+
+  test_method_covariant_inheritance_merge() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class B extends A {}
+
+class C {
+  /// Not covariant-by-declaration here.
+  void foo(B b) {}
+}
+
+abstract class I {
+  /// Is covariant-by-declaration here.
+  void foo(covariant A a);
+}
+
+/// Is covariant-by-declaration here.
+class D extends C implements I {}
+''');
+  }
 }
 
 @reflectiveTest
-class InvalidImplementationOverrideWithNullSafetyTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {}
+class InvalidImplementationOverrideWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with InvalidImplementationOverrideTestCases, WithoutNullSafetyMixin {}

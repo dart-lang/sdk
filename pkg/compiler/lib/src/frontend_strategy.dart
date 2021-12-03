@@ -11,6 +11,7 @@ import 'compiler.dart' show Compiler;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
 import 'elements/entities.dart';
 import 'enqueue.dart';
+import 'ir/modular.dart';
 import 'js_backend/native_data.dart';
 import 'js_backend/no_such_method_registry.dart';
 import 'kernel/loader.dart';
@@ -21,6 +22,8 @@ import 'universe/world_impact.dart';
 abstract class FrontendStrategy {
   /// Registers a set of loaded libraries with this strategy.
   void registerLoadedLibraries(KernelResult result);
+
+  void registerModuleData(List<ModuleData> data);
 
   /// Returns the [ElementEnvironment] for the element model used in this
   /// strategy.

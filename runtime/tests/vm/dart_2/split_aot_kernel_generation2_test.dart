@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // OtherResources=../../../../tests/language_2/mixin/regress_flutter_55345_test.dart
 
 // Runs regress_flutter_55345_test.dart using AOT kernel generation split into

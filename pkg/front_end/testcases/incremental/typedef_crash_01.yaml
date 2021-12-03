@@ -10,9 +10,11 @@ worlds:
     errors: false
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib.dart";
         typedef G<T> = Function(F<T>);
       lib.dart: |
+        // @dart=2.9
         typedef F<T> = Function();
     expectedLibraryCount: 2
   - entry: main.dart
@@ -22,6 +24,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib.dart";
         typedef G<T> = Function(F<T>);
         main() {

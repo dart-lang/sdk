@@ -2,19 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <bin/elf_loader.h>
-#include <bin/file.h>
-#include <platform/elf.h>
-#include <platform/globals.h>
-#include <vm/cpu.h>
-#include <vm/virtual_memory.h>
+#include "bin/elf_loader.h"
 
+#include "platform/globals.h"
 #if defined(DART_HOST_OS_FUCHSIA)
 #include <sys/mman.h>
 #endif
 
 #include <memory>
 #include <utility>
+
+#include "bin/file.h"
+#include "bin/virtual_memory.h"
+#include "platform/elf.h"
 
 namespace dart {
 namespace bin {
@@ -369,7 +369,6 @@ bool LoadedElf::ReadSectionStringTable() {
 bool LoadedElf::LoadSegments() {
   // Calculate the total amount of virtual memory needed.
   uword total_memory = 0;
-  uword maximum_alignment = PageSize();
   for (uword i = 0; i < header_.num_program_headers; ++i) {
     const dart::elf::ProgramHeader header = program_table_[i];
 
@@ -381,14 +380,12 @@ bool LoadedElf::LoadSegments() {
         total_memory);
     CHECK_ERROR(Utils::IsPowerOfTwo(header.alignment),
                 "Alignment must be a power of two.");
-    maximum_alignment =
-        Utils::Maximum(maximum_alignment, static_cast<uword>(header.alignment));
   }
   total_memory = Utils::RoundUp(total_memory, PageSize());
 
-  base_.reset(VirtualMemory::AllocateAligned(
-      total_memory, /*alignment=*/maximum_alignment,
-      /*is_executable=*/false, "dart-compiled-image"));
+  base_.reset(VirtualMemory::Allocate(total_memory,
+                                      /*is_executable=*/false,
+                                      "dart-compiled-image"));
   CHECK_ERROR(base_ != nullptr, "Could not reserve virtual memory.");
 
   for (uword i = 0; i < header_.num_program_headers; ++i) {

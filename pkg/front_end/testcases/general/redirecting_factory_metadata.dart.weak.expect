@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Foo::•];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   constructor named(dynamic p) → self::Foo*
     : super core::Object::•()
     ;
-  @#C1
-  static factory •(@#C2 @#C3 dynamic p) → self::Foo*
-    let dynamic #redirecting_factory = self::Foo::named in invalid-expression;
+  @#C2
+  static factory •(@#C3 @#C4 dynamic p) → self::Foo*
+    return new self::Foo::named(p);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -21,13 +21,14 @@ class Foo extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static const field core::int* forParameter = #C2;
-static const field core::int* forFactoryItself = #C1;
-static const field core::int* anotherForParameter = #C3;
+static const field core::int* forParameter = #C3;
+static const field core::int* forFactoryItself = #C2;
+static const field core::int* anotherForParameter = #C4;
 static method main() → dynamic {}
 
 constants  {
-  #C1 = 2
-  #C2 = 1
-  #C3 = 3
+  #C1 = constructor-tearoff self::Foo::•
+  #C2 = 2
+  #C3 = 1
+  #C4 = 3
 }

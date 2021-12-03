@@ -14,9 +14,9 @@ void test1(int t) {
 
   var /*@ type=num* */ v2 = t = getNum();
 
-  var /*@ type=int* */ v4 = t /*@target=num.==*/ ??= getInt();
+  var /*@ type=int* */ v4 = t ??= getInt();
 
-  var /*@ type=num* */ v5 = t /*@target=num.==*/ ??= getNum();
+  var /*@ type=num* */ v5 = t ??= getNum();
 
   var /*@ type=int* */ v7 = t /*@target=num.+*/ += getInt();
 
@@ -35,11 +35,11 @@ void test2(num t) {
 
   var /*@ type=double* */ v3 = t = getDouble();
 
-  var /*@ type=num* */ v4 = t /*@target=num.==*/ ??= getInt();
+  var /*@ type=num* */ v4 = t ??= getInt();
 
-  var /*@ type=num* */ v5 = t /*@target=num.==*/ ??= getNum();
+  var /*@ type=num* */ v5 = t ??= getNum();
 
-  var /*@ type=num* */ v6 = t /*@target=num.==*/ ??= getDouble();
+  var /*@ type=num* */ v6 = t ??= getDouble();
 
   var /*@ type=num* */ v7 = t /*@target=num.+*/ += getInt();
 
@@ -58,9 +58,9 @@ void test3(double t) {
 
   var /*@ type=double* */ v3 = t = getDouble();
 
-  var /*@ type=num* */ v5 = t /*@target=num.==*/ ??= getNum();
+  var /*@ type=num* */ v5 = t ??= getNum();
 
-  var /*@ type=double* */ v6 = t /*@target=num.==*/ ??= getDouble();
+  var /*@ type=double* */ v6 = t ??= getDouble();
 
   var /*@ type=double* */ v7 = t /*@target=double.+*/ += getInt();
 

@@ -6,8 +6,8 @@ abstract class I<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::I<self::I::T*>*
     : super core::Object::•()
     ;
-  abstract method f1(generic-covariant-impl self::I::T* x) → void;
-  abstract method f2(generic-covariant-impl self::I::T* x) → void;
+  abstract method f1(covariant-by-class self::I::T* x) → void;
+  abstract method f2(covariant-by-class self::I::T* x) → void;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -23,8 +23,8 @@ class C<U extends core::Object* = dynamic> extends core::Object implements self:
   synthetic constructor •() → self::C<self::C::U*>*
     : super core::Object::•()
     ;
-  method f1(generic-covariant-impl core::int* x) → void {}
-  method f2(generic-covariant-impl core::int* x, [generic-covariant-impl self::C::U* y = #C1]) → void {}
+  method f1(covariant-by-class core::int* x) → void {}
+  method f2(covariant-by-class core::int* x, [covariant-by-class self::C::U* y = #C1]) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -40,8 +40,8 @@ class D<U extends core::Object* = dynamic> extends self::C<self::D::U*> {
   synthetic constructor •() → self::D<self::D::U*>*
     : super self::C::•()
     ;
-  method f1(generic-covariant-impl core::int* x) → void {}
-  method f2(generic-covariant-impl core::int* x, [generic-covariant-impl self::D::U* y = #C1]) → void {}
+  method f1(covariant-by-class core::int* x) → void {}
+  method f2(covariant-by-class core::int* x, [covariant-by-class self::D::U* y = #C1]) → void {}
 }
 static method g1(self::C<core::num*>* c) → void {
   c.{self::C::f1}(1){(core::int*) →* void};

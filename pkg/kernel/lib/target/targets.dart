@@ -14,48 +14,23 @@ final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
   final bool trackWidgetCreation;
-  final int forceLateLoweringsForTesting;
-  final bool forceLateLoweringSentinelForTesting;
-  final bool forceStaticFieldLoweringForTesting;
-  final bool forceNoExplicitGetterCallsForTesting;
-  final int forceConstructorTearOffLoweringForTesting;
   final bool enableNullSafety;
 
   const TargetFlags(
-      {this.trackWidgetCreation = false,
-      this.forceLateLoweringsForTesting = LateLowering.none,
-      this.forceLateLoweringSentinelForTesting = false,
-      this.forceStaticFieldLoweringForTesting = false,
-      this.forceNoExplicitGetterCallsForTesting = false,
-      this.forceConstructorTearOffLoweringForTesting =
-          ConstructorTearOffLowering.none,
-      this.enableNullSafety = false});
+      {this.trackWidgetCreation = false, this.enableNullSafety = false});
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     return other is TargetFlags &&
         trackWidgetCreation == other.trackWidgetCreation &&
-        forceLateLoweringsForTesting == other.forceLateLoweringsForTesting &&
-        forceLateLoweringSentinelForTesting ==
-            other.forceLateLoweringSentinelForTesting &&
-        forceStaticFieldLoweringForTesting ==
-            other.forceStaticFieldLoweringForTesting &&
-        forceNoExplicitGetterCallsForTesting ==
-            other.forceNoExplicitGetterCallsForTesting &&
         enableNullSafety == other.enableNullSafety;
   }
 
+  @override
   int get hashCode {
     int hash = 485786;
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
-    hash = 0x3fffffff &
-        (hash * 31 + (hash ^ forceLateLoweringsForTesting.hashCode));
-    hash = 0x3fffffff &
-        (hash * 31 + (hash ^ forceLateLoweringSentinelForTesting.hashCode));
-    hash = 0x3fffffff &
-        (hash * 31 + (hash ^ forceStaticFieldLoweringForTesting.hashCode));
-    hash = 0x3fffffff &
-        (hash * 31 + (hash ^ forceNoExplicitGetterCallsForTesting.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ enableNullSafety.hashCode));
     return hash;
   }
@@ -70,7 +45,11 @@ final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
 Target? getTarget(String name, TargetFlags flags) {
   _TargetBuilder? builder = targets[name];
   if (builder == null) return null;
-  return builder(flags);
+  Target target = builder(flags);
+  if (flags is TestTargetFlags) {
+    target = new TestTargetWrapper(target, flags);
+  }
+  return target;
 }
 
 abstract class DiagnosticReporter<M, C> {
@@ -133,6 +112,10 @@ class ConstantsBackend {
   /// Number semantics to use for this backend.
   NumberSemantics get numberSemantics => NumberSemantics.vm;
 
+  /// If true, all constants are inlined. Otherwise [shouldInlineConstant] is
+  /// called to determine whether a constant expression should be inlined.
+  bool get alwaysInlineConstants => true;
+
   /// Inline control of constant variables. The given constant expression
   /// is the initializer of a [Field] or [VariableDeclaration] node.
   /// If this method returns `true`, the variable will be inlined at all
@@ -140,7 +123,11 @@ class ConstantsBackend {
   /// by the `keepFields` or `keepLocals` properties).
   /// This method must be deterministic, i.e. it must always return the same
   /// value for the same constant value and place in the AST.
-  bool shouldInlineConstant(ConstantExpression initializer) => true;
+  ///
+  /// This is only called if [alwaysInlineConstants] is `true`.
+  bool shouldInlineConstant(ConstantExpression initializer) =>
+      throw new UnsupportedError(
+          'Per-value constant inlining is not supported');
 
   /// Whether this target supports unevaluated constants.
   ///
@@ -451,6 +438,7 @@ abstract class Target {
   // Configure environment defines in a target-specific way.
   Map<String, String> updateEnvironmentDefines(Map<String, String> map) => map;
 
+  @override
   String toString() => 'Target($name)';
 
   Class? concreteListLiteralClass(CoreTypes coreTypes) => null;
@@ -458,12 +446,14 @@ abstract class Target {
 
   Class? concreteMapLiteralClass(CoreTypes coreTypes) => null;
   Class? concreteConstMapLiteralClass(CoreTypes coreTypes) => null;
+  Class? concreteSetLiteralClass(CoreTypes coreTypes) => null;
+  Class? concreteConstSetLiteralClass(CoreTypes coreTypes) => null;
 
   Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) => null;
   Class? concreteDoubleLiteralClass(CoreTypes coreTypes, double value) => null;
   Class? concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
 
-  ConstantsBackend constantsBackend(CoreTypes coreTypes);
+  ConstantsBackend get constantsBackend;
 }
 
 class NoneConstantsBackend extends ConstantsBackend {
@@ -474,27 +464,25 @@ class NoneConstantsBackend extends ConstantsBackend {
 }
 
 class NoneTarget extends Target {
+  @override
   final TargetFlags flags;
 
   NoneTarget(this.flags);
 
   @override
-  int get enabledLateLowerings => flags.forceLateLoweringsForTesting;
+  int get enabledLateLowerings => LateLowering.none;
 
   @override
-  bool get supportsLateLoweringSentinel =>
-      flags.forceLateLoweringSentinelForTesting;
+  bool get supportsLateLoweringSentinel => false;
 
   @override
-  bool get useStaticFieldLowering => flags.forceStaticFieldLoweringForTesting;
+  bool get useStaticFieldLowering => false;
 
   @override
-  bool get supportsExplicitGetterCalls =>
-      !flags.forceNoExplicitGetterCallsForTesting;
+  bool get supportsExplicitGetterCalls => true;
 
   @override
-  int get enabledConstructorTearOffLowerings =>
-      flags.forceConstructorTearOffLoweringForTesting;
+  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.none;
 
   @override
   String get name => 'none';
@@ -537,7 +525,7 @@ class NoneTarget extends Target {
   }
 
   @override
-  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
+  ConstantsBackend get constantsBackend =>
       // TODO(johnniwinther): Should this vary with the use case?
       const NoneConstantsBackend(supportsUnevaluatedConstants: true);
 }
@@ -662,4 +650,271 @@ class ConstructorTearOffLowering {
 
   static const int none = 0;
   static const int all = (1 << 4) - 1;
+}
+
+class TestTargetFlags extends TargetFlags {
+  final int? forceLateLoweringsForTesting;
+  final bool? forceLateLoweringSentinelForTesting;
+  final bool? forceStaticFieldLoweringForTesting;
+  final bool? forceNoExplicitGetterCallsForTesting;
+  final int? forceConstructorTearOffLoweringForTesting;
+
+  const TestTargetFlags(
+      {bool trackWidgetCreation = false,
+      this.forceLateLoweringsForTesting,
+      this.forceLateLoweringSentinelForTesting,
+      this.forceStaticFieldLoweringForTesting,
+      this.forceNoExplicitGetterCallsForTesting,
+      this.forceConstructorTearOffLoweringForTesting,
+      bool enableNullSafety = false})
+      : super(
+            trackWidgetCreation: trackWidgetCreation,
+            enableNullSafety: enableNullSafety);
+}
+
+mixin TestTargetMixin on Target {
+  @override
+  TestTargetFlags get flags;
+
+  @override
+  int get enabledLateLowerings =>
+      flags.forceLateLoweringsForTesting ?? super.enabledLateLowerings;
+
+  @override
+  bool get supportsLateLoweringSentinel =>
+      flags.forceLateLoweringSentinelForTesting ??
+      super.supportsLateLoweringSentinel;
+
+  @override
+  bool get useStaticFieldLowering =>
+      flags.forceStaticFieldLoweringForTesting ?? super.useStaticFieldLowering;
+
+  @override
+  bool get supportsExplicitGetterCalls =>
+      flags.forceNoExplicitGetterCallsForTesting != null
+          ? !flags.forceNoExplicitGetterCallsForTesting!
+          : super.supportsExplicitGetterCalls;
+
+  @override
+  int get enabledConstructorTearOffLowerings =>
+      flags.forceConstructorTearOffLoweringForTesting ??
+      super.enabledConstructorTearOffLowerings;
+}
+
+class TargetWrapper extends Target {
+  final Target _target;
+
+  TargetWrapper(this._target);
+
+  @override
+  TargetFlags get flags => _target.flags;
+
+  @override
+  int get enabledLateLowerings => _target.enabledLateLowerings;
+
+  @override
+  bool get supportsLateLoweringSentinel => _target.supportsLateLoweringSentinel;
+
+  @override
+  bool get useStaticFieldLowering => _target.useStaticFieldLowering;
+
+  @override
+  bool get supportsExplicitGetterCalls => _target.supportsExplicitGetterCalls;
+
+  @override
+  int get enabledConstructorTearOffLowerings =>
+      _target.enabledConstructorTearOffLowerings;
+
+  @override
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) {
+    return _target.allowPlatformPrivateLibraryAccess(importer, imported);
+  }
+
+  @override
+  Class? concreteConstListLiteralClass(CoreTypes coreTypes) {
+    return _target.concreteConstListLiteralClass(coreTypes);
+  }
+
+  @override
+  Class? concreteConstMapLiteralClass(CoreTypes coreTypes) {
+    return _target.concreteConstMapLiteralClass(coreTypes);
+  }
+
+  @override
+  Class? concreteDoubleLiteralClass(CoreTypes coreTypes, double value) {
+    return _target.concreteDoubleLiteralClass(coreTypes, value);
+  }
+
+  @override
+  Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) {
+    return _target.concreteIntLiteralClass(coreTypes, value);
+  }
+
+  @override
+  Class? concreteListLiteralClass(CoreTypes coreTypes) {
+    return _target.concreteListLiteralClass(coreTypes);
+  }
+
+  @override
+  Class? concreteMapLiteralClass(CoreTypes coreTypes) {
+    return _target.concreteMapLiteralClass(coreTypes);
+  }
+
+  @override
+  Class? concreteStringLiteralClass(CoreTypes coreTypes, String value) {
+    return _target.concreteStringLiteralClass(coreTypes, value);
+  }
+
+  @override
+  Component configureComponent(Component component) {
+    return _target.configureComponent(component);
+  }
+
+  @override
+  ConstantsBackend get constantsBackend => _target.constantsBackend;
+
+  @override
+  bool enableNative(Uri uri) {
+    return _target.enableNative(uri);
+  }
+
+  @override
+  bool get enableNoSuchMethodForwarders => _target.enableNoSuchMethodForwarders;
+
+  @override
+  bool get enableSuperMixins => _target.enableSuperMixins;
+
+  @override
+  bool get errorOnUnexactWebIntLiterals => _target.errorOnUnexactWebIntLiterals;
+
+  @override
+  Map<String, String> get extraDeclaredVariables =>
+      _target.extraDeclaredVariables;
+
+  @override
+  List<String> get extraIndexedLibraries => _target.extraIndexedLibraries;
+
+  @override
+  List<String> get extraRequiredLibraries => _target.extraRequiredLibraries;
+
+  @override
+  List<String> get extraRequiredLibrariesPlatform =>
+      _target.extraRequiredLibrariesPlatform;
+
+  @override
+  Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
+      String name, Arguments arguments, int offset, bool isSuper) {
+    return _target.instantiateInvocation(
+        coreTypes, receiver, name, arguments, offset, isSuper);
+  }
+
+  @override
+  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
+      Expression receiver, String name, Arguments arguments, int offset,
+      {bool isMethod = false,
+      bool isGetter = false,
+      bool isSetter = false,
+      bool isField = false,
+      bool isLocalVariable = false,
+      bool isDynamic = false,
+      bool isSuper = false,
+      bool isStatic = false,
+      bool isConstructor = false,
+      bool isTopLevel = false}) {
+    return _target.instantiateNoSuchMethodError(
+        coreTypes, receiver, name, arguments, offset,
+        isMethod: isMethod,
+        isGetter: isGetter,
+        isSetter: isSetter,
+        isField: isField,
+        isLocalVariable: isLocalVariable,
+        isDynamic: isDynamic,
+        isSuper: isSuper,
+        isStatic: isStatic,
+        isConstructor: isConstructor,
+        isTopLevel: isTopLevel);
+  }
+
+  @override
+  bool mayDefineRestrictedType(Uri uri) {
+    return _target.mayDefineRestrictedType(uri);
+  }
+
+  @override
+  String get name => _target.name;
+
+  @override
+  bool get nativeExtensionExpectsString => _target.nativeExtensionExpectsString;
+
+  @override
+  void performModularTransformationsOnLibraries(
+      Component component,
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      List<Library> libraries,
+      Map<String, String>? environmentDefines,
+      DiagnosticReporter diagnosticReporter,
+      ReferenceFromIndex? referenceFromIndex,
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
+    _target.performModularTransformationsOnLibraries(
+        component,
+        coreTypes,
+        hierarchy,
+        libraries,
+        environmentDefines,
+        diagnosticReporter,
+        referenceFromIndex,
+        logger: logger,
+        changedStructureNotifier: changedStructureNotifier);
+  }
+
+  @override
+  void performOutlineTransformations(Component component) {
+    _target.performOutlineTransformations(component);
+  }
+
+  @override
+  void performPreConstantEvaluationTransformations(
+      Component component,
+      CoreTypes coreTypes,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
+    _target.performPreConstantEvaluationTransformations(
+        component, coreTypes, libraries, diagnosticReporter,
+        logger: logger, changedStructureNotifier: changedStructureNotifier);
+  }
+
+  @override
+  void performTransformationsOnProcedure(
+      CoreTypes coreTypes,
+      ClassHierarchy hierarchy,
+      Procedure procedure,
+      Map<String, String>? environmentDefines,
+      {void Function(String msg)? logger}) {
+    _target.performTransformationsOnProcedure(
+        coreTypes, hierarchy, procedure, environmentDefines,
+        logger: logger);
+  }
+
+  @override
+  Map<String, List<String>> get requiredSdkClasses =>
+      _target.requiredSdkClasses;
+
+  @override
+  bool get supportsSetLiterals => _target.supportsSetLiterals;
+
+  @override
+  Map<String, String> updateEnvironmentDefines(Map<String, String> map) {
+    return _target.updateEnvironmentDefines(map);
+  }
+}
+
+class TestTargetWrapper extends TargetWrapper with TestTargetMixin {
+  @override
+  final TestTargetFlags flags;
+
+  TestTargetWrapper(Target target, this.flags) : super(target);
 }

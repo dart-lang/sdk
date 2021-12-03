@@ -26,7 +26,7 @@ class E<T extends core::Object* = dynamic> extends self::D<self::E::T*> {
 class B<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::B<self::B::T*>*
     ;
-  operator [](generic-covariant-impl self::E<self::B::T*>* x) → self::D<self::B::T*>*
+  operator [](covariant-by-class self::E<self::B::T*>* x) → self::D<self::B::T*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -42,7 +42,7 @@ class B<T extends core::Object* = dynamic> extends core::Object {
 class C<U extends core::Object* = dynamic> extends self::B<asy::Future<self::C::U*>*> {
   synthetic constructor •() → self::C<self::C::U*>*
     ;
-  operator [](generic-covariant-impl core::Object* x) → self::E<asy::Future<self::C::U*>*>*
+  operator [](covariant-by-class core::Object* x) → self::E<asy::Future<self::C::U*>*>*
     ;
   method h() → void
     ;

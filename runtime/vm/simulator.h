@@ -9,8 +9,7 @@
 
 #if defined(USING_SIMULATOR)
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-// No simulator used.
-#error Simulator not supported.
+#error Simulator not implemented.
 #elif defined(TARGET_ARCH_ARM)
 #include "vm/simulator_arm.h"
 #elif defined(TARGET_ARCH_ARM64)

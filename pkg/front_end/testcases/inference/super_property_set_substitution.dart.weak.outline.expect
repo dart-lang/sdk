@@ -24,7 +24,7 @@ class E<T extends core::Object* = dynamic> extends self::D<self::E::T*> {
     ;
 }
 class B<T extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field self::D<self::B::T*>* x;
+  covariant-by-class field self::D<self::B::T*>* x;
   synthetic constructor •() → self::B<self::B::T*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -43,7 +43,7 @@ class C<U extends core::Object* = dynamic> extends self::B<asy::Future<self::C::
     ;
   get x() → self::E<asy::Future<self::C::U*>*>*
     ;
-  set x(generic-covariant-impl core::Object* x) → void
+  set x(covariant-by-class core::Object* x) → void
     ;
   method g() → void
     ;

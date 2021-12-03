@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'internal.dart';
+export '../../../../../benchmarks/IsolateFibonacci/dart2/IsolateFibonacci.dart'
+  show fibonacciRecursive;
 
 final bool isDebugMode = Platform.script.path.contains('Debug');
 final bool isSimulator = Platform.script.path.contains('SIM');
@@ -42,26 +45,6 @@ Future sumRecursiveTailCall(List args) async {
   } else {
     await Isolate.spawn(sumRecursiveTailCall, [port, n - 1, s + 1]);
   }
-}
-
-// Implements recursive summation via tail calls:
-//   fib(n) => n <= 1 ? 1
-//                    : fib(n-1) + fib(n-2);
-Future fibonacciRecursive(List args) async {
-  final SendPort port = args[0];
-  final n = args[1];
-  if (n <= 1) {
-    port.send(1);
-    return;
-  }
-  final left = ReceivePort();
-  final right = ReceivePort();
-  await Future.wait([
-    Isolate.spawn(fibonacciRecursive, [left.sendPort, n - 1]),
-    Isolate.spawn(fibonacciRecursive, [right.sendPort, n - 2]),
-  ]);
-  final results = await Future.wait([left.first, right.first]);
-  port.send(results[0] + results[1]);
 }
 
 enum Command { kRun, kRunAndClose, kClose }
@@ -119,7 +102,7 @@ class Ring {
         case Command.kRunAndClose:
           final RingElement re = args[1];
           final SendPort nextNeighbor = args[2];
-          port.sendAndExit(await re.run(nextNeighbor, siData));
+          Isolate.exit(port, await re.run(nextNeighbor, siData));
           break;
         case Command.kClose:
           port.send('done');

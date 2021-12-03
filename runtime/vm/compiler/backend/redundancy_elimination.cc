@@ -46,9 +46,7 @@ class CSEInstructionMap : public ValueObject {
   }
 
  private:
-  typedef DirectChainedHashMap<PointerKeyValueTrait<Instruction> > Map;
-
-  Map map_;
+  PointerSet<Instruction> map_;
 };
 
 // Place describes an abstract location (e.g. field) that IR can load
@@ -683,7 +681,7 @@ class PhiPlaceMoves : public ZoneAllocated {
 class AliasedSet : public ZoneAllocated {
  public:
   AliasedSet(Zone* zone,
-             DirectChainedHashMap<PointerKeyValueTrait<Place> >* places_map,
+             PointerSet<Place>* places_map,
              ZoneGrowableArray<Place*>* places,
              PhiPlaceMoves* phi_moves)
       : zone_(zone),
@@ -1179,7 +1177,7 @@ class AliasedSet : public ZoneAllocated {
 
   Zone* zone_;
 
-  DirectChainedHashMap<PointerKeyValueTrait<Place> >* places_map_;
+  PointerSet<Place>* places_map_;
 
   const ZoneGrowableArray<Place*>& places_;
 
@@ -1188,7 +1186,7 @@ class AliasedSet : public ZoneAllocated {
   // A list of all seen aliases and a map that allows looking up canonical
   // alias object.
   GrowableArray<const Place*> aliases_;
-  DirectChainedHashMap<PointerKeyValueTrait<const Place> > aliases_map_;
+  PointerSet<const Place> aliases_map_;
 
   SmallSet<Place::ElementSize> typed_data_access_sizes_;
 
@@ -1244,9 +1242,8 @@ static bool IsPhiDependentPlace(Place* place) {
 // corresponding to phi input are numbered and record outgoing phi moves
 // for each block which establish correspondence between phi dependent place
 // and phi input's place that is flowing in.
-static PhiPlaceMoves* ComputePhiMoves(
-    DirectChainedHashMap<PointerKeyValueTrait<Place> >* map,
-    ZoneGrowableArray<Place*>* places) {
+static PhiPlaceMoves* ComputePhiMoves(PointerSet<Place>* map,
+                                      ZoneGrowableArray<Place*>* places) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   PhiPlaceMoves* phi_moves = new (zone) PhiPlaceMoves();
@@ -1300,10 +1297,9 @@ DART_FORCE_INLINE static intptr_t GetPlaceId(const Instruction* instr) {
 
 enum CSEMode { kOptimizeLoads, kOptimizeStores };
 
-static AliasedSet* NumberPlaces(
-    FlowGraph* graph,
-    DirectChainedHashMap<PointerKeyValueTrait<Place> >* map,
-    CSEMode mode) {
+static AliasedSet* NumberPlaces(FlowGraph* graph,
+                                PointerSet<Place>* map,
+                                CSEMode mode) {
   // Loads representing different expression ids will be collected and
   // used to build per offset kill sets.
   Zone* zone = graph->zone();
@@ -1735,7 +1731,7 @@ class LoadOptimizer : public ValueObject {
       return false;
     }
 
-    DirectChainedHashMap<PointerKeyValueTrait<Place> > map;
+    PointerSet<Place> map;
     AliasedSet* aliased_set = NumberPlaces(graph, &map, kOptimizeLoads);
     if ((aliased_set != NULL) && !aliased_set->IsEmpty()) {
       // If any loads were forwarded return true from Optimize to run load
@@ -2074,7 +2070,11 @@ class LoadOptimizer : public ValueObject {
               slot = &store->slot();
             } else if (use->instruction()->IsLoadIndexed() ||
                        use->instruction()->IsStoreIndexed()) {
-              ASSERT(alloc->IsArrayAllocation());
+              if (!alloc->IsArrayAllocation()) {
+                // Non-array allocations can be accessed with LoadIndexed
+                // and StoreIndex in the unreachable code.
+                continue;
+              }
               if (alloc->IsAllocateTypedData()) {
                 // Typed data payload elements are unboxed and initialized to
                 // zero, so don't forward a tagged null value.
@@ -2770,7 +2770,7 @@ class LoadOptimizer : public ValueObject {
   }
 
   FlowGraph* graph_;
-  DirectChainedHashMap<PointerKeyValueTrait<Place> >* map_;
+  PointerSet<Place>* map_;
 
   // Mapping between field offsets in words and expression ids of loads from
   // that offset.
@@ -2862,7 +2862,7 @@ class StoreOptimizer : public LivenessAnalysis {
  public:
   StoreOptimizer(FlowGraph* graph,
                  AliasedSet* aliased_set,
-                 DirectChainedHashMap<PointerKeyValueTrait<Place> >* map)
+                 PointerSet<Place>* map)
       : LivenessAnalysis(aliased_set->max_place_id(), graph->postorder()),
         graph_(graph),
         map_(map),
@@ -2883,7 +2883,7 @@ class StoreOptimizer : public LivenessAnalysis {
       return;
     }
 
-    DirectChainedHashMap<PointerKeyValueTrait<Place> > map;
+    PointerSet<Place> map;
     AliasedSet* aliased_set = NumberPlaces(graph, &map, kOptimizeStores);
     if ((aliased_set != NULL) && !aliased_set->IsEmpty()) {
       StoreOptimizer store_optimizer(graph, aliased_set, &map);
@@ -3044,7 +3044,7 @@ class StoreOptimizer : public LivenessAnalysis {
   }
 
   FlowGraph* graph_;
-  DirectChainedHashMap<PointerKeyValueTrait<Place> >* map_;
+  PointerSet<Place>* map_;
 
   // Mapping between field offsets in words and expression ids of loads from
   // that offset.
@@ -3910,7 +3910,7 @@ class TryCatchAnalyzer : public ValueObject {
 
         for (auto phi : *join->phis()) {
           phi->mark_dead();
-          if (HasNonPhiUse(phi)) {
+          if (HasActualUse(phi)) {
             MarkLive(phi);
           }
         }
@@ -3918,7 +3918,7 @@ class TryCatchAnalyzer : public ValueObject {
     }
 
     for (auto info : parameter_info_) {
-      if (HasNonPhiUse(info->instr)) {
+      if (HasActualUse(info->instr)) {
         MarkLive(info->instr);
       }
     }
@@ -3958,6 +3958,8 @@ class TryCatchAnalyzer : public ValueObject {
           worklist_.Add(param);
         }
       }
+    } else if (UnboxInstr* unbox = defn->AsUnbox()) {
+      MarkLive(unbox->value()->definition());
     }
   }
 
@@ -3999,10 +4001,16 @@ class TryCatchAnalyzer : public ValueObject {
   }
 
   // Returns true if definition has a use in an instruction which is not a phi.
-  static bool HasNonPhiUse(Definition* defn) {
+  // Skip over Unbox instructions which may be inserted for unused phis.
+  static bool HasActualUse(Definition* defn) {
     for (Value* use = defn->input_use_list(); use != nullptr;
          use = use->next_use()) {
-      if (!use->instruction()->IsPhi()) {
+      Instruction* use_instruction = use->instruction();
+      if (UnboxInstr* unbox = use_instruction->AsUnbox()) {
+        if (HasActualUse(unbox)) {
+          return true;
+        }
+      } else if (!use_instruction->IsPhi()) {
         return true;
       }
     }

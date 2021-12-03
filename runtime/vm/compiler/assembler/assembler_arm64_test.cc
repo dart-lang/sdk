@@ -3161,69 +3161,206 @@ ASSEMBLER_TEST_RUN(FldrqFstrqPrePostIndex, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
 }
 
-ASSEMBLER_TEST_GENERATE(Fcvtzdsx, assembler) {
-  __ LoadDImmediate(V0, 42.0);
-  __ fcvtzdsx(R0, V0);
+ASSEMBLER_TEST_GENERATE(Fcvtzsxd, assembler) {
+  __ LoadDImmediate(V0, 42.5);
+  __ fcvtzsxd(R0, V0);
   __ ret();
 }
 
-ASSEMBLER_TEST_RUN(Fcvtzdsx, test) {
+ASSEMBLER_TEST_RUN(Fcvtzsxd, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
-ASSEMBLER_TEST_GENERATE(Fcvtzdsw, assembler) {
-  __ LoadDImmediate(V0, 42.0);
-  __ fcvtzdsw(R0, V0);
-  __ ret();
-}
-
-ASSEMBLER_TEST_RUN(Fcvtzdsw, test) {
-  typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
-}
-
-ASSEMBLER_TEST_GENERATE(Fcvtzdsx_overflow, assembler) {
-  __ LoadDImmediate(V0, 1e20);
-  __ fcvtzdsx(R0, V0);
-  __ ret();
-}
-
-ASSEMBLER_TEST_RUN(Fcvtzdsx_overflow, test) {
-  typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(kMaxInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
-}
-
-ASSEMBLER_TEST_GENERATE(Fcvtzdsx_overflow_negative, assembler) {
-  __ LoadDImmediate(V0, -1e20);
-  __ fcvtzdsx(R0, V0);
-  __ ret();
-}
-
-ASSEMBLER_TEST_RUN(Fcvtzdsx_overflow_negative, test) {
-  typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(kMinInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
-}
-
-ASSEMBLER_TEST_GENERATE(Fcvtzdsw_overflow, assembler) {
-  __ LoadDImmediate(V0, 1e10);
-  __ fcvtzdsw(R0, V0);
-  __ ret();
-}
-
-ASSEMBLER_TEST_RUN(Fcvtzdsw_overflow, test) {
-  typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
-}
-
-ASSEMBLER_TEST_GENERATE(Fcvtzdsw_overflow_negative, assembler) {
-  __ LoadDImmediate(V0, -1e10);
-  __ fcvtzdsw(R0, V0);
+ASSEMBLER_TEST_GENERATE(Fcvtzswd, assembler) {
+  __ LoadDImmediate(V0, -42.5);
+  __ fcvtzswd(R0, V0);
   __ sxtw(R0, R0);
   __ ret();
 }
 
-ASSEMBLER_TEST_RUN(Fcvtzdsw_overflow_negative, test) {
+ASSEMBLER_TEST_RUN(Fcvtzswd, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtzsxd_overflow, assembler) {
+  __ LoadDImmediate(V0, 1e20);
+  __ fcvtzsxd(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtzsxd_overflow, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMaxInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtzsxd_overflow_negative, assembler) {
+  __ LoadDImmediate(V0, -1e20);
+  __ fcvtzsxd(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtzsxd_overflow_negative, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMinInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtzswd_overflow, assembler) {
+  __ LoadDImmediate(V0, 1e10);
+  __ fcvtzswd(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtzswd_overflow, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtzswd_overflow_negative, assembler) {
+  __ LoadDImmediate(V0, -1e10);
+  __ fcvtzswd(R0, V0);
+  __ sxtw(R0, R0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtzswd_overflow_negative, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMinInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtpsxd, assembler) {
+  __ LoadDImmediate(V0, 42.5);
+  __ fcvtpsxd(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtpsxd, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(43, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtpswd, assembler) {
+  __ LoadDImmediate(V0, -42.5);
+  __ fcvtpswd(R0, V0);
+  __ sxtw(R0, R0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtpswd, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtpsxd_overflow, assembler) {
+  __ LoadDImmediate(V0, 1e20);
+  __ fcvtpsxd(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtpsxd_overflow, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMaxInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtpsxd_overflow_negative, assembler) {
+  __ LoadDImmediate(V0, -1e20);
+  __ fcvtpsxd(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtpsxd_overflow_negative, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMinInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtpswd_overflow, assembler) {
+  __ LoadDImmediate(V0, 1e10);
+  __ fcvtpswd(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtpswd_overflow, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtpswd_overflow_negative, assembler) {
+  __ LoadDImmediate(V0, -1e10);
+  __ fcvtpswd(R0, V0);
+  __ sxtw(R0, R0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtpswd_overflow_negative, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMinInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtmsxd, assembler) {
+  __ LoadDImmediate(V0, 42.5);
+  __ fcvtmsxd(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtmsxd, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtmswd, assembler) {
+  __ LoadDImmediate(V0, -42.5);
+  __ fcvtmswd(R0, V0);
+  __ sxtw(R0, R0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtmswd, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(-43, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtmsxd_overflow, assembler) {
+  __ LoadDImmediate(V0, 1e20);
+  __ fcvtmsxd(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtmsxd_overflow, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMaxInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtmsxd_overflow_negative, assembler) {
+  __ LoadDImmediate(V0, -1e20);
+  __ fcvtmsxd(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtmsxd_overflow_negative, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMinInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtmswd_overflow, assembler) {
+  __ LoadDImmediate(V0, 1e10);
+  __ fcvtmswd(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtmswd_overflow, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Fcvtmswd_overflow_negative, assembler) {
+  __ LoadDImmediate(V0, -1e10);
+  __ fcvtmswd(R0, V0);
+  __ sxtw(R0, R0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Fcvtmswd_overflow_negative, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(kMinInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }

@@ -21,9 +21,9 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
   external static get finalStaticField() → core::int;
 }
 extension Extension on self::A {
-  get extensionInstanceField = get self::Extension|extensionInstanceField;
-  set extensionInstanceField = set self::Extension|extensionInstanceField;
-  get finalExtensionInstanceField = get self::Extension|finalExtensionInstanceField;
+  get extensionInstanceField = self::Extension|get#extensionInstanceField;
+  set extensionInstanceField = self::Extension|set#extensionInstanceField;
+  get finalExtensionInstanceField = self::Extension|get#finalExtensionInstanceField;
   static get extensionStaticField = get self::Extension|extensionStaticField;
   static set extensionStaticField = set self::Extension|extensionStaticField;
   static get finalExtensionStaticField = get self::Extension|finalExtensionStaticField;
@@ -33,9 +33,9 @@ external static set topLevelField(core::int #externalFieldValue) → void;
 external static get finalTopLevelField() → core::int;
 external static get constField() → core::int;
 external static set constField(core::int #externalFieldValue) → void;
-external static get Extension|extensionInstanceField() → core::int;
-external static set Extension|extensionInstanceField(core::int #externalFieldValue) → void;
-external static get Extension|finalExtensionInstanceField() → core::int;
+external static method Extension|get#extensionInstanceField(self::A #this) → core::int;
+external static method Extension|set#extensionInstanceField(self::A #this, core::int #externalFieldValue) → void;
+external static method Extension|get#finalExtensionInstanceField(self::A #this) → core::int;
 external static get Extension|extensionStaticField() → core::int;
 external static set Extension|extensionStaticField(core::int #externalFieldValue) → void;
 external static get Extension|finalExtensionStaticField() → core::int;

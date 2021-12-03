@@ -1,0 +1,12 @@
+class A {}
+
+class C<T> {}
+
+typedef AAlias = A;
+typedef CAlias<T> = C<T>;
+typedef AAlias = A;
+typedef AAlias = C<String>;
+typedef CAlias<T> = C<T>;
+typedef CAlias = C<String>;
+typedef CAlias<T1, T2> = C<T1>;
+main() {}

@@ -459,7 +459,7 @@ abstract class Node {
   bool get isFinalized => true;
 
   Statement toStatement() {
-    throw new UnsupportedError('toStatement');
+    throw UnsupportedError('toStatement');
   }
 
   String debugPrint() => DebugPrint(this);
@@ -482,7 +482,7 @@ class Program extends Node {
     for (Statement statement in body) statement.accept1(visitor, arg);
   }
 
-  Program _clone() => new Program(body);
+  Program _clone() => Program(body);
 }
 
 abstract class Statement extends Node {
@@ -513,7 +513,7 @@ class Block extends Statement {
 
   Block(this.statements);
 
-  Block.empty() : this.statements = <Statement>[];
+  Block.empty() : this.statements = [];
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitBlock(this);
 
@@ -528,7 +528,7 @@ class Block extends Statement {
     for (Statement statement in statements) statement.accept1(visitor, arg);
   }
 
-  Block _clone() => new Block(statements);
+  Block _clone() => Block(statements);
 }
 
 class ExpressionStatement extends Statement {
@@ -551,7 +551,7 @@ class ExpressionStatement extends Statement {
     expression.accept1(visitor, arg);
   }
 
-  ExpressionStatement _clone() => new ExpressionStatement(expression);
+  ExpressionStatement _clone() => ExpressionStatement(expression);
 }
 
 class EmptyStatement extends Statement {
@@ -566,7 +566,7 @@ class EmptyStatement extends Statement {
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
-  EmptyStatement _clone() => new EmptyStatement();
+  EmptyStatement _clone() => EmptyStatement();
 }
 
 class If extends Statement {
@@ -576,7 +576,7 @@ class If extends Statement {
 
   If(this.condition, this.then, this.otherwise);
 
-  If.noElse(this.condition, this.then) : this.otherwise = new EmptyStatement();
+  If.noElse(this.condition, this.then) : this.otherwise = EmptyStatement();
 
   bool get hasElse => otherwise is! EmptyStatement;
 
@@ -597,7 +597,7 @@ class If extends Statement {
     otherwise.accept1(visitor, arg);
   }
 
-  If _clone() => new If(condition, then, otherwise);
+  If _clone() => If(condition, then, otherwise);
 }
 
 abstract class Loop extends Statement {
@@ -632,7 +632,7 @@ class For extends Loop {
     body.accept1(visitor, arg);
   }
 
-  For _clone() => new For(init, condition, update, body);
+  For _clone() => For(init, condition, update, body);
 }
 
 class ForIn extends Loop {
@@ -660,7 +660,7 @@ class ForIn extends Loop {
     body.accept1(visitor, arg);
   }
 
-  ForIn _clone() => new ForIn(leftHandSide, object, body);
+  ForIn _clone() => ForIn(leftHandSide, object, body);
 }
 
 class While extends Loop {
@@ -683,7 +683,7 @@ class While extends Loop {
     body.accept1(visitor, arg);
   }
 
-  While _clone() => new While(condition, body);
+  While _clone() => While(condition, body);
 }
 
 class Do extends Loop {
@@ -706,7 +706,7 @@ class Do extends Loop {
     condition.accept1(visitor, arg);
   }
 
-  Do _clone() => new Do(body, condition);
+  Do _clone() => Do(body, condition);
 }
 
 class Continue extends Statement {
@@ -723,7 +723,7 @@ class Continue extends Statement {
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
-  Continue _clone() => new Continue(targetLabel);
+  Continue _clone() => Continue(targetLabel);
 }
 
 class Break extends Statement {
@@ -740,7 +740,7 @@ class Break extends Statement {
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
-  Break _clone() => new Break(targetLabel);
+  Break _clone() => Break(targetLabel);
 }
 
 class Return extends Statement {
@@ -761,7 +761,7 @@ class Return extends Statement {
     if (value != null) value.accept1(visitor, arg);
   }
 
-  Return _clone() => new Return(value);
+  Return _clone() => Return(value);
 }
 
 class Throw extends Statement {
@@ -782,7 +782,7 @@ class Throw extends Statement {
     expression.accept1(visitor, arg);
   }
 
-  Throw _clone() => new Throw(expression);
+  Throw _clone() => Throw(expression);
 }
 
 class Try extends Statement {
@@ -811,7 +811,7 @@ class Try extends Statement {
     if (finallyPart != null) finallyPart.accept1(visitor, arg);
   }
 
-  Try _clone() => new Try(body, catchPart, finallyPart);
+  Try _clone() => Try(body, catchPart, finallyPart);
 }
 
 class Catch extends Node {
@@ -835,7 +835,7 @@ class Catch extends Node {
     body.accept1(visitor, arg);
   }
 
-  Catch _clone() => new Catch(declaration, body);
+  Catch _clone() => Catch(declaration, body);
 }
 
 class Switch extends Statement {
@@ -859,7 +859,7 @@ class Switch extends Statement {
     for (SwitchClause clause in cases) clause.accept1(visitor, arg);
   }
 
-  Switch _clone() => new Switch(key, cases);
+  Switch _clone() => Switch(key, cases);
 }
 
 abstract class SwitchClause extends Node {
@@ -888,7 +888,7 @@ class Case extends SwitchClause {
     body.accept1(visitor, arg);
   }
 
-  Case _clone() => new Case(expression, body);
+  Case _clone() => Case(expression, body);
 }
 
 class Default extends SwitchClause {
@@ -907,7 +907,7 @@ class Default extends SwitchClause {
     body.accept1(visitor, arg);
   }
 
-  Default _clone() => new Default(body);
+  Default _clone() => Default(body);
 }
 
 class FunctionDeclaration extends Statement {
@@ -931,7 +931,7 @@ class FunctionDeclaration extends Statement {
     function.accept1(visitor, arg);
   }
 
-  FunctionDeclaration _clone() => new FunctionDeclaration(name, function);
+  FunctionDeclaration _clone() => FunctionDeclaration(name, function);
 }
 
 class LabeledStatement extends Statement {
@@ -953,7 +953,7 @@ class LabeledStatement extends Statement {
     body.accept1(visitor, arg);
   }
 
-  LabeledStatement _clone() => new LabeledStatement(label, body);
+  LabeledStatement _clone() => LabeledStatement(label, body);
 }
 
 class LiteralStatement extends Statement {
@@ -970,7 +970,7 @@ class LiteralStatement extends Statement {
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
-  LiteralStatement _clone() => new LiteralStatement(code);
+  LiteralStatement _clone() => LiteralStatement(code);
 }
 
 // Not a real JavaScript node, but represents the yield statement from a dart
@@ -995,7 +995,7 @@ class DartYield extends Statement {
     expression.accept1(visitor, arg);
   }
 
-  DartYield _clone() => new DartYield(expression, hasStar);
+  DartYield _clone() => DartYield(expression, hasStar);
 }
 
 abstract class Expression extends Node {
@@ -1003,7 +1003,7 @@ abstract class Expression extends Node {
   // have precedence depending on how the deferred node is resolved.
   int get precedenceLevel;
 
-  Statement toStatement() => new ExpressionStatement(this);
+  Statement toStatement() => ExpressionStatement(this);
 }
 
 abstract class Declaration implements VariableReference {}
@@ -1081,10 +1081,8 @@ class LiteralExpression extends Expression {
   int get precedenceLevel => PRIMARY;
 }
 
-/**
- * [VariableDeclarationList] is a subclass of [Expression] to simplify the
- * AST.
- */
+/// [VariableDeclarationList] is a subclass of [Expression] to simplify the
+/// AST.
 class VariableDeclarationList extends Expression {
   final List<VariableInitialization> declarations;
 
@@ -1113,7 +1111,7 @@ class VariableDeclarationList extends Expression {
     }
   }
 
-  VariableDeclarationList _clone() => new VariableDeclarationList(declarations);
+  VariableDeclarationList _clone() => VariableDeclarationList(declarations);
 
   int get precedenceLevel => EXPRESSION;
 }
@@ -1138,7 +1136,7 @@ class Parentheses extends Expression {
     enclosed.accept1(visitor, arg);
   }
 
-  Parentheses _clone() => new Parentheses(enclosed);
+  Parentheses _clone() => Parentheses(enclosed);
 
   int get precedenceLevel => PRIMARY;
 }
@@ -1172,11 +1170,11 @@ class Assignment extends Expression {
     if (value != null) value.accept1(visitor, arg);
   }
 
-  Assignment _clone() => new Assignment.compound(leftHandSide, op, value);
+  Assignment _clone() => Assignment.compound(leftHandSide, op, value);
 }
 
 class VariableInitialization extends Assignment {
-  /** [value] may be null. */
+  /// [value] may be null.
   VariableInitialization(Declaration declaration, Expression value)
       : super(declaration, value);
 
@@ -1188,8 +1186,7 @@ class VariableInitialization extends Assignment {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitVariableInitialization(this, arg);
 
-  VariableInitialization _clone() =>
-      new VariableInitialization(declaration, value);
+  VariableInitialization _clone() => VariableInitialization(declaration, value);
 }
 
 class Conditional extends Expression {
@@ -1216,7 +1213,7 @@ class Conditional extends Expression {
     otherwise.accept1(visitor, arg);
   }
 
-  Conditional _clone() => new Conditional(condition, then, otherwise);
+  Conditional _clone() => Conditional(condition, then, otherwise);
 
   int get precedenceLevel => ASSIGNMENT;
 }
@@ -1249,7 +1246,7 @@ class Call extends Expression {
     }
   }
 
-  Call _clone() => new Call(target, arguments);
+  Call _clone() => Call(target, arguments);
 
   int get precedenceLevel => CALL;
 }
@@ -1262,7 +1259,7 @@ class New extends Call {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitNew(this, arg);
 
-  New _clone() => new New(target, arguments);
+  New _clone() => New(target, arguments);
 }
 
 class Binary extends Expression {
@@ -1277,7 +1274,7 @@ class Binary extends Expression {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitBinary(this, arg);
 
-  Binary _clone() => new Binary(op, left, right);
+  Binary _clone() => Binary(op, left, right);
 
   void visitChildren<T>(NodeVisitor<T> visitor) {
     left.accept(visitor);
@@ -1346,7 +1343,7 @@ class Prefix extends Expression {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitPrefix(this, arg);
 
-  Prefix _clone() => new Prefix(op, argument);
+  Prefix _clone() => Prefix(op, argument);
 
   void visitChildren<T>(NodeVisitor<T> visitor) {
     argument.accept(visitor);
@@ -1370,7 +1367,7 @@ class Postfix extends Expression {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitPostfix(this, arg);
 
-  Postfix _clone() => new Postfix(op, argument);
+  Postfix _clone() => Postfix(op, argument);
 
   void visitChildren<T>(NodeVisitor<T> visitor) {
     argument.accept(visitor);
@@ -1383,7 +1380,7 @@ class Postfix extends Expression {
   int get precedenceLevel => UNARY;
 }
 
-RegExp _identifierRE = new RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
+RegExp _identifierRE = RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
 
 abstract class VariableReference extends Expression {
   final String name;
@@ -1409,7 +1406,7 @@ class VariableUse extends VariableReference {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitVariableUse(this, arg);
 
-  VariableUse _clone() => new VariableUse(name);
+  VariableUse _clone() => VariableUse(name);
 
   String toString() => 'VariableUse($name)';
 }
@@ -1417,14 +1414,14 @@ class VariableUse extends VariableReference {
 class VariableDeclaration extends VariableReference implements Declaration {
   final bool allowRename;
 
-  VariableDeclaration(String name, {this.allowRename: true}) : super(name);
+  VariableDeclaration(String name, {this.allowRename = true}) : super(name);
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitVariableDeclaration(this);
 
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitVariableDeclaration(this, arg);
 
-  VariableDeclaration _clone() => new VariableDeclaration(name);
+  VariableDeclaration _clone() => VariableDeclaration(name);
 }
 
 class Parameter extends VariableDeclaration {
@@ -1435,7 +1432,7 @@ class Parameter extends VariableDeclaration {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitParameter(this, arg);
 
-  Parameter _clone() => new Parameter(name);
+  Parameter _clone() => Parameter(name);
 }
 
 class This extends Parameter {
@@ -1446,7 +1443,7 @@ class This extends Parameter {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitThis(this, arg);
 
-  This _clone() => new This();
+  This _clone() => This();
 }
 
 class NamedFunction extends Expression {
@@ -1470,7 +1467,7 @@ class NamedFunction extends Expression {
     function.accept1(visitor, arg);
   }
 
-  NamedFunction _clone() => new NamedFunction(name, function);
+  NamedFunction _clone() => NamedFunction(name, function);
 
   int get precedenceLevel => LEFT_HAND_SIDE;
 }
@@ -1489,7 +1486,7 @@ class Fun extends FunctionExpression {
   @override
   final AsyncModifier asyncModifier;
 
-  Fun(this.params, this.body, {this.asyncModifier: AsyncModifier.sync});
+  Fun(this.params, this.body, {this.asyncModifier = AsyncModifier.sync});
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitFun(this);
 
@@ -1506,7 +1503,7 @@ class Fun extends FunctionExpression {
     body.accept1(visitor, arg);
   }
 
-  Fun _clone() => new Fun(params, body, asyncModifier: asyncModifier);
+  Fun _clone() => Fun(params, body, asyncModifier: asyncModifier);
 
   int get precedenceLevel => LEFT_HAND_SIDE;
 }
@@ -1519,8 +1516,13 @@ class ArrowFunction extends FunctionExpression {
   @override
   final AsyncModifier asyncModifier;
 
+  /// Indicates whether it is permissible to try to emit this arrow function
+  /// in a form with an implicit 'return'.
+  final bool implicitReturnAllowed;
+
   ArrowFunction(this.params, this.body,
-      {this.asyncModifier: AsyncModifier.sync});
+      {this.asyncModifier = AsyncModifier.sync,
+      this.implicitReturnAllowed = true});
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrowFunction(this);
 
@@ -1537,8 +1539,9 @@ class ArrowFunction extends FunctionExpression {
     body.accept1(visitor, arg);
   }
 
-  ArrowFunction _clone() =>
-      new ArrowFunction(params, body, asyncModifier: asyncModifier);
+  ArrowFunction _clone() => ArrowFunction(params, body,
+      asyncModifier: asyncModifier,
+      implicitReturnAllowed: implicitReturnAllowed);
 
   int get precedenceLevel => ASSIGNMENT;
 }
@@ -1553,13 +1556,13 @@ class AsyncModifier {
       {this.isAsync, this.isYielding});
 
   static const AsyncModifier sync =
-      const AsyncModifier(0, "sync", isAsync: false, isYielding: false);
+      AsyncModifier(0, "sync", isAsync: false, isYielding: false);
   static const AsyncModifier async =
-      const AsyncModifier(1, "async", isAsync: true, isYielding: false);
+      AsyncModifier(1, "async", isAsync: true, isYielding: false);
   static const AsyncModifier asyncStar =
-      const AsyncModifier(2, "async*", isAsync: true, isYielding: true);
+      AsyncModifier(2, "async*", isAsync: true, isYielding: true);
   static const AsyncModifier syncStar =
-      const AsyncModifier(3, "sync*", isAsync: false, isYielding: true);
+      AsyncModifier(3, "sync*", isAsync: false, isYielding: true);
 
   static const List<AsyncModifier> values = [sync, async, asyncStar, syncStar];
 
@@ -1593,7 +1596,7 @@ class PropertyAccess extends Expression {
     selector.accept1(visitor, arg);
   }
 
-  PropertyAccess _clone() => new PropertyAccess(receiver, selector);
+  PropertyAccess _clone() => PropertyAccess(receiver, selector);
 
   int get precedenceLevel => LEFT_HAND_SIDE;
 }
@@ -1669,7 +1672,7 @@ class LiteralBool extends Literal {
 
   // [visitChildren] inherited from [Literal].
 
-  LiteralBool _clone() => new LiteralBool(value);
+  LiteralBool _clone() => LiteralBool(value);
 }
 
 class LiteralNull extends Literal {
@@ -1680,7 +1683,7 @@ class LiteralNull extends Literal {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitLiteralNull(this, arg);
 
-  LiteralNull _clone() => new LiteralNull();
+  LiteralNull _clone() => LiteralNull();
 }
 
 class LiteralString extends Literal {
@@ -1746,7 +1749,7 @@ class StringConcatenation extends Literal {
     for (Literal part in parts) part.accept1(visitor, arg);
   }
 
-  StringConcatenation _clone() => new StringConcatenation(this.parts);
+  StringConcatenation _clone() => StringConcatenation(this.parts);
 }
 
 class LiteralNumber extends Literal {
@@ -1761,7 +1764,7 @@ class LiteralNumber extends Literal {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitLiteralNumber(this, arg);
 
-  LiteralNumber _clone() => new LiteralNumber(value);
+  LiteralNumber _clone() => LiteralNumber(value);
 }
 
 class ArrayInitializer extends Expression {
@@ -1782,15 +1785,13 @@ class ArrayInitializer extends Expression {
     for (Expression element in elements) element.accept1(visitor, arg);
   }
 
-  ArrayInitializer _clone() => new ArrayInitializer(elements);
+  ArrayInitializer _clone() => ArrayInitializer(elements);
 
   int get precedenceLevel => PRIMARY;
 }
 
-/**
- * An empty place in an [ArrayInitializer].
- * For example the list [1, , , 2] would contain two holes.
- */
+/// An empty place in an [ArrayInitializer].
+/// For example the list [1, , , 2] would contain two holes.
 class ArrayHole extends Expression {
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitArrayHole(this);
 
@@ -1801,7 +1802,7 @@ class ArrayHole extends Expression {
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
-  ArrayHole _clone() => new ArrayHole();
+  ArrayHole _clone() => ArrayHole();
 
   int get precedenceLevel => PRIMARY;
 }
@@ -1810,14 +1811,12 @@ class ObjectInitializer extends Expression {
   final List<Property> properties;
   final bool isOneLiner;
 
-  /**
-   * Constructs a new object-initializer containing the given [properties].
-   *
-   * [isOneLiner] describes the behaviour when pretty-printing (non-minified).
-   * If true print all properties on the same line.
-   * If false print each property on a seperate line.
-   */
-  ObjectInitializer(this.properties, {this.isOneLiner: true});
+  /// Constructs a new object-initializer containing the given [properties].
+  ///
+  /// [isOneLiner] describes the behaviour when pretty-printing (non-minified).
+  /// If true print all properties on the same line.
+  /// If false print each property on a seperate line.
+  ObjectInitializer(this.properties, {this.isOneLiner = true});
 
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitObjectInitializer(this);
 
@@ -1833,7 +1832,7 @@ class ObjectInitializer extends Expression {
   }
 
   ObjectInitializer _clone() =>
-      new ObjectInitializer(properties, isOneLiner: isOneLiner);
+      ObjectInitializer(properties, isOneLiner: isOneLiner);
 
   int get precedenceLevel => PRIMARY;
 }
@@ -1860,7 +1859,7 @@ class Property extends Node {
     value.accept1(visitor, arg);
   }
 
-  Property _clone() => new Property(name, value);
+  Property _clone() => Property(name, value);
 }
 
 class MethodDefinition extends Node implements Property {
@@ -1919,7 +1918,7 @@ class InterpolatedExpression extends Expression with InterpolatedNode {
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
-  InterpolatedExpression _clone() => new InterpolatedExpression(nameOrPosition);
+  InterpolatedExpression _clone() => InterpolatedExpression(nameOrPosition);
 
   int get precedenceLevel => PRIMARY;
 }
@@ -1938,7 +1937,7 @@ class InterpolatedLiteral extends Literal with InterpolatedNode {
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
-  InterpolatedLiteral _clone() => new InterpolatedLiteral(nameOrPosition);
+  InterpolatedLiteral _clone() => InterpolatedLiteral(nameOrPosition);
 }
 
 class InterpolatedParameter extends Expression
@@ -1964,7 +1963,7 @@ class InterpolatedParameter extends Expression
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
-  InterpolatedParameter _clone() => new InterpolatedParameter(nameOrPosition);
+  InterpolatedParameter _clone() => InterpolatedParameter(nameOrPosition);
 
   int get precedenceLevel => PRIMARY;
 }
@@ -1984,7 +1983,7 @@ class InterpolatedSelector extends Expression with InterpolatedNode {
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
-  InterpolatedSelector _clone() => new InterpolatedSelector(nameOrPosition);
+  InterpolatedSelector _clone() => InterpolatedSelector(nameOrPosition);
 
   int get precedenceLevel => PRIMARY;
 }
@@ -2004,7 +2003,7 @@ class InterpolatedStatement extends Statement with InterpolatedNode {
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
-  InterpolatedStatement _clone() => new InterpolatedStatement(nameOrPosition);
+  InterpolatedStatement _clone() => InterpolatedStatement(nameOrPosition);
 }
 
 class InterpolatedDeclaration extends Expression
@@ -2025,7 +2024,7 @@ class InterpolatedDeclaration extends Expression
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
   InterpolatedDeclaration _clone() {
-    return new InterpolatedDeclaration(nameOrPosition);
+    return InterpolatedDeclaration(nameOrPosition);
   }
 
   @override
@@ -2035,13 +2034,11 @@ class InterpolatedDeclaration extends Expression
   int get precedenceLevel => PRIMARY;
 }
 
-/**
- * [RegExpLiteral]s, despite being called "Literal", do not inherit from
- * [Literal]. Indeed, regular expressions in JavaScript have a side-effect and
- * are thus not in the same category as numbers or strings.
- */
+/// [RegExpLiteral]s, despite being called "Literal", do not inherit from
+/// [Literal]. Indeed, regular expressions in JavaScript have a side-effect and
+/// are thus not in the same category as numbers or strings.
 class RegExpLiteral extends Expression {
-  /** Contains the pattern and the flags.*/
+  /// Contains the pattern and the flags.
   final String pattern;
 
   RegExpLiteral(this.pattern);
@@ -2055,19 +2052,17 @@ class RegExpLiteral extends Expression {
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {}
 
-  RegExpLiteral _clone() => new RegExpLiteral(pattern);
+  RegExpLiteral _clone() => RegExpLiteral(pattern);
 
   int get precedenceLevel => PRIMARY;
 }
 
-/**
- * An asynchronous await.
- *
- * Not part of JavaScript. We desugar this expression before outputting.
- * Should only occur in a [Fun] with `asyncModifier` async or asyncStar.
- */
+/// An asynchronous await.
+///
+/// Not part of JavaScript. We desugar this expression before outputting.
+/// Should only occur in a [Fun] with `asyncModifier` async or asyncStar.
 class Await extends Expression {
-  /** The awaited expression. */
+  /// The awaited expression.
   final Expression expression;
 
   Await(this.expression);
@@ -2084,15 +2079,13 @@ class Await extends Expression {
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       expression.accept1(visitor, arg);
 
-  Await _clone() => new Await(expression);
+  Await _clone() => Await(expression);
 }
 
-/**
- * A comment.
- *
- * Extends [Statement] so we can add comments before statements in
- * [Block] and [Program].
- */
+/// A comment.
+///
+/// Extends [Statement] so we can add comments before statements in
+/// [Block] and [Program].
 class Comment extends Statement {
   final String comment;
 
@@ -2103,7 +2096,7 @@ class Comment extends Statement {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitComment(this, arg);
 
-  Comment _clone() => new Comment(comment);
+  Comment _clone() => Comment(comment);
 
   void visitChildren<T>(NodeVisitor<T> visitor) {}
 

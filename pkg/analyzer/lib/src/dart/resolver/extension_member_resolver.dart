@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
@@ -19,7 +18,6 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/util/either.dart';
@@ -37,7 +35,8 @@ class ExtensionMemberResolver {
   bool get _genericMetadataIsEnabled =>
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
 
-  Scope get _nameScope => _resolver.nameScope;
+  bool get _isNonNullableByDefault =>
+      _resolver.definingLibrary.featureSet.isEnabled(Feature.non_nullable);
 
   TypeProvider get _typeProvider => _resolver.typeProvider;
 
@@ -77,9 +76,15 @@ class ExtensionMemberResolver {
           nameEntity.length,
           [
             name,
-            noneMoreSpecific
-                .map((e) => e.extension.name ?? '<unnamed>')
-                .quotedAndCommaSeparatedWithAnd,
+            noneMoreSpecific.map((e) {
+              var name = e.extension.name;
+              if (name != null) {
+                return "extension '$name'";
+              }
+              var type = e.extension.extendedType
+                  .getDisplayString(withNullability: _isNonNullableByDefault);
+              return "unnamed extension on '$type'";
+            }).commaSeparatedWithAnd,
           ],
         );
         return ResolutionResult.ambiguous;
@@ -167,7 +172,8 @@ class ExtensionMemberResolver {
       typeArgumentTypes,
     );
 
-    nodeImpl.extendedType = substitution.substituteType(element.extendedType);
+    var extendedType = nodeImpl.extendedType =
+        substitution.substituteType(element.extendedType);
 
     _checkTypeArgumentsMatchingBounds(
       typeParameters,
@@ -179,13 +185,13 @@ class ExtensionMemberResolver {
     if (receiverType.isVoid) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
-    } else if (!_typeSystem.isAssignableTo(receiverType, node.extendedType!)) {
+    } else if (!_typeSystem.isAssignableTo(receiverType, extendedType)) {
       var whyNotPromoted =
           whyNotPromotedList.isEmpty ? null : whyNotPromotedList[0];
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
         receiverExpression,
-        [receiverType, node.extendedType],
+        [receiverType, extendedType],
         _resolver.computeWhyNotPromotedMessages(
             receiverExpression, whyNotPromoted?.call()),
       );
@@ -397,7 +403,7 @@ class ExtensionMemberResolver {
       }
     }
 
-    for (var extension in _nameScope.extensions) {
+    for (var extension in _resolver.definingLibrary.accessibleExtensions) {
       checkExtension(extension);
     }
     return candidates;
@@ -426,10 +432,13 @@ class ExtensionMemberResolver {
         }
         return arguments.map((a) => a.typeOrThrow).toList();
       } else {
+        // We can safely assume `element.name` is non-`null` because type
+        // arguments can only be applied to explicit extension overrides, and
+        // explicit extension overrides cannot refer to unnamed extensions.
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
           typeArguments,
-          [element.name, typeParameters.length, arguments.length],
+          [element.name!, typeParameters.length, arguments.length],
         );
         return _listOfDynamic(typeParameters);
       }

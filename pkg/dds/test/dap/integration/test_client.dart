@@ -26,16 +26,30 @@ class DapTestClient {
 
   final Logger? _logger;
   final bool captureVmServiceTraffic;
-  final _requestWarningDuration = const Duration(seconds: 5);
+  final _requestWarningDuration = const Duration(seconds: 10);
   final Map<int, _OutgoingRequest> _pendingRequests = {};
   final _eventController = StreamController<Event>.broadcast();
   int _seq = 1;
+
+  /// Functions provided by tests to handle requests that may come from the
+  /// server (such as `runInTerminal`).
+  final _serverRequestHandlers =
+      <String, FutureOr<Object?> Function(Object?)>{};
+
+  late final Future<Uri?> vmServiceUri;
 
   DapTestClient._(
     this._channel,
     this._logger, {
     this.captureVmServiceTraffic = false,
   }) {
+    // Set up a future that will complete when the 'dart.debuggerUris' event is
+    // emitted by the debug adapter so tests have easy access to it.
+    vmServiceUri = event('dart.debuggerUris').then<Uri?>((event) {
+      final body = event.body as Map<String, Object?>;
+      return Uri.parse(body['vmServiceUri'] as String);
+    }).catchError((e) => null);
+
     _subscription = _channel.listen(
       _handleMessage,
       onDone: () {
@@ -53,6 +67,78 @@ class DapTestClient {
   /// Returns a stream of [OutputEventBody] events.
   Stream<OutputEventBody> get outputEvents => events('output')
       .map((e) => OutputEventBody.fromJson(e.body as Map<String, Object?>));
+
+  /// Returns a stream of custom 'dart.serviceExtensionAdded' events.
+  Stream<Map<String, Object?>> get serviceExtensionAddedEvents =>
+      events('dart.serviceExtensionAdded')
+          .map((e) => e.body as Map<String, Object?>);
+
+  /// Returns a stream of custom 'dart.serviceRegistered' events.
+  Stream<Map<String, Object?>> get serviceRegisteredEvents =>
+      events('dart.serviceRegistered')
+          .map((e) => e.body as Map<String, Object?>);
+
+  /// Returns a stream of 'dart.testNotification' custom events from the
+  /// package:test JSON reporter.
+  Stream<Map<String, Object?>> get testNotificationEvents =>
+      events('dart.testNotification')
+          .map((e) => e.body as Map<String, Object?>);
+
+  /// Send an attachRequest to the server, asking it to attach to an existing
+  /// Dart program.
+  Future<Response> attach({
+    required bool autoResume,
+    String? vmServiceUri,
+    String? vmServiceInfoFile,
+    String? cwd,
+    List<String>? additionalProjectPaths,
+    bool? debugSdkLibraries,
+    bool? debugExternalPackageLibraries,
+    bool? evaluateGettersInDebugViews,
+    bool? evaluateToStringInDebugViews,
+  }) async {
+    assert(
+      (vmServiceUri == null) != (vmServiceInfoFile == null),
+      'Provide exactly one of vmServiceUri/vmServiceInfoFile',
+    );
+
+    // When attaching, the paused VM will not be automatically unpaused, but
+    // instead send a Stopped(reason: 'entry') event. Respond to this by
+    // resuming.
+    final resumeFuture = autoResume
+        ? expectStop('entry').then((event) => continue_(event.threadId!))
+        : null;
+
+    final attachResponse = sendRequest(
+      DartAttachRequestArguments(
+        vmServiceUri: vmServiceUri,
+        vmServiceInfoFile: vmServiceInfoFile,
+        cwd: cwd,
+        additionalProjectPaths: additionalProjectPaths,
+        debugSdkLibraries: debugSdkLibraries,
+        debugExternalPackageLibraries: debugExternalPackageLibraries,
+        evaluateGettersInDebugViews: evaluateGettersInDebugViews,
+        evaluateToStringInDebugViews: evaluateToStringInDebugViews,
+        // When running out of process, VM Service traffic won't be available
+        // to the client-side logger, so force logging on which sends VM Service
+        // traffic in a custom event.
+        sendLogsToClient: captureVmServiceTraffic,
+      ),
+      // We can't automatically pick the command when using a custom type
+      // (DartAttachRequestArguments).
+      overrideCommand: 'attach',
+    );
+
+    // If we were expecting a pause and to resume, ensure that happens.
+    await resumeFuture;
+
+    return attachResponse;
+  }
+
+  /// Calls a service method via a custom request.
+  Future<Response> callService(String name, Object? params) {
+    return custom('callService', {'method': name, 'params': params});
+  }
 
   /// Sends a continue request for the given thread.
   ///
@@ -97,14 +183,28 @@ class DapTestClient {
     return _eventController.stream.where((e) => e.event == event);
   }
 
+  /// Records a handler for when the server sends a [request] request.
+  void handleRequest(
+    String request,
+    FutureOr<Object?> Function(Object?) handler,
+  ) {
+    _serverRequestHandlers[request] = handler;
+  }
+
   /// Send an initialize request to the server.
   ///
   /// This occurs before the request to start running/debugging a script and is
   /// used to exchange capabilities and send breakpoints and other settings.
-  Future<Response> initialize({String exceptionPauseMode = 'None'}) async {
+  Future<Response> initialize({
+    String exceptionPauseMode = 'None',
+    bool? supportsRunInTerminalRequest,
+  }) async {
     final responses = await Future.wait([
       event('initialized'),
-      sendRequest(InitializeRequestArguments(adapterID: 'test')),
+      sendRequest(InitializeRequestArguments(
+        adapterID: 'test',
+        supportsRunInTerminalRequest: supportsRunInTerminalRequest,
+      )),
       sendRequest(
         SetExceptionBreakpointsArguments(
           filters: [exceptionPauseMode],
@@ -121,10 +221,13 @@ class DapTestClient {
     List<String>? args,
     String? cwd,
     bool? noDebug,
+    List<String>? additionalProjectPaths,
+    String? console,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
+    bool? sendLogsToClient,
   }) {
     return sendRequest(
       DartLaunchRequestArguments(
@@ -132,6 +235,8 @@ class DapTestClient {
         program: program,
         cwd: cwd,
         args: args,
+        additionalProjectPaths: additionalProjectPaths,
+        console: console,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
         evaluateGettersInDebugViews: evaluateGettersInDebugViews,
@@ -139,7 +244,7 @@ class DapTestClient {
         // When running out of process, VM Service traffic won't be available
         // to the client-side logger, so force logging on which sends VM Service
         // traffic in a custom event.
-        sendLogsToClient: captureVmServiceTraffic,
+        sendLogsToClient: sendLogsToClient ?? captureVmServiceTraffic,
       ),
       // We can't automatically pick the command when using a custom type
       // (DartLaunchRequestArguments).
@@ -179,6 +284,33 @@ class DapTestClient {
     return _logIfSlow('Request "$command"', completer.future);
   }
 
+  /// Sends a response to the server.
+  ///
+  /// This is used to respond to server-to-client requests such as
+  /// `runInTerminal`.
+  void sendResponse(Request request, Object? responseBody) {
+    final response = Response(
+      success: true,
+      requestSeq: request.seq,
+      seq: _seq++,
+      command: request.command,
+      body: responseBody,
+    );
+    _channel.sendResponse(response);
+  }
+
+  /// Sends a source request to the server to request source code for a [source]
+  /// reference that may have come from a stack frame or similar.
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> source(Source source) => sendRequest(
+        SourceArguments(
+          source: source,
+          sourceReference: source.sourceReference!,
+        ),
+      );
+
   /// Sends a stackTrace request to the server to request the call stack for a
   /// given thread.
   ///
@@ -196,9 +328,8 @@ class DapTestClient {
   /// [launch] method.
   Future<void> start({
     File? file,
-    Future<Response> Function()? launch,
+    Future<Object?> Function()? launch,
   }) {
-    // Launch script and wait for termination.
     return Future.wait([
       initialize(),
       launch?.call() ?? this.launch(file!.path),
@@ -256,7 +387,7 @@ class DapTestClient {
 
   /// Handles an incoming message from the server, completing the relevant request
   /// of raising the appropriate event.
-  void _handleMessage(message) {
+  Future<void> _handleMessage(message) async {
     if (message is Response) {
       final pendingRequest = _pendingRequests.remove(message.requestSeq);
       if (pendingRequest == null) {
@@ -275,8 +406,19 @@ class DapTestClient {
       // tests are waiting on something that will never come, they fail at
       // a useful location.
       if (message.event == 'terminated') {
-        _eventController.close();
+        unawaited(_eventController.close());
       }
+    } else if (message is Request) {
+      // The server sent a request to the client. Call the handler and then send
+      // back its result in a response.
+      final command = message.command;
+      final args = message.arguments;
+      final handler = _serverRequestHandlers[command];
+      if (handler == null) {
+        throw 'Test did not configure a handler for servers request: $command';
+      }
+      final result = await handler(args);
+      sendResponse(message, result);
     }
   }
 
@@ -286,14 +428,13 @@ class DapTestClient {
   /// Returns [future].
   Future<T> _logIfSlow<T>(String name, Future<T> future) {
     var didComplete = false;
-    future.then((_) => didComplete = true);
     Future.delayed(_requestWarningDuration).then((_) {
       if (!didComplete) {
         print(
             '$name has taken longer than ${_requestWarningDuration.inSeconds}s');
       }
     });
-    return future;
+    return future.whenComplete(() => didComplete = true);
   }
 
   /// Creates a [DapTestClient] that connects the server listening on
@@ -307,6 +448,17 @@ class DapTestClient {
     return DapTestClient._(channel, logger,
         captureVmServiceTraffic: captureVmServiceTraffic);
   }
+}
+
+/// Useful events produced by the debug adapter during a debug session.
+class TestEvents {
+  final List<OutputEventBody> output;
+  final List<Map<String, Object?>> testNotifications;
+
+  TestEvents({
+    required this.output,
+    required this.testNotifications,
+  });
 }
 
 class _OutgoingRequest {
@@ -331,6 +483,9 @@ extension DapTestClientExtension on DapTestClient {
   Future<StoppedEventBody> hitBreakpoint(
     File file,
     int line, {
+    String? condition,
+    String? cwd,
+    List<String>? args,
     Future<Response> Function()? launch,
   }) async {
     final stop = expectStop('breakpoint', file: file, line: line);
@@ -340,13 +495,69 @@ extension DapTestClientExtension on DapTestClient {
       sendRequest(
         SetBreakpointsArguments(
           source: Source(path: file.path),
-          breakpoints: [SourceBreakpoint(line: line)],
+          breakpoints: [SourceBreakpoint(line: line, condition: condition)],
+        ),
+      ),
+      launch?.call() ?? this.launch(file.path, cwd: cwd, args: args),
+    ], eagerError: true);
+
+    return stop;
+  }
+
+  /// Sets the exception pause mode to [pauseMode] and expects to pause after
+  /// running the script.
+  ///
+  /// Launch options can be customised by passing a custom [launch] function that
+  /// will be used instead of calling `launch(file.path)`.
+  Future<StoppedEventBody> pauseOnException(
+    File file, {
+    String? exceptionPauseMode, // All, Unhandled, None
+    Future<Response> Function()? launch,
+  }) async {
+    final stop = expectStop('exception', file: file);
+
+    await Future.wait([
+      initialize(),
+      sendRequest(
+        SetExceptionBreakpointsArguments(
+          filters: [if (exceptionPauseMode != null) exceptionPauseMode],
         ),
       ),
       launch?.call() ?? this.launch(file.path),
     ], eagerError: true);
 
     return stop;
+  }
+
+  /// Sets a breakpoint at [line] in [file] and expects _not_ to hit it after
+  /// running the script (instead the script is expected to terminate).
+  ///
+  /// Launch options can be customised by passing a custom [launch] function that
+  /// will be used instead of calling `launch(file.path)`.
+  Future<void> doNotHitBreakpoint(
+    File file,
+    int line, {
+    String? condition,
+    String? logMessage,
+    Future<Response> Function()? launch,
+  }) async {
+    await Future.wait([
+      event('terminated'),
+      initialize(),
+      sendRequest(
+        SetBreakpointsArguments(
+          source: Source(path: file.path),
+          breakpoints: [
+            SourceBreakpoint(
+              line: line,
+              condition: condition,
+              logMessage: logMessage,
+            )
+          ],
+        ),
+      ),
+      launch?.call() ?? this.launch(file.path),
+    ], eagerError: true);
   }
 
   /// Returns whether DDS is available for the VM Service the debug adapter
@@ -388,25 +599,32 @@ extension DapTestClientExtension on DapTestClient {
   ///
   /// If [file] or [line] are provided, they will be checked against the stop
   /// location for the top stack frame.
-  Future<StoppedEventBody> expectStop(String reason,
-      {File? file, int? line, String? sourceName}) async {
+  Future<StoppedEventBody> expectStop(
+    String reason, {
+    File? file,
+    int? line,
+    String? sourceName,
+  }) async {
     final e = await event('stopped');
     final stop = StoppedEventBody.fromJson(e.body as Map<String, Object?>);
     expect(stop.reason, equals(reason));
 
     final result =
         await getValidStack(stop.threadId!, startFrame: 0, numFrames: 1);
-    expect(result.stackFrames, hasLength(1));
-    final frame = result.stackFrames[0];
 
-    if (file != null) {
-      expect(frame.source!.path, equals(file.path));
-    }
-    if (sourceName != null) {
-      expect(frame.source!.name, equals(sourceName));
-    }
-    if (line != null) {
-      expect(frame.line, equals(line));
+    if (file != null || line != null || sourceName != null) {
+      expect(result.stackFrames, hasLength(1));
+      final frame = result.stackFrames[0];
+
+      if (file != null) {
+        expect(frame.source?.path, equals(file.path));
+      }
+      if (sourceName != null) {
+        expect(frame.source?.name, equals(sourceName));
+      }
+      if (line != null) {
+        expect(frame.line, equals(line));
+      }
     }
 
     return stop;
@@ -423,6 +641,14 @@ extension DapTestClientExtension on DapTestClient {
         response.body as Map<String, Object?>);
   }
 
+  /// Fetches source for a sourceReference and asserts it was a valid response.
+  Future<SourceResponseBody> getValidSource(Source source) async {
+    final response = await this.source(source);
+    expect(response.success, isTrue);
+    expect(response.command, equals('source'));
+    return SourceResponseBody.fromJson(response.body as Map<String, Object?>);
+  }
+
   /// Fetches threads and asserts a valid response.
   Future<ThreadsResponseBody> getValidThreads() async {
     final response = await threads();
@@ -435,15 +661,61 @@ extension DapTestClientExtension on DapTestClient {
   ///
   /// These results include all events in the order they are recieved, including
   /// console, stdout and stderr.
+  ///
+  /// Only one of [start] or [launch] may be provided. Use [start] to customise
+  /// the whole start of the session (including initialise) or [launch] to only
+  /// customise the [launchRequest].
   Future<List<OutputEventBody>> collectOutput({
     File? file,
+    Future<Response> Function()? start,
     Future<Response> Function()? launch,
   }) async {
+    assert(
+      start == null || launch == null,
+      'Only one of "start" or "launch" may be provided',
+    );
     final outputEventsFuture = outputEvents.toList();
 
-    await start(file: file, launch: launch);
+    if (start != null) {
+      await start();
+    } else {
+      await this.start(file: file, launch: launch);
+    }
 
     return outputEventsFuture;
+  }
+
+  /// Collects all output and test events until the program terminates.
+  ///
+  /// These results include all events in the order they are recieved, including
+  /// console, stdout, stderr and test notifications from the test JSON reporter.
+  ///
+  /// Only one of [start] or [launch] may be provided. Use [start] to customise
+  /// the whole start of the session (including initialise) or [launch] to only
+  /// customise the [launchRequest].
+  Future<TestEvents> collectTestOutput({
+    File? file,
+    Future<Response> Function()? start,
+    Future<Object?> Function()? launch,
+  }) async {
+    assert(
+      start == null || launch == null,
+      'Only one of "start" or "launch" may be provided',
+    );
+
+    final outputEventsFuture = outputEvents.toList();
+    final testNotificationEventsFuture = testNotificationEvents.toList();
+
+    if (start != null) {
+      await start();
+    } else {
+      await this.start(file: file, launch: launch);
+    }
+
+    return TestEvents(
+      output: await outputEventsFuture,
+      testNotifications: await testNotificationEventsFuture,
+    );
   }
 
   /// A helper that fetches scopes for a frame, checks for one with the name
@@ -476,7 +748,7 @@ extension DapTestClientExtension on DapTestClient {
 
   /// A helper that finds a named variable in the Variables scope for the top
   /// frame and asserts its child variables (fields/getters/etc) match.
-  Future<void> expectLocalVariable(
+  Future<VariablesResponseBody> expectLocalVariable(
     int threadId, {
     required String expectedName,
     required String expectedDisplayString,
@@ -493,7 +765,7 @@ extension DapTestClientExtension on DapTestClient {
     );
     final topFrame = stack.stackFrames.first;
 
-    final variablesScope = await getValidScope(topFrame.id, 'Variables');
+    final variablesScope = await getValidScope(topFrame.id, 'Locals');
     final variables =
         await getValidVariables(variablesScope.variablesReference);
     final expectedVariable = variables.variables
@@ -503,7 +775,7 @@ extension DapTestClientExtension on DapTestClient {
     expect(expectedVariable.value, equals(expectedDisplayString));
 
     // Check the child fields.
-    await expectVariables(
+    return expectVariables(
       expectedVariable.variablesReference,
       expectedVariables,
       start: start,
@@ -584,7 +856,7 @@ extension DapTestClientExtension on DapTestClient {
       final type = v.type;
       final presentationHint = v.presentationHint;
 
-      buffer.write(v.name);
+      buffer.write('${v.name}: $value');
       if (evaluateName != null) {
         buffer.write(', eval: $evaluateName');
       }
@@ -594,12 +866,11 @@ extension DapTestClientExtension on DapTestClient {
       if (namedVariables != null) {
         buffer.write(', $namedVariables named items');
       }
-      buffer.write(': $value');
       if (type != null) {
-        buffer.write(' ($type)');
+        buffer.write(', $type');
       }
       if (presentationHint != null) {
-        buffer.write(' ($presentationHint)');
+        buffer.write(', $presentationHint');
       }
 
       return buffer.toString();
@@ -617,17 +888,11 @@ extension DapTestClientExtension on DapTestClient {
     return variables;
   }
 
-  /// Evalutes [expression] in the top frame of thread [threadId] and expects a
-  /// specific [expectedResult].
-  Future<EvaluateResponseBody> expectTopFrameEvalResult(
+  Future<int> getTopFrameId(
     int threadId,
-    String expression,
-    String expectedResult,
   ) async {
     final stack = await getValidStack(threadId, startFrame: 0, numFrames: 1);
-    final topFrameId = stack.stackFrames.first.id;
-
-    return expectEvalResult(topFrameId, expression, expectedResult);
+    return stack.stackFrames.first.id;
   }
 
   /// Evalutes [expression] in frame [frameId] and expects a specific

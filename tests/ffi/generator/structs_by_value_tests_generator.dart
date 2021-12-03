@@ -102,7 +102,9 @@ extension on CType {
   String addToResultStatements(String variableName) {
     switch (this.runtimeType) {
       case FundamentalType:
-        return "result += $variableName;\n";
+        final this_ = this as FundamentalType;
+        final boolToInt = this_.isBool ? ' ? 1 : 0' : '';
+        return "result += $variableName$boolToInt;\n";
 
       case StructType:
         final this_ = this as StructType;
@@ -214,15 +216,21 @@ class ArgumentValueAssigner {
   String nextValue(FundamentalType type) {
     int argumentValue = i;
     i++;
+    if (type.isBool) {
+      argumentValue = argumentValue % 2;
+    }
     if (type.isSigned && i % 2 == 0) {
       argumentValue = -argumentValue;
     }
     sum += argumentValue;
     if (type.isFloatingPoint) {
       return argumentValue.toDouble().toString();
-    } else {
+    } else if (type.isInteger) {
       return argumentValue.toString();
+    } else if (type.isBool) {
+      return argumentValue == 1 ? 'true' : 'false';
     }
+    throw 'Unknown type $type';
   }
 
   String sumValue(FundamentalType type) {
@@ -261,14 +269,20 @@ final ${dartType} ${variableName} = ${variableName}Pointer.ref;
         if (this_.isInteger) {
           return "${dartType} ${variableName} = 0;\n";
         }
-        return "${dartType} ${variableName} = 0.0;\n";
+        if (this_.isFloatingPoint) {
+          return "${dartType} ${variableName} = 0.0;\n";
+        }
+        if (this_.isBool) {
+          return "${dartType} ${variableName} = false;\n";
+        }
+        throw 'Unknown type $this_';
 
       case StructType:
       case UnionType:
         if (structsAsPointers) {
           return "Pointer<${dartType}> ${variableName}Pointer = nullptr;\n";
         } else {
-          return "${dartType} ${variableName} = ${dartType}();\n";
+          return "${dartType} ${variableName} = Pointer<${dartType}>.fromAddress(0).ref;\n";
         }
     }
 
@@ -345,8 +359,13 @@ extension on CType {
         if (this_.isInteger) {
           return "Expect.equals(${expected}, ${actual});";
         }
-        assert(this_.isFloatingPoint);
-        return "Expect.approxEquals(${expected}, ${actual});";
+        if (this_.isFloatingPoint) {
+          return "Expect.approxEquals(${expected}, ${actual});";
+        }
+        if (this_.isBool) {
+          return "Expect.equals(${expected} % 2 != 0, ${actual});";
+        }
+        throw 'Unexpected type $this_';
 
       case StructType:
         final this_ = this as StructType;
@@ -478,14 +497,14 @@ extension on List<Member> {
 }
 
 extension on CompositeType {
-  String dartClass(bool nnbd) {
+  String dartClass({required bool isNnbd}) {
     final self = this;
     final packingAnnotation = (self is StructType) && self.hasPacking
         ? "@Packed(${self.packing})"
         : "";
     String dartFields = "";
     for (final member in members) {
-      dartFields += "${member.dartStructField(nnbd)}\n\n";
+      dartFields += "${member.dartStructField(isNnbd)}\n\n";
     }
     String toStringBody = members.map((m) {
       if (m.type is FixedLengthArrayType) {
@@ -585,7 +604,7 @@ extension on FunctionType {
     """;
   }
 
-  String dartCallbackCode(bool nnbd) {
+  String dartCallbackCode({required bool isNnbd}) {
     final argumentss =
         arguments.map((a) => "${a.type.dartType} ${a.name}").join(", ");
 
@@ -594,15 +613,24 @@ extension on FunctionType {
     bool structsAsPointers = false;
     String assignReturnGlobal = "";
     String buildReturnValue = "";
+    String returnValueType = returnValue.dartType;
+    String result = 'result';
+    if (returnValueType == 'bool') {
+      // We can't sum a bool;
+      returnValueType = 'int';
+      result = 'result % 2 != 0';
+    }
+
     switch (testType) {
       case TestType.structArguments:
         // Sum all input values.
+
         buildReturnValue = """
-        ${returnValue.dartType} result = 0;
+        $returnValueType result = 0;
 
         ${arguments.addToResultStatements('${dartName}_')}
         """;
-        assignReturnGlobal = "${dartName}Result = result;";
+        assignReturnGlobal = "${dartName}Result = $result;";
         break;
       case TestType.structReturn:
         // Allocate a struct.
@@ -652,7 +680,7 @@ extension on FunctionType {
     }
 
     String returnNull = "";
-    if (!nnbd) {
+    if (!isNnbd) {
       returnNull = """
       if (${arguments.firstArgumentName()} == $returnNullValue) {
         print("returning null!");
@@ -675,7 +703,7 @@ extension on FunctionType {
 
       $assignReturnGlobal
 
-      return result;
+      return $result;
     }
 
     ${reason.makeDartDocComment()}
@@ -719,10 +747,15 @@ extension on FunctionType {
   String get dartCallbackTestConstructor {
     String exceptionalReturn = "";
     if (returnValue is FundamentalType) {
-      if ((returnValue as FundamentalType).isFloatingPoint) {
+      final returnValue_ = returnValue as FundamentalType;
+      if (returnValue_.isFloatingPoint) {
         exceptionalReturn = ", 0.0";
-      } else {
+      } else if (returnValue_.isInteger) {
         exceptionalReturn = ", 0";
+      } else if (returnValue_.isBool) {
+        exceptionalReturn = ", false";
+      } else {
+        throw 'Unexpected type $returnValue_';
       }
     }
     return """
@@ -734,24 +767,31 @@ extension on FunctionType {
 
   String get cCallCode {
     String body = "";
+    String returnValueType = returnValue.cType;
+    String returnStatement = 'return result;';
+    if (returnValueType == 'bool') {
+      // We can't sum in a bool.
+      returnValueType = 'uint64_t';
+      returnStatement = 'return result % 2 != 0;';
+    }
     switch (testType) {
       case TestType.structArguments:
         body = """
-        ${returnValue.cType} result = 0;
+        $returnValueType result = 0;
 
         ${arguments.addToResultStatements()}
         """;
         break;
       case TestType.structReturn:
         body = """
-        ${returnValue.cType} result = {};
+        $returnValueType result = {};
 
         ${arguments.copyValueStatements("", "result.")}
         """;
         break;
       case TestType.structReturnArgument:
         body = """
-        ${returnValue.cType} result = ${structReturnArgument.name};
+        $returnValueType result = ${structReturnArgument.name};
         """;
         break;
     }
@@ -769,7 +809,7 @@ extension on FunctionType {
 
       ${returnValue.coutStatement("result")}
 
-      return result;
+      $returnStatement
     }
 
     """;
@@ -861,15 +901,55 @@ const dart2dot9 = '''
 // @dart = 2.9
 ''';
 
-headerDartCallTest(bool nnbd) {
-  final dartVersion = nnbd ? '' : dart2dot9;
-
+headerCommon({required int copyrightYear}) {
+  final year = copyrightYear;
   return """
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) $year, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
 // This file has been automatically generated. Please do not edit it manually.
+// Generated by tests/ffi/generator/structs_by_value_tests_generator.dart.""";
+}
+
+headerDartCompound({required bool isNnbd, required int copyrightYear}) {
+  final dartVersion = isNnbd ? '' : dart2dot9;
+
+  return """
+${headerCommon(copyrightYear: copyrightYear)}
+
+$dartVersion
+
+import 'dart:ffi';
+""";
+}
+
+String compoundsPath({required bool isNnbd}) {
+  final folder = isNnbd ? 'ffi' : 'ffi_2';
+  return Platform.script
+      .resolve(
+          "../../$folder/function_structs_by_value_generated_compounds.dart")
+      .path;
+}
+
+Future<void> writeDartCompounds() async {
+  await Future.wait([true, false].map((isNnbd) async {
+    final StringBuffer buffer = StringBuffer();
+    buffer.write(headerDartCompound(isNnbd: isNnbd, copyrightYear: 2021));
+
+    buffer.writeAll(compounds.map((e) => e.dartClass(isNnbd: isNnbd)));
+
+    final path = compoundsPath(isNnbd: isNnbd);
+    await File(path).writeAsString(buffer.toString());
+    await runProcess("dart", ["format", path]);
+  }));
+}
+
+headerDartCallTest({required bool isNnbd, required int copyrightYear}) {
+  final dartVersion = isNnbd ? '' : dart2dot9;
+
+  return """
+${headerCommon(copyrightYear: copyrightYear)}
 //
 // SharedObjects=ffi_test_functions
 // VMOptions=
@@ -886,49 +966,49 @@ import "package:ffi/ffi.dart";
 
 import 'dylib_utils.dart';
 
+// Reuse the compound classes.
+import 'function_structs_by_value_generated_compounds.dart';
+
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 """;
 }
 
-void writeDartCallTest() {
-  for (bool nnbd in [true, false]) {
+Future<void> writeDartCallTest({required bool isLeaf}) async {
+  await Future.wait([true, false].map((isNnbd) async {
     final StringBuffer buffer = StringBuffer();
-    buffer.write(headerDartCallTest(nnbd));
+    buffer.write(headerDartCallTest(
+        isNnbd: isNnbd, copyrightYear: isLeaf ? 2021 : 2020));
 
+    final suffix = isLeaf ? 'Leaf' : '';
     buffer.write("""
     void main() {
       for (int i = 0; i < 10; ++i) {
-        ${functions.map((e) => "${e.dartTestName}();").join("\n")}
-        ${functions.map((e) => "${e.dartTestName}Leaf();").join("\n")}
+        ${functions.map((e) => "${e.dartTestName}$suffix();").join("\n")}
       }
     }
     """);
-    buffer.writeAll(compounds.map((e) => e.dartClass(nnbd)));
-    buffer.writeAll(functions.map((e) => e.dartCallCode(isLeaf: false)));
-    buffer.writeAll(functions.map((e) => e.dartCallCode(isLeaf: true)));
+    buffer.writeAll(functions.map((e) => e.dartCallCode(isLeaf: isLeaf)));
 
-    final path = callTestPath(nnbd);
-    File(path).writeAsStringSync(buffer.toString());
-    Process.runSync("dartfmt", ["-w", path]);
-  }
+    final path = callTestPath(isNnbd: isNnbd, isLeaf: isLeaf);
+    await File(path).writeAsString(buffer.toString());
+    await runProcess("dart", ["format", path]);
+  }));
 }
 
-String callTestPath(bool nnbd) {
-  final folder = nnbd ? "ffi" : "ffi_2";
+String callTestPath({required bool isNnbd, required bool isLeaf}) {
+  final folder = isNnbd ? 'ffi' : 'ffi_2';
+  final suffix = isLeaf ? '_leaf' : '';
   return Platform.script
-      .resolve("../../$folder/function_structs_by_value_generated_test.dart")
+      .resolve(
+          "../../$folder/function_structs_by_value_generated${suffix}_test.dart")
       .path;
 }
 
-headerDartCallbackTest(bool nnbd) {
-  final dartVersion = nnbd ? '' : dart2dot9;
+headerDartCallbackTest({required bool isNnbd, required int copyrightYear}) {
+  final dartVersion = isNnbd ? '' : dart2dot9;
 
   return """
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-//
-// This file has been automatically generated. Please do not edit it manually.
+${headerCommon(copyrightYear: copyrightYear)}
 //
 // SharedObjects=ffi_test_functions
 // VMOptions=
@@ -945,9 +1025,12 @@ import "package:ffi/ffi.dart";
 
 import 'callback_tests_utils.dart';
 
-// Reuse the struct classes.
-import 'function_structs_by_value_generated_test.dart';
+import 'dylib_utils.dart';
 
+// Reuse the compound classes.
+import 'function_structs_by_value_generated_compounds.dart';
+
+final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 void main() {
   testCases.forEach((t) {
@@ -960,10 +1043,10 @@ void main() {
 """;
 }
 
-void writeDartCallbackTest() {
-  for (bool nnbd in [true, false]) {
+Future<void> writeDartCallbackTest() async {
+  await Future.wait([true, false].map((isNnbd) async {
     final StringBuffer buffer = StringBuffer();
-    buffer.write(headerDartCallbackTest(nnbd));
+    buffer.write(headerDartCallbackTest(isNnbd: isNnbd, copyrightYear: 2020));
 
     buffer.write("""
   final testCases = [
@@ -971,28 +1054,25 @@ void writeDartCallbackTest() {
   ];
   """);
 
-    buffer.writeAll(functions.map((e) => e.dartCallbackCode(nnbd)));
+    buffer.writeAll(functions.map((e) => e.dartCallbackCode(isNnbd: isNnbd)));
 
-    final path = callbackTestPath(nnbd);
-    File(path).writeAsStringSync(buffer.toString());
-    Process.runSync("dartfmt", ["-w", path]);
-  }
+    final path = callbackTestPath(isNnbd: isNnbd);
+    await File(path).writeAsString(buffer.toString());
+    await runProcess("dart", ["format", path]);
+  }));
 }
 
-String callbackTestPath(bool nnbd) {
-  final folder = nnbd ? "ffi" : "ffi_2";
+String callbackTestPath({required bool isNnbd}) {
+  final folder = isNnbd ? "ffi" : "ffi_2";
   return Platform.script
       .resolve(
           "../../$folder/function_callbacks_structs_by_value_generated_test.dart")
       .path;
 }
 
-const headerC = """
-// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-//
-// This file has been automatically generated. Please do not edit it manually.
+headerC({required int copyrightYear}) {
+  return """
+${headerCommon(copyrightYear: copyrightYear)}
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -1025,15 +1105,16 @@ namespace dart {
         ((EXPECTED * 0.99) >= (ACTUAL) && (EXPECTED * 1.01) <= (ACTUAL)))
 
 """;
+}
 
 const footerC = """
 
 }  // namespace dart
 """;
 
-void writeC() {
+Future<void> writeC() async {
   final StringBuffer buffer = StringBuffer();
-  buffer.write(headerC);
+  buffer.write(headerC(copyrightYear: 2020));
 
   buffer.writeAll(compounds.map((e) => e.cDefinition));
   buffer.writeAll(functions.map((e) => e.cCallCode));
@@ -1041,8 +1122,8 @@ void writeC() {
 
   buffer.write(footerC);
 
-  File(ccPath).writeAsStringSync(buffer.toString());
-  Process.runSync("clang-format", ["-i", ccPath]);
+  await File(ccPath).writeAsString(buffer.toString());
+  await runProcess("clang-format", ["-i", ccPath]);
 }
 
 final ccPath = Platform.script
@@ -1055,20 +1136,50 @@ Generates structs by value tests.
 
 Generates:
 - $ccPath
-- ${callbackTestPath(true)}
-- ${callTestPath(true)}
-- ${callbackTestPath(false)}
-- ${callTestPath(false)}
+- ${compoundsPath(isNnbd: true)}
+- ${callbackTestPath(isNnbd: true)}
+- ${callTestPath(isNnbd: true, isLeaf: false)}
+- ${callTestPath(isNnbd: true, isLeaf: true)}
+- ${compoundsPath(isNnbd: false)}
+- ${callbackTestPath(isNnbd: false)}
+- ${callTestPath(isNnbd: false, isLeaf: false)}
+- ${callTestPath(isNnbd: false, isLeaf: true)}
 """);
 }
 
-void main(List<String> arguments) {
+void main(List<String> arguments) async {
   if (arguments.length != 0) {
     printUsage();
     return;
   }
 
-  writeDartCallTest();
-  writeDartCallbackTest();
-  writeC();
+  await Future.wait([
+    writeDartCompounds(),
+    writeDartCallTest(isLeaf: false),
+    writeDartCallTest(isLeaf: true),
+    writeDartCallbackTest(),
+    writeC(),
+  ]);
+}
+
+Future<void> runProcess(String executable, List<String> arguments) async {
+  final commandString = [executable, ...arguments].join(' ');
+  stdout.writeln('Running `$commandString`.');
+  final process = await Process.start(
+    executable,
+    arguments,
+    runInShell: true,
+    includeParentEnvironment: true,
+  ).then((process) {
+    process.stdout.forEach((data) => stdout.add(data));
+    process.stderr.forEach((data) => stderr.add(data));
+    return process;
+  });
+  final exitCode = await process.exitCode;
+  if (exitCode != 0) {
+    final message = 'Command `$commandString` failed with exit code $exitCode.';
+    stderr.writeln(message);
+    throw Exception(message);
+  }
+  stdout.writeln('Command `$commandString` done.');
 }

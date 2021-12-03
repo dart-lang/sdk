@@ -403,7 +403,8 @@ LocalVarDescriptorsPtr LocalScope::GetVarDescriptors(
       desc.info.declaration_pos = context_scope.DeclarationTokenIndexAt(i);
       desc.info.begin_pos = begin_token_pos();
       desc.info.end_pos = end_token_pos();
-      ASSERT(desc.info.begin_pos <= desc.info.end_pos);
+      ASSERT((desc.info.begin_pos.IsReal() != desc.info.end_pos.IsReal()) ||
+             (desc.info.begin_pos <= desc.info.end_pos));
       desc.info.set_index(context_scope.ContextIndexAt(i));
       vars.Add(desc);
     }

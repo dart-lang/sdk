@@ -60,6 +60,7 @@ class Context extends ChainContext {
   final CompilerContext compilerContext;
   final List<DiagnosticMessage> errors;
 
+  @override
   final List<Step> steps = const <Step>[
     const ReadTest(),
     const RunCompilations(),
@@ -92,8 +93,10 @@ class Context extends ChainContext {
 class ReadTest extends Step<TestDescription, TestCase, Context> {
   const ReadTest();
 
+  @override
   String get name => "read test";
 
+  @override
   Future<Result<TestCase>> run(
       TestDescription description, Context context) async {
     context.reset();
@@ -125,8 +128,10 @@ class ReadTest extends Step<TestDescription, TestCase, Context> {
 class RunCompilations extends Step<TestCase, TestCase, Context> {
   const RunCompilations();
 
+  @override
   String get name => "run compilations";
 
+  @override
   Future<Result<TestCase>> run(TestCase test, Context context) async {
     for (int edits = 0;; edits++) {
       bool foundSources = false;
@@ -177,6 +182,7 @@ class TestCase {
 
   TestCase(this.description, this.sources, this.expectations);
 
+  @override
   String toString() {
     return "TestCase(${json.convert(sources)}, ${json.convert(expectations)})";
   }
@@ -238,5 +244,5 @@ Future<Context> createContext(
   return new Context(new CompilerContext(options), errors);
 }
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../../testing.json");

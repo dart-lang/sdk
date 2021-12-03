@@ -7,6 +7,7 @@ library fasta.tool.command_line;
 import 'dart:io' show exit;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/util/options.dart';
 
 import 'package:build_integration/file_system/single_root.dart'
     show SingleRootFileSystem;
@@ -39,230 +40,103 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
         PlainAndColorizedString,
         messageFastaUsageLong,
         messageFastaUsageShort,
-        templateFastaCLIArgumentRequired,
         templateUnspecified;
 
 import 'package:front_end/src/fasta/problems.dart' show DebugAbort;
 
-import 'package:front_end/src/fasta/resolve_input_uri.dart'
+import 'package:_fe_analyzer_shared/src/util/resolve_input_uri.dart'
     show resolveInputUri;
 
 import 'package:front_end/src/scheme_based_file_system.dart'
     show SchemeBasedFileSystem;
 
 import 'package:kernel/target/targets.dart'
-    show
-        ConstructorTearOffLowering,
-        LateLowering,
-        Target,
-        TargetFlags,
-        getTarget,
-        targets;
-
-class CommandLineProblem {
-  final Message message;
-
-  CommandLineProblem(this.message);
-
-  CommandLineProblem.deprecated(String message)
-      : this(templateUnspecified.withArguments(message));
-}
-
-class ParsedArguments {
-  final Map<String, dynamic> options = <String, dynamic>{};
-  final List<String> arguments = <String>[];
-  final Map<String, String> defines = <String, String>{};
-
-  toString() => "ParsedArguments($options, $arguments)";
-
-  /// Parses a list of command-line [arguments] into options and arguments.
-  ///
-  /// An /option/ is something that, normally, starts with `-` or `--` (one or
-  /// two dashes). However, as a special case `/?` and `/h` are also recognized
-  /// as options for increased compatibility with Windows. An option can have a
-  /// value.
-  ///
-  /// An /argument/ is something that isn't an option, for example, a file name.
-  ///
-  /// The specification is a map of options to one of the following values:
-  /// * the type literal `Uri`, representing an option value of type [Uri],
-  /// * the type literal `int`, representing an option value of type [int],
-  /// * the bool literal `false`, representing a boolean option that is turned
-  ///   off by default,
-  /// * the bool literal `true, representing a boolean option that is turned on
-  ///   by default,
-  /// * or the string literal `","`, representing a comma-separated list of
-  ///   values.
-  ///
-  /// If [arguments] contains `"--"`, anything before is parsed as options, and
-  /// arguments; anything following is treated as arguments (even if starting
-  /// with, for example, a `-`).
-  ///
-  /// If an option isn't found in [specification], an error is thrown.
-  ///
-  /// Boolean options do not require an option value, but an optional value can
-  /// be provided using the forms `--option=value` where `value` can be `true`
-  /// or `yes` to turn on the option, or `false` or `no` to turn it off.  If no
-  /// option value is specified, a boolean option is turned on.
-  ///
-  /// All other options require an option value, either on the form `--option
-  /// value` or `--option=value`.
-  static ParsedArguments parse(
-      List<String> arguments, Map<String, ValueSpecification>? specification) {
-    specification ??= const <String, ValueSpecification>{};
-    ParsedArguments result = new ParsedArguments();
-    int index = arguments.indexOf("--");
-    Iterable<String> nonOptions = const <String>[];
-    Iterator<String> iterator = arguments.iterator;
-    if (index != -1) {
-      nonOptions = arguments.skip(index + 1);
-      iterator = arguments.take(index).iterator;
-    }
-    while (iterator.moveNext()) {
-      String argument = iterator.current;
-      if (argument.startsWith("-") || argument == "/?" || argument == "/h") {
-        String? value;
-        if (argument.startsWith("-D")) {
-          value = argument.substring("-D".length);
-          argument = "-D";
-        } else {
-          index = argument.indexOf("=");
-          if (index != -1) {
-            value = argument.substring(index + 1);
-            argument = argument.substring(0, index);
-          }
-        }
-        ValueSpecification? valueSpecification = specification[argument];
-        if (valueSpecification == null) {
-          throw new CommandLineProblem.deprecated(
-              "Unknown option '$argument'.");
-        }
-        String canonicalArgument = argument;
-        if (valueSpecification.alias != null) {
-          canonicalArgument = valueSpecification.alias as String;
-          valueSpecification = specification[valueSpecification.alias];
-        }
-        if (valueSpecification == null) {
-          throw new CommandLineProblem.deprecated(
-              "Unknown option alias '$canonicalArgument'.");
-        }
-        final bool requiresValue = valueSpecification.requiresValue;
-        if (requiresValue && value == null) {
-          if (!iterator.moveNext()) {
-            throw new CommandLineProblem(
-                templateFastaCLIArgumentRequired.withArguments(argument));
-          }
-          value = iterator.current;
-        }
-        valueSpecification.processValue(
-            result, canonicalArgument, argument, value);
-      } else {
-        result.arguments.add(argument);
-      }
-    }
-    specification.forEach((String key, ValueSpecification value) {
-      if (value.defaultValue != null) {
-        result.options[key] ??= value.defaultValue;
-      }
-    });
-    result.arguments.addAll(nonOptions);
-    return result;
-  }
-}
+    show Target, TargetFlags, TestTargetFlags, getTarget, targets;
 
 // Before adding new options here, you must:
 //  * Document the option.
 //  * Get an explicit approval from the front-end team.
-const Map<String, ValueSpecification> optionSpecification =
-    const <String, ValueSpecification>{
-  Flags.compileSdk: const UriValue(),
-  Flags.dumpIr: const BoolValue(false),
-  Flags.enableExperiment: const StringListValue(),
-  Flags.excludeSource: const BoolValue(false),
-  Flags.omitPlatform: const BoolValue(false),
-  Flags.fatal: const StringListValue(),
-  Flags.fatalSkip: const StringValue(),
-  Flags.forceLateLowering: const BoolValue(false),
-  Flags.forceStaticFieldLowering: const BoolValue(false),
-  Flags.forceNoExplicitGetterCalls: const BoolValue(false),
-  Flags.forceConstructorTearOffLowering: const BoolValue(false),
-  Flags.help: const BoolValue(false),
-  Flags.librariesJson: const UriValue(),
-  Flags.noDefines: const BoolValue(false),
-  Flags.output: const UriValue(),
-  Flags.packages: const UriValue(),
-  Flags.platform: const UriValue(),
-  Flags.sdk: const UriValue(),
-  Flags.singleRootBase: const UriValue(),
-  Flags.singleRootScheme: const StringValue(),
-  Flags.nnbdWeakMode: const BoolValue(false),
-  Flags.nnbdStrongMode: const BoolValue(false),
-  Flags.nnbdAgnosticMode: const BoolValue(false),
-  Flags.target: const StringValue(),
-  Flags.verbose: const BoolValue(false),
-  Flags.verbosity: const StringValue(),
-  Flags.verify: const BoolValue(false),
-  Flags.skipPlatformVerification: const BoolValue(false),
-  Flags.warnOnReachabilityCheck: const BoolValue(false),
-  Flags.linkDependencies: const UriListValue(),
-  Flags.noDeps: const BoolValue(false),
-  Flags.invocationModes: const StringValue(),
-  "-D": const DefineValue(),
-  "--define": const AliasValue("-D"),
-  "-h": const AliasValue(Flags.help),
-  "--out": const AliasValue(Flags.output),
-  "-o": const AliasValue(Flags.output),
-  "-t": const AliasValue(Flags.target),
-  "-v": const AliasValue(Flags.verbose),
-  "/?": const AliasValue(Flags.help),
-  "/h": const AliasValue(Flags.help),
-};
+const List<Option> optionSpecification = [
+  Options.compileSdk,
+  Options.dumpIr,
+  Options.enableExperiment,
+  Options.enableUnscheduledExperiments,
+  Options.excludeSource,
+  Options.omitPlatform,
+  Options.fatal,
+  Options.fatalSkip,
+  Options.forceLateLowering,
+  Options.forceLateLoweringSentinel,
+  Options.forceStaticFieldLowering,
+  Options.forceNoExplicitGetterCalls,
+  Options.forceConstructorTearOffLowering,
+  Options.help,
+  Options.librariesJson,
+  Options.noDefines,
+  Options.output,
+  Options.packages,
+  Options.platform,
+  Options.sdk,
+  Options.singleRootBase,
+  Options.singleRootScheme,
+  Options.nnbdWeakMode,
+  Options.nnbdStrongMode,
+  Options.nnbdAgnosticMode,
+  Options.target,
+  Options.verbose,
+  Options.verbosity,
+  Options.verify,
+  Options.skipPlatformVerification,
+  Options.warnOnReachabilityCheck,
+  Options.linkDependencies,
+  Options.noDeps,
+  Options.invocationModes,
+  Options.defines,
+];
 
 void throwCommandLineProblem(String message) {
   throw new CommandLineProblem.deprecated(message);
 }
 
 ProcessedOptions analyzeCommandLine(String programName,
-    ParsedArguments parsedArguments, bool areRestArgumentsInputs) {
-  final Map<String, dynamic> options = parsedArguments.options;
+    ParsedOptions parsedOptions, bool areRestArgumentsInputs) {
+  final List<String> arguments = parsedOptions.arguments;
 
-  final List<String> arguments = parsedArguments.arguments;
+  final bool help = Options.help.read(parsedOptions);
 
-  final bool help = options[Flags.help];
-
-  final bool verbose = options[Flags.verbose];
+  final bool verbose = Options.verbose.read(parsedOptions);
 
   if (help) {
-    print(computeUsage(programName, verbose).message);
+    print(computeUsage(programName, verbose).problemMessage);
     exit(0);
   }
 
-  if (options.containsKey(Flags.compileSdk) &&
-      options.containsKey(Flags.platform)) {
+  if (parsedOptions.options.containsKey(Flags.compileSdk) &&
+      parsedOptions.options.containsKey(Flags.platform)) {
     return throw new CommandLineProblem.deprecated(
         "Can't specify both '${Flags.compileSdk}' and '${Flags.platform}'.");
   }
 
-  final String targetName = options[Flags.target] ?? "vm";
+  final String targetName = Options.target.read(parsedOptions);
 
   Map<ExperimentalFlag, bool> explicitExperimentalFlags =
       parseExperimentalFlags(
-          parseExperimentalArguments(options[Flags.enableExperiment]),
+          parseExperimentalArguments(
+              Options.enableExperiment.read(parsedOptions)),
           onError: throwCommandLineProblem,
           onWarning: print);
 
-  final TargetFlags flags = new TargetFlags(
-      forceLateLoweringsForTesting: options[Flags.forceLateLowering]
-          ? LateLowering.all
-          : LateLowering.none,
+  final TargetFlags flags = new TestTargetFlags(
+      forceLateLoweringsForTesting:
+          Options.forceLateLowering.read(parsedOptions),
       forceStaticFieldLoweringForTesting:
-          options[Flags.forceStaticFieldLowering],
+          Options.forceStaticFieldLowering.read(parsedOptions),
       forceNoExplicitGetterCallsForTesting:
-          options[Flags.forceNoExplicitGetterCalls],
+          Options.forceNoExplicitGetterCalls.read(parsedOptions),
       forceConstructorTearOffLoweringForTesting:
-          options[Flags.forceConstructorTearOffLowering]
-              ? ConstructorTearOffLowering.all
-              : ConstructorTearOffLowering.none,
+          Options.forceConstructorTearOffLowering.read(parsedOptions),
+      forceLateLoweringSentinelForTesting:
+          Options.forceLateLoweringSentinel.read(parsedOptions),
       enableNullSafety: isExperimentEnabled(ExperimentalFlag.nonNullable,
           explicitExperimentalFlags: explicitExperimentalFlags));
 
@@ -273,53 +147,61 @@ ProcessedOptions analyzeCommandLine(String programName,
         "Valid targets are:\n  ${targets.keys.join("\n  ")}");
   }
 
-  final bool noDefines = options[Flags.noDefines];
+  final bool noDefines = Options.noDefines.read(parsedOptions);
 
-  final bool noDeps = options[Flags.noDeps];
+  final bool noDeps = Options.noDeps.read(parsedOptions);
 
-  final bool verify = options[Flags.verify];
+  final bool verify = Options.verify.read(parsedOptions);
 
-  final bool skipPlatformVerification = options[Flags.skipPlatformVerification];
+  final bool skipPlatformVerification =
+      Options.skipPlatformVerification.read(parsedOptions);
 
-  final bool dumpIr = options[Flags.dumpIr];
+  final bool dumpIr = Options.dumpIr.read(parsedOptions);
 
-  final bool excludeSource = options[Flags.excludeSource];
+  final bool excludeSource = Options.excludeSource.read(parsedOptions);
 
-  final bool omitPlatform = options[Flags.omitPlatform];
+  final bool omitPlatform = Options.omitPlatform.read(parsedOptions);
 
-  final Uri packages = options[Flags.packages];
+  final Uri? packages = Options.packages.read(parsedOptions);
 
   final Set<String> fatal =
-      new Set<String>.from(options[Flags.fatal] ?? <String>[]);
+      new Set<String>.from(Options.fatal.read(parsedOptions) ?? <String>[]);
 
   final bool errorsAreFatal = fatal.contains("errors");
 
   final bool warningsAreFatal = fatal.contains("warnings");
 
-  final int fatalSkip = int.tryParse(options[Flags.fatalSkip] ?? "0") ?? -1;
+  final int fatalSkip =
+      int.tryParse(Options.fatalSkip.read(parsedOptions) ?? "0") ?? -1;
 
-  final bool compileSdk = options.containsKey(Flags.compileSdk);
+  final bool compileSdk = Options.compileSdk.read(parsedOptions) != null;
 
-  final String? singleRootScheme = options[Flags.singleRootScheme];
-  final Uri singleRootBase = options[Flags.singleRootBase];
+  final String? singleRootScheme = Options.singleRootScheme.read(parsedOptions);
+  final Uri? singleRootBase = Options.singleRootBase.read(parsedOptions);
 
-  final bool nnbdStrongMode = options[Flags.nnbdStrongMode];
+  final bool nnbdStrongMode = Options.nnbdStrongMode.read(parsedOptions);
 
-  final bool nnbdWeakMode = options[Flags.nnbdWeakMode];
+  final bool nnbdWeakMode = Options.nnbdWeakMode.read(parsedOptions);
 
-  final bool nnbdAgnosticMode = options[Flags.nnbdAgnosticMode];
+  final bool nnbdAgnosticMode = Options.nnbdAgnosticMode.read(parsedOptions);
 
   final NnbdMode nnbdMode = nnbdAgnosticMode
       ? NnbdMode.Agnostic
       : (nnbdStrongMode ? NnbdMode.Strong : NnbdMode.Weak);
 
-  final bool warnOnReachabilityCheck = options[Flags.warnOnReachabilityCheck];
+  final bool enableUnscheduledExperiments =
+      Options.enableUnscheduledExperiments.read(parsedOptions);
 
-  final List<Uri> linkDependencies = options[Flags.linkDependencies] ?? [];
+  final bool warnOnReachabilityCheck =
+      Options.warnOnReachabilityCheck.read(parsedOptions);
 
-  final String invocationModes = options[Flags.invocationModes] ?? '';
+  final List<Uri> linkDependencies =
+      Options.linkDependencies.read(parsedOptions) ?? [];
 
-  final String verbosity = options[Flags.verbosity] ?? Verbosity.defaultValue;
+  final String invocationModes =
+      Options.invocationModes.read(parsedOptions) ?? '';
+
+  final String verbosity = Options.verbosity.read(parsedOptions);
 
   if (nnbdStrongMode && nnbdWeakMode) {
     return throw new CommandLineProblem.deprecated(
@@ -348,7 +230,7 @@ ProcessedOptions analyzeCommandLine(String programName,
       // should have been handled elsewhere).
       '': fileSystem,
       singleRootScheme: new SingleRootFileSystem(
-          singleRootScheme, singleRootBase, fileSystem),
+          singleRootScheme, singleRootBase!, fileSystem),
     });
   }
 
@@ -367,8 +249,9 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..verify = verify
     ..skipPlatformVerification = skipPlatformVerification
     ..explicitExperimentalFlags = explicitExperimentalFlags
-    ..environmentDefines = noDefines ? null : parsedArguments.defines
+    ..environmentDefines = noDefines ? null : parsedOptions.defines
     ..nnbdMode = nnbdMode
+    ..enableUnscheduledExperiments = enableUnscheduledExperiments
     ..additionalDills = linkDependencies
     ..emitDeps = !noDeps
     ..warnOnReachabilityCheck = warnOnReachabilityCheck
@@ -384,14 +267,14 @@ ProcessedOptions analyzeCommandLine(String programName,
       return throw new CommandLineProblem.deprecated(
           "Cannot specify '${Flags.compileSdk}' option to compile_platform.");
     }
-    if (options.containsKey(Flags.output)) {
+    if (parsedOptions.options.containsKey(Flags.output)) {
       return throw new CommandLineProblem.deprecated(
           "Cannot specify '${Flags.output}' option to compile_platform.");
     }
 
     return new ProcessedOptions(
         options: compilerOptions
-          ..sdkSummary = options[Flags.platform]
+          ..sdkSummary = Options.platform.read(parsedOptions)
           ..librariesSpecificationUri = resolveInputUri(arguments[1])
           ..setExitCodeOnProblem = true,
         inputs: <Uri>[Uri.parse(arguments[0])],
@@ -402,15 +285,16 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final Uri defaultOutput = resolveInputUri("${arguments.first}.dill");
 
-  final Uri output = options[Flags.output] ?? defaultOutput;
+  final Uri output = Options.output.read(parsedOptions) ?? defaultOutput;
 
-  final Uri sdk = options[Flags.sdk] ?? options[Flags.compileSdk];
+  final Uri? sdk =
+      Options.sdk.read(parsedOptions) ?? Options.compileSdk.read(parsedOptions);
 
-  final Uri librariesJson = options[Flags.librariesJson];
+  final Uri? librariesJson = Options.librariesJson.read(parsedOptions);
 
-  final Uri platform = compileSdk
+  final Uri? platform = compileSdk
       ? null
-      : (options[Flags.platform] ??
+      : (Options.platform.read(parsedOptions) ??
           computePlatformBinariesLocation(forceBuildDir: true)
               .resolve(computePlatformDillName(target, nnbdMode, () {
             throwCommandLineProblem(
@@ -437,13 +321,13 @@ Future<T> withGlobalOptions<T>(
     List<String> arguments,
     bool areRestArgumentsInputs,
     Future<T> f(CompilerContext context, List<String> restArguments)) {
-  ParsedArguments? parsedArguments;
+  ParsedOptions? parsedOptions;
   ProcessedOptions options;
   CommandLineProblem? problem;
   try {
-    parsedArguments = ParsedArguments.parse(arguments, optionSpecification);
-    options = analyzeCommandLine(
-        programName, parsedArguments, areRestArgumentsInputs);
+    parsedOptions = ParsedOptions.parse(arguments, optionSpecification);
+    options =
+        analyzeCommandLine(programName, parsedOptions, areRestArgumentsInputs);
   } on CommandLineProblem catch (e) {
     options = new ProcessedOptions();
     problem = e;
@@ -451,7 +335,7 @@ Future<T> withGlobalOptions<T>(
 
   return CompilerContext.runWithOptions<T>(options, (CompilerContext c) {
     if (problem != null) {
-      print(computeUsage(programName, options.verbose).message);
+      print(computeUsage(programName, options.verbose).problemMessage);
       PlainAndColorizedString formatted =
           c.format(problem.message.withoutLocation(), Severity.error);
       String formattedText;
@@ -464,16 +348,17 @@ Future<T> withGlobalOptions<T>(
       exit(1);
     }
 
-    return f(c, parsedArguments!.arguments);
+    return f(c, parsedOptions!.arguments);
   }, errorOnMissingInput: problem == null);
 }
 
 Message computeUsage(String programName, bool verbose) {
   String basicUsage = "Usage: $programName [options] dartfile\n";
   String? summary;
-  String options =
-      (verbose ? messageFastaUsageLong.message : messageFastaUsageShort.message)
-          .trim();
+  String options = (verbose
+          ? messageFastaUsageLong.problemMessage
+          : messageFastaUsageShort.problemMessage)
+      .trim();
   switch (programName) {
     case "outline":
       summary =
@@ -514,155 +399,10 @@ Future<T> runProtectedFromAbort<T>(Future<T> Function() action,
   try {
     return await action();
   } on DebugAbort catch (e) {
-    print(e.message.message);
+    print(e.message.problemMessage);
 
     // DebugAbort should never happen in production code, so we want test.py to
     // treat this as a crash which is signalled by exiting with 255.
     exit(255);
-  }
-}
-
-abstract class ValueSpecification {
-  const ValueSpecification();
-
-  String? get alias => null;
-
-  dynamic get defaultValue => null;
-
-  bool get requiresValue => true;
-
-  void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String? value);
-}
-
-class AliasValue extends ValueSpecification {
-  final String alias;
-
-  const AliasValue(this.alias);
-
-  bool get requiresValue =>
-      throw new UnsupportedError("AliasValue.requiresValue");
-
-  void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String? value) {
-    throw new UnsupportedError("AliasValue.processValue");
-  }
-}
-
-class UriValue extends ValueSpecification {
-  const UriValue();
-
-  void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String? value) {
-    if (result.options.containsKey(canonicalArgument)) {
-      throw new CommandLineProblem.deprecated(
-          "Multiple values for '$argument': "
-          "'${result.options[canonicalArgument]}' and '$value'.");
-    }
-    // TODO(ahe): resolve Uris lazily, so that schemes provided by
-    // other flags can be used for parsed command-line arguments too.
-    result.options[canonicalArgument] = resolveInputUri(value!);
-  }
-}
-
-class StringValue extends ValueSpecification {
-  const StringValue();
-
-  void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String? value) {
-    if (result.options.containsKey(canonicalArgument)) {
-      throw new CommandLineProblem.deprecated(
-          "Multiple values for '$argument': "
-          "'${result.options[canonicalArgument]}' and '$value'.");
-    }
-    result.options[canonicalArgument] = value!;
-  }
-}
-
-class BoolValue extends ValueSpecification {
-  final bool defaultValue;
-
-  const BoolValue(this.defaultValue);
-
-  bool get requiresValue => false;
-
-  void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String? value) {
-    if (result.options.containsKey(canonicalArgument)) {
-      throw new CommandLineProblem.deprecated(
-          "Multiple values for '$argument': "
-          "'${result.options[canonicalArgument]}' and '$value'.");
-    }
-    bool parsedValue;
-    if (value == null || value == "true" || value == "yes") {
-      parsedValue = true;
-    } else if (value == "false" || value == "no") {
-      parsedValue = false;
-    } else {
-      throw new CommandLineProblem.deprecated(
-          "Value for '$argument' is '$value', "
-          "but expected one of: 'true', 'false', 'yes', or 'no'.");
-    }
-    result.options[canonicalArgument] = parsedValue;
-  }
-}
-
-class IntValue extends ValueSpecification {
-  const IntValue();
-
-  void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String? value) {
-    if (result.options.containsKey(canonicalArgument)) {
-      throw new CommandLineProblem.deprecated(
-          "Multiple values for '$argument': "
-          "'${result.options[canonicalArgument]}' and '$value'.");
-    }
-    int? parsedValue = int.tryParse(value!);
-    if (parsedValue == null) {
-      throw new CommandLineProblem.deprecated(
-          "Value for '$argument', '$value', isn't an int.");
-    }
-    result.options[canonicalArgument] = parsedValue;
-  }
-}
-
-class DefineValue extends ValueSpecification {
-  const DefineValue();
-
-  void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String? value) {
-    int index = value!.indexOf('=');
-    String name;
-    String expression;
-    if (index != -1) {
-      name = value.substring(0, index);
-      expression = value.substring(index + 1);
-    } else {
-      name = value;
-      expression = value;
-    }
-    result.defines[name] = expression;
-  }
-}
-
-class StringListValue extends ValueSpecification {
-  const StringListValue();
-
-  void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String? value) {
-    result.options
-        .putIfAbsent(canonicalArgument, () => <String>[])
-        .addAll(value!.split(","));
-  }
-}
-
-class UriListValue extends ValueSpecification {
-  const UriListValue();
-
-  void processValue(ParsedArguments result, String canonicalArgument,
-      String argument, String? value) {
-    result.options
-        .putIfAbsent(canonicalArgument, () => <Uri>[])
-        .addAll(value!.split(",").map(resolveInputUri));
   }
 }

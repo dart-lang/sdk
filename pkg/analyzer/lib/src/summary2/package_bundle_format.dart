@@ -21,7 +21,6 @@ class PackageBundleBuilder {
   }
 
   Uint8List finish({
-    @Deprecated('This parameter is not used anymore') Uint8List? astBytes,
     required Uint8List resolutionBytes,
     PackageBundleSdk? sdk,
   }) {

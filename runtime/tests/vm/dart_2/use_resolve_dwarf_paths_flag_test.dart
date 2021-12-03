@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This test checks that --resolve-dwarf-paths outputs absolute and relative
 // paths in DWARF information.
 

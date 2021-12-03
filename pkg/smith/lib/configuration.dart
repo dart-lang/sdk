@@ -117,10 +117,10 @@ class Configuration {
     var words = name.split("-").toSet();
     var optionsCopy = Map.of(optionsJson);
 
-    T enumOption<T extends NamedEnum>(
+    T? enumOption<T extends NamedEnum>(
         String option, List<String> allowed, T Function(String) parse) {
       // Look up the value from the words in the name.
-      T fromName;
+      T? fromName;
       for (var value in allowed) {
         // Don't treat "none" as matchable since it's ambiguous as to whether
         // it refers to compiler or runtime.
@@ -137,7 +137,7 @@ class Configuration {
       }
 
       // Look up the value from the options.
-      T fromOption;
+      T? fromOption;
       if (optionsCopy.containsKey(option)) {
         fromOption = parse(optionsCopy[option] as String);
         optionsCopy.remove(option);
@@ -157,7 +157,7 @@ class Configuration {
       return fromName ?? fromOption;
     }
 
-    bool boolOption(String option) {
+    bool? boolOption(String option) {
       if (!optionsCopy.containsKey(option)) return null;
 
       var value = optionsCopy.remove(option);
@@ -166,10 +166,10 @@ class Configuration {
         throw FormatException('Option "$option" had value "$value", which is '
             'not a bool.');
       }
-      return value as bool;
+      return value;
     }
 
-    int intOption(String option) {
+    int? intOption(String option) {
       if (!optionsCopy.containsKey(option)) return null;
 
       var value = optionsCopy.remove(option);
@@ -178,10 +178,10 @@ class Configuration {
         throw FormatException('Option "$option" had value "$value", which is '
             'not an int.');
       }
-      return value as int;
+      return value;
     }
 
-    String stringOption(String option) {
+    String? stringOption(String option) {
       if (!optionsCopy.containsKey(option)) return null;
 
       var value = optionsCopy.remove(option);
@@ -190,10 +190,10 @@ class Configuration {
         throw FormatException('Option "$option" had value "$value", which is '
             'not a string.');
       }
-      return value as String;
+      return value;
     }
 
-    List<String> stringListOption(String option) {
+    List<String>? stringListOption(String option) {
       if (!optionsCopy.containsKey(option)) return null;
 
       var value = optionsCopy.remove(option);
@@ -202,7 +202,7 @@ class Configuration {
         throw FormatException('Option "$option" had value "$value", which is '
             'not a List.');
       }
-      return List<String>.from(value as List);
+      return List<String>.from(value);
     }
 
     // Extract options from the name and map.
@@ -340,27 +340,27 @@ class Configuration {
 
   Configuration(this.name, this.architecture, this.compiler, this.mode,
       this.runtime, this.system,
-      {NnbdMode nnbdMode,
-      Sanitizer sanitizer,
-      String babel,
-      String builderTag,
-      List<String> genKernelOptions,
-      List<String> vmOptions,
-      List<String> dart2jsOptions,
-      List<String> experiments,
-      int timeout,
-      bool enableAsserts,
-      bool isChecked,
-      bool isCsp,
-      bool isHostChecked,
-      bool isMinified,
-      bool useAnalyzerCfe,
-      bool useAnalyzerFastaParser,
-      bool useElf,
-      bool useHotReload,
-      bool useHotReloadRollback,
-      bool useSdk,
-      bool useQemu})
+      {NnbdMode? nnbdMode,
+      Sanitizer? sanitizer,
+      String? babel,
+      String? builderTag,
+      List<String>? genKernelOptions,
+      List<String>? vmOptions,
+      List<String>? dart2jsOptions,
+      List<String>? experiments,
+      int? timeout,
+      bool? enableAsserts,
+      bool? isChecked,
+      bool? isCsp,
+      bool? isHostChecked,
+      bool? isMinified,
+      bool? useAnalyzerCfe,
+      bool? useAnalyzerFastaParser,
+      bool? useElf,
+      bool? useHotReload,
+      bool? useHotReloadRollback,
+      bool? useSdk,
+      bool? useQemu})
       : nnbdMode = nnbdMode ?? NnbdMode.legacy,
         sanitizer = sanitizer ?? Sanitizer.none,
         babel = babel ?? "",
@@ -688,7 +688,7 @@ class Compiler extends NamedEnum {
         return const [Runtime.none];
       case Compiler.appJitk:
       case Compiler.dartk:
-        return const [Runtime.vm, Runtime.selfCheck];
+        return const [Runtime.vm];
       case Compiler.dartkp:
         return const [Runtime.dartPrecompiled];
       case Compiler.specParser:
@@ -805,7 +805,6 @@ class Runtime extends NamedEnum {
   static const ie11 = Runtime._('ie11');
   static const edge = Runtime._('edge');
   static const chromeOnAndroid = Runtime._('chromeOnAndroid');
-  static const selfCheck = Runtime._('self_check');
   static const none = Runtime._('none');
 
   static final List<String> names = _all.keys.toList();
@@ -824,7 +823,6 @@ class Runtime extends NamedEnum {
     ie11,
     edge,
     chromeOnAndroid,
-    selfCheck,
     none
   ], key: (runtime) => (runtime as Runtime).name);
 
@@ -880,9 +878,6 @@ class Runtime extends NamedEnum {
       case edge:
       case chromeOnAndroid:
         return Compiler.dart2js;
-
-      case selfCheck:
-        return Compiler.dartk;
 
       case none:
         // If we aren't running it, we probably just want to analyze it.

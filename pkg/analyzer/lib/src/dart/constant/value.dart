@@ -13,7 +13,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:meta/meta.dart';
 
 /// The state of an object representing a boolean value.
 class BoolState extends InstanceState {
@@ -184,7 +184,7 @@ class DartObjectImpl implements DartObject {
   Map<String, DartObjectImpl>? get fields => _state.fields;
 
   @override
-  int get hashCode => JenkinsSmiHash.hash2(type.hashCode, _state.hashCode);
+  int get hashCode => Object.hash(type, _state);
 
   @override
   bool get hasKnownValue => !_state.isUnknown;
@@ -208,6 +208,9 @@ class DartObjectImpl implements DartObject {
   /// Return `true` if this object represents an instance of a user-defined
   /// class.
   bool get isUserDefinedObject => _state is GenericState;
+
+  @visibleForTesting
+  List<DartType>? get typeArguments => (_state as FunctionState)._typeArguments;
 
   @override
   bool operator ==(Object object) {
@@ -484,15 +487,7 @@ class DartObjectImpl implements DartObject {
     _assertType(testedType);
     var typeType = (testedType._state as TypeState)._type;
     BoolState state;
-    if (isNull) {
-      if (typeType == typeSystem.typeProvider.objectType ||
-          typeType == typeSystem.typeProvider.dynamicType ||
-          typeType == typeSystem.typeProvider.nullType) {
-        state = BoolState.TRUE_STATE;
-      } else {
-        state = BoolState.FALSE_STATE;
-      }
-    } else if (typeType == null) {
+    if (typeType == null) {
       state = BoolState.TRUE_STATE;
     } else {
       state = BoolState.from(typeSystem.isSubtypeOf(type, typeType));
@@ -534,13 +529,12 @@ class DartObjectImpl implements DartObject {
   DartObjectImpl isIdentical2(
       TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
     // Workaround for Flutter `const kIsWeb = identical(0, 0.0)`.
-    if (type.isDartCoreInt && rightOperand.type.isDartCoreDouble) {
+    if (type.isDartCoreInt && rightOperand.type.isDartCoreDouble ||
+        type.isDartCoreDouble && rightOperand.type.isDartCoreInt) {
       return DartObjectImpl(
         typeSystem,
         typeSystem.typeProvider.boolType,
-        BoolState(
-          toIntValue() == 0 && rightOperand.toDoubleValue() == 0.0,
-        ),
+        BoolState.UNKNOWN_VALUE,
       );
     }
 
@@ -917,6 +911,26 @@ class DartObjectImpl implements DartObject {
     return null;
   }
 
+  /// Return the result of type-instantiating this object as [type].
+  ///
+  /// [typeArguments] are the type arguments used in the instantiation.
+  DartObjectImpl? typeInstantiate(
+    TypeSystemImpl typeSystem,
+    FunctionType type,
+    List<DartType> typeArguments,
+  ) {
+    var functionState = _state as FunctionState;
+    return DartObjectImpl(
+      typeSystem,
+      type,
+      FunctionState(
+        functionState._element,
+        typeArguments: typeArguments,
+        viaTypeAlias: functionState._viaTypeAlias,
+      ),
+    );
+  }
+
   /// Throw an exception if the given [object]'s state does not represent a Type
   /// value.
   void _assertType(DartObjectImpl object) {
@@ -1232,9 +1246,24 @@ class FunctionState extends InstanceState {
   /// The element representing the function being modeled.
   final ExecutableElement? _element;
 
+  final List<DartType>? _typeArguments;
+
+  /// The type alias which was referenced when tearing off a constructor,
+  /// if this function is a constructor tear-off, referenced via a type alias,
+  /// and the type alias is not a proper rename for the class, and the
+  /// constructor tear-off is generic, so the tear-off cannot be considered
+  /// equivalent to tearing off the associated constructor function of the
+  /// aliased class.
+  ///
+  /// Otherwise null.
+  final TypeDefiningElement? _viaTypeAlias;
+
   /// Initialize a newly created state to represent the function with the given
   /// [element].
-  FunctionState(this._element);
+  FunctionState(this._element,
+      {List<DartType>? typeArguments, TypeDefiningElement? viaTypeAlias})
+      : _typeArguments = typeArguments,
+        _viaTypeAlias = viaTypeAlias;
 
   @override
   int get hashCode => _element == null ? 0 : _element.hashCode;
@@ -1243,8 +1272,31 @@ class FunctionState extends InstanceState {
   String get typeName => "Function";
 
   @override
-  bool operator ==(Object object) =>
-      object is FunctionState && (_element == object._element);
+  bool operator ==(Object object) {
+    if (object is! FunctionState) {
+      return false;
+    }
+    if (_element != object._element) {
+      return false;
+    }
+    var typeArguments = _typeArguments;
+    var otherTypeArguments = object._typeArguments;
+    if (typeArguments == null || otherTypeArguments == null) {
+      return typeArguments == null && otherTypeArguments == null;
+    }
+    if (typeArguments.length != otherTypeArguments.length) {
+      return false;
+    }
+    if (_viaTypeAlias != object._viaTypeAlias) {
+      return false;
+    }
+    for (var i = 0; i < typeArguments.length; i++) {
+      if (typeArguments[i] != otherTypeArguments[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   StringState convertToString() {
@@ -1269,7 +1321,33 @@ class FunctionState extends InstanceState {
       if (rightElement == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(_element == rightElement);
+
+      var element = _element;
+      var otherElement = rightOperand._element;
+      if (element?.declaration != otherElement?.declaration) {
+        return BoolState.FALSE_STATE;
+      }
+      if (_viaTypeAlias != rightOperand._viaTypeAlias) {
+        return BoolState.FALSE_STATE;
+      }
+      var typeArguments = _typeArguments;
+      var otherTypeArguments = rightOperand._typeArguments;
+      if (typeArguments == null || otherTypeArguments == null) {
+        return BoolState.from(
+            typeArguments == null && otherTypeArguments == null);
+      }
+      if (typeArguments.length != otherTypeArguments.length) {
+        return BoolState.FALSE_STATE;
+      }
+      for (var i = 0; i < typeArguments.length; i++) {
+        if (!typeSystem.runtimeTypesEqual(
+          typeArguments[i],
+          otherTypeArguments[i],
+        )) {
+          return BoolState.FALSE_STATE;
+        }
+      }
+      return BoolState.TRUE_STATE;
     }
     return BoolState.FALSE_STATE;
   }

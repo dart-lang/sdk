@@ -5,22 +5,30 @@
 library kernel.external_name;
 
 import 'ast.dart';
+import 'core_types.dart';
 
 /// Returns external (native) name of given [Member].
-String? getExternalName(Member procedure) {
+String? getExternalName(CoreTypes coreTypes, Member procedure) {
   // Native procedures are marked as external and have an annotation,
   // which looks like this:
+  //
+  //    @pragma("vm:external-name", "<name-of-native>")
+  //    external Object foo(arg0, ...);
+  //
+  // Previously the following encoding was used, which is still supported
+  // until all users are migrated away from it:
   //
   //    import 'dart:_internal' as internal;
   //
   //    @internal.ExternalName("<name-of-native>")
   //    external Object foo(arg0, ...);
   //
+
   if (!procedure.isExternal) {
     return null;
   }
   for (final Expression annotation in procedure.annotations) {
-    final String? value = _getExternalNameValue(annotation);
+    final String? value = _getExternalNameValue(coreTypes, annotation);
     if (value != null) {
       return value;
     }
@@ -28,28 +36,25 @@ String? getExternalName(Member procedure) {
   return null;
 }
 
-/// Returns native extension URIs for given [library].
-List<String> getNativeExtensionUris(Library library) {
-  final List<String> uris = <String>[];
-  for (Expression annotation in library.annotations) {
-    final String? value = _getExternalNameValue(annotation);
-    if (value != null) {
-      uris.add(value);
-    }
-  }
-  return uris;
-}
-
-String? _getExternalNameValue(Expression annotation) {
-  if (annotation is ConstructorInvocation) {
-    if (_isExternalName(annotation.target.enclosingClass)) {
-      return (annotation.arguments.positional.single as StringLiteral).value;
-    }
-  } else if (annotation is ConstantExpression) {
+String? _getExternalNameValue(CoreTypes coreTypes, Expression annotation) {
+  if (annotation is ConstantExpression) {
     final Constant constant = annotation.constant;
     if (constant is InstanceConstant) {
       if (_isExternalName(constant.classNode)) {
         return (constant.fieldValues.values.single as StringConstant).value;
+      } else if (_isPragma(constant.classNode)) {
+        final String pragmaName =
+            (constant.fieldValues[coreTypes.pragmaName.fieldReference]
+                    as StringConstant)
+                .value;
+        final Constant? pragmaOptionsValue =
+            constant.fieldValues[coreTypes.pragmaOptions.fieldReference];
+        final String? pragmaOptions = pragmaOptionsValue is StringConstant
+            ? pragmaOptionsValue.value
+            : null;
+        if (pragmaName == _externalNamePragma && pragmaOptions != null) {
+          return pragmaOptions;
+        }
       }
     }
   }
@@ -59,3 +64,9 @@ String? _getExternalNameValue(Expression annotation) {
 bool _isExternalName(Class klass) =>
     klass.name == 'ExternalName' &&
     klass.enclosingLibrary.importUri.toString() == 'dart:_internal';
+
+bool _isPragma(Class klass) =>
+    klass.name == 'pragma' &&
+    klass.enclosingLibrary.importUri.toString() == 'dart:core';
+
+const String _externalNamePragma = 'vm:external-name';

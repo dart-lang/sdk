@@ -46,12 +46,14 @@ void checkElementText(
   LibraryElement library,
   String expected, {
   bool withCodeRanges = false,
+  bool withDisplayName = false,
   bool withExportScope = false,
   bool withNonSynthetic = false,
 }) {
   var writer = _ElementWriter(
     selfUriStr: '${library.source.uri}',
     withCodeRanges: withCodeRanges,
+    withDisplayName: withDisplayName,
     withExportScope: withExportScope,
     withNonSynthetic: withNonSynthetic,
   );
@@ -116,6 +118,7 @@ void checkElementText(
 class _ElementWriter {
   final String? selfUriStr;
   final bool withCodeRanges;
+  final bool withDisplayName;
   final bool withExportScope;
   final bool withNonSynthetic;
   final StringBuffer buffer = StringBuffer();
@@ -125,6 +128,7 @@ class _ElementWriter {
   _ElementWriter({
     this.selfUriStr,
     required this.withCodeRanges,
+    required this.withDisplayName,
     required this.withExportScope,
     required this.withNonSynthetic,
   });
@@ -361,10 +365,10 @@ class _ElementWriter {
     });
 
     _withIndent(() {
-      _writeMacro(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);
+      _writeDisplayName(e);
 
       var periodOffset = e.periodOffset;
       var nameEnd = e.nameEnd;
@@ -396,14 +400,23 @@ class _ElementWriter {
       expect(e.nameOffset, -1);
       expect(e.nonSynthetic, same(e.enclosingElement));
     } else {
-      expect(e.nameOffset, isNonNegative);
+      expect(e.nameOffset, isPositive);
+    }
+  }
+
+  void _writeDisplayName(Element e) {
+    if (withDisplayName) {
+      _writelnWithIndent('displayName: ${e.displayName}');
     }
   }
 
   void _writeDocumentation(Element element) {
     var documentation = element.documentationComment;
     if (documentation != null) {
-      _writelnMultiLineWithIndent('documentationComment: $documentation');
+      var str = documentation;
+      str = str.replaceAll('\n', r'\n');
+      str = str.replaceAll('\r', r'\r');
+      _writelnWithIndent('documentationComment: $str');
     }
   }
 
@@ -519,28 +532,9 @@ class _ElementWriter {
     buffer.writeln();
   }
 
-  void _writelnMultiLineWithIndent(String str) {
-    str = str.replaceAll('\n', r'\n');
-    str = str.replaceAll('\r', r'\r');
-    _writelnWithIndent(str);
-  }
-
   void _writelnWithIndent(String line) {
     buffer.write(indent);
     buffer.writeln(line);
-  }
-
-  void _writeMacro(Element e) {
-    if (e is HasMacroGenerationData) {
-      var macro = (e as HasMacroGenerationData).macro;
-      if (macro != null) {
-        _writelnWithIndent('macro');
-        _withIndent(() {
-          _writelnWithIndent('id: ${macro.id}');
-          _writelnMultiLineWithIndent('code: ${macro.code}');
-        });
-      }
-    }
   }
 
   void _writeMetadata(Element element) {
@@ -568,7 +562,6 @@ class _ElementWriter {
     });
 
     _withIndent(() {
-      _writeMacro(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);
@@ -589,7 +582,8 @@ class _ElementWriter {
   }
 
   void _writeName(Element e) {
-    var name = e.displayName;
+    // TODO(scheglov) Use 'name' everywhere.
+    var name = e is ConstructorElement ? e.name : e.displayName;
     buffer.write(name);
     buffer.write(name.isNotEmpty ? ' @' : '@');
     buffer.write(e.nameOffset);
@@ -663,8 +657,6 @@ class _ElementWriter {
   }
 
   void _writePropertyAccessorElement(PropertyAccessorElement e) {
-    e as PropertyAccessorElementImpl;
-
     PropertyInducingElement variable = e.variable;
     expect(variable, isNotNull);
 
@@ -711,7 +703,6 @@ class _ElementWriter {
     });
 
     _withIndent(() {
-      _writeMacro(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);
@@ -807,18 +798,16 @@ class _ElementWriter {
       // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
       // TODO(scheglov) Remove it when we stop providing it everywhere.
       if (aliasedType is FunctionType) {
-        // ignore: deprecated_member_use_from_same_package
         expect(aliasedType.element, isNull);
       }
 
       var aliasedElement = e.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
-        final aliasedElement_ = aliasedElement as GenericFunctionTypeElement;
+      if (aliasedElement is GenericFunctionTypeElementImpl) {
         _writelnWithIndent('aliasedElement: GenericFunctionTypeElement');
         _withIndent(() {
-          _writeTypeParameterElements(aliasedElement_.typeParameters);
-          _writeParameterElements(aliasedElement_.parameters);
-          _writeType(aliasedElement_.returnType, name: 'returnType');
+          _writeTypeParameterElements(aliasedElement.typeParameters);
+          _writeParameterElements(aliasedElement.parameters);
+          _writeType(aliasedElement.returnType, name: 'returnType');
         });
       }
     });

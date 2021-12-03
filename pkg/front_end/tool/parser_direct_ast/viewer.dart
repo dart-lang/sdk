@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import "dart:io" show File, Platform;
 import "dart:typed_data" show Uint8List;
 
@@ -35,9 +33,9 @@ void main(List<String> args) {
 
 class PrintedLine {
   final String text;
-  final DirectParserASTContent ast;
-  final List<PrintedLine> parentShown;
-  final int selected;
+  final DirectParserASTContent? ast;
+  final List<PrintedLine>? parentShown;
+  final int? selected;
 
   PrintedLine.parent(this.parentShown, this.selected)
       : text = "..",
@@ -52,7 +50,7 @@ class PrintedLine {
 }
 
 class AstWidget extends Widget {
-  List<PrintedLine> shown;
+  late List<PrintedLine> shown;
   int selected = 0;
 
   AstWidget(DirectParserASTContent ast) {
@@ -75,7 +73,7 @@ class AstWidget extends Widget {
     }
     String extra = " ";
     if (element.children != null) {
-      extra += element.children.first.deprecatedArguments.toString();
+      extra += element.children!.first.deprecatedArguments.toString();
     }
     return "${indent ? "  " : ""}"
         "${header}${element.what} "
@@ -112,11 +110,11 @@ class AstWidget extends Widget {
     // Enter selected line.
     PrintedLine selectedElement = shown[selected];
     if (selectedElement.parentShown != null) {
-      shown = selectedElement.parentShown;
-      selected = selectedElement.selected;
+      shown = selectedElement.parentShown!;
+      selected = selectedElement.selected!;
     } else {
       shown = [new PrintedLine.parent(shown, selected)];
-      List<DirectParserASTContent> children = selectedElement.ast.children;
+      List<DirectParserASTContent>? children = selectedElement.ast!.children;
       if (children != null) {
         for (int i = 0; i < children.length; i++) {
           shown.add(new PrintedLine.ast(
@@ -124,7 +122,7 @@ class AstWidget extends Widget {
         }
       }
       shown.add(new PrintedLine.parentWithText(shown,
-          textualize(selectedElement.ast, withEndHeader: true), shown.length));
+          textualize(selectedElement.ast!, withEndHeader: true), shown.length));
       selected = 0;
     }
   }
@@ -160,7 +158,7 @@ class AstWidget extends Widget {
 }
 
 class StatusBarWidget extends Widget {
-  List<int> latestInput;
+  List<int>? latestInput;
 
   @override
   void print(WriteOnlyOutput output) {

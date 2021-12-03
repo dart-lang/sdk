@@ -17,8 +17,7 @@ void main() {
   });
 }
 
-class AbstractOutlineComputerTest extends AbstractContextTest
-    with WithNonFunctionTypeAliasesMixin {
+class AbstractOutlineComputerTest extends AbstractContextTest {
   late String testPath;
   late String testCode;
 

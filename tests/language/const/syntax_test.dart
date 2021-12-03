@@ -45,6 +45,8 @@ main() {
   //                                       ^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] New expression is not a constant expression.
+  //                                           ^
+  // [cfe] New expression is not a constant expression.
 
   var f4 = B4;
   var f5 = B5;
@@ -60,7 +62,6 @@ const int F3;
 //        ^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_NOT_INITIALIZED
 // [cfe] Field 'F3' should be initialized because its type 'int' doesn't allow null.
-//        ^
 // [cfe] The const variable 'F3' must be initialized.
 //          ^
 // [cfe] The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.
@@ -83,9 +84,13 @@ const P2 = new Point(0, 0);
 //         ^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 // [cfe] New expression is not a constant expression.
+//             ^
+// [cfe] New expression is not a constant expression.
 const P3 = new Point(0, 0) + 1;
 //         ^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [cfe] New expression is not a constant expression.
+//             ^
 // [cfe] New expression is not a constant expression.
 
 // Check that we cannot have cyclic references in compile time
@@ -115,8 +120,8 @@ class C1 {
       // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
       //  ^
       // [cfe] 'x' is a final instance variable that was initialized at the declaration.
-      //  ^
       // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
+      // [cfe] Not a constant expression.
   ;
   final x = null;
 }
@@ -137,5 +142,7 @@ const B3 = B0 + B1;
 const B4 = identical(1, new Point(1, 2));
 //                      ^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [cfe] New expression is not a constant expression.
+//                          ^
 // [cfe] New expression is not a constant expression.
 const B5 = identical(1, const Point(1, 2));

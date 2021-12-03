@@ -54,36 +54,36 @@ static method main() → dynamic {
 }
 static method test(self::Class? c) → dynamic {
   let final self::Class? #t1 = c in #t1 == null ?{core::int?} null : #t1{self::Class}.{self::Class::next}{self::Class}.{self::Class::field}{core::int};
-  self::throwsInStrong(() → void => let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:18:33: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+  self::throwsInStrong(() → void => invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:18:33: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
   throwsInStrong(() => c?.field + 2); // error
-                                ^" in (let final self::Class? #t3 = c in #t3 == null ?{core::int?} null : #t3{self::Class}.{self::Class::field}{core::int}).{core::num::+}(2){(core::num) → core::num});
-  let final self::Class? #t4 = c in #t4 == null ?{core::int?} null : let final core::int #t5 = #t4.{self::Class::field}{core::int}.{core::num::+}(1){(core::num) → core::int} in let final void #t6 = #t4.{self::Class::field} = #t5 in #t5;
-  let final self::Class? #t7 = c in #t7 == null ?{core::int?} null : #t7.{self::Class::field} = #t7.{self::Class::field}{core::int}.{core::num::+}(1){(core::num) → core::int};
-  self::throwsInStrong(() → void => let final Never #t8 = invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:21:34: Error: Property 'field' cannot be accessed on 'Class?' because it is potentially null.
+                                ^" in (let final self::Class? #t2 = c in #t2 == null ?{core::int?} null : #t2{self::Class}.{self::Class::field}{core::int}).{core::num::+}(2){(core::num) → core::num});
+  let final self::Class? #t3 = c in #t3 == null ?{core::int?} null : let final core::int #t4 = #t3.{self::Class::field}{core::int}.{core::num::+}(1){(core::num) → core::int} in let final void #t5 = #t3.{self::Class::field} = #t4 in #t4;
+  let final self::Class? #t6 = c in #t6 == null ?{core::int?} null : #t6.{self::Class::field} = #t6.{self::Class::field}{core::int}.{core::num::+}(1){(core::num) → core::int};
+  self::throwsInStrong(() → void => invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:21:34: Error: Property 'field' cannot be accessed on 'Class?' because it is potentially null.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/shorting_stop.dart'.
 Try accessing using ?. instead.
   throwsInStrong(() => (c?.next).field); // error
-                                 ^^^^^" in (let final self::Class? #t9 = c in #t9 == null ?{self::Class?} null : #t9{self::Class}.{self::Class::next}{self::Class}).{self::Class::field}{<nullable>}.{core::int});
-  self::throwsInStrong(() → void => let final Never #t10 = invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:22:24: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
+                                 ^^^^^" in (let final self::Class? #t7 = c in #t7 == null ?{self::Class?} null : #t7{self::Class}.{self::Class::next}{self::Class}).{self::Class::field}{<nullable>}.{core::int});
+  self::throwsInStrong(() → void => invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:22:24: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
   throwsInStrong(() => -c?.field); // error
-                       ^" in (let final self::Class? #t11 = c in #t11 == null ?{core::int?} null : #t11{self::Class}.{self::Class::field}{core::int}).{core::int::unary-}(){() → core::int});
-  let final self::Class? #t12 = c in #t12 == null ?{core::bool?} null : #t12{self::Class}.{self::Class::next}{self::Class}.{self::Class::[]}(0){(core::int) → core::int}.{core::int::isEven}{core::bool};
-  self::throwsInStrong(() → void => let final Never #t13 = invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:25:35: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+                       ^" in (let final self::Class? #t8 = c in #t8 == null ?{core::int?} null : #t8{self::Class}.{self::Class::field}{core::int}).{core::int::unary-}(){() → core::int});
+  let final self::Class? #t9 = c in #t9 == null ?{core::bool?} null : #t9{self::Class}.{self::Class::next}{self::Class}.{self::Class::[]}(0){(core::int) → core::int}.{core::int::isEven}{core::bool};
+  self::throwsInStrong(() → void => invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:25:35: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
   throwsInStrong(() => c?.next[0] + 2); // error
-                                  ^" in (let final self::Class? #t14 = c in #t14 == null ?{core::int?} null : #t14{self::Class}.{self::Class::next}{self::Class}.{self::Class::[]}(0){(core::int) → core::int}).{core::num::+}(2){(core::num) → core::num});
-  let final self::Class? #t15 = c in #t15 == null ?{core::int?} null : let final self::Class #t16 = #t15{self::Class}.{self::Class::next}{self::Class} in let final core::int #t17 = 0 in let final core::int #t18 = #t16.{self::Class::[]}(#t17){(core::int) → core::int}.{core::num::+}(1){(core::num) → core::int} in let final void #t19 = #t16.{self::Class::[]=}(#t17, #t18){(core::int, core::int) → void} in #t18;
-  let final self::Class? #t20 = c in #t20 == null ?{core::int?} null : let final self::Class #t21 = #t20{self::Class}.{self::Class::next}{self::Class} in let final core::int #t22 = 0 in #t21.{self::Class::[]=}(#t22, #t21.{self::Class::[]}(#t22){(core::int) → core::int}.{core::num::+}(1){(core::num) → core::int}){(core::int, core::int) → void};
-  self::throwsInStrong(() → void => let final Never #t23 = invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:28:37: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+                                  ^" in (let final self::Class? #t10 = c in #t10 == null ?{core::int?} null : #t10{self::Class}.{self::Class::next}{self::Class}.{self::Class::[]}(0){(core::int) → core::int}).{core::num::+}(2){(core::num) → core::num});
+  let final self::Class? #t11 = c in #t11 == null ?{core::int?} null : let final self::Class #t12 = #t11{self::Class}.{self::Class::next}{self::Class} in let final core::int #t13 = 0 in let final core::int #t14 = #t12.{self::Class::[]}(#t13){(core::int) → core::int}.{core::num::+}(1){(core::num) → core::int} in let final void #t15 = #t12.{self::Class::[]=}(#t13, #t14){(core::int, core::int) → void} in #t14;
+  let final self::Class? #t16 = c in #t16 == null ?{core::int?} null : let final self::Class #t17 = #t16{self::Class}.{self::Class::next}{self::Class} in let final core::int #t18 = 0 in #t17.{self::Class::[]=}(#t18, #t17.{self::Class::[]}(#t18){(core::int) → core::int}.{core::num::+}(1){(core::num) → core::int}){(core::int, core::int) → void};
+  self::throwsInStrong(() → void => invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:28:37: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
 Try accessing using ?. instead.
   throwsInStrong(() => (c?.next[0]).isEven); // error
-                                    ^^^^^^" in (let final self::Class? #t24 = c in #t24 == null ?{core::int?} null : #t24{self::Class}.{self::Class::next}{self::Class}.{self::Class::[]}(0){(core::int) → core::int}).{core::int::isEven}{<nullable>}.{core::bool});
-  self::throwsInStrong(() → void => let final Never #t25 = invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:29:24: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
+                                    ^^^^^^" in (let final self::Class? #t19 = c in #t19 == null ?{core::int?} null : #t19{self::Class}.{self::Class::next}{self::Class}.{self::Class::[]}(0){(core::int) → core::int}).{core::int::isEven}{<nullable>}.{core::bool});
+  self::throwsInStrong(() → void => invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:29:24: Error: Operator 'unary-' cannot be called on 'int?' because it is potentially null.
   throwsInStrong(() => -c?.next[0]); // error
-                       ^" in (let final self::Class? #t26 = c in #t26 == null ?{core::int?} null : #t26{self::Class}.{self::Class::next}{self::Class}.{self::Class::[]}(0){(core::int) → core::int}).{core::int::unary-}(){() → core::int});
+                       ^" in (let final self::Class? #t20 = c in #t20 == null ?{core::int?} null : #t20{self::Class}.{self::Class::next}{self::Class}.{self::Class::[]}(0){(core::int) → core::int}).{core::int::unary-}(){() → core::int});
 }
 static method _inStrongMode() → core::bool {
   (core::String?) → Null f = (core::String? s) → Null {
-    let final Never #t27 = invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:36:7: Error: Property 'length' cannot be accessed on 'String?' because it is potentially null.
+    invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:36:7: Error: Property 'length' cannot be accessed on 'String?' because it is potentially null.
 Try accessing using ?. instead.
     s.length; // This will be an invalid expression in strong mode.
       ^^^^^^" in s.{core::String::length}{<nullable>}.{core::int};

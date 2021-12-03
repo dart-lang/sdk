@@ -273,8 +273,8 @@ class ClassPropertyModel {
       var name = field.name.text;
       if (virtualAccessorNames.contains(name) ||
           fieldModel.isVirtual(field) ||
-          field.isCovariant ||
-          field.isGenericCovariantImpl) {
+          field.isCovariantByDeclaration ||
+          field.isCovariantByClass) {
         virtualFields[field] = js_ast.TemporaryId(js_ast.toJSIdentifier(name));
       }
     }

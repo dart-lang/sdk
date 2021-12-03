@@ -795,7 +795,8 @@ class DartObjectImplTest {
   void test_identical_intZero_doubleZero() {
     // Used in Flutter:
     // const bool kIsWeb = identical(0, 0.0);
-    _assertIdentical(_boolValue(true), _intValue(0), _doubleValue(0.0));
+    _assertIdentical(_boolValue(null), _intValue(0), _doubleValue(0.0));
+    _assertIdentical(_boolValue(null), _doubleValue(0.0), _intValue(0));
   }
 
   void test_identical_list_empty() {
@@ -1361,6 +1362,22 @@ class DartObjectImplTest {
     _assertLazyOr(_boolValue(true), _boolValue(true), _boolValue(true));
   }
 
+  void test_logicalShiftRight_knownInt_knownInt() {
+    _assertLogicalShiftRight(_intValue(16), _intValue(64), _intValue(2));
+  }
+
+  void test_logicalShiftRight_knownInt_unknownInt() {
+    _assertLogicalShiftRight(_intValue(null), _intValue(64), _intValue(null));
+  }
+
+  void test_logicalShiftRight_unknownInt_knownInt() {
+    _assertLogicalShiftRight(_intValue(null), _intValue(null), _intValue(2));
+  }
+
+  void test_logicalShiftRight_unknownInt_unknownInt() {
+    _assertLogicalShiftRight(_intValue(null), _intValue(null), _intValue(null));
+  }
+
   void test_minus_knownDouble_knownDouble() {
     _assertMinus(_doubleValue(1.0), _doubleValue(4.0), _doubleValue(3.0));
   }
@@ -1728,6 +1745,20 @@ class DartObjectImplTest {
     _assertTimes(_intValue(null), _intValue(null), _intValue(3));
   }
 
+  /// Assert that the result of executing [fn] is the [expected] value, or, if
+  /// [expected] is `null`, that the operation throws an exception .
+  void _assert(DartObjectImpl? expected, DartObjectImpl? Function() fn) {
+    if (expected == null) {
+      expect(() {
+        fn();
+      }, throwsEvaluationException);
+    } else {
+      var result = fn();
+      expect(result, isNotNull);
+      expect(result, expected);
+    }
+  }
+
   /// Assert that the result of adding the [left] and [right] operands is the
   /// [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
@@ -1993,6 +2024,14 @@ class DartObjectImplTest {
     }
   }
 
+  /// Assert that the result of bit-shifting the [left] operand by the [right]
+  /// operand number of bits is the [expected] value, or that the operation
+  /// throws an exception if the expected value is `null`.
+  void _assertLogicalShiftRight(
+      DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
+    _assert(expected, () => left.logicalShiftRight(_typeSystem, right));
+  }
+
   /// Assert that the result of subtracting the [left] and [right] operands is
   /// the [expected] value, or that the operation throws an exception if the
   /// expected value is `null`.
@@ -2059,15 +2098,7 @@ class DartObjectImplTest {
   /// exception if the expected value is `null`.
   void _assertRemainder(
       DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
-    if (expected == null) {
-      expect(() {
-        left.remainder(_typeSystem, right);
-      }, throwsEvaluationException);
-    } else {
-      DartObjectImpl result = left.remainder(_typeSystem, right);
-      expect(result, isNotNull);
-      expect(result, expected);
-    }
+    _assert(expected, () => left.remainder(_typeSystem, right));
   }
 
   /// Assert that the result of multiplying the [left] and [right] operands is
@@ -2075,15 +2106,7 @@ class DartObjectImplTest {
   /// expected value is `null`.
   void _assertShiftLeft(
       DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
-    if (expected == null) {
-      expect(() {
-        left.shiftLeft(_typeSystem, right);
-      }, throwsEvaluationException);
-    } else {
-      DartObjectImpl result = left.shiftLeft(_typeSystem, right);
-      expect(result, isNotNull);
-      expect(result, expected);
-    }
+    _assert(expected, () => left.shiftLeft(_typeSystem, right));
   }
 
   /// Assert that the result of multiplying the [left] and [right] operands is
@@ -2091,15 +2114,7 @@ class DartObjectImplTest {
   /// expected value is `null`.
   void _assertShiftRight(
       DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
-    if (expected == null) {
-      expect(() {
-        left.shiftRight(_typeSystem, right);
-      }, throwsEvaluationException);
-    } else {
-      DartObjectImpl result = left.shiftRight(_typeSystem, right);
-      expect(result, isNotNull);
-      expect(result, expected);
-    }
+    _assert(expected, () => left.shiftRight(_typeSystem, right));
   }
 
   /// Assert that the length of the [operand] is the [expected] value, or that
@@ -2121,15 +2136,7 @@ class DartObjectImplTest {
   /// expected value is `null`.
   void _assertTimes(
       DartObjectImpl? expected, DartObjectImpl left, DartObjectImpl right) {
-    if (expected == null) {
-      expect(() {
-        left.times(_typeSystem, right);
-      }, throwsEvaluationException);
-    } else {
-      DartObjectImpl result = left.times(_typeSystem, right);
-      expect(result, isNotNull);
-      expect(result, expected);
-    }
+    _assert(expected, () => left.times(_typeSystem, right));
   }
 
   DartObjectImpl _boolValue(bool? value) {

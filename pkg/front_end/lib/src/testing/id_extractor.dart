@@ -167,19 +167,19 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  defaultNode(Node node) {
+  void defaultNode(Node node) {
     node.visitChildren(this);
   }
 
   @override
-  visitProcedure(Procedure node) {
+  void visitProcedure(Procedure node) {
     // Avoid visiting annotations.
     node.function.accept(this);
     computeForMember(node);
   }
 
   @override
-  visitConstructor(Constructor node) {
+  void visitConstructor(Constructor node) {
     // Avoid visiting annotations.
     visitList(node.initializers, this);
     node.function.accept(this);
@@ -187,13 +187,13 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitField(Field node) {
+  void visitField(Field node) {
     // Avoid visiting annotations.
     node.initializer?.accept(this);
     computeForMember(node);
   }
 
-  _visitInvocation(Expression node, Name name) {
+  void _visitInvocation(Expression node, Name name) {
     if (name.text == '[]') {
       computeForNode(node, computeDefaultNodeId(node));
     } else if (name.text == '[]=') {
@@ -208,31 +208,31 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitDynamicInvocation(DynamicInvocation node) {
+  void visitDynamicInvocation(DynamicInvocation node) {
     _visitInvocation(node, node.name);
     super.visitDynamicInvocation(node);
   }
 
   @override
-  visitFunctionInvocation(FunctionInvocation node) {
+  void visitFunctionInvocation(FunctionInvocation node) {
     _visitInvocation(node, node.name);
     super.visitFunctionInvocation(node);
   }
 
   @override
-  visitLocalFunctionInvocation(LocalFunctionInvocation node) {
+  void visitLocalFunctionInvocation(LocalFunctionInvocation node) {
     computeForNode(node, createInvokeId(node));
     super.visitLocalFunctionInvocation(node);
   }
 
   @override
-  visitEqualsCall(EqualsCall node) {
+  void visitEqualsCall(EqualsCall node) {
     _visitInvocation(node, Name.equalsName);
     super.visitEqualsCall(node);
   }
 
   @override
-  visitEqualsNull(EqualsNull node) {
+  void visitEqualsNull(EqualsNull node) {
     Expression receiver = node.expression;
     if (receiver is VariableGet && receiver.variable.name == null) {
       // This is a desugared `?.`.
@@ -243,48 +243,48 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitInstanceInvocation(InstanceInvocation node) {
+  void visitInstanceInvocation(InstanceInvocation node) {
     _visitInvocation(node, node.name);
     super.visitInstanceInvocation(node);
   }
 
   @override
-  visitInstanceGetterInvocation(InstanceGetterInvocation node) {
+  void visitInstanceGetterInvocation(InstanceGetterInvocation node) {
     _visitInvocation(node, node.name);
     super.visitInstanceGetterInvocation(node);
   }
 
   @override
-  visitLoadLibrary(LoadLibrary node) {
+  void visitLoadLibrary(LoadLibrary node) {
     computeForNode(node, createInvokeId(node));
   }
 
   @override
-  visitDynamicGet(DynamicGet node) {
+  void visitDynamicGet(DynamicGet node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitDynamicGet(node);
   }
 
   @override
-  visitFunctionTearOff(FunctionTearOff node) {
+  void visitFunctionTearOff(FunctionTearOff node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitFunctionTearOff(node);
   }
 
   @override
-  visitInstanceGet(InstanceGet node) {
+  void visitInstanceGet(InstanceGet node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitInstanceGet(node);
   }
 
   @override
-  visitInstanceTearOff(InstanceTearOff node) {
+  void visitInstanceTearOff(InstanceTearOff node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitInstanceTearOff(node);
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     if (node.name != null && node.parent is! FunctionDeclaration) {
       // Skip synthetic variables and function declaration variables.
       computeForNode(node, computeDefaultNodeId(node));
@@ -294,7 +294,7 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     computeForNode(
         node,
         computeDefaultNodeId(node,
@@ -305,14 +305,14 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitFunctionExpression(node);
   }
 
   @override
-  visitVariableGet(VariableGet node) {
-    if (node.variable.name != null && !node.variable.isFieldFormal) {
+  void visitVariableGet(VariableGet node) {
+    if (node.variable.name != null && !node.variable.isInitializingFormal) {
       // Skip use of synthetic variables.
       computeForNode(node, computeDefaultNodeId(node));
     }
@@ -320,19 +320,19 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitDynamicSet(DynamicSet node) {
+  void visitDynamicSet(DynamicSet node) {
     computeForNode(node, createUpdateId(node));
     super.visitDynamicSet(node);
   }
 
   @override
-  visitInstanceSet(InstanceSet node) {
+  void visitInstanceSet(InstanceSet node) {
     computeForNode(node, createUpdateId(node));
     super.visitInstanceSet(node);
   }
 
   @override
-  visitVariableSet(VariableSet node) {
+  void visitVariableSet(VariableSet node) {
     if (node.variable.name != null) {
       // Skip use of synthetic variables.
       computeForNode(node, createUpdateId(node));
@@ -341,43 +341,43 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitExpressionStatement(ExpressionStatement node) {
+  void visitExpressionStatement(ExpressionStatement node) {
     computeForNode(node, createExpressionStatementId(node));
     return super.visitExpressionStatement(node);
   }
 
   @override
-  visitIfStatement(IfStatement node) {
+  void visitIfStatement(IfStatement node) {
     computeForNode(node, computeDefaultNodeId(node));
     return super.visitIfStatement(node);
   }
 
   @override
-  visitTryCatch(TryCatch node) {
+  void visitTryCatch(TryCatch node) {
     computeForNode(node, computeDefaultNodeId(node));
     return super.visitTryCatch(node);
   }
 
   @override
-  visitTryFinally(TryFinally node) {
+  void visitTryFinally(TryFinally node) {
     computeForNode(node, computeDefaultNodeId(node));
     return super.visitTryFinally(node);
   }
 
   @override
-  visitDoStatement(DoStatement node) {
+  void visitDoStatement(DoStatement node) {
     computeForNode(node, createLoopId(node));
     super.visitDoStatement(node);
   }
 
   @override
-  visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     computeForNode(node, createLoopId(node));
     super.visitForStatement(node);
   }
 
   @override
-  visitForInStatement(ForInStatement node) {
+  void visitForInStatement(ForInStatement node) {
     computeForNode(node, createLoopId(node));
     computeForNode(node, createIteratorId(node));
     computeForNode(node, createCurrentId(node));
@@ -386,32 +386,32 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitWhileStatement(WhileStatement node) {
+  void visitWhileStatement(WhileStatement node) {
     computeForNode(node, createLoopId(node));
     super.visitWhileStatement(node);
   }
 
   @override
-  visitLabeledStatement(LabeledStatement node) {
+  void visitLabeledStatement(LabeledStatement node) {
     // TODO(johnniwinther): Call computeForNode for label statements that are
     // not placeholders for loop and switch targets.
     super.visitLabeledStatement(node);
   }
 
   @override
-  visitBreakStatement(BreakStatement node) {
+  void visitBreakStatement(BreakStatement node) {
     computeForNode(node, createGotoId(node));
     super.visitBreakStatement(node);
   }
 
   @override
-  visitSwitchStatement(SwitchStatement node) {
+  void visitSwitchStatement(SwitchStatement node) {
     computeForNode(node, createSwitchId(node));
     super.visitSwitchStatement(node);
   }
 
   @override
-  visitSwitchCase(SwitchCase node) {
+  void visitSwitchCase(SwitchCase node) {
     if (node.expressionOffsets.isNotEmpty) {
       computeForNode(node, createSwitchCaseId(node));
     }
@@ -419,13 +419,13 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitContinueSwitchStatement(ContinueSwitchStatement node) {
+  void visitContinueSwitchStatement(ContinueSwitchStatement node) {
     computeForNode(node, createGotoId(node));
     super.visitContinueSwitchStatement(node);
   }
 
   @override
-  visitConstantExpression(ConstantExpression node) {
+  void visitConstantExpression(ConstantExpression node) {
     // Implicit constants (for instance omitted field initializers, implicit
     // default values) and synthetic constants (for instance in noSuchMethod
     // forwarders) have no offset.
@@ -435,7 +435,7 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitNullLiteral(NullLiteral node) {
+  void visitNullLiteral(NullLiteral node) {
     // Synthetic null literals, for instance in locals and fields without
     // initializers, have no offset.
     computeForNode(
@@ -444,13 +444,13 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitBoolLiteral(BoolLiteral node) {
+  void visitBoolLiteral(BoolLiteral node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitBoolLiteral(node);
   }
 
   @override
-  visitIntLiteral(IntLiteral node) {
+  void visitIntLiteral(IntLiteral node) {
     // Synthetic ints literals, for instance in enum fields, have no offset.
     computeForNode(
         node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
@@ -458,13 +458,13 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitDoubleLiteral(DoubleLiteral node) {
+  void visitDoubleLiteral(DoubleLiteral node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitDoubleLiteral(node);
   }
 
   @override
-  visitStringLiteral(StringLiteral node) {
+  void visitStringLiteral(StringLiteral node) {
     // Synthetic string literals, for instance in enum fields, have no offset.
     computeForNode(
         node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
@@ -472,7 +472,7 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitListLiteral(ListLiteral node) {
+  void visitListLiteral(ListLiteral node) {
     // Synthetic list literals,for instance in noSuchMethod forwarders, have no
     // offset.
     computeForNode(
@@ -481,7 +481,7 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitMapLiteral(MapLiteral node) {
+  void visitMapLiteral(MapLiteral node) {
     // Synthetic map literals, for instance in noSuchMethod forwarders, have no
     // offset.
     computeForNode(
@@ -490,13 +490,13 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitSetLiteral(SetLiteral node) {
+  void visitSetLiteral(SetLiteral node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitSetLiteral(node);
   }
 
   @override
-  visitThisExpression(ThisExpression node) {
+  void visitThisExpression(ThisExpression node) {
     TreeNode parent = node.parent!;
     if (node.fileOffset == TreeNode.noOffset ||
         (parent is InstanceGet ||
@@ -511,13 +511,13 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitAwaitExpression(AwaitExpression node) {
+  void visitAwaitExpression(AwaitExpression node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitAwaitExpression(node);
   }
 
   @override
-  visitConstructorInvocation(ConstructorInvocation node) {
+  void visitConstructorInvocation(ConstructorInvocation node) {
     // Skip synthetic constructor invocations like for enum constants.
     // TODO(johnniwinther): Can [skipNodeWithNoOffset] be removed when dart2js
     // no longer test with cfe constants?
@@ -527,43 +527,43 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitStaticGet(StaticGet node) {
+  void visitStaticGet(StaticGet node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitStaticGet(node);
   }
 
   @override
-  visitStaticTearOff(StaticTearOff node) {
+  void visitStaticTearOff(StaticTearOff node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitStaticTearOff(node);
   }
 
   @override
-  visitStaticSet(StaticSet node) {
+  void visitStaticSet(StaticSet node) {
     computeForNode(node, createUpdateId(node));
     super.visitStaticSet(node);
   }
 
   @override
-  visitStaticInvocation(StaticInvocation node) {
+  void visitStaticInvocation(StaticInvocation node) {
     computeForNode(node, createInvokeId(node));
     super.visitStaticInvocation(node);
   }
 
   @override
-  visitThrow(Throw node) {
+  void visitThrow(Throw node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitThrow(node);
   }
 
   @override
-  visitRethrow(Rethrow node) {
+  void visitRethrow(Rethrow node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitRethrow(node);
   }
 
   @override
-  visitAsExpression(AsExpression node) {
+  void visitAsExpression(AsExpression node) {
     if (node.isTypeError) {
       computeForNode(node, createImplicitAsId(node));
     } else {
@@ -573,34 +573,37 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitArguments(Arguments node) {
+  void visitArguments(Arguments node) {
     computeForNode(
         node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
     return super.visitArguments(node);
   }
 
   @override
-  visitBlock(Block node) {
+  void visitBlock(Block node) {
     computeForNode(
         node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
     return super.visitBlock(node);
   }
 
   @override
-  visitConditionalExpression(ConditionalExpression node) {
+  void visitConditionalExpression(ConditionalExpression node) {
     computeForNode(node, computeDefaultNodeId(node));
     return super.visitConditionalExpression(node);
   }
 
   @override
-  visitLogicalExpression(LogicalExpression node) {
+  void visitLogicalExpression(LogicalExpression node) {
     computeForNode(node, computeDefaultNodeId(node));
     return super.visitLogicalExpression(node);
   }
 
   @override
-  visitInvalidExpression(InvalidExpression node) {
-    computeForNode(node, computeDefaultNodeId(node));
+  void visitInvalidExpression(InvalidExpression node) {
+    // Invalid expressions produced in the constant evaluator don't have a
+    // file offset.
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
     return super.visitInvalidExpression(node);
   }
 }

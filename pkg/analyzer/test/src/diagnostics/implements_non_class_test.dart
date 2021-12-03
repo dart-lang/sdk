@@ -10,13 +10,23 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImplementsNonClassTest);
-    defineReflectiveTests(ImplementsNonClassWithNullSafetyTest);
+    defineReflectiveTests(ImplementsNonClassWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ImplementsNonClassTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with ImplementsNonClassTestCases {
+  test_Never() async {
+    await assertErrorsInCode('''
+class A implements Never {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 5),
+    ]);
+  }
+}
+
+mixin ImplementsNonClassTestCases on PubPackageResolutionTest {
   test_class() async {
     await assertErrorsInCode(r'''
 int A = 7;
@@ -56,13 +66,5 @@ class C = A with M implements B;
 }
 
 @reflectiveTest
-class ImplementsNonClassWithNullSafetyTest extends ImplementsNonClassTest
-    with WithNullSafetyMixin {
-  test_Never() async {
-    await assertErrorsInCode('''
-class A implements Never {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 5),
-    ]);
-  }
-}
+class ImplementsNonClassWithoutNullSafetyTest extends PubPackageResolutionTest
+    with ImplementsNonClassTestCases, WithoutNullSafetyMixin {}

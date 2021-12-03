@@ -27,6 +27,7 @@ class HybridFileSystem implements FileSystem {
 /// Entity that delegates to an underlying memory or physical file system
 /// entity.
 class HybridFileSystemEntity implements FileSystemEntity {
+  @override
   final Uri uri;
   FileSystemEntity? _delegate;
   final HybridFileSystem _fs;

@@ -1,6 +1,6 @@
 # Garbage Collection
 
-The Dart VM has a generational garbage collector with two generations. The new generation is collected by a parallel, stop-the-world semispace [scavenger](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/scavenger.h). The old generation is collected by concurrent-[mark](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/marker.h)-concurrent-[sweep](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/sweeper.h) or by concurrent-mark-parallel-[compact](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/compactor.h).
+The Dart VM has a generational garbage collector with two generations. The new generation is collected by a parallel, stop-the-world semispace [scavenger](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/scavenger.h). The old generation is collected by concurrent-[mark](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/marker.h)-concurrent-[sweep](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/sweeper.h) or by concurrent-mark-parallel-[compact](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/compactor.h).
 
 ## Object representation
 
@@ -37,7 +37,7 @@ The VM does not know which stack slots, globals or object fields in foreign lang
 
 Any non-GC thread or task that can allocate, read or write to the heap is called a "mutator" (because it can mutate the object graph).
 
-Some phases of GC require that the heap is not being used by a mutator; we call these "[safepoint](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/safepoint.h) operations". Examples of safepoint operations include marking roots at the beginning of concurrent marking and the entirety of a scavenge.
+Some phases of GC require that the heap is not being used by a mutator; we call these "[safepoint](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/safepoint.h) operations". Examples of safepoint operations include marking roots at the beginning of concurrent marking and the entirety of a scavenge.
 
 To perform these operations, all mutators need to temporarily stop accessing the heap; we say that these mutators have reached a "safepoint". A mutator that has reached a safepoint will not resume accessing the heap (leave the safepoint) until the safepoint operation is complete. In addition to not accessing the heap, a mutator at a safepoint must not hold any pointers into the heap unless these pointers can be visited by the GC. For code in the VM runtime, this last property means holding only handles and no ObjectPtr nor UntaggedObject. Examples of places that might enter a safepoint include allocations, stack overflow checks, and transitions between compiled code and the runtime and native code.
 
@@ -59,7 +59,7 @@ All objects have a bit in their header called the mark bit. At the start of a co
 
 During the marking phase, the collector visits each of the root pointers. If the target object is an old-space object and its mark bit is clear, the mark bit is set and the target added to the marking stack (grey set). The collector then removes and visits objects in the marking stack, marking more old-space objects and adding them to the marking stack, until the marking stack is empty. At this point, all reachable objects have their mark bits set and all unreachable objects have their mark bits clear.
 
-During the sweeping phase, the collector visits each old-space object. If the mark bit is clear, the object's memory is added to a [free list](https://github.com/dart-lang/sdk/blob/master/runtime/vm/heap/freelist.h) to be used for future allocations. Otherwise the object's mark bit is cleared. If every object on some page is unreachable, the page is released to the OS.
+During the sweeping phase, the collector visits each old-space object. If the mark bit is clear, the object's memory is added to a [free list](https://github.com/dart-lang/sdk/blob/main/runtime/vm/heap/freelist.h) to be used for future allocations. Otherwise the object's mark bit is cleared. If every object on some page is unreachable, the page is released to the OS.
 
 ### New-Space as Roots
 
@@ -154,7 +154,7 @@ Operations on headers and slots use [relaxed ordering](https://en.cppreference.c
 
 The concurrent marker starts with an acquire-release operation, so all writes by the mutator up to the time that marking starts are visible to the marker.
 
-For old-space objects created before marking started, in each slot the marker can see either its value at the time marking started or any subsequent value sorted in the slot. Any slot that contained a pointer continues to continue a valid pointer for the object's lifetime, so no matter which value the marker sees, it won't interpret a non-pointer as a pointer. (The one interesting case here is array truncation, where some slot in the array will become the header of a filler object. We ensure this is safe for concurrent marking by ensuring the header for the filler object looks like a Smi.) If the marker sees an old value, we may lose some precision and retain a dead object, but we remain correct because the new value has been marked by the mutator.
+For old-space objects created before marking started, in each slot the marker can see either its value at the time marking started or any subsequent value sorted in the slot. Any slot that contained a pointer continues to contain a valid pointer for the object's lifetime, so no matter which value the marker sees, it won't interpret a non-pointer as a pointer. (The one interesting case here is array truncation, where some slot in the array will become the header of a filler object. We ensure this is safe for concurrent marking by ensuring the header for the filler object looks like a Smi.) If the marker sees an old value, we may lose some precision and retain a dead object, but we remain correct because the new value has been marked by the mutator.
 
 For old-space objects created after marking started, the marker may see uninitialized values because operations on slots are not synchronized. To prevent this, during marking we allocate old-space objects [black (marked)](https://en.wikipedia.org/wiki/Tracing_garbage_collection#TRI-COLOR) so the marker will not visit them.
 

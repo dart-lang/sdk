@@ -1164,12 +1164,20 @@ static method test() → dynamic {
  - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateInstanceFieldAndStaticSetter1'.
   c.duplicateInstanceFieldAndStaticSetter1 =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.duplicateInstanceFieldAndStaticSetter1 = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:189:9: Error: The getter 'duplicateInstanceFieldAndStaticSetter1' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'duplicateInstanceFieldAndStaticSetter1'.
+      c.duplicateInstanceFieldAndStaticSetter1;
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.duplicateInstanceFieldAndStaticSetter1;
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:190:5: Error: The setter 'duplicateInstanceFieldAndStaticSetter2' isn't defined for the class 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateInstanceFieldAndStaticSetter2'.
   c.duplicateInstanceFieldAndStaticSetter2 =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.duplicateInstanceFieldAndStaticSetter2 = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:191:9: Error: The getter 'duplicateInstanceFieldAndStaticSetter2' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'duplicateInstanceFieldAndStaticSetter2'.
+      c.duplicateInstanceFieldAndStaticSetter2;
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.duplicateInstanceFieldAndStaticSetter2;
   self::Class::staticFieldAndSetter = self::Class::staticFieldAndSetter;
   self::Class::staticFieldAndDuplicateSetter = self::Class::staticFieldAndDuplicateSetter;
   self::Class::staticLateFinalFieldAndSetter = self::Class::staticLateFinalFieldAndSetter;
@@ -1184,13 +1192,13 @@ Try correcting the name to the name of an existing setter, or defining a setter 
  - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'staticFieldAndInstanceSetter'.
   c.staticFieldAndInstanceSetter = Class.staticFieldAndInstanceSetter;
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.staticFieldAndInstanceSetter = self::Class::staticFieldAndInstanceSetter;
   self::Class::staticFieldAndInstanceSetter = self::Class::staticFieldAndInstanceSetter;
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:204:5: Error: The setter 'staticFieldAndInstanceDuplicateSetter' isn't defined for the class 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'staticFieldAndInstanceDuplicateSetter'.
   c.staticFieldAndInstanceDuplicateSetter =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.staticFieldAndInstanceDuplicateSetter = self::Class::staticFieldAndInstanceDuplicateSetter;
   self::Class::staticFieldAndInstanceDuplicateSetter = self::Class::staticFieldAndInstanceDuplicateSetter;
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:209:9: Error: Setter not found: 'instanceFieldAndStaticSetter'.
   Class.instanceFieldAndStaticSetter = c.instanceFieldAndStaticSetter;
@@ -1204,7 +1212,9 @@ Try correcting the name to the name of an existing setter, or defining a setter 
  - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateStaticFieldAndInstanceSetter1'.
   c.duplicateStaticFieldAndInstanceSetter1 =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.duplicateStaticFieldAndInstanceSetter1 = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:218:13: Error: Can't use 'duplicateStaticFieldAndInstanceSetter1' because it is declared more than once.
+      Class.duplicateStaticFieldAndInstanceSetter1;
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:219:48: Error: Can't assign to this.
   Class.duplicateStaticFieldAndInstanceSetter1 =
                                                ^";
@@ -1212,7 +1222,9 @@ Try correcting the name to the name of an existing setter, or defining a setter 
  - 'Class' is from 'pkg/front_end/testcases/nnbd/field_vs_setter.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateStaticFieldAndInstanceSetter2'.
   c.duplicateStaticFieldAndInstanceSetter2 =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.duplicateStaticFieldAndInstanceSetter2 = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:223:13: Error: Can't use 'duplicateStaticFieldAndInstanceSetter2' because it is declared more than once.
+      Class.duplicateStaticFieldAndInstanceSetter2;
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:224:48: Error: Can't assign to this.
   Class.duplicateStaticFieldAndInstanceSetter2 =
                                                ^";
@@ -1225,19 +1237,31 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:232:5: Error: The setter 'extensionInstanceFieldAndSetter' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'extensionInstanceFieldAndSetter'.
   0.extensionInstanceFieldAndSetter = 0.extensionInstanceFieldAndSetter;
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.extensionInstanceFieldAndSetter = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:232:41: Error: The getter 'extensionInstanceFieldAndSetter' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'extensionInstanceFieldAndSetter'.
+  0.extensionInstanceFieldAndSetter = 0.extensionInstanceFieldAndSetter;
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.extensionInstanceFieldAndSetter;
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:233:5: Error: The setter 'extensionInstanceFieldAndDuplicateSetter' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'extensionInstanceFieldAndDuplicateSetter'.
   0.extensionInstanceFieldAndDuplicateSetter =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.extensionInstanceFieldAndDuplicateSetter = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:234:9: Error: The getter 'extensionInstanceFieldAndDuplicateSetter' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'extensionInstanceFieldAndDuplicateSetter'.
+      0.extensionInstanceFieldAndDuplicateSetter;
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.extensionInstanceFieldAndDuplicateSetter;
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:236:5: Error: The setter 'duplicateExtensionInstanceFieldAndSetter1' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateExtensionInstanceFieldAndSetter1'.
   0.duplicateExtensionInstanceFieldAndSetter1 =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.duplicateExtensionInstanceFieldAndSetter1 = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:237:9: Error: The getter 'duplicateExtensionInstanceFieldAndSetter1' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'duplicateExtensionInstanceFieldAndSetter1'.
+      0.duplicateExtensionInstanceFieldAndSetter1;
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.duplicateExtensionInstanceFieldAndSetter1;
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:238:5: Error: The setter 'duplicateExtensionInstanceFieldAndSetter2' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateExtensionInstanceFieldAndSetter2'.
   0.duplicateExtensionInstanceFieldAndSetter2 =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.duplicateExtensionInstanceFieldAndSetter2 = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:239:9: Error: The getter 'duplicateExtensionInstanceFieldAndSetter2' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'duplicateExtensionInstanceFieldAndSetter2'.
+      0.duplicateExtensionInstanceFieldAndSetter2;
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.duplicateExtensionInstanceFieldAndSetter2;
   self::Extension|extensionStaticFieldAndSetter = self::Extension|extensionStaticFieldAndSetter;
   self::Extension|extensionStaticFieldAndDuplicateSetter = self::Extension|extensionStaticFieldAndDuplicateSetter;
   self::Extension|extensionStaticLateFinalFieldAndSetter = self::Extension|extensionStaticLateFinalFieldAndSetter;
@@ -1251,12 +1275,12 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:257:5: Error: The setter 'extensionStaticFieldAndInstanceSetter' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'extensionStaticFieldAndInstanceSetter'.
   0.extensionStaticFieldAndInstanceSetter =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.extensionStaticFieldAndInstanceSetter = self::Extension|extensionStaticFieldAndInstanceSetter;
   self::Extension|extensionStaticFieldAndInstanceSetter = self::Extension|extensionStaticFieldAndInstanceSetter;
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:262:5: Error: The setter 'extensionStaticFieldAndInstanceDuplicateSetter' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'extensionStaticFieldAndInstanceDuplicateSetter'.
   0.extensionStaticFieldAndInstanceDuplicateSetter =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.extensionStaticFieldAndInstanceDuplicateSetter = self::Extension|extensionStaticFieldAndInstanceDuplicateSetter;
   self::Extension|extensionStaticFieldAndInstanceDuplicateSetter = self::Extension|extensionStaticFieldAndInstanceDuplicateSetter;
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:267:13: Error: Setter not found: 'extensionInstanceFieldAndStaticSetter'.
   Extension.extensionInstanceFieldAndStaticSetter =
@@ -1264,42 +1288,58 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:269:5: Error: The setter 'extensionInstanceFieldAndStaticSetter' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'extensionInstanceFieldAndStaticSetter'.
   0.extensionInstanceFieldAndStaticSetter =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.extensionInstanceFieldAndStaticSetter = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:270:9: Error: The getter 'extensionInstanceFieldAndStaticSetter' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'extensionInstanceFieldAndStaticSetter'.
+      0.extensionInstanceFieldAndStaticSetter;
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.extensionInstanceFieldAndStaticSetter;
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:272:60: Error: Can't assign to this.
   Extension.extensionInstanceFieldAndStaticDuplicateSetter =
                                                            ^";
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:274:5: Error: The setter 'extensionInstanceFieldAndStaticDuplicateSetter' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'extensionInstanceFieldAndStaticDuplicateSetter'.
   0.extensionInstanceFieldAndStaticDuplicateSetter =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.extensionInstanceFieldAndStaticDuplicateSetter = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:275:9: Error: The getter 'extensionInstanceFieldAndStaticDuplicateSetter' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'extensionInstanceFieldAndStaticDuplicateSetter'.
+      0.extensionInstanceFieldAndStaticDuplicateSetter;
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.extensionInstanceFieldAndStaticDuplicateSetter;
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:277:61: Error: Can't assign to this.
   Extension.duplicateExtensionInstanceFieldAndStaticSetter1 =
                                                             ^";
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:279:5: Error: The setter 'duplicateExtensionInstanceFieldAndStaticSetter1' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateExtensionInstanceFieldAndStaticSetter1'.
   0.duplicateExtensionInstanceFieldAndStaticSetter1 =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.duplicateExtensionInstanceFieldAndStaticSetter1 = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:280:9: Error: The getter 'duplicateExtensionInstanceFieldAndStaticSetter1' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'duplicateExtensionInstanceFieldAndStaticSetter1'.
+      0.duplicateExtensionInstanceFieldAndStaticSetter1;
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.duplicateExtensionInstanceFieldAndStaticSetter1;
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:282:61: Error: Can't assign to this.
   Extension.duplicateExtensionInstanceFieldAndStaticSetter2 =
                                                             ^";
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:284:5: Error: The setter 'duplicateExtensionInstanceFieldAndStaticSetter2' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateExtensionInstanceFieldAndStaticSetter2'.
   0.duplicateExtensionInstanceFieldAndStaticSetter2 =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.duplicateExtensionInstanceFieldAndStaticSetter2 = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:285:9: Error: The getter 'duplicateExtensionInstanceFieldAndStaticSetter2' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'duplicateExtensionInstanceFieldAndStaticSetter2'.
+      0.duplicateExtensionInstanceFieldAndStaticSetter2;
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.duplicateExtensionInstanceFieldAndStaticSetter2;
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:287:61: Error: Can't assign to this.
   Extension.duplicateExtensionStaticFieldAndInstanceSetter1 =
                                                             ^";
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:289:5: Error: The setter 'duplicateExtensionStaticFieldAndInstanceSetter1' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateExtensionStaticFieldAndInstanceSetter1'.
   0.duplicateExtensionStaticFieldAndInstanceSetter1 =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.duplicateExtensionStaticFieldAndInstanceSetter1 = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:290:17: Error: Can't use 'duplicateExtensionStaticFieldAndInstanceSetter1' because it is declared more than once.
+      Extension.duplicateExtensionStaticFieldAndInstanceSetter1;
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:292:61: Error: Can't assign to this.
   Extension.duplicateExtensionStaticFieldAndInstanceSetter2 =
                                                             ^";
   invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:294:5: Error: The setter 'duplicateExtensionStaticFieldAndInstanceSetter2' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'duplicateExtensionStaticFieldAndInstanceSetter2'.
   0.duplicateExtensionStaticFieldAndInstanceSetter2 =
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.duplicateExtensionStaticFieldAndInstanceSetter2 = invalid-expression "pkg/front_end/testcases/nnbd/field_vs_setter.dart:295:17: Error: Can't use 'duplicateExtensionStaticFieldAndInstanceSetter2' because it is declared more than once.
+      Extension.duplicateExtensionStaticFieldAndInstanceSetter2;
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
 }
 static method main() → dynamic {}
 

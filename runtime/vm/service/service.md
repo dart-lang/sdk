@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.49
+# Dart VM Service Protocol 3.52
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.49_ of the Dart VM Service Protocol. This
+This document describes of _version 3.52_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -40,6 +40,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [evaluateInFrame](#evaluateinframe)
   - [getAllocationProfile](#getallocationprofile)
   - [getAllocationTraces](#getallocationtraces)
+  - [getClassList](#getclasslist)
   - [getCpuSamples](#getcpusamples)
   - [getFlagList](#getflaglist)
   - [getInstances](#getinstances)
@@ -61,6 +62,8 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getVMTimelineFlags](#getvmtimelineflags)
   - [getVMTimelineMicros](#getvmtimelinemicros)
   - [invoke](#invoke)
+  - [lookupResolvedPackageUris](#lookupresolvedpackageuris)
+  - [lookupPackageUris](#lookuppackageuris)
   - [pause](#pause)
   - [kill](#kill)
   - [registerService](#registerService)
@@ -141,7 +144,8 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Timestamp](#timestamp)
   - [TypeArguments](#typearguments)
   - [TypeParameters](#typeparameters)[
-  - [UresolvedSourceLocation](#unresolvedsourcelocation)
+  - [UnresolvedSourceLocation](#unresolvedsourcelocation)
+  - [UriList](#urilist)
   - [Version](#version)
   - [VM](#vm)
   - [WebSocketTarget](#websockettarget)
@@ -429,7 +433,7 @@ mode and will no longer accept incoming web socket connections, instead forwardi
 the web socket connection request to DDS. If DDS disconnects from the VM service,
 the VM service will once again start accepting incoming web socket connections.
 
-The VM service forwards the web socket connection by issuing a redirect 
+The VM service forwards the web socket connection by issuing a redirect
 
 ### Protocol Extensions
 
@@ -1059,7 +1063,8 @@ SourceReport|Sentinel getSourceReport(string isolateId,
                                       string scriptId [optional],
                                       int tokenPos [optional],
                                       int endTokenPos [optional],
-                                      bool forceCompile [optional])
+                                      bool forceCompile [optional],
+                                      bool reportLines [optional])
 ```
 
 The _getSourceReport_ RPC is used to generate a set of reports tied to
@@ -1094,6 +1099,12 @@ all functions in the range of the report.  Forcing compilation can
 cause a compilation error, which could terminate the running Dart
 program.  If this parameter is not provided, it is considered to have
 the value _false_.
+
+The _reportLines_ parameter changes the token positions in
+_SourceReportRange.possibleBreakpoints_ and _SourceReportCoverage_ to be line
+numbers. This is designed to reduce the number of RPCs that need to be performed
+in the case that the client is only interested in line numbers. If this
+parameter is not provided, it is considered to have the value _false_.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
@@ -1198,6 +1209,44 @@ If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success).
+
+### lookupResolvedPackageUris
+
+```
+UriList lookupResolvedPackageUris(string isolateId, string[] uris)
+```
+
+The _lookupResolvedPackageUris_ RPC is used to convert a list of URIs to their
+resolved (or absolute) paths. For example, URIs passed to this RPC are mapped in
+the following ways:
+
+- `dart:io` -> `org-dartlang-sdk:///sdk/lib/io/io.dart`
+- `package:test/test.dart` -> `file:///$PACKAGE_INSTALLATION_DIR/lib/test.dart`
+- `file:///foo/bar/bazz.dart` -> `file:///foo/bar/bazz.dart`
+
+If a URI is not known, the corresponding entry in the [UriList] response will be
+`null`.
+
+See [UriList](#urilist).
+
+### lookupPackageUris
+
+```
+UriList lookupPackageUris(string isolateId, string[] uris)
+```
+
+The _lookupPackageUris_ RPC is used to convert a list of URIs to their
+unresolved paths. For example, URIs passed to this RPC are mapped in the
+following ways:
+
+- `org-dartlang-sdk:///sdk/lib/io/io.dart` -> `dart:io`
+- `file:///$PACKAGE_INSTALLATION_DIR/lib/test.dart` -> `package:test/test.dart`
+- `file:///foo/bar/bazz.dart` -> `file:///foo/bar/bazz.dart`
+
+If a URI is not known, the corresponding entry in the [UriList] response will be
+`null`.
+
+See [UriList](#urilist).
 
 ### registerService
 
@@ -3291,9 +3340,8 @@ class MemoryUsage extends Response {
   // example, memory associated with Dart objects through APIs such as
   // Dart_NewFinalizableHandle, Dart_NewWeakPersistentHandle and
   // Dart_NewExternalTypedData.  This usage is only as accurate as the values
-  // supplied to these APIs from the VM embedder or native extensions. This
-  // external memory applies GC pressure, but is separate from heapUsage and
-  // heapCapacity.
+  // supplied to these APIs from the VM embedder. This external memory applies
+  // GC pressure, but is separate from heapUsage and heapCapacity.
   int externalUsage;
 
   // The total capacity of the heap in bytes. This is the amount of memory used
@@ -3781,12 +3829,12 @@ locations in an isolate.
 
 ```
 class SourceReportCoverage {
-  // A list of token positions in a SourceReportRange which have been
-  // executed.  The list is sorted.
+  // A list of token positions (or line numbers if reportLines was enabled) in a
+  // SourceReportRange which have been executed.  The list is sorted.
   int[] hits;
 
-  // A list of token positions in a SourceReportRange which have not been
-  // executed.  The list is sorted.
+  // A list of token positions (or line numbers if reportLines was enabled) in a
+  // SourceReportRange which have not been executed.  The list is sorted.
   int[] misses;
 }
 ```
@@ -3836,9 +3884,9 @@ class SourceReportRange {
   SourceReportCoverage coverage [optional];
 
   // Possible breakpoint information for this range, represented as a
-  // sorted list of token positions.  Provided only when the when the
-  // PossibleBreakpoint report has been requested and the range has been
-  // compiled.
+  // sorted list of token positions (or line numbers if reportLines was
+  // enabled).  Provided only when the when the PossibleBreakpoint report has
+  // been requested and the range has been compiled.
   int[] possibleBreakpoints [optional];
 }
 ```
@@ -4050,6 +4098,15 @@ Either the _tokenPos_ or the _line_ field will be present.
 The _column_ field will only be present when the breakpoint was
 specified with a specific column number.
 
+### UriList
+
+```
+class UriList extends Response {
+  // A list of URIs.
+  (string|Null)[] uris;
+}
+```
+
 ### Version
 
 ```
@@ -4176,5 +4233,6 @@ version | comments
 3.48 | Added `Profiler` stream, `UserTagChanged` event kind, and `updatedTag` and `previousTag` properties to `Event`.
 3.49 | Added `CpuSamples` event kind, and `cpuSamples` property to `Event`.
 3.50 | Added `returnType`, `parameters`, and `typeParameters` to `@Instance`, and `implicit` to `@Function`. Added `Parameter` type.
-
+3.51 | Added optional `reportLines` parameter to `getSourceReport` RPC.
+3.52 | Added `lookupResolvedPackageUris` and `lookupPackageUris` RPCs and `UriList` type.
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

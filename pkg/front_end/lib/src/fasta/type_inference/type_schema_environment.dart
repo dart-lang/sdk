@@ -84,12 +84,14 @@ class TypeConstraint {
 
   TypeConstraint clone() => new TypeConstraint._(lower, upper);
 
+  @override
   String toString() =>
       '${typeSchemaToString(lower)} <: <type> <: ${typeSchemaToString(upper)}';
 }
 
 class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     with TypeSchemaStandardBounds {
+  @override
   final ClassHierarchy hierarchy;
 
   TypeSchemaEnvironment(CoreTypes coreTypes, this.hierarchy)

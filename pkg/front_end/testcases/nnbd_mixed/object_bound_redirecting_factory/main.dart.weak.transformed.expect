@@ -50,12 +50,12 @@ class P<T extends core::Object> extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class CP<T extends core::Object> extends opt::P<opt::CP::T> /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[opt::CP::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C7]/*isLegacy*/;
   const constructor _(core::Object token) → opt::CP<opt::CP::T>
     : super opt::P::_(token)
     ;
   static factory •<T extends core::Object>(core::Type type) → opt::CP<opt::CP::•::T>
-    let Never #redirecting_factory = opt::CP::_ in let opt::CP::•::T #typeArg0 = null in invalid-expression;
+    return new opt::CP::_<opt::CP::•::T>(type);
 }
 class Token<T extends core::Object> extends core::Object /*hasConstConstructor*/  {
   const constructor •() → opt::Token<opt::Token::T>
@@ -63,16 +63,16 @@ class Token<T extends core::Object> extends core::Object /*hasConstConstructor*/
     ;
 }
 class VP<T extends core::Object> extends opt::P<opt::VP::T> /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[opt::VP::forToken]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C8]/*isLegacy*/;
   const constructor _(core::Object token, opt::VP::T useValue) → opt::VP<opt::VP::T>
     : super opt::P::_(token)
     ;
   static factory forToken<T extends core::Object>(opt::Token<opt::VP::forToken::T> token, opt::VP::forToken::T useValue) → opt::VP<opt::VP::forToken::T>
-    let Never #redirecting_factory = opt::VP::_ in let opt::VP::forToken::T #typeArg0 = null in invalid-expression;
+    return new opt::VP::_<opt::VP::forToken::T>(token, useValue);
 }
 class M extends core::Object /*hasConstConstructor*/  {
   final field core::List<opt::P<core::Object>> list;
-  const constructor •({core::List<opt::P<core::Object>> list = #C7}) → opt::M
+  const constructor •({core::List<opt::P<core::Object>> list = #C9}) → opt::M
     : opt::M::list = list, super core::Object::•()
     ;
 }
@@ -84,7 +84,9 @@ constants  {
   #C4 = opt::VP<core::Object*> {token:#C3}
   #C5 = <opt::P<core::Object*>*>[#C2, #C4]
   #C6 = opt::M {list:#C5}
-  #C7 = <opt::P<core::Object*>*>[]
+  #C7 = constructor-tearoff opt::CP::•
+  #C8 = constructor-tearoff opt::VP::forToken
+  #C9 = <opt::P<core::Object*>*>[]
 }
 
 

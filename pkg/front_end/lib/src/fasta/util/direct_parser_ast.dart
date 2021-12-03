@@ -17,7 +17,9 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
+import '../source/diet_parser.dart';
+
+import 'direct_parser_ast_helper.dart';
 
 DirectParserASTContentCompilationUnitEnd getAST(List<int> rawBytes,
     {bool includeBody: true,
@@ -51,9 +53,11 @@ DirectParserASTContentCompilationUnitEnd getAST(List<int> rawBytes,
   DirectParserASTListener listener = new DirectParserASTListener();
   Parser parser;
   if (includeBody) {
-    parser = new Parser(listener);
+    parser = new Parser(listener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
   } else {
-    parser = new ClassMemberParser(listener);
+    parser = new ClassMemberParser(listener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
   }
   parser.parseUnit(firstToken);
   return listener.data.single as DirectParserASTContentCompilationUnitEnd;
@@ -66,7 +70,7 @@ class DirectParserASTContentVisitor {
   void accept(DirectParserASTContent node) {
     if (node is DirectParserASTContentCompilationUnitEnd ||
         node is DirectParserASTContentTopLevelDeclarationEnd ||
-        node is DirectParserASTContentClassOrMixinBodyEnd ||
+        node is DirectParserASTContentClassOrMixinOrExtensionBodyEnd ||
         node is DirectParserASTContentMemberEnd) {
       visitChildren(node);
       return;
@@ -95,8 +99,8 @@ class DirectParserASTContentVisitor {
       visitMetadataStar(metadata);
       return;
     }
-    if (node is DirectParserASTContentFunctionTypeAliasEnd) {
-      DirectParserASTContentFunctionTypeAliasEnd typedefDecl = node;
+    if (node is DirectParserASTContentTypedefEnd) {
+      DirectParserASTContentTypedefEnd typedefDecl = node;
       visitTypedef(
           typedefDecl, typedefDecl.typedefKeyword, typedefDecl.endToken);
       return;
@@ -249,8 +253,8 @@ class DirectParserASTContentVisitor {
       Token endInclusive) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitTypedef(DirectParserASTContentFunctionTypeAliasEnd node,
-      Token startInclusive, Token endInclusive) {}
+  void visitTypedef(DirectParserASTContentTypedefEnd node, Token startInclusive,
+      Token endInclusive) {}
 
   /// Note: Implementers can call visitChildren on this node.
   void visitMetadataStar(DirectParserASTContentMetadataStarEnd node) {
@@ -360,7 +364,8 @@ extension GeneralASTContentExtension on DirectParserASTContent {
       return false;
     }
     if (children!.first
-        is! DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin) {
+        // ignore: lines_longer_than_80_chars
+        is! DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin) {
       return false;
     }
     if (children!.last is! DirectParserASTContentClassDeclarationEnd) {
@@ -443,16 +448,16 @@ extension GeneralASTContentExtension on DirectParserASTContent {
         is! DirectParserASTContentUncategorizedTopLevelDeclarationBegin) {
       return false;
     }
-    if (children!.last is! DirectParserASTContentFunctionTypeAliasEnd) {
+    if (children!.last is! DirectParserASTContentTypedefEnd) {
       return false;
     }
 
     return true;
   }
 
-  DirectParserASTContentFunctionTypeAliasEnd asTypedef() {
+  DirectParserASTContentTypedefEnd asTypedef() {
     if (!isTypedef()) throw "Not typedef";
-    return children!.last as DirectParserASTContentFunctionTypeAliasEnd;
+    return children!.last as DirectParserASTContentTypedefEnd;
   }
 
   bool isScript() {
@@ -537,7 +542,8 @@ extension GeneralASTContentExtension on DirectParserASTContent {
       return false;
     }
     if (children!.first
-        is! DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin) {
+        // ignore: lines_longer_than_80_chars
+        is! DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin) {
       return false;
     }
     if (children!.last is! DirectParserASTContentMixinDeclarationEnd) {
@@ -557,7 +563,8 @@ extension GeneralASTContentExtension on DirectParserASTContent {
       return false;
     }
     if (children!.first
-        is! DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin) {
+        // ignore: lines_longer_than_80_chars
+        is! DirectParserASTContentClassOrMixinOrNamedMixinApplicationPreludeBegin) {
       return false;
     }
     if (children!.last is! DirectParserASTContentNamedMixinApplicationEnd) {
@@ -845,9 +852,12 @@ extension TopLevelDeclarationExtension
 
 extension MixinDeclarationExtension
     on DirectParserASTContentMixinDeclarationEnd {
-  DirectParserASTContentClassOrMixinBodyEnd getClassOrMixinBody() {
+  DirectParserASTContentClassOrMixinOrExtensionBodyEnd
+      getClassOrMixinOrExtensionBody() {
     for (DirectParserASTContent child in children!) {
-      if (child is DirectParserASTContentClassOrMixinBodyEnd) return child;
+      if (child is DirectParserASTContentClassOrMixinOrExtensionBodyEnd) {
+        return child;
+      }
     }
     throw "Not found.";
   }
@@ -855,9 +865,12 @@ extension MixinDeclarationExtension
 
 extension ClassDeclarationExtension
     on DirectParserASTContentClassDeclarationEnd {
-  DirectParserASTContentClassOrMixinBodyEnd getClassOrMixinBody() {
+  DirectParserASTContentClassOrMixinOrExtensionBodyEnd
+      getClassOrMixinOrExtensionBody() {
     for (DirectParserASTContent child in children!) {
-      if (child is DirectParserASTContentClassOrMixinBodyEnd) return child;
+      if (child is DirectParserASTContentClassOrMixinOrExtensionBodyEnd) {
+        return child;
+      }
     }
     throw "Not found.";
   }
@@ -889,7 +902,7 @@ extension ClassDeclarationExtension
 }
 
 extension ClassOrMixinBodyExtension
-    on DirectParserASTContentClassOrMixinBodyEnd {
+    on DirectParserASTContentClassOrMixinOrExtensionBodyEnd {
   List<DirectParserASTContentMemberEnd> getMembers() {
     List<DirectParserASTContentMemberEnd> members = [];
     for (DirectParserASTContent child in children!) {
@@ -1148,7 +1161,7 @@ extension InitializerExtension on DirectParserASTContentInitializerEnd {
   }
 }
 
-main(List<String> args) {
+void main(List<String> args) {
   File f = new File(args[0]);
   Uint8List data = f.readAsBytesSync();
   DirectParserASTContent ast = getAST(data);
@@ -1181,6 +1194,7 @@ main(List<String> args) {
 }
 
 class DirectParserASTListener extends AbstractDirectParserASTListener {
+  @override
   void seen(DirectParserASTContent entry) {
     switch (entry.type) {
       case DirectParserASTType.BEGIN:
@@ -1208,7 +1222,7 @@ class DirectParserASTListener extends AbstractDirectParserASTListener {
           // Exact match.
         } else if (end == "TopLevelDeclaration" &&
             (begin == "ExtensionDeclarationPrelude" ||
-                begin == "ClassOrNamedMixinApplicationPrelude" ||
+                begin == "ClassOrMixinOrNamedMixinApplicationPrelude" ||
                 begin == "TopLevelMember" ||
                 begin == "UncategorizedTopLevelDeclaration")) {
           // endTopLevelDeclaration is started by one of

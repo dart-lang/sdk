@@ -61,7 +61,6 @@ class ObjectPointerVisitor;
   V(DartCore, "dart:core")                                                     \
   V(DartDeveloper, "dart:developer")                                           \
   V(DartDeveloperTimeline, "dart.developer.timeline")                          \
-  V(DartExtensionScheme, "dart-ext:")                                          \
   V(DartFfi, "dart:ffi")                                                       \
   V(DartInternal, "dart:_internal")                                            \
   V(DartIsVM, "dart.isVM")                                                     \
@@ -110,6 +109,7 @@ class ObjectPointerVisitor;
   V(ExternalOneByteString, "_ExternalOneByteString")                           \
   V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
   V(FallThroughError, "FallThroughError")                                      \
+  V(FfiBool, "Bool")                                                           \
   V(FfiCallback, "_FfiCallback")                                               \
   V(FfiDouble, "Double")                                                       \
   V(FfiDynamicLibrary, "DynamicLibrary")                                       \
@@ -326,6 +326,8 @@ class ObjectPointerVisitor;
   V(_GrowableListGenerateFactory, "_GrowableList.generate")                    \
   V(_GrowableListLiteralFactory, "_GrowableList._literal")                     \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
+  V(_ImmutableLinkedHashMap, "_InternalImmutableLinkedHashMap")                \
+  V(_ImmutableLinkedHashSet, "_CompactImmutableLinkedHashSet")                 \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \
   V(_Int16ArrayView, "_Int16ArrayView")                                        \
@@ -415,7 +417,6 @@ class ObjectPointerVisitor;
   V(_objectNoSuchMethod, "_objectNoSuchMethod")                                \
   V(_objectToString, "_objectToString")                                        \
   V(_onData, "_onData")                                                        \
-  V(_rehash, "_rehash")                                                        \
   V(_rehashObjects, "_rehashObjects")                                          \
   V(_resultOrListeners, "_resultOrListeners")                                  \
   V(_runExtension, "_runExtension")                                            \
@@ -427,6 +428,7 @@ class ObjectPointerVisitor;
   V(_stackTrace, "_stackTrace")                                                \
   V(_state, "_state")                                                          \
   V(_stateData, "_stateData")                                                  \
+  V(_toString, "_toString")                                                    \
   V(_varData, "_varData")                                                      \
   V(_wordCharacterMap, "_wordCharacterMap")                                    \
   V(callback, "callback")                                                      \
@@ -467,7 +469,8 @@ class ObjectPointerVisitor;
   V(vm_recognized, "vm:recognized")                                            \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
   V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
-  V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")
+  V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")                        \
+  V(vm_external_name, "vm:external-name")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

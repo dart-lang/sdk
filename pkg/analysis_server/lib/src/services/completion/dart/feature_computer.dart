@@ -21,10 +21,11 @@ import 'package:analyzer/dart/element/element.dart'
         Element,
         ElementKind,
         FieldElement,
+        FunctionElement,
         LibraryElement,
+        LocalVariableElement,
         PropertyAccessorElement,
-        TopLevelVariableElement,
-        LocalVariableElement;
+        TopLevelVariableElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
@@ -218,6 +219,8 @@ class FeatureComputer {
       return protocol.ElementKind.PREFIX;
     } else if (kind == ElementKind.TOP_LEVEL_VARIABLE) {
       return protocol.ElementKind.TOP_LEVEL_VARIABLE;
+    } else if (kind == ElementKind.TYPE_ALIAS) {
+      return protocol.ElementKind.TYPE_ALIAS;
     } else if (kind == ElementKind.TYPE_PARAMETER) {
       return protocol.ElementKind.TYPE_PARAMETER;
     }
@@ -320,7 +323,9 @@ class FeatureComputer {
       // override of `noSuchMethod`.
       return 0.0;
     }
-    return proposedMemberName == 'noSuchMethod' ? -1.0 : 0.0;
+    return proposedMemberName == FunctionElement.NO_SUCH_METHOD_METHOD_NAME
+        ? -1.0
+        : 0.0;
   }
 
   /// Return the value of the _keyword_ feature for the [keyword] when
@@ -644,6 +649,16 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       }
     }
     return null;
+  }
+
+  @override
+  DartType? visitConstructorName(ConstructorName node) {
+    return _visitParent(node);
+  }
+
+  @override
+  DartType? visitConstructorReference(ConstructorReference node) {
+    return _visitParent(node);
   }
 
   @override

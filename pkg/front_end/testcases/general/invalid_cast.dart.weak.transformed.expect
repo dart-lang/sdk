@@ -65,7 +65,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::C::fact2];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   constructor •() → self::C*
     : super core::Object::•()
     ;
@@ -78,7 +78,7 @@ class C extends core::Object {
   static factory fact() → self::C*
     return null;
   static factory fact2() → self::C*
-    let Never #redirecting_factory = self::D::• in invalid-expression;
+    return new self::D::•();
   static method staticFunction(core::int* i) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -99,54 +99,54 @@ class D extends self::C {
 static method topLevelFunction(core::int* i) → void {}
 static method bad() → dynamic {
   function localFunction(core::int* i) → void {}
-  core::List<core::int*>* a = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:22:25: Error: The list literal type 'List<Object>' isn't of expected type 'List<int>'.
+  core::List<core::int*>* a = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:22:25: Error: The list literal type 'List<Object>' isn't of expected type 'List<int>'.
  - 'List' is from 'dart:core'.
  - 'Object' is from 'dart:core'.
 Change the type of the list literal or the context in which it is used.
   List<int> a = <Object>[];
                         ^" in core::_GrowableList::•<core::Object*>(0);
-  core::Map<core::int*, core::String*>* b = let final Never* #t2 = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:23:40: Error: The map literal type 'Map<Object, String>' isn't of expected type 'Map<int, String>'.
+  core::Map<core::int*, core::String*>* b = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:23:40: Error: The map literal type 'Map<Object, String>' isn't of expected type 'Map<int, String>'.
  - 'Map' is from 'dart:core'.
  - 'Object' is from 'dart:core'.
 Change the type of the map literal or the context in which it is used.
   Map<int, String> b = <Object, String>{};
                                        ^" in <core::Object*, core::String*>{};
-  core::Map<core::int*, core::String*>* c = let final Never* #t3 = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:24:37: Error: The map literal type 'Map<int, Object>' isn't of expected type 'Map<int, String>'.
+  core::Map<core::int*, core::String*>* c = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:24:37: Error: The map literal type 'Map<int, Object>' isn't of expected type 'Map<int, String>'.
  - 'Map' is from 'dart:core'.
  - 'Object' is from 'dart:core'.
 Change the type of the map literal or the context in which it is used.
   Map<int, String> c = <int, Object>{};
                                     ^" in <core::int*, core::Object*>{};
-  (core::Object*) →* core::int* d = let final Never* #t4 = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:25:28: Error: The function expression type 'int Function(int)' isn't of expected type 'int Function(Object)'.
+  (core::Object*) →* core::int* d = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:25:28: Error: The function expression type 'int Function(int)' isn't of expected type 'int Function(Object)'.
  - 'Object' is from 'dart:core'.
 Change the type of the function expression or the context in which it is used.
   int Function(Object) d = (int i) => i;
                            ^" in (core::int* i) → core::int* => i;
   self::D* e = self::C::fact() as{TypeError} self::D*;
   self::D* f = new self::D::•();
-  self::D* g = let final Never* #t5 = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:28:13: Error: The constructor returns type 'C' that isn't of expected type 'D'.
+  self::D* g = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:28:13: Error: The constructor returns type 'C' that isn't of expected type 'D'.
  - 'C' is from 'pkg/front_end/testcases/general/invalid_cast.dart'.
  - 'D' is from 'pkg/front_end/testcases/general/invalid_cast.dart'.
 Change the type of the object being constructed or the context in which it is used.
   D g = new C.nonFact();
             ^" in new self::C::nonFact();
-  self::D* h = let final Never* #t6 = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:29:13: Error: The constructor returns type 'C' that isn't of expected type 'D'.
+  self::D* h = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:29:13: Error: The constructor returns type 'C' that isn't of expected type 'D'.
  - 'C' is from 'pkg/front_end/testcases/general/invalid_cast.dart'.
  - 'D' is from 'pkg/front_end/testcases/general/invalid_cast.dart'.
 Change the type of the object being constructed or the context in which it is used.
   D h = new C.nonFact2();
             ^" in new self::C::nonFact2();
-  (core::Object*) →* void i = let final Never* #t7 = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:30:31: Error: The static method has type 'void Function(int)' that isn't of expected type 'void Function(Object)'.
+  (core::Object*) →* void i = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:30:31: Error: The static method has type 'void Function(int)' that isn't of expected type 'void Function(Object)'.
  - 'Object' is from 'dart:core'.
 Change the type of the method or the context in which it is used.
   void Function(Object) i = C.staticFunction;
-                              ^" in #C1;
-  (core::Object*) →* void j = let final Never* #t8 = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:31:29: Error: The top level function has type 'void Function(int)' that isn't of expected type 'void Function(Object)'.
+                              ^" in #C2;
+  (core::Object*) →* void j = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:31:29: Error: The top level function has type 'void Function(int)' that isn't of expected type 'void Function(Object)'.
  - 'Object' is from 'dart:core'.
 Change the type of the function or the context in which it is used.
   void Function(Object) j = topLevelFunction;
-                            ^" in #C2;
-  (core::Object*) →* void k = let final Never* #t9 = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:32:29: Error: The local function has type 'void Function(int)' that isn't of expected type 'void Function(Object)'.
+                            ^" in #C3;
+  (core::Object*) →* void k = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:32:29: Error: The local function has type 'void Function(int)' that isn't of expected type 'void Function(Object)'.
  - 'Object' is from 'dart:core'.
 Change the type of the function or the context in which it is used.
   void Function(Object) k = localFunction;
@@ -162,13 +162,14 @@ static method ok() → dynamic {
   self::D* f = new self::D::•();
   self::C* g = new self::C::nonFact();
   self::C* h = new self::C::nonFact2();
-  (core::int*) →* void i = #C1;
-  (core::int*) →* void j = #C2;
+  (core::int*) →* void i = #C2;
+  (core::int*) →* void j = #C3;
   (core::int*) →* void k = localFunction;
 }
 static method main() → dynamic {}
 
 constants  {
-  #C1 = static-tearoff self::C::staticFunction
-  #C2 = static-tearoff self::topLevelFunction
+  #C1 = constructor-tearoff self::C::fact2
+  #C2 = static-tearoff self::C::staticFunction
+  #C3 = static-tearoff self::topLevelFunction
 }

@@ -51,10 +51,12 @@ class Class7b {
 
 class Class8a<T> implements Class8b<T> {
   Class8a();
+  factory Class8a.fact() => new Class8a();
 }
 
 class Class8b<T> {
   factory Class8b() = Class8a<T>;
+  factory Class8b.fact() = Class8a<T>.fact;
 }
 
 testArgs() {}

@@ -30,7 +30,7 @@ library /*isNonNullableByDefault*/;
 // f() { m(T<R(<Z
 //           ^
 //
-// pkg/front_end/testcases/general/error_recovery/issue_38415.crash_dart:1:9: Error: Getter not found: 'T'.
+// pkg/front_end/testcases/general/error_recovery/issue_38415.crash_dart:1:9: Error: Undefined name 'T'.
 // f() { m(T<R(<Z
 //         ^
 //

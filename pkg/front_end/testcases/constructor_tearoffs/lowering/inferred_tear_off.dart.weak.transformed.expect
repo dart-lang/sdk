@@ -19,7 +19,7 @@ class A extends core::Object {
 }
 class B<T extends core::Object? = dynamic> extends core::Object implements self::A {
   field core::int field1;
-  generic-covariant-impl field self::B::T% field2;
+  covariant-by-class field self::B::T% field2;
   constructor •(core::int field1, self::B::T% field2) → self::B<self::B::T%>
     : self::B::field1 = field1, self::B::field2 = field2, super core::Object::•()
     ;
@@ -56,7 +56,7 @@ constants  {
   #C4 = static-tearoff self::_#G#new#tearOff
   #C5 = static-tearoff self::A::_#named#tearOff
   #C6 = static-tearoff self::B::_#named#tearOff
-  #C7 = instantiation self::B::_#named#tearOff <core::int*>
+  #C7 = instantiation #C6 <core::int*>
   #C8 = static-tearoff self::_#F#named#tearOff
-  #C9 = instantiation self::B::_#named#tearOff <dynamic>
+  #C9 = instantiation #C6 <dynamic>
 }

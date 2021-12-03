@@ -6,7 +6,6 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/src/version.dart';
 
@@ -40,17 +39,6 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   /// The current language version.
   static final Version currentVersion = Version.parse(_currentVersion);
 
-  /// The language version to use in tests.
-  static final Version testingSdkLanguageVersion = Version.parse('2.10.0');
-
-  /// The latest known language version.
-  static final Version latestSdkLanguageVersion = Version.parse('2.12.0');
-
-  static final FeatureSet latestWithNullSafety = ExperimentStatus.fromStrings2(
-    sdkLanguageVersion: latestSdkLanguageVersion,
-    flags: [],
-  );
-
   /// A map containing information about all known experimental flags.
   static final Map<String, ExperimentalFeature> knownFeatures = _knownFeatures;
 
@@ -78,7 +66,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
       explicitFlags.enabled[(feature as ExperimentalFeature).index] = true;
     }
 
-    var sdkLanguageVersion = latestSdkLanguageVersion;
+    var sdkLanguageVersion = currentVersion;
     var flags = restrictEnableFlagsToVersion(
       sdkLanguageVersion: sdkLanguageVersion,
       explicitEnabledFlags: explicitFlags.enabled,
@@ -135,7 +123,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   /// the flag appearing last.
   factory ExperimentStatus.fromStrings(List<String> flags) {
     return ExperimentStatus.fromStrings2(
-      sdkLanguageVersion: latestSdkLanguageVersion,
+      sdkLanguageVersion: currentVersion,
       flags: flags,
     );
   }
@@ -170,7 +158,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
 
   factory ExperimentStatus.latestLanguageVersion() {
     return ExperimentStatus.fromStrings2(
-      sdkLanguageVersion: latestSdkLanguageVersion,
+      sdkLanguageVersion: currentVersion,
       flags: [],
     );
   }
@@ -183,13 +171,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   );
 
   @override
-  int get hashCode {
-    int hash = 0;
-    for (var flag in _flags) {
-      hash = JenkinsSmiHash.combine(hash, flag.hashCode);
-    }
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hashAll(_flags);
 
   @override
   bool operator ==(Object other) {

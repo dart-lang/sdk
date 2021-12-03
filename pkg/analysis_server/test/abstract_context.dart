@@ -69,6 +69,8 @@ class AbstractContextTest with ResourceProviderMixin {
       '${ExperimentStatus.currentVersion.major}.'
       '${ExperimentStatus.currentVersion.minor}';
 
+  Folder get sdkRoot => newFolder('/sdk');
+
   AnalysisSession get session => contextFor('/home/test').currentSession;
 
   String? get testPackageLanguageVersion => latestLanguageVersion;
@@ -184,8 +186,9 @@ class AbstractContextTest with ResourceProviderMixin {
 
     setupResourceProvider();
 
-    MockSdk(
+    createMockSdk(
       resourceProvider: resourceProvider,
+      root: sdkRoot,
     );
 
     writeTestPackageConfig();
@@ -292,31 +295,12 @@ class AbstractContextTest with ResourceProviderMixin {
       enableIndex: true,
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
-      sdkPath: convertPath(sdkRoot),
+      sdkPath: sdkRoot.path,
     );
 
     _addAnalyzedFilesToDrivers();
     verifyCreatedCollection();
   }
-}
-
-mixin WithNonFunctionTypeAliasesMixin on AbstractContextTest {
-  @override
-  String? get testPackageLanguageVersion => null;
-
-  @override
-  void setUp() {
-    super.setUp();
-
-    createAnalysisOptionsFile(
-      experiments: [EnableString.nonfunction_type_aliases],
-    );
-  }
-}
-
-mixin WithNullSafetyMixin on AbstractContextTest {
-  @override
-  String get testPackageLanguageVersion => '2.12';
 }
 
 /// Wraps the given [_ElementVisitorFunction] into an instance of

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 // Tests `is` checks and `as` casts between various JS objects. Currently, all
 // checks and casts should be allowed between JS objects.
 

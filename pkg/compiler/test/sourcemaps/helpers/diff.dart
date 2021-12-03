@@ -37,7 +37,7 @@ class DiffColumn {
   }
 
   @override
-  String toString() => '$type${index != null ? index : ''}';
+  String toString() => '$type${index ?? ''}';
 }
 
 /// A block of code in an output column.
@@ -96,7 +96,8 @@ class CodeLinesColumnBlock extends DiffColumnBlock {
 /// A list of columns that should align in output.
 class DiffBlock {
   final DiffKind kind;
-  Map<DiffColumn, DiffColumnBlock> _columns = <DiffColumn, DiffColumnBlock>{};
+  final Map<DiffColumn, DiffColumnBlock> _columns =
+      <DiffColumn, DiffColumnBlock>{};
 
   DiffBlock(this.kind);
 

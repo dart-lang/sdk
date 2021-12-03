@@ -733,24 +733,29 @@ void _registerIsolate(int port_id, SendPort sp, String name) =>
     VMService().runningIsolates.isolateStartup(port_id, sp, name);
 
 /// Notify the VM that the service is running.
-void _onStart() native 'VMService_OnStart';
+@pragma("vm:external-name", "VMService_OnStart")
+external void _onStart();
 
 /// Notify the VM that the service is no longer running.
-void _onExit() native 'VMService_OnExit';
+@pragma("vm:external-name", "VMService_OnExit")
+external void _onExit();
 
 /// Notify the VM that the server's address has changed.
 void onServerAddressChange(String? address) {
   _onServerAddressChange(address);
 }
 
-void _onServerAddressChange(String? address)
-    native 'VMService_OnServerAddressChange';
+@pragma("vm:external-name", "VMService_OnServerAddressChange")
+external void _onServerAddressChange(String? address);
 
 /// Subscribe to a service stream.
-bool _vmListenStream(String streamId) native 'VMService_ListenStream';
+@pragma("vm:external-name", "VMService_ListenStream")
+external bool _vmListenStream(String streamId);
 
 /// Cancel a subscription to a service stream.
-void _vmCancelStream(String streamId) native 'VMService_CancelStream';
+@pragma("vm:external-name", "VMService_CancelStream")
+external void _vmCancelStream(String streamId);
 
 /// Get the bytes to the tar archive.
-Uint8List _requestAssets() native 'VMService_RequestAssets';
+@pragma("vm:external-name", "VMService_RequestAssets")
+external Uint8List _requestAssets();

@@ -282,7 +282,7 @@ abstract class AbstractEntity extends OutputEntity {
       'from': from,
       'to': to,
       'children': children.map((child) => child.toJson(strategy)).toList(),
-      'codeSource': codeSource != null ? codeSource.toJson() : null,
+      'codeSource': codeSource?.toJson(),
     };
   }
 

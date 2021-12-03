@@ -5,7 +5,7 @@ import "dart:core" as core;
 class A<T extends core::Object* = dynamic> extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::A::•];
   static factory •<T extends core::Object* = dynamic>() → self::A<self::A::•::T*>*
-    let dynamic #redirecting_factory = self::B::• in let self::A::•::T* #typeArg0 = null in invalid-expression;
+    return new self::B::•<self::A::•::T*>();
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -33,3 +33,8 @@ class B<T extends core::Object* = dynamic> extends core::Object implements self:
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue34714.dart:5:7 -> ConstructorTearOffConstant(A.)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

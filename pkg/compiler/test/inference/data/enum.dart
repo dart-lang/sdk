@@ -55,7 +55,7 @@ enum Enum4 {
   a,
 }
 
-/*member: enumToString1:Value([exact=JSString], value: "Enum4.a")*/
+/*member: enumToString1:[exact=JSString]*/
 enumToString1() {
   return Enum4.a. /*invoke: [exact=Enum4]*/ toString();
 }

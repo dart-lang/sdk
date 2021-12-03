@@ -167,7 +167,12 @@ _showProgress(newUsed, newCapacity, oldUsed, oldCapacity) {
 
 const mega = 1024 * 1024;
 _writeNumber(sb, before, now, {color: false}) {
-  if (color) sb.write(before < now ? _RED : before > now ? _GREEN : '');
+  if (color)
+    sb.write(before < now
+        ? _RED
+        : before > now
+            ? _GREEN
+            : '');
   var string;
   if (now < 1024) {
     string = ' ${now}b';

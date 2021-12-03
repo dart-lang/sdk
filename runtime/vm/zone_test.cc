@@ -165,21 +165,6 @@ TEST_CASE(PrintToString) {
   EXPECT_STREQ("Hello World!", result);
 }
 
-VM_UNIT_TEST_CASE(NativeScopeZoneAllocation) {
-  ASSERT(ApiNativeScope::Current() == NULL);
-  ASSERT(Thread::Current() == NULL);
-  EXPECT_EQ(0UL, ApiNativeScope::current_memory_usage());
-  {
-    ApiNativeScope scope;
-    EXPECT_EQ(scope.zone()->CapacityInBytes(),
-              ApiNativeScope::current_memory_usage());
-    (void)Dart_ScopeAllocate(2048);
-    EXPECT_EQ(scope.zone()->CapacityInBytes(),
-              ApiNativeScope::current_memory_usage());
-  }
-  EXPECT_EQ(0UL, ApiNativeScope::current_memory_usage());
-}
-
 #if !defined(PRODUCT)
 // Allow for pooling in the malloc implementation.
 static const int64_t kRssSlack = 20 * MB;
@@ -241,5 +226,19 @@ ISOLATE_UNIT_TEST_CASE(StressMallocThroughZones) {
   EXPECT_LT(stop_rss, start_rss + kRssSlack);
 #endif  // !defined(PRODUCT)
 }
+
+#if defined(DART_COMPRESSED_POINTERS)
+ISOLATE_UNIT_TEST_CASE(ZonesNotLimitedByCompressedHeap) {
+  StackZone stack_zone(Thread::Current());
+  Zone* zone = stack_zone.GetZone();
+
+  size_t total = 0;
+  while (total <= (4u * GB)) {
+    size_t chunk_size = 512u * MB;
+    zone->AllocUnsafe(chunk_size);
+    total += chunk_size;
+  }
+}
+#endif  // defined(DART_COMPRESSED_POINTERS)
 
 }  // namespace dart

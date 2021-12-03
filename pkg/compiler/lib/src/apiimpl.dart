@@ -37,15 +37,15 @@ class CompilerImpl extends Compiler {
       {MakeReporterFunction makeReporter})
       // NOTE: allocating measurer is done upfront to ensure the wallclock is
       // started before other computations.
-      : measurer = new Measurer(enableTaskMeasurements: options.verbose),
+      : measurer = Measurer(enableTaskMeasurements: options.verbose),
         super(
             options: options,
             outputProvider: outputProvider,
-            environment: new _Environment(options.environment),
+            environment: _Environment(options.environment),
             makeReporter: makeReporter) {
     tasks.addAll([
-      userHandlerTask = new GenericTask('Diagnostic handler', measurer),
-      userProviderTask = new GenericTask('Input provider', measurer),
+      userHandlerTask = GenericTask('Diagnostic handler', measurer),
+      userProviderTask = GenericTask('Input provider', measurer),
     ]);
   }
 
@@ -59,7 +59,7 @@ class CompilerImpl extends Compiler {
   }
 
   Future setupSdk() {
-    var future = new Future.value(null);
+    var future = Future.value(null);
     _Environment env = environment;
     if (env.supportedLibraries == null) {
       future = future.then((_) {
@@ -89,11 +89,11 @@ class CompilerImpl extends Compiler {
   }
 
   @override
-  Future<bool> run(Uri uri) {
+  Future<bool> run() {
     Duration setupDuration = measurer.elapsedWallClock;
     return selfTask.measureSubtask("impl.run", () {
       return setupSdk().then((_) {
-        return super.run(uri);
+        return super.run();
       }).then((bool success) {
         if (options.verbose) {
           StringBuffer timings = StringBuffer();
@@ -255,7 +255,7 @@ class _Environment implements Environment {
   @override
   Map<String, String> toMap() {
     if (_completeMap == null) {
-      _completeMap = new Map<String, String>.from(definitions);
+      _completeMap = Map<String, String>.from(definitions);
       for (String libraryName in supportedLibraries) {
         if (!libraryName.startsWith("_")) {
           String key = '${_dartLibraryEnvironmentPrefix}${libraryName}';

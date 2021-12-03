@@ -5,8 +5,8 @@ import "dart:core" as core;
 abstract class Map<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::Map<self::Map::K%, self::Map::V%>
     ;
-  abstract operator [](generic-covariant-impl self::Map::K% index) → self::Map::V%;
-  abstract operator []=(generic-covariant-impl self::Map::K% index, generic-covariant-impl self::Map::V% value) → void;
+  abstract operator [](covariant-by-class self::Map::K% index) → self::Map::V%;
+  abstract operator []=(covariant-by-class self::Map::K% index, covariant-by-class self::Map::V% value) → void;
 }
 class Class extends core::Object {
   synthetic constructor •() → self::Class

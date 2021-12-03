@@ -95,7 +95,7 @@ main() {
     expect(functionExpression.operator.lexeme, '!');
 
     expect(expression.typeArguments!.arguments.length, 1);
-    var typeArgument = expression.typeArguments!.arguments.single as TypeName;
+    var typeArgument = expression.typeArguments!.arguments.single as NamedType;
     expect(typeArgument.name.name, "int");
 
     expect(expression.argumentList.arguments.length, 1);
@@ -236,7 +236,7 @@ main() {
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
       expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 1, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 4),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 4),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
     ]);
   }
@@ -395,7 +395,7 @@ class Foo {
     var parameter =
         constructor.parameters.parameters.single as SimpleFormalParameter;
     expect(parameter.identifier!.name, 'o');
-    var type = parameter.type as TypeName;
+    var type = parameter.type as NamedType;
     expect(type.question!.lexeme, '?');
     expect(type.name.name, 'Object');
 
@@ -409,7 +409,7 @@ class Foo {
       var expression = initializer.expression as AsExpression;
       var identifier = expression.expression as SimpleIdentifier;
       expect(identifier.name, 'o');
-      var expressionType = expression.type as TypeName;
+      var expressionType = expression.type as NamedType;
       expect(expressionType.question!.lexeme, '?');
       expect(expressionType.name.name, 'String');
     }
@@ -441,7 +441,7 @@ class Foo {
     var parameter =
         constructor.parameters.parameters.single as SimpleFormalParameter;
     expect(parameter.identifier!.name, 'o');
-    var type = parameter.type as TypeName;
+    var type = parameter.type as NamedType;
     expect(type.question!.lexeme, '?');
     expect(type.name.name, 'Object');
 
@@ -456,7 +456,7 @@ class Foo {
       var condition = expression.condition as IsExpression;
       var identifier = condition.expression as SimpleIdentifier;
       expect(identifier.name, 'o');
-      var expressionType = condition.type as TypeName;
+      var expressionType = condition.type as NamedType;
       expect(expressionType.question!.lexeme, '?');
       expect(expressionType.name.name, 'String');
       var thenExpression = expression.thenExpression as PrefixedIdentifier;
@@ -494,7 +494,7 @@ class Foo {
     var parameter =
         constructor.parameters.parameters.single as SimpleFormalParameter;
     expect(parameter.identifier!.name, 'o');
-    var type = parameter.type as TypeName;
+    var type = parameter.type as NamedType;
     expect(type.question!.lexeme, '?');
     expect(type.name.name, 'Object');
 
@@ -509,7 +509,7 @@ class Foo {
       var condition = expression.condition as IsExpression;
       var identifier = condition.expression as SimpleIdentifier;
       expect(identifier.name, 'o');
-      var expressionType = condition.type as TypeName;
+      var expressionType = condition.type as NamedType;
       expect(expressionType.question, isNull);
       expect(expressionType.name.name, 'String');
       var thenExpression = expression.thenExpression as PrefixedIdentifier;

@@ -10,6 +10,8 @@
 //
 // VMOptions=--optimization_counter_threshold=10 --deterministic
 
+// @dart = 2.9
+
 class Foo {
   Foo(int x);
 }

@@ -299,7 +299,8 @@ void AssemblerBase::Comment(const char* format, ...) {
 }
 
 bool AssemblerBase::EmittingComments() {
-  return FLAG_code_comments || FLAG_disassemble || FLAG_disassemble_optimized;
+  return FLAG_code_comments || FLAG_disassemble || FLAG_disassemble_optimized ||
+         FLAG_disassemble_stubs;
 }
 
 void AssemblerBase::Stop(const char* message) {
@@ -411,14 +412,6 @@ intptr_t ObjectPoolBuilder::FindNativeFunction(
     ObjectPoolBuilderEntry::Patchability patchable) {
   return FindObject(ObjectPoolBuilderEntry(
       label->address(), ObjectPoolBuilderEntry::kNativeFunction, patchable));
-}
-
-intptr_t ObjectPoolBuilder::FindNativeFunctionWrapper(
-    const ExternalLabel* label,
-    ObjectPoolBuilderEntry::Patchability patchable) {
-  return FindObject(ObjectPoolBuilderEntry(
-      label->address(), ObjectPoolBuilderEntry::kNativeFunctionWrapper,
-      patchable));
 }
 
 bool ObjectPoolBuilder::TryCommitToParent() {

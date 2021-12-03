@@ -236,7 +236,7 @@ class TypeReferenceFinalizerImpl implements TypeReferenceFinalizer {
 
   /// Maps the recipe (type expression) to the references with the same recipe.
   /// Much of the algorithm's state is stored in the _ReferenceSet objects.
-  Map<TypeRecipe, _ReferenceSet> _referencesByRecipe = {};
+  final Map<TypeRecipe, _ReferenceSet> _referencesByRecipe = {};
 
   TypeReferenceFinalizerImpl(
       this._emitter, this._commonElements, this._recipeEncoder, this._minify) {
@@ -663,9 +663,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
 
   @override
   void visitTypeVariableType(covariant TypeVariableType type, DartType parent) {
-    if (parent != type.element.typeDeclaration) {
-      _identifier(type.element.typeDeclaration.name);
-    }
+    _identifier(type.element.typeDeclaration.name);
     _identifier(type.element.name);
   }
 

@@ -6,6 +6,8 @@
 
 /*library: scope=[
   async.dart.FutureExtensions,
+  core.dart.EnumByName,
+  core.dart.EnumName,
   lib1.dart.ShownExtension1,
   lib2.dart.ShownExtension2,
   lib3.dart.ShownExtension3]*/
@@ -16,10 +18,10 @@ import 'lib3.dart' as lib3;
 
 main() {
   lib1.ShownExtension1.staticMethod();
-  lib1. /*error: errors=[Getter not found: 'HiddenExtension1'.]*/
+  lib1. /*error: errors=[Undefined name 'HiddenExtension1'.]*/
       HiddenExtension1.staticMethod();
   lib2.ShownExtension2.staticMethod();
-  lib2. /*error: errors=[Getter not found: 'HiddenExtension2'.]*/
+  lib2. /*error: errors=[Undefined name 'HiddenExtension2'.]*/
       HiddenExtension2.staticMethod();
   lib3.ShownExtension3.staticMethod();
 }

@@ -18,7 +18,7 @@ OLD=$(gclient getdep --var=co19_2_rev)
 NEW=$(cd $CO19 && git fetch origin && git rev-parse origin/pre-nnbd)
 
 git fetch origin
-git branch cl-co19-roll-co19-to-$NEW origin/master
+git branch cl-co19-roll-co19-to-$NEW origin/main
 git checkout cl-co19-roll-co19-to-$NEW
 
 # Build a cipd package of the commit.
@@ -33,31 +33,31 @@ bb collect -interval 10s $BUILD_ID
 # Update DEPS:
 gclient setdep --var=co19_2_rev=$NEW
 
+BUILDERS=$(jq -r '.builder_configurations
+  | map(select(.steps
+    | any(.arguments
+      | select(.!=null)
+        | any(test("co19_2($|(/.*))")))))
+  | map(.builders)
+  | flatten
+  | sort
+  | .[] += "-try"
+  | join(",")' \
+  tools/bots/test_matrix.json)
+
 # Make a nice commit. Don't include the '#' character to avoid referencing Dart
 # SDK issues.
 git commit DEPS -m \
-  "$(printf "[co19] Roll co19_2 to $NEW\n\n" &&
-     cd $CO19 &&
-     git log --date='format:%Y-%m-%d' --pretty='format:%ad %ae %s' \
-       $OLD..$NEW | tr -d '#')"
+  "$(printf "[co19] Roll co19_2 to $NEW\n\n" \
+  && cd $CO19 \
+  && git log --date='format:%Y-%m-%d' --pretty='format:%ad %ae %s' $OLD..$NEW \
+    | sed 's/\#/dart-lang\/co19\#/g' \
+  && printf "\nCq-Include-Trybots: dart/try:$BUILDERS\n")"
 
 rm -rf tests/co19_2/src.git
 
 GIT_EDITOR=true git cl upload
 ISSUE=$(git config --get branch.cl-co19-roll-co19-to-$NEW.gerritissue)
-
-BUILDERS=$(jq '.builder_configurations|
-                map(select(.steps|
-                           any(.arguments|
-                               select(.!=null)|
-                               any(.=="co19_2"))))|
-                map(.builders)|
-                flatten|
-                sort' \
-                tools/bots/test_matrix.json \
-             | tr -d '[",]')
-
-git cl try -B dart/try $(for BUILDER in $BUILDERS; do echo -b $BUILDER-try; done)
 
 git cl web
 

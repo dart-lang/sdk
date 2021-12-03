@@ -24,10 +24,10 @@ library from "org-dartlang-test:///lib2.dart" as lib2 {
 //
 // Problems in library:
 //
-// org-dartlang-test:///lib2.dart:3:9: Error: Constant evaluation error:
+// org-dartlang-test:///lib2.dart:4:9: Error: Constant evaluation error:
 //   const Foo(0);
 //         ^
-// org-dartlang-test:///lib.dart:2:31: Context: This assertion failed.
+// org-dartlang-test:///lib.dart:3:31: Context: This assertion failed.
 //   const Foo(int i) : assert(i > 0);
 //                               ^
 //

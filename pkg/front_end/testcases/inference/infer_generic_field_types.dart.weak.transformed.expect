@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A<X extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field self::A::X* field = null;
+  covariant-by-class field self::A::X* field = null;
   synthetic constructor •() → self::A<self::A::X*>*
     : super core::Object::•()
     ;
@@ -23,7 +23,7 @@ abstract class B<Y extends core::Object* = dynamic> extends core::Object impleme
     : super core::Object::•()
     ;
   abstract get field() → self::B::Y*;
-  abstract set field(generic-covariant-impl self::B::Y* value) → void;
+  abstract set field(covariant-by-class self::B::Y* value) → void;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -40,7 +40,7 @@ abstract class C extends core::Object implements self::A<core::int*> {
     : super core::Object::•()
     ;
   abstract get field() → core::int*;
-  abstract set field(generic-covariant-impl core::int* value) → void;
+  abstract set field(covariant-by-class core::int* value) → void;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

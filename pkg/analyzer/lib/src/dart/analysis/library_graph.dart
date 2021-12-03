@@ -20,10 +20,10 @@ void computeLibraryCycle(Uint32List salt, FileState file) {
 /// Information about libraries that reference each other, so form a cycle.
 class LibraryCycle {
   /// The libraries that belong to this cycle.
-  final List<FileState> libraries = [];
+  final List<FileState> libraries;
 
   /// The library cycles that this cycle references directly.
-  final Set<LibraryCycle> directDependencies = <LibraryCycle>{};
+  final Set<LibraryCycle> directDependencies;
 
   /// The cycles that use this cycle, used to [invalidate] transitively.
   final List<LibraryCycle> _directUsers = [];
@@ -34,21 +34,17 @@ class LibraryCycle {
   /// transitive signatures of the cycles that the [libraries] reference
   /// directly.  So, indirectly it is based on the transitive closure of all
   /// files that [libraries] reference (but we don't compute these files).
-  String? transitiveSignature;
+  String transitiveSignature;
 
-  /// The map from a library in [libraries] to its transitive signature.
-  ///
-  /// It is almost the same as [transitiveSignature], but is also based on
-  /// the URI of this specific library.  Currently we store each linked library
-  /// with its own key, so we need unique keys.  However practically we never
-  /// can use just *one* library of a cycle, we always use the whole cycle.
-  ///
-  /// TODO(scheglov) Switch to loading the whole cycle maybe?
-  final Map<FileState, String> transitiveSignatures = {};
-
-  LibraryCycle();
-
-  LibraryCycle.external() : transitiveSignature = '<external>';
+  LibraryCycle({
+    required this.libraries,
+    required this.directDependencies,
+    required this.transitiveSignature,
+  }) {
+    for (var directDependency in directDependencies) {
+      directDependency._directUsers.add(this);
+    }
+  }
 
   /// Invalidate this cycle and any cycles that directly or indirectly use it.
   ///
@@ -56,12 +52,14 @@ class LibraryCycle {
   /// [libraries] that share this [LibraryCycle] instance.
   void invalidate() {
     for (var library in libraries) {
-      library.internal_setLibraryCycle(null, null);
+      library.internal_setLibraryCycle(null);
     }
-    for (var user in _directUsers) {
+    for (var user in _directUsers.toList()) {
       user.invalidate();
     }
-    _directUsers.clear();
+    for (var directDependency in directDependencies) {
+      directDependency._directUsers.remove(this);
+    }
   }
 
   @override
@@ -101,8 +99,6 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
   @override
   void evaluateScc(List<_LibraryNode> scc) {
-    var cycle = LibraryCycle();
-
     var signature = ApiSignature();
     signature.addUint32List(_salt);
 
@@ -114,17 +110,20 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     });
 
     // Append direct referenced cycles.
+    var directDependencies = <LibraryCycle>{};
     for (var node in scc) {
       var file = node.file;
       _appendDirectlyReferenced(
-          cycle, signature, file.importedFiles.whereNotNull().toList());
-      _appendDirectlyReferenced(
-          cycle, signature, file.exportedFiles.whereNotNull().toList());
+        directDependencies,
+        signature,
+        file.directReferencedLibraries.whereNotNull().toList(),
+      );
     }
 
     // Fill the cycle with libraries.
+    var libraries = <FileState>[];
     for (var node in scc) {
-      cycle.libraries.add(node.file);
+      libraries.add(node.file);
 
       signature.addLanguageVersion(node.file.packageLanguageVersion);
       signature.addString(node.file.uriStr);
@@ -136,20 +135,16 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       }
     }
 
-    // Compute the general library cycle signature.
-    cycle.transitiveSignature = signature.toHex();
+    // Create the LibraryCycle instance for the cycle.
+    var cycle = LibraryCycle(
+      libraries: libraries,
+      directDependencies: directDependencies,
+      transitiveSignature: signature.toHex(),
+    );
 
-    // Compute library specific signatures.
+    // Set the instance into the libraries.
     for (var node in scc) {
-      var librarySignatureBuilder = ApiSignature()
-        ..addString(node.file.uriStr)
-        ..addString(cycle.transitiveSignature!);
-      var librarySignature = librarySignatureBuilder.toHex();
-
-      node.file.internal_setLibraryCycle(
-        cycle,
-        librarySignature,
-      );
+      node.file.internal_setLibraryCycle(cycle);
     }
   }
 
@@ -158,7 +153,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   }
 
   void _appendDirectlyReferenced(
-    LibraryCycle cycle,
+    Set<LibraryCycle> directDependencies,
     ApiSignature signature,
     List<FileState> directlyReferenced,
   ) {
@@ -169,9 +164,8 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       // We get null when the library is a part of the cycle being build.
       if (referencedCycle == null) continue;
 
-      if (cycle.directDependencies.add(referencedCycle)) {
-        referencedCycle._directUsers.add(cycle);
-        signature.addString(referencedCycle.transitiveSignature!);
+      if (directDependencies.add(referencedCycle)) {
+        signature.addString(referencedCycle.transitiveSignature);
       }
     }
   }

@@ -16,7 +16,7 @@ static const field () → self::A<core::int> f1b = #C2;
 static const field () → self::A<core::int> f1c = #C2;
 static const field () → self::A<core::int> g1a = #C2;
 static const field () → self::A<core::int> g1b = #C2;
-static const field () → self::A<core::int> g1c = #C3;
+static const field () → self::A<core::int> g1c = #C2;
 static const field () → self::A<core::int> h1a = #C2;
 static const field () → self::A<core::int> h1b = #C2;
 static const field () → self::A<core::int> h1c = #C2;
@@ -25,7 +25,7 @@ static method main() → dynamic {
   core::identical(#C2, #C2);
   core::identical(#C2, #C2);
   core::identical(#C2, #C2);
-  core::identical(#C2, #C3);
+  core::identical(#C2, #C2);
   core::identical(#C2, #C2);
   core::identical(#C2, #C2);
 }
@@ -35,7 +35,7 @@ static method test<T extends core::num>() → dynamic {
   () → self::A<self::test::T> f2c = #C1<self::test::T>;
   () → self::A<core::int> g2a = #C2;
   () → self::A<core::int> g2b = #C2;
-  () → self::A<core::int> g2c = #C3;
+  () → self::A<core::int> g2c = #C2;
   () → self::A<self::test::T> h2a = #C1<self::test::T>;
   () → self::A<self::test::T> h2b = #C1<self::test::T>;
   () → self::A<self::test::T> h2c = #C1<self::test::T>;
@@ -52,6 +52,5 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 
 constants  {
   #C1 = constructor-tearoff self::A::•
-  #C2 = instantiation self::A::• <core::int*>
-  #C3 = instantiation self::A::• <core::int>
+  #C2 = instantiation #C1 <core::int*>
 }

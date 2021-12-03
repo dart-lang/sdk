@@ -1,0 +1,12 @@
+name: verify_docs
+description: A tool to validate the documentation comments for the `dart:` libraries.
+
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+
+dependencies:
+  analyzer: any
+  path: any

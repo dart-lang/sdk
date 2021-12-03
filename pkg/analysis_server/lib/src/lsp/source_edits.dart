@@ -11,7 +11,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -94,7 +93,7 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
     }
     formattedResult = formatter.formatSource(code);
   } on FormatterException {
-    // If the document fails to parse, just return no edits to avoid the the
+    // If the document fails to parse, just return no edits to avoid the
     // use seeing edits on every save with invalid code (if LSP gains the
     // ability to pass a context to know if the format was manually invoked
     // we may wish to change this to return an error for that case).
@@ -168,7 +167,48 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
     int formattedStart,
     int formattedEnd,
   ) {
+    final unformattedWhitespace =
+        unformatted.substring(unformattedStart, unformattedEnd);
+    final formattedWhitespace =
+        formatted.substring(formattedStart, formattedEnd);
+
     if (rangeStart != null && rangeEnd != null) {
+      // If this change crosses over the start of the requested range, discarding
+      // the change may result in leading whitespace of the next line not being
+      // formatted correctly.
+      //
+      // To handle this, if both unformatted/formatted contain at least one
+      // newline, split this change into two around the last newline so that the
+      // final part (likely leading whitespace) can be included without
+      // including the whole change.
+      //
+      // Without this, functionality like VS Code's "format modified lines"
+      // (which uses Git status to know which lines are edited) may appear to
+      // fail to format the first newly added line in a range.
+      if (unformattedStart < rangeStart.result &&
+          unformattedEnd > rangeStart.result &&
+          unformattedWhitespace.contains('\n') &&
+          formattedWhitespace.contains('\n')) {
+        // Find the offsets of the character after the last newlines.
+        final unformattedOffset = unformattedWhitespace.lastIndexOf('\n') + 1;
+        final formattedOffset = formattedWhitespace.lastIndexOf('\n') + 1;
+        // Call us again for the leading part
+        addEditFor(
+          unformattedStart,
+          unformattedStart + unformattedOffset,
+          formattedStart,
+          formattedStart + formattedOffset,
+        );
+        // Call us again for the trailing part
+        addEditFor(
+          unformattedStart + unformattedOffset,
+          unformattedEnd,
+          formattedStart + formattedOffset,
+          formattedEnd,
+        );
+        return;
+      }
+
       // If we're formatting only a range, skip over any segments that don't fall
       // entirely within that range.
       if (unformattedStart < rangeStart.result ||
@@ -176,11 +216,6 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
         return;
       }
     }
-
-    final unformattedWhitespace =
-        unformatted.substring(unformattedStart, unformattedEnd);
-    final formattedWhitespace =
-        formatted.substring(formattedStart, formattedEnd);
 
     if (unformattedWhitespace == formattedWhitespace) {
       return;

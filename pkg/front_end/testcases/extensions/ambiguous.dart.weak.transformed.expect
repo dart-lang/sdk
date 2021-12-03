@@ -215,61 +215,61 @@ static method errors(self::C* c) → dynamic {
  - 'C' is from 'pkg/front_end/testcases/extensions/ambiguous.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.method();
-    ^^^^^^";
+    ^^^^^^" in c{<unresolved>}.method();
   invalid-expression "pkg/front_end/testcases/extensions/ambiguous.dart:29:5: Error: The property 'method' is defined in multiple extensions for 'C' and neither is more specific.
  - 'C' is from 'pkg/front_end/testcases/extensions/ambiguous.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.method;
-    ^^^^^^";
+    ^^^^^^" in c{<unresolved>}.method;
   invalid-expression "pkg/front_end/testcases/extensions/ambiguous.dart:30:5: Error: The property 'getter' is defined in multiple extensions for 'C' and neither is more specific.
  - 'C' is from 'pkg/front_end/testcases/extensions/ambiguous.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.getter;
-    ^^^^^^";
+    ^^^^^^" in c{<unresolved>}.getter;
   invalid-expression "pkg/front_end/testcases/extensions/ambiguous.dart:31:5: Error: The property 'setter' is defined in multiple extensions for 'C' and neither is more specific.
  - 'C' is from 'pkg/front_end/testcases/extensions/ambiguous.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.setter;
-    ^^^^^^";
+    ^^^^^^" in c{<unresolved>}.setter;
   invalid-expression "pkg/front_end/testcases/extensions/ambiguous.dart:32:5: Error: The property 'getter' is defined in multiple extensions for 'C' and neither is more specific.
  - 'C' is from 'pkg/front_end/testcases/extensions/ambiguous.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.getter = 42;
-    ^^^^^^";
+    ^^^^^^" in c{<unresolved>}.getter = 42;
   invalid-expression "pkg/front_end/testcases/extensions/ambiguous.dart:33:5: Error: The property 'setter' is defined in multiple extensions for 'C' and neither is more specific.
  - 'C' is from 'pkg/front_end/testcases/extensions/ambiguous.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.setter = 42;
-    ^^^^^^";
+    ^^^^^^" in c{<unresolved>}.setter = 42;
   invalid-expression "pkg/front_end/testcases/extensions/ambiguous.dart:34:5: Error: The property 'property' is defined in multiple extensions for 'C' and neither is more specific.
  - 'C' is from 'pkg/front_end/testcases/extensions/ambiguous.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.property;
-    ^^^^^^^^";
+    ^^^^^^^^" in c{<unresolved>}.property;
   invalid-expression "pkg/front_end/testcases/extensions/ambiguous.dart:35:5: Error: The property 'property' is defined in multiple extensions for 'C' and neither is more specific.
  - 'C' is from 'pkg/front_end/testcases/extensions/ambiguous.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c.property = 42;
-    ^^^^^^^^";
+    ^^^^^^^^" in c{<unresolved>}.property = 42;
   invalid-expression "pkg/front_end/testcases/extensions/ambiguous.dart:36:5: Error: The operator '+' is defined in multiple extensions for 'C' and neither is more specific.
  - 'C' is from 'pkg/front_end/testcases/extensions/ambiguous.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c + 0;
-    ^";
+    ^" in c{<unresolved>}.+(0);
   invalid-expression "pkg/front_end/testcases/extensions/ambiguous.dart:37:3: Error: The operator 'unary-' is defined in multiple extensions for 'C' and neither is more specific.
  - 'C' is from 'pkg/front_end/testcases/extensions/ambiguous.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   -c;
-  ^";
+  ^" in c{<unresolved>}.unary-();
   invalid-expression "pkg/front_end/testcases/extensions/ambiguous.dart:38:4: Error: The operator '[]' is defined in multiple extensions for 'C' and neither is more specific.
  - 'C' is from 'pkg/front_end/testcases/extensions/ambiguous.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c[42];
-   ^";
+   ^" in c{<unresolved>}.[](42);
   invalid-expression "pkg/front_end/testcases/extensions/ambiguous.dart:39:4: Error: The operator '[]=' is defined in multiple extensions for 'C' and neither is more specific.
  - 'C' is from 'pkg/front_end/testcases/extensions/ambiguous.dart'.
 Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
   c[42] = 0;
-   ^";
+   ^" in c{<unresolved>}.[]=(42, 0);
 }
 static method main() → dynamic {}

@@ -4,7 +4,7 @@
 
 part of dart._http;
 
-final _httpOverridesToken = new Object();
+final _httpOverridesToken = Object();
 
 const _asyncRunZoned = runZoned;
 
@@ -13,20 +13,22 @@ const _asyncRunZoned = runZoned;
 /// that construct a mock implementation. The implementation in this base class
 /// defaults to the actual [HttpClient] implementation. For example:
 ///
-/// ```dart
+/// ```dart import:io
+/// // An implementation of the HttpClient interface
 /// class MyHttpClient implements HttpClient {
-///   ...
-///   // An implementation of the HttpClient interface
-///   ...
+///   MyHttpClient(SecurityContext? c);
+///
+///   @override
+///   noSuchMethod(Invocation invocation) {
+///     // your implementation here
+///   }
 /// }
 ///
-/// main() {
+/// void main() {
 ///   HttpOverrides.runZoned(() {
-///     ...
 ///     // Operations will use MyHttpClient instead of the real HttpClient
 ///     // implementation whenever HttpClient is used.
-///     ...
-///   }, createHttpClient: (SecurityContext c) => new MyHttpClient(c));
+///   }, createHttpClient: (SecurityContext? c) => MyHttpClient(c));
 /// }
 /// ```
 abstract class HttpOverrides {
@@ -46,12 +48,12 @@ abstract class HttpOverrides {
   }
 
   /// Runs [body] in a fresh [Zone] using the provided overrides.
-  static R runZoned<R>(R body(),
+  static R runZoned<R>(R Function() body,
       {HttpClient Function(SecurityContext?)? createHttpClient,
       String Function(Uri uri, Map<String, String>? environment)?
           findProxyFromEnvironment}) {
     HttpOverrides overrides =
-        new _HttpOverridesScope(createHttpClient, findProxyFromEnvironment);
+        _HttpOverridesScope(createHttpClient, findProxyFromEnvironment);
     return _asyncRunZoned<R>(body,
         zoneValues: {_httpOverridesToken: overrides});
   }
@@ -60,7 +62,7 @@ abstract class HttpOverrides {
   ///
   /// Note that [overrides] should be an instance of a class that extends
   /// [HttpOverrides].
-  static R runWithHttpOverrides<R>(R body(), HttpOverrides overrides) {
+  static R runWithHttpOverrides<R>(R Function() body, HttpOverrides overrides) {
     return _asyncRunZoned<R>(body,
         zoneValues: {_httpOverridesToken: overrides});
   }
@@ -70,7 +72,7 @@ abstract class HttpOverrides {
   /// When this override is installed, this function overrides the behavior of
   /// `new HttpClient`.
   HttpClient createHttpClient(SecurityContext? context) {
-    return new _HttpClient(context);
+    return _HttpClient(context);
   }
 
   /// Resolves the proxy server to be used for HTTP connections.

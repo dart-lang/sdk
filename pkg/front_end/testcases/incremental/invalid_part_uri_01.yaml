@@ -9,6 +9,7 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         // The space makes the scheme invalid -- this causes Uri.parse to throw.
         part ' package:foo/bar.dart';
     expectedLibraryCount: 1
@@ -21,6 +22,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         main() {}
     expectInitializeFromDill: false
     expectedLibraryCount: 1

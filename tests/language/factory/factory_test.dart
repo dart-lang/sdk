@@ -54,10 +54,7 @@ class LinkFactory {
   LinkFactory._();
 }
 
-
 main() {
   FactoryTest.testMain();
   var a = new Link<int>.create();
-  //          ^
-  // [cfe] Expected 0 type arguments.
 }

@@ -55,10 +55,8 @@ namespace dart {
 namespace compiler {
 
 bool IsSameObject(const Object& a, const Object& b) {
-  if (a.IsMint() && b.IsMint()) {
-    return Mint::Cast(a).value() == Mint::Cast(b).value();
-  } else if (a.IsDouble() && b.IsDouble()) {
-    return Double::Cast(a).value() == Double::Cast(b).value();
+  if (a.IsInstance() && b.IsInstance()) {
+    return Instance::Cast(a).IsIdenticalTo(Instance::Cast(b));
   }
   return a.ptr() == b.ptr();
 }
@@ -101,7 +99,7 @@ intptr_t ObjectHash(const Object& obj) {
   if (obj.IsNull()) {
     return 2011;
   }
-  if (obj.IsString() || obj.IsNumber()) {
+  if (obj.IsInstance()) {
     return Instance::Cast(obj).CanonicalizeHash();
   }
   if (obj.IsCode()) {
@@ -113,6 +111,9 @@ intptr_t ObjectHash(const Object& obj) {
   }
   if (obj.IsField()) {
     return dart::String::HashRawSymbol(Field::Cast(obj).name());
+  }
+  if (obj.IsICData()) {
+    return ICData::Cast(obj).Hash();
   }
   // Unlikely.
   return obj.GetClassId();
@@ -368,6 +369,12 @@ const word UntaggedObject::kTagBitsSizeTagPos =
 const word UntaggedAbstractType::kTypeStateFinalizedInstantiated =
     dart::UntaggedAbstractType::kFinalizedInstantiated;
 
+const bool UntaggedType::kTypeClassIdIsSigned =
+    std::is_signed<decltype(dart::UntaggedType::type_class_id_)>::value;
+
+const word UntaggedType::kTypeClassIdBitSize =
+    sizeof(dart::UntaggedType::type_class_id_) * kBitsPerByte;
+
 const word UntaggedObject::kBarrierOverlapShift =
     dart::UntaggedObject::kBarrierOverlapShift;
 
@@ -418,8 +425,8 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return WeakProperty::InstanceSize();
     case kByteBufferCid:
     case kByteDataViewCid:
-    case kFfiPointerCid:
-    case kFfiDynamicLibraryCid:
+    case kPointerCid:
+    case kDynamicLibraryCid:
 #define HANDLE_CASE(clazz) case kFfi##clazz##Cid:
       CLASS_LIST_FFI_TYPE_MARKER(HANDLE_CASE)
 #undef HANDLE_CASE
@@ -1002,6 +1009,7 @@ namespace compiler {
 namespace target {
 
 const word Array::kMaxElements = Array_kMaxElements;
+const word Context::kMaxElements = Context_kMaxElements;
 
 }  // namespace target
 }  // namespace compiler

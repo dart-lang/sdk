@@ -30,7 +30,7 @@ class B<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::B<self::B::T*>*
     : super core::Object::•()
     ;
-  method call(generic-covariant-impl self::B::T* t) → self::B::T*
+  method call(covariant-by-class self::B::T* t) → self::B::T*
     return t;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -69,8 +69,8 @@ static method test() → dynamic {
   core::List<core::String*>* list4 = core::_GrowableList::_literal3<core::String*>("a", "b", "c").{core::Iterable::map}<core::String*>(let final self::B<core::String*>* #t2 = b in #t2 == null ?{(core::String*) →* core::String*} null : #t2.{self::B::call}{(core::String*) →* core::String*}){((core::String*) →* core::String*) →* core::Iterable<core::String*>*}.{core::Iterable::toList}(){({growable: core::bool*}) →* core::List<core::String*>*};
   self::C* c = new self::C::•();
   core::List<core::String*>* list5 = core::_GrowableList::_literal3<core::String*>("a", "b", "c").{core::Iterable::map}<core::String*>(c.{self::C::call}{<T extends core::Object* = dynamic>(T*) →* T*}<core::String*>){((core::String*) →* core::String*) →* core::Iterable<core::String*>*}.{core::Iterable::toList}(){({growable: core::bool*}) →* core::List<core::String*>*};
-  core::List<core::String*>* list6 = core::_GrowableList::_literal3<core::String*>("a", "b", "c").{core::Iterable::map}<dynamic>(let final Never* #t3 = invalid-expression "pkg/front_end/testcases/general/bug33298.dart:28:44: Error: The argument type 'T Function<T>(T)' can't be assigned to the parameter type 'dynamic Function(String)'.
+  core::List<core::String*>* list6 = core::_GrowableList::_literal3<core::String*>("a", "b", "c").{core::Iterable::map}<dynamic>(invalid-expression "pkg/front_end/testcases/general/bug33298.dart:28:44: Error: The argument type 'T Function<T>(T)' can't be assigned to the parameter type 'dynamic Function(String)'.
   List<String> list6 = ['a', 'b', 'c'].map(c).toList();
-                                           ^" in (let final self::C* #t4 = c in #t4 == null ?{<T extends core::Object* = dynamic>(T*) →* T*} null : #t4.{self::C::call}{<T extends core::Object* = dynamic>(T*) →* T*}) as{TypeError} (core::String*) →* dynamic){((core::String*) →* dynamic) →* core::Iterable<dynamic>*}.{core::Iterable::toList}(){({growable: core::bool*}) →* core::List<dynamic>*} as{TypeError} core::List<core::String*>*;
+                                           ^" in (let final self::C* #t3 = c in #t3 == null ?{<T extends core::Object* = dynamic>(T*) →* T*} null : #t3.{self::C::call}{<T extends core::Object* = dynamic>(T*) →* T*}) as{TypeError} (core::String*) →* dynamic){((core::String*) →* dynamic) →* core::Iterable<dynamic>*}.{core::Iterable::toList}(){({growable: core::bool*}) →* core::List<dynamic>*} as{TypeError} core::List<core::String*>*;
 }
 static method main() → dynamic {}

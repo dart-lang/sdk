@@ -1,0 +1,55 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/const_redirect.dart:15:9: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'ImplAlias'.
+// Try changing type arguments so that they conform to the bounds.
+//         ImplAlias<String>()
+//         ^
+// pkg/front_end/testcases/constructor_tearoffs/lowering/const_redirect.dart:25:19: Context: This is the type variable whose bound isn't conformed to.
+// typedef ImplAlias<T extends num> = _ConstImpl<T>;
+//                   ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Alias = self::Const;
+typedef ImplAlias<T extends core::num> = self::_ConstImpl<T>;
+class Class extends core::Object {
+  final field core::List<self::Const> constants;
+  constructor •({core::List<self::Const> constants = #C3}) → self::Class
+    : self::Class::constants = constants, super core::Object::•()
+    ;
+  static method _#new#tearOff({core::List<self::Const> constants = #C3}) → self::Class
+    return new self::Class::•(constants: constants);
+}
+abstract class Const extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C4]/*isLegacy*/;
+  static factory impl() → self::Const
+    return new self::_ConstImpl::•<dynamic>();
+  static method _#impl#tearOff() → self::Const
+    return new self::_ConstImpl::•<dynamic>();
+}
+class _ConstImpl<T extends core::Object? = dynamic> extends core::Object implements self::Const /*hasConstConstructor*/  {
+  const constructor •() → self::_ConstImpl<self::_ConstImpl::T%>
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::_ConstImpl<self::_ConstImpl::_#new#tearOff::T%>
+    return new self::_ConstImpl::•<self::_ConstImpl::_#new#tearOff::T%>();
+}
+static method main() → dynamic {}
+static method _#ImplAlias#new#tearOff<T extends core::num>() → self::_ConstImpl<self::_#ImplAlias#new#tearOff::T>
+  return new self::_ConstImpl::•<self::_#ImplAlias#new#tearOff::T>();
+
+constants  {
+  #C1 = self::_ConstImpl<dynamic> {}
+  #C2 = self::_ConstImpl<core::String> {}
+  #C3 = <self::Const>[#C1, #C1, #C2]
+  #C4 = constructor-tearoff self::Const::impl
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_redirect.dart:
+- _ConstImpl. (from org-dartlang-testcase:///const_redirect.dart:28:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

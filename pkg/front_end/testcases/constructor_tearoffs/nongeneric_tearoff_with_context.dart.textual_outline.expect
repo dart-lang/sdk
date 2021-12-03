@@ -4,6 +4,7 @@ class A {
   A() {}
   factory A.bar1() => new A();
 }
+
 A Function() test1() => A.foo1;
 A Function() test2() => A.foo2;
 A Function() test3() => A.new;

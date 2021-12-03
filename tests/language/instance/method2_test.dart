@@ -14,7 +14,7 @@ class Goofy {
     return instMethod;
     //     ^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.INSTANCE_MEMBER_ACCESS_FROM_STATIC
-    // [cfe] Getter not found: 'instMethod'.
+    // [cfe] Undefined name 'instMethod'.
   }
 }
 

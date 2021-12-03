@@ -22,8 +22,11 @@
 #include <sys/utsname.h>   // NOLINT
 #include <unistd.h>        // NOLINT
 
+#include <string>
+
 #include "bin/console.h"
 #include "bin/file.h"
+#include "bin/platform_macos_cocoa.h"
 
 namespace dart {
 namespace bin {
@@ -113,89 +116,9 @@ const char* Platform::OperatingSystem() {
 #endif
 }
 
-char* ExtractsOSVersionFromString(char* str) {
-  char* pos = strstr(str, "<key>ProductVersion</key>");
-  if (pos == NULL) {
-    return NULL;
-  }
-  pos = strstr(pos, "<string>");
-  if (pos == NULL) {
-    return NULL;
-  }
-  // Shift the index by the length of "<string>".
-  pos += 8;
-  char* end_pos = strstr(pos, "</string>");
-  if (end_pos == NULL) {
-    return NULL;
-  }
-
-  int length = end_pos - pos;
-  char* result =
-      reinterpret_cast<char*>(Dart_ScopeAllocate(length * sizeof(char)) + 1);
-  strncpy(result, pos, length);
-  result[length] = '\0';
-  return result;
-}
-
-static char* GetOSVersionFromPlist() {
-  const char* path = "/System/Library/CoreServices/SystemVersion.plist";
-  File* file = File::Open(NULL, path, File::kRead);
-  if (file == NULL) {
-    return NULL;
-  }
-  int length = file->Length();
-  if (length < 0) {
-    return NULL;
-  }
-  char* buffer =
-      reinterpret_cast<char*>(Dart_ScopeAllocate(length * sizeof(char) + 1));
-  int bytes = file->ReadFully(buffer, length);
-  buffer[length * sizeof(char)] = '\0';
-  file->Close();
-  file->Release();
-  if (bytes < 0) {
-    return NULL;
-  }
-  return ExtractsOSVersionFromString(buffer);
-}
-
 const char* Platform::OperatingSystemVersion() {
-  char str[64];
-  size_t size = sizeof(str);
-  // This is only available to some versions later than 10.13.*. If it failed,
-  // try to read from "SystemVersion.plist".
-  int res = sysctlbyname("kern.osproductversion", str, &size, NULL, 0);
-  if (res == 0) {
-    int len = snprintf(NULL, 0, "%s", str);
-    char* result_string = DartUtils::ScopedCString(len + 1);
-    strncpy(result_string, str, len);
-    result_string[len] = '\0';
-    return result_string;
-  }
-  char* result_string = GetOSVersionFromPlist();
-  if (result_string != NULL) {
-    return result_string;
-  }
-
-  struct utsname info;
-  int ret = uname(&info);
-  if (ret != 0) {
-    return NULL;
-  }
-  const char* kFormat = "%s %s %s";
-  int len =
-      snprintf(NULL, 0, kFormat, info.sysname, info.release, info.version);
-  if (len <= 0) {
-    return NULL;
-  }
-  char* result = DartUtils::ScopedCString(len + 1);
-  ASSERT(result != NULL);
-  len = snprintf(result, len + 1, kFormat, info.sysname, info.release,
-                 info.version);
-  if (len <= 0) {
-    return NULL;
-  }
-  return result;
+  std::string version(NSProcessInfoOperatingSystemVersionString());
+  return DartUtils::ScopedCopyCString(version.c_str());
 }
 
 const char* Platform::LibraryPrefix() {
@@ -327,6 +250,8 @@ intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {
   }
   return path_size;
 }
+
+void Platform::SetProcessName(const char* name) {}
 
 void Platform::Exit(int exit_code) {
   Console::RestoreConfig();

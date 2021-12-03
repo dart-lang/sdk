@@ -39,10 +39,9 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_audio' show AudioBuffer, AudioTrack, AudioTrackList;
 import 'dart:web_gl' as gl;
 import 'dart:web_gl' show RenderingContext,RenderingContext2;
-import 'dart:web_sql';
 import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
-    JSName, Native, Returns, ForceInline,
+    JSName, Native, Returns,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
     makeLeafDispatchRecord, registerGlobalObject, applyExtension;
 import 'dart:_interceptors' show
@@ -52,6 +51,7 @@ import 'dart:_interceptors' show
     getNativeInterceptor,
     setDispatchProperty;
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
+import 'dart:js_util' as js_util;
 
 export 'dart:_internal' show HttpStatus;
 export 'dart:html_common' show promiseToFuture;

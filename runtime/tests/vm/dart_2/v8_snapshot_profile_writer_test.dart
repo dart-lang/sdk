@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -59,8 +61,9 @@ Snapshot testProfile(String profilePath) {
   return profile;
 }
 
-Future<void> testJIT(String dillPath) async {
-  final description = 'jit';
+Future<void> testJIT(String dillPath, String snapshotKind) async {
+  final includesCode = snapshotKind == 'core-jit';
+  final description = snapshotKind;
   Expect.isTrue(_seenDescriptions.add(description),
       "test configuration $description would be run multiple times");
 
@@ -73,9 +76,11 @@ Future<void> testJIT(String dillPath) async {
     final isolateDataPath = path.join(tempDir, 'isolate_data.bin');
 
     await run(genSnapshot, <String>[
-      '--snapshot-kind=core-jit',
-      '--vm_snapshot_instructions=$vmTextPath',
-      '--isolate_snapshot_instructions=$isolateTextPath',
+      '--snapshot-kind=$snapshotKind',
+      if (includesCode) ...<String>[
+        '--vm_snapshot_instructions=$vmTextPath',
+        '--isolate_snapshot_instructions=$isolateTextPath',
+      ],
       '--vm_snapshot_data=$vmDataPath',
       '--isolate_snapshot_data=$isolateDataPath',
       "--write-v8-snapshot-profile-to=$profilePath",
@@ -89,10 +94,12 @@ Future<void> testJIT(String dillPath) async {
     // Verify that the total size of the snapshot text and data sections is
     // the same as the sum of the shallow sizes of all objects in the profile.
     // This ensures that all bytes are accounted for in some way.
-    final actualSize = await File(vmTextPath).length() +
-        await File(isolateTextPath).length() +
-        await File(vmDataPath).length() +
-        await File(isolateDataPath).length();
+    int actualSize =
+        await File(vmDataPath).length() + await File(isolateDataPath).length();
+    if (includesCode) {
+      actualSize += await File(vmTextPath).length() +
+          await File(isolateTextPath).length();
+    }
     final expectedSize =
         profile.nodes.fold<int>(0, (size, n) => size + n.selfSize);
 
@@ -418,8 +425,10 @@ main() async {
     //   extra information that needs stripping), so no need to specify
     //   stripUtil for useAsm tests.
 
-    // Test profile generation with a core JIT snapshot.
-    await testJIT(jitDillPath);
+    // Test profile generation with a core snapshot (no code).
+    await testJIT(jitDillPath, 'core');
+    // Test profile generation with a core JIT snapshot (with code).
+    await testJIT(jitDillPath, 'core-jit');
 
     // Test unstripped ELF generation directly.
     await testAOT(aotDillPath);

@@ -25,7 +25,6 @@ import("../lib/convert_sources.gni")
 import("../lib/core_sources.gni")
 import("../lib/developer_sources.gni")
 import("../lib/ffi_sources.gni")
-import("../lib/internal_sources.gni")
 import("../lib/isolate_sources.gni")
 import("../lib/math_sources.gni")
 import("../lib/mirrors_sources.gni")
@@ -109,6 +108,12 @@ library_for_all_configs("libdart_vm") {
   sources = vm_sources + rebase_path(compiler_api_sources, ".", "./compiler/") +
             rebase_path(disassembler_sources, ".", "./compiler/") +
             rebase_path(heap_sources, ".", "./heap/")
+  if (is_android) {
+    # Android specific workaround for a kernel bug. This source file can't
+    # go into vm_sources list because it will break Windows build which
+    # uses different assembler syntax.
+    sources += [ "thread_interrupter_android_arm.S" ]
+  }
   include_dirs = [ ".." ]
 }
 
@@ -147,10 +152,10 @@ library_for_all_configs("libdart_lib") {
   }
   include_dirs = [ ".." ]
   allsources = async_runtime_cc_files + core_runtime_cc_files +
-               developer_runtime_cc_files + internal_runtime_cc_files +
-               isolate_runtime_cc_files + math_runtime_cc_files +
-               mirrors_runtime_cc_files + typed_data_runtime_cc_files +
-               vmservice_runtime_cc_files + ffi_runtime_cc_files
+               developer_runtime_cc_files + isolate_runtime_cc_files +
+               math_runtime_cc_files + mirrors_runtime_cc_files +
+               typed_data_runtime_cc_files + vmservice_runtime_cc_files +
+               ffi_runtime_cc_files
   sources = [ "bootstrap.cc" ] + rebase_path(allsources, ".", "../lib")
   snapshot_sources = []
 }

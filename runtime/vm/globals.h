@@ -42,17 +42,19 @@ static constexpr int kCompressedWordSize = kWordSize;
 static constexpr int kCompressedWordSizeLog2 = kWordSizeLog2;
 typedef uintptr_t compressed_uword;
 #endif
+const int kMaxAddrSpaceMB = (kWordSize <= 4) ? 4096 : kMaxInt;
 
 // Number of bytes per BigInt digit.
 const intptr_t kBytesPerBigIntDigit = 4;
 
-// The default old gen heap size in MB, where 0 == unlimited.
+// The default old gen heap size in MB, where 0 -- unlimited.
 // 32-bit: OS limit is 2 or 3 GB
 // 64-bit: Linux's limit is
 //   sysctl vm.max_map_count (default 2^16) * 512 KB OldPages = 32 GB
 // Set the VM limit below the OS limit to increase the likelihood of failing
 // gracefully with a Dart OutOfMemory exception instead of SIGABORT.
 const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 30720;
+const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 
 #define kPosInfinity bit_cast<double>(DART_UINT64_C(0x7ff0000000000000))
 #define kNegInfinity bit_cast<double>(DART_UINT64_C(0xfff0000000000000))
@@ -109,7 +111,7 @@ const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 30720;
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(PRODUCT) || defined(DART_HOST_OS_FUCHSIA) ||                      \
-    defined(DART_TARGET_OS_FUCHSIA)
+    defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
 #define SUPPORT_TIMELINE 1
 #endif
 

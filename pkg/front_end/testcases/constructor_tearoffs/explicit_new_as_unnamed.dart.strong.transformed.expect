@@ -91,11 +91,15 @@ class E3 extends core::Object {
     ;
 }
 class E4 extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::E4::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor _() → self::E4
     : super core::Object::•()
     ;
   static factory •() → self::E4
-    let Never #redirecting_factory = self::E4::_ in invalid-expression;
+    return new self::E4::_();
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::E4::•
+}

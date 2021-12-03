@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert' show jsonDecode;
 
 import 'dart:io' show File;
@@ -14,6 +12,8 @@ import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
 
 import 'package:front_end/src/fasta/messages.dart' show Message;
+import 'package:front_end/src/fasta/source/diet_parser.dart'
+    show useImplicitCreationExpressionInCfe;
 
 import 'package:front_end/src/fasta/util/direct_parser_ast.dart' show getAST;
 
@@ -66,7 +66,7 @@ const String EXPECTATIONS = '''
 ]
 ''';
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(
@@ -102,6 +102,7 @@ ScannerConfiguration scannerConfigurationNonTripleShift =
         enableNonNullable: true);
 
 class Context extends ChainContext with MatchContext {
+  @override
   final bool updateExpectations;
 
   @override
@@ -117,6 +118,7 @@ class Context extends ChainContext with MatchContext {
   Context(this.suiteName, this.updateExpectations, this.addTrace,
       this.annotateLines);
 
+  @override
   final List<Step> steps = const <Step>[
     const TokenStep(true, ".scanner.expect"),
     const TokenStep(false, ".parser.expect"),
@@ -124,6 +126,7 @@ class Context extends ChainContext with MatchContext {
     const IntertwinedStep(),
   ];
 
+  @override
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
 
@@ -138,11 +141,13 @@ class Context extends ChainContext with MatchContext {
 class ContextChecksOnly extends Context {
   ContextChecksOnly(String suiteName) : super(suiteName, false, false, false);
 
+  @override
   final List<Step> steps = const <Step>[
     const ListenerStep(false),
     const DirectParserASTStep(),
   ];
 
+  @override
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
 
@@ -157,7 +162,9 @@ class ContextChecksOnly extends Context {
 class DirectParserASTStep
     extends Step<TestDescription, TestDescription, Context> {
   const DirectParserASTStep();
+  @override
   String get name => "DirectParserAST";
+  @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
     Uri uri = description.uri;
@@ -176,17 +183,19 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
   final bool doExpects;
   const ListenerStep(this.doExpects);
 
+  @override
   String get name => "listener";
 
   /// Scans the uri, parses it with the test listener and returns it.
   ///
   /// Returns null if scanner doesn't return any Token.
-  static ParserTestListenerWithMessageFormatting doListenerParsing(
+  static ParserTestListenerWithMessageFormatting? doListenerParsing(
       Uri uri, String suiteName, String shortName,
       {bool addTrace: false, bool annotateLines: false}) {
     List<int> lineStarts = <int>[];
     Token firstToken = scanUri(uri, shortName, lineStarts: lineStarts);
 
+    // ignore: unnecessary_null_comparison
     if (firstToken == null) {
       return null;
     }
@@ -198,16 +207,18 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
     ParserTestListenerWithMessageFormatting parserTestListener =
         new ParserTestListenerWithMessageFormatting(
             addTrace, annotateLines, source, shortNameId);
-    Parser parser = new Parser(parserTestListener);
+    Parser parser = new Parser(parserTestListener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     parser.parseUnit(firstToken);
     return parserTestListener;
   }
 
+  @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
     Uri uri = description.uri;
 
-    ParserTestListenerWithMessageFormatting parserTestListener =
+    ParserTestListenerWithMessageFormatting? parserTestListener =
         doListenerParsing(
       uri,
       context.suiteName,
@@ -237,14 +248,17 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
 class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
   const IntertwinedStep();
 
+  @override
   String get name => "intertwined";
 
+  @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
     List<int> lineStarts = <int>[];
     Token firstToken =
         scanUri(description.uri, description.shortName, lineStarts: lineStarts);
 
+    // ignore: unnecessary_null_comparison
     if (firstToken == null) {
       return Future.value(crash(description, StackTrace.current));
     }
@@ -273,14 +287,17 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
 
   const TokenStep(this.onlyScanner, this.suffix);
 
+  @override
   String get name => "token";
 
+  @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
     List<int> lineStarts = <int>[];
     Token firstToken =
         scanUri(description.uri, description.shortName, lineStarts: lineStarts);
 
+    // ignore: unnecessary_null_comparison
     if (firstToken == null) {
       return Future.value(crash(description, StackTrace.current));
     }
@@ -298,10 +315,11 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
 
     ParserTestListener parserTestListener =
         new ParserTestListener(context.addTrace);
-    Parser parser = new Parser(parserTestListener);
+    Parser parser = new Parser(parserTestListener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     bool parserCrashed = false;
     dynamic parserCrashedE;
-    StackTrace parserCrashedSt;
+    StackTrace? parserCrashedSt;
     try {
       parser.parseUnit(firstToken);
     } catch (e, st) {
@@ -326,7 +344,7 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
         description);
     return result.then((result) {
       if (parserCrashed) {
-        return crash("Parser crashed: $parserCrashedE", parserCrashedSt);
+        return crash("Parser crashed: $parserCrashedE", parserCrashedSt!);
       } else {
         return result;
       }
@@ -337,9 +355,9 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
 StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
     {bool addTypes: false}) {
   StringBuffer sb = new StringBuffer();
-  Token token = firstToken;
+  Token? token = firstToken;
 
-  Token process(Token token, bool errorTokens) {
+  Token? process(Token? token, bool errorTokens) {
     bool printed = false;
     int endOfLast = -1;
     int lineStartsIteratorLine = 1;
@@ -385,13 +403,13 @@ StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
       endOfLast = token.end;
       if (token == token.next) break;
       token = token.next;
-      if (!seenTokens.add(token)) {
+      if (!seenTokens.add(token!)) {
         // Loop in tokens: Print error and break to avoid infinite loop.
         sb.write("\n\nERROR: Loop in tokens: $token "
             "(${token.runtimeType}, ${token.type}, ${token.offset})) "
             "was seen before "
             "(linking to ${token.next}, ${token.next.runtimeType}, "
-            "${token.next.type}, ${token.next.offset})!\n\n");
+            "${token.next!.type}, ${token.next!.offset})!\n\n");
         break;
       }
     }
@@ -407,7 +425,7 @@ StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
   return sb;
 }
 
-Token scanUri(Uri uri, String shortName, {List<int> lineStarts}) {
+Token scanUri(Uri uri, String shortName, {List<int>? lineStarts}) {
   ScannerConfiguration config;
 
   String firstDir = shortName.split("/")[0];
@@ -426,7 +444,7 @@ Token scanUri(Uri uri, String shortName, {List<int> lineStarts}) {
 }
 
 Token scanRawBytes(
-    List<int> rawBytes, ScannerConfiguration config, List<int> lineStarts) {
+    List<int> rawBytes, ScannerConfiguration config, List<int>? lineStarts) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
 
@@ -441,15 +459,16 @@ Token scanRawBytes(
 
 class ParserTestListenerWithMessageFormatting extends ParserTestListener {
   final bool annotateLines;
-  final Source source;
-  final String shortName;
+  final Source? source;
+  final String? shortName;
   final List<String> errors = <String>[];
-  Location latestSeenLocation;
+  Location? latestSeenLocation;
 
   ParserTestListenerWithMessageFormatting(
       bool trace, this.annotateLines, this.source, this.shortName)
       : super(trace);
 
+  @override
   void doPrint(String s) {
     super.doPrint(s);
     if (!annotateLines) {
@@ -468,21 +487,24 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
     }
   }
 
-  void seen(Token token) {
+  @override
+  void seen(Token? token) {
     if (!annotateLines) return;
     if (token == null) return;
     if (source == null) return;
     if (offsetForToken(token) < 0) return;
     Location location =
-        source.getLocation(source.fileUri, offsetForToken(token));
-    if (latestSeenLocation == null || location.line > latestSeenLocation.line) {
+        source!.getLocation(source!.fileUri!, offsetForToken(token));
+    if (latestSeenLocation == null ||
+        location.line > latestSeenLocation!.line) {
       latestSeenLocation = location;
-      String sourceLine = source.getTextLine(location.line);
+      String? sourceLine = source!.getTextLine(location.line);
       doPrint("");
       doPrint("// Line ${location.line}: $sourceLine");
     }
   }
 
+  @override
   bool checkEof(Token token) {
     bool result = super.checkEof(token);
     if (result) {
@@ -491,21 +513,22 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
     return result;
   }
 
+  @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
     if (source != null) {
       Location location =
-          source.getLocation(source.fileUri, offsetForToken(startToken));
+          source!.getLocation(source!.fileUri!, offsetForToken(startToken));
       int length = lengthOfSpan(startToken, endToken);
       if (length <= 0) length = 1;
       errors.add(command_line_reporting.formatErrorMessage(
-          source.getTextLine(location.line),
+          source!.getTextLine(location.line),
           location,
           length,
           shortName,
-          message.message));
+          message.problemMessage));
     } else {
-      errors.add(message.message);
+      errors.add(message.problemMessage);
     }
 
     super.handleRecoverableError(message, startToken, endToken);
@@ -514,12 +537,13 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
 
 class ParserTestListenerForIntertwined
     extends ParserTestListenerWithMessageFormatting {
-  TestParser parser;
+  late TestParser parser;
 
   ParserTestListenerForIntertwined(
       bool trace, bool annotateLines, Source source)
       : super(trace, annotateLines, source, null);
 
+  @override
   void doPrint(String s) {
     int prevIndent = super.indent;
     super.indent = parser.indent;

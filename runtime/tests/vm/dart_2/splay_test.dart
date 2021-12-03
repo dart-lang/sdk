@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This benchmark is based on a JavaScript log processing module used
-// by the V8 profiler to generate execution time profiles for runs of
-// JavaScript applications, and it effectively measures how fast the
-// JavaScript engine is at allocating nodes and reclaiming the memory
-// used for old nodes. Because of the way splay trees work, the engine
-// also has to deal with a lot of changes to the large tree object
-// graph.
-//
+// This test is a copy of the Splay benchmark that is run with a variety of
+// different GC options. It makes for a good GC stress test because it
+// continuously makes small changes to a large, long-lived data structure,
+// stressing lots of combinations of references between new-gen and old-gen
+// objects, and between marked and unmarked objects.
+
 // This file is copied into another directory and the default opt out scheme of
 // CFE using the pattern 'vm/dart_2' doesn't work, so opt it out explicitly.
 // @dart=2.9

@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -29,20 +30,17 @@ mixin ErrorDetectionHelpers {
   /// argument.
   void checkForArgumentTypeNotAssignable(
       Expression expression,
-      DartType? expectedStaticType,
+      DartType expectedStaticType,
       DartType actualStaticType,
       ErrorCode errorCode,
       {Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
-    // Warning case: test static type information
-    if (expectedStaticType != null) {
-      if (!expectedStaticType.isVoid && checkForUseOfVoidResult(expression)) {
-        return;
-      }
-
-      _checkForAssignableExpressionAtType(
-          expression, actualStaticType, expectedStaticType, errorCode,
-          whyNotPromoted: whyNotPromoted);
+    if (!expectedStaticType.isVoid && checkForUseOfVoidResult(expression)) {
+      return;
     }
+
+    _checkForAssignableExpressionAtType(
+        expression, actualStaticType, expectedStaticType, errorCode,
+        whyNotPromoted: whyNotPromoted);
   }
 
   /// Verify that the given [argument] can be assigned to its corresponding
@@ -51,11 +49,11 @@ mixin ErrorDetectionHelpers {
   /// This method corresponds to
   /// [BestPracticesVerifier.checkForArgumentTypeNotAssignableForArgument].
   ///
-  /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
+  /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void checkForArgumentTypeNotAssignableForArgument(Expression argument,
       {bool promoteParameterToNullable = false,
       Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
-    _checkForArgumentTypeNotAssignableForArgument2(
+    _checkForArgumentTypeNotAssignableForArgument(
       argument: argument is NamedExpression ? argument.expression : argument,
       parameter: argument.staticParameterElement,
       promoteParameterToNullable: promoteParameterToNullable,
@@ -68,7 +66,7 @@ mixin ErrorDetectionHelpers {
   /// from the name in the [ConstructorFieldInitializer].
   ///
   /// See [CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE], and
-  /// [StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
+  /// [CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
   void checkForFieldInitializerNotAssignable(
       ConstructorFieldInitializer initializer, FieldElement fieldElement,
       {required bool isConstConstructor,
@@ -160,8 +158,8 @@ mixin ErrorDetectionHelpers {
       return;
     }
 
-    _checkForAssignableExpression(
-        rhs, leftType, CompileTimeErrorCode.INVALID_ASSIGNMENT,
+    _checkForAssignableExpressionAtType(
+        rhs, rhs.typeOrThrow, leftType, CompileTimeErrorCode.INVALID_ASSIGNMENT,
         whyNotPromoted: whyNotPromoted);
   }
 
@@ -169,7 +167,7 @@ mixin ErrorDetectionHelpers {
   /// when it returns 'void'. Or, in rare cases, when other types of expressions
   /// are void, such as identifiers.
   ///
-  /// See [StaticWarningCode.USE_OF_VOID_RESULT].
+  /// See [CompileTimeErrorCode.USE_OF_VOID_RESULT].
   bool checkForUseOfVoidResult(Expression expression) {
     if (!identical(expression.staticType, VoidTypeImpl.instance)) {
       return false;
@@ -196,7 +194,7 @@ mixin ErrorDetectionHelpers {
     if (readElement is MethodElement) {
       var parameters = readElement.parameters;
       if (parameters.isNotEmpty) {
-        _checkForArgumentTypeNotAssignableForArgument2(
+        _checkForArgumentTypeNotAssignableForArgument(
           argument: index,
           parameter: parameters[0],
           promoteParameterToNullable: false,
@@ -208,7 +206,7 @@ mixin ErrorDetectionHelpers {
     if (writeElement is MethodElement) {
       var parameters = writeElement.parameters;
       if (parameters.isNotEmpty) {
-        _checkForArgumentTypeNotAssignableForArgument2(
+        _checkForArgumentTypeNotAssignableForArgument(
           argument: index,
           parameter: parameters[0],
           promoteParameterToNullable: false,
@@ -232,6 +230,27 @@ mixin ErrorDetectionHelpers {
       SyntacticEntity errorEntity,
       Map<DartType, NonPromotionReason>? whyNotPromoted);
 
+  /// If an assignment from [type] to [context] is a case of an implicit 'call'
+  /// method, returns the element of the 'call' method.
+  ///
+  /// From the spec:
+  ///
+  /// > Let `e` be an expression whose static type is an interface type that has
+  /// > a method named `call`. In the case where the context type for `e`
+  /// > is a function type or the type `Function`, `e` is treated as `e.call`.
+  MethodElement? getImplicitCallMethod(
+      DartType type, DartType? context, SyntacticEntity errorNode) {
+    if (context != null &&
+        typeSystem.acceptsFunctionType(context) &&
+        type is InterfaceType &&
+        type.nullabilitySuffix != NullabilitySuffix.question) {
+      return type.lookUpMethod2(
+          FunctionElement.CALL_METHOD_NAME, type.element.library);
+    } else {
+      return null;
+    }
+  }
+
   /// Return the variable element represented by the given [expression], or
   /// `null` if there is no such element.
   VariableElement? getVariableElement(Expression? expression) {
@@ -244,51 +263,25 @@ mixin ErrorDetectionHelpers {
     return null;
   }
 
-  void _checkForArgumentTypeNotAssignableForArgument2({
+  void _checkForArgumentTypeNotAssignableForArgument({
     required Expression argument,
     required ParameterElement? parameter,
     required bool promoteParameterToNullable,
     Map<DartType, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     var staticParameterType = parameter?.type;
-    if (promoteParameterToNullable && staticParameterType != null) {
-      staticParameterType =
-          typeSystem.makeNullable(staticParameterType as TypeImpl);
+    if (staticParameterType != null) {
+      if (promoteParameterToNullable) {
+        staticParameterType =
+            typeSystem.makeNullable(staticParameterType as TypeImpl);
+      }
+      checkForArgumentTypeNotAssignable(
+          argument,
+          staticParameterType,
+          argument.typeOrThrow,
+          CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+          whyNotPromoted: whyNotPromoted);
     }
-    _checkForArgumentTypeNotAssignableWithExpectedTypes(
-        argument,
-        staticParameterType,
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-        whyNotPromoted);
-  }
-
-  /// Verify that the given [expression] can be assigned to its corresponding
-  /// parameters.
-  ///
-  /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE],
-  /// [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
-  /// [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE],
-  /// [CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE],
-  /// [CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE],
-  /// [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
-  /// [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
-  void _checkForArgumentTypeNotAssignableWithExpectedTypes(
-      Expression expression,
-      DartType? expectedStaticType,
-      ErrorCode errorCode,
-      Map<DartType, NonPromotionReason> Function()? whyNotPromoted) {
-    checkForArgumentTypeNotAssignable(
-        expression, expectedStaticType, expression.typeOrThrow, errorCode,
-        whyNotPromoted: whyNotPromoted);
-  }
-
-  bool _checkForAssignableExpression(
-      Expression expression, DartType expectedStaticType, ErrorCode errorCode,
-      {required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
-    DartType actualStaticType = expression.typeOrThrow;
-    return _checkForAssignableExpressionAtType(
-        expression, actualStaticType, expectedStaticType, errorCode,
-        whyNotPromoted: whyNotPromoted);
   }
 
   bool _checkForAssignableExpressionAtType(

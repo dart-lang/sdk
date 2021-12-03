@@ -376,6 +376,70 @@ int f() {
     expect(stdout, contains('referenced_before_declaration'));
   });
 
+  group('--packages', () {
+    test('existing', () {
+      final foo = project(name: 'foo');
+      foo.file('lib/foo.dart', 'var my_foo = 0;');
+
+      p = project(mainSrc: '''
+import 'package:foo/foo.dart';
+void f() {
+  my_foo;
+}''');
+      p.file('my_packages.json', '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "foo",
+      "rootUri": "file://${foo.dirPath}",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    }
+  ]
+}
+''');
+      var result = p.runSync([
+        'analyze',
+        '--packages=${p.findFile('my_packages.json').path}',
+        p.dirPath,
+      ]);
+
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('No issues found!'));
+    });
+
+    test('not existing', () {
+      p = project();
+      var result = p.runSync([
+        'analyze',
+        '--packages=no.such.file',
+        p.dirPath,
+      ]);
+
+      expect(result.exitCode, 64);
+      expect(result.stderr, contains("The file doesn't exist: no.such.file"));
+      expect(result.stderr, contains(_analyzeUsageText));
+    });
+  });
+
+  test('--cache', () {
+    var cache = project(name: 'cache');
+
+    p = project(mainSrc: 'var v = 0;');
+    var result = p.runSync([
+      'analyze',
+      '--cache=${cache.dirPath}',
+      p.mainPath,
+    ]);
+
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('No issues found!'));
+    expect(cache.findDirectory('.analysis-driver'), isNotNull);
+  });
+
   group('display mode', () {
     final sampleInfoJson = {
       'severity': 'INFO',

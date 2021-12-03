@@ -132,7 +132,9 @@ main(List<String> args) async {
 
 Future subProcess(List<String> baseOptions, List<String> additionalOptions,
     String outputPrefix) async {
-  List<String> options = []..addAll(baseOptions)..addAll(additionalOptions);
+  List<String> options = []
+    ..addAll(baseOptions)
+    ..addAll(additionalOptions);
   print(
       '${outputPrefix}Command: ${Platform.resolvedExecutable} ${options.join(' ')}');
   Process process = await Process.start(Platform.resolvedExecutable, options,

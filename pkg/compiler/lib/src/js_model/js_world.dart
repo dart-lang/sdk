@@ -9,7 +9,7 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/names.dart';
 import '../common_elements.dart' show JCommonElements, JElementEnvironment;
-import '../deferred_load/deferred_load.dart';
+import '../deferred_load/output_unit.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
@@ -24,7 +24,6 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types_resolution.dart';
-import '../js_model/locals.dart';
 import '../ordered_typeset.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
@@ -57,8 +56,7 @@ class JsClosedWorld implements JClosedWorld {
 
   final Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses;
 
-  final Map<ClassEntity, Map<ClassEntity, bool>> _subtypeCoveredByCache =
-      <ClassEntity, Map<ClassEntity, bool>>{};
+  final Map<ClassEntity, Map<ClassEntity, bool>> _subtypeCoveredByCache = {};
 
   // TODO(johnniwinther): Can this be derived from [ClassSet]s?
   final Set<ClassEntity> implementedClasses;
@@ -131,23 +129,22 @@ class JsClosedWorld implements JClosedWorld {
       DataSource source) {
     source.begin(tag);
 
-    JsKernelToElementMap elementMap =
-        new JsKernelToElementMap.readFromDataSource(
-            options, reporter, environment, component, source);
-    ClassHierarchy classHierarchy = new ClassHierarchy.readFromDataSource(
-        source, elementMap.commonElements);
-    NativeData nativeData = new NativeData.readFromDataSource(
-        source, elementMap.elementEnvironment);
+    JsKernelToElementMap elementMap = JsKernelToElementMap.readFromDataSource(
+        options, reporter, environment, component, source);
+    ClassHierarchy classHierarchy =
+        ClassHierarchy.readFromDataSource(source, elementMap.commonElements);
+    NativeData nativeData =
+        NativeData.readFromDataSource(source, elementMap.elementEnvironment);
     elementMap.nativeData = nativeData;
-    InterceptorData interceptorData = new InterceptorData.readFromDataSource(
+    InterceptorData interceptorData = InterceptorData.readFromDataSource(
         source, nativeData, elementMap.commonElements);
-    BackendUsage backendUsage = new BackendUsage.readFromDataSource(source);
-    RuntimeTypesNeed rtiNeed = new RuntimeTypesNeed.readFromDataSource(
+    BackendUsage backendUsage = BackendUsage.readFromDataSource(source);
+    RuntimeTypesNeed rtiNeed = RuntimeTypesNeed.readFromDataSource(
         source, elementMap.elementEnvironment);
     JFieldAnalysis allocatorAnalysis =
-        new JFieldAnalysis.readFromDataSource(source, options);
+        JFieldAnalysis.readFromDataSource(source, options);
     NoSuchMethodData noSuchMethodData =
-        new NoSuchMethodData.readFromDataSource(source);
+        NoSuchMethodData.readFromDataSource(source);
 
     Set<ClassEntity> implementedClasses = source.readClasses().toSet();
     Set<ClassEntity> liveNativeClasses = source.readClasses().toSet();
@@ -162,22 +159,21 @@ class JsClosedWorld implements JClosedWorld {
         source.readClassMap(() => source.readClasses().toSet());
 
     AnnotationsData annotationsData =
-        new AnnotationsData.readFromDataSource(options, source);
+        AnnotationsData.readFromDataSource(options, source);
 
     ClosureData closureData =
-        new ClosureData.readFromDataSource(elementMap, source);
+        ClosureData.readFromDataSource(elementMap, source);
 
-    OutputUnitData outputUnitData =
-        new OutputUnitData.readFromDataSource(source);
+    OutputUnitData outputUnitData = OutputUnitData.readFromDataSource(source);
     elementMap.lateOutputUnitDataBuilder =
-        new LateOutputUnitDataBuilder(outputUnitData);
+        LateOutputUnitDataBuilder(outputUnitData);
 
     Map<MemberEntity, MemberAccess> memberAccess = source.readMemberMap(
-        (MemberEntity member) => new MemberAccess.readFromDataSource(source));
+        (MemberEntity member) => MemberAccess.readFromDataSource(source));
 
     source.end(tag);
 
-    return new JsClosedWorld(
+    return JsClosedWorld(
         elementMap,
         nativeData,
         interceptorData,
@@ -280,8 +276,7 @@ class JsClosedWorld implements JClosedWorld {
 
   @override
   bool everySubtypeIsSubclassOfOrMixinUseOf(ClassEntity x, ClassEntity y) {
-    Map<ClassEntity, bool> secondMap =
-        _subtypeCoveredByCache[x] ??= <ClassEntity, bool>{};
+    Map<ClassEntity, bool> secondMap = _subtypeCoveredByCache[x] ??= {};
     return secondMap[y] ??= classHierarchy.subtypesOf(x).every(
         (ClassEntity cls) =>
             classHierarchy.isSubclassOf(cls, y) ||
@@ -389,7 +384,7 @@ class JsClosedWorld implements JClosedWorld {
   @override
   Iterable<ClassEntity> mixinUsesOf(ClassEntity cls) {
     if (_liveMixinUses == null) {
-      _liveMixinUses = new Map<ClassEntity, List<ClassEntity>>();
+      _liveMixinUses = Map<ClassEntity, List<ClassEntity>>();
       for (ClassEntity mixin in mixinUses.keys) {
         List<ClassEntity> uses = <ClassEntity>[];
 
@@ -411,7 +406,7 @@ class JsClosedWorld implements JClosedWorld {
       }
     }
     Iterable<ClassEntity> uses = _liveMixinUses[cls];
-    return uses != null ? uses : const <ClassEntity>[];
+    return uses ?? const <ClassEntity>[];
   }
 
   @override
@@ -438,7 +433,7 @@ class JsClosedWorld implements JClosedWorld {
     if (_allFunctions == null) {
       // [FunctionSet] is created lazily because it is not used when we switch
       // from a frontend to a backend model before inference.
-      _allFunctions = new FunctionSet(liveInstanceMembers);
+      _allFunctions = FunctionSet(liveInstanceMembers);
     }
   }
 
@@ -535,7 +530,7 @@ class JsClosedWorld implements JClosedWorld {
 
   @override
   Sorter get sorter {
-    return _sorter ??= new KernelSorter(elementMap);
+    return _sorter ??= KernelSorter(elementMap);
   }
 
   @override

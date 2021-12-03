@@ -6,7 +6,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 import '../builder/member_builder.dart';
 import '../source/source_library_builder.dart';
-import 'kernel_api.dart';
 import 'kernel_helper.dart';
 
 const String _tearOffNamePrefix = '_#';
@@ -76,6 +75,19 @@ List<Object>? extractTypedefNameFromTearOff(Name name) {
   return null;
 }
 
+/// Returns `true` if [member] is a lowered constructor, factory or typedef tear
+/// off.
+bool isTearOffLowering(Member member) {
+  return member is Procedure &&
+      (isConstructorTearOffLowering(member) ||
+          isTypedefTearOffLowering(member));
+}
+
+/// Returns `true` if [procedure] is a lowered constructor or factory tear off.
+bool isConstructorTearOffLowering(Procedure procedure) {
+  return extractConstructorNameFromTearOff(procedure.name) != null;
+}
+
 /// Returns `true` if [procedure] is a lowered typedef tear off.
 bool isTypedefTearOffLowering(Procedure procedure) {
   return extractTypedefNameFromTearOff(procedure.name) != null;
@@ -85,8 +97,12 @@ bool isTypedefTearOffLowering(Procedure procedure) {
 /// the given [name] in [compilationUnit].
 ///
 /// If constructor tear off lowering is not enabled, `null` is returned.
-Procedure? createConstructorTearOffProcedure(String name,
-    SourceLibraryBuilder compilationUnit, Uri fileUri, int fileOffset,
+Procedure? createConstructorTearOffProcedure(
+    String name,
+    SourceLibraryBuilder compilationUnit,
+    Uri fileUri,
+    int fileOffset,
+    Reference? reference,
     {required bool forAbstractClassOrEnum}) {
   if (!forAbstractClassOrEnum &&
       compilationUnit
@@ -95,7 +111,8 @@ Procedure? createConstructorTearOffProcedure(String name,
         compilationUnit,
         constructorTearOffName(name, compilationUnit.library),
         fileUri,
-        fileOffset);
+        fileOffset,
+        reference);
   }
   return null;
 }
@@ -104,15 +121,20 @@ Procedure? createConstructorTearOffProcedure(String name,
 /// the given [name] in [compilationUnit].
 ///
 /// If constructor tear off lowering is not enabled, `null` is returned.
-Procedure? createFactoryTearOffProcedure(String name,
-    SourceLibraryBuilder compilationUnit, Uri fileUri, int fileOffset) {
+Procedure? createFactoryTearOffProcedure(
+    String name,
+    SourceLibraryBuilder compilationUnit,
+    Uri fileUri,
+    int fileOffset,
+    Reference? reference) {
   if (compilationUnit
       .loader.target.backendTarget.isFactoryTearOffLoweringEnabled) {
     return _createTearOffProcedure(
         compilationUnit,
         constructorTearOffName(name, compilationUnit.library),
         fileUri,
-        fileOffset);
+        fileOffset,
+        reference);
   }
   return null;
 }
@@ -120,13 +142,19 @@ Procedure? createFactoryTearOffProcedure(String name,
 /// Creates the [Procedure] for the lowering of a typedef tearoff of a
 /// constructor of the given [name] in with the typedef defined in
 /// [libraryBuilder].
-Procedure createTypedefTearOffProcedure(String typedefName, String name,
-    SourceLibraryBuilder libraryBuilder, Uri fileUri, int fileOffset) {
+Procedure createTypedefTearOffProcedure(
+    String typedefName,
+    String name,
+    SourceLibraryBuilder libraryBuilder,
+    Uri fileUri,
+    int fileOffset,
+    Reference? reference) {
   return _createTearOffProcedure(
       libraryBuilder,
       typedefTearOffName(typedefName, name, libraryBuilder.library),
       fileUri,
-      fileOffset);
+      fileOffset,
+      reference);
 }
 
 /// Creates the parameters and body for [tearOff] based on [constructor] in
@@ -253,7 +281,19 @@ SynthesizedFunctionNode buildRedirectingFactoryTearOffBody(
     FreshTypeParameters freshTypeParameters) {
   int fileOffset = tearOff.fileOffset;
 
+  List<TypeParameter> typeParameters;
+  if (target is Constructor) {
+    typeParameters = target.enclosingClass.typeParameters;
+  } else {
+    typeParameters = target.function!.typeParameters;
+  }
+
   if (!freshTypeParameters.substitution.isEmpty) {
+    if (typeArguments.length != typeParameters.length) {
+      // Error case: Use default types as type arguments.
+      typeArguments = new List<DartType>.generate(typeParameters.length,
+          (int index) => typeParameters[index].defaultType);
+    }
     if (typeArguments.isNotEmpty) {
       // Translate [typeArgument] into the context of the synthesized procedure.
       typeArguments = new List<DartType>.generate(
@@ -262,23 +302,30 @@ SynthesizedFunctionNode buildRedirectingFactoryTearOffBody(
               .substituteType(typeArguments[index]));
     }
   }
-
+  Map<TypeParameter, DartType> substitutionMap;
+  if (typeParameters.length == typeArguments.length) {
+    substitutionMap = new Map<TypeParameter, DartType>.fromIterables(
+        typeParameters, typeArguments);
+  } else {
+    // Error case: Substitute type parameters with `dynamic`.
+    substitutionMap = new Map<TypeParameter, DartType>.fromIterables(
+        typeParameters,
+        new List<DartType>.generate(
+            typeParameters.length, (int index) => const DynamicType()));
+  }
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
   _createTearOffBody(tearOff, target, arguments);
   return new SynthesizedFunctionNode(
-      new Map<TypeParameter, DartType>.fromIterables(
-          target.enclosingClass!.typeParameters, typeArguments),
-      target.function!,
-      tearOff.function,
+      substitutionMap, target.function!, tearOff.function,
       identicalSignatures: false);
 }
 
 /// Creates the synthesized [Procedure] node for a tear off lowering by the
 /// given [name].
 Procedure _createTearOffProcedure(SourceLibraryBuilder libraryBuilder,
-    Name name, Uri fileUri, int fileOffset) {
+    Name name, Uri fileUri, int fileOffset, Reference? reference) {
   return new Procedure(name, ProcedureKind.Method, new FunctionNode(null),
-      fileUri: fileUri, isStatic: true)
+      fileUri: fileUri, isStatic: true, reference: reference)
     ..startFileOffset = fileOffset
     ..fileOffset = fileOffset
     ..fileEndOffset = fileOffset
@@ -331,7 +378,9 @@ void _createParameters(Procedure tearOff, Member constructor,
       substitution.substituteType(function.returnType);
   tearOff.function.requiredParameterCount = function.requiredParameterCount;
   libraryBuilder.loader.registerTypeDependency(
-      tearOff, new TypeDependency(tearOff, constructor, substitution));
+      tearOff,
+      new TypeDependency(tearOff, constructor, substitution,
+          copyReturnType: true));
 }
 
 /// Creates the [Arguments] for passing the parameters from [tearOff] to its
@@ -379,19 +428,18 @@ void _createTearOffBody(Procedure tearOff, Member target, Arguments arguments) {
 /// Reverse engineered typedef tear off information.
 class LoweredTypedefTearOff {
   Procedure typedefTearOff;
-  Constant targetTearOffConstant;
+  Expression targetTearOff;
   List<DartType> typeArguments;
 
   LoweredTypedefTearOff(
-      this.typedefTearOff, this.targetTearOffConstant, this.typeArguments);
+      this.typedefTearOff, this.targetTearOff, this.typeArguments);
 
-  /// Reverse engineers [constant] to a [LoweredTypedefTearOff] if [constant] is
-  /// the encoding of a lowered typedef tear off.
-  // TODO(johnniwinther): Check that this works with outlines.
-  static LoweredTypedefTearOff? fromConstant(Constant constant) {
-    if (constant is StaticTearOffConstant &&
-        isTypedefTearOffLowering(constant.target)) {
-      Procedure typedefTearOff = constant.target;
+  /// Reverse engineers [expression] to a [LoweredTypedefTearOff] if
+  /// [expression] is the encoding of a lowered typedef tear off.
+  static LoweredTypedefTearOff? fromExpression(Expression expression) {
+    if (expression is StaticTearOff &&
+        isTypedefTearOffLowering(expression.target)) {
+      Procedure typedefTearOff = expression.target;
       Statement? body = typedefTearOff.function.body;
       if (body is ReturnStatement) {
         Expression? constructorInvocation = body.expression;
@@ -414,15 +462,15 @@ class LoweredTypedefTearOff {
               break;
             }
           }
-          Constant tearOffConstant;
+          Expression targetTearOff;
           if (target is Constructor ||
               target is Procedure && target.isFactory) {
-            tearOffConstant = new ConstructorTearOffConstant(target!);
+            targetTearOff = new ConstructorTearOff(target!);
           } else {
-            tearOffConstant = new StaticTearOffConstant(target as Procedure);
+            targetTearOff = new StaticTearOff(target as Procedure);
           }
           return new LoweredTypedefTearOff(
-              typedefTearOff, tearOffConstant, typeArguments!);
+              typedefTearOff, targetTearOff, typeArguments!);
         }
       }
     }

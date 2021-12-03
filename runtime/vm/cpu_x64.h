@@ -61,7 +61,9 @@ class TargetCPUFeatures : public AllStatic {
   static bool sse4_1_supported() { return HostCPUFeatures::sse4_1_supported(); }
   static bool popcnt_supported() { return HostCPUFeatures::popcnt_supported(); }
   static bool abm_supported() { return HostCPUFeatures::abm_supported(); }
-  static bool double_truncate_round_supported() { return false; }
+  static bool double_truncate_round_supported() {
+    return HostCPUFeatures::sse4_1_supported();
+  }
 };
 
 }  // namespace dart

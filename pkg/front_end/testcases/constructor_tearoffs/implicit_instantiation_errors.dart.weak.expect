@@ -1,0 +1,62 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:16:30: Error: A value of type 'int Function(int, int)?' can't be assigned to a variable of type 'int Function(int, int)' because 'int Function(int, int)?' is nullable and 'int Function(int, int)' isn't.
+//   int Function(int, int) f = alias;
+//                              ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:18:7: Error: A value of type 'int Function(int, int)?' can't be assigned to a variable of type 'int Function(int, int?)?' because 'int?' is nullable and 'int' isn't.
+//   g = alias;
+//       ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:19:27: Error: A value of type 'int Function(int, int)' can't be assigned to a variable of type 'int Function(int, int?)' because 'int?' is nullable and 'int' isn't.
+//   int Function(int, int?) h = c;
+//                           ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:20:3: Error: A value of type 'int Function(int, int)' can't be assigned to a variable of type 'int Function(int, int?)?' because 'int?' is nullable and 'int' isn't.
+//   g = c;
+//   ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:21:10: Error: The argument type 'int Function(int, int)?' can't be assigned to the parameter type 'int Function(int, int?)' because 'int?' is nullable and 'int' isn't.
+//   method(alias);
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  method call<T extends core::Object? = dynamic>(self::Class::call::T% t, core::int i) → self::Class::call::T%
+    return t;
+}
+static field <T extends core::Object? = dynamic>(T%, core::int) →? T% alias = #C1;
+static method id<T extends core::Object? = dynamic>(self::id::T% t, core::int i) → self::id::T%
+  return t;
+static method method((core::int, core::int?) → core::int f) → dynamic {}
+static method test() → dynamic {
+  self::Class c = new self::Class::•();
+  (core::int, core::int) → core::int f = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:16:30: Error: A value of type 'int Function(int, int)?' can't be assigned to a variable of type 'int Function(int, int)' because 'int Function(int, int)?' is nullable and 'int Function(int, int)' isn't.
+  int Function(int, int) f = alias;
+                             ^" in (self::alias<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int) → core::int;
+  (core::int, core::int?) →? core::int g;
+  g = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:18:7: Error: A value of type 'int Function(int, int)?' can't be assigned to a variable of type 'int Function(int, int?)?' because 'int?' is nullable and 'int' isn't.
+  g = alias;
+      ^" in (self::alias<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int?) →? core::int;
+  (core::int, core::int?) → core::int h = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:19:27: Error: A value of type 'int Function(int, int)' can't be assigned to a variable of type 'int Function(int, int?)' because 'int?' is nullable and 'int' isn't.
+  int Function(int, int?) h = c;
+                          ^" in ((let final self::Class #t1 = c in #t1 == null ?{<T extends core::Object? = dynamic>(T%, core::int) → T%} null : #t1.{self::Class::call}{<T extends core::Object? = dynamic>(T%, core::int) → T%})<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int?) → core::int;
+  g = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:20:3: Error: A value of type 'int Function(int, int)' can't be assigned to a variable of type 'int Function(int, int?)?' because 'int?' is nullable and 'int' isn't.
+  g = c;
+  ^" in ((let final self::Class #t2 = c in #t2 == null ?{<T extends core::Object? = dynamic>(T%, core::int) → T%} null : #t2.{self::Class::call}{<T extends core::Object? = dynamic>(T%, core::int) → T%})<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int?) →? core::int;
+  self::method(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:21:10: Error: The argument type 'int Function(int, int)?' can't be assigned to the parameter type 'int Function(int, int?)' because 'int?' is nullable and 'int' isn't.
+  method(alias);
+         ^" in (self::alias<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int?) → core::int);
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = static-tearoff self::id
+}

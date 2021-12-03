@@ -44,3 +44,12 @@ class MutationVisitor extends BaseVisitor<void> {
     super.visitAssignment(node);
   }
 }
+
+/// Recursively clears all source information from all visited nodes.
+class SourceInformationClearer extends BaseVisitor<void> {
+  @override
+  void visitNode(Node node) {
+    node.visitChildren(this);
+    node.sourceInformation = null;
+  }
+}

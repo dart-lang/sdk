@@ -450,7 +450,7 @@ class ManifestValidator {
   /// Report an error for the given node.
   void _reportErrorForNode(ErrorReporter reporter, _XmlElement node,
       String? key, ErrorCode errorCode,
-      [List<Object?>? arguments]) {
+      [List<Object>? arguments]) {
     var span =
         key == null ? node.sourceSpan! : node.attributes[key]!.sourceSpan;
     reporter.reportErrorForOffset(
@@ -482,19 +482,29 @@ class ManifestValidator {
         .contains(element.attributes[ANDROID_NAME]?.value));
     for (var element in unsupported) {
       if (!element.attributes.containsKey(ANDROID_REQUIRED)) {
+        // Since `unsupported` is the list of elements for which
+        // `elements.attributes[ANDROID_NAME]?.value` is contained in
+        // [UNSUPPORTED_HARDWARE_FEATURES], which is a list of non-nullable
+        // strings, it follows that `element.attributes[ANDROID_NAME]` is
+        // non-`null`.
         _reportErrorForNode(
             reporter,
             element,
             ANDROID_NAME,
             ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE,
-            [element.attributes[ANDROID_NAME]?.value]);
+            [element.attributes[ANDROID_NAME]!.value]);
       } else if (element.attributes[ANDROID_REQUIRED]?.value == 'true') {
+        // Since `unsupported` is the list of elements for which
+        // `elements.attributes[ANDROID_NAME]?.value` is contained in
+        // [UNSUPPORTED_HARDWARE_FEATURES], which is a list of non-nullable
+        // strings, it follows that `element.attributes[ANDROID_NAME]` is
+        // non-`null`.
         _reportErrorForNode(
             reporter,
             element,
             ANDROID_NAME,
             ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE,
-            [element.attributes[ANDROID_NAME]?.value]);
+            [element.attributes[ANDROID_NAME]!.value]);
       }
     }
   }

@@ -1,0 +1,19 @@
+class _Closure1 {
+  _Closure1 get call => this;
+}
+class _Closure2 {
+  _Closure2(this.call);
+  final _Closure2 call;
+}
+test(_Closure1 foo, _Closure2 bar) {}
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+_Closure1 closure1;
+---- unknown chunk starts ----
+late
+---- unknown chunk ends ----
+_Closure2 closure2;
+main() {}
+var field1 = closure1();
+var field2 = closure2();

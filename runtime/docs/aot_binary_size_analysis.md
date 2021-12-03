@@ -13,7 +13,7 @@ This flag can be passed to `gen_snapshot` directly, or to the various wrapper
 scripts (e.g. `pkg/vm/tool/precompiler2`):
 
 ```
-% tools/build.py -mrelease -ax64 runtime_kernel dart_precompiled_runtime
+% tools/build.py -mrelease -ax64 runtime dart_precompiled_runtime
 % pkg/vm/tool/precompiler2 --print-instructions-sizes-to=hello_sizes.json hello.dart hello.dart.aot
 ```
 
@@ -59,7 +59,7 @@ This flag can be passed to `gen_snapshot` directly, or to the various wrapper
 scripts (e.g. `pkg/vm/tool/precompiler2`):
 
 ```
-% tools/build.py -mrelease -ax64 runtime_kernel dart_precompiled_runtime
+% tools/build.py -mrelease -ax64 runtime dart_precompiled_runtime
 % pkg/vm/tool/precompiler2 --write-v8-snapshot-profile-to=hello.heapsnapshot hello.dart hello.dart.aot
 ```
 

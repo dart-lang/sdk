@@ -7,7 +7,6 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -20,8 +19,7 @@ void main() {
 }
 
 @reflectiveTest
-class DeadNullAwareAssignmentExpressionTest extends FixProcessorTest
-    with WithNullSafetyMixin {
+class DeadNullAwareAssignmentExpressionTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
 
@@ -85,8 +83,7 @@ void f(int a, int b, int c) => a = b;
 }
 
 @reflectiveTest
-class DeadNullAwareExpressionTest extends FixProcessorTest
-    with WithNullSafetyMixin {
+class DeadNullAwareExpressionTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_IF_NULL_OPERATOR;
 

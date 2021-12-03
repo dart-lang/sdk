@@ -64,7 +64,7 @@ void f() {
       expectedConstructorMember: true,
       expectedSubstitution: {'T': 'int'},
     );
-    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
   test_class_generic_unnamed_inferTypeArguments() async {
@@ -107,7 +107,7 @@ void f() {
       expectedConstructorMember: true,
       expectedSubstitution: {'T': 'int'},
     );
-    assertTypeName(findNode.typeName('int>'), intElement, 'int');
+    assertNamedType(findNode.namedType('int>'), intElement, 'int');
   }
 
   test_class_notGeneric() async {
@@ -174,7 +174,8 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 53,
-          5),
+          5,
+          messageContains: ["The constructor 'Foo.bar'"]),
     ]);
 
     var creation = findNode.instanceCreation('Foo.bar<int>');
@@ -183,6 +184,31 @@ main() {
       findElement.class_('Foo'),
       'Foo<dynamic>',
       constructorName: 'bar',
+      expectedConstructorMember: true,
+      expectedSubstitution: {'X': 'dynamic'},
+    );
+  }
+
+  test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_new() async {
+    await assertErrorsInCode(r'''
+class Foo<X> {
+  Foo.new();
+}
+
+main() {
+  new Foo.new<int>();
+}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 53,
+          5,
+          messageContains: ["The constructor 'Foo.new'"]),
+    ]);
+
+    var creation = findNode.instanceCreation('Foo.new<int>');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('Foo'),
+      'Foo<dynamic>',
       expectedConstructorMember: true,
       expectedSubstitution: {'X': 'dynamic'},
     );
@@ -201,8 +227,7 @@ main() {
   new p.Foo.bar<int>();
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 44,
-          3),
+      error(ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS, 44, 3),
     ]);
 
     // TODO(brianwilkerson) Test this more carefully after we can re-write the
@@ -276,6 +301,46 @@ main() {
       expectedPrefix: import.prefix,
       expectedSubstitution: {'X': 'int'},
     );
+  }
+
+  test_namedArgument_anywhere() async {
+    await assertNoErrorsInCode('''
+class A {
+  A(int a, double b, {bool? c, bool? d});
+}
+
+void f() {
+  A(0, c: true, 1.2, d: true);
+}
+''');
+
+    assertInstanceCreation(
+      findNode.instanceCreation('A(0'),
+      findElement.class_('A'),
+      'A',
+    );
+
+    assertParameterElement(
+      findNode.integerLiteral('0'),
+      findElement.parameter('a'),
+    );
+
+    assertParameterElement(
+      findNode.doubleLiteral('1.2'),
+      findElement.parameter('b'),
+    );
+
+    assertParameterElement(
+      findNode.namedExpression('c: true'),
+      findElement.parameter('c'),
+    );
+    assertNamedParameterRef('c: true', 'c');
+
+    assertParameterElement(
+      findNode.namedExpression('d: true'),
+      findElement.parameter('d'),
+    );
+    assertNamedParameterRef('d: true', 'd');
   }
 
   test_typeAlias_generic_class_generic_named_infer_all() async {

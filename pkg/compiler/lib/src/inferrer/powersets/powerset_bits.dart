@@ -203,6 +203,8 @@ class PowersetBitsDomain {
 
     // TODO(coam): We could be more precise if we implement a visitor to
     // ConstantValue
+    // TODO(fishythefish): Naively calling `getType` on
+    // [LateSentinelConstantValue] will produce Never.
     return createFromStaticType(value.getType(commonElements), nullable: false);
   }
 
@@ -281,8 +283,6 @@ class PowersetBitsDomain {
 
   AbstractBool isIndexablePrimitive(int value) => isOther(value);
 
-  AbstractBool isPrimitiveArray(int value) => isOther(value);
-
   AbstractBool isPrimitiveBoolean(int value) {
     if (isDefinitelyTrue(value) || isDefinitelyFalse(value)) {
       return AbstractBool.True;
@@ -300,7 +300,8 @@ class PowersetBitsDomain {
       ? AbstractBool.True
       : (isPotentiallyNull(value) ? AbstractBool.Maybe : AbstractBool.False);
 
-  AbstractBool isExactOrNull(int value) => AbstractBool.Maybe;
+  // TODO(fishythefish): Support tracking late sentinels in the powerset domain.
+  AbstractBool isLateSentinel(int value) => AbstractBool.Maybe;
 
   AbstractBool isExact(int value) => AbstractBool.Maybe;
 
@@ -332,6 +333,12 @@ class PowersetBitsDomain {
   int excludeNull(int value) {
     return value & ~nullValue;
   }
+
+  // TODO(fishythefish): Support tracking late sentinels in the powerset domain.
+  int includeLateSentinel(int value) => value;
+
+  // TODO(fishythefish): Support tracking late sentinels in the powerset domain.
+  int excludeLateSentinel(int value) => value;
 
   AbstractBool couldBeTypedArray(int value) => isOther(value);
 
@@ -555,6 +562,8 @@ class PowersetBitsDomain {
     return finish(dynamicType, false);
   }
 
+  int get internalTopType => powersetTop;
+
   int get dynamicType => powersetTop;
 
   int get asyncStarStreamType => powersetTop;
@@ -590,6 +599,9 @@ class PowersetBitsDomain {
   int get nullType => nullValue;
 
   int get nonNullType => powersetTop & ~nullValue;
+
+  // TODO(fishythefish): Support tracking late sentinels in the powerset domain.
+  int get lateSentinelType => powersetBottom;
 
   int _mapType;
   int get mapType =>

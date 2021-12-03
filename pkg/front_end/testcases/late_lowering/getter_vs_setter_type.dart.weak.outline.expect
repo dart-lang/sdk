@@ -49,7 +49,7 @@ abstract class A extends core::Object {
   get property5() → core::int?;
   set property5(core::int? #t2) → void;
   get property6() → core::int;
-  set property6(covariant core::int #t3) → void;
+  set property6(covariant-by-declaration core::int #t3) → void;
 }
 abstract class B1 extends core::Object {
   field core::int? _#B1#property4;

@@ -55,46 +55,39 @@ class C extends core::Object {
 static method functionContext(() → core::int f) → dynamic {}
 static method nullableFunctionContext(() →? core::int f) → dynamic {}
 static method foo<T extends self::C?>(self::C? c, self::foo::T% t, self::foo::T? nt) → dynamic {
-  self::functionContext(let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:14:24: Error: Can't tear off method 'call' from a potentially null value.
+  self::functionContext(invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:14:24: Error: Can't tear off method 'call' from a potentially null value.
   functionContext(null as C?); // Error.
-                       ^" in let Null #t2 = null in #t2 == null ?{() → core::int} #t2 as{TypeError} () → core::int : #t2{() → core::int});
-  self::nullableFunctionContext(let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:15:32: Error: Can't tear off method 'call' from a potentially null value.
+                       ^" in let Null #t1 = null in #t1 == null ?{() → core::int} #t1 as{TypeError} () → core::int : #t1{() → core::int});
+  self::nullableFunctionContext(invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:15:32: Error: Can't tear off method 'call' from a potentially null value.
   nullableFunctionContext(null as C?); // Error.
                                ^" in null);
-  self::functionContext(let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:16:19: Error: Can't tear off method 'call' from a potentially null value.
+  self::functionContext(invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:16:19: Error: Can't tear off method 'call' from a potentially null value.
   functionContext(c); // Error.
                   ^" in c as{TypeError} () → core::int);
-  self::nullableFunctionContext(let final Never #t5 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:17:27: Error: Can't tear off method 'call' from a potentially null value.
+  self::nullableFunctionContext(invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:17:27: Error: Can't tear off method 'call' from a potentially null value.
   nullableFunctionContext(c); // Error.
                           ^" in c as{TypeError} () →? core::int);
-  self::functionContext(let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:18:19: Error: The argument type 'T' can't be assigned to the parameter type 'int Function()'.
+  self::functionContext(invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:18:19: Error: The argument type 'T' can't be assigned to the parameter type 'int Function()'.
   functionContext(t); // Error.
                   ^" in t as{TypeError,ForNonNullableByDefault} () → core::int);
-  self::nullableFunctionContext(let final Never #t7 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:19:27: Error: The argument type 'T' can't be assigned to the parameter type 'int Function()?'.
+  self::nullableFunctionContext(invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:19:27: Error: The argument type 'T' can't be assigned to the parameter type 'int Function()?'.
   nullableFunctionContext(t); // Error.
                           ^" in t as{TypeError,ForNonNullableByDefault} () →? core::int);
-  self::functionContext(let final Never #t8 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:20:19: Error: The argument type 'T?' can't be assigned to the parameter type 'int Function()'.
+  self::functionContext(invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:20:19: Error: The argument type 'T?' can't be assigned to the parameter type 'int Function()'.
   functionContext(nt); // Error.
                   ^" in nt as{TypeError,ForNonNullableByDefault} () → core::int);
-  self::nullableFunctionContext(let final Never #t9 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:21:27: Error: The argument type 'T?' can't be assigned to the parameter type 'int Function()?'.
+  self::nullableFunctionContext(invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:21:27: Error: The argument type 'T?' can't be assigned to the parameter type 'int Function()?'.
   nullableFunctionContext(nt); // Error.
                           ^" in nt as{TypeError,ForNonNullableByDefault} () →? core::int);
 }
 static method bar<T extends self::C>(self::C c, self::bar::T t) → dynamic {
-  self::functionContext(let final self::C #t10 = c in #t10 == null ?{() → core::int} null : #t10.{self::C::call}{() → core::int});
-  self::nullableFunctionContext(let final self::C #t11 = c in #t11 == null ?{() → core::int} null : #t11.{self::C::call}{() → core::int});
-  self::functionContext(let final Never #t12 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:27:19: Error: The argument type 'T' can't be assigned to the parameter type 'int Function()'.
+  self::functionContext(let final self::C #t2 = c in #t2 == null ?{() → core::int} null : #t2.{self::C::call}{() → core::int});
+  self::nullableFunctionContext(let final self::C #t3 = c in #t3 == null ?{() → core::int} null : #t3.{self::C::call}{() → core::int});
+  self::functionContext(invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:27:19: Error: The argument type 'T' can't be assigned to the parameter type 'int Function()'.
   functionContext(t); // Shouldn't result in a compile-time error.
                   ^" in t as{TypeError,ForNonNullableByDefault} () → core::int);
-  self::nullableFunctionContext(let final Never #t13 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:28:27: Error: The argument type 'T' can't be assigned to the parameter type 'int Function()?'.
+  self::nullableFunctionContext(invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:28:27: Error: The argument type 'T' can't be assigned to the parameter type 'int Function()?'.
   nullableFunctionContext(t); // Shouldn't result in a compile-time error.
                           ^" in t as{TypeError,ForNonNullableByDefault} () →? core::int);
 }
 static method main() → dynamic {}
-
-
-Extra constant evaluation status:
-Evaluated: EqualsNull @ org-dartlang-testcase:///tearoff_from_nullable_receiver.dart:14:24 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///tearoff_from_nullable_receiver.dart:14:24 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///tearoff_from_nullable_receiver.dart:14:24 -> NullConstant(null)
-Extra constant evaluation: evaluated: 58, effectively constant: 3

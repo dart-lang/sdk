@@ -12,11 +12,13 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib.dart";
         main() {
           libMethod();
         }
       lib.dart: |
+        // @dart=2.9
         libMethod() {
           print("Hello from lib!");
         }
@@ -32,6 +34,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib.dart";
         main() {
           libMethod();
@@ -48,6 +51,7 @@ worlds:
       - lib.dart
     sources:
       lib.dart: |
+        // @dart=2.9
         libMethod() {
           print("Hello from lib!!");
         }

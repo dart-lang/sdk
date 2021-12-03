@@ -41,20 +41,15 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   @override
   TypeBuilder visitInvalidType(InvalidType node) {
     return new FixedTypeBuilder(
-        node,
-        /* fileUri = */ null,
-        /* charOffset = */ null);
+        node, /* fileUri = */ null, /* charOffset = */ null);
   }
 
   @override
   TypeBuilder visitDynamicType(DynamicType node) {
     // 'dynamic' is always nullable.
-    return new NamedTypeBuilder(
-        "dynamic",
-        const NullabilityBuilder.nullable(),
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null)
+    return new NamedTypeBuilder("dynamic", const NullabilityBuilder.nullable(),
+        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
       ..bind(new DynamicTypeDeclarationBuilder(
           const DynamicType(), loader.coreLibrary, -1));
   }
@@ -62,12 +57,9 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   @override
   TypeBuilder visitVoidType(VoidType node) {
     // 'void' is always nullable.
-    return new NamedTypeBuilder(
-        "void",
-        const NullabilityBuilder.nullable(),
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null)
+    return new NamedTypeBuilder("void", const NullabilityBuilder.nullable(),
+        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
       ..bind(new VoidTypeDeclarationBuilder(
           const VoidType(), loader.coreLibrary, -1));
   }
@@ -79,18 +71,16 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         new NullabilityBuilder.fromNullability(node.nullability),
         /* arguments = */ null,
         /* fileUri = */ null,
-        /* charOffset = */ null)
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
       ..bind(new NeverTypeDeclarationBuilder(node, loader.coreLibrary, -1));
   }
 
   @override
   TypeBuilder visitNullType(NullType node) {
-    return new NamedTypeBuilder(
-        "Null",
-        new NullabilityBuilder.nullable(),
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null)
+    return new NamedTypeBuilder("Null", new NullabilityBuilder.nullable(),
+        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
       ..bind(new NullTypeDeclarationBuilder(node, loader.coreLibrary, -1));
   }
 
@@ -110,7 +100,8 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         new NullabilityBuilder.fromNullability(node.nullability),
         arguments,
         /* fileUri = */ null,
-        /* charOffset = */ null)
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
       ..bind(cls);
   }
 
@@ -127,7 +118,8 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         new NullabilityBuilder.fromNullability(node.nullability),
         [argument],
         /* fileUri = */ null,
-        /* charOffset = */ null)
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
       ..bind(new FutureOrTypeDeclarationBuilder(node, loader.coreLibrary, -1));
   }
 
@@ -179,6 +171,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         /* charOffset = */ TreeNode.noOffset);
   }
 
+  @override
   TypeBuilder visitTypeParameterType(TypeParameterType node) {
     TypeParameter parameter = node.parameter;
     TreeNode? kernelClassOrTypeDef = parameter.parent;
@@ -188,16 +181,19 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     } else if (kernelClassOrTypeDef is Typedef) {
       kernelLibrary = kernelClassOrTypeDef.enclosingLibrary;
     }
-    LibraryBuilder library = loader.builders[kernelLibrary!.importUri]!;
+    LibraryBuilder library =
+        loader.lookupLibraryBuilder(kernelLibrary!.importUri)!;
     return new NamedTypeBuilder(
         parameter.name!,
         new NullabilityBuilder.fromNullability(node.nullability),
         /* arguments = */ null,
         /* fileUri = */ null,
-        /* charOffset = */ null)
+        /* charOffset = */ null,
+        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed)
       ..bind(new TypeVariableBuilder.fromKernel(parameter, library));
   }
 
+  @override
   TypeBuilder visitTypedefType(TypedefType node) {
     throw "Not implemented";
   }

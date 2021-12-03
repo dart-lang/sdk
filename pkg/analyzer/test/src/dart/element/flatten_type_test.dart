@@ -2,16 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
-import '../../../generated/test_analysis_context.dart';
+import '../../../generated/type_system_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -20,26 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class FlattenTypeTest with ElementsTypesMixin {
-  @override
-  late final TypeProvider typeProvider;
-
-  late final TypeSystemImpl typeSystem;
-
-  FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting(
-      additionalFeatures: [Feature.non_nullable],
-    );
-  }
-
-  void setUp() {
-    var analysisContext = TestAnalysisContext(
-      featureSet: testFeatureSet,
-    );
-    typeProvider = analysisContext.typeProviderNonNullableByDefault;
-    typeSystem = analysisContext.typeSystemNonNullableByDefault;
-  }
-
+class FlattenTypeTest extends AbstractTypeSystemTest {
   test_dynamic() {
     _check(dynamicNone, 'dynamic');
   }
@@ -53,6 +30,11 @@ class FlattenTypeTest with ElementsTypesMixin {
     _check(futureOrNone(intNone), 'int');
     _check(futureOrNone(intQuestion), 'int?');
     _check(futureOrNone(intStar), 'int*');
+
+    var A = class_(name: 'A', interfaces: [
+      futureNone(intNone),
+    ]);
+    _check(interfaceTypeNone(A), 'int');
   }
 
   test_interfaceType_question() {
@@ -81,6 +63,23 @@ class FlattenTypeTest with ElementsTypesMixin {
     _check(futureOrStar(intNone), 'int*');
     _check(futureOrStar(intQuestion), 'int*');
     _check(futureOrStar(intStar), 'int*');
+  }
+
+  test_typeParameterType_none() {
+    _check(
+      typeParameterTypeNone(
+        typeParameter('T', bound: futureNone(intNone)),
+      ),
+      'int',
+    );
+
+    _check(
+      typeParameterTypeNone(
+        typeParameter('T'),
+        promotedBound: futureNone(intNone),
+      ),
+      'int',
+    );
   }
 
   test_unknownInferredType() {

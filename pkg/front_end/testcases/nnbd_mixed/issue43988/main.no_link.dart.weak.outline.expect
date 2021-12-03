@@ -26,7 +26,7 @@ abstract class _E1&Object&A&D = self::_E1&Object&A with mai::D /*isAnonymousMixi
   const synthetic constructor •() → self::_E1&Object&A&D*
     : super self::_E1&Object&A::•()
     ;
-  forwarding-stub method method(covariant core::num* i, {core::String* s}) → core::String*
+  forwarding-stub method method(covariant-by-declaration core::num* i, {core::String* s}) → core::String*
     return super.{self::_E1&Object&A::method}(i, s: s);
 }
 class E1 extends self::_E1&Object&A&D {
@@ -54,7 +54,7 @@ class E2 = self::_E2&Object&A with mai::D /*hasConstConstructor*/  {
   const synthetic constructor •() → self::E2*
     : super self::_E2&Object&A::•()
     ;
-  forwarding-stub method method(covariant core::num* i, {core::String* s}) → core::String*
+  forwarding-stub method method(covariant-by-declaration core::num* i, {core::String* s}) → core::String*
     return super.{self::_E2&Object&A::method}(i, s: s);
 }
 abstract class _E3&Object&A = core::Object with mai::A /*isAnonymousMixin,hasConstConstructor*/  {
@@ -92,7 +92,7 @@ abstract class C6 extends mai::C3 implements mai::C4 {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract forwarding-stub method method2([covariant core::String* a]) → dynamic;
+  abstract forwarding-stub method method2([covariant-by-declaration core::String* a]) → dynamic;
 }
 abstract class C8 extends mai::C5 implements mai::C7 {
   synthetic constructor •() → self::C8*
@@ -107,7 +107,7 @@ abstract class C8 extends mai::C5 implements mai::C7 {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  abstract forwarding-stub method method2([covariant core::String* a, core::num* b]) → dynamic;
+  abstract forwarding-stub method method2([covariant-by-declaration core::String* a, core::num* b]) → dynamic;
 }
 static method main() → dynamic
   ;
@@ -124,7 +124,7 @@ abstract class Interface extends core::Object {
 abstract class Interface2 extends core::Object {
   synthetic constructor •() → mai::Interface2
     ;
-  abstract method method(covariant core::int i) → core::String;
+  abstract method method(covariant-by-declaration core::int i) → core::String;
 }
 abstract class A extends core::Object implements mai::Interface /*isMixinDeclaration*/  {
   method method(core::num i, {core::String s = "hello"}) → core::String
@@ -133,7 +133,7 @@ abstract class A extends core::Object implements mai::Interface /*isMixinDeclara
 abstract class D extends core::Object implements mai::Interface, mai::Interface2 {
   synthetic constructor •() → mai::D
     ;
-  abstract forwarding-stub method method(covariant core::num i) → core::String;
+  abstract forwarding-stub method method(covariant-by-declaration core::num i) → core::String;
 }
 abstract class F extends core::Object implements mai::Interface {
   synthetic constructor •() → mai::F
@@ -157,12 +157,12 @@ abstract class C3 extends core::Object implements mai::C1, mai::C2 {
 abstract class C4 extends core::Object {
   synthetic constructor •() → mai::C4
     ;
-  abstract method method2([covariant core::String a]) → dynamic;
+  abstract method method2([covariant-by-declaration core::String a]) → dynamic;
 }
 abstract class C5 extends mai::C3 implements mai::C4 {
   synthetic constructor •() → mai::C5
     ;
-  abstract forwarding-stub method method2([covariant core::String a]) → dynamic;
+  abstract forwarding-stub method method2([covariant-by-declaration core::String a]) → dynamic;
 }
 abstract class C7 extends core::Object {
   synthetic constructor •() → mai::C7

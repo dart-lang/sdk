@@ -322,11 +322,7 @@ static void GenerateTypeIsTopTypeForSubtyping(Assembler* assembler,
   // instantiation may result in a top type.
   // Function types cannot be top types.
   __ BranchIf(NOT_EQUAL, &done);
-  __ LoadCompressedField(
-      scratch2_reg,
-      compiler::FieldAddress(scratch1_reg,
-                             compiler::target::Type::type_class_id_offset()));
-  __ SmiUntag(scratch2_reg);
+  __ LoadTypeClassId(scratch2_reg, scratch1_reg);
   __ CompareImmediate(scratch2_reg, kDynamicCid);
   __ BranchIf(EQUAL, &is_top_type, compiler::Assembler::kNearJump);
   __ CompareImmediate(scratch2_reg, kVoidCid);
@@ -443,11 +439,7 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
     // FutureOr is a special case because it may have the non-nullable bit set,
     // but FutureOr<T> functions as the union of T and Future<T>, so it must be
     // unwrapped to see if T is nullable.
-    __ LoadCompressedField(
-        kScratchReg,
-        compiler::FieldAddress(kCurrentTypeReg,
-                               compiler::target::Type::type_class_id_offset()));
-    __ SmiUntag(kScratchReg);
+    __ LoadTypeClassId(kScratchReg, kCurrentTypeReg);
     __ CompareImmediate(kScratchReg, kFutureOrCid);
     __ BranchIf(NOT_EQUAL, &done);
     __ LoadCompressedField(
@@ -1021,6 +1013,53 @@ EMIT_BOX_ALLOCATION(Float64x2)
 EMIT_BOX_ALLOCATION(Int32x4)
 
 #undef EMIT_BOX_ALLOCATION
+
+void StubCodeCompiler::GenerateBoxDoubleStub(Assembler* assembler) {
+#if defined(TARGET_ARCH_ARM)
+  if (!TargetCPUFeatures::vfp_supported()) {
+    __ Breakpoint();
+    return;
+  }
+#endif  // defined(TARGET_ARCH_ARM)
+  Label call_runtime;
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    __ TryAllocate(compiler::DoubleClass(), &call_runtime,
+                   compiler::Assembler::kFarJump, BoxDoubleStubABI::kResultReg,
+                   BoxDoubleStubABI::kTempReg);
+    __ StoreUnboxedDouble(
+        BoxDoubleStubABI::kValueReg, BoxDoubleStubABI::kResultReg,
+        compiler::target::Double::value_offset() - kHeapObjectTag);
+    __ Ret();
+  }
+  __ Bind(&call_runtime);
+  __ EnterStubFrame();
+  __ PushObject(NullObject()); /* Make room for result. */
+  __ StoreUnboxedDouble(BoxDoubleStubABI::kValueReg, THR,
+                        target::Thread::unboxed_double_runtime_arg_offset());
+  __ CallRuntime(kBoxDoubleRuntimeEntry, 0);
+  __ PopRegister(BoxDoubleStubABI::kResultReg);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateDoubleToIntegerStub(Assembler* assembler) {
+#if defined(TARGET_ARCH_ARM)
+  if (!TargetCPUFeatures::vfp_supported()) {
+    __ Breakpoint();
+    return;
+  }
+#endif  // defined(TARGET_ARCH_ARM)
+  __ EnterStubFrame();
+  __ StoreUnboxedDouble(DoubleToIntegerStubABI::kInputReg, THR,
+                        target::Thread::unboxed_double_runtime_arg_offset());
+  __ PushObject(NullObject()); /* Make room for result. */
+  __ PushRegister(DoubleToIntegerStubABI::kRecognizedKindReg);
+  __ CallRuntime(kDoubleToIntegerRuntimeEntry, 1);
+  __ Drop(1);
+  __ PopRegister(DoubleToIntegerStubABI::kResultReg);
+  __ LeaveStubFrame();
+  __ Ret();
+}
 
 }  // namespace compiler
 

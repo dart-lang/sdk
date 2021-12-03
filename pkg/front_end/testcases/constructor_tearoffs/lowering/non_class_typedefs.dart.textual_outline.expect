@@ -1,0 +1,8 @@
+import "dart:async";
+
+typedef S1<T> = dynamic;
+typedef S2<T> = Null;
+typedef S3<T> = void;
+typedef S4<T> = FutureOr;
+typedef S5<T> = FutureOr<T>;
+main() {}

@@ -30,7 +30,12 @@ import 'ast.dart';
 ///         "@constructors"
 ///         Qualified name
 ///
-///      Field or the implicit getter of a field:
+///      Field:
+///         Canonical name of enclosing class or library
+///         "@fields"
+///         Qualified name
+///
+///      Implicit getter of a field:
 ///         Canonical name of enclosing class or library
 ///         "@getters"
 ///         Qualified name
@@ -137,6 +142,10 @@ class CanonicalName {
   }
 
   CanonicalName getChildFromField(Field field) {
+    return getChild(fieldsName).getChildFromQualifiedName(field.name);
+  }
+
+  CanonicalName getChildFromFieldGetter(Field field) {
     return getChild(gettersName).getChildFromQualifiedName(field.name);
   }
 
@@ -156,6 +165,10 @@ class CanonicalName {
   }
 
   CanonicalName getChildFromFieldWithName(Name name) {
+    return getChild(fieldsName).getChildFromQualifiedName(name);
+  }
+
+  CanonicalName getChildFromFieldGetterWithName(Name name) {
     return getChild(gettersName).getChildFromQualifiedName(name);
   }
 
@@ -263,6 +276,7 @@ class CanonicalName {
     }
   }
 
+  @override
   String toString() => _parent == null ? 'root' : '$parent::$name';
   String toStringInternal() {
     if (isRoot) return "";
@@ -338,6 +352,10 @@ class CanonicalName {
   /// within a library or a class.
   static const String methodsName = '@methods';
 
+  /// Symbolic name used for the [CanonicalName] node that holds all fields
+  /// within a library or class.
+  static const String fieldsName = '@fields';
+
   /// Symbolic name used for the [CanonicalName] node that holds all getters and
   /// readable fields within a library or class.
   static const String gettersName = '@getters';
@@ -354,6 +372,7 @@ class CanonicalName {
     constructorsName,
     factoriesName,
     methodsName,
+    fieldsName,
     gettersName,
     settersName,
     typedefsName,
@@ -438,6 +457,7 @@ class Reference {
     _node = node;
   }
 
+  @override
   String toString() {
     return "Reference to ${toStringInternal()}";
   }
@@ -511,12 +531,15 @@ class Reference {
   bool get isConsistent {
     NamedNode? node = _node;
     if (node != null) {
-      if (node.reference != this &&
-          (node is! Field || node.setterReference != this)) {
-        // The reference of a [NamedNode] must point to this reference, or
-        // if the node is a [Field] the setter reference must point to this
-        // reference.
-        return false;
+      if (node is Field) {
+        // The field, getter or setter reference of the [Field] must point to
+        // this reference.
+        return node.fieldReference == this ||
+            node.getterReference == this ||
+            node.setterReference == this;
+      } else {
+        // The reference of the [NamedNode] must point to this reference.
+        return node.reference == this;
       }
     }
     if (canonicalName != null && canonicalName!._reference != this) {
@@ -527,12 +550,16 @@ class Reference {
 
   String getInconsistency() {
     StringBuffer sb = new StringBuffer();
-    sb.write('Reference ${this} (${hashCode}):');
+    sb.write('Reference ${toStringInternal()} (${hashCode}):');
     NamedNode? node = _node;
     if (node != null) {
       if (node is Field) {
-        if (node.getterReference != this && node.setterReference != this) {
+        if (node.fieldReference != this &&
+            node.getterReference != this &&
+            node.setterReference != this) {
           sb.write(' _node=${node} (${node.runtimeType}:${node.hashCode})');
+          sb.write(' _node.fieldReference='
+              '${node.fieldReference} (${node.fieldReference.hashCode})');
           sb.write(' _node.getterReference='
               '${node.getterReference} (${node.getterReference.hashCode})');
           sb.write(' _node.setterReference='
@@ -597,12 +624,14 @@ class CanonicalNameError {
 
   CanonicalNameError(this.message);
 
+  @override
   String toString() => 'CanonicalNameError: $message';
 }
 
 class CanonicalNameSdkError extends CanonicalNameError {
   CanonicalNameSdkError(String message) : super(message);
 
+  @override
   String toString() => 'CanonicalNameSdkError: $message';
 }
 

@@ -112,14 +112,14 @@ main() {
       await compiler.compile();
       compiler.accept();
       {
-        Procedure? procedure = await compiler.compileExpression(
-            'main', <String>[], <String>[], main.uri.toString(), null, true);
+        Procedure? procedure = await compiler.compileExpression('main',
+            <String>[], <String>[], main.uri.toString(), null, null, true);
         expect(procedure, isNotNull);
         expect(errorsReported, equals(0));
       }
       {
-        Procedure? procedure = await compiler.compileExpression(
-            'main1', <String>[], <String>[], main.uri.toString(), null, true);
+        Procedure? procedure = await compiler.compileExpression('main1',
+            <String>[], <String>[], main.uri.toString(), null, null, true);
         expect(procedure, isNotNull);
         expect(errorsReported, equals(1));
         errorsReported = 0;
@@ -1024,8 +1024,8 @@ main() {
       }
       compiler.accept();
       {
-        Procedure? procedure = await compiler.compileExpression(
-            'a', <String>[], <String>[], 'package:foo/bar.dart', 'A', true);
+        Procedure? procedure = await compiler.compileExpression('a', <String>[],
+            <String>[], 'package:foo/bar.dart', 'A', null, true);
         expect(procedure, isNotNull);
       }
 
@@ -1039,15 +1039,15 @@ main() {
       }
       await compiler.reject();
       {
-        Procedure? procedure = await compiler.compileExpression(
-            'a', <String>[], <String>[], 'package:foo/bar.dart', 'A', true);
+        Procedure? procedure = await compiler.compileExpression('a', <String>[],
+            <String>[], 'package:foo/bar.dart', 'A', null, true);
         expect(procedure, isNotNull);
       }
     });
 
-    /// This test basicaly verifies that components `relink` method is correctly
-    /// called when rejecting (i.e. logically going back in time to before a
-    /// rejected compilation).
+    /// This test basically verifies that components `relink` method is
+    /// correctly called when rejecting (i.e. logically going back in time to
+    /// before a rejected compilation).
     test('check links after reject', () async {
       final Uri fooUri = Uri.file('${mytest.path}/foo.dart');
       new File.fromUri(fooUri).writeAsStringSync("""
@@ -1088,7 +1088,7 @@ main() {
       compiler.accept();
       {
         final Procedure procedure = (await compiler.compileExpression(
-            'a', <String>[], <String>[], barUri.toString(), 'A', true))!;
+            'a', <String>[], <String>[], barUri.toString(), 'A', null, true))!;
         // Verify that the expression only has links to the only bar we know
         // about.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
@@ -1133,7 +1133,7 @@ main() {
       }
       {
         final Procedure procedure = (await compiler.compileExpression(
-            'a', <String>[], <String>[], barUri.toString(), 'A', true))!;
+            'a', <String>[], <String>[], barUri.toString(), 'A', null, true))!;
         // Verify that the expression only has links to the original bar.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
         procedure.accept(lrc);
@@ -1423,8 +1423,7 @@ main() {
         "0",
       ], callback: (RemoteVm remoteVm) async {
         for (int q = 0; q < 10; q++) {
-          var reloadResult = await remoteVm.reload(partial1Dill.uri);
-          expect(reloadResult is Map, isTrue);
+          Map reloadResult = await remoteVm.reload(partial1Dill.uri);
           expect(reloadResult["success"], equals(true));
 
           await remoteVm.forceGc();
@@ -1457,7 +1456,6 @@ main() {
           await deletePossibleBreakpoint(remoteVm, breakpoint);
 
           reloadResult = await remoteVm.reload(partial2Dill.uri);
-          expect(reloadResult is Map, isTrue);
           expect(reloadResult["success"], equals(true));
 
           await remoteVm.forceGc();

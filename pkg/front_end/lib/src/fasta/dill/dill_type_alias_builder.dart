@@ -18,22 +18,27 @@ import 'dill_class_builder.dart' show computeTypeVariableBuilders;
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
+  @override
   final Typedef typedef;
 
+  @override
   final Map<Name, Procedure>? tearOffs;
 
   List<TypeVariableBuilder>? _typeVariables;
   TypeBuilder? _type;
 
+  @override
   DartType? thisType;
 
   DillTypeAliasBuilder(this.typedef, this.tearOffs, DillLibraryBuilder parent)
       : super(null, typedef.name, parent, typedef.fileOffset);
 
+  @override
   List<MetadataBuilder> get metadata {
     return unimplemented("metadata", -1, null);
   }
 
+  @override
   List<TypeVariableBuilder>? get typeVariables {
     if (_typeVariables == null && typedef.typeParameters.isNotEmpty) {
       _typeVariables =
@@ -42,10 +47,12 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
     return _typeVariables;
   }
 
+  @override
   int varianceAt(int index) {
     return typedef.typeParameters[index].variance;
   }
 
+  @override
   bool get fromDill => true;
 
   @override
@@ -67,8 +74,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      LibraryBuilder library, List<TypeBuilder>? arguments) {
     // For performance reasons, [typeVariables] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].

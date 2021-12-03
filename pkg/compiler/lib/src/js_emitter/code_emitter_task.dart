@@ -9,14 +9,13 @@ import '../common/metrics.dart' show Metric, Metrics, CountMetric;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../deferred_load/deferred_load.dart' show OutputUnit;
+import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/inferred_data.dart';
 import '../js_backend/namer.dart' show Namer;
-import '../js_backend/runtime_types.dart'
-    show RuntimeTypesChecks;
+import '../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../js_model/js_strategy.dart';
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
@@ -45,12 +44,13 @@ class CodeEmitterTask extends CompilerTask {
 
   CompilerOptions get options => _compiler.options;
 
-  @deprecated
-  // This field should be removed. It's currently only needed for dump-info and
-  // tests.
-  // The field is set after the program has been emitted.
+  /// The field is set after the program has been emitted.
   /// Contains a list of all classes that are emitted.
+  /// Currently used for testing and dump-info.
   Set<ClassEntity> neededClasses;
+
+  /// See [neededClasses] but for class types.
+  Set<ClassEntity> neededClassTypes;
 
   @override
   final _EmitterMetrics metrics = _EmitterMetrics();
@@ -78,16 +78,17 @@ class CodeEmitterTask extends CompilerTask {
   void _finalizeRti(CodegenInputs codegen, CodegenWorld codegenWorld) {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
-    _rtiChecks = _backendStrategy.rtiChecksBuilder.computeRequiredChecks(codegenWorld, options);
+    _rtiChecks = _backendStrategy.rtiChecksBuilder
+        .computeRequiredChecks(codegenWorld, options);
   }
 
   /// Creates the [Emitter] for this task.
   void createEmitter(
       Namer namer, CodegenInputs codegen, JClosedWorld closedWorld) {
     measure(() {
-      _nativeEmitter = new NativeEmitter(
+      _nativeEmitter = NativeEmitter(
           this, closedWorld, _backendStrategy.nativeCodegenEnqueuer);
-      _emitter = new startup_js_emitter.EmitterImpl(
+      _emitter = startup_js_emitter.EmitterImpl(
           _compiler.options,
           _compiler.reporter,
           _compiler.outputProvider,
@@ -99,7 +100,7 @@ class CodeEmitterTask extends CompilerTask {
           _backendStrategy.sourceInformationStrategy,
           this,
           _generateSourceMap);
-      metadataCollector = new MetadataCollector(
+      metadataCollector = MetadataCollector(
           _compiler.reporter, _emitter, codegen.rtiRecipeEncoder);
     });
   }
@@ -140,8 +141,8 @@ class CodeEmitterTask extends CompilerTask {
           _rtiChecks.requiredClasses,
           closedWorld.elementEnvironment.mainFunction);
       int size = emitter.emitProgram(programBuilder, codegenWorld);
-      // TODO(floitsch): we shouldn't need the `neededClasses` anymore.
       neededClasses = programBuilder.collector.neededClasses;
+      neededClassTypes = programBuilder.collector.neededClassTypes;
       return size;
     });
   }

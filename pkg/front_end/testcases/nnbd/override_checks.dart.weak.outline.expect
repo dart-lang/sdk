@@ -64,7 +64,10 @@ class B2 extends self::B1 {
 class C1 extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::C1::•]/*isLegacy*/;
   static factory •() → self::C1
-    let dynamic #redirecting_factory = self::C2::• in let core::int? #typeArg0 = null in invalid-expression;
+    return invalid-expression "pkg/front_end/testcases/nnbd/override_checks.dart:20:18: Error: The type 'int?' doesn't extend 'int'.
+Try using a different type as argument.
+  factory C1() = C2<int?>; // Error in strong mode and Warning in weak mode.
+                 ^";
 }
 class C2<X extends core::int> extends core::Object implements self::C1 {
   synthetic constructor •() → self::C2<self::C2::X>
@@ -75,7 +78,16 @@ class D extends core::Object {
   constructor foo(core::num x) → self::D
     ;
   static factory bar(core::num? x) → self::D
-    let dynamic #redirecting_factory = self::D::foo in invalid-expression;
+    return invalid-expression "pkg/front_end/testcases/nnbd/override_checks.dart:27:27: Error: The constructor function type 'D Function(num)' isn't a subtype of 'D Function(num?)'.
+ - 'D' is from 'pkg/front_end/testcases/nnbd/override_checks.dart'.
+  factory D.bar(num? x) = D.foo; // Error in strong mode and Warning in weak mode.
+                          ^";
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///override_checks.dart:19:7 -> ConstructorTearOffConstant(C1.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///override_checks.dart:25:7 -> ConstructorTearOffConstant(D.bar)
+Extra constant evaluation: evaluated: 4, effectively constant: 2

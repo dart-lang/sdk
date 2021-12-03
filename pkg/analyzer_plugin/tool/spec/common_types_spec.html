@@ -380,6 +380,18 @@
           omitted if the parameterName field is omitted.
         </p>
       </field>
+      <field name="libraryUriToImportIndex" experimental="true" optional="true">
+        <ref>int</ref>
+        <p>
+          The index in the list of libraries that could be imported to make
+          this suggestion accessible in the file where completion was requested.
+          The server provides this list of libraries together with suggestions,
+          so that information about the library can be shared for multiple
+          suggestions. This field is omitted if the library is  already
+          imported, so that the suggestion can be inserted as is, or if
+          <tt>getSuggestions</tt> was used rather than <tt>getSuggestions2</tt>.
+        </p>
+      </field>
     </object>
   </type>
   <type name="CompletionSuggestionKind">
@@ -682,6 +694,7 @@
       <value><code>COMMENT_DOCUMENTATION</code></value>
       <value><code>COMMENT_END_OF_LINE</code></value>
       <value><code>CONSTRUCTOR</code></value>
+      <value><code>CONSTRUCTOR_TEAR_OFF</code></value>
       <value><code>DIRECTIVE</code></value>
       <value>
         <code>DYNAMIC_TYPE</code>
@@ -743,6 +756,9 @@
         <code>INSTANCE_METHOD_REFERENCE</code>
       </value>
       <value>
+        <code>INSTANCE_METHOD_TEAR_OFF</code>
+      </value>
+      <value>
         <code>INSTANCE_SETTER_DECLARATION</code>
       </value>
       <value>
@@ -767,6 +783,9 @@
       </value>
       <value>
         <code>LOCAL_FUNCTION_REFERENCE</code>
+      </value>
+      <value>
+        <code>LOCAL_FUNCTION_TEAR_OFF</code>
       </value>
       <value>
         <code>LOCAL_VARIABLE</code>
@@ -826,6 +845,9 @@
         <code>STATIC_METHOD_REFERENCE</code>
       </value>
       <value>
+        <code>STATIC_METHOD_TEAR_OFF</code>
+      </value>
+      <value>
         <code>STATIC_SETTER_DECLARATION</code>
       </value>
       <value>
@@ -836,6 +858,9 @@
       </value>
       <value>
         <code>TOP_LEVEL_FUNCTION_REFERENCE</code>
+      </value>
+      <value>
+        <code>TOP_LEVEL_FUNCTION_TEAR_OFF</code>
       </value>
       <value>
         <code>TOP_LEVEL_GETTER_DECLARATION</code>

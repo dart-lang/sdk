@@ -756,12 +756,13 @@ class ProcessStarter {
         actions[fixed_actions_cnt + i] = {
           .action = FDIO_SPAWN_ACTION_ADD_NS_ENTRY,
           .ns = {
-            .prefix = flat_ns->path[i],
+            .prefix = DartUtils::ScopedCopyCString(flat_ns->path[i]),
             .handle = flat_ns->handle[i],
           },
         };
+        flat_ns->handle[i] = ZX_HANDLE_INVALID;
       }
-      free(flat_ns);
+      fdio_ns_free_flat_ns(flat_ns);
       flat_ns = nullptr;
     }
 

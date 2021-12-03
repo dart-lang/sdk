@@ -24,7 +24,7 @@ class Test {
   static void test(Test t) {
     t. /*@target=Test.member*/ member = /*@ typeArgs=B* */ f();
     /*@ type=Test* */ /*@target=Test.member*/ t. /*@target=Test.member*/ member
-        /*@target=A.==*/ ??= /*@ typeArgs=B* */ f();
+         ??= /*@ typeArgs=B* */ f();
     /*@ type=Test* */ t. /*@target=Test.member*/ /*@target=Test.member*/ member
         /*@target=B.+*/ += /*@ typeArgs=C* */ f();
     /*@ type=Test* */ t. /*@target=Test.member*/ /*@target=Test.member*/ member
@@ -40,7 +40,7 @@ class Test {
     var /*@ type=B* */ v2 =
         /*@ type=Test* */ /*@target=Test.member*/ t
                 . /*@target=Test.member*/ member
-            /*@target=A.==*/ ??= /*@ typeArgs=B* */ f();
+             ??= /*@ typeArgs=B* */ f();
     var /*@ type=A* */ v3 =
         /*@ type=Test* */ t
                 . /*@target=Test.member*/ /*@target=Test.member*/ member

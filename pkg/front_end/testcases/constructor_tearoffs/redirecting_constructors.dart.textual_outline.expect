@@ -4,6 +4,8 @@ class A {
   factory A.redirectingFactoryChild() = B.new;
   factory A.redirectingTwice() = A.redirectingFactory;
 }
+
 class B extends A {}
+
 test() {}
 main() => test();

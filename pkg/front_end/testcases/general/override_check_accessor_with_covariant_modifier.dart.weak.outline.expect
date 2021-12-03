@@ -45,17 +45,17 @@ class B extends self::A {
 class C extends core::Object {
   synthetic constructor •() → self::C*
     ;
-  set x1(covariant self::A* value) → void
+  set x1(covariant-by-declaration self::A* value) → void
     ;
   set x2(self::A* value) → void
     ;
-  set x3(covariant self::A* value) → void
+  set x3(covariant-by-declaration self::A* value) → void
     ;
   set x4(self::A* value) → void
     ;
-  set x5(covariant self::A* value) → void
+  set x5(covariant-by-declaration self::A* value) → void
     ;
-  set x6(covariant self::B* value) → void
+  set x6(covariant-by-declaration self::B* value) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -71,17 +71,17 @@ class C extends core::Object {
 class D extends self::C {
   synthetic constructor •() → self::D*
     ;
-  set x1(covariant self::B* value) → void
+  set x1(covariant-by-declaration self::B* value) → void
     ;
-  set x2(covariant self::B* value) → void
+  set x2(covariant-by-declaration self::B* value) → void
     ;
-  set x3(covariant self::B* value) → void
+  set x3(covariant-by-declaration self::B* value) → void
     ;
   set x4(self::B* value) → void
     ;
-  set x5(covariant core::String* value) → void
+  set x5(covariant-by-declaration core::String* value) → void
     ;
-  set x6(covariant self::A* value) → void
+  set x6(covariant-by-declaration self::A* value) → void
     ;
 }
 static method main() → dynamic

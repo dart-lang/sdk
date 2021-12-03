@@ -88,7 +88,18 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 0, 1) {
     return Type::Double();
   } else if (instance.IsType() || instance.IsFunctionType()) {
     return Type::DartTypeType();
+  } else if (IsArrayClassId(instance.GetClassId())) {
+    const auto& cls = Class::Handle(
+        zone, thread->isolate_group()->object_store()->list_class());
+    const auto& type_arguments =
+        TypeArguments::Handle(zone, instance.GetTypeArguments());
+    const auto& type = Type::Handle(
+        zone,
+        Type::New(cls, type_arguments, Nullability::kNonNullable, Heap::kNew));
+    type.SetIsFinalized();
+    return type.Canonicalize(thread, nullptr);
   }
+
   return instance.GetType(Heap::kNew);
 }
 
@@ -101,14 +112,18 @@ static bool HaveSameRuntimeTypeHelper(Zone* zone,
   if (left_cid != right_cid) {
     if (IsIntegerClassId(left_cid)) {
       return IsIntegerClassId(right_cid);
-    }
-    if (IsStringClassId(left_cid)) {
+    } else if (IsStringClassId(left_cid)) {
       return IsStringClassId(right_cid);
-    }
-    if (IsTypeClassId(left_cid)) {
+    } else if (IsTypeClassId(left_cid)) {
       return IsTypeClassId(right_cid);
+    } else if (IsArrayClassId(left_cid)) {
+      if (!IsArrayClassId(right_cid)) {
+        return false;
+      }
+      // Still need to check type arguments.
+    } else {
+      return false;
     }
-    return false;
   }
 
   if (left_cid == kClosureCid) {
@@ -175,14 +190,15 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 4) {
   const bool is_instance_of = instance.IsInstanceOf(
       type, instantiator_type_arguments, function_type_arguments);
   if (FLAG_trace_type_checks) {
+    LogBlock lb;
     const char* result_str = is_instance_of ? "true" : "false";
-    OS::PrintErr("Native Object.instanceOf: result %s\n", result_str);
+    THR_Print("Native Object.instanceOf: result %s\n", result_str);
     const AbstractType& instance_type =
         AbstractType::Handle(zone, instance.GetType(Heap::kNew));
-    OS::PrintErr("  instance type: %s\n",
-                 String::Handle(zone, instance_type.Name()).ToCString());
-    OS::PrintErr("  test type: %s\n",
-                 String::Handle(zone, type.Name()).ToCString());
+    THR_Print("  instance type: %s\n",
+              String::Handle(zone, instance_type.Name()).ToCString());
+    THR_Print("  test type: %s\n",
+              String::Handle(zone, type.Name()).ToCString());
   }
   return Bool::Get(is_instance_of).ptr();
 }
@@ -555,6 +571,11 @@ DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 0, 3) {
   InvocationMirror::DecodeType(invocation_type.Value(), &level, &kind);
 
   Function& function = Function::Handle(zone);
+  if (level == InvocationMirror::Level::kTopLevel) {
+    if (receiver.IsString()) return receiver.ptr();
+    ASSERT(receiver.IsNull());
+    return String::null();
+  }
   if (receiver.IsType()) {
     const auto& cls = Class::Handle(zone, Type::Cast(receiver).type_class());
     const auto& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));

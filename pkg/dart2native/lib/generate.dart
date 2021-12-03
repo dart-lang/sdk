@@ -21,14 +21,14 @@ final String productPlatformDill = path.join(
 
 Future<void> generateNative({
   String kind = 'exe',
-  String sourceFile,
-  String outputFile,
-  String debugFile,
-  String packages,
-  List<String> defines,
+  required String sourceFile,
+  String? outputFile,
+  String? debugFile,
+  String? packages,
+  required List<String> defines,
   String enableExperiment = '',
   bool enableAsserts = false,
-  bool soundNullSafety,
+  bool? soundNullSafety,
   bool verbose = false,
   String verbosity = 'all',
   List<String> extraOptions = const [],
@@ -42,13 +42,13 @@ Future<void> generateNative({
     final Kind outputKind = {
       'aot': Kind.aot,
       'exe': Kind.exe,
-    }[kind];
+    }[kind]!;
     final sourceWithoutDart = sourcePath.replaceFirst(RegExp(r'\.dart$'), '');
     final outputPath = path.canonicalize(path.normalize(outputFile ??
         {
           Kind.aot: '$sourceWithoutDart.aot',
           Kind.exe: '$sourceWithoutDart.exe',
-        }[outputKind]));
+        }[outputKind]!));
     final debugPath =
         debugFile != null ? path.canonicalize(path.normalize(debugFile)) : null;
 

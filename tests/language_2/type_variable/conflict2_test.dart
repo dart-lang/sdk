@@ -17,15 +17,14 @@ class C<T> {
   foo() => T();
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION
-  // [cfe] Method not found: 'T'.
+  // [cfe] Couldn't find constructor 'T'.
 
   // T is in scope, even in static context. Compile-time error to call this.T().
   static bar() => T();
   //              ^
   // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION
-  // [cfe] Method not found: 'T'.
-  //              ^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_PARAMETER_REFERENCED_BY_STATIC
+  // [cfe] Couldn't find constructor 'T'.
 
   // X is not in scope. NoSuchMethodError.
   static baz() => X();
@@ -37,7 +36,7 @@ class C<T> {
   static qux() => C.T();
   //                ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] Method not found: 'C.T'.
+  // [cfe] Member not found: 'C.T'.
 
   // Class '_Type' has no instance method 'call': NoSuchMethodError.
   quux() => (T)();

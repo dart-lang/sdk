@@ -17,14 +17,14 @@ import "dart:core" as core;
 
 static method test<X extends core::Object? = dynamic>(self::test::X? x) → dynamic {
   if(x is{ForNonNullableByDefault} core::String?) {
-    core::Object o = let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue42089.dart:7:16: Error: A value of type 'X?' can't be assigned to a variable of type 'Object' because 'X?' is nullable and 'Object' isn't.
+    core::Object o = invalid-expression "pkg/front_end/testcases/nnbd/issue42089.dart:7:16: Error: A value of type 'X?' can't be assigned to a variable of type 'Object' because 'X?' is nullable and 'Object' isn't.
  - 'Object' is from 'dart:core'.
     Object o = x;
-               ^" in let self::test::X? & core::String? /* '?' & '?' = '?' */ #t2 = x{self::test::X? & core::String? /* '?' & '?' = '?' */} in #t2 == null ?{core::Object} #t2 as{TypeError,ForNonNullableByDefault} core::Object : #t2{core::Object};
-    o = let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue42089.dart:8:9: Error: A value of type 'X?' can't be assigned to a variable of type 'Object' because 'X?' is nullable and 'Object' isn't.
+               ^" in let self::test::X? & core::String? /* '?' & '?' = '?' */ #t1 = x{self::test::X? & core::String? /* '?' & '?' = '?' */} in #t1 == null ?{core::Object} #t1 as{TypeError,ForNonNullableByDefault} core::Object : #t1{core::Object};
+    o = invalid-expression "pkg/front_end/testcases/nnbd/issue42089.dart:8:9: Error: A value of type 'X?' can't be assigned to a variable of type 'Object' because 'X?' is nullable and 'Object' isn't.
  - 'Object' is from 'dart:core'.
     o = x;
-        ^" in let self::test::X? & core::String? /* '?' & '?' = '?' */ #t4 = x{self::test::X? & core::String? /* '?' & '?' = '?' */} in #t4 == null ?{core::Object} #t4 as{TypeError,ForNonNullableByDefault} core::Object : #t4{core::Object};
+        ^" in let self::test::X? & core::String? /* '?' & '?' = '?' */ #t2 = x{self::test::X? & core::String? /* '?' & '?' = '?' */} in #t2 == null ?{core::Object} #t2 as{TypeError,ForNonNullableByDefault} core::Object : #t2{core::Object};
   }
 }
 static method main() → dynamic {}

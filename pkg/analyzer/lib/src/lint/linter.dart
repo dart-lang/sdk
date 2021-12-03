@@ -33,9 +33,8 @@ import 'package:analyzer/src/generated/engine.dart'
         AnalysisErrorInfoImpl,
         AnalysisOptions,
         AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/resolver.dart' show ScopedVisitor;
+import 'package:analyzer/src/generated/resolver.dart' show ScopeResolverVisitor;
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/analysis.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
@@ -154,12 +153,12 @@ class DartLinter implements AnalysisErrorListener {
 }
 
 class FileGlobFilter extends LintFilter {
-  Iterable<Glob> includes;
-  Iterable<Glob> excludes;
+  List<Glob> includes;
+  List<Glob> excludes;
 
   FileGlobFilter(Iterable<String> includeGlobs, Iterable<String> excludeGlobs)
-      : includes = includeGlobs.map((glob) => Glob(glob)),
-        excludes = excludeGlobs.map((glob) => Glob(glob));
+      : includes = includeGlobs.map((glob) => Glob(glob)).toList(),
+        excludes = excludeGlobs.map((glob) => Glob(glob)).toList();
 
   @override
   bool filter(AnalysisError lint) {
@@ -399,7 +398,7 @@ class LinterContextImpl implements LinterContext {
       String id, bool setter, AstNode node) {
     Scope? scope;
     for (AstNode? context = node; context != null; context = context.parent) {
-      scope = ScopedVisitor.getNodeNameScope(context);
+      scope = ScopeResolverVisitor.getNodeNameScope(context);
       if (scope != null) {
         break;
       }

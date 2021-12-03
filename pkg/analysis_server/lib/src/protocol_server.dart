@@ -245,7 +245,8 @@ SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
   if (kind == engine.MatchKind.INVOCATION) {
     return SearchResultKind.INVOCATION;
   }
-  if (kind == engine.MatchKind.REFERENCE) {
+  if (kind == engine.MatchKind.REFERENCE ||
+      kind == engine.MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF) {
     return SearchResultKind.REFERENCE;
   }
   return SearchResultKind.UNKNOWN;

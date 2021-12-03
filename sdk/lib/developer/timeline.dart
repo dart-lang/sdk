@@ -219,6 +219,11 @@ class TimelineTask {
     if (!_hasTimeline) return;
     // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(name, 'name');
+    if (!_isDartStreamEnabled()) {
+      // Push a null onto the stack and return.
+      _stack.add(null);
+      return;
+    }
     var block = new _AsyncBlock._(name, _taskId);
     _stack.add(block);
     // TODO(39115): Spurious error about collection literal ambiguity.
@@ -242,6 +247,10 @@ class TimelineTask {
     if (!_hasTimeline) return;
     // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(name, 'name');
+    if (!_isDartStreamEnabled()) {
+      // Stream is disabled.
+      return;
+    }
     Map? instantArguments;
     if (arguments != null) {
       instantArguments = new Map.from(arguments);
@@ -269,6 +278,10 @@ class TimelineTask {
     }
     // Pop top item off of stack.
     var block = _stack.removeLast();
+    if (block == null) {
+      // Dart stream was disabled when start was called.
+      return;
+    }
     block._finish(arguments);
   }
 
@@ -288,7 +301,7 @@ class TimelineTask {
   final TimelineTask? _parent;
   final String? _filterKey;
   final int _taskId;
-  final List<_AsyncBlock> _stack = [];
+  final List<_AsyncBlock?> _stack = [];
 }
 
 /// An asynchronous block of time on the timeline. This block can be kept

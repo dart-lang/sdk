@@ -24,7 +24,7 @@ namespace dart {
 static bool IsUserClass(intptr_t cid) {
   if (cid == kContextCid) return true;
   if (cid == kTypeArgumentsCid) return false;
-  return cid >= kInstanceCid;
+  return !IsInternalOnlyClassId(cid);
 }
 
 // The state of a pre-order, depth-first traversal of an object graph.
@@ -812,8 +812,6 @@ class Pass1Visitor : public ObjectVisitor,
         HandleVisitor(Thread::Current()),
         writer_(writer) {}
 
-  virtual bool trace_values_through_fields() const { return true; }
-
   void VisitObject(ObjectPtr obj) {
     if (obj->IsPseudoObject()) return;
 
@@ -851,6 +849,47 @@ class Pass1Visitor : public ObjectVisitor,
   DISALLOW_COPY_AND_ASSIGN(Pass1Visitor);
 };
 
+class CountImagePageRefs : public ObjectVisitor {
+ public:
+  CountImagePageRefs() : ObjectVisitor() {}
+
+  void VisitObject(ObjectPtr obj) {
+    if (obj->IsPseudoObject()) return;
+    count_++;
+  }
+  intptr_t count() const { return count_; }
+
+ private:
+  intptr_t count_ = 0;
+
+  DISALLOW_COPY_AND_ASSIGN(CountImagePageRefs);
+};
+
+class WriteImagePageRefs : public ObjectVisitor {
+ public:
+  explicit WriteImagePageRefs(HeapSnapshotWriter* writer)
+      : ObjectVisitor(), writer_(writer) {}
+
+  void VisitObject(ObjectPtr obj) {
+    if (obj->IsPseudoObject()) return;
+#if defined(DEBUG)
+    count_++;
+#endif
+    writer_->WriteUnsigned(writer_->GetObjectId(obj));
+  }
+#if defined(DEBUG)
+  intptr_t count() const { return count_; }
+#endif
+
+ private:
+  HeapSnapshotWriter* const writer_;
+#if defined(DEBUG)
+  intptr_t count_ = 0;
+#endif
+
+  DISALLOW_COPY_AND_ASSIGN(WriteImagePageRefs);
+};
+
 enum NonReferenceDataTags {
   kNoData = 0,
   kNullData,
@@ -865,6 +904,14 @@ enum NonReferenceDataTags {
 
 static const intptr_t kMaxStringElements = 128;
 
+enum ExtraCids {
+  kRootExtraCid = 1,  // 1-origin
+  kImagePageExtraCid = 2,
+  kIsolateExtraCid = 3,
+
+  kNumExtraCids = 3,
+};
+
 class Pass2Visitor : public ObjectVisitor,
                      public ObjectPointerVisitor,
                      public HandleVisitor {
@@ -876,13 +923,11 @@ class Pass2Visitor : public ObjectVisitor,
         isolate_group_(thread()->isolate_group()),
         writer_(writer) {}
 
-  virtual bool trace_values_through_fields() const { return true; }
-
   void VisitObject(ObjectPtr obj) {
     if (obj->IsPseudoObject()) return;
 
     intptr_t cid = obj->GetClassId();
-    writer_->WriteUnsigned(cid);
+    writer_->WriteUnsigned(cid + kNumExtraCids);
     writer_->WriteUnsigned(discount_sizes_ ? 0 : obj->untag()->HeapSize());
 
     if (cid == kNullCid) {
@@ -891,6 +936,16 @@ class Pass2Visitor : public ObjectVisitor,
       writer_->WriteUnsigned(kBoolData);
       writer_->WriteUnsigned(
           static_cast<uintptr_t>(static_cast<BoolPtr>(obj)->untag()->value_));
+    } else if (cid == kSentinelCid) {
+      if (obj == Object::sentinel().ptr()) {
+        writer_->WriteUnsigned(kNameData);
+        writer_->WriteUtf8("uninitialized");
+      } else if (obj == Object::transition_sentinel().ptr()) {
+        writer_->WriteUnsigned(kNameData);
+        writer_->WriteUtf8("initializing");
+      } else {
+        writer_->WriteUnsigned(kNoData);
+      }
     } else if (cid == kSmiCid) {
       UNREACHABLE();
     } else if (cid == kMintCid) {
@@ -940,11 +995,11 @@ class Pass2Visitor : public ObjectVisitor,
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(Smi::Value(
           static_cast<GrowableObjectArrayPtr>(obj)->untag()->length()));
-    } else if (cid == kLinkedHashMapCid) {
+    } else if (cid == kLinkedHashMapCid || cid == kImmutableLinkedHashMapCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
           Smi::Value(static_cast<LinkedHashMapPtr>(obj)->untag()->used_data()));
-    } else if (cid == kLinkedHashSetCid) {
+    } else if (cid == kLinkedHashSetCid || cid == kImmutableLinkedHashSetCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
           Smi::Value(static_cast<LinkedHashSetPtr>(obj)->untag()->used_data()));
@@ -1073,6 +1128,16 @@ class Pass2Visitor : public ObjectVisitor,
     }
   }
 
+  void CountExtraRefs(intptr_t count) {
+    ASSERT(!writing_);
+    counted_ += count;
+  }
+  void WriteExtraRef(intptr_t oid) {
+    ASSERT(writing_);
+    written_++;
+    writer_->WriteUnsigned(oid);
+  }
+
  private:
   IsolateGroup* isolate_group_;
   HeapSnapshotWriter* const writer_;
@@ -1105,6 +1170,36 @@ class Pass3Visitor : public ObjectVisitor {
   DISALLOW_COPY_AND_ASSIGN(Pass3Visitor);
 };
 
+class CollectStaticFieldNames : public ObjectVisitor {
+ public:
+  CollectStaticFieldNames(intptr_t field_table_size,
+                          const char** field_table_names)
+      : ObjectVisitor(),
+        field_table_size_(field_table_size),
+        field_table_names_(field_table_names),
+        field_(Field::Handle()) {}
+
+  void VisitObject(ObjectPtr obj) {
+    if (obj->IsField()) {
+      field_ ^= obj;
+      if (field_.is_static()) {
+        intptr_t id = field_.field_id();
+        if (id > 0) {
+          ASSERT(id < field_table_size_);
+          field_table_names_[id] = field_.UserVisibleNameCString();
+        }
+      }
+    }
+  }
+
+ private:
+  intptr_t field_table_size_;
+  const char** field_table_names_;
+  Field& field_;
+
+  DISALLOW_COPY_AND_ASSIGN(CollectStaticFieldNames);
+};
+
 void HeapSnapshotWriter::Write() {
   HeapIterationScope iteration(thread());
 
@@ -1134,7 +1229,55 @@ void HeapSnapshotWriter::Write() {
     Array& fields = Array::Handle();
     Field& field = Field::Handle();
 
-    WriteUnsigned(class_count_);
+    intptr_t field_table_size = isolate()->field_table()->NumFieldIds();
+    const char** field_table_names =
+        thread()->zone()->Alloc<const char*>(field_table_size);
+    for (intptr_t i = 0; i < field_table_size; i++) {
+      field_table_names[i] = nullptr;
+    }
+    {
+      CollectStaticFieldNames visitor(field_table_size, field_table_names);
+      iteration.IterateObjects(&visitor);
+    }
+
+    WriteUnsigned(class_count_ + kNumExtraCids);
+    {
+      ASSERT(kRootExtraCid == 1);
+      WriteUnsigned(0);   // Flags
+      WriteUtf8("Root");  // Name
+      WriteUtf8("");      // Library name
+      WriteUtf8("");      // Library uri
+      WriteUtf8("");      // Reserved
+      WriteUnsigned(0);   // Field count
+    }
+    {
+      ASSERT(kImagePageExtraCid == 2);
+      WriteUnsigned(0);              // Flags
+      WriteUtf8("Read-Only Pages");  // Name
+      WriteUtf8("");                 // Library name
+      WriteUtf8("");                 // Library uri
+      WriteUtf8("");                 // Reserved
+      WriteUnsigned(0);              // Field count
+    }
+    {
+      ASSERT(kIsolateExtraCid == 3);
+      WriteUnsigned(0);      // Flags
+      WriteUtf8("Isolate");  // Name
+      WriteUtf8("");         // Library name
+      WriteUtf8("");         // Library uri
+      WriteUtf8("");         // Reserved
+
+      WriteUnsigned(field_table_size);  // Field count
+      for (intptr_t i = 0; i < field_table_size; i++) {
+        intptr_t flags = 1;  // Strong.
+        WriteUnsigned(flags);
+        WriteUnsigned(i);  // Index.
+        const char* name = field_table_names[i];
+        WriteUtf8(name == nullptr ? "" : name);
+        WriteUtf8("");  // Reserved
+      }
+    }
+    ASSERT(kNumExtraCids == 3);
     for (intptr_t cid = 1; cid <= class_count_; cid++) {
       if (!class_table->HasValidClassAt(cid)) {
         WriteUnsigned(0);  // Flags
@@ -1227,13 +1370,35 @@ void HeapSnapshotWriter::Write() {
 
   SetupCountingPages();
 
+  intptr_t num_isolates = 0;
+  intptr_t num_image_objects = 0;
   {
     Pass1Visitor visitor(this);
 
-    // Root "object".
-    ++object_count_;
-    isolate()->VisitObjectPointers(&visitor,
-                                   ValidationPolicy::kDontValidateFrames);
+    // Root "objects".
+    {
+      ++object_count_;
+      isolate_group()->VisitSharedPointers(&visitor);
+    }
+    {
+      ++object_count_;
+      CountImagePageRefs visitor;
+      H->old_space()->VisitObjectsImagePages(&visitor);
+      num_image_objects = visitor.count();
+      CountReferences(num_image_objects);
+    }
+    {
+      isolate_group()->ForEachIsolate(
+          [&](Isolate* isolate) {
+            ++object_count_;
+            isolate->VisitObjectPointers(&visitor,
+                                         ValidationPolicy::kDontValidateFrames);
+            ++num_isolates;
+          },
+          /*at_safepoint=*/true);
+    }
+    CountReferences(1);             // Root -> Image Pages
+    CountReferences(num_isolates);  // Root -> Isolate
 
     // Heap objects.
     iteration.IterateVMIsolateObjects(&visitor);
@@ -1249,16 +1414,46 @@ void HeapSnapshotWriter::Write() {
     WriteUnsigned(reference_count_);
     WriteUnsigned(object_count_);
 
-    // Root "object".
-    WriteUnsigned(0);  // cid
-    WriteUnsigned(0);  // shallowSize
-    WriteUnsigned(kNoData);
-    visitor.DoCount();
-    isolate()->VisitObjectPointers(&visitor,
-                                   ValidationPolicy::kDontValidateFrames);
-    visitor.DoWrite();
-    isolate()->VisitObjectPointers(&visitor,
-                                   ValidationPolicy::kDontValidateFrames);
+    // Root "objects".
+    {
+      WriteUnsigned(kRootExtraCid);
+      WriteUnsigned(0);  // shallowSize
+      WriteUnsigned(kNoData);
+      visitor.DoCount();
+      isolate_group()->VisitSharedPointers(&visitor);
+      visitor.CountExtraRefs(num_isolates + 1);
+      visitor.DoWrite();
+      isolate_group()->VisitSharedPointers(&visitor);
+      visitor.WriteExtraRef(2);  // Root -> Image Pages
+      for (intptr_t i = 0; i < num_isolates; i++) {
+        // 0 = sentinel, 1 = root, 2 = image pages, 2+ = isolates
+        visitor.WriteExtraRef(i + 3);
+      }
+    }
+    {
+      WriteUnsigned(kImagePageExtraCid);
+      WriteUnsigned(0);  // shallowSize
+      WriteUnsigned(kNoData);
+      WriteUnsigned(num_image_objects);
+      WriteImagePageRefs visitor(this);
+      H->old_space()->VisitObjectsImagePages(&visitor);
+      DEBUG_ASSERT(visitor.count() == num_image_objects);
+    }
+    isolate_group()->ForEachIsolate(
+        [&](Isolate* isolate) {
+          WriteUnsigned(kIsolateExtraCid);
+          WriteUnsigned(0);  // shallowSize
+          WriteUnsigned(kNameData);
+          WriteUtf8(
+              OS::SCreate(thread()->zone(), "%" Pd64, isolate->main_port()));
+          visitor.DoCount();
+          isolate->VisitObjectPointers(&visitor,
+                                       ValidationPolicy::kDontValidateFrames);
+          visitor.DoWrite();
+          isolate->VisitObjectPointers(&visitor,
+                                       ValidationPolicy::kDontValidateFrames);
+        },
+        /*at_safepoint=*/true);
 
     // Heap objects.
     visitor.set_discount_sizes(true);
@@ -1275,8 +1470,13 @@ void HeapSnapshotWriter::Write() {
     // Identity hash codes
     Pass3Visitor visitor(this);
 
-    // Handle root object.
-    WriteUnsigned(0);
+    WriteUnsigned(0);  // Root fake object.
+    WriteUnsigned(0);  // Image pages fake object.
+    isolate_group()->ForEachIsolate(
+        [&](Isolate* isolate) {
+          WriteUnsigned(0);  // Isolate fake object.
+        },
+        /*at_safepoint=*/true);
 
     // Handle visit rest of the objects.
     iteration.IterateVMIsolateObjects(&visitor);
@@ -1306,6 +1506,8 @@ uint32_t HeapSnapshotWriter::GetHeapSnapshotIdentityHash(Thread* thread,
     case kExternalTwoByteStringCid:
     case kGrowableObjectArrayCid:
     case kImmutableArrayCid:
+    case kImmutableLinkedHashMapCid:
+    case kImmutableLinkedHashSetCid:
     case kInstructionsCid:
     case kInstructionsSectionCid:
     case kInstructionsTableCid:
@@ -1332,7 +1534,7 @@ uint32_t HeapSnapshotWriter::GetHeapSnapshotIdentityHash(Thread* thread,
 }
 
 // Generates a random value which can serve as an identity hash.
-// It must be a non-zero smi value (see also [Object._getObjectHash]).
+// It must be a non-zero smi value (see also [Object._objectHashCode]).
 static uint32_t GenerateHash(Random* random) {
   uint32_t hash;
   do {

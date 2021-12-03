@@ -3,6 +3,7 @@ class A<T> {
   factory A.fact() => new A();
   factory A.redirect() = A;
 }
+
 typedef B<T> = A<T>;
 typedef C<T> = A<int>;
 const a = A.new;
@@ -23,4 +24,5 @@ const o = C.fact;
 const p = C<int>.fact;
 const q = C.redirect;
 const r = C<int>.redirect;
+test() {}
 main() {}

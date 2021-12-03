@@ -78,27 +78,38 @@ abstract class _IntegerImplementation implements int {
   }
 
   @pragma("vm:non-nullable-result-type")
-  int _bitAndFromInteger(int other) native "Integer_bitAndFromInteger";
+  @pragma("vm:external-name", "Integer_bitAndFromInteger")
+  external int _bitAndFromInteger(int other);
   @pragma("vm:non-nullable-result-type")
-  int _bitOrFromInteger(int other) native "Integer_bitOrFromInteger";
+  @pragma("vm:external-name", "Integer_bitOrFromInteger")
+  external int _bitOrFromInteger(int other);
   @pragma("vm:non-nullable-result-type")
-  int _bitXorFromInteger(int other) native "Integer_bitXorFromInteger";
+  @pragma("vm:external-name", "Integer_bitXorFromInteger")
+  external int _bitXorFromInteger(int other);
   @pragma("vm:non-nullable-result-type")
-  int _shrFromInteger(int other) native "Integer_shrFromInteger";
+  @pragma("vm:external-name", "Integer_shrFromInteger")
+  external int _shrFromInteger(int other);
   @pragma("vm:non-nullable-result-type")
-  int _ushrFromInteger(int other) native "Integer_ushrFromInteger";
+  @pragma("vm:external-name", "Integer_ushrFromInteger")
+  external int _ushrFromInteger(int other);
   @pragma("vm:non-nullable-result-type")
-  int _shlFromInteger(int other) native "Integer_shlFromInteger";
+  @pragma("vm:external-name", "Integer_shlFromInteger")
+  external int _shlFromInteger(int other);
   @pragma("vm:non-nullable-result-type")
-  int _addFromInteger(int other) native "Integer_addFromInteger";
+  @pragma("vm:external-name", "Integer_addFromInteger")
+  external int _addFromInteger(int other);
   @pragma("vm:non-nullable-result-type")
-  int _subFromInteger(int other) native "Integer_subFromInteger";
+  @pragma("vm:external-name", "Integer_subFromInteger")
+  external int _subFromInteger(int other);
   @pragma("vm:non-nullable-result-type")
-  int _mulFromInteger(int other) native "Integer_mulFromInteger";
+  @pragma("vm:external-name", "Integer_mulFromInteger")
+  external int _mulFromInteger(int other);
   @pragma("vm:non-nullable-result-type")
-  int _truncDivFromInteger(int other) native "Integer_truncDivFromInteger";
+  @pragma("vm:external-name", "Integer_truncDivFromInteger")
+  external int _truncDivFromInteger(int other);
   @pragma("vm:non-nullable-result-type")
-  int _moduloFromInteger(int other) native "Integer_moduloFromInteger";
+  @pragma("vm:external-name", "Integer_moduloFromInteger")
+  external int _moduloFromInteger(int other);
   int _remainderFromInteger(int other) {
     // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
     // result type as `num`.
@@ -150,8 +161,8 @@ abstract class _IntegerImplementation implements int {
   }
 
   @pragma("vm:exact-result-type", bool)
-  bool _greaterThanFromInteger(int other)
-      native "Integer_greaterThanFromInteger";
+  @pragma("vm:external-name", "Integer_greaterThanFromInteger")
+  external bool _greaterThanFromInteger(int other);
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
@@ -165,7 +176,8 @@ abstract class _IntegerImplementation implements int {
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
-  bool _equalToInteger(int other) native "Integer_equalToInteger";
+  @pragma("vm:external-name", "Integer_equalToInteger")
+  external bool _equalToInteger(int other);
   int abs() {
     return this < 0 ? -this : this;
   }
@@ -550,10 +562,12 @@ class _Smi extends _IntegerImplementation {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:disable-unboxed-parameters")
-  int operator ~() native "Smi_bitNegate";
+  @pragma("vm:external-name", "Smi_bitNegate")
+  external int operator ~();
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int get bitLength native "Smi_bitLength";
+  @pragma("vm:external-name", "Smi_bitLength")
+  external int get bitLength;
 
   /**
    * The digits of '00', '01', ... '99' as a single array.
@@ -757,7 +771,9 @@ class _Mint extends _IntegerImplementation {
   int get hashCode => this;
   int get _identityHashCode => this;
   @pragma("vm:non-nullable-result-type")
-  int operator ~() native "Mint_bitNegate";
+  @pragma("vm:external-name", "Mint_bitNegate")
+  external int operator ~();
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int get bitLength native "Mint_bitLength";
+  @pragma("vm:external-name", "Mint_bitLength")
+  external int get bitLength;
 }

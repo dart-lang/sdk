@@ -5,8 +5,10 @@ import "dart:core" as core;
 class Class extends core::Object {
   synthetic constructor •() → self::Class
     ;
-  method _privateMethod(covariant core::int i) → dynamic
+  method _privateMethod(covariant-by-declaration core::int i) → dynamic
     ;
+  static method _#new#tearOff() → self::Class
+    return new self::Class::•();
 }
 static method main() → dynamic
   ;

@@ -16,6 +16,14 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveUnusedElement extends _RemoveUnused {
   @override
+  // Not predictably the correct action.
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  // Not predictably the correct action.
+  bool get canBeAppliedToFile => false;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_ELEMENT;
 
   @override
@@ -70,6 +78,14 @@ class RemoveUnusedElement extends _RemoveUnused {
 
 class RemoveUnusedField extends _RemoveUnused {
   @override
+  // Not predictably the correct action.
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  // Not predictably the correct action.
+  bool get canBeAppliedToFile => false;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_FIELD;
 
   @override
@@ -116,8 +132,9 @@ class RemoveUnusedField extends _RemoveUnused {
       sourceRanges.add(sourceRange);
     }
 
+    final uniqueSourceRanges = _uniqueSourceRanges(sourceRanges);
     await builder.addDartFileEdit(file, (builder) {
-      for (var sourceRange in sourceRanges) {
+      for (var sourceRange in uniqueSourceRanges) {
         builder.addDeletion(sourceRange);
       }
     });
@@ -180,6 +197,24 @@ class RemoveUnusedField extends _RemoveUnused {
     } else {
       return range.nodeInList(parent.variables, node);
     }
+  }
+
+  /// Return [SourceRange]s that are not covered by other in [ranges].
+  /// If there is any intersection, it must be fully covered, never partially.
+  List<SourceRange> _uniqueSourceRanges(List<SourceRange> ranges) {
+    var result = <SourceRange>[];
+    candidates:
+    for (var candidate in ranges) {
+      for (var other in ranges) {
+        if (identical(candidate, other)) {
+          continue;
+        } else if (candidate.coveredBy(other)) {
+          continue candidates;
+        }
+      }
+      result.add(candidate);
+    }
+    return result;
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

@@ -3,17 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/services/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/fuzzy_filter_sort.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:meta/meta.dart';
 
@@ -33,7 +30,7 @@ class CiderCompletionComputer {
   final OperationPerformanceImpl _performanceRoot =
       OperationPerformanceImpl('<root>');
 
-  late DartCompletionRequestImpl _dartCompletionRequest;
+  late DartCompletionRequest _dartCompletionRequest;
 
   /// Paths of imported libraries for which suggestions were (re)computed
   /// during processing of this request. Does not include libraries that were
@@ -73,12 +70,10 @@ class CiderCompletionComputer {
       var lineInfo = resolvedUnit.lineInfo;
       var offset = lineInfo.getOffsetOfLine(line) + column;
 
-      var completionRequest = CompletionRequestImpl(
-        resolvedUnit,
-        offset,
-        CompletionPerformance(),
+      _dartCompletionRequest = DartCompletionRequest(
+        resolvedUnit: resolvedUnit,
+        offset: offset,
       );
-      var dartdocDirectiveInfo = DartdocDirectiveInfo();
 
       var suggestions = await performance.runAsync(
         'suggestions',
@@ -90,15 +85,15 @@ class CiderCompletionComputer {
                 <IncludedSuggestionRelevanceTag>[];
 
             var manager = DartCompletionManager(
-              dartdocDirectiveInfo: dartdocDirectiveInfo,
+              budget: CompletionBudget(CompletionBudget.defaultDuration),
               includedElementKinds: includedElementKinds,
               includedElementNames: includedElementNames,
               includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
             );
 
             return await manager.computeSuggestions(
+              _dartCompletionRequest,
               performance,
-              completionRequest,
               enableOverrideContributor: false,
               enableUriContributor: false,
             );
@@ -107,12 +102,6 @@ class CiderCompletionComputer {
           performance.getDataInt('count').add(result.length);
           return result.toList();
         },
-      );
-
-      _dartCompletionRequest = await DartCompletionRequestImpl.from(
-        performance,
-        completionRequest,
-        dartdocDirectiveInfo,
       );
 
       performance.run('imports', (performance) {
@@ -128,15 +117,15 @@ class CiderCompletionComputer {
         }
       });
 
-      var filter = _FilterSort(
-        _dartCompletionRequest,
-        suggestions,
-      );
+      var filterPattern = _dartCompletionRequest.targetPrefix;
 
       performance.run('filter', (performance) {
         _logger.run('Filter suggestions', () {
           performance.getDataInt('count').add(suggestions.length);
-          suggestions = filter.perform();
+          suggestions = fuzzyFilterSort(
+            pattern: filterPattern,
+            suggestions: suggestions,
+          );
           performance.getDataInt('matchCount').add(suggestions.length);
         });
       });
@@ -144,26 +133,13 @@ class CiderCompletionComputer {
       var result = CiderCompletionResult._(
         suggestions: suggestions,
         performance: CiderCompletionPerformance._(
-          file: Duration.zero,
-          imports: performance.getChild('imports')!.elapsed,
-          resolution: performance.getChild('resolution')!.elapsed,
-          suggestions: performance.getChild('suggestions')!.elapsed,
           operations: _performanceRoot.children.first,
         ),
-        prefixStart: CiderPosition(line, column - filter._pattern.length),
+        prefixStart: CiderPosition(line, column - filterPattern.length),
       );
 
       return result;
     });
-  }
-
-  @Deprecated('Use compute')
-  Future<CiderCompletionResult> compute2({
-    required String path,
-    required int line,
-    required int column,
-  }) async {
-    return compute(path: path, line: line, column: column);
   }
 
   /// Prepare for computing completions in files from the [pathList].
@@ -240,30 +216,10 @@ class CiderCompletionComputer {
 }
 
 class CiderCompletionPerformance {
-  /// The elapsed time for file access.
-  @Deprecated('This operation is not performed anymore')
-  final Duration file;
-
-  /// The elapsed time to compute import suggestions.
-  @Deprecated("Use 'operations' instead")
-  final Duration imports;
-
-  /// The elapsed time for resolution.
-  @Deprecated("Use 'operations' instead")
-  final Duration resolution;
-
-  /// The elapsed time to compute suggestions.
-  @Deprecated("Use 'operations' instead")
-  final Duration suggestions;
-
   /// The tree of operation performances.
   final OperationPerformance operations;
 
   CiderCompletionPerformance._({
-    required this.file,
-    required this.imports,
-    required this.resolution,
-    required this.suggestions,
     required this.operations,
   });
 }
@@ -297,64 +253,4 @@ class _CiderImportedLibrarySuggestions {
   final List<CompletionSuggestion> suggestions;
 
   _CiderImportedLibrarySuggestions(this.signature, this.suggestions);
-}
-
-class _FilterSort {
-  final DartCompletionRequestImpl _request;
-  final List<CompletionSuggestion> _suggestions;
-
-  late FuzzyMatcher _matcher;
-  late String _pattern;
-
-  _FilterSort(this._request, this._suggestions);
-
-  List<CompletionSuggestion> perform() {
-    _pattern = _request.targetPrefix;
-    _matcher = FuzzyMatcher(_pattern, matchStyle: MatchStyle.SYMBOL);
-
-    var scored = _suggestions
-        .map((e) => _FuzzyScoredSuggestion(e, _score(e)))
-        .where((e) => e.score > 0)
-        .toList();
-
-    scored.sort((a, b) {
-      // Prefer what the user requested by typing.
-      if (a.score > b.score) {
-        return -1;
-      } else if (a.score < b.score) {
-        return 1;
-      }
-
-      // Then prefer what is more relevant in the context.
-      if (a.suggestion.relevance != b.suggestion.relevance) {
-        return -(a.suggestion.relevance - b.suggestion.relevance);
-      }
-
-      // Other things being equal, sort by name.
-      return a.suggestion.completion.compareTo(b.suggestion.completion);
-    });
-
-    return scored.map((e) => e.suggestion).toList();
-  }
-
-  double _score(CompletionSuggestion e) {
-    var suggestionTextToMatch = e.completion;
-
-    if (e.kind == CompletionSuggestionKind.NAMED_ARGUMENT) {
-      var index = suggestionTextToMatch.indexOf(':');
-      if (index != -1) {
-        suggestionTextToMatch = suggestionTextToMatch.substring(0, index);
-      }
-    }
-
-    return _matcher.score(suggestionTextToMatch);
-  }
-}
-
-/// [CompletionSuggestion] scored using [FuzzyMatcher].
-class _FuzzyScoredSuggestion {
-  final CompletionSuggestion suggestion;
-  final double score;
-
-  _FuzzyScoredSuggestion(this.suggestion, this.score);
 }

@@ -3,29 +3,29 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:4:11: Error: Expected ';' after this.
+// org-dartlang-test:///main.dart:5:11: Error: Expected ';' after this.
 //   final a kjsdf ksjdf ;
 //           ^^^^^
 //
-// org-dartlang-test:///main.dart:4:11: Error: Final field 'kjsdf' is not initialized.
+// org-dartlang-test:///main.dart:5:11: Error: Final field 'kjsdf' is not initialized.
 // Try to initialize the field in the declaration or in every constructor.
 //   final a kjsdf ksjdf ;
 //           ^^^^^
 //
-// org-dartlang-test:///main.dart:4:17: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// org-dartlang-test:///main.dart:5:17: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 // Try adding the name of the type of the variable or the keyword 'var'.
 //   final a kjsdf ksjdf ;
 //                 ^^^^^
 //
-// org-dartlang-test:///main.dart:4:9: Error: 'a' isn't a type.
+// org-dartlang-test:///main.dart:5:9: Error: 'a' isn't a type.
 //   final a kjsdf ksjdf ;
 //         ^
 //
-// org-dartlang-test:///main.dart:4:9: Error: Type 'a' not found.
+// org-dartlang-test:///main.dart:5:9: Error: Type 'a' not found.
 //   final a kjsdf ksjdf ;
 //         ^
 //
-// org-dartlang-test:///main.dart:5:12: Error: 'a' isn't an instance field of this class.
+// org-dartlang-test:///main.dart:6:12: Error: 'a' isn't an instance field of this class.
 //   Foo(this.a);
 //            ^
 //
@@ -50,7 +50,7 @@ library from "org-dartlang-test:///main.dart" as main {
     final field invalid-type kjsdf = null;
     field dynamic ksjdf = null;
     constructor •(dynamic a) → main::Foo*
-      : final dynamic #t1 = invalid-expression "org-dartlang-test:///main.dart:5:12: Error: 'a' isn't an instance field of this class.\n  Foo(this.a);\n           ^"
+      : final dynamic #t1 = invalid-expression "org-dartlang-test:///main.dart:6:12: Error: 'a' isn't an instance field of this class.\n  Foo(this.a);\n           ^"
       ;
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf

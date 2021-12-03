@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -45,13 +44,15 @@ class AbstractContextTest with ResourceProviderMixin {
 
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
+  Folder get sdkRoot => newFolder('/sdk');
+
   AnalysisSession get session => contextFor(testPackageRootPath).currentSession;
 
   /// The file system-specific `analysis_options.yaml` path.
   String get testPackageAnalysisOptionsPath =>
       convertPath('$testPackageRootPath/analysis_options.yaml');
 
-  String? get testPackageLanguageVersion => '2.9';
+  String? get testPackageLanguageVersion => null;
 
   /// The file system-specific `pubspec.yaml` path.
   String get testPackagePubspecPath =>
@@ -102,7 +103,10 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   void setUp() {
-    MockSdk(resourceProvider: resourceProvider);
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
 
     newFolder(testPackageRootPath);
     writeTestPackageConfig();
@@ -157,30 +161,14 @@ class AbstractContextTest with ResourceProviderMixin {
       enableIndex: true,
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
-      sdkPath: convertPath('/sdk'),
+      sdkPath: sdkRoot.path,
     );
   }
 }
 
-mixin WithNonFunctionTypeAliasesMixin on AbstractContextTest {
+mixin WithoutNullSafetyMixin on AbstractContextTest {
   @override
-  String? get testPackageLanguageVersion => null;
-
-  @override
-  void setUp() {
-    super.setUp();
-
-    createAnalysisOptionsFile(
-      experiments: [
-        EnableString.nonfunction_type_aliases,
-      ],
-    );
-  }
-}
-
-mixin WithNullSafetyMixin on AbstractContextTest {
-  @override
-  String? get testPackageLanguageVersion => null;
+  String? get testPackageLanguageVersion => '2.9';
 }
 
 /// Wraps the given [_ElementVisitorFunction] into an instance of

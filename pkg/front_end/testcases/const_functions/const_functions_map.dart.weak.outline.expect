@@ -21,11 +21,11 @@ static method main() → void
 
 
 Extra constant evaluation status:
-Evaluated: MapLiteral @ org-dartlang-testcase:///const_functions_map.dart:9:17 -> InstanceConstant(const _ImmutableMap<Object*, Object*>{_ImmutableMap._kvPairs: const <dynamic>["key", "val"]})
-Evaluated: MapLiteral @ org-dartlang-testcase:///const_functions_map.dart:11:17 -> InstanceConstant(const _ImmutableMap<Object*, Object*>{_ImmutableMap._kvPairs: const <dynamic>["key", 2]})
-Evaluated: MapLiteral @ org-dartlang-testcase:///const_functions_map.dart:13:17 -> InstanceConstant(const _ImmutableMap<Object*, Object*>{_ImmutableMap._kvPairs: const <dynamic>["key", 2]})
-Evaluated: MapLiteral @ org-dartlang-testcase:///const_functions_map.dart:15:13 -> InstanceConstant(const _ImmutableMap<String*, int*>{_ImmutableMap._kvPairs: const <dynamic>["key1", 2, "key2", 3, "key3", 4]})
-Evaluated: StaticGet @ org-dartlang-testcase:///const_functions_map.dart:16:17 -> InstanceConstant(const _ImmutableMap<String*, int*>{_ImmutableMap._kvPairs: const <dynamic>["key1", 2, "key2", 3, "key3", 4]})
-Evaluated: StaticGet @ org-dartlang-testcase:///const_functions_map.dart:17:17 -> InstanceConstant(const _ImmutableMap<String*, int*>{_ImmutableMap._kvPairs: const <dynamic>["key1", 2, "key2", 3, "key3", 4]})
-Evaluated: StaticGet @ org-dartlang-testcase:///const_functions_map.dart:18:17 -> InstanceConstant(const _ImmutableMap<String*, int*>{_ImmutableMap._kvPairs: const <dynamic>["key1", 2, "key2", 3, "key3", 4]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///const_functions_map.dart:9:17 -> MapConstant(const <Object*, Object*>{"key": "val"})
+Evaluated: MapLiteral @ org-dartlang-testcase:///const_functions_map.dart:11:17 -> MapConstant(const <Object*, Object*>{"key": 2})
+Evaluated: MapLiteral @ org-dartlang-testcase:///const_functions_map.dart:13:17 -> MapConstant(const <Object*, Object*>{"key": 2})
+Evaluated: MapLiteral @ org-dartlang-testcase:///const_functions_map.dart:15:13 -> MapConstant(const <String*, int*>{"key1": 2, "key2": 3, "key3": 4})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_functions_map.dart:16:17 -> MapConstant(const <String*, int*>{"key1": 2, "key2": 3, "key3": 4})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_functions_map.dart:17:17 -> MapConstant(const <String*, int*>{"key1": 2, "key2": 3, "key3": 4})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_functions_map.dart:18:17 -> MapConstant(const <String*, int*>{"key1": 2, "key2": 3, "key3": 4})
 Extra constant evaluation: evaluated: 14, effectively constant: 7

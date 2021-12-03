@@ -53,7 +53,7 @@ const Map<String, String> data = {
   '<T extends List<T>>(T) -> void': '<T extends List<T*>*>(T) ->* void',
 };
 
-main() {
+void main() {
   Env env = new Env('', isNonNullableByDefault: true);
   data.forEach((String input, String output) {
     DartType inputType = env.parseType(input);

@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
+// @dart = 2.12
 
 import "package:expect/expect.dart";
 import 'dart:collection';
 import 'package:compiler/src/util/setlet.dart';
 
-main() {
+void main() {
   for (int i = 1; i <= 32; i++) {
     test(i);
   }
@@ -16,8 +16,8 @@ main() {
   testAllLikeSet();
 }
 
-test(int size) {
-  var setlet = new Setlet();
+void test(int size) {
+  final setlet = Setlet<int?>();
   for (int i = 0; i < size; i++) {
     Expect.isTrue(setlet.isEmpty == (i == 0));
     setlet.add(i);
@@ -73,10 +73,10 @@ test(int size) {
   }
 }
 
-testAllLikeSet() {
+void testAllLikeSet() {
   // For a variety of inputs and operations, test that Setlet behaves just like
   // Set.
-  var samples = [
+  final List<List<int>> samples = [
     [],
     [1],
     [1, 2],
@@ -115,33 +115,36 @@ testAllLikeSet() {
   }
 }
 
-testSetXElement(name, fn, a, b) {
-  var set1 = new LinkedHashSet.from(a);
-  var setlet1 = new Setlet.from(a);
+void testSetXElement<E, R>(
+    String name, R Function(Set<E>, E) fn, Iterable<E> a, E b) {
+  final set1 = LinkedHashSet.of(a);
+  final setlet1 = Setlet.of(a);
 
-  var setResult = fn(set1, b);
-  var setletResult = fn(setlet1, b);
+  final setResult = fn(set1, b);
+  final setletResult = fn(setlet1, b);
 
-  var operationName = '$name $a $b';
+  final operationName = '$name $a $b';
   checkResult(operationName, setResult, setletResult);
   checkModifications(operationName, set1, setlet1);
 }
 
-testSetXSet(name, fn, a, b) {
-  var set1 = new LinkedHashSet.from(a);
-  var set2 = new LinkedHashSet.from(b);
-  var setlet1 = new Setlet.from(a);
-  var setlet2 = new Setlet.from(b);
+void testSetXSet<E, R>(
+    String name, R Function(Set<E>, Set<E>) fn, Iterable<E> a, Iterable<E> b) {
+  final set1 = LinkedHashSet.of(a);
+  final set2 = LinkedHashSet.of(b);
+  final setlet1 = Setlet.of(a);
+  final setlet2 = Setlet.of(b);
 
-  var setResult = fn(set1, set2);
-  var setletResult = fn(setlet1, setlet2);
+  final setResult = fn(set1, set2);
+  final setletResult = fn(setlet1, setlet2);
 
-  var operationName = '$name $a $b';
+  final operationName = '$name $a $b';
   checkResult(operationName, setResult, setletResult);
   checkModifications(operationName, set1, setlet1);
 }
 
-checkResult(operationName, setResult, setletResult) {
+void checkResult(
+    String operationName, dynamic setResult, dynamic setletResult) {
   if (setResult == null || setResult is bool || setResult is num) {
     Expect.equals(setResult, setletResult, '$operationName');
   } else if (setResult is Iterable) {
@@ -152,12 +155,15 @@ checkResult(operationName, setResult, setletResult) {
         setResult.length, setletResult.length, '$operationName: same length');
     Expect.listEquals(setResult.toList(), setletResult.toList(),
         '$operationName: same toList() result');
+    Expect.listEquals([...setResult], [...setletResult],
+        '$operationName: same spread result');
   } else {
     Expect.isFalse(true, '$operationName: unexpected result type');
   }
 }
 
-checkModifications(operationName, setReceiver, setletReceiver) {
+void checkModifications<E>(
+    String operationName, Set<E> setReceiver, Set<E> setletReceiver) {
   Expect.equals(setReceiver.length, setletReceiver.length,
       '$operationName: same post-operation receiver length');
   Expect.listEquals(setReceiver.toList(), setletReceiver.toList(),

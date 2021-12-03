@@ -60,6 +60,26 @@ class ChangeBuilderImpl implements ChangeBuilder {
       : assert(session == null || workspace == null),
         workspace = workspace ?? _SingleSessionWorkspace(session!);
 
+  /// Return a hash value that will change when new edits have been added to
+  /// this builder.
+  int get changeHash {
+    // The hash value currently ignores edits to import directives because
+    // finalizing the builders needs to happen exactly once and this getter
+    // needs to be invoked repeatedly.
+    //
+    // In addition, we should consider implementing our own hash function for
+    // file edits because the `hashCode` defined for them might not be
+    // sufficient to detect all changes to the list of edits.
+    return Object.hashAll([
+      for (var builder in _genericFileEditBuilders.values)
+        if (builder.hasEdits) builder.fileEdit,
+      for (var builder in _dartFileEditBuilders.values)
+        if (builder.hasEdits) builder.fileEdit,
+      for (var builder in _yamlFileEditBuilders.values)
+        if (builder.hasEdits) builder.fileEdit,
+    ]);
+  }
+
   @override
   SourceRange? get selectionRange => _selectionRange;
 

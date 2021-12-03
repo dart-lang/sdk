@@ -28,7 +28,7 @@ class Strength extends core::Object /*hasConstConstructor*/  {
     : self::Strength::value = value, self::Strength::name = name, super core::Object::•()
     ;
   method nextWeaker() → self::Strength*
-    return (#C19).{core::List::[]}(this.{self::Strength::value}{core::int*}){(core::int*) →* self::Strength*};
+    return #C19.{core::List::[]}(this.{self::Strength::value}{core::int*}){(core::int*) →* self::Strength*};
   static method stronger(self::Strength* s1, self::Strength* s2) → core::bool* {
     return s1.{self::Strength::value}{core::int*}.{core::num::<}(s2.{self::Strength::value}{core::int*}){(core::num*) →* core::bool*};
   }
@@ -74,7 +74,7 @@ abstract class Constraint extends core::Object /*hasConstConstructor*/  {
   method satisfy(dynamic mark) → self::Constraint* {
     this.{self::Constraint::chooseMethod}(mark as{TypeError,ForDynamic} core::int*){(core::int*) →* void};
     if(!this.{self::Constraint::isSatisfied}(){() →* core::bool*}) {
-      if(this.{self::Constraint::strength}{self::Strength*} =={self::Strength::==}{(dynamic) →* core::bool*} (#C22)) {
+      if(this.{self::Constraint::strength}{self::Strength*} =={self::Strength::==}{(dynamic) →* core::bool*} #C22) {
         core::print("Could not satisfy a required constraint!");
       }
       return null;
@@ -186,14 +186,14 @@ abstract class BinaryConstraint extends self::Constraint {
     this.{self::BinaryConstraint::direction} = #C1;
   }
   method isSatisfied() → core::bool*
-    return !(this.{self::BinaryConstraint::direction}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} (#C1));
+    return !(this.{self::BinaryConstraint::direction}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} #C1);
   method markInputs(core::int* mark) → void {
     this.{self::BinaryConstraint::input}(){() →* self::Variable*}.{self::Variable::mark} = mark;
   }
   method input() → self::Variable*
-    return this.{self::BinaryConstraint::direction}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} (#C4) ?{self::Variable*} this.{self::BinaryConstraint::v1}{self::Variable*} : this.{self::BinaryConstraint::v2}{self::Variable*};
+    return this.{self::BinaryConstraint::direction}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} #C4 ?{self::Variable*} this.{self::BinaryConstraint::v1}{self::Variable*} : this.{self::BinaryConstraint::v2}{self::Variable*};
   method output() → self::Variable*
-    return this.{self::BinaryConstraint::direction}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} (#C4) ?{self::Variable*} this.{self::BinaryConstraint::v2}{self::Variable*} : this.{self::BinaryConstraint::v1}{self::Variable*};
+    return this.{self::BinaryConstraint::direction}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} #C4 ?{self::Variable*} this.{self::BinaryConstraint::v2}{self::Variable*} : this.{self::BinaryConstraint::v1}{self::Variable*};
   method recalculate() → void {
     self::Variable* ihn = this.{self::BinaryConstraint::input}(){() →* self::Variable*};
     self::Variable* out = this.{self::BinaryConstraint::output}(){() →* self::Variable*};
@@ -240,7 +240,7 @@ class ScaleConstraint extends self::BinaryConstraint {
     this.{self::ScaleConstraint::scale}{self::Variable*}.{self::Variable::mark} = this.{self::ScaleConstraint::offset}{self::Variable*}.{self::Variable::mark} = mark;
   }
   method execute() → void {
-    if(this.{self::BinaryConstraint::direction}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} (#C4)) {
+    if(this.{self::BinaryConstraint::direction}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} #C4) {
       this.{self::BinaryConstraint::v2}{self::Variable*}.{self::Variable::value} = this.{self::BinaryConstraint::v1}{self::Variable*}.{self::Variable::value}{core::int*}.{core::num::*}(this.{self::ScaleConstraint::scale}{self::Variable*}.{self::Variable::value}{core::int*}){(core::num*) →* core::int*}.{core::num::+}(this.{self::ScaleConstraint::offset}{self::Variable*}.{self::Variable::value}{core::int*}){(core::num*) →* core::int*};
     }
     else {
@@ -318,7 +318,7 @@ class Planner extends core::Object {
       }
       strength = strength.{self::Strength::nextWeaker}(){() →* self::Strength*};
     }
-    while (!(strength =={self::Strength::==}{(dynamic) →* core::bool*} (#C18)))
+    while (!(strength =={self::Strength::==}{(dynamic) →* core::bool*} #C18))
   }
   method newMark() → core::int*
     return this.{self::Planner::currentMark} = this.{self::Planner::currentMark}{core::int*}.{core::num::+}(1){(core::num*) →* core::int*};

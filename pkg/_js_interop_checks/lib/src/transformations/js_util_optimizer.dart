@@ -6,14 +6,16 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
-import 'package:kernel/kernel.dart';
+
+import '../js_interop.dart' show getJSName;
 
 /// Replaces js_util methods with inline calls to foreign_helper JS which
 /// emits the code as a JavaScript code fragment.
 class JsUtilOptimizer extends Transformer {
-  final Procedure _jsTarget;
   final Procedure _callMethodTarget;
   final List<Procedure> _callMethodUncheckedTargets;
+  final Procedure _callConstructorTarget;
+  final List<Procedure> _callConstructorUncheckedTargets;
   final Procedure _getPropertyTarget;
   final Procedure _setPropertyTarget;
   final Procedure _setPropertyUncheckedTarget;
@@ -28,27 +30,35 @@ class JsUtilOptimizer extends Transformer {
     'setProperty'
   ];
   final Iterable<Procedure> _allowedInteropJsUtilTargets;
+  final Procedure _jsTarget;
   final Procedure _allowInteropTarget;
   final Procedure _listEmptyFactory;
 
   final CoreTypes _coreTypes;
   final StatefulStaticTypeContext _staticTypeContext;
+  Map<Reference, ExtensionMemberDescriptor>? _extensionMemberIndex;
 
   JsUtilOptimizer(this._coreTypes, ClassHierarchy hierarchy)
-      : _jsTarget =
-            _coreTypes.index.getTopLevelProcedure('dart:_foreign_helper', 'JS'),
-        _callMethodTarget =
+      : _callMethodTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js_util', 'callMethod'),
         _callMethodUncheckedTargets = List<Procedure>.generate(
             5,
             (i) => _coreTypes.index.getTopLevelProcedure(
                 'dart:js_util', '_callMethodUnchecked$i')),
+        _callConstructorTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util', 'callConstructor'),
+        _callConstructorUncheckedTargets = List<Procedure>.generate(
+            5,
+            (i) => _coreTypes.index.getTopLevelProcedure(
+                'dart:js_util', '_callConstructorUnchecked$i')),
         _getPropertyTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'getProperty'),
         _setPropertyTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'setProperty'),
         _setPropertyUncheckedTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', '_setPropertyUnchecked'),
+        _jsTarget =
+            _coreTypes.index.getTopLevelProcedure('dart:_foreign_helper', 'JS'),
         _allowInteropTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js', 'allowInterop'),
         _allowedInteropJsUtilTargets = _allowedInteropJsUtilMembers.map(
@@ -64,6 +74,7 @@ class JsUtilOptimizer extends Transformer {
     _staticTypeContext.enterLibrary(lib);
     lib.transformChildren(this);
     _staticTypeContext.leaveLibrary(lib);
+    _extensionMemberIndex = null;
     return lib;
   }
 
@@ -75,46 +86,142 @@ class JsUtilOptimizer extends Transformer {
     return node;
   }
 
-  /// Replaces js_util method calls with optimization when possible.
-  ///
-  /// Lowers `getProperty` for any argument type straight to JS fragment call.
-  /// Lowers `setProperty` to `_setPropertyUnchecked` for values that are
-  /// not Function type and guaranteed to be interop allowed.
-  /// Lowers `callMethod` to `_callMethodUncheckedN` when the number of given
-  /// arguments is 0-4 and all arguments are guaranteed to be interop allowed.
   @override
-  visitStaticInvocation(StaticInvocation node) {
-    if (node.target == _getPropertyTarget) {
-      node = _lowerGetProperty(node);
-    } else if (node.target == _setPropertyTarget) {
-      node = _lowerSetProperty(node);
-    } else if (node.target == _callMethodTarget) {
-      node = _lowerCallMethod(node);
+  visitProcedure(Procedure node) {
+    _staticTypeContext.enterMember(node);
+    var transformedBody;
+    if (node.isExternal && node.isExtensionMember) {
+      var index = _extensionMemberIndex ??=
+          _createExtensionMembersIndex(node.enclosingLibrary);
+      var nodeDescriptor = index[node.reference]!;
+      if (!nodeDescriptor.isStatic) {
+        if (nodeDescriptor.kind == ExtensionMemberKind.Getter) {
+          transformedBody = _getExternalGetterBody(node);
+        } else if (nodeDescriptor.kind == ExtensionMemberKind.Setter) {
+          transformedBody = _getExternalSetterBody(node);
+        } else if (nodeDescriptor.kind == ExtensionMemberKind.Method) {
+          transformedBody = _getExternalMethodBody(node);
+        }
+      }
     }
-    node.transformChildren(this);
+    if (transformedBody != null) {
+      node.function.body = transformedBody;
+      node.isExternal = false;
+    } else {
+      node.transformChildren(this);
+    }
+    _staticTypeContext.leaveMember(node);
     return node;
   }
 
-  /// Lowers the given js_util `getProperty` call to the foreign_helper JS call
-  /// for any argument type. Lowers `getProperty(o, name)` to
-  /// `JS('Object|Null', '#.#', o, name)`.
-  StaticInvocation _lowerGetProperty(StaticInvocation node) {
-    Arguments arguments = node.arguments;
-    assert(arguments.types.isEmpty);
-    assert(arguments.positional.length == 2);
-    assert(arguments.named.isEmpty);
-    return StaticInvocation(
-        _jsTarget,
-        Arguments(
-          [
-            StringLiteral("Object|Null"),
-            StringLiteral("#.#"),
-            ...arguments.positional
-          ],
-          // TODO(rileyporter): Copy type from getProperty when it's generic.
-          types: [DynamicType()],
-        )..fileOffset = arguments.fileOffset)
+  /// Returns and initializes `_extensionMemberIndex` to an index of the member
+  /// reference to the member `ExtensionMemberDescriptor`, for all extension
+  /// members in the given [library].
+  Map<Reference, ExtensionMemberDescriptor> _createExtensionMembersIndex(
+      Library library) {
+    _extensionMemberIndex = {};
+    library.extensions.forEach((extension) => extension.members.forEach(
+        (descriptor) =>
+            _extensionMemberIndex![descriptor.member] = descriptor));
+    return _extensionMemberIndex!;
+  }
+
+  /// Returns a new function body for the given [node] external getter.
+  ///
+  /// The new function body will call the optimized version of
+  /// `js_util.getProperty` for the given external getter.
+  ReturnStatement _getExternalGetterBody(Procedure node) {
+    var function = node.function;
+    assert(function.positionalParameters.length == 1);
+    var getPropertyInvocation = StaticInvocation(
+        _getPropertyTarget,
+        Arguments([
+          VariableGet(function.positionalParameters.first),
+          StringLiteral(_getExtensionMemberName(node))
+        ], types: [
+          DynamicType()
+        ]))
       ..fileOffset = node.fileOffset;
+    return ReturnStatement(
+        AsExpression(getPropertyInvocation, function.returnType));
+  }
+
+  /// Returns a new function body for the given [node] external setter.
+  ///
+  /// The new function body will call the optimized version of
+  /// `js_util.setProperty` for the given external setter.
+  ReturnStatement _getExternalSetterBody(Procedure node) {
+    var function = node.function;
+    assert(function.positionalParameters.length == 2);
+    var setPropertyInvocation = StaticInvocation(
+        _setPropertyTarget,
+        Arguments([
+          VariableGet(function.positionalParameters.first),
+          StringLiteral(_getExtensionMemberName(node)),
+          VariableGet(function.positionalParameters.last)
+        ], types: [
+          DynamicType()
+        ]))
+      ..fileOffset = node.fileOffset;
+    return ReturnStatement(AsExpression(
+        _lowerSetProperty(setPropertyInvocation), function.returnType));
+  }
+
+  /// Returns a new function body for the given [node] external method.
+  ///
+  /// The new function body will call the optimized version of
+  /// `js_util.callMethod` for the given external method.
+  ReturnStatement _getExternalMethodBody(Procedure node) {
+    var function = node.function;
+    var callMethodInvocation = StaticInvocation(
+        _callMethodTarget,
+        Arguments([
+          VariableGet(function.positionalParameters.first),
+          StringLiteral(_getExtensionMemberName(node)),
+          ListLiteral(function.positionalParameters
+              .sublist(1)
+              .map((argument) => VariableGet(argument))
+              .toList())
+        ], types: [
+          DynamicType()
+        ]))
+      ..fileOffset = node.fileOffset;
+    return ReturnStatement(AsExpression(
+        _lowerCallMethod(callMethodInvocation), function.returnType));
+  }
+
+  /// Returns the extension member name.
+  ///
+  /// Returns either the name from the `@JS` annotation if non-empty, or the
+  /// declared name of the extension member. Does not return the CFE generated
+  /// name for the top level member for this extension member.
+  String _getExtensionMemberName(Procedure node) {
+    var jsAnnotationName = getJSName(node);
+    if (jsAnnotationName.isNotEmpty) {
+      return jsAnnotationName;
+    }
+    return _extensionMemberIndex![node.reference]!.name.text;
+  }
+
+  /// Replaces js_util method calls with optimization when possible.
+  ///
+  /// Lowers `setProperty` to  `_setPropertyUnchecked` for values that are
+  /// not Function type and guaranteed to be interop allowed.
+  /// Lowers `callMethod` to `_callMethodUncheckedN` when the number of given
+  /// arguments is 0-4 and all arguments are guaranteed to be interop allowed.
+  /// Lowers `callConstructor` to `_callConstructorUncheckedN` when there are
+  /// 0-4 arguments and all arguments are guaranteed to be interop allowed.
+  @override
+  visitStaticInvocation(StaticInvocation node) {
+    if (node.target == _setPropertyTarget) {
+      node = _lowerSetProperty(node);
+    } else if (node.target == _callMethodTarget) {
+      node = _lowerCallMethod(node);
+    } else if (node.target == _callConstructorTarget) {
+      node = _lowerCallConstructor(node);
+    }
+    node.transformChildren(this);
+    return node;
   }
 
   /// Lowers the given js_util `setProperty` call to `_setPropertyUnchecked`
@@ -123,7 +230,6 @@ class JsUtilOptimizer extends Transformer {
   /// Removing the checks allows further inlining by the compilers.
   StaticInvocation _lowerSetProperty(StaticInvocation node) {
     Arguments arguments = node.arguments;
-    assert(arguments.types.isEmpty);
     assert(arguments.positional.length == 3);
     assert(arguments.named.isEmpty);
 
@@ -143,74 +249,111 @@ class JsUtilOptimizer extends Transformer {
   /// Removing the checks allows further inlining by the compilers.
   StaticInvocation _lowerCallMethod(StaticInvocation node) {
     Arguments arguments = node.arguments;
-    assert(arguments.types.isEmpty);
     assert(arguments.positional.length == 3);
     assert(arguments.named.isEmpty);
 
-    // Lower List.empty factory call.
-    var argumentsList = arguments.positional.last;
+    return _lowerToCallUnchecked(
+        node, _callMethodUncheckedTargets, arguments.positional.sublist(0, 2));
+  }
+
+  /// Lowers the given js_util `callConstructor` call to `_callConstructorUncheckedN`
+  /// when the additional validation checks on the arguments can be elided.
+  ///
+  /// Calls will be lowered when using a List literal or constant list with 0-4
+  /// elements for the `callConstructor` arguments, or the `List.empty()` factory.
+  /// Removing the checks allows further inlining by the compilers.
+  StaticInvocation _lowerCallConstructor(StaticInvocation node) {
+    Arguments arguments = node.arguments;
+    assert(arguments.positional.length == 2);
+    assert(arguments.named.isEmpty);
+
+    return _lowerToCallUnchecked(
+        node, _callConstructorUncheckedTargets, [arguments.positional.first]);
+  }
+
+  /// Helper to lower the given [node] to the relevant unchecked target in the
+  /// [callUncheckedTargets] based on whether the validation checks on the
+  /// [originalArguments] can be elided.
+  ///
+  /// Calls will be lowered when using a List literal or constant list with 0-4
+  /// arguments, or the `List.empty()` factory. Removing the checks allows further
+  /// inlining by the compilers.
+  StaticInvocation _lowerToCallUnchecked(
+      StaticInvocation node,
+      List<Procedure> callUncheckedTargets,
+      List<Expression> originalArguments) {
+    var argumentsList = node.arguments.positional.last;
+    // Lower arguments in a List.empty factory call.
     if (argumentsList is StaticInvocation &&
         argumentsList.target == _listEmptyFactory) {
-      return _createNewCallMethodNode([], arguments, node.fileOffset);
+      return _createCallUncheckedNode(
+          callUncheckedTargets,
+          node.arguments.types,
+          [],
+          originalArguments,
+          node.fileOffset,
+          node.arguments.fileOffset);
     }
 
-    // Lower other kinds of Lists.
-    var callMethodArguments;
+    // Lower arguments in other kinds of Lists.
+    var callUncheckedArguments;
     var entryType;
     if (argumentsList is ListLiteral) {
-      if (argumentsList.expressions.length >=
-          _callMethodUncheckedTargets.length) {
+      if (argumentsList.expressions.length >= callUncheckedTargets.length) {
         return node;
       }
-      callMethodArguments = argumentsList.expressions;
+      callUncheckedArguments = argumentsList.expressions;
       entryType = argumentsList.typeArgument;
     } else if (argumentsList is ConstantExpression &&
         argumentsList.constant is ListConstant) {
       var argumentsListConstant = argumentsList.constant as ListConstant;
-      if (argumentsListConstant.entries.length >=
-          _callMethodUncheckedTargets.length) {
+      if (argumentsListConstant.entries.length >= callUncheckedTargets.length) {
         return node;
       }
-      callMethodArguments = argumentsListConstant.entries
+      callUncheckedArguments = argumentsListConstant.entries
           .map((constant) => ConstantExpression(
               constant, constant.getType(_staticTypeContext)))
           .toList();
       entryType = argumentsListConstant.typeArgument;
     } else {
-      // Skip lowering any other type of List.
+      // Skip lowering arguments in any other type of List.
       return node;
     }
 
-    // Check the overall List entry type, then verify each argument if needed.
+    // Check the arguments List type, then verify each argument if needed.
     if (!_allowedInteropType(entryType)) {
-      for (var argument in callMethodArguments) {
+      for (var argument in callUncheckedArguments) {
         if (!_allowedInterop(argument)) {
           return node;
         }
       }
     }
 
-    return _createNewCallMethodNode(
-        callMethodArguments, arguments, node.fileOffset);
+    return _createCallUncheckedNode(
+        callUncheckedTargets,
+        node.arguments.types,
+        callUncheckedArguments,
+        originalArguments,
+        node.fileOffset,
+        node.arguments.fileOffset);
   }
 
-  /// Creates a new StaticInvocation node for `_callMethodUncheckedN` with the
-  /// given 0-4 arguments.
-  StaticInvocation _createNewCallMethodNode(
-      List<Expression> callMethodArguments,
-      Arguments arguments,
-      int nodeFileOffset) {
-    assert(callMethodArguments.length <= 4);
+  /// Creates a new StaticInvocation node for the relevant unchecked target
+  /// with the given 0-4 arguments.
+  StaticInvocation _createCallUncheckedNode(
+      List<Procedure> callUncheckedTargets,
+      List<DartType> callUncheckedTypes,
+      List<Expression> callUncheckedArguments,
+      List<Expression> originalArguments,
+      int nodeFileOffset,
+      int argumentsFileOffset) {
+    assert(callUncheckedArguments.length <= 4);
     return StaticInvocation(
-        _callMethodUncheckedTargets[callMethodArguments.length],
+        callUncheckedTargets[callUncheckedArguments.length],
         Arguments(
-          [
-            arguments.positional[0],
-            arguments.positional[1],
-            ...callMethodArguments
-          ],
-          types: [],
-        )..fileOffset = arguments.fileOffset)
+          [...originalArguments, ...callUncheckedArguments],
+          types: callUncheckedTypes,
+        )..fileOffset = argumentsFileOffset)
       ..fileOffset = nodeFileOffset;
   }
 

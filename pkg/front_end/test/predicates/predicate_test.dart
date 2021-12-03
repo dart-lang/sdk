@@ -8,7 +8,6 @@ import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
-import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/base/nnbd_mode.dart';
@@ -23,7 +22,7 @@ import 'package:kernel/target/targets.dart';
 const String isNullMarker = 'is-null';
 const String sentinelMarker = 'sentinel';
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests<Features>(dataDir,
       args: args,
@@ -34,7 +33,7 @@ main(List<String> args) async {
             explicitExperimentalFlags: const {
               ExperimentalFlag.nonNullable: true
             },
-            targetFlags: const TargetFlags(
+            targetFlags: const TestTargetFlags(
                 forceLateLoweringsForTesting: LateLowering.all,
                 forceLateLoweringSentinelForTesting: false),
             nnbdMode: NnbdMode.Strong),
@@ -42,7 +41,7 @@ main(List<String> args) async {
             explicitExperimentalFlags: const {
               ExperimentalFlag.nonNullable: true
             },
-            targetFlags: const TargetFlags(
+            targetFlags: const TestTargetFlags(
                 forceLateLoweringsForTesting: LateLowering.all,
                 forceLateLoweringSentinelForTesting: true),
             nnbdMode: NnbdMode.Strong)
@@ -72,6 +71,7 @@ class PredicateDataComputer extends DataComputer<Features> {
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,
@@ -160,6 +160,7 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
     return null;
   }
 
+  @override
   void visitProcedure(Procedure node) {
     super.visitProcedure(node);
     nodeIdMap.forEach((String name, NodeId id) {
@@ -174,6 +175,7 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
     featureMap.clear();
   }
 
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     String name;
     String tag;

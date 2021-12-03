@@ -105,8 +105,10 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     }
   }
 
+  @override
   void defaultDartType(DartType type) {}
 
+  @override
   void visitTypedefType(TypedefType node) {
     Typedef typedefNode = node.typedefNode;
     result.add(nameForEntity(
@@ -127,28 +129,34 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     addNullability(node.nullability);
   }
 
+  @override
   void visitInvalidType(InvalidType node) {
     // TODO(askesc): Throw internal error if InvalidType appears in diagnostics.
     result.add("invalid-type");
   }
 
+  @override
   void visitNeverType(NeverType node) {
     result.add("Never");
     addNullability(node.declaredNullability);
   }
 
+  @override
   void visitNullType(NullType node) {
     result.add("Null");
   }
 
+  @override
   void visitDynamicType(DynamicType node) {
     result.add("dynamic");
   }
 
+  @override
   void visitVoidType(VoidType node) {
     result.add("void");
   }
 
+  @override
   void visitTypeParameterType(TypeParameterType node) {
     TreeNode? parent = node.parameter;
     while (parent is! Library && parent != null) {
@@ -166,6 +174,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     addNullability(node.declaredNullability);
   }
 
+  @override
   void visitFunctionType(FunctionType node) {
     node.returnType.accept(this);
     result.add(" Function");
@@ -221,6 +230,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     addNullability(node.nullability);
   }
 
+  @override
   void visitInterfaceType(InterfaceType node) {
     Class classNode = node.classNode;
     // TODO(johnniwinther): Ensure enclosing libraries on classes earlier
@@ -244,6 +254,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     addNullability(node.nullability);
   }
 
+  @override
   void visitFutureOrType(FutureOrType node) {
     result.add("FutureOr<");
     node.typeArgument.accept(this);
@@ -251,6 +262,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     addNullability(node.declaredNullability);
   }
 
+  @override
   void visitExtensionType(ExtensionType node) {
     // TODO(johnniwinther): Ensure enclosing libraries on extensions earlier
     // in the compiler to ensure types in error messages have context.
@@ -273,24 +285,30 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     addNullability(node.declaredNullability);
   }
 
+  @override
   void defaultConstant(Constant node) {}
 
+  @override
   void visitNullConstant(NullConstant node) {
     result.add('${node.value}');
   }
 
+  @override
   void visitBoolConstant(BoolConstant node) {
     result.add('${node.value}');
   }
 
+  @override
   void visitIntConstant(IntConstant node) {
     result.add('${node.value}');
   }
 
+  @override
   void visitDoubleConstant(DoubleConstant node) {
     result.add('${node.value}');
   }
 
+  @override
   void visitSymbolConstant(SymbolConstant node) {
     String text = node.libraryReference != null
         ? '#${node.libraryReference!.asLibrary.importUri}::${node.name}'
@@ -298,10 +316,12 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(text);
   }
 
+  @override
   void visitStringConstant(StringConstant node) {
     result.add(json.encode(node.value));
   }
 
+  @override
   void visitInstanceConstant(InstanceConstant node) {
     new InterfaceType(node.classNode, Nullability.legacy, node.typeArguments)
         .accept(this);
@@ -311,12 +331,13 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
       if (field.isStatic) continue;
       if (!first) result.add(", ");
       result.add("${field.name}: ");
-      node.fieldValues[field.getterReference]!.accept(this);
+      node.fieldValues[field.fieldReference]!.accept(this);
       first = false;
     }
     result.add("}");
   }
 
+  @override
   void visitListConstant(ListConstant node) {
     result.add("<");
     node.typeArgument.accept(this);
@@ -330,6 +351,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add("]");
   }
 
+  @override
   void visitSetConstant(SetConstant node) {
     result.add("<");
     node.typeArgument.accept(this);
@@ -343,6 +365,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add("}");
   }
 
+  @override
   void visitMapConstant(MapConstant node) {
     result.add("<");
     node.keyType.accept(this);
@@ -360,6 +383,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add("}");
   }
 
+  @override
   void visitStaticTearOffConstant(StaticTearOffConstant node) {
     Procedure procedure = node.target;
     Class? classNode = procedure.enclosingClass;
@@ -374,6 +398,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(procedure.name.text);
   }
 
+  @override
   void visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
     Member constructor = node.target;
     Class classNode = constructor.enclosingClass!;
@@ -386,6 +411,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(constructor.name.text);
   }
 
+  @override
   void visitRedirectingFactoryTearOffConstant(
       RedirectingFactoryTearOffConstant node) {
     Member constructor = node.target;
@@ -399,6 +425,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(constructor.name.text);
   }
 
+  @override
   void visitInstantiationConstant(InstantiationConstant node) {
     node.tearOffConstant.accept(this);
     if (node.types.isNotEmpty) {
@@ -413,6 +440,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     }
   }
 
+  @override
   void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
     node.tearOffConstant.accept(this);
     if (node.parameters.isNotEmpty) {
@@ -443,10 +471,12 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     }
   }
 
+  @override
   void visitTypeLiteralConstant(TypeLiteralConstant node) {
     node.type.accept(this);
   }
 
+  @override
   void visitUnevaluatedConstant(UnevaluatedConstant node) {
     unsupported('printing unevaluated constants', -1, null);
   }
@@ -464,6 +494,7 @@ class LabeledNode {
   LabeledNode(
       this.node, this.name, this.importUri, this.fileUri, this.typeLabeler);
 
+  @override
   String toString() {
     List<LabeledNode> entityForName = typeLabeler.nameMap[name]!;
     if (entityForName.length == 1) {
@@ -494,6 +525,6 @@ class LabeledNode {
         ? templateTypeOrigin.withArguments(toString(), importUri)
         : templateTypeOriginWithFileUri.withArguments(
             toString(), importUri, fileUri);
-    return "\n - " + message.message;
+    return "\n - " + message.problemMessage;
   }
 }

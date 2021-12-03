@@ -19,6 +19,7 @@
 #include "vm/heap/weak_table.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
+#include "vm/object_graph_copy.h"
 #include "vm/object_store.h"
 #include "vm/symbols.h"
 #include "vm/type_testing_stubs.h"
@@ -483,7 +484,7 @@ ObjectPtr MessageDeserializationCluster::PostLoadLinkedHash(
   Array& maps = Array::Handle(d->zone(), d->refs());
   maps = maps.Slice(start_index_, stop_index_ - start_index_,
                     /*with_type_argument=*/false);
-  return DartLibraryCalls::RehashObjects(d->thread(), maps);
+  return DartLibraryCalls::RehashObjectsInDartCollection(d->thread(), maps);
 }
 
 class ClassMessageSerializationCluster : public MessageSerializationCluster {
@@ -780,13 +781,17 @@ class InstanceMessageSerializationCluster : public MessageSerializationCluster {
     objects_.Add(instance);
 
     const intptr_t next_field_offset = next_field_offset_;
+#if defined(DART_PRECOMPILED_RUNTIME)
     const auto unboxed_fields_bitmap =
         s->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid_);
+#endif
     for (intptr_t offset = Instance::NextFieldOffset();
          offset < next_field_offset; offset += kCompressedWordSize) {
+#if defined(DART_PRECOMPILED_RUNTIME)
       if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
         continue;
       }
+#endif
       s->Push(reinterpret_cast<CompressedObjectPtr*>(
                   reinterpret_cast<uword>(instance->untag()) + offset)
                   ->Decompress(instance->untag()->heap_base()));
@@ -810,20 +815,24 @@ class InstanceMessageSerializationCluster : public MessageSerializationCluster {
       Instance* instance = objects_[i];
 
       const intptr_t next_field_offset = next_field_offset_;
+#if defined(DART_PRECOMPILED_RUNTIME)
       const auto unboxed_fields_bitmap =
           s->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid_);
+#endif
       for (intptr_t offset = Instance::NextFieldOffset();
            offset < next_field_offset; offset += kCompressedWordSize) {
+#if defined(DART_PRECOMPILED_RUNTIME)
         if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
           // Writes 32 bits of the unboxed value at a time
           const uword value = *reinterpret_cast<compressed_uword*>(
               reinterpret_cast<uword>(instance->untag()) + offset);
           s->WriteWordWith32BitWrites(value);
-        } else {
-          s->WriteRef(reinterpret_cast<CompressedObjectPtr*>(
-                          reinterpret_cast<uword>(instance->untag()) + offset)
-                          ->Decompress(instance->untag()->heap_base()));
+          continue;
         }
+#endif
+        s->WriteRef(reinterpret_cast<CompressedObjectPtr*>(
+                        reinterpret_cast<uword>(instance->untag()) + offset)
+                        ->Decompress(instance->untag()->heap_base()));
       }
     }
   }
@@ -839,7 +848,9 @@ class InstanceMessageDeserializationCluster
  public:
   explicit InstanceMessageDeserializationCluster(bool is_canonical)
       : MessageDeserializationCluster("Instance", is_canonical),
-        cls_(Class::Handle()) {}
+        cls_(Class::Handle()),
+        field_stores_(GrowableObjectArray::Handle(GrowableObjectArray::New())) {
+  }
   ~InstanceMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
@@ -853,37 +864,45 @@ class InstanceMessageDeserializationCluster
 
   void ReadEdges(MessageDeserializer* d) {
     const intptr_t next_field_offset = cls_.host_next_field_offset();
-    const intptr_t type_argument_field_offset =
-        cls_.host_type_arguments_field_offset();
+#if defined(DART_PRECOMPILED_RUNTIME)
     const auto unboxed_fields_bitmap =
         d->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
             cls_.id());
+#else
+    const intptr_t type_argument_field_offset =
+        cls_.host_type_arguments_field_offset();
     const bool use_field_guards = d->isolate_group()->use_field_guards();
     const Array& field_map = Array::Handle(d->zone(), cls_.OffsetToFieldMap());
+    Field& field = Field::Handle(d->zone());
+#endif
     Instance& instance = Instance::Handle(d->zone());
     Object& value = Object::Handle(d->zone());
-    Field& field = Field::Handle(d->zone());
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       instance ^= d->Ref(id);
       for (intptr_t offset = Instance::NextFieldOffset();
            offset < next_field_offset; offset += kCompressedWordSize) {
+#if defined(DART_PRECOMPILED_RUNTIME)
         if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
           compressed_uword* p = reinterpret_cast<compressed_uword*>(
               reinterpret_cast<uword>(instance.untag()) + offset);
           // Reads 32 bits of the unboxed value at a time
           *p = d->ReadWordWith32BitReads();
-        } else {
-          value = d->ReadRef();
-          instance.SetFieldAtOffset(offset, value);
-          if (use_field_guards && (offset != type_argument_field_offset) &&
-              (value.ptr() != Object::sentinel().ptr())) {
-            field ^= field_map.At(offset >> kCompressedWordSizeLog2);
-            ASSERT(!field.IsNull());
-            ASSERT(field.HostOffset() == offset);
-            field.RecordStore(value);
-          }
+          continue;
         }
+#endif
+        value = d->ReadRef();
+        instance.SetFieldAtOffset(offset, value);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        if (use_field_guards && (offset != type_argument_field_offset) &&
+            (value.ptr() != Object::sentinel().ptr())) {
+          field ^= field_map.At(offset >> kCompressedWordSizeLog2);
+          ASSERT(!field.IsNull());
+          ASSERT(field.HostOffset() == offset);
+          field_stores_.Add(field);
+          field_stores_.Add(value);
+        }
+#endif
       }
     }
   }
@@ -901,24 +920,30 @@ class InstanceMessageDeserializationCluster
     }
 
     if (cls_.ptr() == d->isolate_group()->object_store()->expando_class()) {
-      Instance& instance = Instance::Handle(d->zone());
-      const String& selector = Library::PrivateCoreLibName(Symbols::_rehash());
-      Array& args = Array::Handle(d->zone(), Array::New(1));
-      for (intptr_t i = start_index_; i < stop_index_; i++) {
+      const auto& expandos =
+          Array::Handle(d->zone(), Array::New(stop_index_ - start_index_));
+      auto& instance = Instance::Handle(d->zone());
+      for (intptr_t i = start_index_, j = 0; i < stop_index_; i++, j++) {
         instance ^= d->Ref(i);
-        args.SetAt(0, instance);
-        ObjectPtr error = instance.Invoke(selector, args, Object::empty_array(),
-                                          false, false);
-        if (error != Object::null()) {
-          return error;
-        }
+        expandos.SetAt(j, instance);
       }
+      return DartLibraryCalls::RehashObjectsInDartCore(d->thread(), expandos);
     }
+
+    Field& field = Field::Handle(d->zone());
+    Object& value = Object::Handle(d->zone());
+    for (int i = 0; i < field_stores_.Length(); i += 2) {
+      field ^= field_stores_.At(i);
+      value = field_stores_.At(i + 1);
+      field.RecordStore(value);
+    }
+
     return nullptr;
   }
 
  private:
   Class& cls_;
+  GrowableObjectArray& field_stores_;
 };
 
 class TypeMessageSerializationCluster : public MessageSerializationCluster {
@@ -1631,7 +1656,7 @@ class TypedDataMessageDeserializationCluster
       Dart_CObject* data = d->Allocate(Dart_CObject_kTypedData);
       intptr_t length = d->ReadUnsigned();
       data->value.as_typed_data.type = type;
-      data->value.as_typed_data.length = length * element_size;
+      data->value.as_typed_data.length = length;
       if (length == 0) {
         data->value.as_typed_data.values = NULL;
       } else {
@@ -1741,7 +1766,6 @@ class ExternalTypedDataMessageDeserializationCluster
   }
 
   void ReadNodesApi(ApiMessageDeserializer* d) {
-    intptr_t element_size = ExternalTypedData::ElementSizeInBytes(cid_);
     Dart_TypedData_Type type;
     switch (cid_) {
       case kExternalTypedDataInt8ArrayCid:
@@ -1796,12 +1820,71 @@ class ExternalTypedDataMessageDeserializationCluster
       intptr_t length = d->ReadUnsigned();
       FinalizableData finalizable_data = d->finalizable_data()->Get();
       data->value.as_typed_data.type = type;
-      data->value.as_typed_data.length = length * element_size;
+      data->value.as_typed_data.length = length;
       data->value.as_typed_data.values =
           reinterpret_cast<uint8_t*>(finalizable_data.data);
       d->AssignRef(data);
     }
   }
+
+ private:
+  const intptr_t cid_;
+};
+
+class NativePointerMessageSerializationCluster
+    : public MessageSerializationCluster {
+ public:
+  explicit NativePointerMessageSerializationCluster(Zone* zone)
+      : MessageSerializationCluster("NativePointer",
+                                    MessagePhase::kNonCanonicalInstances,
+                                    kNativePointer),
+        objects_(zone, 0) {}
+  ~NativePointerMessageSerializationCluster() {}
+
+  void Trace(MessageSerializer* s, Object* object) { UNREACHABLE(); }
+
+  void WriteNodes(MessageSerializer* s) { UNREACHABLE(); }
+
+  void TraceApi(ApiMessageSerializer* s, Dart_CObject* object) {
+    objects_.Add(object);
+  }
+
+  void WriteNodesApi(ApiMessageSerializer* s) {
+    intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      Dart_CObject* data = objects_[i];
+      s->AssignRef(data);
+
+      s->finalizable_data()->Put(
+          data->value.as_native_pointer.size,
+          reinterpret_cast<void*>(data->value.as_native_pointer.ptr),
+          reinterpret_cast<void*>(data->value.as_native_pointer.ptr),
+          data->value.as_native_pointer.callback);
+    }
+  }
+
+ private:
+  GrowableArray<Dart_CObject*> objects_;
+};
+
+class NativePointerMessageDeserializationCluster
+    : public MessageDeserializationCluster {
+ public:
+  NativePointerMessageDeserializationCluster()
+      : MessageDeserializationCluster("NativePointer"), cid_(kNativePointer) {}
+  ~NativePointerMessageDeserializationCluster() {}
+
+  void ReadNodes(MessageDeserializer* d) {
+    intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      FinalizableData finalizable_data = d->finalizable_data()->Take();
+      intptr_t ptr = reinterpret_cast<intptr_t>(finalizable_data.data);
+      d->AssignRef(Integer::New(ptr));
+    }
+  }
+
+  void ReadNodesApi(ApiMessageDeserializer* d) { UNREACHABLE(); }
 
  private:
   const intptr_t cid_;
@@ -1905,7 +1988,6 @@ class TypedDataViewMessageDeserializationCluster
   }
 
   void PostLoadApi(ApiMessageDeserializer* d) {
-    intptr_t element_size = TypedDataView::ElementSizeInBytes(cid_);
     Dart_TypedData_Type type;
     switch (cid_) {
       case kTypedDataInt8ArrayViewCid:
@@ -1959,21 +2041,9 @@ class TypedDataViewMessageDeserializationCluster
       if (view->typed_data->type == Dart_CObject_kTypedData) {
         view->type = Dart_CObject_kTypedData;
         view->value.as_typed_data.type = type;
-        //            view->typed_data->value.as_typed_data.type;
-        view->value.as_typed_data.length =
-            view->length->value.as_int32 * element_size;
+        view->value.as_typed_data.length = view->length->value.as_int32;
         view->value.as_typed_data.values =
             view->typed_data->value.as_typed_data.values +
-            view->offset_in_bytes->value.as_int32;
-      } else if (view->typed_data->type == Dart_CObject_kExternalTypedData) {
-        UNREACHABLE();  ///???
-        view->type = Dart_CObject_kTypedData;
-        view->value.as_typed_data.type = type;
-        //            view->typed_data->value.as_external_typed_data.type;
-        view->value.as_typed_data.length =
-            view->length->value.as_int32 * element_size;
-        view->value.as_typed_data.values =
-            view->typed_data->value.as_external_typed_data.data +
             view->offset_in_bytes->value.as_int32;
       } else {
         UNREACHABLE();
@@ -2393,10 +2463,16 @@ class WeakPropertyMessageDeserializationCluster
 class LinkedHashMapMessageSerializationCluster
     : public MessageSerializationCluster {
  public:
-  LinkedHashMapMessageSerializationCluster()
+  LinkedHashMapMessageSerializationCluster(Zone* zone,
+                                           bool is_canonical,
+                                           intptr_t cid)
       : MessageSerializationCluster("LinkedHashMap",
-                                    MessagePhase::kNonCanonicalInstances,
-                                    kLinkedHashMapCid) {}
+                                    is_canonical
+                                        ? MessagePhase::kCanonicalInstances
+                                        : MessagePhase::kNonCanonicalInstances,
+                                    cid,
+                                    is_canonical),
+        objects_(zone, 0) {}
   ~LinkedHashMapMessageSerializationCluster() {}
 
   void Trace(MessageSerializer* s, Object* object) {
@@ -2434,14 +2510,15 @@ class LinkedHashMapMessageSerializationCluster
 class LinkedHashMapMessageDeserializationCluster
     : public MessageDeserializationCluster {
  public:
-  explicit LinkedHashMapMessageDeserializationCluster(bool is_canonical)
-      : MessageDeserializationCluster("LinkedHashMap", is_canonical) {}
+  LinkedHashMapMessageDeserializationCluster(bool is_canonical, intptr_t cid)
+      : MessageDeserializationCluster("LinkedHashMap", is_canonical),
+        cid_(cid) {}
   ~LinkedHashMapMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
     intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(LinkedHashMap::NewUninitialized());
+      d->AssignRef(LinkedHashMap::NewUninitialized(cid_));
     }
   }
 
@@ -2457,16 +2534,41 @@ class LinkedHashMapMessageDeserializationCluster
     }
   }
 
-  ObjectPtr PostLoad(MessageDeserializer* d) { return PostLoadLinkedHash(d); }
+  ObjectPtr PostLoad(MessageDeserializer* d) {
+    if (!is_canonical()) {
+      ASSERT(cid_ == kLinkedHashMapCid);
+      return PostLoadLinkedHash(d);
+    }
+
+    ASSERT(cid_ == kImmutableLinkedHashMapCid);
+    SafepointMutexLocker ml(
+        d->isolate_group()->constant_canonicalization_mutex());
+    LinkedHashMap& instance = LinkedHashMap::Handle(d->zone());
+    for (intptr_t i = start_index_; i < stop_index_; i++) {
+      instance ^= d->Ref(i);
+      instance ^= instance.CanonicalizeLocked(d->thread());
+      d->UpdateRef(i, instance);
+    }
+    return nullptr;
+  }
+
+ private:
+  const intptr_t cid_;
 };
 
 class LinkedHashSetMessageSerializationCluster
     : public MessageSerializationCluster {
  public:
-  LinkedHashSetMessageSerializationCluster()
+  LinkedHashSetMessageSerializationCluster(Zone* zone,
+                                           bool is_canonical,
+                                           intptr_t cid)
       : MessageSerializationCluster("LinkedHashSet",
-                                    MessagePhase::kNonCanonicalInstances,
-                                    kLinkedHashSetCid) {}
+                                    is_canonical
+                                        ? MessagePhase::kCanonicalInstances
+                                        : MessagePhase::kNonCanonicalInstances,
+                                    cid,
+                                    is_canonical),
+        objects_(zone, 0) {}
   ~LinkedHashSetMessageSerializationCluster() {}
 
   void Trace(MessageSerializer* s, Object* object) {
@@ -2504,14 +2606,15 @@ class LinkedHashSetMessageSerializationCluster
 class LinkedHashSetMessageDeserializationCluster
     : public MessageDeserializationCluster {
  public:
-  explicit LinkedHashSetMessageDeserializationCluster(bool is_canonical)
-      : MessageDeserializationCluster("LinkedHashSet", is_canonical) {}
+  LinkedHashSetMessageDeserializationCluster(bool is_canonical, intptr_t cid)
+      : MessageDeserializationCluster("LinkedHashSet", is_canonical),
+        cid_(cid) {}
   ~LinkedHashSetMessageDeserializationCluster() {}
 
   void ReadNodes(MessageDeserializer* d) {
     intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(LinkedHashSet::NewUninitialized());
+      d->AssignRef(LinkedHashSet::NewUninitialized(cid_));
     }
   }
 
@@ -2527,7 +2630,26 @@ class LinkedHashSetMessageDeserializationCluster
     }
   }
 
-  ObjectPtr PostLoad(MessageDeserializer* d) { return PostLoadLinkedHash(d); }
+  ObjectPtr PostLoad(MessageDeserializer* d) {
+    if (!is_canonical()) {
+      ASSERT(cid_ == kLinkedHashSetCid);
+      return PostLoadLinkedHash(d);
+    }
+
+    ASSERT(cid_ == kImmutableLinkedHashSetCid);
+    SafepointMutexLocker ml(
+        d->isolate_group()->constant_canonicalization_mutex());
+    LinkedHashSet& instance = LinkedHashSet::Handle(d->zone());
+    for (intptr_t i = start_index_; i < stop_index_; i++) {
+      instance ^= d->Ref(i);
+      instance ^= instance.CanonicalizeLocked(d->thread());
+      d->UpdateRef(i, instance);
+    }
+    return nullptr;
+  }
+
+ private:
+  const intptr_t cid_;
 };
 
 class ArrayMessageSerializationCluster : public MessageSerializationCluster {
@@ -3001,6 +3123,8 @@ void MessageSerializer::Trace(Object* object) {
         IllegalObject(*object, chars);
       }
     }
+
+    // Keep the list in sync with the one in lib/isolate.cc
 #define ILLEGAL(type)                                                          \
   if (cid == k##type##Cid) {                                                   \
     IllegalObject(*object,                                                     \
@@ -3009,22 +3133,18 @@ void MessageSerializer::Trace(Object* object) {
   }
 
     ILLEGAL(FunctionType)
-    ILLEGAL(DynamicLibrary)
     ILLEGAL(MirrorReference)
-    ILLEGAL(Pointer)
     ILLEGAL(ReceivePort)
     ILLEGAL(StackTrace)
     ILLEGAL(UserTag)
-#undef ILLEGAL
 
-    switch (cid) {
-#define ILLEGAL(type) case kFfi##type##Cid:
-      CLASS_LIST_FFI(ILLEGAL)
+    // From "dart:ffi" we handle only Pointer/DynamicLibrary specially, since
+    // those are the only non-abstract classes (so we avoid checking more cids
+    // here that cannot happen in reality)
+    ILLEGAL(DynamicLibrary)
+    ILLEGAL(Pointer)
+
 #undef ILLEGAL
-      IllegalObject(*object,
-                    "Native objects (from dart:ffi) such as Pointers and "
-                    "Structs cannot be passed between isolates.");
-    }
 
     if (cid >= kNumPredefinedCids || cid == kInstanceCid ||
         cid == kByteBufferCid) {
@@ -3057,6 +3177,7 @@ bool ApiMessageSerializer::Trace(Dart_CObject* object) {
       cid = kDoubleCid;
       break;
     case Dart_CObject_kString: {
+      RELEASE_ASSERT(object->value.as_string != NULL);
       const uint8_t* utf8_str =
           reinterpret_cast<const uint8_t*>(object->value.as_string);
       intptr_t utf8_len = strlen(object->value.as_string);
@@ -3191,6 +3312,9 @@ bool ApiMessageSerializer::Trace(Dart_CObject* object) {
     case Dart_CObject_kCapability:
       cid = kCapabilityCid;
       break;
+    case Dart_CObject_kNativePointer:
+      cid = kNativePointer;
+      break;
     default:
       return Fail("invalid Dart_CObject type");
   }
@@ -3244,6 +3368,8 @@ MessageSerializationCluster* BaseSerializer::NewClusterForClass(
   }
 
   switch (cid) {
+    case kNativePointer:
+      return new (Z) NativePointerMessageSerializationCluster(Z);
     case kClassCid:
       return new (Z) ClassMessageSerializationCluster();
     case kTypeArgumentsCid:
@@ -3276,9 +3402,13 @@ MessageSerializationCluster* BaseSerializer::NewClusterForClass(
       ephemeron_cluster_ = new (Z) WeakPropertyMessageSerializationCluster();
       return ephemeron_cluster_;
     case kLinkedHashMapCid:
-      return new (Z) LinkedHashMapMessageSerializationCluster();
+    case kImmutableLinkedHashMapCid:
+      return new (Z)
+          LinkedHashMapMessageSerializationCluster(Z, is_canonical, cid);
     case kLinkedHashSetCid:
-      return new (Z) LinkedHashSetMessageSerializationCluster();
+    case kImmutableLinkedHashSetCid:
+      return new (Z)
+          LinkedHashSetMessageSerializationCluster(Z, is_canonical, cid);
     case kArrayCid:
     case kImmutableArrayCid:
       return new (Z) ArrayMessageSerializationCluster(Z, is_canonical, cid);
@@ -3328,6 +3458,9 @@ MessageDeserializationCluster* BaseDeserializer::ReadCluster() {
   }
 
   switch (cid) {
+    case kNativePointer:
+      ASSERT(!is_canonical);
+      return new (Z) NativePointerMessageDeserializationCluster();
     case kClassCid:
       ASSERT(!is_canonical);
       return new (Z) ClassMessageDeserializationCluster();
@@ -3368,9 +3501,13 @@ MessageDeserializationCluster* BaseDeserializer::ReadCluster() {
       ASSERT(!is_canonical);
       return new (Z) WeakPropertyMessageDeserializationCluster();
     case kLinkedHashMapCid:
-      return new (Z) LinkedHashMapMessageDeserializationCluster(is_canonical);
+    case kImmutableLinkedHashMapCid:
+      return new (Z)
+          LinkedHashMapMessageDeserializationCluster(is_canonical, cid);
     case kLinkedHashSetCid:
-      return new (Z) LinkedHashSetMessageDeserializationCluster(is_canonical);
+    case kImmutableLinkedHashSetCid:
+      return new (Z)
+          LinkedHashSetMessageDeserializationCluster(is_canonical, cid);
     case kArrayCid:
     case kImmutableArrayCid:
       return new (Z) ArrayMessageDeserializationCluster(is_canonical, cid);
@@ -3604,11 +3741,18 @@ Dart_CObject* ApiMessageDeserializer::Deserialize() {
 }
 
 std::unique_ptr<Message> WriteMessage(bool can_send_any_object,
+                                      bool same_group,
                                       const Object& obj,
                                       Dart_Port dest_port,
                                       Message::Priority priority) {
   if (ApiObjectConverter::CanConvert(obj.ptr())) {
     return Message::New(dest_port, obj.ptr(), priority);
+  } else if (same_group) {
+    const Object& copy = Object::Handle(CopyMutableObjectGraph(obj));
+    auto handle =
+        IsolateGroup::Current()->api_state()->AllocatePersistentHandle();
+    handle->set_ptr(copy.ptr());
+    return std::make_unique<Message>(dest_port, handle, priority);
   }
 
   Thread* thread = Thread::Current();
@@ -3616,7 +3760,7 @@ std::unique_ptr<Message> WriteMessage(bool can_send_any_object,
 
   volatile bool has_exception = false;
   {
-    LongJumpScope jump;
+    LongJumpScope jump(thread);
     if (setjmp(*jump.Set()) == 0) {
       serializer.Serialize(obj);
     } else {
@@ -3652,13 +3796,52 @@ std::unique_ptr<Message> WriteApiMessage(Zone* zone,
   return serializer.Finish(dest_port, priority);
 }
 
+ObjectPtr ReadObjectGraphCopyMessage(Thread* thread, PersistentHandle* handle) {
+  // msg_array = [
+  //     <message>,
+  //     <collection-lib-objects-to-rehash>,
+  //     <core-lib-objects-to-rehash>,
+  // ]
+  Zone* zone = thread->zone();
+  Object& msg_obj = Object::Handle(zone);
+  const auto& msg_array = Array::Handle(zone, Array::RawCast(handle->ptr()));
+  ASSERT(msg_array.Length() == 3);
+  msg_obj = msg_array.At(0);
+  if (msg_array.At(1) != Object::null()) {
+    const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(1));
+    auto& result = Object::Handle(zone);
+    result = DartLibraryCalls::RehashObjectsInDartCollection(thread,
+                                                             objects_to_rehash);
+    if (result.ptr() != Object::null()) {
+      msg_obj = result.ptr();
+    }
+  }
+  if (msg_array.At(2) != Object::null()) {
+    const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(2));
+    auto& result = Object::Handle(zone);
+    result =
+        DartLibraryCalls::RehashObjectsInDartCore(thread, objects_to_rehash);
+    if (result.ptr() != Object::null()) {
+      msg_obj = result.ptr();
+    }
+  }
+  return msg_obj.ptr();
+}
+
 ObjectPtr ReadMessage(Thread* thread, Message* message) {
   if (message->IsRaw()) {
     return message->raw_obj();
+  } else if (message->IsPersistentHandle()) {
+    return ReadObjectGraphCopyMessage(thread, message->persistent_handle());
   } else {
     RELEASE_ASSERT(message->IsSnapshot());
-    MessageDeserializer deserializer(thread, message);
-    return deserializer.Deserialize();
+    LongJumpScope jump(thread);
+    if (setjmp(*jump.Set()) == 0) {
+      MessageDeserializer deserializer(thread, message);
+      return deserializer.Deserialize();
+    } else {
+      return thread->StealStickyError();
+    }
   }
 }
 

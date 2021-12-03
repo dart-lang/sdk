@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef b = core::int;
+typedef c = core::String;
+static method f(dynamic a, [dynamic b = #C1]) → core::String
+  return "${a}, ${b}";
+static method a<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic>(core::int x) → core::String {
+  return "a<${self::a::T1%}, ${self::a::T2%}>(${x})";
+}
+static method main() → dynamic {
+  self::expect("${#C3}, null", self::f(#C3.{core::Object::toString}(){() → core::String}));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = null
+  #C2 = static-tearoff self::a
+  #C3 = instantiation #C2 <core::int, core::String>
+}

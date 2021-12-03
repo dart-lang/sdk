@@ -17,9 +17,9 @@ import self as self;
 import "dart:core" as core;
 
 class Supertype extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Supertype::•];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   static factory •() → self::Supertype*
-    let dynamic #redirecting_factory = self::X::• in invalid-expression;
+    return new self::X::•();
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -49,5 +49,9 @@ class X extends core::Object implements self::Supertype {
 static method main() → dynamic {
   self::X* x = invalid-expression "pkg/front_end/testcases/regress/issue_35260.dart:15:13: Error: Can't use 'Supertype' because it is declared more than once.
   X x = new Supertype();
-            ^" as{TypeError,ForDynamic} self::X*;
+            ^";
+}
+
+constants  {
+  #C1 = constructor-tearoff self::Supertype::•
 }

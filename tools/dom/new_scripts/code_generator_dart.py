@@ -43,7 +43,7 @@ Design doc: http://www.chromium.org/developers/design-documents/idl-compiler
 """
 
 import os
-import cPickle as pickle
+import pickle
 import re
 import sys
 

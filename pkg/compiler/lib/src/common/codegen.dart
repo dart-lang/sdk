@@ -9,7 +9,7 @@ import 'package:js_ast/src/precedence.dart' as js show PRIMARY;
 import '../common.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
-import '../deferred_load/deferred_load.dart';
+import '../deferred_load/output_unit.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
 import '../inferrer/abstract_value_domain.dart';
@@ -43,7 +43,7 @@ class CodegenImpact extends WorldImpact {
       _CodegenImpact.readFromDataSource;
 
   void writeToDataSink(DataSink sink) {
-    throw new UnsupportedError('CodegenImpact.writeToDataSink');
+    throw UnsupportedError('CodegenImpact.writeToDataSink');
   }
 
   Iterable<Pair<DartType, DartType>> get typeVariableBoundsSubtypeChecks {
@@ -123,7 +123,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         ?.toSet();
     Set<Pair<DartType, DartType>> typeVariableBoundsSubtypeChecks =
         source.readList(() {
-      return new Pair(source.readDartType(), source.readDartType());
+      return Pair(source.readDartType(), source.readDartType());
     }, emptyAsNull: true)?.toSet();
     Set<String> constSymbols = source.readStrings(emptyAsNull: true)?.toSet();
     List<Set<ClassEntity>> specializedGetInterceptors = source.readList(() {
@@ -131,9 +131,8 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     }, emptyAsNull: true);
     bool usesInterceptor = source.readBool();
     int asyncMarkersValue = source.readIntOrNull();
-    EnumSet<AsyncMarker> asyncMarkers = asyncMarkersValue != null
-        ? new EnumSet.fromValue(asyncMarkersValue)
-        : null;
+    EnumSet<AsyncMarker> asyncMarkers =
+        asyncMarkersValue != null ? EnumSet.fromValue(asyncMarkersValue) : null;
     Set<GenericInstantiation> genericInstantiations = source
         .readList(() => GenericInstantiation.readFromDataSource(source),
             emptyAsNull: true)
@@ -147,7 +146,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         .readList(() => Selector.readFromDataSource(source), emptyAsNull: true)
         ?.toSet();
     source.end(tag);
-    return new _CodegenImpact.internal(
+    return _CodegenImpact.internal(
         member,
         dynamicUses,
         staticUses,
@@ -214,14 +213,13 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
       DartType subtype, DartType supertype) {
     _typeVariableBoundsSubtypeChecks ??= {};
     _typeVariableBoundsSubtypeChecks
-        .add(new Pair<DartType, DartType>(subtype, supertype));
+        .add(Pair<DartType, DartType>(subtype, supertype));
   }
 
   @override
   Iterable<Pair<DartType, DartType>> get typeVariableBoundsSubtypeChecks {
-    return _typeVariableBoundsSubtypeChecks != null
-        ? _typeVariableBoundsSubtypeChecks
-        : const <Pair<DartType, DartType>>[];
+    return _typeVariableBoundsSubtypeChecks ??
+        const <Pair<DartType, DartType>>[];
   }
 
   void registerConstSymbol(String name) {
@@ -231,7 +229,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   @override
   Iterable<String> get constSymbols {
-    return _constSymbols != null ? _constSymbols : const <String>[];
+    return _constSymbols ?? const <String>[];
   }
 
   void registerSpecializedGetInterceptor(Set<ClassEntity> classes) {
@@ -241,9 +239,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   @override
   Iterable<Set<ClassEntity>> get specializedGetInterceptors {
-    return _specializedGetInterceptors != null
-        ? _specializedGetInterceptors
-        : const <Set<ClassEntity>>[];
+    return _specializedGetInterceptors ?? const <Set<ClassEntity>>[];
   }
 
   void registerUseInterceptor() {
@@ -254,7 +250,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   bool get usesInterceptor => _usesInterceptor;
 
   void registerAsyncMarker(AsyncMarker asyncMarker) {
-    _asyncMarkers ??= new EnumSet<AsyncMarker>();
+    _asyncMarkers ??= EnumSet();
     _asyncMarkers.add(asyncMarker);
   }
 
@@ -307,7 +303,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('CodegenImpact:');
     WorldImpact.printOn(sb, this);
 
@@ -344,7 +340,7 @@ class CodegenRegistry {
   List<ModularExpression> _expressions;
 
   CodegenRegistry(this._elementEnvironment, this._currentElement)
-      : this._worldImpact = new _CodegenImpact(_currentElement);
+      : this._worldImpact = _CodegenImpact(_currentElement);
 
   @override
   String toString() => 'CodegenRegistry for $_currentElement';
@@ -376,7 +372,7 @@ class CodegenRegistry {
   }
 
   void registerInstantiatedClosure(FunctionEntity element) {
-    _worldImpact.registerStaticUse(new StaticUse.callMethod(element));
+    _worldImpact.registerStaticUse(StaticUse.callMethod(element));
   }
 
   void registerConstSymbol(String name) {
@@ -396,7 +392,7 @@ class CodegenRegistry {
   }
 
   void registerInstantiation(InterfaceType type) {
-    registerTypeUse(new TypeUse.instantiation(type));
+    registerTypeUse(TypeUse.instantiation(type));
   }
 
   void registerAsyncMarker(AsyncMarker asyncMarker) {
@@ -426,7 +422,7 @@ class CodegenRegistry {
   }
 
   CodegenResult close(js.Fun code) {
-    return new CodegenResult(
+    return CodegenResult(
         code, _worldImpact, _names ?? const [], _expressions ?? const []);
   }
 }
@@ -598,7 +594,7 @@ class CodegenResult {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('CodegenResult(code=');
     sb.write(code != null ? js.DebugPrint(code) : '<null>,');
     sb.write('impact=$impact,');
@@ -678,7 +674,7 @@ class ModularName extends js.Name implements js.AstContainer {
         break;
     }
     source.end(tag);
-    return new ModularName(kind, data: data, set: set);
+    return ModularName(kind, data: data, set: set);
   }
 
   void writeToDataSink(DataSink sink) {
@@ -805,7 +801,7 @@ class ModularExpression extends js.DeferredExpression
         break;
     }
     source.end(tag);
-    return new ModularExpression(kind, data);
+    return ModularExpression(kind, data);
   }
 
   void writeToDataSink(DataSink sink) {
@@ -857,7 +853,7 @@ class ModularExpression extends js.DeferredExpression
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('ModularExpression(kind=$kind,data=');
     if (data is ConstantValue) {
       sb.write((data as ConstantValue).toStructuredText(null));
@@ -1009,12 +1005,12 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
 
   static void writeToDataSink(DataSink sink, js.Node node) {
     sink.begin(JsNodeTags.tag);
-    JsNodeSerializer serializer = new JsNodeSerializer._(sink);
+    JsNodeSerializer serializer = JsNodeSerializer._(sink);
     serializer.visit(node);
     sink.end(JsNodeTags.tag);
   }
 
-  void visit(js.Node node, {bool allowNull: false}) {
+  void visit(js.Node node, {bool allowNull = false}) {
     if (allowNull) {
       sink.writeBool(node != null);
       if (node != null) {
@@ -1038,32 +1034,32 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
 
   @override
   void visitInterpolatedDeclaration(js.InterpolatedDeclaration node) {
-    throw new UnsupportedError('JsNodeSerializer.visitInterpolatedDeclaration');
+    throw UnsupportedError('JsNodeSerializer.visitInterpolatedDeclaration');
   }
 
   @override
   void visitInterpolatedStatement(js.InterpolatedStatement node) {
-    throw new UnsupportedError('JsNodeSerializer.visitInterpolatedStatement');
+    throw UnsupportedError('JsNodeSerializer.visitInterpolatedStatement');
   }
 
   @override
   void visitInterpolatedSelector(js.InterpolatedSelector node) {
-    throw new UnsupportedError('JsNodeSerializer.visitInterpolatedDeclaration');
+    throw UnsupportedError('JsNodeSerializer.visitInterpolatedDeclaration');
   }
 
   @override
   void visitInterpolatedParameter(js.InterpolatedParameter node) {
-    throw new UnsupportedError('JsNodeSerializer.visitInterpolatedParameter');
+    throw UnsupportedError('JsNodeSerializer.visitInterpolatedParameter');
   }
 
   @override
   void visitInterpolatedLiteral(js.InterpolatedLiteral node) {
-    throw new UnsupportedError('JsNodeSerializer.visitInterpolatedLiteral');
+    throw UnsupportedError('JsNodeSerializer.visitInterpolatedLiteral');
   }
 
   @override
   void visitInterpolatedExpression(js.InterpolatedExpression node) {
-    throw new UnsupportedError('JsNodeSerializer.visitInterpolatedExpression');
+    throw UnsupportedError('JsNodeSerializer.visitInterpolatedExpression');
   }
 
   @override
@@ -1171,7 +1167,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
       sink.end(JsNodeTags.stringBackedName);
       _writeInfo(node);
     } else {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           'Unexpected deferred expression: ${node.runtimeType}.');
     }
   }
@@ -1229,17 +1225,17 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
 
   @override
   void visitDeferredString(js.DeferredString node) {
-    throw new UnsupportedError('JsNodeSerializer.visitDeferredString');
+    throw UnsupportedError('JsNodeSerializer.visitDeferredString');
   }
 
   @override
   void visitDeferredStatement(js.DeferredStatement node) {
-    throw new UnsupportedError('JsNodeSerializer.visitDeferredStatement');
+    throw UnsupportedError('JsNodeSerializer.visitDeferredStatement');
   }
 
   @override
   void visitDeferredNumber(js.DeferredNumber node) {
-    throw new UnsupportedError('JsNodeSerializer.visitDeferredNumber');
+    throw UnsupportedError('JsNodeSerializer.visitDeferredNumber');
   }
 
   @override
@@ -1269,7 +1265,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
       sink.end(JsNodeTags.deferredHolderExpression);
       _writeInfo(node);
     } else {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           'Unexpected deferred expression: ${node.runtimeType}.');
     }
   }
@@ -1686,13 +1682,13 @@ class JsNodeDeserializer {
       List<ModularExpression> modularExpressions) {
     source.begin(JsNodeTags.tag);
     JsNodeDeserializer deserializer =
-        new JsNodeDeserializer._(source, modularNames, modularExpressions);
+        JsNodeDeserializer._(source, modularNames, modularExpressions);
     js.Node node = deserializer.read();
     source.end(JsNodeTags.tag);
     return node;
   }
 
-  T read<T extends js.Node>({bool allowNull: false}) {
+  T read<T extends js.Node>({bool allowNull = false}) {
     if (allowNull) {
       bool hasValue = source.readBool();
       if (!hasValue) return null;
@@ -1702,54 +1698,54 @@ class JsNodeDeserializer {
     switch (kind) {
       case JsNodeKind.comment:
         source.begin(JsNodeTags.comment);
-        node = new js.Comment(source.readString());
+        node = js.Comment(source.readString());
         source.end(JsNodeTags.comment);
         break;
       case JsNodeKind.await:
         source.begin(JsNodeTags.await);
-        node = new js.Await(read());
+        node = js.Await(read());
         source.end(JsNodeTags.await);
         break;
       case JsNodeKind.regExpLiteral:
         source.begin(JsNodeTags.regExpLiteral);
-        node = new js.RegExpLiteral(source.readString());
+        node = js.RegExpLiteral(source.readString());
         source.end(JsNodeTags.regExpLiteral);
         break;
       case JsNodeKind.property:
         source.begin(JsNodeTags.property);
         js.Expression name = read();
         js.Expression value = read();
-        node = new js.Property(name, value);
+        node = js.Property(name, value);
         source.end(JsNodeTags.property);
         break;
       case JsNodeKind.methodDefinition:
         source.begin(JsNodeTags.methodDefinition);
         js.Expression name = read();
         js.Expression function = read();
-        node = new js.MethodDefinition(name, function);
+        node = js.MethodDefinition(name, function);
         source.end(JsNodeTags.methodDefinition);
         break;
       case JsNodeKind.objectInitializer:
         source.begin(JsNodeTags.objectInitializer);
         List<js.Property> properties = readList();
         bool isOneLiner = source.readBool();
-        node = new js.ObjectInitializer(properties, isOneLiner: isOneLiner);
+        node = js.ObjectInitializer(properties, isOneLiner: isOneLiner);
         source.end(JsNodeTags.objectInitializer);
         break;
       case JsNodeKind.arrayHole:
         source.begin(JsNodeTags.arrayHole);
-        node = new js.ArrayHole();
+        node = js.ArrayHole();
         source.end(JsNodeTags.arrayHole);
         break;
       case JsNodeKind.arrayInitializer:
         source.begin(JsNodeTags.arrayInitializer);
         List<js.Expression> elements = readList();
-        node = new js.ArrayInitializer(elements);
+        node = js.ArrayInitializer(elements);
         source.end(JsNodeTags.arrayInitializer);
         break;
       case JsNodeKind.parentheses:
         source.begin(JsNodeTags.parentheses);
-        node = new js.Parentheses(read());
+        node = js.Parentheses(read());
         source.end(JsNodeTags.parentheses);
         break;
       case JsNodeKind.modularName:
@@ -1763,44 +1759,44 @@ class JsNodeDeserializer {
         source.begin(JsNodeTags.asyncName);
         js.Name prefix = read();
         js.Name base = read();
-        node = new AsyncName(prefix, base);
+        node = AsyncName(prefix, base);
         source.end(JsNodeTags.asyncName);
         break;
       case JsNodeKind.stringBackedName:
         source.begin(JsNodeTags.stringBackedName);
-        node = new StringBackedName(source.readString());
+        node = StringBackedName(source.readString());
         source.end(JsNodeTags.stringBackedName);
         break;
       case JsNodeKind.stringConcatenation:
         source.begin(JsNodeTags.stringConcatenation);
         List<js.Literal> parts = readList();
-        node = new js.StringConcatenation(parts);
+        node = js.StringConcatenation(parts);
         source.end(JsNodeTags.stringConcatenation);
         break;
       case JsNodeKind.literalNull:
         source.begin(JsNodeTags.literalNull);
-        node = new js.LiteralNull();
+        node = js.LiteralNull();
         source.end(JsNodeTags.literalNull);
         break;
       case JsNodeKind.literalNumber:
         source.begin(JsNodeTags.literalNumber);
-        node = new js.LiteralNumber(source.readString());
+        node = js.LiteralNumber(source.readString());
         source.end(JsNodeTags.literalNumber);
         break;
       case JsNodeKind.literalString:
         source.begin(JsNodeTags.literalString);
-        node = new js.LiteralString(source.readString());
+        node = js.LiteralString(source.readString());
         source.end(JsNodeTags.literalString);
         break;
       case JsNodeKind.literalStringFromName:
         source.begin(JsNodeTags.literalStringFromName);
         js.Name name = read();
-        node = new js.LiteralStringFromName(name);
+        node = js.LiteralStringFromName(name);
         source.end(JsNodeTags.literalStringFromName);
         break;
       case JsNodeKind.literalBool:
         source.begin(JsNodeTags.literalBool);
-        node = new js.LiteralBool(source.readBool());
+        node = js.LiteralBool(source.readBool());
         source.end(JsNodeTags.literalBool);
         break;
       case JsNodeKind.modularExpression:
@@ -1817,7 +1813,7 @@ class JsNodeDeserializer {
         js.Block body = read();
         js.AsyncModifier asyncModifier =
             source.readEnum(js.AsyncModifier.values);
-        node = new js.Fun(params, body, asyncModifier: asyncModifier);
+        node = js.Fun(params, body, asyncModifier: asyncModifier);
         source.end(JsNodeTags.function);
         break;
       case JsNodeKind.arrowFunction:
@@ -1826,57 +1822,57 @@ class JsNodeDeserializer {
         js.Block body = read();
         js.AsyncModifier asyncModifier =
             source.readEnum(js.AsyncModifier.values);
-        node = new js.ArrowFunction(params, body, asyncModifier: asyncModifier);
+        node = js.ArrowFunction(params, body, asyncModifier: asyncModifier);
         source.end(JsNodeTags.arrowFunction);
         break;
       case JsNodeKind.namedFunction:
         source.begin(JsNodeTags.namedFunction);
         js.Declaration name = read();
         js.Fun function = read();
-        node = new js.NamedFunction(name, function);
+        node = js.NamedFunction(name, function);
         source.end(JsNodeTags.namedFunction);
         break;
       case JsNodeKind.access:
         source.begin(JsNodeTags.access);
         js.Expression receiver = read();
         js.Expression selector = read();
-        node = new js.PropertyAccess(receiver, selector);
+        node = js.PropertyAccess(receiver, selector);
         source.end(JsNodeTags.access);
         break;
       case JsNodeKind.parameter:
         source.begin(JsNodeTags.parameter);
-        node = new js.Parameter(source.readString());
+        node = js.Parameter(source.readString());
         source.end(JsNodeTags.parameter);
         break;
       case JsNodeKind.variableDeclaration:
         source.begin(JsNodeTags.variableDeclaration);
         String name = source.readString();
         bool allowRename = source.readBool();
-        node = new js.VariableDeclaration(name, allowRename: allowRename);
+        node = js.VariableDeclaration(name, allowRename: allowRename);
         source.end(JsNodeTags.variableDeclaration);
         break;
       case JsNodeKind.thisExpression:
         source.begin(JsNodeTags.thisExpression);
-        node = new js.This();
+        node = js.This();
         source.end(JsNodeTags.thisExpression);
         break;
       case JsNodeKind.variableUse:
         source.begin(JsNodeTags.variableUse);
-        node = new js.VariableUse(source.readString());
+        node = js.VariableUse(source.readString());
         source.end(JsNodeTags.variableUse);
         break;
       case JsNodeKind.postfix:
         source.begin(JsNodeTags.postfix);
         String op = source.readString();
         js.Expression argument = read();
-        node = new js.Postfix(op, argument);
+        node = js.Postfix(op, argument);
         source.end(JsNodeTags.postfix);
         break;
       case JsNodeKind.prefix:
         source.begin(JsNodeTags.prefix);
         String op = source.readString();
         js.Expression argument = read();
-        node = new js.Prefix(op, argument);
+        node = js.Prefix(op, argument);
         source.end(JsNodeTags.prefix);
         break;
       case JsNodeKind.binary:
@@ -1884,21 +1880,21 @@ class JsNodeDeserializer {
         String op = source.readString();
         js.Expression left = read();
         js.Expression right = read();
-        node = new js.Binary(op, left, right);
+        node = js.Binary(op, left, right);
         source.end(JsNodeTags.binary);
         break;
       case JsNodeKind.callExpression:
         source.begin(JsNodeTags.callExpression);
         js.Expression target = read();
         List<js.Expression> arguments = readList();
-        node = new js.Call(target, arguments);
+        node = js.Call(target, arguments);
         source.end(JsNodeTags.callExpression);
         break;
       case JsNodeKind.newExpression:
         source.begin(JsNodeTags.newExpression);
         js.Expression cls = read();
         List<js.Expression> arguments = readList();
-        node = new js.New(cls, arguments);
+        node = js.New(cls, arguments);
         source.end(JsNodeTags.newExpression);
         break;
       case JsNodeKind.conditional:
@@ -1906,14 +1902,14 @@ class JsNodeDeserializer {
         js.Expression condition = read();
         js.Expression then = read();
         js.Expression otherwise = read();
-        node = new js.Conditional(condition, then, otherwise);
+        node = js.Conditional(condition, then, otherwise);
         source.end(JsNodeTags.conditional);
         break;
       case JsNodeKind.variableInitialization:
         source.begin(JsNodeTags.variableInitialization);
         js.Declaration declaration = read();
         js.Expression value = source.readValueOrNull(read);
-        node = new js.VariableInitialization(declaration, value);
+        node = js.VariableInitialization(declaration, value);
         source.end(JsNodeTags.variableInitialization);
         break;
       case JsNodeKind.assignment:
@@ -1921,73 +1917,73 @@ class JsNodeDeserializer {
         js.Expression leftHandSide = read();
         String op = source.readStringOrNull();
         js.Expression value = read();
-        node = new js.Assignment.compound(leftHandSide, op, value);
+        node = js.Assignment.compound(leftHandSide, op, value);
         source.end(JsNodeTags.assignment);
         break;
       case JsNodeKind.variableDeclarationList:
         source.begin(JsNodeTags.variableDeclarationList);
         List<js.VariableInitialization> declarations = readList();
         bool indentSplits = source.readBool();
-        node = new js.VariableDeclarationList(declarations,
+        node = js.VariableDeclarationList(declarations,
             indentSplits: indentSplits);
         source.end(JsNodeTags.variableDeclarationList);
         break;
       case JsNodeKind.literalExpression:
         source.begin(JsNodeTags.literalExpression);
-        node = new js.LiteralExpression(source.readString());
+        node = js.LiteralExpression(source.readString());
         source.end(JsNodeTags.literalExpression);
         break;
       case JsNodeKind.dartYield:
         source.begin(JsNodeTags.dartYield);
         js.Expression expression = read();
         bool hasStar = source.readBool();
-        node = new js.DartYield(expression, hasStar);
+        node = js.DartYield(expression, hasStar);
         source.end(JsNodeTags.dartYield);
         break;
       case JsNodeKind.literalStatement:
         source.begin(JsNodeTags.literalStatement);
-        node = new js.LiteralStatement(source.readString());
+        node = js.LiteralStatement(source.readString());
         source.end(JsNodeTags.literalStatement);
         break;
       case JsNodeKind.labeledStatement:
         source.begin(JsNodeTags.labeledStatement);
         String label = source.readString();
         js.Statement body = read();
-        node = new js.LabeledStatement(label, body);
+        node = js.LabeledStatement(label, body);
         source.end(JsNodeTags.labeledStatement);
         break;
       case JsNodeKind.functionDeclaration:
         source.begin(JsNodeTags.functionDeclaration);
         js.Declaration name = read();
         js.Fun function = read();
-        node = new js.FunctionDeclaration(name, function);
+        node = js.FunctionDeclaration(name, function);
         source.end(JsNodeTags.functionDeclaration);
         break;
       case JsNodeKind.switchDefault:
         source.begin(JsNodeTags.switchDefault);
         js.Block body = read();
-        node = new js.Default(body);
+        node = js.Default(body);
         source.end(JsNodeTags.switchDefault);
         break;
       case JsNodeKind.switchCase:
         source.begin(JsNodeTags.switchCase);
         js.Expression expression = read();
         js.Block body = read();
-        node = new js.Case(expression, body);
+        node = js.Case(expression, body);
         source.end(JsNodeTags.switchCase);
         break;
       case JsNodeKind.switchStatement:
         source.begin(JsNodeTags.switchStatement);
         js.Expression key = read();
         List<js.SwitchClause> cases = readList();
-        node = new js.Switch(key, cases);
+        node = js.Switch(key, cases);
         source.end(JsNodeTags.switchStatement);
         break;
       case JsNodeKind.catchClause:
         source.begin(JsNodeTags.catchClause);
         js.Declaration declaration = read();
         js.Block body = read();
-        node = new js.Catch(declaration, body);
+        node = js.Catch(declaration, body);
         source.end(JsNodeTags.catchClause);
         break;
       case JsNodeKind.tryStatement:
@@ -1995,45 +1991,45 @@ class JsNodeDeserializer {
         js.Block body = read();
         js.Catch catchPart = source.readValueOrNull(read);
         js.Block finallyPart = source.readValueOrNull(read);
-        node = new js.Try(body, catchPart, finallyPart);
+        node = js.Try(body, catchPart, finallyPart);
         source.end(JsNodeTags.tryStatement);
         break;
       case JsNodeKind.throwStatement:
         source.begin(JsNodeTags.throwStatement);
         js.Expression expression = read();
-        node = new js.Throw(expression);
+        node = js.Throw(expression);
         source.end(JsNodeTags.throwStatement);
         break;
       case JsNodeKind.returnStatement:
         source.begin(JsNodeTags.returnStatement);
         js.Expression value = source.readValueOrNull(read);
-        node = new js.Return(value);
+        node = js.Return(value);
         source.end(JsNodeTags.returnStatement);
         break;
       case JsNodeKind.breakStatement:
         source.begin(JsNodeTags.breakStatement);
         String targetLabel = source.readStringOrNull();
-        node = new js.Break(targetLabel);
+        node = js.Break(targetLabel);
         source.end(JsNodeTags.breakStatement);
         break;
       case JsNodeKind.continueStatement:
         source.begin(JsNodeTags.continueStatement);
         String targetLabel = source.readStringOrNull();
-        node = new js.Continue(targetLabel);
+        node = js.Continue(targetLabel);
         source.end(JsNodeTags.continueStatement);
         break;
       case JsNodeKind.doStatement:
         source.begin(JsNodeTags.doStatement);
         js.Statement body = read();
         js.Expression condition = read();
-        node = new js.Do(body, condition);
+        node = js.Do(body, condition);
         source.end(JsNodeTags.doStatement);
         break;
       case JsNodeKind.whileStatement:
         source.begin(JsNodeTags.whileStatement);
         js.Expression condition = read();
         js.Statement body = read();
-        node = new js.While(condition, body);
+        node = js.While(condition, body);
         source.end(JsNodeTags.whileStatement);
         break;
       case JsNodeKind.forInStatement:
@@ -2041,7 +2037,7 @@ class JsNodeDeserializer {
         js.Expression leftHandSide = read();
         js.Expression object = read();
         js.Statement body = read();
-        node = new js.ForIn(leftHandSide, object, body);
+        node = js.ForIn(leftHandSide, object, body);
         source.end(JsNodeTags.forInStatement);
         break;
       case JsNodeKind.forStatement:
@@ -2050,7 +2046,7 @@ class JsNodeDeserializer {
         js.Expression condition = read(allowNull: true);
         js.Expression update = read(allowNull: true);
         js.Statement body = read();
-        node = new js.For(init, condition, update, body);
+        node = js.For(init, condition, update, body);
         source.end(JsNodeTags.forStatement);
         break;
       case JsNodeKind.ifStatement:
@@ -2058,29 +2054,29 @@ class JsNodeDeserializer {
         js.Expression condition = read();
         js.Statement then = read();
         js.Statement otherwise = read();
-        node = new js.If(condition, then, otherwise);
+        node = js.If(condition, then, otherwise);
         source.end(JsNodeTags.ifStatement);
         break;
       case JsNodeKind.emptyStatement:
         source.begin(JsNodeTags.emptyStatement);
-        node = new js.EmptyStatement();
+        node = js.EmptyStatement();
         source.end(JsNodeTags.emptyStatement);
         break;
       case JsNodeKind.expressionStatement:
         source.begin(JsNodeTags.expressionStatement);
-        node = new js.ExpressionStatement(read());
+        node = js.ExpressionStatement(read());
         source.end(JsNodeTags.expressionStatement);
         break;
       case JsNodeKind.block:
         source.begin(JsNodeTags.block);
         List<js.Statement> statements = readList();
-        node = new js.Block(statements);
+        node = js.Block(statements);
         source.end(JsNodeTags.block);
         break;
       case JsNodeKind.program:
         source.begin(JsNodeTags.program);
         List<js.Statement> body = readList();
-        node = new js.Program(body);
+        node = js.Program(body);
         source.end(JsNodeTags.program);
         break;
       case JsNodeKind.stringReference:
@@ -2109,7 +2105,7 @@ class JsNodeDeserializer {
     return node;
   }
 
-  List<T> readList<T extends js.Node>({bool emptyAsNull: false}) {
+  List<T> readList<T extends js.Node>({bool emptyAsNull = false}) {
     return source.readList(read, emptyAsNull: emptyAsNull);
   }
 }

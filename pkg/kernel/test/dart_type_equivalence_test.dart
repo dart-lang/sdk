@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/src/dart_type_equivalence.dart';
 import 'package:kernel/testing/type_parser_environment.dart';
 
-run() {
+void run() {
   // Simple types.
   areEqual("int", "int");
   notEqual("int", "String");
@@ -164,7 +164,7 @@ run() {
       equateTopTypes: true, ignoreTopLevelNullability: true);
 }
 
-areEqual(String type1, String type2,
+void areEqual(String type1, String type2,
     {String typeParameters = '',
     bool equateTopTypes = false,
     bool ignoreAllNullabilities = false,
@@ -204,7 +204,7 @@ areEqual(String type1, String type2,
       "with flags ${flagNamesForDebug.map((f) => "'$f'").join(", ")}.");
 }
 
-notEqual(String type1, String type2,
+void notEqual(String type1, String type2,
     {String typeParameters = '',
     bool equateTopTypes = false,
     bool ignoreAllNullabilities = false,
@@ -244,4 +244,4 @@ notEqual(String type1, String type2,
       "with flags ${flagNamesForDebug.map((f) => "'$f'").join(", ")}.");
 }
 
-main() => run();
+void main() => run();

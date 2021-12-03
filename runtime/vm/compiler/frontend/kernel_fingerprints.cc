@@ -351,6 +351,9 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kInvalidExpression:
       ReadPosition();
       CalculateStringReferenceFingerprint();
+      if (ReadTag() == kSomething) {
+        CalculateExpressionFingerprint();  // read expression.
+      }
       return;
     case kVariableGet:
       ReadPosition();                          // read position.

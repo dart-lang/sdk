@@ -36,42 +36,44 @@ main(List<String> args) async {
         sdkRoot.resolve('tests/modular/'),
         'tests/modular',
         _options,
-        new IOPipeline([
+        IOPipeline([
           SourceToDillStep(),
-          ComputeClosedWorldStep(),
+          ModularAnalysisStep(),
+          ComputeClosedWorldStep(useModularAnalysis: true),
           GlobalAnalysisStep(),
           Dart2jsCodegenStep(codeId0),
           Dart2jsCodegenStep(codeId1),
           Dart2jsEmissionStep(),
           RunD8(),
         ], cacheSharedModules: true)),
-    // TODO(joshualitt) Delete this when we stop supporting this way of running
-    // the compiler.
     runSuite(
         sdkRoot.resolve('tests/modular/'),
         'tests/modular',
         _options,
-        new IOPipeline([
+        IOPipeline([
           SourceToDillStep(),
-          ComputeClosedWorldStep(),
+          ComputeClosedWorldStep(useModularAnalysis: false),
           LegacyGlobalAnalysisStep(),
           LegacyDart2jsCodegenStep(codeId0),
           LegacyDart2jsCodegenStep(codeId1),
           LegacyDart2jsEmissionStep(),
           RunD8(),
-        ], cacheSharedModules: true)),
+        ], cacheSharedModules: true))
   ]);
 }
 
-const dillId = const DataId("dill");
-const updatedDillId = const DataId("udill");
-const closedWorldId = const DataId("world");
-const globalDataId = const DataId("gdata");
-const codeId = const ShardsDataId("code", 2);
-const codeId0 = const ShardDataId(codeId, 0);
-const codeId1 = const ShardDataId(codeId, 1);
-const jsId = const DataId("js");
-const txtId = const DataId("txt");
+const dillId = DataId("dill");
+const modularUpdatedDillId = DataId("mdill");
+const modularDataId = DataId("mdata");
+const closedWorldId = DataId("world");
+const globalUpdatedDillId = DataId("gdill");
+const globalDataId = DataId("gdata");
+const codeId = ShardsDataId("code", 2);
+const codeId0 = ShardDataId(codeId, 0);
+const codeId1 = ShardDataId(codeId, 1);
+const jsId = DataId("js");
+const txtId = DataId("txt");
+const fakeRoot = 'dev-dart-app:/';
 
 String _packageConfigEntry(String name, Uri root,
     {Uri packageRoot, LanguageVersion version}) {
@@ -140,7 +142,7 @@ class SourceToDillStep implements IOModularStep {
     // for these dummy entries..
     // TODO(joshualitt): Generate just the json file.
     var packagesJson = [];
-    var packagesContents = new StringBuffer();
+    var packagesContents = StringBuffer();
     if (module.isPackage) {
       packagesContents.write('${module.name}:${module.packageBase}\n');
       packagesJson.add(_packageConfigEntry(
@@ -184,8 +186,8 @@ class SourceToDillStep implements IOModularStep {
       // When no flags are passed, we can skip compilation and reuse the
       // platform.dill created by build.py.
       if (flags.isEmpty) {
-        var platform =
-            computePlatformBinariesLocation().resolve("dart2js_platform.dill");
+        var platform = computePlatformBinariesLocation()
+            .resolve("dart2js_platform_unsound.dill");
         var destination = root.resolveUri(toUri(module, dillId));
         if (_options.verbose) {
           print('command:\ncp $platform $destination');
@@ -232,10 +234,9 @@ class SourceToDillStep implements IOModularStep {
   }
 }
 
-// Step that invokes the dart2js closed world computation.
-class ComputeClosedWorldStep implements IOModularStep {
+class ModularAnalysisStep implements IOModularStep {
   @override
-  List<DataId> get resultData => const [closedWorldId, updatedDillId];
+  List<DataId> get resultData => const [modularDataId, modularUpdatedDillId];
 
   @override
   bool get needsSources => false;
@@ -247,6 +248,69 @@ class ComputeClosedWorldStep implements IOModularStep {
   List<DataId> get moduleDataNeeded => const [dillId];
 
   @override
+  bool get onlyOnMain => false;
+
+  @override
+  Future<void> execute(Module module, Uri root, ModuleDataToRelativeUri toUri,
+      List<String> flags) async {
+    if (_options.verbose) print("\nstep: modular analysis on $module");
+    Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
+    Iterable<String> dillDependencies =
+        transitiveDependencies.map((m) => '${toUri(m, dillId)}');
+    List<String> args = [
+      '--packages=${sdkRoot.toFilePath()}/.packages',
+      _dart2jsScript,
+      if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      '${Flags.inputDill}=${toUri(module, dillId)}',
+      if (dillDependencies.isNotEmpty)
+        '--dill-dependencies=${dillDependencies.join(',')}',
+      '--out=${toUri(module, modularUpdatedDillId)}',
+      '${Flags.writeModularAnalysis}=${toUri(module, modularDataId)}',
+      for (String flag in flags) '--enable-experiment=$flag',
+    ];
+    var result =
+        await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
+
+    _checkExitCode(result, this, module);
+  }
+
+  @override
+  void notifyCached(Module module) {
+    if (_options.verbose) {
+      print("cached step: dart2js modular analysis on $module");
+    }
+  }
+}
+
+DataId idForDill({bool useModularAnalysis}) =>
+    useModularAnalysis ? modularUpdatedDillId : dillId;
+
+List<DataId> inputFromAnalysis({bool useModularAnalysis = false}) => [
+      idForDill(useModularAnalysis: useModularAnalysis),
+      if (useModularAnalysis) modularDataId,
+    ];
+
+// Step that invokes the dart2js closed world computation.
+class ComputeClosedWorldStep implements IOModularStep {
+  final bool useModularAnalysis;
+
+  ComputeClosedWorldStep({this.useModularAnalysis});
+
+  @override
+  List<DataId> get resultData => const [closedWorldId, globalUpdatedDillId];
+
+  @override
+  bool get needsSources => false;
+
+  @override
+  List<DataId> get dependencyDataNeeded =>
+      inputFromAnalysis(useModularAnalysis: useModularAnalysis);
+
+  @override
+  List<DataId> get moduleDataNeeded =>
+      inputFromAnalysis(useModularAnalysis: useModularAnalysis);
+
+  @override
   bool get onlyOnMain => true;
 
   @override
@@ -255,18 +319,27 @@ class ComputeClosedWorldStep implements IOModularStep {
     if (_options.verbose)
       print("\nstep: dart2js compute closed world on $module");
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
+    DataId dillId = idForDill(useModularAnalysis: useModularAnalysis);
     Iterable<String> dillDependencies =
         transitiveDependencies.map((m) => '${toUri(m, dillId)}');
+    List<String> dataDependencies = transitiveDependencies
+        .map((m) => '${toUri(m, modularDataId)}')
+        .toList();
+    dataDependencies.add('${toUri(module, modularDataId)}');
     List<String> args = [
       '--packages=${sdkRoot.toFilePath()}/.packages',
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${toUri(module, dillId)}',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
+      '${Flags.inputDill}=${toUri(module, dillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.dillDependencies}=${dillDependencies.join(',')}',
+      if (useModularAnalysis)
+        '${Flags.readModularAnalysis}=${dataDependencies.join(',')}',
       '${Flags.writeClosedWorld}=${toUri(module, closedWorldId)}',
-      '--out=${toUri(module, updatedDillId)}',
+      Flags.noClosedWorldInData,
+      '--out=${toUri(module, globalUpdatedDillId)}',
     ];
     var result =
         await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
@@ -281,8 +354,7 @@ class ComputeClosedWorldStep implements IOModularStep {
   }
 }
 
-// Step that invokes the dart2js global analysis on the main module by providing
-// the .dill files of all transitive modules as inputs.
+// Step that runs the dart2js modular analysis.
 class GlobalAnalysisStep implements IOModularStep {
   @override
   List<DataId> get resultData => const [globalDataId];
@@ -291,10 +363,11 @@ class GlobalAnalysisStep implements IOModularStep {
   bool get needsSources => false;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [updatedDillId];
+  List<DataId> get dependencyDataNeeded => const [globalUpdatedDillId];
 
   @override
-  List<DataId> get moduleDataNeeded => const [closedWorldId, updatedDillId];
+  List<DataId> get moduleDataNeeded =>
+      const [closedWorldId, globalUpdatedDillId];
 
   @override
   bool get onlyOnMain => true;
@@ -308,7 +381,8 @@ class GlobalAnalysisStep implements IOModularStep {
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${toUri(module, updatedDillId)}',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
+      '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
       '${Flags.writeData}=${toUri(module, globalDataId)}',
@@ -347,7 +421,7 @@ class Dart2jsCodegenStep implements IOModularStep {
 
   @override
   List<DataId> get moduleDataNeeded =>
-      const [updatedDillId, closedWorldId, globalDataId];
+      const [globalUpdatedDillId, closedWorldId, globalDataId];
 
   @override
   bool get onlyOnMain => true;
@@ -360,7 +434,8 @@ class Dart2jsCodegenStep implements IOModularStep {
       '--packages=${sdkRoot.toFilePath()}/.packages',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${toUri(module, updatedDillId)}',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
+      '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
       '${Flags.readData}=${toUri(module, globalDataId)}',
@@ -393,8 +468,13 @@ class Dart2jsEmissionStep implements IOModularStep {
   List<DataId> get dependencyDataNeeded => const [];
 
   @override
-  List<DataId> get moduleDataNeeded =>
-      const [updatedDillId, closedWorldId, globalDataId, codeId0, codeId1];
+  List<DataId> get moduleDataNeeded => const [
+        globalUpdatedDillId,
+        closedWorldId,
+        globalDataId,
+        codeId0,
+        codeId1
+      ];
 
   @override
   bool get onlyOnMain => true;
@@ -407,7 +487,8 @@ class Dart2jsEmissionStep implements IOModularStep {
       '--packages=${sdkRoot.toFilePath()}/.packages',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${toUri(module, updatedDillId)}',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
+      '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
       '${Flags.readData}=${toUri(module, globalDataId)}',
@@ -436,10 +517,11 @@ class LegacyGlobalAnalysisStep implements IOModularStep {
   bool get needsSources => false;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [updatedDillId];
+  List<DataId> get dependencyDataNeeded => const [globalUpdatedDillId];
 
   @override
-  List<DataId> get moduleDataNeeded => const [closedWorldId, updatedDillId];
+  List<DataId> get moduleDataNeeded =>
+      const [closedWorldId, globalUpdatedDillId];
 
   @override
   bool get onlyOnMain => true;
@@ -453,7 +535,8 @@ class LegacyGlobalAnalysisStep implements IOModularStep {
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${toUri(module, updatedDillId)}',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
+      '${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
       '${Flags.writeData}=${toUri(module, globalDataId)}',
@@ -490,7 +573,8 @@ class LegacyDart2jsCodegenStep implements IOModularStep {
   List<DataId> get dependencyDataNeeded => const [];
 
   @override
-  List<DataId> get moduleDataNeeded => const [updatedDillId, globalDataId];
+  List<DataId> get moduleDataNeeded =>
+      const [globalUpdatedDillId, globalDataId];
 
   @override
   bool get onlyOnMain => true;
@@ -503,7 +587,8 @@ class LegacyDart2jsCodegenStep implements IOModularStep {
       '--packages=${sdkRoot.toFilePath()}/.packages',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${toUri(module, updatedDillId)}',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
+      '${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.readData}=${toUri(module, globalDataId)}',
       '${Flags.writeCodegen}=${toUri(module, codeId.dataId)}',
@@ -537,7 +622,7 @@ class LegacyDart2jsEmissionStep implements IOModularStep {
 
   @override
   List<DataId> get moduleDataNeeded =>
-      const [updatedDillId, globalDataId, codeId0, codeId1];
+      const [globalUpdatedDillId, globalDataId, codeId0, codeId1];
 
   @override
   bool get onlyOnMain => true;
@@ -550,7 +635,8 @@ class LegacyDart2jsEmissionStep implements IOModularStep {
       '--packages=${sdkRoot.toFilePath()}/.packages',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
-      '${toUri(module, updatedDillId)}',
+      '${Flags.entryUri}=$fakeRoot${module.mainSource}',
+      '${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
       '${Flags.readData}=${toUri(module, globalDataId)}',
       '${Flags.readCodegen}=${toUri(module, codeId)}',
@@ -639,7 +725,7 @@ String get _d8executable {
   } else if (Platform.isMacOS) {
     return 'third_party/d8/macos/d8';
   }
-  throw new UnsupportedError('Unsupported platform.');
+  throw UnsupportedError('Unsupported platform.');
 }
 
 class ShardsDataId implements DataId {

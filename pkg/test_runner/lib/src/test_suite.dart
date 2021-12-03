@@ -336,6 +336,7 @@ class VMTestSuite extends TestSuite {
       if (expectations.contains(Expectation.crash)) '--suppress-core-dump',
       if (configuration.experiments.isNotEmpty)
         '--enable-experiment=${configuration.experiments.join(",")}',
+      if (configuration.nnbdMode == NnbdMode.strong) '--sound-null-safety',
       ...configuration.standardOptions,
       ...configuration.vmOptions,
       test.name
@@ -810,9 +811,7 @@ class StandardTestSuite extends TestSuite {
 
     var compilationArtifact = compilerConfiguration.computeCompilationArtifact(
         tempDir, compileTimeArguments, environmentOverrides);
-    if (!configuration.skipCompilation) {
-      commands.addAll(compilationArtifact.commands);
-    }
+    commands.addAll(compilationArtifact.commands);
 
     if ((testFile.hasCompileError || testFile.isStaticErrorTest) &&
         compilerConfiguration.hasCompiler &&

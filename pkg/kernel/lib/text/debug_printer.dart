@@ -49,14 +49,14 @@ class DebugPrinter extends Visitor<void>
   }
 
   @override
-  visitStaticInvocation(StaticInvocation node) {
+  void visitStaticInvocation(StaticInvocation node) {
     openNode(node, '${node.runtimeType}', {'target': '${node.target}'});
     node.visitChildren(this);
     closeNode();
   }
 
   @override
-  visitArguments(Arguments node) {
+  void visitArguments(Arguments node) {
     openNode(node, '${node.runtimeType}', {
       'typeArgs': '${node.types}',
       'positionalArgs': '${node.positional}',
@@ -67,7 +67,7 @@ class DebugPrinter extends Visitor<void>
   }
 
   @override
-  visitAsExpression(AsExpression node) {
+  void visitAsExpression(AsExpression node) {
     openNode(node, '${node.runtimeType}',
         {'operand': '${node.operand}', 'DartType': '${node.type}'});
     node.visitChildren(this);
@@ -75,7 +75,7 @@ class DebugPrinter extends Visitor<void>
   }
 
   @override
-  visitStringLiteral(StringLiteral node) {
+  void visitStringLiteral(StringLiteral node) {
     openAndCloseNode(node, '${node.runtimeType}', {'value': '${node.value}'});
   }
 
@@ -85,7 +85,7 @@ class DebugPrinter extends Visitor<void>
       'name': '${node.name ?? '--unnamed--'}',
       'isFinal': '${node.isFinal}',
       'isConst': '${node.isConst}',
-      'isFieldFormal': '${node.isFieldFormal}'
+      'isInitializingFormal': '${node.isInitializingFormal}'
     });
     node.visitChildren(this);
     closeNode();

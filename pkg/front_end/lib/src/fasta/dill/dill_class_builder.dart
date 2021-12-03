@@ -23,6 +23,7 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_member_builder.dart';
 
 class DillClassBuilder extends ClassBuilderImpl {
+  @override
   final Class cls;
 
   DillClassBuilder(Class cls, DillLibraryBuilder parent)
@@ -45,8 +46,10 @@ class DillClassBuilder extends ClassBuilderImpl {
             parent,
             cls.fileOffset);
 
+  @override
   DillLibraryBuilder get library => super.library as DillLibraryBuilder;
 
+  @override
   List<TypeVariableBuilder>? get typeVariables {
     List<TypeVariableBuilder>? typeVariables = super.typeVariables;
     if (typeVariables == null && cls.typeParameters.isNotEmpty) {
@@ -56,8 +59,10 @@ class DillClassBuilder extends ClassBuilderImpl {
     return typeVariables;
   }
 
+  @override
   Uri get fileUri => cls.fileUri;
 
+  @override
   TypeBuilder? get supertypeBuilder {
     TypeBuilder? supertype = super.supertypeBuilder;
     if (supertype == null) {
@@ -116,8 +121,7 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      LibraryBuilder library, List<TypeBuilder>? arguments) {
     // For performance reasons, [typeVariables] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
@@ -129,14 +133,13 @@ class DillClassBuilder extends ClassBuilderImpl {
 
     // [arguments] != null
     return new List<DartType>.generate(
-        arguments.length,
-        (int i) =>
-            arguments[i].build(library, nonInstanceContext: nonInstanceContext),
+        arguments.length, (int i) => arguments[i].build(library),
         growable: true);
   }
 
   /// Returns true if this class is the result of applying a mixin to its
   /// superclass.
+  @override
   bool get isMixinApplication => cls.isMixinApplication;
 
   @override
@@ -152,6 +155,7 @@ class DillClassBuilder extends ClassBuilderImpl {
     unimplemented("mixedInType=", -1, null);
   }
 
+  @override
   List<TypeBuilder>? get interfaceBuilders {
     if (cls.implementedTypes.isEmpty) return null;
     if (super.interfaceBuilders == null) {

@@ -106,22 +106,22 @@ class SubOutIn extends mes::SuperOut {
 static field () →? core::int nullableVar = () → core::int => 3;
 static field core::double nonNullableVar = 4.0;
 static method testOptIn() → dynamic {
-  self::nullableVar = let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:32:17: Error: A value of type 'double' can't be assigned to a variable of type 'int Function()?'.
+  self::nullableVar = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:32:17: Error: A value of type 'double' can't be assigned to a variable of type 'int Function()?'.
   nullableVar = nonNullableVar;
                 ^" in self::nonNullableVar as{TypeError,ForNonNullableByDefault} () →? core::int;
-  self::nonNullableVar = let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:33:20: Error: A value of type 'int Function()?' can't be assigned to a variable of type 'double'.
+  self::nonNullableVar = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:33:20: Error: A value of type 'int Function()?' can't be assigned to a variable of type 'double'.
   nonNullableVar = nullableVar;
                    ^" in self::nullableVar as{TypeError,ForNonNullableByDefault} core::double;
-  mes::legacyVar = let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:34:15: Error: A value of type 'int Function()?' can't be assigned to a variable of type 'String'.
+  mes::legacyVar = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:34:15: Error: A value of type 'int Function()?' can't be assigned to a variable of type 'String'.
   legacyVar = nullableVar;
               ^" in self::nullableVar as{TypeError,ForNonNullableByDefault} core::String*;
-  self::nullableVar = let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:35:17: Error: A value of type 'String' can't be assigned to a variable of type 'int Function()?'.
+  self::nullableVar = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:35:17: Error: A value of type 'String' can't be assigned to a variable of type 'int Function()?'.
   nullableVar = legacyVar;
                 ^" in mes::legacyVar as{TypeError,ForNonNullableByDefault} () →? core::int;
-  self::nonNullableVar = let final Never #t5 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:36:20: Error: A value of type 'String' can't be assigned to a variable of type 'double'.
+  self::nonNullableVar = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:36:20: Error: A value of type 'String' can't be assigned to a variable of type 'double'.
   nonNullableVar = legacyVar;
                    ^" in mes::legacyVar as{TypeError,ForNonNullableByDefault} core::double;
-  mes::legacyVar = let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:37:15: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+  mes::legacyVar = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_in.dart:37:15: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
   legacyVar = nonNullableVar;
               ^" in self::nonNullableVar as{TypeError,ForNonNullableByDefault} core::String*;
 }
@@ -253,22 +253,22 @@ class SubInOut extends self::SuperIn {
 }
 static field core::String* legacyVar = "legacy";
 static method testOptOut() → dynamic {
-  self::nullableVar = let final Never* #t7 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:33:17: Error: A value of type 'double' can't be assigned to a variable of type 'int Function()'.
+  self::nullableVar = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:33:17: Error: A value of type 'double' can't be assigned to a variable of type 'int Function()'.
   nullableVar = nonNullableVar;
                 ^" in self::nonNullableVar as{TypeError} () →? core::int;
-  self::nonNullableVar = let final Never* #t8 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:34:20: Error: A value of type 'int Function()' can't be assigned to a variable of type 'double'.
+  self::nonNullableVar = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:34:20: Error: A value of type 'int Function()' can't be assigned to a variable of type 'double'.
   nonNullableVar = nullableVar;
                    ^" in self::nullableVar as{TypeError} core::double;
-  mes::legacyVar = let final Never* #t9 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:35:15: Error: A value of type 'int Function()' can't be assigned to a variable of type 'String'.
+  mes::legacyVar = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:35:15: Error: A value of type 'int Function()' can't be assigned to a variable of type 'String'.
   legacyVar = nullableVar;
               ^" in self::nullableVar as{TypeError} core::String*;
-  self::nullableVar = let final Never* #t10 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:36:17: Error: A value of type 'String' can't be assigned to a variable of type 'int Function()'.
+  self::nullableVar = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:36:17: Error: A value of type 'String' can't be assigned to a variable of type 'int Function()'.
   nullableVar = legacyVar;
                 ^" in mes::legacyVar as{TypeError} () →? core::int;
-  self::nonNullableVar = let final Never* #t11 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:37:20: Error: A value of type 'String' can't be assigned to a variable of type 'double'.
+  self::nonNullableVar = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:37:20: Error: A value of type 'String' can't be assigned to a variable of type 'double'.
   nonNullableVar = legacyVar;
                    ^" in mes::legacyVar as{TypeError} core::double;
-  mes::legacyVar = let final Never* #t12 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:38:15: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+  mes::legacyVar = invalid-expression "pkg/front_end/testcases/nnbd_mixed/messages_with_types_opt_out.dart:38:15: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
   legacyVar = nonNullableVar;
               ^" in self::nonNullableVar as{TypeError} core::String*;
 }

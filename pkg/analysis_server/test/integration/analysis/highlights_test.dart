@@ -100,6 +100,7 @@ class Class2<TypeParameter> extends Class<TypeParameter> {
 }
 
 typedef functionType();
+typedef genericTypeDef = double;
 
 function(dynamicType) {
   print('string');
@@ -117,8 +118,8 @@ int topLevelVariable = 0;
     check(HighlightRegionType.ANNOTATION, ['@override']);
     check(HighlightRegionType.BUILT_IN,
         ['as', 'get', 'import', 'set', 'static', 'typedef']);
-    check(
-        HighlightRegionType.CLASS, ['Class', 'Class2', 'Future', 'Map', 'int']);
+    check(HighlightRegionType.CLASS,
+        ['Class', 'Class2', 'double', 'Future', 'Map', 'int']);
     check(HighlightRegionType.COMMENT_BLOCK, ['/* Block comment */']);
     check(HighlightRegionType.COMMENT_DOCUMENTATION,
         ['/**\n * Doc comment\n */']);
@@ -132,6 +133,7 @@ int topLevelVariable = 0;
     check(HighlightRegionType.TOP_LEVEL_FUNCTION_REFERENCE, ['print']);
     check(HighlightRegionType.TOP_LEVEL_FUNCTION_DECLARATION, ['function']);
     check(HighlightRegionType.FUNCTION_TYPE_ALIAS, ['functionType']);
+    check(HighlightRegionType.TYPE_ALIAS, ['genericTypeDef']);
     check(HighlightRegionType.INSTANCE_GETTER_DECLARATION, ['getter']);
     check(HighlightRegionType.IDENTIFIER_DEFAULT, ['unresolvedIdentifier']);
     check(HighlightRegionType.IMPORT_PREFIX, ['async']);

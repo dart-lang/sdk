@@ -128,19 +128,35 @@ abstract class AbstractLspAnalysisServerTest
     return registrations.singleWhereOrNull((r) => r.method == method.toJson());
   }
 
-  /// Finds the registration for a given LSP method with Dart in its
+  /// Finds a single registration for a given LSP method with Dart in its
   /// documentSelector.
+  ///
+  /// Throws if there is not exactly one match.
   Registration registrationForDart(
     List<Registration> registrations,
     Method method,
+  ) =>
+      registrationsForDart(registrations, method).single;
+
+  /// Finds the registrations for a given LSP method with Dart in their
+  /// documentSelector.
+  List<Registration> registrationsForDart(
+    List<Registration> registrations,
+    Method method,
   ) {
-    return registrations.singleWhere((r) =>
-        r.method == method.toJson() &&
-        (TextDocumentRegistrationOptions.fromJson(
-                    r.registerOptions as Map<String, Object?>)
-                .documentSelector
-                ?.any((selector) => selector.language == dartLanguageId) ??
-            false));
+    bool includesDart(Registration r) {
+      final options = TextDocumentRegistrationOptions.fromJson(
+          r.registerOptions as Map<String, Object?>);
+
+      return options.documentSelector?.any((selector) =>
+              selector.language == dartLanguageId ||
+              (selector.pattern?.contains('.dart') ?? false)) ??
+          false;
+    }
+
+    return registrations
+        .where((r) => r.method == method.toJson() && includesDart(r))
+        .toList();
   }
 
   void resetContextBuildCounter() {
@@ -167,14 +183,20 @@ abstract class AbstractLspAnalysisServerTest
     httpClient = MockHttpClient();
     processRunner = MockProcessRunner();
     channel = MockLspServerChannel(debugPrintCommunication);
+
     // Create an SDK in the mock file system.
-    MockSdk(resourceProvider: resourceProvider);
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+
     pluginManager = TestPluginManager();
     server = LspAnalysisServer(
         channel,
         resourceProvider,
         serverOptions,
-        DartSdkManager(convertPath('/sdk')),
+        DartSdkManager(sdkRoot.path),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE,
         httpClient: httpClient,
@@ -679,7 +701,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       change.map(
         (textDocEdit) => applyTextDocumentEdits(oldFileContent, [textDocEdit]),
         (create) => applyResourceCreate(oldFileContent, create),
-        (rename) => throw 'applyResourceChanges:Delete not currently supported',
+        (rename) => applyResourceRename(oldFileContent, rename),
         (delete) => throw 'applyResourceChanges:Delete not currently supported',
       );
     }
@@ -692,6 +714,17 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       throw 'Recieved create instruction for $path which already existed.';
     }
     oldFileContent[path] = '';
+  }
+
+  void applyResourceRename(
+      Map<String, String> oldFileContent, RenameFile rename) {
+    final oldPath = Uri.parse(rename.oldUri).toFilePath();
+    final newPath = Uri.parse(rename.newUri).toFilePath();
+    if (!oldFileContent.containsKey(oldPath)) {
+      throw 'Recieved rename instruction for $oldPath which did not exist.';
+    }
+    oldFileContent[newPath] = oldFileContent[oldPath]!;
+    oldFileContent.remove(oldPath);
   }
 
   String applyTextDocumentEdit(String content, TextDocumentEdit edit) {
@@ -1379,11 +1412,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   /// Watches for `client/registerCapability` requests and updates
   /// `registrations`.
-  Future<ResponseMessage> monitorDynamicRegistrations(
+  Future<T> monitorDynamicRegistrations<T>(
     List<Registration> registrations,
-    Future<ResponseMessage> Function() f,
+    Future<T> Function() f,
   ) {
-    return handleExpectedRequest<ResponseMessage, RegistrationParams, void>(
+    return handleExpectedRequest<T, RegistrationParams, void>(
       Method.client_registerCapability,
       RegistrationParams.fromJson,
       f,
@@ -1394,9 +1427,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   /// Expects both unregistration and reregistration.
-  Future<ResponseMessage> monitorDynamicReregistration(
+  Future<T> monitorDynamicReregistration<T>(
     List<Registration> registrations,
-    Future<ResponseMessage> Function() f,
+    Future<T> Function() f,
   ) =>
       monitorDynamicUnregistrations(
         registrations,
@@ -1405,11 +1438,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   /// Watches for `client/unregisterCapability` requests and updates
   /// `registrations`.
-  Future<ResponseMessage> monitorDynamicUnregistrations(
+  Future<T> monitorDynamicUnregistrations<T>(
     List<Registration> registrations,
-    Future<ResponseMessage> Function() f,
+    Future<T> Function() f,
   ) {
-    return handleExpectedRequest<ResponseMessage, UnregistrationParams, void>(
+    return handleExpectedRequest<T, UnregistrationParams, void>(
       Method.client_unregisterCapability,
       UnregistrationParams.fromJson,
       f,
@@ -1440,7 +1473,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
               text: content)),
     );
     await sendNotificationToServer(notification);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 128);
   }
 
   int positionCompare(Position p1, Position p2) {
@@ -1474,12 +1507,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   /// Calls the supplied function and responds to any `workspace/configuration`
   /// request with the supplied config.
-  Future<ResponseMessage> provideConfig(
-    Future<ResponseMessage> Function() f,
+  Future<T> provideConfig<T>(
+    Future<T> Function() f,
     FutureOr<Map<String, Object?>> globalConfig, {
     FutureOr<Map<String, Map<String, Object?>>>? folderConfig,
   }) {
-    return handleExpectedRequest<ResponseMessage, ConfigurationParams,
+    return handleExpectedRequest<T, ConfigurationParams,
         List<Map<String, Object?>>>(
       Method.workspace_configuration,
       ConfigurationParams.fromJson,

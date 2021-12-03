@@ -6,7 +6,9 @@
 
 /*library: scope=[
   A2,
-  async.dart.FutureExtensions]*/
+  async.dart.FutureExtensions,
+  core.dart.EnumByName,
+  core.dart.EnumName]*/
 
 class A1 {
   int _instanceField;

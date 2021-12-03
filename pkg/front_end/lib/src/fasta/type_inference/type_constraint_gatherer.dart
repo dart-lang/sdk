@@ -1096,6 +1096,7 @@ class _ProtoConstraint {
 
   _ProtoConstraint.upper(this.parameter, this.bound) : isUpper = true;
 
+  @override
   String toString() {
     return isUpper
         ? "${parameter.name} <: $bound"

@@ -17,8 +17,6 @@ class A {
 //^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 // [cfe] The return type of the setter must be 'void' or absent.
-//         ^^^
-// [analyzer] COMPILE_TIME_ERROR.BODY_MIGHT_COMPLETE_NORMALLY
 }
 
 main() {

@@ -12,14 +12,17 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib1.dart" as prefix;
         main() {
           print(prefix.Foo.BAR);
         }
       lib1.dart: |
+        // @dart=2.9
         export "lib2.dart" show Foo;
         import "main.dart";
       lib2.dart: |
+        // @dart=2.9
         class Foo {
           static const Foo BAR = const Foo("BAR");
           const Foo(String x);
@@ -33,6 +36,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib1.dart" as prefix;
         main() {
           print(prefix.Foo.BAR);

@@ -27,7 +27,7 @@ class Script {
   Script.synthetic(Uri uri)
       : readableUri = uri,
         resourceUri = uri,
-        file = new StringSourceFile.fromUri(
+        file = StringSourceFile.fromUri(
             uri, "// Synthetic source file generated for '$uri'."),
         isSynthesized = true;
 
@@ -36,6 +36,6 @@ class Script {
 
   /// Creates a new [Script] with the same URIs, but new content ([file]).
   Script copyWithFile(SourceFile file) {
-    return new Script(readableUri, resourceUri, file);
+    return Script(readableUri, resourceUri, file);
   }
 }

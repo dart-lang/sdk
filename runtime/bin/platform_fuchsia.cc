@@ -150,6 +150,11 @@ intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {
   return -1;
 }
 
+void Platform::SetProcessName(const char* name) {
+  zx_object_set_property(zx_process_self(), ZX_PROP_NAME, name,
+                         Utils::Minimum(strlen(name), ZX_MAX_NAME_LEN));
+}
+
 void Platform::Exit(int exit_code) {
   Console::RestoreConfig();
   Dart_PrepareToAbort();

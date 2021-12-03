@@ -28,13 +28,13 @@ class BaseNativeClassFinder implements NativeClassFinder {
   final KElementEnvironment _elementEnvironment;
   final NativeBasicData _nativeBasicData;
 
-  Map<String, ClassEntity> _tagOwner = new Map<String, ClassEntity>();
+  final Map<String, ClassEntity> _tagOwner = {};
 
   BaseNativeClassFinder(this._elementEnvironment, this._nativeBasicData);
 
   @override
   Iterable<ClassEntity> computeNativeClasses(Iterable<Uri> libraries) {
-    Set<ClassEntity> nativeClasses = new Set<ClassEntity>();
+    Set<ClassEntity> nativeClasses = {};
     libraries.forEach((uri) => _processNativeClassesInLibrary(
         _elementEnvironment.lookupLibrary(uri), nativeClasses));
     _processSubclassesOfNativeClasses(libraries, nativeClasses);
@@ -84,23 +84,22 @@ class BaseNativeClassFinder implements NativeClassFinder {
   /// [nativeClasses].
   void _processSubclassesOfNativeClasses(
       Iterable<Uri> libraries, Set<ClassEntity> nativeClasses) {
-    Set<ClassEntity> nativeClassesAndSubclasses = new Set<ClassEntity>();
+    Set<ClassEntity> nativeClassesAndSubclasses = {};
     // Collect potential subclasses, e.g.
     //
     //     class B extends foo.A {}
     //
     // String "A" has a potential subclass B.
 
-    Map<String, Set<ClassEntity>> potentialExtends =
-        <String, Set<ClassEntity>>{};
+    Map<String, Set<ClassEntity>> potentialExtends = {};
 
     libraries.forEach((Uri uri) {
       LibraryEntity library = _elementEnvironment.lookupLibrary(uri);
       _elementEnvironment.forEachClass(library, (ClassEntity cls) {
         String extendsName = _findExtendsNameOfClass(cls);
         if (extendsName != null) {
-          Set<ClassEntity> potentialSubclasses = potentialExtends.putIfAbsent(
-              extendsName, () => new Set<ClassEntity>());
+          Set<ClassEntity> potentialSubclasses =
+              potentialExtends.putIfAbsent(extendsName, () => {});
           potentialSubclasses.add(cls);
         }
       });

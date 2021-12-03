@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core';
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -11,7 +9,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/services/kythe/kythe_visitors.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -43,7 +40,7 @@ class KytheDomainHandler extends AbstractRequestHandler {
       //
       var allResults = <KytheGetKytheEntriesResult>[];
       var result = await server.getResolvedUnit(file);
-      if (result != null && result.state == ResultState.VALID) {
+      if (result != null) {
         var entries = <KytheEntry>[];
         // TODO(brianwilkerson) Figure out how to get the list of files.
         var files = <String>[];

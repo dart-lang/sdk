@@ -21,7 +21,7 @@ static method g() → core::List<core::int> {
   invalid-expression "pkg/front_end/testcases/general/error_recovery/yield_not_in_generator.dart:4:3: Error: 'yield' can only be used in 'sync*' or 'async*' methods.
   yield f();
   ^";
-  return let final Never #t1 = invalid-expression "pkg/front_end/testcases/general/error_recovery/yield_not_in_generator.dart:3:11: Error: A non-null value must be returned since the return type 'List<int>' doesn't allow null.
+  return invalid-expression "pkg/front_end/testcases/general/error_recovery/yield_not_in_generator.dart:3:11: Error: A non-null value must be returned since the return type 'List<int>' doesn't allow null.
  - 'List' is from 'dart:core'.
 List<int> g() {
           ^" in null;

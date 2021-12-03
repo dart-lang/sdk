@@ -79,6 +79,7 @@ class AnalysisServerBenchmarkTest extends AbstractBenchmarkTest {
   Future<void> setUp(List<String> roots) async {
     await _test.setUp();
     await _test.subscribeToStatusNotifications();
+    await _test.subscribeToAvailableSuggestions();
     await _test.sendAnalysisSetAnalysisRoots(roots, []);
   }
 
@@ -126,6 +127,16 @@ class AnalysisServerMemoryUsageTest
 
   /// After every test, the server is stopped.
   Future shutdown() async => await shutdownIfNeeded();
+
+  /// Enable using available suggestions during completion.
+  Future<void> subscribeToAvailableSuggestions() async {
+    await server.send(
+      'completion.setSubscriptions',
+      CompletionSetSubscriptionsParams(
+        [CompletionService.AVAILABLE_SUGGESTION_SETS],
+      ).toJson(),
+    );
+  }
 
   /// Enable [ServerService.STATUS] notifications so that [analysisFinished]
   /// can be used.
@@ -254,14 +265,11 @@ mixin ServerMemoryUsageMixin {
 
     var total = 0;
 
-    List isolateRefs = vm['isolates'];
-    for (Map isolateRef in isolateRefs) {
-      var isolate =
-          await service.call('getIsolate', {'isolateId': isolateRef['id']});
-
-      Map _heaps = isolate['_heaps'];
-      total += _heaps['new']['used'] + _heaps['new']['external'] as int;
-      total += _heaps['old']['used'] + _heaps['old']['external'] as int;
+    List isolateGroupsRefs = vm['isolateGroups'];
+    for (Map isolateGroupRef in isolateGroupsRefs) {
+      final heapUsage = await service.call('getIsolateGroupMemoryUsage',
+          {'isolateGroupId': isolateGroupRef['id']});
+      total += heapUsage['heapUsage'] + heapUsage['externalUsage'] as int;
     }
 
     service.dispose();

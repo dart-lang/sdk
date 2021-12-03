@@ -121,7 +121,7 @@ void reportError(
 /// [entryPoint] and [memorySourceFiles].
 ///
 /// Actual data is computed using [computeMemberData].
-Future<CompiledData<T>> computeData<T>(Uri entryPoint,
+Future<CompiledData<T>> computeData<T>(String name, Uri entryPoint,
     Map<String, String> memorySourceFiles, DataComputer<T> dataComputer,
     {List<String> options: const <String>[],
     bool verbose: false,
@@ -130,7 +130,8 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
     bool forUserLibrariesOnly: true,
     bool skipUnprocessedMembers: false,
     bool skipFailedCompilations: false,
-    Iterable<Id> globalIds: const <Id>[]}) async {
+    Iterable<Id> globalIds: const <Id>[],
+    Future<void> verifyCompiler(String test, Compiler compiler)}) async {
   OutputCollector outputCollector = new OutputCollector();
   DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
   Uri packageConfig;
@@ -166,6 +167,9 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
     print('------------------------------------------------------------------');
   }
   Compiler compiler = result.compiler;
+  if (verifyCompiler != null) {
+    await verifyCompiler(name, compiler);
+  }
 
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
   Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
@@ -402,7 +406,9 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     int shards: 1,
     int shardIndex: 0,
     void onTest(Uri uri),
-    List<TestConfig> testedConfigs = const []}) async {
+    List<TestConfig> testedConfigs = const [],
+    Map<String, List<String>> perTestOptions = const {},
+    Future<void> verifyCompiler(String test, Compiler compiler)}) async {
   if (testedConfigs.isEmpty) testedConfigs = defaultInternalConfigs;
   Set<String> testedMarkers =
       testedConfigs.map((config) => config.marker).toSet();
@@ -432,6 +438,9 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     if (name.endsWith('_ea.dart')) {
       testOptions.add(Flags.enableAsserts);
     }
+    if (perTestOptions.containsKey(name)) {
+      testOptions.addAll(perTestOptions[name]);
+    }
 
     if (setUpFunction != null) setUpFunction();
 
@@ -451,7 +460,8 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
             succinct: succinct,
             testAfterFailures: testAfterFailures,
             forUserLibrariesOnly: forUserLibrariesOnly,
-            printCode: printCode);
+            printCode: printCode,
+            verifyCompiler: verifyCompiler);
       }
     }
     return results;
@@ -480,17 +490,19 @@ Future<TestResult<T>> runTestForConfiguration<T>(TestConfig testConfiguration,
     bool succinct: false,
     bool printCode: false,
     bool forUserLibrariesOnly: true,
-    bool testAfterFailures: false}) async {
+    bool testAfterFailures: false,
+    Future<void> verifyCompiler(String test, Compiler compiler)}) async {
   MemberAnnotations<IdValue> annotations =
       testData.expectedMaps[testConfiguration.marker];
-  CompiledData<T> compiledData = await computeData(
+  CompiledData<T> compiledData = await computeData(testData.name,
       testData.entryPoint, testData.memorySourceFiles, dataComputer,
       options: [...options, ...testConfiguration.options],
       verbose: verbose,
       printCode: printCode,
       testFrontend: dataComputer.testFrontend,
       forUserLibrariesOnly: forUserLibrariesOnly,
-      globalIds: annotations.globalData.keys);
+      globalIds: annotations.globalData.keys,
+      verifyCompiler: verifyCompiler);
   return await checkCode(testConfiguration.name, testData.testFileUri,
       testData.code, annotations, compiledData, dataComputer.dataValidator,
       filterActualData: filterActualData,

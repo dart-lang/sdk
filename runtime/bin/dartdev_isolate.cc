@@ -26,7 +26,7 @@
       Dart_CloseNativePort(send_port_id);                                      \
     }                                                                          \
     Dart_ExitScope();                                                          \
-    Dart_ExitIsolate();                                                        \
+    Dart_ShutdownIsolate();                                                    \
     return;                                                                    \
   }
 
@@ -36,6 +36,7 @@ namespace bin {
 DartDevIsolate::DartDevRunner DartDevIsolate::runner_ =
     DartDevIsolate::DartDevRunner();
 bool DartDevIsolate::should_run_dart_dev_ = false;
+bool DartDevIsolate::print_usage_error_ = false;
 Monitor* DartDevIsolate::DartDevRunner::monitor_ = new Monitor();
 DartDevIsolate::DartDev_Result DartDevIsolate::DartDevRunner::result_ =
     DartDevIsolate::DartDev_Result_Unknown;
@@ -97,6 +98,13 @@ void DartDevIsolate::DartDevRunner::Run(
   dart_options_ = dart_options;
   package_config_override_ = packages_file;
   script_ = script;
+
+  // We've encountered an error during preliminary argument parsing so we'll
+  // output the standard help message and exit with an error code.
+  if (print_usage_error_) {
+    dart_options_->Reset();
+    dart_options_->AddArgument("--help");
+  }
 
   MonitorLocker locker(monitor_);
   int result = Thread::Start("DartDev Runner", RunCallback,
@@ -170,7 +178,9 @@ void DartDevIsolate::DartDevRunner::DartDevResultCallback(
 
       // If we're given a non-zero exit code, DartDev is signaling for us to
       // shutdown.
-      Process::SetGlobalExitCode(dartdev_exit_code);
+      int32_t exit_code =
+          print_usage_error_ ? kErrorExitCode : dartdev_exit_code;
+      Process::SetGlobalExitCode(exit_code);
 
       // If DartDev hasn't signaled for us to do anything else, we can assume
       // there's nothing else for the VM to run and that we can exit.
@@ -227,7 +237,7 @@ void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
     ProcessError("Unable to find 'main' in root library 'dartdev'",
                  kErrorExitCode);
     Dart_ExitScope();
-    Dart_ExitIsolate();
+    Dart_ShutdownIsolate();
     return;
   }
 

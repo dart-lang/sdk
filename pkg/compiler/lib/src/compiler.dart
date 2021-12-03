@@ -13,12 +13,16 @@ import 'package:kernel/ast.dart' as ir;
 import '../compiler_new.dart' as api;
 import 'backend_strategy.dart';
 import 'common/codegen.dart';
-import 'common/names.dart' show Selectors, Uris;
+import 'common/names.dart' show Selectors;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
 import 'common_elements.dart' show ElementEnvironment;
-import 'deferred_load/deferred_load.dart' show DeferredLoadTask, OutputUnitData;
+import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
+import 'deferred_load/output_unit.dart' show OutputUnitData;
+import 'deferred_load/program_split_constraints/nodes.dart' as psc
+    show ConstraintData;
+import 'deferred_load/program_split_constraints/parser.dart' as psc show Parser;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/messages.dart' show Message, MessageTemplate;
 import 'dump_info.dart' show DumpInfoTask;
@@ -34,16 +38,19 @@ import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'io/source_information.dart' show SourceInformation;
+import 'ir/modular.dart';
 import 'js_backend/backend.dart' show CodegenInputs, JavaScriptImpactStrategy;
 import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'js_model/js_world.dart';
 import 'js_model/locals.dart';
+import 'kernel/front_end_adapter.dart' show CompilerFileSystem;
 import 'kernel/kernel_strategy.dart';
 import 'kernel/loader.dart' show KernelLoaderTask, KernelResult;
 import 'null_compiler_output.dart' show NullCompilerOutput;
 import 'options.dart' show CompilerOptions;
 import 'serialization/task.dart';
+import 'serialization/serialization.dart';
 import 'serialization/strategies.dart';
 import 'ssa/nodes.dart' show HInstruction;
 import 'universe/selector.dart' show Selector;
@@ -53,7 +60,7 @@ import 'universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
 import 'world.dart' show JClosedWorld, KClosedWorld;
 
-typedef CompilerDiagnosticReporter MakeReporterFunction(
+typedef MakeReporterFunction = CompilerDiagnosticReporter Function(
     Compiler compiler, CompilerOptions options);
 
 abstract class Compiler {
@@ -82,9 +89,11 @@ abstract class Compiler {
 
   api.CompilerOutput get outputProvider => _outputProvider;
 
-  List<CodeLocation> _userCodeLocations = <CodeLocation>[];
+  final List<CodeLocation> _userCodeLocations = <CodeLocation>[];
 
+  ir.Component componentForTesting;
   JClosedWorld backendClosedWorldForTesting;
+  DataSourceIndices closedWorldIndicesForTesting;
 
   DiagnosticReporter get reporter => _reporter;
   Map<Entity, WorldImpact> get impactCache => _impactCache;
@@ -120,6 +129,8 @@ abstract class Compiler {
 
   bool compilationFailed = false;
 
+  psc.ConstraintData programSplitConstraintsData;
+
   // Callback function used for testing resolution enqueuing.
   void Function() onResolutionQueueEmptyForTesting;
 
@@ -129,7 +140,7 @@ abstract class Compiler {
   Compiler(
       {CompilerOptions options,
       api.CompilerOutput outputProvider,
-      this.environment: const _EmptyEnvironment(),
+      this.environment = const _EmptyEnvironment(),
       MakeReporterFunction makeReporter})
       : this.options = options {
     options.deriveOptions();
@@ -146,38 +157,38 @@ abstract class Compiler {
     }
 
     CompilerTask kernelFrontEndTask;
-    selfTask = new GenericTask('self', measurer);
-    _outputProvider = new _CompilerOutput(this, outputProvider);
+    selfTask = GenericTask('self', measurer);
+    _outputProvider = _CompilerOutput(this, outputProvider);
     if (makeReporter != null) {
       _reporter = makeReporter(this, options);
     } else {
-      _reporter = new CompilerDiagnosticReporter(this);
+      _reporter = CompilerDiagnosticReporter(this);
     }
-    kernelFrontEndTask = new GenericTask('Front end', measurer);
-    frontendStrategy = new KernelFrontendStrategy(
+    kernelFrontEndTask = GenericTask('Front end', measurer);
+    frontendStrategy = KernelFrontendStrategy(
         kernelFrontEndTask, options, reporter, environment);
     backendStrategy = createBackendStrategy();
     _impactCache = <Entity, WorldImpact>{};
-    _impactCacheDeleter = new _MapImpactCacheDeleter(_impactCache);
+    _impactCacheDeleter = _MapImpactCacheDeleter(_impactCache);
 
     if (options.showInternalProgress) {
-      progress = new InteractiveProgress();
+      progress = InteractiveProgress();
     }
 
-    enqueuer = new EnqueueTask(this);
+    enqueuer = EnqueueTask(this);
 
     tasks = [
-      kernelLoader = new KernelLoaderTask(
+      kernelLoader = KernelLoaderTask(
           options, provider, _outputProvider, reporter, measurer),
       kernelFrontEndTask,
-      globalInference = new GlobalTypeInferenceTask(this),
+      globalInference = GlobalTypeInferenceTask(this),
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
       // [enqueuer] is created earlier because it contains the resolution world
       // objects needed by other tasks.
       enqueuer,
-      dumpInfoTask = new DumpInfoTask(this),
+      dumpInfoTask = DumpInfoTask(this),
       selfTask,
-      serializationTask = new SerializationTask(
+      serializationTask = SerializationTask(
           options, reporter, provider, outputProvider, measurer),
     ];
 
@@ -188,7 +199,7 @@ abstract class Compiler {
   ///
   /// Override this to mock the backend strategy for testing.
   BackendStrategy createBackendStrategy() {
-    return new JsBackendStrategy(this);
+    return JsBackendStrategy(this);
   }
 
   ResolutionWorldBuilder resolutionWorldBuilderForTesting;
@@ -209,16 +220,16 @@ abstract class Compiler {
   bool get disableTypeInference =>
       options.disableTypeInference || compilationFailed;
 
-  // Compiles the dart script at [uri].
+  // Compiles the dart program as specified in [options].
   //
   // The resulting future will complete with true if the compilation
   // succeeded.
-  Future<bool> run(Uri uri) => selfTask.measureSubtask("run", () {
+  Future<bool> run() => selfTask.measureSubtask("run", () {
         measurer.startWallClock();
 
-        return new Future.sync(() => runInternal(uri))
+        return Future.sync(() => runInternal())
             .catchError((error, StackTrace stackTrace) =>
-                _reporter.onError(uri, error, stackTrace))
+                _reporter.onError(options.compilationTarget, error, stackTrace))
             .whenComplete(() {
           measurer.stopWallClock();
         }).then((_) {
@@ -236,41 +247,60 @@ abstract class Compiler {
     return options.readClosedWorldUri != null && options.readDataUri != null;
   }
 
-  Future runInternal(Uri uri) async {
+  Future runInternal() async {
     clearState();
-    assert(uri != null);
-    reporter.log('Compiling $uri (${options.buildId})');
+    var compilationTarget = options.compilationTarget;
+    assert(compilationTarget != null);
+    reporter.log('Compiling $compilationTarget (${options.buildId})');
+
+    if (options.readProgramSplit != null) {
+      var constraintUri = options.readProgramSplit;
+      var constraintParser = psc.Parser();
+      var programSplitJson = await CompilerFileSystem(provider)
+          .entityForUri(constraintUri)
+          .readAsString();
+      programSplitConstraintsData = constraintParser.read(programSplitJson);
+    }
 
     if (onlyPerformGlobalTypeInference) {
       ir.Component component =
           await serializationTask.deserializeComponentAndUpdateOptions();
-      JsClosedWorld closedWorld =
+      var closedWorldAndIndices =
           await serializationTask.deserializeClosedWorld(
               environment, abstractValueStrategy, component);
+      if (retainDataForTesting) {
+        closedWorldIndicesForTesting = closedWorldAndIndices.indices;
+      }
       GlobalTypeInferenceResults globalTypeInferenceResults =
-          performGlobalTypeInference(closedWorld);
+          performGlobalTypeInference(closedWorldAndIndices.closedWorld);
+      var indices = closedWorldAndIndices.indices;
       if (options.writeDataUri != null) {
         if (options.noClosedWorldInData) {
-          serializationTask
-              .serializeGlobalTypeInference(globalTypeInferenceResults);
+          serializationTask.serializeGlobalTypeInference(
+              globalTypeInferenceResults, indices);
         } else {
           serializationTask
               .serializeGlobalTypeInferenceLegacy(globalTypeInferenceResults);
         }
         return;
       }
-      await generateJavaScriptCode(globalTypeInferenceResults);
+      await generateJavaScriptCode(globalTypeInferenceResults,
+          indices: indices);
     } else if (onlyPerformCodegen) {
       GlobalTypeInferenceResults globalTypeInferenceResults;
       ir.Component component =
           await serializationTask.deserializeComponentAndUpdateOptions();
-      JsClosedWorld closedWorld =
+      var closedWorldAndIndices =
           await serializationTask.deserializeClosedWorld(
               environment, abstractValueStrategy, component);
       globalTypeInferenceResults =
           await serializationTask.deserializeGlobalTypeInferenceResults(
-              environment, abstractValueStrategy, component, closedWorld);
-      await generateJavaScriptCode(globalTypeInferenceResults);
+              environment,
+              abstractValueStrategy,
+              component,
+              closedWorldAndIndices);
+      await generateJavaScriptCode(globalTypeInferenceResults,
+          indices: closedWorldAndIndices.indices);
     } else if (options.readDataUri != null) {
       // TODO(joshualitt) delete and clean up after google3 roll
       var globalTypeInferenceResults =
@@ -278,31 +308,36 @@ abstract class Compiler {
               environment, abstractValueStrategy);
       await generateJavaScriptCode(globalTypeInferenceResults);
     } else {
-      KernelResult result = await kernelLoader.load(uri);
+      KernelResult result = await kernelLoader.load();
       reporter.log("Kernel load complete");
       if (result == null) return;
       if (compilationFailed) {
         return;
       }
+      if (retainDataForTesting) {
+        componentForTesting = result.component;
+      }
       if (options.cfeOnly) return;
 
       frontendStrategy.registerLoadedLibraries(result);
 
-      // TODO(efortuna, sigmund): These validation steps should be done in the
-      // front end for the Kernel path since Kernel doesn't have the notion of
-      // imports (everything has already been resolved). (See
-      // https://github.com/dart-lang/sdk/issues/29368)
-      if (result.libraries.contains(Uris.dart_mirrors)) {
-        reporter.reportWarningMessage(NO_LOCATION_SPANNABLE,
-            MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_WITH_CFE);
+      if (options.modularMode) {
+        await runModularAnalysis(result);
+      } else {
+        List<ModuleData> data;
+        if (options.modularAnalysisInputs != null) {
+          data =
+              await serializationTask.deserializeModuleData(result.component);
+        }
+        frontendStrategy.registerModuleData(data);
+        await compileFromKernel(result.rootLibraryUri, result.libraries);
       }
-
-      await compileFromKernel(result.rootLibraryUri, result.libraries);
     }
   }
 
   void generateJavaScriptCode(
-      GlobalTypeInferenceResults globalTypeInferenceResults) async {
+      GlobalTypeInferenceResults globalTypeInferenceResults,
+      {DataSourceIndices indices}) async {
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
     backendStrategy.registerJClosedWorld(closedWorld);
     phase = PHASE_COMPILING;
@@ -311,18 +346,19 @@ abstract class Compiler {
 
     if (options.readCodegenUri != null) {
       CodegenResults codegenResults =
-          await serializationTask.deserializeCodegen(
-              backendStrategy, globalTypeInferenceResults, codegenInputs);
+          await serializationTask.deserializeCodegen(backendStrategy,
+              globalTypeInferenceResults, codegenInputs, indices);
       reporter.log('Compiling methods');
       runCodegenEnqueuer(codegenResults);
     } else {
       reporter.log('Compiling methods');
-      CodegenResults codegenResults = new OnDemandCodegenResults(
+      CodegenResults codegenResults = OnDemandCodegenResults(
           globalTypeInferenceResults,
           codegenInputs,
           backendStrategy.functionCompiler);
       if (options.writeCodegenUri != null) {
-        serializationTask.serializeCodegen(backendStrategy, codegenResults);
+        serializationTask.serializeCodegen(
+            backendStrategy, codegenResults, indices);
       } else {
         runCodegenEnqueuer(codegenResults);
       }
@@ -361,7 +397,7 @@ abstract class Compiler {
         resolutionEnqueuer.worldBuilder.registerClass(cls);
       });
     }
-    WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
+    WorldImpactBuilderImpl mainImpact = WorldImpactBuilderImpl();
     FunctionEntity mainFunction = frontendStrategy.computeMain(mainImpact);
 
     // In order to see if a library is deferred, we must compute the
@@ -370,8 +406,7 @@ abstract class Compiler {
     // this until after the resolution queue is processed.
     deferredLoadTask.beforeResolution(rootLibraryUri, libraries);
 
-    impactStrategy = new JavaScriptImpactStrategy(
-        impactCacheDeleter, dumpInfoTask,
+    impactStrategy = JavaScriptImpactStrategy(impactCacheDeleter, dumpInfoTask,
         supportDeferredLoad: deferredLoadTask.isProgramSplit,
         supportDumpInfo: options.dumpInfo);
 
@@ -399,14 +434,32 @@ abstract class Compiler {
     return closedWorld;
   }
 
+  void runModularAnalysis(KernelResult result) {
+    _userCodeLocations
+        .addAll(result.moduleLibraries.map((module) => CodeLocation(module)));
+    selfTask.measureSubtask('runModularAnalysis', () {
+      impactStrategy = JavaScriptImpactStrategy(
+          impactCacheDeleter, dumpInfoTask,
+          supportDeferredLoad: true, supportDumpInfo: true);
+      var included = result.moduleLibraries.toSet();
+      var elementMap = (frontendStrategy as KernelFrontendStrategy).elementMap;
+      var moduleData = computeModuleData(result.component, included, options,
+          reporter, environment, elementMap);
+      if (compilationFailed) return;
+      serializationTask.testModuleSerialization(moduleData, result.component);
+      serializationTask.serializeModuleData(
+          moduleData, result.component, included);
+    });
+  }
+
   GlobalTypeInferenceResults performGlobalTypeInference(
       JClosedWorld closedWorld) {
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction;
     reporter.log('Performing global type inference');
     GlobalLocalsMap globalLocalsMap =
-        new GlobalLocalsMap(closedWorld.closureDataLookup.getEnclosingMember);
+        GlobalLocalsMap(closedWorld.closureDataLookup.getEnclosingMember);
     InferredDataBuilder inferredDataBuilder =
-        new InferredDataBuilderImpl(closedWorld.annotationsData);
+        InferredDataBuilderImpl(closedWorld.annotationsData);
     return globalInference.runGlobalTypeInference(
         mainFunction, closedWorld, globalLocalsMap, inferredDataBuilder);
   }
@@ -448,20 +501,30 @@ abstract class Compiler {
     List<int> irData = strategy.unpackAndSerializeComponent(results);
     List<int> closedWorldData =
         strategy.serializeClosedWorld(results.closedWorld);
+    var component = strategy.deserializeComponent(irData);
+    var closedWorldAndIndices = strategy.deserializeClosedWorld(
+        options,
+        reporter,
+        environment,
+        abstractValueStrategy,
+        component,
+        closedWorldData);
     List<int> globalTypeInferenceResultsData =
-        strategy.serializeGlobalTypeInferenceResults(results);
+        strategy.serializeGlobalTypeInferenceResults(
+            closedWorldAndIndices.indices, results);
     return strategy.deserializeGlobalTypeInferenceResults(
         options,
         reporter,
         environment,
         abstractValueStrategy,
-        strategy.deserializeComponent(irData),
-        closedWorldData,
+        component,
+        closedWorldAndIndices.closedWorld,
+        closedWorldAndIndices.indices,
         globalTypeInferenceResultsData);
   }
 
   void compileFromKernel(Uri rootLibraryUri, Iterable<Uri> libraries) {
-    _userCodeLocations.add(new CodeLocation(rootLibraryUri));
+    _userCodeLocations.add(CodeLocation(rootLibraryUri));
     selfTask.measureSubtask("compileFromKernel", () {
       JsClosedWorld closedWorld = selfTask.measureSubtask("computeClosedWorld",
           () => computeClosedWorld(rootLibraryUri, libraries));
@@ -483,8 +546,7 @@ abstract class Compiler {
       if (options.writeDataUri != null) {
         // TODO(joshualitt) delete after google3 roll.
         if (options.noClosedWorldInData) {
-          serializationTask
-              .serializeGlobalTypeInference(globalInferenceResults);
+          throw '"no-closed-world-in-data" requires serializing closed world.';
         } else {
           serializationTask
               .serializeGlobalTypeInferenceLegacy(globalInferenceResults);
@@ -578,7 +640,7 @@ abstract class Compiler {
 
   /// Messages for which compile-time errors are reported but compilation
   /// continues regardless.
-  static const List<MessageKind> BENIGN_ERRORS = const <MessageKind>[
+  static const List<MessageKind> BENIGN_ERRORS = <MessageKind>[
     MessageKind.INVALID_METADATA,
     MessageKind.INVALID_METADATA_GENERIC,
   ];
@@ -626,7 +688,7 @@ abstract class Compiler {
   ///
   /// If [assumeInUserCode] is `true`, [element] is assumed to be in user code
   /// if no entrypoints have been set.
-  bool inUserCode(Entity element, {bool assumeInUserCode: false}) {
+  bool inUserCode(Entity element, {bool assumeInUserCode = false}) {
     if (element == null) return assumeInUserCode;
     Uri libraryUri = _uriFromElement(element);
     if (libraryUri == null) return false;
@@ -647,7 +709,7 @@ abstract class Compiler {
       int slashPos = libraryUri.path.indexOf('/');
       if (slashPos != -1) {
         String packageName = libraryUri.path.substring(0, slashPos);
-        return new Uri(scheme: 'package', path: packageName);
+        return Uri(scheme: 'package', path: packageName);
       }
     }
     return libraryUri;
@@ -720,7 +782,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     SourceSpan span = spanFromSpannable(spannable);
     MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
     Message message = template.message(arguments, options);
-    return new DiagnosticMessage(span, spannable, message);
+    return DiagnosticMessage(span, spannable, message);
   }
 
   @override
@@ -769,8 +831,8 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
               reportDiagnostic(message, infos, kind);
               return;
             }
-            SuppressionInfo info = suppressedWarnings.putIfAbsent(
-                uri, () => new SuppressionInfo());
+            SuppressionInfo info =
+                suppressedWarnings.putIfAbsent(uri, () => SuppressionInfo());
             if (kind == api.Diagnostic.WARNING) {
               info.warnings++;
             } else {
@@ -914,14 +976,14 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     } else if (node is HInstruction) {
       element = node.sourceElement;
     }
-    return element != null ? element : currentElement;
+    return element ?? currentElement;
   }
 
   @override
   void log(message) {
     Message msg = MessageTemplate.TEMPLATES[MessageKind.GENERIC]
         .message({'text': '$message'}, options);
-    reportDiagnostic(new DiagnosticMessage(null, null, msg),
+    reportDiagnostic(DiagnosticMessage(null, null, msg),
         const <DiagnosticMessage>[], api.Diagnostic.VERBOSE_INFO);
   }
 
@@ -942,7 +1004,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
         } else {
           reportDiagnostic(
               createMessage(
-                  new SourceSpan(uri, 0, 0), MessageKind.COMPILER_CRASHED),
+                  SourceSpan(uri, 0, 0), MessageKind.COMPILER_CRASHED),
               const <DiagnosticMessage>[],
               api.Diagnostic.CRASH);
         }
@@ -951,7 +1013,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     } catch (doubleFault) {
       // Ignoring exceptions in exception handling.
     }
-    return new Future.error(error, stackTrace);
+    return Future.error(error, stackTrace);
   }
 
   @override
@@ -976,7 +1038,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
           'hints': info.hints.toString(),
           'uri': uri.toString(),
         }, options);
-        reportDiagnostic(new DiagnosticMessage(null, null, message),
+        reportDiagnostic(DiagnosticMessage(null, null, message),
             const <DiagnosticMessage>[], api.Diagnostic.HINT);
       });
     }
@@ -1026,7 +1088,7 @@ class Progress {
 /// with 500ms intervals.
 class ProgressImpl implements Progress {
   final DiagnosticReporter _reporter;
-  final Stopwatch _stopwatch = new Stopwatch()..start();
+  final Stopwatch _stopwatch = Stopwatch()..start();
 
   ProgressImpl(this._reporter);
 
@@ -1048,8 +1110,8 @@ class ProgressImpl implements Progress {
 /// with 500ms intervals using escape sequences to keep the progress data on a
 /// single line.
 class InteractiveProgress implements Progress {
-  final Stopwatch _stopwatchPhase = new Stopwatch()..start();
-  final Stopwatch _stopwatchInterval = new Stopwatch()..start();
+  final Stopwatch _stopwatchPhase = Stopwatch()..start();
+  final Stopwatch _stopwatchInterval = Stopwatch()..start();
   @override
   void startPhase() {
     print('');
@@ -1062,7 +1124,7 @@ class InteractiveProgress implements Progress {
     if (_stopwatchInterval.elapsedMilliseconds > 500) {
       var time = _stopwatchPhase.elapsedMilliseconds / 1000;
       var rate = count / _stopwatchPhase.elapsedMilliseconds;
-      var s = new StringBuffer('\x1b[1A\x1b[K') // go up and clear the line.
+      var s = StringBuffer('\x1b[1A\x1b[K') // go up and clear the line.
         ..write('\x1b[48;5;40m\x1b[30m==>\x1b[0m $prefix')
         ..write(count)
         ..write('$suffix Elapsed time: ')

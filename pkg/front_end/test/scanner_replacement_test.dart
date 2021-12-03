@@ -14,7 +14,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'scanner_test.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ScannerTest_Replacement);
   });
@@ -89,6 +89,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(error.offset, source.length - 1);
   }
 
+  @override
   void test_lt() {
     // fasta does not automatically insert a closer for '<'
     // because it could be part of an expression rather than an opener
@@ -110,6 +111,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
     _assertOpenClosePair('{ }');
   }
 
+  @override
   void test_open_paren() {
     _assertOpenOnly('(', ')');
   }
@@ -118,6 +120,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
     _assertOpenClosePair('( )');
   }
 
+  @override
   void test_open_square_bracket() {
     _assertOpenOnly('[', ']');
   }

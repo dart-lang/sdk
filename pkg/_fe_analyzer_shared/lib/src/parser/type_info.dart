@@ -8,6 +8,8 @@ import '../scanner/token.dart' show Token, TokenType;
 
 import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN, KEYWORD_TOKEN;
 
+import 'identifier_context.dart';
+
 import 'parser_impl.dart' show Parser;
 
 import 'type_info_impl.dart';
@@ -33,6 +35,11 @@ abstract class TypeInfo {
   /// Returns true if the type represents a function type, i.e. something like
   /// void Function foo(int x);
   bool get isFunctionType;
+
+  /// Returns true if the type has type arguments.
+  bool get hasTypeArguments;
+
+  bool get recovered => false;
 
   /// Call this function when the token after [token] must be a type (not void).
   /// This function will call the appropriate event methods on the [Parser]'s
@@ -142,9 +149,10 @@ bool isValidTypeReference(Token token) {
 /// If [inDeclaration] is `true`, then this will more aggressively recover
 /// given unbalanced `<` `>` and invalid parameters or arguments.
 TypeInfo computeType(final Token token, bool required,
-    [bool inDeclaration = false]) {
+    [bool inDeclaration = false, bool acceptKeywordForSimpleType = false]) {
   Token next = token.next!;
   if (!isValidTypeReference(next)) {
+    // As next is not a valid type reference, this is all recovery.
     if (next.type.isBuiltIn) {
       TypeParamOrArgInfo typeParamOrArg =
           computeTypeParamOrArg(next, inDeclaration);
@@ -152,7 +160,8 @@ TypeInfo computeType(final Token token, bool required,
         // Recovery: built-in `<` ... `>`
         if (required || looksLikeName(typeParamOrArg.skip(next).next!)) {
           return new ComplexTypeInfo(token, typeParamOrArg)
-              .computeBuiltinOrVarAsType(required);
+              .computeBuiltinOrVarAsType(required)
+            ..recovered = true;
         }
       } else if (required || isGeneralizedFunctionType(next.next!)) {
         String? value = next.stringValue;
@@ -162,21 +171,25 @@ TypeInfo computeType(final Token token, bool required,
             !identical('operator', value) &&
             !(identical('typedef', value) && next.next!.isIdentifier))) {
           return new ComplexTypeInfo(token, typeParamOrArg)
-              .computeBuiltinOrVarAsType(required);
+              .computeBuiltinOrVarAsType(required)
+            ..recovered = true;
         }
       }
     } else if (required) {
       // Recovery
       if (optional('.', next)) {
         // Looks like prefixed type missing the prefix
-        return new ComplexTypeInfo(
+        TypeInfo result = new ComplexTypeInfo(
                 token, computeTypeParamOrArg(next, inDeclaration))
             .computePrefixedType(required);
+        if (result is ComplexTypeInfo) result.recovered = true;
+        return result;
       } else if (optional('var', next) &&
           isOneOf(next.next!, const ['<', ',', '>'])) {
         return new ComplexTypeInfo(
                 token, computeTypeParamOrArg(next, inDeclaration))
-            .computeBuiltinOrVarAsType(required);
+            .computeBuiltinOrVarAsType(required)
+          ..recovered = true;
       }
     }
     return noType;
@@ -295,11 +308,15 @@ TypeInfo computeType(final Token token, bool required,
       // identifier `?` Function `(`
       return new ComplexTypeInfo(token, noTypeParamOrArg)
           .computeIdentifierQuestionGFT(required);
-    } else if (required || looksLikeNameSimpleType(next)) {
+    } else if (required || looksLikeName(next)) {
       // identifier `?`
       return simpleNullableType;
     }
-  } else if (required || looksLikeNameSimpleType(next)) {
+  } else if (required ||
+      looksLikeName(next) ||
+      (acceptKeywordForSimpleType &&
+          next.isKeywordOrIdentifier &&
+          isOneOf(next.next!, okNextValueInFormalParameter))) {
     // identifier identifier
     return simpleType;
   }
@@ -364,30 +381,11 @@ TypeParamOrArgInfo computeMethodTypeArguments(Token token) {
 /// indicating that the `<` and `>` should be interpreted as operators (so two
 /// arguments are being passed to `f`: `a < b` and `c > -d`).
 bool mayFollowTypeArgs(Token token) {
+  const Set<String> continuationTokens = {'(', '.', '==', '!='};
+  const Set<String> stopTokens = {')', ']', '}', ';', ':', ','};
   const Set<String> tokensThatMayFollowTypeArg = {
-    '(',
-    ')',
-    ']',
-    '}',
-    ':',
-    ';',
-    ',',
-    '.',
-    '?',
-    '==',
-    '!=',
-    '..',
-    '?.',
-    '??',
-    '?..',
-    '&',
-    '|',
-    '^',
-    '+',
-    '*',
-    '%',
-    '/',
-    '~/'
+    ...continuationTokens,
+    ...stopTokens
   };
   if (token.type == TokenType.EOF) {
     // The spec doesn't have anything to say about this case, since an

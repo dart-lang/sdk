@@ -1,0 +1,13 @@
+import 'typedef_identical_lib.dart';
+
+expect(expected, actual) {}
+main() {}
+typedef H<X, Y> = A<Y>;
+var F_fact = F.fact;
+var F_named = F.named;
+var F_new = F.new;
+var F_redirect = F.redirect;
+var H_fact = H.fact;
+var H_named = H.named;
+var H_new = H.new;
+var H_redirect = H.redirect;

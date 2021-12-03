@@ -23,8 +23,7 @@ class ThisInterfaceType extends ir.InterfaceType {
       : super(classNode, nullability, typeArguments);
 
   factory ThisInterfaceType.from(ir.InterfaceType type) => type != null
-      ? new ThisInterfaceType(
-          type.classNode, type.nullability, type.typeArguments)
+      ? ThisInterfaceType(type.classNode, type.nullability, type.typeArguments)
       : null;
 
   @override
@@ -39,8 +38,7 @@ class ExactInterfaceType extends ir.InterfaceType {
       : super(classNode, nullability, typeArguments);
 
   factory ExactInterfaceType.from(ir.InterfaceType type) => type != null
-      ? new ExactInterfaceType(
-          type.classNode, type.nullability, type.typeArguments)
+      ? ExactInterfaceType(type.classNode, type.nullability, type.typeArguments)
       : null;
 
   @override

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common_elements.dart' show ElementEnvironment, JCommonElements;
-import '../deferred_load/deferred_load.dart';
+import '../deferred_load/output_unit.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/interceptor_data.dart' show InterceptorData;
@@ -72,8 +72,8 @@ class SpecializedChecks {
       }
 
       DartTypes dartTypes = closedWorld.dartTypes;
-      // Top types (here it could be Object in non-NNBD mode) should be constant
-      // folded outside the specializer. This test protects logic below.
+      // Top types should be constant folded outside the specializer. This test
+      // protects logic below.
       if (dartTypes.isTopType(dartType)) return null;
       ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
       if (!dartTypes.isSubtype(

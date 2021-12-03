@@ -93,6 +93,7 @@ class Configuration {
 }
 
 class MessageTestSuite extends ChainContext {
+  @override
   final List<Step> steps = const <Step>[
     const Validate(),
     const Compile(),
@@ -145,6 +146,7 @@ class MessageTestSuite extends ChainContext {
   /// problem that a message can have. This problem will then be reported as a
   /// failure by the [Validate] step that can be suppressed via the status
   /// file.
+  @override
   Stream<MessageTestDescription> list(Chain suite) async* {
     Uri uri = suite.uri.resolve("messages.yaml");
     File file = new File.fromUri(uri);
@@ -216,7 +218,7 @@ class MessageTestSuite extends ChainContext {
         // characters with two characters without actually having the string
         // "backslash n".
         switch (key) {
-          case "template":
+          case "problemMessage":
             spell.SpellingResult spellingResult = spell.spellcheckString(
                 node.span.text.replaceAll(r"\n", "\n\n"),
                 dictionaries: const [
@@ -228,14 +230,14 @@ class MessageTestSuite extends ChainContext {
               spellingMessages.addAll(formatSpellingMistakes(
                   spellingResult,
                   node.span.start.offset,
-                  "Template has the following word that is "
+                  "problemMessage has the following word that is "
                       "not in our dictionary",
-                  "Template has the following word that is "
+                  "problemMessage has the following word that is "
                       "on our deny-list"));
             }
             break;
 
-          case "tip":
+          case "correctionMessage":
             spell.SpellingResult spellingResult = spell.spellcheckString(
                 node.span.text.replaceAll(r"\n", "\n\n"),
                 dictionaries: const [
@@ -247,9 +249,9 @@ class MessageTestSuite extends ChainContext {
               spellingMessages.addAll(formatSpellingMistakes(
                   spellingResult,
                   node.span.start.offset,
-                  "Tip has the following word that is "
+                  "correctionMessage has the following word that is "
                       "not in our dictionary",
-                  "Tip has the following word that is "
+                  "correctionMessage has the following word that is "
                       "on our deny-list"));
             }
             break;
@@ -381,6 +383,19 @@ class MessageTestSuite extends ChainContext {
                   onError: (message) => throw new ArgumentError(message));
             } else {
               throw new ArgumentError("Unknown experiments value: $value.");
+            }
+            break;
+
+          case "documentation":
+            if (value is! String) {
+              throw new ArgumentError(
+                  'documentation should be a string: $value.');
+            }
+            break;
+
+          case "comment":
+            if (value is! String) {
+              throw new ArgumentError('comment should be a string: $value.');
             }
             break;
 
@@ -623,6 +638,7 @@ class ExpressionExample extends Example {
       : expression = node.value,
         super(name, code);
 
+  @override
   Map<String, Script> get scripts {
     return {
       mainFilename: new Script.fromSource("""
@@ -733,14 +749,16 @@ ${preamble}part of "${mainFilename}";
 class Validate extends Step<MessageTestDescription, Example, MessageTestSuite> {
   const Validate();
 
+  @override
   String get name => "validate";
 
+  @override
   Future<Result<Example>> run(
-      MessageTestDescription description, MessageTestSuite suite) async {
+      MessageTestDescription description, MessageTestSuite suite) {
     if (description.problem != null) {
-      return fail(null, description.problem);
+      return new Future.value(fail(null, description.problem));
     } else {
-      return pass(description.example);
+      return new Future.value(pass(description.example));
     }
   }
 }
@@ -748,8 +766,10 @@ class Validate extends Step<MessageTestDescription, Example, MessageTestSuite> {
 class Compile extends Step<Example, Null, MessageTestSuite> {
   const Compile();
 
+  @override
   String get name => "compile";
 
+  @override
   Future<Result<Null>> run(Example example, MessageTestSuite suite) async {
     if (example == null) return pass(null);
     String dir = "${example.expectedCode}/${example.name}";
@@ -829,10 +849,10 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
 }
 
 Future<MessageTestSuite> createContext(
-    Chain suite, Map<String, String> environment) async {
+    Chain suite, Map<String, String> environment) {
   final bool fastOnly = environment["fastOnly"] == "true";
   final bool interactive = environment["interactive"] == "true";
-  return new MessageTestSuite(fastOnly, interactive);
+  return new Future.value(new MessageTestSuite(fastOnly, interactive));
 }
 
 String relativize(Uri uri) {
@@ -869,5 +889,5 @@ class Script {
   }
 }
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../../testing.json");

@@ -9,7 +9,7 @@ type: newworld
 forceLateLoweringForTesting: true
 worlds:
   - entry: main.dart
-    experiments: non-nullable,alternative-invalidation-strategy
+    experiments: alternative-invalidation-strategy
     sources:
       lib1.dart: |
         late int field;

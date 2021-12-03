@@ -63,7 +63,7 @@ static const field self::_FailingTest* failingTest = #C1;
 static method main() → dynamic {
   mir::ClassMirror* classMirror = mir::reflectClass(#C2);
   classMirror.{mir::ClassMirror::instanceMembers}{core::Map<core::Symbol*, mir::MethodMirror*>*}.{core::Map::forEach}((core::Symbol* symbol, mir::MethodMirror* memberMirror) → Null {
-    if(memberMirror.{mir::DeclarationMirror::simpleName}{core::Symbol*} =={core::Symbol::==}{(core::Object*) →* core::bool*} (#C3)) {
+    if(memberMirror.{mir::DeclarationMirror::simpleName}{core::Symbol*} =={core::Symbol::==}{(core::Object*) →* core::bool*} #C3) {
       core::print(memberMirror);
       core::print(self::_hasFailingTestAnnotation(memberMirror));
     }

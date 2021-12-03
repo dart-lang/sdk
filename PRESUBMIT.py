@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -10,10 +11,14 @@ for more details about the presubmit API built into gcl.
 import imp
 import os
 import os.path
+from typing import Callable
 import scm
 import subprocess
 import tempfile
 import platform
+
+USE_PYTHON3 = True
+
 
 def is_cpp_file(path):
     return path.endswith('.cc') or path.endswith('.h')
@@ -68,13 +73,15 @@ def _CheckFormat(input_api,
                  identification,
                  extension,
                  windows,
-                 hasFormatErrors,
+                 hasFormatErrors: Callable[[str, str], bool],
                  should_skip=lambda path: False):
     local_root = input_api.change.RepositoryRoot()
     upstream = input_api.change._upstream
     unformatted_files = []
     for git_file in input_api.AffectedTextFiles():
         if git_file.LocalPath().startswith("pkg/front_end/testcases/"):
+            continue
+        if git_file.LocalPath().startswith("pkg/front_end/parser_testcases/"):
             continue
         if should_skip(git_file.LocalPath()):
             continue
@@ -105,7 +112,6 @@ def _CheckFormat(input_api,
 
 def _CheckDartFormat(input_api, output_api):
     local_root = input_api.change.RepositoryRoot()
-    upstream = input_api.change._upstream
     utils = imp.load_source('utils',
                             os.path.join(local_root, 'tools', 'utils.py'))
 
@@ -119,10 +125,10 @@ def _CheckDartFormat(input_api, output_api):
         print('WARNING: dart not found: %s' % (dart))
         return []
 
-    def HasFormatErrors(filename=None, contents=None):
+    def HasFormatErrors(filename: str = None, contents: str = None):
         # Don't look for formatting errors in multitests. Since those are very
-        # sensitive to whitespace, many cannot be formatted with dartfmt without
-        # breaking them.
+        # sensitive to whitespace, many cannot be reformatted without breaking
+        # them.
         if filename and filename.endswith('_test.dart'):
             with open(filename) as f:
                 contents = f.read()
@@ -135,11 +141,28 @@ def _CheckDartFormat(input_api, output_api):
             '--set-exit-if-changed',
             '--output=none',
             '--summary=none',
-            filename,
         ]
 
-        process = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+        # TODO(https://github.com/dart-lang/sdk/issues/46947): Remove this hack.
+        if windows and contents:
+            f = tempfile.NamedTemporaryFile(
+                encoding='utf-8',
+                delete=False,
+                mode='w',
+                suffix='.dart',
+            )
+            try:
+                f.write(contents)
+                f.close()
+                args.append(f.name)
+                process = subprocess.run(args)
+            finally:
+                os.unlink(f.name)
+        elif contents:
+            process = subprocess.run(args, input=contents, text=True)
+        else:
+            args.append(filename)
+            process = subprocess.run(args)
 
         # Check for exit code 1 explicitly to distinguish it from a syntax error
         # in the file (exit code 65). The repo contains many Dart files that are
@@ -156,10 +179,10 @@ def _CheckDartFormat(input_api, output_api):
             lineSep = " ^\n"
         return [
             output_api.PresubmitError(
-                'File output does not match dartfmt.\n'
+                'File output does not match dart format.\n'
                 'Fix these issues with:\n'
-                '%s -w%s%s' % (prebuilt_dartfmt, lineSep,
-                               lineSep.join(unformatted_files)))
+                '%s format %s%s' %
+                (dart, lineSep, lineSep.join(unformatted_files)))
         ]
 
     return []
@@ -167,7 +190,6 @@ def _CheckDartFormat(input_api, output_api):
 
 def _CheckStatusFiles(input_api, output_api):
     local_root = input_api.change.RepositoryRoot()
-    upstream = input_api.change._upstream
     utils = imp.load_source('utils',
                             os.path.join(local_root, 'tools', 'utils.py'))
 
@@ -188,9 +210,7 @@ def _CheckStatusFiles(input_api, output_api):
 
     def HasFormatErrors(filename=None, contents=None):
         args = [dart, lint] + (['-t'] if contents else [filename])
-        process = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-        process.communicate(input=contents)
+        process = subprocess.run(args, input=contents, text=True)
         return process.returncode != 0
 
     def should_skip(path):
@@ -230,12 +250,8 @@ def _CheckPackageConfigUpToDate(input_api, output_api):
     dart = utils.CheckedInSdkExecutable()
     generate = os.path.join(local_root, 'tools', 'generate_package_config.dart')
     cmd = [dart, generate, '--check']
-    pipe = subprocess.Popen(cmd,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            shell=utils.IsWindows())
-    output = pipe.communicate()
-    if pipe.returncode != 0:
+    result = subprocess.run(cmd, shell=utils.IsWindows())
+    if result.returncode != 0:
         return [
             output_api.PresubmitError(
                 'File .dart_tool/package_config.json is out of date.\n'
@@ -255,7 +271,7 @@ def _CheckValidHostsInDEPS(input_api, output_api):
     try:
         input_api.subprocess.check_output(['gclient', 'verify'])
         return []
-    except input_api.subprocess.CalledProcessError, error:
+    except input_api.subprocess.CalledProcessError as error:
         return [
             output_api.PresubmitError(
                 'DEPS file must have only dependencies from allowed hosts.',

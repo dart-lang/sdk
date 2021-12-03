@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-07-27T19:27:52.638315",
+  "generated": "2021-10-26T10:20:01.277340",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -70,7 +70,7 @@
       "name": "analysis_server",
       "rootUri": "../pkg/analysis_server",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "analysis_server_client",
@@ -82,7 +82,7 @@
       "name": "analyzer",
       "rootUri": "../pkg/analyzer",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "analyzer_cli",
@@ -94,7 +94,7 @@
       "name": "analyzer_plugin",
       "rootUri": "../pkg/analyzer_plugin",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "analyzer_utilities",
@@ -112,7 +112,7 @@
       "name": "async",
       "rootUri": "../third_party/pkg/async",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "async_helper",
@@ -147,6 +147,12 @@
     {
       "name": "build_integration",
       "rootUri": "../pkg/build_integration",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "characters",
+      "rootUri": "../third_party/pkg/characters",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -200,21 +206,27 @@
     },
     {
       "name": "dart2js_info",
-      "rootUri": "../third_party/pkg/dart2js_info",
+      "rootUri": "../pkg/dart2js_info",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.11"
+    },
+    {
+      "name": "dart2js_runtime_metrics",
+      "rootUri": "../pkg/dart2js_runtime_metrics",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
     },
     {
       "name": "dart2js_tools",
       "rootUri": "../pkg/dart2js_tools",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "dart2native",
       "rootUri": "../pkg/dart2native",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.12"
     },
     {
       "name": "dart_internal",
@@ -244,11 +256,17 @@
       "name": "dds",
       "rootUri": "../pkg/dds",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.13"
     },
     {
       "name": "dev_compiler",
       "rootUri": "../pkg/dev_compiler",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "devtools_server",
+      "rootUri": "../third_party/devtools/devtools_server",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -298,7 +316,7 @@
       "name": "front_end",
       "rootUri": "../pkg/front_end",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.13"
     },
     {
       "name": "front_end_testcases",
@@ -333,7 +351,7 @@
       "name": "http",
       "rootUri": "../third_party/pkg/http",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "http_io",
@@ -352,12 +370,6 @@
       "rootUri": "../third_party/pkg/http_parser",
       "packageUri": "lib/",
       "languageVersion": "2.12"
-    },
-    {
-      "name": "http_throttle",
-      "rootUri": "../third_party/pkg/http_throttle",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
     },
     {
       "name": "intl",
@@ -458,13 +470,13 @@
       "name": "native_stack_traces",
       "rootUri": "../pkg/native_stack_traces",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "nnbd_migration",
       "rootUri": "../pkg/nnbd_migration",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "oauth2",
@@ -482,7 +494,7 @@
       "name": "observatory_2",
       "rootUri": "../runtime/observatory_2",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.6"
     },
     {
       "name": "observatory_test_package",
@@ -503,7 +515,7 @@
     {
       "name": "package_deps",
       "rootUri": "../tools/package_deps",
-      "languageVersion": "2.8"
+      "languageVersion": "2.12"
     },
     {
       "name": "path",
@@ -554,12 +566,6 @@
       "languageVersion": "2.12"
     },
     {
-      "name": "resource",
-      "rootUri": "../third_party/pkg/resource",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
-    },
-    {
       "name": "scrape",
       "rootUri": "../pkg/scrape",
       "packageUri": "lib/",
@@ -605,7 +611,7 @@
       "name": "smith",
       "rootUri": "../pkg/smith",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "source_map_stack_trace",
@@ -617,7 +623,7 @@
       "name": "source_maps",
       "rootUri": "../third_party/pkg/source_maps",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "source_span",
@@ -647,7 +653,7 @@
       "name": "status_file",
       "rootUri": "../pkg/status_file",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "stream_channel",
@@ -796,6 +802,12 @@
     {
       "name": "yaml",
       "rootUri": "../third_party/pkg/yaml",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "yaml_edit",
+      "rootUri": "../third_party/pkg/yaml_edit",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     }

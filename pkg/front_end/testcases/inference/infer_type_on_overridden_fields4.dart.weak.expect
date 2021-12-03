@@ -43,7 +43,7 @@ class B extends core::Object implements self::A {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method foo() → dynamic {
-  core::String* y = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_type_on_overridden_fields4.dart:17:68: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  core::String* y = invalid-expression "pkg/front_end/testcases/inference/infer_type_on_overridden_fields4.dart:17:68: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.x*/ x;
                                                                    ^" in new self::B::•().{self::B::x}{core::int*} as{TypeError} core::String*;
   core::int* z = new self::B::•().{self::B::x}{core::int*};

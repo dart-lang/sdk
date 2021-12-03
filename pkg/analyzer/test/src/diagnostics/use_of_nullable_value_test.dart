@@ -505,7 +505,7 @@ m(B b) {
       writeType: 'int',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -518,7 +518,7 @@ m(B b) {
       writeType: 'int?',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -561,7 +561,7 @@ m(B b) {
       writeType: 'int',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int?',
     );
@@ -574,7 +574,7 @@ m(B b) {
       writeType: 'int',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -608,7 +608,7 @@ m(int x, int? y) {
       writeType: 'int',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -621,7 +621,7 @@ m(int x, int? y) {
       writeType: 'int?',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );

@@ -53,115 +53,115 @@ import "dart:core" as core;
 
 static method error(core::Iterable<core::int>? i2, core::List<core::int>? l2, core::Object o1, core::Object? o2) → dynamic {
   {
-    core::Iterator<dynamic> :sync-for-iterator = (let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:9:17: Error: The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
+    core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:9:17: Error: The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
  - 'Iterable' is from 'dart:core'.
   for (int x in i2) x;
-                ^" in let core::Iterable<core::int>? #t2 = i2 in #t2 == null ?{core::Iterable<dynamic>} #t2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t2{core::Iterable<dynamic>}).{core::Iterable::iterator}{core::Iterator<dynamic>};
+                ^" in let core::Iterable<core::int>? #t1 = i2 in #t1 == null ?{core::Iterable<dynamic>} #t1 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t1{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<Never>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      core::int x = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      core::int x = :sync-for-iterator.{core::Iterator::current}{Never};
       x;
     }
   }
   block {
-    final core::List<core::int> #t3 = core::_GrowableList::•<core::int>(0);
+    final core::List<core::int> #t2 = core::_GrowableList::•<core::int>(0);
     {
-      core::Iterator<dynamic> :sync-for-iterator = (let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:10:18: Error: The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
+      core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:10:18: Error: The type 'Iterable<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'Iterable<int>?' is nullable and 'Iterable<dynamic>' isn't.
  - 'Iterable' is from 'dart:core'.
   [for (int x in i2) x];
-                 ^" in let core::Iterable<core::int>? #t5 = i2 in #t5 == null ?{core::Iterable<dynamic>} #t5 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t5{core::Iterable<dynamic>}).{core::Iterable::iterator}{core::Iterator<dynamic>};
+                 ^" in let core::Iterable<core::int>? #t3 = i2 in #t3 == null ?{core::Iterable<dynamic>} #t3 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t3{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<Never>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::int x = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        #t3.{core::List::add}{Invariant}(x){(core::int) → void};
+        core::int x = :sync-for-iterator.{core::Iterator::current}{Never};
+        #t2.{core::List::add}{Invariant}(x){(core::int) → void};
       }
     }
-  } =>#t3;
+  } =>#t2;
   {
-    core::Iterator<dynamic> :sync-for-iterator = (let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:12:17: Error: The type 'List<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'List<int>?' is nullable and 'Iterable<dynamic>' isn't.
+    core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:12:17: Error: The type 'List<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'List<int>?' is nullable and 'Iterable<dynamic>' isn't.
  - 'List' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   for (int x in l2) x;
-                ^" in let core::List<core::int>? #t7 = l2 in #t7 == null ?{core::Iterable<dynamic>} #t7 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t7{core::Iterable<dynamic>}).{core::Iterable::iterator}{core::Iterator<dynamic>};
+                ^" in let core::List<core::int>? #t4 = l2 in #t4 == null ?{core::Iterable<dynamic>} #t4 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t4{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<Never>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      core::int x = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      core::int x = :sync-for-iterator.{core::Iterator::current}{Never};
       x;
+    }
+  }
+  block {
+    final core::List<core::int> #t5 = core::_GrowableList::•<core::int>(0);
+    {
+      core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:13:18: Error: The type 'List<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'List<int>?' is nullable and 'Iterable<dynamic>' isn't.
+ - 'List' is from 'dart:core'.
+ - 'Iterable' is from 'dart:core'.
+  [for (int x in l2) x];
+                 ^" in let core::List<core::int>? #t6 = l2 in #t6 == null ?{core::Iterable<dynamic>} #t6 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t6{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<Never>};
+      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int x = :sync-for-iterator.{core::Iterator::current}{Never};
+        #t5.{core::List::add}{Invariant}(x){(core::int) → void};
+      }
+    }
+  } =>#t5;
+  {
+    core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:15:17: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Object' is from 'dart:core'.
+ - 'Iterable' is from 'dart:core'.
+  for (int x in o1) x;
+                ^" in o1 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final dynamic #t7 = :sync-for-iterator.{core::Iterator::current}{Never};
+      {
+        core::int x = #t7 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+        x;
+      }
     }
   }
   block {
     final core::List<core::int> #t8 = core::_GrowableList::•<core::int>(0);
     {
-      core::Iterator<dynamic> :sync-for-iterator = (let final Never #t9 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:13:18: Error: The type 'List<int>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'List<int>?' is nullable and 'Iterable<dynamic>' isn't.
- - 'List' is from 'dart:core'.
+      core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:16:18: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Object' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
-  [for (int x in l2) x];
-                 ^" in let core::List<core::int>? #t10 = l2 in #t10 == null ?{core::Iterable<dynamic>} #t10 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic> : #t10{core::Iterable<dynamic>}).{core::Iterable::iterator}{core::Iterator<dynamic>};
+  [for (int x in o1) x];
+                 ^" in o1 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::int x = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        #t8.{core::List::add}{Invariant}(x){(core::int) → void};
+        final dynamic #t9 = :sync-for-iterator.{core::Iterator::current}{Never};
+        {
+          core::int x = #t9 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+          #t8.{core::List::add}{Invariant}(x){(core::int) → void};
+        }
       }
     }
   } =>#t8;
   {
-    core::Iterator<dynamic> :sync-for-iterator = (let final Never #t11 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:15:17: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
- - 'Object' is from 'dart:core'.
- - 'Iterable' is from 'dart:core'.
-  for (int x in o1) x;
-                ^" in o1 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final dynamic #t12 = :sync-for-iterator.{core::Iterator::current}{dynamic};
-      {
-        core::int x = #t12 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-        x;
-      }
-    }
-  }
-  block {
-    final core::List<core::int> #t13 = core::_GrowableList::•<core::int>(0);
-    {
-      core::Iterator<dynamic> :sync-for-iterator = (let final Never #t14 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:16:18: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
- - 'Object' is from 'dart:core'.
- - 'Iterable' is from 'dart:core'.
-  [for (int x in o1) x];
-                 ^" in o1 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t15 = :sync-for-iterator.{core::Iterator::current}{dynamic};
-        {
-          core::int x = #t15 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-          #t13.{core::List::add}{Invariant}(x){(core::int) → void};
-        }
-      }
-    }
-  } =>#t13;
-  {
-    core::Iterator<dynamic> :sync-for-iterator = (let final Never #t16 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:18:17: Error: The type 'Object?' used in the 'for' loop must implement 'Iterable<dynamic>'.
+    core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:18:17: Error: The type 'Object?' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Object' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   for (int x in o2) x;
-                ^" in o2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+                ^" in o2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final dynamic #t17 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      final dynamic #t10 = :sync-for-iterator.{core::Iterator::current}{Never};
       {
-        core::int x = #t17 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+        core::int x = #t10 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
         x;
       }
     }
   }
   block {
-    final core::List<core::int> #t18 = core::_GrowableList::•<core::int>(0);
+    final core::List<core::int> #t11 = core::_GrowableList::•<core::int>(0);
     {
-      core::Iterator<dynamic> :sync-for-iterator = (let final Never #t19 = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:19:18: Error: The type 'Object?' used in the 'for' loop must implement 'Iterable<dynamic>'.
+      core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/nnbd/forin.dart:19:18: Error: The type 'Object?' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Object' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   [for (int x in o2) x];
-                 ^" in o2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+                 ^" in o2 as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t20 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        final dynamic #t12 = :sync-for-iterator.{core::Iterator::current}{Never};
         {
-          core::int x = #t20 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-          #t18.{core::List::add}{Invariant}(x){(core::int) → void};
+          core::int x = #t12 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+          #t11.{core::List::add}{Invariant}(x){(core::int) → void};
         }
       }
     }
-  } =>#t18;
+  } =>#t11;
 }
 static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic d) → dynamic {
   {
@@ -172,15 +172,15 @@ static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic
     }
   }
   block {
-    final core::List<core::int> #t21 = core::_GrowableList::•<core::int>(0);
+    final core::List<core::int> #t13 = core::_GrowableList::•<core::int>(0);
     {
       core::Iterator<core::int> :sync-for-iterator = i1.{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int x = :sync-for-iterator.{core::Iterator::current}{core::int};
-        #t21.{core::List::add}{Invariant}(x){(core::int) → void};
+        #t13.{core::List::add}{Invariant}(x){(core::int) → void};
       }
     }
-  } =>#t21;
+  } =>#t13;
   {
     core::Iterator<core::int> :sync-for-iterator = l1.{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -189,37 +189,37 @@ static method ok(core::Iterable<core::int> i1, core::List<core::int> l1, dynamic
     }
   }
   block {
-    final core::List<core::int> #t22 = core::_GrowableList::•<core::int>(0);
+    final core::List<core::int> #t14 = core::_GrowableList::•<core::int>(0);
     {
       core::Iterator<core::int> :sync-for-iterator = l1.{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         core::int x = :sync-for-iterator.{core::Iterator::current}{core::int};
-        #t22.{core::List::add}{Invariant}(x){(core::int) → void};
+        #t14.{core::List::add}{Invariant}(x){(core::int) → void};
       }
     }
-  } =>#t22;
+  } =>#t14;
   {
     core::Iterator<dynamic> :sync-for-iterator = (d as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final dynamic #t23 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      final dynamic #t15 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
-        core::int x = #t23 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+        core::int x = #t15 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
         x;
       }
     }
   }
   block {
-    final core::List<core::int> #t24 = core::_GrowableList::•<core::int>(0);
+    final core::List<core::int> #t16 = core::_GrowableList::•<core::int>(0);
     {
       core::Iterator<dynamic> :sync-for-iterator = (d as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t25 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        final dynamic #t17 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          core::int x = #t25 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-          #t24.{core::List::add}{Invariant}(x){(core::int) → void};
+          core::int x = #t17 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+          #t16.{core::List::add}{Invariant}(x){(core::int) → void};
         }
       }
     }
-  } =>#t24;
+  } =>#t16;
 }
 static method main() → dynamic {}

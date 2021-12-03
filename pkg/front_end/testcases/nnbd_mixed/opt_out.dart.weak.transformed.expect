@@ -172,7 +172,7 @@ static method errors() → dynamic {
   invalid-expression "pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:36:6: Error: Expected an identifier, but got ''.
 Try inserting an identifier before ''.
   c?..f;
-     ^"{dynamic}.f;
+     ^"{<invalid>}.f;
   let final dynamic #t3 = c in #t3 == null ?{dynamic} null : #t3{dynamic}.[](0);
 }
 

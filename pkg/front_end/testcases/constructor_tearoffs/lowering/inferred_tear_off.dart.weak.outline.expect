@@ -17,7 +17,7 @@ class A extends core::Object {
 }
 class B<T extends core::Object? = dynamic> extends core::Object implements self::A {
   field core::int field1;
-  generic-covariant-impl field self::B::T% field2;
+  covariant-by-class field self::B::T% field2;
   constructor •(core::int field1, self::B::T% field2) → self::B<self::B::T%>
     ;
   constructor named(core::int field1, self::B::T% field2) → self::B<self::B::T%>

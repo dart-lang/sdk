@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /// An entrypoint used to run portions of fasta and measure its performance.
 library front_end.tool.fasta_perf;
 
@@ -20,6 +18,7 @@ import 'package:args/args.dart';
 
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/fasta/source/diet_parser.dart';
 import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
@@ -31,7 +30,7 @@ int inputSize = 0;
 /// Cumulative time spent scanning.
 Stopwatch scanTimer = new Stopwatch();
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
   var options = argParser.parse(args);
   if (options.rest.length != 2) {
@@ -44,7 +43,7 @@ main(List<String> args) async {
 
   await setup(entryUri);
 
-  Map<Uri, List<int>> files = await scanReachableFiles(entryUri);
+  Map<Uri, List<int>> files = scanReachableFiles(entryUri);
   var handlers = {
     'scan': () async => scanFiles(files),
     // TODO(sigmund): enable when we can run the ast-builder standalone.
@@ -79,7 +78,7 @@ main(List<String> args) async {
 Uri sdkRoot = Uri.base.resolve("sdk/");
 
 /// Translates `dart:*` and `package:*` URIs to resolved URIs.
-UriTranslator uriResolver;
+late UriTranslator uriResolver;
 
 /// Preliminary set up to be able to correctly resolve URIs on the given
 /// program.
@@ -114,7 +113,7 @@ void scanFiles(Map<Uri, List<int>> files) {
 
 /// Load and scans all files we need to process: files reachable from the
 /// entrypoint and all core libraries automatically included by the VM.
-Future<Map<Uri, List<int>>> scanReachableFiles(Uri entryUri) async {
+Map<Uri, List<int>> scanReachableFiles(Uri entryUri) {
   var files = <Uri, List<int>>{};
   var loadTimer = new Stopwatch()..start();
   scanTimer = new Stopwatch();
@@ -135,7 +134,7 @@ Future<Map<Uri, List<int>>> scanReachableFiles(Uri entryUri) async {
     Uri.parse('dart:typed_data'),
   ];
   for (var entry in entrypoints) {
-    await collectSources(entry, files);
+    collectSources(entry, files);
   }
   loadTimer.stop();
 
@@ -152,9 +151,10 @@ Future<Map<Uri, List<int>>> scanReachableFiles(Uri entryUri) async {
 }
 
 /// Add to [files] all sources reachable from [start].
-Future<Null> collectSources(Uri start, Map<Uri, List<int>> files) async {
-  helper(Uri uri) {
+void collectSources(Uri start, Map<Uri, List<int>> files) {
+  void helper(Uri uri) {
     uri = uriResolver.translate(uri) ?? uri;
+    // ignore: unnecessary_null_comparison
     if (uri == null) return;
     if (files.containsKey(uri)) return;
     var contents = readBytesFromFileSync(uri);
@@ -171,11 +171,13 @@ Future<Null> collectSources(Uri start, Map<Uri, List<int>> files) async {
 /// import, export, and part directives.
 Set<String> extractDirectiveUris(List<int> contents) {
   var listener = new DirectiveListenerWithNative();
-  new TopLevelParser(listener).parseUnit(tokenize(contents));
+  new TopLevelParser(listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe)
+      .parseUnit(tokenize(contents));
   return new Set<String>()
-    ..addAll(listener.imports.map((directive) => directive.uri))
-    ..addAll(listener.exports.map((directive) => directive.uri))
-    ..addAll(listener.parts);
+    ..addAll(listener.imports.map((directive) => directive.uri!))
+    ..addAll(listener.exports.map((directive) => directive.uri!))
+    ..addAll(listener.parts.map((uri) => uri!));
 }
 
 class DirectiveListenerWithNative extends DirectiveListener {
@@ -200,9 +202,10 @@ void parseFiles(Map<Uri, List<int>> files) {
 }
 
 /// Parse the full body of [source].
-parseFull(Uri uri, List<int> source) {
+void parseFull(Uri uri, List<int> source) {
   var tokens = tokenize(source);
-  Parser parser = new Parser(new _PartialAstBuilder(uri));
+  Parser parser = new Parser(new _PartialAstBuilder(uri),
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
   parser.parseUnit(tokens);
 }
 
@@ -210,14 +213,15 @@ parseFull(Uri uri, List<int> source) {
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
   _PartialAstBuilder(Uri uri)
-      : super(null, null, true, FeatureSet.latestLanguageVersion(), uri);
+      : super(null, uri, true, FeatureSet.latestLanguageVersion(), uri);
 }
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]
-generateKernel(Uri entryUri, {bool compileSdk: true}) async {
+Future<CompilerResult> generateKernel(Uri entryUri,
+    {bool compileSdk: true}) async {
   // TODO(sigmund): this is here only to compute the input size,
   // we should extract the input size from the frontend instead.
-  await scanReachableFiles(entryUri);
+  scanReachableFiles(entryUri);
 
   var timer = new Stopwatch()..start();
   var options = new CompilerOptions()

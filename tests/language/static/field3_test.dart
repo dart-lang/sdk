@@ -14,11 +14,11 @@ main() {
     var x = Foo.x;
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.STATIC_ACCESS_TO_INSTANCE_MEMBER
-    // [cfe] Getter not found: 'x'.
+    // [cfe] Member not found: 'x'.
     var m = Foo.m;
     //          ^
     // [analyzer] COMPILE_TIME_ERROR.STATIC_ACCESS_TO_INSTANCE_MEMBER
-    // [cfe] Getter not found: 'm'.
+    // [cfe] Member not found: 'm'.
     Foo.m = 1;
     //  ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER

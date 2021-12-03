@@ -23,7 +23,7 @@ const List<String> idTests = <String>[
   'pkg/front_end/test/static_types/static_type_test.dart',
 ];
 
-main() async {
+Future<void> main() async {
   // Update all tests based on expectation files.
   await expectations.main(const <String>[]);
 

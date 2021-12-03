@@ -1739,6 +1739,17 @@ void f(bool p, bool p2, bool p3) {
 ''');
   }
 
+  Future<void> test_target_topLevelVariable() async {
+    await indexTestUnit(r'''
+int get test => 42;
+var a = test;
+''');
+    _createRefactoring('test =>');
+    return _assertSuccessfulRefactoring(r'''
+var a = 42;
+''');
+  }
+
   Future _assertConditionsError(String message) async {
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,

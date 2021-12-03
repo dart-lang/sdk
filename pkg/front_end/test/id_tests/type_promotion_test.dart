@@ -8,12 +8,11 @@ import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
-import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Variance;
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/flow_analysis/type_promotion/'
           'data'));
@@ -35,6 +34,7 @@ class TypePromotionDataComputer extends DataComputer<DartType> {
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.
+  @override
   void computeMemberData(
       TestConfig config,
       InternalCompilerResult compilerResult,

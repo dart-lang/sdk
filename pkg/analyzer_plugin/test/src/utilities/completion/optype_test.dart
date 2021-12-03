@@ -240,6 +240,27 @@ class A {
         completionLocation: 'ArgumentList_constructor_named', namedArgs: true);
   }
 
+  Future<void> test_argumentList_inLineComment() async {
+    addTestSource('''
+void f() {
+  g(0, // ^
+  );
+}
+void g() {}
+''');
+    await assertOpType(/* No valid completions */);
+  }
+
+  Future<void> test_argumentList_inStarComment() async {
+    addTestSource('''
+void f() {
+  g(0, /*^*/);
+}
+void g() {}
+''');
+    await assertOpType(/* No valid completions */);
+  }
+
   Future<void> test_argumentList_method_resolved_1_0() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('main() { foo(^);} foo({one, two}) {}');
@@ -1418,21 +1439,21 @@ int x = E(^);
     // SimpleIdentifier  FunctionDeclaration  CompilationUnit
     addTestSource('const ^Fara();');
     await assertOpType(
-        completionLocation: 'CompilationUnit_declaration', typeNames: true);
+        completionLocation: 'CompilationUnit_directive', typeNames: true);
   }
 
   Future<void> test_functionDeclaration_name2() async {
     // SimpleIdentifier  FunctionDeclaration  CompilationUnit
     addTestSource('const F^ara();');
     await assertOpType(
-        completionLocation: 'CompilationUnit_declaration', typeNames: true);
+        completionLocation: 'CompilationUnit_directive', typeNames: true);
   }
 
   Future<void> test_functionDeclaration_returnType() async {
     // CompilationUnit
     addTestSource('^ zoo(z) { } String name;');
     await assertOpType(
-        completionLocation: 'CompilationUnit_declaration', typeNames: true);
+        completionLocation: 'CompilationUnit_directive', typeNames: true);
   }
 
   Future<void> test_functionDeclaration_returnType_afterLineComment() async {
@@ -1441,7 +1462,7 @@ int x = E(^);
       // normal comment
       ^ zoo(z) {} String name;''');
     await assertOpType(
-        completionLocation: 'CompilationUnit_declaration', typeNames: true);
+        completionLocation: 'CompilationUnit_directive', typeNames: true);
   }
 
   Future<void> test_functionDeclaration_returnType_afterLineComment2() async {
@@ -1451,7 +1472,7 @@ int x = E(^);
 // normal comment
 ^ zoo(z) {} String name;''');
     await assertOpType(
-        completionLocation: 'CompilationUnit_declaration', typeNames: true);
+        completionLocation: 'CompilationUnit_directive', typeNames: true);
   }
 
   Future<void> test_functionDeclaration_returnType_afterLineDocComment() async {
@@ -1479,14 +1500,14 @@ int x = E(^);
     // CompilationUnit
     addTestSource('/* */ ^ zoo(z) { } String name;');
     await assertOpType(
-        completionLocation: 'CompilationUnit_declaration', typeNames: true);
+        completionLocation: 'CompilationUnit_directive', typeNames: true);
   }
 
   Future<void> test_functionDeclaration_returnType_afterStarComment2() async {
     // CompilationUnit
     addTestSource('/* */^ zoo(z) { } String name;');
     await assertOpType(
-        completionLocation: 'CompilationUnit_declaration', typeNames: true);
+        completionLocation: 'CompilationUnit_directive', typeNames: true);
   }
 
   Future<void> test_functionDeclaration_returnType_afterStarDocComment() async {
@@ -2539,7 +2560,7 @@ main() {
     // TopLevelVariableDeclaration
     addTestSource('^ foo;');
     await assertOpType(
-        completionLocation: 'CompilationUnit_declaration', typeNames: true);
+        completionLocation: 'CompilationUnit_directive', typeNames: true);
   }
 
   Future<void> test_topLevelVariableDeclaration_type_no_semicolon() async {
@@ -2547,7 +2568,7 @@ main() {
     // TopLevelVariableDeclaration
     addTestSource('^ foo');
     await assertOpType(
-        completionLocation: 'CompilationUnit_declaration', typeNames: true);
+        completionLocation: 'CompilationUnit_directive', typeNames: true);
   }
 
   Future<void> test_topLevelVariableDeclaration_typed_name() async {

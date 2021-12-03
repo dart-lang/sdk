@@ -16,7 +16,6 @@
 #include "bin/dfe.h"
 #include "bin/error_exit.h"
 #include "bin/eventhandler.h"
-#include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/gzip.h"
 #include "bin/isolate_data.h"
@@ -238,11 +237,6 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
     }
   }
 
-  if (isolate_run_app_snapshot) {
-    result = Loader::ReloadNativeExtensions();
-    if (Dart_IsError(result)) goto failed;
-  }
-
   Dart_ExitScope();
   return true;
 
@@ -325,11 +319,6 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   if (isolate_run_app_snapshot) {
-    Dart_Handle result = Loader::ReloadNativeExtensions();
-    CHECK_RESULT(result);
-  }
-
-  if (isolate_run_app_snapshot) {
     Dart_Handle result = Loader::InitForSnapshot(script_uri, isolate_data);
     CHECK_RESULT(result);
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -369,10 +358,15 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
-  if (Options::gen_snapshot_kind() == kAppJIT) {
+  if (Options::gen_snapshot_kind() == kAppJIT && !isolate_run_app_snapshot) {
     // If we sort, we must do it for all isolates, not just the main isolate,
     // otherwise isolates related by spawnFunction will disagree on CIDs and
-    // cannot correctly send each other messages.
+    // cannot correctly send each other messages. If we run from an app
+    // snapshot, things are already sorted, and other isolate created by
+    // spawnFunction will also load from the same snapshot. Sorting such isolate
+    // is counter-productive because it invalidates their code.
+    // After we switch to always using isolate groups, this be changed to
+    // `generating-app-jit && is_main_isolate`.
     result = Dart_SortClasses();
     CHECK_RESULT(result);
   }
@@ -437,8 +431,9 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
   AppSnapshot* app_snapshot = NULL;
   // Kernel isolate uses an app snapshot or uses the dill file.
   if ((kernel_snapshot_uri != NULL) &&
-      (app_snapshot = Snapshot::TryReadAppSnapshot(kernel_snapshot_uri)) !=
-          NULL) {
+      (app_snapshot = Snapshot::TryReadAppSnapshot(
+           kernel_snapshot_uri, /*force_load_elf_from_memory=*/false,
+           /*decode_uri=*/false)) != nullptr) {
     const uint8_t* isolate_snapshot_data = NULL;
     const uint8_t* isolate_snapshot_instructions = NULL;
     const uint8_t* ignore_vm_snapshot_data;
@@ -544,7 +539,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   CHECK_RESULT(result);
 
   int vm_service_server_port = INVALID_VM_SERVICE_SERVER_PORT;
-  if (Options::disable_dart_dev()) {
+  if (Options::disable_dart_dev() || Options::disable_dds()) {
     vm_service_server_port = Options::vm_service_server_port();
   } else if (Options::vm_service_server_port() !=
              INVALID_VM_SERVICE_SERVER_PORT) {
@@ -555,12 +550,14 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   // the following scenarios:
   // - The DartDev CLI is disabled (CLI isolate starts DDS) and VM service is
   //   enabled.
+  // - DDS is disabled.
   // TODO(bkonyi): do we want to tie DevTools / DDS to the CLI in the long run?
-  bool wait_for_dds_to_advertise_service = !Options::disable_dart_dev();
+  bool wait_for_dds_to_advertise_service =
+      !(Options::disable_dart_dev() || Options::disable_dds());
   // Load embedder specific bits and return.
   if (!VmService::Setup(
-          Options::disable_dart_dev() ? Options::vm_service_server_ip()
-                                      : DEFAULT_VM_SERVICE_SERVER_IP,
+          !wait_for_dds_to_advertise_service ? Options::vm_service_server_ip()
+                                             : DEFAULT_VM_SERVICE_SERVER_IP,
           vm_service_server_port, Options::vm_service_dev_mode(),
           Options::vm_service_auth_disabled(),
           Options::vm_write_service_info_filename(), Options::trace_loading(),
@@ -607,8 +604,9 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
   AppSnapshot* app_snapshot = nullptr;
   bool isolate_run_app_snapshot = true;
   if (dartdev_path.get() != nullptr &&
-      (app_snapshot = Snapshot::TryReadAppSnapshot(dartdev_path.get())) !=
-          nullptr) {
+      (app_snapshot = Snapshot::TryReadAppSnapshot(
+           dartdev_path.get(), /*force_load_elf_from_memory=*/false,
+           /*decode_uri=*/false)) != nullptr) {
     const uint8_t* isolate_snapshot_data = NULL;
     const uint8_t* isolate_snapshot_instructions = NULL;
     const uint8_t* ignore_vm_snapshot_data;
@@ -617,8 +615,8 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
         &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
         &isolate_snapshot_data, &isolate_snapshot_instructions);
     isolate_group_data =
-        new IsolateGroupData(dartdev_path.get(), packages_config, app_snapshot,
-                             isolate_run_app_snapshot);
+        new IsolateGroupData(DART_DEV_ISOLATE_NAME, packages_config,
+                             app_snapshot, isolate_run_app_snapshot);
     isolate_data = new IsolateData(isolate_group_data);
     isolate = Dart_CreateIsolateGroup(
         DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, isolate_snapshot_data,
@@ -646,7 +644,7 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
       uint8_t* application_kernel_buffer = NULL;
       intptr_t application_kernel_buffer_size = 0;
       dfe.ReadScript(dartdev_path.get(), &application_kernel_buffer,
-                     &application_kernel_buffer_size);
+                     &application_kernel_buffer_size, /*decode_uri=*/false);
       isolate_group_data->SetKernelBufferNewlyOwned(
           application_kernel_buffer, application_kernel_buffer_size);
 
@@ -928,6 +926,19 @@ static void EmbedderInformationCallback(Dart_EmbedderInformation* info) {
 void RunMainIsolate(const char* script_name,
                     const char* package_config_override,
                     CommandLineOptions* dart_options) {
+  if (script_name != NULL) {
+    const char* base_name = strrchr(script_name, '/');
+    if (base_name == NULL) {
+      base_name = script_name;
+    } else {
+      base_name++;  // Skip '/'.
+    }
+    const intptr_t kMaxNameLength = 64;
+    char name[kMaxNameLength];
+    Utils::SNPrint(name, kMaxNameLength, "dart:%s", base_name);
+    Platform::SetProcessName(name);
+  }
+
   // Call CreateIsolateGroupAndSetup which creates an isolate and loads up
   // the specified application script.
   char* error = NULL;
@@ -1157,6 +1168,8 @@ void main(int argc, char** argv) {
         }
         Platform::Exit(0);
       } else {
+        // This usage error case will only be invoked when
+        // Options::disable_dart_dev() is false.
         Options::PrintUsage();
         Platform::Exit(kErrorExitCode);
       }

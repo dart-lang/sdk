@@ -28,8 +28,9 @@ class FreeListElement {
 
   void set_next(FreeListElement* next) { next_ = next; }
 
-  intptr_t HeapSize() {
-    intptr_t size = UntaggedObject::SizeTag::decode(tags_);
+  intptr_t HeapSize() { return HeapSize(tags_); }
+  intptr_t HeapSize(uword tags) {
+    intptr_t size = UntaggedObject::SizeTag::decode(tags);
     if (size != 0) return size;
     return *SizeAddress();
   }

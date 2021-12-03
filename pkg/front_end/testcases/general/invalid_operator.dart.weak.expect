@@ -564,37 +564,37 @@ library;
 // Try adding explicit types.
 //   operator ==<T>(a) => true;
 //            ^^
-// sdk/lib/_internal/vm/lib/object_patch.dart:26:17: Context: This is one of the overridden members.
-//   bool operator ==(Object other) native "Object_equals";
-//                 ^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:29:26: Context: This is one of the overridden members.
+//   external bool operator ==(Object other);
+//                          ^^
 //
 // pkg/front_end/testcases/general/invalid_operator.dart:6:12: Error: The method 'Operators1.==' has fewer positional arguments than those of overridden method 'Object.=='.
 //   operator ==() => true;
 //            ^
-// sdk/lib/_internal/vm/lib/object_patch.dart:26:17: Context: This is the overridden method ('==').
-//   bool operator ==(Object other) native "Object_equals";
-//                 ^
+// sdk/lib/_internal/vm/lib/object_patch.dart:29:26: Context: This is the overridden method ('==').
+//   external bool operator ==(Object other);
+//                          ^
 //
 // pkg/front_end/testcases/general/invalid_operator.dart:27:12: Error: The method 'Operators2.==' has more required arguments than those of overridden method 'Object.=='.
 //   operator ==(a, b) => true;
 //            ^
-// sdk/lib/_internal/vm/lib/object_patch.dart:26:17: Context: This is the overridden method ('==').
-//   bool operator ==(Object other) native "Object_equals";
-//                 ^
+// sdk/lib/_internal/vm/lib/object_patch.dart:29:26: Context: This is the overridden method ('==').
+//   external bool operator ==(Object other);
+//                          ^
 //
 // pkg/front_end/testcases/general/invalid_operator.dart:71:12: Error: The method 'Operators4.==' has fewer positional arguments than those of overridden method 'Object.=='.
 //   operator ==({a}) => true;
 //            ^
-// sdk/lib/_internal/vm/lib/object_patch.dart:26:17: Context: This is the overridden method ('==').
-//   bool operator ==(Object other) native "Object_equals";
-//                 ^
+// sdk/lib/_internal/vm/lib/object_patch.dart:29:26: Context: This is the overridden method ('==').
+//   external bool operator ==(Object other);
+//                          ^
 //
 // pkg/front_end/testcases/general/invalid_operator.dart:137:12: Error: Declared type variables of 'Operators7.==' doesn't match those on overridden method 'Object.=='.
 //   operator ==<T>(a) => true;
 //            ^
-// sdk/lib/_internal/vm/lib/object_patch.dart:26:17: Context: This is the overridden method ('==').
-//   bool operator ==(Object other) native "Object_equals";
-//                 ^
+// sdk/lib/_internal/vm/lib/object_patch.dart:29:26: Context: This is the overridden method ('==').
+//   external bool operator ==(Object other);
+//                          ^
 //
 import self as self;
 import "dart:core" as core;

@@ -273,6 +273,7 @@ class Thread : public ThreadState {
     kSweeperTask = 0x8,
     kCompactorTask = 0x10,
     kScavengerTask = 0x20,
+    kSampleBlockTask = 0x40,
   };
   // Converts a TaskKind to its corresponding C-String name.
   static const char* TaskKindToCString(TaskKind kind);
@@ -281,15 +282,7 @@ class Thread : public ThreadState {
 
   // The currently executing thread, or NULL if not yet initialized.
   static Thread* Current() {
-#if defined(HAS_C11_THREAD_LOCAL)
     return static_cast<Thread*>(OSThread::CurrentVMThread());
-#else
-    BaseThread* thread = OSThread::GetCurrentTLS();
-    if (thread == NULL || thread->is_os_thread()) {
-      return NULL;
-    }
-    return static_cast<Thread*>(thread);
-#endif
   }
 
   // Makes the current thread enter 'isolate'.
@@ -444,6 +437,10 @@ class Thread : public ThreadState {
   void EnterApiScope();
   void ExitApiScope();
 
+  static intptr_t double_truncate_round_supported_offset() {
+    return OFFSET_OF(Thread, double_truncate_round_supported_);
+  }
+
   // The isolate that this thread is operating on, or nullptr if none.
   Isolate* isolate() const { return isolate_; }
   static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
@@ -523,6 +520,10 @@ class Thread : public ThreadState {
     ASSERT(no_callback_scope_depth_ > 0);
     no_callback_scope_depth_ -= 1;
   }
+
+  bool is_unwind_in_progress() const { return is_unwind_in_progress_; }
+
+  void StartUnwindError() { is_unwind_in_progress_ = true; }
 
 #if defined(DEBUG)
   void EnterCompiler() {
@@ -688,9 +689,15 @@ class Thread : public ThreadState {
   static intptr_t unboxed_int64_runtime_arg_offset() {
     return OFFSET_OF(Thread, unboxed_int64_runtime_arg_);
   }
-
-  GrowableObjectArrayPtr pending_functions();
-  void clear_pending_functions();
+  double unboxed_double_runtime_arg() const {
+    return unboxed_double_runtime_arg_;
+  }
+  void set_unboxed_double_runtime_arg(double value) {
+    unboxed_double_runtime_arg_ = value;
+  }
+  static intptr_t unboxed_double_runtime_arg_offset() {
+    return OFFSET_OF(Thread, unboxed_double_runtime_arg_);
+  }
 
   static intptr_t global_object_pool_offset() {
     return OFFSET_OF(Thread, global_object_pool_);
@@ -1049,11 +1056,12 @@ class Thread : public ThreadState {
   MarkingStackBlock* marking_stack_block_;
   MarkingStackBlock* deferred_marking_stack_block_;
   uword volatile vm_tag_;
-  // Memory location dedicated for passing unboxed int64 values from
-  // generated code to runtime.
+  // Memory locations dedicated for passing unboxed int64 and double
+  // values from generated code to runtime.
   // TODO(dartbug.com/33549): Clean this up when unboxed values
   // could be passed as arguments.
   ALIGN8 int64_t unboxed_int64_runtime_arg_;
+  ALIGN8 double unboxed_double_runtime_arg_;
 
 // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
@@ -1077,6 +1085,7 @@ class Thread : public ThreadState {
   // JumpToExceptionHandler state:
   ObjectPtr active_exception_;
   ObjectPtr active_stacktrace_;
+
   ObjectPoolPtr global_object_pool_;
   uword resume_pc_;
   uword saved_shadow_call_stack_ = 0;
@@ -1086,6 +1095,7 @@ class Thread : public ThreadState {
   TypedDataPtr ffi_callback_stack_return_;
   uword exit_through_ffi_ = 0;
   ApiLocalScope* api_top_scope_;
+  uint8_t double_truncate_round_supported_;
 
   // ---- End accessed from generated code. ----
 
@@ -1118,7 +1128,6 @@ class Thread : public ThreadState {
   CompilerState* compiler_state_ = nullptr;
   HierarchyInfo* hierarchy_info_;
   TypeUsageInfo* type_usage_info_;
-  GrowableObjectArrayPtr pending_functions_;
 
   CompilerTimings* compiler_timings_ = nullptr;
 
@@ -1176,6 +1185,8 @@ class Thread : public ThreadState {
 
   Thread* next_;  // Used to chain the thread structures in an isolate.
   bool is_mutator_thread_ = false;
+
+  bool is_unwind_in_progress_ = false;
 
 #if defined(DEBUG)
   bool inside_compiler_ = false;

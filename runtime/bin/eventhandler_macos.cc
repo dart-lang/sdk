@@ -19,6 +19,7 @@
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/lockers.h"
+#include "bin/process.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
@@ -228,6 +229,9 @@ void EventHandlerImplementation::HandleInterruptFd() {
       } else if (IS_COMMAND(msg[i].data, kCloseCommand)) {
         // Close the socket and free system resources and move on to next
         // message.
+        if (IS_SIGNAL_SOCKET(msg[i].data)) {
+          Process::ClearSignalHandlerByFd(di->fd(), socket->isolate_port());
+        }
         intptr_t old_mask = di->Mask();
         Dart_Port port = msg[i].dart_port;
         if (port != ILLEGAL_PORT) {

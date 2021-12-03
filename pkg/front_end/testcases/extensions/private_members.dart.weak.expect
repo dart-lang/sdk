@@ -14,15 +14,15 @@ library;
 //   expect(237, PublicExtension("")._privateMethod2());
 //                                   ^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/private_members.dart:27:14: Error: Getter not found: '_PrivateExtension'.
+// pkg/front_end/testcases/extensions/private_members.dart:27:14: Error: Undefined name '_PrivateExtension'.
 //   expect(24, _PrivateExtension.publicStaticMethod1());
 //              ^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/private_members.dart:28:14: Error: Getter not found: '_PrivateExtension'.
+// pkg/front_end/testcases/extensions/private_members.dart:28:14: Error: Undefined name '_PrivateExtension'.
 //   expect(78, _PrivateExtension._privateStaticMethod1());
 //              ^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/private_members.dart:29:31: Error: Method not found: 'PublicExtension._privateStaticMethod2'.
+// pkg/front_end/testcases/extensions/private_members.dart:29:31: Error: Member not found: 'PublicExtension._privateStaticMethod2'.
 //   expect(732, PublicExtension._privateStaticMethod2());
 //                               ^^^^^^^^^^^^^^^^^^^^^
 //
@@ -66,23 +66,23 @@ static method errors() → dynamic {
   pri::expect(42, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:17:17: Error: The method 'publicMethod1' isn't defined for the class 'String'.
 Try correcting the name to the name of an existing method, or defining a method named 'publicMethod1'.
   expect(42, \"\".publicMethod1());
-                ^^^^^^^^^^^^^");
+                ^^^^^^^^^^^^^" in ""{<unresolved>}.publicMethod1());
   pri::expect(87, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:18:17: Error: The method '_privateMethod1' isn't defined for the class 'String'.
 Try correcting the name to the name of an existing method, or defining a method named '_privateMethod1'.
   expect(87, \"\"._privateMethod1());
-                ^^^^^^^^^^^^^^^");
+                ^^^^^^^^^^^^^^^" in ""{<unresolved>}._privateMethod1());
   pri::expect(237, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:19:18: Error: The method '_privateMethod2' isn't defined for the class 'String'.
 Try correcting the name to the name of an existing method, or defining a method named '_privateMethod2'.
   expect(237, \"\"._privateMethod2());
-                 ^^^^^^^^^^^^^^^");
+                 ^^^^^^^^^^^^^^^" in ""{<unresolved>}._privateMethod2());
   pri::expect(473, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:20:18: Error: The method 'publicMethod3' isn't defined for the class 'String'.
 Try correcting the name to the name of an existing method, or defining a method named 'publicMethod3'.
   expect(473, \"\".publicMethod3());
-                 ^^^^^^^^^^^^^");
+                 ^^^^^^^^^^^^^" in ""{<unresolved>}.publicMethod3());
   pri::expect(586, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:21:18: Error: The method '_privateMethod3' isn't defined for the class 'String'.
 Try correcting the name to the name of an existing method, or defining a method named '_privateMethod3'.
   expect(586, \"\"._privateMethod3());
-                 ^^^^^^^^^^^^^^^");
+                 ^^^^^^^^^^^^^^^" in ""{<unresolved>}._privateMethod3());
   pri::expect(42, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:23:14: Error: Method not found: '_PrivateExtension'.
   expect(42, _PrivateExtension(\"\").publicMethod1());
              ^^^^^^^^^^^^^^^^^"{dynamic}.publicMethod1());
@@ -92,13 +92,13 @@ Try correcting the name to the name of an existing method, or defining a method 
   pri::expect(237, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:25:35: Error: Method not found: '_privateMethod2'.
   expect(237, PublicExtension(\"\")._privateMethod2());
                                   ^^^^^^^^^^^^^^^");
-  pri::expect(24, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:27:14: Error: Getter not found: '_PrivateExtension'.
+  pri::expect(24, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:27:14: Error: Undefined name '_PrivateExtension'.
   expect(24, _PrivateExtension.publicStaticMethod1());
              ^^^^^^^^^^^^^^^^^"{dynamic}.publicStaticMethod1());
-  pri::expect(78, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:28:14: Error: Getter not found: '_PrivateExtension'.
+  pri::expect(78, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:28:14: Error: Undefined name '_PrivateExtension'.
   expect(78, _PrivateExtension._privateStaticMethod1());
              ^^^^^^^^^^^^^^^^^"{dynamic}._privateStaticMethod1());
-  pri::expect(732, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:29:31: Error: Method not found: 'PublicExtension._privateStaticMethod2'.
+  pri::expect(732, invalid-expression "pkg/front_end/testcases/extensions/private_members.dart:29:31: Error: Member not found: 'PublicExtension._privateStaticMethod2'.
   expect(732, PublicExtension._privateStaticMethod2());
                               ^^^^^^^^^^^^^^^^^^^^^");
 }

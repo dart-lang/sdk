@@ -4,8 +4,6 @@
 
 // @dart = 2.9
 
-library dev_compiler.test.expression_compiler;
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Directory, File, Platform;
@@ -21,7 +19,6 @@ import 'package:front_end/src/fasta/incremental_serializer.dart' as fe;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as p;
-import 'package:source_maps/parser.dart' as source_maps;
 import 'package:source_maps/source_maps.dart' as source_maps;
 import 'package:test/test.dart';
 import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart'
@@ -60,10 +57,8 @@ class SetupCompilerOptions {
       p.join(sdkRoot.toFilePath(), 'ddc_outline_sound.dill');
   static final librariesSpecificationUri =
       p.join(p.dirname(p.dirname(getSdkPath())), 'libraries.json');
-  static final String dartUnsoundComment = '// @dart = 2.9';
-  static final String dartSoundComment = '//';
 
-  final String dartLangComment;
+  final bool legacyCode;
   final List<String> errors = [];
   final List<String> diagnosticMessages = [];
   final ModuleFormat moduleFormat;
@@ -85,10 +80,10 @@ class SetupCompilerOptions {
   }
 
   SetupCompilerOptions(
-      {this.soundNullSafety = true, this.moduleFormat = ModuleFormat.amd})
-      : options = _getOptions(soundNullSafety),
-        dartLangComment =
-            soundNullSafety ? dartSoundComment : dartUnsoundComment {
+      {this.soundNullSafety = true,
+      this.legacyCode = false,
+      this.moduleFormat = ModuleFormat.amd})
+      : options = _getOptions(soundNullSafety) {
     options.onDiagnostic = (fe.DiagnosticMessage m) {
       diagnosticMessages.addAll(m.plainTextFormatted);
       if (m.severity == fe.Severity.error) {
@@ -107,24 +102,25 @@ class TestCompilationResult {
 
 class TestCompiler {
   final SetupCompilerOptions setup;
-  Component component;
-  ExpressionCompiler evaluator;
-  ModuleMetadata metadata;
-  source_maps.SingleMapping sourceMap;
+  final Component component;
+  final ExpressionCompiler evaluator;
+  final ModuleMetadata metadata;
+  final source_maps.SingleMapping sourceMap;
 
-  TestCompiler(this.setup);
+  TestCompiler._(this.setup, this.component, this.evaluator, this.metadata,
+      this.sourceMap);
 
-  Future<TestCompiler> init({Uri input, Uri output, Uri packages}) async {
+  static Future<TestCompiler> init(SetupCompilerOptions setup,
+      {Uri input, Uri output, Uri packages}) async {
     // Initialize the incremental compiler and module component.
     // TODO: extend this for multi-module compilations by storing separate
     // compilers/components/names per module.
     setup.options.packagesFileUri = packages;
     var compiler = DevelopmentIncrementalCompiler(setup.options, input);
-    component = await compiler.computeDelta();
+    var component = await compiler.computeDelta();
     component.computeCanonicalNames();
-
     // Initialize DDC.
-    var moduleName = '${p.basenameWithoutExtension(output.toFilePath())}';
+    var moduleName = p.basenameWithoutExtension(output.toFilePath());
 
     var classHierarchy = compiler.getClassHierarchy();
     var compilerOptions = SharedCompilerOptions(
@@ -158,16 +154,14 @@ class TestCompiler {
       compiler: kernel2jsCompiler,
       component: component,
     );
-    metadata = code.metadata;
-    sourceMap = source_maps.SingleMapping.fromJson(code.sourceMap);
     var codeBytes = utf8.encode(code.code);
     var sourceMapBytes = utf8.encode(json.encode(code.sourceMap));
 
-    File('${output.toFilePath()}').writeAsBytesSync(codeBytes);
+    File(output.toFilePath()).writeAsBytesSync(codeBytes);
     File('${output.toFilePath()}.map').writeAsBytesSync(sourceMapBytes);
 
     // Save the expression evaluator for future evaluations.
-    evaluator = ExpressionCompiler(
+    var evaluator = ExpressionCompiler(
       setup.options,
       setup.moduleFormat,
       setup.errors,
@@ -181,7 +175,9 @@ class TestCompiler {
     }
     setup.diagnosticMessages.clear();
 
-    return this;
+    var sourceMap = source_maps.SingleMapping.fromJson(code.sourceMap);
+    return TestCompiler._(
+        setup, component, evaluator, code.metadata, sourceMap);
   }
 
   Future<TestCompilationResult> compileExpression(
@@ -212,45 +208,61 @@ class TestCompiler {
 }
 
 class TestDriver {
-  SetupCompilerOptions setup;
-  String source;
-  Directory chromeDir;
-  Directory testDir;
-  String moduleFormatString;
+  final browser.Chrome chrome;
+  final Directory chromeDir;
+  final wip.WipConnection connection;
+  final wip.WipDebugger debugger;
+  TestCompiler compiler;
   Uri htmlBootstrapper;
   Uri input;
+  String moduleFormatString;
   Uri output;
   Uri packagesFile;
-  browser.Chrome chrome;
-  wip.WipDebugger debugger;
-  wip.WipConnection connection;
-  TestCompiler compiler;
+  String preemptiveBp;
+  SetupCompilerOptions setup;
+  String source;
+  Directory testDir;
 
-  TestDriver._();
-
-  static Future<TestDriver> init() async {
-    var driver = TestDriver._();
-    await driver.initChrome();
-    return driver;
-  }
+  TestDriver._(this.chrome, this.chromeDir, this.connection, this.debugger);
 
   /// Initializes a Chrome browser instance, tab connection, and debugger.
-  ///
-  /// Should be called once after creating TestDriver.
-  Future<void> initChrome() async {
+  static Future<TestDriver> init() async {
     // Create a temporary directory for holding Chrome tests.
-    var systemTempDir = Directory.systemTemp;
-    chromeDir = await systemTempDir.createTemp('ddc_eval_test_anchor');
+    var chromeDir = Directory.systemTemp.createTempSync('ddc_eval_test_anchor');
 
-    // Start Chrome on an empty page with a single empty tab.
-    chrome = await browser.Chrome.startWithDebugPort(['about:blank'],
-        userDataDir: chromeDir.uri.toFilePath(), headless: true);
+    // Try to start Chrome on an empty page with a single empty tab.
+    // TODO(#45713): Headless Chrome crashes the Windows bots, so run in
+    // standard mode until it's fixed.
+    browser.Chrome chrome;
+    var retries = 3;
+    while (chrome == null && retries-- > 0) {
+      try {
+        chrome = await browser.Chrome.startWithDebugPort(['about:blank'],
+            userDataDir: chromeDir.uri.toFilePath(),
+            headless: !Platform.isWindows);
+      } catch (e) {
+        if (retries == 0) rethrow;
+        await Future.delayed(Duration(seconds: 5));
+      }
+    }
 
     // Connect to the first 'normal' tab.
     var tab = await chrome.chromeConnection
         .getTab((tab) => !tab.isBackgroundPage && !tab.isChromeExtension);
-    connection = await tab.connect();
-    debugger = connection.debugger;
+    if (tab == null) {
+      throw Exception('Unable to connect to Chrome tab');
+    }
+
+    var connection = await tab.connect().timeout(Duration(seconds: 5),
+        onTimeout: () => throw Exception('Unable to connect to WIP tab'));
+
+    await connection.page.enable().timeout(Duration(seconds: 5),
+        onTimeout: () => throw Exception('Unable to enable WIP tab page'));
+
+    var debugger = connection.debugger;
+    await debugger.enable().timeout(Duration(seconds: 5),
+        onTimeout: () => throw Exception('Unable to enable WIP debugger'));
+    return TestDriver._(chrome, chromeDir, connection, debugger);
   }
 
   /// Must be called when testing a new Dart program.
@@ -264,11 +276,11 @@ class TestDriver {
       throw StateError('Unable to find SDK summary at path: $summaryPath.');
     }
 
-    // Prepend Dart nullability comment.
-    source = '${setup.dartLangComment}\n\n$source';
+    // Prepend legacy Dart version comment.
+    if (setup.legacyCode) source = '// @dart = 2.11\n\n$source';
     this.setup = setup;
     this.source = source;
-    testDir = await chromeDir.createTemp('ddc_eval_test');
+    testDir = chromeDir.createTempSync('ddc_eval_test');
     var buildDir = p.dirname(p.dirname(p.dirname(Platform.resolvedExecutable)));
     var scriptPath = Platform.script.normalizePath().toFilePath();
     var ddcPath = p.dirname(p.dirname(p.dirname(scriptPath)));
@@ -295,8 +307,8 @@ class TestDriver {
       ''');
 
     // Initialize DDC and the incremental compiler, then perform a full compile.
-    compiler = await TestCompiler(setup)
-        .init(input: input, output: output, packages: packagesFile);
+    compiler = await TestCompiler.init(setup,
+        input: input, output: output, packages: packagesFile);
 
     htmlBootstrapper = testDir.uri.resolve('bootstrapper.html');
     var bootstrapFile = File(htmlBootstrapper.toFilePath())..createSync();
@@ -314,6 +326,9 @@ class TestDriver {
             setup.soundNullSafety ? 'sound' : 'kernel',
             'legacy',
             'dart_sdk.js'));
+        if (!File(dartSdkPath).existsSync()) {
+          throw Exception('Unable to find Dart SDK at $dartSdkPath');
+        }
         var dartLibraryPath =
             escaped(p.join(ddcPath, 'lib', 'js', 'legacy', 'dart_library.js'));
         var outputPath = output.toFilePath();
@@ -341,6 +356,9 @@ class TestDriver {
         moduleFormatString = 'amd';
         var dartSdkPath = escaped(p.join(buildDir, 'gen', 'utils', 'dartdevc',
             setup.soundNullSafety ? 'sound' : 'kernel', 'amd', 'dart_sdk'));
+        if (!File('$dartSdkPath.js').existsSync()) {
+          throw Exception('Unable to find Dart SDK at $dartSdkPath.js');
+        }
         var requirePath = escaped(p.join(buildDir, 'dart-sdk', 'lib',
             'dev_compiler', 'kernel', 'amd', 'require.js'));
         var outputPath = escaped(p.withoutExtension(output.toFilePath()));
@@ -378,27 +396,30 @@ class TestDriver {
             'Unsupported module format for SDK evaluation tests: ${setup.moduleFormat}');
     }
 
-    await debugger.enable();
+    await setBreakpointsActive(debugger, true);
 
     // Pause as soon as the test file loads but before it executes.
     var urlRegex = '.*${libraryUriToJsIdentifier(output)}.*';
-    await debugger.sendCommand('Debugger.setBreakpointByUrl', params: {
+    var bpResponse =
+        await debugger.sendCommand('Debugger.setBreakpointByUrl', params: {
       'urlRegex': urlRegex,
       'lineNumber': 0,
     });
+    preemptiveBp = wip.SetBreakpointResponse(bpResponse.json).breakpointId;
   }
 
-  void finish() async {
+  Future<void> finish() async {
     await chrome?.close();
     // Chrome takes a while to free its claim on chromeDir, so wait a bit.
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(Duration(milliseconds: 500));
     chromeDir?.deleteSync(recursive: true);
   }
 
   Future<void> cleanupTest() async {
+    await setBreakpointsActive(debugger, false);
+    await debugger.removeBreakpoint(preemptiveBp);
     setup.diagnosticMessages.clear();
     setup.errors.clear();
-    await debugger.disable();
   }
 
   Future<void> check(
@@ -417,18 +438,21 @@ class TestDriver {
 
     final scriptController = StreamController<wip.ScriptParsedEvent>();
     var scriptSub = debugger.onScriptParsed.listen((event) {
-      if ('${event.script.url}' == '$output') {
+      if (event.script.url == '$output') {
         scriptController.add(event);
       }
     });
 
     // Navigate from the empty page and immediately pause on the preemptive
     // breakpoint.
-    await connection.page.navigate('$htmlBootstrapper');
+    await connection.page.navigate('$htmlBootstrapper').timeout(
+        Duration(seconds: 5),
+        onTimeout: () => throw Exception(
+            'Unable to navigate to page bootstrap script: $htmlBootstrapper'));
 
     // Poll until the script is found, or timeout after a few seconds.
     var script = (await scriptController.stream.first.timeout(
-            const Duration(seconds: 5),
+            Duration(seconds: 5),
             onTimeout: () => throw Exception(
                 'Unable to find JS script corresponding to test file $output in ${debugger.scripts}.')))
         .script;
@@ -446,11 +470,11 @@ class TestDriver {
     await debugger.resume();
     final event = await pauseController.stream
         .skip(1)
-        .timeout(const Duration(seconds: 5),
+        .timeout(Duration(seconds: 5),
             onTimeout: (event) => throw Exception(
                 'Unable to find JS preemptive pause event in $output.'))
         .first
-        .timeout(const Duration(seconds: 5),
+        .timeout(Duration(seconds: 5),
             onTimeout: () => throw Exception(
                 'Unable to find JS pause event corresponding to line ($dartLine -> $location) in $output.'));
     await pauseSub.cancel();
@@ -490,10 +514,13 @@ class TestDriver {
     await debugger.removeBreakpoint(bp.breakpointId);
     var value = await stringifyRemoteObject(evalResult);
 
+    // Resume execution to the end of the current script
+    await debugger.resume();
+
     expect(
         result,
         const TypeMatcher<TestCompilationResult>()
-            .having((_) => '$value', 'result', _matches(expectedResult)));
+            .having((_) => value, 'result', _matches(expectedResult)));
   }
 
   /// Generate simple string representation of a RemoteObject that closely
@@ -542,7 +569,7 @@ class TestDriver {
       var response = await connection.runtime
           .getProperties(scope.object, ownProperties: true);
       for (var prop in response) {
-        var propKey = '${prop.name}';
+        var propKey = prop.name;
         var propValue = '${prop.value.value}';
         if (prop.value.type == 'string') {
           propValue = "'$propValue'";
@@ -614,3 +641,10 @@ List<wip.WipScope> filterScopes(wip.WipCallFrame frame) {
 }
 
 String escaped(String path) => path.replaceAll('\\', '\\\\');
+
+Future setBreakpointsActive(wip.WipDebugger debugger, bool active) async {
+  await debugger.sendCommand('Debugger.setBreakpointsActive', params: {
+    'active': active
+  }).timeout(Duration(seconds: 5),
+      onTimeout: () => throw Exception('Unable to set breakpoint activity'));
+}

@@ -16,7 +16,7 @@ import self as self;
 import "dart:core" as core;
 
 class B extends core::Object {
-  covariant field core::num* x;
+  covariant-by-declaration field core::num* x;
   synthetic constructor •() → self::B*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -48,8 +48,8 @@ class C extends core::Object {
 class D extends self::C implements self::B {
   synthetic constructor •() → self::D*
     ;
-  forwarding-stub set x(covariant core::num* value) → void
-    return super.{self::C::x} = value;
+  forwarding-stub set x(covariant-by-declaration core::num* value) → void
+    return super.{self::C::x} = value as core::int*;
 }
 static method main() → void
   ;

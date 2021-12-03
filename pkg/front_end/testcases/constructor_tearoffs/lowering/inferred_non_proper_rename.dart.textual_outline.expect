@@ -1,9 +1,11 @@
 final bool inSoundMode = <int?>[] is! List<int>;
+
 class A<T> {
   A();
   factory A.fact() => new A<T>();
   factory A.redirect() = A<T>;
 }
+
 typedef F<X extends num> = A<X>;
 typedef G<Y> = A<int>;
 typedef H<X, Y> = A<X>;

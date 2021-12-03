@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:math';
+import 'dart:typed_data';
 
-String paddedHex(int value, [int bytes = 0]) {
-  return value.toRadixString(16).padLeft(2 * bytes, '0');
-}
+String paddedHex(int value, [int bytes = 0]) =>
+    value.toRadixString(16).padLeft(2 * bytes, '0');
 
 class Reader {
   final ByteData bdata;
@@ -20,9 +19,9 @@ class Reader {
   int _offset = 0;
 
   Endian get endian => _endian as Endian;
-  void set endian(Endian value) => _endian = value;
+  set endian(Endian value) => _endian = value;
   int get wordSize => _wordSize as int;
-  void set wordSize(int value) => _wordSize = value;
+  set wordSize(int value) => _wordSize = value;
 
   /// Unless provided, [wordSize] and [endian] are initialized to values that
   /// ensure no reads are made that depend on their value (e.g., readBytes).
@@ -58,8 +57,8 @@ class Reader {
 
   int readBytes(int size, {bool signed = false}) {
     if (_offset + size > length) {
-      throw ArgumentError("attempt to read ${size} bytes with only "
-          "${length - _offset} bytes remaining in the reader");
+      throw ArgumentError('attempt to read $size bytes with only '
+          '${length - _offset} bytes remaining in the reader');
     }
     final start = _offset;
     _offset += size;
@@ -80,7 +79,7 @@ class Reader {
             : bdata.getUint64(start, endian);
       default:
         _offset -= size;
-        throw ArgumentError("invalid request to read $size bytes");
+        throw ArgumentError('invalid request to read $size bytes');
     }
   }
 
@@ -88,7 +87,7 @@ class Reader {
   int readWord() => readBytes(wordSize);
   String readNullTerminatedString() {
     final start = bdata.offsetInBytes + _offset;
-    for (int i = 0; _offset + i < bdata.lengthInBytes; i++) {
+    for (var i = 0; _offset + i < bdata.lengthInBytes; i++) {
       if (bdata.getUint8(_offset + i) == 0) {
         _offset += i + 1;
         return String.fromCharCodes(bdata.buffer.asUint8List(start, i));
@@ -152,47 +151,51 @@ class Reader {
       startOffset = max(startOffset, lowerWindow);
       endOffset = min(endOffset, upperWindow);
     }
-    for (int i = startOffset; i < endOffset; i += bytesPerLine) {
-      buffer..write("0x")..write(paddedHex(i, 8))..write(" ");
-      for (int j = 0; j < bytesPerLine && i + j < endOffset; j++) {
+    for (var i = startOffset; i < endOffset; i += bytesPerLine) {
+      buffer
+        ..write('0x')
+        ..write(paddedHex(i, 8))
+        ..write(' ');
+      for (var j = 0; j < bytesPerLine && i + j < endOffset; j++) {
         var byte = baseData.getUint8(i + j);
         buffer
-          ..write(i + j == currentOffset ? "|" : " ")
+          ..write(i + j == currentOffset ? '|' : ' ')
           ..write(paddedHex(byte, 1));
       }
       buffer.writeln();
     }
   }
 
+  @override
   String toString() {
     final buffer = StringBuffer();
     buffer
-      ..write("Word size: ")
+      ..write('Word size: ')
       ..write(_wordSize)
       ..writeln();
     buffer
-      ..write("Endianness: ")
+      ..write('Endianness: ')
       ..write(_endian)
       ..writeln();
     buffer
-      ..write("Start:  0x")
+      ..write('Start:  0x')
       ..write(paddedHex(start, _wordSize ?? 0))
-      ..write(" (")
+      ..write(' (')
       ..write(start)
-      ..writeln(")");
+      ..writeln(')');
     buffer
-      ..write("Offset: 0x")
+      ..write('Offset: 0x')
       ..write(paddedHex(offset, _wordSize ?? 0))
-      ..write(" (")
+      ..write(' (')
       ..write(offset)
-      ..writeln(")");
+      ..writeln(')');
     buffer
-      ..write("Length: 0x")
+      ..write('Length: 0x')
       ..write(paddedHex(length, _wordSize ?? 0))
-      ..write(" (")
+      ..write(' (')
       ..write(length)
-      ..writeln(")");
-    buffer..writeln("Bytes around current position:");
+      ..writeln(')');
+    buffer.writeln('Bytes around current position:');
     writeCurrentReaderPosition(buffer, maxSize: 256);
     return buffer.toString();
   }

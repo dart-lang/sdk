@@ -28,9 +28,9 @@ class X2 implements A {} // 2
 class X3 with A {} // 3
 ''');
 
-    assertType(findNode.typeName('A {} // 1'), 'A');
-    assertType(findNode.typeName('A {} // 2'), 'A');
-    assertType(findNode.typeName('A {} // 3'), 'A');
+    assertType(findNode.namedType('A {} // 1'), 'A');
+    assertType(findNode.namedType('A {} // 2'), 'A');
+    assertType(findNode.namedType('A {} // 3'), 'A');
   }
 
   test_classTypeAlias_hierarchy() async {
@@ -42,9 +42,9 @@ class C {}
 class X = A with B implements C;
 ''');
 
-    assertType(findNode.typeName('A with'), 'A');
-    assertType(findNode.typeName('B implements'), 'B');
-    assertType(findNode.typeName('C;'), 'C');
+    assertType(findNode.namedType('A with'), 'A');
+    assertType(findNode.namedType('B implements'), 'B');
+    assertType(findNode.namedType('C;'), 'C');
   }
 
   test_field_functionTypeAlias() async {
@@ -100,8 +100,8 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
     ]);
 
-    assertType(findNode.typeName('int? a'), 'int?');
-    assertType(findNode.typeName('int b'), 'int');
+    assertType(findNode.namedType('int? a'), 'int?');
+    assertType(findNode.namedType('int b'), 'int');
   }
 
   test_local_interfaceType_generic() async {
@@ -119,10 +119,10 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 85, 1),
     ]);
 
-    assertType(findNode.typeName('List<int?>? a'), 'List<int?>?');
-    assertType(findNode.typeName('List<int>? b'), 'List<int>?');
-    assertType(findNode.typeName('List<int?> c'), 'List<int?>');
-    assertType(findNode.typeName('List<int> d'), 'List<int>');
+    assertType(findNode.namedType('List<int?>? a'), 'List<int?>?');
+    assertType(findNode.namedType('List<int>? b'), 'List<int>?');
+    assertType(findNode.namedType('List<int?> c'), 'List<int?>');
+    assertType(findNode.namedType('List<int> d'), 'List<int>');
   }
 
   test_local_methodNullAwareCall_interfaceType() async {
@@ -172,8 +172,8 @@ void f<T>(T a) {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
     ]);
 
-    assertType(findNode.typeName('T x'), 'T');
-    assertType(findNode.typeName('T? y'), 'T?');
+    assertType(findNode.namedType('T x'), 'T');
+    assertType(findNode.namedType('T? y'), 'T?');
   }
 
   test_local_variable_genericFunctionType() async {
@@ -200,8 +200,8 @@ main() {
       error(HintCode.UNUSED_ELEMENT, 11, 1),
     ]);
 
-    assertType(findNode.typeName('int? a'), 'int?');
-    assertType(findNode.typeName('int b'), 'int');
+    assertType(findNode.namedType('int? a'), 'int?');
+    assertType(findNode.namedType('int b'), 'int');
   }
 
   test_localFunction_returnType_interfaceType() async {
@@ -215,8 +215,8 @@ main() {
       error(HintCode.UNUSED_ELEMENT, 32, 1),
     ]);
 
-    assertType(findNode.typeName('int? f'), 'int?');
-    assertType(findNode.typeName('int g'), 'int');
+    assertType(findNode.namedType('int? f'), 'int?');
+    assertType(findNode.namedType('int g'), 'int');
   }
 
   test_member_potentiallyNullable_called() async {
@@ -239,8 +239,8 @@ mixin X1 on A {} // 1
 mixin X2 implements A {} // 2
 ''');
 
-    assertType(findNode.typeName('A {} // 1'), 'A');
-    assertType(findNode.typeName('A {} // 2'), 'A');
+    assertType(findNode.namedType('A {} // 1'), 'A');
+    assertType(findNode.namedType('A {} // 2'), 'A');
   }
 
   test_parameter_functionTyped() async {
@@ -315,8 +315,8 @@ void f(int? a, int b) {
 }
 ''');
 
-    assertType(findNode.typeName('int? a'), 'int?');
-    assertType(findNode.typeName('int b'), 'int');
+    assertType(findNode.namedType('int? a'), 'int?');
+    assertType(findNode.namedType('int b'), 'int');
   }
 
   test_parameter_interfaceType_generic() async {
@@ -325,10 +325,10 @@ void f(List<int?>? a, List<int>? b, List<int?> c, List<int> d) {
 }
 ''');
 
-    assertType(findNode.typeName('List<int?>? a'), 'List<int?>?');
-    assertType(findNode.typeName('List<int>? b'), 'List<int>?');
-    assertType(findNode.typeName('List<int?> c'), 'List<int?>');
-    assertType(findNode.typeName('List<int> d'), 'List<int>');
+    assertType(findNode.namedType('List<int?>? a'), 'List<int?>?');
+    assertType(findNode.namedType('List<int>? b'), 'List<int>?');
+    assertType(findNode.namedType('List<int?> c'), 'List<int?>');
+    assertType(findNode.namedType('List<int> d'), 'List<int>');
   }
 
   test_parameter_methodNullAwareCall_interfaceType() async {
@@ -369,8 +369,8 @@ void f<T>(T a, T? b) {
 }
 ''');
 
-    assertType(findNode.typeName('T a'), 'T');
-    assertType(findNode.typeName('T? b'), 'T?');
+    assertType(findNode.namedType('T a'), 'T');
+    assertType(findNode.namedType('T? b'), 'T?');
   }
 
   test_typedef_classic() async {
@@ -384,7 +384,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
     ]);
 
-    assertType(findNode.typeName('F? a'), 'int? Function(bool, String?)?');
+    assertType(findNode.namedType('F? a'), 'int? Function(bool, String?)?');
   }
 
   test_typedef_function() async {
@@ -399,7 +399,7 @@ main() {
     ]);
 
     assertType(
-      findNode.typeName('F<String>'),
+      findNode.namedType('F<String>'),
       'int? Function(bool, String, String?)?',
     );
   }
@@ -411,8 +411,8 @@ typedef F<T> = int Function(T)?;
 void f(F<int> a, F<double>? b) {}
 ''');
 
-    assertType(findNode.typeName('F<int>'), 'int Function(int)?');
-    assertType(findNode.typeName('F<double>?'), 'int Function(double)?');
+    assertType(findNode.namedType('F<int>'), 'int Function(int)?');
+    assertType(findNode.namedType('F<double>?'), 'int Function(double)?');
   }
 
   test_typedef_function_nullable_local() async {
@@ -428,8 +428,8 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
     ]);
 
-    assertType(findNode.typeName('F<int>'), 'int Function(int)?');
-    assertType(findNode.typeName('F<double>?'), 'int Function(double)?');
+    assertType(findNode.namedType('F<int>'), 'int Function(int)?');
+    assertType(findNode.namedType('F<double>?'), 'int Function(double)?');
   }
 }
 
@@ -448,9 +448,9 @@ class X2 implements A {} // 2
 class X3 with A {} // 3
 ''');
 
-    assertType(findNode.typeName('A {} // 1'), 'A*');
-    assertType(findNode.typeName('A {} // 2'), 'A*');
-    assertType(findNode.typeName('A {} // 3'), 'A*');
+    assertType(findNode.namedType('A {} // 1'), 'A*');
+    assertType(findNode.namedType('A {} // 2'), 'A*');
+    assertType(findNode.namedType('A {} // 3'), 'A*');
   }
 
   test_classTypeAlias_hierarchy() async {
@@ -462,9 +462,9 @@ class C {}
 class X = A with B implements C;
 ''');
 
-    assertType(findNode.typeName('A with'), 'A*');
-    assertType(findNode.typeName('B implements'), 'B*');
-    assertType(findNode.typeName('C;'), 'C*');
+    assertType(findNode.namedType('A with'), 'A*');
+    assertType(findNode.namedType('B implements'), 'B*');
+    assertType(findNode.namedType('C;'), 'C*');
   }
 
   test_local_variable_interfaceType_notMigrated() async {
@@ -479,8 +479,8 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
     ]);
 
-    assertType(findNode.typeName('int? a'), 'int*');
-    assertType(findNode.typeName('int b'), 'int*');
+    assertType(findNode.namedType('int? a'), 'int*');
+    assertType(findNode.namedType('int b'), 'int*');
   }
 
   test_mixin_hierarchy() async {
@@ -491,7 +491,7 @@ mixin X1 on A {} // 1
 mixin X2 implements A {} // 2
 ''');
 
-    assertType(findNode.typeName('A {} // 1'), 'A*');
-    assertType(findNode.typeName('A {} // 2'), 'A*');
+    assertType(findNode.namedType('A {} // 1'), 'A*');
+    assertType(findNode.namedType('A {} // 2'), 'A*');
   }
 }

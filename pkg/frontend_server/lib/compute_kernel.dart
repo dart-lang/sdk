@@ -240,7 +240,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         verbose: verbose,
         nnbdMode: nnbdMode);
   } else {
-    state = await fe.initializeCompiler(
+    state = fe.initializeCompiler(
         // TODO(sigmund): pass an old state once we can make use of it.
         null,
         toUri(parsedArgs['dart-sdk-summary']),

@@ -506,7 +506,8 @@ Fragment BaseFlowGraphBuilder::StoreNativeField(
     const Slot& slot,
     StoreInstanceFieldInstr::Kind
         kind /* = StoreInstanceFieldInstr::Kind::kOther */,
-    StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */) {
+    StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */,
+    compiler::Assembler::MemoryOrder memory_order /* = kRelaxed */) {
   Value* value = Pop();
   if (value->BindsToConstant()) {
     emit_store_barrier = kNoStoreBarrier;
@@ -1054,11 +1055,14 @@ Fragment BaseFlowGraphBuilder::CheckNull(TokenPosition position,
   return instructions;
 }
 
-Fragment BaseFlowGraphBuilder::CheckNullOptimized(TokenPosition position,
-                                                  const String& function_name) {
+Fragment BaseFlowGraphBuilder::CheckNullOptimized(
+    const String& function_name,
+    CheckNullInstr::ExceptionType exception_type,
+    TokenPosition position) {
   Value* value = Pop();
-  CheckNullInstr* check_null = new (Z) CheckNullInstr(
-      value, function_name, GetNextDeoptId(), InstructionSource(position));
+  CheckNullInstr* check_null =
+      new (Z) CheckNullInstr(value, function_name, GetNextDeoptId(),
+                             InstructionSource(position), exception_type);
   Push(check_null);  // Use the redefinition.
   return Fragment(check_null);
 }
@@ -1134,10 +1138,25 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   return call_hook;
 }
 
+static bool SupportsCoverage() {
+#if defined(PRODUCT)
+  return false;
+#else
+  return !CompilerState::Current().is_aot();
+#endif
+}
+
 Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
                                            intptr_t type_args_len,
                                            intptr_t argument_count,
                                            const Array& argument_names) {
+  Fragment result;
+
+  if (SupportsCoverage()) {
+    const intptr_t coverage_index = GetCoverageIndexFor(position);
+    result <<= new (Z) RecordCoverageInstr(coverage_array(), coverage_index,
+                                           InstructionSource(position));
+  }
   const intptr_t total_count =
       (type_args_len > 0 ? 1 : 0) + argument_count +
       /*closure (bare instructions) or function (otherwise)*/ 1;
@@ -1146,7 +1165,8 @@ Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
       new (Z) ClosureCallInstr(arguments, type_args_len, argument_names,
                                InstructionSource(position), GetNextDeoptId());
   Push(call);
-  return Fragment(call);
+  result <<= call;
+  return result;
 }
 
 void BaseFlowGraphBuilder::reset_context_depth_for_deopt_id(intptr_t deopt_id) {
@@ -1191,6 +1211,90 @@ Fragment BaseFlowGraphBuilder::InitConstantParameters() {
     }
   }
   return instructions;
+}
+
+Fragment BaseFlowGraphBuilder::InvokeMathCFunction(
+    MethodRecognizer::Kind recognized_kind,
+    intptr_t num_inputs) {
+  InputsArray* args = GetArguments(num_inputs);
+  auto* instr = new (Z)
+      InvokeMathCFunctionInstr(args, GetNextDeoptId(), recognized_kind,
+                               InstructionSource(TokenPosition::kNoSource));
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment BaseFlowGraphBuilder::DoubleToDouble(
+    MethodRecognizer::Kind recognized_kind) {
+  Value* value = Pop();
+  auto* instr =
+      new (Z) DoubleToDoubleInstr(value, recognized_kind, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment BaseFlowGraphBuilder::DoubleToInteger(
+    MethodRecognizer::Kind recognized_kind) {
+  Value* value = Pop();
+  auto* instr =
+      new (Z) DoubleToIntegerInstr(value, recognized_kind, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment BaseFlowGraphBuilder::MathUnary(MathUnaryInstr::MathUnaryKind kind) {
+  Value* value = Pop();
+  auto* instr = new (Z) MathUnaryInstr(kind, value, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
+intptr_t BaseFlowGraphBuilder::GetCoverageIndexFor(TokenPosition token_pos) {
+  if (coverage_array_.IsNull()) {
+    // We have not yet created coverage_array, this is the first time
+    // we are building the graph for this function. Collect coverage
+    // positions.
+    for (intptr_t i = 0; i < coverage_array_positions_.length(); i++) {
+      if (coverage_array_positions_.At(i) == token_pos) {
+        return 2 * i + 1;
+      }
+    }
+    const auto index = 2 * coverage_array_positions_.length() + 1;
+    coverage_array_positions_.Add(token_pos);
+    return index;
+  }
+
+  for (intptr_t i = 0; i < coverage_array_.Length(); i += 2) {
+    if (TokenPosition::Deserialize(Smi::Value(
+            static_cast<SmiPtr>(coverage_array_.At(i)))) == token_pos) {
+      return i + 1;
+    }
+  }
+  // Reaching here indicates that the graph is constructed in an unstable way.
+  UNREACHABLE();
+  return 1;
+}
+
+void BaseFlowGraphBuilder::FinalizeCoverageArray() {
+  if (!coverage_array_.IsNull()) {
+    return;
+  }
+
+  if (coverage_array_positions_.is_empty()) {
+    coverage_array_ = Array::empty_array().ptr();
+    return;
+  }
+
+  coverage_array_ =
+      Array::New(coverage_array_positions_.length() * 2, Heap::kOld);
+
+  Smi& value = Smi::Handle();
+  for (intptr_t i = 0; i < coverage_array_positions_.length(); i++) {
+    value = Smi::New(coverage_array_positions_[i].Serialize());
+    coverage_array_.SetAt(2 * i, value);
+    value = Smi::New(0);  // no coverage recorded.
+    coverage_array_.SetAt(2 * i + 1, value);
+  }
 }
 
 }  // namespace kernel

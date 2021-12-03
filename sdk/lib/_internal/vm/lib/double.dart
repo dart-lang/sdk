@@ -8,12 +8,15 @@
 class _Double implements double {
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", _Double)
-  factory _Double.fromInteger(int value) native "Double_doubleFromInteger";
+  @pragma("vm:external-name", "Double_doubleFromInteger")
+  external factory _Double.fromInteger(int value);
 
   @pragma("vm:recognized", "asm-intrinsic")
-  int get hashCode native "Double_hashCode";
+  @pragma("vm:external-name", "Double_hashCode")
+  external int get hashCode;
   @pragma("vm:recognized", "asm-intrinsic")
-  int get _identityHashCode native "Double_hashCode";
+  @pragma("vm:external-name", "Double_hashCode")
+  external int get _identityHashCode;
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", _Double)
@@ -24,7 +27,8 @@ class _Double implements double {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Double)
-  double _add(double other) native "Double_add";
+  @pragma("vm:external-name", "Double_add")
+  external double _add(double other);
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", _Double)
@@ -35,7 +39,8 @@ class _Double implements double {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Double)
-  double _sub(double other) native "Double_sub";
+  @pragma("vm:external-name", "Double_sub")
+  external double _sub(double other);
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", _Double)
@@ -46,14 +51,12 @@ class _Double implements double {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Double)
-  double _mul(double other) native "Double_mul";
+  @pragma("vm:external-name", "Double_mul")
+  external double _mul(double other);
 
   int operator ~/(num other) {
-    return _trunc_div(other.toDouble());
+    return (this / other.toDouble()).truncate();
   }
-
-  @pragma("vm:non-nullable-result-type")
-  int _trunc_div(double other) native "Double_trunc_div";
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", _Double)
@@ -64,25 +67,30 @@ class _Double implements double {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Double)
-  double _div(double other) native "Double_div";
+  @pragma("vm:external-name", "Double_div")
+  external double _div(double other);
 
   double operator %(num other) {
     return _modulo(other.toDouble());
   }
 
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
-  double _modulo(double other) native "Double_modulo";
+  @pragma("vm:external-name", "Double_modulo")
+  external double _modulo(double other);
 
   double remainder(num other) {
     return _remainder(other.toDouble());
   }
 
-  double _remainder(double other) native "Double_remainder";
+  @pragma("vm:external-name", "Double_remainder")
+  external double _remainder(double other);
 
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", _Double)
-  double operator -() native "Double_flipSignBit";
+  @pragma("vm:external-name", "Double_flipSignBit")
+  external double operator -();
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
@@ -92,9 +100,11 @@ class _Double implements double {
   }
 
   @pragma("vm:exact-result-type", bool)
-  bool _equal(double other) native "Double_equal";
+  @pragma("vm:external-name", "Double_equal")
+  external bool _equal(double other);
   @pragma("vm:exact-result-type", bool)
-  bool _equalToInteger(int other) native "Double_equalToInteger";
+  @pragma("vm:external-name", "Double_equalToInteger")
+  external bool _equalToInteger(int other);
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
@@ -111,7 +121,8 @@ class _Double implements double {
   }
 
   @pragma("vm:exact-result-type", bool)
-  bool _greaterThan(double other) native "Double_greaterThan";
+  @pragma("vm:external-name", "Double_greaterThan")
+  external bool _greaterThan(double other);
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
@@ -142,7 +153,7 @@ class _Double implements double {
   }
 
   int _truncDivFromInteger(int other) {
-    return new _Double.fromInteger(other)._trunc_div(this);
+    return (new _Double.fromInteger(other) / this).truncate();
   }
 
   double _moduloFromInteger(int other) {
@@ -153,18 +164,21 @@ class _Double implements double {
     return new _Double.fromInteger(other)._remainder(this);
   }
 
-  bool _greaterThanFromInteger(int other)
-      native "Double_greaterThanFromInteger";
+  @pragma("vm:external-name", "Double_greaterThanFromInteger")
+  external bool _greaterThanFromInteger(int other);
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
-  bool get isNegative native "Double_getIsNegative";
+  @pragma("vm:external-name", "Double_getIsNegative")
+  external bool get isNegative;
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
-  bool get isInfinite native "Double_getIsInfinite";
+  @pragma("vm:external-name", "Double_getIsInfinite")
+  external bool get isInfinite;
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
-  bool get isNaN native "Double_getIsNaN";
+  @pragma("vm:external-name", "Double_getIsNaN")
+  external bool get isNaN;
   bool get isFinite => !isInfinite && !isNaN; // Can be optimized.
 
   double abs() {
@@ -180,22 +194,35 @@ class _Double implements double {
   }
 
   int round() => roundToDouble().toInt();
-  int floor() => floorToDouble().toInt();
-  int ceil() => ceilToDouble().toInt();
-  int truncate() => truncateToDouble().toInt();
+  int truncate() => toInt();
 
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  int floor() => floorToDouble().toInt();
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  int ceil() => ceilToDouble().toInt();
+
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
-  double roundToDouble() native "Double_round";
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:external-name", "Double_round")
+  external double roundToDouble();
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
-  double floorToDouble() native "Double_floor";
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:external-name", "Double_floor")
+  external double floorToDouble();
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
-  double ceilToDouble() native "Double_ceil";
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:external-name", "Double_ceil")
+  external double ceilToDouble();
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
-  double truncateToDouble() native "Double_truncate";
+  @pragma("vm:external-name", "Double_truncate")
+  external double truncateToDouble();
 
   num clamp(num lowerLimit, num upperLimit) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
@@ -214,9 +241,11 @@ class _Double implements double {
     return this;
   }
 
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:non-nullable-result-type")
-  int toInt() native "Double_toInt";
+  @pragma("vm:external-name", "Double_toInt")
+  external int toInt();
 
   double toDouble() {
     return this;
@@ -229,7 +258,8 @@ class _Double implements double {
   static final List _cache = new List.filled(CACHE_LENGTH, null);
   static int _cacheEvictIndex = 0;
 
-  String _toString() native "Double_toString";
+  @pragma("vm:external-name", "Double_toString")
+  external String _toString();
 
   String toString() {
     // TODO(koda): Consider starting at most recently inserted.
@@ -280,7 +310,8 @@ class _Double implements double {
     return _toStringAsFixed(fractionDigits);
   }
 
-  String _toStringAsFixed(int fractionDigits) native "Double_toStringAsFixed";
+  @pragma("vm:external-name", "Double_toStringAsFixed")
+  external String _toStringAsFixed(int fractionDigits);
 
   String toStringAsExponential([int? fractionDigits]) {
     // See ECMAScript-262, 15.7.4.6 for details.
@@ -307,8 +338,8 @@ class _Double implements double {
     return _toStringAsExponential(fractionDigits);
   }
 
-  String _toStringAsExponential(int fractionDigits)
-      native "Double_toStringAsExponential";
+  @pragma("vm:external-name", "Double_toStringAsExponential")
+  external String _toStringAsExponential(int fractionDigits);
 
   String toStringAsPrecision(int precision) {
     // See ECMAScript-262, 15.7.4.7 for details.
@@ -332,8 +363,8 @@ class _Double implements double {
     return _toStringAsPrecision(precision);
   }
 
-  String _toStringAsPrecision(int fractionDigits)
-      native "Double_toStringAsPrecision";
+  @pragma("vm:external-name", "Double_toStringAsPrecision")
+  external String _toStringAsPrecision(int fractionDigits);
 
   // Order is: NaN > Infinity > ... > 0.0 > -0.0 > ... > -Infinity.
   int compareTo(num other) {

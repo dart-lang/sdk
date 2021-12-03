@@ -12,8 +12,10 @@ invalidate:
   - a.dart
 sources:
   a.dart: |
+    // @dart=2.9
     import 'b.dart';
     class A extends Object with B<Object>, C {}
   b.dart: |
+    // @dart=2.9
     abstract class C<T extends Object> extends Object with B<T> {}
     abstract class B<ChildType extends Object> extends Object {}

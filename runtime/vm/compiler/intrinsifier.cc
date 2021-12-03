@@ -173,7 +173,6 @@ static const IntrinsicDesc core_intrinsics[] = {
 
 static const IntrinsicDesc math_intrinsics[] = {
   MATH_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
-  GRAPH_MATH_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
   {nullptr, nullptr},
 };
 

@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extensions/issue38750.dart:13:5: Error: Method not found: 'C._staticFoo'.
+// pkg/front_end/testcases/extensions/issue38750.dart:13:5: Error: Member not found: 'C._staticFoo'.
 //   C._staticFoo();
 //     ^^^^^^^^^^
 //
@@ -31,8 +31,8 @@ static method errors() → dynamic {
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
 Try correcting the name to the name of an existing method, or defining a method named '_foo'.
   c._foo();
-    ^^^^";
-  invalid-expression "pkg/front_end/testcases/extensions/issue38750.dart:13:5: Error: Method not found: 'C._staticFoo'.
+    ^^^^" in c{<unresolved>}._foo();
+  invalid-expression "pkg/front_end/testcases/extensions/issue38750.dart:13:5: Error: Member not found: 'C._staticFoo'.
   C._staticFoo();
     ^^^^^^^^^^";
   c.{iss::C::foo}(){() →* dynamic};
@@ -41,7 +41,7 @@ Try correcting the name to the name of an existing method, or defining a method 
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
 Try correcting the name to the name of an existing method, or defining a method named '_bar'.
   c._bar();
-    ^^^^";
+    ^^^^" in c{<unresolved>}._bar();
 }
 
 library;
@@ -114,5 +114,5 @@ static method errors() → dynamic {
  - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
 Try correcting the name to the name of an existing method, or defining a method named '_bar'.
   c._bar();
-    ^^^^";
+    ^^^^" in c{<unresolved>}._bar();
 }

@@ -14,7 +14,7 @@ class Divergent<T extends core::Object? = dynamic> extends core::Object implemen
     return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#catchError, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[onError]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#test: test}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
   no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ whenComplete(() → FutureOr<void>action) → asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>
     return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#whenComplete, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[action]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
-  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ timeout(core::Duration timeLimit, {generic-covariant-impl () →? FutureOr<self::Divergent<self::Divergent<self::Divergent::T%>>>onTimeout}) → asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ timeout(core::Duration timeLimit, {covariant-by-class () →? FutureOr<self::Divergent<self::Divergent<self::Divergent::T%>>>onTimeout}) → asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>
     return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#timeout, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#onTimeout: onTimeout}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
   no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ then<R extends core::Object? = dynamic>((self::Divergent<self::Divergent<self::Divergent::T%>>) → FutureOr<self::Divergent::then::R%>onValue, {core::Function? onError}) → asy::Future<self::Divergent::then::R%>
     return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#then, 0, core::List::unmodifiable<core::Type*>(<core::Type*>[self::Divergent::then::R%]), core::List::unmodifiable<dynamic>(<dynamic>[onValue]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#onError: onError}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent::then::R%>;
@@ -28,19 +28,19 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:639:13 -> SymbolConstant(#catchError)
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:639:13 -> ListConstant(const <Type*>[])
-Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:639:13 -> SymbolConstant(#test)
-Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:675:13 -> SymbolConstant(#whenComplete)
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:675:13 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:675:13 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
-Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:698:13 -> SymbolConstant(#timeout)
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:698:13 -> ListConstant(const <Type*>[])
-Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:698:13 -> SymbolConstant(#onTimeout)
-Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:602:13 -> SymbolConstant(#then)
-Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:602:13 -> SymbolConstant(#onError)
-Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:684:13 -> SymbolConstant(#asStream)
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:684:13 -> ListConstant(const <Type*>[])
-Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:684:13 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:684:13 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:717:13 -> SymbolConstant(#catchError)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:717:13 -> ListConstant(const <Type*>[])
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:717:13 -> SymbolConstant(#test)
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:753:13 -> SymbolConstant(#whenComplete)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:753:13 -> ListConstant(const <Type*>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:753:13 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:776:13 -> SymbolConstant(#timeout)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:776:13 -> ListConstant(const <Type*>[])
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:776:13 -> SymbolConstant(#onTimeout)
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:680:13 -> SymbolConstant(#then)
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:680:13 -> SymbolConstant(#onError)
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:762:13 -> SymbolConstant(#asStream)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:762:13 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:762:13 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/async/future.dart:762:13 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 61, effectively constant: 15

@@ -38,5 +38,5 @@ static method main() → dynamic
 Extra constant evaluation status:
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///setter_not_shadowed_by_method.dart:12:12 -> SymbolConstant(#foo=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///setter_not_shadowed_by_method.dart:12:12 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///setter_not_shadowed_by_method.dart:12:12 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///setter_not_shadowed_by_method.dart:12:12 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 10, effectively constant: 3

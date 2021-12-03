@@ -6,7 +6,9 @@
 
 #include <vector>
 
+#include "platform/text_buffer.h"
 #include "platform/utils.h"
+#include "vm/class_id.h"
 #include "vm/compiler/backend/block_builder.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/il_test_helper.h"
@@ -373,6 +375,265 @@ ISOLATE_UNIT_TEST_CASE(IL_UnboxIntegerCanonicalization) {
 
   H.flow_graph()->RemoveRedefinitions();
   EXPECT(!unbox->ComputeCanDeoptimize());  // Previously this reverted to true.
+}
+
+static void WriteCidTo(intptr_t cid, BaseTextBuffer* buffer) {
+  ClassTable* const class_table = IsolateGroup::Current()->class_table();
+  buffer->Printf("%" Pd "", cid);
+  if (class_table->HasValidClassAt(cid)) {
+    const auto& cls = Class::Handle(class_table->At(cid));
+    buffer->Printf(" (%s", cls.ScrubbedNameCString());
+    if (cls.is_abstract()) {
+      buffer->AddString(", abstract");
+    }
+    buffer->AddString(")");
+  }
+}
+
+static void WriteCidRangeVectorTo(const CidRangeVector& ranges,
+                                  BaseTextBuffer* buffer) {
+  if (ranges.is_empty()) {
+    buffer->AddString("empty CidRangeVector");
+    return;
+  }
+  buffer->AddString("non-empty CidRangeVector:\n");
+  for (const auto& range : ranges) {
+    for (intptr_t cid = range.cid_start; cid <= range.cid_end; cid++) {
+      buffer->AddString("  * ");
+      WriteCidTo(cid, buffer);
+      buffer->AddString("\n");
+    }
+  }
+}
+
+static bool ExpectRangesContainCid(const Expect& expect,
+                                   const CidRangeVector& ranges,
+                                   intptr_t expected) {
+  for (const auto& range : ranges) {
+    for (intptr_t cid = range.cid_start; cid <= range.cid_end; cid++) {
+      if (expected == cid) return true;
+    }
+  }
+  TextBuffer buffer(128);
+  buffer.AddString("Expected CidRangeVector to include cid ");
+  WriteCidTo(expected, &buffer);
+  expect.Fail("%s", buffer.buffer());
+  return false;
+}
+
+static void RangesContainExpectedCids(const Expect& expect,
+                                      const CidRangeVector& ranges,
+                                      const GrowableArray<intptr_t>& expected) {
+  ASSERT(!ranges.is_empty());
+  ASSERT(!expected.is_empty());
+  {
+    TextBuffer buffer(128);
+    buffer.AddString("Checking that ");
+    WriteCidRangeVectorTo(ranges, &buffer);
+    buffer.AddString("includes cids:\n");
+    for (const intptr_t cid : expected) {
+      buffer.AddString("  * ");
+      WriteCidTo(cid, &buffer);
+      buffer.AddString("\n");
+    }
+    THR_Print("%s", buffer.buffer());
+  }
+  bool all_found = true;
+  for (const intptr_t cid : expected) {
+    if (!ExpectRangesContainCid(expect, ranges, cid)) {
+      all_found = false;
+    }
+  }
+  if (all_found) {
+    THR_Print("All expected cids included.\n\n");
+  }
+}
+
+#define RANGES_CONTAIN_EXPECTED_CIDS(ranges, cids)                             \
+  RangesContainExpectedCids(dart::Expect(__FILE__, __LINE__), ranges, cids)
+
+ISOLATE_UNIT_TEST_CASE(HierarchyInfo_Object_Subtype) {
+  HierarchyInfo hi(thread);
+  const auto& type =
+      Type::Handle(IsolateGroup::Current()->object_store()->object_type());
+  const bool is_nullable = Instance::NullIsAssignableTo(type);
+  EXPECT(hi.CanUseSubtypeRangeCheckFor(type));
+  const auto& cls = Class::Handle(type.type_class());
+
+  ClassTable* const class_table = thread->isolate_group()->class_table();
+  const intptr_t num_cids = class_table->NumCids();
+  auto& to_check = Class::Handle(thread->zone());
+  auto& rare_type = AbstractType::Handle(thread->zone());
+
+  GrowableArray<intptr_t> expected_concrete_cids;
+  GrowableArray<intptr_t> expected_abstract_cids;
+  for (intptr_t cid = kInstanceCid; cid < num_cids; cid++) {
+    if (!class_table->HasValidClassAt(cid)) continue;
+    if (cid == kNullCid) continue;
+    if (cid == kNeverCid) continue;
+    if (cid == kDynamicCid && !is_nullable) continue;
+    if (cid == kVoidCid && !is_nullable) continue;
+    to_check = class_table->At(cid);
+    // Only add concrete classes.
+    if (to_check.is_abstract()) {
+      expected_abstract_cids.Add(cid);
+    } else {
+      expected_concrete_cids.Add(cid);
+    }
+    if (cid != kTypeArgumentsCid) {  // Cannot call RareType() on this.
+      rare_type = to_check.RareType();
+      EXPECT(rare_type.IsSubtypeOf(type, Heap::kNew));
+    }
+  }
+
+  const CidRangeVector& concrete_range = hi.SubtypeRangesForClass(
+      cls, /*include_abstract=*/false, /*exclude_null=*/!is_nullable);
+  RANGES_CONTAIN_EXPECTED_CIDS(concrete_range, expected_concrete_cids);
+
+  GrowableArray<intptr_t> expected_cids;
+  expected_cids.AddArray(expected_concrete_cids);
+  expected_cids.AddArray(expected_abstract_cids);
+  const CidRangeVector& abstract_range = hi.SubtypeRangesForClass(
+      cls, /*include_abstract=*/true, /*exclude_null=*/!is_nullable);
+  RANGES_CONTAIN_EXPECTED_CIDS(abstract_range, expected_cids);
+}
+
+ISOLATE_UNIT_TEST_CASE(HierarchyInfo_Function_Subtype) {
+  HierarchyInfo hi(thread);
+  const auto& type =
+      Type::Handle(IsolateGroup::Current()->object_store()->function_type());
+  EXPECT(hi.CanUseSubtypeRangeCheckFor(type));
+  const auto& cls = Class::Handle(type.type_class());
+
+  GrowableArray<intptr_t> expected_concrete_cids;
+  expected_concrete_cids.Add(kClosureCid);
+
+  GrowableArray<intptr_t> expected_abstract_cids;
+  expected_abstract_cids.Add(type.type_class_id());
+
+  const CidRangeVector& concrete_range = hi.SubtypeRangesForClass(
+      cls, /*include_abstract=*/false, /*exclude_null=*/true);
+  RANGES_CONTAIN_EXPECTED_CIDS(concrete_range, expected_concrete_cids);
+
+  GrowableArray<intptr_t> expected_cids;
+  expected_cids.AddArray(expected_concrete_cids);
+  expected_cids.AddArray(expected_abstract_cids);
+  const CidRangeVector& abstract_range = hi.SubtypeRangesForClass(
+      cls, /*include_abstract=*/true, /*exclude_null=*/true);
+  RANGES_CONTAIN_EXPECTED_CIDS(abstract_range, expected_cids);
+}
+
+ISOLATE_UNIT_TEST_CASE(HierarchyInfo_Num_Subtype) {
+  HierarchyInfo hi(thread);
+  const auto& num_type = Type::Handle(Type::Number());
+  const auto& int_type = Type::Handle(Type::IntType());
+  const auto& double_type = Type::Handle(Type::Double());
+  EXPECT(hi.CanUseSubtypeRangeCheckFor(num_type));
+  const auto& cls = Class::Handle(num_type.type_class());
+
+  GrowableArray<intptr_t> expected_concrete_cids;
+  expected_concrete_cids.Add(kSmiCid);
+  expected_concrete_cids.Add(kMintCid);
+  expected_concrete_cids.Add(kDoubleCid);
+
+  GrowableArray<intptr_t> expected_abstract_cids;
+  expected_abstract_cids.Add(num_type.type_class_id());
+  expected_abstract_cids.Add(int_type.type_class_id());
+  expected_abstract_cids.Add(double_type.type_class_id());
+
+  const CidRangeVector& concrete_range = hi.SubtypeRangesForClass(
+      cls, /*include_abstract=*/false, /*exclude_null=*/true);
+  RANGES_CONTAIN_EXPECTED_CIDS(concrete_range, expected_concrete_cids);
+
+  GrowableArray<intptr_t> expected_cids;
+  expected_cids.AddArray(expected_concrete_cids);
+  expected_cids.AddArray(expected_abstract_cids);
+  const CidRangeVector& abstract_range = hi.SubtypeRangesForClass(
+      cls, /*include_abstract=*/true, /*exclude_null=*/true);
+  RANGES_CONTAIN_EXPECTED_CIDS(abstract_range, expected_cids);
+}
+
+ISOLATE_UNIT_TEST_CASE(HierarchyInfo_Int_Subtype) {
+  HierarchyInfo hi(thread);
+  const auto& type = Type::Handle(Type::IntType());
+  EXPECT(hi.CanUseSubtypeRangeCheckFor(type));
+  const auto& cls = Class::Handle(type.type_class());
+
+  GrowableArray<intptr_t> expected_concrete_cids;
+  expected_concrete_cids.Add(kSmiCid);
+  expected_concrete_cids.Add(kMintCid);
+
+  GrowableArray<intptr_t> expected_abstract_cids;
+  expected_abstract_cids.Add(type.type_class_id());
+
+  const CidRangeVector& concrete_range = hi.SubtypeRangesForClass(
+      cls, /*include_abstract=*/false, /*exclude_null=*/true);
+  RANGES_CONTAIN_EXPECTED_CIDS(concrete_range, expected_concrete_cids);
+
+  GrowableArray<intptr_t> expected_cids;
+  expected_cids.AddArray(expected_concrete_cids);
+  expected_cids.AddArray(expected_abstract_cids);
+  const CidRangeVector& abstract_range = hi.SubtypeRangesForClass(
+      cls, /*include_abstract=*/true, /*exclude_null=*/true);
+  RANGES_CONTAIN_EXPECTED_CIDS(abstract_range, expected_cids);
+}
+
+ISOLATE_UNIT_TEST_CASE(HierarchyInfo_String_Subtype) {
+  HierarchyInfo hi(thread);
+  const auto& type = Type::Handle(Type::StringType());
+  EXPECT(hi.CanUseSubtypeRangeCheckFor(type));
+  const auto& cls = Class::Handle(type.type_class());
+
+  GrowableArray<intptr_t> expected_concrete_cids;
+  expected_concrete_cids.Add(kOneByteStringCid);
+  expected_concrete_cids.Add(kTwoByteStringCid);
+  expected_concrete_cids.Add(kExternalOneByteStringCid);
+  expected_concrete_cids.Add(kExternalTwoByteStringCid);
+
+  GrowableArray<intptr_t> expected_abstract_cids;
+  expected_abstract_cids.Add(type.type_class_id());
+
+  const CidRangeVector& concrete_range = hi.SubtypeRangesForClass(
+      cls, /*include_abstract=*/false, /*exclude_null=*/true);
+  THR_Print("Checking concrete subtype ranges for String\n");
+  RANGES_CONTAIN_EXPECTED_CIDS(concrete_range, expected_concrete_cids);
+
+  GrowableArray<intptr_t> expected_cids;
+  expected_cids.AddArray(expected_concrete_cids);
+  expected_cids.AddArray(expected_abstract_cids);
+  const CidRangeVector& abstract_range = hi.SubtypeRangesForClass(
+      cls, /*include_abstract=*/true, /*exclude_null=*/true);
+  THR_Print("Checking concrete and abstract subtype ranges for String\n");
+  RANGES_CONTAIN_EXPECTED_CIDS(abstract_range, expected_cids);
+}
+
+// This test verifies that double == Smi is recognized and
+// implemented using EqualityCompare.
+// Regression test for https://github.com/dart-lang/sdk/issues/47031.
+ISOLATE_UNIT_TEST_CASE(IRTest_DoubleEqualsSmi) {
+  const char* kScript = R"(
+    bool foo(double x) => (x + 0.5) == 0;
+    main() {
+      foo(-0.5);
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true,
+                   ParallelMovesHandling::kSkip);
+
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      kMatchAndMoveBinaryDoubleOp,
+      kMatchAndMoveEqualityCompare,
+      kMatchReturn,
+  }));
 }
 
 }  // namespace dart

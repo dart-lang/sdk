@@ -205,5 +205,5 @@ class UnboxingInfoManager {
         _nativeCodeOracle.hasDisableUnboxedParameters(member);
   }
 
-  bool _isNative(Member member) => getExternalName(member) != null;
+  bool _isNative(Member member) => getExternalName(_coreTypes, member) != null;
 }

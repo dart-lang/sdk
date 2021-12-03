@@ -37,8 +37,6 @@ import '../fasta_codes.dart'
 
 import '../kernel/utils.dart';
 
-export 'package:kernel/ast.dart' show Variance;
-
 /// Initial value for "variance" that is to be computed by the compiler.
 const int pendingVariance = -1;
 
@@ -269,7 +267,8 @@ TypeBuilder? substituteRange(
     }
     if (arguments != null) {
       NamedTypeBuilder newTypeBuilder = new NamedTypeBuilder(type.name,
-          type.nullabilityBuilder, arguments, type.fileUri, type.charOffset);
+          type.nullabilityBuilder, arguments, type.fileUri, type.charOffset,
+          instanceTypeVariableAccess: type.instanceTypeVariableAccess);
       if (declaration != null) {
         newTypeBuilder.bind(declaration);
       } else {
@@ -314,7 +313,9 @@ TypeBuilder? substituteRange(
               functionTypeLowerSubstitution![variable] =
                   new NamedTypeBuilder.fromTypeDeclarationBuilder(
                       newTypeVariableBuilder,
-                      const NullabilityBuilder.omitted());
+                      const NullabilityBuilder.omitted(),
+                      instanceTypeVariableAccess:
+                          InstanceTypeVariableAccessState.Unexpected);
           changed = true;
         } else {
           variables[i] = variable;
@@ -438,6 +439,7 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
 /// Type variables are represented by their indices in the corresponding
 /// declaration.
 class TypeVariablesGraph implements Graph<int> {
+  @override
   late List<int> vertices;
   List<TypeVariableBuilder> variables;
   List<TypeBuilder> bounds;
@@ -491,6 +493,7 @@ class TypeVariablesGraph implements Graph<int> {
 
   /// Returns indices of type variables that depend on the type variable with
   /// [index].
+  @override
   Iterable<int> neighborsOf(int index) {
     return edges[index];
   }
@@ -1095,6 +1098,7 @@ bool hasAnyTypeVariables(DartType type) {
 class TypeVariableSearch implements DartTypeVisitor<bool> {
   const TypeVariableSearch();
 
+  @override
   bool defaultDartType(DartType node) => throw "unsupported";
 
   bool anyTypeVariables(List<DartType> types) {

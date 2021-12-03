@@ -1,0 +1,8 @@
+class A<X> {
+  static X foo<X>(X x) => x;
+}
+
+main() {}
+test() {}
+typedef D1<X> = A<X>;
+typedef D2<X extends num> = A<X>;

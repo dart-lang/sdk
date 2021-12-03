@@ -7,7 +7,9 @@
 /*library: scope=[
   ClashingExtension,
   UniqueExtension1,
-  async.dart.FutureExtensions]*/
+  async.dart.FutureExtensions,
+  core.dart.EnumByName,
+  core.dart.EnumName]*/
 
 /*class: ClashingExtension:
  builder-name=ClashingExtension,

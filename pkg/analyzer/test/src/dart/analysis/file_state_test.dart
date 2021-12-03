@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -37,8 +38,6 @@ main() {
 
 @reflectiveTest
 class FileSystemStateTest with ResourceProviderMixin {
-  late final MockSdk sdk;
-
   final ByteStore byteStore = MemoryByteStore();
   final FileContentOverlay contentOverlay = FileContentOverlay();
 
@@ -52,7 +51,13 @@ class FileSystemStateTest with ResourceProviderMixin {
 
   void setUp() {
     logger = PerformanceLog(logBuffer);
-    sdk = MockSdk(resourceProvider: resourceProvider);
+
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+    var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
 
     var packageMap = <String, List<Folder>>{
       'aaa': [getFolder('/aaa/lib')],
@@ -498,6 +503,7 @@ class D implements C {}
     // It's a cycle.
     _assertLibraryCycle(fa, [fa, fb], []);
     _assertLibraryCycle(fb, [fa, fb], []);
+    expect(fa.libraryCycle, same(fb.libraryCycle));
 
     // Update a.dart so that it does not import b.dart anymore.
     newFile(pa);
@@ -518,6 +524,36 @@ part 'a.dart';
     var fa = fileSystemState.getFileForPath(pa);
 
     _assertLibraryCycle(fa, [fa], []);
+  }
+
+  test_libraryCycle_part() {
+    var a_path = convertPath('/aaa/lib/a.dart');
+    var b_path = convertPath('/aaa/lib/b.dart');
+
+    newFile(a_path, content: r'''
+part 'b.dart';
+''');
+    newFile(b_path, content: r'''
+part of 'a.dart';
+''');
+
+    var a_file = fileSystemState.getFileForPath(a_path);
+    var b_file = fileSystemState.getFileForPath(b_path);
+    _assertFilesWithoutLibraryCycle([a_file, b_file]);
+
+    // Compute the library cycle for 'a.dart', the library.
+    var a_libraryCycle = a_file.libraryCycle;
+    _assertFilesWithoutLibraryCycle([b_file]);
+
+    // The part 'b.dart' has its own library cycle.
+    // If the user chooses to import a part, it is a compile-time error.
+    // We could handle this in different ways:
+    // 1. Completely ignore an import of a file with a `part of` directive.
+    // 2. Treat such file as a library anyway.
+    // By giving a part its own library cycle we support (2).
+    var b_libraryCycle = b_file.libraryCycle;
+    expect(b_libraryCycle, isNot(same(a_libraryCycle)));
+    _assertFilesWithoutLibraryCycle([]);
   }
 
   test_referencedNames() {
@@ -588,7 +624,7 @@ class C {
     expect(file.unlinked2, isNotNull);
 
     // Make the unlinked unit in the byte store zero-length, damaged.
-    byteStore.put(file.test.unlinkedKey, <int>[]);
+    byteStore.put(file.test.unlinkedKey, Uint8List(0));
 
     // Refresh should not fail, zero bytes in the store are ignored.
     file.refresh();

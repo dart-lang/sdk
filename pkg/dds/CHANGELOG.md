@@ -1,3 +1,23 @@
+# 2.1.4
+- A new library `package:dds/dap.dart` exposes classes required to build a custom DAP
+  debug-adapter on top of the base Dart DAP functionality in DDS.
+  For more details on DAP support in Dart see
+  [this README](https://github.com/dart-lang/sdk/blob/main/pkg/dds/tool/dap/README.md).
+
+# 2.1.3
+- Ensure cancelling multiple historical streams with the same name doesn't cause an
+  asynchronous `StateError` to be thrown.
+
+# 2.1.2
+- Silently handle exceptions that occur within RPC request handlers.
+
+# 2.1.1
+- Fix another possibility of `LateInitializationError` being thrown when trying to
+  cleanup after an error during initialization.
+
+# 2.1.0
+- Added getAvailableCachedCpuSamples and getCachedCpuSamples.
+
 # 2.0.2
 - Fix possibility of `LateInitializationError` being thrown when trying to
   cleanup after an error during initialization.

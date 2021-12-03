@@ -30,7 +30,8 @@ class DatabaseBuilderTestCase(unittest.TestCase):
     def _assert_content_equals(self, path, expected_content):
 
         def clean(content):
-            return ' '.join(filter(len, map(str.strip, content.split('\n'))))
+            return ' '.join(
+                filter(len, list(map(str.strip, content.split('\n')))))
 
         file_path = os.path.join(self._database_dir, path)
         self.assertTrue(os.path.exists(file_path))

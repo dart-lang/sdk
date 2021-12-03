@@ -121,7 +121,6 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       Thread* thread = Thread::Current();
       // Create a zone (which is also a stack resource) and exercise it a bit.
       StackZone stack_zone(thread);
-      HANDLESCOPE(thread);
       Zone* zone = thread->zone();
       EXPECT_EQ(zone, stack_zone.GetZone());
       ZoneGrowableArray<bool>* a0 = new (zone) ZoneGrowableArray<bool>(zone, 1);
@@ -255,7 +254,6 @@ class SimpleTaskWithZoneAllocation : public ThreadPool::Task {
     *thread_ptr_ = thread;
 
     StackZone stack_zone(thread);
-    HANDLESCOPE(thread);
     Zone* zone = thread->zone();
     EXPECT_EQ(zone, stack_zone.GetZone());
 
@@ -390,7 +388,6 @@ class ICDataTestTask : public ThreadPool::Task {
 
     {
       StackZone stack_zone(thread);
-      HANDLESCOPE(thread);
 
       ICData& ic_data = ICData::Handle();
       Array& arr = Array::Handle();
@@ -464,7 +461,7 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
   const Array& ic_datas = Array::Handle(Array::New(kNumICData));
   ICData& ic_data = ICData::Handle();
   Function& owner = *CreateFunction("DummyFunction");
-  String& name = String::Handle(String::New("foo"));
+  String& name = String::Handle(Symbols::New(thread, "foo"));
   const Array& args_desc =
       Array::Handle(ArgumentsDescriptor::NewBoxed(0, 0, Object::empty_array()));
   for (intptr_t i = 0; i < kNumICData; i++) {
@@ -536,7 +533,6 @@ class SafepointTestTask : public ThreadPool::Task {
     for (int i = reinterpret_cast<intptr_t>(thread);; ++i) {
       StackZone stack_zone(thread);
       Zone* zone = thread->zone();
-      HANDLESCOPE(thread);
       const intptr_t kUniqueSmi = 928327281;
       Smi& smi = Smi::Handle(zone, Smi::New(kUniqueSmi));
       if ((i % 100) != 0) {
@@ -852,7 +848,6 @@ class AllocAndGCTask : public ThreadPool::Task {
       Thread* thread = Thread::Current();
       StackZone stack_zone(thread);
       Zone* zone = stack_zone.GetZone();
-      HANDLESCOPE(thread);
       String& old_str = String::Handle(zone, String::New("old", Heap::kOld));
       isolate_->group()->heap()->CollectAllGarbage();
       EXPECT(old_str.Equals("old"));
@@ -900,7 +895,6 @@ class AllocateGlobsOfMemoryTask : public ThreadPool::Task {
       Thread* thread = Thread::Current();
       StackZone stack_zone(thread);
       Zone* zone = stack_zone.GetZone();
-      HANDLESCOPE(thread);
       int count = 100 * 1000;
       while (count-- > 0) {
         String::Handle(zone, String::New("abc"));

@@ -42,7 +42,7 @@ class F<T extends core::Object? = dynamic, U extends core::Object? = dynamic, V 
   const constructor •() → self::F<self::F::T%, self::F::U%, self::F::V%>
     : super core::Object::•()
     ;
-  method fn(generic-covariant-impl self::F::U% x) → self::F::U%
+  method fn(covariant-by-class self::F::U% x) → self::F::U%
     ;
 }
 class G<T extends core::Object? = dynamic> extends self::F<self::G::T%, core::String, core::num> /*hasConstConstructor*/  {

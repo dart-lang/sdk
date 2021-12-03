@@ -549,8 +549,38 @@ class C {
 }
 ''', [
       error(HintCode.UNUSED_RESULT, 131, 2,
-          messageContains: "'m1' should be used."),
+          messageContains: ["'m1' should be used."]),
     ]);
+  }
+
+  test_method_result_unassigned_parameterDefined() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @UseResult.unless(parameterDefined: 'value')
+  int foo([int? value]) => value ?? 0;
+}
+
+void main() {
+  A().foo(3);
+}
+''');
+  }
+
+  test_method_result_unassigned_parameterNotDefinedAndCascaded() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @UseResult.unless(parameterDefined: 'value')
+  int foo([int? value]) => value ?? 0;
+}
+
+void main() {
+  A().foo()..toString();
+}
+''');
   }
 
   test_topLevelFunction_result_assigned() async {
@@ -577,6 +607,49 @@ int foo() => 0;
 void main() {
   var x = foo()..toString(); // OK
   print(x);
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/47473
+  test_topLevelFunction_result_assigned_if() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+String foo() => '';
+
+String f(bool b) {
+  var f = '';
+  if (b) f = foo();
+  return f;
+}
+''');
+  }
+
+  test_topLevelFunction_result_awaited_future_passed() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+Future<List<String>> load() async => [];
+
+void f() async {
+  var l = [];
+  l.add(await load());
+}
+''');
+  }
+
+  test_topLevelFunction_result_optionNamedParam_unassigned_parameterDefined() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@UseResult.unless(parameterDefined: 'value')
+int foo({int? value}) => value ?? 0;
+
+void main() {
+  foo(value: 3);
 }
 ''');
   }
@@ -639,8 +712,51 @@ void main() {
     ]);
   }
 
-  test_topLevelFunction_result_unassigned_cascade() async {
+  test_topLevelFunction_result_unassigned_parameterDefined() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@UseResult.unless(parameterDefined: 'value')
+int foo([int? value]) => value ?? 0;
+
+void main() {
+  foo(3);
+}
+''');
+  }
+
+  test_topLevelFunction_result_unassigned_parameterUnDefined() async {
     await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@UseResult.unless(parameterDefined: 'value')
+int foo([int? value]) => value ?? 0;
+
+void main() {
+  foo();
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 133, 3),
+    ]);
+  }
+
+  test_topLevelFunction_result_unassigned_parameterUnDefined2() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@UseResult.unless(parameterDefined: 'value')
+int foo([String? msg, int? value]) => value ?? 0;
+
+void main() {
+  foo('none');
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 146, 3),
+    ]);
+  }
+
+  test_topLevelFunction_result_used_in_cascade() async {
+    await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 @useResult
@@ -649,9 +765,7 @@ int foo() => 0;
 void main() {
   foo()..toString();
 }
-''', [
-      error(HintCode.UNUSED_RESULT, 78, 3),
-    ]);
+''');
   }
 
   test_topLevelVariable_assigned() async {
@@ -678,6 +792,19 @@ int foo = 0;
 void main() {
   print(foo); // OK
 }
+''');
+  }
+
+  test_topLevelVariable_result_unusedInDoc() async {
+    // https://github.com/dart-lang/sdk/issues/47181
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int get f => 1;
+
+/// I love [f].
+int g = 1;
 ''');
   }
 

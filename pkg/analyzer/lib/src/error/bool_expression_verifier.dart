@@ -25,7 +25,7 @@ class BoolExpressionVerifier {
     required ResolverVisitor resolver,
     required ErrorReporter errorReporter,
     required NullableDereferenceVerifier nullableDereferenceVerifier,
-  })   : _resolver = resolver,
+  })  : _resolver = resolver,
         _errorReporter = errorReporter,
         _nullableDereferenceVerifier = nullableDereferenceVerifier,
         _boolType = resolver.typeSystem.typeProvider.boolType;
@@ -53,9 +53,10 @@ class BoolExpressionVerifier {
     if (!_checkForUseOfVoidResult(expression) &&
         !_resolver.typeSystem.isAssignableTo(type, _boolType)) {
       if (type.isDartCoreBool) {
-        _nullableDereferenceVerifier.report(expression, type,
-            errorCode: CompileTimeErrorCode
-                .UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+        _nullableDereferenceVerifier.report(
+            CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+            expression,
+            type,
             messages: _resolver.computeWhyNotPromotedMessages(
                 expression, whyNotPromoted?.call()));
       } else {

@@ -15,11 +15,11 @@ abstract class Name {
   /// Create a [Name] for an identifier [text]. If [text] begins with '_' a
   /// private name with respect to [library] is created. If [isSetter] is `true`
   /// the created name represents the setter name 'text='.
-  factory Name(String text, LibraryEntity library, {bool isSetter: false}) {
+  factory Name(String text, LibraryEntity library, {bool isSetter = false}) {
     if (isPrivateName(text)) {
-      return new PrivateName(text, library, isSetter: isSetter);
+      return PrivateName(text, library, isSetter: isSetter);
     }
-    return new PublicName(text, isSetter: isSetter);
+    return PublicName(text, isSetter: isSetter);
   }
 
   /// The text of the name without prefixed library name or suffixed '=' if
@@ -66,13 +66,13 @@ class PublicName implements Name {
   @override
   final bool isSetter;
 
-  const PublicName(this.text, {this.isSetter: false});
+  const PublicName(this.text, {this.isSetter = false});
 
   @override
-  Name get getter => isSetter ? new PublicName(text) : this;
+  Name get getter => isSetter ? PublicName(text) : this;
 
   @override
-  Name get setter => isSetter ? this : new PublicName(text, isSetter: true);
+  Name get setter => isSetter ? this : PublicName(text, isSetter: true);
 
   @override
   bool isAccessibleFrom(LibraryEntity element) => true;
@@ -106,15 +106,15 @@ class PrivateName extends PublicName {
   @override
   final LibraryEntity library;
 
-  PrivateName(String text, this.library, {bool isSetter: false})
+  PrivateName(String text, this.library, {bool isSetter = false})
       : super(text, isSetter: isSetter);
 
   @override
-  Name get getter => isSetter ? new PrivateName(text, library) : this;
+  Name get getter => isSetter ? PrivateName(text, library) : this;
 
   @override
   Name get setter {
-    return isSetter ? this : new PrivateName(text, library, isSetter: true);
+    return isSetter ? this : PrivateName(text, library, isSetter: true);
   }
 
   @override

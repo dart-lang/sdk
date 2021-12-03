@@ -24,6 +24,7 @@ git clone git@github.com:flutter/devtools.git
 cd devtools
 git checkout -b cipd_release $1
 
+./tool/update_flutter_sdk.sh
 ./tool/build_release.sh
 
 # Copy the build output as well as the devtools packages needed
@@ -31,6 +32,7 @@ git checkout -b cipd_release $1
 mkdir cipd_package
 cp -R packages/devtools/build/ cipd_package/web
 cp -r packages/devtools_shared cipd_package
+cp -r packages/devtools_server cipd_package
 
 cipd create \
   -name dart/third_party/flutter/devtools \

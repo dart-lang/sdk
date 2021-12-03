@@ -29,7 +29,7 @@ static method ifTest(core::int a) → core::int {
     }
 }
 static method ifTest2(core::int a) → core::int {
-  if(a =={core::num::==}{(core::Object) → core::bool} (#C4)) {
+  if(a =={core::num::==}{(core::Object) → core::bool} #C4) {
     return 100;
   }
   else {

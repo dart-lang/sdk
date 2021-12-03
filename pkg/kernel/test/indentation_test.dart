@@ -5,7 +5,7 @@
 import 'package:expect/expect.dart';
 import 'package:kernel/text/indentation.dart' show Indentation;
 
-main() {
+void main() {
   Indentation ind = new Indentation();
 
   Expect.stringEquals("", ind.indentation);

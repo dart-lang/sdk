@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async' show Future, StreamSubscription;
 
 import 'dart:convert' show JsonEncoder, jsonDecode, utf8;
@@ -47,6 +45,8 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 import 'package:front_end/src/fasta/messages.dart' show Message;
+import 'package:front_end/src/fasta/source/diet_parser.dart'
+    show useImplicitCreationExpressionInCfe;
 import 'package:front_end/src/fasta/util/direct_parser_ast.dart';
 import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
 
@@ -79,8 +79,8 @@ class TestMinimizerSettings {
   }
 
   bool _useInitialFs = true;
-  Uri mainUri;
-  Uri platformUri;
+  Uri? mainUri;
+  Uri? platformUri;
   bool noPlatform = false;
   bool experimentalInvalidation = false;
   bool serialize = false;
@@ -94,7 +94,7 @@ class TestMinimizerSettings {
   bool askAboutRedirectCrashTarget = false;
   bool autoUncoverAllCrashes = false;
   int stackTraceMatches = 1;
-  String lookForErrorErrorOnReload;
+  String? lookForErrorErrorOnReload;
   final Set<String> askedAboutRedirect = {};
   final List<Map<String, dynamic>> fileSystems = [];
   final Set<String> allAutoRedirects = {};
@@ -132,7 +132,7 @@ class TestMinimizerSettings {
     };
   }
 
-  initializeFromJson(Map<String, dynamic> json) {
+  void initializeFromJson(Map<String, dynamic> json) {
     mainUri = Uri.parse(json["mainUri"]);
     platformUri = Uri.parse(json["platformUri"]);
     noPlatform = json["noPlatform"];
@@ -172,17 +172,17 @@ class TestMinimizerSettings {
 class TestMinimizer {
   final TestMinimizerSettings _settings;
   _FakeFileSystem get _fs => _settings._fs;
-  Uri get _mainUri => _settings.mainUri;
-  String _expectedCrashLine;
+  Uri get _mainUri => _settings.mainUri!;
+  String? _expectedCrashLine;
   bool _quit = false;
   bool _skip = false;
   bool _check = false;
   int _currentFsNum = -1;
   bool _gotWantedError = false;
 
-  Component _latestComponent;
-  IncrementalCompiler _latestCrashingIncrementalCompiler;
-  StreamSubscription<List<int>> _stdinSubscription;
+  Component? _latestComponent;
+  IncrementalCompiler? _latestCrashingIncrementalCompiler;
+  StreamSubscription<List<int>>? _stdinSubscription;
 
   static const int _$LF = 10;
 
@@ -215,8 +215,8 @@ class TestMinimizer {
         int totalFiles = 0;
         int emptyFiles = 0;
         int combinedSize = 0;
-        for (Uri uri in _fs.data.keys) {
-          final Uint8List originalBytes = _fs.data[uri];
+        for (Uri? uri in _fs.data.keys) {
+          final Uint8List? originalBytes = _fs.data[uri];
           if (originalBytes == null) continue;
           totalFiles++;
           if (originalBytes.isEmpty) emptyFiles++;
@@ -263,13 +263,13 @@ class TestMinimizer {
       _currentFsNum++;
     }
 
-    await _stdinSubscription.cancel();
+    await _stdinSubscription!.cancel();
   }
 
   Future _tryToMinimizeImpl() async {
     // Set main to be basically empty up front.
     _settings._useInitialFs = true;
-    _fs.data[_mainUri] = utf8.encode("main() {}");
+    _fs.data[_mainUri] = utf8.encode("main() {}") as Uint8List;
     Component initialComponent = await _getInitialComponent();
     print("Compiled initially (without data)");
     // Remove fake cache.
@@ -288,21 +288,21 @@ class TestMinimizer {
     // For all dart files: Parse them as set their source as the parsed source
     // to "get around" any encoding issues when printing later.
     Map<Uri, Uint8List> copy = new Map.from(_fs.data);
-    for (Uri uri in _fs.data.keys) {
+    for (Uri? uri in _fs.data.keys) {
       if (await _shouldQuit()) break;
       String uriString = uri.toString();
       if (uriString.endsWith(".json") ||
           uriString.endsWith(".packages") ||
           uriString.endsWith(".dill") ||
           _fs.data[uri] == null ||
-          _fs.data[uri].isEmpty) {
+          _fs.data[uri]!.isEmpty) {
         // skip
       } else {
         try {
-          if (_knownByCompiler(uri)) {
+          if (_knownByCompiler(uri!)) {
             String parsedString =
-                _getFileAsStringContent(_fs.data[uri], _isUriNnbd(uri));
-            _fs.data[uri] = utf8.encode(parsedString);
+                _getFileAsStringContent(_fs.data[uri]!, _isUriNnbd(uri));
+            _fs.data[uri] = utf8.encode(parsedString) as Uint8List;
           }
         } catch (e) {
           // crash in scanner/parser --- keep original file. This crash might
@@ -329,10 +329,10 @@ class TestMinimizer {
         for (int i = 0; i < uris.length; i++) {
           if (await _shouldQuit()) break;
           Uri uri = uris[i];
-          if (_fs.data[uri] == null || _fs.data[uri].isEmpty) continue;
+          if (_fs.data[uri] == null || _fs.data[uri]!.isEmpty) continue;
           print("About to work on file $i of ${uris.length}");
           await _deleteContent(uris, i, false, initialComponent);
-          if (_fs.data[uri] == null || _fs.data[uri].isEmpty) {
+          if (_fs.data[uri] == null || _fs.data[uri]!.isEmpty) {
             changedSome = true;
           }
         }
@@ -347,7 +347,7 @@ class TestMinimizer {
           for (int i = 0; i < uris.length; i++) {
             if (await _shouldQuit()) break;
             Uri uri = uris[i];
-            if (_fs.data[uri] == null || _fs.data[uri].isNotEmpty) continue;
+            if (_fs.data[uri] == null || _fs.data[uri]!.isNotEmpty) continue;
             print("About to work on file $i of ${uris.length}");
             await _deleteContent(uris, i, false, initialComponent,
                 deleteFile: true);
@@ -361,18 +361,18 @@ class TestMinimizer {
 
       int left = 0;
       for (Uri uri in uris) {
-        if (_fs.data[uri] == null || _fs.data[uri].isEmpty) continue;
+        if (_fs.data[uri] == null || _fs.data[uri]!.isEmpty) continue;
         left++;
       }
       print("There's now $left files of ${_fs.data.length} files left");
 
       // Operate on one file at a time.
-      for (Uri uri in _fs.data.keys) {
-        if (_fs.data[uri] == null || _fs.data[uri].isEmpty) continue;
+      for (Uri? uri in _fs.data.keys) {
+        if (_fs.data[uri] == null || _fs.data[uri]!.isEmpty) continue;
         if (await _shouldQuit()) break;
 
         if (await _tryRemoveIfNotKnownByCompiler(uri, initialComponent)) {
-          if (_fs.data[uri] == null || _fs.data[uri].isEmpty) continue;
+          if (_fs.data[uri] == null || _fs.data[uri]!.isEmpty) continue;
           if (await _shouldQuit()) break;
         }
 
@@ -387,9 +387,9 @@ class TestMinimizer {
 
         print("Now working on $uri");
 
-        int prevLength = _fs.data[uri].length;
+        int prevLength = _fs.data[uri]!.length;
 
-        await _deleteBlocks(uri, initialComponent);
+        await _deleteBlocks(uri!, initialComponent);
         await _deleteEmptyLines(uri, initialComponent);
 
         if (_settings.oldBlockDelete) {
@@ -402,44 +402,44 @@ class TestMinimizer {
           await _deleteLines(uri, initialComponent);
         }
 
-        print("We're now at ${_fs.data[uri].length} bytes for $uri "
+        print("We're now at ${_fs.data[uri]!.length} bytes for $uri "
             "(was $prevLength).");
-        if (prevLength != _fs.data[uri].length) changedSome = true;
-        if (_fs.data[uri].isEmpty) continue;
+        if (prevLength != _fs.data[uri]!.length) changedSome = true;
+        if (_fs.data[uri]!.isEmpty) continue;
 
         if (_settings.byteDelete) {
           // Now try to delete 'arbitrarily' (for any given start offset do an
           // exponential binary search).
-          int prevLength = _fs.data[uri].length;
+          int prevLength = _fs.data[uri]!.length;
           while (true) {
             if (await _shouldQuit()) break;
             await _binarySearchDeleteData(uri, initialComponent);
 
-            if (_fs.data[uri].length == prevLength) {
+            if (_fs.data[uri]!.length == prevLength) {
               // No progress.
               break;
             } else {
-              print("We're now at ${_fs.data[uri].length} bytes");
-              prevLength = _fs.data[uri].length;
+              print("We're now at ${_fs.data[uri]!.length} bytes");
+              prevLength = _fs.data[uri]!.length;
               changedSome = true;
             }
           }
         }
       }
-      for (Uri uri in _fs.data.keys) {
-        if (_fs.data[uri] == null || _fs.data[uri].isEmpty) continue;
+      for (Uri? uri in _fs.data.keys) {
+        if (_fs.data[uri] == null || _fs.data[uri]!.isEmpty) continue;
         if (await _shouldQuit()) break;
 
         if (await _tryRemoveIfNotKnownByCompiler(uri, initialComponent)) {
-          if (_fs.data[uri] == null || _fs.data[uri].isEmpty) continue;
+          if (_fs.data[uri] == null || _fs.data[uri]!.isEmpty) continue;
           if (await _shouldQuit()) break;
         }
 
-        if (await _attemptInline(uri, initialComponent)) {
+        if (await _attemptInline(uri!, initialComponent)) {
           changedSome = true;
 
           if (await _tryRemoveIfNotKnownByCompiler(uri, initialComponent)) {
-            if (_fs.data[uri] == null || _fs.data[uri].isEmpty) continue;
+            if (_fs.data[uri] == null || _fs.data[uri]!.isEmpty) continue;
             if (await _shouldQuit()) break;
           }
         }
@@ -469,11 +469,11 @@ class TestMinimizer {
       print("\n\n\n");
 
       for (Uri uri in uris) {
-        if (_fs.data[uri] == null || _fs.data[uri].isEmpty) continue;
+        if (_fs.data[uri] == null || _fs.data[uri]!.isEmpty) continue;
         print("Uri $uri has this content:");
 
         try {
-          String utfDecoded = utf8.decode(_fs.data[uri], allowMalformed: true);
+          String utfDecoded = utf8.decode(_fs.data[uri]!, allowMalformed: true);
           print(utfDecoded);
         } catch (e) {
           print(_fs.data[uri]);
@@ -496,7 +496,7 @@ class TestMinimizer {
     JsonEncoder jsonEncoder = new JsonEncoder.withIndent("  ");
     String json = jsonEncoder.convert(_settings);
     int i = 0;
-    Uri jsonOut;
+    Uri? jsonOut;
     while (jsonOut == null || new File.fromUri(jsonOut).existsSync()) {
       jsonOut = Uri.base.resolve("crash_minimizer_result_$i");
       i++;
@@ -513,7 +513,7 @@ class TestMinimizer {
     // Don't attempt to inline the main uri --- that's our entry!
     if (uri == _mainUri) return false;
 
-    Uint8List inlineData = _fs.data[uri];
+    Uint8List inlineData = _fs.data[uri]!;
     bool hasMultipleLines = false;
     for (int i = 0; i < inlineData.length; i++) {
       if (inlineData[i] == _$LF) {
@@ -531,16 +531,16 @@ class TestMinimizer {
     int compileTry = 0;
     bool changed = false;
 
-    for (Uri uri in _fs.data.keys) {
+    for (Uri? uri in _fs.data.keys) {
       if (!uri.toString().endsWith(".dart")) continue;
       if (inlinableUri == uri) continue;
-      final Uint8List originalBytes = _fs.data[uri];
+      final Uint8List? originalBytes = _fs.data[uri];
       if (originalBytes == null || originalBytes.isEmpty) continue;
       DirectParserASTContentCompilationUnitEnd ast = getAST(originalBytes,
           includeBody: false,
           includeComments: false,
           enableExtensionMethods: true,
-          enableNonNullable: _isUriNnbd(uri));
+          enableNonNullable: _isUriNnbd(uri!));
       // Find all imports/exports of this file (if any).
       // If finding any:
       // * remove all of them, then
@@ -550,15 +550,15 @@ class TestMinimizer {
       //   try converting that to an import instead.
       List<_Replacement> replacements = [];
       for (DirectParserASTContentImportEnd import in ast.getImports()) {
-        Token importUriToken = import.importKeyword.next;
+        Token importUriToken = import.importKeyword.next!;
         Uri importUri = _getUri(importUriToken, uri);
         if (inlinableUri == importUri) {
           replacements.add(new _Replacement(
-              import.importKeyword.offset - 1, import.semicolon.offset + 1));
+              import.importKeyword.offset - 1, import.semicolon!.offset + 1));
         }
       }
       for (DirectParserASTContentExportEnd export in ast.getExports()) {
-        Token exportUriToken = export.exportKeyword.next;
+        Token exportUriToken = export.exportKeyword.next!;
         Uri exportUri = _getUri(exportUriToken, uri);
         if (inlinableUri == exportUri) {
           replacements.add(new _Replacement(
@@ -583,7 +583,7 @@ class TestMinimizer {
           enableExtensionMethods: true,
           enableNonNullable: _isUriNnbd(uri));
       for (DirectParserASTContentImportEnd import in ast.getImports()) {
-        offsetOfLast = max(offsetOfLast, import.semicolon.offset + 1);
+        offsetOfLast = max(offsetOfLast, import.semicolon!.offset + 1);
       }
       for (DirectParserASTContentExportEnd export in ast.getExports()) {
         offsetOfLast = max(offsetOfLast, export.semicolon.offset + 1);
@@ -604,7 +604,8 @@ class TestMinimizer {
       for (int i = offsetOfLast; i < withoutInlineableString.length; i++) {
         builder.writeCharCode(withoutInlineableString.codeUnitAt(i));
       }
-      final Uint8List inlinedWithoutChange = utf8.encode(builder.toString());
+      final Uint8List inlinedWithoutChange =
+          utf8.encode(builder.toString()) as Uint8List;
 
       if (!_parsesWithoutError(inlinedWithoutChange, _isUriNnbd(uri))) {
         print("WARNING: Parser error after stuff at ${StackTrace.current}");
@@ -644,7 +645,8 @@ class TestMinimizer {
         for (int i = offsetOfLast; i < withoutInlineableString.length; i++) {
           builder.writeCharCode(withoutInlineableString.codeUnitAt(i));
         }
-        Uint8List inlinedWithChange = utf8.encode(builder.toString());
+        Uint8List inlinedWithChange =
+            utf8.encode(builder.toString()) as Uint8List;
 
         if (!_parsesWithoutError(inlinedWithChange, _isUriNnbd(uri))) {
           print("WARNING: Parser error after stuff at ${StackTrace.current}");
@@ -689,7 +691,7 @@ class TestMinimizer {
     List<_Replacement> replacements = [];
     for (DirectParserASTContentImportEnd import in ast.getImports()) {
       _rewriteImportsExportsToUriInternal(
-          import.importKeyword.next, oldUri, replacements, newUri);
+          import.importKeyword.next!, oldUri, replacements, newUri);
     }
     for (DirectParserASTContentExportEnd export in ast.getExports()) {
       if (convertExportToImport) {
@@ -700,7 +702,7 @@ class TestMinimizer {
         ));
       }
       _rewriteImportsExportsToUriInternal(
-          export.exportKeyword.next, oldUri, replacements, newUri);
+          export.exportKeyword.next!, oldUri, replacements, newUri);
     }
     if (replacements.isNotEmpty) {
       Uint8List candidate = _replaceRange(replacements, oldData);
@@ -711,8 +713,8 @@ class TestMinimizer {
 
   void _outputIncrementalCompilerYamlTest() {
     int dartFiles = 0;
-    for (MapEntry<Uri, Uint8List> entry in _fs.data.entries) {
-      if (entry.key.pathSegments.last.endsWith(".dart")) {
+    for (MapEntry<Uri?, Uint8List?> entry in _fs.data.entries) {
+      if (entry.key!.pathSegments.last.endsWith(".dart")) {
         if (entry.value != null) dartFiles++;
       }
     }
@@ -739,10 +741,10 @@ worlds:
       print("    experiments: alternative-invalidation-strategy");
     }
     print("    sources:");
-    for (MapEntry<Uri, Uint8List> entry in _fs.data.entries) {
+    for (MapEntry<Uri?, Uint8List?> entry in _fs.data.entries) {
       if (entry.value == null) continue;
       print("      ${entry.key}: |");
-      String string = utf8.decode(entry.value);
+      String string = utf8.decode(entry.value!);
       List<String> lines = string.split("\n");
       for (String line in lines) {
         print("        $line");
@@ -799,8 +801,8 @@ worlds:
     uriString = uriString.substring(1, uriString.length - 1);
     Uri uriTokenUri = uri.resolve(uriString);
     if (resolvePackage && uriTokenUri.scheme == "package") {
-      Package package = _latestCrashingIncrementalCompiler
-          .currentPackagesMap[uriTokenUri.pathSegments.first];
+      Package package = _latestCrashingIncrementalCompiler!
+          .currentPackagesMap![uriTokenUri.pathSegments.first]!;
       uriTokenUri = package.packageUriRoot
           .resolve(uriTokenUri.pathSegments.skip(1).join("/"));
     }
@@ -808,7 +810,7 @@ worlds:
   }
 
   Uri _getImportUri(Uri uri) {
-    return _latestCrashingIncrementalCompiler.userCode
+    return _latestCrashingIncrementalCompiler!.userCode!
         .getEntryPointUri(uri, issueProblem: false);
   }
 
@@ -818,8 +820,9 @@ worlds:
     return result;
   }
 
-  void _binarySearchDeleteData(Uri uri, Component initialComponent) async {
-    Uint8List latestCrashData = _fs.data[uri];
+  Future<void> _binarySearchDeleteData(
+      Uri uri, Component initialComponent) async {
+    Uint8List latestCrashData = _fs.data[uri]!;
     int offset = 0;
     while (offset < latestCrashData.length) {
       print("Working at offset $offset of ${latestCrashData.length}");
@@ -838,7 +841,7 @@ worlds:
 
       // Find how long we can go.
       int crashingAt = 1;
-      int noLongerCrashingAt;
+      int? noLongerCrashingAt;
       while (true) {
         int deleteChars = 2 * crashingAt;
         if (offset + deleteChars > latestCrashData.length) {
@@ -865,7 +868,7 @@ worlds:
       }
 
       // Binary search between [crashingAt] and [noLongerCrashingAt].
-      while (crashingAt < noLongerCrashingAt) {
+      while (crashingAt < noLongerCrashingAt!) {
         int mid = noLongerCrashingAt -
             ((noLongerCrashingAt - crashingAt) >>
                 1); // Get middle, rounding up.
@@ -899,20 +902,20 @@ worlds:
     _fs.data[uri] = latestCrashData;
   }
 
-  void _tryToRemoveUnreferencedFileContent(Component initialComponent,
+  Future<void> _tryToRemoveUnreferencedFileContent(Component initialComponent,
       {bool deleteFile: false}) async {
     // Check if there now are any unused files.
     if (_latestComponent == null) return;
-    Set<Uri> neededUris = _latestComponent.uriToSource.keys.toSet();
+    Set<Uri> neededUris = _latestComponent!.uriToSource.keys.toSet();
     Map<Uri, Uint8List> copy = new Map.from(_fs.data);
     bool removedSome = false;
     if (await _shouldQuit()) return;
-    for (MapEntry<Uri, Uint8List> entry in _fs.data.entries) {
+    for (MapEntry<Uri?, Uint8List?> entry in _fs.data.entries) {
       if (entry.value == null) continue;
-      if (!deleteFile && entry.value.isEmpty) continue;
+      if (!deleteFile && entry.value!.isEmpty) continue;
       if (!entry.key.toString().endsWith(".dart")) continue;
       if (!neededUris.contains(entry.key) &&
-          (deleteFile || _fs.data[entry.key].length != 0)) {
+          (deleteFile || _fs.data[entry.key]!.length != 0)) {
         if (deleteFile) {
           _fs.data[entry.key] = null;
         } else {
@@ -933,7 +936,7 @@ worlds:
     }
   }
 
-  void _deleteContent(
+  Future<void> _deleteContent(
       List<Uri> uris, int uriIndex, bool limitTo1, Component initialComponent,
       {bool deleteFile: false}) async {
     String extraMessageText = "all content of ";
@@ -968,7 +971,7 @@ worlds:
 
     if (await _shouldQuit()) return;
     Uri uri = uris[uriIndex];
-    Uint8List data = _fs.data[uri];
+    Uint8List? data = _fs.data[uri];
     if (deleteFile) {
       _fs.data[uri] = null;
     } else {
@@ -982,16 +985,16 @@ worlds:
       // For dart files we can't truncate completely try to "outline" them
       // instead.
       if (uri.toString().endsWith(".dart")) {
-        String textualOutlined =
-            textualOutline(data, _getScannerConfiguration(uri))
+        String? textualOutlined =
+            textualOutline(data!, _getScannerConfiguration(uri))
                 ?.replaceAll(RegExp(r'\n+'), "\n");
 
         bool outlined = false;
         if (textualOutlined != null) {
-          Uint8List candidate = utf8.encode(textualOutlined);
+          Uint8List candidate = utf8.encode(textualOutlined) as Uint8List;
           // Because textual outline doesn't do the right thing for nnbd, only
           // replace if it's syntactically valid.
-          if (candidate.length != _fs.data[uri].length &&
+          if (candidate.length != _fs.data[uri]!.length &&
               _parsesWithoutError(candidate, _isUriNnbd(uri))) {
             if (await _shouldQuit()) return;
             _fs.data[uri] = candidate;
@@ -1001,21 +1004,22 @@ worlds:
             } else {
               outlined = true;
               print("Can outline the file $uri "
-                  "(now ${_fs.data[uri].length} bytes)");
+                  "(now ${_fs.data[uri]!.length} bytes)");
             }
           }
         }
         if (!outlined) {
           // We can probably at least remove all comments then...
           try {
-            List<String> strings = utf8.decode(_fs.data[uri]).split("\n");
+            List<String> strings = utf8.decode(_fs.data[uri]!).split("\n");
             List<String> stringsLeft = [];
             for (String string in strings) {
               if (!string.trim().startsWith("//")) stringsLeft.add(string);
             }
 
-            Uint8List candidate = utf8.encode(stringsLeft.join("\n"));
-            if (candidate.length != _fs.data[uri].length) {
+            Uint8List candidate =
+                utf8.encode(stringsLeft.join("\n")) as Uint8List;
+            if (candidate.length != _fs.data[uri]!.length) {
               if (await _shouldQuit()) return;
               _fs.data[uri] = candidate;
               if (!await _crashesOnCompile(initialComponent)) {
@@ -1038,7 +1042,7 @@ worlds:
     }
   }
 
-  void _deleteBlocksOld(Uri uri, Component initialComponent) async {
+  Future<void> _deleteBlocksOld(Uri uri, Component initialComponent) async {
     if (uri.toString().endsWith(".json")) {
       // Try to find annoying
       //
@@ -1047,7 +1051,7 @@ worlds:
       //    }
       //
       // part of json and remove it.
-      Uint8List data = _fs.data[uri];
+      Uint8List data = _fs.data[uri]!;
       String string = utf8.decode(data);
       List<String> lines = string.split("\n");
       for (int i = 0; i < lines.length - 2; i++) {
@@ -1060,7 +1064,7 @@ worlds:
         }
       }
       string = lines.join("\n");
-      _fs.data[uri] = utf8.encode(string);
+      _fs.data[uri] = utf8.encode(string) as Uint8List;
       if (!await _crashesOnCompile(initialComponent)) {
         // For some reason that didn't work.
         _fs.data[uri] = data;
@@ -1068,7 +1072,7 @@ worlds:
     }
     if (!uri.toString().endsWith(".dart")) return;
 
-    Uint8List data = _fs.data[uri];
+    Uint8List data = _fs.data[uri]!;
     Uint8List latestCrashData = data;
 
     List<int> lineStarts = [];
@@ -1078,13 +1082,14 @@ worlds:
         _isUriNnbd(uri) ? _scannerConfiguration : _scannerConfigurationNonNNBD,
         lineStarts);
 
+    // ignore: unnecessary_null_comparison
     if (firstToken == null) {
       print("Got null token from scanner for $uri");
       return;
     }
 
     int compileTry = 0;
-    Token token = firstToken;
+    Token? token = firstToken;
     while (token is ErrorToken) {
       token = token.next;
     }
@@ -1093,56 +1098,58 @@ worlds:
       bool tryCompile = false;
       Token skipToToken = token;
       // Skip very small blocks (e.g. "{}" or "{\n}");
-      if (token.endGroup != null && token.offset + 3 < token.endGroup.offset) {
-        replacements.add(new _Replacement(token.offset, token.endGroup.offset));
+      if (token.endGroup != null && token.offset + 3 < token.endGroup!.offset) {
+        replacements
+            .add(new _Replacement(token.offset, token.endGroup!.offset));
         tryCompile = true;
-        skipToToken = token.endGroup;
+        skipToToken = token.endGroup!;
       } else if (token.lexeme == "@") {
-        if (token.next.next.endGroup != null) {
-          int end = token.next.next.endGroup.offset;
-          skipToToken = token.next.next.endGroup;
+        if (token.next!.next!.endGroup != null) {
+          int end = token.next!.next!.endGroup!.offset;
+          skipToToken = token.next!.next!.endGroup!;
           replacements.add(new _Replacement(token.offset - 1, end + 1));
           tryCompile = true;
         }
       } else if (token.lexeme == "assert") {
-        if (token.next.endGroup != null) {
-          int end = token.next.endGroup.offset;
-          skipToToken = token.next.endGroup;
-          if (token.next.endGroup.next.lexeme == ",") {
-            end = token.next.endGroup.next.offset;
-            skipToToken = token.next.endGroup.next;
+        if (token.next!.endGroup != null) {
+          int end = token.next!.endGroup!.offset;
+          skipToToken = token.next!.endGroup!;
+          if (token.next!.endGroup!.next!.lexeme == ",") {
+            end = token.next!.endGroup!.next!.offset;
+            skipToToken = token.next!.endGroup!.next!;
           }
           // +/- 1 to not include the start and the end character.
           replacements.add(new _Replacement(token.offset - 1, end + 1));
           tryCompile = true;
         }
-      } else if ((token.lexeme == "abstract" && token.next.lexeme == "class") ||
+      } else if ((token.lexeme == "abstract" &&
+              token.next!.lexeme == "class") ||
           token.lexeme == "class" ||
           token.lexeme == "enum" ||
           token.lexeme == "mixin" ||
           token.lexeme == "static" ||
-          token.next.lexeme == "get" ||
-          token.next.lexeme == "set" ||
-          token.next.next.lexeme == "(" ||
-          (token.next.lexeme == "<" &&
-              token.next.endGroup != null &&
-              token.next.endGroup.next.next.lexeme == "(")) {
+          token.next!.lexeme == "get" ||
+          token.next!.lexeme == "set" ||
+          token.next!.next!.lexeme == "(" ||
+          (token.next!.lexeme == "<" &&
+              token.next!.endGroup != null &&
+              token.next!.endGroup!.next!.next!.lexeme == "(")) {
         // Try to find and remove the entire class/enum/mixin/
         // static procedure/getter/setter/simple procedure.
         Token bracket = token;
         for (int i = 0; i < 20; i++) {
           // Find "{", but only go a maximum of 20 tokens to do that.
-          bracket = bracket.next;
+          bracket = bracket.next!;
           if (bracket.lexeme == "{" && bracket.endGroup != null) {
             break;
           } else if ((bracket.lexeme == "(" || bracket.lexeme == "<") &&
               bracket.endGroup != null) {
-            bracket = bracket.endGroup;
+            bracket = bracket.endGroup!;
           }
         }
         if (bracket.lexeme == "{" && bracket.endGroup != null) {
-          int end = bracket.endGroup.offset;
-          skipToToken = bracket.endGroup;
+          int end = bracket.endGroup!.offset;
+          skipToToken = bracket.endGroup!;
           // +/- 1 to not include the start and the end character.
           replacements.add(new _Replacement(token.offset - 1, end + 1));
           tryCompile = true;
@@ -1179,7 +1186,7 @@ worlds:
     _fs.data[uri] = latestCrashData;
   }
 
-  void _deleteBlocks(final Uri uri, Component initialComponent) async {
+  Future<void> _deleteBlocks(final Uri uri, Component initialComponent) async {
     if (uri.toString().endsWith(".json")) {
       // Try to find annoying
       //
@@ -1188,7 +1195,7 @@ worlds:
       //    }
       //
       // part of json and remove it.
-      Uint8List data = _fs.data[uri];
+      Uint8List data = _fs.data[uri]!;
       String string = utf8.decode(data);
       List<String> lines = string.split("\n");
       for (int i = 0; i < lines.length - 2; i++) {
@@ -1201,7 +1208,7 @@ worlds:
         }
       }
       string = lines.join("\n");
-      Uint8List candidate = utf8.encode(string);
+      Uint8List candidate = utf8.encode(string) as Uint8List;
       if (candidate.length != data.length) {
         _fs.data[uri] = candidate;
         if (!await _crashesOnCompile(initialComponent)) {
@@ -1223,8 +1230,8 @@ worlds:
         while (i < packagesModified.length) {
           var oldEntry = packagesModified.removeAt(i);
           String jsonString = jsonEncoder.convert(jsonModified);
-          candidate = utf8.encode(jsonString);
-          Uint8List previous = _fs.data[uri];
+          candidate = utf8.encode(jsonString) as Uint8List;
+          Uint8List? previous = _fs.data[uri];
           _fs.data[uri] = candidate;
           if (!await _crashesOnCompile(initialComponent)) {
             // Couldn't remove that part.
@@ -1243,7 +1250,7 @@ worlds:
     }
     if (!uri.toString().endsWith(".dart")) return;
 
-    Uint8List data = _fs.data[uri];
+    Uint8List data = _fs.data[uri]!;
     DirectParserASTContentCompilationUnitEnd ast = getAST(data,
         includeBody: true,
         includeComments: false,
@@ -1253,7 +1260,7 @@ worlds:
     _CompilationHelperClass helper = new _CompilationHelperClass(data);
 
     // Try to remove top level things one at a time.
-    for (DirectParserASTContent child in ast.children) {
+    for (DirectParserASTContent child in ast.children!) {
       bool shouldCompile = false;
       String what = "";
       if (child.isClass()) {
@@ -1298,11 +1305,11 @@ worlds:
       } else if (child.isEnum()) {
         DirectParserASTContentEnumEnd decl = child.asEnum();
         helper.replacements.add(new _Replacement(
-            decl.enumKeyword.offset - 1, decl.leftBrace.endGroup.offset + 1));
+            decl.enumKeyword.offset - 1, decl.leftBrace.endGroup!.offset + 1));
         shouldCompile = true;
         what = "enum";
       } else if (child.isTypedef()) {
-        DirectParserASTContentFunctionTypeAliasEnd decl = child.asTypedef();
+        DirectParserASTContentTypedefEnd decl = child.asTypedef();
         helper.replacements.add(new _Replacement(
             decl.typedefKeyword.offset - 1, decl.endToken.offset + 1));
         shouldCompile = true;
@@ -1321,7 +1328,7 @@ worlds:
       } else if (child.isImport()) {
         DirectParserASTContentImportEnd decl = child.asImport();
         helper.replacements.add(new _Replacement(
-            decl.importKeyword.offset - 1, decl.semicolon.offset + 1));
+            decl.importKeyword.offset - 1, decl.semicolon!.offset + 1));
         shouldCompile = true;
         what = "import";
       } else if (child.isExport()) {
@@ -1364,8 +1371,8 @@ worlds:
           if (child.isClass()) {
             // Also try to remove all content of the class.
             DirectParserASTContentClassDeclarationEnd decl = child.asClass();
-            DirectParserASTContentClassOrMixinBodyEnd body =
-                decl.getClassOrMixinBody();
+            DirectParserASTContentClassOrMixinOrExtensionBodyEnd body =
+                decl.getClassOrMixinOrExtensionBody();
             if (body.beginToken.offset + 2 < body.endToken.offset) {
               helper.replacements.add(new _Replacement(
                   body.beginToken.offset, body.endToken.offset));
@@ -1377,7 +1384,7 @@ worlds:
 
             if (!success) {
               // Also try to remove members one at a time.
-              for (DirectParserASTContent child in body.children) {
+              for (DirectParserASTContent child in body.children!) {
                 shouldCompile = false;
                 if (child is DirectParserASTContentMemberEnd) {
                   if (child.isClassConstructor()) {
@@ -1434,7 +1441,7 @@ worlds:
                       helper, uri, initialComponent, what);
                   if (helper.shouldQuit) return;
                   if (!success) {
-                    DirectParserASTContentBlockFunctionBodyEnd decl;
+                    DirectParserASTContentBlockFunctionBodyEnd? decl;
                     if (child is DirectParserASTContentMemberEnd) {
                       if (child.isClassMethod()) {
                         decl = child.getClassMethod().getBlockFunctionBody();
@@ -1464,7 +1471,7 @@ worlds:
             // we could try to remove "B, " or ", C" etc.
             if (decl.getClassExtends().extendsKeyword != null) {
               helper.replacements.add(new _Replacement(
-                  decl.getClassExtends().extendsKeyword.offset - 1,
+                  decl.getClassExtends().extendsKeyword!.offset - 1,
                   body.beginToken.offset));
               what = "class extends";
               success = await _tryReplaceAndCompile(
@@ -1473,7 +1480,7 @@ worlds:
             }
             if (decl.getClassImplements().implementsKeyword != null) {
               helper.replacements.add(new _Replacement(
-                  decl.getClassImplements().implementsKeyword.offset - 1,
+                  decl.getClassImplements().implementsKeyword!.offset - 1,
                   body.beginToken.offset));
               what = "class implements";
               success = await _tryReplaceAndCompile(
@@ -1482,7 +1489,7 @@ worlds:
             }
             if (decl.getClassWithClause() != null) {
               helper.replacements.add(new _Replacement(
-                  decl.getClassWithClause().withKeyword.offset - 1,
+                  decl.getClassWithClause()!.withKeyword.offset - 1,
                   body.beginToken.offset));
               what = "class with clause";
               success = await _tryReplaceAndCompile(
@@ -1493,8 +1500,8 @@ worlds:
             // Also try to remove all content of the mixin.
             DirectParserASTContentMixinDeclarationEnd decl =
                 child.asMixinDeclaration();
-            DirectParserASTContentClassOrMixinBodyEnd body =
-                decl.getClassOrMixinBody();
+            DirectParserASTContentClassOrMixinOrExtensionBodyEnd body =
+                decl.getClassOrMixinOrExtensionBody();
             if (body.beginToken.offset + 2 < body.endToken.offset) {
               helper.replacements.add(new _Replacement(
                   body.beginToken.offset, body.endToken.offset));
@@ -1506,7 +1513,7 @@ worlds:
 
             if (!success) {
               // Also try to remove members one at a time.
-              for (DirectParserASTContent child in body.children) {
+              for (DirectParserASTContent child in body.children!) {
                 shouldCompile = false;
                 if (child is DirectParserASTContentMemberEnd) {
                   if (child.isMixinConstructor()) {
@@ -1563,7 +1570,7 @@ worlds:
                       helper, uri, initialComponent, what);
                   if (helper.shouldQuit) return;
                   if (!success) {
-                    DirectParserASTContentBlockFunctionBodyEnd decl;
+                    DirectParserASTContentBlockFunctionBodyEnd? decl;
                     if (child is DirectParserASTContentMemberEnd) {
                       if (child.isClassMethod()) {
                         decl = child.getClassMethod().getBlockFunctionBody();
@@ -1626,8 +1633,8 @@ worlds:
     }
   }
 
-  void _deleteEmptyLines(Uri uri, Component initialComponent) async {
-    Uint8List data = _fs.data[uri];
+  Future<void> _deleteEmptyLines(Uri uri, Component initialComponent) async {
+    Uint8List data = _fs.data[uri]!;
     List<Uint8List> lines = [];
     int start = 0;
     for (int i = 0; i < data.length; i++) {
@@ -1667,9 +1674,9 @@ worlds:
     }
   }
 
-  void _deleteLines(Uri uri, Component initialComponent) async {
+  Future<void> _deleteLines(Uri uri, Component initialComponent) async {
     // Try to delete "lines".
-    Uint8List data = _fs.data[uri];
+    Uint8List data = _fs.data[uri]!;
     List<Uint8List> lines = [];
     int start = 0;
     for (int i = 0; i < data.length; i++) {
@@ -1741,15 +1748,16 @@ worlds:
     _fs.data[uri] = latestCrashData;
   }
 
-  Future<bool> _tryRemoveIfNotKnownByCompiler(Uri uri, initialComponent) async {
-    if (_fs.data[uri] == null || _fs.data[uri].isEmpty) return false;
+  Future<bool> _tryRemoveIfNotKnownByCompiler(
+      Uri? uri, initialComponent) async {
+    if (_fs.data[uri] == null || _fs.data[uri]!.isEmpty) return false;
     if (!uri.toString().endsWith(".dart")) return false;
 
-    if (_knownByCompiler(uri)) return false;
+    if (_knownByCompiler(uri!)) return false;
 
     // Compiler might not know this. Can we delete it?
     await _deleteContent([uri], 0, true, initialComponent);
-    if (_fs.data[uri] == null || _fs.data[uri].isEmpty) {
+    if (_fs.data[uri] == null || _fs.data[uri]!.isEmpty) {
       await _deleteContent([uri], 0, true, initialComponent, deleteFile: true);
       return true;
     }
@@ -1758,8 +1766,9 @@ worlds:
   }
 
   bool _knownByCompiler(Uri uri) {
-    LibraryBuilder libraryBuilder = _latestCrashingIncrementalCompiler
-        .userCode.loader.builders[_getImportUri(uri)];
+    LibraryBuilder? libraryBuilder = _latestCrashingIncrementalCompiler!
+        .userCode!.loader
+        .lookupLibraryBuilder(_getImportUri(uri));
     if (libraryBuilder != null) {
       return true;
     }
@@ -1776,14 +1785,15 @@ worlds:
 
   bool _isUriNnbd(Uri uri, {bool crashOnFail: true}) {
     Uri asImportUri = _getImportUri(uri);
-    LibraryBuilder libraryBuilder = _latestCrashingIncrementalCompiler
-        .userCode.loader.builders[asImportUri];
+    LibraryBuilder? libraryBuilder = _latestCrashingIncrementalCompiler!
+        .userCode!.loader
+        .lookupLibraryBuilder(asImportUri);
     if (libraryBuilder != null) {
       return libraryBuilder.isNonNullableByDefault;
     }
     print("Couldn't lookup $uri");
-    for (LibraryBuilder libraryBuilder
-        in _latestCrashingIncrementalCompiler.userCode.loader.builders.values) {
+    for (LibraryBuilder libraryBuilder in _latestCrashingIncrementalCompiler!
+        .userCode!.loader.libraryBuilders) {
       if (libraryBuilder.importUri == uri) {
         print("Found $uri as ${libraryBuilder.importUri} (!= ${asImportUri})");
         return libraryBuilder.isNonNullableByDefault;
@@ -1822,7 +1832,7 @@ worlds:
         // serialization.
         ByteSink sink = new ByteSink();
         BinaryPrinter printer = new BinaryPrinter(sink);
-        printer.writeComponentFile(_latestComponent);
+        printer.writeComponentFile(_latestComponent!);
       }
 
       if (_gotWantedError) didNotGetWantedErrorAfterFirstCompile = false;
@@ -1865,6 +1875,7 @@ worlds:
           }
         }
       }
+      // ignore: unnecessary_null_comparison
       if (foundLine == null) throw "Unexpected crash without stacktrace: $e";
       if (_expectedCrashLine == null) {
         print("Got '$foundLine'");
@@ -1881,7 +1892,7 @@ worlds:
           print(" ==> Adding to auto redirects!");
           // Add the current one too, so we don't rediscover that one once we
           // try minimizing the new ones.
-          _settings.allAutoRedirects.add(_expectedCrashLine);
+          _settings.allAutoRedirects.add(_expectedCrashLine!);
           _settings.allAutoRedirects.add(foundLine);
           _settings.fileSystems.add(_fs.toJson());
         } else if (_settings.askAboutRedirectCrashTarget &&
@@ -1890,11 +1901,11 @@ worlds:
           while (true) {
             // Add the current one too, so we don't rediscover that again
             // and asks about going back to it.
-            _settings.askedAboutRedirect.add(_expectedCrashLine);
+            _settings.askedAboutRedirect.add(_expectedCrashLine!);
             _settings.askedAboutRedirect.add(foundLine);
             print(eWithSt);
             print("Should we redirect to searching for that? (y/n)");
-            String answer = stdin.readLineSync();
+            String answer = stdin.readLineSync()!;
             if (answer == "yes" || answer == "y") {
               _expectedCrashLine = foundLine;
               _latestCrashingIncrementalCompiler = incrementalCompiler;
@@ -1923,7 +1934,6 @@ worlds:
     CompilerOptions options = getOptions();
 
     if (_settings.experimentalInvalidation) {
-      options.explicitExperimentalFlags ??= {};
       options.explicitExperimentalFlags[
           ExperimentalFlag.alternativeInvalidationStrategy] = true;
     }
@@ -1946,7 +1956,7 @@ worlds:
         target = new Dart2jsTarget("dart2js", targetFlags);
         break;
       default:
-        throw "Unknown target '$target'";
+        throw "Unknown target '${_settings.targetString}'";
     }
     options.target = target;
     options.fileSystem = _fs;
@@ -1958,7 +1968,7 @@ worlds:
       // Except if we're looking to trigger a specific error on reload.
       if (_settings.lookForErrorErrorOnReload != null &&
           message.ansiFormatted.first
-              .contains(_settings.lookForErrorErrorOnReload)) {
+              .contains(_settings.lookForErrorErrorOnReload!)) {
         _gotWantedError = true;
       }
     };
@@ -1979,12 +1989,14 @@ worlds:
         nnbd ? _scannerConfiguration : _scannerConfigurationNonNNBD,
         lineStarts);
 
+    // ignore: unnecessary_null_comparison
     if (firstToken == null) {
       throw "Got null token from scanner";
     }
 
     ParserTestListener parserTestListener = new ParserTestListener(false);
-    Parser parser = new Parser(parserTestListener);
+    Parser parser = new Parser(parserTestListener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     parser.parseUnit(firstToken);
     String parsedString =
         parser_suite.tokenStreamToString(firstToken, lineStarts).toString();
@@ -1995,12 +2007,14 @@ worlds:
     Token firstToken = parser_suite.scanRawBytes(rawBytes,
         nnbd ? _scannerConfiguration : _scannerConfigurationNonNNBD, null);
 
+    // ignore: unnecessary_null_comparison
     if (firstToken == null) {
       return false;
     }
 
     ParserErrorListener parserErrorListener = new ParserErrorListener();
-    Parser parser = new Parser(parserErrorListener);
+    Parser parser = new Parser(parserErrorListener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     parser.parseUnit(firstToken);
     return !parserErrorListener.gotError;
   }
@@ -2015,8 +2029,9 @@ worlds:
       enableExtensionMethods: true,
       enableNonNullable: false);
 
-  List<int> _dataCache;
-  String _dataCacheString;
+  List<int>? _dataCache;
+  String? _dataCacheString;
+
   Uint8List _replaceRange(
       List<_Replacement> unsortedReplacements, Uint8List rawData) {
     // The offsets are character offsets, not byte offsets, so for non-ascii
@@ -2036,18 +2051,18 @@ worlds:
     for (int i = 0; i < sortedReplacements.length; i++) {
       _Replacement replacement = sortedReplacements[i];
       for (int j = prev; j <= replacement.from; j++) {
-        builder.writeCharCode(_dataCacheString.codeUnitAt(j));
+        builder.writeCharCode(_dataCacheString!.codeUnitAt(j));
       }
       if (replacement.nullOrReplacement != null) {
         builder.write(replacement.nullOrReplacement);
       }
       prev = replacement.to;
     }
-    for (int j = prev; j < _dataCacheString.length; j++) {
-      builder.writeCharCode(_dataCacheString.codeUnitAt(j));
+    for (int j = prev; j < _dataCacheString!.length; j++) {
+      builder.writeCharCode(_dataCacheString!.codeUnitAt(j));
     }
 
-    Uint8List candidate = utf8.encode(builder.toString());
+    Uint8List candidate = utf8.encode(builder.toString()) as Uint8List;
     return candidate;
   }
 }
@@ -2055,6 +2070,7 @@ worlds:
 class ParserErrorListener extends Listener {
   bool gotError = false;
   List<Message> messages = [];
+  @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
     gotError = true;
@@ -2075,7 +2091,7 @@ class _CompilationHelperClass {
 class _Replacement implements Comparable<_Replacement> {
   final int from;
   final int to;
-  final String nullOrReplacement;
+  final String? nullOrReplacement;
 
   _Replacement(this.from, this.to, {this.nullOrReplacement});
 
@@ -2088,24 +2104,24 @@ class _Replacement implements Comparable<_Replacement> {
 class _FakeFileSystem extends FileSystem {
   bool _redirectAndRecord = true;
   bool _initialized = false;
-  final Map<Uri, Uint8List> data = {};
+  final Map<Uri?, Uint8List?> data = {};
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
     return new _FakeFileSystemEntity(this, uri);
   }
 
-  initializeFromJson(Map<String, dynamic> json) {
+  void initializeFromJson(Map<String, dynamic> json) {
     _initialized = true;
     _redirectAndRecord = json['_redirectAndRecord'];
     data.clear();
     List tmp = json['data'];
     for (int i = 0; i < tmp.length; i += 2) {
-      Uri key = tmp[i] == null ? null : Uri.parse(tmp[i]);
+      Uri? key = tmp[i] == null ? null : Uri.parse(tmp[i]);
       if (tmp[i + 1] == null) {
         data[key] = null;
       } else if (tmp[i + 1] is String) {
-        data[key] = utf8.encode(tmp[i + 1]);
+        data[key] = utf8.encode(tmp[i + 1]) as Uint8List;
       } else {
         data[key] = Uint8List.fromList(new List<int>.from(tmp[i + 1]));
       }
@@ -2118,9 +2134,9 @@ class _FakeFileSystem extends FileSystem {
       if (entry.value == null) continue;
       tmp.add(entry.key == null ? null : entry.key.toString());
       dynamic out = entry.value;
-      if (entry.value != null && entry.value.isNotEmpty) {
+      if (entry.value != null && entry.value!.isNotEmpty) {
         try {
-          String string = utf8.decode(entry.value);
+          String string = utf8.decode(entry.value!);
           out = string;
         } catch (e) {
           // not a string...
@@ -2137,6 +2153,7 @@ class _FakeFileSystem extends FileSystem {
 
 class _FakeFileSystemEntity extends FileSystemEntity {
   final _FakeFileSystem fs;
+  @override
   final Uri uri;
   _FakeFileSystemEntity(this.fs, this.uri);
 
@@ -2157,7 +2174,7 @@ class _FakeFileSystemEntity extends FileSystemEntity {
   @override
   Future<bool> exists() {
     _ensureCachedIfOk();
-    Uint8List data = fs.data[uri];
+    Uint8List? data = fs.data[uri];
     if (data == null) return Future.value(false);
     return Future.value(true);
   }
@@ -2168,7 +2185,7 @@ class _FakeFileSystemEntity extends FileSystemEntity {
   @override
   Future<List<int>> readAsBytes() {
     _ensureCachedIfOk();
-    Uint8List data = fs.data[uri];
+    Uint8List? data = fs.data[uri];
     if (data == null) throw new FileSystemException(uri, "File doesn't exist.");
     return Future.value(data);
   }
@@ -2179,7 +2196,7 @@ class _FakeFileSystemEntity extends FileSystemEntity {
   @override
   Future<String> readAsString() {
     _ensureCachedIfOk();
-    Uint8List data = fs.data[uri];
+    Uint8List? data = fs.data[uri];
     if (data == null) throw new FileSystemException(uri, "File doesn't exist.");
     return Future.value(utf8.decode(data));
   }

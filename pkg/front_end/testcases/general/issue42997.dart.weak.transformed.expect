@@ -27,10 +27,6 @@ library;
 //     for (PropertyState<Object, Object>> state in _states) ;
 //                              ^
 //
-// pkg/front_end/testcases/general/issue42997.dart:12:30: Error: Expected ';' after this.
-//     for (PropertyState<Object, Object>> state in _states) ;
-//                              ^
-//
 // pkg/front_end/testcases/general/issue42997.dart:12:47: Error: Unexpected token 'in'.
 //     for (PropertyState<Object, Object>> state in _states) ;
 //                                               ^^
@@ -55,9 +51,9 @@ class PropertyState#1<I extends core::Object* = dynamic, O extends core::Object*
     : super core::Object::•()
     ;
   method dispose() → void {
-    for (final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:10: Error: Can't use 'PropertyState' because it is declared more than once.
+    for (final invalid-type #t1 = invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:10: Error: Can't use 'PropertyState' because it is declared more than once.
     for (PropertyState<Object, Object>> state in _states) ;
-         ^"{dynamic}.<(#C1); invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:30: Error: This couldn't be parsed.
+         ^"{<invalid>}.<(#C1); invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:30: Error: This couldn't be parsed.
     for (PropertyState<Object, Object>> state in _states) ;
                              ^"; invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:30: Error: This couldn't be parsed.
     for (PropertyState<Object, Object>> state in _states) ;
@@ -65,7 +61,11 @@ class PropertyState#1<I extends core::Object* = dynamic, O extends core::Object*
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '>>' operator.
     for (PropertyState<Object, Object>> state in _states) ;
-                                     ^^")
+                                     ^^" in #C1{<unresolved>}.>>(invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:41: Error: The getter 'state' isn't defined for the class 'PropertyState#1<I, O>'.
+ - 'PropertyState#1' is from 'pkg/front_end/testcases/general/issue42997.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'state'.
+    for (PropertyState<Object, Object>> state in _states) ;
+                                        ^^^^^" in this{<unresolved>}.state))
       ;
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

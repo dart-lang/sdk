@@ -28,12 +28,12 @@ class A extends core::Object {
 static method main() → dynamic {}
 static method errors() → dynamic {
   self::A? a1 = new self::A::•() as{ForNonNullableByDefault} self::A?;
-  let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41495.dart:14:6: Error: Property 'c1' cannot be accessed on 'A?' because it is potentially null.
+  invalid-expression "pkg/front_end/testcases/nnbd/issue41495.dart:14:6: Error: Property 'c1' cannot be accessed on 'A?' because it is potentially null.
  - 'A' is from 'pkg/front_end/testcases/nnbd/issue41495.dart'.
 Try accessing using ?. instead.
   a1.c1;
      ^^" in a1.{self::A::c1}{<nullable>}.{core::int};
-  let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue41495.dart:15:6: Error: Property 'test' cannot be accessed on 'A?' because it is potentially null.
+  invalid-expression "pkg/front_end/testcases/nnbd/issue41495.dart:15:6: Error: Property 'test' cannot be accessed on 'A?' because it is potentially null.
  - 'A' is from 'pkg/front_end/testcases/nnbd/issue41495.dart'.
 Try accessing using ?. instead.
   a1.test;

@@ -187,9 +187,9 @@ void f(A a) {
       writeType: 'num',
       operatorElement: elementMatcher(
         numPlusElement,
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
-      type: typeToStringWithNullability ? 'double' : 'num',
+      type: typeStringByNullability(nullable: 'double', legacy: 'num'),
     );
     assertParameterElement(
       assignment.rightHandSide,
@@ -248,7 +248,7 @@ void f(A<double> a) {
       writeType: 'double',
       operatorElement: elementMatcher(
         doublePlusElement,
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'double',
     );

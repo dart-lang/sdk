@@ -15,7 +15,7 @@ import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
 import 'incremental_suite.dart'
     show checkIsEqual, getOptions, normalCompilePlain;
 
-main() async {
+Future<void> main() async {
   final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/bin/dart2js.dart");
   Stopwatch stopwatch = new Stopwatch()..start();
   Component compiledComponent = await normalCompilePlain(dart2jsUrl,

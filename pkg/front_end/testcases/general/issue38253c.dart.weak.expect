@@ -26,12 +26,12 @@ static field () → Null a = () → Null {
   function f1() → invalid-type {}
   function f2() → invalid-type async {}
   function f3() → core::int {
-    return let final Never #t1 = invalid-expression "pkg/front_end/testcases/general/issue38253c.dart:8:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+    return invalid-expression "pkg/front_end/testcases/general/issue38253c.dart:8:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
   int f3() {}
   ^" in null;
   }
   function f4() → asy::Future<core::int> async {
-    return let final Never #t2 = invalid-expression "pkg/front_end/testcases/general/issue38253c.dart:9:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+    return invalid-expression "pkg/front_end/testcases/general/issue38253c.dart:9:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
   Future<int> f4() async {}
   ^" in null;
   }

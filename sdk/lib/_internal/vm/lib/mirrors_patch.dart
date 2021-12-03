@@ -88,6 +88,6 @@ class MirrorSystem {
     return new internal.Symbol.unvalidated(name);
   }
 
-  static _mangleName(String name, _MirrorReference lib)
-      native "Mirrors_mangleName";
+  @pragma("vm:external-name", "Mirrors_mangleName")
+  external static _mangleName(String name, _MirrorReference lib);
 }

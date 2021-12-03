@@ -29,6 +29,7 @@ part of dart.core;
 /// This means that individual parts can be larger than the next-bigger unit.
 /// For example, [inMinutes] can be greater than 59.
 /// ```dart
+/// const fastestMarathon = const Duration(hours: 2, minutes: 3, seconds: 2);
 /// assert(fastestMarathon.inMinutes == 123);
 /// ```
 /// All individual parts are allowed to be negative.
@@ -124,6 +125,10 @@ class Duration implements Comparable<Duration> {
   /// Likewise, values can be negative, in which case they
   /// underflow and subtract from the next larger unit.
   ///
+  /// If the total number of microseconds cannot be represented
+  /// as an integer value, the number of microseconds might be truncated
+  /// and it might lose precision.
+  ///
   /// All arguments are 0 by default.
   const Duration(
       {int days = 0,
@@ -132,12 +137,12 @@ class Duration implements Comparable<Duration> {
       int seconds = 0,
       int milliseconds = 0,
       int microseconds = 0})
-      : this._microseconds(microsecondsPerDay * days +
-            microsecondsPerHour * hours +
-            microsecondsPerMinute * minutes +
-            microsecondsPerSecond * seconds +
+      : this._microseconds(microseconds +
             microsecondsPerMillisecond * milliseconds +
-            microseconds);
+            microsecondsPerSecond * seconds +
+            microsecondsPerMinute * minutes +
+            microsecondsPerHour * hours +
+            microsecondsPerDay * days);
 
   // Fast path internal direct constructor to avoids the optional arguments and
   // [_microseconds] recomputation.
@@ -257,30 +262,27 @@ class Duration implements Comparable<Duration> {
   /// d.toString();  // "1:10:00.000500"
   /// ```
   String toString() {
-    String sixDigits(int n) {
-      if (n >= 100000) return "$n";
-      if (n >= 10000) return "0$n";
-      if (n >= 1000) return "00$n";
-      if (n >= 100) return "000$n";
-      if (n >= 10) return "0000$n";
-      return "00000$n";
-    }
+    var microseconds = inMicroseconds;
 
-    String twoDigits(int n) {
-      if (n >= 10) return "$n";
-      return "0$n";
-    }
+    var hours = microseconds ~/ microsecondsPerHour;
+    microseconds = microseconds.remainder(microsecondsPerHour);
 
-    if (inMicroseconds < 0) {
-      return "-${-this}";
-    }
-    String twoDigitMinutes =
-        twoDigits(inMinutes.remainder(minutesPerHour) as int);
-    String twoDigitSeconds =
-        twoDigits(inSeconds.remainder(secondsPerMinute) as int);
-    String sixDigitUs =
-        sixDigits(inMicroseconds.remainder(microsecondsPerSecond) as int);
-    return "$inHours:$twoDigitMinutes:$twoDigitSeconds.$sixDigitUs";
+    if (microseconds < 0) microseconds = -microseconds;
+
+    var minutes = microseconds ~/ microsecondsPerMinute;
+    microseconds = microseconds.remainder(microsecondsPerMinute);
+
+    var minutesPadding = minutes < 10 ? "0" : "";
+
+    var seconds = microseconds ~/ microsecondsPerSecond;
+    microseconds = microseconds.remainder(microsecondsPerSecond);
+
+    var secondsPadding = seconds < 10 ? "0" : "";
+
+    var paddedMicroseconds = microseconds.toString().padLeft(6, "0");
+    return "$hours:"
+        "$minutesPadding$minutes:"
+        "$secondsPadding$seconds.$paddedMicroseconds";
   }
 
   /// Whether this [Duration] is negative.
@@ -293,13 +295,13 @@ class Duration implements Comparable<Duration> {
   /// [Duration].
   ///
   /// The returned [Duration] has the same length as this one, but is always
-  /// positive.
+  /// positive where possible.
   Duration abs() => Duration._microseconds(_duration.abs());
 
   /// Creates a new [Duration] with the opposite direction of this [Duration].
   ///
   /// The returned [Duration] has the same length as this one, but will have the
-  /// opposite sign (as reported by [isNegative]) as this one.
+  /// opposite sign (as reported by [isNegative]) as this one where possible.
   // Using subtraction helps dart2js avoid negative zeros.
   Duration operator -() => Duration._microseconds(0 - _duration);
 }

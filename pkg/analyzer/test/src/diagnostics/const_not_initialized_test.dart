@@ -10,13 +10,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstNotInitializedTest);
-    defineReflectiveTests(ConstNotInitializedWithNullSafetyTest);
+    defineReflectiveTests(ConstNotInitializedWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ConstNotInitializedTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with ConstNotInitializedTestCases {}
+
+mixin ConstNotInitializedTestCases on PubPackageResolutionTest {
   test_extension_static() async {
     await assertErrorsInCode('''
 extension E on String {
@@ -57,5 +59,5 @@ const F;
 }
 
 @reflectiveTest
-class ConstNotInitializedWithNullSafetyTest extends ConstNotInitializedTest
-    with WithNullSafetyMixin {}
+class ConstNotInitializedWithoutNullSafetyTest extends PubPackageResolutionTest
+    with ConstNotInitializedTestCases, WithoutNullSafetyMixin {}

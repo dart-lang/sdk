@@ -21,13 +21,13 @@ class C extends core::Object {
 class D extends self::C {
   synthetic constructor •() → self::D*
     ;
-  set x(covariant core::int* value) → void
+  set x(covariant-by-declaration core::int* value) → void
     ;
 }
 class E extends self::D {
   synthetic constructor •() → self::E*
     ;
-  set x(covariant core::int* value) → void
+  set x(covariant-by-declaration core::int* value) → void
     ;
 }
 static method main() → dynamic

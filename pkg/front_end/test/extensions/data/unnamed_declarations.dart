@@ -10,7 +10,9 @@
   _extension#2,
   _extension#3,
   _extension#4,
-  async.dart.FutureExtensions]*/
+  async.dart.FutureExtensions,
+  core.dart.EnumByName,
+  core.dart.EnumName]*/
 
 class A1 {}
 

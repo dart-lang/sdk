@@ -24,7 +24,7 @@ main() {
 }
 
 @reflectiveTest
-class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
+class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   void test_boundedByAnotherTypeParameter() {
     // <TFrom, TTo extends Iterable<TFrom>>(TFrom) -> TTo
     var tFrom = typeParameter('TFrom');

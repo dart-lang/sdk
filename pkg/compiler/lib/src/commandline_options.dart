@@ -8,6 +8,12 @@ library dart2js.cmdline.options;
 
 /// Commandline flags used in `dart2js.dart` and/or `apiimpl.dart`.
 class Flags {
+  // The uri of the main script file.
+  static const String entryUri = '--entry-uri';
+
+  // The uri of the main input dill.
+  static const String inputDill = '--input-dill';
+
   static const String allowMockCompilation = '--allow-mock-compilation';
   static const String allowNativeExtensions = '--allow-native-extensions';
   static const String disableInlining = '--disable-inlining';
@@ -54,11 +60,6 @@ class Flags {
 
   static const String experimentNewRti = '--experiment-new-rti';
 
-  /// Use the dart2js lowering of late instance variables rather than the CFE
-  /// lowering.
-  static const String experimentLateInstanceVariables =
-      '--experiment-late-instance-variables';
-
   static const String enableLanguageExperiments = '--enable-experiment';
 
   static const String fastStartup = '--fast-startup';
@@ -99,7 +100,6 @@ class Flags {
   static const String trustTypeAnnotations = '--trust-type-annotations';
   static const String trustJSInteropTypeAnnotations =
       '--experimental-trust-js-interop-type-annotations';
-  static const String useContentSecurityPolicy = '--csp';
   static const String useMultiSourceInfo = '--use-multi-source-info';
   static const String useNewSourceInfo = '--use-new-source-info';
   static const String useOldRti = '--use-old-rti';
@@ -119,6 +119,8 @@ class Flags {
   static const String readClosedWorld = '--read-closed-world';
   static const String readCodegen = '--read-codegen';
   static const String writeCodegen = '--write-codegen';
+  static const String readModularAnalysis = '--read-modular-analysis';
+  static const String writeModularAnalysis = '--write-modular-analysis';
   static const String codegenShard = '--codegen-shard';
   static const String codegenShards = '--codegen-shards';
   static const String cfeOnly = '--cfe-only';
@@ -142,6 +144,9 @@ class Flags {
 
   /// Flag to stop after splitting the program.
   static const String stopAfterProgramSplit = '--stop-after-program-split';
+
+  static const String writeProgramSplit = '--write-program-split';
+  static const String readProgramSplit = '--read-program-split';
 
   // The syntax-only level of support for generic methods is included in the
   // 1.50 milestone for Dart. It is not experimental, but also not permanent:
@@ -176,7 +181,7 @@ class Flags {
   // `--no-shipping` and `--canary` control sets of flags. For simplicity, these
   // flags live in options.dart.
   // Shipping features default to on, but can be disabled individually. All
-  // shipping features can be disabled with the the [noShipping] flag.
+  // shipping features can be disabled with the [noShipping] flag.
   static const String noShipping = '--no-shipping';
 
   // Canary features default to off, but can still be enabled individually. All

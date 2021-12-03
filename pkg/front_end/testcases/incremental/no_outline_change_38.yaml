@@ -10,12 +10,14 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
         class X {}
         int foo(X x) {
           return x is Y ? x.foo : null;
         }
       lib.dart: |
+        // @dart=2.9
         import 'main.dart';
         class Y implements X {
           int get foo => 42;

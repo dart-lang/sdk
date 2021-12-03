@@ -17,20 +17,22 @@ import self as self;
 import "dart:core" as core;
 
 class B<T extends core::Object* = dynamic> extends self::C<self::B::T*> {
-  static final field dynamic _redirecting# = <dynamic>[self::B::foo];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   constructor •() → self::B<self::B::T*>*
     : super self::C::•()
     ;
   static factory foo<T extends core::Object* = dynamic>() → self::B<self::B::foo::T*>*
-    let dynamic #redirecting_factory = self::B::• in let self::B::foo::T* #typeArg0 = null in invalid-expression;
+    return new self::B::•<self::B::foo::T*>();
 }
 class C<K extends core::Object* = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::C::bar];
+  static final field dynamic _redirecting# = <dynamic>[#C2];
   constructor •() → self::C<self::C::K*>*
     : super core::Object::•()
     ;
   static factory bar<K extends core::Object* = dynamic>() → self::C<self::C::bar::K*>*
-    let dynamic #redirecting_factory = "B.foo" in invalid-expression;
+    return invalid-expression "pkg/front_end/testcases/regress/issue_35266.dart:13:21: Error: Can't use 'B.foo' because it is declared more than once.
+  factory C.bar() = B<K>.foo;
+                    ^";
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -43,7 +45,12 @@ class C<K extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {
-  invalid-expression "pkg/front_end/testcases/regress/issue_35266.dart:17:7: Error: Method not found: 'B.foo'.
-  new C.bar();
-      ^";
+  invalid-expression "pkg/front_end/testcases/regress/issue_35266.dart:13:21: Error: Can't use 'B.foo' because it is declared more than once.
+  factory C.bar() = B<K>.foo;
+                    ^";
+}
+
+constants  {
+  #C1 = constructor-tearoff self::B::foo
+  #C2 = constructor-tearoff self::C::bar
 }

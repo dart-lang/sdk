@@ -58,38 +58,36 @@ import "dart:async" as asy;
 
 import "dart:async";
 
-class Enum extends core::Object implements core::Enum /*isEnum*/  {
-  final field core::int index;
-  final field core::String _name;
+class Enum extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Enum> values = #C7;
   static const field self::Enum a = #C3;
   static const field self::Enum b = #C6;
-  const constructor •(core::int index, core::String _name) → self::Enum
-    : self::Enum::index = index, self::Enum::_name = _name, super core::Object::•()
+  const constructor •(core::int index, core::String name) → self::Enum
+    : super core::_Enum::•(index, name)
     ;
   method toString() → core::String
-    return this.{self::Enum::_name}{core::String};
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
 }
 static method returnImplicit() → core::String {
   core::print("foo");
-  return let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:7:8: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+  return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:7:8: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
 String returnImplicit() /*error*/ {
        ^" in null;
 }
 static method returnExplicit() → core::String {
   core::print("foo");
-  return let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
+  return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
   return null; // error
-         ^" in let Null #t3 = null in #t3 == null ?{core::String} #t3 as{TypeError,ForNonNullableByDefault} core::String : #t3{core::String};
+         ^" in let Null #t1 = null in #t1 == null ?{core::String} #t1 as{TypeError,ForNonNullableByDefault} core::String : #t1{core::String};
 }
 static method returnMixed(core::bool b) → core::String {
   if(b) {
     core::print("foo");
-    return let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
+    return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
     return null; // error
-           ^" in let Null #t5 = null in #t5 == null ?{core::String} #t5 as{TypeError,ForNonNullableByDefault} core::String : #t5{core::String};
+           ^" in let Null #t2 = null in #t2 == null ?{core::String} #t2 as{TypeError,ForNonNullableByDefault} core::String : #t2{core::String};
   }
-  return let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:16:8: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+  return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:16:8: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
 String returnMixed(bool b) /*error*/ {
        ^" in null;
 }
@@ -153,7 +151,7 @@ static method returnAsync3() → FutureOr<core::int> /* originally async */ {
     try {
       #L3:
       {
-        :return_value = let final Never #t7 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:27:15: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+        :return_value = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:27:15: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
 FutureOr<int> returnAsync3() async {} // error
               ^" in null;
         break #L3;
@@ -332,7 +330,7 @@ static method caseReturn2(self::Enum e) → self::Enum {
     default:
       {}
   }
-  return let final Never #t8 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:54:6: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
+  return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:54:6: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
  - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
 Enum caseReturn2(Enum e) /* error */ {
      ^" in null;
@@ -340,24 +338,24 @@ Enum caseReturn2(Enum e) /* error */ {
 static method localFunctions() → dynamic {
   function returnImplicit() → core::String {
     core::print("foo");
-    return let final Never #t9 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:63:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+    return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:63:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String returnImplicit() /* error */ {
   ^" in null;
   }
   function returnExplicit() → core::String {
     core::print("foo");
-    return let final Never #t10 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
+    return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
     return null; // error
-           ^" in let Null #t11 = null in #t11 == null ?{core::String} #t11 as{TypeError,ForNonNullableByDefault} core::String : #t11{core::String};
+           ^" in let Null #t3 = null in #t3 == null ?{core::String} #t3 as{TypeError,ForNonNullableByDefault} core::String : #t3{core::String};
   }
   function returnMixed(core::bool b) → core::String {
     if(b) {
       core::print("foo");
-      return let final Never #t12 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
+      return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
       return null; // error
-             ^" in let Null #t13 = null in #t13 == null ?{core::String} #t13 as{TypeError,ForNonNullableByDefault} core::String : #t13{core::String};
+             ^" in let Null #t4 = null in #t4 == null ?{core::String} #t4 as{TypeError,ForNonNullableByDefault} core::String : #t4{core::String};
     }
-    return let final Never #t14 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:72:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+    return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:72:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String returnMixed(bool b) /* error */ {
   ^" in null;
   }
@@ -421,7 +419,7 @@ static method localFunctions() → dynamic {
       try {
         #L15:
         {
-          :return_value = let final Never #t15 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:83:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+          :return_value = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:83:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
   FutureOr<int> returnAsync3() async {} // error
   ^" in null;
           break #L15;
@@ -600,7 +598,7 @@ static method localFunctions() → dynamic {
       default:
         {}
     }
-    return let final Never #t16 = invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:108:3: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
+    return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:108:3: Error: A non-null value must be returned since the return type 'Enum' doesn't allow null.
  - 'Enum' is from 'pkg/front_end/testcases/nnbd/return_null.dart'.
   Enum caseReturn2(Enum e) /* error */ {
   ^" in null;
@@ -621,31 +619,17 @@ static method main() → dynamic {}
 
 constants  {
   #C1 = 0
-  #C2 = "Enum.a"
+  #C2 = "a"
   #C3 = self::Enum {index:#C1, _name:#C2}
   #C4 = 1
-  #C5 = "Enum.b"
+  #C5 = "b"
   #C6 = self::Enum {index:#C4, _name:#C5}
   #C7 = <self::Enum>[#C3, #C6]
 }
-
-Extra constant evaluation status:
-Evaluated: EqualsNull @ org-dartlang-testcase:///return_null.dart:13:10 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:13:10 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:13:10 -> NullConstant(null)
-Evaluated: EqualsNull @ org-dartlang-testcase:///return_null.dart:19:12 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:19:12 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:19:12 -> NullConstant(null)
-Evaluated: EqualsNull @ org-dartlang-testcase:///return_null.dart:69:12 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:69:12 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:69:12 -> NullConstant(null)
-Evaluated: EqualsNull @ org-dartlang-testcase:///return_null.dart:75:14 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:75:14 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///return_null.dart:75:14 -> NullConstant(null)
-Extra constant evaluation: evaluated: 380, effectively constant: 12
 
 
 Constructor coverage from constants:
 org-dartlang-testcase:///return_null.dart:
 - Enum. (from org-dartlang-testcase:///return_null.dart:43:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

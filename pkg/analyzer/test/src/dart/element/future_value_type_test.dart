@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class FutureValueTypeTest extends AbstractTypeSystemNullSafetyTest {
+class FutureValueTypeTest extends AbstractTypeSystemTest {
   /// futureValueType(`dynamic`) = `dynamic`.
   test_dynamic() {
     _check(dynamicNone, 'dynamic');

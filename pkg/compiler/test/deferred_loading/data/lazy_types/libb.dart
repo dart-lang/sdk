@@ -6,14 +6,14 @@
 
 import 'lib.dart' as lib;
 
-/*member: callFooMethod:member_unit=1{libB}*/
+/*member: callFooMethod:member_unit=4{libB}*/
 int callFooMethod() => lib.callFooMethod();
 
-/*member: isFoo:member_unit=1{libB}*/
+/*member: isFoo:member_unit=4{libB}*/
 bool isFoo(o) => lib.isFoo(o);
 
-/*member: isFunFunFoo:member_unit=1{libB}*/
+/*member: isFunFunFoo:member_unit=4{libB}*/
 bool isFunFunFoo(o) => lib.isFunFunFoo(o);
 
-/*member: isDooFunFunFoo:member_unit=1{libB}*/
+/*member: isDooFunFunFoo:member_unit=4{libB}*/
 bool isDooFunFunFoo(o) => o is lib.Doo<lib.FunFunFoo>;

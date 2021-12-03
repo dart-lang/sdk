@@ -11,7 +11,7 @@ import "package:kernel/testing/mock_sdk_component.dart";
 import "package:kernel/text/ast_to_text.dart";
 import "package:kernel/src/text_util.dart";
 
-main() {
+void main() {
   new ClosedWorldClassHierarchyTest().test_applyTreeChanges();
 
   new ClosedWorldClassHierarchyTest().test_applyMemberChanges();

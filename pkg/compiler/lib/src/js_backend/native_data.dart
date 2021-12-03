@@ -151,7 +151,7 @@ abstract class NativeBasicDataBuilder {
   /// class [element], other the js interop name is expected to be computed
   /// later.
   void markAsJsInteropClass(ClassEntity element,
-      {String name, bool isAnonymous: false});
+      {String name, bool isAnonymous = false});
 
   /// Marks [element] as an explicit part of js interop and sets the explicit js
   /// interop [name] for the member [element].
@@ -186,20 +186,19 @@ class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
 
   /// Tag info for native JavaScript classes names. See
   /// [setNativeClassTagInfo].
-  Map<ClassEntity, NativeClassTag> nativeClassTagInfo =
-      <ClassEntity, NativeClassTag>{};
+  Map<ClassEntity, NativeClassTag> nativeClassTagInfo = {};
 
   /// The JavaScript libraries implemented via typed JavaScript interop.
-  Map<LibraryEntity, String> jsInteropLibraries = <LibraryEntity, String>{};
+  Map<LibraryEntity, String> jsInteropLibraries = {};
 
   /// The JavaScript classes implemented via typed JavaScript interop.
-  Map<ClassEntity, String> jsInteropClasses = <ClassEntity, String>{};
+  Map<ClassEntity, String> jsInteropClasses = {};
 
   /// JavaScript interop classes annotated with `@anonymous`
-  Set<ClassEntity> anonymousJsInteropClasses = new Set<ClassEntity>();
+  Set<ClassEntity> anonymousJsInteropClasses = {};
 
   /// The JavaScript members implemented via typed JavaScript interop.
-  Map<MemberEntity, String> jsInteropMembers = <MemberEntity, String>{};
+  Map<MemberEntity, String> jsInteropMembers = {};
 
   @override
   void setNativeClassTagInfo(ClassEntity cls, String tagText) {
@@ -222,7 +221,7 @@ class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
             "Native tag info set inconsistently on $cls: "
             "Existing tag info '${nativeClassTagInfo[cls]}', "
             "new tag info '$tagText'."));
-    nativeClassTagInfo[cls] = new NativeClassTag(tagText);
+    nativeClassTagInfo[cls] = NativeClassTag(tagText);
   }
 
   @override
@@ -238,7 +237,7 @@ class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
 
   @override
   void markAsJsInteropClass(ClassEntity element,
-      {String name, bool isAnonymous: false}) {
+      {String name, bool isAnonymous = false}) {
     assert(
         !_closed,
         failedAt(
@@ -265,7 +264,7 @@ class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
   @override
   NativeBasicData close(ElementEnvironment environment) {
     _closed = true;
-    return new NativeBasicDataImpl(
+    return NativeBasicDataImpl(
         environment,
         false,
         nativeClassTagInfo,
@@ -324,7 +323,7 @@ class NativeBasicDataImpl implements NativeBasicData {
     Map<MemberEntity, String> jsInteropMembers = {};
 
     data.forEachNativeClass((ir.Class node, String text) {
-      nativeClassTagInfo[map.getClass(node)] = new NativeClassTag(text);
+      nativeClassTagInfo[map.getClass(node)] = NativeClassTag(text);
     });
     data.forEachJsInteropLibrary((ir.Library node, String name) {
       jsInteropLibraries[env.lookupLibrary(node.importUri, required: true)] =
@@ -343,7 +342,7 @@ class NativeBasicDataImpl implements NativeBasicData {
       jsInteropMembers[map.getMember(node)] = name;
     });
 
-    return new NativeBasicDataImpl(
+    return NativeBasicDataImpl(
         env,
         false,
         nativeClassTagInfo,
@@ -361,7 +360,7 @@ class NativeBasicDataImpl implements NativeBasicData {
         source.readClassMap(() {
       List<String> names = source.readStrings();
       bool isNonLeaf = source.readBool();
-      return new NativeClassTag.internal(names, isNonLeaf);
+      return NativeClassTag.internal(names, isNonLeaf);
     });
     Map<LibraryEntity, String> jsInteropLibraries =
         source.readLibraryMap(source.readString);
@@ -371,7 +370,7 @@ class NativeBasicDataImpl implements NativeBasicData {
     Map<MemberEntity, String> jsInteropMembers =
         source.readMemberMap((MemberEntity member) => source.readString());
     source.end(tag);
-    return new NativeBasicDataImpl(
+    return NativeBasicDataImpl(
         elementEnvironment,
         isAllowInteropUsed,
         nativeClassTagInfo,
@@ -477,19 +476,16 @@ class NativeDataBuilderImpl implements NativeDataBuilder {
   final NativeBasicDataImpl _nativeBasicData;
 
   /// The JavaScript names for native JavaScript elements implemented.
-  Map<MemberEntity, String> nativeMemberName = <MemberEntity, String>{};
+  Map<MemberEntity, String> nativeMemberName = {};
 
   /// Cache for [NativeBehavior]s for calling native methods.
-  Map<FunctionEntity, NativeBehavior> nativeMethodBehavior =
-      <FunctionEntity, NativeBehavior>{};
+  Map<FunctionEntity, NativeBehavior> nativeMethodBehavior = {};
 
   /// Cache for [NativeBehavior]s for reading from native fields.
-  Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior =
-      <FieldEntity, NativeBehavior>{};
+  Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior = {};
 
   /// Cache for [NativeBehavior]s for writing to native fields.
-  Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior =
-      <FieldEntity, NativeBehavior>{};
+  Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior = {};
 
   NativeDataBuilderImpl(this._nativeBasicData);
 
@@ -524,7 +520,7 @@ class NativeDataBuilderImpl implements NativeDataBuilder {
   }
 
   @override
-  NativeData close() => new NativeDataImpl(_nativeBasicData, nativeMemberName,
+  NativeData close() => NativeDataImpl(_nativeBasicData, nativeMemberName,
       nativeMethodBehavior, nativeFieldLoadBehavior, nativeFieldStoreBehavior);
 }
 
@@ -561,8 +557,7 @@ class NativeDataImpl implements NativeData, NativeBasicDataImpl {
       this.nativeFieldStoreBehavior);
 
   factory NativeDataImpl.fromIr(KernelToElementMap map, IrAnnotationData data) {
-    NativeBasicDataImpl nativeBasicData =
-        new NativeBasicDataImpl.fromIr(map, data);
+    NativeBasicDataImpl nativeBasicData = NativeBasicDataImpl.fromIr(map, data);
     Map<MemberEntity, String> nativeMemberName = {};
     Map<FunctionEntity, NativeBehavior> nativeMethodBehavior = {};
     Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior = {};
@@ -594,7 +589,7 @@ class NativeDataImpl implements NativeData, NativeBasicDataImpl {
           map.getNativeBehaviorForFieldStore(node);
     });
 
-    return new NativeDataImpl(
+    return NativeDataImpl(
         nativeBasicData,
         nativeMemberName,
         nativeMethodBehavior,
@@ -606,20 +601,20 @@ class NativeDataImpl implements NativeData, NativeBasicDataImpl {
       DataSource source, ElementEnvironment elementEnvironment) {
     source.begin(tag);
     NativeBasicData nativeBasicData =
-        new NativeBasicData.readFromDataSource(source, elementEnvironment);
+        NativeBasicData.readFromDataSource(source, elementEnvironment);
     Map<MemberEntity, String> nativeMemberName =
         source.readMemberMap((MemberEntity member) => source.readString());
     Map<FunctionEntity, NativeBehavior> nativeMethodBehavior =
-        source.readMemberMap((MemberEntity member) =>
-            new NativeBehavior.readFromDataSource(source));
+        source.readMemberMap(
+            (MemberEntity member) => NativeBehavior.readFromDataSource(source));
     Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior =
-        source.readMemberMap((MemberEntity member) =>
-            new NativeBehavior.readFromDataSource(source));
+        source.readMemberMap(
+            (MemberEntity member) => NativeBehavior.readFromDataSource(source));
     Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior =
-        source.readMemberMap((MemberEntity member) =>
-            new NativeBehavior.readFromDataSource(source));
+        source.readMemberMap(
+            (MemberEntity member) => NativeBehavior.readFromDataSource(source));
     source.end(tag);
-    return new NativeDataImpl(
+    return NativeDataImpl(
         nativeBasicData,
         nativeMemberName,
         nativeMethodBehavior,
@@ -813,10 +808,12 @@ class NativeDataImpl implements NativeData, NativeBasicDataImpl {
     if (element.isConstructor) {
       return _fixedBackendClassPath(element.enclosingClass);
     }
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write(_jsLibraryNameHelper(element.library));
     if (element.enclosingClass != null) {
-      sb..write('.')..write(_jsClassNameHelper(element.enclosingClass));
+      sb
+        ..write('.')
+        ..write(_jsClassNameHelper(element.enclosingClass));
     }
     return sb.toString();
   }
@@ -884,13 +881,13 @@ class NativeClassTag {
     List<String> tags = tagText.split(',');
     List<String> names = tags.where((s) => !s.startsWith('!')).toList();
     bool isNonLeaf = tags.contains('!nonleaf');
-    return new NativeClassTag.internal(names, isNonLeaf);
+    return NativeClassTag.internal(names, isNonLeaf);
   }
 
   NativeClassTag.internal(this.names, this.isNonLeaf);
 
   String get text {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write(names.join(','));
     if (isNonLeaf) {
       if (names.isNotEmpty) {

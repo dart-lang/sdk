@@ -9,11 +9,11 @@ class C<T extends core::Object? = dynamic> extends core::Object {
   field core::bool _#C#field1#isSet;
   field FutureOr<dynamic>? _#C#field2;
   field core::bool _#C#field2#isSet;
-  generic-covariant-impl field FutureOr<self::C::T%>? _#C#field3;
+  covariant-by-class field FutureOr<self::C::T%>? _#C#field3;
   field core::bool _#C#field3#isSet;
-  generic-covariant-impl field FutureOr<self::C::T?>? _#C#field4;
+  covariant-by-class field FutureOr<self::C::T?>? _#C#field4;
   field core::bool _#C#field4#isSet;
-  generic-covariant-impl field FutureOr<self::C::T?>? _#C#field5;
+  covariant-by-class field FutureOr<self::C::T?>? _#C#field5;
   field core::bool _#C#field5#isSet;
   synthetic constructor •() → self::C<self::C::T%>
     ;
@@ -22,11 +22,11 @@ class C<T extends core::Object? = dynamic> extends core::Object {
   get field2() → FutureOr<dynamic>?;
   set field2(FutureOr<dynamic>? #t2) → void;
   get field3() → FutureOr<self::C::T%>;
-  set field3(generic-covariant-impl FutureOr<self::C::T%>#t3) → void;
+  set field3(covariant-by-class FutureOr<self::C::T%>#t3) → void;
   get field4() → FutureOr<self::C::T?>;
-  set field4(generic-covariant-impl FutureOr<self::C::T?>#t4) → void;
+  set field4(covariant-by-class FutureOr<self::C::T?>#t4) → void;
   get field5() → FutureOr<self::C::T?>?;
-  set field5(generic-covariant-impl FutureOr<self::C::T?>? #t5) → void;
+  set field5(covariant-by-class FutureOr<self::C::T?>? #t5) → void;
   method method() → dynamic
     ;
 }

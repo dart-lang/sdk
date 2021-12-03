@@ -49,7 +49,7 @@ static field () → Null a = () → Null {
     return :async_future;
   }
   function f3() → core::int {
-    return let final Never #t1 = invalid-expression "pkg/front_end/testcases/general/issue38253c.dart:8:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+    return invalid-expression "pkg/front_end/testcases/general/issue38253c.dart:8:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
   int f3() {}
   ^" in null;
   }
@@ -65,7 +65,7 @@ static field () → Null a = () → Null {
       try {
         #L2:
         {
-          :return_value = let final Never #t2 = invalid-expression "pkg/front_end/testcases/general/issue38253c.dart:9:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+          :return_value = invalid-expression "pkg/front_end/testcases/general/issue38253c.dart:9:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
   Future<int> f4() async {}
   ^" in null;
           break #L2;
@@ -96,7 +96,7 @@ static field (dynamic) → asy::Future<dynamic> b = (dynamic f) → asy::Future<
     try {
       #L3:
       {
-        [yield] let dynamic #t3 = asy::_awaitHelper(f, :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t1 = asy::_awaitHelper(f, :async_op_then, :async_op_error, :async_op) in null;
         :return_value = :result;
         break #L3;
       }

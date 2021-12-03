@@ -40,7 +40,6 @@ final Map<String, List<String>> additionalRequiredClasses = {
   'dart:svg': [],
   'dart:web_audio': [],
   'dart:web_gl': [],
-  'dart:web_sql': [],
   'dart:_js_helper': [
     'PrivateSymbol',
     'LinkedMap',

@@ -65,7 +65,8 @@ void main() {
   });
 
   test('this', () async {
-    await expectNotNull('class C { m() { return this; } }', 'this');
+    await expectNotNull(
+        'library a; class C { m() { return this; } }', 'this, new a::C()');
   });
 
   test('is', () async {
@@ -80,7 +81,7 @@ void main() {
 
   test('constructor', () async {
     await expectNotNull(
-        'library a; class C {} main() { new C(); }', 'new a::C()');
+        'library a; class C {} main() { new C(); }', 'new a::C(), new a::C()');
   });
 
   group('operator', () {
@@ -490,7 +491,7 @@ void main() {
       await expectNotNull(
           'library b; $imports class C { @notNull m() {} } '
               'main() { var c = new C(); c.m(); }',
-          'new b::C(), c.{b::C.m}(), c');
+          'new b::C(), new b::C(), c.{b::C.m}(), c');
     });
   });
 }
@@ -529,7 +530,7 @@ Future expectNotNull(String code, String expectedNotNull) async {
 /// Given the Dart [code], expects all the expressions inferred to be not-null.
 Future expectAllNotNull(String code) async {
   code = '// @dart = 2.9\n$code';
-  var result = (await kernelCompile(code));
+  var result = await kernelCompile(code);
   result.component.accept(ExpectAllNotNull(result.librariesFromDill));
 }
 
@@ -675,8 +676,8 @@ const nullCheck = const _NullCheck();
   var mainUri = Uri.file('/memory/test.dart');
   _fileSystem.entityForUri(mainUri).writeAsStringSync(code);
   var oldCompilerState = _compilerState;
-  _compilerState = await fe.initializeCompiler(oldCompilerState, false, null,
-      sdkUri, packagesUri, null, [], DevCompilerTarget(TargetFlags()),
+  _compilerState = fe.initializeCompiler(oldCompilerState, false, null, sdkUri,
+      packagesUri, null, [], DevCompilerTarget(TargetFlags()),
       fileSystem: _fileSystem,
       explicitExperimentalFlags: const {},
       environmentDefines: const {},

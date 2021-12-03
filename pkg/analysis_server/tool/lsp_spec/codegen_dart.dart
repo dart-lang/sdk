@@ -647,23 +647,41 @@ void _writeFromJsonConstructor(
 void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndentedln('@override')
-    ..writeIndentedln('int get hashCode {')
-    ..indent()
-    ..writeIndentedln('var hash = 0;');
-  for (var field in _getAllFields(interface)) {
-    final type = resolveTypeAlias(field.type);
-    if (type is ArrayType || type is MapType) {
-      buffer.writeIndentedln(
-          'hash = JenkinsSmiHash.combine(hash, lspHashCode(${field.name}));');
-    } else {
-      buffer.writeIndentedln(
-          'hash = JenkinsSmiHash.combine(hash, ${field.name}.hashCode);');
-    }
+    ..writeIndentedln('int get hashCode =>');
+
+  final fields = _getAllFields(interface);
+
+  String endWith;
+  if (fields.isEmpty) {
+    buffer.write('42');
+    endWith = ';';
+  } else if (fields.length == 1) {
+    endWith = ';';
+  } else if (fields.length > 20) {
+    buffer.write('Object.hashAll([');
+    endWith = ']);';
+  } else {
+    buffer.write('Object.hash(');
+    endWith = ');';
   }
+
+  buffer.writeAll(
+    fields.map((field) {
+      final type = resolveTypeAlias(field.type);
+      if (type is ArrayType || type is MapType) {
+        return 'lspHashCode(${field.name})';
+      } else {
+        if (fields.length == 1) {
+          return '${field.name}.hashCode';
+        }
+        return field.name;
+      }
+    }),
+    ',',
+  );
   buffer
-    ..writeIndentedln('return JenkinsSmiHash.finish(hash);')
-    ..outdent()
-    ..writeIndentedln('}');
+    ..writeln(endWith)
+    ..writeln();
 }
 
 void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
@@ -861,7 +879,9 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
   } else if (type is MapType) {
     buffer.write('($valueCode is Map');
     if (fullDartType != 'Object?') {
-      buffer..write(' && (')..write('$valueCode.keys.every((item) => ');
+      buffer
+        ..write(' && (')
+        ..write('$valueCode.keys.every((item) => ');
       _writeTypeCheckCondition(
           buffer, interface, 'item', type.indexType, reporter);
       buffer.write('&& $valueCode.values.every((item) => ');

@@ -111,7 +111,36 @@ main() {
     ]);
   }
 
-  test_spread_list() async {
+  test_spread_intoList_list() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+
+main() {
+  const [...[A()]];
+}
+''');
+  }
+
+  test_spread_intoList_set() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+  operator ==(other) => false;
+}
+
+main() {
+  const [...{A()}];
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS, 79, 3),
+    ]);
+  }
+
+  test_spread_intoSet_list() async {
     await assertErrorsInCode(r'''
 class A {
   const A();
@@ -127,7 +156,7 @@ main() {
     ]);
   }
 
-  test_spread_set() async {
+  test_spread_intoSet_set() async {
     await assertErrorsInCode(r'''
 class A {
   const A();

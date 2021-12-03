@@ -15,6 +15,14 @@ class RemoveAnnotation extends CorrectionProducer {
   String _annotationName = '';
 
   @override
+  // Not predictably the correct action.
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  // Not predictably the correct action.
+  bool get canBeAppliedToFile => false;
+
+  @override
   List<Object> get fixArguments => [_annotationName];
 
   @override

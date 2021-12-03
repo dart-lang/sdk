@@ -8,7 +8,7 @@
 
 Based on [this description](https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397) by leafp@.
 
-**This document** is an informal specification of the the instantiate to
+**This document** is an informal specification of the instantiate to
 bound mechanism in Dart 2. The feature described here, *instantiate to
 bound*, makes it possible to omit some or all actual type arguments in some
 types using generic classes. The missing type arguments will be added
@@ -275,7 +275,7 @@ the current bounds is strictly decreasing with each step, and we terminate
 when that number reaches zero.*
 
 *Note that this process may produce a
-[super-bounded type](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/super-bounded-types.md).*
+[super-bounded type](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/super-bounded-types.md).*
 
 *It may seem somewhat arbitrary to treat unused and invariant parameters
 the same as covariant parameters. In particular, we could easily have made
@@ -386,7 +386,7 @@ applicable.
     there.
 
 *   Sep 15th 2017: Transferred to the SDK repository as
-    [instantiate-to-bound.md](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md).
+    [instantiate-to-bound.md](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/instantiate-to-bound.md).
 
 *   Sep 15th 2017: Adjusted to include the enhanced expressive power
     described in

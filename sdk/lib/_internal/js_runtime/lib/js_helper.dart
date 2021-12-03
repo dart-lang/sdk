@@ -21,6 +21,7 @@ import 'dart:_js_embedded_names'
         JsGetName,
         LEAF_TAGS,
         NATIVE_SUPERCLASS_TAG_NAME,
+        STARTUP_METRICS,
         STATIC_FUNCTION_NAME_PROPERTY_NAME,
         TearOffParametersPropertyNames;
 
@@ -130,9 +131,12 @@ String S(value) {
   } else if (value == null) {
     return 'null';
   }
-  var res = value.toString();
-  if (res is! String) throw argumentErrorValue(value);
-  return res;
+  var result = value.toString();
+  if (result is! String) {
+    throw ArgumentError.value(
+        value, 'object', "toString method returned 'null'");
+  }
+  return result;
 }
 
 // Called from generated code.
@@ -3004,4 +3008,8 @@ void assertInterop(Object? value) {
 void assertInteropArgs(List<Object?> args) {
   assert(args.every((arg) => arg is! Function || isJSFunction(arg)),
       'Dart function requires `allowInterop` to be passed to JavaScript.');
+}
+
+Object? rawStartupMetrics() {
+  return JS('JSArray', '#.a', JS_EMBEDDED_GLOBAL('', STARTUP_METRICS));
 }

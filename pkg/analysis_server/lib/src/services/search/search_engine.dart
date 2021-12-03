@@ -26,6 +26,10 @@ class MatchKind {
   /// A reference to an element in which it is referenced.
   static const MatchKind REFERENCE = MatchKind('REFERENCE');
 
+  /// A tear-off reference to a constructor.
+  static const MatchKind REFERENCE_BY_CONSTRUCTOR_TEAR_OFF =
+      MatchKind('REFERENCE_BY_CONSTRUCTOR_TEAR_OFF');
+
   final String name;
 
   const MatchKind(this.name);

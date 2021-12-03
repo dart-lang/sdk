@@ -19,7 +19,7 @@ class TestValue {
 };
 
 TEST_CASE(DirectChainedHashMap) {
-  DirectChainedHashMap<PointerKeyValueTrait<TestValue> > map;
+  DirectChainedHashMap<PointerSetKeyValueTrait<TestValue>> map;
   EXPECT(map.IsEmpty());
   TestValue v1(0);
   TestValue v2(1);
@@ -33,14 +33,14 @@ TEST_CASE(DirectChainedHashMap) {
   EXPECT(map.Remove(&v1));
   EXPECT(map.Lookup(&v1) == NULL);
   map.Insert(&v1);
-  DirectChainedHashMap<PointerKeyValueTrait<TestValue> > map2(map);
+  DirectChainedHashMap<PointerSetKeyValueTrait<TestValue>> map2(map);
   EXPECT(map2.LookupValue(&v1) == &v1);
   EXPECT(map2.LookupValue(&v2) == &v2);
   EXPECT(map2.LookupValue(&v3) == &v1);
 }
 
 TEST_CASE(DirectChainedHashMapInsertRemove) {
-  DirectChainedHashMap<PointerKeyValueTrait<TestValue> > map;
+  DirectChainedHashMap<PointerSetKeyValueTrait<TestValue>> map;
   EXPECT(map.IsEmpty());
   TestValue v1(1);
   TestValue v2(3);  // Note: v1, v2, v3 should have the same hash.
@@ -97,7 +97,7 @@ TEST_CASE(DirectChainedHashMapInsertRemove) {
 }
 
 TEST_CASE(MallocDirectChainedHashMap) {
-  MallocDirectChainedHashMap<PointerKeyValueTrait<TestValue> > map;
+  MallocDirectChainedHashMap<PointerSetKeyValueTrait<TestValue>> map;
   EXPECT(map.IsEmpty());
   TestValue v1(0);
   TestValue v2(1);
@@ -108,7 +108,7 @@ TEST_CASE(MallocDirectChainedHashMap) {
   EXPECT(map.LookupValue(&v1) == &v1);
   EXPECT(map.LookupValue(&v2) == &v2);
   EXPECT(map.LookupValue(&v3) == &v1);
-  MallocDirectChainedHashMap<PointerKeyValueTrait<TestValue> > map2(map);
+  MallocDirectChainedHashMap<PointerSetKeyValueTrait<TestValue>> map2(map);
   EXPECT(map2.LookupValue(&v1) == &v1);
   EXPECT(map2.LookupValue(&v2) == &v2);
   EXPECT(map2.LookupValue(&v3) == &v1);
@@ -117,7 +117,7 @@ TEST_CASE(MallocDirectChainedHashMap) {
 TEST_CASE(ZoneDirectChainedHashMap) {
   auto zone = thread->zone();
   auto const map = new (zone)
-      ZoneDirectChainedHashMap<PointerKeyValueTrait<TestValue>>(zone);
+      ZoneDirectChainedHashMap<PointerSetKeyValueTrait<TestValue>>(zone);
   EXPECT(map->IsEmpty());
   TestValue v1(0);
   TestValue v2(1);

@@ -1,6 +1,6 @@
-# Dart Development Service Protocol 1.2
+# Dart Development Service Protocol 1.3
 
-This document describes _version 1.2_ of the Dart Development Service Protocol.
+This document describes _version 1.3_ of the Dart Development Service Protocol.
 This protocol is an extension of the Dart VM Service Protocol and implements it
 in it's entirety. For details on the VM Service Protocol, see the [Dart VM Service Protocol Specification][service-protocol].
 
@@ -16,16 +16,22 @@ The Service Protocol uses [JSON-RPC 2.0][].
 - [IDs and Names](#ids-and-names)
 - [Revision History](#revision-history)
 - [Public RPCs](#public-rpcs)
+  - [getAvailableCachedCpuSamples](#getavailablecachedcpusamples)
+  - [getCachedCpuSamples](#getcachedcpusamples)[
   - [getClientName](#getclientname)
   - [getDartDevelopmentServiceVersion](#getdartdevelopmentserviceversion)
   - [getLogHistorySize](#getloghistorysize)
+  - [getStreamHistory](#getstreamhistory)[
   - [requirePermissionToResume](#requirepermissiontoresume)
   - [setClientName](#setclientname)
   - [setLogHistorySize](#setloghistorysize)
 - [Public Types](#public-types)
+  - [AvailableCachedCpuSamples](#availablecachedcpusamples)[
+  - [CachedCpuSamples](#cachedcpusamples)
   - [ClientName](#clientname)
   - [DartDevelopmentServiceVersion](#dartdevelopmentserviceversion)
   - [Size](#size)
+  - [StreamHistory](#streamhistory)[
 
 ## RPCs, Requests, and Responses
 
@@ -66,6 +72,29 @@ event being sent to the subscribing client for each existing service extension.
 ## Public RPCs
 
 The DDS Protocol supports all [public RPCs defined in the VM Service protocol][service-protocol-public-rpcs].
+
+### getAvailableCachedCpuSamples
+
+```
+AvailableCachedCpuSamples getAvailableCachedCpuSamples();
+```
+
+The _getAvailableCachedCpuSamples_ RPC is used to determine which caches of CPU samples
+are available. Caches are associated with individual _UserTag_ names and are specified
+when DDS is started via the _cachedUserTags_ parameter.
+
+See [AvailableCachedCpuSamples](#availablecachedcpusamples).
+
+### getCachedCpuSamples
+
+```
+CachedCpuSamples getCachedCpuSamples(string isolateId, string userTag);
+```
+
+The _getCachedCpuSamples_ RPC is used to retrieve a cache of CPU samples collected
+under a _UserTag_ with name _userTag_.
+
+See [CachedCpuSamples](#cachedcpusamples).
 
 ### getClientName
 
@@ -181,6 +210,37 @@ See [Success](#success).
 
 The DDS Protocol supports all [public types defined in the VM Service protocol][service-protocol-public-types].
 
+### AvailableCachedCpuSamples
+
+```
+class AvailableCachedCpuSamples extends Response {
+  // A list of UserTag names associated with CPU sample caches.
+  string[] cacheNames;
+}
+```
+
+A collection of [UserTag] names associated with caches of CPU samples.
+
+See [getAvailableCachedCpuSamples](#getavailablecachedcpusamples).
+
+### CachedCpuSamples
+
+```
+class CachedCpuSamples extends CpuSamples {
+  // The name of the UserTag associated with this cache of samples.
+  string userTag;
+
+  // Provided if the CPU sample cache has filled and older samples have been
+  // dropped.
+  bool truncated [optional];
+}
+```
+
+An extension of [CpuSamples](#cpu-samples) which represents a set of cached
+samples, associated with a particular [UserTag] name.
+
+See [getCachedCpuSamples](#getcachedcpusamples).
+
 ### ClientName
 
 ```
@@ -220,17 +280,19 @@ version | comments
 1.0 | Initial revision
 1.1 | Added `getDartDevelopmentServiceVersion` RPC.
 1.2 | Added `getStreamHistory` RPC.
+1.3 | Added `getAvailableCachedCpuSamples` and `getCachedCpuSamples` RPCs.
 
-[resume]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#resume
-[success]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#success
-[version]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#version
+[resume]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#resume
+[success]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#success
+[version]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#version
+[cpu-samples]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#cpusamples
 
-[service-protocol]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md
-[service-protocol-rpcs-requests-and-responses]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#rpcs-requests-and-responses
-[service-protocol-events]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#events
-[service-protocol-streams]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#streamlisten
-[service-protocol-binary-events]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#binary-events
-[service-protocol-types]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#types
-[service-protocol-ids-and-names]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#ids-and-names
-[service-protocol-public-rpcs]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#public-rpcs
-[service-protocol-public-types]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md#public-types
+[service-protocol]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md
+[service-protocol-rpcs-requests-and-responses]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#rpcs-requests-and-responses
+[service-protocol-events]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#events
+[service-protocol-streams]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#streamlisten
+[service-protocol-binary-events]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#binary-events
+[service-protocol-types]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#types
+[service-protocol-ids-and-names]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#ids-and-names
+[service-protocol-public-rpcs]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#public-rpcs
+[service-protocol-public-types]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#public-types

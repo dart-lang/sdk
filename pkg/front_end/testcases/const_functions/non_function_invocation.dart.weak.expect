@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/const_functions/non_function_invocation.dart:6:20: Error: Constant evaluation error:
+// const dynamic b = a();
+//                    ^
+// pkg/front_end/testcases/const_functions/non_function_invocation.dart:6:20: Context: Null value during constant evaluation.
+// const dynamic b = a();
+//                    ^
+// pkg/front_end/testcases/const_functions/non_function_invocation.dart:6:15: Context: While analyzing:
+// const dynamic b = a();
+//               ^
+//
+import self as self;
+
+static const field dynamic a = #C1;
+static const field dynamic b = invalid-expression "Null value during constant evaluation.";
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

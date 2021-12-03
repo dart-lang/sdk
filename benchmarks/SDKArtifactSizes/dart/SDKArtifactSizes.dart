@@ -24,7 +24,6 @@ const snapshots = <String>[
   'dartdev',
   'dartdevc',
   'dartdoc',
-  'dartfmt',
   'dds',
   'frontend_server',
   'gen_kernel',
@@ -33,9 +32,9 @@ const snapshots = <String>[
   'pub',
 ];
 
-Future<void> reportArtifactSize(String path, String name) async {
+void reportFileSize(String path, String name) {
   try {
-    final size = await File(path).length();
+    final size = File(path).lengthSync();
     print('SDKArtifactSizes.$name(CodeSize): $size');
   } on FileSystemException {
     // Report dummy data for artifacts that don't exist for specific platforms.
@@ -43,24 +42,43 @@ Future<void> reportArtifactSize(String path, String name) async {
   }
 }
 
-Future<void> main() async {
+void reportDirectorySize(String path, String name) async {
+  final dir = Directory(path);
+
+  try {
+    final size = dir
+        .listSync(recursive: true, followLinks: false)
+        .whereType<File>()
+        .map((file) => file.lengthSync())
+        .fold<int>(0, (a, b) => a + b);
+    print('SDKArtifactSizes.$name(CodeSize): $size');
+  } on FileSystemException {
+    // Report dummy data on errors.
+    print('SDKArtifactSizes.$name(CodeSize): 0');
+  }
+}
+
+void main() {
   final topDirIndex =
       Platform.resolvedExecutable.lastIndexOf(Platform.pathSeparator);
   final rootDir = Platform.resolvedExecutable.substring(0, topDirIndex);
 
   for (final executable in executables) {
     final executablePath = '$rootDir/dart-sdk/bin/$executable';
-    await reportArtifactSize(executablePath, executable);
+    reportFileSize(executablePath, executable);
   }
 
   for (final lib in libs) {
     final libPath = '$rootDir/dart-sdk/lib/_internal/$lib';
-    await reportArtifactSize(libPath, lib);
+    reportFileSize(libPath, lib);
   }
 
   for (final snapshot in snapshots) {
     final snapshotPath =
         '$rootDir/dart-sdk/bin/snapshots/$snapshot.dart.snapshot';
-    await reportArtifactSize(snapshotPath, snapshot);
+    reportFileSize(snapshotPath, snapshot);
   }
+
+  // Measure the sdk size.
+  reportDirectorySize('$rootDir/dart-sdk', 'sdk');
 }

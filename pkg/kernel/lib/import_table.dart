@@ -19,6 +19,7 @@ class ComponentImportTable implements ImportTable {
     }
   }
 
+  @override
   int getImportIndex(Library library) => _libraryIndex[library] ?? -1;
 }
 
@@ -51,6 +52,7 @@ class LibraryImportTable implements ImportTable {
   }
 
   /// Returns the index of the given import, or -1 if not found.
+  @override
   int getImportIndex(Library library) {
     return _libraryIndex[library] ?? -1;
   }
@@ -103,22 +105,26 @@ class _ImportTableBuilder extends RecursiveVisitor {
     }
   }
 
-  visitClassReference(Class node) {
+  @override
+  void visitClassReference(Class node) {
     addLibraryImport(node.enclosingLibrary);
   }
 
-  visitLibrary(Library node) {
+  @override
+  void visitLibrary(Library node) {
     super.visitLibrary(node);
     for (Reference exportedReference in node.additionalExports) {
       addLibraryImport(exportedReference.node!.parent as Library);
     }
   }
 
-  defaultMemberReference(Member node) {
+  @override
+  void defaultMemberReference(Member node) {
     addLibraryImport(node.enclosingLibrary);
   }
 
-  visitName(Name name) {
+  @override
+  void visitName(Name name) {
     if (name.library != null) {
       addLibraryImport(name.library);
     }

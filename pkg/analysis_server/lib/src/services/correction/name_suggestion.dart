@@ -181,8 +181,8 @@ String? _getBaseNameFromUnwrappedExpression(Expression expression) {
     name = expression.methodName.name;
   } else if (expression is InstanceCreationExpression) {
     var constructorName = expression.constructorName;
-    var typeName = constructorName.type;
-    var typeNameIdentifier = typeName.name;
+    var namedType = constructorName.type2;
+    var typeNameIdentifier = namedType.name;
     // new ClassName()
     if (typeNameIdentifier is SimpleIdentifier) {
       return typeNameIdentifier.name;

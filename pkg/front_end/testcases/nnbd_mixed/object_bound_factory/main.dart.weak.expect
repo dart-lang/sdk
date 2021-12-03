@@ -34,69 +34,69 @@ import self as opt;
 import "dart:core" as core;
 
 class Class1<T extends core::Object?> extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[opt::Class1::redirect, opt::Class1::constRedirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C6, #C7]/*isLegacy*/;
   const constructor _() → opt::Class1<opt::Class1::T%>
     : super core::Object::•()
     ;
   static factory redirect<T extends core::Object?>() → opt::Class1<opt::Class1::redirect::T%>
-    let dynamic #redirecting_factory = opt::Class1::_ in let opt::Class1::redirect::T% #typeArg0 = null in invalid-expression;
+    return new opt::Class1::_<opt::Class1::redirect::T%>();
   static factory constRedirect<T extends core::Object?>() → opt::Class1<opt::Class1::constRedirect::T%>
-    let dynamic #redirecting_factory = opt::Class1::_ in let opt::Class1::constRedirect::T% #typeArg0 = null in invalid-expression;
+    return new opt::Class1::_<opt::Class1::constRedirect::T%>();
   static factory fact<T extends core::Object?>() → opt::Class1<opt::Class1::fact::T%>
     return new opt::Class1::_<opt::Class1::fact::T%>();
 }
 class Class2<T extends core::Object> extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[opt::Class2::redirect, opt::Class2::constRedirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C8, #C9]/*isLegacy*/;
   const constructor _() → opt::Class2<opt::Class2::T>
     : super core::Object::•()
     ;
   static factory redirect<T extends core::Object>() → opt::Class2<opt::Class2::redirect::T>
-    let dynamic #redirecting_factory = opt::Class2::_ in let opt::Class2::redirect::T #typeArg0 = null in invalid-expression;
+    return new opt::Class2::_<opt::Class2::redirect::T>();
   static factory constRedirect<T extends core::Object>() → opt::Class2<opt::Class2::constRedirect::T>
-    let dynamic #redirecting_factory = opt::Class2::_ in let opt::Class2::constRedirect::T #typeArg0 = null in invalid-expression;
+    return new opt::Class2::_<opt::Class2::constRedirect::T>();
   static factory fact<T extends core::Object>() → opt::Class2<opt::Class2::fact::T>
     return new opt::Class2::_<opt::Class2::fact::T>();
 }
 class Class3<T extends core::String> extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[opt::Class3::redirect, opt::Class3::constRedirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C10, #C11]/*isLegacy*/;
   const constructor _() → opt::Class3<opt::Class3::T>
     : super core::Object::•()
     ;
   static factory redirect<T extends core::String>() → opt::Class3<opt::Class3::redirect::T>
-    let dynamic #redirecting_factory = opt::Class3::_ in let opt::Class3::redirect::T #typeArg0 = null in invalid-expression;
+    return new opt::Class3::_<opt::Class3::redirect::T>();
   static factory constRedirect<T extends core::String>() → opt::Class3<opt::Class3::constRedirect::T>
-    let dynamic #redirecting_factory = opt::Class3::_ in let opt::Class3::constRedirect::T #typeArg0 = null in invalid-expression;
+    return new opt::Class3::_<opt::Class3::constRedirect::T>();
   static factory fact<T extends core::String>() → opt::Class3<opt::Class3::fact::T>
     return new opt::Class3::_<opt::Class3::fact::T>();
 }
 class Class4<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[opt::Class4::redirect, opt::Class4::constRedirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C12, #C13]/*isLegacy*/;
   const constructor _() → opt::Class4<opt::Class4::T%>
     : super core::Object::•()
     ;
   static factory redirect<T extends core::Object? = dynamic>() → opt::Class4<opt::Class4::redirect::T%>
-    let dynamic #redirecting_factory = opt::Class4::_ in let opt::Class4::redirect::T% #typeArg0 = null in invalid-expression;
+    return new opt::Class4::_<opt::Class4::redirect::T%>();
   static factory constRedirect<T extends core::Object? = dynamic>() → opt::Class4<opt::Class4::constRedirect::T%>
-    let dynamic #redirecting_factory = opt::Class4::_ in let opt::Class4::constRedirect::T% #typeArg0 = null in invalid-expression;
+    return new opt::Class4::_<opt::Class4::constRedirect::T%>();
   static factory fact<T extends core::Object? = dynamic>() → opt::Class4<opt::Class4::fact::T%>
     return new opt::Class4::_<opt::Class4::fact::T%>();
 }
 class Class5<T extends dynamic> extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[opt::Class5::redirect, opt::Class5::constRedirect]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C14, #C15]/*isLegacy*/;
   const constructor _() → opt::Class5<opt::Class5::T%>
     : super core::Object::•()
     ;
   static factory redirect<T extends dynamic>() → opt::Class5<opt::Class5::redirect::T%>
-    let dynamic #redirecting_factory = opt::Class5::_ in let opt::Class5::redirect::T% #typeArg0 = null in invalid-expression;
+    return new opt::Class5::_<opt::Class5::redirect::T%>();
   static factory constRedirect<T extends dynamic>() → opt::Class5<opt::Class5::constRedirect::T%>
-    let dynamic #redirecting_factory = opt::Class5::_ in let opt::Class5::constRedirect::T% #typeArg0 = null in invalid-expression;
+    return new opt::Class5::_<opt::Class5::constRedirect::T%>();
   static factory fact<T extends dynamic>() → opt::Class5<opt::Class5::fact::T%>
     return new opt::Class5::_<opt::Class5::fact::T%>();
 }
 static method testOptIn() → dynamic {
   new opt::Class1::_<core::Object?>();
   new opt::Class1::_<core::Object?>();
-  #C6;
+  #C16;
   opt::Class1::fact<core::Object?>();
   new opt::Class2::_<core::Object>();
   new opt::Class2::_<core::Object>();
@@ -122,7 +122,17 @@ constants  {
   #C3 = opt::Class3<core::String*> {}
   #C4 = opt::Class4<dynamic> {}
   #C5 = opt::Class5<dynamic> {}
-  #C6 = opt::Class1<core::Object?> {}
+  #C6 = constructor-tearoff opt::Class1::redirect
+  #C7 = constructor-tearoff opt::Class1::constRedirect
+  #C8 = constructor-tearoff opt::Class2::redirect
+  #C9 = constructor-tearoff opt::Class2::constRedirect
+  #C10 = constructor-tearoff opt::Class3::redirect
+  #C11 = constructor-tearoff opt::Class3::constRedirect
+  #C12 = constructor-tearoff opt::Class4::redirect
+  #C13 = constructor-tearoff opt::Class4::constRedirect
+  #C14 = constructor-tearoff opt::Class5::redirect
+  #C15 = constructor-tearoff opt::Class5::constRedirect
+  #C16 = opt::Class1<core::Object?> {}
 }
 
 

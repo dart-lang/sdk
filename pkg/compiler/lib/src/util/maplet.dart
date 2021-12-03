@@ -9,7 +9,7 @@ library dart2js.util.maplet;
 import 'dart:collection' show MapBase, IterableBase;
 
 class Maplet<K, V> extends MapBase<K, V> {
-  static const _MapletMarker _MARKER = const _MapletMarker();
+  static const _MapletMarker _MARKER = _MapletMarker();
   static const int CAPACITY = 8;
 
 // The maplet can be in one of four states:
@@ -30,7 +30,7 @@ class Maplet<K, V> extends MapBase<K, V> {
 
   Maplet();
 
-  Maplet.from(Maplet<K, V> other) {
+  Maplet.of(Maplet<K, V> other) {
     other.forEach((K key, V value) {
       this[key] = value;
     });
@@ -101,7 +101,7 @@ class Maplet<K, V> extends MapBase<K, V> {
       } else if (_key == key) {
         _value = value;
       } else {
-        List list = new List.filled(CAPACITY * 2, null);
+        List list = List.filled(CAPACITY * 2, null);
         list[0] = _key;
         list[1] = key;
         list[CAPACITY] = _value;
@@ -165,7 +165,7 @@ class Maplet<K, V> extends MapBase<K, V> {
           copyTo++;
         }
       } else {
-        var map = new Map<K, V>();
+        var map = Map<K, V>();
         forEach((eachKey, eachValue) => map[eachKey] = eachValue);
         map[key] = value;
         _key = map;
@@ -225,7 +225,7 @@ class Maplet<K, V> extends MapBase<K, V> {
   }
 
   @override
-  Iterable<K> get keys => new _MapletKeyIterable<K>(this);
+  Iterable<K> get keys => _MapletKeyIterable<K>(this);
 }
 
 class _MapletMarker {
@@ -240,11 +240,11 @@ class _MapletKeyIterable<K> extends IterableBase<K> {
   @override
   Iterator<K> get iterator {
     if (maplet._extra == null) {
-      return new _MapletSingleIterator<K>(maplet._key);
+      return _MapletSingleIterator<K>(maplet._key);
     } else if (Maplet._MARKER == maplet._extra) {
       return maplet._key.keys.iterator;
     } else {
-      return new _MapletListIterator<K>(maplet._key, maplet._extra);
+      return _MapletListIterator<K>(maplet._key, maplet._extra);
     }
   }
 }

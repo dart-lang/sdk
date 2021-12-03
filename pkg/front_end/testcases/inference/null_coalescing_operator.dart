@@ -7,7 +7,6 @@ library test;
 
 main() {
   List<int> x;
-  var /*@ type=List<int*>* */ y =
-      x /*@target=List.==*/ ?? /*@ typeArgs=int* */ [];
+  var /*@ type=List<int*>* */ y = x ?? /*@ typeArgs=int* */ [];
   List<int> z = y;
 }

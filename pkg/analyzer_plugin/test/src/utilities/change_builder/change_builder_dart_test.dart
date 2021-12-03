@@ -22,8 +22,8 @@ import 'mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DartEditBuilderImpl_PreNullSafetyTest);
     defineReflectiveTests(DartEditBuilderImpl_WithNullSafetyTest);
+    defineReflectiveTests(DartEditBuilderImpl_WithoutNullSafetyTest);
     defineReflectiveTests(DartFileEditBuilderImplTest);
     defineReflectiveTests(DartLinkedEditBuilderImplTest);
     defineReflectiveTests(ImportLibraryTest);
@@ -32,7 +32,38 @@ void main() {
 }
 
 @reflectiveTest
-class DartEditBuilderImpl_PreNullSafetyTest extends DartEditBuilderImplTest {
+class DartEditBuilderImpl_WithNullSafetyTest extends DartEditBuilderImplTest {
+  Future<void> test_writeParameter_required_keyword() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = 'class A {}';
+    addSource(path, content);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isRequiredNamed: true);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('required a'));
+  }
+
+  Future<void> test_writeType_function_nullable() async {
+    await _assertWriteType('int Function(double a, String b)?');
+  }
+
+  Future<void> test_writeType_Never_none() async {
+    await _assertWriteType('Never');
+  }
+
+  Future<void> test_writeType_Never_question() async {
+    await _assertWriteType('Never?');
+  }
+}
+
+@reflectiveTest
+class DartEditBuilderImpl_WithoutNullSafetyTest extends DartEditBuilderImplTest
+    with WithoutNullSafetyMixin {
   Future<void> test_writeParameter_covariantAndRequired() async {
     var path = convertPath('$testPackageRootPath/lib/test.dart');
     var content = 'class A {}';
@@ -87,33 +118,6 @@ class A {}
     });
     var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('@required a'));
-  }
-}
-
-@reflectiveTest
-class DartEditBuilderImpl_WithNullSafetyTest extends DartEditBuilderImplTest
-    with WithNullSafetyMixin {
-  Future<void> test_writeParameter_required_keyword() async {
-    var path = convertPath('$testPackageRootPath/lib/test.dart');
-    var content = 'class A {}';
-    addSource(path, content);
-
-    var builder = newBuilder();
-    await builder.addDartFileEdit(path, (builder) {
-      builder.addInsertion(content.length - 1, (builder) {
-        builder.writeParameter('a', isRequiredNamed: true);
-      });
-    });
-    var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('required a'));
-  }
-
-  Future<void> test_writeType_Never_none() async {
-    await _assertWriteType('Never');
-  }
-
-  Future<void> test_writeType_Never_question() async {
-    await _assertWriteType('Never?');
   }
 }
 
@@ -1100,6 +1104,25 @@ class A {}
     });
     var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('(int i, String s)'));
+  }
+
+  Future<void> test_writeParameters_requiredTypes() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'void f(e) {}';
+    addSource(path, content);
+    var unit = (await resolveFile(path)).unit;
+    var f = unit.declarations[0] as FunctionDeclaration;
+    var parameters = f.functionExpression.parameters;
+    var elements = parameters?.parameters.map((p) => p.declaredElement!);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameters(elements!, requiredTypes: true);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equals('(dynamic e)'));
   }
 
   Future<void> test_writeParametersMatchingArguments_named() async {

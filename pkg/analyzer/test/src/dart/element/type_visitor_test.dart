@@ -8,7 +8,7 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'element_test.dart';
+import '../../../generated/type_system_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class RecursiveTypeVisitorTest extends AbstractTypeTest {
+class RecursiveTypeVisitorTest extends AbstractTypeSystemTest {
   late final _MockRecursiveVisitor visitor;
 
   @override

@@ -45,84 +45,70 @@ library;
 // main() {
 // ^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:41:3: Error: 'C' is already declared in this scope.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:43:3: Error: 'C' is already declared in this scope.
 //   C(a, b);
 //   ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:40:3: Context: Previous declaration of 'C'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:42:3: Context: Previous declaration of 'C'.
 //   C(a);
 //   ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:44:7: Error: 'field' is already declared in this scope.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:46:7: Error: 'field' is already declared in this scope.
 //   var field = "2nd";
 //       ^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:42:7: Context: Previous declaration of 'field'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:44:7: Context: Previous declaration of 'field'.
 //   var field = "1st";
 //       ^^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:50:3: Error: 'm' is already declared in this scope.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:52:3: Error: 'm' is already declared in this scope.
 //   m() {
 //   ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:46:3: Context: Previous declaration of 'm'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:48:3: Context: Previous declaration of 'm'.
 //   m() {
 //   ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:58:10: Error: 's' is already declared in this scope.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:60:10: Error: 's' is already declared in this scope.
 //   static s() {
 //          ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:54:10: Context: Previous declaration of 's'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:56:10: Context: Previous declaration of 's'.
 //   static s() {
 //          ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:70:7: Error: 'C' is already declared in this scope.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:72:7: Error: 'C' is already declared in this scope.
 // class C {
 //       ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:39:7: Context: Previous declaration of 'C'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:41:7: Context: Previous declaration of 'C'.
 // class C {
 //       ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:75:3: Error: Name of enum constant 'Enum' can't be the same as the enum's own name.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:77:3: Error: Name of enum constant 'Enum' can't be the same as the enum's own name.
 //   Enum,
 //   ^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:77:3: Error: 'a' is already declared in this scope.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:79:3: Error: 'a' is already declared in this scope.
 //   a,
 //   ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:76:3: Context: Previous declaration of 'a'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:78:3: Context: Previous declaration of 'a'.
 //   a,
 //   ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:81:6: Error: 'Enum' is already declared in this scope.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:83:6: Error: 'Enum' is already declared in this scope.
 // enum Enum {
 //      ^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:74:6: Context: Previous declaration of 'Enum'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:76:6: Context: Previous declaration of 'Enum'.
 // enum Enum {
 //      ^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:91:3: Error: '_name' is already declared in this scope.
-//   _name,
-//   ^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:87:6: Context: Previous declaration of '_name' is implied by this definition.
-// enum AnotherEnum {
-//      ^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/duplicated_declarations.dart:92:3: Error: 'index' is already declared in this scope.
-//   index,
-//   ^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:87:6: Context: Previous declaration of 'index' is implied by this definition.
-// enum AnotherEnum {
-//      ^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/duplicated_declarations.dart:93:3: Error: 'toString' is already declared in this scope.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:95:3: Error: 'toString' is already declared in this scope.
 //   toString,
 //   ^^^^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:87:6: Context: Previous declaration of 'toString' is implied by this definition.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:89:6: Context: Previous declaration of 'toString' is implied by this definition.
 // enum AnotherEnum {
 //      ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:94:3: Error: 'values' is already declared in this scope.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:96:3: Error: 'values' is already declared in this scope.
 //   values,
 //   ^^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:87:6: Context: Previous declaration of 'values' is implied by this definition.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:89:6: Context: Previous declaration of 'values' is implied by this definition.
 // enum AnotherEnum {
 //      ^^^^^^^^^^^
 //
@@ -157,14 +143,14 @@ library;
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:39:7: Error: 'C' is already declared in this scope.
 // class C {
 //       ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:70:7: Context: Previous declaration of 'C'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:72:7: Context: Previous declaration of 'C'.
 // class C {
 //       ^
 //
 // pkg/front_end/testcases/general/duplicated_declarations_part.dart:73:6: Error: 'Enum' is already declared in this scope.
 // enum Enum {
 //      ^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:81:6: Context: Previous declaration of 'Enum'.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:83:6: Context: Previous declaration of 'Enum'.
 // enum Enum {
 //      ^^^^
 //
@@ -299,12 +285,19 @@ library;
 // typedef Typedef = Object Function();
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:65:19: Error: 'C' isn't a type.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:67:19: Error: 'C' isn't a type.
 // class Sub extends C {
 //                   ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:65:19: Context: This isn't a type.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:67:19: Context: This isn't a type.
 // class Sub extends C {
 //                   ^
+//
+// pkg/front_end/testcases/general/duplicated_declarations.dart:94:3: Error: Can't declare a member that conflicts with an inherited one.
+//   index,
+//   ^^^^^
+// sdk/lib/core/enum.dart:74:13: Context: This is the inherited member.
+//   final int index;
+//             ^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -419,16 +412,16 @@ class Sub extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Enum#4 extends core::Object implements core::Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  final field core::int* index;
-  final field core::String* _name;
+class Enum#4 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   static const field core::List<self::Enum#4*>* values = const <self::Enum#4*>[self::Enum#4::a];
-  static const field self::Enum#4* a = const self::Enum#4::•(0, "Enum.a");
-  const constructor •(core::int* index, core::String* _name) → self::Enum#4*
-    : self::Enum#4::index = index, self::Enum#4::_name = _name, super core::Object::•()
+  static const field self::Enum#4* a = const self::Enum#4::•(0, "a");
+  const constructor •(core::int* index, core::String* name) → self::Enum#4*
+    : super core::_Enum::•(index, name)
     ;
   method toString() → core::String*
-    return this.{self::Enum#4::_name}{core::String*};
+    return "Enum#4.${this.{core::_Enum::_name}{core::String}}";
+  abstract member-signature get index() → core::int*; -> core::_Enum::index
+  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -439,18 +432,18 @@ class Enum#4 extends core::Object implements core::Enum /*isEnum*/  { // from or
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Enum#3 extends core::Object implements core::Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  final field core::int* index;
-  final field core::String* _name;
+class Enum#3 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   static const field core::List<self::Enum#3*>* values = const <self::Enum#3*>[self::Enum#3::a, self::Enum#3::b, self::Enum#3::c];
-  static const field self::Enum#3* a = const self::Enum#3::•(0, "Enum.a");
-  static const field self::Enum#3* b = const self::Enum#3::•(1, "Enum.b");
-  static const field self::Enum#3* c = const self::Enum#3::•(2, "Enum.c");
-  const constructor •(core::int* index, core::String* _name) → self::Enum#3*
-    : self::Enum#3::index = index, self::Enum#3::_name = _name, super core::Object::•()
+  static const field self::Enum#3* a = const self::Enum#3::•(0, "a");
+  static const field self::Enum#3* b = const self::Enum#3::•(1, "b");
+  static const field self::Enum#3* c = const self::Enum#3::•(2, "c");
+  const constructor •(core::int* index, core::String* name) → self::Enum#3*
+    : super core::_Enum::•(index, name)
     ;
   method toString() → core::String*
-    return this.{self::Enum#3::_name}{core::String*};
+    return "Enum#3.${this.{core::_Enum::_name}{core::String}}";
+  abstract member-signature get index() → core::int*; -> core::_Enum::index
+  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -461,18 +454,18 @@ class Enum#3 extends core::Object implements core::Enum /*isEnum*/  { // from or
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Enum#2 extends core::Object implements core::Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  final field core::int* index;
-  final field core::String* _name;
+class Enum#2 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
   static const field core::List<self::Enum#2*>* values = const <self::Enum#2*>[self::Enum#2::Enum, self::Enum#2::a, self::Enum#2::b];
-  static const field self::Enum#2* Enum = const self::Enum#2::•(0, "Enum.Enum");
-  static const field self::Enum#2* a = const self::Enum#2::•(1, "Enum.a");
-  static const field self::Enum#2* b = const self::Enum#2::•(2, "Enum.b");
-  const constructor •(core::int* index, core::String* _name) → self::Enum#2*
-    : self::Enum#2::index = index, self::Enum#2::_name = _name, super core::Object::•()
+  static const field self::Enum#2* Enum = const self::Enum#2::•(0, "Enum");
+  static const field self::Enum#2* a = const self::Enum#2::•(1, "a");
+  static const field self::Enum#2* b = const self::Enum#2::•(2, "b");
+  const constructor •(core::int* index, core::String* name) → self::Enum#2*
+    : super core::_Enum::•(index, name)
     ;
   method toString() → core::String*
-    return this.{self::Enum#2::_name}{core::String*};
+    return "Enum#2.${this.{core::_Enum::_name}{core::String}}";
+  abstract member-signature get index() → core::int*; -> core::_Enum::index
+  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -483,18 +476,18 @@ class Enum#2 extends core::Object implements core::Enum /*isEnum*/  { // from or
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Enum#1 extends core::Object implements core::Enum /*isEnum*/  {
-  final field core::int* index;
-  final field core::String* _name;
+class Enum#1 extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Enum#1*>* values = const <self::Enum#1*>[self::Enum#1::a, self::Enum#1::b, self::Enum#1::c];
-  static const field self::Enum#1* a = const self::Enum#1::•(0, "Enum.a");
-  static const field self::Enum#1* b = const self::Enum#1::•(1, "Enum.b");
-  static const field self::Enum#1* c = const self::Enum#1::•(2, "Enum.c");
-  const constructor •(core::int* index, core::String* _name) → self::Enum#1*
-    : self::Enum#1::index = index, self::Enum#1::_name = _name, super core::Object::•()
+  static const field self::Enum#1* a = const self::Enum#1::•(0, "a");
+  static const field self::Enum#1* b = const self::Enum#1::•(1, "b");
+  static const field self::Enum#1* c = const self::Enum#1::•(2, "c");
+  const constructor •(core::int* index, core::String* name) → self::Enum#1*
+    : super core::_Enum::•(index, name)
     ;
   method toString() → core::String*
-    return this.{self::Enum#1::_name}{core::String*};
+    return "Enum#1.${this.{core::_Enum::_name}{core::String}}";
+  abstract member-signature get index() → core::int*; -> core::_Enum::index
+  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -505,18 +498,18 @@ class Enum#1 extends core::Object implements core::Enum /*isEnum*/  {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class Enum extends core::Object implements core::Enum /*isEnum*/  {
-  final field core::int* index;
-  final field core::String* _name;
+class Enum extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Enum*>* values = const <self::Enum*>[self::Enum::Enum, self::Enum::a, self::Enum::b];
-  static const field self::Enum* Enum = const self::Enum::•(0, "Enum.Enum");
-  static const field self::Enum* a = const self::Enum::•(1, "Enum.a");
-  static const field self::Enum* b = const self::Enum::•(2, "Enum.b");
-  const constructor •(core::int* index, core::String* _name) → self::Enum*
-    : self::Enum::index = index, self::Enum::_name = _name, super core::Object::•()
+  static const field self::Enum* Enum = const self::Enum::•(0, "Enum");
+  static const field self::Enum* a = const self::Enum::•(1, "a");
+  static const field self::Enum* b = const self::Enum::•(2, "b");
+  const constructor •(core::int* index, core::String* name) → self::Enum*
+    : super core::_Enum::•(index, name)
     ;
   method toString() → core::String*
-    return this.{self::Enum::_name}{core::String*};
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
+  abstract member-signature get index() → core::int*; -> core::_Enum::index
+  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -527,18 +520,19 @@ class Enum extends core::Object implements core::Enum /*isEnum*/  {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-class AnotherEnum extends core::Object implements core::Enum /*isEnum*/  {
-  final field core::int* index;
-  final field core::String* _name;
-  static const field core::List<self::AnotherEnum*>* values = const <self::AnotherEnum*>[self::AnotherEnum::a, self::AnotherEnum::b, self::AnotherEnum::c];
-  static const field self::AnotherEnum* a = const self::AnotherEnum::•(0, "AnotherEnum.a");
-  static const field self::AnotherEnum* b = const self::AnotherEnum::•(1, "AnotherEnum.b");
-  static const field self::AnotherEnum* c = const self::AnotherEnum::•(2, "AnotherEnum.c");
-  const constructor •(core::int* index, core::String* _name) → self::AnotherEnum*
-    : self::AnotherEnum::index = index, self::AnotherEnum::_name = _name, super core::Object::•()
+class AnotherEnum extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::AnotherEnum*>* values = const <self::AnotherEnum*>[self::AnotherEnum::a, self::AnotherEnum::b, self::AnotherEnum::c, self::AnotherEnum::_name, self::AnotherEnum::index];
+  static const field self::AnotherEnum* a = const self::AnotherEnum::•(0, "a");
+  static const field self::AnotherEnum* b = const self::AnotherEnum::•(1, "b");
+  static const field self::AnotherEnum* c = const self::AnotherEnum::•(2, "c");
+  static const field self::AnotherEnum* _name = const self::AnotherEnum::•(3, "_name");
+  static const field self::AnotherEnum* index = const self::AnotherEnum::•(4, "index");
+  const constructor •(core::int* index, core::String* name) → self::AnotherEnum*
+    : super core::_Enum::•(index, name)
     ;
   method toString() → core::String*
-    return this.{self::AnotherEnum::_name}{core::String*};
+    return "AnotherEnum.${this.{core::_Enum::_name}{core::String}}";
+  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -563,26 +557,28 @@ import self as self2;
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations_part.dart:86:6 -> ListConstant(const <Enum#4*>[const Enum#4{Enum#4.index: 0, Enum#4._name: "Enum.a"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:87:3 -> InstanceConstant(const Enum#4{Enum#4.index: 0, Enum#4._name: "Enum.a"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations_part.dart:80:6 -> ListConstant(const <Enum#3*>[const Enum#3{Enum#3.index: 0, Enum#3._name: "Enum.a"}, const Enum#3{Enum#3.index: 1, Enum#3._name: "Enum.b"}, const Enum#3{Enum#3.index: 2, Enum#3._name: "Enum.c"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:81:3 -> InstanceConstant(const Enum#3{Enum#3.index: 0, Enum#3._name: "Enum.a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:82:3 -> InstanceConstant(const Enum#3{Enum#3.index: 1, Enum#3._name: "Enum.b"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:83:3 -> InstanceConstant(const Enum#3{Enum#3.index: 2, Enum#3._name: "Enum.c"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations_part.dart:73:6 -> ListConstant(const <Enum#2*>[const Enum#2{Enum#2.index: 0, Enum#2._name: "Enum.Enum"}, const Enum#2{Enum#2.index: 1, Enum#2._name: "Enum.a"}, const Enum#2{Enum#2.index: 2, Enum#2._name: "Enum.b"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:74:3 -> InstanceConstant(const Enum#2{Enum#2.index: 0, Enum#2._name: "Enum.Enum"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:75:3 -> InstanceConstant(const Enum#2{Enum#2.index: 1, Enum#2._name: "Enum.a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:77:3 -> InstanceConstant(const Enum#2{Enum#2.index: 2, Enum#2._name: "Enum.b"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations.dart:81:6 -> ListConstant(const <Enum#1*>[const Enum#1{Enum#1.index: 0, Enum#1._name: "Enum.a"}, const Enum#1{Enum#1.index: 1, Enum#1._name: "Enum.b"}, const Enum#1{Enum#1.index: 2, Enum#1._name: "Enum.c"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:82:3 -> InstanceConstant(const Enum#1{Enum#1.index: 0, Enum#1._name: "Enum.a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:83:3 -> InstanceConstant(const Enum#1{Enum#1.index: 1, Enum#1._name: "Enum.b"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:84:3 -> InstanceConstant(const Enum#1{Enum#1.index: 2, Enum#1._name: "Enum.c"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations.dart:74:6 -> ListConstant(const <Enum*>[const Enum{Enum.index: 0, Enum._name: "Enum.Enum"}, const Enum{Enum.index: 1, Enum._name: "Enum.a"}, const Enum{Enum.index: 2, Enum._name: "Enum.b"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:75:3 -> InstanceConstant(const Enum{Enum.index: 0, Enum._name: "Enum.Enum"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:76:3 -> InstanceConstant(const Enum{Enum.index: 1, Enum._name: "Enum.a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:78:3 -> InstanceConstant(const Enum{Enum.index: 2, Enum._name: "Enum.b"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations.dart:87:6 -> ListConstant(const <AnotherEnum*>[const AnotherEnum{AnotherEnum.index: 0, AnotherEnum._name: "AnotherEnum.a"}, const AnotherEnum{AnotherEnum.index: 1, AnotherEnum._name: "AnotherEnum.b"}, const AnotherEnum{AnotherEnum.index: 2, AnotherEnum._name: "AnotherEnum.c"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:88:3 -> InstanceConstant(const AnotherEnum{AnotherEnum.index: 0, AnotherEnum._name: "AnotherEnum.a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:89:3 -> InstanceConstant(const AnotherEnum{AnotherEnum.index: 1, AnotherEnum._name: "AnotherEnum.b"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:90:3 -> InstanceConstant(const AnotherEnum{AnotherEnum.index: 2, AnotherEnum._name: "AnotherEnum.c"})
-Extra constant evaluation: evaluated: 46, effectively constant: 22
+Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations_part.dart:86:6 -> ListConstant(const <Enum#4*>[const Enum#4{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:87:3 -> InstanceConstant(const Enum#4{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations_part.dart:80:6 -> ListConstant(const <Enum#3*>[const Enum#3{_Enum.index: 0, _Enum._name: "a"}, const Enum#3{_Enum.index: 1, _Enum._name: "b"}, const Enum#3{_Enum.index: 2, _Enum._name: "c"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:81:3 -> InstanceConstant(const Enum#3{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:82:3 -> InstanceConstant(const Enum#3{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:83:3 -> InstanceConstant(const Enum#3{_Enum.index: 2, _Enum._name: "c"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations_part.dart:73:6 -> ListConstant(const <Enum#2*>[const Enum#2{_Enum.index: 0, _Enum._name: "Enum"}, const Enum#2{_Enum.index: 1, _Enum._name: "a"}, const Enum#2{_Enum.index: 2, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:74:3 -> InstanceConstant(const Enum#2{_Enum.index: 0, _Enum._name: "Enum"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:75:3 -> InstanceConstant(const Enum#2{_Enum.index: 1, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations_part.dart:77:3 -> InstanceConstant(const Enum#2{_Enum.index: 2, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations.dart:83:6 -> ListConstant(const <Enum#1*>[const Enum#1{_Enum.index: 0, _Enum._name: "a"}, const Enum#1{_Enum.index: 1, _Enum._name: "b"}, const Enum#1{_Enum.index: 2, _Enum._name: "c"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:84:3 -> InstanceConstant(const Enum#1{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:85:3 -> InstanceConstant(const Enum#1{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:86:3 -> InstanceConstant(const Enum#1{_Enum.index: 2, _Enum._name: "c"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations.dart:76:6 -> ListConstant(const <Enum*>[const Enum{_Enum.index: 0, _Enum._name: "Enum"}, const Enum{_Enum.index: 1, _Enum._name: "a"}, const Enum{_Enum.index: 2, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:77:3 -> InstanceConstant(const Enum{_Enum.index: 0, _Enum._name: "Enum"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:78:3 -> InstanceConstant(const Enum{_Enum.index: 1, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:80:3 -> InstanceConstant(const Enum{_Enum.index: 2, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///duplicated_declarations.dart:89:6 -> ListConstant(const <AnotherEnum*>[const AnotherEnum{_Enum.index: 0, _Enum._name: "a"}, const AnotherEnum{_Enum.index: 1, _Enum._name: "b"}, const AnotherEnum{_Enum.index: 2, _Enum._name: "c"}, const AnotherEnum{_Enum.index: 3, _Enum._name: "_name"}, const AnotherEnum{_Enum.index: 4, _Enum._name: "index"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:90:3 -> InstanceConstant(const AnotherEnum{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:91:3 -> InstanceConstant(const AnotherEnum{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:92:3 -> InstanceConstant(const AnotherEnum{_Enum.index: 2, _Enum._name: "c"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:93:3 -> InstanceConstant(const AnotherEnum{_Enum.index: 3, _Enum._name: "_name"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicated_declarations.dart:94:3 -> InstanceConstant(const AnotherEnum{_Enum.index: 4, _Enum._name: "index"})
+Extra constant evaluation: evaluated: 54, effectively constant: 24

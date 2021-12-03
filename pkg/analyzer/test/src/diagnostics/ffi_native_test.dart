@@ -15,24 +15,33 @@ main() {
 
 @reflectiveTest
 class FfiNativeTest extends PubPackageResolutionTest {
-  test_FfiNativeAnnotationOnInstanceMethod() async {
-    await assertErrorsInCode(r'''
-import 'dart:ffi';
-class K {
-  @FfiNative<Void Function()>('DoesntMatter')
-  external void doesntMatter();
-}
-''', [
-      error(FfiCode.FFI_NATIVE_ONLY_STATIC, 31, 75),
-    ]);
-  }
-
   test_FfiNativeCanUseHandles() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 @FfiNative<Handle Function(Handle)>('DoesntMatter')
 external Object doesntMatter(Object);
 ''', []);
+  }
+
+  test_FfiNativeCanUseLeaf() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@FfiNative<Int8 Function(Int64)>('DoesntMatter', isLeaf:true)
+external int doesntMatter(int);
+''', []);
+  }
+
+  test_FfiNativeInstanceMethodsMustHaveReceiver() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+class K {
+  @FfiNative<Void Function(Double)>('DoesntMatter')
+  external void doesntMatter(double x);
+}
+''', [
+      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
+          31, 89),
+    ]);
   }
 
   test_FfiNativeLeafMustNotReturnHandle() async {
@@ -52,6 +61,26 @@ import 'dart:ffi';
 external void doesntMatter(Object o);
 ''', [
       error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 19, 100),
+    ]);
+  }
+
+  test_FfiNativeTooFewParameters() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@FfiNative<Void Function(Double)>('DoesntMatter')
+external void doesntMatter(double x, double y);
+''', [
+      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 19, 97),
+    ]);
+  }
+
+  test_FfiNativeTooManyParameters() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@FfiNative<Void Function(Double, Double)>('DoesntMatter')
+external void doesntMatter(double x);
+''', [
+      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 19, 95),
     ]);
   }
 }

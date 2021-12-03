@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
@@ -241,7 +243,10 @@ class MemoryFileTest extends BaseTest with FileTestMixin {
     File file = getFile(exists: false);
     expect(file.exists, isFalse);
 
-    expect(() => file.delete(), throwsA(const TypeMatcher<ArgumentError>()));
+    expect(
+      () => file.delete(),
+      throwsFileSystemException,
+    );
   }
 
   @override
@@ -262,9 +267,10 @@ class MemoryFileTest extends BaseTest with FileTestMixin {
   test_writeAsBytesSync_notExisting() {
     File file = getFile(exists: false);
 
-    file.writeAsBytesSync(<int>[99, 99]);
+    var bytes = Uint8List.fromList([99, 99]);
+    file.writeAsBytesSync(bytes);
     expect(file.exists, true);
-    expect(file.readAsBytesSync(), <int>[99, 99]);
+    expect(file.readAsBytesSync(), bytes);
   }
 
   @override
@@ -304,14 +310,20 @@ class MemoryResourceProviderTest extends BaseTest
   test_deleteFile_folder() {
     Folder folder = getFolder(exists: true);
 
-    expect(() => provider.deleteFile(defaultFolderPath), throwsArgumentError);
+    expect(
+      () => provider.deleteFile(defaultFolderPath),
+      throwsFileSystemException,
+    );
     expect(folder.exists, isTrue);
   }
 
   test_deleteFile_notExisting() {
     File file = getFile(exists: false);
 
-    expect(() => provider.deleteFile(defaultFilePath), throwsArgumentError);
+    expect(
+      () => provider.deleteFile(defaultFilePath),
+      throwsFileSystemException,
+    );
     expect(file.exists, isFalse);
   }
 
@@ -325,23 +337,27 @@ class MemoryResourceProviderTest extends BaseTest
   test_modifyFile_existing_folder() {
     getFolder(exists: true);
 
-    expect(() => provider.modifyFile(defaultFolderPath, 'contents'),
-        throwsArgumentError);
+    expect(
+      () => provider.modifyFile(defaultFolderPath, 'contents'),
+      throwsFileSystemException,
+    );
     expect(provider.getResource(defaultFolderPath), isFolder);
   }
 
   test_modifyFile_notExisting() {
     getFile(exists: false);
 
-    expect(() => provider.modifyFile(defaultFilePath, 'contents'),
-        throwsArgumentError);
+    expect(
+      () => provider.modifyFile(defaultFilePath, 'contents'),
+      throwsFileSystemException,
+    );
     Resource file = provider.getResource(defaultFilePath);
     expect(file, isFile);
     expect(file.exists, isFalse);
   }
 
   test_newFileWithBytes() {
-    List<int> bytes = <int>[1, 2, 3, 4, 5];
+    var bytes = Uint8List.fromList([1, 2, 3, 4, 5]);
 
     provider.newFileWithBytes(defaultFilePath, bytes);
     Resource file = provider.getResource(defaultFilePath);
@@ -357,7 +373,10 @@ class MemoryResourceProviderTest extends BaseTest
   test_newFolder_existing_file() {
     getFile(exists: true);
 
-    expect(() => provider.newFolder(defaultFilePath), throwsArgumentError);
+    expect(
+      () => provider.newFolder(defaultFilePath),
+      throwsFileSystemException,
+    );
   }
 
   test_newFolder_existing_folder() {

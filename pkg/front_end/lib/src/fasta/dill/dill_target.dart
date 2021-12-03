@@ -2,91 +2,89 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.dill_target;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show Library;
+import 'package:kernel/ast.dart' show Source;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../builder/class_builder.dart';
+import '../../base/processed_options.dart' show ProcessedOptions;
 
-import '../builder/library_builder.dart' show LibraryBuilder;
+import '../compiler_context.dart' show CompilerContext;
 
-import '../problems.dart' show unsupported;
-
-import '../source/source_library_builder.dart' show LanguageVersion;
-
-import '../target_implementation.dart' show TargetImplementation;
+import '../messages.dart' show FormattedMessage, LocatedMessage, Message;
 
 import '../ticker.dart' show Ticker;
 
 import '../uri_translator.dart' show UriTranslator;
 
-import 'dill_library_builder.dart' show DillLibraryBuilder;
+import '../target_implementation.dart' show TargetImplementation;
 
 import 'dill_loader.dart' show DillLoader;
 
 class DillTarget extends TargetImplementation {
-  final Map<Uri, DillLibraryBuilder> libraryBuilders =
-      <Uri, DillLibraryBuilder>{};
+  final Ticker ticker;
 
   bool isLoaded = false;
 
   late final DillLoader loader;
 
-  DillTarget(Ticker ticker, UriTranslator uriTranslator, Target backendTarget)
-      : super(ticker, uriTranslator, backendTarget) {
+  final UriTranslator uriTranslator;
+
+  @override
+  final Target backendTarget;
+
+  @override
+  final CompilerContext context = CompilerContext.current;
+
+  /// Shared with [CompilerContext].
+  final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
+
+  DillTarget(this.ticker, this.uriTranslator, this.backendTarget)
+      // ignore: unnecessary_null_comparison
+      : assert(ticker != null),
+        // ignore: unnecessary_null_comparison
+        assert(uriTranslator != null),
+        // ignore: unnecessary_null_comparison
+        assert(backendTarget != null) {
     loader = new DillLoader(this);
   }
 
-  @override
-  void addSourceInformation(
-      Uri importUri, Uri fileUri, List<int> lineStarts, List<int> sourceCode) {
-    unsupported("addSourceInformation", -1, null);
+  void loadExtraRequiredLibraries(DillLoader loader) {
+    for (String uri in backendTarget.extraRequiredLibraries) {
+      loader.read(Uri.parse(uri), 0, accessor: loader.coreLibrary);
+    }
+    if (context.compilingPlatform) {
+      for (String uri in backendTarget.extraRequiredLibrariesPlatform) {
+        loader.read(Uri.parse(uri), 0, accessor: loader.coreLibrary);
+      }
+    }
   }
 
-  @override
-  Future<Null> buildComponent() {
-    return new Future<Null>.sync(() => unsupported("buildComponent", -1, null));
+  FormattedMessage createFormattedMessage(
+      Message message,
+      int charOffset,
+      int length,
+      Uri? fileUri,
+      List<LocatedMessage>? messageContext,
+      Severity severity,
+      {List<Uri>? involvedFiles}) {
+    ProcessedOptions processedOptions = context.options;
+    return processedOptions.format(
+        fileUri != null
+            ? message.withLocation(fileUri, charOffset, length)
+            : message.withoutLocation(),
+        severity,
+        messageContext,
+        involvedFiles: involvedFiles);
   }
 
-  @override
-  Future<Null> buildOutlines({bool suppressFinalizationErrors: false}) async {
+  void buildOutlines({bool suppressFinalizationErrors: false}) {
     if (loader.libraries.isNotEmpty) {
-      await loader.buildOutlines();
+      loader.buildOutlines();
       loader.finalizeExports(
           suppressFinalizationErrors: suppressFinalizationErrors);
     }
     isLoaded = true;
-  }
-
-  @override
-  DillLibraryBuilder createLibraryBuilder(
-      Uri uri,
-      Uri fileUri,
-      Uri? packageUri,
-      LanguageVersion packageLanguageVersion,
-      LibraryBuilder? origin,
-      Library? referencesFrom,
-      bool? referenceIsPartOwner) {
-    assert(origin == null);
-    assert(referencesFrom == null);
-    DillLibraryBuilder libraryBuilder =
-        libraryBuilders.remove(uri) as DillLibraryBuilder;
-    // ignore: unnecessary_null_comparison
-    assert(libraryBuilder != null, "No library found for $uri.");
-    return libraryBuilder;
-  }
-
-  @override
-  void breakCycle(ClassBuilder cls) {}
-
-  void addLibrary(Library library) {
-    libraryBuilders[library.importUri] =
-        new DillLibraryBuilder(library, loader);
-  }
-
-  void releaseAncillaryResources() {
-    libraryBuilders.clear();
   }
 }

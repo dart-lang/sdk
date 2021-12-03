@@ -454,11 +454,13 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
 
 /// Implementation of [ClassHierarchy] for closed world.
 class ClosedWorldClassHierarchy implements ClassHierarchy {
+  @override
   CoreTypes coreTypes;
   late HandleAmbiguousSupertypes _onAmbiguousSupertypes;
   late HandleAmbiguousSupertypes _onAmbiguousSupertypesNotWrapped;
   MixinInferrer? mixinInferrer;
 
+  @override
   void set onAmbiguousSupertypes(
       HandleAmbiguousSupertypes onAmbiguousSupertypes) {
     _onAmbiguousSupertypesNotWrapped = onAmbiguousSupertypes;
@@ -512,6 +514,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     allBetsOff = false;
   }
 
+  @override
   final Set<Library> knownLibraries = new Set<Library>();
   bool allBetsOff = false;
 
@@ -1702,6 +1705,7 @@ class ClassSet extends IterableBase<Class> {
   final Set<Class> _classes;
   ClassSet(this._classes);
 
+  @override
   bool contains(Object? class_) {
     return _classes.contains(class_);
   }

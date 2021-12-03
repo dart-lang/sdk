@@ -9,6 +9,8 @@
 #include "include/dart_tools_api.h"
 #include "vm/allocation.h"
 #include "vm/isolate.h"
+#include "vm/lockers.h"
+#include "vm/os_thread.h"
 #include "vm/snapshot.h"
 
 namespace dart {
@@ -47,6 +49,13 @@ class Dart : public AllStatic {
   // Returns null if cleanup succeeds, otherwise returns an error message
   // (caller owns error message and has to free it).
   static char* Cleanup();
+
+  // Returns true if the VM is initialized.
+  static bool IsInitialized();
+
+  // Used to Indicate that a Dart API call is active.
+  static bool SetActiveApiCall();
+  static void ResetActiveApiCall();
 
   static Isolate* CreateIsolate(const char* name_prefix,
                                 const Dart_IsolateFlags& api_flags,
@@ -102,9 +111,10 @@ class Dart : public AllStatic {
   static uword AllocateReadOnlyHandle();
   static bool IsReadOnlyHandle(uword address);
 
-  static const char* FeaturesString(IsolateGroup* isolate_group,
-                                    bool is_vm_snapshot,
-                                    Snapshot::Kind kind);
+  // The returned string has to be free()ed.
+  static char* FeaturesString(IsolateGroup* isolate_group,
+                              bool is_vm_snapshot,
+                              Snapshot::Kind kind);
   static Snapshot::Kind vm_snapshot_kind() { return vm_snapshot_kind_; }
 
   static Dart_ThreadExitCallback thread_exit_callback() {
@@ -149,6 +159,23 @@ class Dart : public AllStatic {
   static Dart_GCEventCallback gc_event_callback() { return gc_event_callback_; }
 
  private:
+  static char* DartInit(const uint8_t* vm_snapshot_data,
+                        const uint8_t* vm_snapshot_instructions,
+                        Dart_IsolateGroupCreateCallback create_group,
+                        Dart_InitializeIsolateCallback initialize_isolate,
+                        Dart_IsolateShutdownCallback shutdown,
+                        Dart_IsolateCleanupCallback cleanup,
+                        Dart_IsolateGroupCleanupCallback cleanup_group,
+                        Dart_ThreadExitCallback thread_exit,
+                        Dart_FileOpenCallback file_open,
+                        Dart_FileReadCallback file_read,
+                        Dart_FileWriteCallback file_write,
+                        Dart_FileCloseCallback file_close,
+                        Dart_EntropySource entropy_source,
+                        Dart_GetVMServiceAssetsArchive get_service_assets,
+                        bool start_kernel_isolate,
+                        Dart_CodeObserver* observer);
+
   static constexpr const char* kVmIsolateName = "vm-isolate";
 
   static void WaitForIsolateShutdown();

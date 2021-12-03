@@ -339,9 +339,18 @@ struct InstantiationABI {
 struct TTSInternalRegs {
   static const Register kInstanceTypeArgumentsReg = R4;
   static const Register kScratchReg = R9;
+  static const Register kSubTypeArgumentReg = R3;
+  static const Register kSuperTypeArgumentReg = R8;
+
+  // Must be pushed/popped whenever generic type arguments are being checked as
+  // they overlap with registers in TypeTestABI.
+  static const intptr_t kSavedTypeArgumentRegisters =
+      (1 << kSubTypeArgumentReg) | (1 << kSuperTypeArgumentReg);
 
   static const intptr_t kInternalRegisters =
-      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+      ((1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg) |
+       (1 << kSubTypeArgumentReg) | (1 << kSuperTypeArgumentReg)) &
+      ~kSavedTypeArgumentRegisters;
 };
 
 // Registers in addition to those listed in TypeTestABI used inside the
@@ -485,6 +494,20 @@ struct AllocateArrayABI {
 struct AllocateTypedDataArrayABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
   static const Register kLengthReg = R4;
+};
+
+// ABI for BoxDoubleStub.
+struct BoxDoubleStubABI {
+  static const FpuRegister kValueReg = Q0;
+  static const Register kTempReg = R1;
+  static const Register kResultReg = R0;
+};
+
+// ABI for DoubleToIntegerStub.
+struct DoubleToIntegerStubABI {
+  static const FpuRegister kInputReg = Q0;
+  static const Register kRecognizedKindReg = R0;
+  static const Register kResultReg = R0;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch

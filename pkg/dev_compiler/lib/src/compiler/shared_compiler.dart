@@ -28,7 +28,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
   /// Holds all top-level JS symbols (used for caching or indexing fields).
   final _symbolContainer = ModuleItemContainer<js_ast.Identifier>.asObject('S',
-      keyToString: (js_ast.Identifier i) => '${i.name}');
+      keyToString: (js_ast.Identifier i) => i.name);
 
   ModuleItemContainer<js_ast.Identifier> get symbolContainer =>
       _symbolContainer;
@@ -191,7 +191,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   js_ast.Expression emitConstructorAccess(InterfaceType type);
 
   /// When compiling the body of a `operator []=` method, this will be non-null
-  /// and will indicate the the value that should be returned from any `return;`
+  /// and will indicate the value that should be returned from any `return;`
   /// statements.
   js_ast.Identifier get _operatorSetResult {
     var stack = _operatorSetResultStack;
@@ -310,13 +310,16 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       id ??= js_ast.TemporaryId(idName);
       addSymbol(
           id,
-          js.call('#.privateName(#, #)',
-              [runtimeModule, emitLibraryName(library), js.string(name)]));
+          runtimeCall('privateName(#, #)',
+              [emitLibraryName(library), js.string(name)]));
       if (!containerizeSymbols) {
         // TODO(vsm): Change back to `const`.
         // See https://github.com/dart-lang/sdk/issues/40380.
-        moduleItems.add(js.statement('var # = #.privateName(#, #)',
-            [id, runtimeModule, emitLibraryName(library), js.string(name)]));
+        moduleItems.add(js.statement('var # = #', [
+          id,
+          runtimeCall(
+              'privateName(#, #)', [emitLibraryName(library), js.string(name)])
+        ]));
       }
       return id;
     }
@@ -492,15 +495,15 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       // To bootstrap the SDK, this needs to be emitted before other code.
       var symbol = js_ast.TemporaryId('_privateNames');
       items.add(js.statement('const # = Symbol("_privateNames")', symbol));
-      items.add(js.statement(r'''
-        #.privateName = function(library, name) {
+      items.add(runtimeStatement(r'''
+        privateName = function(library, name) {
           let names = library[#];
           if (names == null) names = library[#] = new Map();
           let symbol = names.get(name);
           if (symbol == null) names.set(name, symbol = Symbol(name));
           return symbol;
         }
-      ''', [runtimeModule, symbol, symbol]));
+      ''', [symbol, symbol]));
     }
 
     return items;
@@ -689,9 +692,9 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
     // Track the module name for each library in the module.
     // This data is only required for debugging.
-    moduleItems.add(js.statement(
-        '#.trackLibraries(#, #, #, $sourceMapLocationID);',
-        [runtimeModule, js.string(name), module, partMap]));
+    moduleItems.add(runtimeStatement(
+        'trackLibraries(#, #, #, $sourceMapLocationID)',
+        [js.string(name), module, partMap]));
   }
 
   /// Returns an accessor for [id] via the symbol container.

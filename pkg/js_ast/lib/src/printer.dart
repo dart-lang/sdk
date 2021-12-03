@@ -49,7 +49,7 @@ abstract class JavaScriptPrintingContext {
 
 /// A simple implementation of [JavaScriptPrintingContext] suitable for tests.
 class SimpleJavaScriptPrintingContext extends JavaScriptPrintingContext {
-  final StringBuffer buffer = new StringBuffer();
+  final StringBuffer buffer = StringBuffer();
 
   void emit(String string) {
     buffer.write(string);
@@ -82,7 +82,7 @@ class Printer implements NodeVisitor {
   // The current indentation level.
   int _indentLevel = 0;
   // A cache of all indentation strings used so far.
-  List<String> _indentList = <String>[""];
+  final List<String> _indentList = [""];
 
   static final identifierCharacterRegExp = RegExp(r'^[a-zA-Z_0-9$]');
   static final expressionContinuationRegExp = RegExp(r'^[-+([]');
@@ -91,15 +91,15 @@ class Printer implements NodeVisitor {
       : options = options,
         context = context,
         shouldCompressOutput = options.shouldCompressOutput,
-        danglingElseVisitor = new DanglingElseVisitor(context),
+        danglingElseVisitor = DanglingElseVisitor(context),
         localNamer = determineRenamer(
             options.shouldCompressOutput, options.minifyLocalVariables);
 
   static LocalNamer determineRenamer(
       bool shouldCompressOutput, bool allowVariableMinification) {
     return (shouldCompressOutput && allowVariableMinification)
-        ? new MinifyRenamer()
-        : new IdentityNamer();
+        ? MinifyRenamer()
+        : IdentityNamer();
   }
 
   // The current indentation string.
@@ -141,7 +141,7 @@ class Printer implements NodeVisitor {
     return lastAddedString.codeUnitAt(lastAddedString.length - 1);
   }
 
-  void out(String str, {bool isWhitespace: false}) {
+  void out(String str, {bool isWhitespace = false}) {
     if (str != "") {
       if (pendingSemicolon) {
         if (!shouldCompressOutput) {
@@ -218,7 +218,7 @@ class Printer implements NodeVisitor {
   }
 
   void startNode(Node node) {
-    currentNode = new EnterExitNode(currentNode, node);
+    currentNode = EnterExitNode(currentNode, node);
     if (node is DeferredExpression) {
       startNode(node.value);
     }
@@ -356,7 +356,7 @@ class Printer implements NodeVisitor {
     if (hasElse) {
       bool needsBraces = then.accept(danglingElseVisitor) || then is Do;
       if (needsBraces) {
-        then = new Block(<Statement>[then]);
+        then = Block(<Statement>[then]);
       }
     }
     if (shouldIndent) indent();
@@ -598,7 +598,7 @@ class Printer implements NodeVisitor {
     // See:
     // https://connect.microsoft.com/IE/feedback/details/891889/parser-bugs
     if (body is Break && body.targetLabel == node.label) {
-      visit(new EmptyStatement());
+      visit(EmptyStatement());
       return;
     }
     outIndent("${node.label}:");
@@ -645,7 +645,7 @@ class Printer implements NodeVisitor {
 
   @override
   visitFunctionDeclaration(FunctionDeclaration declaration) {
-    VarCollector vars = new VarCollector();
+    VarCollector vars = VarCollector();
     vars.visitFunctionDeclaration(declaration);
     indent();
     startNode(declaration.function);
@@ -1083,7 +1083,7 @@ class Printer implements NodeVisitor {
 
   @override
   void visitNamedFunction(NamedFunction namedFunction) {
-    VarCollector vars = new VarCollector();
+    VarCollector vars = VarCollector();
     vars.visitNamedFunction(namedFunction);
     startNode(namedFunction.function);
     int closingPosition = currentNode.closingPosition =
@@ -1096,14 +1096,14 @@ class Printer implements NodeVisitor {
 
   @override
   void visitFun(Fun fun) {
-    VarCollector vars = new VarCollector();
+    VarCollector vars = VarCollector();
     vars.visitFun(fun);
     currentNode.closingPosition = functionOut(fun, null, vars);
   }
 
   @override
   void visitArrowFunction(ArrowFunction fun) {
-    VarCollector vars = new VarCollector();
+    VarCollector vars = VarCollector();
     vars.visitArrowFunction(fun);
     currentNode.closingPosition = arrowFunctionOut(fun, vars);
   }
@@ -1128,6 +1128,15 @@ class Printer implements NodeVisitor {
     spaceOut();
     int closingPosition;
     Node body = fun.body;
+    // Simplify arrow functions that return a single expression.
+    // Note that this can result in some sourcemapped positions disappearing
+    // around the elided Return. See http://dartbug.com/47354
+    if (fun.implicitReturnAllowed && body is Block) {
+      final statement = unwrapBlockIfSingleStatement(body);
+      if (statement is Return) {
+        body = statement.value;
+      }
+    }
     if (body is Block) {
       closingPosition =
           blockOut(body, shouldIndent: false, needsNewline: false);
@@ -1140,7 +1149,7 @@ class Printer implements NodeVisitor {
       visitNestedExpression(body, ASSIGNMENT,
           newInForInit: false, newAtStatementBegin: false);
       if (needsParens) out(")");
-      closingPosition = _charCount - 1;
+      closingPosition = _charCount;
     }
     localNamer.leaveScope();
     return closingPosition;
@@ -1307,7 +1316,7 @@ class Printer implements NodeVisitor {
   @override
   visitMethodDefinition(MethodDefinition node) {
     propertyNameOut(node);
-    VarCollector vars = new VarCollector();
+    VarCollector vars = VarCollector();
     vars.visitMethodDefinition(node);
     startNode(node.function);
     currentNode.closingPosition = methodOut(node, vars);
@@ -1465,7 +1474,7 @@ class OrderedSet<T> {
   final List<T> list;
 
   OrderedSet()
-      : set = new Set<T>(),
+      : set = Set<T>(),
         list = <T>[];
 
   void add(T x) {
@@ -1493,8 +1502,8 @@ class VarCollector extends BaseVisitor {
 
   VarCollector()
       : nested = false,
-        vars = new OrderedSet<String>(),
-        params = new OrderedSet<String>();
+        vars = OrderedSet<String>(),
+        params = OrderedSet<String>();
 
   void forEachVar(void fn(String v)) => vars.forEach(fn);
   void forEachParam(void fn(String p)) => params.forEach(fn);
@@ -1550,10 +1559,8 @@ class VarCollector extends BaseVisitor {
   }
 }
 
-/**
- * Returns true, if the given node must be wrapped into braces when used
- * as then-statement in an [If] that has an else branch.
- */
+/// Returns true, if the given node must be wrapped into braces when used
+/// as then-statement in an [If] that has an else branch.
 class DanglingElseVisitor extends BaseVisitor<bool> {
   JavaScriptPrintingContext context;
 
@@ -1631,7 +1638,7 @@ class MinifyRenamer implements LocalNamer {
   MinifyRenamer();
 
   void enterScope(VarCollector vars) {
-    maps.add(new Map<String, String>());
+    maps.add({});
     variableNumberStack.add(variableNumber);
     parameterNumberStack.add(parameterNumber);
     vars.forEachVar(declareVariable);
@@ -1711,7 +1718,7 @@ class MinifyRenamer implements LocalNamer {
     String newName;
     if (n < LETTERS) {
       // Start naming variables a, b, c, ..., z, A, B, C, ..., Z.
-      newName = new String.fromCharCodes([nthLetter(n)]);
+      newName = String.fromCharCodes([nthLetter(n)]);
     } else {
       // Then name variables a0, a1, a2, ..., a9, b0, b1, ..., Z9, aa0, aa1, ...
       // For all functions with fewer than 500 locals this is just as compact
@@ -1734,9 +1741,9 @@ class MinifyRenamer implements LocalNamer {
         codes.add(nthLetter((n ~/ nameSpaceSize) % LETTERS));
       }
       codes.add(charCodes.$0 + digit);
-      newName = new String.fromCharCodes(codes);
+      newName = String.fromCharCodes(codes);
     }
-    assert(new RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
+    assert(RegExp(r'[a-zA-Z][a-zA-Z0-9]*').hasMatch(newName));
     maps.last[oldName] = newName;
     return newName;
   }

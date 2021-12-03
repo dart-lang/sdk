@@ -44,6 +44,8 @@ import '../fasta_codes.dart';
 
 import '../kernel/kernel_helper.dart';
 
+import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
+
 import '../loader.dart';
 
 import '../modifier.dart';
@@ -166,8 +168,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
   InterfaceType rawType(Nullability nullability);
 
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext});
+      LibraryBuilder library, List<TypeBuilder>? arguments);
 
   Supertype buildSupertype(
       LibraryBuilder library, List<TypeBuilder>? arguments);
@@ -232,7 +233,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter: false, bool isSuper: false});
 
-  /// Looks up the constructor by [name] on the the class built by this class
+  /// Looks up the constructor by [name] on the class built by this class
   /// builder.
   ///
   /// If [isSuper] is `true`, constructors in the superclass are searched.
@@ -304,6 +305,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   bool get isAbstract => (modifiers & abstractMask) != 0;
 
+  @override
   bool get isMixin => (modifiers & mixinDeclarationMask) != 0;
 
   @override
@@ -319,9 +321,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     return isMixinApplication && !isNamedMixinApplication;
   }
 
+  @override
   bool get declaresConstConstructor =>
       (modifiers & declaresConstConstructorMask) != 0;
 
+  @override
   void forEachConstructor(void Function(String, MemberBuilder) f,
       {bool includeInjectedConstructors: false}) {
     if (isPatch) {
@@ -352,12 +356,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           delayedActionPerformers, synthesizedFunctionNodes);
     }
 
-    MetadataBuilder.buildAnnotations(
-        isPatch ? origin.cls : cls, metadata, library, this, null, fileUri);
+    MetadataBuilder.buildAnnotations(isPatch ? origin.cls : cls, metadata,
+        library, this, null, fileUri, library.scope);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
-        typeVariables![i].buildOutlineExpressions(
-            library, this, null, coreTypes, delayedActionPerformers);
+        typeVariables![i].buildOutlineExpressions(library, this, null,
+            coreTypes, delayedActionPerformers, scope.parent!);
       }
     }
 
@@ -367,6 +371,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   /// Registers a constructor redirection for this class and returns true if
   /// this redirection gives rise to a cycle that has not been reported before.
+  @override
   bool checkConstructorCyclic(String source, String target) {
     ConstructorRedirection? redirect = new ConstructorRedirection(target);
     _redirectingConstructors ??= <String, ConstructorRedirection>{};
@@ -424,6 +429,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     scope.forEach(f);
   }
 
+  @override
   void forEachDeclaredField(
       void Function(String name, FieldBuilder fieldBuilder) callback) {
     void callbackFilteringFieldBuilders(String name, Builder builder) {
@@ -552,7 +558,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType>? arguments) {
     assert(arguments == null || cls.typeParameters.length == arguments.length);
     if (isNullClass) {
@@ -576,8 +582,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      LibraryBuilder library, List<TypeBuilder>? arguments) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
@@ -597,7 +602,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       return unhandled(
           templateTypeArgumentMismatch
               .withArguments(typeVariablesCount)
-              .message,
+              .problemMessage,
           "buildTypeArguments",
           -1,
           null);
@@ -612,13 +617,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
-    return buildTypesWithBuiltArguments(
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
+    return buildTypeWithBuiltArguments(
         library,
         nullabilityBuilder.build(library),
-        buildTypeArguments(library, arguments,
-            nonInstanceContext: nonInstanceContext));
+        buildTypeArguments(library, arguments));
   }
 
   @override
@@ -921,7 +924,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         targetNode.computeFunctionType(library.nonNullable);
     if (typeArguments != null &&
         targetFunctionType.typeParameters.length != typeArguments.length) {
-      addProblem(
+      addProblemForRedirectingFactory(
+          factory,
           templateTypeArgumentMismatch
               .withArguments(targetFunctionType.typeParameters.length),
           redirectionTarget.charOffset,
@@ -946,7 +950,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         Loader loader = library.loader;
         if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
             SubtypeCheckMode.ignoringNullabilities)) {
-          addProblem(
+          addProblemForRedirectingFactory(
+              factory,
               templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
                   typeArgument,
                   typeParameterBound,
@@ -957,7 +962,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         } else if (library.isNonNullableByDefault && loader is SourceLoader) {
           if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
               SubtypeCheckMode.withNullabilities)) {
-            addProblem(
+            addProblemForRedirectingFactory(
+                factory,
                 templateRedirectingFactoryIncompatibleTypeArgument
                     .withArguments(typeArgument, typeParameterBound,
                         library.isNonNullableByDefault),
@@ -1002,9 +1008,65 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
   }
 
+  bool _isCyclicRedirectingFactory(RedirectingFactoryBuilder factory) {
+    // We use the [tortoise and hare algorithm]
+    // (https://en.wikipedia.org/wiki/Cycle_detection#Tortoise_and_hare) to
+    // handle cycles.
+    Builder? tortoise = factory;
+    Builder? hare = factory.redirectionTarget.target;
+    if (hare == factory) {
+      return true;
+    }
+    while (tortoise != hare) {
+      // Hare moves 2 steps forward.
+      if (hare is! RedirectingFactoryBuilder) {
+        return false;
+      }
+      hare = hare.redirectionTarget.target;
+      if (hare == factory) {
+        return true;
+      }
+      if (hare is! RedirectingFactoryBuilder) {
+        return false;
+      }
+      hare = hare.redirectionTarget.target;
+      if (hare == factory) {
+        return true;
+      }
+      // Tortoise moves one step forward. No need to test type of tortoise
+      // as it follows hare which already checked types.
+      tortoise =
+          (tortoise as RedirectingFactoryBuilder).redirectionTarget.target;
+    }
+    // Cycle found, but original factory doesn't belong to a cycle.
+    return false;
+  }
+
+  void addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
+      Message message, int charOffset, int length) {
+    addProblem(message, charOffset, length);
+    String text = library.loader.target.context
+        .format(
+            message.withLocation(fileUri, charOffset, length), Severity.error)
+        .plain;
+    factory.body = new RedirectingFactoryBody.error(text);
+  }
+
   @override
   void checkRedirectingFactory(
       RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment) {
+    // Check that factory declaration is not cyclic.
+    if (_isCyclicRedirectingFactory(factory)) {
+      addProblemForRedirectingFactory(
+          factory,
+          templateCyclicRedirectingFactoryConstructors
+              .withArguments("${factory.member.enclosingClass!.name}"
+                  "${factory.name == '' ? '' : '.${factory.name}'}"),
+          factory.charOffset,
+          noLength);
+      return;
+    }
+
     // The factory type cannot contain any type parameters other than those of
     // its enclosing class, because constructors cannot specify type parameters
     // of their own.
@@ -1016,13 +1078,16 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
     // TODO(hillerstrom): It would be preferable to know whether a failure
     // happened during [_computeRedirecteeType].
-    if (redirecteeType == null) return;
+    if (redirecteeType == null) {
+      return;
+    }
 
     // Check whether [redirecteeType] <: [factoryType].
     Loader loader = library.loader;
     if (!typeEnvironment.isSubtypeOf(
         redirecteeType, factoryType, SubtypeCheckMode.ignoringNullabilities)) {
-      addProblem(
+      addProblemForRedirectingFactory(
+          factory,
           templateIncompatibleRedirecteeFunctionType.withArguments(
               redirecteeType, factoryType, library.isNonNullableByDefault),
           factory.redirectionTarget.charOffset,
@@ -1030,7 +1095,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     } else if (library.isNonNullableByDefault && loader is SourceLoader) {
       if (!typeEnvironment.isSubtypeOf(
           redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
-        addProblem(
+        addProblemForRedirectingFactory(
+            factory,
             templateIncompatibleRedirecteeFunctionType.withArguments(
                 redirecteeType, factoryType, library.isNonNullableByDefault),
             factory.redirectionTarget.charOffset,

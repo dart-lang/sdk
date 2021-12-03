@@ -120,7 +120,8 @@ static void TryCatchOptimizerTest(
 
 ISOLATE_UNIT_TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Simple1) {
   const char* script_chars = R"(
-      dynamic blackhole([dynamic val]) native 'BlackholeNative';
+      @pragma("vm:external-name", "BlackholeNative")
+      external dynamic blackhole([dynamic val]);
       foo(int p) {
         var a = blackhole(), b = blackhole();
         try {
@@ -139,7 +140,8 @@ ISOLATE_UNIT_TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Simple1) {
 
 ISOLATE_UNIT_TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Simple2) {
   const char* script_chars = R"(
-      dynamic blackhole([dynamic val]) native 'BlackholeNative';
+      @pragma("vm:external-name", "BlackholeNative")
+      external dynamic blackhole([dynamic val]);
       foo(int p) {
         var a = blackhole(), b = blackhole();
         try {
@@ -159,7 +161,8 @@ ISOLATE_UNIT_TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Simple2) {
 
 ISOLATE_UNIT_TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Cyclic1) {
   const char* script_chars = R"(
-      dynamic blackhole([dynamic val]) native 'BlackholeNative';
+      @pragma("vm:external-name", "BlackholeNative")
+      external dynamic blackhole([dynamic val]);
       foo(int p) {
         var a = blackhole(), b;
         for (var i = 0; i < 42; i++) {
@@ -181,7 +184,8 @@ ISOLATE_UNIT_TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Cyclic1) {
 
 ISOLATE_UNIT_TEST_CASE(TryCatchOptimizer_DeadParameterElimination_Cyclic2) {
   const char* script_chars = R"(
-      dynamic blackhole([dynamic val]) native 'BlackholeNative';
+      @pragma("vm:external-name", "BlackholeNative")
+      external dynamic blackhole([dynamic val]);
       foo(int p) {
         var a = blackhole(), b = blackhole();
         for (var i = 0; i < 42; i++) {
@@ -211,7 +215,8 @@ static void TestAliasingViaRedefinition(
     std::function<Definition*(CompilerState* S, FlowGraph*, Definition*)>
         make_redefinition) {
   const char* script_chars = R"(
-    dynamic blackhole([a, b, c, d, e, f]) native 'BlackholeNative';
+    @pragma("vm:external-name", "BlackholeNative")
+    external dynamic blackhole([a, b, c, d, e, f]);
     class K {
       var field;
     }
@@ -219,7 +224,7 @@ static void TestAliasingViaRedefinition(
   const Library& lib =
       Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
 
-  const Class& cls = Class::Handle(
+  const Class& cls = Class::ZoneHandle(
       lib.LookupLocalClass(String::Handle(Symbols::New(thread, "K"))));
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
@@ -375,7 +380,8 @@ static void TestAliasingViaStore(
     std::function<Definition*(CompilerState* S, FlowGraph*, Definition*)>
         make_redefinition) {
   const char* script_chars = R"(
-    dynamic blackhole([a, b, c, d, e, f]) native 'BlackholeNative';
+    @pragma("vm:external-name", "BlackholeNative")
+    external dynamic blackhole([a, b, c, d, e, f]);
     class K {
       var field;
     }
@@ -383,7 +389,7 @@ static void TestAliasingViaStore(
   const Library& lib =
       Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
 
-  const Class& cls = Class::Handle(
+  const Class& cls = Class::ZoneHandle(
       lib.LookupLocalClass(String::Handle(Symbols::New(thread, "K"))));
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());

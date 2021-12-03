@@ -677,8 +677,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   String targetCPU;
   String embedder;
   int architectureBits;
-  bool assertsEnabled = false;
-  bool typeChecksEnabled = false;
   int nativeZoneMemoryUsage = 0;
   int pid = 0;
   int mallocUsed = 0;
@@ -1053,8 +1051,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     maxRSS = map['_maxRSS'];
     currentRSS = map['_currentRSS'];
     profileVM = map['_profilerMode'] == 'VM';
-    assertsEnabled = map['_assertsEnabled'];
-    typeChecksEnabled = map['_typeChecksEnabled'];
     _removeDeadIsolates([
       ...map['isolates'],
       ...map['systemIsolates'],
@@ -4012,7 +4008,6 @@ M.ObjectPoolEntryKind stringToObjectPoolEntryKind(String kind) {
     case 'NativeEntryData':
       return M.ObjectPoolEntryKind.nativeEntryData;
     case 'NativeFunction':
-    case 'NativeFunctionWrapper':
       return M.ObjectPoolEntryKind.nativeEntry;
   }
   throw new Exception('Unknown ObjectPoolEntryKind ($kind)');

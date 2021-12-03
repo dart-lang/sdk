@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:collection/collection.dart';
 
@@ -51,8 +52,17 @@ class UseResultVerifier {
   }
 
   void _check(AstNode node, Element element) {
+    if (node.parent is CommentReference) {
+      // Don't flag references in comments.
+      return;
+    }
+
     var annotation = _getUseResultMetadata(element);
     if (annotation == null) {
+      return;
+    }
+
+    if (_passesUsingParam(node, annotation)) {
       return;
     }
 
@@ -70,6 +80,32 @@ class UseResultVerifier {
       _errorReporter.reportErrorForNode(HintCode.UNUSED_RESULT_WITH_MESSAGE,
           _getNodeToAnnotate(node), [displayName, message]);
     }
+  }
+
+  bool _passesUsingParam(AstNode node, ElementAnnotation annotation) {
+    if (node is! MethodInvocation) {
+      return false;
+    }
+
+    var unlessParam = _getUseResultUnlessParam(annotation);
+    if (unlessParam == null) {
+      return false;
+    }
+
+    var argumentList = node.argumentList as ArgumentListImpl;
+    var parameters = argumentList.correspondingStaticParameters;
+    if (parameters == null) {
+      return false;
+    }
+
+    for (var param in parameters) {
+      var name = param?.name;
+      if (unlessParam == name) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   static AstNode _getNodeToAnnotate(AstNode node) {
@@ -98,19 +134,30 @@ class UseResultVerifier {
     return element.metadata.firstWhereOrNull((e) => e.isUseResult);
   }
 
+  static String? _getUseResultUnlessParam(ElementAnnotation annotation) {
+    var constantValue = annotation.computeConstantValue();
+    return constantValue?.getField('parameterDefined')?.toStringValue();
+  }
+
   static bool _isUsed(AstNode node) {
     var parent = node.parent;
     if (parent == null) {
       return false;
     }
 
+    if (parent is CascadeExpression) {
+      return parent.target == node;
+    }
+
     if (parent is ParenthesizedExpression ||
         parent is ConditionalExpression ||
-        parent is CascadeExpression) {
+        parent is AwaitExpression) {
       return _isUsed(parent);
     }
 
     return parent is ArgumentList ||
+        // Node should always be RHS so no need to check for a property assignment.
+        parent is AssignmentExpression ||
         parent is VariableDeclaration ||
         parent is MethodInvocation ||
         parent is PropertyAccess ||

@@ -12,13 +12,13 @@ main() {
   new A();
   //  ^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'A'.
+  // [cfe] Couldn't find constructor 'A'.
   new A.foo();
   //  ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'A.foo'.
+  // [cfe] Couldn't find constructor 'A.foo'.
   new lib.A();
   //  ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'lib.A'.
+  // [cfe] Couldn't find constructor 'lib.A'.
 }

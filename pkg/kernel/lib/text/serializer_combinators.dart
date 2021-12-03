@@ -136,16 +136,20 @@ abstract class TextSerializer<T> {
 class Nothing extends TextSerializer<void> {
   const Nothing();
 
+  @override
   void readFrom(Iterator<Object?> stream, DeserializationState? _) {}
 
+  @override
   void writeTo(StringBuffer buffer, void ignored, SerializationState? _) {}
 
+  @override
   bool get isEmpty => true;
 }
 
 class DartString extends TextSerializer<String> {
   const DartString();
 
+  @override
   String readFrom(Iterator<Object?> stream, DeserializationState? _) {
     Object? current = stream.current;
     if (current is! String) {
@@ -156,6 +160,7 @@ class DartString extends TextSerializer<String> {
     return result;
   }
 
+  @override
   void writeTo(StringBuffer buffer, String object, SerializationState? _) {
     buffer.write(json.encode(object));
   }
@@ -164,6 +169,7 @@ class DartString extends TextSerializer<String> {
 class DartInt extends TextSerializer<int> {
   const DartInt();
 
+  @override
   int readFrom(Iterator<Object?> stream, DeserializationState? _) {
     Object? current = stream.current;
     if (current is! String) {
@@ -174,6 +180,7 @@ class DartInt extends TextSerializer<int> {
     return result;
   }
 
+  @override
   void writeTo(StringBuffer buffer, int object, SerializationState? _) {
     buffer.write(object);
   }
@@ -182,6 +189,7 @@ class DartInt extends TextSerializer<int> {
 class DartDouble extends TextSerializer<double> {
   const DartDouble();
 
+  @override
   double readFrom(Iterator<Object?> stream, DeserializationState? _) {
     Object? current = stream.current;
     if (current is! String) {
@@ -192,6 +200,7 @@ class DartDouble extends TextSerializer<double> {
     return result;
   }
 
+  @override
   void writeTo(StringBuffer buffer, double object, SerializationState? _) {
     buffer.write(object);
   }
@@ -200,6 +209,7 @@ class DartDouble extends TextSerializer<double> {
 class DartBool extends TextSerializer<bool> {
   const DartBool();
 
+  @override
   bool readFrom(Iterator<Object?> stream, DeserializationState? _) {
     Object? current = stream.current;
     if (current is! String) {
@@ -217,6 +227,7 @@ class DartBool extends TextSerializer<bool> {
     return result;
   }
 
+  @override
   void writeTo(StringBuffer buffer, bool object, SerializationState? _) {
     buffer.write(object ? 'true' : 'false');
   }
@@ -225,11 +236,13 @@ class DartBool extends TextSerializer<bool> {
 class UriSerializer extends TextSerializer<Uri> {
   const UriSerializer();
 
+  @override
   Uri readFrom(Iterator<Object?> stream, DeserializationState? state) {
     String uriAsString = const DartString().readFrom(stream, state);
     return Uri.parse(uriAsString);
   }
 
+  @override
   void writeTo(StringBuffer buffer, Uri object, SerializationState? state) {
     const DartString().writeTo(buffer, object.toString(), state);
   }
@@ -258,6 +271,7 @@ class Case<T> extends TextSerializer<T> {
     _serializers.addAll(tagsAndSerializers.values);
   }
 
+  @override
   T readFrom(Iterator<Object?> stream, DeserializationState? state) {
     Object? iterator = stream.current;
     if (iterator is! Iterator<Object?>) {
@@ -284,6 +298,7 @@ class Case<T> extends TextSerializer<T> {
     throw StateError("Unrecognized tag '${tag}'.");
   }
 
+  @override
   void writeTo(StringBuffer buffer, T object, SerializationState? state) {
     String tag = tagger.tag(object);
     for (int i = 0; i < _tags.length; ++i) {
@@ -310,14 +325,17 @@ class Wrapped<S, K> extends TextSerializer<K> {
 
   const Wrapped(this.unwrap, this.wrap, this.contents);
 
+  @override
   K readFrom(Iterator<Object?> stream, DeserializationState? state) {
     return wrap(contents.readFrom(stream, state));
   }
 
+  @override
   void writeTo(StringBuffer buffer, K object, SerializationState? state) {
     contents.writeTo(buffer, unwrap(object), state);
   }
 
+  @override
   bool get isEmpty => contents.isEmpty;
 }
 
@@ -326,6 +344,7 @@ class ScopedUse<T extends Node> extends TextSerializer<T> {
 
   const ScopedUse();
 
+  @override
   T readFrom(Iterator<Object?> stream, DeserializationState? state) {
     if (state == null) {
       throw StateError(
@@ -335,6 +354,7 @@ class ScopedUse<T extends Node> extends TextSerializer<T> {
         as T;
   }
 
+  @override
   void writeTo(StringBuffer buffer, T object, SerializationState? state) {
     if (state == null) {
       throw StateError(
@@ -351,12 +371,14 @@ class Tuple2Serializer<T1, T2> extends TextSerializer<Tuple2<T1, T2>> {
 
   const Tuple2Serializer(this.first, this.second);
 
+  @override
   Tuple2<T1, T2> readFrom(
       Iterator<Object?> stream, DeserializationState? state) {
     return new Tuple2(
         first.readFrom(stream, state), second.readFrom(stream, state));
   }
 
+  @override
   void writeTo(
       StringBuffer buffer, Tuple2<T1, T2> object, SerializationState? state) {
     first.writeTo(buffer, object.first, state);
@@ -379,12 +401,14 @@ class Tuple3Serializer<T1, T2, T3> extends TextSerializer<Tuple3<T1, T2, T3>> {
 
   const Tuple3Serializer(this.first, this.second, this.third);
 
+  @override
   Tuple3<T1, T2, T3> readFrom(
       Iterator<Object?> stream, DeserializationState? state) {
     return new Tuple3(first.readFrom(stream, state),
         second.readFrom(stream, state), third.readFrom(stream, state));
   }
 
+  @override
   void writeTo(StringBuffer buffer, Tuple3<T1, T2, T3> object,
       SerializationState? state) {
     first.writeTo(buffer, object.first, state);
@@ -412,6 +436,7 @@ class Tuple4Serializer<T1, T2, T3, T4>
 
   const Tuple4Serializer(this.first, this.second, this.third, this.fourth);
 
+  @override
   Tuple4<T1, T2, T3, T4> readFrom(
       Iterator<Object?> stream, DeserializationState? state) {
     return new Tuple4(
@@ -421,6 +446,7 @@ class Tuple4Serializer<T1, T2, T3, T4>
         fourth.readFrom(stream, state));
   }
 
+  @override
   void writeTo(StringBuffer buffer, Tuple4<T1, T2, T3, T4> object,
       SerializationState? state) {
     first.writeTo(buffer, object.first, state);
@@ -453,6 +479,7 @@ class Tuple5Serializer<T1, T2, T3, T4, T5>
   const Tuple5Serializer(
       this.first, this.second, this.third, this.fourth, this.fifth);
 
+  @override
   Tuple5<T1, T2, T3, T4, T5> readFrom(
       Iterator<Object?> stream, DeserializationState? state) {
     return new Tuple5(
@@ -463,6 +490,7 @@ class Tuple5Serializer<T1, T2, T3, T4, T5>
         fifth.readFrom(stream, state));
   }
 
+  @override
   void writeTo(StringBuffer buffer, Tuple5<T1, T2, T3, T4, T5> object,
       SerializationState? state) {
     first.writeTo(buffer, object.first, state);
@@ -499,6 +527,7 @@ class Tuple6Serializer<T1, T2, T3, T4, T5, T6>
   const Tuple6Serializer(
       this.first, this.second, this.third, this.fourth, this.fifth, this.sixth);
 
+  @override
   Tuple6<T1, T2, T3, T4, T5, T6> readFrom(
       Iterator<Object?> stream, DeserializationState? state) {
     return new Tuple6(
@@ -510,6 +539,7 @@ class Tuple6Serializer<T1, T2, T3, T4, T5, T6>
         sixth.readFrom(stream, state));
   }
 
+  @override
   void writeTo(StringBuffer buffer, Tuple6<T1, T2, T3, T4, T5, T6> object,
       SerializationState? state) {
     first.writeTo(buffer, object.first, state);
@@ -551,6 +581,7 @@ class Tuple7Serializer<T1, T2, T3, T4, T5, T6, T7>
   const Tuple7Serializer(this.first, this.second, this.third, this.fourth,
       this.fifth, this.sixth, this.seventh);
 
+  @override
   Tuple7<T1, T2, T3, T4, T5, T6, T7> readFrom(
       Iterator<Object?> stream, DeserializationState? state) {
     return new Tuple7(
@@ -563,6 +594,7 @@ class Tuple7Serializer<T1, T2, T3, T4, T5, T6, T7>
         seventh.readFrom(stream, state));
   }
 
+  @override
   void writeTo(StringBuffer buffer, Tuple7<T1, T2, T3, T4, T5, T6, T7> object,
       SerializationState? state) {
     first.writeTo(buffer, object.first, state);
@@ -608,6 +640,7 @@ class Tuple8Serializer<T1, T2, T3, T4, T5, T6, T7, T8>
   const Tuple8Serializer(this.first, this.second, this.third, this.fourth,
       this.fifth, this.sixth, this.seventh, this.eighth);
 
+  @override
   Tuple8<T1, T2, T3, T4, T5, T6, T7, T8> readFrom(
       Iterator<Object?> stream, DeserializationState? state) {
     return new Tuple8(
@@ -621,6 +654,7 @@ class Tuple8Serializer<T1, T2, T3, T4, T5, T6, T7, T8>
         eighth.readFrom(stream, state));
   }
 
+  @override
   void writeTo(
       StringBuffer buffer,
       Tuple8<T1, T2, T3, T4, T5, T6, T7, T8> object,
@@ -663,6 +697,7 @@ class ListSerializer<T> extends TextSerializer<List<T>> {
 
   const ListSerializer(this.elements);
 
+  @override
   List<T> readFrom(Iterator<Object?> stream, DeserializationState? state) {
     Object? iterator = stream.current;
     if (iterator is! Iterator<Object?>) {
@@ -677,6 +712,7 @@ class ListSerializer<T> extends TextSerializer<List<T>> {
     return result;
   }
 
+  @override
   void writeTo(StringBuffer buffer, List<T> object, SerializationState? state) {
     buffer.write('(');
     for (int i = 0; i < object.length; ++i) {
@@ -692,6 +728,7 @@ class Optional<T> extends TextSerializer<T?> {
 
   const Optional(this.contents);
 
+  @override
   T? readFrom(Iterator<Object?> stream, DeserializationState? state) {
     if (stream.current == '_') {
       stream.moveNext();
@@ -700,6 +737,7 @@ class Optional<T> extends TextSerializer<T?> {
     return contents.readFrom(stream, state);
   }
 
+  @override
   void writeTo(StringBuffer buffer, T? object, SerializationState? state) {
     if (object == null) {
       buffer.write('_');
@@ -720,6 +758,7 @@ class Binder<T extends Node> extends TextSerializer<Tuple2<String?, T>> {
   Binder(TextSerializer<T> contents)
       : namedContents = new Tuple2Serializer(const DartString(), contents);
 
+  @override
   Tuple2<String, T> readFrom(
       Iterator<Object?> stream, DeserializationState? state) {
     if (state == null) {
@@ -733,6 +772,7 @@ class Binder<T extends Node> extends TextSerializer<Tuple2<String?, T>> {
     return new Tuple2(name, object);
   }
 
+  @override
   void writeTo(StringBuffer buffer, Tuple2<String?, T> namedObject,
       SerializationState? state) {
     if (state == null) {
@@ -758,6 +798,7 @@ class Bind<P, T> extends TextSerializer<Tuple2<P, T>> {
 
   const Bind(this.pattern, this.term);
 
+  @override
   Tuple2<P, T> readFrom(Iterator<Object?> stream, DeserializationState? state) {
     if (state == null) {
       throw StateError(
@@ -771,6 +812,7 @@ class Bind<P, T> extends TextSerializer<Tuple2<P, T>> {
     return new Tuple2(first, second);
   }
 
+  @override
   void writeTo(
       StringBuffer buffer, Tuple2<P, T> tuple, SerializationState? state) {
     if (state == null) {
@@ -797,6 +839,7 @@ class Rebind<P, T> extends TextSerializer<Tuple2<P, T>> {
 
   const Rebind(this.pattern1, this.pattern2);
 
+  @override
   Tuple2<P, T> readFrom(Iterator<Object?> stream, DeserializationState? state) {
     if (state == null) {
       throw StateError(
@@ -813,6 +856,7 @@ class Rebind<P, T> extends TextSerializer<Tuple2<P, T>> {
     return new Tuple2(first, second);
   }
 
+  @override
   void writeTo(
       StringBuffer buffer, Tuple2<P, T> tuple, SerializationState? state) {
     if (state == null) {
@@ -837,6 +881,7 @@ class Zip<T, T1, T2> extends TextSerializer<List<T>> {
 
   const Zip(this.lists, this.zip, this.unzip);
 
+  @override
   List<T> readFrom(Iterator<Object?> stream, DeserializationState? state) {
     Tuple2<List<T1>, List<T2>> toZip = lists.readFrom(stream, state);
     List<T1> firsts = toZip.first;
@@ -854,6 +899,7 @@ class Zip<T, T1, T2> extends TextSerializer<List<T>> {
     return zipped;
   }
 
+  @override
   void writeTo(StringBuffer buffer, List<T> zipped, SerializationState? state) {
     List<T1> firsts;
     List<T2> seconds;

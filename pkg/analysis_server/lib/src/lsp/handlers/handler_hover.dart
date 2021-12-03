@@ -56,13 +56,17 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover?> {
       if (hover.isDeprecated ?? false) {
         content.write('(deprecated) ');
       }
-      content..writeln(hover.elementDescription)..writeln('```');
+      content
+        ..writeln(hover.elementDescription)
+        ..writeln('```');
     }
 
     // Source library.
     final containingLibraryName = hover.containingLibraryName;
     if (containingLibraryName != null && containingLibraryName.isNotEmpty) {
-      content..writeln('*$containingLibraryName*')..writeln();
+      content
+        ..writeln('*$containingLibraryName*')
+        ..writeln();
     }
 
     // Doc comments.

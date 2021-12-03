@@ -8,8 +8,8 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 
 class ClassElementFlags {
   static const int _isAbstract = 1 << 0;
-  static const int _isMixinApplication = 1 << 2;
-  static const int _isSimplyBounded = 1 << 3;
+  static const int _isMixinApplication = 1 << 1;
+  static const int _isSimplyBounded = 1 << 2;
 
   static void read(SummaryDataReader reader, ClassElementImpl element) {
     var byte = reader.readByte();
@@ -60,8 +60,8 @@ class FieldElementFlags {
   static const int _isCovariant = 1 << 5;
   static const int _isExternal = 1 << 6;
   static const int _isFinal = 1 << 7;
-  static const int _isLate = 1 << 9;
-  static const int _isStatic = 1 << 10;
+  static const int _isLate = 1 << 8;
+  static const int _isStatic = 1 << 9;
 
   static void read(SummaryDataReader reader, FieldElementImpl element) {
     var byte = reader.readUInt30();
@@ -136,20 +136,17 @@ class ImportElementFlags {
 }
 
 class LibraryElementFlags {
-  static const int _hasExtUri = 1 << 0;
-  static const int _hasPartOfDirective = 1 << 1;
-  static const int _isSynthetic = 1 << 2;
+  static const int _hasPartOfDirective = 1 << 0;
+  static const int _isSynthetic = 1 << 1;
 
   static void read(SummaryDataReader reader, LibraryElementImpl element) {
     var byte = reader.readByte();
-    element.hasExtUri = (byte & _hasExtUri) != 0;
     element.hasPartOfDirective = (byte & _hasPartOfDirective) != 0;
     element.isSynthetic = (byte & _isSynthetic) != 0;
   }
 
   static void write(BufferedSink sink, LibraryElementImpl element) {
     var result = 0;
-    result |= element.hasExtUri ? _hasExtUri : 0;
     result |= element.hasPartOfDirective ? _hasPartOfDirective : 0;
     result |= element.isSynthetic ? _isSynthetic : 0;
     sink.writeByte(result);
@@ -161,8 +158,8 @@ class MethodElementFlags {
   static const int _isAbstract = 1 << 1;
   static const int _isAsynchronous = 1 << 2;
   static const int _isExternal = 1 << 3;
-  static const int _isGenerator = 1 << 5;
-  static const int _isStatic = 1 << 6;
+  static const int _isGenerator = 1 << 4;
+  static const int _isStatic = 1 << 5;
 
   static void read(SummaryDataReader reader, MethodElementImpl element) {
     var byte = reader.readByte();
@@ -217,8 +214,8 @@ class PropertyAccessorElementFlags {
   static const int _isAbstract = 1 << 3;
   static const int _isAsynchronous = 1 << 4;
   static const int _isExternal = 1 << 5;
-  static const int _isGenerator = 1 << 7;
-  static const int _isStatic = 1 << 8;
+  static const int _isGenerator = 1 << 6;
+  static const int _isStatic = 1 << 7;
 
   static void read(
     SummaryDataReader reader,

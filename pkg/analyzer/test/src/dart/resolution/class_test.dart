@@ -7,7 +7,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
 import 'context_collection_resolution.dart';
 
 main() {
@@ -17,8 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class ClassDriverResolutionTest extends PubPackageResolutionTest
-    with ElementsTypesMixin {
+class ClassDriverResolutionTest extends PubPackageResolutionTest {
   test_element_allSupertypes() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -34,37 +32,25 @@ class X4 extends A with B implements C {}
 class X5 extends A with B, C implements D, E {}
 ''');
 
-    var a = findElement.class_('A');
-    var b = findElement.class_('B');
-    var c = findElement.class_('C');
-    var d = findElement.class_('D');
-    var e = findElement.class_('E');
-
-    var typeA = interfaceTypeNone(a);
-    var typeB = interfaceTypeNone(b);
-    var typeC = interfaceTypeNone(c);
-    var typeD = interfaceTypeNone(d);
-    var typeE = interfaceTypeNone(e);
-
     assertElementTypes(
       findElement.class_('X1').allSupertypes,
-      [typeA, objectType],
+      ['Object', 'A'],
     );
     assertElementTypes(
       findElement.class_('X2').allSupertypes,
-      [objectType, typeB],
+      ['Object', 'B'],
     );
     assertElementTypes(
       findElement.class_('X3').allSupertypes,
-      [typeA, objectType, typeB],
+      ['Object', 'A', 'B'],
     );
     assertElementTypes(
       findElement.class_('X4').allSupertypes,
-      [typeA, typeB, objectType, typeC],
+      ['Object', 'A', 'B', 'C'],
     );
     assertElementTypes(
       findElement.class_('X5').allSupertypes,
-      [typeA, typeB, typeC, objectType, typeD, typeE],
+      ['Object', 'A', 'B', 'C', 'D', 'E'],
     );
   }
 
@@ -79,33 +65,17 @@ class X2 extends B<String, List<int>> {}
 class X3 extends C<double> {}
 ''');
 
-    var a = findElement.class_('A');
-    var b = findElement.class_('B');
-    var c = findElement.class_('C');
     assertElementTypes(
       findElement.class_('X1').allSupertypes,
-      [
-        interfaceTypeNone(a, typeArguments: [stringType]),
-        objectType
-      ],
+      ['Object', 'A<String>'],
     );
     assertElementTypes(
       findElement.class_('X2').allSupertypes,
-      [
-        interfaceTypeNone(b, typeArguments: [
-          stringType,
-          interfaceTypeNone(listElement, typeArguments: [intType])
-        ]),
-        objectType
-      ],
+      ['Object', 'B<String, List<int>>'],
     );
     assertElementTypes(
       findElement.class_('X3').allSupertypes,
-      [
-        interfaceTypeNone(c, typeArguments: [doubleType]),
-        interfaceTypeNone(b, typeArguments: [intType, doubleType]),
-        objectType
-      ],
+      ['Object', 'B<int, double>', 'C<double>'],
     );
   }
 
@@ -122,12 +92,9 @@ class X extends A {}
       error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 48, 1),
     ]);
 
-    var a = findElement.class_('A');
-    var b = findElement.class_('B');
-    var c = findElement.class_('C');
     assertElementTypes(
       findElement.class_('X').allSupertypes,
-      [interfaceTypeNone(a), interfaceTypeNone(b), interfaceTypeNone(c)],
+      ['A', 'B', 'C'],
     );
   }
 
@@ -149,15 +116,10 @@ class C extends Object with A, Function, B {}
 ''', [
       error(HintCode.DEPRECATED_MIXIN_FUNCTION, 53, 8),
     ]);
-    var a = findElement.class_('A');
-    var b = findElement.class_('B');
-    var c = findElement.class_('C');
+
     assertElementTypes(
-      c.mixins,
-      [
-        interfaceTypeNone(a),
-        interfaceTypeNone(b),
-      ],
+      findElement.class_('C').mixins,
+      ['A', 'B'],
     );
   }
 
@@ -180,8 +142,8 @@ class C {
   static int get foo => 0;
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 14, 3),
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER, 14,
+          3),
     ]);
   }
 
@@ -212,8 +174,8 @@ class C {
   static void set foo(_) {}
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 14, 3),
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER, 14,
+          3),
     ]);
   }
 
@@ -327,7 +289,30 @@ class B extends A {
     ]);
   }
 
-  test_error_duplicateConstructorDefault() async {
+  test_error_duplicateConstructorNamed() async {
+    await assertErrorsInCode(r'''
+class C {
+  C.foo();
+  C.foo();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 23, 5),
+    ]);
+  }
+
+  test_error_duplicateConstructorNamed_oneIsInvalid() async {
+    await assertErrorsInCode(r'''
+class A {}
+class C {
+  A.foo();
+  C.foo();
+}
+''', [
+      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 23, 1),
+    ]);
+  }
+
+  test_error_duplicateConstructorUnnamed() async {
     await assertErrorsInCode(r'''
 class C {
   C();
@@ -338,14 +323,37 @@ class C {
     ]);
   }
 
-  test_error_duplicateConstructorName() async {
+  test_error_duplicateConstructorUnnamed_bothNew() async {
     await assertErrorsInCode(r'''
 class C {
-  C.foo();
-  C.foo();
+  C.new();
+  C.new();
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 23, 5),
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 23, 5),
+    ]);
+  }
+
+  test_error_duplicateConstructorUnnamed_oneIsInvalid() async {
+    await assertErrorsInCode(r'''
+class A {}
+class C {
+  A.new();
+  C();
+}
+''', [
+      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 23, 1),
+    ]);
+  }
+
+  test_error_duplicateConstructorUnnamed_oneNew() async {
+    await assertErrorsInCode(r'''
+class C {
+  C();
+  C.new();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 5),
     ]);
   }
 
@@ -371,8 +379,8 @@ class A extends E {}
     var a = findElement.class_('A');
     assertType(a.supertype, 'Object');
 
-    var eRef = findNode.typeName('E {}');
-    assertTypeName(eRef, findElement.enum_('E'), 'E');
+    var eRef = findNode.namedType('E {}');
+    assertNamedType(eRef, findElement.enum_('E'), 'E');
   }
 
   test_error_extendsNonClass_mixin() async {
@@ -386,8 +394,8 @@ class A extends M {} // ref
     var a = findElement.class_('A');
     assertType(a.supertype, 'Object');
 
-    var mRef = findNode.typeName('M {} // ref');
-    assertTypeName(mRef, findElement.mixin('M'), 'M');
+    var mRef = findNode.namedType('M {} // ref');
+    assertNamedType(mRef, findElement.mixin('M'), 'M');
   }
 
   test_error_extendsNonClass_variable() async {

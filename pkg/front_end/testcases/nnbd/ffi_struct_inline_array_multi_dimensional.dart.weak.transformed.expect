@@ -20,17 +20,17 @@ class StructInlineArrayMultiDimensional extends ffi::Struct {
   get a0() → ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>
     return new ffi::Array::_<ffi::Array<ffi::Array<ffi::Uint8>>>( block {
       core::Object #typedDataBase = this.{ffi::_Compound::_typedDataBase}{core::Object};
-      core::int #offset = (#C12).{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
-    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Array<ffi::Array<ffi::Uint8>>>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, (#C13).{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List}, #C9, #C14);
+      core::int #offset = #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Array<ffi::Array<ffi::Uint8>>>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List}, #C9, #C14);
   @#C10
   set a0(ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> #externalFieldValue) → void
-    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, (#C12).{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue.{ffi::Array::_typedDataBase}{core::Object}, #C11, (#C13).{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue.{ffi::Array::_typedDataBase}{core::Object}, #C11, #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
   @#C16
   static get #sizeOf() → core::int*
-    return (#C13).{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
+    return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
 static method main() → dynamic {
-  final ffi::Pointer<self::StructInlineArrayMultiDimensional> pointer = (#C17).{ffi::Allocator::allocate}<self::StructInlineArrayMultiDimensional>(self::StructInlineArrayMultiDimensional::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::StructInlineArrayMultiDimensional>};
+  final ffi::Pointer<self::StructInlineArrayMultiDimensional> pointer = #C17.{ffi::Allocator::allocate}<self::StructInlineArrayMultiDimensional>(self::StructInlineArrayMultiDimensional::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::StructInlineArrayMultiDimensional>};
   final self::StructInlineArrayMultiDimensional struct = new self::StructInlineArrayMultiDimensional::#fromTypedDataBase(pointer!);
   final ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> array = struct.{self::StructInlineArrayMultiDimensional::a0}{ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>};
   final ffi::Array<ffi::Array<ffi::Uint8>> subArray = block {
@@ -52,7 +52,7 @@ static method main() → dynamic {
     core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
     core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
   } =>ffi::_memCopy(#array.{ffi::Array::_typedDataBase}{core::Object}, #offset, subArray.{ffi::Array::_typedDataBase}{core::Object}, #C11, #elementSize);
-  (#C17).{ffi::Allocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
+  #C17.{ffi::Allocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
 }
 
 constants  {

@@ -13,7 +13,7 @@ import 'package:yaml/yaml.dart' show loadYaml;
 
 import '../../test/utils/io_utils.dart' show computeRepoDirUri;
 
-main(List<String> arguments) {
+void main(List<String> arguments) {
   final Uri repoDir = computeRepoDirUri();
   Messages message = generateMessagesFiles(repoDir);
   if (message.sharedMessages.trim().isEmpty ||
@@ -96,7 +96,7 @@ part of fasta.codes;
     }
     Map<dynamic, dynamic>? map = description;
     if (map == null) {
-      throw "No 'template:' in key $name.";
+      throw "No 'problemMessage:' in key $name.";
     }
     var index = map['index'];
     if (index != null) {
@@ -121,8 +121,8 @@ part of fasta.codes;
         }
       }
     }
-    Template template = compileTemplate(name, index, map['template'],
-        map['tip'], map['analyzerCode'], map['severity']);
+    Template template = compileTemplate(name, index, map['problemMessage'],
+        map['correctionMessage'], map['analyzerCode'], map['severity']);
     if (template.isShared) {
       sharedMessages.writeln(template.text);
     } else {
@@ -164,17 +164,17 @@ class Template {
   Template(this.text, {this.isShared}) : assert(isShared != null);
 }
 
-Template compileTemplate(String name, int? index, String? template, String? tip,
-    Object? analyzerCode, String? severity) {
-  if (template == null) {
-    print('Error: missing template for message: $name');
+Template compileTemplate(String name, int? index, String? problemMessage,
+    String? correctionMessage, Object? analyzerCode, String? severity) {
+  if (problemMessage == null) {
+    print('Error: missing problemMessage for message: $name');
     exitCode = 1;
     return new Template('', isShared: true);
   }
   // Remove trailing whitespace. This is necessary for templates defined with
   // `|` (verbatim) as they always contain a trailing newline that we don't
   // want.
-  template = template.trimRight();
+  problemMessage = problemMessage.trimRight();
   const String ignoreNotNull = "// ignore: unnecessary_null_comparison";
   var parameters = new Set<String>();
   var conversions = new Set<String>();
@@ -190,8 +190,8 @@ Template compileTemplate(String name, int? index, String? template, String? tip,
     canBeShared = false;
   }
 
-  for (Match match
-      in placeholderPattern.allMatches("$template\n${tip ?? ''}")) {
+  for (Match match in placeholderPattern
+      .allMatches("$problemMessage\n${correctionMessage ?? ''}")) {
     String name = match[1]!;
     String? padding = match[2];
     String? fractionDigits = match[3];
@@ -414,7 +414,7 @@ Template compileTemplate(String name, int? index, String? template, String? tip,
     if (analyzerCode is String) {
       analyzerCode = <String>[analyzerCode];
     }
-    List<Object> codes = analyzerCode as List<Object>;
+    List<Object?> codes = analyzerCode as List<Object?>;
     // If "index:" is defined, then "analyzerCode:" should not be generated
     // in the front end. See comment in messages.yaml
     codeArguments.add('analyzerCodes: <String>["${codes.join('", "')}"]');
@@ -429,11 +429,11 @@ Template compileTemplate(String name, int? index, String? template, String? tip,
 
   if (parameters.isEmpty && conversions.isEmpty && arguments.isEmpty) {
     // ignore: unnecessary_null_comparison
-    if (template != null) {
-      codeArguments.add('message: r"""$template"""');
+    if (problemMessage != null) {
+      codeArguments.add('problemMessage: r"""$problemMessage"""');
     }
-    if (tip != null) {
-      codeArguments.add('tip: r"""$tip"""');
+    if (correctionMessage != null) {
+      codeArguments.add('correctionMessage: r"""$correctionMessage"""');
     }
 
     return new Template("""
@@ -448,23 +448,25 @@ const MessageCode message$name =
 
   List<String> templateArguments = <String>[];
   // ignore: unnecessary_null_comparison
-  if (template != null) {
-    templateArguments.add('messageTemplate: r"""$template"""');
+  if (problemMessage != null) {
+    templateArguments.add('problemMessageTemplate: r"""$problemMessage"""');
   }
-  if (tip != null) {
-    templateArguments.add('tipTemplate: r"""$tip"""');
+  if (correctionMessage != null) {
+    templateArguments
+        .add('correctionMessageTemplate: r"""$correctionMessage"""');
   }
 
   templateArguments.add("withArguments: _withArguments$name");
 
   List<String> messageArguments = <String>[];
-  String message = interpolate(template);
+  String message = interpolate(problemMessage);
   if (hasLabeler) {
     message += " + labeler.originMessages";
   }
-  messageArguments.add("message: ${message}");
-  if (tip != null) {
-    messageArguments.add("tip: ${interpolate(tip)}");
+  messageArguments.add("problemMessage: ${message}");
+  if (correctionMessage != null) {
+    messageArguments
+        .add("correctionMessage: ${interpolate(correctionMessage)}");
   }
   messageArguments.add("arguments: { ${arguments.join(', ')} }");
 

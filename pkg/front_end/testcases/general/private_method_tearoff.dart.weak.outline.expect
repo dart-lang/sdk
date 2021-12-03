@@ -56,5 +56,5 @@ Extra constant evaluation status:
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///private_method_tearoff_lib.dart:8:8 -> SymbolConstant(#_f)
 Evaluated: ListLiteral @ org-dartlang-testcase:///private_method_tearoff_lib.dart:8:8 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///private_method_tearoff_lib.dart:8:8 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///private_method_tearoff_lib.dart:8:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///private_method_tearoff_lib.dart:8:8 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 8, effectively constant: 4

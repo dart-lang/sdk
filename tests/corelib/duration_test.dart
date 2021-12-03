@@ -205,7 +205,7 @@ main() {
   Expect.equals(-3600000000, d.inMicroseconds);
   d = d1 * 0;
   Expect.equals(0, d.inMicroseconds);
-  Expect.throws(() => d1 ~/ 0, (e) => e is IntegerDivisionByZeroException);
+  Expect.throws(() => d1 ~/ 0, (e) => e is UnsupportedError);
 
   d = new Duration(microseconds: 0);
   Expect.isTrue(d < new Duration(microseconds: 1));
@@ -280,6 +280,14 @@ main() {
 
   d = const Duration(microseconds: 1000000);
   Expect.equals("0:00:01.000000", d.toString());
+
+  // Regression test: Infinite loop prior to fix.
+  d = const Duration(microseconds: -0x8000000000000000);
+  Expect.equals("-2562047788:00:54.775808", d.toString());
+
+  d = const Duration(
+      hours: -2562047788, minutes: 0, seconds: -54, microseconds: -775808);
+  Expect.equals(-0x8000000000000000, d.inMicroseconds);
 
   d1 = const Duration(hours: 1);
   d2 = const Duration(hours: -1);

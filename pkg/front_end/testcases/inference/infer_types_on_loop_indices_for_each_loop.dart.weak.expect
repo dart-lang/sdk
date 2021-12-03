@@ -51,9 +51,9 @@ class Bar<T extends core::Iterable<core::String*>*> extends core::Object {
   synthetic constructor •() → self::Bar<self::Bar::T*>*
     : super core::Object::•()
     ;
-  method foo(generic-covariant-impl self::Bar::T* t) → void {
+  method foo(covariant-by-class self::Bar::T* t) → void {
     for (core::String* i in t) {
-      core::int* x = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:15:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      core::int* x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:15:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
                                            ^" in i as{TypeError} core::int*;
     }
@@ -73,9 +73,9 @@ class Baz<T extends core::Object* = dynamic, E extends core::Iterable<self::Baz:
   synthetic constructor •() → self::Baz<self::Baz::T*, self::Baz::E*, self::Baz::S*>*
     : super core::Object::•()
     ;
-  method foo(generic-covariant-impl self::Baz::S* t) → void {
+  method foo(covariant-by-class self::Baz::S* t) → void {
     for (self::Baz::T* i in t) {
-      core::int* x = let final Never* #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:23:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
+      core::int* x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:23:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
                                            ^" in i as{TypeError} core::int*;
       self::Baz::T* y = i;
@@ -95,7 +95,7 @@ class Baz<T extends core::Object* = dynamic, E extends core::Iterable<self::Baz:
 static method test() → dynamic {
   core::List<self::Foo*>* list = <self::Foo*>[];
   for (self::Foo* x in list) {
-    core::String* y = let final Never* #t3 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:32:45: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
+    core::String* y = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:32:45: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
     String y = /*error:INVALID_ASSIGNMENT*/ x;
                                             ^" in x as{TypeError} core::String*;
@@ -103,31 +103,31 @@ static method test() → dynamic {
   for (dynamic x in list) {
     core::String* y = x as{TypeError,ForDynamic} core::String*;
   }
-  for (final self::Foo* #t4 in list) {
-    core::String* x = let final Never* #t5 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:39:15: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
+  for (final self::Foo* #t1 in list) {
+    core::String* x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:39:15: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
 Try changing the type of the variable.
   for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ list) {
-              ^" in #t4 as{TypeError} core::String*;
+              ^" in #t1 as{TypeError} core::String*;
     core::String* y = x;
   }
   dynamic z;
-  for (final self::Foo* #t6 in list) {
-    z = #t6;
+  for (final self::Foo* #t2 in list) {
+    z = #t2;
     core::String* y = z as{TypeError,ForDynamic} core::String*;
   }
   core::Iterable<dynamic>* iter = list;
-  for (final dynamic #t7 in iter) {
-    self::Foo* x = #t7 as{TypeError,ForDynamic} self::Foo*;
+  for (final dynamic #t3 in iter) {
+    self::Foo* x = #t3 as{TypeError,ForDynamic} self::Foo*;
     self::Foo* y = x;
   }
   dynamic iter2 = list;
-  for (final dynamic #t8 in iter2 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
-    self::Foo* x = #t8 as{TypeError,ForDynamic} self::Foo*;
+  for (final dynamic #t4 in iter2 as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+    self::Foo* x = #t4 as{TypeError,ForDynamic} self::Foo*;
     self::Foo* y = x;
   }
   core::Map<core::String*, self::Foo*>* map = <core::String*, self::Foo*>{};
-  for (dynamic x in let final Never* #t9 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:60:70: Error: The type 'Map<String, Foo>' used in the 'for' loop must implement 'Iterable<dynamic>'.
+  for (dynamic x in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:60:70: Error: The type 'Map<String, Foo>' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Map' is from 'dart:core'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
  - 'Iterable' is from 'dart:core'.

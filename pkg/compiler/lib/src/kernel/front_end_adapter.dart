@@ -24,9 +24,9 @@ class CompilerFileSystem implements fe.FileSystem {
   @override
   fe.FileSystemEntity entityForUri(Uri uri) {
     if (uri.scheme == 'data') {
-      return new fe.DataFileSystemEntity(Uri.base.resolveUri(uri));
+      return fe.DataFileSystemEntity(Uri.base.resolveUri(uri));
     } else {
-      return new _CompilerFileSystemEntity(uri, this);
+      return _CompilerFileSystemEntity(uri, this);
     }
   }
 }
@@ -45,9 +45,9 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
       input = await fs.inputProvider
           .readFromUri(uri, inputKind: api.InputKind.UTF8);
     } catch (e) {
-      throw new fe.FileSystemException(uri, '$e');
+      throw fe.FileSystemException(uri, '$e');
     }
-    if (input == null) throw new fe.FileSystemException(uri, "File not found");
+    if (input == null) throw fe.FileSystemException(uri, "File not found");
     // TODO(sigmund): technically someone could provide dart2js with an input
     // that is not a SourceFile. Note that this assumption is also done in the
     // (non-kernel) ScriptLoader.
@@ -62,9 +62,9 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
       input = await fs.inputProvider
           .readFromUri(uri, inputKind: api.InputKind.binary);
     } catch (e) {
-      throw new fe.FileSystemException(uri, '$e');
+      throw fe.FileSystemException(uri, '$e');
     }
-    if (input == null) throw new fe.FileSystemException(uri, "File not found");
+    if (input == null) throw fe.FileSystemException(uri, "File not found");
     return input.data;
   }
 
@@ -95,7 +95,7 @@ void reportFrontEndMessage(
     int offset = fe.getMessageCharOffset(message);
     int length = fe.getMessageLength(message);
     if (uri != null && offset != -1) {
-      return new SourceSpan(uri, offset, offset + length);
+      return SourceSpan(uri, offset, offset + length);
     } else {
       return NO_LOCATION_SPANNABLE;
     }
@@ -126,6 +126,6 @@ void reportFrontEndMessage(
       reporter.reportInfo(mainMessage, infos);
       break;
     default:
-      throw new UnimplementedError('unhandled severity ${message.severity}');
+      throw UnimplementedError('unhandled severity ${message.severity}');
   }
 }

@@ -14,11 +14,11 @@ Future<FastaContext> createContext(
   return FastaContext.create(suite, environment);
 }
 
-main(List<String> arguments) {
+void main(List<String> arguments) {
   internalMain(arguments: arguments);
 }
 
-internalMain(
+void internalMain(
         {List<String> arguments = const [], int shards = 1, int shard = 0}) =>
     runMe(arguments, createContext,
         configurationPath: "../../testing.json", shard: shard, shards: shards);

@@ -160,7 +160,9 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     // Determine output file name.
     String outputFile = argResults[commonOptions['outputFile'].flag];
     if (outputFile == null) {
-      final inputWithoutDart = sourcePath.replaceFirst(RegExp(r'\.dart$'), '');
+      final inputWithoutDart = sourcePath.endsWith('.dart')
+          ? sourcePath.substring(0, sourcePath.length - 5)
+          : sourcePath;
       outputFile = '$inputWithoutDart.$fileExt';
     }
 
@@ -239,7 +241,13 @@ For example: dart compile $commandName --packages=/tmp/pkgs main.dart''')
           defaultsTo: null)
       ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
 Remove debugging information from the output and save it separately to the specified file.
-<path> can be relative or absolute.''');
+<path> can be relative or absolute.''')
+      ..addMultiOption(
+        'extra-gen-snapshot-options',
+        help: 'Pass additional options to gen_snapshot.',
+        hide: true,
+        valueHelp: 'opt1,opt2,...',
+      );
 
     addExperimentalFlags(argParser, verbose);
   }
@@ -252,6 +260,13 @@ Remove debugging information from the output and save it separately to the speci
     if (!Sdk.checkArtifactExists(genKernel) ||
         !Sdk.checkArtifactExists(genSnapshot)) {
       return 255;
+    }
+    // AOT compilation isn't supported on ia32. Currently, generating an
+    // executable only supports AOT runtimes, so these commands are disabled.
+    if (Platform.version.contains('ia32')) {
+      stderr.write(
+          "'dart compile $format' is not supported on x86 architectures");
+      return 64;
     }
     // We expect a single rest argument; the dart entry point.
     if (argResults.rest.length != 1) {
@@ -277,6 +292,7 @@ Remove debugging information from the output and save it separately to the speci
         debugFile: argResults['save-debugging-info'],
         verbose: verbose,
         verbosity: argResults['verbosity'],
+        extraOptions: argResults['extra-gen-snapshot-options'],
       );
       return 0;
     } catch (e) {
@@ -300,14 +316,16 @@ class CompileCommand extends DartdevCommand {
     addSubcommand(CompileJSCommand(verbose: verbose));
     addSubcommand(CompileSnapshotCommand(
       commandName: CompileSnapshotCommand.jitSnapshotCmdName,
-      help: 'to a JIT snapshot.',
+      help: 'to a JIT snapshot.\n'
+          'To run the snapshot use: dart run <JIT file>',
       fileExt: 'jit',
       formatName: 'app-jit',
       verbose: verbose,
     ));
     addSubcommand(CompileSnapshotCommand(
       commandName: CompileSnapshotCommand.kernelCmdName,
-      help: 'to a kernel snapshot.',
+      help: 'to a kernel snapshot.\n'
+          'To run the snapshot use: dart run <kernel file>',
       fileExt: 'dill',
       formatName: 'kernel',
       verbose: verbose,
@@ -320,7 +338,8 @@ class CompileCommand extends DartdevCommand {
     ));
     addSubcommand(CompileNativeCommand(
       commandName: CompileNativeCommand.aotSnapshotCmdName,
-      help: 'to an AOT snapshot.',
+      help: 'to an AOT snapshot.\n'
+          'To run the snapshot use: dartaotruntime <AOT snapshot file>',
       format: 'aot',
       verbose: verbose,
     ));

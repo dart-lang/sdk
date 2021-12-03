@@ -24,13 +24,13 @@ library from "org-dartlang-test:///lib2.dart" as lib2 {
 //
 // Problems in library:
 //
-// org-dartlang-test:///lib2.dart:2:24: Error: Constant evaluation error:
+// org-dartlang-test:///lib2.dart:3:24: Error: Constant evaluation error:
 // const fooField = const Foo(0);
 //                        ^
-// org-dartlang-test:///lib.dart:2:31: Context: This assertion failed.
+// org-dartlang-test:///lib.dart:3:31: Context: This assertion failed.
 //   const Foo(int i) : assert(i > 0);
 //                               ^
-// org-dartlang-test:///lib2.dart:2:7: Context: While analyzing:
+// org-dartlang-test:///lib2.dart:3:7: Context: While analyzing:
 // const fooField = const Foo(0);
 //       ^
 //
@@ -43,13 +43,13 @@ library from "org-dartlang-test:///lib3.dart" as lib3 {
 //
 // Problems in library:
 //
-// org-dartlang-test:///lib3.dart:2:19: Error: Constant evaluation error:
+// org-dartlang-test:///lib3.dart:3:19: Error: Constant evaluation error:
 // const fooField2 = fooField;
 //                   ^
-// org-dartlang-test:///lib.dart:2:31: Context: This assertion failed.
+// org-dartlang-test:///lib.dart:3:31: Context: This assertion failed.
 //   const Foo(int i) : assert(i > 0);
 //                               ^
-// org-dartlang-test:///lib3.dart:2:7: Context: While analyzing:
+// org-dartlang-test:///lib3.dart:3:7: Context: While analyzing:
 // const fooField2 = fooField;
 //       ^
 //

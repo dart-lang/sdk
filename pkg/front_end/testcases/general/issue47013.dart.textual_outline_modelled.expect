@@ -1,0 +1,12 @@
+abstract class I {
+  void m(covariant num n);
+}
+
+class A {
+  void m(int n) {}
+}
+
+class C extends A implements I {}
+
+throws(void Function() f) {}
+void main() {}

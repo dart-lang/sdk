@@ -28,7 +28,7 @@ PROG_NAME="$(follow_links "$BASH_SOURCE")"
 
 # Handle the case where dart-sdk/bin has been symlinked to.
 BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
-
+DART="$BIN_DIR/dart"
 
 unset VM_OPTIONS
 declare -a VM_OPTIONS
@@ -39,12 +39,9 @@ if [[ $DART_VM_OPTIONS ]]; then
   VM_OPTIONS+=("${OPTIONS[@]}")
 fi
 
-# Run the pub snapshot.
-DART="$BIN_DIR/dart"
-if array_contains "--no-preview-dart-2" "${VM_OPTIONS[@]}"; then
-  echo "Pub no longer supports Dart 1"
-  exit -1
-else
-  SNAPSHOT="$BIN_DIR/snapshots/pub.dart.snapshot"
-  exec "$DART" "${VM_OPTIONS[@]}" "$SNAPSHOT" "$@"
+if [ -t 2 ]; then # Only print warning when run in terminal.
+  >&2 echo 'The top level `pub` command is deprecated. Use `dart pub` instead.'
 fi
+
+# Forward to the `dart __deprecatedpub` command.
+exec "$DART" "${VM_OPTIONS[@]}" __deprecated_pub "$@"

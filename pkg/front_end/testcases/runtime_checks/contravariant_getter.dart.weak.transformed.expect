@@ -8,7 +8,7 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
-  method f(generic-covariant-impl self::C::T* value) → void {
+  method f(covariant-by-class self::C::T* value) → void {
     let final self::C::T* #t1 = value in this.{self::C::y}{(self::C::T*) →* void}(#t1){(self::C::T*) →* void};
   }
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

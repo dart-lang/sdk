@@ -11,7 +11,6 @@ import 'dart:convert' hide JsonDecoder;
 import 'package:analysis_server_client/src/protocol/protocol_base.dart';
 import 'package:analysis_server_client/src/protocol/protocol_common.dart';
 import 'package:analysis_server_client/src/protocol/protocol_internal.dart';
-import 'package:analysis_server_client/src/protocol/protocol_util.dart';
 
 /// analysis.analyzedFiles params
 ///
@@ -74,11 +73,7 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, directories.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => directories.hashCode;
 }
 
 /// analysis.closingLabels params
@@ -164,12 +159,10 @@ class AnalysisClosingLabelsParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, labels.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        labels,
+      );
 }
 
 /// AnalysisErrorFixes
@@ -240,12 +233,10 @@ class AnalysisErrorFixes implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, error.hashCode);
-    hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        error,
+        fixes,
+      );
 }
 
 /// analysis.errors params
@@ -323,12 +314,10 @@ class AnalysisErrorsParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, errors.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        errors,
+      );
 }
 
 /// analysis.flushResults params
@@ -391,11 +380,7 @@ class AnalysisFlushResultsParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, files.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => files.hashCode;
 }
 
 /// analysis.folding params
@@ -473,12 +458,10 @@ class AnalysisFoldingParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, regions.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        regions,
+      );
 }
 
 /// analysis.getErrors params
@@ -539,11 +522,7 @@ class AnalysisGetErrorsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => file.hashCode;
 }
 
 /// analysis.getErrors result
@@ -612,11 +591,7 @@ class AnalysisGetErrorsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, errors.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => errors.hashCode;
 }
 
 /// analysis.getHover params
@@ -688,12 +663,10 @@ class AnalysisGetHoverParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        offset,
+      );
 }
 
 /// analysis.getHover result
@@ -766,11 +739,7 @@ class AnalysisGetHoverResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, hovers.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => hovers.hashCode;
 }
 
 /// analysis.getImportedElements params
@@ -856,13 +825,11 @@ class AnalysisGetImportedElementsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        offset,
+        length,
+      );
 }
 
 /// analysis.getImportedElements result
@@ -933,11 +900,7 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, elements.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => elements.hashCode;
 }
 
 /// analysis.getLibraryDependencies params
@@ -961,9 +924,7 @@ class AnalysisGetLibraryDependenciesParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    return 246577680;
-  }
+  int get hashCode => 246577680;
 }
 
 /// analysis.getLibraryDependencies result
@@ -1057,12 +1018,10 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, libraries.hashCode);
-    hash = JenkinsSmiHash.combine(hash, packageMap.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        libraries,
+        packageMap,
+      );
 }
 
 /// analysis.getNavigation params
@@ -1150,13 +1109,11 @@ class AnalysisGetNavigationParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        offset,
+        length,
+      );
 }
 
 /// analysis.getNavigation result
@@ -1259,13 +1216,11 @@ class AnalysisGetNavigationResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, files.hashCode);
-    hash = JenkinsSmiHash.combine(hash, targets.hashCode);
-    hash = JenkinsSmiHash.combine(hash, regions.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        files,
+        targets,
+        regions,
+      );
 }
 
 /// analysis.getReachableSources params
@@ -1327,11 +1282,7 @@ class AnalysisGetReachableSourcesParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => file.hashCode;
 }
 
 /// analysis.getReachableSources result
@@ -1407,11 +1358,7 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, sources.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => sources.hashCode;
 }
 
 /// analysis.getSignature params
@@ -1484,12 +1431,10 @@ class AnalysisGetSignatureParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        offset,
+      );
 }
 
 /// analysis.getSignature result
@@ -1590,13 +1535,11 @@ class AnalysisGetSignatureResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
-    hash = JenkinsSmiHash.combine(hash, dartdoc.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        name,
+        parameters,
+        dartdoc,
+      );
 }
 
 /// analysis.highlights params
@@ -1678,12 +1621,10 @@ class AnalysisHighlightsParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, regions.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        regions,
+      );
 }
 
 /// analysis.implemented params
@@ -1780,13 +1721,11 @@ class AnalysisImplementedParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, classes.hashCode);
-    hash = JenkinsSmiHash.combine(hash, members.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        classes,
+        members,
+      );
 }
 
 /// analysis.invalidate params
@@ -1884,14 +1823,12 @@ class AnalysisInvalidateParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, delta.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        offset,
+        length,
+        delta,
+      );
 }
 
 /// analysis.navigation params
@@ -2008,14 +1945,12 @@ class AnalysisNavigationParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, regions.hashCode);
-    hash = JenkinsSmiHash.combine(hash, targets.hashCode);
-    hash = JenkinsSmiHash.combine(hash, files.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        regions,
+        targets,
+        files,
+      );
 }
 
 /// analysis.occurrences params
@@ -2094,12 +2029,10 @@ class AnalysisOccurrencesParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, occurrences.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        occurrences,
+      );
 }
 
 /// AnalysisOptions
@@ -2282,18 +2215,16 @@ class AnalysisOptions implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, enableAsync.hashCode);
-    hash = JenkinsSmiHash.combine(hash, enableDeferredLoading.hashCode);
-    hash = JenkinsSmiHash.combine(hash, enableEnums.hashCode);
-    hash = JenkinsSmiHash.combine(hash, enableNullAwareOperators.hashCode);
-    hash = JenkinsSmiHash.combine(hash, enableSuperMixins.hashCode);
-    hash = JenkinsSmiHash.combine(hash, generateDart2jsHints.hashCode);
-    hash = JenkinsSmiHash.combine(hash, generateHints.hashCode);
-    hash = JenkinsSmiHash.combine(hash, generateLints.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        enableAsync,
+        enableDeferredLoading,
+        enableEnums,
+        enableNullAwareOperators,
+        enableSuperMixins,
+        generateDart2jsHints,
+        generateHints,
+        generateLints,
+      );
 }
 
 /// analysis.outline params
@@ -2397,14 +2328,12 @@ class AnalysisOutlineParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, libraryName.hashCode);
-    hash = JenkinsSmiHash.combine(hash, outline.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        kind,
+        libraryName,
+        outline,
+      );
 }
 
 /// analysis.overrides params
@@ -2482,12 +2411,10 @@ class AnalysisOverridesParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, overrides.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        overrides,
+      );
 }
 
 /// analysis.reanalyze params
@@ -2511,9 +2438,7 @@ class AnalysisReanalyzeParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    return 613039876;
-  }
+  int get hashCode => 613039876;
 }
 
 /// analysis.reanalyze result
@@ -2537,9 +2462,7 @@ class AnalysisReanalyzeResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 846803925;
-  }
+  int get hashCode => 846803925;
 }
 
 /// AnalysisService
@@ -2743,13 +2666,11 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, included.hashCode);
-    hash = JenkinsSmiHash.combine(hash, excluded.hashCode);
-    hash = JenkinsSmiHash.combine(hash, packageRoots.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        included,
+        excluded,
+        packageRoots,
+      );
 }
 
 /// analysis.setAnalysisRoots result
@@ -2773,9 +2694,7 @@ class AnalysisSetAnalysisRootsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 866004753;
-  }
+  int get hashCode => 866004753;
 }
 
 /// analysis.setGeneralSubscriptions params
@@ -2844,11 +2763,7 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => subscriptions.hashCode;
 }
 
 /// analysis.setGeneralSubscriptions result
@@ -2872,9 +2787,7 @@ class AnalysisSetGeneralSubscriptionsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 386759562;
-  }
+  int get hashCode => 386759562;
 }
 
 /// analysis.setPriorityFiles params
@@ -2937,11 +2850,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, files.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => files.hashCode;
 }
 
 /// analysis.setPriorityFiles result
@@ -2965,9 +2874,7 @@ class AnalysisSetPriorityFilesResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 330050055;
-  }
+  int get hashCode => 330050055;
 }
 
 /// analysis.setSubscriptions params
@@ -3040,11 +2947,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => subscriptions.hashCode;
 }
 
 /// analysis.setSubscriptions result
@@ -3068,9 +2971,7 @@ class AnalysisSetSubscriptionsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 218088493;
-  }
+  int get hashCode => 218088493;
 }
 
 /// AnalysisStatus
@@ -3137,12 +3038,10 @@ class AnalysisStatus implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, isAnalyzing.hashCode);
-    hash = JenkinsSmiHash.combine(hash, analysisTarget.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        isAnalyzing,
+        analysisTarget,
+      );
 }
 
 /// analysis.updateContent params
@@ -3216,11 +3115,7 @@ class AnalysisUpdateContentParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, files.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => files.hashCode;
 }
 
 /// analysis.updateContent result
@@ -3273,10 +3168,7 @@ class AnalysisUpdateContentResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => 0;
 }
 
 /// analysis.updateOptions params
@@ -3339,11 +3231,7 @@ class AnalysisUpdateOptionsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, options.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => options.hashCode;
 }
 
 /// analysis.updateOptions result
@@ -3367,9 +3255,7 @@ class AnalysisUpdateOptionsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 179689467;
-  }
+  int get hashCode => 179689467;
 }
 
 /// analytics.enable params
@@ -3430,11 +3316,7 @@ class AnalyticsEnableParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, value.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => value.hashCode;
 }
 
 /// analytics.enable result
@@ -3458,9 +3340,7 @@ class AnalyticsEnableResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 237990792;
-  }
+  int get hashCode => 237990792;
 }
 
 /// analytics.isEnabled params
@@ -3484,9 +3364,7 @@ class AnalyticsIsEnabledParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    return 57215544;
-  }
+  int get hashCode => 57215544;
 }
 
 /// analytics.isEnabled result
@@ -3550,11 +3428,7 @@ class AnalyticsIsEnabledResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, enabled.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => enabled.hashCode;
 }
 
 /// analytics.sendEvent params
@@ -3615,11 +3489,7 @@ class AnalyticsSendEventParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, action.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => action.hashCode;
 }
 
 /// analytics.sendEvent result
@@ -3643,9 +3513,7 @@ class AnalyticsSendEventResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 227063188;
-  }
+  int get hashCode => 227063188;
 }
 
 /// analytics.sendTiming params
@@ -3717,12 +3585,10 @@ class AnalyticsSendTimingParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, event.hashCode);
-    hash = JenkinsSmiHash.combine(hash, millis.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        event,
+        millis,
+      );
 }
 
 /// analytics.sendTiming result
@@ -3746,9 +3612,7 @@ class AnalyticsSendTimingResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 875010924;
-  }
+  int get hashCode => 875010924;
 }
 
 /// AvailableSuggestion
@@ -3941,19 +3805,17 @@ class AvailableSuggestion implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, label.hashCode);
-    hash = JenkinsSmiHash.combine(hash, declaringLibraryUri.hashCode);
-    hash = JenkinsSmiHash.combine(hash, element.hashCode);
-    hash = JenkinsSmiHash.combine(hash, defaultArgumentListString.hashCode);
-    hash = JenkinsSmiHash.combine(hash, defaultArgumentListTextRanges.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameterNames.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameterTypes.hashCode);
-    hash = JenkinsSmiHash.combine(hash, relevanceTags.hashCode);
-    hash = JenkinsSmiHash.combine(hash, requiredParameterCount.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        label,
+        declaringLibraryUri,
+        element,
+        defaultArgumentListString,
+        defaultArgumentListTextRanges,
+        parameterNames,
+        parameterTypes,
+        relevanceTags,
+        requiredParameterCount,
+      );
 }
 
 /// AvailableSuggestionSet
@@ -4033,13 +3895,11 @@ class AvailableSuggestionSet implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
-    hash = JenkinsSmiHash.combine(hash, items.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        id,
+        uri,
+        items,
+      );
 }
 
 /// BulkFix
@@ -4108,12 +3968,10 @@ class BulkFix implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, path.hashCode);
-    hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        path,
+        fixes,
+      );
 }
 
 /// BulkFixDetail
@@ -4177,12 +4035,10 @@ class BulkFixDetail implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, code.hashCode);
-    hash = JenkinsSmiHash.combine(hash, occurrences.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        code,
+        occurrences,
+      );
 }
 
 /// ClosingLabel
@@ -4258,13 +4114,11 @@ class ClosingLabel implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, label.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        offset,
+        length,
+        label,
+      );
 }
 
 /// completion.availableSuggestions params
@@ -4355,12 +4209,10 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, changedLibraries.hashCode);
-    hash = JenkinsSmiHash.combine(hash, removedLibraries.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        changedLibraries,
+        removedLibraries,
+      );
 }
 
 /// completion.existingImports params
@@ -4434,12 +4286,206 @@ class CompletionExistingImportsParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, imports.hashCode);
-    return JenkinsSmiHash.finish(hash);
+  int get hashCode => Object.hash(
+        file,
+        imports,
+      );
+}
+
+/// completion.getSuggestionDetails2 params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "completion": String
+///   "libraryUri": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class CompletionGetSuggestionDetails2Params implements RequestParams {
+  /// The path of the file into which this completion is being inserted.
+  String file;
+
+  /// The offset in the file where the completion will be inserted.
+  int offset;
+
+  /// The completion from the selected CompletionSuggestion. It could be a name
+  /// of a class, or a name of a constructor in form
+  /// "typeName.constructorName()", or an enumeration constant in form
+  /// "enumName.constantName", etc.
+  String completion;
+
+  /// The URI of the library to import, so that the element referenced in the
+  /// completion becomes accessible.
+  String libraryUri;
+
+  CompletionGetSuggestionDetails2Params(
+      this.file, this.offset, this.completion, this.libraryUri);
+
+  factory CompletionGetSuggestionDetails2Params.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      String file;
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'file');
+      }
+      int offset;
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
+      }
+      String completion;
+      if (json.containsKey('completion')) {
+        completion = jsonDecoder.decodeString(
+            jsonPath + '.completion', json['completion']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'completion');
+      }
+      String libraryUri;
+      if (json.containsKey('libraryUri')) {
+        libraryUri = jsonDecoder.decodeString(
+            jsonPath + '.libraryUri', json['libraryUri']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'libraryUri');
+      }
+      return CompletionGetSuggestionDetails2Params(
+          file, offset, completion, libraryUri);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, 'completion.getSuggestionDetails2 params', json);
+    }
   }
+
+  factory CompletionGetSuggestionDetails2Params.fromRequest(Request request) {
+    return CompletionGetSuggestionDetails2Params.fromJson(
+        RequestDecoder(request), 'params', request.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['file'] = file;
+    result['offset'] = offset;
+    result['completion'] = completion;
+    result['libraryUri'] = libraryUri;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return Request(id, 'completion.getSuggestionDetails2', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionGetSuggestionDetails2Params) {
+      return file == other.file &&
+          offset == other.offset &&
+          completion == other.completion &&
+          libraryUri == other.libraryUri;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        file,
+        offset,
+        completion,
+        libraryUri,
+      );
+}
+
+/// completion.getSuggestionDetails2 result
+///
+/// {
+///   "completion": String
+///   "change": SourceChange
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class CompletionGetSuggestionDetails2Result implements ResponseResult {
+  /// The full text to insert, which possibly includes now an import prefix.
+  /// The client should insert this text, not the completion from the selected
+  /// CompletionSuggestion.
+  String completion;
+
+  /// A change for the client to apply to make the accepted completion
+  /// suggestion available. In most cases the change is to add a new import
+  /// directive to the file.
+  SourceChange change;
+
+  CompletionGetSuggestionDetails2Result(this.completion, this.change);
+
+  factory CompletionGetSuggestionDetails2Result.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      String completion;
+      if (json.containsKey('completion')) {
+        completion = jsonDecoder.decodeString(
+            jsonPath + '.completion', json['completion']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'completion');
+      }
+      SourceChange change;
+      if (json.containsKey('change')) {
+        change = SourceChange.fromJson(
+            jsonDecoder, jsonPath + '.change', json['change']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'change');
+      }
+      return CompletionGetSuggestionDetails2Result(completion, change);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, 'completion.getSuggestionDetails2 result', json);
+    }
+  }
+
+  factory CompletionGetSuggestionDetails2Result.fromResponse(
+      Response response) {
+    return CompletionGetSuggestionDetails2Result.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        'result',
+        response.result);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['completion'] = completion;
+    result['change'] = change.toJson();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionGetSuggestionDetails2Result) {
+      return completion == other.completion && change == other.change;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        completion,
+        change,
+      );
 }
 
 /// completion.getSuggestionDetails params
@@ -4540,14 +4586,12 @@ class CompletionGetSuggestionDetailsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = JenkinsSmiHash.combine(hash, label.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        id,
+        label,
+        offset,
+      );
 }
 
 /// completion.getSuggestionDetails result
@@ -4627,12 +4671,265 @@ class CompletionGetSuggestionDetailsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, completion.hashCode);
-    hash = JenkinsSmiHash.combine(hash, change.hashCode);
-    return JenkinsSmiHash.finish(hash);
+  int get hashCode => Object.hash(
+        completion,
+        change,
+      );
+}
+
+/// completion.getSuggestions2 params
+///
+/// {
+///   "file": FilePath
+///   "offset": int
+///   "maxResults": int
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class CompletionGetSuggestions2Params implements RequestParams {
+  /// The file containing the point at which suggestions are to be made.
+  String file;
+
+  /// The offset within the file at which suggestions are to be made.
+  int offset;
+
+  /// The maximum number of suggestions to return. If the number of suggestions
+  /// after filtering is greater than the maxResults, then isIncomplete is set
+  /// to true.
+  int maxResults;
+
+  CompletionGetSuggestions2Params(this.file, this.offset, this.maxResults);
+
+  factory CompletionGetSuggestions2Params.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      String file;
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'file');
+      }
+      int offset;
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
+      }
+      int maxResults;
+      if (json.containsKey('maxResults')) {
+        maxResults =
+            jsonDecoder.decodeInt(jsonPath + '.maxResults', json['maxResults']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'maxResults');
+      }
+      return CompletionGetSuggestions2Params(file, offset, maxResults);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, 'completion.getSuggestions2 params', json);
+    }
   }
+
+  factory CompletionGetSuggestions2Params.fromRequest(Request request) {
+    return CompletionGetSuggestions2Params.fromJson(
+        RequestDecoder(request), 'params', request.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['file'] = file;
+    result['offset'] = offset;
+    result['maxResults'] = maxResults;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return Request(id, 'completion.getSuggestions2', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionGetSuggestions2Params) {
+      return file == other.file &&
+          offset == other.offset &&
+          maxResults == other.maxResults;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        file,
+        offset,
+        maxResults,
+      );
+}
+
+/// completion.getSuggestions2 result
+///
+/// {
+///   "replacementOffset": int
+///   "replacementLength": int
+///   "suggestions": List<CompletionSuggestion>
+///   "libraryUrisToImport": List<String>
+///   "isIncomplete": bool
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class CompletionGetSuggestions2Result implements ResponseResult {
+  /// The offset of the start of the text to be replaced. This will be
+  /// different from the offset used to request the completion suggestions if
+  /// there was a portion of an identifier before the original offset. In
+  /// particular, the replacementOffset will be the offset of the beginning of
+  /// said identifier.
+  int replacementOffset;
+
+  /// The length of the text to be replaced if the remainder of the identifier
+  /// containing the cursor is to be replaced when the suggestion is applied
+  /// (that is, the number of characters in the existing identifier).
+  int replacementLength;
+
+  /// The completion suggestions being reported. This list is filtered by the
+  /// already existing prefix, and sorted first by relevance, and (if the same)
+  /// by the suggestion text. The list will have at most maxResults items. If
+  /// the user types a new keystroke, the client is expected to either do local
+  /// filtering (when the returned list was complete), or ask the server again
+  /// (if isIncomplete was true).
+  ///
+  /// This list contains suggestions from both imported, and not yet imported
+  /// libraries. Items from not yet imported libraries will have
+  /// libraryUriToImportIndex set, which is an index into the
+  /// libraryUrisToImport in this response.
+  List<CompletionSuggestion> suggestions;
+
+  /// The list of libraries with declarations that are not yet available in the
+  /// file where completion was requested, most often because the library is
+  /// not yet imported. The declarations still might be included into the
+  /// suggestions, and the client should use getSuggestionDetails2 on selection
+  /// to make the library available in the file.
+  ///
+  /// Each item is the URI of a library, such as package:foo/bar.dart or
+  /// file:///home/me/workspace/foo/test/bar_test.dart.
+  List<String> libraryUrisToImport;
+
+  /// True if the number of suggestions after filtering was greater than the
+  /// requested maxResults.
+  bool isIncomplete;
+
+  CompletionGetSuggestions2Result(
+      this.replacementOffset,
+      this.replacementLength,
+      this.suggestions,
+      this.libraryUrisToImport,
+      this.isIncomplete);
+
+  factory CompletionGetSuggestions2Result.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      int replacementOffset;
+      if (json.containsKey('replacementOffset')) {
+        replacementOffset = jsonDecoder.decodeInt(
+            jsonPath + '.replacementOffset', json['replacementOffset']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'replacementOffset');
+      }
+      int replacementLength;
+      if (json.containsKey('replacementLength')) {
+        replacementLength = jsonDecoder.decodeInt(
+            jsonPath + '.replacementLength', json['replacementLength']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'replacementLength');
+      }
+      List<CompletionSuggestion> suggestions;
+      if (json.containsKey('suggestions')) {
+        suggestions = jsonDecoder.decodeList(
+            jsonPath + '.suggestions',
+            json['suggestions'],
+            (String jsonPath, Object? json) =>
+                CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'suggestions');
+      }
+      List<String> libraryUrisToImport;
+      if (json.containsKey('libraryUrisToImport')) {
+        libraryUrisToImport = jsonDecoder.decodeList(
+            jsonPath + '.libraryUrisToImport',
+            json['libraryUrisToImport'],
+            jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'libraryUrisToImport');
+      }
+      bool isIncomplete;
+      if (json.containsKey('isIncomplete')) {
+        isIncomplete = jsonDecoder.decodeBool(
+            jsonPath + '.isIncomplete', json['isIncomplete']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'isIncomplete');
+      }
+      return CompletionGetSuggestions2Result(replacementOffset,
+          replacementLength, suggestions, libraryUrisToImport, isIncomplete);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, 'completion.getSuggestions2 result', json);
+    }
+  }
+
+  factory CompletionGetSuggestions2Result.fromResponse(Response response) {
+    return CompletionGetSuggestions2Result.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        'result',
+        response.result);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['replacementOffset'] = replacementOffset;
+    result['replacementLength'] = replacementLength;
+    result['suggestions'] = suggestions
+        .map((CompletionSuggestion value) => value.toJson())
+        .toList();
+    result['libraryUrisToImport'] = libraryUrisToImport;
+    result['isIncomplete'] = isIncomplete;
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionGetSuggestions2Result) {
+      return replacementOffset == other.replacementOffset &&
+          replacementLength == other.replacementLength &&
+          listEqual(suggestions, other.suggestions,
+              (CompletionSuggestion a, CompletionSuggestion b) => a == b) &&
+          listEqual(libraryUrisToImport, other.libraryUrisToImport,
+              (String a, String b) => a == b) &&
+          isIncomplete == other.isIncomplete;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        replacementOffset,
+        replacementLength,
+        suggestions,
+        libraryUrisToImport,
+        isIncomplete,
+      );
 }
 
 /// completion.getSuggestions params
@@ -4705,12 +5002,10 @@ class CompletionGetSuggestionsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        offset,
+      );
 }
 
 /// completion.getSuggestions result
@@ -4774,11 +5069,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => id.hashCode;
 }
 
 /// completion.registerLibraryPaths params
@@ -4849,11 +5140,7 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, paths.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => paths.hashCode;
 }
 
 /// completion.registerLibraryPaths result
@@ -4877,9 +5164,7 @@ class CompletionRegisterLibraryPathsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 104675661;
-  }
+  int get hashCode => 104675661;
 }
 
 /// completion.results params
@@ -5111,20 +5396,17 @@ class CompletionResultsParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = JenkinsSmiHash.combine(hash, replacementOffset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, replacementLength.hashCode);
-    hash = JenkinsSmiHash.combine(hash, results.hashCode);
-    hash = JenkinsSmiHash.combine(hash, isLast.hashCode);
-    hash = JenkinsSmiHash.combine(hash, libraryFile.hashCode);
-    hash = JenkinsSmiHash.combine(hash, includedSuggestionSets.hashCode);
-    hash = JenkinsSmiHash.combine(hash, includedElementKinds.hashCode);
-    hash =
-        JenkinsSmiHash.combine(hash, includedSuggestionRelevanceTags.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        id,
+        replacementOffset,
+        replacementLength,
+        results,
+        isLast,
+        libraryFile,
+        includedSuggestionSets,
+        includedElementKinds,
+        includedSuggestionRelevanceTags,
+      );
 }
 
 /// CompletionService
@@ -5246,11 +5528,7 @@ class CompletionSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => subscriptions.hashCode;
 }
 
 /// completion.setSubscriptions result
@@ -5274,9 +5552,7 @@ class CompletionSetSubscriptionsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 2482770;
-  }
+  int get hashCode => 2482770;
 }
 
 /// ContextData
@@ -5384,15 +5660,13 @@ class ContextData implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, explicitFileCount.hashCode);
-    hash = JenkinsSmiHash.combine(hash, implicitFileCount.hashCode);
-    hash = JenkinsSmiHash.combine(hash, workItemQueueLength.hashCode);
-    hash = JenkinsSmiHash.combine(hash, cacheEntryExceptions.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        name,
+        explicitFileCount,
+        implicitFileCount,
+        workItemQueueLength,
+        cacheEntryExceptions,
+      );
 }
 
 /// convertGetterToMethod feedback
@@ -5409,9 +5683,7 @@ class ConvertGetterToMethodFeedback extends RefactoringFeedback
   }
 
   @override
-  int get hashCode {
-    return 616032599;
-  }
+  int get hashCode => 616032599;
 }
 
 /// convertGetterToMethod options
@@ -5428,9 +5700,7 @@ class ConvertGetterToMethodOptions extends RefactoringOptions
   }
 
   @override
-  int get hashCode {
-    return 488848400;
-  }
+  int get hashCode => 488848400;
 }
 
 /// convertMethodToGetter feedback
@@ -5447,9 +5717,7 @@ class ConvertMethodToGetterFeedback extends RefactoringFeedback
   }
 
   @override
-  int get hashCode {
-    return 165291526;
-  }
+  int get hashCode => 165291526;
 }
 
 /// convertMethodToGetter options
@@ -5466,9 +5734,7 @@ class ConvertMethodToGetterOptions extends RefactoringOptions
   }
 
   @override
-  int get hashCode {
-    return 27952290;
-  }
+  int get hashCode => 27952290;
 }
 
 /// diagnostic.getDiagnostics params
@@ -5492,9 +5758,7 @@ class DiagnosticGetDiagnosticsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    return 587526202;
-  }
+  int get hashCode => 587526202;
 }
 
 /// diagnostic.getDiagnostics result
@@ -5564,11 +5828,7 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, contexts.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => contexts.hashCode;
 }
 
 /// diagnostic.getServerPort params
@@ -5592,9 +5852,7 @@ class DiagnosticGetServerPortParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    return 367508704;
-  }
+  int get hashCode => 367508704;
 }
 
 /// diagnostic.getServerPort result
@@ -5658,11 +5916,7 @@ class DiagnosticGetServerPortResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, port.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => port.hashCode;
 }
 
 /// edit.bulkFixes params
@@ -5751,12 +6005,10 @@ class EditBulkFixesParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, included.hashCode);
-    hash = JenkinsSmiHash.combine(hash, inTestMode.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        included,
+        inTestMode,
+      );
 }
 
 /// edit.bulkFixes result
@@ -5841,12 +6093,10 @@ class EditBulkFixesResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
-    hash = JenkinsSmiHash.combine(hash, details.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        edits,
+        details,
+      );
 }
 
 /// edit.format params
@@ -5949,14 +6199,12 @@ class EditFormatParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, selectionLength.hashCode);
-    hash = JenkinsSmiHash.combine(hash, lineLength.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        selectionOffset,
+        selectionLength,
+        lineLength,
+      );
 }
 
 /// edit.format result
@@ -6051,13 +6299,11 @@ class EditFormatResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
-    hash = JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, selectionLength.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        edits,
+        selectionOffset,
+        selectionLength,
+      );
 }
 
 /// edit.getAssists params
@@ -6142,13 +6388,11 @@ class EditGetAssistsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        offset,
+        length,
+      );
 }
 
 /// edit.getAssists result
@@ -6217,11 +6461,7 @@ class EditGetAssistsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, assists.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => assists.hashCode;
 }
 
 /// edit.getAvailableRefactorings params
@@ -6307,13 +6547,11 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        offset,
+        length,
+      );
 }
 
 /// edit.getAvailableRefactorings result
@@ -6383,11 +6621,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, kinds.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => kinds.hashCode;
 }
 
 /// edit.getFixes params
@@ -6459,12 +6693,10 @@ class EditGetFixesParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        offset,
+      );
 }
 
 /// edit.getFixes result
@@ -6533,11 +6765,7 @@ class EditGetFixesResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => fixes.hashCode;
 }
 
 /// edit.getPostfixCompletion params
@@ -6622,13 +6850,11 @@ class EditGetPostfixCompletionParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, key.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        key,
+        offset,
+      );
 }
 
 /// edit.getPostfixCompletion result
@@ -6693,11 +6919,7 @@ class EditGetPostfixCompletionResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, change.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => change.hashCode;
 }
 
 /// edit.getRefactoring params
@@ -6832,16 +7054,14 @@ class EditGetRefactoringParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, validateOnly.hashCode);
-    hash = JenkinsSmiHash.combine(hash, options.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        kind,
+        file,
+        offset,
+        length,
+        validateOnly,
+        options,
+      );
 }
 
 /// edit.getRefactoring result
@@ -7014,16 +7234,14 @@ class EditGetRefactoringResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, initialProblems.hashCode);
-    hash = JenkinsSmiHash.combine(hash, optionsProblems.hashCode);
-    hash = JenkinsSmiHash.combine(hash, finalProblems.hashCode);
-    hash = JenkinsSmiHash.combine(hash, feedback.hashCode);
-    hash = JenkinsSmiHash.combine(hash, change.hashCode);
-    hash = JenkinsSmiHash.combine(hash, potentialEdits.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        initialProblems,
+        optionsProblems,
+        finalProblems,
+        feedback,
+        change,
+        potentialEdits,
+      );
 }
 
 /// edit.getStatementCompletion params
@@ -7096,12 +7314,10 @@ class EditGetStatementCompletionParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        offset,
+      );
 }
 
 /// edit.getStatementCompletion result
@@ -7179,12 +7395,10 @@ class EditGetStatementCompletionResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, change.hashCode);
-    hash = JenkinsSmiHash.combine(hash, whitespaceOnly.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        change,
+        whitespaceOnly,
+      );
 }
 
 /// edit.importElements params
@@ -7279,13 +7493,11 @@ class EditImportElementsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, elements.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        elements,
+        offset,
+      );
 }
 
 /// edit.importElements result
@@ -7355,11 +7567,7 @@ class EditImportElementsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, edit.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => edit.hashCode;
 }
 
 /// edit.isPostfixCompletionApplicable params
@@ -7444,13 +7652,11 @@ class EditIsPostfixCompletionApplicableParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, key.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        key,
+        offset,
+      );
 }
 
 /// edit.isPostfixCompletionApplicable result
@@ -7515,11 +7721,7 @@ class EditIsPostfixCompletionApplicableResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, value.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => value.hashCode;
 }
 
 /// edit.listPostfixCompletionTemplates params
@@ -7543,9 +7745,7 @@ class EditListPostfixCompletionTemplatesParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    return 690713107;
-  }
+  int get hashCode => 690713107;
 }
 
 /// edit.listPostfixCompletionTemplates result
@@ -7618,11 +7818,7 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, templates.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => templates.hashCode;
 }
 
 /// edit.organizeDirectives params
@@ -7684,11 +7880,7 @@ class EditOrganizeDirectivesParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => file.hashCode;
 }
 
 /// edit.organizeDirectives result
@@ -7754,11 +7946,7 @@ class EditOrganizeDirectivesResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, edit.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => edit.hashCode;
 }
 
 /// edit.sortMembers params
@@ -7819,11 +8007,7 @@ class EditSortMembersParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => file.hashCode;
 }
 
 /// edit.sortMembers result
@@ -7888,11 +8072,7 @@ class EditSortMembersResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, edit.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => edit.hashCode;
 }
 
 /// ElementDeclaration
@@ -8084,21 +8264,19 @@ class ElementDeclaration implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, fileIndex.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, line.hashCode);
-    hash = JenkinsSmiHash.combine(hash, column.hashCode);
-    hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
-    hash = JenkinsSmiHash.combine(hash, className.hashCode);
-    hash = JenkinsSmiHash.combine(hash, mixinName.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        name,
+        kind,
+        fileIndex,
+        offset,
+        line,
+        column,
+        codeOffset,
+        codeLength,
+        className,
+        mixinName,
+        parameters,
+      );
 }
 
 /// ExecutableFile
@@ -8161,12 +8339,10 @@ class ExecutableFile implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        kind,
+      );
 }
 
 /// ExecutableKind
@@ -8295,11 +8471,7 @@ class ExecutionCreateContextParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, contextRoot.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => contextRoot.hashCode;
 }
 
 /// execution.createContext result
@@ -8363,11 +8535,7 @@ class ExecutionCreateContextResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => id.hashCode;
 }
 
 /// execution.deleteContext params
@@ -8429,11 +8597,7 @@ class ExecutionDeleteContextParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => id.hashCode;
 }
 
 /// execution.deleteContext result
@@ -8457,9 +8621,7 @@ class ExecutionDeleteContextResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 479954425;
-  }
+  int get hashCode => 479954425;
 }
 
 /// execution.getSuggestions params
@@ -8623,16 +8785,14 @@ class ExecutionGetSuggestionsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, code.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, contextFile.hashCode);
-    hash = JenkinsSmiHash.combine(hash, contextOffset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, variables.hashCode);
-    hash = JenkinsSmiHash.combine(hash, expressions.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        code,
+        offset,
+        contextFile,
+        contextOffset,
+        variables,
+        expressions,
+      );
 }
 
 /// execution.getSuggestions result
@@ -8739,12 +8899,10 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, suggestions.hashCode);
-    hash = JenkinsSmiHash.combine(hash, expressions.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        suggestions,
+        expressions,
+      );
 }
 
 /// execution.launchData params
@@ -8838,13 +8996,11 @@ class ExecutionLaunchDataParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, referencedFiles.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        kind,
+        referencedFiles,
+      );
 }
 
 /// execution.mapUri params
@@ -8929,13 +9085,11 @@ class ExecutionMapUriParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        id,
+        file,
+        uri,
+      );
 }
 
 /// execution.mapUri result
@@ -9013,12 +9167,10 @@ class ExecutionMapUriResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        uri,
+      );
 }
 
 /// ExecutionService
@@ -9130,11 +9282,7 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => subscriptions.hashCode;
 }
 
 /// execution.setSubscriptions result
@@ -9158,9 +9306,7 @@ class ExecutionSetSubscriptionsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 287678780;
-  }
+  int get hashCode => 287678780;
 }
 
 /// ExistingImport
@@ -9225,12 +9371,10 @@ class ExistingImport implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
-    hash = JenkinsSmiHash.combine(hash, elements.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        uri,
+        elements,
+      );
 }
 
 /// ExistingImports
@@ -9300,12 +9444,10 @@ class ExistingImports implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, elements.hashCode);
-    hash = JenkinsSmiHash.combine(hash, imports.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        elements,
+        imports,
+      );
 }
 
 /// extractLocalVariable feedback
@@ -9427,15 +9569,13 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, coveringExpressionOffsets.hashCode);
-    hash = JenkinsSmiHash.combine(hash, coveringExpressionLengths.hashCode);
-    hash = JenkinsSmiHash.combine(hash, names.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offsets.hashCode);
-    hash = JenkinsSmiHash.combine(hash, lengths.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        coveringExpressionOffsets,
+        coveringExpressionLengths,
+        names,
+        offsets,
+        lengths,
+      );
 }
 
 /// extractLocalVariable options
@@ -9508,12 +9648,10 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, extractAll.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        name,
+        extractAll,
+      );
 }
 
 /// extractMethod feedback
@@ -9673,18 +9811,16 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
-    hash = JenkinsSmiHash.combine(hash, names.hashCode);
-    hash = JenkinsSmiHash.combine(hash, canCreateGetter.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offsets.hashCode);
-    hash = JenkinsSmiHash.combine(hash, lengths.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        offset,
+        length,
+        returnType,
+        names,
+        canCreateGetter,
+        parameters,
+        offsets,
+        lengths,
+      );
 }
 
 /// extractMethod options
@@ -9817,15 +9953,13 @@ class ExtractMethodOptions extends RefactoringOptions {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
-    hash = JenkinsSmiHash.combine(hash, createGetter.hashCode);
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
-    hash = JenkinsSmiHash.combine(hash, extractAll.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        returnType,
+        createGetter,
+        name,
+        parameters,
+        extractAll,
+      );
 }
 
 /// extractWidget feedback
@@ -9865,10 +9999,7 @@ class ExtractWidgetFeedback extends RefactoringFeedback {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => 0;
 }
 
 /// extractWidget options
@@ -9925,11 +10056,7 @@ class ExtractWidgetOptions extends RefactoringOptions {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => name.hashCode;
 }
 
 /// FileKind
@@ -10051,12 +10178,10 @@ class FlutterGetWidgetDescriptionParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        offset,
+      );
 }
 
 /// flutter.getWidgetDescription result
@@ -10130,11 +10255,7 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, properties.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => properties.hashCode;
 }
 
 /// FlutterOutline
@@ -10374,22 +10495,20 @@ class FlutterOutline implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
-    hash = JenkinsSmiHash.combine(hash, label.hashCode);
-    hash = JenkinsSmiHash.combine(hash, dartElement.hashCode);
-    hash = JenkinsSmiHash.combine(hash, attributes.hashCode);
-    hash = JenkinsSmiHash.combine(hash, className.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parentAssociationLabel.hashCode);
-    hash = JenkinsSmiHash.combine(hash, variableName.hashCode);
-    hash = JenkinsSmiHash.combine(hash, children.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        kind,
+        offset,
+        length,
+        codeOffset,
+        codeLength,
+        label,
+        dartElement,
+        attributes,
+        className,
+        parentAssociationLabel,
+        variableName,
+        children,
+      );
 }
 
 /// FlutterOutlineAttribute
@@ -10540,17 +10659,15 @@ class FlutterOutlineAttribute implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, label.hashCode);
-    hash = JenkinsSmiHash.combine(hash, literalValueBoolean.hashCode);
-    hash = JenkinsSmiHash.combine(hash, literalValueInteger.hashCode);
-    hash = JenkinsSmiHash.combine(hash, literalValueString.hashCode);
-    hash = JenkinsSmiHash.combine(hash, nameLocation.hashCode);
-    hash = JenkinsSmiHash.combine(hash, valueLocation.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        name,
+        label,
+        literalValueBoolean,
+        literalValueInteger,
+        literalValueString,
+        nameLocation,
+        valueLocation,
+      );
 }
 
 /// FlutterOutlineKind
@@ -10710,12 +10827,10 @@ class FlutterOutlineParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, outline.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        outline,
+      );
 }
 
 /// FlutterService
@@ -10832,11 +10947,7 @@ class FlutterSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => subscriptions.hashCode;
 }
 
 /// flutter.setSubscriptions result
@@ -10860,9 +10971,7 @@ class FlutterSetSubscriptionsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 628296315;
-  }
+  int get hashCode => 628296315;
 }
 
 /// flutter.setWidgetPropertyValue params
@@ -10949,12 +11058,10 @@ class FlutterSetWidgetPropertyValueParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = JenkinsSmiHash.combine(hash, value.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        id,
+        value,
+      );
 }
 
 /// flutter.setWidgetPropertyValue result
@@ -11019,11 +11126,7 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, change.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => change.hashCode;
 }
 
 /// FlutterWidgetProperty
@@ -11214,19 +11317,17 @@ class FlutterWidgetProperty implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, documentation.hashCode);
-    hash = JenkinsSmiHash.combine(hash, expression.hashCode);
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = JenkinsSmiHash.combine(hash, isRequired.hashCode);
-    hash = JenkinsSmiHash.combine(hash, isSafeToUpdate.hashCode);
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, children.hashCode);
-    hash = JenkinsSmiHash.combine(hash, editor.hashCode);
-    hash = JenkinsSmiHash.combine(hash, value.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        documentation,
+        expression,
+        id,
+        isRequired,
+        isSafeToUpdate,
+        name,
+        children,
+        editor,
+        value,
+      );
 }
 
 /// FlutterWidgetPropertyEditor
@@ -11301,12 +11402,10 @@ class FlutterWidgetPropertyEditor implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, enumItems.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        kind,
+        enumItems,
+      );
 }
 
 /// FlutterWidgetPropertyEditorKind
@@ -11529,16 +11628,14 @@ class FlutterWidgetPropertyValue implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, boolValue.hashCode);
-    hash = JenkinsSmiHash.combine(hash, doubleValue.hashCode);
-    hash = JenkinsSmiHash.combine(hash, intValue.hashCode);
-    hash = JenkinsSmiHash.combine(hash, stringValue.hashCode);
-    hash = JenkinsSmiHash.combine(hash, enumValue.hashCode);
-    hash = JenkinsSmiHash.combine(hash, expression.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        boolValue,
+        doubleValue,
+        intValue,
+        stringValue,
+        enumValue,
+        expression,
+      );
 }
 
 /// FlutterWidgetPropertyValueEnumItem
@@ -11637,14 +11734,12 @@ class FlutterWidgetPropertyValueEnumItem implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, libraryUri.hashCode);
-    hash = JenkinsSmiHash.combine(hash, className.hashCode);
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, documentation.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        libraryUri,
+        className,
+        name,
+        documentation,
+      );
 }
 
 /// GeneralAnalysisService
@@ -11935,22 +12030,20 @@ class HoverInformation implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, containingLibraryPath.hashCode);
-    hash = JenkinsSmiHash.combine(hash, containingLibraryName.hashCode);
-    hash = JenkinsSmiHash.combine(hash, containingClassDescription.hashCode);
-    hash = JenkinsSmiHash.combine(hash, dartdoc.hashCode);
-    hash = JenkinsSmiHash.combine(hash, elementDescription.hashCode);
-    hash = JenkinsSmiHash.combine(hash, elementKind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, isDeprecated.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameter.hashCode);
-    hash = JenkinsSmiHash.combine(hash, propagatedType.hashCode);
-    hash = JenkinsSmiHash.combine(hash, staticType.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        offset,
+        length,
+        containingLibraryPath,
+        containingLibraryName,
+        containingClassDescription,
+        dartdoc,
+        elementDescription,
+        elementKind,
+        isDeprecated,
+        parameter,
+        propagatedType,
+        staticType,
+      );
 }
 
 /// ImplementedClass
@@ -12012,12 +12105,10 @@ class ImplementedClass implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        offset,
+        length,
+      );
 }
 
 /// ImplementedMember
@@ -12079,12 +12170,10 @@ class ImplementedMember implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        offset,
+        length,
+      );
 }
 
 /// ImportedElementSet
@@ -12163,13 +12252,11 @@ class ImportedElementSet implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, strings.hashCode);
-    hash = JenkinsSmiHash.combine(hash, uris.hashCode);
-    hash = JenkinsSmiHash.combine(hash, names.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        strings,
+        uris,
+        names,
+      );
 }
 
 /// ImportedElements
@@ -12246,13 +12333,11 @@ class ImportedElements implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, path.hashCode);
-    hash = JenkinsSmiHash.combine(hash, prefix.hashCode);
-    hash = JenkinsSmiHash.combine(hash, elements.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        path,
+        prefix,
+        elements,
+      );
 }
 
 /// IncludedSuggestionRelevanceTag
@@ -12318,12 +12403,10 @@ class IncludedSuggestionRelevanceTag implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, tag.hashCode);
-    hash = JenkinsSmiHash.combine(hash, relevanceBoost.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        tag,
+        relevanceBoost,
+      );
 }
 
 /// IncludedSuggestionSet
@@ -12409,13 +12492,11 @@ class IncludedSuggestionSet implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = JenkinsSmiHash.combine(hash, relevance.hashCode);
-    hash = JenkinsSmiHash.combine(hash, displayUri.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        id,
+        relevance,
+        displayUri,
+      );
 }
 
 /// inlineLocalVariable feedback
@@ -12479,12 +12560,10 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, occurrences.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        name,
+        occurrences,
+      );
 }
 
 /// inlineLocalVariable options
@@ -12501,9 +12580,7 @@ class InlineLocalVariableOptions extends RefactoringOptions
   }
 
   @override
-  int get hashCode {
-    return 540364977;
-  }
+  int get hashCode => 540364977;
 }
 
 /// inlineMethod feedback
@@ -12585,13 +12662,11 @@ class InlineMethodFeedback extends RefactoringFeedback {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, className.hashCode);
-    hash = JenkinsSmiHash.combine(hash, methodName.hashCode);
-    hash = JenkinsSmiHash.combine(hash, isDeclaration.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        className,
+        methodName,
+        isDeclaration,
+      );
 }
 
 /// inlineMethod options
@@ -12663,12 +12738,10 @@ class InlineMethodOptions extends RefactoringOptions {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, deleteSource.hashCode);
-    hash = JenkinsSmiHash.combine(hash, inlineAll.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        deleteSource,
+        inlineAll,
+      );
 }
 
 /// kythe.getKytheEntries params
@@ -12731,11 +12804,7 @@ class KytheGetKytheEntriesParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => file.hashCode;
 }
 
 /// kythe.getKytheEntries result
@@ -12821,12 +12890,10 @@ class KytheGetKytheEntriesResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, entries.hashCode);
-    hash = JenkinsSmiHash.combine(hash, files.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        entries,
+        files,
+      );
 }
 
 /// LibraryPathSet
@@ -12894,12 +12961,10 @@ class LibraryPathSet implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, scope.hashCode);
-    hash = JenkinsSmiHash.combine(hash, libraryPaths.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        scope,
+        libraryPaths,
+      );
 }
 
 /// moveFile feedback
@@ -12915,9 +12980,7 @@ class MoveFileFeedback extends RefactoringFeedback implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    return 438975893;
-  }
+  int get hashCode => 438975893;
 }
 
 /// moveFile options
@@ -12975,11 +13038,7 @@ class MoveFileOptions extends RefactoringOptions {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, newFile.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => newFile.hashCode;
 }
 
 /// OverriddenMember
@@ -13043,12 +13102,10 @@ class OverriddenMember implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, element.hashCode);
-    hash = JenkinsSmiHash.combine(hash, className.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        element,
+        className,
+      );
 }
 
 /// Override
@@ -13152,14 +13209,12 @@ class Override implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, superclassMember.hashCode);
-    hash = JenkinsSmiHash.combine(hash, interfaceMembers.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        offset,
+        length,
+        superclassMember,
+        interfaceMembers,
+      );
 }
 
 /// PostfixTemplateDescriptor
@@ -13234,13 +13289,11 @@ class PostfixTemplateDescriptor implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, key.hashCode);
-    hash = JenkinsSmiHash.combine(hash, example.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        name,
+        key,
+        example,
+      );
 }
 
 /// PubStatus
@@ -13293,11 +13346,7 @@ class PubStatus implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, isListingPackageDirs.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => isListingPackageDirs.hashCode;
 }
 
 /// RefactoringFeedback
@@ -13333,10 +13382,7 @@ class RefactoringFeedback implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => 0;
 }
 
 /// RefactoringOptions
@@ -13371,10 +13417,7 @@ class RefactoringOptions implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => 0;
 }
 
 /// rename feedback
@@ -13465,14 +13508,12 @@ class RenameFeedback extends RefactoringFeedback {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, elementKindName.hashCode);
-    hash = JenkinsSmiHash.combine(hash, oldName.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        offset,
+        length,
+        elementKindName,
+        oldName,
+      );
 }
 
 /// rename options
@@ -13530,11 +13571,7 @@ class RenameOptions extends RefactoringOptions {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, newName.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => newName.hashCode;
 }
 
 /// RequestError
@@ -13614,13 +13651,11 @@ class RequestError implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, code.hashCode);
-    hash = JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = JenkinsSmiHash.combine(hash, stackTrace.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        code,
+        message,
+        stackTrace,
+      );
 }
 
 /// RequestErrorCode
@@ -14048,13 +14083,11 @@ class RuntimeCompletionExpression implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = JenkinsSmiHash.combine(hash, type.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        offset,
+        length,
+        type,
+      );
 }
 
 /// RuntimeCompletionExpressionType
@@ -14234,17 +14267,15 @@ class RuntimeCompletionExpressionType implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, libraryPath.hashCode);
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, typeArguments.hashCode);
-    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameterTypes.hashCode);
-    hash = JenkinsSmiHash.combine(hash, parameterNames.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        libraryPath,
+        kind,
+        name,
+        typeArguments,
+        returnType,
+        parameterTypes,
+        parameterNames,
+      );
 }
 
 /// RuntimeCompletionExpressionTypeKind
@@ -14368,12 +14399,10 @@ class RuntimeCompletionVariable implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = JenkinsSmiHash.combine(hash, type.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        name,
+        type,
+      );
 }
 
 /// search.findElementReferences params
@@ -14463,13 +14492,11 @@ class SearchFindElementReferencesParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, includePotential.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        offset,
+        includePotential,
+      );
 }
 
 /// search.findElementReferences result
@@ -14553,12 +14580,10 @@ class SearchFindElementReferencesResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = JenkinsSmiHash.combine(hash, element.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        id,
+        element,
+      );
 }
 
 /// search.findMemberDeclarations params
@@ -14620,11 +14645,7 @@ class SearchFindMemberDeclarationsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => name.hashCode;
 }
 
 /// search.findMemberDeclarations result
@@ -14688,11 +14709,7 @@ class SearchFindMemberDeclarationsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => id.hashCode;
 }
 
 /// search.findMemberReferences params
@@ -14754,11 +14771,7 @@ class SearchFindMemberReferencesParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => name.hashCode;
 }
 
 /// search.findMemberReferences result
@@ -14822,11 +14835,7 @@ class SearchFindMemberReferencesResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => id.hashCode;
 }
 
 /// search.findTopLevelDeclarations params
@@ -14890,11 +14899,7 @@ class SearchFindTopLevelDeclarationsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, pattern.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => pattern.hashCode;
 }
 
 /// search.findTopLevelDeclarations result
@@ -14958,11 +14963,7 @@ class SearchFindTopLevelDeclarationsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => id.hashCode;
 }
 
 /// search.getElementDeclarations params
@@ -15058,13 +15059,11 @@ class SearchGetElementDeclarationsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, pattern.hashCode);
-    hash = JenkinsSmiHash.combine(hash, maxResults.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        pattern,
+        maxResults,
+      );
 }
 
 /// search.getElementDeclarations result
@@ -15147,12 +15146,10 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, declarations.hashCode);
-    hash = JenkinsSmiHash.combine(hash, files.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        declarations,
+        files,
+      );
 }
 
 /// search.getTypeHierarchy params
@@ -15242,13 +15239,11 @@ class SearchGetTypeHierarchyParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, superOnly.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        file,
+        offset,
+        superOnly,
+      );
 }
 
 /// search.getTypeHierarchy result
@@ -15328,11 +15323,7 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, hierarchyItems.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => hierarchyItems.hashCode;
 }
 
 /// SearchResult
@@ -15431,14 +15422,12 @@ class SearchResult implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, location.hashCode);
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, isPotential.hashCode);
-    hash = JenkinsSmiHash.combine(hash, path.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        location,
+        kind,
+        isPotential,
+        path,
+      );
 }
 
 /// SearchResultKind
@@ -15619,13 +15608,11 @@ class SearchResultsParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = JenkinsSmiHash.combine(hash, results.hashCode);
-    hash = JenkinsSmiHash.combine(hash, isLast.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        id,
+        results,
+        isLast,
+      );
 }
 
 /// server.connected params
@@ -15697,12 +15684,10 @@ class ServerConnectedParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, version.hashCode);
-    hash = JenkinsSmiHash.combine(hash, pid.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        version,
+        pid,
+      );
 }
 
 /// server.error params
@@ -15791,13 +15776,11 @@ class ServerErrorParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, isFatal.hashCode);
-    hash = JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = JenkinsSmiHash.combine(hash, stackTrace.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        isFatal,
+        message,
+        stackTrace,
+      );
 }
 
 /// server.getVersion params
@@ -15821,9 +15804,7 @@ class ServerGetVersionParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    return 55877452;
-  }
+  int get hashCode => 55877452;
 }
 
 /// server.getVersion result
@@ -15887,11 +15868,7 @@ class ServerGetVersionResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, version.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => version.hashCode;
 }
 
 /// ServerLogEntry
@@ -15968,13 +15945,11 @@ class ServerLogEntry implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, time.hashCode);
-    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = JenkinsSmiHash.combine(hash, data.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        time,
+        kind,
+        data,
+      );
 }
 
 /// ServerLogEntryKind
@@ -16121,11 +16096,7 @@ class ServerLogParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, entry.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => entry.hashCode;
 }
 
 /// ServerService
@@ -16242,11 +16213,7 @@ class ServerSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => subscriptions.hashCode;
 }
 
 /// server.setSubscriptions result
@@ -16270,9 +16237,7 @@ class ServerSetSubscriptionsResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 748820900;
-  }
+  int get hashCode => 748820900;
 }
 
 /// server.shutdown params
@@ -16296,9 +16261,7 @@ class ServerShutdownParams implements RequestParams {
   }
 
   @override
-  int get hashCode {
-    return 366630911;
-  }
+  int get hashCode => 366630911;
 }
 
 /// server.shutdown result
@@ -16322,9 +16285,7 @@ class ServerShutdownResult implements ResponseResult {
   }
 
   @override
-  int get hashCode {
-    return 193626532;
-  }
+  int get hashCode => 193626532;
 }
 
 /// server.status params
@@ -16403,12 +16364,10 @@ class ServerStatusParams implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, analysis.hashCode);
-    hash = JenkinsSmiHash.combine(hash, pub.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        analysis,
+        pub,
+      );
 }
 
 /// TypeHierarchyItem
@@ -16568,15 +16527,13 @@ class TypeHierarchyItem implements HasToJson {
   }
 
   @override
-  int get hashCode {
-    var hash = 0;
-    hash = JenkinsSmiHash.combine(hash, classElement.hashCode);
-    hash = JenkinsSmiHash.combine(hash, displayName.hashCode);
-    hash = JenkinsSmiHash.combine(hash, memberElement.hashCode);
-    hash = JenkinsSmiHash.combine(hash, superclass.hashCode);
-    hash = JenkinsSmiHash.combine(hash, interfaces.hashCode);
-    hash = JenkinsSmiHash.combine(hash, mixins.hashCode);
-    hash = JenkinsSmiHash.combine(hash, subclasses.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
+  int get hashCode => Object.hash(
+        classElement,
+        displayName,
+        memberElement,
+        superclass,
+        interfaces,
+        mixins,
+        subclasses,
+      );
 }

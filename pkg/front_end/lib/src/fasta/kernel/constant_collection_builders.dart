@@ -44,7 +44,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
       parts.add(spread);
     } else if (spread == evaluator.nullConstant) {
       // Null spread
-      return evaluator.createErrorConstant(
+      return evaluator.createEvaluationErrorConstant(
           spreadExpression, messageConstEvalNullValue);
     } else {
       // Fully evaluated spread
@@ -67,7 +67,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
         });
       } else {
         // Not list or set in spread
-        return evaluator.createErrorConstant(
+        return evaluator.createEvaluationErrorConstant(
             spreadExpression, messageConstEvalNotListOrSetInSpread);
       }
       for (Constant entry in entries) {
@@ -159,14 +159,14 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
   @override
   AbortConstant? addConstant(Constant constant, TreeNode context) {
     if (!evaluator.hasPrimitiveEqual(constant)) {
-      return evaluator.createErrorConstant(
+      return evaluator.createEvaluationErrorConstant(
           context,
           templateConstEvalElementImplementsEqual.withArguments(
               constant, evaluator.isNonNullableByDefault));
     }
     bool unseen = seen.add(constant);
     if (!unseen) {
-      return evaluator.createErrorConstant(
+      return evaluator.createEvaluationErrorConstant(
           context,
           templateConstEvalDuplicateElement.withArguments(
               constant, evaluator.isNonNullableByDefault));
@@ -176,7 +176,7 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
           evaluator._weakener.visitConstant(constant) ?? constant;
       bool weakUnseen = weakSeen.add(weakConstant);
       if (unseen != weakUnseen) {
-        return evaluator.createErrorConstant(
+        return evaluator.createEvaluationErrorConstant(
             context, messageNonAgnosticConstant);
       }
     }
@@ -267,7 +267,7 @@ class MapConstantBuilder {
       parts.add(spread);
     } else if (spread == evaluator.nullConstant) {
       // Null spread
-      return evaluator.createErrorConstant(
+      return evaluator.createEvaluationErrorConstant(
           spreadExpression, messageConstEvalNullValue);
     } else {
       // Fully evaluated spread
@@ -286,7 +286,7 @@ class MapConstantBuilder {
         if (error != null) return error;
       } else {
         // Not map in spread
-        return evaluator.createErrorConstant(
+        return evaluator.createEvaluationErrorConstant(
             spreadExpression, messageConstEvalNotMapInSpread);
       }
     }
@@ -305,14 +305,14 @@ class MapConstantBuilder {
       parts.add(lastPart = <ConstantMapEntry>[]);
     }
     if (!evaluator.hasPrimitiveEqual(key)) {
-      return evaluator.createErrorConstant(
+      return evaluator.createEvaluationErrorConstant(
           keyContext,
           templateConstEvalKeyImplementsEqual.withArguments(
               key, evaluator.isNonNullableByDefault));
     }
     bool unseenKey = seenKeys.add(key);
     if (!unseenKey) {
-      return evaluator.createErrorConstant(
+      return evaluator.createEvaluationErrorConstant(
           keyContext,
           templateConstEvalDuplicateKey.withArguments(
               key, evaluator.isNonNullableByDefault));
@@ -321,7 +321,7 @@ class MapConstantBuilder {
       Constant weakKey = evaluator._weakener.visitConstant(key) ?? key;
       bool weakUnseenKey = weakSeenKeys.add(weakKey);
       if (unseenKey != weakUnseenKey) {
-        return evaluator.createErrorConstant(
+        return evaluator.createEvaluationErrorConstant(
             keyContext, messageNonAgnosticConstant);
       }
     }

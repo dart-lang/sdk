@@ -78,6 +78,7 @@ class PhysicalResourceProvider implements ResourceProvider {
     return _PhysicalFolder(io.Directory(path));
   }
 
+  @Deprecated('Not used by clients')
   @override
   Future<List<int?>> getModificationTimes(List<Source> sources) async {
     List<String> paths = sources.map((source) => source.fullName).toList();

@@ -18,7 +18,7 @@ class Stringifier extends ir.ExpressionVisitor<String> {
 
   @override
   String visitStringConcatenation(ir.StringConcatenation node) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     for (ir.Expression expression in node.expressions) {
       String value = expression.accept(this);
       if (value == null) return null;
@@ -78,7 +78,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   List<DartType> visitTypes(List<ir.DartType> types) {
     topLevel = false;
-    return new List.generate(
+    return List.generate(
         types.length, (int index) => types[index].accept(this));
   }
 
@@ -196,13 +196,12 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
 
   @override
   ConstantValue defaultConstant(ir.Constant node) {
-    throw new UnsupportedError(
-        "Unexpected constant $node (${node.runtimeType}).");
+    throw UnsupportedError("Unexpected constant $node (${node.runtimeType}).");
   }
 
   @override
   ConstantValue visitUnevaluatedConstant(ir.UnevaluatedConstant node) {
-    throw new UnsupportedError("Unexpected unevaluated constant $node.");
+    throw UnsupportedError("Unexpected unevaluated constant $node.");
   }
 
   @override
@@ -216,7 +215,7 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
     ir.Procedure member = node.target;
     FunctionEntity function = elementMap.getMethod(member);
     DartType type = elementMap.getFunctionType(member.function);
-    return new FunctionConstantValue(function, type);
+    return FunctionConstantValue(function, type);
   }
 
   @override
@@ -226,7 +225,7 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
       typeArguments.add(elementMap.getDartType(type));
     }
     FunctionConstantValue function = visitConstant(node.tearOffConstant);
-    return new InstantiationConstantValue(typeArguments, function);
+    return InstantiationConstantValue(typeArguments, function);
   }
 
   @override
@@ -238,7 +237,7 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
       FieldEntity field = elementMap.getField(reference.asField);
       fields[field] = visitConstant(value);
     });
-    return new ConstructedConstantValue(type, fields);
+    return ConstructedConstantValue(type, fields);
   }
 
   @override

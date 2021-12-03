@@ -10,7 +10,6 @@
 # Currently it only checks that core runtime headers RUNTIME_LAYER_HEADERS
 # are not included into any sources listed in SHOULD_NOT_DEPEND_ON_RUNTIME.
 
-import glob
 import os
 import re
 import sys
@@ -107,7 +106,7 @@ class LayeringChecker(object):
     def ExtractIncludes(self, file):
         """Extract the list of includes from the given file."""
         deps = set()
-        with open(os.path.join(self.root, file)) as file:
+        with open(os.path.join(self.root, file), encoding='utf-8') as file:
             for line in file:
                 if line.startswith('namespace dart {'):
                     break

@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import '../tool/_fasta/entry_points.dart' show compileEntryPoint;
 
-main(List<String> arguments) async {
+Future<void> main(List<String> arguments) async {
   await compileEntryPoint(arguments);
   if (numCalls.isNotEmpty) {
     print("[");
     bool printed = false;
     for (int i = 0; i < numCalls.length; i++) {
-      int value = numCalls[i];
+      int? value = numCalls[i];
       if (value != null && value > 0) {
         if (printed) print(",");
         print("$i, $value");
@@ -24,11 +22,11 @@ main(List<String> arguments) async {
     print("[");
     bool printed = false;
     for (int i = 0; i < inCall.length; i++) {
-      int value = inCall[i];
+      int? value = inCall[i];
       if (value == null) continue;
       if (value != 0) throw "$i has value $value";
       if (printed) print(",");
-      int time = callTimes[i];
+      int? time = callTimes[i];
       print("$i, $time");
       printed = true;
     }
@@ -36,7 +34,7 @@ main(List<String> arguments) async {
   }
 }
 
-List<int> numCalls = [];
+List<int?> numCalls = [];
 
 void registerCall(int procedureNum) {
   while (numCalls.length <= procedureNum) {
@@ -46,12 +44,12 @@ void registerCall(int procedureNum) {
       numCalls.length *= 2;
     }
   }
-  numCalls[procedureNum] ??= 0;
-  numCalls[procedureNum]++;
+  int numCallsCount = numCalls[procedureNum] ??= 0;
+  numCalls[procedureNum] = numCallsCount + 1;
 }
 
-List<int> inCall = [];
-List<int> callTimes = [];
+List<int?> inCall = [];
+List<int?> callTimes = [];
 Stopwatch stopwatch = new Stopwatch()..start();
 
 void registerCallStart(int procedureNum) {
@@ -64,18 +62,22 @@ void registerCallStart(int procedureNum) {
       callTimes.length *= 2;
     }
   }
-  inCall[procedureNum] ??= 0;
-  callTimes[procedureNum] ??= 0;
-  if (inCall[procedureNum]++ == 0) {
+  int inCallCount = inCall[procedureNum] ??= 0;
+  int callTimesCount = callTimes[procedureNum] ??= 0;
+  inCall[procedureNum] = inCallCount + 1;
+  if (inCallCount == 0) {
     // First --- start a timer-ish.
-    callTimes[procedureNum] -= stopwatch.elapsedMicroseconds;
+    callTimes[procedureNum] = callTimesCount - stopwatch.elapsedMicroseconds;
   }
 }
 
 void registerCallEnd(int procedureNum) {
-  if (inCall[procedureNum]-- == 1) {
+  int inCallCount = inCall[procedureNum]!;
+  inCall[procedureNum] = inCallCount - 1;
+  if (inCallCount == 1) {
     // Last --- stop the timer-ish.
-    callTimes[procedureNum] += stopwatch.elapsedMicroseconds;
+    callTimes[procedureNum] =
+        callTimes[procedureNum]! + stopwatch.elapsedMicroseconds;
   }
 }
 

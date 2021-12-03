@@ -149,7 +149,7 @@ class Database(object):
 
     def Save(self):
         """Saves all in-memory interfaces into files."""
-        for interface in self._all_interfaces.values():
+        for interface in list(self._all_interfaces.values()):
             self._SaveInterfaceFile(interface)
         for interface_name in self._interfaces_to_delete:
             self._DeleteInterfaceFile(interface_name)

@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,11 +18,15 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
 /// expressions of the form `o.^`, where `o` is an expression denoting an
 /// instance of a type.
 class TypeMemberContributor extends DartCompletionContributor {
+  TypeMemberContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     // Recompute the target because resolution might have changed it.
-    var expression = request.dotTarget;
+    var expression = request.target.dotTarget;
     if (expression == null ||
         expression.isSynthetic ||
         expression is ExtensionOverride) {
@@ -129,9 +134,9 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredFunction(FunctionDeclaration declaration) {
     if (declaration.name.name == targetName) {
-      var typeName = declaration.returnType;
-      if (typeName != null) {
-        var type = typeName.type;
+      var returnType = declaration.returnType;
+      if (returnType != null) {
+        var type = returnType.type;
         if (type != null) {
           typeFound = type;
         }
@@ -143,9 +148,9 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     if (declaration.name.name == targetName) {
-      var typeName = declaration.returnType;
-      if (typeName != null) {
-        var type = typeName.type;
+      var returnType = declaration.returnType;
+      if (returnType != null) {
+        var type = returnType.type;
         if (type != null) {
           typeFound = type;
         }
@@ -157,9 +162,9 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredGenericTypeAlias(GenericTypeAlias declaration) {
     if (declaration.name.name == targetName) {
-      var typeName = declaration.functionType?.returnType;
-      if (typeName != null) {
-        var type = typeName.type;
+      var returnType = declaration.functionType?.returnType;
+      if (returnType != null) {
+        var type = returnType.type;
         if (type != null) {
           typeFound = type;
         }
@@ -188,9 +193,9 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredMethod(MethodDeclaration declaration) {
     if (declaration.name.name == targetName) {
-      var typeName = declaration.returnType;
-      if (typeName != null) {
-        var type = typeName.type;
+      var returnType = declaration.returnType;
+      if (returnType != null) {
+        var type = returnType.type;
         if (type != null) {
           typeFound = type;
         }

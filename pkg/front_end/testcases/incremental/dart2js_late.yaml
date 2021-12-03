@@ -9,7 +9,6 @@ type: newworld
 target: dart2js
 worlds:
   - entry: late_statics.dart
-    experiments: non-nullable
     sources:
       late_statics.dart: |
         import 'late_statics_lib.dart' as lib;
@@ -24,8 +23,6 @@ worlds:
 
   - entry: late_statics.dart
     worldType: updated
-    errors: true # (currently?) dart2js changes the interface and doesn't have the setter anymore. dartbug.com/45854
-    experiments: non-nullable
     expectInitializeFromDill: false
     invalidate:
       - late_statics.dart

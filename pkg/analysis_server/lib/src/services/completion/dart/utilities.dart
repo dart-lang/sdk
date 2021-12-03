@@ -5,7 +5,7 @@
 /// A collection of utility methods used by completion contributors.
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, Location;
-import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -29,9 +29,11 @@ Comparator<CompletionSuggestion> completionComparator = (a, b) {
 };
 
 /// A marker used in place of `null` when a function has no return type.
-final TypeName NO_RETURN_TYPE = astFactory.typeName(
-    astFactory.simpleIdentifier(StringToken(TokenType.IDENTIFIER, '', 0)),
-    null);
+final NamedType NO_RETURN_TYPE = astFactory.namedType(
+  name: astFactory.simpleIdentifier(
+    StringToken(TokenType.IDENTIFIER, '', 0),
+  ),
+);
 
 /// Add default argument list text and ranges based on the given
 /// [requiredParams] and [namedParams].
@@ -246,7 +248,7 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
 
   // If the type is unresolved, use the declared type.
   if (type.isDynamic) {
-    if (declaredType is TypeName) {
+    if (declaredType is NamedType) {
       return declaredType.name.name;
     }
     return DYNAMIC;

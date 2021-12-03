@@ -256,7 +256,7 @@ class IncrementalSerializer {
 
   /// Add the group but not its dependencies to the output if they weren't added
   /// already.
-  addDataButNotDependentData(SerializationGroup group,
+  void addDataButNotDependentData(SerializationGroup group,
       Set<SerializationGroup> cachedPackagesInOutput, Sink<List<int>> sink) {
     if (cachedPackagesInOutput.add(group)) {
       sink.add(group.serializedData);
@@ -265,7 +265,7 @@ class IncrementalSerializer {
 
   /// Add the group and its dependencies to the output if they weren't added
   /// already.
-  addDataAndDependentData(SerializationGroup group,
+  void addDataAndDependentData(SerializationGroup group,
       Set<SerializationGroup> cachedPackagesInOutput, Sink<List<int>> sink) {
     if (cachedPackagesInOutput.add(group)) {
       sink.add(group.serializedData);

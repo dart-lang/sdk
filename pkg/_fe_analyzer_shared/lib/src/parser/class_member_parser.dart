@@ -17,7 +17,10 @@ import 'parser_impl.dart' show Parser;
 class ClassMemberParser extends Parser {
   Parser? skipParser;
 
-  ClassMemberParser(Listener listener) : super(listener);
+  ClassMemberParser(Listener listener,
+      {bool useImplicitCreationExpression: true})
+      : super(listener,
+            useImplicitCreationExpression: useImplicitCreationExpression);
 
   @override
   Token parseExpression(Token token) {
@@ -35,7 +38,8 @@ class ClassMemberParser extends Parser {
     // not triggered during the second parse.
     // When the parser supports not doing token stream rewriting, use that
     // feature together with a no-op listener instead.
-    this.skipParser ??= new Parser(new ErrorDelegationListener(listener));
+    this.skipParser ??= new Parser(new ErrorDelegationListener(listener),
+        useImplicitCreationExpression: useImplicitCreationExpression);
     Parser skipParser = this.skipParser!;
     skipParser.mayParseFunctionExpressions = mayParseFunctionExpressions;
     skipParser.asyncState = asyncState;

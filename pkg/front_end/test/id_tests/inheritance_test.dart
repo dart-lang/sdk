@@ -10,15 +10,17 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart';
-import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/type_algebra.dart';
 
 const String cfeFromBuilderMarker = 'cfe:builder';
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/inheritance/data'));
   await runTests<String>(dataDir,
@@ -47,6 +49,7 @@ class InheritanceDataComputer extends DataComputer<String> {
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,

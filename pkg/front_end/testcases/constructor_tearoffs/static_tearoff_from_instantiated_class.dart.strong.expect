@@ -1,0 +1,87 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/static_tearoff_from_instantiated_class.dart:16:33: Error: Cannot access static member on an instantiated generic class.
+// Try removing the type arguments or placing them after the member name.
+//   int Function(int) f4 = A<int>.foo; // Error.
+//                                 ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/static_tearoff_from_instantiated_class.dart:17:19: Error: Cannot access static member on an instantiated generic class.
+// Try removing the type arguments or placing them after the member name.
+//   var f5 = A<int>.foo; // Error.
+//                   ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/static_tearoff_from_instantiated_class.dart:22:34: Error: Cannot access static member on an instantiated generic class.
+// Try removing the type arguments or placing them after the member name.
+//   int Function(int) g4 = D1<int>.foo; // Error.
+//                                  ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/static_tearoff_from_instantiated_class.dart:23:20: Error: Cannot access static member on an instantiated generic class.
+// Try removing the type arguments or placing them after the member name.
+//   var g5 = D1<int>.foo; // Error.
+//                    ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/static_tearoff_from_instantiated_class.dart:28:34: Error: Cannot access static member on an instantiated generic class.
+// Try removing the type arguments or placing them after the member name.
+//   int Function(int) h4 = D2<int>.foo; // Error.
+//                                  ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/static_tearoff_from_instantiated_class.dart:29:20: Error: Cannot access static member on an instantiated generic class.
+// Try removing the type arguments or placing them after the member name.
+//   var h5 = D2<int>.foo; // Error.
+//                    ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef D1<X extends core::Object? = dynamic> = self::A<X%>;
+typedef D2<X extends core::num> = self::A<X>;
+class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+  static method foo<X extends core::Object? = dynamic>(self::A::foo::X% x) → self::A::foo::X%
+    return x;
+}
+static method test() → dynamic {
+  <Y extends core::Object? = dynamic>(Y%) → Y% f1 = #C1;
+  (core::int) → core::int f2 = #C2;
+  (core::int) → core::int f3 = #C2;
+  (core::int) → core::int f4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/static_tearoff_from_instantiated_class.dart:16:33: Error: Cannot access static member on an instantiated generic class.
+Try removing the type arguments or placing them after the member name.
+  int Function(int) f4 = A<int>.foo; // Error.
+                                ^^^";
+  invalid-type f5 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/static_tearoff_from_instantiated_class.dart:17:19: Error: Cannot access static member on an instantiated generic class.
+Try removing the type arguments or placing them after the member name.
+  var f5 = A<int>.foo; // Error.
+                  ^^^";
+  <Y extends core::Object? = dynamic>(Y%) → Y% g1 = #C1;
+  (core::int) → core::int g2 = #C2;
+  (core::int) → core::int g3 = #C2;
+  (core::int) → core::int g4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/static_tearoff_from_instantiated_class.dart:22:34: Error: Cannot access static member on an instantiated generic class.
+Try removing the type arguments or placing them after the member name.
+  int Function(int) g4 = D1<int>.foo; // Error.
+                                 ^^^";
+  invalid-type g5 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/static_tearoff_from_instantiated_class.dart:23:20: Error: Cannot access static member on an instantiated generic class.
+Try removing the type arguments or placing them after the member name.
+  var g5 = D1<int>.foo; // Error.
+                   ^^^";
+  <Y extends core::Object? = dynamic>(Y%) → Y% h1 = #C1;
+  (core::int) → core::int h2 = #C2;
+  (core::int) → core::int h3 = #C2;
+  (core::int) → core::int h4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/static_tearoff_from_instantiated_class.dart:28:34: Error: Cannot access static member on an instantiated generic class.
+Try removing the type arguments or placing them after the member name.
+  int Function(int) h4 = D2<int>.foo; // Error.
+                                 ^^^";
+  invalid-type h5 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/static_tearoff_from_instantiated_class.dart:29:20: Error: Cannot access static member on an instantiated generic class.
+Try removing the type arguments or placing them after the member name.
+  var h5 = D2<int>.foo; // Error.
+                   ^^^";
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = static-tearoff self::A::foo
+  #C2 = instantiation #C1 <core::int>
+}

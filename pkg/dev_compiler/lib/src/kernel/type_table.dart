@@ -112,9 +112,9 @@ class TypeTable {
   final typeContainer = ModuleItemContainer<DartType>.asObject('T',
       keyToString: (DartType t) => escapeIdentifier(_typeString(t)));
 
-  final js_ast.Identifier _runtimeModule;
+  final js_ast.Expression Function(String, [List<Object>]) _runtimeCall;
 
-  TypeTable(this._runtimeModule);
+  TypeTable(this._runtimeCall);
 
   /// Returns true if [type] is already recorded in the table.
   bool _isNamed(DartType type) =>
@@ -135,8 +135,10 @@ class TypeTable {
   List<js_ast.Statement> dischargeBoundTypes() {
     js_ast.Expression emitValue(DartType t, ModuleItemData data) {
       var access = js.call('#.#', [data.id, data.jsKey]);
-      return js.call('() => ((# = #.constFn(#))())',
-          [access, _runtimeModule, data.jsValue]);
+      return js.call('() => ((# = #)())', [
+        access,
+        _runtimeCall('constFn(#)', [data.jsValue])
+      ]);
     }
 
     var boundTypes = typeContainer.emit(emitValue: emitValue);
@@ -153,8 +155,11 @@ class TypeTable {
     var id = _unboundTypeIds[type];
     // TODO(vsm): Change back to `let`.
     // See https://github.com/dart-lang/sdk/issues/40380.
-    return js.statement('var # = () => ((# = #.constFn(#))());',
-        [id, id, _runtimeModule, init]);
+    return js.statement('var # = () => ((# = #)());', [
+      id,
+      id,
+      _runtimeCall('constFn(#)', [init])
+    ]);
   }
 
   /// Emit a list of statements declaring the cache variables and generator

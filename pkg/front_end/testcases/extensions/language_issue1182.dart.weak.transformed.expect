@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extensions/language_issue1182.dart:11:25: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'S Function(S)'.
+// pkg/front_end/testcases/extensions/language_issue1182.dart:13:25: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'S Function(S)'.
 //     S Function(S) f = x.test;
 //                         ^
 //
@@ -13,8 +13,8 @@ class Foo<S extends core::num*> extends core::Object {
   synthetic constructor •() → self::Foo<self::Foo::S*>*
     : super core::Object::•()
     ;
-  method test1(generic-covariant-impl self::Foo::S* x) → void {
-    (self::Foo::S*) →* self::Foo::S* f = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/extensions/language_issue1182.dart:11:25: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'S Function(S)'.
+  method test1(covariant-by-class self::Foo::S* x) → void {
+    (self::Foo::S*) →* self::Foo::S* f = invalid-expression "pkg/front_end/testcases/extensions/language_issue1182.dart:13:25: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'S Function(S)'.
     S Function(S) f = x.test;
                         ^" in self::Test|get#test<core::num*>(x) as{TypeError} Never;
   }

@@ -213,8 +213,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     // closure cannot have parameters
     if (_selectionFunctionExpression != null && _parameters.isNotEmpty) {
       var message = format(
-          'Cannot extract closure as method, it references {0} external variable(s).',
-          _parameters.length);
+          'Cannot extract closure as method, it references {0} external variable{1}.',
+          _parameters.length,
+          _parameters.length == 1 ? '' : 's');
       return RefactoringStatus.fatal(message);
     }
     return result;
@@ -658,7 +659,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     var originalSource = utils.getText(range.offset, range.length);
     var pattern = _SourcePattern();
     var replaceEdits = <SourceEdit>[];
-    resolveResult.unit.accept(_GetSourcePatternVisitor(range, pattern, replaceEdits));
+    resolveResult.unit
+        .accept(_GetSourcePatternVisitor(range, pattern, replaceEdits));
     replaceEdits = replaceEdits.reversed.toList();
     var source = SourceEdit.applySequence(originalSource, replaceEdits);
     pattern.normalizedSource =
@@ -964,6 +966,14 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    super.visitNamedType(node);
+    if (_isFirstSelectedNode(node)) {
+      invalidSelection('Cannot extract a single type reference.');
+    }
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     super.visitSimpleIdentifier(node);
     if (_isFirstSelectedNode(node)) {
@@ -981,14 +991,6 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
           (node.parent as PrefixedIdentifier).identifier == node) {
         invalidSelection('Can not extract name part of a property access.');
       }
-    }
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    super.visitTypeName(node);
-    if (_isFirstSelectedNode(node)) {
-      invalidSelection('Cannot extract a single type reference.');
     }
   }
 
@@ -1325,11 +1327,7 @@ class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
     if (returnType == null) {
       return type;
     } else {
-      if (returnType is InterfaceType && type is InterfaceType) {
-        return InterfaceType.getSmartLeastUpperBound(returnType, type);
-      } else {
-        return typeSystem.leastUpperBound(returnType, type);
-      }
+      return typeSystem.leastUpperBound(returnType, type);
     }
   }
 }

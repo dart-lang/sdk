@@ -86,7 +86,12 @@ class E4 extends core::Object {
   constructor _() → self::E4
     ;
   static factory •() → self::E4
-    let dynamic #redirecting_factory = self::E4::_ in invalid-expression;
+    return new self::E4::_();
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///explicit_new_as_unnamed.dart:41:7 -> ConstructorTearOffConstant(E4.)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

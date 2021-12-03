@@ -29,7 +29,6 @@ f() async* {
   return 0;
 }
 ''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 15, 9),
       error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 15, 6),
     ]);
   }
@@ -64,7 +63,6 @@ f() sync* {
   return 0;
 }
 ''', [
-      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 14, 9),
       error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 14, 6),
     ]);
   }

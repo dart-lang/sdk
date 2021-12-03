@@ -10,6 +10,7 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         abstract class Foo {
           int get foo;
         }

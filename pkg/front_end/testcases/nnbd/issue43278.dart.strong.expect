@@ -45,24 +45,24 @@ extension Extension on self::B {
   set fooExtension = self::Extension|set#fooExtension;
 }
 static method test<T extends self::A?>(self::A? a, self::test::T% t, dynamic d, core::int x) → dynamic {
-  let final self::A? #t1 = a in (let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:13:5: Error: Property 'foo' cannot be accessed on 'A?' because it is potentially null.
+  let final self::A? #t1 = a in invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:13:5: Error: Property 'foo' cannot be accessed on 'A?' because it is potentially null.
  - 'A' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
 Try accessing using ?. instead.
   a.foo ??= x; // Error.
-    ^^^" in #t1.{self::A::foo}{<nullable>}.{core::int?}) == null ?{core::int} let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:13:5: Error: Property 'foo' cannot be accessed on 'A?' because it is potentially null.
+    ^^^" in #t1.{self::A::foo}{<nullable>}.{core::int?} == null ?{core::int} invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:13:5: Error: Property 'foo' cannot be accessed on 'A?' because it is potentially null.
  - 'A' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
 Try accessing using ?. instead.
   a.foo ??= x; // Error.
     ^^^" in #t1.{self::A::foo}{<nullable>}. = x : null;
-  let final self::test::T% #t4 = t in (let final Never #t5 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:14:5: Error: Property 'foo' cannot be accessed on 'T' because it is potentially null.
+  let final self::test::T% #t2 = t in invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:14:5: Error: Property 'foo' cannot be accessed on 'T' because it is potentially null.
 Try accessing using ?. instead.
   t.foo ??= x; // Error.
-    ^^^" in #t4.{self::A::foo}{<nullable>}.{core::int?}) == null ?{core::int} let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:14:5: Error: Property 'foo' cannot be accessed on 'T' because it is potentially null.
+    ^^^" in #t2.{self::A::foo}{<nullable>}.{core::int?} == null ?{core::int} invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:14:5: Error: Property 'foo' cannot be accessed on 'T' because it is potentially null.
 Try accessing using ?. instead.
   t.foo ??= x; // Error.
-    ^^^" in #t4.{self::A::foo}{<nullable>}. = x : null;
-  let final dynamic #t7 = d in #t7{dynamic}.foo == null ?{dynamic} #t7{dynamic}.foo = x : null;
-  let final self::A? #t8 = a in #t8 == null ?{core::int?} null : let final self::A #t9 = #t8{self::A}.{self::A::bar}{self::A} in #t9.{self::A::foo}{core::int?} == null ?{core::int} #t9.{self::A::foo} = x : null;
+    ^^^" in #t2.{self::A::foo}{<nullable>}. = x : null;
+  let final dynamic #t3 = d in #t3{dynamic}.foo == null ?{dynamic} #t3{dynamic}.foo = x : null;
+  let final self::A? #t4 = a in #t4 == null ?{core::int?} null : let final self::A #t5 = #t4{self::A}.{self::A::bar}{self::A} in #t5.{self::A::foo}{core::int?} == null ?{core::int} #t5.{self::A::foo} = x : null;
 }
 static method Extension|get#fooExtension(lowered final self::B #this) → core::int?
   return null;
@@ -70,22 +70,22 @@ static method Extension|set#fooExtension(lowered final self::B #this, core::int?
 static method Extension|get#barExtension(lowered final self::B #this) → self::B
   return new self::B::•();
 static method testExtension<T extends self::B?>(self::B? b, self::testExtension::T% t, core::int x) → dynamic {
-  let final self::B? #t10 = b in (let final Never #t11 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:28:5: Error: Property 'fooExtension' cannot be accessed on 'B?' because it is potentially null.
+  let final self::B? #t6 = b in invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:28:5: Error: Property 'fooExtension' cannot be accessed on 'B?' because it is potentially null.
  - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
 Try accessing using ?. instead.
   b.fooExtension ??= x; // Error.
-    ^^^^^^^^^^^^" in self::Extension|get#fooExtension(#t10)) == null ?{core::int} let final Never #t12 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:28:5: Error: Property 'fooExtension' cannot be accessed on 'B?' because it is potentially null.
+    ^^^^^^^^^^^^" in self::Extension|get#fooExtension(#t6) == null ?{core::int} invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:28:5: Error: Property 'fooExtension' cannot be accessed on 'B?' because it is potentially null.
  - 'B' is from 'pkg/front_end/testcases/nnbd/issue43278.dart'.
 Try accessing using ?. instead.
   b.fooExtension ??= x; // Error.
-    ^^^^^^^^^^^^" in self::Extension|set#fooExtension(#t10, x) : null;
-  let final self::testExtension::T% #t13 = t in (let final Never #t14 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: Property 'fooExtension' cannot be accessed on 'T' because it is potentially null.
+    ^^^^^^^^^^^^" in self::Extension|set#fooExtension(#t6, x) : null;
+  let final self::testExtension::T% #t7 = t in invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: Property 'fooExtension' cannot be accessed on 'T' because it is potentially null.
 Try accessing using ?. instead.
   t.fooExtension ??= x; // Error.
-    ^^^^^^^^^^^^" in self::Extension|get#fooExtension(#t13)) == null ?{core::int} let final Never #t15 = invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: Property 'fooExtension' cannot be accessed on 'T' because it is potentially null.
+    ^^^^^^^^^^^^" in self::Extension|get#fooExtension(#t7) == null ?{core::int} invalid-expression "pkg/front_end/testcases/nnbd/issue43278.dart:29:5: Error: Property 'fooExtension' cannot be accessed on 'T' because it is potentially null.
 Try accessing using ?. instead.
   t.fooExtension ??= x; // Error.
-    ^^^^^^^^^^^^" in self::Extension|set#fooExtension(#t13, x) : null;
-  let final self::B? #t16 = b in #t16 == null ?{core::int?} null : let final self::B #t17 = self::Extension|get#barExtension(#t16{self::B}) in self::Extension|get#fooExtension(#t17) == null ?{core::int} self::Extension|set#fooExtension(#t17, x) : null;
+    ^^^^^^^^^^^^" in self::Extension|set#fooExtension(#t7, x) : null;
+  let final self::B? #t8 = b in #t8 == null ?{core::int?} null : let final self::B #t9 = self::Extension|get#barExtension(#t8{self::B}) in self::Extension|get#fooExtension(#t9) == null ?{core::int} self::Extension|set#fooExtension(#t9, x) : null;
 }
 static method main() → dynamic {}

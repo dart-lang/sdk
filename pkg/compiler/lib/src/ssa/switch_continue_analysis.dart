@@ -12,7 +12,7 @@ class SwitchContinueAnalysis extends ir.Visitor<bool>
   SwitchContinueAnalysis._();
 
   static bool containsContinue(ir.Statement switchCaseBody) {
-    return switchCaseBody.accept(new SwitchContinueAnalysis._());
+    return switchCaseBody.accept(SwitchContinueAnalysis._());
   }
 
   @override

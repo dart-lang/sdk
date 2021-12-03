@@ -49,17 +49,17 @@ class Super extends core::Object {
     ;
   set setter3(core::num n) → void
     ;
-  set setter4(covariant core::num i) → void
+  set setter4(covariant-by-declaration core::num i) → void
     ;
-  set setter5(covariant core::int i) → void
+  set setter5(covariant-by-declaration core::int i) → void
     ;
 }
 class Interface extends core::Object {
   synthetic constructor •() → self::Interface
     ;
-  set setter1(covariant core::int i) → void
+  set setter1(covariant-by-declaration core::int i) → void
     ;
-  set setter2(covariant core::int i) → void
+  set setter2(covariant-by-declaration core::int i) → void
     ;
   set setter4(core::int i) → void
     ;
@@ -69,13 +69,13 @@ class Interface extends core::Object {
 class Class extends self::Super implements self::Interface {
   synthetic constructor •() → self::Class
     ;
-  forwarding-stub forwarding-semi-stub set setter1(covariant core::int i) → void
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::int) → void */ setter1(covariant-by-declaration core::num i) → void
     return super.{self::Super::setter1} = i;
-  forwarding-stub forwarding-semi-stub set setter2(covariant core::String i) → void
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::String) → void */ setter2(covariant-by-declaration core::num i) → void
     return super.{self::Super::setter2} = i;
   abstract set setter3(core::int i) → void;
-  abstract set setter4(covariant core::int i) → void;
-  abstract set setter5(covariant core::num n) → void;
+  abstract set setter4(covariant-by-declaration core::int i) → void;
+  abstract set setter5(covariant-by-declaration core::num n) → void;
 }
 static method main() → dynamic
   ;

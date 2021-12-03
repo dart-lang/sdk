@@ -1,0 +1,28 @@
+class A<T> {
+  A();
+  factory A.fact() => new A<T>();
+  factory A.redirect() = A<T>;
+}
+
+const A<int> Function() f1c = F.new;
+const A<int> Function() f1f = F.fact;
+const A<int> Function() f1i = F.redirect;
+const A<int> Function() g1c = G.new;
+const A<int> Function() h1c = H.new;
+const f1a = A<int>.new;
+const f1b = F<int>.new;
+const f1d = A<int>.fact;
+const f1e = F<int>.fact;
+const f1g = A<int>.redirect;
+const f1h = F<int>.redirect;
+const g1a = A<int>.new;
+const g1b = G<String>.new;
+const h1a = A<int>.new;
+const h1b = H<int, String>.new;
+expect(expected, actual) {}
+final bool inSoundMode = <int?>[] is! List<int>;
+main() {}
+test<T extends num>() {}
+typedef F<X extends num> = A<X>;
+typedef G<Y> = A<int>;
+typedef H<X, Y> = A<X>;

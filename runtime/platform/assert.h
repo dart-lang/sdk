@@ -30,7 +30,9 @@ class DynamicAssertionHelper {
       : file_(file), line_(line) {}
 
  protected:
-  void Print(const char* format, va_list arguments, bool will_abort = false);
+  void Print(const char* format,
+             va_list arguments,
+             bool will_abort = false) const;
 
   const char* const file_;
   const int line_;
@@ -42,7 +44,7 @@ class Assert : public DynamicAssertionHelper {
  public:
   Assert(const char* file, int line) : DynamicAssertionHelper(file, line) {}
 
-  DART_NORETURN void Fail(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+  DART_NORETURN void Fail(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 
   template <typename T>
   T NotNull(const T p);
@@ -52,7 +54,7 @@ class Expect : public DynamicAssertionHelper {
  public:
   Expect(const char* file, int line) : DynamicAssertionHelper(file, line) {}
 
-  void Fail(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+  void Fail(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 
 #if defined(TESTING)
   template <typename E, typename A>

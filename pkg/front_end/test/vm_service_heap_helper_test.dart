@@ -49,7 +49,7 @@ Future<void> main(List<String> args) async {
     throwOnPossibleLeak: false,
   );
 
-  heapHelper.start(
+  await heapHelper.start(
     [
       "--enable-asserts",
       Platform.script.toString(),
@@ -139,6 +139,7 @@ class LeakMe2 {
 
 class LeakFinderTest extends helper.VMServiceHeapHelperSpecificExactLeakFinder {
   List<String> leakData = [];
+  @override
   int iterationNumber = -1;
   Completer<List<String>> completer = new Completer<List<String>>();
 
@@ -151,21 +152,25 @@ class LeakFinderTest extends helper.VMServiceHeapHelperSpecificExactLeakFinder {
             prettyPrints: prettyPrints,
             throwOnPossibleLeak: throwOnPossibleLeak);
 
+  @override
   void processExited(int exitCode) {
     print("Process exited!");
     leakData.sort();
     completer.complete(leakData);
   }
 
+  @override
   void leakDetected(String duplicate, int count, List<String> prettyPrints) {
     prettyPrints.sort();
     leakData.add("$iterationNumber: $count: $prettyPrints");
   }
 
+  @override
   void noLeakDetected() {
     leakData.add("$iterationNumber: no leak");
   }
 
+  @override
   bool shouldDoAnotherIteration(int iterationNumber) {
     this.iterationNumber = iterationNumber;
     return iterationNumber <= 6;

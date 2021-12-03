@@ -7,8 +7,6 @@
 
 #include "vm/virtual_memory.h"
 
-#include <sys/mman.h>
-#include <unistd.h>
 #include <zircon/process.h>
 #include <zircon/status.h>
 #include <zircon/syscalls.h>
@@ -54,6 +52,22 @@ intptr_t VirtualMemory::CalculatePageSize() {
 }
 
 void VirtualMemory::Init() {
+  if (FLAG_old_gen_heap_size < 0 || FLAG_old_gen_heap_size > kMaxAddrSpaceMB) {
+    OS::PrintErr(
+        "warning: value specified for --old_gen_heap_size %d is larger than"
+        " the physically addressable range, using 0(unlimited) instead.`\n",
+        FLAG_old_gen_heap_size);
+    FLAG_old_gen_heap_size = 0;
+  }
+  if (FLAG_new_gen_semi_max_size < 0 ||
+      FLAG_new_gen_semi_max_size > kMaxAddrSpaceMB) {
+    OS::PrintErr(
+        "warning: value specified for --new_gen_semi_max_size %d is larger"
+        " than the physically addressable range, using %" Pd " instead.`\n",
+        FLAG_new_gen_semi_max_size, kDefaultNewGenSemiMaxSize);
+    FLAG_new_gen_semi_max_size = kDefaultNewGenSemiMaxSize;
+  }
+
 #if defined(DART_COMPRESSED_POINTERS)
   if (compressed_heap_vmar_ == ZX_HANDLE_INVALID) {
     const zx_vm_option_t align_flag =
@@ -114,6 +128,7 @@ bool VirtualMemory::DualMappingEnabled() {
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
+                                              bool is_compressed,
                                               const char* name) {
   // When FLAG_write_protect_code is active, code memory (indicated by
   // is_executable = true) is allocated as non-executable and later
@@ -136,8 +151,13 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   ASSERT((ZX_VM_ALIGN_1KB <= align_flag) && (align_flag <= ZX_VM_ALIGN_4GB));
 
 #if defined(DART_COMPRESSED_POINTERS)
-  zx_handle_t vmar =
-      is_executable ? zx_vmar_root_self() : compressed_heap_vmar_;
+  zx_handle_t vmar;
+  if (is_compressed) {
+    RELEASE_ASSERT(!is_executable);
+    vmar = compressed_heap_vmar_;
+  } else {
+    vmar = zx_vmar_root_self();
+  }
 #else
   zx_handle_t vmar = zx_vmar_root_self();
 #endif  // defined(DART_COMPRESSED_POINTERS)
@@ -160,6 +180,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     if (status != ZX_OK) {
       LOG_ERR("zx_vmo_replace_as_executable() failed: %s\n",
               zx_status_get_string(status));
+      zx_handle_close(vmo);
       return NULL;
     }
   }
@@ -173,6 +194,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   if (status != ZX_OK) {
     LOG_ERR("zx_vmar_map(%u, 0x%lx, 0x%lx) failed: %s\n", region_options, base,
             size, zx_status_get_string(status));
+    zx_handle_close(vmo);
     return NULL;
   }
   void* region_ptr = reinterpret_cast<void*>(base);
@@ -274,6 +296,21 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   if (status != ZX_OK) {
     FATAL3("zx_vmar_protect(0x%lx, 0x%lx) failed: %s\n", page_address,
            end_address - page_address, zx_status_get_string(status));
+  }
+}
+
+void VirtualMemory::DontNeed(void* address, intptr_t size) {
+  uword start_address = reinterpret_cast<uword>(address);
+  uword end_address = start_address + size;
+  uword page_address = Utils::RoundDown(start_address, PageSize());
+  zx_status_t status = zx_vmar_op_range(
+      getVmarForAddress(reinterpret_cast<uword>(address)), ZX_VMAR_OP_DONT_NEED,
+      page_address, end_address - page_address, nullptr, 0);
+  LOG_INFO("zx_vmar_op_range(DONTNEED, 0x%lx, 0x%lx)\n", page_address,
+           end_address - page_address);
+  if (status != ZX_OK) {
+    FATAL("zx_vmar_op_range(DONTNEED, 0x%lx, 0x%lx) failed: %s\n", page_address,
+          end_address - page_address, zx_status_get_string(status));
   }
 }
 

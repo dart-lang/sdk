@@ -8,9 +8,9 @@ parser/error_recovery/bracket_mismatch_04:2:16: Expected an identifier, but got 
   foo(() {bar());});
                ^
 
-parser/error_recovery/bracket_mismatch_04:2:16: Expected ';' after this.
+parser/error_recovery/bracket_mismatch_04:2:15: Expected ';' after this.
   foo(() {bar());});
-               ^
+              ^
 
 parser/error_recovery/bracket_mismatch_04:2:16: Unexpected token ';'.
   foo(() {bar());});

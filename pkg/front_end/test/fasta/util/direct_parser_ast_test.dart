@@ -12,7 +12,7 @@ import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
 
 Uri base;
 
-main(List<String> args) {
+void main(List<String> args) {
   File script = new File.fromUri(Platform.script);
   base = script.parent.uri;
 
@@ -43,10 +43,12 @@ void canParseTopLevelIshOfAllFrontendFiles() {
         splitIntoChunks(ast, data);
         for (DirectParserASTContent child in ast.children) {
           if (child.isClass()) {
-            splitIntoChunks(child.asClass().getClassOrMixinBody(), data);
+            splitIntoChunks(
+                child.asClass().getClassOrMixinOrExtensionBody(), data);
           } else if (child.isMixinDeclaration()) {
             splitIntoChunks(
-                child.asMixinDeclaration().getClassOrMixinBody(), data);
+                child.asMixinDeclaration().getClassOrMixinOrExtensionBody(),
+                data);
           }
         }
       } catch (e, st) {
@@ -165,7 +167,7 @@ void testClassStuff() {
       cls.getClassWithClause();
   expect(null, withClauseDecl);
   List<DirectParserASTContentMemberEnd> members =
-      cls.getClassOrMixinBody().getMembers();
+      cls.getClassOrMixinOrExtensionBody().getMembers();
   expect(5, members.length);
   expect(members[0].isClassConstructor(), true);
   expect(members[1].isClassFactoryMethod(), true);
@@ -173,7 +175,8 @@ void testClassStuff() {
   expect(members[3].isClassMethod(), true);
   expect(members[4].isClassFields(), true);
 
-  List<String> chunks = splitIntoChunks(cls.getClassOrMixinBody(), data);
+  List<String> chunks =
+      splitIntoChunks(cls.getClassOrMixinOrExtensionBody(), data);
   expect(5, chunks.length);
   expect("""Foo() {
     // Constructor
@@ -208,7 +211,7 @@ void testClassStuff() {
 
   // TODO: Move (something like) this into the check-all-files-thing.
   for (DirectParserASTContentMemberEnd member
-      in cls.getClassOrMixinBody().getMembers()) {
+      in cls.getClassOrMixinOrExtensionBody().getMembers()) {
     if (member.isClassConstructor()) continue;
     if (member.isClassFactoryMethod()) continue;
     if (member.isClassFields()) continue;
@@ -225,7 +228,7 @@ void testClassStuff() {
   expect(null, implementsDecl.implementsKeyword?.lexeme);
   withClauseDecl = cls.getClassWithClause();
   expect("with", withClauseDecl.withKeyword.lexeme);
-  members = cls.getClassOrMixinBody().getMembers();
+  members = cls.getClassOrMixinOrExtensionBody().getMembers();
   expect(0, members.length);
 }
 
@@ -247,14 +250,15 @@ void testMixinStuff() {
   expect("B", decl.getIdentifier().token.lexeme);
 
   List<DirectParserASTContentMemberEnd> members =
-      mxn.getClassOrMixinBody().getMembers();
+      mxn.getClassOrMixinOrExtensionBody().getMembers();
   expect(4, members.length);
   expect(members[0].isMixinFields(), true);
   expect(members[1].isMixinMethod(), true);
   expect(members[2].isMixinFactoryMethod(), true);
   expect(members[3].isMixinConstructor(), true);
 
-  List<String> chunks = splitIntoChunks(mxn.getClassOrMixinBody(), data);
+  List<String> chunks =
+      splitIntoChunks(mxn.getClassOrMixinOrExtensionBody(), data);
   expect(4, chunks.length);
   expect("static int staticField = 0;", chunks[0]);
   expect("""void foo() {
@@ -366,7 +370,7 @@ List<String> processItem(DirectParserASTContent item, List<int> data) {
           namedMixinDecl.endToken.offset + namedMixinDecl.endToken.length)
     ];
   } else if (item.isTypedef()) {
-    DirectParserASTContentFunctionTypeAliasEnd typedefDecl = item.asTypedef();
+    DirectParserASTContentTypedefEnd typedefDecl = item.asTypedef();
     return [
       getCutContent(data, typedefDecl.typedefKeyword.offset,
           typedefDecl.endToken.offset + typedefDecl.endToken.length)

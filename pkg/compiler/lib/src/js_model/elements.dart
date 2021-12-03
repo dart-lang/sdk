@@ -36,7 +36,7 @@ class JLibrary extends IndexedLibrary {
     Uri canonicalUri = source.readUri();
     bool isNonNullableByDefault = source.readBool();
     source.end(tag);
-    return new JLibrary(name, canonicalUri, isNonNullableByDefault);
+    return JLibrary(name, canonicalUri, isNonNullableByDefault);
   }
 
   /// Serializes this [JLibrary] to [sink].
@@ -80,13 +80,13 @@ class JClass extends IndexedClass with ClassHierarchyNodesMapKey {
         String name = source.readString();
         bool isAbstract = source.readBool();
         source.end(tag);
-        return new JClass(library, name, isAbstract: isAbstract);
+        return JClass(library, name, isAbstract: isAbstract);
       case JClassKind.closure:
-        return new JClosureClass.readFromDataSource(source);
+        return JClosureClass.readFromDataSource(source);
       case JClassKind.record:
-        return new JRecord.readFromDataSource(source);
+        return JRecord.readFromDataSource(source);
     }
-    throw new UnsupportedError("Unexpected ClassKind $kind");
+    throw UnsupportedError("Unexpected ClassKind $kind");
   }
 
   /// Serializes this [JClass] to [sink].
@@ -130,7 +130,8 @@ abstract class JMember extends IndexedMember {
   final Name _name;
   final bool _isStatic;
 
-  JMember(this.library, this.enclosingClass, this._name, {bool isStatic: false})
+  JMember(this.library, this.enclosingClass, this._name,
+      {bool isStatic = false})
       : _isStatic = isStatic;
 
   /// Deserializes a [JMember] object from [source].
@@ -138,31 +139,31 @@ abstract class JMember extends IndexedMember {
     JMemberKind kind = source.readEnum(JMemberKind.values);
     switch (kind) {
       case JMemberKind.generativeConstructor:
-        return new JGenerativeConstructor.readFromDataSource(source);
+        return JGenerativeConstructor.readFromDataSource(source);
       case JMemberKind.factoryConstructor:
-        return new JFactoryConstructor.readFromDataSource(source);
+        return JFactoryConstructor.readFromDataSource(source);
       case JMemberKind.constructorBody:
-        return new JConstructorBody.readFromDataSource(source);
+        return JConstructorBody.readFromDataSource(source);
       case JMemberKind.field:
-        return new JField.readFromDataSource(source);
+        return JField.readFromDataSource(source);
       case JMemberKind.getter:
-        return new JGetter.readFromDataSource(source);
+        return JGetter.readFromDataSource(source);
       case JMemberKind.setter:
-        return new JSetter.readFromDataSource(source);
+        return JSetter.readFromDataSource(source);
       case JMemberKind.method:
-        return new JMethod.readFromDataSource(source);
+        return JMethod.readFromDataSource(source);
       case JMemberKind.closureField:
-        return new JClosureField.readFromDataSource(source);
+        return JClosureField.readFromDataSource(source);
       case JMemberKind.closureCallMethod:
-        return new JClosureCallMethod.readFromDataSource(source);
+        return JClosureCallMethod.readFromDataSource(source);
       case JMemberKind.generatorBody:
-        return new JGeneratorBody.readFromDataSource(source);
+        return JGeneratorBody.readFromDataSource(source);
       case JMemberKind.signatureMethod:
-        return new JSignatureMethod.readFromDataSource(source);
+        return JSignatureMethod.readFromDataSource(source);
       case JMemberKind.recordField:
-        return new JRecordField.readFromDataSource(source);
+        return JRecordField.readFromDataSource(source);
     }
-    throw new UnsupportedError("Unexpected JMemberKind $kind");
+    throw UnsupportedError("Unexpected JMemberKind $kind");
   }
 
   /// Serializes this [JMember] to [sink].
@@ -225,7 +226,7 @@ abstract class JFunction extends JMember
 
   JFunction(JLibrary library, JClass enclosingClass, Name name,
       this.parameterStructure, this.asyncMarker,
-      {bool isStatic: false, this.isExternal: false})
+      {bool isStatic = false, this.isExternal = false})
       : super(library, enclosingClass, name, isStatic: isStatic);
 }
 
@@ -276,12 +277,12 @@ class JGenerativeConstructor extends JConstructor {
     JClass enclosingClass = source.readClass();
     String name = source.readString();
     ParameterStructure parameterStructure =
-        new ParameterStructure.readFromDataSource(source);
+        ParameterStructure.readFromDataSource(source);
     bool isExternal = source.readBool();
     bool isConst = source.readBool();
     source.end(tag);
-    return new JGenerativeConstructor(enclosingClass,
-        new Name(name, enclosingClass.library), parameterStructure,
+    return JGenerativeConstructor(
+        enclosingClass, Name(name, enclosingClass.library), parameterStructure,
         isExternal: isExternal, isConst: isConst);
   }
 
@@ -323,13 +324,13 @@ class JFactoryConstructor extends JConstructor {
     JClass enclosingClass = source.readClass();
     String name = source.readString();
     ParameterStructure parameterStructure =
-        new ParameterStructure.readFromDataSource(source);
+        ParameterStructure.readFromDataSource(source);
     bool isExternal = source.readBool();
     bool isConst = source.readBool();
     bool isFromEnvironmentConstructor = source.readBool();
     source.end(tag);
-    return new JFactoryConstructor(enclosingClass,
-        new Name(name, enclosingClass.library), parameterStructure,
+    return JFactoryConstructor(
+        enclosingClass, Name(name, enclosingClass.library), parameterStructure,
         isExternal: isExternal,
         isConst: isConst,
         isFromEnvironmentConstructor: isFromEnvironmentConstructor);
@@ -372,9 +373,9 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
     source.begin(tag);
     JConstructor constructor = source.readMember();
     ParameterStructure parameterStructure =
-        new ParameterStructure.readFromDataSource(source);
+        ParameterStructure.readFromDataSource(source);
     source.end(tag);
-    return new JConstructorBody(constructor, parameterStructure);
+    return JConstructorBody(constructor, parameterStructure);
   }
 
   @override
@@ -420,13 +421,13 @@ class JMethod extends JFunction {
     }
     String name = source.readString();
     ParameterStructure parameterStructure =
-        new ParameterStructure.readFromDataSource(source);
+        ParameterStructure.readFromDataSource(source);
     AsyncMarker asyncMarker = source.readEnum(AsyncMarker.values);
     bool isStatic = source.readBool();
     bool isExternal = source.readBool();
     bool isAbstract = source.readBool();
     source.end(tag);
-    return new JMethod(library, enclosingClass, new Name(name, library),
+    return JMethod(library, enclosingClass, Name(name, library),
         parameterStructure, asyncMarker,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
@@ -479,7 +480,7 @@ class JGeneratorBody extends JFunction {
     JFunction function = source.readMember();
     DartType elementType = source.readDartType();
     source.end(tag);
-    return new JGeneratorBody(function, elementType);
+    return JGeneratorBody(function, elementType);
   }
 
   @override
@@ -530,8 +531,7 @@ class JGetter extends JFunction {
     bool isExternal = source.readBool();
     bool isAbstract = source.readBool();
     source.end(tag);
-    return new JGetter(
-        library, enclosingClass, new Name(name, library), asyncMarker,
+    return JGetter(library, enclosingClass, Name(name, library), asyncMarker,
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
@@ -594,8 +594,7 @@ class JSetter extends JFunction {
     bool isExternal = source.readBool();
     bool isAbstract = source.readBool();
     source.end(tag);
-    return new JSetter(
-        library, enclosingClass, new Name(name, library, isSetter: true),
+    return JSetter(library, enclosingClass, Name(name, library, isSetter: true),
         isStatic: isStatic, isExternal: isExternal, isAbstract: isAbstract);
   }
 
@@ -660,7 +659,7 @@ class JField extends JMember implements FieldEntity, IndexedField {
     bool isAssignable = source.readBool();
     bool isConst = source.readBool();
     source.end(tag);
-    return new JField(library, enclosingClass, new Name(name, library),
+    return JField(library, enclosingClass, Name(name, library),
         isStatic: isStatic, isAssignable: isAssignable, isConst: isConst);
   }
 
@@ -704,11 +703,10 @@ class JClosureCallMethod extends JMethod {
     source.begin(tag);
     JClass enclosingClass = source.readClass();
     ParameterStructure parameterStructure =
-        new ParameterStructure.readFromDataSource(source);
+        ParameterStructure.readFromDataSource(source);
     AsyncMarker asyncMarker = source.readEnum(AsyncMarker.values);
     source.end(tag);
-    return new JClosureCallMethod(
-        enclosingClass, parameterStructure, asyncMarker);
+    return JClosureCallMethod(enclosingClass, parameterStructure, asyncMarker);
   }
 
   @override
@@ -741,7 +739,7 @@ class JSignatureMethod extends JMethod {
     source.begin(tag);
     JClass cls = source.readClass();
     source.end(tag);
-    return new JSignatureMethod(cls);
+    return JSignatureMethod(cls);
   }
 
   @override
@@ -795,7 +793,7 @@ class JTypeVariable extends IndexedTypeVariable {
     String name = source.readString();
     int index = source.readInt();
     source.end(tag);
-    return new JTypeVariable(typeDeclaration, name, index);
+    return JTypeVariable(typeDeclaration, name, index);
   }
 
   /// Serializes this [JTypeVariable] to [sink].
@@ -812,7 +810,7 @@ class JTypeVariable extends IndexedTypeVariable {
     } else if (typeDeclaration == null) {
       sink.writeEnum(JTypeVariableKind.local);
     } else {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           "Unexpected type variable declarer $typeDeclaration.");
     }
     sink.writeString(name);

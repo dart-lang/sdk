@@ -4,6 +4,7 @@ class A<X> {
   A();
   factory A.bar1() => new A();
 }
+
 A<X> Function<X>(X) test1() => A.foo1;
 A<X> Function<X>(X) test2() => A.foo2;
 A<X> Function<X>(X) test3() => A.new;

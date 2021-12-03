@@ -89,7 +89,7 @@ class CustomElementsResolutionAnalysis extends CustomElementsAnalysisBase {
       CommonElements commonElements,
       NativeBasicData nativeData,
       BackendUsageBuilder backendUsageBuilder)
-      : join = new CustomElementsAnalysisJoin(
+      : join = CustomElementsAnalysisJoin(
             elementEnvironment, commonElements, nativeData,
             backendUsageBuilder: backendUsageBuilder),
         super(elementEnvironment, commonElements, nativeData) {
@@ -123,7 +123,7 @@ class CustomElementsCodegenAnalysis extends CustomElementsAnalysisBase {
 
   CustomElementsCodegenAnalysis(CommonElements commonElements,
       ElementEnvironment elementEnvironment, NativeBasicData nativeData)
-      : join = new CustomElementsAnalysisJoin(
+      : join = CustomElementsAnalysisJoin(
             elementEnvironment, commonElements, nativeData),
         super(elementEnvironment, commonElements, nativeData) {
     // TODO(sra): Remove this work-around.  We should mark allClassesSelected in
@@ -154,14 +154,14 @@ class CustomElementsAnalysisJoin {
 
   final bool forResolution;
 
-  final StagedWorldImpactBuilder impactBuilder = new StagedWorldImpactBuilder();
+  final StagedWorldImpactBuilder impactBuilder = StagedWorldImpactBuilder();
 
   // Classes that are candidates for needing constructors.  Classes are moved to
   // [activeClasses] when we know they need constructors.
-  final Set<ClassEntity> instantiatedClasses = new Set<ClassEntity>();
+  final Set<ClassEntity> instantiatedClasses = {};
 
   // Classes explicitly named.
-  final Set<ClassEntity> selectedClasses = new Set<ClassEntity>();
+  final Set<ClassEntity> selectedClasses = {};
 
   // True if we must conservatively include all extension classes.
   bool allClassesSelected = false;
@@ -170,7 +170,7 @@ class CustomElementsAnalysisJoin {
   bool demanded = false;
 
   // ClassesOutput: classes requiring metadata.
-  final Set<ClassEntity> activeClasses = new Set<ClassEntity>();
+  final Set<ClassEntity> activeClasses = {};
 
   CustomElementsAnalysisJoin(
       this._elementEnvironment, this._commonElements, this._nativeData,
@@ -180,7 +180,7 @@ class CustomElementsAnalysisJoin {
 
   WorldImpact flush() {
     if (!demanded) return const WorldImpact();
-    var newActiveClasses = new Set<ClassEntity>();
+    var newActiveClasses = Set<ClassEntity>();
     for (ClassEntity cls in instantiatedClasses) {
       bool isNative = _nativeData.isNativeClass(cls);
       bool isExtension = !isNative && _nativeData.isNativeOrExtendsNative(cls);
@@ -193,8 +193,8 @@ class CustomElementsAnalysisJoin {
         Iterable<ConstructorEntity> escapingConstructors =
             computeEscapingConstructors(cls);
         for (ConstructorEntity constructor in escapingConstructors) {
-          impactBuilder.registerStaticUse(new StaticUse.constructorInvoke(
-              constructor, CallStructure.NO_ARGS));
+          impactBuilder.registerStaticUse(
+              StaticUse.constructorInvoke(constructor, CallStructure.NO_ARGS));
         }
         if (forResolution) {
           escapingConstructors
@@ -203,8 +203,7 @@ class CustomElementsAnalysisJoin {
         // Force the generation of the type constant that is the key to an entry
         // in the generated table.
         ConstantValue constant = _makeTypeConstant(cls);
-        impactBuilder
-            .registerConstantUse(new ConstantUse.customElements(constant));
+        impactBuilder.registerConstantUse(ConstantUse.customElements(constant));
       }
     }
     activeClasses.addAll(newActiveClasses);
@@ -218,7 +217,7 @@ class CustomElementsAnalysisJoin {
   }
 
   List<ConstructorEntity> computeEscapingConstructors(ClassEntity cls) {
-    List<ConstructorEntity> result = <ConstructorEntity>[];
+    List<ConstructorEntity> result = [];
     // Only classes that extend native classes have constructors in the table.
     // We could refine this to classes that extend Element, but that would break
     // the tests and there is no sane reason to subclass other native classes.

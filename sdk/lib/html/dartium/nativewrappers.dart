@@ -19,5 +19,5 @@ class NativeFieldWrapperClass4 extends NativeFieldWrapperClass3 {}
 /// NOTE: This is function is temporary and will be deprecated in the near
 /// future.
 @pragma("vm:recognized", "other")
-int getNativeField(NativeFieldWrapperClass1 object)
-    native "FullyRecognizedMethod_NoNative";
+@pragma("vm:external-name", "FullyRecognizedMethod_NoNative")
+external int _getNativeField(NativeFieldWrapperClass1 object);

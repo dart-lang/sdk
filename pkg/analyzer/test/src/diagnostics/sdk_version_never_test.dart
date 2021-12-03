@@ -11,25 +11,12 @@ import 'sdk_constraint_verifier_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SdkVersionNeverTest);
-    defineReflectiveTests(SdkVersionNeverWithNullSafetyTest);
+    defineReflectiveTests(SdkVersionNeverWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class SdkVersionNeverTest extends SdkConstraintVerifierTest
-    with WithoutNullSafetyMixin {
-  test_languageVersionBeforeNullSafety() async {
-    await verifyVersion('2.7.0', r'''
-Never foo;
-''', expectedErrors: [
-      error(HintCode.SDK_VERSION_NEVER, 0, 5),
-    ]);
-  }
-}
-
-@reflectiveTest
-class SdkVersionNeverWithNullSafetyTest extends SdkConstraintVerifierTest
-    with WithNullSafetyMixin {
+class SdkVersionNeverTest extends SdkConstraintVerifierTest {
   test_experimentEnabled() async {
     await verifyVersion('2.7.0', r'''
 Never foo = (throw 42);
@@ -42,6 +29,18 @@ Never foo = (throw 42);
 Never foo = (throw 42);
 ''', expectedErrors: [
       error(HintCode.SDK_VERSION_NEVER, 15, 5),
+    ]);
+  }
+}
+
+@reflectiveTest
+class SdkVersionNeverWithoutNullSafetyTest extends SdkConstraintVerifierTest
+    with WithoutNullSafetyMixin {
+  test_languageVersionBeforeNullSafety() async {
+    await verifyVersion('2.7.0', r'''
+Never foo;
+''', expectedErrors: [
+      error(HintCode.SDK_VERSION_NEVER, 0, 5),
     ]);
   }
 }

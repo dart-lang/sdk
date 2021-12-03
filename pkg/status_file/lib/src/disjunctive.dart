@@ -102,14 +102,14 @@ LogicExpression _minimizeByComplementation(LogicExpression expression) {
   });
   var combinedMinSets = _combineMinSets(
       clauses.map((e) => [new LogicExpression.and(e)]).toList(), []);
-  List<List<Expression>> minCover = _findMinCover(combinedMinSets, []);
+  List<List<LogicExpression>> minCover = _findMinCover(combinedMinSets, []);
   var finalOperands = minCover.map((minSet) => _reduceMinSet(minSet)).toList();
   return new LogicExpression.or(finalOperands).normalize();
 }
 
 /// Computes all assignments of literals that make the [expression] evaluate to
 /// true.
-List<Expression> _satisfiableMinTerms(Expression expression) {
+List<Expression>? _satisfiableMinTerms(Expression expression) {
   var variables = _getVariables(expression);
   bool hasNotSatisfiableAssignment = false;
   List<Expression> satisfiableTerms = <Expression>[];
@@ -142,7 +142,7 @@ List<Expression> _satisfiableMinTerms(Expression expression) {
 /// which the [variables] was found.
 class TruthTableEnvironment extends Environment {
   final List<Expression> variables;
-  int configuration;
+  int configuration = -1;
 
   TruthTableEnvironment(this.variables);
 
@@ -172,10 +172,10 @@ class TruthTableEnvironment extends Environment {
 /// Combines [minSets] recursively as long as possible. Prime implicants (those
 /// that cannot be reduced further) are kept track of in [primeImplicants]. When
 /// finished the function returns all combined min sets.
-List<List<Expression>> _combineMinSets(
-    List<List<Expression>> minSets, List<List<Expression>> primeImplicants) {
+List<List<LogicExpression>> _combineMinSets(List<List<LogicExpression>> minSets,
+    List<List<LogicExpression>> primeImplicants) {
   List<List<LogicExpression>> combined = <List<LogicExpression>>[];
-  var addedInThisIteration = new Set<List<Expression>>();
+  var addedInThisIteration = new Set<List<LogicExpression>>();
   for (var i = 0; i < minSets.length; i++) {
     var minSet = minSets[i];
     var combinedMinSet = false;
@@ -262,8 +262,9 @@ LogicExpression _reduceMinSet(List<LogicExpression> minSet) {
 /// minimum set cover is NP-hard, and we are not trying to be really cleaver
 /// here. The implicants that cover only a single truth assignment can be
 /// directly added to [cover].
-List<List<Expression>> _findMinCover(
-    List<List<Expression>> primaryImplicants, List<List<Expression>> cover) {
+List<List<LogicExpression>> _findMinCover(
+    List<List<LogicExpression>> primaryImplicants,
+    List<List<LogicExpression>> cover) {
   var minCover = primaryImplicants.toList()..addAll(cover);
   if (cover.isEmpty) {
     var allImplicants = primaryImplicants.toList();
@@ -332,9 +333,9 @@ List<Expression> _difference(List<Expression> As, List<Expression> Bs) {
 
 /// Finds the first occurrence of [expressionToFind] in [expressions] or
 /// returns null.
-Expression _findFirst<Expression>(
+Expression? _findFirst<Expression>(
     expressionToFind, List<Expression> expressions) {
-  return expressions.firstWhere(
+  return expressions.cast<Expression?>().firstWhere(
       (otherExpression) => expressionToFind.compareTo(otherExpression) == 0,
       orElse: () => null);
 }

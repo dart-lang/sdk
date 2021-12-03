@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // VMOptions=--optimization-filter=foo --enable-isolate-groups --no-use-osr --optimization-counter-threshold=1 --deterministic
 
 // Important: This is a regression test for a concurrency issue, if this test

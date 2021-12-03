@@ -3,7 +3,7 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/general/issue44347.dart:8:6: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
 //   Set<int>.();
 //      ^
 //

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -52,11 +54,11 @@ class ReferenceCollector {
 
   /// Construct and return a new [Dependencies] with the given [tokenSignature]
   /// and all recorded references to external nodes in the given AST nodes.
-  Dependencies collect(List<int> tokenSignature,
+  Dependencies collect(Uint8List tokenSignature,
       {String? enclosingClassName,
       String? thisNodeName,
       List<ConstructorInitializer>? constructorInitializers,
-      TypeName? enclosingSuperClass,
+      NamedType? enclosingSuperClass,
       Expression? expression,
       ExtendsClause? extendsClause,
       FormalParameterList? formalParameters,
@@ -66,7 +68,7 @@ class ReferenceCollector {
       OnClause? onClause,
       ConstructorName? redirectedConstructor,
       TypeAnnotation? returnType,
-      TypeName? superClass,
+      NamedType? superClass,
       TypeAnnotation? type,
       TypeParameterList? typeParameters,
       TypeParameterList? typeParameters2,
@@ -86,11 +88,11 @@ class ReferenceCollector {
     _visitTypeParameterList(typeParameters2);
 
     // Parts of classes.
-    _visitTypeAnnotation(extendsClause?.superclass);
+    _visitTypeAnnotation(extendsClause?.superclass2);
     _visitTypeAnnotation(superClass);
-    _visitTypeAnnotations(withClause?.mixinTypes);
-    _visitTypeAnnotations(onClause?.superclassConstraints);
-    _visitTypeAnnotations(implementsClause?.interfaces);
+    _visitTypeAnnotations(withClause?.mixinTypes2);
+    _visitTypeAnnotations(onClause?.superclassConstraints2);
+    _visitTypeAnnotations(implementsClause?.interfaces2);
 
     // Parts of executables.
     _visitFormalParameterList(formalParameters);
@@ -264,7 +266,7 @@ class ReferenceCollector {
   }
 
   /// Record reference to the constructor of the [type] with the given [name].
-  void _visitConstructor(TypeName type, SimpleIdentifier? name) {
+  void _visitConstructor(NamedType type, SimpleIdentifier? name) {
     _visitTypeAnnotation(type);
 
     if (name != null) {
@@ -275,7 +277,7 @@ class ReferenceCollector {
   }
 
   void _visitConstructorInitializers(
-      TypeName? superClass, List<ConstructorInitializer>? initializers) {
+      NamedType? superClass, List<ConstructorInitializer>? initializers) {
     if (initializers == null) return;
 
     for (var i = 0; i < initializers.length; i++) {
@@ -303,7 +305,7 @@ class ReferenceCollector {
   void _visitConstructorName(ConstructorName? node) {
     if (node == null) return;
 
-    _visitConstructor(node.type, node.name);
+    _visitConstructor(node.type2, node.name);
   }
 
   void _visitExpression(Expression? node, {bool get = true, bool set = false}) {
@@ -805,7 +807,7 @@ class ReferenceCollector {
       _visitFormalParameterList(node.parameters);
 
       _localScopes.exit();
-    } else if (node is TypeName) {
+    } else if (node is NamedType) {
       var identifier = node.name;
       _visitExpression(identifier);
       _visitTypeArguments(node.typeArguments);

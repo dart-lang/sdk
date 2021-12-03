@@ -17,9 +17,6 @@ main() {
 @reflectiveTest
 class UnusedElementTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
-  @override
-  bool get enableUnusedElement => true;
-
   test_class_isUsed_extends() async {
     await assertNoErrorsInCode(r'''
 class _A {}
@@ -816,6 +813,18 @@ void main() {
 ''');
   }
 
+  test_method_isUsed_privateExtension_methodCall() async {
+    await assertNoErrorsInCode(r'''
+extension _E on int {
+  void call() {}
+}
+
+void f() {
+  0();
+}
+''');
+  }
+
   test_method_isUsed_privateExtension_operator_assignment() async {
     await assertNoErrorsInCode(r'''
 extension _A on String {
@@ -877,6 +886,18 @@ extension on String {
 }
 void main() {
   "hello".m();
+}
+''');
+  }
+
+  test_method_isUsed_unnamedExtension_methodCall() async {
+    await assertNoErrorsInCode(r'''
+extension on int {
+  void call() {}
+}
+
+void f() {
+  0();
 }
 ''');
   }
@@ -945,6 +966,16 @@ extension _A on bool {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 38, 2),
+    ]);
+  }
+
+  test_method_notUsed_privateExtension_methodCall() async {
+    await assertErrorsInCode(r'''
+extension _E on int {
+  void call() {}
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 29, 4),
     ]);
   }
 

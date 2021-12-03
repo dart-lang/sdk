@@ -20,8 +20,6 @@ class Loader {
   static Dart_Handle InitForSnapshot(const char* snapshot_uri,
                                      IsolateData* isolate_data);
 
-  static Dart_Handle ReloadNativeExtensions();
-
   // A static tag handler that hides all usage of a loader for an isolate.
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                        Dart_Handle library,

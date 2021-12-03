@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:core';
 import 'dart:io' as io;
 import 'dart:isolate';
 import 'dart:math';
@@ -11,7 +10,6 @@ import 'dart:math';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:watcher/watcher.dart';
 
 Future<void> _isolateMain(SendPort sendPort) async {
@@ -33,7 +31,7 @@ class BazelFilePoller {
   final List<String> _candidates;
 
   /// The time of last modification of the file under [_validPath].
-  _TimestampAndLength? _lastModified;
+  _ModifiedInfo? _lastModified;
 
   /// The resource provider used for polling the files.
   final ResourceProvider _provider;
@@ -47,7 +45,7 @@ class BazelFilePoller {
   /// Checks if the file corresponding to the watched path has changed and
   /// returns the event or `null` if nothing changed.
   WatchEvent? poll() {
-    _TimestampAndLength? modified;
+    _ModifiedInfo? modified;
     if (_validPath == null) {
       var info = _pollAll();
       if (info != null) {
@@ -108,22 +106,23 @@ class BazelFilePoller {
 
   /// Returns the modified time of the path or `null` if the file does not
   /// exist.
-  _TimestampAndLength? _pollOne(String path) {
+  _ModifiedInfo? _pollOne(String path) {
     try {
       // This might seem a bit convoluted but is necessary to deal with a
       // symlink to a directory (e.g., `bazel-bin`).
-      var resource = _provider.getResource(
-          _provider.getResource(path).resolveSymbolicLinksSync().path);
-      if (resource is File) {
-        var timestamp = resource.modificationStamp;
-        var length = resource.lengthSync;
-        return _TimestampAndLength(timestamp, length);
-      } else if (resource is Folder) {
+
+      var pathResource = _provider.getResource(path);
+      var symlinkTarget = pathResource.resolveSymbolicLinksSync().path;
+      var resolvedResource = _provider.getResource(symlinkTarget);
+      if (resolvedResource is File) {
+        var timestamp = resolvedResource.modificationStamp;
+        var length = resolvedResource.lengthSync;
+        return _ModifiedInfo(timestamp, length, symlinkTarget);
+      } else if (resolvedResource is Folder) {
         // `ResourceProvider` doesn't currently support getting timestamps of a
-        // folder, so we use a dummy value here. But it's still useful: this
-        // will correctly generate `ADD` or `REMOVE` events (we'll be just
-        // unable to generate any `CHANGE` events).
-        return _TimestampAndLength(0, 0);
+        // folder, so we use a dummy value here. But this shouldn't really
+        // matter, since the `symlinkTarget` should detect any modifications.
+        return _ModifiedInfo(0, 0, symlinkTarget);
       }
     } on FileSystemException catch (_) {
       // File doesn't exist, so return null.
@@ -417,7 +416,7 @@ class BazelWatcherStopWatching implements BazelWatcherMessage {
 
 class FileInfo {
   String path;
-  _TimestampAndLength modified;
+  _ModifiedInfo modified;
   FileInfo(this.path, this.modified);
 }
 
@@ -525,6 +524,46 @@ class _BazelInvocationWatcher implements PollTrigger {
   }
 }
 
+/// Data used to determines if a file has changed.
+///
+/// This turns out to be important for tracking files that change a lot, like
+/// the `command.log` that we use to detect the finished build.  Bazel writes to
+/// the file continuously and because the resolution of a timestamp is pretty
+/// low, it's quite possible to receive the same timestamp even though the file
+/// has changed.  We use its length to remedy that.  It's not perfect (for that
+/// we'd have to compute the hash), but it should be reasonable trade-off (to
+/// avoid any performance impact from reading and hashing the file).
+class _ModifiedInfo {
+  final int timestamp;
+  final int length;
+
+  /// Stores the resolved path in case a symlink or just the path for ordinary
+  /// files.
+  final String symlinkTarget;
+
+  _ModifiedInfo(this.timestamp, this.length, this.symlinkTarget);
+
+  @override
+  int get hashCode =>
+      // We don't really need to compute hashes, just check the equality. But
+      // throw in case someone expects this to work.
+      throw UnimplementedError(
+          '_ModifiedInfo.hashCode has not been implemented yet');
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! _ModifiedInfo) return false;
+    return timestamp == other.timestamp &&
+        length == other.length &&
+        symlinkTarget == other.symlinkTarget;
+  }
+
+  // For debugging only.
+  @override
+  String toString() => '_ModifiedInfo('
+      'timestamp=$timestamp, length=$length, symlinkTarget=$symlinkTarget)';
+}
+
 class _Multiset<T> {
   final _counts = <T, int>{};
 
@@ -562,37 +601,4 @@ class _PerWorkspaceData {
   final StreamSubscription<Object> pollSubscription;
 
   _PerWorkspaceData(this.trigger, this.pollSubscription);
-}
-
-/// Stores the timestamp of a file and its length.
-///
-/// This turns out to be important for tracking files that change a lot, like
-/// the `command.log` that we use to detect the finished build.  Bazel writes to
-/// the file continuously and because the resolution of a timestamp is pretty
-/// low, it's quite possible to receive the same timestamp even though the file
-/// has changed.  We use its length to remedy that.  It's not perfect (for that
-/// we'd have to compute the hash), but it should be reasonable trade-off (to
-/// avoid any performance impact from reading and hashing the file).
-class _TimestampAndLength {
-  final int timestamp;
-  final int length;
-  _TimestampAndLength(this.timestamp, this.length);
-
-  @override
-  int get hashCode =>
-      // We don't really need to compute hashes, just check the equality. But
-      // throw in case someone expects this to work.
-      throw UnimplementedError(
-          '_TimestampAndLength.hashCode has not been implemented yet');
-
-  @override
-  bool operator ==(Object other) {
-    if (other is! _TimestampAndLength) return false;
-    return timestamp == other.timestamp && length == other.length;
-  }
-
-  // For debugging only.
-  @override
-  String toString() =>
-      '_TimestampAndLength(timestamp=$timestamp, length=$length)';
 }

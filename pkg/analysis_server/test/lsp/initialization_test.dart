@@ -91,6 +91,51 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(nonDartOptions.triggerCharacters, isNull);
   }
 
+  Future<void> test_completionRegistrations_withDartPlugin() async {
+    // This tests for a bug that occurred with an analysis server plugin
+    // that works on Dart files. When computing completion registrations we
+    // usually have seperate registrations for Dart + non-Dart to account for
+    // different trigger characters. However, the plugin types were all being
+    // included in the non-Dart registration even if they included Dart.
+    //
+    // The result was two registrations including Dart, which caused duplicate
+    // requests for Dart completions, which resulted in duplicate items
+    // appearing in the editor.
+
+    // Track all current registrations.
+    final registrations = <Registration>[];
+
+    // Perform normal registration (without plugins) to get the initial set.
+    await monitorDynamicRegistrations(
+      registrations,
+      () => initialize(
+        textDocumentCapabilities:
+            withAllSupportedTextDocumentDynamicRegistrations(
+                emptyTextDocumentClientCapabilities),
+      ),
+    );
+
+    // Expect only a single registration that includes Dart files.
+    expect(
+      registrationsForDart(registrations, Method.textDocument_completion),
+      hasLength(1),
+    );
+
+    // Monitor the unregistration/new registrations during the plugin activation.
+    await monitorDynamicReregistration(registrations, () async {
+      final plugin = configureTestPlugin();
+      plugin.currentSession = PluginSession(plugin)
+        ..interestingFiles = ['*.dart'];
+      pluginManager.pluginsChangedController.add(null);
+    });
+
+    // Expect that there is still only a single registration for Dart.
+    expect(
+      registrationsForDart(registrations, Method.textDocument_completion),
+      hasLength(1),
+    );
+  }
+
   Future<void> test_dynamicRegistration_containsAppropriateSettings() async {
     // Basic check that the server responds with the capabilities we'd expect,
     // for ex including analysis_options.yaml in text synchronization but not
@@ -601,6 +646,25 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Because the file is not in a project, it should be added itself.
     await openFile(Uri.file(file1), '');
     expect(server.contextManager.includedPaths, equals([file1]));
+  }
+
+  Future<void> test_onlyAnalyzeProjectsWithOpenFiles_fullyInitializes() async {
+    // Ensure when we use onlyAnalyzeProjectsWithOpenFiles that we still
+    // fully initialize (eg. capabilities are registered).
+    projectFolderPath = convertPath('/home/empty');
+
+    await expectRequest(
+      Method.client_registerCapability,
+      () => initialize(
+        rootUri: projectFolderUri,
+        initializationOptions: {'onlyAnalyzeProjectsWithOpenFiles': true},
+        // Enable some dynamic registrations, else registerCapability will not
+        // be called.
+        textDocumentCapabilities:
+            withAllSupportedTextDocumentDynamicRegistrations(
+                emptyTextDocumentClientCapabilities),
+      ),
+    );
   }
 
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_multipleFiles() async {

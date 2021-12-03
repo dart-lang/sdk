@@ -49,7 +49,7 @@ class D extends self::C {
     return x;
 }
 static method main() → dynamic {
-  core::int* y = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:18:73: Error: Expected 0 type arguments.
+  core::int* y = invalid-expression "pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:18:73: Error: Expected 0 type arguments.
       . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D.m*/ m<int>(
                                                                         ^" in new self::D::•().{self::D::m}{<inapplicable>}.<core::int*>(42){(invalid-type) →* invalid-type};
   core::print(y);

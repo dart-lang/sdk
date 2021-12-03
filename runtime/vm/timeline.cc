@@ -1052,6 +1052,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   Dart_FileWriteCallback file_write = Dart::file_write_callback();
   Dart_FileCloseCallback file_close = Dart::file_close_callback();
   if ((file_open == NULL) || (file_write == NULL) || (file_close == NULL)) {
+    OS::PrintErr("warning: Could not access file callbacks.");
     return;
   }
 
@@ -1062,7 +1063,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
       OS::SCreate(NULL, "%s/dart-timeline-%" Pd ".json", directory, pid);
   void* file = (*file_open)(filename, true);
   if (file == NULL) {
-    OS::PrintErr("Failed to write timeline file: %s\n", filename);
+    OS::PrintErr("warning: Failed to write timeline file: %s\n", filename);
     free(filename);
     return;
   }
@@ -1121,8 +1122,10 @@ TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
 
   intptr_t size = Utils::RoundUp(num_blocks_ * sizeof(TimelineEventBlock),
                                  VirtualMemory::PageSize());
-  const bool kNotExecutable = false;
-  memory_ = VirtualMemory::Allocate(size, kNotExecutable, "dart-timeline");
+  const bool executable = false;
+  const bool compressed = false;
+  memory_ =
+      VirtualMemory::Allocate(size, executable, compressed, "dart-timeline");
   if (memory_ == NULL) {
     OUT_OF_MEMORY();
   }
@@ -1511,47 +1514,9 @@ void TimelineEventBlock::Finish() {
   if (Service::timeline_stream.enabled()) {
     ServiceEvent service_event(ServiceEvent::kTimelineEvents);
     service_event.set_timeline_event_block(this);
-    Service::HandleEvent(&service_event);
+    Service::HandleEvent(&service_event, /* enter_safepoint */ false);
   }
 #endif
-}
-
-TimelineEventBlockIterator::TimelineEventBlockIterator(
-    TimelineEventRecorder* recorder)
-    : current_(NULL), recorder_(NULL) {
-  Reset(recorder);
-}
-
-TimelineEventBlockIterator::~TimelineEventBlockIterator() {
-  Reset(NULL);
-}
-
-void TimelineEventBlockIterator::Reset(TimelineEventRecorder* recorder) {
-  // Clear current.
-  current_ = NULL;
-  if (recorder_ != NULL) {
-    // Unlock old recorder.
-    recorder_->lock_.Unlock();
-  }
-  recorder_ = recorder;
-  if (recorder_ == NULL) {
-    return;
-  }
-  // Lock new recorder.
-  recorder_->lock_.Lock();
-  // Queue up first block.
-  current_ = recorder_->GetHeadBlockLocked();
-}
-
-bool TimelineEventBlockIterator::HasNext() const {
-  return current_ != NULL;
-}
-
-TimelineEventBlock* TimelineEventBlockIterator::Next() {
-  ASSERT(current_ != NULL);
-  TimelineEventBlock* r = current_;
-  current_ = current_->next();
-  return r;
 }
 
 void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,

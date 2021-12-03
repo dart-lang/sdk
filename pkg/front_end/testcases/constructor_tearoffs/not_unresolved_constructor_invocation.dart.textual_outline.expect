@@ -1,0 +1,20 @@
+class ResolvedClass<T> {
+  ResolvedClass.named();
+  static unresolvedConstructor() {}
+}
+
+UnresolvedClass<T>() {}
+
+extension Extension on Function {
+  unresolvedConstructor() {}
+}
+
+class unresolved_prefix {
+  static UnresolvedClass<T>() {}
+}
+
+class resolved_prefix {
+  static UnresolvedClass<T>() {}
+}
+
+main() {}

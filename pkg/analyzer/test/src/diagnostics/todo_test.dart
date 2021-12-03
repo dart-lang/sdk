@@ -15,6 +15,26 @@ main() {
 
 @reflectiveTest
 class TodoTest extends PubPackageResolutionTest {
+  test_fixme() async {
+    await assertErrorsInCode(r'''
+main() {
+  // FIXME: Implement
+}
+''', [
+      error(TodoCode.FIXME, 14, 16, text: 'FIXME: Implement'),
+    ]);
+  }
+
+  test_hack() async {
+    await assertErrorsInCode(r'''
+main() {
+  // HACK: This is a hack
+}
+''', [
+      error(TodoCode.HACK, 14, 20, text: 'HACK: This is a hack'),
+    ]);
+  }
+
   test_todo_multiLineComment() async {
     await assertErrorsInCode(r'''
 main() {
@@ -160,6 +180,16 @@ main() {
           text: 'TODO: Implement something that is too long for one line'),
       error(TodoCode.TODO, 220, 61,
           text: 'TODO: Implement something that is too long for one line'),
+    ]);
+  }
+
+  test_undone() async {
+    await assertErrorsInCode(r'''
+main() {
+  // UNDONE: This was undone
+}
+''', [
+      error(TodoCode.UNDONE, 14, 23, text: 'UNDONE: This was undone'),
     ]);
   }
 }

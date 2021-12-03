@@ -36,7 +36,7 @@ import "package:front_end/src/fasta/dill/dill_loader.dart" show DillLoader;
 
 import "package:front_end/src/fasta/dill/dill_target.dart" show DillTarget;
 
-import "package:front_end/src/fasta/kernel/kernel_builder.dart"
+import "package:front_end/src/fasta/kernel/class_hierarchy_builder.dart"
     show ClassHierarchyBuilder;
 
 import "package:front_end/src/fasta/ticker.dart" show Ticker;
@@ -55,6 +55,7 @@ class SubtypeCheck {
 
   SubtypeCheck(this.s, this.t, this.isSubtype);
 
+  @override
   String toString() {
     return (new StringBuffer()
           ..write(s)
@@ -177,4 +178,4 @@ Future<void> run(Uri benchmarkInput, String name) async {
       "${fastaWatch.elapsedMilliseconds / runs} ms");
 }
 
-main() => run(Uri.base.resolve("type_checks.json"), "***");
+void main() => run(Uri.base.resolve("type_checks.json"), "***");

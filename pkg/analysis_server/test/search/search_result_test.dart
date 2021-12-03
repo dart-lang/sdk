@@ -26,6 +26,10 @@ class SearchResultKindTest {
         SearchResultKind.WRITE);
     expect(newSearchResultKind_fromEngine(MatchKind.REFERENCE),
         SearchResultKind.REFERENCE);
+    expect(
+        newSearchResultKind_fromEngine(
+            MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF),
+        SearchResultKind.REFERENCE);
     expect(newSearchResultKind_fromEngine(MatchKind.INVOCATION),
         SearchResultKind.INVOCATION);
   }

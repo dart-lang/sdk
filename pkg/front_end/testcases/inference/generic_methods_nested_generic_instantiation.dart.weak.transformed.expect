@@ -39,15 +39,11 @@ class Frame extends core::Object {
 static method main() → dynamic {
   core::List<self::Trace*>* traces = core::_GrowableList::•<self::Trace*>(0);
   core::int* longest = traces.{core::Iterable::map}<core::int*>((self::Trace* trace) → core::int* {
-    return trace.{self::Trace::frames}{core::List<self::Frame*>*}.{core::Iterable::map}<core::int*>((self::Frame* frame) → core::int* => frame.{self::Frame::location}{core::String*}.{core::String::length}{core::int*}){((self::Frame*) →* core::int*) →* core::Iterable<core::int*>*}.{core::Iterable::fold}<core::int*>(0, #C1<core::int*>){(core::int*, (core::int*, core::int*) →* core::int*) →* core::int*};
-  }){((self::Trace*) →* core::int*) →* core::Iterable<core::int*>*}.{core::Iterable::fold}<core::int*>(0, #C1<core::int*>){(core::int*, (core::int*, core::int*) →* core::int*) →* core::int*};
+    return trace.{self::Trace::frames}{core::List<self::Frame*>*}.{core::Iterable::map}<core::int*>((self::Frame* frame) → core::int* => frame.{self::Frame::location}{core::String*}.{core::String::length}{core::int*}){((self::Frame*) →* core::int*) →* core::Iterable<core::int*>*}.{core::Iterable::fold}<core::int*>(0, #C2){(core::int*, (core::int*, core::int*) →* core::int*) →* core::int*};
+  }){((self::Trace*) →* core::int*) →* core::Iterable<core::int*>*}.{core::Iterable::fold}<core::int*>(0, #C2){(core::int*, (core::int*, core::int*) →* core::int*) →* core::int*};
 }
 
 constants  {
   #C1 = static-tearoff math::max
+  #C2 = instantiation #C1 <core::int*>
 }
-
-Extra constant evaluation status:
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_nested_generic_instantiation.dart:28:71 -> InstantiationConstant(max<int*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_nested_generic_instantiation.dart:29:67 -> InstantiationConstant(max<int*>)
-Extra constant evaluation: evaluated: 16, effectively constant: 2

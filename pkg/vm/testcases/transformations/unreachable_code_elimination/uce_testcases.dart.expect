@@ -21,7 +21,7 @@ static method testSimpleConditions() → void {
   }
 }
 static method testAndConditions() → void {
-  if((#C1) && self::foo()!) {
+  if(#C1 && self::foo()!) {
     core::print("1_yes");
   }
 }
@@ -29,7 +29,7 @@ static method testOrConditions() → void {
   {
     core::print("1_yes");
   }
-  if((#C2) || self::foo()!) {
+  if(#C2 || self::foo()!) {
     core::print("2_yes");
   }
   {

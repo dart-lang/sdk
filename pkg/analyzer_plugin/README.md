@@ -28,7 +28,7 @@ Questions and discussions are welcome at the
 See the [LICENSE] file.
 
 [issues]: https://github.com/dart-lang/sdk/issues
-[LICENSE]: https://github.com/dart-lang/sdk/blob/master/pkg/analyzer/LICENSE
+[LICENSE]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/LICENSE
 [list]: https://groups.google.com/a/dartlang.org/forum/#!forum/analyzer-discuss
-[pluginapi]: https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analyzer_plugin/doc/api.html
-[tutorial]: https://github.com/dart-lang/sdk/blob/master/pkg/analyzer_plugin/doc/tutorial/tutorial.md
+[pluginapi]: https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/main/pkg/analyzer_plugin/doc/api.html
+[tutorial]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer_plugin/doc/tutorial/tutorial.md

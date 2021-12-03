@@ -7,8 +7,8 @@
 @patch
 class Function {
   // TODO(regis): Pass type arguments to generic functions. Wait for API spec.
-  static _apply(List<dynamic>? arguments, List<dynamic>? names)
-      native "Function_apply";
+  @pragma("vm:external-name", "Function_apply")
+  external static _apply(List<dynamic>? arguments, List<dynamic>? names);
 
   @patch
   static apply(Function function, List<dynamic>? positionalArguments,

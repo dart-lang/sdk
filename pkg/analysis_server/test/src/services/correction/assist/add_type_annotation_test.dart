@@ -376,6 +376,19 @@ void f() {
     await assertNoAssistAt('var ');
   }
 
+  Future<void> test_local_multiple_same_type() async {
+    await resolveTestCode('''
+void f() {
+  var a = '', b = '';
+}
+''');
+    await assertHasAssistAt('var ', '''
+void f() {
+  String a = '', b = '';
+}
+''');
+  }
+
   Future<void> test_local_noInitializer_noAssignments() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''

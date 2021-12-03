@@ -18,7 +18,7 @@ class Class extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class GenericClass<T extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field self::GenericClass::T* field;
+  covariant-by-class field self::GenericClass::T* field;
   synthetic constructor •() → self::GenericClass<self::GenericClass::T*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

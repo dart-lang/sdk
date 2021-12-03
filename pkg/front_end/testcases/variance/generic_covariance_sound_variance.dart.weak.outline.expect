@@ -16,7 +16,7 @@ class A<contravariant T extends core::Object? = dynamic, U extends core::Object?
   final field (self::A::T%) →? void field;
   synthetic constructor •() → self::A<self::A::T%, self::A::U%, self::A::V%>
     ;
-  method method(self::A::T% t, (self::A::U%) → void u, generic-covariant-impl self::A::V% v) → void
+  method method(self::A::T% t, (self::A::U%) → void u, covariant-by-class self::A::V% v) → void
     ;
   method method2(self::A::T% x, [self::A::T? y]) → void
     ;
@@ -52,7 +52,7 @@ class C<contravariant T extends core::Object? = dynamic> extends core::Object {
 abstract class D<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::D<self::D::T%>
     ;
-  abstract method method(generic-covariant-impl self::D::T% x) → core::int;
+  abstract method method(covariant-by-class self::D::T% x) → core::int;
 }
 class E<invariant T extends core::Object? = dynamic> extends core::Object {
   final field (self::E::T%) → void f;
@@ -64,7 +64,7 @@ class E<invariant T extends core::Object? = dynamic> extends core::Object {
 class F<invariant T extends core::Object? = dynamic> extends self::E<self::F::T%> implements self::D<self::F::T%> {
   constructor •((self::F::T%) → void f) → self::F<self::F::T%>
     ;
-  forwarding-stub method method(generic-covariant-impl self::F::T% x) → core::int
+  forwarding-stub method method(covariant-by-class self::F::T% x) → core::int
     return super.{self::E::method}(x);
 }
 class NoSuchMethod<invariant T extends core::Object? = dynamic> extends core::Object implements self::B<self::NoSuchMethod::T%> {
@@ -91,14 +91,14 @@ Extra constant evaluation status:
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:22:6 -> SymbolConstant(#x)
 Evaluated: ListLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:22:6 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:22:6 -> ListConstant(const <dynamic>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:22:6 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:22:6 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:23:5 -> SymbolConstant(#method)
 Evaluated: ListLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:23:5 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:23:5 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:23:5 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:24:12 -> SymbolConstant(#y=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:24:12 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:24:12 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:24:12 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:22:6 -> SymbolConstant(#x=)
 Evaluated: ListLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:22:6 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:22:6 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///generic_covariance_sound_variance.dart:22:6 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 42, effectively constant: 13

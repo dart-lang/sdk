@@ -30,7 +30,7 @@ const p = C<int>.fact;
 const q = C.redirect;
 const r = C<int>.redirect;
 
-main() {
+test() {
   var a = A.new;
   var b = A<int>.new;
   var c = A.fact;
@@ -50,3 +50,5 @@ main() {
   var q = C.redirect;
   var r = C<int>.redirect;
 }
+
+main() {}

@@ -23,7 +23,7 @@ main() {
 }
 
 @reflectiveTest
-class IsNonNullableTest extends AbstractTypeSystemNullSafetyTest {
+class IsNonNullableTest extends AbstractTypeSystemTest {
   void isNonNullable(DartType type) {
     expect(typeSystem.isNonNullable(type), isTrue);
   }
@@ -188,7 +188,7 @@ class IsNonNullableTest extends AbstractTypeSystemNullSafetyTest {
 }
 
 @reflectiveTest
-class IsNullableTest extends AbstractTypeSystemNullSafetyTest {
+class IsNullableTest extends AbstractTypeSystemTest {
   void isNotNullable(DartType type) {
     expect(typeSystem.isNullable(type), isFalse);
   }
@@ -353,7 +353,7 @@ class IsNullableTest extends AbstractTypeSystemNullSafetyTest {
 }
 
 @reflectiveTest
-class IsPotentiallyNonNullableTest extends AbstractTypeSystemNullSafetyTest {
+class IsPotentiallyNonNullableTest extends AbstractTypeSystemTest {
   void isNotPotentiallyNonNullable(DartType type) {
     expect(typeSystem.isPotentiallyNonNullable(type), isFalse);
   }
@@ -400,7 +400,7 @@ class IsPotentiallyNonNullableTest extends AbstractTypeSystemNullSafetyTest {
 }
 
 @reflectiveTest
-class IsPotentiallyNullableTest extends AbstractTypeSystemNullSafetyTest {
+class IsPotentiallyNullableTest extends AbstractTypeSystemTest {
   void isNotPotentiallyNullable(DartType type) {
     expect(typeSystem.isPotentiallyNullable(type), isFalse);
   }
@@ -447,7 +447,7 @@ class IsPotentiallyNullableTest extends AbstractTypeSystemNullSafetyTest {
 }
 
 @reflectiveTest
-class IsStrictlyNonNullableTest extends AbstractTypeSystemNullSafetyTest {
+class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
   void isNotStrictlyNonNullable(DartType type) {
     expect(typeSystem.isStrictlyNonNullable(type), isFalse);
   }
@@ -594,7 +594,7 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemNullSafetyTest {
 }
 
 @reflectiveTest
-class PromoteToNonNullTest extends AbstractTypeSystemNullSafetyTest {
+class PromoteToNonNullTest extends AbstractTypeSystemTest {
   test_dynamic() {
     _check(dynamicType, dynamicType);
   }

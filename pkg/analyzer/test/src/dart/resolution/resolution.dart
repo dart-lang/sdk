@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -9,7 +10,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -44,9 +44,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Element get dynamicElement => typeProvider.dynamicType.element!;
 
-  bool get enableUnusedElement => false;
-
-  bool get enableUnusedLocalVariable => false;
+  FeatureSet get featureSet => result.libraryElement.featureSet;
 
   ClassElement get futureElement => typeProvider.futureElement;
 
@@ -57,11 +55,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get intType => typeProvider.intType;
 
-  bool get isNullSafetySdkAndLegacyLibrary {
-    if (FeatureSetProvider.isNullSafetySdk) {
-      return !result.libraryElement.isNonNullableByDefault;
-    }
-    return false;
+  bool get isLegacyLibrary {
+    return !result.libraryElement.isNonNullableByDefault;
   }
 
   ClassElement get listElement => typeProvider.listElement;
@@ -155,14 +150,43 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertConstructorElement(
-      ConstructorElement? expected, ConstructorElement? actual) {
-    if (expected is ConstructorMember && actual is ConstructorMember) {
-      expect(expected.declaration, same(actual.declaration));
+  void assertConstructorElement(ConstructorElement? actual, Object? expected) {
+    if (actual is ConstructorMember && expected is ConstructorMember) {
+      expect(actual.declaration, same(expected.declaration));
       // TODO(brianwilkerson) Compare the type arguments of the two members.
     } else {
-      expect(expected, same(actual));
+      assertElement(actual, expected);
     }
+  }
+
+  void assertConstructorReference(
+    ConstructorReference node,
+    Object? expectedConstructorElement,
+    ClassElement expectedClassElement,
+    String expectedType, {
+    PrefixElement? expectedPrefix,
+    Element? expectedTypeNameElement,
+  }) {
+    var actualConstructorName = node.constructorName.name;
+    if (actualConstructorName != null) {
+      assertConstructorElement(
+        actualConstructorName.staticElement as ConstructorElement?,
+        expectedConstructorElement,
+      );
+    }
+
+    assertElement(node, expectedConstructorElement);
+    assertType(node, expectedType);
+
+    var namedType = node.constructorName.type2;
+    expectedTypeNameElement ??= expectedClassElement;
+    assertNamedType(
+      namedType, expectedTypeNameElement,
+      // The [NamedType] child node of the [ConstructorName] should not have a
+      // static type.
+      null,
+      expectedPrefix: expectedPrefix,
+    );
   }
 
   void assertConstructors(ClassElement class_, List<String> expected) {
@@ -243,21 +267,18 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(str, expected);
   }
 
-  void assertElementTypes(List<DartType> types, List<DartType> expected,
+  void assertElementTypes(List<DartType>? types, List<String> expected,
       {bool ordered = false}) {
-    if (ordered) {
-      expect(types, expected);
-    } else {
-      expect(types, unorderedEquals(expected));
-    }
-  }
-
-  void assertElementTypeStrings(List<DartType>? types, List<String> expected) {
     if (types == null) {
       fail('Expected types, actually null.');
     }
 
-    expect(types.map(typeString).toList(), expected);
+    var typeStrList = types.map(typeString).toList();
+    if (ordered) {
+      expect(typeStrList, expected);
+    } else {
+      expect(typeStrList, unorderedEquals(expected));
+    }
   }
 
   void assertEnclosingElement(Element element, Element expectedEnclosing) {
@@ -324,7 +345,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }) {
     assertElement(node, element);
     assertType(node.extendedType, extendedType);
-    assertElementTypeStrings(node.typeArgumentTypes, typeArgumentTypes);
+    assertElementTypes(node.typeArgumentTypes, typeArgumentTypes);
   }
 
   void assertFunctionExpressionInvocation(
@@ -341,8 +362,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertFunctionReference(
-      FunctionReference node, Element expectedElement, String expectedType) {
-    assertElement(node, expectedElement);
+      FunctionReference node, Element? expectedElement, String expectedType) {
+    if (expectedElement != null) {
+      assertElement(node, expectedElement);
+    }
     assertType(node, expectedType);
   }
 
@@ -364,6 +387,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     var type = typeString(setter.parameters[0].type);
     assertType(ref, type);
+  }
+
+  void assertImplicitCallReference(ImplicitCallReference node,
+      Element? expectedElement, String expectedType) {
+    assertElement(node, expectedElement);
+    assertType(node, expectedType);
   }
 
   /// In valid code [element] must be a [PrefixElement], but for invalid code
@@ -400,6 +429,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
+  /// TODO(srawlins): Refactor to accept an `Object? expectedConstructor` which
+  /// can accept `elementMatcher` for generics, and simplify, similar to
+  /// [assertConstructorReference].
   void assertInstanceCreation(
     InstanceCreationExpression creation,
     ClassElement expectedClassElement,
@@ -410,22 +442,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     PrefixElement? expectedPrefix,
     Element? expectedTypeNameElement,
   }) {
-    String expectedClassName = expectedClassElement.name;
-
-    ConstructorElement? expectedConstructorElement;
-    if (constructorName != null) {
-      expectedConstructorElement =
-          expectedClassElement.getNamedConstructor(constructorName);
-      if (expectedConstructorElement == null) {
-        fail("No constructor '$constructorName' in class"
-            " '$expectedClassName'.");
-      }
-    } else {
-      expectedConstructorElement = expectedClassElement.unnamedConstructor;
-      if (expectedConstructorElement == null) {
-        fail("No unnamed constructor in class '$expectedClassName'.");
-      }
-    }
+    var expectedConstructorElement =
+        _getConstructorElement(expectedClassElement, constructorName);
 
     var actualConstructorElement =
         getNodeElement(creation) as ConstructorElement?;
@@ -453,9 +471,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     assertType(creation, expectedType);
 
-    var typeName = creation.constructorName.type;
+    var namedType = creation.constructorName.type2;
     expectedTypeNameElement ??= expectedClassElement;
-    assertTypeName(typeName, expectedTypeNameElement, expectedType,
+    assertNamedType(namedType, expectedTypeNameElement, expectedType,
         expectedPrefix: expectedPrefix);
   }
 
@@ -562,6 +580,29 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var ref = findNode.simple(search);
     assertElement(ref, findElement.parameter(name));
     assertTypeNull(ref);
+  }
+
+  void assertNamedType(
+      NamedType node, Element? expectedElement, String? expectedType,
+      {Element? expectedPrefix}) {
+    assertType(node, expectedType);
+
+    if (expectedPrefix == null) {
+      var name = node.name as SimpleIdentifier;
+      assertElement(name, expectedElement);
+      // TODO(scheglov) Should this be null?
+//      assertType(name, expectedType);
+    } else {
+      var name = node.name as PrefixedIdentifier;
+      assertImportPrefix(name.prefix, expectedPrefix);
+      assertElement(name.identifier, expectedElement);
+
+      // TODO(scheglov) This should be null, but it is not.
+      // ResolverVisitor sets the tpe for `Bar` in `new foo.Bar()`. This is
+      // probably wrong. It is fine for the TypeName `foo.Bar` to have a type,
+      // and for `foo.Bar()` to have a type. But not a name of a type? No.
+//      expect(name.identifier.staticType, isNull);
+    }
   }
 
   void assertNamespaceDirectiveSelected(
@@ -732,7 +773,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
       actual = typeOrNode.staticType;
     } else if (typeOrNode is GenericFunctionType) {
       actual = typeOrNode.type;
-    } else if (typeOrNode is TypeName) {
+    } else if (typeOrNode is NamedType) {
       actual = typeOrNode.type;
     } else {
       fail('Unsupported node: (${typeOrNode.runtimeType}) $typeOrNode');
@@ -755,7 +796,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     required List<String> typeArguments,
   }) {
     assertElement2(type.alias?.element, declaration: element);
-    assertElementTypeStrings(type.alias?.typeArguments, typeArguments);
+    assertElementTypes(type.alias?.typeArguments, typeArguments);
   }
 
   /// Assert that the given [identifier] is a reference to a type alias, in the
@@ -797,31 +838,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       TypeLiteral node, Element? expectedElement, String expectedType,
       {Element? expectedPrefix}) {
     assertType(node, 'Type');
-    assertTypeName(node.typeName, expectedElement, expectedType,
+    assertNamedType(node.type, expectedElement, expectedType,
         expectedPrefix: expectedPrefix);
-  }
-
-  void assertTypeName(
-      TypeName node, Element? expectedElement, String expectedType,
-      {Element? expectedPrefix}) {
-    assertType(node, expectedType);
-
-    if (expectedPrefix == null) {
-      var name = node.name as SimpleIdentifier;
-      assertElement(name, expectedElement);
-      // TODO(scheglov) Should this be null?
-//      assertType(name, expectedType);
-    } else {
-      var name = node.name as PrefixedIdentifier;
-      assertImportPrefix(name.prefix, expectedPrefix);
-      assertElement(name.identifier, expectedElement);
-
-      // TODO(scheglov) This should be null, but it is not.
-      // ResolverVisitor sets the tpe for `Bar` in `new foo.Bar()`. This is
-      // probably wrong. It is fine for the TypeName `foo.Bar` to have a type,
-      // and for `foo.Bar()` to have a type. But not a name of a type? No.
-//      expect(name.identifier.staticType, isNull);
-    }
   }
 
   void assertTypeNull(Expression node) {
@@ -843,11 +861,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   ExpectedError error(ErrorCode code, int offset, int length,
-          {String? text,
-          Pattern? messageContains,
+          {Pattern? correctionContains,
+          String? text,
+          List<Pattern> messageContains = const [],
           List<ExpectedContextMessage> contextMessages =
               const <ExpectedContextMessage>[]}) =>
       ExpectedError(code, offset, length,
+          correctionContains: correctionContains,
           message: text,
           messageContains: messageContains,
           expectedContextMessages: contextMessages);
@@ -870,6 +890,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.staticElement;
     } else if (node is BinaryExpression) {
       return node.staticElement;
+    } else if (node is ConstructorReference) {
+      return node.constructorName.staticElement;
     } else if (node is Declaration) {
       return node.declaredElement;
     } else if (node is ExtensionOverride) {
@@ -879,15 +901,19 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else if (node is FunctionExpressionInvocation) {
       return node.staticElement;
     } else if (node is FunctionReference) {
-      var function = node.function;
+      var function = node.function.unParenthesized;
       if (function is Identifier) {
         return function.staticElement;
       } else if (function is PropertyAccess) {
         return function.propertyName.staticElement;
+      } else if (function is ConstructorReference) {
+        return function.constructorName.staticElement;
       } else {
-        fail('Unsupported node: (${node.runtimeType}) $node');
+        fail('Unsupported node: (${function.runtimeType}) $function');
       }
     } else if (node is Identifier) {
+      return node.staticElement;
+    } else if (node is ImplicitCallReference) {
       return node.staticElement;
     } else if (node is IndexExpression) {
       return node.staticElement;
@@ -901,7 +927,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.staticElement;
     } else if (node is PropertyAccess) {
       return node.propertyName.staticElement;
-    } else if (node is TypeName) {
+    } else if (node is NamedType) {
       return node.name.staticElement;
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
@@ -922,7 +948,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     path = convertPath(path);
 
     result = await resolveFile(path);
-    expect(result.state, ResultState.VALID);
 
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
@@ -980,6 +1005,16 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Never _failNotSimpleIdentifier(AstNode node) {
     fail('Expected SimpleIdentifier: (${node.runtimeType}) $node');
+  }
+
+  ConstructorElement _getConstructorElement(
+      ClassElement classElement, String? constructorName) {
+    var constructorElement = constructorName == null
+        ? classElement.unnamedConstructor
+        : classElement.getNamedConstructor(constructorName);
+    return constructorElement ??
+        fail("No constructor '${constructorName ?? '<unnamed>'}' in class "
+            "'${classElement.name}'.");
   }
 
   static String _extractReturnType(String invokeType) {

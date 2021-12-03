@@ -134,7 +134,7 @@ location at which an identifier is defined.
 
 Navigation information can be requested both by an `analysis.getNavigation`
 request and by a subscription. If the server has subscribed for navigation
-information in some set of files, the the plugin should send the information in
+information in some set of files, then the plugin should send the information in
 an `analysis.navigation` notification whenever the information needs to be
 updated.
 
@@ -215,4 +215,4 @@ There is a tutorial explaining how to implement [assists][assists].
 [completion]: completion.md
 [fixes]: fixes.md
 [navigation]: navigation.md
-[pluginapi]: https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analyzer_plugin/doc/api.html
+[pluginapi]: https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/main/pkg/analyzer_plugin/doc/api.html

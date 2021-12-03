@@ -36,61 +36,50 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
 
   void registerMapLiteral(MapLiteralUse mapLiteralUse) {
     assert(mapLiteralUse != null);
-    _mapLiterals ??= new Setlet<MapLiteralUse>();
+    _mapLiterals ??= Setlet();
     _mapLiterals.add(mapLiteralUse);
   }
 
   @override
-  Iterable<MapLiteralUse> get mapLiterals {
-    return _mapLiterals != null ? _mapLiterals : const <MapLiteralUse>[];
-  }
+  Iterable<MapLiteralUse> get mapLiterals => _mapLiterals ?? const [];
 
   void registerSetLiteral(SetLiteralUse setLiteralUse) {
     assert(setLiteralUse != null);
-    _setLiterals ??= new Setlet<SetLiteralUse>();
+    _setLiterals ??= Setlet();
     _setLiterals.add(setLiteralUse);
   }
 
   @override
-  Iterable<SetLiteralUse> get setLiterals =>
-      _setLiterals ?? const <SetLiteralUse>[];
+  Iterable<SetLiteralUse> get setLiterals => _setLiterals ?? const [];
 
   void registerListLiteral(ListLiteralUse listLiteralUse) {
     assert(listLiteralUse != null);
-    _listLiterals ??= new Setlet<ListLiteralUse>();
+    _listLiterals ??= Setlet();
     _listLiterals.add(listLiteralUse);
   }
 
   @override
-  Iterable<ListLiteralUse> get listLiterals {
-    return _listLiterals != null ? _listLiterals : const <ListLiteralUse>[];
-  }
+  Iterable<ListLiteralUse> get listLiterals => _listLiterals ?? const [];
 
   void registerRuntimeTypeUse(RuntimeTypeUse runtimeTypeUse) {
     assert(runtimeTypeUse != null);
-    _runtimeTypeUses ??= new Setlet<RuntimeTypeUse>();
+    _runtimeTypeUses ??= Setlet();
     _runtimeTypeUses.add(runtimeTypeUse);
   }
 
   @override
-  Iterable<RuntimeTypeUse> get runtimeTypeUses {
-    return _runtimeTypeUses != null
-        ? _runtimeTypeUses
-        : const <RuntimeTypeUse>[];
-  }
+  Iterable<RuntimeTypeUse> get runtimeTypeUses => _runtimeTypeUses ?? const [];
 
   void registerConstSymbolName(String name) {
-    _constSymbolNames ??= new Setlet<String>();
+    _constSymbolNames ??= Setlet();
     _constSymbolNames.add(name);
   }
 
   @override
-  Iterable<String> get constSymbolNames {
-    return _constSymbolNames != null ? _constSymbolNames : const <String>[];
-  }
+  Iterable<String> get constSymbolNames => _constSymbolNames ?? const [];
 
   void registerFeature(Feature feature) {
-    _features ??= new EnumSet<Feature>();
+    _features ??= EnumSet();
     _features.add(feature);
   }
 
@@ -102,51 +91,42 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
   }
 
   void registerConstantLiteral(ConstantValue constant) {
-    _constantLiterals ??= new Setlet<ConstantValue>();
+    _constantLiterals ??= Setlet();
     _constantLiterals.add(constant);
   }
 
   @override
-  Iterable<ConstantValue> get constantLiterals {
-    return _constantLiterals != null
-        ? _constantLiterals
-        : const <ConstantValue>[];
-  }
+  Iterable<ConstantValue> get constantLiterals => _constantLiterals ?? const [];
 
   void registerNativeData(dynamic nativeData) {
     assert(nativeData != null);
-    _nativeData ??= new Setlet<dynamic>();
+    _nativeData ??= Setlet();
     _nativeData.add(nativeData);
   }
 
   @override
-  Iterable<dynamic> get nativeData {
-    return _nativeData != null ? _nativeData : const <dynamic>[];
-  }
+  Iterable<dynamic> get nativeData => _nativeData ?? const [];
 
   void registerSeenClass(ClassEntity seenClass) {
-    _seenClasses ??= new Setlet<ClassEntity>();
+    _seenClasses ??= Setlet();
     _seenClasses.add(seenClass);
   }
 
   @override
-  Iterable<ClassEntity> get seenClasses {
-    return _seenClasses ?? const <ClassEntity>[];
-  }
+  Iterable<ClassEntity> get seenClasses => _seenClasses ?? const [];
 
   void registerInstantiation(GenericInstantiation instantiation) {
-    _genericInstantiations ??= new Set<GenericInstantiation>();
+    _genericInstantiations ??= Setlet();
     _genericInstantiations.add(instantiation);
   }
 
   @override
-  Iterable<GenericInstantiation> get genericInstantiations {
-    return _genericInstantiations ?? const <GenericInstantiation>[];
-  }
+  Iterable<GenericInstantiation> get genericInstantiations =>
+      _genericInstantiations ?? const [];
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('ResolutionWorldImpactBuilder($member)');
     WorldImpact.printOn(sb, this);
     if (_features != null) {

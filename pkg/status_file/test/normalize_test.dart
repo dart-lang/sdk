@@ -69,8 +69,8 @@ void checkSemanticallyEqual(StatusFile original, StatusFile normalized,
         "$entriesInNormalized. Those two numbers are not the same.");
   }
   for (var section in original.sections) {
-    section.entries.where((entry) => entry is StatusEntry).forEach((entry) =>
-        findInStatusFile(normalized, entry, section.condition?.normalize(),
+    section.entries.whereType<StatusEntry>().forEach((entry) =>
+        findInStatusFile(normalized, entry, section.condition.normalize(),
             warnOnDuplicateHeader: warnOnDuplicateHeader));
   }
 }
@@ -87,12 +87,7 @@ void findInStatusFile(
     {bool warnOnDuplicateHeader = false}) {
   int foundEntryPosition = -1;
   for (var section in statusFile.sections) {
-    if (section.condition == null && condition != null ||
-        section.condition != null && condition == null) {
-      continue;
-    }
-    if (section.condition != null &&
-        section.condition.normalize().compareTo(condition) != 0) {
+    if (section.condition.normalize().compareTo(condition) != 0) {
       continue;
     }
     var matchingEntries = section.entries

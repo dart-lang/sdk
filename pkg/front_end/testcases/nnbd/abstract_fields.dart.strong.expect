@@ -10,13 +10,13 @@ abstract class A extends core::Object {
   abstract set instanceField(core::int #externalFieldValue) → void;
   abstract get finalInstanceField() → core::int;
   abstract get covariantInstanceField() → core::num;
-  abstract set covariantInstanceField(covariant core::num #externalFieldValue) → void;
+  abstract set covariantInstanceField(covariant-by-declaration core::num #externalFieldValue) → void;
 }
 abstract class B extends core::Object /*isMixinDeclaration*/  {
   abstract get instanceField() → core::int;
   abstract set instanceField(core::int #externalFieldValue) → void;
   abstract get finalInstanceField() → core::int;
   abstract get covariantInstanceField() → core::num;
-  abstract set covariantInstanceField(covariant core::num #externalFieldValue) → void;
+  abstract set covariantInstanceField(covariant-by-declaration core::num #externalFieldValue) → void;
 }
 static method main() → dynamic {}

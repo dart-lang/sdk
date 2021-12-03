@@ -15,8 +15,10 @@ class Annotation {
 
 // Note there is no compile-time constant 'foo' in scope. In particular, A.foo
 // is not in scope here.
-@Annotation(foo) // //# 01: compile-time error
-class A<@Annotation(foo) T> {
+@Annotation(foo) //# 01: compile-time error
+class A<
+    @Annotation(foo) //# 02: compile-time error
+        T> {
   @Annotation(foo)
   static foo() {}
 

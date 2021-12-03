@@ -223,7 +223,7 @@ void f(A a) {
       writeType: 'num',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -335,7 +335,7 @@ void f() {
       writeType: 'int',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -571,7 +571,7 @@ void f() {
       writeType: 'num',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -677,7 +677,7 @@ class B extends A {
       writeType: 'int',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );

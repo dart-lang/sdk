@@ -3,17 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateMissingOverridesTest);
-    defineReflectiveTests(CreateMissingOverridesWithNullSafetyTest);
   });
 }
 
@@ -21,6 +20,82 @@ void main() {
 class CreateMissingOverridesTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_MISSING_OVERRIDES;
+
+  Future<void> test_brackets_both() async {
+    await resolveTestCode('''
+class A {
+  void m() {};
+}
+
+class B implements A
+''');
+    await assertHasFix('''
+class A {
+  void m() {};
+}
+
+class B implements A {
+  @override
+  void m() {
+    // TODO: implement m
+  }
+}
+''', errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
+    });
+  }
+
+  Future<void> test_brackets_left() async {
+    await resolveTestCode('''
+class A {
+  void m() {};
+}
+
+class B implements A
+}
+''');
+    await assertHasFix('''
+class A {
+  void m() {};
+}
+
+class B implements A {
+  @override
+  void m() {
+    // TODO: implement m
+  }
+}
+''', errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
+    });
+  }
+
+  Future<void> test_brackets_right() async {
+    await resolveTestCode('''
+class A {
+  void m() {};
+}
+
+class B implements A {
+''');
+    await assertHasFix('''
+class A {
+  void m() {};
+}
+
+class B implements A {
+  @override
+  void m() {
+    // TODO: implement m
+  }
+}
+''', errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
+    });
+  }
 
   Future<void> test_field_untyped() async {
     await resolveTestCode('''
@@ -87,6 +162,52 @@ abstract class A {
 class B extends A {
   @override
   void forEach(int Function(double p1, String p2) f) {
+    // TODO: implement forEach
+  }
+}
+''');
+  }
+
+  Future<void> test_functionTypedParameter_dynamic() async {
+    await resolveTestCode('''
+abstract class A {
+  void m(bool test(e));
+}
+
+class B extends A {
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  void m(bool test(e));
+}
+
+class B extends A {
+  @override
+  void m(bool Function(dynamic e) test) {
+    // TODO: implement m
+  }
+}
+''');
+  }
+
+  Future<void> test_functionTypedParameter_nullable() async {
+    await resolveTestCode('''
+abstract class A {
+  void forEach(int f(double p1, String p2)?);
+}
+
+class B extends A {
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  void forEach(int f(double p1, String p2)?);
+}
+
+class B extends A {
+  @override
+  void forEach(int Function(double p1, String p2)? f) {
     // TODO: implement forEach
   }
 }
@@ -361,6 +482,52 @@ class B implements A {
 ''');
   }
 
+  Future<void> test_method_generic_nullable_dynamic() async {
+    // https://github.com/dart-lang/sdk/issues/43535
+    await resolveTestCode('''
+class A {
+  void doSomething(Map<String, dynamic>? m) {}
+}
+
+class B implements A {}
+''');
+    await assertHasFix('''
+class A {
+  void doSomething(Map<String, dynamic>? m) {}
+}
+
+class B implements A {
+  @override
+  void doSomething(Map<String, dynamic>? m) {
+    // TODO: implement doSomething
+  }
+}
+''');
+  }
+
+  Future<void> test_method_generic_nullable_Never() async {
+    // https://github.com/dart-lang/sdk/issues/43535
+    await resolveTestCode('''
+class A {
+  void doSomething(Map<String, Never>? m) {}
+}
+
+class B implements A {}
+''');
+    await assertHasFix('''
+class A {
+  void doSomething(Map<String, Never>? m) {}
+}
+
+class B implements A {
+  @override
+  void doSomething(Map<String, Never>? m) {
+    // TODO: implement doSomething
+  }
+}
+''');
+  }
+
   Future<void> test_method_generic_withBounds() async {
     // https://github.com/dart-lang/sdk/issues/31199
     await resolveTestCode('''
@@ -603,59 +770,6 @@ class B extends A {
   @override
   set s3(String x) {
     // TODO: implement s3
-  }
-}
-''');
-  }
-}
-
-@reflectiveTest
-class CreateMissingOverridesWithNullSafetyTest extends FixProcessorTest
-    with WithNullSafetyMixin {
-  @override
-  FixKind get kind => DartFixKind.CREATE_MISSING_OVERRIDES;
-
-  Future<void> test_method_generic_nullable_dynamic() async {
-    // https://github.com/dart-lang/sdk/issues/43535
-    await resolveTestCode('''
-class A {
-  void doSomething(Map<String, dynamic>? m) {}
-}
-
-class B implements A {}
-''');
-    await assertHasFix('''
-class A {
-  void doSomething(Map<String, dynamic>? m) {}
-}
-
-class B implements A {
-  @override
-  void doSomething(Map<String, dynamic>? m) {
-    // TODO: implement doSomething
-  }
-}
-''');
-  }
-
-  Future<void> test_method_generic_nullable_Never() async {
-    // https://github.com/dart-lang/sdk/issues/43535
-    await resolveTestCode('''
-class A {
-  void doSomething(Map<String, Never>? m) {}
-}
-
-class B implements A {}
-''');
-    await assertHasFix('''
-class A {
-  void doSomething(Map<String, Never>? m) {}
-}
-
-class B implements A {
-  @override
-  void doSomething(Map<String, Never>? m) {
-    // TODO: implement doSomething
   }
 }
 ''');

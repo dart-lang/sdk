@@ -79,9 +79,25 @@ void set topLevelMethodAndSetter2(int value) {
 
 int topLevelMethodAndSetter2() => 1;
 
+var field = topLevelMethod;
+
+@topLevelMethod
 test() {
   topLevelMethod();
   (topLevelMethod)();
+  if (topLevelMethod) {}
+  topLevelMethod;
+  @topLevelMethod
+  var foo;
+  switch (null) {
+    case topLevelMethod;
+  }
+  topLevelMethod || topLevelMethod;
+  topLevelMethod + 0;
+  topLevelMethod ~ 0;
+  topLevelMethod ?? topLevelMethod;
+  topLevelMethod?.foo;
+  topLevelMethod?.foo();
   topLevelGetter;
   topLevelSetter = 0;
   topLevelField;

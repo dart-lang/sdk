@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 library fasta.testing.kernel_chain;
 
 import 'dart:io' show Directory, File, IOSink, Platform;
@@ -72,6 +70,7 @@ abstract class MatchContext implements ChainContext {
 
   bool get canBeFixWithUpdateExpectations;
 
+  @override
   ExpectationSet get expectationSet;
 
   Expectation get expectationFileMismatch =>
@@ -84,7 +83,7 @@ abstract class MatchContext implements ChainContext {
       expectationSet["ExpectationFileMissing"];
 
   Future<Result<O>> match<O>(String suffix, String actual, Uri uri, O output,
-      {Expectation onMismatch, bool overwriteUpdateExpectationsWith}) async {
+      {Expectation? onMismatch, bool? overwriteUpdateExpectationsWith}) async {
     bool updateExpectations =
         overwriteUpdateExpectationsWith ?? this.updateExpectations;
     actual = actual.trim();
@@ -145,8 +144,10 @@ $actual""",
 class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
   const Print();
 
+  @override
   String get name => "print";
 
+  @override
   Future<Result<ComponentResult>> run(ComponentResult result, _) async {
     Component component = result.component;
 
@@ -170,24 +171,26 @@ class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
 class TypeCheck extends Step<ComponentResult, ComponentResult, ChainContext> {
   const TypeCheck();
 
+  @override
   String get name => "typeCheck";
 
+  @override
   Future<Result<ComponentResult>> run(
-      ComponentResult result, ChainContext context) async {
+      ComponentResult result, ChainContext context) {
     Component component = result.component;
     ErrorFormatter errorFormatter = new ErrorFormatter();
     NaiveTypeChecker checker =
         new NaiveTypeChecker(errorFormatter, component, ignoreSdk: true);
     checker.checkComponent(component);
     if (errorFormatter.numberOfFailures == 0) {
-      return pass(result);
+      return new Future.value(pass(result));
     } else {
       errorFormatter.failures.forEach(print);
       print('------- Found ${errorFormatter.numberOfFailures} errors -------');
-      return new Result<ComponentResult>(
+      return new Future.value(new Result<ComponentResult>(
           null,
           context.expectationSet["TypeCheckError"],
-          '${errorFormatter.numberOfFailures} type errors');
+          '${errorFormatter.numberOfFailures} type errors'));
     }
   }
 }
@@ -203,11 +206,14 @@ class MatchExpectation
   /// be serialized, deserialized, and the textual representation of that is
   /// compared. It is still the original component that is returned though.
   const MatchExpectation(this.suffix,
-      {this.serializeFirst: false, this.isLastMatchStep})
+      {this.serializeFirst: false, required this.isLastMatchStep})
+      // ignore: unnecessary_null_comparison
       : assert(isLastMatchStep != null);
 
+  @override
   String get name => "match expectations";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, MatchContext context) {
     Component component = result.component;
@@ -225,7 +231,7 @@ class MatchExpectation
       writeMe.uriToSource.addAll(component.uriToSource);
       if (component.problemsAsJson != null) {
         writeMe.problemsAsJson =
-            new List<String>.from(component.problemsAsJson);
+            new List<String>.from(component.problemsAsJson!);
       }
       BinaryPrinter binaryPrinter = new BinaryPrinter(sink);
       binaryPrinter.writeComponentFile(writeMe);
@@ -251,7 +257,7 @@ class MatchExpectation
       reportedErrors.add(message.join('\n'));
     }
     Set<String> problemsAsJson = <String>{};
-    void addProblemsAsJson(List<String> problems) {
+    void addProblemsAsJson(List<String>? problems) {
       if (problems != null) {
         for (String jsonString in problems) {
           DiagnosticMessage message =
@@ -308,7 +314,7 @@ class MatchExpectation
       if (!result.isUserLibraryImportUri(source.importUri)) continue;
 
       if (source.constantCoverageConstructors != null &&
-          source.constantCoverageConstructors.isNotEmpty) {
+          source.constantCoverageConstructors!.isNotEmpty) {
         if (!printedConstantCoverageHeader) {
           buffer.writeln("");
           buffer.writeln("");
@@ -316,9 +322,9 @@ class MatchExpectation
           printedConstantCoverageHeader = true;
         }
         buffer.writeln("${source.fileUri}:");
-        for (Reference reference in source.constantCoverageConstructors) {
-          buffer
-              .writeln("- ${reference.node} (from ${reference.node.location})");
+        for (Reference reference in source.constantCoverageConstructors!) {
+          buffer.writeln(
+              "- ${reference.node} (from ${reference.node?.location})");
         }
         buffer.writeln("");
       }
@@ -355,8 +361,10 @@ class KernelTextSerialization
 
   const KernelTextSerialization();
 
+  @override
   String get name => "kernel text serialization";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, ChainContext context) async {
     Component component = result.component;
@@ -386,13 +394,13 @@ class KernelTextSerialization
       for (RoundTripStatus failure in failures) {
         LocatedMessage message = templateUnspecified
             .withArguments("\n${failure}")
-            .withLocation(failure.uri, failure.offset, 1);
+            .withLocation(failure.uri!, failure.offset, 1);
         options.report(message, message.code.severity);
       }
 
       if (writeRoundTripStatus) {
         Uri uri = component.uriToSource.keys
-            .firstWhere((uri) => uri?.scheme == "file");
+            .firstWhere((uri) => uri.scheme == "file");
         String filename = "${uri.toFilePath()}${suffix}";
         uri = new File(filename).uri;
         StringBuffer buffer = new StringBuffer();
@@ -416,8 +424,10 @@ class KernelTextSerialization
 class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
   const WriteDill();
 
+  @override
   String get name => "write .dill";
 
+  @override
   Future<Result<ComponentResult>> run(ComponentResult result, _) async {
     Component component = result.component;
     Directory tmp = await Directory.systemTemp.createTemp();
@@ -446,15 +456,17 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
 class ReadDill extends Step<Uri, Uri, ChainContext> {
   const ReadDill();
 
+  @override
   String get name => "read .dill";
 
-  Future<Result<Uri>> run(Uri uri, _) async {
+  @override
+  Future<Result<Uri>> run(Uri uri, _) {
     try {
       loadComponentFromBinary(uri.toFilePath());
     } catch (e, s) {
-      return fail(uri, e, s);
+      return new Future.value(fail(uri, e, s));
     }
-    return pass(uri);
+    return new Future.value(pass(uri));
   }
 }
 
@@ -463,6 +475,7 @@ class BytesCollector implements Sink<List<int>> {
 
   int length = 0;
 
+  @override
   void add(List<int> data) {
     lists.add(data);
     length += data.length;
@@ -479,6 +492,7 @@ class BytesCollector implements Sink<List<int>> {
     return result;
   }
 
+  @override
   void close() {}
 }
 
@@ -525,7 +539,7 @@ class ComponentResult {
   final TestDescription description;
   final Component component;
   final Set<Uri> userLibraries;
-  final Uri outputUri;
+  final Uri? outputUri;
   final CompilationSetup compilationSetup;
   final KernelTarget sourceTarget;
   final List<String> extraConstantStrings = [];
@@ -538,7 +552,7 @@ class ComponentResult {
     return isUserLibraryImportUri(library.importUri);
   }
 
-  bool isUserLibraryImportUri(Uri importUri) {
+  bool isUserLibraryImportUri(Uri? importUri) {
     return userLibraries.contains(importUri);
   }
 

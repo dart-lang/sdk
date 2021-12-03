@@ -5,7 +5,13 @@
 library fasta.diet_listener;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
-    show Assert, DeclarationKind, MemberKind, Parser, optional;
+    show
+        Assert,
+        ConstructorReferenceContext,
+        DeclarationKind,
+        MemberKind,
+        Parser,
+        optional;
 
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 
@@ -50,7 +56,7 @@ import '../fasta_codes.dart'
 
 import '../ignored_parser_errors.dart' show isIgnoredParserError;
 
-import '../kernel/body_builder.dart' show BodyBuilder;
+import '../kernel/body_builder.dart' show BodyBuilder, FormalParameters;
 
 import '../problems.dart'
     show DebugAbort, internalProblem, unexpected, unhandled;
@@ -64,11 +70,14 @@ import '../type_inference/type_inference_engine.dart'
 
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
+import 'diet_parser.dart';
+
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'stack_listener_impl.dart';
 
 class DietListener extends StackListenerImpl {
+  @override
   final SourceLibraryBuilder libraryBuilder;
 
   final ClassHierarchy hierarchy;
@@ -258,8 +267,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endFunctionTypeAlias(
-      Token typedefKeyword, Token? equals, Token endToken) {
+  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
     debugEvent("FunctionTypeAlias");
 
     if (equals == null) pop(); // endToken
@@ -343,7 +351,7 @@ class DietListener extends StackListenerImpl {
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) return;
 
-    final StackListenerImpl listener = createFunctionListener(
+    final BodyBuilder listener = createFunctionListener(
         lookupBuilder(beginToken, getOrSet, name as String)
             as FunctionBuilderImpl);
     buildFunctionBody(listener, bodyToken, metadata, MemberKind.TopLevelMethod);
@@ -576,8 +584,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endConstructorReference(
-      Token start, Token? periodBeforeName, Token endToken) {
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     debugEvent("ConstructorReference");
     popIfNotNull(periodBeforeName);
   }
@@ -718,7 +726,7 @@ class DietListener extends StackListenerImpl {
             : MemberKind.NonStaticMethod);
   }
 
-  StackListenerImpl createListener(ModifierBuilder builder, Scope memberScope,
+  BodyBuilder createListener(ModifierBuilder builder, Scope memberScope,
       {required bool isDeclarationInstanceMember,
       VariableDeclaration? extensionThis,
       List<TypeParameter>? extensionTypeParameters,
@@ -746,7 +754,7 @@ class DietListener extends StackListenerImpl {
         constantContext);
   }
 
-  StackListenerImpl createListenerInternal(
+  BodyBuilder createListenerInternal(
       ModifierBuilder builder,
       Scope memberScope,
       Scope? formalParameterScope,
@@ -771,7 +779,7 @@ class DietListener extends StackListenerImpl {
       ..constantContext = constantContext;
   }
 
-  StackListenerImpl createFunctionListener(FunctionBuilderImpl builder) {
+  BodyBuilder createFunctionListener(FunctionBuilderImpl builder) {
     final Scope typeParameterScope =
         builder.computeTypeParameterScope(memberScope);
     final Scope formalParameterScope =
@@ -790,9 +798,10 @@ class DietListener extends StackListenerImpl {
 
   void buildRedirectingFactoryMethod(Token token, FunctionBuilderImpl builder,
       MemberKind kind, Token? metadata) {
-    final StackListenerImpl listener = createFunctionListener(builder);
+    final BodyBuilder listener = createFunctionListener(builder);
     try {
-      Parser parser = new Parser(listener);
+      Parser parser = new Parser(listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         listener.pop(); // Pops metadata constants.
@@ -801,6 +810,7 @@ class DietListener extends StackListenerImpl {
       token = parser.parseFormalParametersOpt(
           parser.syntheticPreviousToken(token), MemberKind.Factory);
       listener.pop(); // Pops formal parameters.
+      listener.finishRedirectingFactoryBody();
       listener.checkEmpty(token.next!.charOffset);
     } on DebugAbort {
       rethrow;
@@ -819,7 +829,7 @@ class DietListener extends StackListenerImpl {
         lookupBuilder(token, null, names.first!) as SourceFieldBuilder;
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
-    parseFields(
+    _parseFields(
         createListener(declaration, memberScope,
             isDeclarationInstanceMember:
                 declaration.isDeclarationInstanceMember,
@@ -851,7 +861,13 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void beginClassOrMixinBody(DeclarationKind kind, Token token) {
+  void handleShowHideIdentifier(Token? modifier, Token? identifier) {
+    debugEvent("");
+    // Do nothing
+  }
+
+  @override
+  void beginClassOrMixinOrExtensionBody(DeclarationKind kind, Token token) {
     assert(checkState(token, [
       ValueKinds.Token,
       ValueKinds.NameOrParserRecovery,
@@ -873,7 +889,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endClassOrMixinBody(
+  void endClassOrMixinOrExtensionBody(
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody");
     currentDeclaration = null;
@@ -917,7 +933,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token endToken) {
+      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
     debugEvent("endExtensionDeclaration");
     checkEmpty(extensionKeyword.charOffset);
   }
@@ -944,45 +960,24 @@ class DietListener extends StackListenerImpl {
   AsyncMarker? getAsyncMarker(StackListenerImpl listener) =>
       listener.pop() as AsyncMarker?;
 
-  /// Invokes the listener's [finishFunction] method.
-  ///
-  /// This is a separate method so that it may be overridden by a derived class
-  /// if more computation must be done before finishing the function.
-  void listenerFinishFunction(
-      StackListenerImpl listener,
-      Token token,
-      MemberKind kind,
-      dynamic formals,
-      AsyncMarker asyncModifier,
-      dynamic body) {
-    listener.finishFunction(formals, asyncModifier, body);
-  }
-
-  /// Invokes the listener's [finishFields] method.
-  ///
-  /// This is a separate method so that it may be overridden by a derived class
-  /// if more computation must be done before finishing the function.
-  void listenerFinishFields(StackListenerImpl listener, Token startToken,
-      Token? metadata, bool isTopLevel) {
-    listener.finishFields();
-  }
-
-  void buildFunctionBody(StackListenerImpl listener, Token startToken,
+  void buildFunctionBody(BodyBuilder bodyBuilder, Token startToken,
       Token? metadata, MemberKind kind) {
     Token token = startToken;
     try {
-      Parser parser = new Parser(listener);
+      Parser parser = new Parser(bodyBuilder,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
-        listener.pop(); // Annotations.
+        bodyBuilder.pop(); // Annotations.
       }
       token = parser.parseFormalParametersOpt(
           parser.syntheticPreviousToken(token), kind);
-      Object? formals = listener.pop();
-      listener.checkEmpty(token.next!.charOffset);
+      FormalParameters? formals = bodyBuilder.pop() as FormalParameters?;
+      bodyBuilder.checkEmpty(token.next!.charOffset);
       token = parser.parseInitializersOpt(token);
       token = parser.parseAsyncModifierOpt(token);
-      AsyncMarker asyncModifier = getAsyncMarker(listener) ?? AsyncMarker.Sync;
+      AsyncMarker asyncModifier =
+          getAsyncMarker(bodyBuilder) ?? AsyncMarker.Sync;
       if (kind == MemberKind.Factory && asyncModifier != AsyncMarker.Sync) {
         // Factories has to be sync. The parser issued an error.
         // Recover to sync.
@@ -991,10 +986,9 @@ class DietListener extends StackListenerImpl {
       bool isExpression = false;
       bool allowAbstract = asyncModifier == AsyncMarker.Sync;
       parser.parseFunctionBody(token, isExpression, allowAbstract);
-      Object? body = listener.pop();
-      listener.checkEmpty(token.charOffset);
-      listenerFinishFunction(
-          listener, startToken, kind, formals, asyncModifier, body);
+      Statement? body = bodyBuilder.pop() as Statement?;
+      bodyBuilder.checkEmpty(token.charOffset);
+      bodyBuilder.finishFunction(formals, asyncModifier, body);
     } on DebugAbort {
       rethrow;
     } catch (e, s) {
@@ -1002,18 +996,19 @@ class DietListener extends StackListenerImpl {
     }
   }
 
-  void parseFields(StackListenerImpl listener, Token startToken,
-      Token? metadata, bool isTopLevel) {
+  void _parseFields(BodyBuilder bodyBuilder, Token startToken, Token? metadata,
+      bool isTopLevel) {
     Token token = startToken;
-    Parser parser = new Parser(listener);
+    Parser parser = new Parser(bodyBuilder,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     if (isTopLevel) {
       token = parser.parseTopLevelMember(metadata ?? token);
     } else {
       // TODO(danrubel): disambiguate between class/mixin/extension members
       token = parser.parseClassMember(metadata ?? token, null).next!;
     }
-    listenerFinishFields(listener, startToken, metadata, isTopLevel);
-    listener.checkEmpty(token.charOffset);
+    bodyBuilder.finishFields();
+    bodyBuilder.checkEmpty(token.charOffset);
   }
 
   Builder? lookupBuilder(Token token, Token? getOrSet, String name) {
@@ -1122,7 +1117,8 @@ class DietListener extends StackListenerImpl {
     if (metadata != null) {
       StackListenerImpl listener = createListener(builder, memberScope,
           isDeclarationInstanceMember: false);
-      Parser parser = new Parser(listener);
+      Parser parser = new Parser(listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
       return listener.finishMetadata(parent);
     }

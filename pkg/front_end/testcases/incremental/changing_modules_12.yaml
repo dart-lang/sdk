@@ -9,15 +9,19 @@ type: newworld
 modules:
   module:
     module/a.dart: |
+      // @dart=2.9
       import 'package:module/b.dart';
       class A { }
     module/b.dart: |
+      // @dart=2.9
       export 'package:module/a.dart';
       class B { }
     module/c.dart: |
+      // @dart=2.9
       export 'package:module/d.dart';
       class C { }
     module/d.dart: |
+      // @dart=2.9
       import 'package:module/c.dart';
       class D { }
     module/.packages: |
@@ -27,6 +31,7 @@ worlds:
     fromComponent: true
     sources:
       main.dart: |
+        // @dart=2.9
         class Foo {}
       .packages: |
         module:module

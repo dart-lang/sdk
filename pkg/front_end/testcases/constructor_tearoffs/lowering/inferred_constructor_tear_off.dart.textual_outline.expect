@@ -1,16 +1,20 @@
 final bool inSoundMode = <int?>[] is! List<int>;
 main() {}
+
 class Class1 {
   int field;
   Class1(this.field);
 }
+
 abstract class Interface2 {
   int get field;
 }
+
 class Class2 implements Interface2 {
   final field;
   Class2(this.field);
 }
+
 var Class1_new = Class1.new;
 var Class2_new = Class2.new;
 testInferred() {}

@@ -672,12 +672,11 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   final List<Service> services = <Service>[];
 
   String version = 'unknown';
+  String features = 'unknown';
   String hostCPU = 'unknown';
   String targetCPU = 'unknown';
   String embedder = 'unknown';
   int architectureBits = 0;
-  bool assertsEnabled = false;
-  bool typeChecksEnabled = false;
   int nativeZoneMemoryUsage = 0;
   int pid = 0;
   int mallocUsed = 0;
@@ -1032,6 +1031,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
 
     _loaded = true;
     version = map['version'];
+    features = map['_features'] ?? 'unknown';
     hostCPU = map['hostCPU'];
     targetCPU = map['targetCPU'];
     architectureBits = map['architectureBits'];
@@ -1050,8 +1050,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     maxRSS = map['_maxRSS'];
     currentRSS = map['_currentRSS'];
     profileVM = map['_profilerMode'] == 'VM';
-    assertsEnabled = map['_assertsEnabled'];
-    typeChecksEnabled = map['_typeChecksEnabled'];
     _removeDeadIsolates([
       ...map['isolates'],
       ...map['systemIsolates'],
@@ -1550,7 +1548,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       // There are sometimes isolate refs in ServiceEvents.
       return vm.getFromMap(map);
     }
-    String mapId = map['id'];
+    String? mapId = map['id'];
     var obj = (mapId != null) ? _cache[mapId] : null;
     if (obj != null) {
       obj.updateFromServiceMap(map);
@@ -1559,7 +1557,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     // Build the object from the map directly.
     obj = ServiceObject._fromMap(this, map);
     if ((obj != null) && obj.canCache) {
-      _cache[mapId] = obj;
+      _cache[mapId!] = obj;
     }
     return obj;
   }
@@ -2483,7 +2481,7 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
 class LibraryDependency implements M.LibraryDependency {
   final bool isImport;
   final bool isDeferred;
-  final String prefix;
+  final String? prefix;
   final Library target;
 
   bool get isExport => !isImport;
@@ -3999,7 +3997,6 @@ M.ObjectPoolEntryKind stringToObjectPoolEntryKind(String kind) {
     case 'NativeEntryData':
       return M.ObjectPoolEntryKind.nativeEntryData;
     case 'NativeFunction':
-    case 'NativeFunctionWrapper':
       return M.ObjectPoolEntryKind.nativeEntry;
   }
   throw new Exception('Unknown ObjectPoolEntryKind ($kind)');

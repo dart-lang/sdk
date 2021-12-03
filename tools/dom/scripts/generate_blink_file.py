@@ -6,14 +6,13 @@
 """Generates sdk/lib/_blink/dartium/_blink_dartium.dart file."""
 
 import os
-from sets import Set
-from generator import AnalyzeOperation, AnalyzeConstructor
+from generator import AnalyzeOperation, AnalyzeConstructor, ConstantOutputOrder
 
 # This is list of all methods with native c++ implementations
 # If performing a dartium merge, the best practice is to comment out this list,
 # ensure everything runs, and then uncomment this list which might possibly
 # introduce breaking changes due to changes to these method signatures.
-_js_custom_members = Set([
+_js_custom_members = set([
     'Document.createElement',
     'Element.id',
     'Element.tagName',
@@ -79,7 +78,7 @@ _js_custom_members = Set([
 # Uncomment out this line  to short circuited native methods and run all of
 # dart:html through JS interop except for createElement which is slightly more
 # tightly natively wired.
-# _js_custom_members = Set([])
+# _js_custom_members = set()
 
 # Expose built-in methods support by an instance that is not shown in the IDL.
 _additional_methods = {
@@ -385,12 +384,6 @@ CLASS_DEFINITION_END = """}
 
 """
 
-
-def ConstantOutputOrder(a, b):
-    """Canonical output ordering for constants."""
-    return (a.id > b.id) - (a.id < b.id)
-
-
 def generate_parameter_entries(param_infos):
     optional_default_args = 0
     for argument in param_infos:
@@ -524,7 +517,7 @@ def _Emit_Blink_Constructors(blink_file, analyzed_constructors):
 
 def _Process_Attributes(blink_file, interface, attributes):
     # Emit an interface's attributes and operations.
-    for attribute in sorted(attributes, ConstantOutputOrder):
+    for attribute in sorted(attributes, key=ConstantOutputOrder):
         name = attribute.id
         is_native = _Is_Native(interface.id, name)
         if attribute.is_read_only:
@@ -552,7 +545,7 @@ def _Process_Operations(blink_file,
                         primary_interface=False):
     analyzeOperations = []
 
-    for operation in sorted(operations, ConstantOutputOrder):
+    for operation in sorted(operations, key=ConstantOutputOrder):
         if len(analyzeOperations) == 0:
             analyzeOperations.append(operation)
         else:

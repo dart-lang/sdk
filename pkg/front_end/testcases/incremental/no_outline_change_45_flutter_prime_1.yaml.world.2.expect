@@ -2,12 +2,12 @@ main = <No Member>;
 library from "org-dartlang-test:///main.dart" as main {
 
   class Foo extends dart.core::Object {
-    static final field dynamic _redirecting# = <dynamic>[main::Foo::bar];
+    static final field dynamic _redirecting# = <dynamic>[#C1];
     constructor •() → main::Foo*
       : super dart.core::Object::•()
       ;
     static factory bar() → main::Foo*
-      let dynamic #redirecting_factory = main::Baz::• in invalid-expression;
+      return new main::Baz::•();
     method bar() → void {}
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
@@ -25,4 +25,7 @@ library from "org-dartlang-test:///main.dart" as main {
       : super main::Foo::•()
       ;
   }
+}
+constants  {
+  #C1 = constructor-tearoff main::Foo::bar
 }

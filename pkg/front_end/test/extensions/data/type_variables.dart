@@ -8,7 +8,9 @@
   A2,
   A3,
   A4,
-  async.dart.FutureExtensions]*/
+  async.dart.FutureExtensions,
+  core.dart.EnumByName,
+  core.dart.EnumName]*/
 
 class A1<T> {}
 

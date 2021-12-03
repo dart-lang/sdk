@@ -22,15 +22,14 @@ void main() {
 
 @reflectiveTest
 class UtilitiesTest with ResourceProviderMixin {
-  FeatureSet get defaultFeatureSet =>
-      FeatureSet.forTesting(sdkVersion: '2.2.2');
-
   test_parseFile_default_resource_provider() {
     String content = '''
 void main() => print('Hello, world!');
     ''';
-    ParseStringResult result = _withTemporaryFile(content,
-        (path) => parseFile(path: path, featureSet: defaultFeatureSet));
+    ParseStringResult result = _withTemporaryFile(
+        content,
+        (path) => parseFile(
+            path: path, featureSet: FeatureSet.latestLanguageVersion()));
     expect(result.content, content);
     expect(result.errors, isEmpty);
     expect(result.lineInfo, isNotNull);
@@ -46,7 +45,7 @@ void main() => print('Hello, world!')
         content,
         (resourceProvider, path) => parseFile(
             path: path,
-            featureSet: defaultFeatureSet,
+            featureSet: FeatureSet.latestLanguageVersion(),
             resourceProvider: resourceProvider,
             throwIfDiagnostics: false));
     expect(result.content, content);
@@ -66,7 +65,7 @@ void main() => print('Hello, world!')
       expectedPath = path;
       return parseFile(
           path: path,
-          featureSet: defaultFeatureSet,
+          featureSet: FeatureSet.latestLanguageVersion(),
           resourceProvider: resourceProvider,
           throwIfDiagnostics: false);
     });
@@ -83,12 +82,12 @@ void main() => print('Hello, world!')
             content,
             (resourceProvider, path) => parseFile(
                 path: path,
-                featureSet: defaultFeatureSet,
+                featureSet: FeatureSet.latestLanguageVersion(),
                 resourceProvider: resourceProvider)),
         throwsA(const TypeMatcher<ArgumentError>()));
   }
 
-  test_parseFile_featureSet_nnbd_off() {
+  test_parseFile_featureSet_language_2_9() {
     String content = '''
 int? f() => 1;
 ''';
@@ -110,19 +109,17 @@ int? f() => 1;
     expect(result.unit.toString(), equals('int? f() => 1;'));
   }
 
-  test_parseFile_featureSet_nnbd_on() {
+  test_parseFile_featureSet_language_latest() {
     String content = '''
 int? f() => 1;
 ''';
-    var featureSet =
-        FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
     ParseStringResult result = _withMemoryFile(
         content,
         (resourceProvider, path) => parseFile(
             path: path,
             resourceProvider: resourceProvider,
             throwIfDiagnostics: false,
-            featureSet: featureSet));
+            featureSet: FeatureSet.latestLanguageVersion()));
     expect(result.content, content);
     expect(result.errors, isEmpty);
     expect(result.lineInfo, isNotNull);
@@ -137,7 +134,7 @@ void main() => print('Hello, world!');
         content,
         (resourceProvider, path) => parseFile(
             path: path,
-            featureSet: defaultFeatureSet,
+            featureSet: FeatureSet.latestLanguageVersion(),
             resourceProvider: resourceProvider));
     expect(result.content, content);
     expect(result.errors, isEmpty);
@@ -200,10 +197,11 @@ int? f() => 1;
     String content = '''
 int? f() => 1;
 ''';
-    var featureSet =
-        FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
     ParseStringResult result = parseString(
-        content: content, throwIfDiagnostics: false, featureSet: featureSet);
+      content: content,
+      throwIfDiagnostics: false,
+      featureSet: FeatureSet.latestLanguageVersion(),
+    );
     expect(result.content, content);
     expect(result.errors, isEmpty);
     expect(result.lineInfo, isNotNull);

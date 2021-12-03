@@ -9,7 +9,7 @@ import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 
 /// Defines how to emit a value of a table
-typedef _emitValue<K> = js_ast.Expression Function(K, ModuleItemData);
+typedef _EmitValue<K> = js_ast.Expression Function(K, ModuleItemData);
 
 /// Represents a top-level property hoisted to a top-level object.
 class ModuleItemData {
@@ -125,7 +125,7 @@ abstract class ModuleItemContainer<K> {
   /// necessary.
   ///
   /// Uses [emitValue] to emit the values in the table.
-  List<js_ast.Statement> emit({_emitValue<K> emitValue});
+  List<js_ast.Statement> emit({_EmitValue<K> emitValue});
 }
 
 /// Associates a [K] with a container-unique JS key and arbitrary JS value.
@@ -184,7 +184,7 @@ class ModuleItemObjectContainer<K> extends ModuleItemContainer<K> {
   }
 
   @override
-  List<js_ast.Statement> emit({_emitValue<K> emitValue}) {
+  List<js_ast.Statement> emit({_EmitValue<K> emitValue}) {
     var containersToProperties = <js_ast.Identifier, List<js_ast.Property>>{};
     moduleItems.forEach((k, v) {
       if (!incrementalMode && _noEmit.contains(k)) return;
@@ -240,7 +240,7 @@ class ModuleItemArrayContainer<K> extends ModuleItemContainer<K> {
   }
 
   @override
-  List<js_ast.Statement> emit({_emitValue<K> emitValue}) {
+  List<js_ast.Statement> emit({_EmitValue<K> emitValue}) {
     var properties = List<js_ast.Expression>.filled(length, null);
 
     // If the entire array holds just one value, generate a short initializer.

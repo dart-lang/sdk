@@ -18,7 +18,7 @@ class EmitterTestCase(unittest.TestCase):
         pass
 
     def check(self, e, expected):
-        self.assertEquals(''.join(e.Fragments()), expected)
+        self.assertEqual(''.join(e.Fragments()), expected)
 
     def testExample(self):
         e = emitter.Emitter()
@@ -34,7 +34,7 @@ class EmitterTestCase(unittest.TestCase):
         try:
             e = emitter.Emitter()
             b = e.Emit('$(A)$(!B)$(A)$(!B)')  # $(!B) is duplicated
-        except RuntimeError, ex:
+        except RuntimeError as ex:
             return
         raise AssertionError('Expected error')
 
@@ -46,7 +46,7 @@ class EmitterTestCase(unittest.TestCase):
     def testTemplate2(self):
         e = emitter.Emitter()
         r = e.Emit('1$(A)2$(B)3$(A)4$(B)5', A='x', B='y')
-        self.assertEquals(None, r)
+        self.assertEqual(None, r)
         self.check(e, '1x2y3x4y5')
 
     def testTemplate3(self):
@@ -128,12 +128,12 @@ class EmitterTestCase(unittest.TestCase):
             e = emitter.Emitter()
             e.Emit('$#A(-)', A='Invalid')
             e.Fragments()
-        except RuntimeError, ex:
+        except RuntimeError as ex:
             return
         raise AssertionError('Expected error')
 
     def testFormat(self):
-        self.assertEquals(emitter.Format('$A$B', A=1, B=2), '12')
+        self.assertEqual(emitter.Format('$A$B', A=1, B=2), '12')
 
 
 if __name__ == '__main__':

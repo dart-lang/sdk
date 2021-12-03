@@ -10,6 +10,8 @@ entry: a.dart
 invalidate:
 sources:
   a.dart: |
+    // @dart=2.9
     export 'b.dart';
   b.dart: |
+    // @dart=2.9
     main() { print("hello"); }

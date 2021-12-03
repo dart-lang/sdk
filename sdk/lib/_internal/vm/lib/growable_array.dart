@@ -204,17 +204,20 @@ class _GrowableList<T> extends ListBase<T> {
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type",
       <dynamic>[_GrowableList, "result-type-uses-passed-type-arguments"])
-  factory _GrowableList._withData(_List data) native "GrowableList_allocate";
+  @pragma("vm:external-name", "GrowableList_allocate")
+  external factory _GrowableList._withData(_List data);
 
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get _capacity native "GrowableList_getCapacity";
+  @pragma("vm:external-name", "GrowableList_getCapacity")
+  external int get _capacity;
 
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get length native "GrowableList_getLength";
+  @pragma("vm:external-name", "GrowableList_getLength")
+  external int get length;
 
   void set length(int new_length) {
     if (new_length > length) {
@@ -245,13 +248,16 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
-  void _setLength(int new_length) native "GrowableList_setLength";
+  @pragma("vm:external-name", "GrowableList_setLength")
+  external void _setLength(int new_length);
 
   @pragma("vm:recognized", "graph-intrinsic")
-  void _setData(_List array) native "GrowableList_setData";
+  @pragma("vm:external-name", "GrowableList_setData")
+  external void _setData(_List array);
 
   @pragma("vm:recognized", "graph-intrinsic")
-  T operator [](int index) native "GrowableList_getIndexed";
+  @pragma("vm:external-name", "GrowableList_getIndexed")
+  external T operator [](int index);
 
   @pragma("vm:recognized", "other")
   void operator []=(int index, T value) {
@@ -259,7 +265,8 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
-  void _setIndexed(int index, T? value) native "GrowableList_setIndexed";
+  @pragma("vm:external-name", "GrowableList_setIndexed")
+  external void _setIndexed(int index, T? value);
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:prefer-inline")

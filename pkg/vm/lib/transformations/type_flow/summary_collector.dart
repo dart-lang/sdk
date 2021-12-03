@@ -608,7 +608,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         "${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""}";
     debugPrint("===== $summaryName =====");
     assert(!member.isAbstract);
-    assert(!(member is Procedure && member.isRedirectingFactory));
 
     _protobufHandler?.beforeSummaryCreation(member);
 
@@ -802,7 +801,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   bool _useTypeCheckForParameter(VariableDeclaration decl) {
-    return decl.isCovariant || decl.isGenericCovariantImpl;
+    return decl.isCovariantByDeclaration || decl.isCovariantByClass;
   }
 
   Args<Type> rawArguments(Selector selector) {
@@ -1585,6 +1584,21 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   @override
+  TypeExpr visitSetLiteral(SetLiteral node) {
+    for (var expression in node.expressions) {
+      _visit(expression);
+    }
+    Class? concreteClass =
+        target.concreteSetLiteralClass(_environment.coreTypes);
+    if (concreteClass != null) {
+      return _translator.instantiateConcreteType(
+          _entryPointsListener.addAllocatedClass(concreteClass),
+          [node.typeArgument]);
+    }
+    return _staticType(node);
+  }
+
+  @override
   TypeExpr visitInstanceInvocation(InstanceInvocation node) {
     final receiverNode = node.receiver;
     final receiver = _visit(receiverNode);
@@ -1596,7 +1610,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         return _handleIndexingIntoListConstant(constant);
       }
     }
-    assert(target is Procedure && !target.isGetter);
+    assert(!target.isGetter);
     // TODO(alexmarkov): overloaded arithmetic operators
     final result = _makeCall(
         node,
@@ -1655,23 +1669,35 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitEqualsCall(EqualsCall node) {
-    final left = _visit(node.left);
-    final right = _visit(node.right);
+    _addUse(_visit(node.left));
+    _addUse(_visit(node.right));
     final target = node.interfaceTarget;
+    // 'operator==' is a very popular method which can be called
+    // with a huge number of combinations of argument types.
+    // These invocations can be sensitive to changes in the set of allocated
+    // classes, causing a large number of invalidated invocations.
+    // In order to speed up the analysis, arguments of 'operator=='
+    // are approximated eagerly to static types during summary construction.
     return _makeCall(
         node,
         (node.left is ThisExpression)
             ? new VirtualSelector(target)
             : new InterfaceSelector(target),
-        Args<TypeExpr>([left, right]));
+        Args<TypeExpr>([_staticType(node.left), _staticType(node.right)]));
   }
 
   @override
   TypeExpr visitEqualsNull(EqualsNull node) {
     final arg = _visit(node.expression);
     _makeNarrowNotNull(node, arg);
+    // 'operator==' is a very popular method which can be called
+    // with a huge number of combinations of argument types.
+    // These invocations can be sensitive to changes in the set of allocated
+    // classes, causing a large number of invalidated invocations.
+    // In order to speed up the analysis, arguments of 'operator=='
+    // are approximated eagerly to static types during summary construction.
     _makeCall(node, DirectSelector(_environment.coreTypes.objectEquals),
-        Args<TypeExpr>([arg, _nullType]));
+        Args<TypeExpr>([_staticType(node.expression), _nullType]));
     return _boolType;
   }
 
@@ -1824,6 +1850,18 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         passTypeArguments: node.target.isFactory);
     final target = node.target;
     assert((target is! Field) && !target.isGetter && !target.isSetter);
+    if (target == _environment.coreTypes.identicalProcedure) {
+      assert(args.values.length == 2 && args.names.isEmpty);
+      // 'identical' is a very popular method which can be called
+      // with a huge number of combinations of argument types.
+      // Those invocations can be sensitive to changes in the set of allocated
+      // classes, causing a large number of invalidated invocations.
+      // In order to speed up the analysis, invocations of 'identical'
+      // are approximated eagerly during summary construction.
+      _makeCall(node, new DirectSelector(target),
+          Args<TypeExpr>([Type.nullableAny(), Type.nullableAny()]));
+      return _boolType;
+    }
     TypeExpr result = _makeCall(node, new DirectSelector(target), args);
     if (target == unsafeCast) {
       // Async transformation inserts unsafeCasts to make sure
@@ -2444,17 +2482,49 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
   }
 
   @override
-  Type visitMapConstant(MapConstant node) {
-    throw 'The kernel2kernel constants transformation desugars const maps!';
-  }
-
-  @override
   Type visitListConstant(ListConstant constant) {
     for (final Constant entry in constant.entries) {
       typeFor(entry);
     }
     final Class? concreteClass = summaryCollector.target
         .concreteConstListLiteralClass(summaryCollector._environment.coreTypes);
+    if (concreteClass != null) {
+      return new ConcreteType(
+          summaryCollector._entryPointsListener
+              .addAllocatedClass(concreteClass)
+              .cls,
+          null,
+          constant);
+    }
+    return _getStaticType(constant);
+  }
+
+  @override
+  Type visitMapConstant(MapConstant constant) {
+    for (final entry in constant.entries) {
+      typeFor(entry.key);
+      typeFor(entry.value);
+    }
+    final Class? concreteClass = summaryCollector.target
+        .concreteConstMapLiteralClass(summaryCollector._environment.coreTypes);
+    if (concreteClass != null) {
+      return new ConcreteType(
+          summaryCollector._entryPointsListener
+              .addAllocatedClass(concreteClass)
+              .cls,
+          null,
+          constant);
+    }
+    return _getStaticType(constant);
+  }
+
+  @override
+  Type visitSetConstant(SetConstant constant) {
+    for (final entry in constant.entries) {
+      typeFor(entry);
+    }
+    final Class? concreteClass = summaryCollector.target
+        .concreteConstSetLiteralClass(summaryCollector._environment.coreTypes);
     if (concreteClass != null) {
       return new ConcreteType(
           summaryCollector._entryPointsListener
@@ -2477,17 +2547,7 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
     return new ConcreteType(resultClass.cls, null, constant);
   }
 
-  @override
-  Type visitStaticTearOffConstant(StaticTearOffConstant constant) {
-    final Procedure member = constant.target;
-    summaryCollector._entryPointsListener
-        .addRawCall(new DirectSelector(member));
-    summaryCollector._entryPointsListener.recordTearOff(member);
-    return _getStaticType(constant);
-  }
-
-  @override
-  Type visitConstructorTearOffConstant(ConstructorTearOffConstant constant) {
+  Type _visitTearOffConstant(TearOffConstant constant) {
     final Member member = constant.target;
     summaryCollector._entryPointsListener
         .addRawCall(new DirectSelector(member));
@@ -2498,6 +2558,19 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
     summaryCollector._entryPointsListener.recordTearOff(member);
     return _getStaticType(constant);
   }
+
+  @override
+  Type visitStaticTearOffConstant(StaticTearOffConstant constant) =>
+      _visitTearOffConstant(constant);
+
+  @override
+  Type visitConstructorTearOffConstant(ConstructorTearOffConstant constant) =>
+      _visitTearOffConstant(constant);
+
+  @override
+  Type visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant constant) =>
+      _visitTearOffConstant(constant);
 
   @override
   Type visitInstantiationConstant(InstantiationConstant constant) {

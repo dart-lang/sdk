@@ -18,7 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class NullabilityEliminatorTest extends AbstractTypeSystemNullSafetyTest {
+class NullabilityEliminatorTest extends AbstractTypeSystemTest {
   test_dynamicType() {
     _verifySame(typeProvider.dynamicType);
   }

@@ -10,7 +10,6 @@
 #include "bin/dfe.h"
 #include "bin/elf_loader.h"
 #include "bin/error_exit.h"
-#include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/platform.h"
 #include "include/dart_api.h"
@@ -276,7 +275,7 @@ class DylibAppSnapshot : public AppSnapshot {
         isolate_snapshot_data_(isolate_snapshot_data),
         isolate_snapshot_instructions_(isolate_snapshot_instructions) {}
 
-  ~DylibAppSnapshot() { Extensions::UnloadLibrary(library_); }
+  ~DylibAppSnapshot() { Utils::UnloadDynamicLibrary(library_); }
 
   void SetBuffers(const uint8_t** vm_data_buffer,
                   const uint8_t** vm_instructions_buffer,
@@ -297,26 +296,29 @@ class DylibAppSnapshot : public AppSnapshot {
 };
 
 static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
-  void* library = Extensions::LoadExtensionLibrary(script_name);
-  if (library == NULL) {
-    return NULL;
+  void* library = Utils::LoadDynamicLibrary(script_name);
+  if (library == nullptr) {
+    return nullptr;
   }
 
   const uint8_t* vm_data_buffer = reinterpret_cast<const uint8_t*>(
-      Extensions::ResolveSymbol(library, kVmSnapshotDataCSymbol));
+      Utils::ResolveSymbolInDynamicLibrary(library, kVmSnapshotDataCSymbol));
 
-  const uint8_t* vm_instructions_buffer = reinterpret_cast<const uint8_t*>(
-      Extensions::ResolveSymbol(library, kVmSnapshotInstructionsCSymbol));
+  const uint8_t* vm_instructions_buffer =
+      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
+          library, kVmSnapshotInstructionsCSymbol));
 
-  const uint8_t* isolate_data_buffer = reinterpret_cast<const uint8_t*>(
-      Extensions::ResolveSymbol(library, kIsolateSnapshotDataCSymbol));
-  if (isolate_data_buffer == NULL) {
+  const uint8_t* isolate_data_buffer =
+      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
+          library, kIsolateSnapshotDataCSymbol));
+  if (isolate_data_buffer == nullptr) {
     FATAL1("Failed to resolve symbol '%s'\n", kIsolateSnapshotDataCSymbol);
   }
 
-  const uint8_t* isolate_instructions_buffer = reinterpret_cast<const uint8_t*>(
-      Extensions::ResolveSymbol(library, kIsolateSnapshotInstructionsCSymbol));
-  if (isolate_instructions_buffer == NULL) {
+  const uint8_t* isolate_instructions_buffer =
+      reinterpret_cast<const uint8_t*>(Utils::ResolveSymbolInDynamicLibrary(
+          library, kIsolateSnapshotInstructionsCSymbol));
+  if (isolate_instructions_buffer == nullptr) {
     FATAL1("Failed to resolve symbol '%s'\n",
            kIsolateSnapshotInstructionsCSymbol);
   }
@@ -328,13 +330,19 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
-                                          bool force_load_elf_from_memory) {
-  auto decoded_path = File::UriToPath(script_uri);
-  if (decoded_path == nullptr) {
-    return nullptr;
+                                          bool force_load_elf_from_memory,
+                                          bool decode_uri) {
+  Utils::CStringUniquePtr decoded_path(nullptr, std::free);
+  const char* script_name = nullptr;
+  if (decode_uri) {
+    decoded_path = File::UriToPath(script_uri);
+    if (decoded_path == nullptr) {
+      return nullptr;
+    }
+    script_name = decoded_path.get();
+  } else {
+    script_name = script_uri;
   }
-
-  const char* script_name = decoded_path.get();
   if (File::GetType(nullptr, script_name, true) != File::kIsFile) {
     // If 'script_name' refers to a pipe, don't read to check for an app
     // snapshot since we cannot rewind if it isn't (and couldn't mmap it in

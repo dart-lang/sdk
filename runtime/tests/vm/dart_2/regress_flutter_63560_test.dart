@@ -6,6 +6,8 @@
 // has deeply nested calls.
 // Regression test for https://github.com/flutter/flutter/issues/63560.
 // Generated using the following:
+
+// @dart = 2.9
 /*
 void main() {
   final N = 1000;

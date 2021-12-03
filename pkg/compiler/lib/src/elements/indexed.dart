@@ -54,7 +54,7 @@ abstract class EntityMapBase<E extends _Indexed> {
   bool _closed = false;
 
   int _size = 0;
-  List<E> _list = <E>[];
+  final List<E> _list = <E>[];
 
   /// Returns the [index]th entity in the map.
   E getEntity(int index) => _list[index];
@@ -113,13 +113,13 @@ class EntityMap<E extends _Indexed> extends EntityMapBase<E> {
 /// corresponding data object of type [D].
 abstract class EntityDataMapBase<E extends _Indexed, D>
     extends EntityMapBase<E> {
-  List<D> _data = <D>[];
+  final List<D> _data = <D>[];
 
   /// Returns the data object stored for the [index]th entity.
   D getData(E entity) {
     int index = entity._index;
     if (index < _list.length && index >= _data.length) {
-      throw new StateError(
+      throw StateError(
           'Data is in the process of being created for ${_list[index]}.');
     }
     return _data[index];
@@ -169,7 +169,7 @@ class EntityDataMap<E extends _Indexed, D> extends EntityDataMapBase<E, D> {
   /// Calls [f] for each non-null entity with its corresponding data object.
   void forEach<E0 extends E, D0 extends D>(void f(E0 entity, D0 data)) {
     if (_list.length != _data.length) {
-      throw new StateError('Data is in the process of being created.');
+      throw StateError('Data is in the process of being created.');
     }
     for (int index = 0; index < _list.length; index++) {
       E entity = _list[index];
@@ -184,13 +184,13 @@ class EntityDataMap<E extends _Indexed, D> extends EntityDataMapBase<E, D> {
 /// corresponding data object of type [D] and an environment of type [V].
 abstract class EntityDataEnvMapBase<E extends _Indexed, D, V>
     extends EntityDataMapBase<E, D> {
-  List<V> _env = <V>[];
+  final List<V> _env = <V>[];
 
   /// Returns the environment object stored for the [index]th entity.
   V getEnv(E entity) {
     int index = entity._index;
     if (index < _list.length && index >= _env.length) {
-      throw new StateError(
+      throw StateError(
           'Env is in the process of being created for ${_list[index]}.');
     }
     return _env[index];
@@ -244,10 +244,10 @@ class EntityDataEnvMap<E extends _Indexed, D, V>
   void forEach<E0 extends E, D0 extends D, V0 extends V>(
       void f(E0 entity, D0 data, V0 env)) {
     if (_list.length != _data.length) {
-      throw new StateError('Data is in the process of being created.');
+      throw StateError('Data is in the process of being created.');
     }
     if (_list.length != _env.length) {
-      throw new StateError('Env is in the process of being created.');
+      throw StateError('Env is in the process of being created.');
     }
     for (int index = 0; index < _list.length; index++) {
       E entity = _list[index];

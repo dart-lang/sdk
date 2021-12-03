@@ -48,6 +48,7 @@ enum NullValue {
   FunctionBody,
   FunctionBodyAsyncToken,
   FunctionBodyStarToken,
+  HideClause,
   Identifier,
   IdentifierList,
   Initializers,
@@ -55,13 +56,16 @@ enum NullValue {
   Metadata,
   Modifiers,
   Name,
+  OperatorList,
   ParameterDefaultValue,
   Prefix,
+  ShowClause,
   StringLiteral,
   SwitchScope,
   Token,
   Type,
   TypeArguments,
+  TypeBuilder,
   TypeBuilderList,
   TypeList,
   TypeVariable,
@@ -92,7 +96,8 @@ abstract class StackListener extends Listener {
         // If offset is available report and internal problem to show the
         // parsed code in the output.
         throw internalProblem(
-            new Message(const Code<String>('Internal error'), message: message),
+            new Message(const Code<String>('Internal error'),
+                problemMessage: message),
             token.charOffset,
             uri);
       } else {
@@ -194,7 +199,8 @@ abstract class StackListener extends Listener {
         // If offset is available report and internal problem to show the
         // parsed code in the output.
         throw internalProblem(
-            new Message(const Code<String>('Internal error'), message: message),
+            new Message(const Code<String>('Internal error'),
+                problemMessage: message),
             token.charOffset,
             uri);
       } else {
@@ -346,6 +352,12 @@ abstract class StackListener extends Listener {
   }
 
   @override
+  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
+      Token? hideKeyword, int hideElementCount) {
+    debugEvent("ExtensionShow");
+  }
+
+  @override
   void handleNoTypeArguments(Token token) {
     debugEvent("NoTypeArguments");
     push(NullValue.TypeArguments);
@@ -365,7 +377,7 @@ abstract class StackListener extends Listener {
   @override
   void handleNoType(Token lastConsumed) {
     debugEvent("NoType");
-    push(NullValue.Type);
+    push(NullValue.TypeBuilder);
   }
 
   @override
@@ -470,7 +482,7 @@ abstract class StackListener extends Listener {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    debugEvent("Error: ${message.message}");
+    debugEvent("Error: ${message.problemMessage}");
     if (isIgnoredError(message.code, startToken)) return;
     addProblem(
         message, startToken.charOffset, lengthOfSpan(startToken, endToken));
@@ -526,7 +538,8 @@ abstract class Stack {
 }
 
 class StackImpl implements Stack {
-  List<Object?> array = new List<Object?>.filled(/* length = */ 8, null);
+  List<Object?> array =
+      new List<Object?>.filled(/* length = */ 8, /* fill = */ null);
   int arrayLength = 0;
 
   bool get isNotEmpty => arrayLength > 0;
@@ -610,14 +623,16 @@ class StackImpl implements Stack {
 
   List<Object?> get values {
     final int length = arrayLength;
-    final List<Object?> list = new List<Object?>.filled(length, null);
+    final List<Object?> list =
+        new List<Object?>.filled(length, /* fill = */ null);
     list.setRange(/* start = */ 0, length, array);
     return list;
   }
 
   void _grow() {
     final int length = array.length;
-    final List<Object?> newArray = new List<Object?>.filled(length * 2, null);
+    final List<Object?> newArray =
+        new List<Object?>.filled(length * 2, /* fill = */ null);
     newArray.setRange(/* start = */ 0, length, array, /* skipCount = */ 0);
     array = newArray;
   }
@@ -692,7 +707,8 @@ class FixedNullableList<T> {
 
   List<T?>? pop(Stack stack, int count, [NullValue? nullValue]) {
     if (count == 0) return null;
-    return stack.popList(count, new List<T?>.filled(count, null), nullValue);
+    return stack.popList(
+        count, new List<T?>.filled(count, /* fill = */ null), nullValue);
   }
 
   List<T>? popNonNullable(Stack stack, int count, T dummyValue) {
@@ -704,8 +720,8 @@ class FixedNullableList<T> {
   List<T?>? popPadded(Stack stack, int count, int padding,
       [NullValue? nullValue]) {
     if (count + padding == 0) return null;
-    return stack.popList(
-        count, new List<T?>.filled(count + padding, null), nullValue);
+    return stack.popList(count,
+        new List<T?>.filled(count + padding, /* fill = */ null), nullValue);
   }
 
   List<T>? popPaddedNonNullable(

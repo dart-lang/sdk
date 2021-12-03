@@ -107,11 +107,11 @@ class BytecodeRegExpMacroAssembler : public RegExpMacroAssembler {
   virtual void PrintBlocks() { UNIMPLEMENTED(); }
   /////
 
-  static InstancePtr Interpret(const RegExp& regexp,
-                               const String& str,
-                               const Smi& start_index,
-                               bool is_sticky,
-                               Zone* zone);
+  static ObjectPtr Interpret(const RegExp& regexp,
+                             const String& str,
+                             const Smi& start_index,
+                             bool is_sticky,
+                             Zone* zone);
 
  private:
   void Expand();

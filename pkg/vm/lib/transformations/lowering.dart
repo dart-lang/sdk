@@ -51,6 +51,12 @@ class _Lowering extends Transformer {
 
   @override
   defaultMember(Member node) {
+    if (node is Procedure && node.isRedirectingFactory) {
+      // Keep bodies of redirecting factories unchanged because
+      // front-end expects them to have a certain shape.
+      return node;
+    }
+
     _currentMember = node;
     _cachedStaticTypeContext = null;
 

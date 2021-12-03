@@ -1,0 +1,67 @@
+class A {
+
+
+Stream<List<Set<List< >>>>
+}
+
+class B {
+Stream<List<Set<List<String>>>> foo;
+
+
+Stream<List<Set<List< >>>>
+}
+
+class C {
+Stream<List<Set<List<String>>>> foo;
+
+
+
+Stream<List<Set<List< >>>>
+Stream<List<Set<List<String>>>> baz;
+}
+
+
+
+
+Stream<List<Set<List< >>>>
+Stream<List<Set<List<String>>>> baz;
+
+
+
+
+Stream<List<Set<List< >>>>
+
+
+class[KeywordToken] A[StringToken] {[BeginToken]
+
+
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]Set[StringToken]<[BeginToken]List[StringToken]<[BeginToken] >>>[SimpleToken]>[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] B[StringToken] {[BeginToken]
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]Set[StringToken]<[BeginToken]List[StringToken]<[BeginToken]String[StringToken]>>>[SimpleToken]>[SimpleToken] foo[StringToken];[SimpleToken]
+
+
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]Set[StringToken]<[BeginToken]List[StringToken]<[BeginToken] >>>[SimpleToken]>[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]Set[StringToken]<[BeginToken]List[StringToken]<[BeginToken]String[StringToken]>>>[SimpleToken]>[SimpleToken] foo[StringToken];[SimpleToken]
+
+
+
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]Set[StringToken]<[BeginToken]List[StringToken]<[BeginToken] >>>[SimpleToken]>[SimpleToken]
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]Set[StringToken]<[BeginToken]List[StringToken]<[BeginToken]String[StringToken]>>>[SimpleToken]>[SimpleToken] baz[StringToken];[SimpleToken]
+}[SimpleToken]
+
+
+
+
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]Set[StringToken]<[BeginToken]List[StringToken]<[BeginToken] >>>[SimpleToken]>[SimpleToken]
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]Set[StringToken]<[BeginToken]List[StringToken]<[BeginToken]String[StringToken]>>>[SimpleToken]>[SimpleToken] baz[StringToken];[SimpleToken]
+
+
+
+
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]Set[StringToken]<[BeginToken]List[StringToken]<[BeginToken] >>>[SimpleToken]>[SimpleToken]
+[SimpleToken]

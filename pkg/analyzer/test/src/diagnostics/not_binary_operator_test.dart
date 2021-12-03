@@ -17,7 +17,7 @@ main() {
 class NonBinaryOperatorTest extends PubPackageResolutionTest {
   test_unaryTilde() async {
     await assertErrorsInCode('var a = 5 ~ 3;', [
-      error(CompileTimeErrorCode.NOT_BINARY_OPERATOR, 8, 5),
+      error(CompileTimeErrorCode.NOT_BINARY_OPERATOR, 10, 1),
     ]);
   }
 }

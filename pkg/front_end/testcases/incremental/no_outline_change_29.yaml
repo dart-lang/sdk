@@ -9,7 +9,7 @@ type: newworld
 forceLateLoweringForTesting: true
 worlds:
   - entry: main.dart
-    experiments: non-nullable,alternative-invalidation-strategy
+    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         late int? field1 = 42;
@@ -32,7 +32,7 @@ worlds:
         }
     expectedLibraryCount: 1
   - entry: main.dart
-    experiments: non-nullable,alternative-invalidation-strategy
+    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:

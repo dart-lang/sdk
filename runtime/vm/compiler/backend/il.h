@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_IL_H_
 #define RUNTIME_VM_COMPILER_BACKEND_IL_H_
 
+#include "vm/hash_map.h"
 #if defined(DART_PRECOMPILED_RUNTIME)
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -247,17 +248,19 @@ class HierarchyInfo : public ThreadStackResource {
         cid_subtype_ranges_nullable_(),
         cid_subtype_ranges_abstract_nullable_(),
         cid_subtype_ranges_nonnullable_(),
-        cid_subtype_ranges_abstract_nonnullable_(),
-        cid_subclass_ranges_() {
+        cid_subtype_ranges_abstract_nonnullable_() {
     thread->set_hierarchy_info(this);
   }
 
   ~HierarchyInfo() { thread()->set_hierarchy_info(NULL); }
 
+  // Returned from FindBestTAVOffset and SplitOnConsistentTypeArguments
+  // to denote a failure to find a compatible concrete, finalized class.
+  static const intptr_t kNoCompatibleTAVOffset = 0;
+
   const CidRangeVector& SubtypeRangesForClass(const Class& klass,
                                               bool include_abstract,
                                               bool exclude_null);
-  const CidRangeVector& SubclassRangesForClass(const Class& klass);
 
   bool InstanceOfHasClassRange(const AbstractType& type,
                                intptr_t* lower_limit,
@@ -283,31 +286,34 @@ class HierarchyInfo : public ThreadStackResource {
 
  private:
   // Does not use any hierarchy information available in the system but computes
-  // it via O(n) class table traversal. The boolean parameters denote:
-  //   use_subtype_test : if set, IsSubtypeOf() is used to compute inclusion
+  // it via O(n) class table traversal.
+  //
+  // The boolean parameters denote:
+  //   include_abstract : if set, include abstract types (don't care otherwise)
+  //   exclude_null     : if set, exclude null types (don't care otherwise)
+  void BuildRangesUsingClassTableFor(ClassTable* table,
+                                     CidRangeVector* ranges,
+                                     const Class& klass,
+                                     bool include_abstract,
+                                     bool exclude_null);
+
+  // Uses hierarchy information stored in the [Class]'s direct_subclasses() and
+  // direct_implementors() arrays, unless that information is not available
+  // in which case we fall back to the class table.
+  //
+  // The boolean parameters denote:
   //   include_abstract : if set, include abstract types (don't care otherwise)
   //   exclude_null     : if set, exclude null types (don't care otherwise)
   void BuildRangesFor(ClassTable* table,
                       CidRangeVector* ranges,
                       const Class& klass,
-                      bool use_subtype_test,
                       bool include_abstract,
                       bool exclude_null);
-
-  // In JIT mode we use hierarchy information stored in the [RawClass]s
-  // direct_subclasses_/direct_implementors_ arrays.
-  void BuildRangesForJIT(ClassTable* table,
-                         CidRangeVector* ranges,
-                         const Class& klass,
-                         bool use_subtype_test,
-                         bool include_abstract,
-                         bool exclude_null);
 
   std::unique_ptr<CidRangeVector[]> cid_subtype_ranges_nullable_;
   std::unique_ptr<CidRangeVector[]> cid_subtype_ranges_abstract_nullable_;
   std::unique_ptr<CidRangeVector[]> cid_subtype_ranges_nonnullable_;
   std::unique_ptr<CidRangeVector[]> cid_subtype_ranges_abstract_nonnullable_;
-  std::unique_ptr<CidRangeVector[]> cid_subclass_ranges_;
 };
 
 // An embedded container with N elements of type T.  Used (with partial
@@ -420,6 +426,7 @@ struct InstrAttrs {
   M(RelationalOp, kNoGC)                                                       \
   M(NativeCall, _)                                                             \
   M(DebugStepCheck, _)                                                         \
+  M(RecordCoverage, kNoGC)                                                     \
   M(LoadIndexed, kNoGC)                                                        \
   M(LoadCodeUnits, kNoGC)                                                      \
   M(StoreIndexed, kNoGC)                                                       \
@@ -772,8 +779,7 @@ class Instruction : public ZoneAllocated {
   // the inlining ID to that; instead, treat it as unset.
   explicit Instruction(const InstructionSource& source,
                        intptr_t deopt_id = DeoptId::kNone)
-      : deopt_id_(deopt_id),
-        inlining_id_(source.inlining_id) {}
+      : deopt_id_(deopt_id), inlining_id_(source.inlining_id) {}
 
   explicit Instruction(intptr_t deopt_id = DeoptId::kNone)
       : Instruction(InstructionSource(), deopt_id) {}
@@ -1501,7 +1507,6 @@ class BlockEntryInstr : public Instruction {
   InstructionsIterable instructions() { return InstructionsIterable(this); }
 
   DEFINE_INSTRUCTION_TYPE_CHECK(BlockEntry)
-
 
  protected:
   BlockEntryInstr(intptr_t block_id,
@@ -5295,7 +5300,6 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-
  private:
   const TokenPosition token_pos_;
   const UntaggedPcDescriptors::Kind stub_kind_;
@@ -5351,10 +5355,13 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
                           Value* value,
                           StoreBarrierType emit_store_barrier,
                           const InstructionSource& source,
-                          Kind kind = Kind::kOther)
+                          Kind kind = Kind::kOther,
+                          compiler::Assembler::MemoryOrder memory_order =
+                              compiler::Assembler::kRelaxedNonAtomic)
       : TemplateInstruction(source),
         slot_(slot),
         emit_store_barrier_(emit_store_barrier),
+        memory_order_(memory_order),
         token_pos_(source.token_pos),
         is_initialization_(kind == Kind::kInitializing) {
     SetInputAt(kInstancePos, instance);
@@ -5461,6 +5468,7 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
 
   const Slot& slot_;
   StoreBarrierType emit_store_barrier_;
+  compiler::Assembler::MemoryOrder memory_order_;
   const TokenPosition token_pos_;
   // Marks initializing stores. E.g. in the constructor.
   const bool is_initialization_;
@@ -6010,6 +6018,31 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);
 };
 
+class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
+ public:
+  RecordCoverageInstr(const Array& coverage_array,
+                      intptr_t coverage_index,
+                      const InstructionSource& source)
+      : TemplateInstruction(source),
+        coverage_array_(coverage_array),
+        coverage_index_(coverage_index),
+        token_pos_(source.token_pos) {}
+
+  DECLARE_INSTRUCTION(RecordCoverage)
+
+  virtual TokenPosition token_pos() const { return token_pos_; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  const Array& coverage_array_;
+  const intptr_t coverage_index_;
+  const TokenPosition token_pos_;
+
+  DISALLOW_COPY_AND_ASSIGN(RecordCoverageInstr);
+};
+
 // Note overrideable, built-in: value ? false : true.
 class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
  public:
@@ -6157,6 +6190,7 @@ class TemplateAllocation : public AllocationInstr {
  private:
   friend class BranchInstr;
   friend class IfThenElseInstr;
+  friend class RecordCoverageInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 };
@@ -6171,6 +6205,8 @@ class AllocateObjectInstr : public AllocationInstr {
       : AllocationInstr(source, deopt_id),
         cls_(cls),
         type_arguments_(type_arguments) {
+    ASSERT(cls.IsZoneHandle());
+    ASSERT(!cls.IsNull());
     ASSERT((cls.NumTypeArguments() > 0) == (type_arguments != nullptr));
     if (type_arguments != nullptr) {
       SetInputAt(kTypeArgumentsPos, type_arguments);
@@ -6656,6 +6692,9 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
     return calls_initializer() && !throw_exception_on_initialization();
   }
 
+  virtual bool CanCallDart() const {
+    return calls_initializer() && !throw_exception_on_initialization();
+  }
   virtual bool CanTriggerGC() const { return calls_initializer(); }
   virtual bool MayThrow() const { return calls_initializer(); }
 
@@ -7323,6 +7362,11 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
     return kUnboxedDouble;
+  }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kNotSpeculative;
   }
 
   virtual intptr_t DeoptimizationTarget() const {
@@ -8304,30 +8348,49 @@ class Int64ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Int64ToDoubleInstr);
 };
 
-class DoubleToIntegerInstr : public TemplateDefinition<1, Throws> {
+class DoubleToIntegerInstr : public TemplateDefinition<1, Throws, Pure> {
  public:
-  DoubleToIntegerInstr(Value* value, InstanceCallInstr* instance_call)
-      : TemplateDefinition(instance_call->deopt_id()),
-        instance_call_(instance_call) {
+  DoubleToIntegerInstr(Value* value,
+                       MethodRecognizer::Kind recognized_kind,
+                       intptr_t deopt_id)
+      : TemplateDefinition(deopt_id), recognized_kind_(recognized_kind) {
+    ASSERT((recognized_kind == MethodRecognizer::kDoubleToInteger) ||
+           (recognized_kind == MethodRecognizer::kDoubleFloorToInt) ||
+           (recognized_kind == MethodRecognizer::kDoubleCeilToInt));
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
-  InstanceCallInstr* instance_call() const { return instance_call_; }
+
+  MethodRecognizer::Kind recognized_kind() const { return recognized_kind_; }
 
   DECLARE_INSTRUCTION(DoubleToInteger)
   virtual CompileType ComputeType() const;
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kNotSpeculative;
+  }
 
   virtual bool ComputeCanDeoptimize() const {
     return !CompilerState::Current().is_aot();
   }
 
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
+
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual bool CanCallDart() const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return other.AsDoubleToInteger()->recognized_kind() == recognized_kind();
+  }
 
  private:
-  InstanceCallInstr* instance_call_;
+  const MethodRecognizer::Kind recognized_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(DoubleToIntegerInstr);
 };
@@ -8367,6 +8430,9 @@ class DoubleToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
                       MethodRecognizer::Kind recognized_kind,
                       intptr_t deopt_id)
       : TemplateDefinition(deopt_id), recognized_kind_(recognized_kind) {
+    ASSERT((recognized_kind == MethodRecognizer::kDoubleTruncateToDouble) ||
+           (recognized_kind == MethodRecognizer::kDoubleFloorToDouble) ||
+           (recognized_kind == MethodRecognizer::kDoubleCeilToDouble));
     SetInputAt(0, value);
   }
 
@@ -8384,6 +8450,11 @@ class DoubleToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
     return kUnboxedDouble;
+  }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kNotSpeculative;
   }
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
@@ -8502,6 +8573,11 @@ class InvokeMathCFunctionInstr : public PureDefinition {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((0 <= idx) && (idx < InputCount()));
     return kUnboxedDouble;
+  }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
+    ASSERT((0 <= idx) && (idx < InputCount()));
+    return kNotSpeculative;
   }
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
@@ -8771,7 +8847,6 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
                                         FlowGraphCompiler* compiler);
 
   virtual Value* RedefinedValue() const;
-
 
   PRINT_OPERANDS_TO_SUPPORT
 

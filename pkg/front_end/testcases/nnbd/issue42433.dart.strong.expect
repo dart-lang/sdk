@@ -10,9 +10,10 @@ class X extends core::Object {
 }
 static method checkme<T extends self::X>(self::checkme::T? t) → dynamic {}
 static method main() → dynamic {
-  (self::X?) → dynamic t2 = #C1<self::X>;
+  (self::X?) → dynamic t2 = #C2;
 }
 
 constants  {
   #C1 = static-tearoff self::checkme
+  #C2 = instantiation #C1 <self::X>
 }

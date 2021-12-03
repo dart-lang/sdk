@@ -22,7 +22,7 @@ class SourceMapBuilder {
   final Uri targetFileUri;
 
   final LocationProvider locationProvider;
-  final List<SourceMapEntry> entries = <SourceMapEntry>[];
+  final List<SourceMapEntry> entries = [];
 
   /// Extension used to deobfuscate minified names in error messages.
   final Map<String, String> minifiedGlobalNames;
@@ -41,7 +41,7 @@ class SourceMapBuilder {
       this.frames);
 
   void addMapping(int targetOffset, SourceLocation sourceLocation) {
-    entries.add(new SourceMapEntry(sourceLocation, targetOffset));
+    entries.add(SourceMapEntry(sourceLocation, targetOffset));
   }
 
   void printStringListOn(Iterable<String> strings, StringBuffer buffer) {
@@ -58,10 +58,8 @@ class SourceMapBuilder {
   }
 
   String build() {
-    LineColumnMap<SourceMapEntry> lineColumnMap =
-        new LineColumnMap<SourceMapEntry>();
-    Map<Uri, LineColumnMap<SourceMapEntry>> sourceLocationMap =
-        <Uri, LineColumnMap<SourceMapEntry>>{};
+    LineColumnMap<SourceMapEntry> lineColumnMap = LineColumnMap();
+    Map<Uri, LineColumnMap<SourceMapEntry>> sourceLocationMap = {};
     entries.forEach((SourceMapEntry sourceMapEntry) {
       Location kernelLocation =
           locationProvider.getLocation(sourceMapEntry.targetOffset);
@@ -73,8 +71,8 @@ class SourceMapBuilder {
       if (location != null) {
         if (location.sourceUri != null) {
           LineColumnMap<SourceMapEntry> sourceLineColumnMap =
-              sourceLocationMap.putIfAbsent(location.sourceUri,
-                  () => new LineColumnMap<SourceMapEntry>());
+              sourceLocationMap.putIfAbsent(
+                  location.sourceUri, () => LineColumnMap<SourceMapEntry>());
           sourceLineColumnMap.add(
               location.line - 1, location.column - 1, sourceMapEntry);
         }
@@ -85,8 +83,8 @@ class SourceMapBuilder {
   }
 
   String _build(LineColumnMap<SourceMapEntry> lineColumnMap) {
-    IndexMap<Uri> uriMap = new IndexMap<Uri>();
-    IndexMap<String> nameMap = new IndexMap<String>();
+    IndexMap<Uri> uriMap = IndexMap<Uri>();
+    IndexMap<String> nameMap = IndexMap<String>();
 
     void registerLocation(SourceLocation sourceLocation) {
       if (sourceLocation != null) {
@@ -114,10 +112,10 @@ class SourceMapBuilder {
       }
     }
 
-    StringBuffer mappingsBuffer = new StringBuffer();
+    StringBuffer mappingsBuffer = StringBuffer();
     writeEntries(lineColumnMap, uriMap, nameMap, mappingsBuffer);
 
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write('{\n');
     buffer.write('  "version": 3,\n');
     buffer.write('  "engine": "$version",\n');
@@ -158,12 +156,12 @@ class SourceMapBuilder {
       IndexMap<String> nameMap, StringBuffer output) {
     SourceLocation previousSourceLocation;
     int previousTargetLine = 0;
-    DeltaEncoder targetColumnEncoder = new DeltaEncoder();
+    DeltaEncoder targetColumnEncoder = DeltaEncoder();
     bool firstEntryInLine = true;
-    DeltaEncoder sourceUriIndexEncoder = new DeltaEncoder();
-    DeltaEncoder sourceLineEncoder = new DeltaEncoder();
-    DeltaEncoder sourceColumnEncoder = new DeltaEncoder();
-    DeltaEncoder sourceNameIndexEncoder = new DeltaEncoder();
+    DeltaEncoder sourceUriIndexEncoder = DeltaEncoder();
+    DeltaEncoder sourceLineEncoder = DeltaEncoder();
+    DeltaEncoder sourceColumnEncoder = DeltaEncoder();
+    DeltaEncoder sourceNameIndexEncoder = DeltaEncoder();
 
     entries.forEach((int targetLine, int targetColumn, SourceMapEntry entry) {
       SourceLocation sourceLocation = entry.sourceLocation;
@@ -283,7 +281,7 @@ class SourceMapBuilder {
     int index = 0;
     sourceLocationsProvider.sourceLocations
         .forEach((SourceLocations sourceLocations) {
-      SourceMapBuilder sourceMapBuilder = new SourceMapBuilder(
+      SourceMapBuilder sourceMapBuilder = SourceMapBuilder(
           sourceLocations.name,
           sourceMapUri,
           fileUri,
@@ -364,12 +362,12 @@ class SourceMapEntry {
 
 /// Map from line/column pairs to lists of [T] elements.
 class LineColumnMap<T> {
-  Map<int, Map<int, List<T>>> _map = <int, Map<int, List<T>>>{};
+  final Map<int, Map<int, List<T>>> _map = {};
 
   /// Returns the list of elements associated with ([line],[column]).
   List<T> _getList(int line, int column) {
-    Map<int, List<T>> lineMap = _map[line] ??= <int, List<T>>{};
-    return lineMap[column] ??= <T>[];
+    Map<int, List<T>> lineMap = _map[line] ??= {};
+    return lineMap[column] ??= [];
   }
 
   /// Adds [element] to the end of the list of elements associated with
@@ -438,7 +436,7 @@ class LineColumnMap<T> {
 
 /// Map from [T] elements to assigned indices.
 class IndexMap<T> {
-  Map<T, int> map = <T, int>{};
+  Map<T, int> map = {};
 
   /// Register [element] and returns its index.
   int register(T element) {

@@ -64,7 +64,7 @@ class MixinFullResolution {
         hierarchy.applyMemberChanges(transformedClasses, findDescendants: true);
   }
 
-  transformClass(
+  void transformClass(
       List<Library> librariesToBeTransformed,
       Set<Class> processedClasses,
       Set<Class> transformedClasses,
@@ -120,6 +120,8 @@ class MixinFullResolution {
       }
 
       for (var field in class_.mixin.fields) {
+        Reference? fieldReference =
+            indexedClass?.lookupFieldReference(field.name);
         Reference? getterReference =
             indexedClass?.lookupGetterReference(field.name);
         Reference? setterReference =
@@ -132,21 +134,23 @@ class MixinFullResolution {
           setterReference = setters[field.name]?.reference;
           setterReference?.canonicalName?.unbind();
         }
-        Field clone =
-            cloner.cloneField(field, getterReference, setterReference);
+        Field clone = cloner.cloneField(
+            field, fieldReference, getterReference, setterReference);
         Procedure? setter = setters[field.name];
         if (setter != null) {
           setters.remove(field.name);
           VariableDeclaration parameter =
               setter.function.positionalParameters.first;
-          clone.isCovariant = parameter.isCovariant;
-          clone.isGenericCovariantImpl = parameter.isGenericCovariantImpl;
+          clone.isCovariantByDeclaration = parameter.isCovariantByDeclaration;
+          clone.isCovariantByClass = parameter.isCovariantByClass;
         }
         nonSetters.remove(field.name);
         class_.addField(clone);
       }
       class_.procedures.clear();
-      class_.procedures..addAll(nonSetters.values)..addAll(setters.values);
+      class_.procedures
+        ..addAll(nonSetters.values)
+        ..addAll(setters.values);
     }
 
     // Existing procedures in the class should only be forwarding stubs.
@@ -190,6 +194,17 @@ class MixinFullResolution {
             // and don't add several procedures with the same name to the class.
             continue outer;
           }
+          if (procedure.isAbstract &&
+              (originalProcedure.stubKind ==
+                      ProcedureStubKind.ConcreteForwardingStub ||
+                  originalProcedure.stubKind ==
+                      ProcedureStubKind.ConcreteMixinStub)) {
+            // Don't replace concrete stubs with abstract methods.
+            originalProcedure.stubKind = ProcedureStubKind.Regular;
+            originalProcedure.stubTarget = null;
+            continue outer;
+          }
+
           originalIndex = i;
           break;
         }
@@ -212,10 +227,10 @@ class MixinFullResolution {
         // TODO(kernel team): The named parameters are not sorted,
         // this might not be correct.
         for (int j = 0; j < src.namedParameters.length; ++j) {
-          dst.namedParameters[j].isCovariant =
-              src.namedParameters[j].isCovariant;
-          dst.namedParameters[j].isGenericCovariantImpl =
-              src.namedParameters[j].isGenericCovariantImpl;
+          dst.namedParameters[j].isCovariantByDeclaration =
+              src.namedParameters[j].isCovariantByDeclaration;
+          dst.namedParameters[j].isCovariantByClass =
+              src.namedParameters[j].isCovariantByClass;
         }
 
         class_.procedures[originalIndex] = clone;

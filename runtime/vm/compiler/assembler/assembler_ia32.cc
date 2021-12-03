@@ -2024,11 +2024,16 @@ void Assembler::StoreIntoObjectFilter(Register object,
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
-                                CanBeSmi can_be_smi) {
+                                CanBeSmi can_be_smi,
+                                MemoryOrder memory_order) {
   // x.slot = x. Barrier should have be removed at the IL level.
   ASSERT(object != value);
 
-  movl(dest, value);
+  if (memory_order == kRelease) {
+    StoreRelease(value, dest.base(), dest.disp32());
+  } else {
+    movl(dest, value);
+  }
   Label done;
   StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
   // A store buffer update is required.
@@ -2047,8 +2052,13 @@ void Assembler::StoreIntoObject(Register object,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         Register value) {
-  movl(dest, value);
+                                         Register value,
+                                         MemoryOrder memory_order) {
+  if (memory_order == kRelease) {
+    StoreRelease(value, dest.base(), dest.disp32());
+  } else {
+    movl(dest, value);
+  }
 #if defined(DEBUG)
   Label done;
   pushl(value);
@@ -2109,8 +2119,20 @@ void Assembler::StoreIntoArray(Register object,
 
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
-                                         const Object& value) {
+                                         const Object& value,
+                                         MemoryOrder memory_order) {
   ASSERT(IsOriginalObject(value));
+  // Ignoring memory_order.
+  // On intel stores have store-release behavior (i.e. stores are not
+  // re-ordered with other stores).
+  // We don't run TSAN on 32 bit systems.
+  // Don't call StoreRelease here because we would have to load the immediate
+  // into a temp register which causes spilling.
+#if defined(USING_THREAD_SANITIZER)
+  if (memory_order == kRelease) {
+    UNIMPLEMENTED();
+  }
+#endif
   if (target::CanEmbedAsRawPointerInGeneratedCode(value)) {
     Immediate imm_value(target::ToRawPointer(value));
     movl(dest, imm_value);

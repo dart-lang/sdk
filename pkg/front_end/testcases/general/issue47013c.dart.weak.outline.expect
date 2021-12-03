@@ -1,0 +1,34 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class D1 extends core::Object {
+  synthetic constructor •() → self::D1
+    ;
+}
+class D2 extends core::Object {
+  synthetic constructor •() → self::D2
+    ;
+}
+class D extends core::Object implements self::D1, self::D2 {
+  synthetic constructor •() → self::D
+    ;
+}
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  method m(covariant-by-declaration self::D d) → void
+    ;
+}
+abstract class B1 extends core::Object {
+  synthetic constructor •() → self::B1
+    ;
+  abstract method m(self::D1 d1) → void;
+}
+abstract class B2 extends core::Object {
+  synthetic constructor •() → self::B2
+    ;
+  abstract method m(self::D2 d2) → void;
+}
+static method main() → dynamic
+  ;

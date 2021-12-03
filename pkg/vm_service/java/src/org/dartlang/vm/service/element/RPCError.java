@@ -38,7 +38,7 @@ import org.dartlang.vm.service.internal.VmServiceConst;
  * }
  * </pre>
  * <p>
- * In addition the the [error codes](http://www.jsonrpc.org/specification#error_object) specified in
+ * In addition the [error codes](http://www.jsonrpc.org/specification#error_object) specified in
  * the JSON-RPC spec, we use the following application specific error codes:
  *
  * <pre>

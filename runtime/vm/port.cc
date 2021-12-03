@@ -6,6 +6,7 @@
 
 #include <utility>
 
+#include "include/dart_api.h"
 #include "platform/utils.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
@@ -40,6 +41,8 @@ const char* PortMap::PortStateString(PortState kind) {
 Dart_Port PortMap::AllocatePort() {
   Dart_Port result;
 
+  ASSERT(mutex_->IsOwnedByCurrentThread());
+
   // Keep getting new values while we have an illegal port number or the port
   // number is already in use.
   do {
@@ -68,6 +71,9 @@ Dart_Port PortMap::AllocatePort() {
 
 void PortMap::SetPortState(Dart_Port port, PortState state) {
   MutexLocker ml(mutex_);
+  if (ports_ == nullptr) {
+    return;
+  }
 
   auto it = ports_->TryLookup(port);
   ASSERT(it != ports_->end());
@@ -93,6 +99,10 @@ void PortMap::SetPortState(Dart_Port port, PortState state) {
 Dart_Port PortMap::CreatePort(MessageHandler* handler) {
   ASSERT(handler != NULL);
   MutexLocker ml(mutex_);
+  if (ports_ == nullptr) {
+    return ILLEGAL_PORT;
+  }
+
 #if defined(DEBUG)
   handler->CheckAccess();
 #endif
@@ -126,6 +136,9 @@ bool PortMap::ClosePort(Dart_Port port) {
   MessageHandler* handler = NULL;
   {
     MutexLocker ml(mutex_);
+    if (ports_ == nullptr) {
+      return false;
+    }
     auto it = ports_->TryLookup(port);
     if (it == ports_->end()) {
       return false;
@@ -165,6 +178,9 @@ bool PortMap::ClosePort(Dart_Port port) {
 void PortMap::ClosePorts(MessageHandler* handler) {
   {
     MutexLocker ml(mutex_);
+    if (ports_ == nullptr) {
+      return;
+    }
     // The MessageHandler::ports_ is only accessed by [PortMap], it is guarded
     // by the [PortMap::mutex_] we already hold.
     for (auto isolate_it = handler->ports_.begin();
@@ -189,6 +205,9 @@ void PortMap::ClosePorts(MessageHandler* handler) {
 bool PortMap::PostMessage(std::unique_ptr<Message> message,
                           bool before_events) {
   MutexLocker ml(mutex_);
+  if (ports_ == nullptr) {
+    return false;
+  }
   auto it = ports_->TryLookup(message->dest_port());
   if (it == ports_->end()) {
     // Ownership of external data remains with the poster.
@@ -203,6 +222,9 @@ bool PortMap::PostMessage(std::unique_ptr<Message> message,
 
 bool PortMap::IsLocalPort(Dart_Port id) {
   MutexLocker ml(mutex_);
+  if (ports_ == nullptr) {
+    return false;
+  }
   auto it = ports_->TryLookup(id);
   if (it == ports_->end()) {
     // Port does not exist.
@@ -216,6 +238,9 @@ bool PortMap::IsLocalPort(Dart_Port id) {
 
 bool PortMap::IsLivePort(Dart_Port id) {
   MutexLocker ml(mutex_);
+  if (ports_ == nullptr) {
+    return false;
+  }
   auto it = ports_->TryLookup(id);
   if (it == ports_->end()) {
     // Port does not exist.
@@ -228,6 +253,9 @@ bool PortMap::IsLivePort(Dart_Port id) {
 
 Isolate* PortMap::GetIsolate(Dart_Port id) {
   MutexLocker ml(mutex_);
+  if (ports_ == nullptr) {
+    return nullptr;
+  }
   auto it = ports_->TryLookup(id);
   if (it == ports_->end()) {
     // Port does not exist.
@@ -241,6 +269,9 @@ Isolate* PortMap::GetIsolate(Dart_Port id) {
 bool PortMap::IsReceiverInThisIsolateGroup(Dart_Port receiver,
                                            IsolateGroup* group) {
   MutexLocker ml(mutex_);
+  if (ports_ == nullptr) {
+    return false;
+  }
   auto it = ports_->TryLookup(receiver);
   if (it == ports_->end()) return false;
   auto isolate = (*it).handler->isolate();
@@ -249,7 +280,6 @@ bool PortMap::IsReceiverInThisIsolateGroup(Dart_Port receiver,
 }
 
 void PortMap::Init() {
-  // TODO(bkonyi): don't keep ports_ after Dart_Cleanup.
   if (mutex_ == NULL) {
     mutex_ = new Mutex();
   }
@@ -276,11 +306,12 @@ void PortMap::Cleanup() {
   }
   ports_->Rebalance();
 
+  // Grab the mutex and delete the port set.
+  MutexLocker ml(mutex_);
   delete prng_;
   prng_ = NULL;
-  // TODO(bkonyi): find out why deleting map_ sometimes causes crashes.
-  // delete ports_;
-  // ports_ = nullptr;
+  delete ports_;
+  ports_ = nullptr;
 }
 
 void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
@@ -292,6 +323,9 @@ void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
   {
     JSONArray ports(&jsobj, "ports");
     SafepointMutexLocker ml(mutex_);
+    if (ports_ == nullptr) {
+      return;
+    }
     for (auto& entry : *ports_) {
       if (entry.handler == handler) {
         if (entry.state == kLivePort) {
@@ -309,6 +343,9 @@ void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
 
 void PortMap::DebugDumpForMessageHandler(MessageHandler* handler) {
   SafepointMutexLocker ml(mutex_);
+  if (ports_ == nullptr) {
+    return;
+  }
   Object& msg_handler = Object::Handle();
   for (auto& entry : *ports_) {
     if (entry.handler == handler) {

@@ -15,7 +15,7 @@ class Class<T extends core::Object> extends core::Object {
   field core::bool _#Class#instanceField#isSet;
   field dynamic _#Class#finalInstanceField;
   field core::bool _#Class#finalInstanceField#isSet;
-  generic-covariant-impl field self2::Class::T? _#Class#instanceTypeVariable;
+  covariant-by-class field self2::Class::T? _#Class#instanceTypeVariable;
   field core::bool _#Class#instanceTypeVariable#isSet;
   field self2::Class::T? _#Class#finalInstanceTypeVariable;
   field core::bool _#Class#finalInstanceTypeVariable#isSet;
@@ -30,7 +30,7 @@ class Class<T extends core::Object> extends core::Object {
   get finalInstanceField() → dynamic;
   set finalInstanceField(dynamic #t2) → void;
   get instanceTypeVariable() → self2::Class::T;
-  set instanceTypeVariable(generic-covariant-impl self2::Class::T #t3) → void;
+  set instanceTypeVariable(covariant-by-class self2::Class::T #t3) → void;
   get finalInstanceTypeVariable() → self2::Class::T;
   set finalInstanceTypeVariable(self2::Class::T #t4) → void;
   static get staticField() → core::int;

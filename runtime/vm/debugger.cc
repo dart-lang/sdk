@@ -132,7 +132,8 @@ void BreakpointLocation::SetResolved(const Function& func,
   ASSERT(script_url.Equals(func_url));
 #endif  // defined(DEBUG)
   ASSERT(!IsLatent());
-  ASSERT(token_pos.IsWithin(func.token_pos(), func.end_token_pos()));
+  ASSERT(func.is_generated_body() ||
+         token_pos.IsWithin(func.token_pos(), func.end_token_pos()));
   ASSERT(func.is_debuggable());
   token_pos_.store(token_pos);
   end_token_pos_.store(token_pos);
@@ -326,7 +327,7 @@ bool Debugger::NeedsDebugEvents() {
 
 static void InvokeEventHandler(ServiceEvent* event) {
   ASSERT(!event->IsPause());  // For pause events, call Pause instead.
-  Service::HandleEvent(event);
+  Service::HandleEvent(event, /*enter_safepoint*/ false);
 }
 
 ErrorPtr Debugger::PauseInterrupted() {
@@ -3128,6 +3129,7 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
       isolate_->group()->object_store()->libraries());
   bool is_package = script_url.StartsWith(Symbols::PackageScheme());
+  bool is_dart_colon = script_url.StartsWith(Symbols::DartScheme());
   Script& script_for_lib = Script::Handle(zone);
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
@@ -3135,7 +3137,8 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
     // are available for look up. When certain script only contains
     // top level functions, scripts could still be loaded correctly.
     lib.EnsureTopLevelClassIsFinalized();
-    script_for_lib = lib.LookupScript(script_url, !is_package);
+    bool useResolvedUri = !is_package && !is_dart_colon;
+    script_for_lib = lib.LookupScript(script_url, useResolvedUri);
     if (!script_for_lib.IsNull()) {
       scripts.Add(script_for_lib);
     }
@@ -3249,18 +3252,34 @@ bool GroupDebugger::EnsureLocationIsInFunction(Zone* zone,
   }
 
   // There is no local function within function that contains the
-  // breakpoint token position. Resolve the breakpoint if necessary
-  // and set the code breakpoints.
-  if (!location->EnsureIsResolved(function, token_pos)) {
-    // Failed to resolve breakpoint location for some reason
-    return false;
-  }
+  // breakpoint token position.
   return true;
 }
 
 void GroupDebugger::NotifyCompilation(const Function& function) {
   if (!function.is_debuggable()) {
     return;
+  }
+  Function& resolved_function = Function::Handle(function.ptr());
+  // Synchronous generators have the form:
+  //
+  // user_func sync* {
+  //   :sync_op_gen() {
+  //     :sync_op(..) yielding {
+  //       // ...
+  //     }
+  //   }
+  // }
+  //
+  // Setting a breakpoint in a sync* function should result in a code
+  // breakpoint being inserted into the synthetic :sync_op(..) function node.
+  // In order to ensure we're setting the breakpoint in the right function,
+  // we need to be able to check against the token positions of the
+  // non-synthetic function. Note, we only check for the innermost synthetic
+  // method as this is where the user's code will execute.
+  if (function.IsSyncGenClosure()) {
+    resolved_function ^= function.parent_function();
+    resolved_function ^= resolved_function.parent_function();
   }
   auto thread = Thread::Current();
   auto zone = thread->zone();
@@ -3275,7 +3294,9 @@ void GroupDebugger::NotifyCompilation(const Function& function) {
   RELEASE_ASSERT(thread->IsInStoppedMutatorsScope());
   for (intptr_t i = 0; i < breakpoint_locations_.length(); i++) {
     BreakpointLocation* location = breakpoint_locations_.At(i);
-    if (EnsureLocationIsInFunction(zone, function, location)) {
+    if (EnsureLocationIsInFunction(zone, resolved_function, location)) {
+      // Ensure the location is resolved for the original function.
+      location->EnsureIsResolved(function, location->token_pos());
       if (FLAG_verbose_debug) {
         Breakpoint* bpt = location->breakpoints();
         while (bpt != NULL) {

@@ -21,5 +21,5 @@ and [Language Server Protocol][lsp_spec] support is documented in
 Please file feature requests and bugs at the [issue tracker][tracker].
 
 [tracker]: https://github.com/dart-lang/sdk/issues
-[api]: https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html
+[api]: https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server/doc/api.html
 [lsp_spec]: https://microsoft.github.io/language-server-protocol/

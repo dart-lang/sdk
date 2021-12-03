@@ -16,18 +16,18 @@ class FutureOrTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
       DartType type, LibraryBuilder compilationUnit, int charOffset)
       : super("FutureOr", type, compilationUnit, charOffset);
 
+  @override
   String get debugName => "FutureOrTypeDeclarationBuilder";
 
+  @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
     return new FutureOrType(
-        arguments!.single
-            .build(library, nonInstanceContext: nonInstanceContext),
-        nullabilityBuilder.build(library));
+        arguments!.single.build(library), nullabilityBuilder.build(library));
   }
 
-  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+  @override
+  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
     return new FutureOrType(arguments.single, nullability);
   }

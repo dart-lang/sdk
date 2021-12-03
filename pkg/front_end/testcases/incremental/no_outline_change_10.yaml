@@ -11,6 +11,7 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib1.dart";
         import "lib2.dart";
         import "lib3.dart";
@@ -20,12 +21,14 @@ worlds:
           lib3Method(foo);
         }
       lib1.dart: |
+        // @dart=2.9
         class Foo {
           void fooMethod() {
             // Not filled out.
           }
         }
       lib2.dart: |
+        // @dart=2.9
         import "lib1.dart";
         class Bar extends Foo {
           void barMethod() {
@@ -33,6 +36,7 @@ worlds:
           }
         }
       lib3.dart: |
+       // @dart=2.9
         import "lib1.dart";
         import "lib2.dart";
         void lib3Method(Foo foo) {
@@ -49,6 +53,7 @@ worlds:
       - lib1.dart
     sources:
       lib1.dart: |
+        // @dart=2.9
         class Foo {
           void fooMethod() {
             print("fooMethod");
@@ -64,6 +69,7 @@ worlds:
       - lib3.dart
     sources:
       lib3.dart: |
+        // @dart=2.9
         import "lib1.dart";
         import "lib2.dart";
         void lib3Method(Foo foo) {

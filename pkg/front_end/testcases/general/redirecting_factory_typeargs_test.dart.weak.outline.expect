@@ -25,7 +25,7 @@ class A extends core::Object {
   constructor •() → self::A*
     ;
   static factory redir() → self::A*
-    let dynamic #redirecting_factory = self::B::• in let self::Y* #typeArg0 = null in invalid-expression;
+    return new self::B::•<self::Y*>();
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -43,3 +43,8 @@ class B<T extends self::X*> extends self::A {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_typeargs_test.dart:15:7 -> ConstructorTearOffConstant(A.redir)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

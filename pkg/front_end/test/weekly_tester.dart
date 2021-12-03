@@ -6,7 +6,7 @@ import 'dart:async' show Future;
 import 'dart:convert' show LineSplitter, utf8;
 import 'dart:io' show File, Platform, Process, exitCode;
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   // General idea: Launch - in separate processes - whatever we want to run
   // concurrently, capturing the stdout and stderr, printing it with some
   // prepended identification.

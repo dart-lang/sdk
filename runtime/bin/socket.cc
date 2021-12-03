@@ -12,6 +12,7 @@
 #include "bin/lockers.h"
 #include "bin/process.h"
 #include "bin/thread.h"
+#include "bin/typed_data_utils.h"
 #include "bin/utils.h"
 
 #include "include/dart_api.h"
@@ -382,6 +383,11 @@ void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   }
 }
 
+// This function will abort if sourceAddr is a Unix domain socket.
+// The family ("sa_family") of the socket address is infered from the length
+// of the address. Unix domain sockets addresses are the bytes of their file
+// system path so they have variable length. They cannot, therefore, be
+// differentiated from other address types in this function.
 void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
   RawAddr addr;
   SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
@@ -607,11 +613,6 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   ASSERT(data_buffer != nullptr);
   memmove(data_buffer, recv_buffer, bytes_read);
 
-  // Memory Sanitizer complains addr not being initialized, which is done
-  // through RecvFrom().
-  // Issue: https://github.com/google/sanitizers/issues/1201
-  MSAN_UNPOISON(&addr, sizeof(RawAddr));
-
   // Get the port and clear it in the sockaddr structure.
   int port = SocketAddress::GetAddrPort(addr);
   // TODO(21403): Add checks for AF_UNIX, if unix domain sockets
@@ -652,6 +653,65 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   Dart_Handle result = Dart_Invoke(
       io_lib, DartUtils::NewString("_makeDatagram"), kNumArgs, dart_args);
   Dart_SetReturnValue(args, result);
+}
+
+void FUNCTION_NAME(Socket_ReceiveMessage)(Dart_NativeArguments args) {
+  Socket* socket = Socket::GetSocketIdNativeField(
+      ThrowIfError(Dart_GetNativeArgument(args, 0)));
+  ASSERT(socket != nullptr);
+
+  int64_t buffer_num_bytes = 0;
+  DartUtils::GetInt64Value(ThrowIfError(Dart_GetNativeArgument(args, 1)),
+                           &buffer_num_bytes);
+  int64_t buffer_num_bytes_allocated = buffer_num_bytes;
+  uint8_t* buffer = nullptr;
+  Dart_Handle data = IOBuffer::Allocate(buffer_num_bytes, &buffer);
+  if (Dart_IsNull(data)) {
+    Dart_ThrowException(DartUtils::NewDartOSError());
+  }
+  ASSERT(buffer != nullptr);
+
+  // Can't rely on RAII since Dart_ThrowException won't call destructors.
+  OSError* os_error = new OSError();
+  SocketControlMessage* control_messages;
+  const intptr_t messages_read = SocketBase::ReceiveMessage(
+      socket->fd(), buffer, &buffer_num_bytes, &control_messages,
+      SocketBase::kAsync, os_error);
+  if (messages_read < 0) {
+    ASSERT(messages_read == -1);
+    Dart_Handle error = DartUtils::NewDartOSError(os_error);
+    delete os_error;
+    Dart_ThrowException(error);
+  }
+  delete os_error;
+  if (buffer_num_bytes > 0 && buffer_num_bytes != buffer_num_bytes_allocated) {
+    // If received fewer than allocated buffer size, truncate buffer.
+    uint8_t* new_buffer = nullptr;
+    Dart_Handle new_data = IOBuffer::Allocate(buffer_num_bytes, &new_buffer);
+    if (Dart_IsNull(new_data)) {
+      Dart_ThrowException(DartUtils::NewDartOSError());
+    }
+    ASSERT(new_buffer != nullptr);
+    memmove(new_buffer, buffer, buffer_num_bytes);
+    data = new_data;
+  }
+
+  // returned list has a (level, type, message bytes) triple for every message,
+  // plus last element is raw data uint8list.
+  Dart_Handle list = ThrowIfError(Dart_NewList(messages_read * 3 + 1));
+  int j = 0;
+  for (intptr_t i = 0; i < messages_read; i++) {
+    SocketControlMessage* message = control_messages + i;
+    Dart_Handle uint8list_message_data = ThrowIfError(
+        DartUtils::MakeUint8Array(message->data(), message->data_length()));
+    ThrowIfError(Dart_ListSetAt(
+        list, j++, ThrowIfError(Dart_NewInteger(message->level()))));
+    ThrowIfError(Dart_ListSetAt(
+        list, j++, ThrowIfError(Dart_NewInteger(message->type()))));
+    ThrowIfError(Dart_ListSetAt(list, j++, uint8list_message_data));
+  }
+  ThrowIfError(Dart_ListSetAt(list, j, data));
+  Dart_SetReturnValue(args, list);
 }
 
 void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
@@ -699,6 +759,70 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
     }
     Dart_ThrowException(error);
   }
+}
+
+void FUNCTION_NAME(Socket_SendMessage)(Dart_NativeArguments args) {
+  Socket* socket =
+      Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
+  intptr_t offset = DartUtils::GetNativeIntptrArgument(args, 2);
+  intptr_t length = DartUtils::GetNativeIntptrArgument(args, 3);
+
+  // List of triples <level, type, data> aranged to minimize dart api use in
+  // native methods.
+  Dart_Handle control_message_list_dart =
+      ThrowIfError(Dart_GetNativeArgument(args, 4));
+  ASSERT(Dart_IsList(control_message_list_dart));
+  intptr_t num_control_messages_pieces;
+  ThrowIfError(
+      Dart_ListLength(control_message_list_dart, &num_control_messages_pieces));
+  intptr_t num_control_messages = num_control_messages_pieces / 3;
+  ASSERT((num_control_messages * 3) == num_control_messages_pieces);
+  SocketControlMessage* control_messages =
+      reinterpret_cast<SocketControlMessage*>(Dart_ScopeAllocate(
+          sizeof(SocketControlMessage) * num_control_messages));
+  ASSERT(control_messages != nullptr);
+
+  SocketControlMessage* control_message = control_messages;
+  intptr_t j = 0;
+  for (intptr_t i = 0; i < num_control_messages; i++, control_message++) {
+    int level = DartUtils::GetIntegerValue(
+        ThrowIfError(Dart_ListGetAt(control_message_list_dart, j++)));
+    int type = DartUtils::GetIntegerValue(
+        ThrowIfError(Dart_ListGetAt(control_message_list_dart, j++)));
+    Dart_Handle uint8list_dart =
+        ThrowIfError(Dart_ListGetAt(control_message_list_dart, j++));
+
+    TypedDataScope data(uint8list_dart);
+    void* copied_data = Dart_ScopeAllocate(data.size_in_bytes());
+    ASSERT(copied_data != nullptr);
+    memmove(copied_data, data.data(), data.size_in_bytes());
+    new (control_message)
+        SocketControlMessage(level, type, copied_data, data.size_in_bytes());
+  }
+
+  // Can't rely on RAII since Dart_ThrowException won't call destructors.
+  OSError* os_error = new OSError();
+  intptr_t bytes_written;
+  {
+    Dart_Handle buffer_dart = Dart_GetNativeArgument(args, 1);
+    TypedDataScope data(buffer_dart);
+
+    ASSERT((offset + length) <= data.size_in_bytes());
+    uint8_t* buffer_at_offset =
+        reinterpret_cast<uint8_t*>(data.data()) + offset;
+    bytes_written = SocketBase::SendMessage(
+        socket->fd(), buffer_at_offset, length, control_messages,
+        num_control_messages, SocketBase::kAsync, os_error);
+  }
+
+  if (bytes_written < 0) {
+    Dart_Handle error = DartUtils::NewDartOSError(os_error);
+    delete os_error;
+    Dart_ThrowException(error);
+  }
+  delete os_error;
+
+  Dart_SetIntegerReturnValue(args, bytes_written);
 }
 
 void FUNCTION_NAME(Socket_SendTo)(Dart_NativeArguments args) {
@@ -786,6 +910,12 @@ void FUNCTION_NAME(Socket_GetError)(Dart_NativeArguments args) {
   OSError os_error;
   SocketBase::GetError(socket->fd(), &os_error);
   Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+}
+
+void FUNCTION_NAME(Socket_GetFD)(Dart_NativeArguments args) {
+  Socket* socket =
+      Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
+  Dart_SetIntegerReturnValue(args, socket->fd());
 }
 
 void FUNCTION_NAME(Socket_GetType)(Dart_NativeArguments args) {
@@ -1258,24 +1388,20 @@ void FUNCTION_NAME(Socket_AvailableDatagram)(Dart_NativeArguments args) {
 
 static void NormalSocketFinalizer(void* isolate_data, void* data) {
   Socket* socket = reinterpret_cast<Socket*>(data);
-  if (socket->fd() >= 0) {
-    const int64_t flags = 1 << kCloseCommand;
-    socket->Retain();
-    EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),
-                                 socket->port(), flags);
-  }
-  socket->Release();
+  const int64_t flags = 1 << kCloseCommand;
+  socket->Retain();  // Bump reference till we send the message.
+  EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),
+                               socket->port(), flags);
+  socket->Release();  // Release the reference we just added above.
 }
 
 static void ListeningSocketFinalizer(void* isolate_data, void* data) {
   Socket* socket = reinterpret_cast<Socket*>(data);
-  if (socket->fd() >= 0) {
-    const int64_t flags = (1 << kListeningSocket) | (1 << kCloseCommand);
-    socket->Retain();
-    EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),
-                                 socket->port(), flags);
-  }
-  socket->Release();
+  const int64_t flags = (1 << kListeningSocket) | (1 << kCloseCommand);
+  socket->Retain();  // Bump reference till we send the message.
+  EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),
+                               socket->port(), flags);
+  socket->Release();  // Release the reference we just added above.
 }
 
 static void StdioSocketFinalizer(void* isolate_data, void* data) {
@@ -1288,15 +1414,11 @@ static void StdioSocketFinalizer(void* isolate_data, void* data) {
 
 static void SignalSocketFinalizer(void* isolate_data, void* data) {
   Socket* socket = reinterpret_cast<Socket*>(data);
-  if (socket->fd() >= 0) {
-    Process::ClearSignalHandlerByFd(socket->fd(), socket->isolate_port());
-    const int64_t flags = 1 << kCloseCommand;
-    socket->Retain();
-    EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),
-                                 socket->port(), flags);
-  }
-
-  socket->Release();
+  const int64_t flags = (1 << kSignalSocket) | (1 << kCloseCommand);
+  socket->Retain();  // Bump reference till we send the message.
+  EventHandler::SendFromNative(reinterpret_cast<intptr_t>(socket),
+                               socket->port(), flags);
+  socket->Release();  // Release the reference we just added above.
 }
 
 void Socket::ReuseSocketIdNativeField(Dart_Handle handle,
@@ -1352,6 +1474,192 @@ Socket* Socket::GetSocketIdNativeField(Dart_Handle socket_obj) {
         DartUtils::NewInternalError("No native peer")));
   }
   return socket;
+}
+
+void FUNCTION_NAME(SocketControlMessage_fromHandles)(
+    Dart_NativeArguments args) {
+#if defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_FUCHSIA)
+  Dart_SetReturnValue(args,
+                      DartUtils::NewDartUnsupportedError(
+                          "This is not supported on this operating system"));
+#else
+  ASSERT(Dart_IsNull(Dart_GetNativeArgument(args, 0)));
+  Dart_Handle handles_dart = Dart_GetNativeArgument(args, 1);
+  if (Dart_IsNull(handles_dart)) {
+    Dart_ThrowException(
+        DartUtils::NewDartArgumentError("handles list can't be null"));
+  }
+  ASSERT(Dart_IsList(handles_dart));
+  intptr_t num_handles;
+  ThrowIfError(Dart_ListLength(handles_dart, &num_handles));
+  intptr_t num_bytes = num_handles * sizeof(int);
+  int* handles = reinterpret_cast<int*>(Dart_ScopeAllocate(num_bytes));
+  Dart_Handle handle_dart_string =
+      ThrowIfError(DartUtils::NewString("_handle"));
+  for (intptr_t i = 0; i < num_handles; i++) {
+    Dart_Handle handle_dart = ThrowIfError(Dart_ListGetAt(handles_dart, i));
+    Dart_Handle handle_int_dart =
+        ThrowIfError(Dart_GetField(handle_dart, handle_dart_string));
+    handles[i] = DartUtils::GetIntegerValue(handle_int_dart);
+  }
+
+  Dart_Handle uint8list_dart =
+      ThrowIfError(Dart_NewTypedData(Dart_TypedData_kUint8, num_bytes));
+  ThrowIfError(Dart_ListSetAsBytes(uint8list_dart, /*offset=*/0,
+                                   reinterpret_cast<const uint8_t*>(handles),
+                                   num_bytes));
+  Dart_Handle dart_new_args[] = {Dart_NewInteger(SOL_SOCKET),
+                                 Dart_NewInteger(SCM_RIGHTS), uint8list_dart};
+
+  Dart_Handle socket_control_message_impl = ThrowIfError(DartUtils::GetDartType(
+      DartUtils::kIOLibURL, "_SocketControlMessageImpl"));
+  Dart_SetReturnValue(
+      args,
+      Dart_New(socket_control_message_impl,
+               /*constructor_name=*/Dart_Null(),
+               sizeof(dart_new_args) / sizeof(Dart_Handle), dart_new_args));
+#endif  // defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_FUCHSIA)
+}
+
+void FUNCTION_NAME(SocketControlMessageImpl_extractHandles)(
+    Dart_NativeArguments args) {
+#if defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_FUCHSIA)
+  Dart_SetReturnValue(args,
+                      DartUtils::NewDartUnsupportedError(
+                          "This is not supported on this operating system"));
+#else
+  Dart_Handle handle_type = ThrowIfError(
+      DartUtils::GetDartType(DartUtils::kIOLibURL, "ResourceHandle"));
+
+  Dart_Handle message_dart = Dart_GetNativeArgument(args, 0);
+  intptr_t level = DartUtils::GetIntegerValue(
+      ThrowIfError(Dart_GetField(message_dart, DartUtils::NewString("level"))));
+  intptr_t type = DartUtils::GetIntegerValue(
+      ThrowIfError(Dart_GetField(message_dart, DartUtils::NewString("type"))));
+  if (level != SOL_SOCKET || type != SCM_RIGHTS) {
+    Dart_SetReturnValue(args, ThrowIfError(Dart_NewListOfTypeFilled(
+                                  handle_type, Dart_Null(), 0)));
+    return;
+  }
+
+  Dart_Handle data_dart =
+      ThrowIfError(Dart_GetField(message_dart, DartUtils::NewString("data")));
+  ASSERT(Dart_IsTypedData(data_dart));
+
+  void* data;
+  intptr_t bytes_count;
+  Dart_TypedData_Type data_type;
+  ThrowIfError(
+      Dart_TypedDataAcquireData(data_dart, &data_type, &data, &bytes_count));
+  ASSERT(data_type == Dart_TypedData_kUint8);
+  int* ints_data = reinterpret_cast<int*>(Dart_ScopeAllocate(bytes_count));
+  ASSERT(ints_data != nullptr);
+  memmove(ints_data, data, bytes_count);
+  ThrowIfError(Dart_TypedDataReleaseData(data_dart));
+  intptr_t ints_count = bytes_count / sizeof(int);
+
+  Dart_Handle handle_impl_type =
+      DartUtils::GetDartType(DartUtils::kIOLibURL, "_ResourceHandleImpl");
+  Dart_Handle sentinel = ThrowIfError(
+      Dart_GetField(handle_impl_type, DartUtils::NewString("_sentinel")));
+  Dart_Handle handle_list =
+      ThrowIfError(Dart_NewListOfTypeFilled(handle_type, sentinel, ints_count));
+  for (intptr_t i = 0; i < ints_count; i++) {
+    Dart_Handle constructor_args[] = {
+        ThrowIfError(Dart_NewInteger(*(ints_data + i)))};
+    Dart_Handle handle_impl = ThrowIfError(Dart_New(
+        handle_impl_type,
+        /*constructor_name=*/Dart_Null(),
+        sizeof(constructor_args) / sizeof(Dart_Handle), constructor_args));
+    ThrowIfError(Dart_ListSetAt(handle_list, i, handle_impl));
+  }
+
+  Dart_SetReturnValue(args, handle_list);
+#endif  // defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_FUCHSIA)
+}
+
+void FUNCTION_NAME(ResourceHandleImpl_toFile)(Dart_NativeArguments args) {
+#if defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_FUCHSIA)
+  Dart_SetReturnValue(args,
+                      DartUtils::NewDartUnsupportedError(
+                          "This is not supported on this operating system"));
+#else
+  Dart_Handle handle_object = ThrowIfError(Dart_GetNativeArgument(args, 0));
+  Dart_Handle handle_field = ThrowIfError(
+      Dart_GetField(handle_object, DartUtils::NewString("_handle")));
+  intptr_t fd = DartUtils::GetIntegerValue(handle_field);
+
+  Dart_Handle random_access_file_type = ThrowIfError(
+      DartUtils::GetDartType(DartUtils::kIOLibURL, "_RandomAccessFile"));
+
+  Dart_Handle dart_new_args[2];
+  dart_new_args[1] = ThrowIfError(Dart_NewStringFromCString("<handle>"));
+
+  File* file = File::OpenFD(fd);
+
+  Dart_Handle result = Dart_NewInteger(reinterpret_cast<intptr_t>(file));
+  if (Dart_IsError(result)) {
+    file->Release();
+    Dart_PropagateError(result);
+  }
+  dart_new_args[0] = result;
+
+  Dart_Handle new_random_access_file =
+      Dart_New(random_access_file_type,
+               /*constructor_name=*/Dart_Null(),
+               /*number_of_arguments=*/2, dart_new_args);
+  if (Dart_IsError(new_random_access_file)) {
+    file->Release();
+    Dart_PropagateError(new_random_access_file);
+  }
+
+  Dart_SetReturnValue(args, new_random_access_file);
+#endif  // defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_FUCHSIA)
+}
+
+void FUNCTION_NAME(ResourceHandleImpl_toSocket)(Dart_NativeArguments args) {
+  Dart_SetReturnValue(args,
+                      DartUtils::NewDartUnsupportedError(
+                          "This is not supported on this operating system"));
+}
+
+void FUNCTION_NAME(ResourceHandleImpl_toRawSocket)(Dart_NativeArguments args) {
+#if defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_FUCHSIA)
+  Dart_SetReturnValue(args,
+                      DartUtils::NewDartUnsupportedError(
+                          "This is not supported on this operating system"));
+#else
+  Dart_Handle handle_object = ThrowIfError(Dart_GetNativeArgument(args, 0));
+  Dart_Handle handle_field = ThrowIfError(
+      Dart_GetField(handle_object, DartUtils::NewString("_handle")));
+  intptr_t fd = DartUtils::GetIntegerValue(handle_field);
+
+  SocketAddress* socket_address = reinterpret_cast<SocketAddress*>(
+      Dart_ScopeAllocate(sizeof(SocketAddress)));
+  ASSERT(socket_address != nullptr);
+  SocketBase::GetSocketName(fd, socket_address);
+
+  // return a list describing socket_address: (type, hostname, typed_data_addr,
+  // fd)
+  Dart_Handle list = ThrowIfError(Dart_NewList(4));
+  ThrowIfError(Dart_ListSetAt(
+      list, 0, ThrowIfError(Dart_NewInteger(socket_address->GetType()))));
+  ThrowIfError(Dart_ListSetAt(
+      list, 1,
+      ThrowIfError(Dart_NewStringFromCString(socket_address->as_string()))));
+  ThrowIfError(Dart_ListSetAt(
+      list, 2, SocketAddress::ToTypedData(socket_address->addr())));
+  ThrowIfError(Dart_ListSetAt(list, 3, ThrowIfError(Dart_NewInteger(fd))));
+
+  Dart_SetReturnValue(args, list);
+#endif  // defined(DART_HOST_OS_WINDOWS) || defined(DART_HOST_OS_FUCHSIA)
+}
+
+void FUNCTION_NAME(ResourceHandleImpl_toRawDatagramSocket)(
+    Dart_NativeArguments args) {
+  Dart_SetReturnValue(args,
+                      DartUtils::NewDartUnsupportedError(
+                          "This is not supported on this operating system"));
 }
 
 }  // namespace bin

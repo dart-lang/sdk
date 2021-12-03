@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // VMOptions=--async_igoto_threshold=0 --optimization_counter_threshold=10 --deterministic
 
 // Regression test for https://github.com/flutter/flutter/issues/51298.

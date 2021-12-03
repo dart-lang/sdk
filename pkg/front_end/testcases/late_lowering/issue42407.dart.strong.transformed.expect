@@ -4,26 +4,26 @@ import "dart:core" as core;
 import "dart:_internal" as _in;
 
 class A<T extends core::Object? = dynamic> extends core::Object {
-  generic-covariant-impl field self::A::T? _#A#x = null;
+  covariant-by-class field self::A::T? _#A#x = null;
   field core::bool _#A#x#isSet = false;
   synthetic constructor •() → self::A<self::A::T%>
     : super core::Object::•()
     ;
   get x() → self::A::T%
     return this.{self::A::_#A#x#isSet}{core::bool} ?{self::A::T%} let final self::A::T? #t1 = this.{self::A::_#A#x}{self::A::T?} in #t1{self::A::T%} : throw new _in::LateError::fieldNI("x");
-  set x(generic-covariant-impl self::A::T% #t2) → void {
+  set x(covariant-by-class self::A::T% #t2) → void {
     this.{self::A::_#A#x#isSet} = true;
     this.{self::A::_#A#x} = #t2;
   }
 }
 class B<T extends core::Object? = dynamic> extends core::Object {
-  generic-covariant-impl field self::B::T? _y = null;
+  covariant-by-class field self::B::T? _y = null;
   synthetic constructor •() → self::B<self::B::T%>
     : super core::Object::•()
     ;
   get y() → self::B::T?
     return this.{self::B::_y}{self::B::T?};
-  set y(generic-covariant-impl self::B::T? val) → void {
+  set y(covariant-by-class self::B::T? val) → void {
     this.{self::B::_y} = val;
   }
 }

@@ -37,7 +37,7 @@ class IDLNodeTestCase(unittest.TestCase):
             ast = parser.parse(content)
             node = idlnode.IDLFile(ast)
             actual = node.to_dict() if node else None
-        except SyntaxError, e:
+        except SyntaxError as e:
             error = e
             pass
         if actual == expected:

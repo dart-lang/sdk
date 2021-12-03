@@ -44,7 +44,7 @@ class TypeTestingStubGenerator {
                                     bool lazy_specialize = true);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  static void SpecializeStubFor(Thread* thread, const AbstractType& type);
+  static CodePtr SpecializeStubFor(Thread* thread, const AbstractType& type);
 #endif
 
   TypeTestingStubGenerator();
@@ -73,32 +73,47 @@ class TypeTestingStubGenerator {
 
   static void BuildOptimizedSubtypeRangeCheck(compiler::Assembler* assembler,
                                               const CidRangeVector& ranges,
-                                              bool smi_is_ok);
+                                              Register class_id_reg,
+                                              compiler::Label* check_succeeded,
+                                              compiler::Label* check_failed);
 
   static void BuildOptimizedSubclassRangeCheckWithTypeArguments(
       compiler::Assembler* assembler,
       HierarchyInfo* hi,
       const Type& type,
-      const Class& type_class,
-      const TypeArguments& type_arguments);
+      const Class& type_class);
 
-  static void BuildOptimizedSubclassRangeCheckWithTypeArguments(
+  // Returns whether any cid ranges require type argument checking.
+  //
+  // If any do, then returns from the stub if any checks that do not need
+  // type argument checking succeed, falls through or jumps to load_succeeded if
+  // loading the type arguments succeeds, and otherwise jumps to load_failed.
+  // That is, code that uses the type arguments should follow immediately.
+  //
+  // If none do, then falls through or jumps to load_failed if the checks fail,
+  // else returns from the stub if the checks are successful. That is, code
+  // that handles the failure case (like calling the slow stub) should follow.
+  static bool BuildLoadInstanceTypeArguments(
       compiler::Assembler* assembler,
       HierarchyInfo* hi,
       const Type& type,
       const Class& type_class,
-      const TypeArguments& type_arguments,
       const Register class_id_reg,
-      const Register instance_type_args_reg);
+      const Register instance_type_args_reg,
+      compiler::Label* load_succeeded,
+      compiler::Label* load_failed);
 
-  static void BuildOptimizedSubclassRangeCheck(compiler::Assembler* assembler,
-                                               const CidRangeVector& ranges,
-                                               compiler::Label* check_failed);
+  static void BuildOptimizedTypeParameterArgumentValueCheck(
+      compiler::Assembler* assembler,
+      HierarchyInfo* hi,
+      const TypeParameter& type_param,
+      intptr_t type_param_value_offset_i,
+      compiler::Label* check_failed);
 
   static void BuildOptimizedTypeArgumentValueCheck(
       compiler::Assembler* assembler,
       HierarchyInfo* hi,
-      const AbstractType& type_arg,
+      const Type& type,
       intptr_t type_param_value_offset_i,
       compiler::Label* check_failed);
 

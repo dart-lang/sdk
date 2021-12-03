@@ -317,10 +317,9 @@ class UntaggedObject {
     ASSERT(IsOldObject());
     return !tags_.Read<OldAndNotRememberedBit>();
   }
-  void SetRememberedBit() {
-    ASSERT(!IsRemembered());
+  bool TryAcquireRememberedBit() {
     ASSERT(!IsCardRemembered());
-    tags_.UpdateBool<OldAndNotRememberedBit>(false);
+    return tags_.TryClear<OldAndNotRememberedBit>();
   }
   void ClearRememberedBit() {
     ASSERT(IsOldObject());
@@ -328,10 +327,10 @@ class UntaggedObject {
   }
 
   DART_FORCE_INLINE
-  void AddToRememberedSet(Thread* thread) {
-    ASSERT(!this->IsRemembered());
-    this->SetRememberedBit();
-    thread->StoreBufferAddObject(ObjectPtr(this));
+  void EnsureInRememberedSet(Thread* thread) {
+    if (TryAcquireRememberedBit()) {
+      thread->StoreBufferAddObject(ObjectPtr(this));
+    }
   }
 
   bool IsCardRemembered() const { return tags_.Read<CardRememberedBit>(); }
@@ -665,7 +664,7 @@ class UntaggedObject {
       if (value->IsNewObject()) {
         // Generational barrier: record when a store creates an
         // old-and-not-remembered -> new reference.
-        AddToRememberedSet(thread);
+        EnsureInRememberedSet(thread);
       } else {
         // Incremental barrier: record when a store creates an
         // old -> old-and-not-marked reference.
@@ -695,11 +694,9 @@ class UntaggedObject {
       if (value->IsNewObject()) {
         // Generational barrier: record when a store creates an
         // old-and-not-remembered -> new reference.
-        ASSERT(!this->IsRemembered());
         if (this->IsCardRemembered()) {
           RememberCard(addr);
-        } else {
-          this->SetRememberedBit();
+        } else if (this->TryAcquireRememberedBit()) {
           thread->StoreBufferAddObject(static_cast<ObjectPtr>(this));
         }
       } else {
@@ -2173,12 +2170,15 @@ class UntaggedContext : public UntaggedObject {
 
   int32_t num_variables_;
 
-  POINTER_FIELD(ContextPtr, parent)
+  COMPRESSED_POINTER_FIELD(ContextPtr, parent)
   VISIT_FROM(parent)
   // Variable length data follows here.
-  VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
 
   friend class Object;
+  friend void UpdateLengthField(intptr_t,
+                                ObjectPtr,
+                                ObjectPtr);  // num_variables_
 };
 
 class UntaggedContextScope : public UntaggedObject {
@@ -2520,15 +2520,16 @@ class UntaggedType : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
-  COMPRESSED_POINTER_FIELD(SmiPtr, type_class_id)
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, arguments)
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   VISIT_TO(hash)
+  ClassIdTagType type_class_id_;
   uint8_t type_state_;
   uint8_t nullability_;
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
+  friend class compiler::target::UntaggedType;
   friend class CidRewriteVisitor;
   friend class UntaggedTypeArguments;
 };
@@ -2725,10 +2726,6 @@ class UntaggedString : public UntaggedInstance {
 
  private:
   friend class Library;
-  friend class OneByteStringSerializationCluster;
-  friend class TwoByteStringSerializationCluster;
-  friend class OneByteStringDeserializationCluster;
-  friend class TwoByteStringDeserializationCluster;
   friend class RODataSerializationCluster;
   friend class ImageWriter;
 };
@@ -2743,6 +2740,8 @@ class UntaggedOneByteString : public UntaggedString {
 
   friend class RODataSerializationCluster;
   friend class String;
+  friend class StringDeserializationCluster;
+  friend class StringSerializationCluster;
 };
 
 class UntaggedTwoByteString : public UntaggedString {
@@ -2755,6 +2754,8 @@ class UntaggedTwoByteString : public UntaggedString {
 
   friend class RODataSerializationCluster;
   friend class String;
+  friend class StringDeserializationCluster;
+  friend class StringSerializationCluster;
 };
 
 // Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView/
@@ -2940,6 +2941,8 @@ class UntaggedArray : public UntaggedInstance {
 
   friend class LinkedHashMapSerializationCluster;
   friend class LinkedHashMapDeserializationCluster;
+  friend class LinkedHashSetSerializationCluster;
+  friend class LinkedHashSetDeserializationCluster;
   friend class CodeSerializationCluster;
   friend class CodeDeserializationCluster;
   friend class Deserializer;
@@ -2948,6 +2951,7 @@ class UntaggedArray : public UntaggedInstance {
   friend class GrowableObjectArray;
   friend class LinkedHashMap;
   friend class UntaggedLinkedHashMap;
+  friend class UntaggedImmutableLinkedHashMap;
   friend class Object;
   friend class ICData;            // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.
@@ -2996,10 +3000,22 @@ class UntaggedLinkedHashBase : public UntaggedInstance {
 
 class UntaggedLinkedHashMap : public UntaggedLinkedHashBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
+
+  friend class UntaggedImmutableLinkedHashMap;
+};
+
+class UntaggedImmutableLinkedHashMap : public UntaggedLinkedHashMap {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableLinkedHashMap);
 };
 
 class UntaggedLinkedHashSet : public UntaggedLinkedHashBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashSet);
+
+  friend class UntaggedImmutableLinkedHashSet;
+};
+
+class UntaggedImmutableLinkedHashSet : public UntaggedLinkedHashSet {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableLinkedHashSet);
 };
 
 class UntaggedFloat32x4 : public UntaggedInstance {
@@ -3206,6 +3222,8 @@ class UntaggedWeakProperty : public UntaggedInstance {
   friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
+  friend class FastObjectCopy;  // For OFFSET_OF
+  friend class SlowObjectCopy;  // For OFFSET_OF
 };
 
 // MirrorReferences are used by mirrors to hold reflectees that are VM

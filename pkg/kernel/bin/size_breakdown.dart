@@ -19,7 +19,7 @@ void usage() {
   exit(1);
 }
 
-main(args) {
+void main(args) {
   CommandLineHelper.requireExactlyOneArgument(args, usage,
       requireFileExists: true);
   List<int> bytes = new File(args[0]).readAsBytesSync();
@@ -43,6 +43,7 @@ class WrappedBinaryBuilder extends BinaryBuilder {
   int constantTableSize = 0;
   Map<Uri, int> librarySizes = {};
 
+  @override
   int readOffset() {
     offsetsSize -= byteOffset;
     int result = super.readOffset();
@@ -50,18 +51,21 @@ class WrappedBinaryBuilder extends BinaryBuilder {
     return result;
   }
 
+  @override
   void readStringTable() {
     stringTableSize -= byteOffset;
     super.readStringTable();
     stringTableSize += byteOffset;
   }
 
+  @override
   void readLinkTable(CanonicalName linkRoot) {
     linkTableSize -= byteOffset;
     super.readLinkTable(linkRoot);
     linkTableSize += byteOffset;
   }
 
+  @override
   Map<Uri, Source> readUriToSource({required bool readCoverage}) {
     uriToSourceSize -= byteOffset;
     Map<Uri, Source> result = super.readUriToSource(readCoverage: readCoverage);
@@ -69,12 +73,14 @@ class WrappedBinaryBuilder extends BinaryBuilder {
     return result;
   }
 
+  @override
   void readConstantTable() {
     constantTableSize -= byteOffset;
     super.readConstantTable();
     constantTableSize += byteOffset;
   }
 
+  @override
   Library readLibrary(Component component, int endOffset) {
     int size = -byteOffset;
     var result = super.readLibrary(component, endOffset);

@@ -11,6 +11,8 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithNullAwareTest);
+    defineReflectiveTests(UncheckedMethodInvocationOfNullableValueTest);
+    defineReflectiveTests(UncheckedPropertyAccessOfNullableValueTest);
   });
 }
 
@@ -57,6 +59,93 @@ void f(x) {
     await assertHasFix('''
 void f(x) {
   x?.a()?.b;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class UncheckedMethodInvocationOfNullableValueTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
+
+  Future<void> test_method() async {
+    await resolveTestCode('''
+class C {
+  List<int>? values;
+
+  void m() {
+    if (values != null) {
+      print(values.toList());
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  List<int>? values;
+
+  void m() {
+    if (values != null) {
+      print(values?.toList());
+    }
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class UncheckedPropertyAccessOfNullableValueTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
+
+  Future<void> test_prefixedIdentifier() async {
+    await resolveTestCode('''
+class C {
+  List<int>? values;
+
+  void m() {
+    if (values != null) {
+      print(values.length);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  List<int>? values;
+
+  void m() {
+    if (values != null) {
+      print(values?.length);
+    }
+  }
+}
+''');
+  }
+
+  Future<void> test_propertyAccess() async {
+    await resolveTestCode('''
+class C {
+  List<int>? values;
+
+  void m() {
+    if (values != null) {
+      print((values).length);
+    }
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  List<int>? values;
+
+  void m() {
+    if (values != null) {
+      print((values)?.length);
+    }
+  }
 }
 ''');
   }

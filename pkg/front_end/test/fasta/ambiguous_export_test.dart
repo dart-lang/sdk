@@ -20,7 +20,7 @@ import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:kernel/ast.dart'
     show Field, Library, Name, Component, StringLiteral;
 
-main() async {
+Future<void> main() async {
   await asyncTest(() async {
     Uri uri = Uri.parse("org.dartlang.fasta:library");
     Library library = new Library(uri, fileUri: uri);

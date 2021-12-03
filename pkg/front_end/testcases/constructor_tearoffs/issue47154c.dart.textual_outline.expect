@@ -1,0 +1,18 @@
+class A<X> {
+  final List<X> x;
+  const A(x) : x = x is List<X> ? x : x as List<X>;
+}
+
+void m<X>(X x) {}
+
+class B<X> {
+  final void Function(X) f;
+  const B() : f = m;
+}
+
+class C<X> {
+  final f;
+  const C() : f = m<X>;
+}
+
+void main() {}

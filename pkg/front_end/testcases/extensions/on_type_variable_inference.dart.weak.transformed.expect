@@ -120,25 +120,29 @@ static method testNonStruct() → dynamic {
  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'method'.
   nonStruct.method();
-            ^^^^^^";
+            ^^^^^^" in nonStruct{<unresolved>}.method();
   invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference.dart:45:13: Error: The setter 'property' isn't defined for the class 'NonStruct'.
  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
   nonStruct.property = nonStruct.property;
-            ^^^^^^^^";
+            ^^^^^^^^" in nonStruct{<unresolved>}.property = invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference.dart:45:34: Error: The getter 'property' isn't defined for the class 'NonStruct'.
+ - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+  nonStruct.property = nonStruct.property;
+                                 ^^^^^^^^" in nonStruct{<unresolved>}.property;
   invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference.dart:46:19: Error: The method 'method' isn't defined for the class 'NonStruct'.
  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'method'.
   new NonStruct().method();
-                  ^^^^^^";
+                  ^^^^^^" in new self::NonStruct::•(){<unresolved>}.method();
   invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference.dart:47:19: Error: The getter 'property' isn't defined for the class 'NonStruct'.
  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
   new NonStruct().property;
-                  ^^^^^^^^";
+                  ^^^^^^^^" in new self::NonStruct::•(){<unresolved>}.property;
   invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference.dart:48:19: Error: The setter 'property' isn't defined for the class 'NonStruct'.
  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
   new NonStruct().property = null;
-                  ^^^^^^^^";
+                  ^^^^^^^^" in new self::NonStruct::•(){<unresolved>}.property = null;
 }

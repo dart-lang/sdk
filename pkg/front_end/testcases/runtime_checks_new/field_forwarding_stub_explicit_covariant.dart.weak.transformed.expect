@@ -16,7 +16,7 @@ import self as self;
 import "dart:core" as core;
 
 class B extends core::Object {
-  covariant field core::num* x = null;
+  covariant-by-declaration field core::num* x = null;
   synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
@@ -51,7 +51,7 @@ class D extends self::C implements self::B {
   synthetic constructor •() → self::D*
     : super self::C::•()
     ;
-  forwarding-stub set x(covariant core::num* value) → void
-    return super.{self::C::x} = value;
+  forwarding-stub set x(covariant-by-declaration core::num* value) → void
+    return super.{self::C::x} = value as core::int*;
 }
 static method main() → void {}

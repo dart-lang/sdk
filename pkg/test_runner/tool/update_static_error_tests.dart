@@ -112,32 +112,27 @@ Future<void> main(List<String> args) async {
         parser, "Must provide at least one flag for an operation to perform.");
   }
 
-  if (results.rest.length != 1) {
-    _usageError(
-        parser, "Must provide a file path or glob for which tests to update.");
-  }
+  for (var result in results.rest) {
+    // Allow tests to be specified without the extension for compatibility with
+    // the regular test runner syntax.
+    if (!result.endsWith(".dart")) {
+      result += ".dart";
+    }
 
-  var result = results.rest.single;
+    // Allow tests to be specified either relative to the "tests" directory
+    // or relative to the current directory.
+    var root = result.startsWith("tests") ? "." : "tests";
+    var glob = Glob(result, recursive: true);
+    for (var entry in glob.listSync(root: root)) {
+      if (!entry.path.endsWith(".dart")) continue;
 
-  // Allow tests to be specified without the extension for compatibility with
-  // the regular test runner syntax.
-  if (!result.endsWith(".dart")) {
-    result += ".dart";
-  }
-
-  // Allow tests to be specified either relative to the "tests" directory
-  // or relative to the current directory.
-  var root = result.startsWith("tests") ? "." : "tests";
-  var glob = Glob(result, recursive: true);
-  for (var entry in glob.listSync(root: root)) {
-    if (!entry.path.endsWith(".dart")) continue;
-
-    if (entry is pkg_file.File) {
-      await _processFile(entry,
-          dryRun: dryRun,
-          includeContext: includeContext,
-          remove: removeSources,
-          insert: insertSources);
+      if (entry is pkg_file.File) {
+        await _processFile(entry,
+            dryRun: dryRun,
+            includeContext: includeContext,
+            remove: removeSources,
+            insert: insertSources);
+      }
     }
   }
 }

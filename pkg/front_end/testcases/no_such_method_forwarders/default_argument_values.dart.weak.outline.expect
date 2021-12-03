@@ -38,5 +38,5 @@ Evaluated: ListLiteral @ org-dartlang-testcase:///default_argument_values.dart:2
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///default_argument_values.dart:21:10 -> SymbolConstant(#bar)
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///default_argument_values.dart:22:7 -> SymbolConstant(#hest)
 Evaluated: ListLiteral @ org-dartlang-testcase:///default_argument_values.dart:22:7 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///default_argument_values.dart:22:7 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///default_argument_values.dart:22:7 -> MapConstant(const <Symbol*, dynamic>{})
 Extra constant evaluation: evaluated: 22, effectively constant: 7

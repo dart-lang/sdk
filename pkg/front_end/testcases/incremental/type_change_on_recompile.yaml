@@ -25,6 +25,7 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
         class A extends B with C, D {
             A(E parameter) : super.named(parameter);
@@ -32,6 +33,7 @@ worlds:
         mixin C { }
         mixin D { }
       lib.dart: |
+        // @dart=2.9
         class E {}
         abstract class B {
           final E _field;

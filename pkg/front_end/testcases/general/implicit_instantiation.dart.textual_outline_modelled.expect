@@ -1,0 +1,11 @@
+// @dart = 2.14
+T Function<T>(T) alias = id;
+T id<T>(T t) => t;
+
+class Class {
+  T call<T>(T t) => t;
+}
+
+main() {}
+method(int Function(int) f) {}
+test() {}

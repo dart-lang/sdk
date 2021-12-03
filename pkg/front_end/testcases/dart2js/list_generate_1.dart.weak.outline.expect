@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static field core::List<core::int> list1;
+static field core::List<core::int> list2;
+static field core::List<core::int> list3;
+static field core::List<core::int> list4;
+static field core::bool someGrowable;
+static method main() → void
+  ;

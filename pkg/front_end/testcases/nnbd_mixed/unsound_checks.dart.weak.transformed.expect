@@ -428,17 +428,15 @@ class OptInClass6b extends core::Object {
     : uns::OptInClass6b::field = field, super core::Object::•()
     ;
 }
-class E extends core::Object implements core::Enum /*isEnum*/  {
-  final field core::int index;
-  final field core::String _name;
+class E extends core::_Enum /*isEnum*/  {
   static const field core::List<uns::E> values = #C8;
   static const field uns::E e1 = #C3;
   static const field uns::E e2 = #C6;
-  const constructor •(core::int index, core::String _name) → uns::E
-    : uns::E::index = index, uns::E::_name = _name, super core::Object::•()
+  const constructor •(core::int index, core::String name) → uns::E
+    : super core::_Enum::•(index, name)
     ;
   method toString() → core::String
-    return this.{uns::E::_name}{core::String};
+    return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 extension OptInExtension on uns::OptInClass1 {
   operator [] = uns::OptInExtension|[];
@@ -611,10 +609,10 @@ Try providing type arguments for the literal explicitly to disambiguate it.
 
 constants  {
   #C1 = 0
-  #C2 = "E.e1"
+  #C2 = "e1"
   #C3 = uns::E {index:#C1, _name:#C2}
   #C4 = 1
-  #C5 = "E.e2"
+  #C5 = "e2"
   #C6 = uns::E {index:#C4, _name:#C5}
   #C7 = null
   #C8 = <uns::E*>[#C3, #C6]
@@ -639,10 +637,11 @@ Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:39:56 
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:39:56 -> IntConstant(42)
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:134:5 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///unsound_checks_lib.dart:134:5 -> IntConstant(0)
-Extra constant evaluation: evaluated: 719, effectively constant: 18
+Extra constant evaluation: evaluated: 720, effectively constant: 18
 
 
 Constructor coverage from constants:
 org-dartlang-testcase:///unsound_checks_lib.dart:
 - E. (from org-dartlang-testcase:///unsound_checks_lib.dart:145:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

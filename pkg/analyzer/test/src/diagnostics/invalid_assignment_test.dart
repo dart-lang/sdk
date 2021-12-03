@@ -9,6 +9,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(InvalidAssignment_ImplicitCallReferenceTest);
     defineReflectiveTests(InvalidAssignmentTest);
     defineReflectiveTests(InvalidAssignmentWithNoImplicitCastsTest);
     defineReflectiveTests(InvalidAssignmentWithoutNullSafetyTest);
@@ -16,8 +17,380 @@ main() {
 }
 
 @reflectiveTest
+class InvalidAssignment_ImplicitCallReferenceTest
+    extends PubPackageResolutionTest {
+  test_invalid_genericBoundedCall_nonGenericContext() async {
+    await assertErrorsInCode('''
+class C {
+  T call<T extends num>(T t) => t;
+}
+
+String Function(String) f = C();
+''', [
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 76, 3),
+    ]);
+  }
+
+  test_invalid_genericCall_genericEnclosingClass_nonGenericContext() async {
+    await assertErrorsInCode('''
+class C<T> {
+  C(T a);
+  void call<U>(T t, U u) {}
+}
+
+void Function(bool, String) f = C(7);
+''', [
+      // The type arguments of the instance of `C` should be accurate and be
+      // taken into account when evaluating the assignment of the implicit call
+      // reference.
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 86, 4),
+    ]);
+  }
+
+  test_invalid_genericCall_nonGenericContext() async {
+    await assertErrorsInCode('''
+class C {
+  T call<T>(T t) => t;
+}
+
+void Function() f = C();
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 56, 3),
+    ]);
+  }
+
+  test_invalid_genericCall_nonGenericContext_withoutConstructorTearoffs() async {
+    await assertErrorsInCode('''
+// @dart=2.12
+class C {
+  T call<T>(T t) => t;
+}
+
+int Function(int) f = C();
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 72, 3),
+    ]);
+  }
+
+  test_invalid_noCall_functionContext() async {
+    await assertErrorsInCode('''
+class C {}
+
+Function f = C();
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 25, 3),
+    ]);
+  }
+
+  test_invalid_noCall_functionTypeContext() async {
+    await assertErrorsInCode('''
+class C {}
+
+String Function(String) f = C();
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 40, 3),
+    ]);
+  }
+
+  test_invalid_nonGenericCall() async {
+    await assertErrorsInCode('''
+class C {
+  void call(int a) {}
+}
+
+void Function(String) f = C();
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 61, 3),
+    ]);
+  }
+
+  test_invalid_nonGenericCall_typeVariableExtendsFunctionContext() async {
+    await assertErrorsInCode('''
+class C {
+  void call(int a) {}
+}
+class D<U extends Function> {
+  U f = C();
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 72, 3),
+    ]);
+  }
+
+  test_invalid_nonGenericCall_typeVariableExtendsFunctionTypeContext() async {
+    await assertErrorsInCode('''
+class C {
+  void call(int a) {}
+}
+class D<U extends void Function(int)> {
+  U f = C();
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 82, 3),
+    ]);
+  }
+
+  test_valid_genericBoundedCall_nonGenericContext() async {
+    await assertNoErrorsInCode('''
+class C {
+  T call<T extends num>(T t) => t;
+}
+
+int Function(int) f = C();
+''');
+  }
+
+  test_valid_genericCall_functionContext() async {
+    await assertNoErrorsInCode('''
+class C {
+  T call<T>(T t) => t;
+}
+
+Function f = C();
+''');
+  }
+
+  test_valid_genericCall_futureOrFunctionContext() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+class C {
+  T call<T>(T t) => t;
+}
+
+FutureOr<Function> f = C();
+''');
+  }
+
+  test_valid_genericCall_futureOrFunctionTypeContext_generic() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+class C {
+  T call<T>(T t) => t;
+}
+
+FutureOr<T Function<T>(T)> f = C();
+''');
+  }
+
+  test_valid_genericCall_futureOrFunctionTypeContext_nonGeneric() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+class C {
+  T call<T>(T t) => t;
+}
+
+FutureOr<int Function(int)> f = C();
+''');
+  }
+
+  test_valid_genericCall_genericContext() async {
+    await assertNoErrorsInCode('''
+class C {
+  T call<T>(T t) => t;
+}
+
+T Function<T>(T) f = C();
+''');
+  }
+
+  test_valid_genericCall_genericEnclosingClass_nonGenericContext() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C(T a);
+  void call<U>(T t, U u) {}
+}
+
+void Function(int, String) f = C(7);
+''');
+  }
+
+  test_valid_genericCall_genericTypedefContext() async {
+    await assertNoErrorsInCode('''
+class C {
+  T call<T>(T t) => t;
+}
+typedef Fn<T> = T Function(T);
+class D<U> {
+  Fn<U> f = C();
+}
+
+''');
+  }
+
+  test_valid_genericCall_nonGenericContext() async {
+    await assertNoErrorsInCode('''
+class C {
+  T call<T>(T t) => t;
+}
+
+int Function(int) f = C();
+''');
+  }
+
+  test_valid_genericCall_nullableFunctionContext() async {
+    await assertNoErrorsInCode('''
+class C {
+  T call<T>(T t) => t;
+}
+
+Function? f = C();
+''');
+  }
+
+  test_valid_genericCall_nullableNonGenericContext() async {
+    await assertNoErrorsInCode('''
+class C {
+  T call<T>(T t) => t;
+}
+
+int Function(int)? f = C();
+''');
+  }
+
+  test_valid_genericCall_typedefOfGenericContext() async {
+    await assertNoErrorsInCode('''
+class C {
+  T call<T>(T t) => t;
+}
+
+typedef Fn = T Function<T>(T);
+
+Fn f = C();
+''');
+  }
+
+  test_valid_nonGenericCall() async {
+    await assertNoErrorsInCode('''
+class C {
+  void call(int a) {}
+}
+
+void Function(int) f = C();
+''');
+  }
+
+  test_valid_nonGenericCall_declaredOnMixin() async {
+    await assertNoErrorsInCode('''
+mixin M {
+  void call(int a) {}
+}
+class C with M {}
+
+Function f = C();
+''');
+  }
+
+  test_valid_nonGenericCall_inCascade() async {
+    await assertNoErrorsInCode('''
+class C {
+  void call(int a) {}
+}
+class D {
+  late void Function(int) f;
+}
+
+void foo() {
+  D()..f = C();
+}
+''');
+  }
+
+  test_valid_nonGenericCall_subTypeViaParameter() async {
+    await assertNoErrorsInCode('''
+class C {
+  void call(num a) {}
+}
+
+void Function(int) f = C();
+''');
+  }
+
+  test_valid_nonGenericCall_subTypeViaReturnType() async {
+    await assertNoErrorsInCode('''
+class C {
+  int call() => 7;
+}
+
+num Function() f = C();
+''');
+  }
+}
+
+@reflectiveTest
 class InvalidAssignmentTest extends PubPackageResolutionTest
     with InvalidAssignmentTestCases {
+  test_constructorTearoff_inferredTypeArgs() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C(T a);
+}
+
+var g = C<int>.new;
+''');
+  }
+
+  test_constructorTearoff_withExplicitTypeArgs() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C(T a);
+}
+
+C Function(int) g = C<int>.new;
+''');
+  }
+
+  test_constructorTearoff_withExplicitTypeArgs_invalid() async {
+    await assertErrorsInCode('''
+class C<T> {
+  C(T a);
+}
+
+C Function(String) g = C<int>.new;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 49, 10),
+    ]);
+  }
+
+  test_functionTearoff_genericInstantiation() async {
+    await assertNoErrorsInCode('''
+int Function() foo(int Function<T extends int>() f) {
+  return f;
+}
+''');
+
+    assertFunctionReference(
+      findNode.functionReference('f;'),
+      findElement.parameter('f'),
+      'int Function()',
+    );
+  }
+
+  test_functionTearoff_inferredTypeArgs() async {
+    await assertNoErrorsInCode('''
+void f<T>(T a) {}
+
+var g = f<int>;
+''');
+  }
+
+  test_functionTearoff_withExplicitTypeArgs() async {
+    await assertNoErrorsInCode('''
+void f<T>(T a) {}
+
+void Function(int) g = f<int>;
+''');
+  }
+
+  test_functionTearoff_withExplicitTypeArgs_invalid() async {
+    await assertErrorsInCode('''
+void f<T>(T a) {}
+
+void Function(String) g = f<int>;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 45, 6),
+    ]);
+  }
+
   test_ifNullAssignment() async {
     await assertErrorsInCode('''
 void f(int i) {
@@ -164,6 +537,38 @@ class C {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 11),
+    ]);
+  }
+
+  test_functionInstantiation_topLevelVariable_genericContext_assignable() async {
+    await assertNoErrorsInCode('''
+T f<T>(T a) => a;
+U Function<U>(U) foo = f;
+''');
+  }
+
+  test_functionInstantiation_topLevelVariable_genericContext_nonAssignable() async {
+    await assertErrorsInCode('''
+T f<T>(T a) => a;
+U Function<U>(U, int) foo = f;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 1),
+    ]);
+  }
+
+  test_functionInstantiation_topLevelVariable_nonGenericContext_assignable() async {
+    await assertNoErrorsInCode('''
+T f<T>(T a) => a;
+int Function(int) foo = f;
+''');
+  }
+
+  test_functionInstantiation_topLevelVariable_nonGenericContext_nonAssignable() async {
+    await assertErrorsInCode('''
+T f<T>(T a) => a;
+int Function(int, int) foo = f;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 47, 1),
     ]);
   }
 
@@ -626,6 +1031,20 @@ void f(dynamic a) {
 @reflectiveTest
 class InvalidAssignmentWithoutNullSafetyTest extends PubPackageResolutionTest
     with InvalidAssignmentTestCases, WithoutNullSafetyMixin {
+  test_functionTearoff_genericInstantiation() async {
+    await assertNoErrorsInCode('''
+int Function() foo(int Function<T extends int>() f) {
+  return f;
+}
+''');
+
+    assertSimpleIdentifier(
+      findNode.simple('f;'),
+      element: findElement.parameter('f'),
+      type: 'int Function()',
+    );
+  }
+
   test_ifNullAssignment() async {
     await assertErrorsInCode('''
 void f(int i) {

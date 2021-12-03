@@ -11,8 +11,10 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "b.dart";
       b.dart: |
+        // @dart=2.9
         asdf
     expectedLibraryCount: 2
     errors: true
@@ -24,8 +26,10 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "b.dart";
       b.dart: |
+        // @dart=2.9
         asdf
     expectedLibraryCount: 2
     errors: true
@@ -42,6 +46,7 @@ worlds:
       - b.dart
     sources:
       b.dart: |
+        // @dart=2.9
         asdf;
     expectedLibraryCount: 2
   - entry: main.dart
@@ -51,5 +56,6 @@ worlds:
       - b.dart
     sources:
       b.dart: |
+        // @dart=2.9
         asdf() {}
     expectedLibraryCount: 2

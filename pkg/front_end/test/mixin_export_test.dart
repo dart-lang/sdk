@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart' show asyncTest;
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:front_end/src/api_prototype/front_end.dart';
 
-main() {
+void main() {
   asyncTest(() async {
     var sources = <String, dynamic>{
       'a.dart': 'class A extends Object with M {}  class M {}',

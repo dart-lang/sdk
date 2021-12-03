@@ -26,13 +26,25 @@ typedef _VoidNoArgRequestHandler<TArg> = Future<void> Function(
 /// appropriate method calls/events.
 ///
 /// This class does not implement any DA functionality, only message handling.
-abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
+abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
+    TAttachArgs extends AttachRequestArguments> {
   int _sequence = 1;
   final ByteStreamServerChannel _channel;
+
+  /// Completers for requests that are sent from the server back to the editor
+  /// such as `runInTerminal`.
+  final _serverToClientRequestCompleters = <int, Completer<Object?>>{};
 
   BaseDebugAdapter(this._channel) {
     _channel.listen(_handleIncomingMessage);
   }
+
+  /// Parses arguments for [attachRequest] into a type of [TAttachArgs].
+  ///
+  /// This method must be implemented by the implementing class using a class
+  /// that corresponds to the arguments it expects (these may differ between
+  /// Dart CLI, Dart tests, Flutter, Flutter tests).
+  TAttachArgs Function(Map<String, Object?>) get parseAttachArgs;
 
   /// Parses arguments for [launchRequest] into a type of [TLaunchArgs].
   ///
@@ -43,7 +55,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
 
   Future<void> attachRequest(
     Request request,
-    TLaunchArgs args,
+    TAttachArgs args,
     void Function() sendResponse,
   );
 
@@ -65,7 +77,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     RawRequestArguments? args,
     void Function(Object?) sendResponse,
   ) async {
-    throw DebugAdapterException('Unknown command  ${request.command}');
+    throw DebugAdapterException('Unknown command ${request.command}');
   }
 
   Future<void> disconnectRequest(
@@ -155,6 +167,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     void Function() sendResponse,
   );
 
+  Future<void> restartRequest(
+    Request request,
+    RestartArguments? args,
+    void Function() sendResponse,
+  );
+
   Future<void> scopesRequest(
     Request request,
     ScopesArguments args,
@@ -163,10 +181,10 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
 
   /// Sends an event, lookup up the event type based on the runtimeType of
   /// [body].
-  void sendEvent(EventBody body) {
+  void sendEvent(EventBody body, {String? eventType}) {
     final event = Event(
       seq: _sequence++,
-      event: eventTypes[body.runtimeType]!,
+      event: eventType ?? eventTypes[body.runtimeType]!,
       body: body,
     );
     _channel.sendEvent(event);
@@ -174,13 +192,19 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
 
   /// Sends a request to the client, looking up the request type based on the
   /// runtimeType of [arguments].
-  void sendRequest(RequestArguments arguments) {
+  Future<Object?> sendRequest(RequestArguments arguments) {
     final request = Request(
       seq: _sequence++,
       command: commandTypes[arguments.runtimeType]!,
       arguments: arguments,
     );
+
+    // Store a completer to be used when a response comes back.
+    final completer = Completer<Object?>();
+    _serverToClientRequestCompleters[request.seq] = completer;
     _channel.sendRequest(request);
+
+    return completer.future;
   }
 
   Future<void> setBreakpointsRequest(
@@ -192,6 +216,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     Request request,
     SetExceptionBreakpointsArguments args,
     void Function(SetExceptionBreakpointsResponseBody) sendResponse,
+  );
+
+  Future<void> sourceRequest(
+    Request request,
+    SourceArguments args,
+    void Function(SourceResponseBody) sendResponse,
   );
 
   Future<void> stackTraceRequest(
@@ -255,7 +285,13 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     } else if (request.command == 'launch') {
       handle(request, _withVoidResponse(launchRequest), parseLaunchArgs);
     } else if (request.command == 'attach') {
-      handle(request, _withVoidResponse(attachRequest), parseLaunchArgs);
+      handle(request, _withVoidResponse(attachRequest), parseAttachArgs);
+    } else if (request.command == 'restart') {
+      handle(
+        request,
+        _withVoidResponse(restartRequest),
+        _allowNullArg(RestartArguments.fromJson),
+      );
     } else if (request.command == 'terminate') {
       handle(
         request,
@@ -302,6 +338,8 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
       handle(request, threadsRequest, _voidArgs);
     } else if (request.command == 'stackTrace') {
       handle(request, stackTraceRequest, StackTraceArguments.fromJson);
+    } else if (request.command == 'source') {
+      handle(request, sourceRequest, SourceArguments.fromJson);
     } else if (request.command == 'scopes') {
       handle(request, scopesRequest, ScopesArguments.fromJson);
     } else if (request.command == 'variables') {
@@ -318,8 +356,16 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
   }
 
   void _handleIncomingResponse(Response response) {
-    // TODO(dantup): Implement this when the server sends requests to the client
-    // (for example runInTerminalRequest).
+    final completer =
+        _serverToClientRequestCompleters.remove(response.requestSeq);
+
+    if (response.success) {
+      completer?.complete(response.body);
+    } else {
+      completer?.completeError(
+        response.message ?? 'Request ${response.requestSeq} failed',
+      );
+    }
   }
 
   /// Helpers for requests that have `void` arguments. The supplied args are

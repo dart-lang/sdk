@@ -9,9 +9,9 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/nnbd/issue42603.dart:18:17: Error: The method 'E.==' has fewer positional arguments than those of overridden method 'Object.=='.
 //   bool operator ==() => true;
 //                 ^
-// sdk/lib/_internal/vm/lib/object_patch.dart:26:17: Context: This is the overridden method ('==').
-//   bool operator ==(Object other) native "Object_equals";
-//                 ^
+// sdk/lib/_internal/vm/lib/object_patch.dart:29:26: Context: This is the overridden method ('==').
+//   external bool operator ==(Object other);
+//                          ^
 //
 // pkg/front_end/testcases/nnbd/issue42603.dart:22:17: Error: The method 'F.==' has more required arguments than those of overridden method 'E.=='.
 //   bool operator ==(Object? other) => super == other;

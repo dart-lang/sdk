@@ -6,7 +6,7 @@ import 'package:kernel/binary/ast_from_binary.dart' show ParseError;
 
 import 'utils.dart';
 
-main() {
+void main() {
   Uri uri = Uri.parse("foo://bar.dart");
   Library lib1 = new Library(uri, fileUri: uri);
   Component c1 = new Component(libraries: [lib1]);

@@ -1,0 +1,18 @@
+class A {
+  num foo(int n) {}
+  num bar({required int x}) {}
+  void set baz(int x) {}
+  int boz = 0;
+}
+
+abstract class B<X> {
+  X foo(X x);
+  X bar({required X x});
+  void set baz(X x);
+  void set boz(X x);
+}
+
+class C extends A with B<num> {}
+
+void main() {}
+throws(void Function() f) {}

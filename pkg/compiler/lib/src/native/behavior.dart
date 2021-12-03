@@ -14,8 +14,8 @@ import '../serialization/serialization.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import 'js.dart';
 
-typedef dynamic /*DartType|SpecialType*/ TypeLookup(String typeString,
-    {bool required});
+typedef TypeLookup = dynamic /*DartType|SpecialType*/
+    Function(String typeString, {bool required});
 
 /// This class is a temporary work-around until we get a more powerful DartType.
 class SpecialType {
@@ -23,7 +23,7 @@ class SpecialType {
   const SpecialType._(this.name);
 
   /// The type Object, but no subtypes:
-  static const JsObject = const SpecialType._('=Object');
+  static const JsObject = SpecialType._('=Object');
 
   @override
   int get hashCode => name.hashCode;
@@ -35,7 +35,7 @@ class SpecialType {
     if (name == '=Object') {
       return JsObject;
     } else {
-      throw new UnsupportedError("Unknown SpecialType '$name'.");
+      throw UnsupportedError("Unknown SpecialType '$name'.");
     }
   }
 }
@@ -189,7 +189,7 @@ class NativeBehavior {
   static NativeBehavior get CHANGES_OTHER => NativeBehavior._makeChangesOther();
   static NativeBehavior get DEPENDS_OTHER => NativeBehavior._makeDependsOther();
 
-  NativeBehavior() : sideEffects = new SideEffects.empty();
+  NativeBehavior() : sideEffects = SideEffects.empty();
 
   NativeBehavior.internal(this.sideEffects);
 
@@ -211,13 +211,13 @@ class NativeBehavior {
     List typesReturned = readTypes();
     List typesInstantiated = readTypes();
     String codeTemplateText = source.readStringOrNull();
-    SideEffects sideEffects = new SideEffects.readFromDataSource(source);
+    SideEffects sideEffects = SideEffects.readFromDataSource(source);
     int throwBehavior = source.readInt();
     bool isAllocation = source.readBool();
     bool useGvn = source.readBool();
     source.end(tag);
 
-    NativeBehavior behavior = new NativeBehavior.internal(sideEffects);
+    NativeBehavior behavior = NativeBehavior.internal(sideEffects);
     behavior.typesReturned.addAll(typesReturned);
     behavior.typesInstantiated.addAll(typesInstantiated);
     if (codeTemplateText != null) {
@@ -274,8 +274,8 @@ class NativeBehavior {
         ')';
   }
 
-  static NativeBehavior _makePure({bool isAllocation: false}) {
-    NativeBehavior behavior = new NativeBehavior();
+  static NativeBehavior _makePure({bool isAllocation = false}) {
+    NativeBehavior behavior = NativeBehavior();
     behavior.sideEffects.clearAllDependencies();
     behavior.sideEffects.clearAllSideEffects();
     behavior.throwBehavior = NativeThrowBehavior.NEVER;
@@ -384,7 +384,7 @@ class NativeBehavior {
           spannable, MessageKind.GENERIC, {'text': message});
     }
 
-    const List<String> knownTags = const [
+    const List<String> knownTags = [
       'creates',
       'returns',
       'depends',
@@ -437,7 +437,7 @@ class NativeBehavior {
         validTags == null || (validTags.toSet()..removeAll(validTags)).isEmpty);
     if (validTags == null) validTags = knownTags;
 
-    Map<String, String> values = <String, String>{};
+    Map<String, String> values = {};
 
     for (String spec in specs) {
       List<String> tagAndValue = spec.split(':');
@@ -538,7 +538,7 @@ class NativeBehavior {
       return null;
     }
 
-    SideEffects sideEffects = new SideEffects();
+    SideEffects sideEffects = SideEffects();
     if (effects == "none") {
       sideEffects.clearAllSideEffects();
     } else if (effects == "all") {
@@ -609,7 +609,7 @@ class NativeBehavior {
     //  'Type1|Type2'.  A union type.
     //  '=Object'.      A JavaScript Object, no subtype.
 
-    NativeBehavior behavior = new NativeBehavior();
+    NativeBehavior behavior = NativeBehavior();
 
     behavior.codeTemplateText = codeString;
     behavior.codeTemplate = js.js.parseForeignJS(behavior.codeTemplateText);
@@ -647,12 +647,11 @@ class NativeBehavior {
         nullType: commonElements.nullType);
 
     if (!sideEffectsAreEncodedInSpecString) {
-      new SideEffectsVisitor(behavior.sideEffects)
-          .visit(behavior.codeTemplate.ast);
+      SideEffectsVisitor(behavior.sideEffects).visit(behavior.codeTemplate.ast);
     }
     if (!throwBehaviorFromSpecString) {
       behavior.throwBehavior =
-          new ThrowBehaviorVisitor().analyze(behavior.codeTemplate.ast);
+          ThrowBehaviorVisitor().analyze(behavior.codeTemplate.ast);
     }
 
     return behavior;
@@ -686,8 +685,8 @@ class NativeBehavior {
       Spannable spannable,
       DiagnosticReporter reporter,
       CommonElements commonElements) {
-    NativeBehavior behavior = new NativeBehavior();
-    behavior.sideEffects.setTo(new SideEffects());
+    NativeBehavior behavior = NativeBehavior();
+    behavior.sideEffects.setTo(SideEffects());
     _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
         behavior, spannable, specString, lookupType, reporter, commonElements);
     return behavior;
@@ -699,11 +698,11 @@ class NativeBehavior {
       Spannable spannable,
       DiagnosticReporter reporter,
       CommonElements commonElements) {
-    NativeBehavior behavior = new NativeBehavior();
+    NativeBehavior behavior = NativeBehavior();
     // TODO(sra): Allow the use site to override these defaults.
     // Embedded globals are usually pre-computed data structures or JavaScript
     // functions that never change.
-    behavior.sideEffects.setTo(new SideEffects.empty());
+    behavior.sideEffects.setTo(SideEffects.empty());
     behavior.throwBehavior = NativeThrowBehavior.NEVER;
     _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
         behavior, spannable, specString, lookupType, reporter, commonElements,
@@ -839,7 +838,7 @@ abstract class BehaviorBuilder {
     _behavior.typesReturned.add(type.withoutNullability);
 
     // Breakdown nullable type into TypeWithoutNullability|Null.
-    // Pre-nnbd Declared types are nullable, so we also add null in that case.
+    // Unsound declared types are nullable, so we also add null in that case.
     // TODO(41960): Remove check for legacy subtyping. This was added as a
     // temporary workaround to unblock the null-safe unfork. At this time some
     // native APIs are typed unsoundly because they don't consider browser
@@ -857,7 +856,7 @@ abstract class BehaviorBuilder {
       Iterable<String> returnsAnnotations,
       TypeLookup lookupType,
       {bool isJsInterop}) {
-    _behavior = new NativeBehavior();
+    _behavior = NativeBehavior();
     // TODO(sigmund,sra): consider doing something better for numeric types.
     _addReturnType(!isJsInterop ? type : commonElements.dynamicType);
     _capture(type, isJsInterop);
@@ -868,7 +867,7 @@ abstract class BehaviorBuilder {
   }
 
   NativeBehavior buildFieldStoreBehavior(DartType type) {
-    _behavior = new NativeBehavior();
+    _behavior = NativeBehavior();
     _escape(type, false);
     // We don't override the default behaviour - the annotations apply to
     // loading the field.
@@ -882,7 +881,7 @@ abstract class BehaviorBuilder {
       Iterable<String> returnsAnnotations,
       TypeLookup lookupType,
       {bool isJsInterop}) {
-    _behavior = new NativeBehavior();
+    _behavior = NativeBehavior();
     DartType returnType = type.returnType;
     // Note: For dart:html and other internal libraries we maintain, we can
     // trust the return type and use it to limit what we enqueue. We have to

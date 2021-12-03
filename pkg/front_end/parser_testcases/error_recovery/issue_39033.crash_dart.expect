@@ -10,17 +10,15 @@ typedef F<Glib.=
 
 WARNING: Reporting at eof --- see below for details.
 
-parser/error_recovery/issue_39033.crash:1:17: Expected ';' after this.
+parser/error_recovery/issue_39033.crash:1:16: Expected ';' after this.
 typedef F<Glib.=
-                ^...
-
-WARNING: Reporting at eof --- see below for details.
+               ^
 
 beginCompilationUnit(typedef)
   beginMetadataStar(typedef)
   endMetadataStar(0)
   beginUncategorizedTopLevelDeclaration(typedef)
-    beginFunctionTypeAlias(typedef)
+    beginTypedef(typedef)
       handleIdentifier(F, typedefDeclaration)
       beginTypeVariables(<)
         beginMetadataStar(Glib)
@@ -37,8 +35,7 @@ beginCompilationUnit(typedef)
       handleIdentifier(, typeReference)
       handleNoTypeArguments()
       handleType(, null)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], , )
-      // WARNING: Reporting at eof for .
-    endFunctionTypeAlias(typedef, =, ;)
+      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], =, =)
+    endTypedef(typedef, =, ;)
   endTopLevelDeclaration()
 endCompilationUnit(1, )

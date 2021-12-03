@@ -8,10 +8,12 @@ import 'dart:io' show BytesBuilder;
 class BytesSink implements Sink<List<int>> {
   final BytesBuilder builder = new BytesBuilder();
 
+  @override
   void add(List<int> data) {
     builder.add(data);
   }
 
+  @override
   void close() {
     // Nothing to do.
   }

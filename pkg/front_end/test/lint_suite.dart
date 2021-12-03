@@ -15,13 +15,13 @@ import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-import 'package:_fe_analyzer_shared/src/scanner/token.dart';
-
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
 
 import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
+import 'package:front_end/src/fasta/source/diet_parser.dart'
+    show useImplicitCreationExpressionInCfe;
 
 import 'package:kernel/kernel.dart';
 
@@ -32,7 +32,7 @@ import 'package:testing/testing.dart'
 
 import 'testing_utils.dart' show checkEnvironment, getGitFiles;
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(
@@ -45,7 +45,9 @@ Future<Context> createContext(
 }
 
 class LintTestDescription extends TestDescription {
+  @override
   final String shortName;
+  @override
   final Uri uri;
   final LintTestCache cache;
   final LintListener listener;
@@ -79,6 +81,7 @@ class Context extends ChainContext {
   final bool onlyInGit;
   Context({this.onlyInGit});
 
+  @override
   final List<Step> steps = const <Step>[
     const LintStep(),
   ];
@@ -90,6 +93,7 @@ class Context extends ChainContext {
     return result;
   }
 
+  @override
   Stream<LintTestDescription> list(Chain suite) async* {
     Set<Uri> gitFiles;
     if (onlyInGit) {
@@ -146,8 +150,10 @@ class Context extends ChainContext {
 class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
   const LintStep();
 
+  @override
   String get name => "lint";
 
+  @override
   Future<Result<LintTestDescription>> run(
       LintTestDescription description, Context context) async {
     if (description.cache.rawBytes == null) {
@@ -163,7 +169,8 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
       description.cache.firstToken = scanner.tokenize();
       description.cache.lineStarts = scanner.lineStarts;
 
-      Uri dotPackages = description.uri.resolve(".packages");
+      Uri dotPackages =
+          description.uri.resolve(".dart_tool/package_config.json");
       while (true) {
         if (new File.fromUri(dotPackages).existsSync()) {
           break;
@@ -172,7 +179,8 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
         if (dotPackages.pathSegments.length < Uri.base.pathSegments.length) {
           break;
         }
-        dotPackages = dotPackages.resolve("../.packages");
+        dotPackages =
+            dotPackages.resolve("../../.dart_tool/package_config.json");
       }
 
       File dotPackagesFile = new File.fromUri(dotPackages);
@@ -185,7 +193,8 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
       return crash(description, StackTrace.current);
     }
 
-    Parser parser = new Parser(description.listener);
+    Parser parser = new Parser(description.listener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     parser.parseUnit(description.cache.firstToken);
 
     if (description.listener.problems.isEmpty) {
@@ -198,9 +207,10 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
 class LintListener extends Listener {
   List<String> problems = <String>[];
   LintTestDescription description;
+  @override
   Uri uri;
 
-  onProblem(int offset, int squigglyLength, String message) {
+  void onProblem(int offset, int squigglyLength, String message) {
     problems.add(description.getErrorMessage(offset, squigglyLength, message));
   }
 }
@@ -232,6 +242,7 @@ class ExplicitTypeLintListener extends LintListener {
     _latestTypes.add(new LatestType(functionToken, true));
   }
 
+  @override
   void endTopLevelFields(
       Token externalToken,
       Token staticToken,
@@ -247,6 +258,7 @@ class ExplicitTypeLintListener extends LintListener {
     _latestTypes.removeLast();
   }
 
+  @override
   void endClassFields(
       Token abstractToken,
       Token externalToken,
@@ -264,6 +276,7 @@ class ExplicitTypeLintListener extends LintListener {
     _latestTypes.removeLast();
   }
 
+  @override
   void endFormalParameter(
       Token thisKeyword,
       Token periodAfterThis,
@@ -286,6 +299,7 @@ class LatestType {
 class ImportsTwiceLintListener extends LintListener {
   Set<Uri> seenImports = new Set<Uri>();
 
+  @override
   void endImport(Token importKeyword, Token semicolon) {
     Token importUriToken = importKeyword.next;
     String importUri = importUriToken.lexeme;
@@ -308,6 +322,7 @@ class ImportsTwiceLintListener extends LintListener {
 }
 
 class ExportsLintListener extends LintListener {
+  @override
   void endExport(Token exportKeyword, Token semicolon) {
     Token exportUriToken = exportKeyword.next;
     String exportUri = exportUriToken.lexeme;

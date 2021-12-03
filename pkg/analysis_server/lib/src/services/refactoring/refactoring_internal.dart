@@ -69,6 +69,9 @@ class SourceReference {
     return hash;
   }
 
+  bool get isConstructorTearOff =>
+      _match.kind == MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF;
+
   bool get isResolved => _match.isResolved;
 
   SourceRange get range => _match.sourceRange;

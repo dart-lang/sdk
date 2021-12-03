@@ -66,7 +66,7 @@ class ConvertToSetLiteral extends CorrectionProducer {
       //
       var name = creation.constructorName.name;
       var constructorTypeArguments =
-          creation.constructorName.type.typeArguments;
+          creation.constructorName.type2.typeArguments;
       TypeArgumentList? elementTypeArguments;
       SourceRange? elementsRange;
       if (name == null) {

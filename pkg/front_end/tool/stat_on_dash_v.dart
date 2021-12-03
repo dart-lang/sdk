@@ -19,7 +19,7 @@ void usage([String? extraMessage]) {
   exit(1);
 }
 
-main(List<String> args) {
+void main(List<String> args) {
   if (args.length < 4) {
     usage("Requires more input.");
   }

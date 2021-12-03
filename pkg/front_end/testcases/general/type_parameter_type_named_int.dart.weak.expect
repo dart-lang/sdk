@@ -35,7 +35,7 @@ class Bar extends core::Object implements self::Foo<core::int*> {
     : super core::Object::•()
     ;
   method setList<int extends core::Object* = dynamic>(core::List<self::Bar::setList::int*>* value) → void {
-    this.{self::Bar::list} = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/type_parameter_type_named_int.dart:13:12: Error: A value of type 'List<int/*1*/>' can't be assigned to a variable of type 'List<int/*2*/>'.
+    this.{self::Bar::list} = invalid-expression "pkg/front_end/testcases/general/type_parameter_type_named_int.dart:13:12: Error: A value of type 'List<int/*1*/>' can't be assigned to a variable of type 'List<int/*2*/>'.
  - 'List' is from 'dart:core'.
  - 'int/*1*/' is from 'pkg/front_end/testcases/general/type_parameter_type_named_int.dart'.
  - 'int/*2*/' is from 'dart:core'.

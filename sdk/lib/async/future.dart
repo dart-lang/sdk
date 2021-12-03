@@ -7,8 +7,8 @@ part of dart.async;
 /// A type representing values that are either `Future<T>` or `T`.
 ///
 /// This class declaration is a public stand-in for an internal
-/// future-or-value generic type. References to this class are resolved to the
-/// internal type.
+/// future-or-value generic type, which is not a class type.
+/// References to this class are resolved to the internal type.
 ///
 /// It is a compile-time error for any class to extend, mix in or implement
 /// `FutureOr`.
@@ -43,35 +43,109 @@ abstract class FutureOr<T> {
   }
 }
 
-/// An object representing a delayed computation.
+/// The result of an asynchronous computation.
 ///
-/// A [Future] is used to represent a potential value, or error,
-/// that will be available at some time in the future.
-/// Receivers of a [Future] can register callbacks
-/// that handle the value or error once it is available.
+/// An _asynchronous computation_ cannot provide a result immediately
+/// when it is started, unlike a synchronous computation which does compute
+/// a result immediately by either returning a value or by throwing.
+/// An asynchronous computation may need to wait for something external
+/// to the program (reading a file, querying a database, fetching a web page)
+/// which takes time.
+/// Instead of blocking all computation until the result is available,
+/// the asynchronous computation immediately returns a `Future`
+/// which will *eventually* "complete" with the result.
+///
+/// ### Asynchronous programming
+///
+/// To perform an asynchronous computation, you use an `async` function
+/// which always produces a future.
+/// Inside such an asynchronous function, you can use the `await` operation
+/// to delay execution until another asynchronous computation has a result.
+/// While execution of the awaiting function is delayed,
+/// the program is not blocked, and can continue doing other things.
+///
+/// Example:
+/// ```dart
+/// import "dart:io";
+/// Future<bool> fileContains(String path, String needle) async {
+///    var haystack = await File(path).readAsString();
+///    return haystack.contains(needle);
+/// }
+/// ```
+/// Here the `File.readAsString` method from `dart:io` is an asychronous
+/// function returning a `Future<String>`.
+/// The `fileContains` function is marked with `async` right before its body,
+/// which means that you can use `await` insider it,
+/// and that it must return a future.
+/// The call to `File(path).readAsString()` initiates reading the file into
+/// a string and produces a `Future<String>` which will eventually contain the
+/// result.
+/// The `await` then waits for that future to complete with a string
+/// (or an error, if reading the file fails).
+/// While waiting, the program can do other things.
+/// When the future completes with a string, the `fileContains` function
+/// computes a boolean and returns it, which then completes the original
+/// future that it returned when first called.
+///
+/// If a future completes with an *error*, awaiting that future will
+/// (re-)throw that error. In the example here, we can add error checking:
+/// ```dart
+/// import "dart:io";
+/// Future<bool> fileContains(String path, String needle) async {
+///   try {
+///     var haystack = await File(path).readAsString();
+///     return haystack.contains(needle);
+///   } on FileSystemException catch (exception, stack) {
+///     _myLog.logError(exception, stack);
+///     return false;
+///   }
+/// }
+/// ```
+/// You use a normal `try`/`catch` to catch the failures of awaited
+/// asynchronous computations.
+///
+/// In general, when writing asynchronous code, you should always await a
+/// future when it is produced, and not wait until after another asynchronous
+/// delay. That ensures that you are ready to receive any error that the
+/// future might produce, which is important because an asynchronous error
+/// that no-one is awaiting is an *uncaught* error and may terminate
+/// the running program.
+///
+/// ### Programming with the `Future` API.
+///
+/// The `Future` class also provides a more direct, low-level functionality
+/// for accessing the result that it completes with.
+/// The `async` and `await` language features are built on top of this
+/// functionality, and it sometimes makes sense to use it directly.
+/// There are things that you cannot do by just `await`ing one future at
+/// a time.
+///
+/// With a [Future], you can manually register callbacks
+/// that handle the value, or error, once it is available.
 /// For example:
 /// ```dart
 /// Future<int> future = getFuture();
 /// future.then((value) => handleValue(value))
 ///       .catchError((error) => handleError(error));
 /// ```
-/// A [Future] can be completed in two ways:
-/// with a value ("the future succeeds")
-/// or with an error ("the future fails").
-/// Users can install callbacks for each case.
+/// Since a [Future] can be completed in two ways,
+/// either with a value (if the asynchronous computation succeeded)
+/// or with an error (if the computation failed),
+/// you can install callbacks for either or both cases.
 ///
-/// In some cases we say that a future is completed with another future.
+/// In some cases we say that a future is completed *with another future*.
 /// This is a short way of stating that the future is completed in the same way,
 /// with the same value or error,
-/// as the other future once that completes.
-/// Whenever a function in the core library may complete a future
+/// as the other future once that other future itself completes.
+/// Most functions in the platform libraries that complete a future
 /// (for example [Completer.complete] or [Future.value]),
-/// then it also accepts another future and does this work for the developer.
+/// also accepts another future, and automatically handles forwarding
+/// the result to the future being completed.
 ///
-/// The result of registering a pair of callbacks is a Future (the
-/// "successor") which in turn is completed with the result of invoking the
-/// corresponding callback.
-/// The successor is completed with an error if the invoked callback throws.
+/// The result of registering callbacks is itself a `Future`,
+/// which in turn is completed with the result of invoking the
+/// corresponding callback with the original future's result.
+/// The new future is completed with an error if the invoked callback throws.
 /// For example:
 /// ```dart
 /// Future<int> successor = future.then((int value) {
@@ -88,9 +162,9 @@ abstract class FutureOr<T> {
 ///   });
 /// ```
 ///
-/// If a future does not have a successor when it completes with an error,
-/// it forwards the error message to an uncaught-error handler.
-/// This behavior makes sure that no error is silently dropped.
+/// If a future does not have any registered handler when it completes
+/// with an error, it forwards the error to an "uncaught-error handler".
+/// This behavior ensures that no error is silently dropped.
 /// However, it also means that error handlers should be installed early,
 /// so that they are present as soon as a future is completed with an error.
 /// The following example demonstrates this potential bug:
@@ -128,9 +202,12 @@ abstract class FutureOr<T> {
 ///
 /// Equivalent asynchronous code, based on futures:
 /// ```dart
-/// Future<int> future = Future(foo);  // Result of foo() as a future.
-/// future.then((int value) => bar(value))
-///       .catchError((e) => 499);
+/// Future<int> asyncValue = Future(foo);  // Result of foo() as a future.
+/// asyncValue.then((int value) {
+///   return bar(value);
+/// }).catchError((e) {
+///   return 499;
+/// });
 /// ```
 ///
 /// Similar to the synchronous code, the error handler (registered with
@@ -142,7 +219,8 @@ abstract class FutureOr<T> {
 /// treated independently and is handled as if it was the only successor.
 ///
 /// A future may also fail to ever complete. In that case, no callbacks are
-/// called.
+/// called. That situation should generally be avoided if possible, unless
+/// it's very clearly documented.
 abstract class Future<T> {
   /// A `Future<Null>` completed with `null`.
   ///
@@ -660,11 +738,11 @@ abstract class Future<T> {
   ///
   /// This method is equivalent to:
   /// ```dart
-  /// Future<T> whenComplete(action()) {
+  /// Future<T> whenComplete(action() {
   ///   return this.then((v) {
   ///     var f2 = action();
   ///     if (f2 is Future) return f2.then((_) => v);
-  ///     return v
+  ///     return v;
   ///   }, onError: (e) {
   ///     var f2 = action();
   ///     if (f2 is Future) return f2.then((_) { throw e; });
@@ -702,7 +780,8 @@ abstract class Future<T> {
 ///
 /// Not all futures need to be awaited.
 /// The Dart linter has an optional ["unawaited futures" lint](https://dart-lang.github.io/linter/lints/unawaited_futures.html)
-/// which enforces that futures (expressions with a static type of [Future])
+/// which enforces that potential futures
+/// (expressions with a static type of [Future] or `Future?`)
 /// in asynchronous functions are handled *somehow*.
 /// If a particular future value doesn't need to be awaited,
 /// you can call `unawaited(...)` with it, which will avoid the lint,
@@ -719,8 +798,8 @@ abstract class Future<T> {
 /// are *expected* to complete with a value.
 /// You can use [FutureExtensions.ignore] if you also don't want to know
 /// about errors from this future.
-@Since("2.14")
-void unawaited(Future<void> future) {}
+@Since("2.15")
+void unawaited(Future<void>? future) {}
 
 /// Convenience methods on futures.
 ///

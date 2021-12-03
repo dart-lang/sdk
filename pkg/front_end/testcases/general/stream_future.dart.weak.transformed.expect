@@ -102,7 +102,7 @@ static method error() → asy::Stream<FutureOr<self::Class*>*>* /* originally as
       try {
         #L3:
         {
-          if(:controller.{asy::_AsyncStarStreamController::add}(let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/stream_future.dart:18:9: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'FutureOr<Class>'.
+          if(:controller.{asy::_AsyncStarStreamController::add}(invalid-expression "pkg/front_end/testcases/general/stream_future.dart:18:9: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'FutureOr<Class>'.
  - 'Future' is from 'dart:async'.
  - 'Class' is from 'pkg/front_end/testcases/general/stream_future.dart'.
   yield returnFutureDynamic();
@@ -188,8 +188,8 @@ static method main() → dynamic /* originally async */ {
           try
             #L6:
             while (true) {
-              dynamic #t2 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t3 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error, :async_op) in null;
+              dynamic #t1 = asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t2 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error, :async_op) in null;
               if(_in::unsafeCast<core::bool>(:result)) {
                 FutureOr<self::Class*>* cls = :for-iterator.{asy::_StreamIterator::current}{FutureOr<self::Class*>*};
                 {
@@ -201,7 +201,7 @@ static method main() → dynamic /* originally async */ {
             }
           finally
             if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<FutureOr<self::Class*>*>?} == null)) {
-              [yield] let dynamic #t4 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error, :async_op) in null;
+              [yield] let dynamic #t3 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error, :async_op) in null;
               :result;
             }
         }

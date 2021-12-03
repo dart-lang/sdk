@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/src/services/pub/pub_api.dart';
@@ -99,13 +100,13 @@ class PubCommandTest with ResourceProviderMixin {
 
   Future<void> test_doesNotRunConcurrently() async {
     var isRunning = false;
-    processRunner.runHandler = (executable, args, {dir, env}) async {
+    processRunner.startHandler = (executable, args, {dir, env}) async {
       expect(isRunning, isFalse,
           reason: 'pub commands should not run concurrently');
       isRunning = true;
       await pumpEventQueue(times: 500);
       isRunning = false;
-      return ProcessResult(0, 0, '', '');
+      return MockProcess(0, 0, 'a', 'a');
     };
     await Future.wait([
       pubCommand.outdatedVersions(pubspecPath),
@@ -113,8 +114,26 @@ class PubCommandTest with ResourceProviderMixin {
     ]);
   }
 
+  Future<void> test_killsCommandOnShutdown() async {
+    // Create a process that won't complete (unless it's killed, where
+    // the MockProcess will complete it with a non-zero exit code).
+    final process = MockProcess(0, Completer<int>().future, '', '');
+    processRunner.startHandler = (executable, args, {dir, env}) => process;
+
+    // Start running the (endless) command.
+    final commandFuture = pubCommand.outdatedVersions(pubspecPath);
+    await pumpEventQueue(times: 500);
+
+    // Trigger shutdown, which should kill any in-process commands.
+    pubCommand.shutdown();
+
+    // Expect the process we created above terminates with non-zero exit code.
+    expect(await process.exitCode, equals(MockProcess.killedExitCode));
+    expect(commandFuture, completes);
+  }
+
   Future<void> test_outdated_args() async {
-    processRunner.runHandler = (executable, args, {dir, env}) {
+    processRunner.startHandler = (executable, args, {dir, env}) {
       var expectedPubPath = path.join(
         path.dirname(Platform.resolvedExecutable),
         Platform.isWindows ? 'pub.bat' : 'pub',
@@ -132,15 +151,15 @@ class PubCommandTest with ResourceProviderMixin {
           env!['PUB_ENVIRONMENT'],
           anyOf(equals('analysis_server.pub_api'),
               endsWith(':analysis_server.pub_api')));
-      return ProcessResult(0, 0, '', '');
+      return MockProcess(0, 0, '', '');
     };
     await pubCommand.outdatedVersions(pubspecPath);
   }
 
   Future<void> test_outdated_invalidJson() async {
-    processRunner.runHandler = (String executable, List<String> args,
+    processRunner.startHandler = (String executable, List<String> args,
             {dir, env}) =>
-        ProcessResult(1, 0, 'NOT VALID JSON', '');
+        MockProcess(1, 0, 'NOT VALID JSON', '');
     final result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, isEmpty);
   }
@@ -158,8 +177,8 @@ class PubCommandTest with ResourceProviderMixin {
       ]
     }
     ''';
-    processRunner.runHandler =
-        (executable, args, {dir, env}) => ProcessResult(1, 0, validJson, '');
+    processRunner.startHandler =
+        (executable, args, {dir, env}) => MockProcess(1, 0, validJson, '');
     final result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, hasLength(1));
     final package = result.first;
@@ -192,11 +211,11 @@ class PubCommandTest with ResourceProviderMixin {
     }
     ''';
 
-    processRunner.runHandler = (executable, args, {dir, env}) {
+    processRunner.startHandler = (executable, args, {dir, env}) {
       // Return different json based on the directory we were invoked in.
       final json =
           dir == path.dirname(pubspecPath) ? pubspecJson1 : pubspecJson2;
-      return ProcessResult(1, 0, json, '');
+      return MockProcess(1, 0, json, '');
     };
     final result1 = await pubCommand.outdatedVersions(pubspecPath);
     final result2 = await pubCommand.outdatedVersions(pubspec2Path);
@@ -205,8 +224,8 @@ class PubCommandTest with ResourceProviderMixin {
   }
 
   Future<void> test_outdated_nonZeroExitCode() async {
-    processRunner.runHandler =
-        (executable, args, {dir, env}) => ProcessResult(1, 123, '{}', '');
+    processRunner.startHandler =
+        (executable, args, {dir, env}) => MockProcess(1, 123, '{}', '');
     final result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, isEmpty);
   }
@@ -232,8 +251,8 @@ class PubCommandTest with ResourceProviderMixin {
       ]
     }
     ''';
-    processRunner.runHandler =
-        (executable, args, {dir, env}) => ProcessResult(1, 0, validJson, '');
+    processRunner.startHandler =
+        (executable, args, {dir, env}) => MockProcess(1, 0, validJson, '');
     final result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, hasLength(2));
     result.forEachIndexed((index, package) {

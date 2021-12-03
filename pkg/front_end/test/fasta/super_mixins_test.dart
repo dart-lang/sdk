@@ -90,7 +90,7 @@ DiagnosticMessageHandler _makeDiagnosticMessageHandler(Set<String> names) {
 /// Check that by default an error is reported for all unresolved super
 /// invocations: independently of weather they target abstract super members
 /// or nonexistent targets.
-testDisabledSuperMixins() async {
+Future<void> testDisabledSuperMixins() async {
   var missingSuperMethodNames = new Set<String>();
   var options = new CompilerOptions()
     ..onDiagnostic = _makeDiagnosticMessageHandler(missingSuperMethodNames);
@@ -103,7 +103,7 @@ testDisabledSuperMixins() async {
 /// super-invocation that targets an non-existent method, a super-invocation
 /// that targets an abstract member of the super-class should not be reported.
 /// In non-abstract class we should report both cases as an error.
-testEnabledSuperMixins() async {
+Future<void> testEnabledSuperMixins() async {
   var missingSuperMethodNames = new Set<String>();
   var options = new CompilerOptions()
     ..onDiagnostic = _makeDiagnosticMessageHandler(missingSuperMethodNames)

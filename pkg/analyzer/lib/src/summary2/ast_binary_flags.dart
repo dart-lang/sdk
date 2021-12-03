@@ -76,8 +76,8 @@ class AstBinaryFlags {
     FieldFormalParameter,
     GenericFunctionType,
     IndexExpression,
+    NamedType,
     PropertyAccess,
-    TypeName,
   );
 
   static final _hasSeparatorColon = _checkBit(
@@ -98,8 +98,8 @@ class AstBinaryFlags {
 
   static final _hasTypeArguments = _checkBit(
     0,
+    NamedType,
     TypedLiteral,
-    TypeName,
   );
 
   static final _isAbstract = _checkBit(

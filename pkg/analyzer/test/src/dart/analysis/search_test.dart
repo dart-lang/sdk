@@ -342,66 +342,44 @@ export 'foo.dart'; // export
     await _verifyReferences(element, expected);
   }
 
-  test_searchReferences_ConstructorElement_default() async {
-    await resolveTestCode('''
-class A {
-  A() {}
-}
-main() {
-  new A();
-}
-''');
-    var element = findElement.unnamedConstructor('A');
-    var main = findElement.function('main');
-    var expected = [
-      _expectIdQ(main, SearchResultKind.REFERENCE, '();', length: 0)
-    ];
-    await _verifyReferences(element, expected);
-  }
-
-  test_searchReferences_ConstructorElement_default_otherFile() async {
-    String other = convertPath('$testPackageLibPath/other.dart');
-    String otherCode = '''
-import 'test.dart';
-main() {
-  new A(); // in other
-}
-''';
-    newFile(other, content: otherCode);
-    driver.addFile(other);
-
-    await resolveTestCode('''
-class A {
-  A() {}
-}
-''');
-    var element = findElement.unnamedConstructor('A');
-
-    var otherUnitResult = await driver.getResult2(other) as ResolvedUnitResult;
-    CompilationUnit otherUnit = otherUnitResult.unit;
-    Element main = otherUnit.declaredElement!.functions[0];
-    var expected = [
-      ExpectedResult(main, SearchResultKind.REFERENCE,
-          otherCode.indexOf('(); // in other'), 0,
-          isResolved: true, isQualified: true)
-    ];
-    await _verifyReferences(element, expected);
-  }
-
   test_searchReferences_ConstructorElement_named() async {
     await resolveTestCode('''
+/// [new A.named] 1
 class A {
   A.named() {}
+  A.other() : this.named(); // 2
 }
-main() {
-  new A.named();
+
+class B extends A {
+  B() : super.named(); // 3
+  factory B.other() = A.named; // 4
+}
+
+void f() {
+  A.named(); // 5
+  A.named; // 6
 }
 ''');
     var element = findElement.constructor('named');
-    var main = findElement.function('main');
+    var f = findElement.function('f');
     var expected = [
-      _expectIdQ(main, SearchResultKind.REFERENCE, '.named();',
-          length: '.named'.length)
+      _expectIdQ(
+          findElement.class_('A'), SearchResultKind.REFERENCE, '.named] 1',
+          length: '.named'.length),
+      _expectIdQ(findElement.constructor('other', of: 'A'),
+          SearchResultKind.INVOCATION, '.named(); // 2',
+          length: '.named'.length),
+      _expectIdQ(findElement.unnamedConstructor('B'),
+          SearchResultKind.INVOCATION, '.named(); // 3',
+          length: '.named'.length),
+      _expectIdQ(findElement.constructor('other', of: 'B'),
+          SearchResultKind.REFERENCE, '.named; // 4',
+          length: '.named'.length),
+      _expectIdQ(f, SearchResultKind.INVOCATION, '.named(); // 5',
+          length: '.named'.length),
+      _expectIdQ(
+          f, SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF, '.named; // 6',
+          length: '.named'.length),
     ];
     await _verifyReferences(element, expected);
   }
@@ -416,29 +394,121 @@ typedef B = A<int>;
 
 void f() {
   B.named(); // ref
+  B.named;
 }
 ''');
 
     var element = findElement.constructor('named');
     var f = findElement.topFunction('f');
     await _verifyReferences(element, [
-      _expectIdQ(f, SearchResultKind.REFERENCE, '.named(); // ref',
+      _expectIdQ(f, SearchResultKind.INVOCATION, '.named(); // ref',
+          length: '.named'.length),
+      _expectIdQ(
+          f, SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF, '.named;',
           length: '.named'.length),
     ]);
   }
 
-  test_searchReferences_ConstructorElement_synthetic() async {
+  test_searchReferences_ConstructorElement_unnamed_declared() async {
     await resolveTestCode('''
+/// [new A] 1
 class A {
+  A() {}
+  A.other() : this(); // 2
 }
-main() {
-  new A();
+
+class B extends A {
+  B() : super(); // 3
+  factory B.other() = A; // 4
+}
+
+void f() {
+  A(); // 5
+  A.new; // 6
 }
 ''');
     var element = findElement.unnamedConstructor('A');
-    var main = findElement.function('main');
+    var f = findElement.function('f');
     var expected = [
-      _expectIdQ(main, SearchResultKind.REFERENCE, '();', length: 0)
+      _expectIdQ(findElement.class_('A'), SearchResultKind.REFERENCE, '] 1',
+          length: 0),
+      _expectIdQ(findElement.constructor('other', of: 'A'),
+          SearchResultKind.INVOCATION, '(); // 2',
+          length: 0),
+      _expectIdQ(findElement.unnamedConstructor('B'),
+          SearchResultKind.INVOCATION, '(); // 3',
+          length: 0),
+      _expectIdQ(findElement.constructor('other', of: 'B'),
+          SearchResultKind.REFERENCE, '; // 4',
+          length: 0),
+      _expectIdQ(f, SearchResultKind.INVOCATION, '(); // 5', length: 0),
+      _expectIdQ(
+          f, SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF, '.new; // 6',
+          length: '.new'.length),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ConstructorElement_unnamed_otherFile() async {
+    String other = convertPath('$testPackageLibPath/other.dart');
+    String otherCode = '''
+import 'test.dart';
+
+void f() {
+  A(); // in other
+}
+''';
+    newFile(other, content: otherCode);
+    driver.addFile(other);
+
+    await resolveTestCode('''
+class A {
+  A() {}
+}
+''');
+    var element = findElement.unnamedConstructor('A');
+
+    var otherUnitResult = await driver.getResult(other) as ResolvedUnitResult;
+    CompilationUnit otherUnit = otherUnitResult.unit;
+    Element main = otherUnit.declaredElement!.functions[0];
+    var expected = [
+      ExpectedResult(main, SearchResultKind.INVOCATION,
+          otherCode.indexOf('(); // in other'), 0,
+          isResolved: true, isQualified: true)
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ConstructorElement_unnamed_synthetic() async {
+    await resolveTestCode('''
+/// [new A] 1
+class A {}
+
+class B extends A {
+  B() : super(); // 2
+  factory B.other() = A; // 3
+}
+
+void f() {
+  A(); // 4
+  A.new; // 5
+}
+''');
+    var element = findElement.unnamedConstructor('A');
+    var f = findElement.function('f');
+    var expected = [
+      _expectIdQ(findElement.class_('A'), SearchResultKind.REFERENCE, '] 1',
+          length: 0),
+      _expectIdQ(findElement.unnamedConstructor('B'),
+          SearchResultKind.INVOCATION, '(); // 2',
+          length: 0),
+      _expectIdQ(findElement.constructor('other', of: 'B'),
+          SearchResultKind.REFERENCE, '; // 3',
+          length: 0),
+      _expectIdQ(f, SearchResultKind.INVOCATION, '(); // 4', length: 0),
+      _expectIdQ(
+          f, SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF, '.new; // 5',
+          length: '.new'.length),
     ];
     await _verifyReferences(element, expected);
   }
@@ -1824,7 +1894,7 @@ class A {
 ''');
 
     var aLibraryResult =
-        await driver.getLibraryByUri2(aUri) as LibraryElementResult;
+        await driver.getLibraryByUri(aUri) as LibraryElementResult;
     ClassElement aClass = aLibraryResult.element.getType('A')!;
 
     // Search by 'type'.
@@ -1870,7 +1940,7 @@ class A {
     newFile(cccFilePath, content: 'class C implements List {}');
 
     var coreLibResult =
-        await driver.getLibraryByUri2('dart:core') as LibraryElementResult;
+        await driver.getLibraryByUri('dart:core') as LibraryElementResult;
     ClassElement listElement = coreLibResult.element.getType('List')!;
 
     var searchedFiles = SearchedFiles();

@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class TypeParameterElementTest extends AbstractTypeSystemNullSafetyTest {
+class TypeParameterElementTest extends AbstractTypeSystemTest {
   test_equal_elementElement_sameLocation() {
     var T1 = typeParameter('T');
     var T2 = typeParameter('T');
@@ -45,7 +45,7 @@ class TypeParameterElementTest extends AbstractTypeSystemNullSafetyTest {
 }
 
 @reflectiveTest
-class TypeParameterTypeTest extends AbstractTypeSystemNullSafetyTest {
+class TypeParameterTypeTest extends AbstractTypeSystemTest {
   test_equal_equalElements() {
     var T1 = typeParameter('T');
     var T2 = typeParameter('T');

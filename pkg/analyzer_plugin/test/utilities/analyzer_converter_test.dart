@@ -19,41 +19,12 @@ import '../support/abstract_context.dart';
 import '../support/abstract_single_unit.dart';
 
 void main() {
-  defineReflectiveTests(AnalyzerConverterNullableTest);
   defineReflectiveTests(AnalyzerConverterTest);
+  defineReflectiveTests(AnalyzerConverterWithoutNullSafetyTest);
 }
 
 @reflectiveTest
-class AnalyzerConverterNullableTest extends _AnalyzerConverterTest {
-  Future<void> test_convertElement_method() async {
-    await resolveTestCode('''
-class A {
-  static List<String> myMethod(int a, {String b, int c}) {
-    return [];
-  }
-}''');
-    var engineElement = findElement.method('myMethod');
-    // create notification Element
-    var element = converter.convertElement(engineElement);
-    expect(element.kind, plugin.ElementKind.METHOD);
-    expect(element.name, 'myMethod');
-    {
-      var location = element.location!;
-      expect(location.file, testFile);
-      expect(location.offset, 32);
-      expect(location.length, 'myGetter'.length);
-      expect(location.startLine, 2);
-      expect(location.startColumn, 23);
-    }
-    expect(element.parameters, '(int a, {String b, int c})');
-    expect(element.returnType, 'List<String>');
-    expect(element.flags, plugin.Element.FLAG_STATIC);
-  }
-}
-
-@reflectiveTest
-class AnalyzerConverterTest extends _AnalyzerConverterTest
-    with WithNonFunctionTypeAliasesMixin {
+class AnalyzerConverterTest extends _AnalyzerConverterTest {
   /// Assert that the given [pluginError] matches the given [analyzerError].
   void assertError(
       plugin.AnalysisError pluginError, analyzer.AnalysisError analyzerError,
@@ -64,14 +35,14 @@ class AnalyzerConverterTest extends _AnalyzerConverterTest
     expect(pluginError, isNotNull);
     var location = pluginError.location;
     expect(pluginError.code, errorCode.name.toLowerCase());
-    expect(pluginError.correction, errorCode.correction);
+    expect(pluginError.correction, errorCode.correctionMessage);
     expect(location, isNotNull);
     expect(location.file, analyzerError.source.fullName);
     expect(location.length, analyzerError.length);
     expect(location.offset, analyzerError.offset);
     expect(location.startColumn, startColumn);
     expect(location.startLine, startLine);
-    expect(pluginError.message, errorCode.message);
+    expect(pluginError.message, errorCode.problemMessage);
     expect(pluginError.severity,
         converter.convertErrorSeverity(severity ?? errorCode.errorSeverity));
     expect(pluginError.type, converter.convertErrorType(errorCode.type));
@@ -267,7 +238,7 @@ class A {
     // create notification Element
     var element = converter.convertElement(engineElement);
     expect(element.kind, plugin.ElementKind.CONSTRUCTOR);
-    expect(element.name, 'myConstructor');
+    expect(element.name, 'A.myConstructor');
     expect(element.typeParameters, isNull);
     {
       var location = element.location!;
@@ -661,6 +632,35 @@ typedef A<T> = Map<int, T>;
     for (var type in analyzer.ErrorType.values) {
       expect(converter.convertErrorType(type), isNotNull, reason: type.name);
     }
+  }
+}
+
+@reflectiveTest
+class AnalyzerConverterWithoutNullSafetyTest extends _AnalyzerConverterTest
+    with WithoutNullSafetyMixin {
+  Future<void> test_convertElement_method() async {
+    await resolveTestCode('''
+class A {
+  static List<String> myMethod(int a, {String b, int c}) {
+    return [];
+  }
+}''');
+    var engineElement = findElement.method('myMethod');
+    // create notification Element
+    var element = converter.convertElement(engineElement);
+    expect(element.kind, plugin.ElementKind.METHOD);
+    expect(element.name, 'myMethod');
+    {
+      var location = element.location!;
+      expect(location.file, testFile);
+      expect(location.offset, 32);
+      expect(location.length, 'myGetter'.length);
+      expect(location.startLine, 2);
+      expect(location.startColumn, 23);
+    }
+    expect(element.parameters, '(int a, {String b, int c})');
+    expect(element.returnType, 'List<String>');
+    expect(element.flags, plugin.Element.FLAG_STATIC);
   }
 }
 

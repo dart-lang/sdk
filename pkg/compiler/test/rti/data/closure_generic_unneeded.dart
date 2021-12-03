@@ -9,7 +9,7 @@
 class A<T> {
   @pragma('dart2js:noInline')
   m() {
-    return /*needsSignature*/(T t, String s) {};
+    return /*needsSignature*/ (T t, String s) {};
   }
 }
 

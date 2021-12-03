@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
+// @dart = 2.9
+
 // This test checks for obscure interaction between LICM and AssertAssignable
 // strengthening performed by Type Propagator. The later would use deopt_id
 // from an environment attached to AssertAssignable, and this deopt id under

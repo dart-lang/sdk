@@ -384,4 +384,5 @@ main() {
   _registerSignalHandlerTimer = Timer(shortDelay, _registerSignalHandler);
 }
 
-_shutdown() native 'VMServiceIO_Shutdown';
+@pragma("vm:external-name", "VMServiceIO_Shutdown")
+external _shutdown();

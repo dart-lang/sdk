@@ -285,6 +285,10 @@ class FindElement extends _FindElementBase {
       findInClass(class_);
     }
 
+    for (var extension_ in unitElement.extensions) {
+      findIn(extension_.typeParameters);
+    }
+
     for (var mixin in unitElement.mixins) {
       findInClass(mixin);
     }

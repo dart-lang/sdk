@@ -104,18 +104,8 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
 
   Future<List<CompletionSuggestion>> getSuggestions() async {
     if (supportsAvailableSuggestions) {
-      // todo (pq): consider moving
-      const internalLibs = [
-        'dart:async2',
-        'dart:_interceptors',
-        'dart:_internal',
-      ];
-      for (var lib in driver.sdk.sdkLibraries) {
-        var uri = lib.shortName;
-        if (!internalLibs.contains(uri)) {
-          await driver.waitForSetWithUri(uri);
-        }
-      }
+      await driver.waitForSetWithUri('dart:core');
+      await driver.waitForSetWithUri('dart:async');
     }
 
     suggestions = await driver.getSuggestions();
@@ -351,6 +341,7 @@ enum E {
 extension Ex on A {}
 mixin M { }
 typedef T = Function(Object);
+typedef T2 = double;
 var v = 0;
 ''');
 
@@ -383,6 +374,10 @@ void f() {
     assertSuggestion(
         completion: 'T',
         element: ElementKind.FUNCTION_TYPE_ALIAS,
+        kind: CompletionSuggestionKind.INVOCATION);
+    assertSuggestion(
+        completion: 'T2',
+        element: ElementKind.TYPE_ALIAS,
         kind: CompletionSuggestionKind.INVOCATION);
     assertSuggestion(
         completion: 'v',

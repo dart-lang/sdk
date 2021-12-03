@@ -576,8 +576,8 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   E operator [](int index) {
     // Suppress redundant null checks via JS.
     if (index == null ||
-        JS<int>('!', '#', index) >= JS<int>('!', '#.length', this) ||
-        JS<int>('!', '#', index) < 0) {
+        // This form of the range check correctly rejects NaN.
+        JS<bool>('!', '!(# >= 0 && # < #.length)', index, index, this)) {
       throw diagnoseIndexError(this, index);
     }
     return JS<E>('', '#[#]', this, index);
@@ -586,8 +586,8 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   void operator []=(int index, E value) {
     checkMutable('indexed set');
     if (index == null ||
-        JS<int>('!', '#', index) >= JS<int>('!', '#.length', this) ||
-        JS<int>('!', '#', index) < 0) {
+        // This form of the range check correctly rejects NaN.
+        JS<bool>('!', '!(# >= 0 && # < #.length)', index, index, this)) {
       throw diagnoseIndexError(this, index);
     }
     JS('void', r'#[#] = #', this, index, value);

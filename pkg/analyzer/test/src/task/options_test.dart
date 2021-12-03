@@ -333,19 +333,43 @@ analyzer:
   }
 
   test_analyzer_error_code_supported_bad_value() {
-    validate('''
+    var errors = validate('''
 analyzer:
   errors:
     unused_local_variable: ftw
     ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+    expect(errors.single.problemMessage.messageText(includeUrl: false),
+        contains("The option 'ftw'"));
+  }
+
+  test_analyzer_error_code_supported_bad_value_null() {
+    var errors = validate('''
+analyzer:
+  errors:
+    unused_local_variable: null
+    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+    expect(errors.single.problemMessage.messageText(includeUrl: false),
+        contains("The option 'null'"));
   }
 
   test_analyzer_error_code_unsupported() {
-    validate('''
+    var errors = validate('''
 analyzer:
   errors:
     not_supported: ignore
     ''', [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
+    expect(errors.single.problemMessage.messageText(includeUrl: false),
+        contains("'not_supported' isn't a recognized error code"));
+  }
+
+  test_analyzer_error_code_unsupported_null() {
+    var errors = validate('''
+analyzer:
+  errors:
+    null: ignore
+    ''', [AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE]);
+    expect(errors.single.problemMessage.messageText(includeUrl: false),
+        contains("'null' isn't a recognized error code"));
   }
 
   test_analyzer_errors_notAMap() {
@@ -521,11 +545,12 @@ linter:
     ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
   }
 
-  void validate(String source, List<ErrorCode> expected) {
+  List<AnalysisError> validate(String source, List<ErrorCode> expected) {
     var options = optionsProvider.getOptionsFromString(source);
     var errors = validator.validate(options);
     expect(errors.map((AnalysisError e) => e.errorCode),
         unorderedEquals(expected));
+    return errors;
   }
 }
 

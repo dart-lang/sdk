@@ -26,11 +26,9 @@ parser/error_recovery/issue_39202.crash:1:25: Expected an identifier, but got ''
 
 WARNING: Reporting at eof --- see below for details.
 
-parser/error_recovery/issue_39202.crash:1:25: Expected ';' after this.
+parser/error_recovery/issue_39202.crash:1:24: Expected ';' after this.
 () async => a b < c $? >
-                        ^...
-
-WARNING: Reporting at eof --- see below for details.
+                       ^
 
 beginCompilationUnit(()
   beginMetadataStar(()
@@ -67,7 +65,7 @@ beginCompilationUnit(()
   beginMetadataStar(b)
   endMetadataStar(0)
   beginTopLevelMember(b)
-    beginFields(;)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, ;)
       handleIdentifier(b, typeReference)
       beginTypeArguments(<)
         handleIdentifier(c, typeReference)
@@ -80,8 +78,7 @@ beginCompilationUnit(()
       // WARNING: Reporting at eof for .
       handleIdentifier(, topLevelVariableDeclaration)
       handleNoFieldInitializer()
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], , )
-      // WARNING: Reporting at eof for .
+      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], >, >)
     endTopLevelFields(null, null, null, null, null, 1, b, ;)
   endTopLevelDeclaration()
 endCompilationUnit(4, )

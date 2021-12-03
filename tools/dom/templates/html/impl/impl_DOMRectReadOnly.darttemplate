@@ -18,8 +18,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements
       width == other.width &&
       height == other.height;
 
-  int get hashCode => _JenkinsSmiHash.hash4(left.hashCode, top.hashCode,
-      width.hashCode, height.hashCode);
+  int get hashCode => Object.hash(left, top, width, height);
 
   /**
    * Computes the intersection of `this` and [other].

@@ -6,7 +6,7 @@
 
 import "incremental_dart2js_tester.dart";
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   bool fast = true;
   bool useExperimentalInvalidation = true;
   bool addDebugBreaks = false;

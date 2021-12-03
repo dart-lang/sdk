@@ -1,0 +1,10 @@
+class A<T> {
+  A();
+  A.named();
+  factory A.fact() => new A();
+  factory A.redirect() = A;
+}
+
+main() {}
+test() {}
+typedef B<T extends num> = A<T>;

@@ -1,0 +1,12 @@
+abstract class Link<T> {
+  factory Link.create1() = LinkFactory<T>.create;
+  factory Link.create2() = LinkFactory<T, T>.create;
+  factory Link.create3(int i) = LinkFactory.create;
+  factory Link.create4({int i}) = LinkFactory.create;
+}
+
+class LinkFactory {
+  factory Link.create() {}
+}
+
+main() {}

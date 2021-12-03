@@ -29,7 +29,7 @@ void main() {
         "arguments": ["-nfoo-x64-none-debug-d8-linux"]
       }, {}, configurations);
       expect(step.isTestStep, isTrue);
-      expect(step.testedConfiguration.name, "foo-x64-none-debug-d8-linux");
+      expect(step.testedConfiguration?.name, "foo-x64-none-debug-d8-linux");
     });
     test("custom test runner step", () {
       var step = Step.parse({
@@ -39,7 +39,7 @@ void main() {
         "arguments": ["-nfoo-x64-none-debug-d8-linux"]
       }, {}, configurations);
       expect(step.isTestStep, isTrue);
-      expect(step.testedConfiguration.name, "foo-x64-none-debug-d8-linux");
+      expect(step.testedConfiguration?.name, "foo-x64-none-debug-d8-linux");
     });
     test("implicit test step", () {
       var step = Step.parse({
@@ -47,7 +47,7 @@ void main() {
         "arguments": ["-nfoo-x64-none-debug-d8-linux"]
       }, {}, configurations);
       expect(step.isTestStep, isTrue);
-      expect(step.testedConfiguration.name, "foo-x64-none-debug-d8-linux");
+      expect(step.testedConfiguration?.name, "foo-x64-none-debug-d8-linux");
     });
     test("a step can only test one configuration", () {
       expectFormatError(
@@ -69,7 +69,7 @@ void main() {
         "arguments": ["--named_configuration foo-x64-none-debug-d8-linux"]
       }, {}, configurations);
       expect(step.isTestStep, isTrue);
-      expect(step.testedConfiguration.name, "foo-x64-none-debug-d8-linux");
+      expect(step.testedConfiguration?.name, "foo-x64-none-debug-d8-linux");
     });
     test("a test step using multiple values for the argument", () {
       expectFormatError(
@@ -89,7 +89,7 @@ void main() {
         "arguments": ["-nfoo-x64-none-debug-d8-linux", "--bar", "-b=az"]
       }, {}, configurations);
       expect(step.isTestStep, isTrue);
-      expect(step.testedConfiguration.name, "foo-x64-none-debug-d8-linux");
+      expect(step.testedConfiguration?.name, "foo-x64-none-debug-d8-linux");
     });
     test("in non-test steps, argument -n can have arbitrary values", () {
       var step = Step.parse({
@@ -229,6 +229,6 @@ void expectTestedConfigurations(
     var step = builder.steps[0];
     expect(step.isTestStep, isTrue);
   }
-  expect(builders.map((b) => b.steps[0].testedConfiguration.name).toList(),
+  expect(builders.map((b) => b.steps[0].testedConfiguration!.name).toList(),
       equals(expectedConfigurations));
 }

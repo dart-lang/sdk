@@ -97,13 +97,13 @@ Try inserting an identifier before '['.
   invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:8:11: Error: Can't assign to this.
   c?.[42] = 42;
           ^";
-  let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:9:6: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:9:6: Error: Can't assign to this.
   c?.[42]++;
      ^" in invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:9:6: Error: Expected an identifier, but got '['.
 Try inserting an identifier before '['.
   c?.[42]++;
      ^";
-  let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:10:8: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:10:8: Error: Can't assign to this.
   ++c?.[42];
        ^" in invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:10:8: Error: Expected an identifier, but got '['.
 Try inserting an identifier before '['.
@@ -116,13 +116,13 @@ Try inserting an identifier before '['.
   invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:12:16: Error: Can't assign to this.
   c?.[42]?.[0] ??= 42;
                ^^^";
-  let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:13:12: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:13:12: Error: Can't assign to this.
   c?.[42]?.[0]++;
            ^" in invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:13:12: Error: Expected an identifier, but got '['.
 Try inserting an identifier before '['.
   c?.[42]?.[0]++;
            ^";
-  let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:14:14: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:14:14: Error: Can't assign to this.
   ++c?.[42]?.[0];
              ^" in invalid-expression "pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:14:14: Error: Expected an identifier, but got '['.
 Try inserting an identifier before '['.

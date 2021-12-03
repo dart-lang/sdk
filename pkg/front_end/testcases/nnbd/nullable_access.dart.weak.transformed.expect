@@ -33,13 +33,13 @@ class A extends core::Object /*hasConstConstructor*/  {
 }
 static method main() → dynamic {
   self::Class? c;
-  self::throws(() → void => let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_access.dart:23:18: Error: Property 'nonNullableField' cannot be accessed on 'Class?' because it is potentially null.
+  self::throws(() → void => invalid-expression "pkg/front_end/testcases/nnbd/nullable_access.dart:23:18: Error: Property 'nonNullableField' cannot be accessed on 'Class?' because it is potentially null.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/nullable_access.dart'.
 Try accessing using ?. instead.
   throws(() => c.nonNullableField);
                  ^^^^^^^^^^^^^^^^" in c.{self::Class::nonNullableField}{<nullable>}.{self::A});
-  self::expect(null, let final self::Class? #t2 = c in #t2 == null ?{self::A?} null : #t2{self::Class}.{self::Class::nonNullableField}{self::A});
-  self::expect(null, let final self::Class? #t3 = c in #t3 == null ?{self::A?} null : #t3{self::Class}.{self::Class::nonNullableField}{self::A}.{self::A::nonNullableProperty}{self::A});
+  self::expect(null, let final self::Class? #t1 = c in #t1 == null ?{self::A?} null : #t1{self::Class}.{self::Class::nonNullableField}{self::A});
+  self::expect(null, let final self::Class? #t2 = c in #t2 == null ?{self::A?} null : #t2{self::Class}.{self::Class::nonNullableField}{self::A}.{self::A::nonNullableProperty}{self::A});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))

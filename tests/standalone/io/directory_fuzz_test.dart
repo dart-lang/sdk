@@ -12,68 +12,75 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 import 'fuzz_support.dart';
+import 'file_write_only_test.dart' show withTempDir, withTempDirSync;
 
 fuzzSyncMethods() {
-  typeMapping.forEach((k, v) {
-    doItSync(() {
-      Directory.systemTemp.createTempSync(v as String?).deleteSync();
-    });
-    Directory? directory;
-    doItSync(() => directory = new Directory(v as String));
-    if (directory == null) return;
-    final d = directory!;
-    doItSync(d.existsSync);
-    doItSync(d.createSync);
-    doItSync(d.deleteSync);
-    doItSync(d.listSync);
-    doItSync(() {
-      d.createTempSync('tempdir').deleteSync();
-    });
-    doItSync(() {
-      // Let's be a little careful. If the directory exists we don't
-      // want to delete it and all its contents.
-      if (!d.existsSync()) d.deleteSync(recursive: true);
-    });
-    typeMapping.forEach((k2, v2) {
-      doItSync(() => d.renameSync(v2 as String));
-      doItSync(() => d.listSync(recursive: v2 as bool));
+  withTempDirSync('dart_directory_fuzz', (temp) {
+    typeMapping.forEach((k, v) {
+      doItSync(() {
+        Directory.systemTemp.createTempSync("${temp.path}/${v as String}")
+            .deleteSync();
+      });
+      Directory? directory;
+      doItSync(() => directory = new Directory("${temp.path}/${v as String}"));
+      if (directory == null) return;
+      final d = directory!;
+      doItSync(d.existsSync);
+      doItSync(d.createSync);
+      doItSync(d.deleteSync);
+      doItSync(d.listSync);
+      doItSync(() {
+        d.createTempSync('tempdir').deleteSync();
+      });
+      doItSync(() {
+        // Let's be a little careful. If the directory exists we don't
+        // want to delete it and all its contents.
+        if (!d.existsSync()) d.deleteSync(recursive: true);
+      });
+      typeMapping.forEach((k2, v2) {
+        doItSync(() => d.renameSync(v2 as String));
+        doItSync(() => d.listSync(recursive: v2 as bool));
+      });
     });
   });
 }
 
-fuzzAsyncMethods() {
+fuzzAsyncMethods() async {
   asyncStart();
-  var futures = <Future>[];
-  typeMapping.forEach((k, v) {
-    futures.add(doItAsync(() {
-      Directory.systemTemp.createTempSync(v as String?).deleteSync();
-    }));
-    if (v is! String) {
-      return;
-    }
-    var d = new Directory(v);
-    futures.add(doItAsync(d.exists));
-    futures.add(doItAsync(d.create));
-    futures.add(doItAsync(d.delete));
-    futures.add(doItAsync(() {
-      return d.createTemp('tempdir').then((temp) {
-        return temp.delete();
-      });
-    }));
-    futures.add(doItAsync(() {
-      return d.exists().then((res) {
-        if (!res) return d.delete(recursive: true);
-        return new Future.value(true);
-      });
-    }));
-    typeMapping.forEach((k2, v2) {
-      futures.add(doItAsync(() => d.rename(v2 as String)));
+  await withTempDir('dart_directory_fuzz', (temp) async {
+    final futures = <Future>[];
+    typeMapping.forEach((k, v) {
       futures.add(doItAsync(() {
-        d.list(recursive: v2 as bool).listen((_) {}, onError: (e) => null);
+        Directory.systemTemp.createTempSync("${temp.path}/${v as String}")
+            .deleteSync();
       }));
+      if (v is! String) {
+        return;
+      }
+      var d = new Directory("${temp.path}/$v");
+      futures.add(doItAsync(d.exists));
+      futures.add(doItAsync(d.create));
+      futures.add(doItAsync(d.delete));
+      futures.add(doItAsync(() {
+        return d.createTemp('tempdir').then((temp) {
+          return temp.delete();
+        });
+      }));
+      futures.add(doItAsync(() {
+        return d.exists().then((res) {
+          if (!res) return d.delete(recursive: true);
+          return new Future.value(true);
+        });
+      }));
+      typeMapping.forEach((k2, v2) {
+        futures.add(doItAsync(() => d.rename(v2 as String)));
+        futures.add(doItAsync(() {
+          d.list(recursive: v2 as bool).listen((_) {}, onError: (e) => null);
+        }));
+      });
     });
+    await Future.wait(futures).then((_) => asyncEnd());
   });
-  Future.wait(futures).then((_) => asyncEnd());
 }
 
 main() {

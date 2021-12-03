@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart';
 /// A simple implementation of the class hierarchy interface using
 /// hash tables for everything.
 class BasicClassHierarchy implements ClassHierarchy {
+  @override
   final Set<Library> knownLibraries;
   final Map<Class, Set<Class>> superclasses = <Class, Set<Class>>{};
   final Map<Class, Set<Class>> superMixtures = <Class, Set<Class>>{};
@@ -39,6 +40,7 @@ class BasicClassHierarchy implements ClassHierarchy {
     }
   }
 
+  @override
   void forEachOverridePair(
       Class class_, callback(Member member, Member superMember, bool setter)) {
     void report(Member member, Member superMember, bool setter) {
@@ -199,6 +201,7 @@ class BasicClassHierarchy implements ClassHierarchy {
     }
   }
 
+  @override
   bool isSubclassOf(Class subtype, Class supertype) {
     return superclasses[subtype]!.contains(supertype);
   }
@@ -207,18 +210,22 @@ class BasicClassHierarchy implements ClassHierarchy {
     return superMixtures[subtype]!.contains(supertype);
   }
 
+  @override
   bool isSubtypeOf(Class subtype, Class supertype) {
     return supertypes[subtype]!.contains(supertype);
   }
 
+  @override
   Supertype? getClassAsInstanceOf(Class type, Class supertype) {
     return supertypeInstantiations[type]![supertype];
   }
 
+  @override
   Member? getDispatchTarget(Class class_, Name name, {bool setter: false}) {
     return setter ? setters[class_]![name] : gettersAndCalls[class_]![name];
   }
 
+  @override
   List<Member> getDispatchTargets(Class class_, {bool setters: false}) {
     return setters
         ? this.setters[class_]!.values.toList()
@@ -229,6 +236,7 @@ class BasicClassHierarchy implements ClassHierarchy {
     return (members == null || members.isEmpty) ? null : members.first;
   }
 
+  @override
   Member? getInterfaceMember(Class class_, Name name, {bool setter: false}) {
     return tryFirst(getInterfaceMembersByName(class_, name, setter: setter));
   }
@@ -241,6 +249,7 @@ class BasicClassHierarchy implements ClassHierarchy {
     return iterable == null ? const <Member>[] : iterable;
   }
 
+  @override
   List<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
     return setters
         ? interfaceSetters[class_]!.values.expand((x) => x).toList()
@@ -255,5 +264,6 @@ class BasicClassHierarchy implements ClassHierarchy {
   double getCompressionRatio() => 0.0;
   int getSuperTypeHashTableSize() => 0;
 
-  noSuchMethod(inv) => super.noSuchMethod(inv);
+  @override
+  dynamic noSuchMethod(inv) => super.noSuchMethod(inv);
 }

@@ -192,14 +192,18 @@ class LocationSpec {
       if (badPoints.isNotEmpty) {
         err.write('No test location for tests:');
         for (var ch in badPoints) {
-          err..write(' ')..write(ch);
+          err
+            ..write(' ')
+            ..write(ch);
         }
         err.write(' ');
       }
       if (badResults.isNotEmpty) {
         err.write('No results for tests:');
         for (var ch in badResults) {
-          err..write(' ')..write(ch);
+          err
+            ..write(' ')
+            ..write(ch);
         }
       }
       throw StateError(err.toString());

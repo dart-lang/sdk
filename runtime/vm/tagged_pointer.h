@@ -109,7 +109,7 @@ class ObjectPtr {
   bool IsStringInstance() const { return IsStringClassId(GetClassId()); }
   bool IsRawNull() const { return GetClassId() == kNullCid; }
   bool IsDartInstance() const {
-    return (!IsHeapObject() || (GetClassId() >= kInstanceCid));
+    return (!IsHeapObject() || !IsInternalOnlyClassId(GetClassId()));
   }
   bool IsFreeListElement() const {
     return ((GetClassId() == kFreeListElement));
@@ -397,6 +397,8 @@ DEFINE_TAGGED_POINTER(GrowableObjectArray, Instance)
 DEFINE_TAGGED_POINTER(LinkedHashBase, Instance)
 DEFINE_TAGGED_POINTER(LinkedHashMap, LinkedHashBase)
 DEFINE_TAGGED_POINTER(LinkedHashSet, LinkedHashBase)
+DEFINE_TAGGED_POINTER(ImmutableLinkedHashMap, LinkedHashMap)
+DEFINE_TAGGED_POINTER(ImmutableLinkedHashSet, LinkedHashSet)
 DEFINE_TAGGED_POINTER(Float32x4, Instance)
 DEFINE_TAGGED_POINTER(Int32x4, Instance)
 DEFINE_TAGGED_POINTER(Float64x2, Instance)

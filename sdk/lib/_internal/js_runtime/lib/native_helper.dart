@@ -260,7 +260,8 @@ setNativeSubclassDispatchRecord(proto, interceptor) {
 }
 
 String constructorNameFallback(object) {
-  return JS('String', '#(#)', _constructorNameFallback, object);
+  return JS('returns:String;effects:none;depends:none', '#(#)',
+      _constructorNameFallback, object);
 }
 
 var initNativeDispatchFlag; // null or true

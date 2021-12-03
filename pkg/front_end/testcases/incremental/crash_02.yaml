@@ -22,6 +22,7 @@ worlds:
           ]
         }
       app/main.dart: |
+        // @dart=2.9
         import "package:flutter/src/widgets/framework.dart";
       flutter/src/widgets/framework.dart: |
         import "package:flutter/src/widgets/widget_inspector.dart";

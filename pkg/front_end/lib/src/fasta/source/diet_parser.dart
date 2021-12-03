@@ -9,10 +9,15 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show ClassMemberParser, Listener, MemberKind;
 
+const bool useImplicitCreationExpressionInCfe = true;
+
 // TODO(ahe): Move this to parser package.
 class DietParser extends ClassMemberParser {
-  DietParser(Listener listener) : super(listener);
+  DietParser(Listener listener)
+      : super(listener,
+            useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
 
+  @override
   Token parseFormalParametersRest(Token token, MemberKind kind) {
     return skipFormalParametersRest(token, kind);
   }

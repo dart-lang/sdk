@@ -60,7 +60,6 @@ Iterable<int> foo8() sync* {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATOR
 //^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATOR
 // [cfe] 'sync*' and 'async*' can't return a value.
 }
 
@@ -71,7 +70,6 @@ Stream<int> foo9() async* {
 //^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATOR
 //^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.RETURN_IN_GENERATOR
 // [cfe] 'sync*' and 'async*' can't return a value.
 }
 

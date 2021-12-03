@@ -6,6 +6,8 @@
 // representation requirements for uses of a definition that is being
 // folded away.
 
+// @dart = 2.9
+
 import 'dart:ffi';
 
 import 'package:expect/expect.dart';

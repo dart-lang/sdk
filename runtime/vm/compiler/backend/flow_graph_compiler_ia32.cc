@@ -363,7 +363,17 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   if ((defn != NULL) && defn->HasTemp()) {
     Location value = defn->locs()->out(0);
     if (value.IsRegister()) {
-      __ pushl(value.reg());
+      __ PushRegister(value.reg());
+    } else if (value.IsFpuRegister()) {
+      ASSERT(instr->representation() == kUnboxedDouble);
+      // In unoptimized code at instruction epilogue the only
+      // live register is an output register.
+      instr->locs()->live_registers()->Clear();
+      __ MoveUnboxedDouble(BoxDoubleStubABI::kValueReg, value.fpu_reg());
+      GenerateNonLazyDeoptableStubCall(
+          InstructionSource(),  // No token position.
+          StubCode::BoxDouble(), UntaggedPcDescriptors::kOther, instr->locs());
+      __ PushRegister(BoxDoubleStubABI::kResultReg);
     } else if (value.IsConstant()) {
       __ PushObject(value.constant());
     } else {
@@ -586,9 +596,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     const Array& arguments_descriptor,
     intptr_t deopt_id,
     const InstructionSource& source,
-    LocationSummary* locs,
-    intptr_t try_index,
-    intptr_t slow_path_argument_count) {
+    LocationSummary* locs) {
   ASSERT(CanCallDart());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const ArgumentsDescriptor args_desc(arguments_descriptor);
@@ -605,7 +613,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
       CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
 
   AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone, source);
-  RecordSafepoint(locs, slow_path_argument_count);
+  RecordSafepoint(locs);
   const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
   // Precompilation not implemented on ia32 platform.
   ASSERT(!FLAG_precompiled_mode);
@@ -616,7 +624,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     // arguments are removed.
     AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after, source);
   }
-  RecordCatchEntryMoves(pending_deoptimization_env_, try_index);
+  RecordCatchEntryMoves(pending_deoptimization_env_);
   __ Drop(args_desc.SizeWithTypeArgs());
 }
 

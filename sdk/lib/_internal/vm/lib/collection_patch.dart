@@ -9,7 +9,9 @@
 
 import "dart:_internal" as internal;
 
-import "dart:_internal" show patch, IterableElementError;
+import "dart:_internal" show patch, IterableElementError, ClassID;
+
+import "dart:math" show max;
 
 import "dart:typed_data" show Uint32List;
 

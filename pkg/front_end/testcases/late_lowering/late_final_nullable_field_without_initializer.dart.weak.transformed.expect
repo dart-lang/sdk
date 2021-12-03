@@ -57,7 +57,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
       this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
       this.{self::Class::_#Class#lateGenericInstanceField} = #t4;
     }
-  method instanceMethod(generic-covariant-impl self::Class::T% value) → dynamic {
+  method instanceMethod(covariant-by-class self::Class::T% value) → dynamic {
     self::throws(() → core::int? => this.{self::Class::lateInstanceField}{core::int?}, "Read value from uninitialized Class.lateInstanceField");
     this.{self::Class::lateInstanceField} = 16;
     self::expect(16, this.{self::Class::lateInstanceField}{core::int?});

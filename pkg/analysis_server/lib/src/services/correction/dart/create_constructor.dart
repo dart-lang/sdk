@@ -63,7 +63,7 @@ class CreateConstructor extends CorrectionProducer {
     }
 
     // prepare target interface type
-    var targetType = _constructorName.type.type;
+    var targetType = _constructorName.type2.type;
     if (targetType is! InterfaceType) {
       return;
     }

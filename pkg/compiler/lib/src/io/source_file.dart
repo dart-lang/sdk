@@ -28,7 +28,7 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
   kernel.Source get kernelSource {
     // TODO(johnniwinther): Instead of creating a new Source object,
     // we should use the one provided by the front-end.
-    return cachedKernelSource ??= new kernel.Source(
+    return cachedKernelSource ??= kernel.Source(
         lineStarts,
         slowUtf8ZeroTerminatedBytes(),
         uri /* TODO(jensj): What is the import URI? */,
@@ -107,7 +107,7 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
   /// Use [colorize] to wrap source code text and marker characters in color
   /// escape codes.
   String getLocationMessage(String message, int start, int end,
-      {bool includeSourceLine: true, String colorize(String text)}) {
+      {bool includeSourceLine = true, String colorize(String text)}) {
     if (colorize == null) {
       colorize = (text) => text;
     }
@@ -119,7 +119,7 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
     int lineEnd = endLocation.line - 1;
     int columnEnd = endLocation.column - 1;
 
-    StringBuffer buf = new StringBuffer('${filename}:');
+    StringBuffer buf = StringBuffer('${filename}:');
     if (start != end || start != 0) {
       // Line/column info is relevant.
       buf.write('${lineStart + 1}:${columnStart + 1}:');
@@ -173,7 +173,7 @@ abstract class SourceFile<T> implements Input<T>, LocationProvider {
 
 List<int> _zeroTerminateIfNecessary(List<int> bytes) {
   if (bytes.length > 0 && bytes.last == 0) return bytes;
-  List<int> result = new Uint8List(bytes.length + 1);
+  List<int> result = Uint8List(bytes.length + 1);
   result.setRange(0, bytes.length, bytes);
   result[result.length - 1] = 0;
   return result;
@@ -266,7 +266,7 @@ class StringSourceFile extends SourceFile<List<int>> {
       : this(uri, uri.toString(), text);
 
   StringSourceFile.fromName(String filename, String text)
-      : this(new Uri(path: filename), filename, text);
+      : this(Uri(path: filename), filename, text);
 
   @override
   List<int> get data => utf8.encode(text);

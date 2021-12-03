@@ -19,6 +19,14 @@ class UpdateSdkConstraints extends CorrectionProducer {
   UpdateSdkConstraints(this._minimumVersion);
 
   @override
+  // Too nuanced to do unattended.
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  // Not applicable (there can only be one constraint per file).
+  bool get canBeAppliedToFile => false;
+
+  @override
   FixKind get fixKind => DartFixKind.UPDATE_SDK_CONSTRAINTS;
 
   @override
@@ -70,6 +78,11 @@ class UpdateSdkConstraints extends CorrectionProducer {
       }
     }
   }
+
+  /// Return an instance of this class that will update the SDK constraints to
+  /// '2.14.0'. Used as a tear-off in `FixProcessor`.
+  static UpdateSdkConstraints version_2_14_0() =>
+      UpdateSdkConstraints('2.14.0');
 
   /// Return an instance of this class that will update the SDK constraints to
   /// '2.1.0'. Used as a tear-off in `FixProcessor`.

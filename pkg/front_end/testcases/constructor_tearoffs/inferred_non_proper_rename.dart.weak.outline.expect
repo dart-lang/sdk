@@ -12,13 +12,13 @@ class A<T extends core::Object? = dynamic> extends core::Object {
 static final field core::bool inSoundMode;
 static const field () → self::A<core::int> f1a = self::A::•<core::int>;
 static const field () → self::A<core::int> f1b = self::A::•<core::int>;
-static const field () → self::A<core::int> f1c = <X extends core::num>.(self::A::•<X>)<core::int>;
+static const field () → self::A<core::int> f1c = self::A::•<core::int>;
 static const field () → self::A<core::int> g1a = self::A::•<core::int>;
 static const field () → self::A<core::int> g1b = self::A::•<core::int>;
-static const field () → self::A<core::int> g1c = <unrelated Y extends core::Object? = dynamic>.(self::A::•<core::int>)<dynamic>;
+static const field () → self::A<core::int> g1c = self::A::•<core::int>;
 static const field () → self::A<core::int> h1a = self::A::•<core::int>;
 static const field () → self::A<core::int> h1b = self::A::•<core::int>;
-static const field () → self::A<core::int> h1c = <X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>.(self::A::•<X%>)<core::int, dynamic>;
+static const field () → self::A<core::int> h1c = self::A::•<core::int>;
 static method main() → dynamic
   ;
 static method test<T extends core::num>() → dynamic
@@ -33,7 +33,7 @@ Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.d
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:15:31 -> InstantiationConstant(A.<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:17:13 -> InstantiationConstant(A.<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:18:13 -> InstantiationConstant(A.<int*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:19:31 -> InstantiationConstant(A.<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:19:31 -> InstantiationConstant(A.<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:21:13 -> InstantiationConstant(A.<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:22:13 -> InstantiationConstant(A.<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:23:31 -> InstantiationConstant(A.<int*>)

@@ -298,19 +298,26 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
   }
 
   // Native method declarations.
-  static _nativeLookupRequest(host, int type)
-      native "SynchronousSocket_LookupRequest";
-  _nativeCreateConnectSync(host, int port)
-      native "SynchronousSocket_CreateConnectSync";
-  _nativeAvailable() native "SynchronousSocket_Available";
-  _nativeCloseSync() native "SynchronousSocket_CloseSync";
-  int _nativeGetPort() native "SynchronousSocket_GetPort";
-  List _nativeGetRemotePeer() native "SynchronousSocket_GetRemotePeer";
-  _nativeRead(int len) native "SynchronousSocket_Read";
-  _nativeReadInto(List<int> buffer, int offset, int bytes)
-      native "SynchronousSocket_ReadList";
-  _nativeShutdownRead() native "SynchronousSocket_ShutdownRead";
-  _nativeShutdownWrite() native "SynchronousSocket_ShutdownWrite";
-  _nativeWrite(List<int> buffer, int offset, int bytes)
-      native "SynchronousSocket_WriteList";
+  @pragma("vm:external-name", "SynchronousSocket_LookupRequest")
+  external static _nativeLookupRequest(host, int type);
+  @pragma("vm:external-name", "SynchronousSocket_CreateConnectSync")
+  external _nativeCreateConnectSync(host, int port);
+  @pragma("vm:external-name", "SynchronousSocket_Available")
+  external _nativeAvailable();
+  @pragma("vm:external-name", "SynchronousSocket_CloseSync")
+  external _nativeCloseSync();
+  @pragma("vm:external-name", "SynchronousSocket_GetPort")
+  external int _nativeGetPort();
+  @pragma("vm:external-name", "SynchronousSocket_GetRemotePeer")
+  external List _nativeGetRemotePeer();
+  @pragma("vm:external-name", "SynchronousSocket_Read")
+  external _nativeRead(int len);
+  @pragma("vm:external-name", "SynchronousSocket_ReadList")
+  external _nativeReadInto(List<int> buffer, int offset, int bytes);
+  @pragma("vm:external-name", "SynchronousSocket_ShutdownRead")
+  external _nativeShutdownRead();
+  @pragma("vm:external-name", "SynchronousSocket_ShutdownWrite")
+  external _nativeShutdownWrite();
+  @pragma("vm:external-name", "SynchronousSocket_WriteList")
+  external _nativeWrite(List<int> buffer, int offset, int bytes);
 }

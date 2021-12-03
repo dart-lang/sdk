@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for b/162922506: verify that compiler does not use signed
 // 16-bit integers to store class ids for slots.
 

@@ -265,7 +265,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// analyzed in one of the analysis drivers to which the file was added,
   /// otherwise in the first driver, otherwise `null` is returned.
   LineInfo? getLineInfo(String path) {
-    var result = getAnalysisDriver(path)?.getFileSync2(path);
+    var result = getAnalysisDriver(path)?.getFileSync(path);
     return result is FileResult ? result.lineInfo : null;
   }
 
@@ -920,7 +920,14 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     }
   }
 
-  bool _shouldSendError(protocol.AnalysisError error) =>
-      error.code != ErrorType.TODO.name.toLowerCase() ||
-      analysisServer.clientConfiguration.global.showTodos;
+  bool _shouldSendError(protocol.AnalysisError error) {
+    if (error.type.name != ErrorType.TODO.name) {
+      return true;
+    }
+    if (analysisServer.clientConfiguration.global.showAllTodos) {
+      return true;
+    }
+    return analysisServer.clientConfiguration.global.showTodoTypes
+        .contains(error.code.toUpperCase());
+  }
 }

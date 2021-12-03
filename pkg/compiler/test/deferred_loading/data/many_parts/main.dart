@@ -14,7 +14,7 @@
   p17: {units: [7{b1, b2, b4}], usedBy: [], needs: []},
   p18: {units: [11{b1, b2, b5}], usedBy: [], needs: []},
   p19: {units: [8{b1, b3, b4}], usedBy: [], needs: []},
-  p1: {units: [2{b1}], usedBy: [], needs: []},
+  p1: {units: [1{b1}], usedBy: [], needs: []},
   p20: {units: [12{b1, b3, b5}], usedBy: [], needs: []},
   p21: {units: [14{b1, b4, b5}], usedBy: [], needs: []},
   p22: {units: [20{b2, b3, b4}], usedBy: [], needs: []},
@@ -27,7 +27,7 @@
   p29: {units: [16{b1, b3, b4, b5}], usedBy: [], needs: []},
   p2: {units: [17{b2}], usedBy: [], needs: []},
   p30: {units: [24{b2, b3, b4, b5}], usedBy: [], needs: []},
-  p31: {units: [1{b1, b2, b3, b4, b5}], usedBy: [], needs: []},
+  p31: {units: [2{b1, b2, b3, b4, b5}], usedBy: [], needs: []},
   p3: {units: [25{b3}], usedBy: [], needs: []},
   p4: {units: [29{b4}], usedBy: [], needs: []},
   p5: {units: [31{b5}], usedBy: [], needs: []},
@@ -46,7 +46,7 @@
   f17: [7{b1, b2, b4}],
   f18: [11{b1, b2, b5}],
   f19: [8{b1, b3, b4}],
-  f1: [2{b1}],
+  f1: [1{b1}],
   f20: [12{b1, b3, b5}],
   f21: [14{b1, b4, b5}],
   f22: [20{b2, b3, b4}],
@@ -59,7 +59,7 @@
   f29: [16{b1, b3, b4, b5}],
   f2: [17{b2}],
   f30: [24{b2, b3, b4, b5}],
-  f31: [1{b1, b2, b3, b4, b5}],
+  f31: [2{b1, b2, b3, b4, b5}],
   f3: [25{b3}],
   f4: [29{b4}],
   f5: [31{b5}],
@@ -77,15 +77,15 @@
 
 /*three-frag.library: 
  a_pre_fragments=[
-  p1: {units: [26{b3, b4}, 21{b2, b5}, 19{b2, b4}, 18{b2, b3}, 10{b1, b5}, 6{b1, b4}, 4{b1, b3}, 3{b1, b2}, 31{b5}, 29{b4}, 25{b3}, 17{b2}, 2{b1}], usedBy: [p2], needs: []},
+  p1: {units: [26{b3, b4}, 21{b2, b5}, 19{b2, b4}, 18{b2, b3}, 10{b1, b5}, 6{b1, b4}, 4{b1, b3}, 3{b1, b2}, 31{b5}, 29{b4}, 25{b3}, 17{b2}, 1{b1}], usedBy: [p2], needs: []},
   p2: {units: [9{b1, b2, b3, b4}, 28{b3, b4, b5}, 23{b2, b4, b5}, 22{b2, b3, b5}, 20{b2, b3, b4}, 14{b1, b4, b5}, 12{b1, b3, b5}, 8{b1, b3, b4}, 11{b1, b2, b5}, 7{b1, b2, b4}, 5{b1, b2, b3}, 30{b4, b5}, 27{b3, b5}], usedBy: [p4, p3], needs: [p1]},
   p3: {units: [24{b2, b3, b4, b5}, 16{b1, b3, b4, b5}, 15{b1, b2, b4, b5}, 13{b1, b2, b3, b5}], usedBy: [p4], needs: [p2]},
-  p4: {units: [1{b1, b2, b3, b4, b5}], usedBy: [], needs: [p2, p3]}],
+  p4: {units: [2{b1, b2, b3, b4, b5}], usedBy: [], needs: [p2, p3]}],
  b_finalized_fragments=[
-  f1: [26{b3, b4}, 21{b2, b5}, 19{b2, b4}, 18{b2, b3}, 10{b1, b5}, 6{b1, b4}, 4{b1, b3}, 3{b1, b2}, 31{b5}, 29{b4}, 25{b3}, 17{b2}, 2{b1}],
+  f1: [26{b3, b4}, 21{b2, b5}, 19{b2, b4}, 18{b2, b3}, 10{b1, b5}, 6{b1, b4}, 4{b1, b3}, 3{b1, b2}, 31{b5}, 29{b4}, 25{b3}, 17{b2}, 1{b1}],
   f2: [9{b1, b2, b3, b4}, 28{b3, b4, b5}, 23{b2, b4, b5}, 22{b2, b3, b5}, 20{b2, b3, b4}, 14{b1, b4, b5}, 12{b1, b3, b5}, 8{b1, b3, b4}, 11{b1, b2, b5}, 7{b1, b2, b4}, 5{b1, b2, b3}, 30{b4, b5}, 27{b3, b5}],
   f3: [24{b2, b3, b4, b5}, 16{b1, b3, b4, b5}, 15{b1, b2, b4, b5}, 13{b1, b2, b3, b5}],
-  f4: [1{b1, b2, b3, b4, b5}]],
+  f4: [2{b1, b2, b3, b4, b5}]],
  c_steps=[
   b1=(f4, f3, f2, f1),
   b2=(f4, f3, f2, f1),
@@ -96,13 +96,13 @@
 
 /*two-frag.library: 
  a_pre_fragments=[
-  p1: {units: [12{b1, b3, b5}, 8{b1, b3, b4}, 11{b1, b2, b5}, 7{b1, b2, b4}, 5{b1, b2, b3}, 30{b4, b5}, 27{b3, b5}, 26{b3, b4}, 21{b2, b5}, 19{b2, b4}, 18{b2, b3}, 10{b1, b5}, 6{b1, b4}, 4{b1, b3}, 3{b1, b2}, 31{b5}, 29{b4}, 25{b3}, 17{b2}, 2{b1}], usedBy: [p2], needs: []},
+  p1: {units: [12{b1, b3, b5}, 8{b1, b3, b4}, 11{b1, b2, b5}, 7{b1, b2, b4}, 5{b1, b2, b3}, 30{b4, b5}, 27{b3, b5}, 26{b3, b4}, 21{b2, b5}, 19{b2, b4}, 18{b2, b3}, 10{b1, b5}, 6{b1, b4}, 4{b1, b3}, 3{b1, b2}, 31{b5}, 29{b4}, 25{b3}, 17{b2}, 1{b1}], usedBy: [p2], needs: []},
   p2: {units: [24{b2, b3, b4, b5}, 16{b1, b3, b4, b5}, 15{b1, b2, b4, b5}, 13{b1, b2, b3, b5}, 9{b1, b2, b3, b4}, 28{b3, b4, b5}, 23{b2, b4, b5}, 22{b2, b3, b5}, 20{b2, b3, b4}, 14{b1, b4, b5}], usedBy: [p3], needs: [p1]},
-  p3: {units: [1{b1, b2, b3, b4, b5}], usedBy: [], needs: [p2]}],
+  p3: {units: [2{b1, b2, b3, b4, b5}], usedBy: [], needs: [p2]}],
  b_finalized_fragments=[
-  f1: [12{b1, b3, b5}, 8{b1, b3, b4}, 11{b1, b2, b5}, 7{b1, b2, b4}, 5{b1, b2, b3}, 30{b4, b5}, 27{b3, b5}, 26{b3, b4}, 21{b2, b5}, 19{b2, b4}, 18{b2, b3}, 10{b1, b5}, 6{b1, b4}, 4{b1, b3}, 3{b1, b2}, 31{b5}, 29{b4}, 25{b3}, 17{b2}, 2{b1}],
+  f1: [12{b1, b3, b5}, 8{b1, b3, b4}, 11{b1, b2, b5}, 7{b1, b2, b4}, 5{b1, b2, b3}, 30{b4, b5}, 27{b3, b5}, 26{b3, b4}, 21{b2, b5}, 19{b2, b4}, 18{b2, b3}, 10{b1, b5}, 6{b1, b4}, 4{b1, b3}, 3{b1, b2}, 31{b5}, 29{b4}, 25{b3}, 17{b2}, 1{b1}],
   f2: [24{b2, b3, b4, b5}, 16{b1, b3, b4, b5}, 15{b1, b2, b4, b5}, 13{b1, b2, b3, b5}, 9{b1, b2, b3, b4}, 28{b3, b4, b5}, 23{b2, b4, b5}, 22{b2, b3, b5}, 20{b2, b3, b4}, 14{b1, b4, b5}],
-  f3: [1{b1, b2, b3, b4, b5}]],
+  f3: [2{b1, b2, b3, b4, b5}]],
  c_steps=[
   b1=(f3, f2, f1),
   b2=(f3, f2, f1),

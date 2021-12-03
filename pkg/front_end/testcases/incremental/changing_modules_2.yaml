@@ -9,12 +9,14 @@ type: newworld
 modules:
   example_1:
     example_1/a.dart: |
+      // @dart=2.9
       a() {}
       var example = true;
     example_1/.packages: |
       example:.
   example_2:
     example_2/a.dart: |
+      // @dart=2.9
       a() {}
       var example = true;
     example_2/.packages: |

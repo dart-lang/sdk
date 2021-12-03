@@ -159,7 +159,15 @@ class BaseFlowGraphBuilder {
         saved_args_desc_array_(
             has_saved_args_desc_array()
                 ? Array::ZoneHandle(zone_, function_.saved_args_desc())
-                : Object::null_array()) {}
+                : Object::null_array()),
+        coverage_array_(
+            Array::ZoneHandle(parsed_function->function().GetCoverageArray())) {
+  }
+
+  const Array& coverage_array() const { return coverage_array_; }
+
+  intptr_t GetCoverageIndexFor(TokenPosition token_pos);
+  void FinalizeCoverageArray();
 
   Fragment LoadField(const Field& field, bool calls_initializer);
   Fragment LoadNativeField(const Slot& native_field,
@@ -196,14 +204,18 @@ class BaseFlowGraphBuilder {
       const Slot& slot,
       StoreInstanceFieldInstr::Kind kind =
           StoreInstanceFieldInstr::Kind::kOther,
-      StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier,
+      compiler::Assembler::MemoryOrder memory_order =
+          compiler::Assembler::kRelaxedNonAtomic);
   Fragment StoreNativeField(
       const Slot& slot,
       StoreInstanceFieldInstr::Kind kind =
           StoreInstanceFieldInstr::Kind::kOther,
-      StoreBarrierType emit_store_barrier = kEmitStoreBarrier) {
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier,
+      compiler::Assembler::MemoryOrder memory_order =
+          compiler::Assembler::kRelaxedNonAtomic) {
     return StoreNativeField(TokenPosition::kNoSource, slot, kind,
-                            emit_store_barrier);
+                            emit_store_barrier, memory_order);
   }
   Fragment StoreInstanceField(
       const Field& field,
@@ -384,13 +396,20 @@ class BaseFlowGraphBuilder {
 
   // Pops the top of the stack, checks it for null, and pushes the result on
   // the stack to create a data dependency.
-  // 'function_name' is a selector which is being called (reported in
-  // NoSuchMethod message).
+  //
   // Note that the result can currently only be used in optimized code, because
   // optimized code uses FlowGraph::RemoveRedefinitions to remove the
   // redefinitions, while unoptimized code does not.
-  Fragment CheckNullOptimized(TokenPosition position,
-                              const String& function_name);
+  Fragment CheckNullOptimized(
+      const String& name,
+      CheckNullInstr::ExceptionType exception_type,
+      TokenPosition position = TokenPosition::kNoSource);
+  Fragment CheckNullOptimized(
+      const String& function_name,
+      TokenPosition position = TokenPosition::kNoSource) {
+    return CheckNullOptimized(function_name, CheckNullInstr::kNoSuchMethod,
+                              position);
+  }
 
   // Records extra unchecked entry point 'unchecked_entry' in 'graph_entry'.
   void RecordUncheckedEntryPoint(GraphEntryInstr* graph_entry,
@@ -436,6 +455,22 @@ class BaseFlowGraphBuilder {
   // Sets raw parameter variables to inferred constant values.
   Fragment InitConstantParameters();
 
+  Fragment InvokeMathCFunction(MethodRecognizer::Kind recognized_kind,
+                               intptr_t num_inputs);
+
+  // Pops double value and converts it to double as specified
+  // by the recognized method (kDoubleTruncateToDouble,
+  // kDoubleFloorToDouble or kDoubleCeilToDouble).
+  Fragment DoubleToDouble(MethodRecognizer::Kind recognized_kind);
+
+  // Pops double value and converts it to int as specified
+  // by the recognized method (kDoubleToInteger,
+  // kDoubleFloorToInt or kDoubleCeilToInt).
+  Fragment DoubleToInteger(MethodRecognizer::Kind recognized_kind);
+
+  // Pops double value and applies unary math operation.
+  Fragment MathUnary(MathUnaryInstr::MathUnaryKind kind);
+
   // Returns whether this function has a saved arguments descriptor array.
   bool has_saved_args_desc_array() {
     return function_.HasSavedArgumentsDescriptor();
@@ -468,6 +503,9 @@ class BaseFlowGraphBuilder {
 
   const bool inlining_unchecked_entry_;
   const Array& saved_args_desc_array_;
+
+  GrowableArray<TokenPosition> coverage_array_positions_;
+  Array& coverage_array_;
 
   friend class StreamingFlowGraphBuilder;
 

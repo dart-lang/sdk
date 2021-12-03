@@ -33,6 +33,7 @@ import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/language_version_override_verifier.dart';
 import 'package:analyzer/src/error/override_verifier.dart';
 import 'package:analyzer/src/error/todo_finder.dart';
+import 'package:analyzer/src/error/unicode_text_verifier.dart';
 import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -100,11 +101,6 @@ class LibraryAnalyzer {
 
   /// Compute analysis results for all units of the library.
   Map<FileState, UnitAnalysisResult> analyze() {
-    return analyzeSync();
-  }
-
-  /// Compute analysis results for all units of the library.
-  Map<FileState, UnitAnalysisResult> analyzeSync() {
     timerLibraryAnalyzer.start();
     Map<FileState, CompilationUnitImpl> units = {};
 
@@ -264,6 +260,8 @@ class LibraryAnalyzer {
       );
     }
 
+    UnicodeTextVerifier(errorReporter).verify(unit, file.content);
+
     unit.accept(DeadCodeVerifier(errorReporter));
 
     unit.accept(
@@ -299,9 +297,8 @@ class LibraryAnalyzer {
       verifier.generateDuplicateShownHiddenNameHints(errorReporter);
       verifier.generateUnusedImportHints(errorReporter);
       verifier.generateUnusedShownNameHints(errorReporter);
-      // TODO(srawlins): Re-enable this check once Flutter engine path is clear.
-      // verifier.generateUnnecessaryImportHints(
-      //     errorReporter, _usedImportedElementsList);
+      verifier.generateUnnecessaryImportHints(
+          errorReporter, _usedImportedElementsList);
     }
 
     // Unused local elements.
@@ -352,10 +349,14 @@ class LibraryAnalyzer {
     }
 
     // Run lints that handle specific node types.
-    unit.accept(LinterVisitor(
+    unit.accept(
+      LinterVisitor(
         nodeRegistry,
-        LinterExceptionHandler(_analysisOptions.propagateLinterExceptions)
-            .logException));
+        LinterExceptionHandler(
+          propagateExceptions: _analysisOptions.propagateLinterExceptions,
+        ).logException,
+      ),
+    );
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
@@ -426,19 +427,8 @@ class LibraryAnalyzer {
           unignorableCodes.contains(code.name.toUpperCase())) {
         return false;
       }
-
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      String name = code.name.toLowerCase();
-      if (ignoreInfo.ignoredAt(name, errorLine)) {
-        return true;
-      }
-      String uniqueName = code.uniqueName;
-      int period = uniqueName.indexOf('.');
-      if (period >= 0) {
-        uniqueName = uniqueName.substring(period + 1);
-      }
-      return uniqueName != name &&
-          ignoreInfo.ignoredAt(uniqueName.toLowerCase(), errorLine);
+      return ignoreInfo.ignoredAt(code, errorLine);
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();
@@ -545,10 +535,14 @@ class LibraryAnalyzer {
             var importedLibrary = importElement.importedLibrary;
             if (importedLibrary is LibraryElementImpl) {
               if (importedLibrary.hasPartOfDirective) {
+                // It is safe to assume that `directive.uri.stringValue` is
+                // non-`null`, because the only time it is `null` is if the URI
+                // contains a string interpolation, in which case the import
+                // would never have resolved in the first place.
                 libraryErrorReporter.reportErrorForNode(
                     CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
                     directive.uri,
-                    [directive.uri]);
+                    [directive.uri.stringValue!]);
               }
             }
           }
@@ -560,10 +554,14 @@ class LibraryAnalyzer {
             var exportedLibrary = exportElement.exportedLibrary;
             if (exportedLibrary is LibraryElementImpl) {
               if (exportedLibrary.hasPartOfDirective) {
+                // It is safe to assume that `directive.uri.stringValue` is
+                // non-`null`, because the only time it is `null` is if the URI
+                // contains a string interpolation, in which case the export
+                // would never have resolved in the first place.
                 libraryErrorReporter.reportErrorForNode(
                     CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
                     directive.uri,
-                    [directive.uri]);
+                    [directive.uri.stringValue!]);
               }
             }
           }
@@ -653,17 +651,6 @@ class LibraryAnalyzer {
 
     var unitElement = unit.declaredElement as CompilationUnitElementImpl;
 
-    // TODO(scheglov) Hack: set types for top-level variables
-    // Otherwise TypeResolverVisitor will set declared types, and because we
-    // don't run InferStaticVariableTypeTask, we will stuck with these declared
-    // types. And we don't need to run this task - resynthesized elements have
-    // inferred types.
-    for (var e in unitElement.topLevelVariables) {
-      if (!e.isSynthetic) {
-        e.type;
-      }
-    }
-
     unit.accept(
       ResolutionVisitor(
         unitElement: unitElement,
@@ -678,7 +665,7 @@ class LibraryAnalyzer {
       ),
     );
 
-    unit.accept(VariableResolverVisitor(
+    unit.accept(ScopeResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
         nameScope: _libraryElement.scope));
 
@@ -686,8 +673,8 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
-    FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(_typeSystem,
-        _testingData != null, unit.featureSet.isEnabled(Feature.non_nullable));
+    FlowAnalysisHelper flowAnalysisHelper =
+        FlowAnalysisHelper(_typeSystem, _testingData != null, unit.featureSet);
     _testingData?.recordFlowAnalysisDataForTesting(
         file.uri, flowAnalysisHelper.dataForTesting!);
 
@@ -709,15 +696,18 @@ class LibraryAnalyzer {
         return null;
       }
       return _sourceFactory.resolveUri(file.source, uriContent);
-    } else if (code == UriValidationCode.URI_WITH_DART_EXT_SCHEME) {
-      return null;
     } else if (code == UriValidationCode.URI_WITH_INTERPOLATION) {
       _getErrorReporter(file).reportErrorForNode(
           CompileTimeErrorCode.URI_WITH_INTERPOLATION, uriLiteral);
       return null;
     } else if (code == UriValidationCode.INVALID_URI) {
+      // It is safe to assume [uriContent] is non-null because the only way for
+      // it to be null is if the string literal contained an interpolation, and
+      // in that case the validation code would have been
+      // UriValidationCode.URI_WITH_INTERPOLATION.
+      assert(uriContent != null);
       _getErrorReporter(file).reportErrorForNode(
-          CompileTimeErrorCode.INVALID_URI, uriLiteral, [uriContent]);
+          CompileTimeErrorCode.INVALID_URI, uriLiteral, [uriContent!]);
       return null;
     }
     return null;
@@ -796,13 +786,25 @@ class LibraryAnalyzer {
         return;
       }
     }
-    StringLiteral uriLiteral = directive.uri;
+
+    if (uriContent != null && uriContent.startsWith('dart-ext:')) {
+      _getErrorReporter(file).reportErrorForNode(
+        CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
+        directive.uri,
+      );
+      return;
+    }
+
     CompileTimeErrorCode errorCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
     if (isGeneratedSource(source)) {
       errorCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
     }
+    // It is safe to assume that [uriContent] is non-null because the only way
+    // for it to be null is if the string literal contained an interpolation,
+    // and in that case the call to `directive.validate()` above would have
+    // returned a non-null validation code.
     _getErrorReporter(file)
-        .reportErrorForNode(errorCode, uriLiteral, [uriContent]);
+        .reportErrorForNode(errorCode, directive.uri, [uriContent!]);
   }
 
   /// Check each directive in the given [unit] to see if the referenced source

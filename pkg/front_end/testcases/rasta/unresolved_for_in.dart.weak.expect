@@ -45,7 +45,7 @@ library;
 //       print(key);
 //             ^^^
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:32:11: Error: Getter not found: 'key'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:32:11: Error: Undefined name 'key'.
 //     print(key);
 //           ^^^
 //
@@ -74,7 +74,7 @@ library;
 //   for (1 in arguments) {
 //        ^
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:44:11: Error: Getter not found: 'key'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:44:11: Error: Undefined name 'key'.
 //     print(key);
 //           ^^^
 //
@@ -98,12 +98,16 @@ class Fisk extends core::Object {
  - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'key'.
     for (key in x) {
+         ^^^" in this{<unresolved>}.key = invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:11:10: Error: The setter 'key' isn't defined for the class 'Fisk'.
+ - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'key'.
+    for (key in x) {
          ^^^";
       core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:12:13: Error: The getter 'key' isn't defined for the class 'Fisk'.
  - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'key'.
       print(key);
-            ^^^");
+            ^^^" in this{<unresolved>}.key);
     }
     for (final dynamic #t2 in x as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
       invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Can't assign to a type literal.
@@ -138,7 +142,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
  - 'Fisk' is from 'pkg/front_end/testcases/rasta/unresolved_for_in.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'key'.
       print(key);
-            ^^^");
+            ^^^" in this{<unresolved>}.key);
       }
     }
   }
@@ -159,7 +163,7 @@ static method main(dynamic arguments) → dynamic {
     invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:31:8: Error: Setter not found: 'key'.
   for (key in arguments) {
        ^^^";
-    core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:32:11: Error: Getter not found: 'key'.
+    core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:32:11: Error: Undefined name 'key'.
     print(key);
           ^^^");
   }
@@ -192,7 +196,7 @@ static method main(dynamic arguments) → dynamic {
   for (1 in arguments) {
        ^";
       1;
-      core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:44:11: Error: Getter not found: 'key'.
+      core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:44:11: Error: Undefined name 'key'.
     print(key);
           ^^^");
     }

@@ -24,7 +24,7 @@ class FunctionExpressionInvocationResolver {
 
   FunctionExpressionInvocationResolver({
     required ResolverVisitor resolver,
-  })   : _resolver = resolver,
+  })  : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper;
 
@@ -60,8 +60,10 @@ class FunctionExpressionInvocationResolver {
       return;
     }
 
-    _nullableDereferenceVerifier.expression(function,
-        errorCode: CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE);
+    _nullableDereferenceVerifier.expression(
+      CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
+      function,
+    );
 
     if (receiverType is FunctionType) {
       _resolve(node, receiverType, whyNotPromotedList);
@@ -82,7 +84,7 @@ class FunctionExpressionInvocationResolver {
   /// when it returns 'void'. Or, in rare cases, when other types of expressions
   /// are void, such as identifiers.
   ///
-  /// See [StaticWarningCode.USE_OF_VOID_RESULT].
+  /// See [CompileTimeErrorCode.USE_OF_VOID_RESULT].
   ///
   /// TODO(scheglov) this is duplicate
   bool _checkForUseOfVoidResult(Expression expression, DartType type) {

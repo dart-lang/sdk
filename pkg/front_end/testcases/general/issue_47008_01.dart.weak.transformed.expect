@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::int b = 1;
+  core::int c = 2;
+  core::int d = 3;
+  core::int e = 4;
+  self::a(b.{core::num::<}(c){(core::num) → core::bool}, d.{core::num::<}(e){(core::num) → core::bool}, 1.{core::int::>>}(2){(core::int) → core::int});
+}
+static method a(core::bool x, core::bool y, core::int z) → void {
+  core::print("${x} ${y} ${z}");
+}
+
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue_47008_01.dart:6:21 -> IntConstant(0)
+Extra constant evaluation: evaluated: 13, effectively constant: 1

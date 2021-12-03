@@ -8,7 +8,7 @@ import 'dart:io' show exitCode;
 
 import "package:testing/src/run_tests.dart" as testing show main;
 
-main() async {
+Future<void> main() async {
   // This method is async, but keeps a port open to prevent the VM from exiting
   // prematurely.
   // Note: if you change this file, also change

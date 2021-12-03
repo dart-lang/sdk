@@ -14,8 +14,8 @@ import '../common_elements.dart';
 import 'code_emitter_task.dart' show Emitter;
 
 class MainCallStubGenerator {
-  static jsAst.Statement generateInvokeMain(
-      CommonElements commonElements, Emitter emitter, FunctionEntity main) {
+  static jsAst.Statement generateInvokeMain(CommonElements commonElements,
+      Emitter emitter, FunctionEntity main, bool requiresStartupMetrics) {
     jsAst.Expression mainAccess = emitter.staticFunctionAccess(main);
     jsAst.Expression currentScriptAccess =
         emitter.generateEmbeddedGlobalAccess(embeddedNames.CURRENT_SCRIPT);
@@ -90,6 +90,10 @@ class MainCallStubGenerator {
         }
       })(function(currentScript) {
         #currentScript = currentScript;
+
+        if (#startupMetrics) {
+          init.#startupMetricsEmbeddedGlobal.add('callMainMs');
+        }
         var callMain = #mainCallClosure;
         if (typeof dartMainRunner === "function") {
           dartMainRunner(callMain, []);
@@ -98,7 +102,9 @@ class MainCallStubGenerator {
         }
       })''', {
       'currentScript': currentScriptAccess,
-      'mainCallClosure': mainCallClosure
+      'mainCallClosure': mainCallClosure,
+      'startupMetrics': requiresStartupMetrics,
+      'startupMetricsEmbeddedGlobal': embeddedNames.STARTUP_METRICS,
     });
   }
 }

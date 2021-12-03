@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class C<T extends core::num*> extends core::Object {
-  generic-covariant-impl field self::C::T* a = null;
+  covariant-by-class field self::C::T* a = null;
   synthetic constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;

@@ -11,137 +11,13 @@ import '../../../generated/type_system_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(GreatestClosureLegacyTest);
-    defineReflectiveTests(GreatestClosureNullSafetyTest);
+    defineReflectiveTests(GreatestClosureTest);
+    defineReflectiveTests(GreatestClosureWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class GreatestClosureLegacyTest extends AbstractTypeSystemTest {
-  late final TypeParameterElement T;
-  late final TypeParameterType T_none;
-  late final TypeParameterType T_question;
-  late final TypeParameterType T_star;
-
-  @override
-  void setUp() {
-    super.setUp();
-
-    T = typeParameter('T');
-    T_none = typeParameterTypeNone(T);
-    T_question = typeParameterTypeQuestion(T);
-    T_star = typeParameterTypeStar(T);
-  }
-
-  test_contravariant() {
-    _check(
-      functionTypeStar(returnType: voidNone, parameters: [
-        requiredParameter(type: T_star),
-      ]),
-      greatest: 'void Function(Null*)*',
-      least: 'void Function(dynamic)*',
-    );
-
-    _check(
-      functionTypeStar(
-        returnType: functionTypeStar(
-          returnType: voidNone,
-          parameters: [
-            requiredParameter(type: T_star),
-          ],
-        ),
-      ),
-      greatest: 'void Function(Null*)* Function()*',
-      least: 'void Function(dynamic)* Function()*',
-    );
-  }
-
-  test_covariant() {
-    _check(T_star, greatest: 'dynamic', least: 'Null*');
-
-    _check(
-      listStar(T_star),
-      greatest: 'List<dynamic>*',
-      least: 'List<Null*>*',
-    );
-
-    _check(
-      functionTypeStar(returnType: voidNone, parameters: [
-        requiredParameter(
-          type: functionTypeStar(returnType: intStar, parameters: [
-            requiredParameter(type: T_star),
-          ]),
-        ),
-      ]),
-      greatest: 'void Function(int* Function(dynamic)*)*',
-      least: 'void Function(int* Function(Null*)*)*',
-    );
-  }
-
-  test_function() {
-    // void Function<U extends T>()
-    _check(
-      functionTypeStar(
-        typeFormals: [
-          typeParameter('U', bound: T_star),
-        ],
-        returnType: voidNone,
-      ),
-      greatest: 'Function*',
-      least: 'Null*',
-    );
-  }
-
-  test_unrelated() {
-    _check1(intStar, 'int*');
-    _check1(listStar(intStar), 'List<int*>*');
-
-    _check1(objectStar, 'Object*');
-    _check1(neverStar, 'Never*');
-    _check1(nullStar, 'Null*');
-
-    _check1(dynamicNone, 'dynamic');
-
-    _check1(
-      functionTypeStar(returnType: stringStar, parameters: [
-        requiredParameter(type: intStar),
-      ]),
-      'String* Function(int*)*',
-    );
-
-    _check1(
-      typeParameterTypeStar(
-        typeParameter('U'),
-      ),
-      'U*',
-    );
-  }
-
-  void _check(
-    DartType type, {
-    required String greatest,
-    required String least,
-  }) {
-    var greatestResult = typeSystem.greatestClosure(type, [T]);
-    expect(
-      greatestResult.getDisplayString(withNullability: true),
-      greatest,
-    );
-
-    var leastResult = typeSystem.leastClosure(type, [T]);
-    expect(
-      leastResult.getDisplayString(withNullability: true),
-      least,
-    );
-  }
-
-  void _check1(DartType type, String expected) {
-    _check(type, greatest: expected, least: expected);
-  }
-}
-
-@reflectiveTest
-class GreatestClosureNullSafetyTest extends AbstractTypeSystemNullSafetyTest {
+class GreatestClosureTest extends AbstractTypeSystemTest {
   late final TypeParameterElement T;
   late final TypeParameterType T_none;
   late final TypeParameterType T_question;
@@ -247,6 +123,131 @@ class GreatestClosureNullSafetyTest extends AbstractTypeSystemNullSafetyTest {
         typeParameter('U'),
       ),
       'U',
+    );
+  }
+
+  void _check(
+    DartType type, {
+    required String greatest,
+    required String least,
+  }) {
+    var greatestResult = typeSystem.greatestClosure(type, [T]);
+    expect(
+      greatestResult.getDisplayString(withNullability: true),
+      greatest,
+    );
+
+    var leastResult = typeSystem.leastClosure(type, [T]);
+    expect(
+      leastResult.getDisplayString(withNullability: true),
+      least,
+    );
+  }
+
+  void _check1(DartType type, String expected) {
+    _check(type, greatest: expected, least: expected);
+  }
+}
+
+@reflectiveTest
+class GreatestClosureWithoutNullSafetyTest
+    extends AbstractTypeSystemWithoutNullSafetyTest {
+  late final TypeParameterElement T;
+  late final TypeParameterType T_none;
+  late final TypeParameterType T_question;
+  late final TypeParameterType T_star;
+
+  @override
+  void setUp() {
+    super.setUp();
+
+    T = typeParameter('T');
+    T_none = typeParameterTypeNone(T);
+    T_question = typeParameterTypeQuestion(T);
+    T_star = typeParameterTypeStar(T);
+  }
+
+  test_contravariant() {
+    _check(
+      functionTypeStar(returnType: voidNone, parameters: [
+        requiredParameter(type: T_star),
+      ]),
+      greatest: 'void Function(Null*)*',
+      least: 'void Function(dynamic)*',
+    );
+
+    _check(
+      functionTypeStar(
+        returnType: functionTypeStar(
+          returnType: voidNone,
+          parameters: [
+            requiredParameter(type: T_star),
+          ],
+        ),
+      ),
+      greatest: 'void Function(Null*)* Function()*',
+      least: 'void Function(dynamic)* Function()*',
+    );
+  }
+
+  test_covariant() {
+    _check(T_star, greatest: 'dynamic', least: 'Null*');
+
+    _check(
+      listStar(T_star),
+      greatest: 'List<dynamic>*',
+      least: 'List<Null*>*',
+    );
+
+    _check(
+      functionTypeStar(returnType: voidNone, parameters: [
+        requiredParameter(
+          type: functionTypeStar(returnType: intStar, parameters: [
+            requiredParameter(type: T_star),
+          ]),
+        ),
+      ]),
+      greatest: 'void Function(int* Function(dynamic)*)*',
+      least: 'void Function(int* Function(Null*)*)*',
+    );
+  }
+
+  test_function() {
+    // void Function<U extends T>()
+    _check(
+      functionTypeStar(
+        typeFormals: [
+          typeParameter('U', bound: T_star),
+        ],
+        returnType: voidNone,
+      ),
+      greatest: 'Function*',
+      least: 'Null*',
+    );
+  }
+
+  test_unrelated() {
+    _check1(intStar, 'int*');
+    _check1(listStar(intStar), 'List<int*>*');
+
+    _check1(objectStar, 'Object*');
+    _check1(neverStar, 'Never*');
+    _check1(nullStar, 'Null*');
+
+    _check1(dynamicNone, 'dynamic');
+
+    _check1(
+      functionTypeStar(returnType: stringStar, parameters: [
+        requiredParameter(type: intStar),
+      ]),
+      'String* Function(int*)*',
+    );
+
+    _check1(
+      typeParameterTypeStar(
+        typeParameter('U'),
+      ),
+      'U*',
     );
   }
 

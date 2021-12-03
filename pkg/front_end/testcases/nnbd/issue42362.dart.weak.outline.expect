@@ -107,15 +107,15 @@ class A extends core::Object {
   external constructor constructor9({core::int i}) → self::A
     ;
   static factory factory3([core::int i]) → self::A
-    let dynamic #redirecting_factory = self::A::constructor3 in invalid-expression;
+    return new self::A::constructor3(i);
   static factory factory4({core::int i}) → self::A
-    let dynamic #redirecting_factory = self::A::constructor4 in invalid-expression;
+    return new self::A::constructor4(i: i);
   static factory factory5([core::int? i]) → self::A
-    let dynamic #redirecting_factory = self::A::constructor5 in invalid-expression;
+    return new self::A::constructor5(i);
   static factory factory6({core::int? i}) → self::A
-    let dynamic #redirecting_factory = self::A::constructor6 in invalid-expression;
+    return new self::A::constructor6(i: i);
   static factory factory7({required core::int i}) → self::A
-    let dynamic #redirecting_factory = self::A::constructor7 in invalid-expression;
+    return new self::A::constructor7(i: i);
   static factory factory8([core::int i]) → self::A
     ;
   static factory factory9({core::int i}) → self::A
@@ -161,15 +161,15 @@ class C extends core::Object implements self::B {
   constructor constructor7({required core::int i}) → self::C
     ;
   static factory factory3([core::int i]) → self::C
-    let dynamic #redirecting_factory = self::C::constructor3 in invalid-expression;
+    return new self::C::constructor3(i);
   static factory factory4({core::int i}) → self::C
-    let dynamic #redirecting_factory = self::C::constructor4 in invalid-expression;
+    return new self::C::constructor4(i: i);
   static factory factory5([core::int? i]) → self::C
-    let dynamic #redirecting_factory = self::C::constructor5 in invalid-expression;
+    return new self::C::constructor5(i);
   static factory factory6({core::int? i}) → self::C
-    let dynamic #redirecting_factory = self::C::constructor6 in invalid-expression;
+    return new self::C::constructor6(i: i);
   static factory factory7({required core::int i}) → self::C
-    let dynamic #redirecting_factory = self::C::constructor7 in invalid-expression;
+    return new self::C::constructor7(i: i);
   static factory factory8([core::int i]) → self::C
     ;
   static factory factory9({core::int i}) → self::C
@@ -187,3 +187,17 @@ class C extends core::Object implements self::B {
 }
 static method main() → void
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:5:7 -> ConstructorTearOffConstant(A.factory3)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:5:7 -> ConstructorTearOffConstant(A.factory4)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:5:7 -> ConstructorTearOffConstant(A.factory5)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:5:7 -> ConstructorTearOffConstant(A.factory6)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:5:7 -> ConstructorTearOffConstant(A.factory7)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:74:7 -> ConstructorTearOffConstant(C.factory3)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:74:7 -> ConstructorTearOffConstant(C.factory4)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:74:7 -> ConstructorTearOffConstant(C.factory5)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:74:7 -> ConstructorTearOffConstant(C.factory6)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42362.dart:74:7 -> ConstructorTearOffConstant(C.factory7)
+Extra constant evaluation: evaluated: 32, effectively constant: 10

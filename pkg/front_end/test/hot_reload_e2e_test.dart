@@ -66,7 +66,7 @@ abstract class TestCase {
     }
   }
 
-  setUp() async {
+  Future<void> setUp() async {
     outDir = Directory.systemTemp.createTempSync('hotreload_test');
     outputUri = outDir.uri.resolve('test.dill');
     var root = Uri.parse('org-dartlang-test:///');
@@ -81,7 +81,7 @@ abstract class TestCase {
     await rebuild(compiler, outputUri); // this is a full compile.
   }
 
-  tearDown() async {
+  Future<void> tearDown() async {
     outDir.deleteSync(recursive: true);
     lines = null;
   }
@@ -102,7 +102,7 @@ abstract class TestCase {
 
   /// Start the VM with the first version of the program compiled by the
   /// incremental compiler.
-  startProgram(int reloadCount) async {
+  Future<void> startProgram(int reloadCount) async {
     var vmArgs = [
       '--enable-vm-service=0', // Note: use 0 to avoid port collisions.
       '--pause_isolates_on_start',
@@ -289,7 +289,7 @@ class ReloadToplevelField extends TestCase {
   }
 }
 
-main() {
+void main() {
   asyncTest(() async {
     await new InitialProgramIsValid().test();
     await new ReloadAfterLeafLibraryModification().test();

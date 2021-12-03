@@ -233,12 +233,9 @@ class SsaFinalizeInterceptors extends HBaseVisitor
   }
 
   void _replaceReceiverArgumentWithDummy(HInvoke node, int receiverIndex) {
-    HInstruction receiverArgument = node.inputs[receiverIndex];
     ConstantValue constant = DummyInterceptorConstantValue();
     HConstant dummy = _graph.addConstant(constant, _closedWorld);
-    receiverArgument.usedBy.remove(node);
-    node.inputs[receiverIndex] = dummy;
-    dummy.usedBy.add(node);
+    node.replaceInput(receiverIndex, dummy);
   }
 }
 

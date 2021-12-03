@@ -25,7 +25,7 @@ class Class {
   /*member: Class.state1:constant=IntConstant(1)*/
   final int state1;
 
-  /*member: Class.state2:constant=ConstructedConstant(Enum(_name=StringConstant("Enum.c"),index=IntConstant(2)))*/
+  /*member: Class.state2:constant=ConstructedConstant(Enum(_name=StringConstant("c"),index=IntConstant(2)))*/
   final Enum state2;
 
   Class({this.state1: 1, this.state2: Enum.c});

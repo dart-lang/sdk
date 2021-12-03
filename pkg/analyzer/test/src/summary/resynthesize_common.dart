@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -29,14 +30,19 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
 
   DeclaredVariables declaredVariables = DeclaredVariables();
   late final SourceFactory sourceFactory;
-  late final MockSdk sdk;
+  late final FolderBasedDartSdk sdk;
 
   late String testFile;
   late Source testSource;
   Set<Source> otherLibrarySources = <Source>{};
 
   AbstractResynthesizeTest() {
-    sdk = MockSdk(resourceProvider: resourceProvider);
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+    sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
 
     sourceFactory = SourceFactory(
       [
@@ -81,24 +87,21 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
 }
 
 class FeatureSets {
-  static final FeatureSet beforeNullSafe = FeatureSet.fromEnableFlags2(
+  static final FeatureSet language_2_9 = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: Version.parse('2.9.0'),
     flags: [],
   );
 
-  static final FeatureSet nullSafe = FeatureSet.fromEnableFlags2(
+  static final FeatureSet language_2_12 = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: Version.parse('2.12.0'),
     flags: [],
   );
 
-  static final FeatureSet nonFunctionTypeAliases = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.12.0'),
-    flags: [EnableString.nonfunction_type_aliases],
-  );
-
-  static final FeatureSet genericMetadata = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.13.0'),
-    flags: [EnableString.generic_metadata],
+  static final FeatureSet latestWithExperiments = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.15.0'),
+    flags: [
+      EnableString.constructor_tearoffs,
+    ],
   );
 }
 
@@ -1473,18 +1476,6 @@ library
 ''');
   }
 
-  test_class_constructor_implicit() async {
-    var library = await checkLibrary('class C {}');
-    checkElementText(library, r'''
-library
-  definingUnit
-    classes
-      class C @6
-        constructors
-          synthetic @-1
-''');
-  }
-
   test_class_constructor_implicit_type_params() async {
     var library = await checkLibrary('class C<T, U> {}');
     checkElementText(library, r'''
@@ -1519,21 +1510,84 @@ library
 ''');
   }
 
-  test_class_constructors() async {
-    var library = await checkLibrary('class C { C.foo(); C.bar(); }');
-    checkElementText(library, r'''
+  test_class_constructor_unnamed_implicit() async {
+    var library = await checkLibrary('class C {}');
+    checkElementText(
+        library,
+        r'''
 library
   definingUnit
     classes
       class C @6
         constructors
-          foo @12
-            periodOffset: 11
-            nameEnd: 15
-          bar @21
-            periodOffset: 20
-            nameEnd: 24
+          synthetic @-1
+            displayName: C
+''',
+        withDisplayName: true);
+  }
+
+  test_class_constructors_named() async {
+    var library = await checkLibrary('''
+class C {
+  C.foo();
+}
 ''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          foo @14
+            displayName: C.foo
+            periodOffset: 13
+            nameEnd: 17
+''',
+        withDisplayName: true);
+  }
+
+  test_class_constructors_unnamed() async {
+    var library = await checkLibrary('''
+class C {
+  C();
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          @12
+            displayName: C
+''',
+        withDisplayName: true);
+  }
+
+  test_class_constructors_unnamed_new() async {
+    var library = await checkLibrary('''
+class C {
+  C.new();
+}
+''');
+    checkElementText(
+        library,
+        r'''
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          @14
+            displayName: C
+            periodOffset: 13
+            nameEnd: 17
+''',
+        withDisplayName: true);
   }
 
   test_class_documented() async {
@@ -2007,6 +2061,29 @@ library
 ''');
   }
 
+  test_class_field_static_final_hasConstConstructor() async {
+    var library = await checkLibrary('''
+class C {
+  static final f = 0;
+  const C();
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        fields
+          static final f @25
+            type: int
+        constructors
+          const @40
+        accessors
+          synthetic static get f @-1
+            returnType: int
+''');
+  }
+
   test_class_field_static_late() async {
     var library = await checkLibrary('class C { static late int i; }');
     checkElementText(library, r'''
@@ -2135,6 +2212,85 @@ library
         accessors
           synthetic get foo @-1
             returnType: int
+''');
+  }
+
+  test_class_fields_late_inference_usingSuper_methodInvocation() async {
+    var library = await checkLibrary('''
+class A {
+  int foo() => 0;
+}
+
+class B extends A {
+  late var f = super.foo();
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          foo @16
+            returnType: int
+      class B @37
+        supertype: A
+        fields
+          late f @62
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get f @-1
+            returnType: int
+          synthetic set f @-1
+            parameters
+              requiredPositional _f @-1
+                type: int
+            returnType: void
+''');
+  }
+
+  test_class_fields_late_inference_usingSuper_propertyAccess() async {
+    var library = await checkLibrary('''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  late var f = super.foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        fields
+          synthetic foo @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          get foo @20
+            returnType: int
+      class B @39
+        supertype: A
+        fields
+          late f @64
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get f @-1
+            returnType: int
+          synthetic set f @-1
+            parameters
+              requiredPositional _f @-1
+                type: int
+            returnType: void
 ''');
   }
 
@@ -2618,17 +2774,17 @@ library
       notSimplyBounded class C @6
         typeParameters
           covariant T @8
-            bound: dynamic Function()
-            defaultType: dynamic Function()
+            bound: dynamic
+            defaultType: dynamic
         constructors
           synthetic @-1
     typeAliases
       functionTypeAliasBased notSimplyBounded F @32
-        aliasedType: dynamic Function(C<dynamic Function()>)
+        aliasedType: dynamic Function(C<dynamic>)
         aliasedElement: GenericFunctionTypeElement
           parameters
             requiredPositional value @36
-              type: C<dynamic Function()>
+              type: C<dynamic>
           returnType: dynamic
 ''');
   }
@@ -2691,7 +2847,7 @@ library
       notSimplyBounded C @8
         typeParameters
           unrelated T @10
-            bound: dynamic Function()
+            bound: dynamic
             defaultType: dynamic
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
@@ -2699,7 +2855,7 @@ library
       notSimplyBounded D @50
         typeParameters
           unrelated T @52
-            bound: dynamic Function()
+            bound: dynamic
             defaultType: dynamic
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
@@ -2708,7 +2864,6 @@ library
   }
 
   test_class_notSimplyBounded_complex_by_cycle_typedef_interfaceType() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary('''
 typedef C<T extends D> = List<T>;
 typedef D<T extends C> = List<T>;
@@ -2830,7 +2985,7 @@ library
   }
 
   test_class_notSimplyBounded_function_typed_bound_complex_via_parameter_type_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 class C<T extends void Function(T)> {}
 ''');
@@ -2900,24 +3055,24 @@ library
       notSimplyBounded class C @6
         typeParameters
           covariant T @8
-            bound: dynamic Function()
-            defaultType: dynamic Function()
+            bound: dynamic
+            defaultType: dynamic
         constructors
           synthetic @-1
     typeAliases
       functionTypeAliasBased notSimplyBounded F @32
-        aliasedType: dynamic Function(dynamic Function())
+        aliasedType: dynamic Function(dynamic)
         aliasedElement: GenericFunctionTypeElement
           parameters
             requiredPositional value @36
-              type: dynamic Function()
+              type: dynamic
           returnType: dynamic
       functionTypeAliasBased notSimplyBounded G @52
-        aliasedType: dynamic Function(dynamic Function())
+        aliasedType: dynamic Function(dynamic)
         aliasedElement: GenericFunctionTypeElement
           parameters
             requiredPositional value @56
-              type: dynamic Function()
+              type: dynamic
           returnType: dynamic
 ''');
   }
@@ -3053,7 +3208,7 @@ library
   }
 
   test_class_ref_nullability_star() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 class C {}
 C c;
@@ -3541,7 +3696,6 @@ library
   }
 
   test_class_typeParameters_defaultType_cycle_genericFunctionType2() async {
-    featureSet = FeatureSets.genericMetadata;
     var library = await checkLibrary(r'''
 class C<T extends void Function<U extends C>()> {}
 ''');
@@ -3560,7 +3714,7 @@ library
   }
 
   test_class_typeParameters_defaultType_functionTypeAlias_contravariant_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary(r'''
 typedef F<X> = void Function(X);
 
@@ -3743,7 +3897,7 @@ library
   }
 
   test_class_typeParameters_defaultType_genericFunctionType_both_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary(r'''
 class A<X extends X Function(X)> {}
 ''');
@@ -3780,7 +3934,7 @@ library
   }
 
   test_class_typeParameters_defaultType_genericFunctionType_contravariant_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary(r'''
 class A<X extends void Function(X)> {}
 ''');
@@ -3853,7 +4007,6 @@ library
   }
 
   test_class_typeParameters_defaultType_typeAlias_interface_contravariant() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<X> = List<void Function(X)>;
 
@@ -3886,7 +4039,6 @@ library
   }
 
   test_class_typeParameters_defaultType_typeAlias_interface_covariant() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<X> = Map<X, int>;
 
@@ -6000,7 +6152,7 @@ library
   }
 
   test_compilationUnit_nnbd_disabled_via_feature_set() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('');
     expect(library.isNonNullableByDefault, isFalse);
   }
@@ -6306,6 +6458,47 @@ library
     _assertTypeStr(yType, 'C<int>');
   }
 
+  test_const_constructorReference() async {
+    var library = await checkLibrary(r'''
+class A {
+  A.named();
+}
+const v = A.named;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          named @14
+            periodOffset: 13
+            nameEnd: 19
+    topLevelVariables
+      static const v @31
+        type: A Function()
+        constantInitializer
+          ConstructorReference
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: self::@class::A::@constructor::named
+                staticType: null
+                token: named @37
+              period: . @36
+              staticElement: self::@class::A::@constructor::named
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::A
+                  staticType: null
+                  token: A @35
+                type: null
+            staticType: A Function()
+    accessors
+      synthetic static get v @-1
+        returnType: A Function()
+''');
+  }
+
   test_const_finalField_hasConstConstructor() async {
     var library = await checkLibrary(r'''
 class C {
@@ -6330,6 +6523,85 @@ library
         accessors
           synthetic get f @-1
             returnType: int
+''');
+  }
+
+  test_const_functionExpression_typeArgumentTypes() async {
+    var library = await checkLibrary('''
+void f<T>(T a) {}
+
+const void Function(int) v = f;
+''');
+    checkElementText(library, '''
+library
+  definingUnit
+    topLevelVariables
+      static const v @44
+        type: void Function(int)
+        constantInitializer
+          FunctionReference
+            function: SimpleIdentifier
+              staticElement: self::@function::f
+              staticType: void Function<T>(T)
+              token: f @48
+            staticType: void Function(int)
+            typeArgumentTypes
+              int
+    accessors
+      synthetic static get v @-1
+        returnType: void Function(int)
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+        parameters
+          requiredPositional a @12
+            type: T
+        returnType: void
+''');
+  }
+
+  test_const_functionReference() async {
+    var library = await checkLibrary(r'''
+void f<T>(T a) {}
+const v = f<int>;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const v @24
+        type: void Function(int)
+        constantInitializer
+          FunctionReference
+            function: SimpleIdentifier
+              staticElement: self::@function::f
+              staticType: void Function<T>(T)
+              token: f @28
+            staticType: void Function(int)
+            typeArgumentTypes
+              int
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @30
+                  type: int
+              leftBracket: < @29
+              rightBracket: > @33
+    accessors
+      synthetic static get v @-1
+        returnType: void Function(int)
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+        parameters
+          requiredPositional a @12
+            type: T
+        returnType: void
 ''');
   }
 
@@ -10828,6 +11100,91 @@ library
 ''');
   }
 
+  test_const_topLevel_methodInvocation_questionPeriod() async {
+    var library = await checkLibrary(r'''
+const int? a = 0;
+const b = a?.toString();
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @11
+        type: int?
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @15
+            staticType: int
+      static const b @24
+        type: String?
+        constantInitializer
+          MethodInvocation
+            argumentList: ArgumentList
+              leftParenthesis: ( @39
+              rightParenthesis: ) @40
+            methodName: SimpleIdentifier
+              staticElement: dart:core::@class::int::@method::toString
+              staticType: String Function()
+              token: toString @31
+            operator: ?. @29
+            staticInvokeType: String Function()
+            staticType: String?
+            target: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: int?
+              token: a @28
+    accessors
+      synthetic static get a @-1
+        returnType: int?
+      synthetic static get b @-1
+        returnType: String?
+''');
+  }
+
+  test_const_topLevel_methodInvocation_questionPeriodPeriod() async {
+    var library = await checkLibrary(r'''
+const int? a = 0;
+const b = a?..toString();
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const a @11
+        type: int?
+        constantInitializer
+          IntegerLiteral
+            literal: 0 @15
+            staticType: int
+      static const b @24
+        type: int?
+        constantInitializer
+          CascadeExpression
+            cascadeSections
+              MethodInvocation
+                argumentList: ArgumentList
+                  leftParenthesis: ( @40
+                  rightParenthesis: ) @41
+                methodName: SimpleIdentifier
+                  staticElement: dart:core::@class::int::@method::toString
+                  staticType: String Function()
+                  token: toString @32
+                operator: ?.. @29
+                staticInvokeType: String Function()
+                staticType: String
+            staticType: int?
+            target: SimpleIdentifier
+              staticElement: self::@getter::a
+              staticType: int?
+              token: a @28
+    accessors
+      synthetic static get a @-1
+        returnType: int?
+      synthetic static get b @-1
+        returnType: int?
+''');
+  }
+
   test_const_topLevel_nullSafe_nullAware_propertyAccess() async {
     var library = await checkLibrary(r'''
 const String? a = '';
@@ -11093,7 +11450,7 @@ library
   }
 
   test_const_topLevel_throw_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary(r'''
 const c = throw 42;
 ''');
@@ -11753,6 +12110,41 @@ library
     accessors
       synthetic static get v @-1
         returnType: Set<int>
+''');
+  }
+
+  test_const_typeLiteral() async {
+    var library = await checkLibrary(r'''
+const v = List<int>;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const v @6
+        type: Type
+        constantInitializer
+          TypeLiteral
+            staticType: Type
+            typeName: TypeName
+              name: SimpleIdentifier
+                staticElement: dart:core::@class::List
+                staticType: List<int>
+                token: List @10
+              type: List<int>
+              typeArguments: TypeArgumentList
+                arguments
+                  TypeName
+                    name: SimpleIdentifier
+                      staticElement: dart:core::@class::int
+                      staticType: null
+                      token: int @15
+                    type: int
+                leftBracket: < @14
+                rightBracket: > @18
+    accessors
+      synthetic static get v @-1
+        returnType: Type
 ''');
   }
 
@@ -12703,7 +13095,6 @@ library
   }
 
   test_constructor_redirected_factory_named_generic_viaTypeAlias() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary('''
 typedef A<T, U> = C<T, U>;
 class B<T, U> {
@@ -13003,7 +13394,6 @@ library
   }
 
   test_constructor_redirected_factory_unnamed_generic_viaTypeAlias() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary('''
 typedef A<T, U> = C<T, U>;
 class B<T, U> {
@@ -13120,7 +13510,6 @@ library
   }
 
   test_constructor_redirected_factory_unnamed_imported_viaTypeAlias() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     addLibrarySource('/foo.dart', '''
 import 'test.dart';
 typedef A = B;
@@ -13219,7 +13608,6 @@ library
   }
 
   test_constructor_redirected_factory_unnamed_prefixed_viaTypeAlias() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     addLibrarySource('/foo.dart', '''
 import 'test.dart';
 typedef A = B;
@@ -13270,7 +13658,6 @@ library
   }
 
   test_constructor_redirected_factory_unnamed_viaTypeAlias() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary('''
 typedef A = C;
 class B {
@@ -13388,6 +13775,7 @@ library
             periodOffset: 13
             nameEnd: 19
           @25
+            redirectedConstructor: self::@class::C::@constructor::named
 ''');
   }
 
@@ -13467,6 +13855,7 @@ library
           named @21
             periodOffset: 20
             nameEnd: 26
+            redirectedConstructor: self::@class::C::@constructor::•
 ''');
   }
 
@@ -13616,7 +14005,7 @@ library
   }
 
   test_defaultValue_eliminateTypeParameters_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 class A<T> {
   const X({List<T> a = const []});
@@ -13678,10 +14067,14 @@ library
                   aliasArguments
                     dynamic
                 constantInitializer
-                  SimpleIdentifier
-                    staticElement: self::@function::defaultF
+                  FunctionReference
+                    function: SimpleIdentifier
+                      staticElement: self::@function::defaultF
+                      staticType: void Function<T>(T)
+                      token: defaultF @93
                     staticType: void Function(dynamic)
-                    token: defaultF @93
+                    typeArgumentTypes
+                      dynamic
         accessors
           synthetic get f @-1
             returnType: void Function(dynamic)
@@ -13805,7 +14198,7 @@ library
   }
 
   test_defaultValue_methodMember_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 void f([Comparator<T> compare = Comparable.compare]) {}
 ''');
@@ -14033,7 +14426,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_constructor2_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 abstract class A<T> {}
 class B<T> implements A<T> {
@@ -14093,7 +14486,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_constructor_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 class B<T> {
   const B();
@@ -17165,7 +17558,7 @@ library
   }
 
   test_generic_function_type_nullability_star() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 void Function() f;
 ''');
@@ -17355,7 +17748,7 @@ library
             atSign: @ @29
             element: ConstructorMember
               base: self::@class::A::@constructor::•
-              substitution: {T: dynamic}
+              substitution: {T: int Function(String)}
             name: SimpleIdentifier
               staticElement: self::@class::A
               staticType: null
@@ -17431,7 +17824,7 @@ library
             atSign: @ @29
             element: ConstructorMember
               base: self::@class::A::@constructor::•
-              substitution: {T: dynamic}
+              substitution: {T: int Function(String)}
             name: SimpleIdentifier
               staticElement: self::@class::A
               staticType: null
@@ -17952,13 +18345,13 @@ library
       notSimplyBounded F @8
         typeParameters
           unrelated X @10
-            bound: dynamic Function()
+            bound: dynamic
             defaultType: dynamic
-        aliasedType: dynamic Function(dynamic Function())
+        aliasedType: dynamic Function(dynamic)
         aliasedElement: GenericFunctionTypeElement
           parameters
             requiredPositional @-1
-              type: dynamic Function()
+              type: dynamic
           returnType: dynamic
 ''');
   }
@@ -20124,7 +20517,7 @@ library
   }
 
   test_instanceInference_operator_equal_legacy_from_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     addLibrarySource('/legacy.dart', r'''
 // @dart = 2.7
 class LegacyDefault {
@@ -20426,7 +20819,7 @@ library
   }
 
   test_instantiateToBounds_boundRefersToItself_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 class C<T extends C<T>> {}
 C c;
@@ -21246,359 +21639,6 @@ library
 ''');
   }
 
-  test_macro_autoConstructor() async {
-    addLibrarySource('/macro_annotations.dart', r'''
-library analyzer.macro.annotations;
-const autoConstructor = 0;
-''');
-    var library = await checkLibrary(r'''
-import 'macro_annotations.dart';
-@autoConstructor
-class A {
-  final int a;
-  final int? b;
-}
-''');
-    checkElementText(library, r'''
-library
-  imports
-    macro_annotations.dart
-  definingUnit
-    classes
-      class A @56
-        metadata
-          Annotation
-            atSign: @ @33
-            element: macro_annotations.dart::@getter::autoConstructor
-            name: SimpleIdentifier
-              staticElement: macro_annotations.dart::@getter::autoConstructor
-              staticType: null
-              token: autoConstructor @34
-        fields
-          final a @72
-            type: int
-          final b @88
-            type: int?
-        constructors
-          @0
-            macro
-              id: 0
-              code: A({required this.a, this.b});
-            parameters
-              requiredName final this.a @17
-                type: int
-              optionalNamed final this.b @25
-                type: int?
-        accessors
-          synthetic get a @-1
-            returnType: int
-          synthetic get b @-1
-            returnType: int?
-''');
-  }
-
-  test_macro_hashCode() async {
-    addLibrarySource('/macro_annotations.dart', r'''
-library analyzer.macro.annotations;
-const hashCode = 0;
-''');
-    var library = await checkLibrary(r'''
-import 'macro_annotations.dart';
-@hashCode
-class A {
-  final int a;
-  final int b;
-}
-''');
-    checkElementText(library, r'''
-library
-  imports
-    macro_annotations.dart
-  definingUnit
-    classes
-      class A @49
-        metadata
-          Annotation
-            atSign: @ @33
-            element: macro_annotations.dart::@getter::hashCode
-            name: SimpleIdentifier
-              staticElement: macro_annotations.dart::@getter::hashCode
-              staticType: null
-              token: hashCode @34
-        fields
-          final a @65
-            type: int
-          final b @80
-            type: int
-          synthetic hashCode @-1
-            type: int
-        constructors
-          synthetic @-1
-        accessors
-          synthetic get a @-1
-            returnType: int
-          synthetic get b @-1
-            returnType: int
-          get hashCode @18
-            macro
-              id: 0
-              code: @override\nint get hashCode => a.hashCode ^ b.hashCode;
-            metadata
-              Annotation
-                atSign: @ @0
-                element: dart:core::@getter::override
-                name: SimpleIdentifier
-                  staticElement: dart:core::@getter::override
-                  staticType: null
-                  token: override @1
-            returnType: int
-''');
-  }
-
-  test_macro_hashCode_withSuper() async {
-    addLibrarySource('/macro_annotations.dart', r'''
-library analyzer.macro.annotations;
-const hashCode = 0;
-''');
-    var library = await checkLibrary(r'''
-import 'macro_annotations.dart';
-
-class A {
-  final int a;
-}
-
-@hashCode
-class B extends A {
-  final int b;
-}
-''');
-    checkElementText(library, r'''
-library
-  imports
-    macro_annotations.dart
-  definingUnit
-    classes
-      class A @40
-        fields
-          final a @56
-            type: int
-        constructors
-          synthetic @-1
-        accessors
-          synthetic get a @-1
-            returnType: int
-      class B @78
-        metadata
-          Annotation
-            atSign: @ @62
-            element: macro_annotations.dart::@getter::hashCode
-            name: SimpleIdentifier
-              staticElement: macro_annotations.dart::@getter::hashCode
-              staticType: null
-              token: hashCode @63
-        supertype: A
-        fields
-          final b @104
-            type: int
-          synthetic hashCode @-1
-            type: int
-        constructors
-          synthetic @-1
-        accessors
-          synthetic get b @-1
-            returnType: int
-          get hashCode @18
-            macro
-              id: 0
-              code: @override\nint get hashCode => b.hashCode ^ a.hashCode;
-            metadata
-              Annotation
-                atSign: @ @0
-                element: dart:core::@getter::override
-                name: SimpleIdentifier
-                  staticElement: dart:core::@getter::override
-                  staticType: null
-                  token: override @1
-            returnType: int
-''');
-  }
-
-  test_macro_observable() async {
-    addLibrarySource('/macro_annotations.dart', r'''
-library analyzer.macro.annotations;
-const observable = 0;
-''');
-    var library = await checkLibrary(r'''
-import 'macro_annotations.dart';
-class A {
-  @observable
-  int _f = 0;
-}
-''');
-    checkElementText(library, r'''
-library
-  imports
-    macro_annotations.dart
-  definingUnit
-    classes
-      class A @39
-        fields
-          _f @63
-            metadata
-              Annotation
-                atSign: @ @45
-                element: macro_annotations.dart::@getter::observable
-                name: SimpleIdentifier
-                  staticElement: macro_annotations.dart::@getter::observable
-                  staticType: null
-                  token: observable @46
-            type: int
-          synthetic f @-1
-            type: int
-        constructors
-          synthetic @-1
-        accessors
-          synthetic get _f @-1
-            returnType: int
-          synthetic set _f @-1
-            parameters
-              requiredPositional __f @-1
-                type: int
-            returnType: void
-          get f @8
-            macro
-              id: 0
-              code: int get f => _f;
-            returnType: int
-          set f @4
-            macro
-              id: 1
-              code: set f(int val) {\n  print('Setting f to ${val}');\n  _f = val;\n}
-            parameters
-              requiredPositional val @10
-                type: int
-            returnType: void
-''');
-  }
-
-  test_macro_observable_generic() async {
-    addLibrarySource('/macro_annotations.dart', r'''
-library analyzer.macro.annotations;
-const observable = 0;
-''');
-    var library = await checkLibrary(r'''
-import 'macro_annotations.dart';
-class A<T> {
-  @observable
-  T _f;
-}
-''');
-    checkElementText(library, r'''
-library
-  imports
-    macro_annotations.dart
-  definingUnit
-    classes
-      class A @39
-        typeParameters
-          covariant T @41
-            defaultType: dynamic
-        fields
-          _f @64
-            metadata
-              Annotation
-                atSign: @ @48
-                element: macro_annotations.dart::@getter::observable
-                name: SimpleIdentifier
-                  staticElement: macro_annotations.dart::@getter::observable
-                  staticType: null
-                  token: observable @49
-            type: T
-          synthetic f @-1
-            type: T
-        constructors
-          synthetic @-1
-        accessors
-          synthetic get _f @-1
-            returnType: T
-          synthetic set _f @-1
-            parameters
-              requiredPositional __f @-1
-                type: T
-            returnType: void
-          get f @6
-            macro
-              id: 0
-              code: T get f => _f;
-            returnType: T
-          set f @4
-            macro
-              id: 1
-              code: set f(T val) {\n  print('Setting f to ${val}');\n  _f = val;\n}
-            parameters
-              requiredPositional val @8
-                type: T
-            returnType: void
-''');
-  }
-
-  test_macro_toString() async {
-    addLibrarySource('/macro_annotations.dart', r'''
-library analyzer.macro.annotations;
-const toString = 0;
-''');
-    var library = await checkLibrary(r'''
-import 'macro_annotations.dart';
-@toString
-class A {
-  final int a;
-  final int b;
-}
-''');
-    checkElementText(library, r'''
-library
-  imports
-    macro_annotations.dart
-  definingUnit
-    classes
-      class A @49
-        metadata
-          Annotation
-            atSign: @ @33
-            element: macro_annotations.dart::@getter::toString
-            name: SimpleIdentifier
-              staticElement: macro_annotations.dart::@getter::toString
-              staticType: null
-              token: toString @34
-        fields
-          final a @65
-            type: int
-          final b @80
-            type: int
-        constructors
-          synthetic @-1
-        accessors
-          synthetic get a @-1
-            returnType: int
-          synthetic get b @-1
-            returnType: int
-        methods
-          toString @17
-            macro
-              id: 0
-              code: @override\nString toString() => 'A(a: $a, b: $b)';
-            metadata
-              Annotation
-                atSign: @ @0
-                element: dart:core::@getter::override
-                name: SimpleIdentifier
-                  staticElement: dart:core::@getter::override
-                  staticType: null
-                  token: override @1
-            returnType: String
-''');
-  }
-
   test_main_class() async {
     var library = await checkLibrary('class main {}');
     checkElementText(library, r'''
@@ -22077,7 +22117,6 @@ library
   }
 
   test_metadata_constructor_call_named_generic_inference() async {
-    featureSet = FeatureSets.genericMetadata;
     var library = await checkLibrary('''
 class A<T> {
   const A.named(T _);
@@ -22137,7 +22176,6 @@ library
   }
 
   test_metadata_constructor_call_named_generic_typeArguments() async {
-    featureSet = FeatureSets.genericMetadata;
     var library = await checkLibrary('''
 class A<T> {
   const A.named();
@@ -22224,12 +22262,12 @@ library
             constructorName: SimpleIdentifier
               staticElement: ConstructorMember
                 base: self::@class::A::@constructor::named
-                substitution: {T: dynamic}
+                substitution: {T: int}
               staticType: null
               token: named @43
             element: ConstructorMember
               base: self::@class::A::@constructor::named
-              substitution: {T: dynamic}
+              substitution: {T: int}
             name: SimpleIdentifier
               staticElement: self::@class::A
               staticType: null
@@ -22301,7 +22339,6 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed_generic_inference() async {
-    featureSet = FeatureSets.genericMetadata;
     addLibrarySource('/home/test/lib/foo.dart', '''
 class A<T> {
   const A.named(T _);
@@ -22357,7 +22394,6 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed_generic_typeArguments() async {
-    featureSet = FeatureSets.genericMetadata;
     addLibrarySource('/home/test/lib/foo.dart', '''
 class A<T> {
   const A.named();
@@ -22539,7 +22575,6 @@ library
   }
 
   test_metadata_constructor_call_unnamed_generic_inference() async {
-    featureSet = FeatureSets.genericMetadata;
     var library = await checkLibrary('''
 class A<T> {
   const A(T _);
@@ -22585,7 +22620,6 @@ library
   }
 
   test_metadata_constructor_call_unnamed_generic_typeArguments() async {
-    featureSet = FeatureSets.genericMetadata;
     var library = await checkLibrary('''
 class A<T> {
   const A();
@@ -22674,7 +22708,6 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_inference() async {
-    featureSet = FeatureSets.genericMetadata;
     addLibrarySource('/home/test/lib/foo.dart', '''
 class A<T> {
   const A(T _);
@@ -22724,7 +22757,6 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_typeArguments() async {
-    featureSet = FeatureSets.genericMetadata;
     addLibrarySource('/home/test/lib/foo.dart', '''
 class A<T> {
   const A();
@@ -26259,7 +26291,7 @@ library
   }
 
   test_mixin_inference_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary(r'''
 class A<T> {}
 mixin M<U> on A<U> {}
@@ -27045,13 +27077,13 @@ library
   definingUnit
     typeAliases
       notSimplyBounded F @8
-        aliasedType: dynamic Function() Function()
+        aliasedType: dynamic Function()
         aliasedElement: GenericFunctionTypeElement
-          returnType: dynamic Function()
+          returnType: dynamic
       notSimplyBounded G @34
-        aliasedType: dynamic Function() Function()
+        aliasedType: dynamic Function()
         aliasedElement: GenericFunctionTypeElement
-          returnType: dynamic Function()
+          returnType: dynamic
 ''');
   }
 
@@ -27064,9 +27096,9 @@ library
   definingUnit
     typeAliases
       notSimplyBounded F @8
-        aliasedType: List<dynamic Function()> Function()
+        aliasedType: List<dynamic> Function()
         aliasedElement: GenericFunctionTypeElement
-          returnType: List<dynamic Function()>
+          returnType: List<dynamic>
 ''');
   }
 
@@ -27081,7 +27113,7 @@ library
       notSimplyBounded F @8
         typeParameters
           unrelated T @10
-            bound: dynamic Function()
+            bound: dynamic
             defaultType: dynamic
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
@@ -27123,7 +27155,6 @@ library
   }
 
   test_new_typedef_nonFunction_notSimplyBounded_self() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary('''
 typedef F<T extends F> = List<int>;
 ''');
@@ -27141,7 +27172,6 @@ library
   }
 
   test_new_typedef_nonFunction_notSimplyBounded_viaInterfaceType() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary('''
 typedef F = List<F>;
 ''');
@@ -27569,7 +27599,7 @@ library
       functionTypeAliasBased notSimplyBounded F @13
         typeParameters
           unrelated T @15
-            bound: dynamic Function()
+            bound: dynamic
             defaultType: dynamic
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
@@ -29427,7 +29457,7 @@ library
   }
 
   test_type_never_disableNnbd() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('Never d;');
     checkElementText(library, r'''
 library
@@ -29526,7 +29556,7 @@ library
   }
 
   test_type_param_ref_nullability_star() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 class C<T> {
   T t;
@@ -30904,7 +30934,6 @@ library
   }
 
   test_typeAlias_typeParameters_variance_interface_contravariant() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = List<void Function(T)>;
 ''');
@@ -30921,7 +30950,6 @@ library
   }
 
   test_typeAlias_typeParameters_variance_interface_contravariant2() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = void Function(T);
 typedef B<T> = List<A<T>>;
@@ -30949,7 +30977,6 @@ library
   }
 
   test_typeAlias_typeParameters_variance_interface_covariant() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = List<T>;
 ''');
@@ -30966,7 +30993,6 @@ library
   }
 
   test_typeAlias_typeParameters_variance_interface_covariant2() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = Map<int, T>;
 typedef B<T> = List<A<T>>;
@@ -31093,19 +31119,19 @@ library
   definingUnit
     typeAliases
       F @8
-        aliasedType: dynamic Function()
+        aliasedType: int
     topLevelVariables
       static f @19
-        type: dynamic Function()
+        type: int
           aliasElement: self::@typeAlias::F
     accessors
       synthetic static get f @-1
-        returnType: dynamic Function()
+        returnType: int
           aliasElement: self::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
-            type: dynamic Function()
+            type: int
               aliasElement: self::@typeAlias::F
         returnType: void
 ''');
@@ -31116,7 +31142,6 @@ library
     reason: 'Type dynamic is special, no support for its aliases yet',
   )
   test_typedef_nonFunction_aliasElement_dynamic() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = dynamic;
 void f(A a) {}
@@ -31129,7 +31154,6 @@ void f(dynamic<aliasElement: self::@typeAlias::A> a) {}
   }
 
   test_typedef_nonFunction_aliasElement_functionType() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A1 = void Function();
 typedef A2<R> = R Function();
@@ -31171,7 +31195,6 @@ library
   }
 
   test_typedef_nonFunction_aliasElement_interfaceType() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A1 = List<int>;
 typedef A2<T, U> = Map<T, U>;
@@ -31216,7 +31239,6 @@ library
     reason: 'Type Never is special, no support for its aliases yet',
   )
   test_typedef_nonFunction_aliasElement_never() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A1 = Never;
 typedef A2<T> = Never?;
@@ -31233,7 +31255,6 @@ void f2(Never?<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
   }
 
   test_typedef_nonFunction_aliasElement_typeParameterType() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = T;
 void f<U>(A<U> a) {}
@@ -31267,7 +31288,6 @@ library
     reason: 'Type void is special, no support for its aliases yet',
   )
   test_typedef_nonFunction_aliasElement_void() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = void;
 void f(A a) {}
@@ -31280,7 +31300,6 @@ void f(void<aliasElement: self::@typeAlias::A> a) {}
   }
 
   test_typedef_nonFunction_asInterfaceType_interfaceType_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X<T> = A<int, T>;
 class A<T, U> {}
@@ -31316,7 +31335,6 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_interfaceType_question() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X<T> = A<T>?;
 class A<T> {}
@@ -31356,7 +31374,6 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_interfaceType_question2() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X<T> = A<T?>;
 class A<T> {}
@@ -31400,7 +31417,6 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_Never_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = Never;
 class A implements X {}
@@ -31419,7 +31435,6 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_Null_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = Null;
 class A implements X {}
@@ -31438,7 +31453,6 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_typeParameterType() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X<T> = T;
 class A {}
@@ -31474,7 +31488,6 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_void() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = void;
 class A {}
@@ -31504,7 +31517,6 @@ library
   }
 
   test_typedef_nonFunction_asMixinType_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int>;
 class A<T> {}
@@ -31534,7 +31546,6 @@ library
   }
 
   test_typedef_nonFunction_asMixinType_question() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int>?;
 class A<T> {}
@@ -31577,7 +31588,6 @@ library
   }
 
   test_typedef_nonFunction_asMixinType_question2() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int?>;
 class A<T> {}
@@ -31622,7 +31632,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_Never_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = Never;
 class A extends X {}
@@ -31641,7 +31650,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int>;
 class A<T> {}
@@ -31669,7 +31677,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_none_viaTypeParameter() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X<T> = T;
 class A<T> {}
@@ -31702,7 +31709,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_Null_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = Null;
 class A extends X {}
@@ -31721,7 +31727,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_question() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int>?;
 class A<T> {}
@@ -31747,7 +31752,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_question2() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int?>;
 class A<T> {}
@@ -31775,7 +31779,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_Never_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = Never;
 class A extends X {}
@@ -31794,7 +31797,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_Null_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = Null;
 class A extends X {}
@@ -31813,7 +31815,6 @@ library
   }
 
   test_typedef_nonFunction_using_dynamic() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = dynamic;
 void f(A a) {}
@@ -31834,6 +31835,7 @@ library
   }
 
   test_typedef_nonFunction_using_interface_disabled() async {
+    featureSet = FeatureSets.language_2_12;
     var library = await checkLibrary(r'''
 typedef A = int;
 void f(A a) {}
@@ -31859,7 +31861,6 @@ library
   }
 
   test_typedef_nonFunction_using_interface_noTypeParameters() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = int;
 void f(A a) {}
@@ -31881,7 +31882,6 @@ library
   }
 
   test_typedef_nonFunction_using_interface_noTypeParameters_legacy() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     newFile('/a.dart', content: r'''
 typedef A = List<int>;
 ''');
@@ -31906,7 +31906,6 @@ library
   }
 
   test_typedef_nonFunction_using_interface_noTypeParameters_question() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = int?;
 void f(A a) {}
@@ -31928,7 +31927,6 @@ library
   }
 
   test_typedef_nonFunction_using_interface_withTypeParameters() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = Map<int, T>;
 void f(A<String> a) {}
@@ -31955,7 +31953,6 @@ library
   }
 
   test_typedef_nonFunction_using_Never_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = Never;
 void f(A a) {}
@@ -31976,7 +31973,6 @@ library
   }
 
   test_typedef_nonFunction_using_Never_question() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = Never?;
 void f(A a) {}
@@ -31997,7 +31993,6 @@ library
   }
 
   test_typedef_nonFunction_using_typeParameter_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = T;
 void f1(A a) {}
@@ -32030,7 +32025,6 @@ library
   }
 
   test_typedef_nonFunction_using_typeParameter_question() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = T?;
 void f1(A a) {}
@@ -32063,7 +32057,6 @@ library
   }
 
   test_typedef_nonFunction_using_void() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = void;
 void f(A a) {}
@@ -32483,7 +32476,7 @@ library
       functionTypeAliasBased notSimplyBounded F @13
         typeParameters
           unrelated T @15
-            bound: dynamic Function()
+            bound: dynamic
             defaultType: dynamic
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
@@ -32501,7 +32494,7 @@ library
       functionTypeAliasBased notSimplyBounded F @13
         typeParameters
           unrelated T @15
-            bound: List<dynamic Function()>
+            bound: List<dynamic>
             defaultType: dynamic
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
@@ -32532,7 +32525,7 @@ library
   }
 
   test_typedef_type_parameters_f_bound_complex_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('typedef U F<T extends List<U>, U>(T t);');
     checkElementText(library, r'''
 library
@@ -32577,7 +32570,7 @@ library
   }
 
   test_typedef_type_parameters_f_bound_simple_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('typedef U F<T extends U, U>(T t);');
     checkElementText(library, r'''
 library
@@ -32623,7 +32616,7 @@ library
   }
 
   test_typedef_type_parameters_f_bound_simple_new_syntax_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library =
         await checkLibrary('typedef F<T extends U, U> = U Function(T t);');
     checkElementText(library, r'''
@@ -33467,7 +33460,7 @@ library
     expect(variable, isNotNull);
     expect(variable.isFinal, isFalse);
     expect(variable.getter, same(getter));
-    expect('${variable.type}', 'int');
+    _assertTypeStr(variable.type, 'int');
     expect(variable, same(_elementOfDefiningUnit(library, ['@variable', 'x'])));
   }
 

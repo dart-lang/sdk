@@ -584,7 +584,9 @@ class A22 {
     /*update: [exact=A22]*/ f22a = 42;
     /*update: [exact=A22]*/ f22b = /*[exact=A22]*/ f22a == null
         ? 42
-        : /*[exact=A22]*/ f22c == null ? 41 : 43;
+        : /*[exact=A22]*/ f22c == null
+            ? 41
+            : 43;
     /*update: [exact=A22]*/ f22c = 'foo';
   }
 }
@@ -648,10 +650,9 @@ class A24 {
 
   /*member: A24.:[exact=A24]*/
   A24() : f24d = 42 {
-    /*[subclass=A24]*/ /*update: [subclass=A24]*/ f24a
-        /*invoke: [subclass=JSPositiveInt]*/ ++;
-    /*[subclass=A24]*/ /*update: [subclass=A24]*/ f24b
-        /*invoke: [subclass=JSPositiveInt]*/ += 42;
+    /*[subclass=A24]*/ /*update: [subclass=A24]*/ f24a /*invoke: [subclass=JSPositiveInt]*/ ++;
+    /*[subclass=A24]*/ /*update: [subclass=A24]*/ f24b /*invoke: [subclass=JSPositiveInt]*/ +=
+        42;
     var f24f = 'foo';
     this. /*update: [subclass=A24]*/ f24f = f24f;
   }
@@ -720,8 +721,7 @@ test26() {
   new A26(). /*update: [exact=A26]*/ f26 = <dynamic>[new B26(), new A26()]
               /*Container([exact=JSExtendableArray], element: Union([exact=A26], [exact=B26]), length: 2)*/
               [0]
-          . /*Union([exact=A26], [exact=B26])*/ f26
-      /*invoke: [subclass=JSPositiveInt]*/ +
+          . /*Union([exact=A26], [exact=B26])*/ f26 /*invoke: [subclass=JSPositiveInt]*/ +
       42;
 }
 

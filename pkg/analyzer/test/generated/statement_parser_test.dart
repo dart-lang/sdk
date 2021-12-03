@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -28,7 +27,7 @@ class StatementParserTest extends FastaParserTestCase {
     var funct1 = statement.expression as FunctionExpressionInvocation;
     List<TypeAnnotation> typeArgs = funct1.typeArguments!.arguments;
     expect(typeArgs, hasLength(1));
-    var typeName = typeArgs[0] as TypeName;
+    var typeName = typeArgs[0] as NamedType;
     expect(typeName.name.name, 'int');
     expect(funct1.argumentList.arguments, hasLength(0));
 
@@ -224,8 +223,8 @@ main() {
 
   void test_parseElseAlone() {
     parseCompilationUnit('main() { else return 0; } ', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 4),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 4),
       expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 4),
     ]);
   }
@@ -995,8 +994,7 @@ main() {
 
   void test_parseNonLabeledStatement_const_object_named_typeParameters_34403() {
     var statement = parseStatement('const A<B>.c<C>();') as ExpressionStatement;
-    assertErrorsWithCodes(
-        [CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR]);
+    assertErrorsWithCodes([ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS]);
     expect(statement.expression, isNotNull);
   }
 
@@ -1081,7 +1079,7 @@ main() {
   }
 
   void test_parseNonLabeledStatement_typeCast() {
-    var statement = parseStatement('double.NAN as num;') as ExpressionStatement;
+    var statement = parseStatement('double.nan as num;') as ExpressionStatement;
     assertNoErrors();
     expect(statement.expression, isNotNull);
   }
@@ -1185,10 +1183,10 @@ main() {
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
     expect(variables[0].name.name, 'v');
-    var typeName = variableList.type as TypeName;
+    var typeName = variableList.type as NamedType;
     expect(typeName.name.name, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
-    var typeArgument = typeName.typeArguments!.arguments[0] as TypeName;
+    var typeArgument = typeName.typeArguments!.arguments[0] as NamedType;
     expect(typeArgument.name.name, 'T');
   }
 
@@ -1200,10 +1198,10 @@ main() {
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
     expect(variables[0].name.name, 'v');
-    var typeName = variableList.type as TypeName;
+    var typeName = variableList.type as NamedType;
     expect(typeName.name.name, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
-    var typeArgument = typeName.typeArguments!.arguments[0] as TypeName;
+    var typeArgument = typeName.typeArguments!.arguments[0] as NamedType;
     expect(typeArgument.name.name, 'T');
   }
 
@@ -1215,7 +1213,7 @@ main() {
     List<VariableDeclaration> variables = variableList.variables;
     expect(variables, hasLength(1));
     expect(variables[0].name.name, 'v');
-    var typeName = variableList.type as TypeName;
+    var typeName = variableList.type as NamedType;
     expect(typeName.name.name, 'C');
     expect(typeName.typeArguments!.arguments, hasLength(1));
     expect(typeName.typeArguments!.arguments[0], isGenericFunctionType);
@@ -1225,7 +1223,7 @@ main() {
     var declaration = parseStatement('C<> c;') as VariableDeclarationStatement;
     assertErrorsWithCodes([ParserErrorCode.EXPECTED_TYPE_NAME]);
     VariableDeclarationList variables = declaration.variables;
-    var type = variables.type as TypeName;
+    var type = variables.type as NamedType;
     var argumentList = type.typeArguments!;
     expect(argumentList.leftBracket, isNotNull);
     expect(argumentList.arguments, hasLength(1));
@@ -1742,10 +1740,10 @@ main() {
   void test_partial_typeArg1_34850() {
     var unit = parseCompilationUnit('<bar<', errors: [
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 5, 0),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 0),
     ]);
     // Validate that recovery has properly updated the token stream.
     analyzer.Token token = unit.beginToken;
@@ -1759,10 +1757,10 @@ main() {
 
   void test_partial_typeArg2_34850() {
     var unit = parseCompilationUnit('foo <bar<', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 0),
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 9, 0),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 0),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 0),
     ]);
     // Validate that recovery has properly updated the token stream.
     analyzer.Token token = unit.beginToken;

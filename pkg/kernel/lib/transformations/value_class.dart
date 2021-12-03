@@ -7,20 +7,22 @@ library kernel.transformations.value_class;
 import 'package:kernel/type_environment.dart';
 
 import '../ast.dart';
-import '../kernel.dart';
 import '../core_types.dart' show CoreTypes;
 import '../class_hierarchy.dart' show ClassHierarchy;
+import '../reference_from_index.dart';
 import './scanner.dart';
 
 class ValueClassScanner extends ClassScanner<Null> {
   ValueClassScanner() : super(null);
 
+  @override
   bool predicate(Class node) => isValueClass(node);
 }
 
 class JenkinsClassScanner extends ClassScanner<Procedure> {
   JenkinsClassScanner(Scanner<Procedure, TreeNode?> next) : super(next);
 
+  @override
   bool predicate(Class node) {
     return node.name == "JenkinsSmiHash";
   }
@@ -29,6 +31,7 @@ class JenkinsClassScanner extends ClassScanner<Procedure> {
 class HashCombineMethodsScanner extends ProcedureScanner<Null> {
   HashCombineMethodsScanner() : super(null);
 
+  @override
   bool predicate(Procedure node) {
     return node.name.text == "combine" || node.name.text == "finish";
   }
@@ -38,6 +41,7 @@ class AllMemberScanner extends MemberScanner<InstanceInvocationExpression> {
   AllMemberScanner(Scanner<InstanceInvocationExpression, TreeNode?> next)
       : super(next);
 
+  @override
   bool predicate(Member member) => true;
 }
 
@@ -50,6 +54,7 @@ class ValueClassCopyWithScanner extends MethodInvocationScanner<Null> {
   // @valueClass V {}
   // V v;
   // (v as dynamic).copyWith() as V
+  @override
   bool predicate(InstanceInvocationExpression node) {
     return node.name.text == "copyWith" &&
         _isValueClassAsConstruct(node.receiver);
@@ -60,12 +65,23 @@ class ValueClassCopyWithScanner extends MethodInvocationScanner<Null> {
   }
 }
 
-void transformComponent(Component node, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, TypeEnvironment typeEnvironment) {
+void transformComponent(
+    Component node,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    ReferenceFromIndex? referenceFromIndex,
+    TypeEnvironment typeEnvironment) {
   ValueClassScanner scanner = new ValueClassScanner();
   ScanResult<Class, Null> valueClasses = scanner.scan(node);
   for (Class valueClass in valueClasses.targets.keys) {
-    transformValueClass(valueClass, coreTypes, hierarchy, typeEnvironment);
+    transformValueClass(
+        valueClass,
+        coreTypes,
+        hierarchy,
+        referenceFromIndex
+            ?.lookupLibrary(valueClass.enclosingLibrary)
+            ?.lookupIndexedClass(valueClass.name),
+        typeEnvironment);
   }
 
   treatCopyWithCallSites(node, coreTypes, typeEnvironment, hierarchy);
@@ -75,8 +91,12 @@ void transformComponent(Component node, CoreTypes coreTypes,
   }
 }
 
-void transformValueClass(Class cls, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, TypeEnvironment typeEnvironment) {
+void transformValueClass(
+    Class cls,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    IndexedClass? indexedClass,
+    TypeEnvironment typeEnvironment) {
   Constructor? syntheticConstructor = null;
   for (Constructor constructor in cls.constructors) {
     if (constructor.isSynthetic) {
@@ -89,11 +109,11 @@ void transformValueClass(Class cls, CoreTypes coreTypes,
   allVariablesList.sort((a, b) => a.name!.compareTo(b.name!));
 
   addConstructor(cls, coreTypes, syntheticConstructor!);
-  addEqualsOperator(cls, coreTypes, hierarchy, allVariablesList);
-  addHashCode(cls, coreTypes, hierarchy, allVariablesList);
-  addToString(cls, coreTypes, hierarchy, allVariablesList);
-  addCopyWith(cls, coreTypes, hierarchy, allVariablesList, syntheticConstructor,
-      typeEnvironment);
+  addEqualsOperator(cls, coreTypes, hierarchy, indexedClass, allVariablesList);
+  addHashCode(cls, coreTypes, hierarchy, indexedClass, allVariablesList);
+  addToString(cls, coreTypes, hierarchy, indexedClass, allVariablesList);
+  addCopyWith(cls, coreTypes, hierarchy, indexedClass, allVariablesList,
+      syntheticConstructor, typeEnvironment);
 }
 
 void addConstructor(
@@ -133,7 +153,7 @@ void addConstructor(
 }
 
 void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    List<VariableDeclaration> allVariablesList) {
+    IndexedClass? indexedClass, List<VariableDeclaration> allVariablesList) {
   List<VariableDeclaration> allVariables = allVariablesList.toList();
   for (Procedure procedure in cls.procedures) {
     if (procedure.kind == ProcedureKind.Operator &&
@@ -163,8 +183,9 @@ void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
     targets[variable] = target;
   }
 
+  Name name = Name("==");
   Procedure equalsOperator = Procedure(
-      Name("=="),
+      name,
       ProcedureKind.Operator,
       FunctionNode(
           ReturnStatement(allVariables
@@ -180,13 +201,14 @@ void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
                       previousValue!, LogicalExpressionOperator.AND, element))),
           returnType: returnType,
           positionalParameters: [other]),
-      fileUri: cls.fileUri)
+      fileUri: cls.fileUri,
+      reference: indexedClass?.lookupGetterReference(name))
     ..fileOffset = cls.fileOffset;
   cls.addProcedure(equalsOperator);
 }
 
 void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    List<VariableDeclaration> allVariablesList) {
+    IndexedClass? indexedClass, List<VariableDeclaration> allVariablesList) {
   List<VariableDeclaration> allVariables = allVariablesList.toList();
   for (Procedure procedure in cls.procedures) {
     if (procedure.kind == ProcedureKind.Getter &&
@@ -230,8 +252,9 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
     targetsHashcode[variable] = targetHashcode;
     targets[variable] = target;
   }
+  Name name = Name("hashCode");
   cls.addProcedure(Procedure(
-      Name("hashCode"),
+      name,
       ProcedureKind.Getter,
       FunctionNode(
           ReturnStatement(StaticInvocation(
@@ -255,12 +278,13 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
                             hashCombine!, Arguments([previousValue, element])))
               ]))),
           returnType: returnType),
-      fileUri: cls.fileUri)
+      fileUri: cls.fileUri,
+      reference: indexedClass?.lookupGetterReference(name))
     ..fileOffset = cls.fileOffset);
 }
 
 void addToString(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    List<VariableDeclaration> allVariablesList) {
+    IndexedClass? indexedClass, List<VariableDeclaration> allVariablesList) {
   List<Expression> wording = [StringLiteral("${cls.name}(")];
 
   for (VariableDeclaration variable in allVariablesList) {
@@ -287,12 +311,14 @@ void addToString(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
   }
   DartType returnType =
       coreTypes.stringRawType(cls.enclosingLibrary.nonNullable);
+  Name name = Name("toString");
   cls.addProcedure(Procedure(
-      Name("toString"),
+      name,
       ProcedureKind.Method,
       FunctionNode(ReturnStatement(StringConcatenation(wording)),
           returnType: returnType),
-      fileUri: cls.fileUri)
+      fileUri: cls.fileUri,
+      reference: indexedClass?.lookupGetterReference(name))
     ..fileOffset = cls.fileOffset);
 }
 
@@ -300,6 +326,7 @@ void addCopyWith(
     Class cls,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
+    IndexedClass? indexedClass,
     List<VariableDeclaration> allVariablesList,
     Constructor syntheticConstructor,
     TypeEnvironment typeEnvironment) {
@@ -320,8 +347,9 @@ void addCopyWith(
     targets[variable] = target;
   }
 
+  Name name = Name("copyWith");
   cls.addProcedure(Procedure(
-      Name("copyWith"),
+      name,
       ProcedureKind.Method,
       FunctionNode(
           ReturnStatement(ConstructorInvocation(
@@ -331,7 +359,8 @@ void addCopyWith(
                       .map((f) => NamedExpression(f.name!, VariableGet(f)))
                       .toList()))),
           namedParameters: allVariables),
-      fileUri: cls.fileUri)
+      fileUri: cls.fileUri,
+      reference: indexedClass?.lookupGetterReference(name))
     ..fileOffset = cls.fileOffset);
 }
 
@@ -346,8 +375,8 @@ List<VariableDeclaration> queryAllInstanceVariables(Class cls) {
       .map<VariableDeclaration>(
           (f) => VariableDeclaration(f.name, type: f.type))
       .toList()
-        ..addAll(cls.fields.map<VariableDeclaration>(
-            (f) => VariableDeclaration(f.name.text, type: f.type)));
+    ..addAll(cls.fields.map<VariableDeclaration>(
+        (f) => VariableDeclaration(f.name.text, type: f.type)));
 }
 
 void removeValueClassAnnotation(Class cls) {

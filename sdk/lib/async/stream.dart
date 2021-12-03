@@ -18,9 +18,61 @@ typedef void _TimerCallback();
 /// When a stream has emitted all its event,
 /// a single "done" event will notify the listener that the end has been reached.
 ///
-/// You [listen] on a stream to make it start generating events,
-/// and to set up listeners that receive the events.
-/// When you listen, you receive a [StreamSubscription] object
+/// You produce a stream by calling an `async*` function, which then returns
+/// a stream. Consuming that stream will lead the function to emit events
+/// until it ends, and the stream closes.
+/// You consume a stream either using an `await for` loop, which is available
+/// inside an `async` or `async*` function, or forwards its events directly
+/// using `yield*` inside an `async*` function.
+/// Example:
+/// ```dart
+/// Stream<T> optionalMap<T>(
+///     Stream<T> source , [T Function(T)? convert]) async* {
+///   if (convert == null) {
+///     yield* source;
+///   } else {
+///     await for (var event in source) {
+///       yield convert(event);
+///     }
+///   }
+/// }
+/// ```
+/// When this function is called, it immediately returns a `Stream<T>` object.
+/// Then nothing further happens until someone tries to consume that stream.
+/// At that point, the body of the `async*` function starts running.
+/// If the `convert` function was omitted, the `yield*` will listen to the
+/// `source` stream and forward all events, date and errors, to the returned
+/// stream. When the `source` stream closes, the `yield*` is done,
+/// and the `optionalMap` function body ends too. This closes the returned
+/// stream.
+/// If a `convert` *is* supplied, the function instead listens on the source
+/// stream and enters an `await for` loop which
+/// repeatedly waits for the next data event.
+/// On a data event, it calls `convert` with the value and emits the result
+/// on the returned stream.
+/// If no error events are emitted by the `source` stream,
+/// the loop ends when the `source` stream does,
+/// then the `optionalMap` function body completes,
+/// which closes the returned stream.
+/// On an error event from the `source` stream,
+/// the `await for` that error is (re-)thrown which breaks the loop.
+/// The error then reaches the end of the `optionalMap` function body,
+/// since it's not caught.
+/// That makes the error be emitted on the returned stream, which then closes.
+///
+/// The `Stream` class also provides functionality which allows you to
+/// manually listen for events from a stream, or to convert a stream
+/// into another stream or into a future.
+///
+/// The [forEach] function corresponds to the `await for` loop,
+/// just as [Iterable.forEach] corresponds to a normal `for`/`in` loop.
+/// Like the loop, it will call a function for each data event and break on an
+/// error.
+///
+/// The more low-level [listen] method is what every other method is based on.
+/// You call `listen` on a stream to tell it that you want to receive
+/// events, and to registers the callbacks which will receive those events.
+/// When you call `listen`, you receive a [StreamSubscription] object
 /// which is the active object providing the events,
 /// and which can be used to stop listening again,
 /// or to temporarily pause events from the subscription.
@@ -33,19 +85,21 @@ typedef void _TimerCallback();
 /// It doesn't start generating events until it has a listener,
 /// and it stops sending events when the listener is unsubscribed,
 /// even if the source of events could still provide more.
+/// The stream created by an `async*` function is a single-subscription stream,
+/// but each call to the function creates a new such stream.
 ///
 /// Listening twice on a single-subscription stream is not allowed, even after
 /// the first subscription has been canceled.
 ///
 /// Single-subscription streams are generally used for streaming chunks of
-/// larger contiguous data like file I/O.
+/// larger contiguous data, like file I/O.
 ///
 /// *A broadcast stream* allows any number of listeners, and it fires
 /// its events when they are ready, whether there are listeners or not.
 ///
 /// Broadcast streams are used for independent events/observers.
 ///
-/// If several listeners want to listen to a single subscription stream,
+/// If several listeners want to listen to a single-subscription stream,
 /// use [asBroadcastStream] to create a broadcast stream on top of the
 /// non-broadcast stream.
 ///
@@ -77,7 +131,8 @@ typedef void _TimerCallback();
 ///
 /// The default implementation of [isBroadcast] returns false.
 /// A broadcast stream inheriting from [Stream] must override [isBroadcast]
-/// to return `true`.
+/// to return `true` if it wants to signal that it behaves like a broadcast
+/// stream.
 abstract class Stream<T> {
   Stream();
 
@@ -85,6 +140,7 @@ abstract class Stream<T> {
   ///
   /// If mixins become compatible with const constructors, we may use a
   /// stream mixin instead of extending Stream from a const class.
+  /// (They now are compatible. We still consider, but it's not urgent.)
   const Stream._internal();
 
   /// Creates an empty broadcast stream.
@@ -93,10 +149,10 @@ abstract class Stream<T> {
   /// when it's listened to.
   const factory Stream.empty() = _EmptyStream<T>;
 
-  /// Creates a stream which emits a single data event before completing.
+  /// Creates a stream which emits a single data event before closing.
   ///
   /// This stream emits a single data event of [value]
-  /// and then completes with a done event.
+  /// and then closes with a done event.
   ///
   /// Example:
   /// ```dart
@@ -1913,28 +1969,24 @@ abstract class StreamTransformer<S, T> {
   /// ```dart
   /// /// Starts listening to [input] and duplicates all non-error events.
   /// StreamSubscription<int> _onListen(Stream<int> input, bool cancelOnError) {
-  ///   late StreamSubscription<String> subscription;
-  ///   // Create controller that forwards pause, resume and cancel events.
-  ///   var controller = new StreamController<String>(
-  ///       onPause: () {
-  ///         subscription.pause();
-  ///       },
-  ///       onResume: () {
-  ///         subscription.resume();
-  ///       },
-  ///       onCancel: () => subscription.cancel(),
-  ///       sync: true); // "sync" is correct here, since events are forwarded.
-  ///
-  ///   // Listen to the provided stream.
-  ///   subscription = input.listen((data) {
-  ///     // Duplicate the data.
-  ///     controller.add(data);
-  ///     controller.add(data);
-  ///   },
-  ///       onError: controller.addError,
-  ///       onDone: controller.close,
-  ///       cancelOnError: cancelOnError);
-  ///
+  ///   // Create the result controller.
+  ///   // Using `sync` is correct here, since only async events are forwarded.
+  ///   var controller = StreamController<int>(sync: true);
+  ///   controller.onListen = () {
+  ///     var subscription = input.listen((data) {
+  ///       // Duplicate the data.
+  ///       controller.add(data);
+  ///       controller.add(data);
+  ///     },
+  ///         onError: controller.addError,
+  ///         onDone: controller.close,
+  ///         cancelOnError: cancelOnError);
+  ///     // Controller forwards pause, resume and cancel events.
+  ///     controller
+  ///       ..onPause = subscription.pause
+  ///       ..onResume = subscription.resume
+  ///       ..onCancel = subscription.cancel;
+  ///   };
   ///   // Return a new [StreamSubscription] by listening to the controller's
   ///   // stream.
   ///   return controller.stream.listen(null);
@@ -1967,7 +2019,7 @@ abstract class StreamTransformer<S, T> {
   /// they are used in streams that can be listened to multiple times.
   ///
   /// ```dart
-  /// StreamController<String> controller = StreamController.broadcast()
+  /// StreamController<String> controller = StreamController.broadcast();
   /// controller.onListen = () {
   ///   scheduleMicrotask(() {
   ///     controller.addError("Bad");
@@ -2007,7 +2059,7 @@ abstract class StreamTransformer<S, T> {
   /// [StreamTransformer.bind] API and can be used when the transformation is
   /// available as a stream-to-stream function.
   ///
-  /// ```dart
+  /// ```dart import:convert
   /// final splitDecoded = StreamTransformer<List<int>, String>.fromBind(
   ///     (stream) => stream.transform(utf8.decoder).transform(LineSplitter()));
   /// ```

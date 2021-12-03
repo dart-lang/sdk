@@ -29,7 +29,8 @@ compiler:pkg/compiler/lib
 convert:third_party/pkg/convert/lib
 crypto:third_party/pkg/crypto/lib
 csslib:third_party/pkg/csslib/lib
-dart2js_info:third_party/pkg/dart2js_info/lib
+dart2js_info:pkg/dart2js_info/lib
+dart2js_runtime_metrics:pkg/dart2js_runtime_metrics/lib
 dart2js_tools:pkg/dart2js_tools/lib
 dart2native:pkg/dart2native/lib
 dart_internal:pkg/dart_internal/lib
@@ -38,6 +39,7 @@ dartdev:pkg/dartdev/lib
 dartdoc:third_party/pkg/dartdoc/lib
 dds:pkg/dds/lib
 dev_compiler:pkg/dev_compiler/lib
+devtools_server:third_party/devtools/devtools_server/lib
 devtools_shared:third_party/devtools/devtools_shared/lib
 diagnostic:pkg/diagnostic/lib
 expect:pkg/expect/lib
@@ -51,8 +53,6 @@ http:third_party/pkg/http/lib
 http_io:third_party/pkg_tested/http_io/lib
 http_multi_server:third_party/pkg/http_multi_server/lib
 http_parser:third_party/pkg/http_parser/lib
-http_retry:third_party/pkg/http_retry/lib
-http_throttle:third_party/pkg/http_throttle/lib
 intl:third_party/pkg/intl/lib
 js:pkg/js/lib
 js_ast:pkg/js_ast/lib
@@ -82,7 +82,6 @@ process:third_party/pkg/process/lib
 protobuf:third_party/pkg/protobuf/protobuf/lib
 pub:third_party/pkg/pub/lib
 pub_semver:third_party/pkg/pub_semver/lib
-resource:third_party/pkg/resource/lib
 sdk_library_metadata:sdk/lib/_internal/sdk_library_metadata/lib
 shelf:third_party/pkg/shelf/lib
 shelf_packages_handler:third_party/pkg/shelf_packages_handler/lib

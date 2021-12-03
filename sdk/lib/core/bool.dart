@@ -20,7 +20,7 @@ class bool {
   /// the result is the [defaultValue].
   ///
   /// The result is the same as would be returned by:
-  /// ```dart
+  /// ```dart template:expression
   /// (const String.fromEnvironment(name) == "true")
   ///     ? true
   ///     : (const String.fromEnvironment(name) == "false")
@@ -41,6 +41,11 @@ class bool {
   /// must be consistent across all calls to [String.fromEnvironment],
   /// [int.fromEnvironment], `bool.fromEnvironment` and [bool.hasEnvironment]
   /// in a single program.
+  ///
+  /// This constructor is only guaranteed to work when invoked as `const`.
+  /// It may work as a non-constant invocation on some platforms which
+  /// have access to compiler options at run-time, but most ahead-of-time
+  /// compiled platforms will not have this information.
   // The .fromEnvironment() constructors are special in that we do not want
   // users to call them using "new". We prohibit that by giving them bodies
   // that throw, even though const constructors are not allowed to have bodies.
@@ -76,6 +81,11 @@ class bool {
   /// must be consistent across all calls to [String.fromEnvironment],
   /// [int.fromEnvironment], [bool.fromEnvironment] and `bool.hasEnvironment`
   /// in a single program.
+  ///
+  /// This constructor is only guaranteed to work when invoked as `const`.
+  /// It may work as a non-constant invocation on some platforms which
+  /// have access to compiler options at run-time, but most ahead-of-time
+  /// compiled platforms will not have this information.
   // The .hasEnvironment() constructor is special in that we do not want
   // users to call them using "new". We prohibit that by giving them bodies
   // that throw, even though const constructors are not allowed to have bodies.

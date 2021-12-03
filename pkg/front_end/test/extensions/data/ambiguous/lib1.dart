@@ -8,7 +8,9 @@
   AmbiguousExtension1,
   AmbiguousExtension2,
   UnambiguousExtension1,
-  async.dart.FutureExtensions]*/
+  async.dart.FutureExtensions,
+  core.dart.EnumByName,
+  core.dart.EnumName]*/
 
 /*class: AmbiguousExtension1:
  builder-name=AmbiguousExtension1,

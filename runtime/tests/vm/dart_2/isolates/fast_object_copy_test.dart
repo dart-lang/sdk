@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=
+// @dart = 2.9
+
+// VMOptions=--no-enable-isolate-groups
 // VMOptions=--enable-isolate-groups --no-enable-fast-object-copy
 // VMOptions=--enable-isolate-groups --enable-fast-object-copy
 // VMOptions=--enable-isolate-groups --no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
@@ -24,7 +26,28 @@ import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 
-class ClassWithNativeFields extends NativeFieldWrapperClass1 {}
+class ClassWithNativeFields extends NativeFieldWrapperClass1 {
+  void m() {}
+}
+
+final nonCopyableClosures = <dynamic>[
+  (() {
+    final a = ClassWithNativeFields();
+    return a.m;
+  })(),
+  (() {
+    final a = ClassWithNativeFields();
+    dynamic inner() => a;
+    return inner;
+  })(),
+  (() {
+    foo(var arg) {
+      return () => arg;
+    }
+
+    return foo(ClassWithNativeFields());
+  })(),
+];
 
 final Uint8List largeExternalTypedData =
     File(Platform.resolvedExecutable).readAsBytesSync()..[0] = 42;
@@ -212,6 +235,7 @@ class SendReceiveTest extends SendReceiveTestBase {
     await testMapRehash();
     await testMapRehash2();
     await testMapRehash3();
+    await testMapRehash4();
 
     await testSetRehash();
     await testSetRehash2();
@@ -219,6 +243,10 @@ class SendReceiveTest extends SendReceiveTestBase {
 
     await testFastOnly();
     await testSlowOnly();
+
+    await testWeakProperty();
+
+    await testForbiddenClosures();
   }
 
   Future testTransferrable() async {
@@ -507,6 +535,27 @@ class SendReceiveTest extends SendReceiveTestBase {
     Expect.equals(before + 1, after);
   }
 
+  Future testMapRehash4() async {
+    // This is a regression test for http://dartbug.com/47598
+    print('testMapRehash4');
+
+    // This map doesn't need rehashing
+    final graph = {'a': 1, 'b': 2, 'c': 3}..remove('b');
+    final graphCopy = (await sendReceive(graph) as Map);
+    Expect.equals(2, graphCopy.length);
+    Expect.equals(1, graphCopy['a']);
+    Expect.equals(3, graphCopy['c']);
+
+    // This map will need re-hashing due to usage of a key that has a
+    // user-defined get:hashCode.
+    final graph2 = {'a': 1, 'b': 2, const HashIncrementer(): 3}..remove('b');
+    final graph2Copy = (await sendReceive(graph2) as Map);
+    Expect.equals(2, graph2Copy.length);
+    Expect.equals(1, graph2Copy['a']);
+    --HashIncrementer.counter;
+    Expect.equals(3, graph2Copy[const HashIncrementer()]);
+  }
+
   Future testSetRehash() async {
     print('testSetRehash');
     final obj = Object();
@@ -577,6 +626,84 @@ class SendReceiveTest extends SendReceiveTestBase {
     for (final smallContainer in smallContainers) {
       expectGraphsMatch([notAllocatableInTLAB, smallContainer],
           await sendReceive([notAllocatableInTLAB, smallContainer]));
+    }
+  }
+
+  Future testWeakProperty() async {
+    print('testWeakProperty');
+    final key = Object();
+    final expando1 = Expando();
+    final expando2 = Expando();
+    final expando3 = Expando();
+    final expando4 = Expando();
+    expando1[key] = expando2;
+    expando2[expando2] = expando3;
+    expando3[expando3] = expando4;
+    expando4[expando4] = {'foo': 'bar'};
+
+    {
+      final result = await sendReceive([
+        key,
+        expando1,
+      ]);
+      final keyCopy = result[0];
+      final expando1Copy = result[1] as Expando;
+      final expando2Copy = expando1Copy[keyCopy] as Expando;
+      final expando3Copy = expando2Copy[expando2Copy] as Expando;
+      final expando4Copy = expando3Copy[expando3Copy] as Expando;
+      Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
+    }
+    {
+      final result = await sendReceive([
+        expando1,
+        key,
+      ]);
+      final expando1Copy = result[0] as Expando;
+      final keyCopy = result[1];
+      final expando2Copy = expando1Copy[keyCopy] as Expando;
+      final expando3Copy = expando2Copy[expando2Copy] as Expando;
+      final expando4Copy = expando3Copy[expando3Copy] as Expando;
+      Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
+    }
+    {
+      final result = await sendReceive([
+        expando1,
+        notAllocatableInTLAB,
+        key,
+      ]);
+      final expando1Copy = result[0] as Expando;
+      final keyCopy = result[2];
+      final expando2Copy = expando1Copy[keyCopy] as Expando;
+      final expando3Copy = expando2Copy[expando2Copy] as Expando;
+      final expando4Copy = expando3Copy[expando3Copy] as Expando;
+      Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
+    }
+    {
+      final result = await sendReceive([
+        key,
+        notAllocatableInTLAB,
+        expando1,
+      ]);
+      final keyCopy = result[0];
+      final expando1Copy = result[2] as Expando;
+      final expando2Copy = expando1Copy[keyCopy] as Expando;
+      final expando3Copy = expando2Copy[expando2Copy] as Expando;
+      final expando4Copy = expando3Copy[expando3Copy] as Expando;
+      Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
+    }
+  }
+
+  Future testForbiddenClosures() async {
+    print('testForbiddenClosures');
+    for (final closure in nonCopyableClosures) {
+      Expect.throwsArgumentError(() => sendPort.send(closure));
+    }
+    for (final closure in nonCopyableClosures) {
+      Expect.throwsArgumentError(() => sendPort.send([closure]));
+    }
+    for (final closure in nonCopyableClosures) {
+      Expect.throwsArgumentError(
+          () => sendPort.send([notAllocatableInTLAB, closure]));
     }
   }
 }

@@ -3,23 +3,35 @@ import self as self;
 import "dart:core" as core;
 import "dart:_late_helper" as _la;
 import "late_statics_lib.dart" as lat;
-additionalExports = (lat::c,
-  lat::c,
-  lat::d,
+additionalExports = (lat::a,
   lat::a,
-  lat::b)
+  lat::b,
+  lat::b,
+  lat::c,
+  lat::c,
+  lat::d)
 
 import "org-dartlang-testcase:///late_statics_lib.dart" as lib;
 export "org-dartlang-testcase:///late_statics_lib.dart";
 
 class Statics extends core::Object {
-  static final field _la::_Cell a = new _la::_Cell::named("a");
-  static final field _la::_Cell b = new _la::_Cell::named("b");
+  static final field _la::_Cell _#a = new _la::_Cell::named("a");
+  static final field _la::_Cell _#b = new _la::_Cell::named("b");
   late static field core::int c = 1.{core::int::unary-}(){() → core::int};
   late static final field core::int d = 1.{core::int::unary-}(){() → core::int};
   synthetic constructor •() → self::Statics
     : super core::Object::•()
     ;
+  static method _#new#tearOff() → self::Statics
+    return new self::Statics::•();
+  static get a() → core::int
+    return self::Statics::_#a.{_la::_Cell::readField}<core::int>(){() → core::int};
+  static set a(core::int value) → void
+    return self::Statics::_#a.{_la::_Cell::value} = value;
+  static get b() → core::int
+    return self::Statics::_#b.{_la::_Cell::readField}<core::int>(){() → core::int};
+  static set b(core::int value) → void
+    return self::Statics::_#b.{_la::_Cell::finalFieldValue} = value;
 }
 static method main() → void {
   self::testUninitializedNonFinalStaticField();
@@ -32,14 +44,14 @@ static method main() → void {
   self::testInitializedFinalTopLevelField();
 }
 static method testUninitializedNonFinalStaticField() → void {
-  core::print(self::Statics::a.{_la::_Cell::readField}<core::int>(){() → core::int});
-  self::Statics::a.{_la::_Cell::value} = 42;
-  core::print(self::Statics::a.{_la::_Cell::readField}<core::int>(){() → core::int});
+  core::print(self::Statics::a);
+  self::Statics::a = 42;
+  core::print(self::Statics::a);
 }
 static method testUninitializedFinalStaticField() → void {
-  core::print(self::Statics::b.{_la::_Cell::readField}<core::int>(){() → core::int});
-  self::Statics::b.{_la::_Cell::finalFieldValue} = 42;
-  core::print(self::Statics::b.{_la::_Cell::readField}<core::int>(){() → core::int});
+  core::print(self::Statics::b);
+  self::Statics::b = 42;
+  core::print(self::Statics::b);
 }
 static method testInitializedNonFinalStaticField() → void {
   core::print(self::Statics::c);
@@ -50,14 +62,14 @@ static method testInitializedFinalStaticField() → void {
   core::print(self::Statics::d);
 }
 static method testUninitializedNonFinalTopLevelField() → void {
-  core::print(lat::a.{_la::_Cell::readField}<core::int>(){() → core::int});
-  lat::a.{_la::_Cell::value} = 42;
-  core::print(lat::a.{_la::_Cell::readField}<core::int>(){() → core::int});
+  core::print(lat::a);
+  lat::a = 42;
+  core::print(lat::a);
 }
 static method testUninitializedFinalTopLevelField() → void {
-  core::print(lat::b.{_la::_Cell::readField}<core::int>(){() → core::int});
-  lat::b.{_la::_Cell::finalFieldValue} = 42;
-  core::print(lat::b.{_la::_Cell::readField}<core::int>(){() → core::int});
+  core::print(lat::b);
+  lat::b = 42;
+  core::print(lat::b);
 }
 static method testInitializedNonFinalTopLevelField() → void {
   core::print(lat::c);
@@ -70,13 +82,21 @@ static method testInitializedFinalTopLevelField() → void {
 
 library /*isNonNullableByDefault*/;
 import self as lat;
-import "dart:_late_helper" as _la;
 import "dart:core" as core;
+import "dart:_late_helper" as _la;
 
-static final field _la::_Cell a = new _la::_Cell::named("a");
-static final field _la::_Cell b = new _la::_Cell::named("b");
+static final field _la::_Cell _#a = new _la::_Cell::named("a");
+static final field _la::_Cell _#b = new _la::_Cell::named("b");
 late static field core::int c = 1.{core::int::unary-}(){() → core::int};
 late static final field core::int d = 1.{core::int::unary-}(){() → core::int};
+static get a() → core::int
+  return lat::_#a.{_la::_Cell::readField}<core::int>(){() → core::int};
+static set a(core::int value) → void
+  return lat::_#a.{_la::_Cell::value} = value;
+static get b() → core::int
+  return lat::_#b.{_la::_Cell::readField}<core::int>(){() → core::int};
+static set b(core::int value) → void
+  return lat::_#b.{_la::_Cell::finalFieldValue} = value;
 
 
 Extra constant evaluation status:
@@ -84,4 +104,4 @@ Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_statics.dart:22:23
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_statics.dart:23:29 -> DoubleConstant(-1.0)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_statics_lib.dart:7:14 -> DoubleConstant(-1.0)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_statics_lib.dart:8:20 -> DoubleConstant(-1.0)
-Extra constant evaluation: evaluated: 62, effectively constant: 4
+Extra constant evaluation: evaluated: 71, effectively constant: 4

@@ -64,6 +64,19 @@ class AlwaysNullableTypeOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.alwaysNullableType;
 }
 
+/// Edge origin resulting from the presence of an Angular annotation such as
+/// `@Optional()`, `@ViewChild(...)`, or `@ContentChild(...)`.
+class AngularAnnotationOrigin extends EdgeOrigin {
+  AngularAnnotationOrigin(Source? source, AstNode node) : super(source, node);
+
+  @override
+  String get description =>
+      'annotated with an Angular annotation indicating nullability';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.angularAnnotation;
+}
+
 /// Edge origin resulting from the presence of a call to
 /// `ArgumentError.checkNotNull`.
 ///
@@ -179,6 +192,18 @@ class EnumValueOrigin extends EdgeOrigin {
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.enumValue;
+}
+
+/// Edge origin resulting from an explicit or implicit `dynamic` type annotation
+/// appearing in an external declaration.
+class ExternalDynamicOrigin extends EdgeOrigin {
+  ExternalDynamicOrigin(Source? source, AstNode node) : super(source, node);
+
+  @override
+  String get description => 'dynamic type in external declaration';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.externalDynamic;
 }
 
 /// Edge origin resulting from the relationship between a field formal parameter
@@ -371,7 +396,7 @@ class InstanceCreationOrigin extends EdgeOrigin {
 /// this class is used for the edge connecting the type of x's type parameter
 /// with the type bound in the declaration of C.
 class InstantiateToBoundsOrigin extends EdgeOrigin {
-  InstantiateToBoundsOrigin(Source? source, TypeName node)
+  InstantiateToBoundsOrigin(Source? source, NamedType node)
       : super(source, node);
 
   @override
@@ -658,7 +683,7 @@ class ThrowOrigin extends EdgeOrigin {
 /// unioned with references to the nodes referring to source code. The origin of
 /// those union edges will be [TypedefReferenceOrigin].
 class TypedefReferenceOrigin extends EdgeOrigin {
-  TypedefReferenceOrigin(Source? source, TypeName node) : super(source, node);
+  TypedefReferenceOrigin(Source? source, NamedType node) : super(source, node);
 
   @override
   String get description => 'reference to typedef';

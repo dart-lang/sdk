@@ -3,14 +3,14 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:3:3: Error: 'A1.foo' is already declared in this scope.
+// org-dartlang-test:///main.dart:4:3: Error: 'A1.foo' is already declared in this scope.
 //   A1.foo(){}
 //   ^^^^^^
-// org-dartlang-test:///main.dart:2:3: Context: Previous declaration of 'A1.foo'.
+// org-dartlang-test:///main.dart:3:3: Context: Previous declaration of 'A1.foo'.
 //   A1.foo(){}
 //   ^^^^^^
 //
-// org-dartlang-test:///main.dart:6:7: Error: Can't use 'foo' because it is declared more than once.
+// org-dartlang-test:///main.dart:7:7: Error: Can't use 'foo' because it is declared more than once.
 //   new A1.foo();
 //       ^
 //
@@ -30,6 +30,6 @@ library from "org-dartlang-test:///main.dart" as main {
     abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
   static method main() → dynamic {
-    invalid-expression "org-dartlang-test:///main.dart:6:7: Error: Can't use 'foo' because it is declared more than once.\n  new A1.foo();\n      ^";
+    invalid-expression "org-dartlang-test:///main.dart:7:7: Error: Can't use 'foo' because it is declared more than once.\n  new A1.foo();\n      ^";
   }
 }

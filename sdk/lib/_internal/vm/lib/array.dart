@@ -10,7 +10,8 @@ class _List<E> extends FixedLengthListBase<E> {
   @pragma("vm:exact-result-type",
       <dynamic>[_List, "result-type-uses-passed-type-arguments"])
   @pragma("vm:prefer-inline")
-  factory _List(length) native "List_allocate";
+  @pragma("vm:external-name", "List_allocate")
+  external factory _List(length);
 
   // Specialization of List.empty constructor for growable == false.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
@@ -107,7 +108,8 @@ class _List<E> extends FixedLengthListBase<E> {
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
-  E operator [](int index) native "List_getIndexed";
+  @pragma("vm:external-name", "List_getIndexed")
+  external E operator [](int index);
 
   @pragma("vm:recognized", "other")
   void operator []=(int index, E value) {
@@ -115,12 +117,14 @@ class _List<E> extends FixedLengthListBase<E> {
   }
 
   @pragma("vm:recognized", "graph-intrinsic")
-  void _setIndexed(int index, E value) native "List_setIndexed";
+  @pragma("vm:external-name", "List_setIndexed")
+  external void _setIndexed(int index, E value);
 
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get length native "List_getLength";
+  @pragma("vm:external-name", "List_getLength")
+  external int get length;
 
   @pragma("vm:prefer-inline")
   _List _slice(int start, int count, bool needsTypeArgument) {
@@ -135,8 +139,8 @@ class _List<E> extends FixedLengthListBase<E> {
     }
   }
 
-  _List _sliceInternal(int start, int count, bool needsTypeArgument)
-      native "List_slice";
+  @pragma("vm:external-name", "List_slice")
+  external _List _sliceInternal(int start, int count, bool needsTypeArgument);
 
   // List interface.
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
@@ -261,16 +265,18 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
         "ImmutableArray can only be allocated by the VM");
   }
 
-  factory _ImmutableList._from(List from, int offset, int length)
-      native "ImmutableList_from";
+  @pragma("vm:external-name", "ImmutableList_from")
+  external factory _ImmutableList._from(List from, int offset, int length);
 
   @pragma("vm:recognized", "graph-intrinsic")
-  E operator [](int index) native "List_getIndexed";
+  @pragma("vm:external-name", "List_getIndexed")
+  external E operator [](int index);
 
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get length native "List_getLength";
+  @pragma("vm:external-name", "List_getLength")
+  external int get length;
 
   List<E> sublist(int start, [int? end]) {
     final int actualEnd = RangeError.checkValidRange(start, end, this.length);

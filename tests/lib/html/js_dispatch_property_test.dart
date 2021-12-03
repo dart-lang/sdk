@@ -6,8 +6,6 @@
 
 import 'package:expect/minitest.dart';
 
-import 'package:expect/expect.dart' show NoInline, AssumeDynamic;
-
 import 'js_dispatch_property_test_lib.dart';
 
 @pragma('dart2js:noInline')

@@ -50,7 +50,7 @@ class ConstructorElementToInfer {
       typeFormals: typeParameters,
       parameters: element.parameters,
       returnType: element.returnType,
-      nullabilitySuffix: NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 }
@@ -97,7 +97,7 @@ class InvocationInferenceHelper {
     List<TypeParameterElement>? typeParameters;
     ConstructorElement? rawElement;
 
-    var typeName = constructorName.type;
+    var typeName = constructorName.type2;
     var typeArguments = typeName.typeArguments;
     var typeElement = typeName.name.staticElement;
     if (typeElement is ClassElement) {
@@ -247,7 +247,7 @@ class InvocationInferenceHelper {
   /// generic function type from the surrounding context.
   DartType inferTearOff(
     Expression expression,
-    SimpleIdentifier identifier,
+    SimpleIdentifierImpl identifier,
     DartType tearOffType,
   ) {
     var context = InferenceContext.getContext(expression);
@@ -255,12 +255,11 @@ class InvocationInferenceHelper {
       var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
         context,
         tearOffType,
-        errorReporter: _resolver.errorReporter,
+        errorReporter: _errorReporter,
         errorNode: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
       )!;
-      (identifier as SimpleIdentifierImpl).tearOffTypeArgumentTypes =
-          typeArguments;
+      identifier.tearOffTypeArgumentTypes = typeArguments;
       if (typeArguments.isNotEmpty) {
         return tearOffType.instantiate(typeArguments);
       }
@@ -282,7 +281,7 @@ class InvocationInferenceHelper {
 
     expression.staticType = type;
     if (_typeSystem.isBottom(type)) {
-      _resolver.flowAnalysis?.flow?.handleExit();
+      _resolver.flowAnalysis.flow?.handleExit();
     }
   }
 

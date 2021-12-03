@@ -4,6 +4,26 @@
 
 // CHANGES:
 //
+// v0.18 Add support for enhanced `enum` declarations.
+//
+// v0.17 (58d917e7573c359580ade43845004dbbc62220d5) Correct `uri` to allow
+// multi-line strings (raw and non-raw).
+//
+// v0.16 (284695f1937c262523a9a11b9084213f889c83e0) Correct instance variable
+// declaration syntax such that `covariant late final` is allowed.
+//
+// v0.15 (6facd6dfdafa2953e8523348220d3129ea884678) Add support for
+// constructor tearoffs and explicitly instantiated function tearoffs and
+// type literals.
+//
+// v0.14 (f65c20124edd9e04f7b3a6f014f40c16f51052f6) Correct `partHeader`
+// to allow uri syntax in a `PART OF` directive.
+//
+// v0.13 (bb5cb79a2fd57d6a480b922bc650d5cd15948753) Introduce non-terminals
+// `builtinIdentifier` and `reservedWord`; update `typeAlias` to enable
+// non-function type aliases; add missing `metadata` to formal parameter
+// declarations; correct `symbolLiteral` to allow `VOID`;
+
 // v0.12 (82403371ac00ddf004be60fa7b705474d2864509) Cf. language issue #1341:
 // correct `metadata`. Change `qualifiedName` such that it only includes the
 // cases with a '.'; the remaining case is added where `qualifiedName` is used.
@@ -467,11 +487,15 @@ mixinApplication
     ;
 
 enumType
-    :    ENUM typeIdentifier LBRACE enumEntry (',' enumEntry)* (',')? RBRACE
+    :    ENUM typeIdentifier typeParameters? mixins? interfaces? LBRACE
+         enumEntry (',' enumEntry)* (',')?
+         (';' (metadata classMemberDefinition)*)?
+         RBRACE
     ;
 
 enumEntry
-    :    metadata identifier
+    :    metadata identifier argumentPart?
+    |    metadata identifier typeArguments? '.' identifier arguments
     ;
 
 typeParameter
@@ -559,7 +583,7 @@ stringLiteral
 
 // Not used in the specification (needed here for <uri>).
 stringLiteralWithoutInterpolation
-    :    singleLineStringWithoutInterpolation+
+    :    singleStringWithoutInterpolation+
     ;
 
 setOrMapLiteral
@@ -1266,10 +1290,13 @@ symbolLiteral
     ;
 
 // Not used in the specification (needed here for <uri>).
-singleLineStringWithoutInterpolation
+singleStringWithoutInterpolation
     :    RAW_SINGLE_LINE_STRING
+    |    RAW_MULTI_LINE_STRING
     |    SINGLE_LINE_STRING_DQ_BEGIN_END
     |    SINGLE_LINE_STRING_SQ_BEGIN_END
+    |    MULTI_LINE_STRING_DQ_BEGIN_END
+    |    MULTI_LINE_STRING_SQ_BEGIN_END
     ;
 
 singleLineString

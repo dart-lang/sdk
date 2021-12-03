@@ -4,15 +4,14 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 
 /// The name and location of a diagnostic name in an ignore comment.
-class DiagnosticName {
+class DiagnosticName implements IgnoredElement {
   /// The name of the diagnostic being ignored.
   final String name;
 
-  /// The offset of the diagnostic in the source file.
   final int offset;
 
   /// Initialize a newly created diagnostic name to have the given [name] and
@@ -20,44 +19,60 @@ class DiagnosticName {
   DiagnosticName(this.name, this.offset);
 
   /// Return `true` if this diagnostic name matches the given error code.
-  bool matches(String errorCode) => name == errorCode;
+  @override
+  bool matches(ErrorCode errorCode) {
+    if (name == errorCode.name.toLowerCase()) {
+      return true;
+    }
+    var uniqueName = errorCode.uniqueName;
+    var period = uniqueName.indexOf('.');
+    if (period >= 0) {
+      uniqueName = uniqueName.substring(period + 1);
+    }
+    return name == uniqueName.toLowerCase();
+  }
 }
 
-/// Information about analysis `//ignore:` and `//ignore_for_file` comments
+class DiagnosticType implements IgnoredElement {
+  final String type;
+
+  final int offset;
+
+  final int length;
+
+  DiagnosticType(String type, this.offset, this.length)
+      : type = type.toLowerCase();
+
+  @override
+  bool matches(ErrorCode errorCode) =>
+      type == errorCode.type.name.toLowerCase();
+}
+
+abstract class IgnoredElement {
+  bool matches(ErrorCode errorCode);
+}
+
+/// Information about analysis `//ignore:` and `//ignore_for_file:` comments
 /// within a source file.
 class IgnoreInfo {
-  ///  Instance shared by all cases without matches.
-  // ignore: deprecated_member_use_from_same_package
-  static final IgnoreInfo _EMPTY_INFO = IgnoreInfo();
-
-  /// A regular expression for matching 'ignore' comments.  Produces matches
-  /// containing 2 groups.  For example:
-  ///
-  ///     * ['//ignore: error_code', 'error_code']
+  /// A regular expression for matching 'ignore' comments.
   ///
   /// Resulting codes may be in a list ('error_code_1,error_code2').
-  static final RegExp IGNORE_MATCHER =
-      RegExp(r'//+[ ]*ignore:(.*)$', multiLine: true);
+  static final RegExp IGNORE_MATCHER = RegExp(r'//+[ ]*ignore:');
 
-  /// A regular expression for matching 'ignore_for_file' comments.  Produces
-  /// matches containing 2 groups.  For example:
-  ///
-  ///     * ['//ignore_for_file: error_code', 'error_code']
+  /// A regular expression for matching 'ignore_for_file' comments.
   ///
   /// Resulting codes may be in a list ('error_code_1,error_code2').
   static final RegExp IGNORE_FOR_FILE_MATCHER =
-      RegExp(r'//[ ]*ignore_for_file:(.*)$', multiLine: true);
+      RegExp(r'//[ ]*ignore_for_file:');
 
-  /// A table mapping line numbers to the diagnostics that are ignored on that
-  /// line.
-  final Map<int, List<DiagnosticName>> _ignoredOnLine = {};
+  /// A table mapping line numbers to the elements (diagnostics and diagnostic
+  /// types) that are ignored on that line.
+  final Map<int, List<IgnoredElement>> _ignoredOnLine = {};
 
-  /// A list containing all of the diagnostics that are ignored for the whole
-  /// file.
-  final List<DiagnosticName> _ignoredForFile = [];
-
-  @Deprecated('Use the constructor IgnoreInfo.forDart')
-  IgnoreInfo();
+  /// A list containing all of the elements (diagnostics and diagnostic types)
+  /// that are ignored for the whole file.
+  final List<IgnoredElement> _ignoredForFile = [];
 
   /// Initialize a newly created instance of this class to represent the ignore
   /// comments in the given compilation [unit].
@@ -68,20 +83,18 @@ class IgnoreInfo {
       if (lexeme.contains('ignore:')) {
         var location = lineInfo.getLocation(comment.offset);
         var lineNumber = location.lineNumber;
-        String beforeMatch = content.substring(
-            lineInfo.getOffsetOfLine(lineNumber - 1),
-            lineInfo.getOffsetOfLine(lineNumber - 1) +
-                location.columnNumber -
-                1);
+        var offsetOfLine = lineInfo.getOffsetOfLine(lineNumber - 1);
+        var beforeMatch = content.substring(
+            offsetOfLine, offsetOfLine + location.columnNumber - 1);
         if (beforeMatch.trim().isEmpty) {
           // The comment is on its own line, so it refers to the next line.
           lineNumber++;
         }
         _ignoredOnLine
             .putIfAbsent(lineNumber, () => [])
-            .addAll(comment.diagnosticNames);
+            .addAll(comment.ignoredElements);
       } else if (lexeme.contains('ignore_for_file:')) {
-        _ignoredForFile.addAll(comment.diagnosticNames);
+        _ignoredForFile.addAll(comment.ignoredElements);
       }
     }
   }
@@ -92,12 +105,12 @@ class IgnoreInfo {
 
   /// Return a list containing all of the diagnostics that are ignored for the
   /// whole file.
-  List<DiagnosticName> get ignoredForFile => _ignoredForFile.toList();
+  List<IgnoredElement> get ignoredForFile => _ignoredForFile.toList();
 
   /// Return a table mapping line numbers to the diagnostics that are ignored on
   /// that line.
-  Map<int, List<DiagnosticName>> get ignoredOnLine {
-    Map<int, List<DiagnosticName>> ignoredOnLine = {};
+  Map<int, List<IgnoredElement>> get ignoredOnLine {
+    Map<int, List<IgnoredElement>> ignoredOnLine = {};
     for (var entry in _ignoredOnLine.entries) {
       ignoredOnLine[entry.key] = entry.value.toList();
     }
@@ -105,77 +118,18 @@ class IgnoreInfo {
   }
 
   /// Return `true` if the [errorCode] is ignored at the given [line].
-  bool ignoredAt(String errorCode, int line) {
-    for (var name in _ignoredForFile) {
-      if (name.matches(errorCode)) {
-        return true;
-      }
+  bool ignoredAt(ErrorCode errorCode, int line) {
+    var ignoredDiagnostics = _ignoredOnLine[line];
+    if (ignoredForFile.isEmpty && ignoredDiagnostics == null) {
+      return false;
     }
-    var ignoredOnLine = _ignoredOnLine[line];
-    if (ignoredOnLine != null) {
-      for (var name in ignoredOnLine) {
-        if (name.matches(errorCode)) {
-          return true;
-        }
-      }
+    if (ignoredForFile.any((name) => name.matches(errorCode))) {
+      return true;
     }
-    return false;
-  }
-
-  /// Ignore these [errorCodes] at [line].
-  void _addAll(int line, Iterable<DiagnosticName> errorCodes) {
-    _ignoredOnLine.putIfAbsent(line, () => []).addAll(errorCodes);
-  }
-
-  /// Ignore these [errorCodes] in the whole file.
-  void _addAllForFile(Iterable<DiagnosticName> errorCodes) {
-    _ignoredForFile.addAll(errorCodes);
-  }
-
-  /// Calculate ignores for the given [content] with line [info].
-  @Deprecated('Use the constructor IgnoreInfo.forDart')
-  static IgnoreInfo calculateIgnores(String content, LineInfo info) {
-    Iterable<Match> matches = IGNORE_MATCHER.allMatches(content);
-    Iterable<Match> fileMatches = IGNORE_FOR_FILE_MATCHER.allMatches(content);
-    if (matches.isEmpty && fileMatches.isEmpty) {
-      return _EMPTY_INFO;
+    if (ignoredDiagnostics == null) {
+      return false;
     }
-
-    IgnoreInfo ignoreInfo = IgnoreInfo();
-    for (Match match in matches) {
-      // See _IGNORE_MATCHER for format --- note the possibility of error lists.
-      // Note that the offsets are not being computed here. This shouldn't
-      // affect older clients of this class because none of the previous APIs
-      // depended on having offsets.
-      Iterable<DiagnosticName> codes = match
-          .group(1)!
-          .split(',')
-          .map((String code) => DiagnosticName(code.trim().toLowerCase(), -1));
-      var location = info.getLocation(match.start);
-      int lineNumber = location.lineNumber;
-      String beforeMatch = content.substring(
-          info.getOffsetOfLine(lineNumber - 1),
-          info.getOffsetOfLine(lineNumber - 1) + location.columnNumber - 1);
-
-      if (beforeMatch.trim().isEmpty) {
-        // The comment is on its own line, so it refers to the next line.
-        ignoreInfo._addAll(lineNumber + 1, codes);
-      } else {
-        // The comment sits next to code, so it refers to its own line.
-        ignoreInfo._addAll(lineNumber, codes);
-      }
-    }
-    // Note that the offsets are not being computed here. This shouldn't affect
-    // older clients of this class because none of the previous APIs depended on
-    // having offsets.
-    for (Match match in fileMatches) {
-      Iterable<DiagnosticName> codes = match
-          .group(1)!
-          .split(',')
-          .map((String code) => DiagnosticName(code.trim().toLowerCase(), -1));
-      ignoreInfo._addAllForFile(codes);
-    }
-    return ignoreInfo;
+    return ignoredDiagnostics.any((name) => name.matches(errorCode));
   }
 }
 
@@ -186,14 +140,10 @@ extension on CompilationUnit {
       var comment = currentToken.precedingComments;
       while (comment != null) {
         var lexeme = comment.lexeme;
-        var match = IgnoreInfo.IGNORE_MATCHER.matchAsPrefix(lexeme);
-        if (match != null) {
+        if (lexeme.startsWith(IgnoreInfo.IGNORE_MATCHER)) {
           yield comment;
-        } else {
-          match = IgnoreInfo.IGNORE_FOR_FILE_MATCHER.matchAsPrefix(lexeme);
-          if (match != null) {
-            yield comment;
-          }
+        } else if (lexeme.startsWith(IgnoreInfo.IGNORE_FOR_FILE_MATCHER)) {
+          yield comment;
         }
         comment = comment.next as CommentToken?;
       }
@@ -213,21 +163,28 @@ extension on CommentToken {
   /// more restrictive in this test.
   static final _errorCodeNameRegExp = RegExp(r'^[a-zA-Z][_a-z0-9A-Z]*$');
 
+  static final _errorTypeRegExp =
+      RegExp(r'^type[ ]*=[ ]*lint', caseSensitive: false);
+
   /// Return the diagnostic names contained in this comment, assuming that it is
   /// a correctly formatted ignore comment.
-  Iterable<DiagnosticName> get diagnosticNames sync* {
-    bool isValidErrorCodeName(String text) {
-      return text.contains(_errorCodeNameRegExp);
-    }
-
+  Iterable<IgnoredElement> get ignoredElements sync* {
     int offset = lexeme.indexOf(':') + 1;
     var names = lexeme.substring(offset).split(',');
     offset += this.offset;
     for (var name in names) {
       var trimmedName = name.trim();
-      if (trimmedName.isNotEmpty && isValidErrorCodeName(trimmedName)) {
-        var innerOffset = name.indexOf(trimmedName);
-        yield DiagnosticName(trimmedName.toLowerCase(), offset + innerOffset);
+      if (trimmedName.isNotEmpty) {
+        if (trimmedName.contains(_errorCodeNameRegExp)) {
+          var innerOffset = name.indexOf(trimmedName);
+          yield DiagnosticName(trimmedName.toLowerCase(), offset + innerOffset);
+        } else {
+          var match = _errorTypeRegExp.matchAsPrefix(trimmedName);
+          if (match != null) {
+            var innerOffset = name.indexOf(trimmedName);
+            yield DiagnosticType('lint', offset + innerOffset, name.length);
+          }
+        }
       }
       offset += name.length + 1;
     }

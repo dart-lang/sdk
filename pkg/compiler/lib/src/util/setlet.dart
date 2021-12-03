@@ -26,7 +26,7 @@ class Setlet<E> extends SetBase<E> {
 
   Setlet();
 
-  Setlet.from(Iterable<E> elements) {
+  Setlet.of(Iterable<E> elements) {
     addAll(elements);
   }
 
@@ -209,8 +209,10 @@ class Setlet<E> extends SetBase<E> {
   @override
   void removeWhere(bool test(E element)) {
     if (_extra == null) {
-      if (test(_contents)) {
-        _contents = _MARKER;
+      if (_MARKER != _contents) {
+        if (test(_contents)) {
+          _contents = _MARKER;
+        }
       }
     } else if (_MARKER == _extra) {
       _contents.removeWhere(test);
@@ -273,11 +275,11 @@ class Setlet<E> extends SetBase<E> {
 
   @override
   Setlet<E> intersection(Set<Object?> other) =>
-      Setlet<E>.from(this.where((e) => other.contains(e)));
+      Setlet.of(this.where((e) => other.contains(e)));
 
   @override
   Setlet<E> difference(Set<Object?> other) =>
-      Setlet<E>.from(this.where((e) => !other.contains(e)));
+      Setlet.of(this.where((e) => !other.contains(e)));
 
   @override
   Setlet<E> toSet() {

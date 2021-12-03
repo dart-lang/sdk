@@ -16,8 +16,10 @@ class LibraryGraph implements Graph<Uri> {
 
   LibraryGraph(this.libraries);
 
+  @override
   Iterable<Uri> get vertices => libraries.keys;
 
+  @override
   Iterable<Uri> neighborsOf(Uri vertex) sync* {
     Library? library = libraries[vertex];
     if (library == null) {

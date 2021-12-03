@@ -10,13 +10,46 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnOfInvalidTypeForCatchErrorTest);
-    defineReflectiveTests(ReturnOfInvalidTypeForCatchErrorWithNullSafetyTest);
+    defineReflectiveTests(
+        ReturnOfInvalidTypeForCatchErrorWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ReturnOfInvalidTypeForCatchErrorTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with ReturnOfInvalidTypeForCatchErrorTestCases {
+  test_nullableType_emptyBody() async {
+    await assertNoErrorsInCode('''
+void f(Future<int?> future) {
+  future.catchError((e, st) {});
+}
+''');
+  }
+
+  test_nullableType_emptyReturn() async {
+    await assertErrorsInCode('''
+void f(Future<int?> future) {
+  future.catchError((e, st) {
+    return;
+  });
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 64, 6),
+    ]);
+  }
+
+  test_nullableType_invalidReturnType() async {
+    await assertErrorsInCode('''
+void f(Future<int?> future) {
+  future.catchError((e, st) => '');
+}
+''', [
+      error(HintCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR, 61, 2),
+    ]);
+  }
+}
+
+mixin ReturnOfInvalidTypeForCatchErrorTestCases on PubPackageResolutionTest {
   test_async_okReturnType() async {
     await assertNoErrorsInCode('''
 void f(Future<int> future) {
@@ -167,35 +200,6 @@ void f(Future<int> future, void Function() g) {
 }
 
 @reflectiveTest
-class ReturnOfInvalidTypeForCatchErrorWithNullSafetyTest
-    extends ReturnOfInvalidTypeForCatchErrorTest with WithNullSafetyMixin {
-  test_nullableType_emptyBody() async {
-    await assertNoErrorsInCode('''
-void f(Future<int?> future) {
-  future.catchError((e, st) {});
-}
-''');
-  }
-
-  test_nullableType_emptyReturn() async {
-    await assertErrorsInCode('''
-void f(Future<int?> future) {
-  future.catchError((e, st) {
-    return;
-  });
-}
-''', [
-      error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 64, 6),
-    ]);
-  }
-
-  test_nullableType_invalidReturnType() async {
-    await assertErrorsInCode('''
-void f(Future<int?> future) {
-  future.catchError((e, st) => '');
-}
-''', [
-      error(HintCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR, 61, 2),
-    ]);
-  }
-}
+class ReturnOfInvalidTypeForCatchErrorWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with ReturnOfInvalidTypeForCatchErrorTestCases, WithoutNullSafetyMixin {}

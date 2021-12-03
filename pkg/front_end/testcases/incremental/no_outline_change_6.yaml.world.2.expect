@@ -11,7 +11,7 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:7:32: Error: Expected ';' after this.
+// org-dartlang-test:///main.dart:8:32: Error: Expected ';' after this.
 //   toString() { return '$message!!!' } // missing ; still
 //                                ^^^^
 //
@@ -37,19 +37,19 @@ library from "org-dartlang-test:///main.dart" as main {
     abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
     abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
-  class CompilationStrategy extends dart.core::Object implements dart.core::Enum /*isEnum*/  {
-    final field dart.core::int* index;
-    final field dart.core::String* _name;
+  class CompilationStrategy extends dart.core::_Enum /*isEnum*/  {
     static const field dart.core::List<main::CompilationStrategy*>* values = #C14;
     static const field main::CompilationStrategy* direct = #C4;
     static const field main::CompilationStrategy* toKernel = #C7;
     static const field main::CompilationStrategy* toData = #C10;
     static const field main::CompilationStrategy* fromData = #C13;
-    const constructor •(dart.core::int* index, dart.core::String* _name) → main::CompilationStrategy*
-      : main::CompilationStrategy::index = index, main::CompilationStrategy::_name = _name, super dart.core::Object::•()
+    const constructor •(dart.core::int* index, dart.core::String* name) → main::CompilationStrategy*
+      : super dart.core::_Enum::•(index, name)
       ;
     method toString() → dart.core::String*
-      return this.{main::CompilationStrategy::_name}{dart.core::String*};
+      return "CompilationStrategy.${this.{dart.core::_Enum::_name}{dart.core::String}}";
+    abstract member-signature get index() → dart.core::int*; -> dart.core::_Enum::index
+    abstract member-signature get _name() → dart.core::String*; -> dart.core::_Enum::_name
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
     abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
@@ -70,16 +70,16 @@ library from "org-dartlang-test:///main.dart" as main {
 constants  {
   #C1 = dart.core::_Override {}
   #C2 = 0
-  #C3 = "CompilationStrategy.direct"
+  #C3 = "direct"
   #C4 = main::CompilationStrategy {index:#C2, _name:#C3}
   #C5 = 1
-  #C6 = "CompilationStrategy.toKernel"
+  #C6 = "toKernel"
   #C7 = main::CompilationStrategy {index:#C5, _name:#C6}
   #C8 = 2
-  #C9 = "CompilationStrategy.toData"
+  #C9 = "toData"
   #C10 = main::CompilationStrategy {index:#C8, _name:#C9}
   #C11 = 3
-  #C12 = "CompilationStrategy.fromData"
+  #C12 = "fromData"
   #C13 = main::CompilationStrategy {index:#C11, _name:#C12}
   #C14 = <main::CompilationStrategy*>[#C4, #C7, #C10, #C13]
 }

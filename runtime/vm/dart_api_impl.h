@@ -118,27 +118,17 @@ const char* CanonicalFunction(const char* func);
 #ifdef SUPPORT_TIMELINE
 #define API_TIMELINE_DURATION(thread)                                          \
   TimelineBeginEndScope api_tbes(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
-#define API_TIMELINE_DURATION_BASIC(thread)                                    \
-  API_TIMELINE_DURATION(thread);                                               \
-  api_tbes.SetNumArguments(1);                                                 \
-  api_tbes.CopyArgument(0, "mode", "basic");
 
 #define API_TIMELINE_BEGIN_END(thread)                                         \
   TimelineBeginEndScope api_tbes(thread, Timeline::GetAPIStream(), CURRENT_FUNC)
 
-#define API_TIMELINE_BEGIN_END_BASIC(thread)                                   \
-  API_TIMELINE_BEGIN_END(thread);                                              \
-  api_tbes.SetNumArguments(1);                                                 \
-  api_tbes.CopyArgument(0, "mode", "basic");
 #else
 #define API_TIMELINE_DURATION(thread)                                          \
   do {                                                                         \
   } while (false)
-#define API_TIMELINE_DURATION_BASIC(thread) API_TIMELINE_DURATION(thread)
 #define API_TIMELINE_BEGIN_END(thread)                                         \
   do {                                                                         \
   } while (false)
-#define API_TIMELINE_BEGIN_END_BASIC(thread) API_TIMELINE_BEGIN_END(thread)
 #endif  // !PRODUCT
 
 class Api : AllStatic {
@@ -194,6 +184,9 @@ class Api : AllStatic {
   // Gets the handle which holds the pre-created acquired error object.
   static Dart_Handle AcquiredError(IsolateGroup* isolate_group);
 
+  // Gets the handle for unwind-is-in-progress error.
+  static Dart_Handle UnwindInProgressError();
+
   // Returns true if the handle holds a Smi.
   static bool IsSmi(Dart_Handle handle) {
     // Important: we do not require current thread to be in VM state because
@@ -212,7 +205,7 @@ class Api : AllStatic {
 
   // Returns true if the handle holds a Dart Instance.
   static bool IsInstance(Dart_Handle handle) {
-    return (ClassId(handle) >= kInstanceCid);
+    return !IsInternalOnlyClassId(ClassId(handle));
   }
 
   // Returns true if the handle is non-dangling.
@@ -335,6 +328,9 @@ class Api : AllStatic {
   if (thread->no_callback_scope_depth() != 0) {                                \
     return reinterpret_cast<Dart_Handle>(                                      \
         Api::AcquiredError(thread->isolate_group()));                          \
+  }                                                                            \
+  if (thread->is_unwind_in_progress()) {                                       \
+    return reinterpret_cast<Dart_Handle>(Api::UnwindInProgressError());        \
   }
 
 #define ASSERT_CALLBACK_STATE(thread)                                          \

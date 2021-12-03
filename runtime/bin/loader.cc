@@ -8,7 +8,6 @@
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "bin/error_exit.h"
-#include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/gzip.h"
 #include "bin/lockers.h"
@@ -47,97 +46,6 @@ Dart_Handle Loader::Init(const char* packages_file,
                      : Dart_NewStringFromCString(root_script_uri);
   return Dart_Invoke(DartUtils::LookupBuiltinLib(),
                      DartUtils::NewString("_Init"), kNumArgs, dart_args);
-}
-
-static bool PathContainsSeparator(const char* path) {
-  return (strchr(path, '/') != NULL) ||
-         ((strncmp(File::PathSeparator(), "/", 1) != 0) &&
-          (strstr(path, File::PathSeparator()) != NULL));
-}
-
-#define RETURN_ERROR(result)                                                   \
-  if (Dart_IsError(result)) return result;
-
-Dart_Handle Loader::LoadImportExtension(const char* url_string,
-                                        Dart_Handle library) {
-  const char* lib_uri_str = NULL;
-  Dart_Handle lib_uri = Dart_LibraryResolvedUrl(library);
-  ASSERT(!Dart_IsError(lib_uri));
-  Dart_Handle result = Dart_StringToCString(lib_uri, &lib_uri_str);
-  RETURN_ERROR(result);
-
-  UriDecoder decoder(lib_uri_str);
-  lib_uri_str = decoder.decoded();
-
-  if (strncmp(lib_uri_str, "http://", 7) == 0 ||
-      strncmp(lib_uri_str, "https://", 8) == 0 ||
-      strncmp(lib_uri_str, "data://", 7) == 0) {
-    return DartUtils::NewError(
-        "Cannot load native extensions over http: or https: or data: %s",
-        lib_uri_str);
-  }
-
-  char* lib_path = NULL;
-  if (strncmp(lib_uri_str, "file://", 7) == 0) {
-    auto path = File::UriToPath(lib_uri_str);
-    lib_path = DartUtils::DirName(path.get());
-  } else {
-    lib_path = Utils::StrDup(lib_uri_str);
-  }
-
-  const char* path = DartUtils::RemoveScheme(url_string);
-  if (!File::IsAbsolutePath(path) && PathContainsSeparator(path)) {
-    free(lib_path);
-    return DartUtils::NewError(
-        "Native extension path must be absolute, or simply the file name: %s",
-        path);
-  }
-
-  result = Extensions::LoadExtension(lib_path, path, library);
-  free(lib_path);
-  return result;
-}
-
-Dart_Handle Loader::ReloadNativeExtensions() {
-  Dart_Handle scheme =
-      Dart_NewStringFromCString(DartUtils::kDartExtensionScheme);
-  Dart_Handle extension_imports = Dart_GetImportsOfScheme(scheme);
-  RETURN_ERROR(extension_imports);
-
-  intptr_t length = -1;
-  Dart_Handle result = Dart_ListLength(extension_imports, &length);
-  RETURN_ERROR(result);
-  Dart_Handle* import_handles = reinterpret_cast<Dart_Handle*>(
-      Dart_ScopeAllocate(sizeof(Dart_Handle) * length));
-  result = Dart_ListGetRange(extension_imports, 0, length, import_handles);
-  RETURN_ERROR(result);
-  for (intptr_t i = 0; i < length; i += 2) {
-    Dart_Handle importer = import_handles[i];
-    Dart_Handle importee = import_handles[i + 1];
-
-    const char* extension_uri = NULL;
-    result = Dart_StringToCString(Dart_LibraryUrl(importee), &extension_uri);
-    RETURN_ERROR(result);
-    const char* extension_path = DartUtils::RemoveScheme(extension_uri);
-
-    const char* lib_uri = NULL;
-    result = Dart_StringToCString(Dart_LibraryUrl(importer), &lib_uri);
-    RETURN_ERROR(result);
-
-    char* lib_path = NULL;
-    if (strncmp(lib_uri, "file://", 7) == 0) {
-      auto path = File::UriToPath(lib_uri);
-      lib_path = DartUtils::DirName(path.get());
-    } else {
-      lib_path = Utils::StrDup(lib_uri);
-    }
-
-    result = Extensions::LoadExtension(lib_path, extension_path, importer);
-    free(lib_path);
-    RETURN_ERROR(result);
-  }
-
-  return Dart_True();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -184,13 +92,6 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     Dart_NewFinalizableHandle(result, kernel_buffer, kernel_buffer_size,
                               MallocFinalizer);
     return result;
-  }
-  if (tag == Dart_kImportExtensionTag) {
-    if (!DartUtils::IsDartExtensionSchemeURL(url_string)) {
-      return DartUtils::NewError(
-          "Native extensions must use the dart-ext: scheme : %s", url_string);
-    }
-    return Loader::LoadImportExtension(url_string, library);
   }
   if (dfe.CanUseDartFrontend() && dfe.UseDartFrontend() &&
       (tag == Dart_kImportTag)) {

@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -14,32 +15,27 @@ import 'package:analyzer/dart/element/element.dart';
 /// produces suggestions for expressions of the form `p.^`, where `p` is a
 /// prefix.
 class LibraryMemberContributor extends DartCompletionContributor {
+  LibraryMemberContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     // Determine if the target looks like a library prefix.
-    var targetId = request.dotTarget;
+    var targetId = request.target.dotTarget;
     if (targetId is SimpleIdentifier && !request.target.isCascade) {
       var elem = targetId.staticElement;
       if (elem is PrefixElement && !elem.isSynthetic) {
-        var containingLibrary = request.libraryElement;
-        // Gracefully degrade if the library or directives could not be
-        // determined (e.g. detached part file or source change).
-        if (containingLibrary != null) {
-          var imports = containingLibrary.imports;
-          _buildSuggestions(request, builder, elem, imports);
-        }
+        var imports = request.libraryElement.imports;
+        _buildSuggestions(elem, imports);
       }
     }
   }
 
-  void _buildSuggestions(
-      DartCompletionRequest request,
-      SuggestionBuilder builder,
-      PrefixElement elem,
-      List<ImportElement> imports) {
+  void _buildSuggestions(PrefixElement elem, List<ImportElement> imports) {
     var parent = request.target.containingNode.parent;
-    var typesOnly = parent is TypeName;
+    var typesOnly = parent is NamedType;
     var isConstructor = parent?.parent is ConstructorName;
     for (var importElem in imports) {
       if (importElem.prefix?.name == elem.name) {

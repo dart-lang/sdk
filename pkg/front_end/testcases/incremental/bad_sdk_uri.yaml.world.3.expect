@@ -6,6 +6,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
       : super #lib1::Object::•()
       ;
     method bMethod() → void {}
+    abstract member-signature operator ==(dynamic dynamic) → #lib1::bool*; -> #lib1::Object::==
   }
 }
 library from "org-dartlang-test:///main.dart" as main {

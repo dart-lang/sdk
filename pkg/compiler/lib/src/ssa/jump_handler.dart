@@ -22,7 +22,7 @@ class _JumpHandlerEntry {
 
 abstract class JumpHandler {
   factory JumpHandler(KernelSsaGraphBuilder builder, JumpTarget target) {
-    return new TargetJumpHandler(builder, target);
+    return TargetJumpHandler(builder, target);
   }
   void generateBreak(SourceInformation sourceInformation,
       [LabelDefinition label]);
@@ -72,7 +72,7 @@ class NullJumpHandler implements JumpHandler {
   bool hasAnyBreak() => false;
 
   @override
-  List<LabelDefinition> get labels => const <LabelDefinition>[];
+  List<LabelDefinition> get labels => const [];
   @override
   JumpTarget get target => null;
 }
@@ -85,11 +85,9 @@ class TargetJumpHandler implements JumpHandler {
   final KernelSsaGraphBuilder builder;
   @override
   final JumpTarget target;
-  final List<_JumpHandlerEntry> jumps;
+  final List<_JumpHandlerEntry> jumps = [];
 
-  TargetJumpHandler(KernelSsaGraphBuilder builder, this.target)
-      : this.builder = builder,
-        jumps = <_JumpHandlerEntry>[] {
+  TargetJumpHandler(this.builder, this.target) {
     assert(builder.jumpTargets[target] == null);
     builder.jumpTargets[target] = this;
   }
@@ -103,14 +101,14 @@ class TargetJumpHandler implements JumpHandler {
     HInstruction breakInstruction;
     if (label == null) {
       breakInstruction =
-          new HBreak(_abstractValueDomain, target, sourceInformation);
+          HBreak(_abstractValueDomain, target, sourceInformation);
     } else {
       breakInstruction =
-          new HBreak.toLabel(_abstractValueDomain, label, sourceInformation);
+          HBreak.toLabel(_abstractValueDomain, label, sourceInformation);
     }
-    LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
+    LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
     builder.close(breakInstruction);
-    jumps.add(new _JumpHandlerEntry(breakInstruction, locals));
+    jumps.add(_JumpHandlerEntry(breakInstruction, locals));
   }
 
   @override
@@ -119,17 +117,17 @@ class TargetJumpHandler implements JumpHandler {
     HInstruction continueInstruction;
     if (label == null) {
       continueInstruction =
-          new HContinue(_abstractValueDomain, target, sourceInformation);
+          HContinue(_abstractValueDomain, target, sourceInformation);
     } else {
       continueInstruction =
-          new HContinue.toLabel(_abstractValueDomain, label, sourceInformation);
+          HContinue.toLabel(_abstractValueDomain, label, sourceInformation);
       // Switch case continue statements must be handled by the
       // [SwitchCaseJumpHandler].
       assert(!label.target.isSwitchCase);
     }
-    LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
+    LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
     builder.close(continueInstruction);
-    jumps.add(new _JumpHandlerEntry(continueInstruction, locals));
+    jumps.add(_JumpHandlerEntry(continueInstruction, locals));
   }
 
   @override
@@ -184,7 +182,7 @@ class TargetJumpHandler implements JumpHandler {
 abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
   /// Map from switch case targets to indices used to encode the flow of the
   /// switch case loop.
-  final Map<JumpTarget, int> targetIndexMap = new Map<JumpTarget, int>();
+  final Map<JumpTarget, int> targetIndexMap = {};
 
   SwitchCaseJumpHandler(KernelSsaGraphBuilder builder, JumpTarget target)
       : super(builder, target);
@@ -197,12 +195,12 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
       // for a switch statement with continue statements. See
       // [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
 
-      HInstruction breakInstruction = new HBreak(
+      HInstruction breakInstruction = HBreak(
           _abstractValueDomain, target, sourceInformation,
           breakSwitchContinueLoop: true);
-      LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
+      LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
       builder.close(breakInstruction);
-      jumps.add(new _JumpHandlerEntry(breakInstruction, locals));
+      jumps.add(_JumpHandlerEntry(breakInstruction, locals));
     } else {
       super.generateBreak(sourceInformation, label);
     }
@@ -227,10 +225,10 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
 
       assert(label.target.labels.contains(label));
       HInstruction continueInstruction =
-          new HContinue(_abstractValueDomain, target, sourceInformation);
-      LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
+          HContinue(_abstractValueDomain, target, sourceInformation);
+      LocalsHandler locals = LocalsHandler.from(builder.localsHandler);
       builder.close(continueInstruction);
-      jumps.add(new _JumpHandlerEntry(continueInstruction, locals));
+      jumps.add(_JumpHandlerEntry(continueInstruction, locals));
     } else {
       super.generateContinue(sourceInformation, label);
     }

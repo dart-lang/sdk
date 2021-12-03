@@ -11,7 +11,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 import '../../test/utils/io_utils.dart' show computeRepoDirUri;
 
-main(List<String> args) {
+void main(List<String> args) {
   final Uri repoDir = computeRepoDirUri();
   String generated = generateAstHelper(repoDir);
   new File.fromUri(computeAstHelperUri(repoDir))
@@ -42,6 +42,7 @@ String generateAstHelper(Uri repoDir) {
 
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
+import 'package:_fe_analyzer_shared/src/parser/constructor_reference_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/declaration_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
@@ -100,15 +101,19 @@ class ParserCreatorListener extends Listener {
 
   ParserCreatorListener(this.out);
 
+  @override
   void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
     if (name.lexeme == "Listener") insideListenerClass = true;
   }
 
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     insideListenerClass = false;
   }
 
+  @override
   void beginMethod(
+      DeclarationKind declarationKind,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
@@ -118,6 +123,7 @@ class ParserCreatorListener extends Listener {
     currentMethodName = name.lexeme;
   }
 
+  @override
   void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     void end() {
@@ -130,6 +136,7 @@ class ParserCreatorListener extends Listener {
             currentMethodName!.startsWith("end") ||
             currentMethodName!.startsWith("handle"))) {
       StringBuffer sb = new StringBuffer();
+      sb.writeln("  @override");
       sb.write("  ");
       Token token = beginToken;
       Token? latestToken;
@@ -221,6 +228,7 @@ class ParserCreatorListener extends Listener {
           newClasses.write('}');
         }
         newClasses.write(') : super("$name", type);\n\n');
+        newClasses.writeln("@override");
         newClasses.write("Map<String, Object?> get deprecatedArguments => {");
         for (int i = 0; i < parameters.length; i++) {
           Parameter param = parameters[i];
@@ -248,11 +256,13 @@ class ParserCreatorListener extends Listener {
     latestSeenParameterTypeTokenQuestion = null;
   }
 
+  @override
   void handleType(Token beginToken, Token? questionMark) {
     latestSeenParameterTypeToken = beginToken.lexeme;
     latestSeenParameterTypeTokenQuestion = questionMark?.lexeme;
   }
 
+  @override
   void endFormalParameter(
       Token? thisKeyword,
       Token? periodAfterThis,

@@ -19,7 +19,7 @@ main() {
     var i = new Test.named(10);
     //          ^^^^
     // [analyzer] COMPILE_TIME_ERROR.PREFIX_SHADOWED_BY_LOCAL_DECLARATION
-    // [cfe] Method not found: 'Test.named'.
+    // [cfe] Couldn't find constructor 'Test.named'.
     Expect.equals(10, i.field);
   }
 

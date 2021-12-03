@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /// Test to ensure that incremental_perf.dart is running without errors.
 
 import 'dart:io';
@@ -11,7 +9,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'incremental_perf.dart' as m show main;
 
-main() async {
+Future<void> main() async {
   var sdkOutline = computePlatformBinariesLocation(forceBuildDir: true).resolve(
       // TODO(sigmund): switch to `vm_outline.dill` (issue #29881).
       "vm_platform_strong.dill");

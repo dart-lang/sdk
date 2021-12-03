@@ -2,15 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
-import '../../../generated/test_analysis_context.dart';
+import '../../../generated/type_system_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class TopMergeTest extends _Base {
+class TopMergeTest extends AbstractTypeSystemTest {
   test_differentStructure() {
     _checkThrows(
       intNone,
@@ -339,24 +335,5 @@ class TopMergeTest extends _Base {
     expect(() {
       return typeSystem.topMerge(S, T);
     }, throwsA(anything));
-  }
-}
-
-abstract class _Base with ElementsTypesMixin {
-  @override
-  late final TypeProvider typeProvider;
-
-  late final TypeSystemImpl typeSystem;
-
-  FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting();
-  }
-
-  void setUp() {
-    var analysisContext = TestAnalysisContext(
-      featureSet: testFeatureSet,
-    );
-    typeProvider = analysisContext.typeProviderLegacy;
-    typeSystem = analysisContext.typeSystemLegacy;
   }
 }

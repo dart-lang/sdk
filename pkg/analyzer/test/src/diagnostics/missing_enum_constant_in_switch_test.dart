@@ -10,13 +10,63 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingEnumConstantInSwitchTest);
-    defineReflectiveTests(MissingEnumConstantInSwitchWithNullSafetyTest);
+    defineReflectiveTests(MissingEnumConstantInSwitchWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class MissingEnumConstantInSwitchTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with MissingEnumConstantInSwitchTestCases {
+  test_nullable() async {
+    await assertErrorsInCode('''
+enum E { one, two }
+
+void f(E? e) {
+  switch (e) {
+    case E.one:
+    case E.two:
+      break;
+  }
+}
+''', [
+      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 10),
+    ]);
+  }
+
+  test_nullable_default() async {
+    await assertNoErrorsInCode('''
+enum E { one, two }
+
+void f(E? e) {
+  switch (e) {
+    case E.one:
+      break;
+    default:
+      break;
+  }
+}
+''');
+  }
+
+  test_nullable_null() async {
+    await assertNoErrorsInCode('''
+enum E { one, two }
+
+void f(E? e) {
+  switch (e) {
+    case E.one:
+      break;
+    case E.two:
+      break;
+    case null:
+      break;
+  }
+}
+''');
+  }
+}
+
+mixin MissingEnumConstantInSwitchTestCases on PubPackageResolutionTest {
   test_default() async {
     await assertNoErrorsInCode('''
 enum E { one, two, three }
@@ -99,53 +149,6 @@ void f(E e) {
 }
 
 @reflectiveTest
-class MissingEnumConstantInSwitchWithNullSafetyTest
-    extends MissingEnumConstantInSwitchTest with WithNullSafetyMixin {
-  test_nullable() async {
-    await assertErrorsInCode('''
-enum E { one, two }
-
-void f(E? e) {
-  switch (e) {
-    case E.one:
-    case E.two:
-      break;
-  }
-}
-''', [
-      error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 10),
-    ]);
-  }
-
-  test_nullable_default() async {
-    await assertNoErrorsInCode('''
-enum E { one, two }
-
-void f(E? e) {
-  switch (e) {
-    case E.one:
-      break;
-    default:
-      break;
-  }
-}
-''');
-  }
-
-  test_nullable_null() async {
-    await assertNoErrorsInCode('''
-enum E { one, two }
-
-void f(E? e) {
-  switch (e) {
-    case E.one:
-      break;
-    case E.two:
-      break;
-    case null:
-      break;
-  }
-}
-''');
-  }
-}
+class MissingEnumConstantInSwitchWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with MissingEnumConstantInSwitchTestCases, WithoutNullSafetyMixin {}

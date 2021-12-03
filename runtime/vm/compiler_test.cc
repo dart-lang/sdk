@@ -209,6 +209,7 @@ TEST_CASE(EvalExpression) {
             /*platform_kernel=*/nullptr, /*platform_kernel_size=*/0,
             expr_text.ToCString(), Array::empty_array(), Array::empty_array(),
             String::Handle(lib_handle.url()).ToCString(), "A",
+            /* method= */ nullptr,
             /* is_static= */ false);
     EXPECT_EQ(Dart_KernelCompilationStatus_Ok, compilation_result.status);
 

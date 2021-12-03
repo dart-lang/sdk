@@ -75,7 +75,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
   @override
   void visitBasicBlock(HBasicBlock block) {
     HInstructionStringifier stringifier =
-        new HInstructionStringifier(block, closedWorld);
+        HInstructionStringifier(block, closedWorld);
     assert(block.id != null);
     tag("block", () {
       printProperty("name", "B${block.id}");
@@ -94,7 +94,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
           printProperty("method", "None");
           block.forEachPhi((phi) {
             String phiId = stringifier.temporaryId(phi);
-            StringBuffer inputIds = new StringBuffer();
+            StringBuffer inputIds = StringBuffer();
             for (int i = 0; i < phi.inputs.length; i++) {
               inputIds.write(stringifier.temporaryId(phi.inputs[i]));
               inputIds.write(" ");
@@ -326,7 +326,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String handleGenericInvoke(
       String invokeType, String functionName, List<HInstruction> arguments) {
-    StringBuffer argumentsString = new StringBuffer();
+    StringBuffer argumentsString = StringBuffer();
     for (int i = 0; i < arguments.length; i++) {
       if (i != 0) argumentsString.write(", ");
       argumentsString.write(temporaryId(arguments[i]));
@@ -370,8 +370,15 @@ class HInstructionStringifier implements HVisitor<String> {
     String target = "$receiver.$name";
     int offset = HInvoke.ARGUMENTS_OFFSET;
     List arguments = invoke.inputs.sublist(offset);
+    final attributes = {
+      if (invoke.isInvariant) 'Invariant',
+      if (invoke.isBoundsSafe) 'BoundSafe',
+    };
+    String attributesText = attributes.isEmpty ? '' : ' $attributes';
+
     return handleGenericInvoke(kind, target, arguments) +
-        "(${invoke.receiverType})";
+        "(${invoke.receiverType})" +
+        attributesText;
   }
 
   @override
@@ -438,7 +445,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitLiteralList(HLiteralList node) {
-    StringBuffer elementsString = new StringBuffer();
+    StringBuffer elementsString = StringBuffer();
     for (int i = 0; i < node.inputs.length; i++) {
       if (i != 0) elementsString.write(", ");
       elementsString.write(temporaryId(node.inputs[i]));
@@ -478,7 +485,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitPhi(HPhi phi) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write("Phi: ");
     for (int i = 0; i < phi.inputs.length; i++) {
       if (i > 0) buffer.write(", ");
@@ -539,7 +546,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitSwitch(HSwitch node) {
-    StringBuffer buf = new StringBuffer();
+    StringBuffer buf = StringBuffer();
     buf.write("Switch: (");
     buf.write(temporaryId(node.inputs[0]));
     buf.write(") ");
@@ -577,7 +584,8 @@ class HInstructionStringifier implements HVisitor<String> {
 
   @override
   String visitExitTry(HExitTry node) {
-    return "ExitTry";
+    final targets = currentBlock.successors.map((block) => 'B${block.id}');
+    return "ExitTry: (${targets.join(', ')})";
   }
 
   @override

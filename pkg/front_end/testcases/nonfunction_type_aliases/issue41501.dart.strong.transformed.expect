@@ -21,15 +21,15 @@ import "org-dartlang-testcase:///issue41501_lib.dart";
 typedef AAliasNonNullable = opt::A;
 typedef AAliasNullable = opt::A?;
 static method test() → dynamic {
-  FutureOr<() → opt::A*>foLegacyNonNullable = let final Never #t1 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A Function()>' because 'FutureOr<A Function()>' is not nullable.
+  FutureOr<() → opt::A*>foLegacyNonNullable = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A Function()>' because 'FutureOr<A Function()>' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
   FutureOr<AAlias> foLegacyNonNullable = null; // error
-                                         ^" in let Null #t2 = null in #t2 == null ?{FutureOr<() → opt::A*>} #t2 as{TypeError,ForNonNullableByDefault} FutureOr<() → opt::A*> : #t2{FutureOr<() → opt::A*>};
+                                         ^" in let Null #t1 = null in #t1 == null ?{FutureOr<() → opt::A*>} #t1 as{TypeError,ForNonNullableByDefault} FutureOr<() → opt::A*> : #t1{FutureOr<() → opt::A*>};
   FutureOr<() →? opt::A*>foLegacyNullable = null;
-  FutureOr<opt::A>foNonNullable = let final Never #t3 = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
+  FutureOr<opt::A>foNonNullable = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
   FutureOr<AAliasNonNullable> foNonNullable = null; // error
-                                              ^" in let Null #t4 = null in #t4 == null ?{FutureOr<opt::A>} #t4 as{TypeError,ForNonNullableByDefault} FutureOr<opt::A> : #t4{FutureOr<opt::A>};
+                                              ^" in let Null #t2 = null in #t2 == null ?{FutureOr<opt::A>} #t2 as{TypeError,ForNonNullableByDefault} FutureOr<opt::A> : #t2{FutureOr<opt::A>};
   FutureOr<opt::A?>foNullable = null;
   FutureOr<opt::A?>foNonNullableNullable = null;
   FutureOr<opt::A?>foNullableNullable = null;
@@ -71,13 +71,3 @@ static method test() → dynamic {
   FutureOr<opt::A*>* foNonNullable = null;
   FutureOr<opt::A*>* foNullable = null;
 }
-
-
-Extra constant evaluation status:
-Evaluated: EqualsNull @ org-dartlang-testcase:///issue41501.dart:13:42 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///issue41501.dart:13:42 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///issue41501.dart:13:42 -> NullConstant(null)
-Evaluated: EqualsNull @ org-dartlang-testcase:///issue41501.dart:15:47 -> BoolConstant(true)
-Evaluated: VariableGet @ org-dartlang-testcase:///issue41501.dart:15:47 -> NullConstant(null)
-Evaluated: VariableGet @ org-dartlang-testcase:///issue41501.dart:15:47 -> NullConstant(null)
-Extra constant evaluation: evaluated: 14, effectively constant: 6

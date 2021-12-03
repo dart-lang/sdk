@@ -38,7 +38,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   field core::int? lateInstanceFieldInit = null;
   field core::int? _#Class#lateInstanceField = null;
   field core::bool _#Class#lateInstanceField#isSet = false;
-  generic-covariant-impl field self::Class::T? lateGenericFieldInit = null;
+  covariant-by-class field self::Class::T? lateGenericFieldInit = null;
   final field self::Class::T% field;
   field self::Class::T? _#Class#lateGenericField = null;
   field core::bool _#Class#lateGenericField#isSet = false;
@@ -89,7 +89,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     }
     return let final core::int? #t8 = this.{self::Class::_#Class#lateInstanceField}{core::int?} in #t8{core::int};
   }
-  method initLateGenericField(generic-covariant-impl self::Class::T% value) → self::Class::T% {
+  method initLateGenericField(covariant-by-class self::Class::T% value) → self::Class::T% {
     return this.{self::Class::lateGenericFieldInit} = value;
   }
   get lateGenericField() → self::Class::T% {

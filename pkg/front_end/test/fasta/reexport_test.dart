@@ -11,7 +11,7 @@ import "package:front_end/src/testing/compiler_common.dart" show compileUnit;
 import "package:front_end/src/api_prototype/front_end.dart"
     show CompilerOptions;
 
-main() {
+void main() {
   asyncTest(() async {
     var sources = <String, dynamic>{
       "a.dart": """

@@ -49,7 +49,7 @@ static method main() → dynamic {
   new self::Class::•(0);
 }
 static method error() → dynamic {
-  new self::Class::•(let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/mixin_application_inferred_parameter_type.dart:20:13: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+  new self::Class::•(invalid-expression "pkg/front_end/testcases/general/mixin_application_inferred_parameter_type.dart:20:13: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
   new Class('');
             ^" in "" as{TypeError} core::int*);
 }

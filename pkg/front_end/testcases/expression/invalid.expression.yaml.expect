@@ -11,4 +11,4 @@ Errors: {
    ^^^
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:1: Error: This couldn't be parsed.\n*foo(3,\n^"{dynamic}.*(invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:2: Error: Method not found: 'foo'.\n*foo(3,\n ^^^");
+  return invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:1: Error: This couldn't be parsed.\n*foo(3,\n^"{<invalid>}.*(invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:2: Error: Method not found: 'foo'.\n*foo(3,\n ^^^");

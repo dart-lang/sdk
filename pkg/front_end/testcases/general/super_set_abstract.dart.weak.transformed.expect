@@ -36,7 +36,7 @@ class SubClass extends self::Class {
     : super self::Class::•()
     ;
   set setter(core::Object* o) → void {
-    super.{self::SuperClass::setter} = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/super_set_abstract.dart:15:24: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    super.{self::SuperClass::setter} = invalid-expression "pkg/front_end/testcases/general/super_set_abstract.dart:15:24: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     super.setter = '\$o';
                        ^" in "${o}" as{TypeError} core::int*;
   }

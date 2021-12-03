@@ -101,10 +101,10 @@ abstract class Super extends core::Object {
   synthetic constructor •() → self::Super
     : super core::Object::•()
     ;
-  set extendedConcreteCovariantSetter(covariant core::int i) → void {}
-  abstract set extendedAbstractCovariantSetter(covariant core::int i) → void;
-  set extendedConcreteCovariantImplementedSetter(covariant core::int i) → void {}
-  abstract set extendedAbstractCovariantImplementedSetter(covariant core::int i) → void;
+  set extendedConcreteCovariantSetter(covariant-by-declaration core::int i) → void {}
+  abstract set extendedAbstractCovariantSetter(covariant-by-declaration core::int i) → void;
+  set extendedConcreteCovariantImplementedSetter(covariant-by-declaration core::int i) → void {}
+  abstract set extendedAbstractCovariantImplementedSetter(covariant-by-declaration core::int i) → void;
   set extendedConcreteImplementedCovariantSetter(core::int i) → void {}
   abstract set extendedAbstractImplementedCovariantSetter(core::int i) → void;
 }
@@ -114,9 +114,9 @@ class Interface1 extends core::Object {
     ;
   set extendedConcreteCovariantImplementedSetter(core::int i) → void {}
   set extendedAbstractCovariantImplementedSetter(core::int i) → void {}
-  set extendedConcreteImplementedCovariantSetter(covariant core::int i) → void {}
-  set extendedAbstractImplementedCovariantSetter(covariant core::int i) → void {}
-  set implementsMultipleCovariantSetter1(covariant core::int i) → void {}
+  set extendedConcreteImplementedCovariantSetter(covariant-by-declaration core::int i) → void {}
+  set extendedAbstractImplementedCovariantSetter(covariant-by-declaration core::int i) → void {}
+  set implementsMultipleCovariantSetter1(covariant-by-declaration core::int i) → void {}
   set implementsMultipleCovariantSetter2(core::int i) → void {}
 }
 class Interface2 extends core::Object {
@@ -124,16 +124,16 @@ class Interface2 extends core::Object {
     : super core::Object::•()
     ;
   set implementsMultipleCovariantSetter1(core::int i) → void {}
-  set implementsMultipleCovariantSetter2(covariant core::int i) → void {}
+  set implementsMultipleCovariantSetter2(covariant-by-declaration core::int i) → void {}
 }
 abstract class AbstractClass extends self::Super implements self::Interface1, self::Interface2 {
   synthetic constructor •() → self::AbstractClass
     : super self::Super::•()
     ;
-  forwarding-stub set extendedConcreteImplementedCovariantSetter(covariant core::int i) → void
+  forwarding-stub set extendedConcreteImplementedCovariantSetter(covariant-by-declaration core::int i) → void
     return super.{self::Super::extendedConcreteImplementedCovariantSetter} = i;
-  abstract forwarding-stub set extendedAbstractImplementedCovariantSetter(covariant core::int i) → void;
-  abstract forwarding-stub set implementsMultipleCovariantSetter2(covariant core::int i) → void;
+  abstract forwarding-stub set extendedAbstractImplementedCovariantSetter(covariant-by-declaration core::int i) → void;
+  abstract forwarding-stub set implementsMultipleCovariantSetter2(covariant-by-declaration core::int i) → void;
 }
 class ConcreteSub extends self::AbstractClass {
   synthetic constructor •() → self::ConcreteSub
@@ -144,9 +144,9 @@ class ConcreteClass extends self::Super implements self::Interface1, self::Inter
   synthetic constructor •() → self::ConcreteClass
     : super self::Super::•()
     ;
-  forwarding-stub set extendedConcreteImplementedCovariantSetter(covariant core::int i) → void
+  forwarding-stub set extendedConcreteImplementedCovariantSetter(covariant-by-declaration core::int i) → void
     return super.{self::Super::extendedConcreteImplementedCovariantSetter} = i;
-  abstract forwarding-stub set extendedAbstractImplementedCovariantSetter(covariant core::int i) → void;
-  abstract forwarding-stub set implementsMultipleCovariantSetter2(covariant core::int i) → void;
+  abstract forwarding-stub set extendedAbstractImplementedCovariantSetter(covariant-by-declaration core::int i) → void;
+  abstract forwarding-stub set implementsMultipleCovariantSetter2(covariant-by-declaration core::int i) → void;
 }
 static method main() → dynamic {}

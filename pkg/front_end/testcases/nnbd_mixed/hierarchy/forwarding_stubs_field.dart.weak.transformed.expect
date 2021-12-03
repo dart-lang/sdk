@@ -122,25 +122,25 @@ import self as self;
 import "dart:core" as core;
 
 abstract class Super extends core::Object {
-  covariant field core::int extendedConcreteCovariantField = 0;
-  covariant field core::int extendedConcreteCovariantImplementedField = 0;
+  covariant-by-declaration field core::int extendedConcreteCovariantField = 0;
+  covariant-by-declaration field core::int extendedConcreteCovariantImplementedField = 0;
   field core::int extendedConcreteImplementedCovariantField = 0;
   synthetic constructor •() → self::Super
     : super core::Object::•()
     ;
   abstract get extendedAbstractCovariantField() → core::int;
-  abstract set extendedAbstractCovariantField(covariant core::int #externalFieldValue) → void;
+  abstract set extendedAbstractCovariantField(covariant-by-declaration core::int #externalFieldValue) → void;
   abstract get extendedAbstractCovariantImplementedField() → core::int;
-  abstract set extendedAbstractCovariantImplementedField(covariant core::int #externalFieldValue) → void;
+  abstract set extendedAbstractCovariantImplementedField(covariant-by-declaration core::int #externalFieldValue) → void;
   abstract get extendedAbstractImplementedCovariantField() → core::int;
   abstract set extendedAbstractImplementedCovariantField(core::int #externalFieldValue) → void;
 }
 class Interface1 extends core::Object {
   field core::int extendedConcreteCovariantImplementedField = 0;
   field core::int extendedAbstractCovariantImplementedField = 0;
-  covariant field core::int extendedConcreteImplementedCovariantField = 0;
-  covariant field core::int extendedAbstractImplementedCovariantField = 0;
-  covariant field core::int implementsMultipleCovariantField1 = 0;
+  covariant-by-declaration field core::int extendedConcreteImplementedCovariantField = 0;
+  covariant-by-declaration field core::int extendedAbstractImplementedCovariantField = 0;
+  covariant-by-declaration field core::int implementsMultipleCovariantField1 = 0;
   field core::int implementsMultipleCovariantField2 = 0;
   synthetic constructor •() → self::Interface1
     : super core::Object::•()
@@ -148,7 +148,7 @@ class Interface1 extends core::Object {
 }
 class Interface2 extends core::Object {
   field core::int implementsMultipleCovariantField1 = 0;
-  covariant field core::int implementsMultipleCovariantField2 = 0;
+  covariant-by-declaration field core::int implementsMultipleCovariantField2 = 0;
   synthetic constructor •() → self::Interface2
     : super core::Object::•()
     ;
@@ -157,10 +157,10 @@ abstract class AbstractClass extends self::Super implements self::Interface1, se
   synthetic constructor •() → self::AbstractClass
     : super self::Super::•()
     ;
-  forwarding-stub set extendedConcreteImplementedCovariantField(covariant core::int value) → void
+  forwarding-stub set extendedConcreteImplementedCovariantField(covariant-by-declaration core::int value) → void
     return super.{self::Super::extendedConcreteImplementedCovariantField} = value;
-  abstract forwarding-stub set extendedAbstractImplementedCovariantField(covariant core::int #externalFieldValue) → void;
-  abstract forwarding-stub set implementsMultipleCovariantField2(covariant core::int value) → void;
+  abstract forwarding-stub set extendedAbstractImplementedCovariantField(covariant-by-declaration core::int #externalFieldValue) → void;
+  abstract forwarding-stub set implementsMultipleCovariantField2(covariant-by-declaration core::int value) → void;
 }
 class ConcreteSub extends self::AbstractClass {
   synthetic constructor •() → self::ConcreteSub
@@ -171,9 +171,9 @@ class ConcreteClass extends self::Super implements self::Interface1, self::Inter
   synthetic constructor •() → self::ConcreteClass
     : super self::Super::•()
     ;
-  forwarding-stub set extendedConcreteImplementedCovariantField(covariant core::int value) → void
+  forwarding-stub set extendedConcreteImplementedCovariantField(covariant-by-declaration core::int value) → void
     return super.{self::Super::extendedConcreteImplementedCovariantField} = value;
-  abstract forwarding-stub set extendedAbstractImplementedCovariantField(covariant core::int #externalFieldValue) → void;
-  abstract forwarding-stub set implementsMultipleCovariantField2(covariant core::int value) → void;
+  abstract forwarding-stub set extendedAbstractImplementedCovariantField(covariant-by-declaration core::int #externalFieldValue) → void;
+  abstract forwarding-stub set implementsMultipleCovariantField2(covariant-by-declaration core::int value) → void;
 }
 static method main() → dynamic {}

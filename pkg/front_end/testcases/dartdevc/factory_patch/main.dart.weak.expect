@@ -24,9 +24,15 @@ class Class extends core::Object {
   @#C1
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ fact({core::bool defaultValue = #C3}) → test::Class
     return new test::Class::_internal(defaultValue: defaultValue);
+  static method _#fact#tearOff({core::bool defaultValue = #C3}) → test::Class
+    return test::Class::fact(defaultValue: defaultValue);
   @#C1
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ constFact({core::bool defaultValue = #C3}) → test::Class
     return throw "unsupported";
+  static method _#constFact#tearOff({core::bool defaultValue = #C3}) → test::Class
+    return test::Class::constFact(defaultValue: defaultValue);
+  static method /* from org-dartlang-testcase:///patch_lib.dart */ _#_internal#tearOff({core::bool defaultValue = #C2}) → test::Class
+    return new test::Class::_internal(defaultValue: defaultValue);
 }
 
 constants  {

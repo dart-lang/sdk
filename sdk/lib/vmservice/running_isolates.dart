@@ -132,6 +132,10 @@ class _Evaluator {
     if (klass != null) {
       compileParams['klass'] = klass;
     }
+    final method = buildScopeResponseResult['method'];
+    if (method != null) {
+      compileParams['method'] = method;
+    }
     if (externalClient != null) {
       final compileExpression = Message.forMethod('compileExpression');
       compileExpression.client = externalClient;

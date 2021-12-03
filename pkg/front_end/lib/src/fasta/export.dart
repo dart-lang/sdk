@@ -7,7 +7,7 @@ library fasta.export;
 import 'builder/builder.dart';
 import 'builder/library_builder.dart';
 
-import 'combinator.dart' show Combinator;
+import 'combinator.dart' show CombinatorBuilder;
 import 'fasta_codes.dart';
 
 class Export {
@@ -17,7 +17,7 @@ class Export {
   /// The library being exported.
   LibraryBuilder exported;
 
-  final List<Combinator>? combinators;
+  final List<CombinatorBuilder>? combinators;
 
   final int charOffset;
 
@@ -27,7 +27,7 @@ class Export {
 
   bool addToExportScope(String name, Builder member) {
     if (combinators != null) {
-      for (Combinator combinator in combinators!) {
+      for (CombinatorBuilder combinator in combinators!) {
         if (combinator.isShow && !combinator.names.contains(name)) return false;
         if (combinator.isHide && combinator.names.contains(name)) return false;
       }

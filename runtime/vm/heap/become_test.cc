@@ -13,24 +13,25 @@
 namespace dart {
 
 void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
+  // Allocate the container in old space to test the remembered set.
+  const Array& container = Array::Handle(Array::New(1, Heap::kOld));
+
   const String& before_obj = String::Handle(String::New("old", before_space));
   const String& after_obj = String::Handle(String::New("new", after_space));
-
+  container.SetAt(0, before_obj);
   EXPECT(before_obj.ptr() != after_obj.ptr());
 
-  // Allocate the arrays in old space to test the remembered set.
-  const Array& before = Array::Handle(Array::New(1, Heap::kOld));
-  before.SetAt(0, before_obj);
-  const Array& after = Array::Handle(Array::New(1, Heap::kOld));
-  after.SetAt(0, after_obj);
-
-  Become::ElementsForwardIdentity(before, after);
+  Become become;
+  become.Add(before_obj, after_obj);
+  become.Forward();
 
   EXPECT(before_obj.ptr() == after_obj.ptr());
+  EXPECT(container.At(0) == after_obj.ptr());
 
   GCTestHelper::CollectAllGarbage();
 
   EXPECT(before_obj.ptr() == after_obj.ptr());
+  EXPECT(container.At(0) == after_obj.ptr());
 }
 
 ISOLATE_UNIT_TEST_CASE(BecomeFowardOldToOld) {
@@ -62,15 +63,66 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardPeer) {
   EXPECT_EQ(peer, heap->GetPeer(before_obj.ptr()));
   EXPECT_EQ(no_peer, heap->GetPeer(after_obj.ptr()));
 
-  const Array& before = Array::Handle(Array::New(1, Heap::kOld));
-  before.SetAt(0, before_obj);
-  const Array& after = Array::Handle(Array::New(1, Heap::kOld));
-  after.SetAt(0, after_obj);
-  Become::ElementsForwardIdentity(before, after);
+  Become become;
+  become.Add(before_obj, after_obj);
+  become.Forward();
 
   EXPECT(before_obj.ptr() == after_obj.ptr());
   EXPECT_EQ(peer, heap->GetPeer(before_obj.ptr()));
   EXPECT_EQ(peer, heap->GetPeer(after_obj.ptr()));
+}
+
+ISOLATE_UNIT_TEST_CASE(BecomeForwardObjectId) {
+  Heap* heap = IsolateGroup::Current()->heap();
+
+  const Array& before_obj = Array::Handle(Array::New(0, Heap::kOld));
+  const Array& after_obj = Array::Handle(Array::New(0, Heap::kOld));
+  EXPECT(before_obj.ptr() != after_obj.ptr());
+
+  intptr_t id = 42;
+  intptr_t no_id = 0;
+  heap->SetObjectId(before_obj.ptr(), id);
+  EXPECT_EQ(id, heap->GetObjectId(before_obj.ptr()));
+  EXPECT_EQ(no_id, heap->GetObjectId(after_obj.ptr()));
+
+  Become become;
+  become.Add(before_obj, after_obj);
+  become.Forward();
+
+  EXPECT(before_obj.ptr() == after_obj.ptr());
+  EXPECT_EQ(id, heap->GetObjectId(before_obj.ptr()));
+  EXPECT_EQ(id, heap->GetObjectId(after_obj.ptr()));
+}
+
+ISOLATE_UNIT_TEST_CASE(BecomeForwardMessageId) {
+  Isolate* isolate = Isolate::Current();
+  isolate->set_forward_table_new(new WeakTable());
+  isolate->set_forward_table_old(new WeakTable());
+
+  const Array& before_obj = Array::Handle(Array::New(0, Heap::kOld));
+  const Array& after_obj = Array::Handle(Array::New(0, Heap::kOld));
+  EXPECT(before_obj.ptr() != after_obj.ptr());
+
+  intptr_t id = 42;
+  intptr_t no_id = 0;
+  isolate->forward_table_old()->SetValueExclusive(before_obj.ptr(), id);
+  EXPECT_EQ(id,
+            isolate->forward_table_old()->GetValueExclusive(before_obj.ptr()));
+  EXPECT_EQ(no_id,
+            isolate->forward_table_old()->GetValueExclusive(after_obj.ptr()));
+
+  Become become;
+  become.Add(before_obj, after_obj);
+  become.Forward();
+
+  EXPECT(before_obj.ptr() == after_obj.ptr());
+  EXPECT_EQ(id,
+            isolate->forward_table_old()->GetValueExclusive(before_obj.ptr()));
+  EXPECT_EQ(id,
+            isolate->forward_table_old()->GetValueExclusive(after_obj.ptr()));
+
+  isolate->set_forward_table_new(nullptr);
+  isolate->set_forward_table_old(nullptr);
 }
 
 ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
@@ -85,12 +137,9 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
 
   EXPECT(before_obj.ptr() != after_obj.ptr());
 
-  const Array& before = Array::Handle(Array::New(1, Heap::kOld));
-  before.SetAt(0, before_obj);
-  const Array& after = Array::Handle(Array::New(1, Heap::kOld));
-  after.SetAt(0, after_obj);
-
-  Become::ElementsForwardIdentity(before, after);
+  Become become;
+  become.Add(before_obj, after_obj);
+  become.Forward();
 
   EXPECT(before_obj.ptr() == after_obj.ptr());
   EXPECT(!after_obj.ptr()->untag()->IsRemembered());
@@ -117,11 +166,9 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedCards) {
                  Object::Handle(card_remembered_array.At(0)).ToCString());
   }
 
-  const Array& before = Array::Handle(Array::New(1, Heap::kOld));
-  before.SetAt(0, old_element);
-  const Array& after = Array::Handle(Array::New(1, Heap::kOld));
-  after.SetAt(0, new_element);
-  Become::ElementsForwardIdentity(before, after);
+  Become become;
+  become.Add(old_element, new_element);
+  become.Forward();
 
   EXPECT(old_element.ptr() == new_element.ptr());
   EXPECT(old_element.ptr()->IsNewObject());

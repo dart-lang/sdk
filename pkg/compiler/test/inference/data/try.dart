@@ -59,7 +59,8 @@ emptyTryFinally() {
 
 /*member: _emptyTryCatchFinally:[exact=JSUInt31]*/
 _emptyTryCatchFinally(/*[exact=JSUInt31]*/ o) {
-  try {} catch (e) {} finally {}
+  try {} catch (e) {
+  } finally {}
   return o;
 }
 

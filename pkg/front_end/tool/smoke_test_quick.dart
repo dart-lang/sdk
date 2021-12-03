@@ -10,7 +10,7 @@ final String repoDir = computeRepoDir();
 
 String get dartVm => Platform.executable;
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Stopwatch stopwatch = new Stopwatch()..start();
   List<Future> futures = <Future>[];
   futures.add(run("pkg/front_end/test/explicit_creation_git_test.dart",

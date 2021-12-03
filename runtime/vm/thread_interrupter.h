@@ -102,8 +102,6 @@ class ThreadInterrupter : public AllStatic {
   static std::atomic<intptr_t> sample_buffer_lock_;
   static std::atomic<intptr_t> sample_buffer_waiters_;
 
-  static bool IsDebuggerAttached();
-
   static bool InDeepSleep() {
     return current_wait_time_ == Monitor::kNoTimeout;
   }
@@ -120,9 +118,9 @@ class ThreadInterrupter : public AllStatic {
     intptr_t old_value = sample_buffer_lock_.load(std::memory_order_relaxed);
     intptr_t new_value;
     do {
-      if (old_value > 0) {
+      while (old_value > 0) {
+        // Spin waiting for outstanding SIGPROFs to complete.
         old_value = sample_buffer_lock_.load(std::memory_order_relaxed);
-        continue;  // Spin waiting for outstanding SIGPROFs to complete.
       }
       new_value = old_value - 1;
     } while (!sample_buffer_lock_.compare_exchange_weak(

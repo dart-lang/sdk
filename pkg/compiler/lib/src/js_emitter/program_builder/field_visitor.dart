@@ -16,8 +16,8 @@ part of dart2js.js_emitter.program_builder;
 /// [needsCheckedSetter] indicates that a checked getter is needed, and in this
 /// case, [needsSetter] is always false. [needsCheckedSetter] is only true when
 /// type assertions are enabled (checked mode).
-typedef void AcceptField(FieldEntity member, js.Name name, bool needsGetter,
-    bool needsSetter, bool needsCheckedSetter);
+typedef AcceptField = void Function(FieldEntity member, js.Name name,
+    bool needsGetter, bool needsSetter, bool needsCheckedSetter);
 
 class FieldVisitor {
   final JElementEnvironment _elementEnvironment;

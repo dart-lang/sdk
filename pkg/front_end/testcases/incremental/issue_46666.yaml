@@ -7,7 +7,6 @@
 type: newworld
 worlds:
   - entry: b.dart
-    experiments: non-nullable
     sources:
       a.dart: |
         import 'dart:ffi';
@@ -45,7 +44,6 @@ worlds:
     expectedLibraryCount: 2
 
   - entry: b.dart
-    experiments: non-nullable
     worldType: updated
     expectInitializeFromDill: false
     invalidate:

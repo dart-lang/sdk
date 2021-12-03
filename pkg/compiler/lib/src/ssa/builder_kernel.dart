@@ -12,7 +12,7 @@ import '../common/names.dart';
 import '../common_elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../deferred_load/deferred_load.dart';
+import '../deferred_load/output_unit.dart';
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
@@ -85,7 +85,7 @@ class StackFrame {
 
 class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// Holds the resulting SSA graph.
-  final HGraph graph = new HGraph();
+  final HGraph graph = HGraph();
 
   /// True if the builder is processing nodes inside a try statement. This is
   /// important for generating control flow out of a try block like returns or
@@ -98,7 +98,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// A stack of instructions.
   ///
   /// We build the SSA graph by simulating a stack machine.
-  List<HInstruction> stack = <HInstruction>[];
+  List<HInstruction> stack = [];
 
   /// The count of nested loops we are currently building.
   ///
@@ -107,7 +107,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   int loopDepth = 0;
 
   /// A mapping from jump targets to their handlers.
-  Map<JumpTarget, JumpHandler> jumpTargets = <JumpTarget, JumpHandler>{};
+  Map<JumpTarget, JumpHandler> jumpTargets = {};
 
   final CompilerOptions options;
   final DiagnosticReporter reporter;
@@ -126,7 +126,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// for these nodes.
   // TODO(karlklose): consider removing this and keeping the (substituted) types
   // of the type variables in an environment (like the [LocalsHandler]).
-  final List<InterfaceType> _currentImplicitInstantiations = <InterfaceType>[];
+  final List<InterfaceType> _currentImplicitInstantiations = [];
 
   /// Used to report information about inlining (which occurs while building the
   /// SSA graph), when dump-info is enabled.
@@ -144,7 +144,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// this is a slow path.
   bool _inExpressionOfThrow = false;
 
-  final List<KernelInliningState> _inliningStack = <KernelInliningState>[];
+  final List<KernelInliningState> _inliningStack = [];
   Local _returnLocal;
   DartType _returnType;
 
@@ -176,12 +176,12 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _memberContextNode =
             _elementMap.getMemberContextNode(_initialTargetElement) {
     _enterFrame(targetElement, null);
-    this._loopHandler = new KernelLoopHandler(this);
-    _typeBuilder = new KernelTypeBuilder(this, _elementMap);
+    this._loopHandler = KernelLoopHandler(this);
+    _typeBuilder = KernelTypeBuilder(this, _elementMap);
     graph.element = targetElement;
     graph.sourceInformation =
         _sourceInformationBuilder.buildVariableDeclaration();
-    this.localsHandler = new LocalsHandler(this, targetElement, targetElement,
+    this.localsHandler = LocalsHandler(this, targetElement, targetElement,
         instanceType, _nativeData, _interceptorData);
   }
 
@@ -229,7 +229,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   /// Pushes a boolean checking [expression] against null.
   pushCheckNull(HInstruction expression) {
-    push(new HIdentity(expression, graph.addConstantNull(closedWorld),
+    push(HIdentity(expression, graph.addConstantNull(closedWorld),
         _abstractValueDomain.boolType));
   }
 
@@ -258,7 +258,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   HLocalValue lastAddedParameter;
 
-  Map<Local, HInstruction> parameters = <Local, HInstruction>{};
+  Map<Local, HInstruction> parameters = {};
   Set<Local> elidedParameters;
 
   HBasicBlock addNewBlock() {
@@ -290,7 +290,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   void goto(HBasicBlock from, HBasicBlock to) {
-    from.close(new HGoto(_abstractValueDomain));
+    from.close(HGoto(_abstractValueDomain));
     from.addSuccessor(to);
   }
 
@@ -312,10 +312,10 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   HLocalValue addParameter(Entity parameter, AbstractValue type,
-      {bool isElided: false}) {
+      {bool isElided = false}) {
     HLocalValue result = isElided
-        ? new HLocalValue(parameter, type)
-        : new HParameterValue(parameter, type);
+        ? HLocalValue(parameter, type)
+        : HParameterValue(parameter, type);
     if (lastAddedParameter == null) {
       graph.entry.addBefore(graph.entry.first, result);
     } else {
@@ -327,23 +327,23 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   HSubGraphBlockInformation wrapStatementGraph(SubGraph statements) {
     if (statements == null) return null;
-    return new HSubGraphBlockInformation(statements);
+    return HSubGraphBlockInformation(statements);
   }
 
   HSubExpressionBlockInformation wrapExpressionGraph(SubExpression expression) {
     if (expression == null) return null;
-    return new HSubExpressionBlockInformation(expression);
+    return HSubExpressionBlockInformation(expression);
   }
 
   HLiteralList _buildLiteralList(List<HInstruction> inputs) {
-    return new HLiteralList(inputs, _abstractValueDomain.growableListType);
+    return HLiteralList(inputs, _abstractValueDomain.growableListType);
   }
 
   /// Called when control flow is about to change, in which case we need to
   /// specify special successors if we are already in a try/catch/finally block.
   void _handleInTryStatement() {
     if (!_inTryStatement) return;
-    HBasicBlock block = close(new HExitTry(_abstractValueDomain));
+    HBasicBlock block = close(HExitTry(_abstractValueDomain));
     HBasicBlock newBlock = graph.addNewBlock();
     block.addSuccessor(newBlock);
     open(newBlock);
@@ -363,7 +363,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       case 'MUST_RETAIN_METADATA':
         return false;
       case 'USE_CONTENT_SECURITY_POLICY':
-        return options.useContentSecurityPolicy;
+        return options.features.useContentSecurityPolicy.isEnabled;
       case 'VARIANCE':
         return options.enableVariance;
       case 'LEGACY':
@@ -381,7 +381,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // TODO(johnniwinther): Substitute the type by the this type and type
     // arguments of the current frame.
     ir.DartType type = _currentFrame.staticTypeProvider.getStaticType(node);
-    return new StaticType(
+    return StaticType(
         _elementMap.getDartType(type), computeClassRelationFromType(type));
   }
 
@@ -390,7 +390,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // arguments of the current frame.
     ir.DartType type =
         _currentFrame.staticTypeProvider.getForInIteratorType(node);
-    return new StaticType(
+    return StaticType(
         _elementMap.getDartType(type), computeClassRelationFromType(type));
   }
 
@@ -406,13 +406,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     if (function != null) {
       asyncMarker = getAsyncMarker(function);
     }
-    _currentFrame = new StackFrame(
+    _currentFrame = StackFrame(
         _currentFrame,
         member,
         asyncMarker,
         _globalLocalsMap.getLocalsMap(member),
         {},
-        new KernelToTypeInferenceMapImpl(member, globalInferenceResults),
+        KernelToTypeInferenceMapImpl(member, globalInferenceResults),
         _currentFrame != null
             ? _currentFrame.sourceInformationBuilder
                 .forContext(member, callSourceInformation)
@@ -449,7 +449,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
             if (fieldData.initialValue != null) {
               registry.registerConstantUse(
-                  new ConstantUse.init(fieldData.initialValue));
+                  ConstantUse.init(fieldData.initialValue));
               if (targetElement.isStatic || targetElement.isTopLevel) {
                 /// No code is created for this field: All references inline the
                 /// constant value.
@@ -458,10 +458,10 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
             } else if (fieldData.isLazy) {
               // The generated initializer needs be wrapped in the cyclic-error
               // helper.
-              registry.registerStaticUse(new StaticUse.staticInvoke(
+              registry.registerStaticUse(StaticUse.staticInvoke(
                   closedWorld.commonElements.cyclicThrowHelper,
                   CallStructure.ONE_ARG));
-              registry.registerStaticUse(new StaticUse.staticInvoke(
+              registry.registerStaticUse(StaticUse.staticInvoke(
                   closedWorld.commonElements.throwLateFieldADI,
                   CallStructure.ONE_ARG));
             }
@@ -565,7 +565,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           constantValue != null,
           failedAt(_elementMap.getMethod(function.parent),
               'No constant computed for $node'));
-      registry?.registerConstantUse(new ConstantUse.init(constantValue));
+      registry?.registerConstantUse(ConstantUse.init(constantValue));
     }
 
     function.positionalParameters
@@ -706,7 +706,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   // Locals for function type parameters that can be forwarded, in argument
   // position order.
-  List<Local> _functionTypeParameterLocals = <Local>[];
+  final List<Local> _functionTypeParameterLocals = [];
 
   /// Builds a generative constructor.
   ///
@@ -752,13 +752,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     ConstructorData constructorData = ConstructorData();
     _buildInitializers(node, constructorData);
 
-    List<HInstruction> constructorArguments = <HInstruction>[];
+    List<HInstruction> constructorArguments = [];
     // Doing this instead of fieldValues.forEach because we haven't defined the
     // order of the arguments here. We can define that with JElements.
     bool isCustomElement = _nativeData.isNativeOrExtendsNative(cls) &&
         !_nativeData.isJsInteropClass(cls);
     InterfaceType thisType = _elementEnvironment.getThisType(cls);
-    List<FieldEntity> fields = <FieldEntity>[];
+    List<FieldEntity> fields = [];
     _elementEnvironment.forEachInstanceField(cls,
         (ClassEntity enclosingClass, FieldEntity member) {
       HInstruction value = constructorData.fieldValues[member];
@@ -782,7 +782,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
     _addImplicitInstantiation(thisType);
     List<DartType> instantiatedTypes =
-        new List<InterfaceType>.from(_currentImplicitInstantiations);
+        List<InterfaceType>.from(_currentImplicitInstantiations);
 
     HInstruction newObject;
     if (isCustomElement) {
@@ -810,7 +810,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
             sourceInformation: sourceInformation);
         constructorArguments.add(typeArgument);
       }
-      newObject = new HCreate(cls, constructorArguments,
+      newObject = HCreate(cls, constructorArguments,
           _abstractValueDomain.createNonNullExact(cls), sourceInformation,
           instantiatedTypes: instantiatedTypes,
           hasRtiInput: needsTypeArguments);
@@ -824,10 +824,10 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     for (ir.Constructor body in constructorData.constructorChain.reversed) {
       if (_isEmptyStatement(body.function.body)) continue;
 
-      List<HInstruction> bodyCallInputs = <HInstruction>[];
+      List<HInstruction> bodyCallInputs = [];
       if (isCustomElement) {
         if (interceptor == null) {
-          ConstantValue constant = new InterceptorConstantValue(cls);
+          ConstantValue constant = InterceptorConstantValue(cls);
           interceptor = graph.addConstant(constant, closedWorld);
         }
         bodyCallInputs.add(interceptor);
@@ -894,7 +894,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
     if (_inliningStack.isEmpty) {
       _closeAndGotoExit(
-          new HReturn(_abstractValueDomain, newObject, sourceInformation));
+          HReturn(_abstractValueDomain, newObject, sourceInformation));
       _closeFunction();
     } else {
       localsHandler.updateLocal(_returnLocal, newObject,
@@ -911,7 +911,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   void _invokeConstructorBody(ir.Constructor constructor,
       List<HInstruction> inputs, SourceInformation sourceInformation) {
     MemberEntity constructorBody = _elementMap.getConstructorBody(constructor);
-    HInvokeConstructorBody invoke = new HInvokeConstructorBody(constructorBody,
+    HInvokeConstructorBody invoke = HInvokeConstructorBody(constructorBody,
         inputs, _abstractValueDomain.nonNullType, sourceInformation);
     add(invoke);
   }
@@ -1067,7 +1067,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   List<HInstruction> _normalizeAndBuildArguments(
       ir.Member member, ir.FunctionNode function, ir.Arguments arguments) {
-    var builtArguments = <HInstruction>[];
+    List<HInstruction> builtArguments = [];
     var positionalIndex = 0;
     function.positionalParameters.forEach((ir.VariableDeclaration parameter) {
       if (positionalIndex < arguments.positional.length) {
@@ -1247,11 +1247,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
               .isDefinitelyTrue);
       if (emptyParameters.length > 0) {
         _addComment('${emptyParameters} inferred as [empty]');
-        add(new HInvokeStatic(
-            _commonElements.assertUnreachableMethod,
-            <HInstruction>[],
-            _abstractValueDomain.dynamicType,
-            const <DartType>[]));
+        add(HInvokeStatic(_commonElements.assertUnreachableMethod, [],
+            _abstractValueDomain.dynamicType, const []));
         _closeFunction();
         return;
       }
@@ -1266,8 +1263,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// having side effects which will inhibit code motion.
   // TODO(sra): Figure out how to keep comment anchored without effects.
   void _addComment(String text) {
-    add(new HForeignCode(js.js.statementTemplateYielding(new js.Comment(text)),
-        _abstractValueDomain.dynamicType, <HInstruction>[],
+    add(HForeignCode(js.js.statementTemplateYielding(js.Comment(text)),
+        _abstractValueDomain.dynamicType, [],
         isStatement: true));
   }
 
@@ -1287,7 +1284,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     var sourceInformation = _sourceInformationBuilder.buildAsyncBody();
 
     // Forward all the parameters to the body.
-    List<HInstruction> inputs = <HInstruction>[];
+    List<HInstruction> inputs = [];
     if (graph.thisInstruction != null) {
       inputs.add(graph.thisInstruction);
     }
@@ -1331,7 +1328,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     JGeneratorBody body = _elementMap.getGeneratorBody(function);
-    push(new HInvokeGeneratorBody(
+    push(HInvokeGeneratorBody(
         body,
         inputs,
         _abstractValueDomain.dynamicType, // TODO: better type.
@@ -1409,7 +1406,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
       if (targetChecks.checkAllParameters ||
           (targetChecks.checkCovariantParameters &&
-              (variable.isGenericCovariantImpl || variable.isCovariant))) {
+              (variable.isCovariantByClass ||
+                  variable.isCovariantByDeclaration))) {
         newParameter = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
             targetElement, newParameter, type);
       } else {
@@ -1423,7 +1421,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     function.positionalParameters.forEach(_handleParameter);
-    function.namedParameters.toList()..forEach(_handleParameter);
+    function.namedParameters.toList().forEach(_handleParameter);
   }
 
   void _checkTypeVariableBounds(FunctionEntity method) {
@@ -1432,8 +1430,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       ir.FunctionNode function = getFunctionNode(_elementMap, method);
       for (ir.TypeParameter typeParameter in function.typeParameters) {
         Local local = _localsMap.getLocalTypeVariableEntity(_elementMap
-            .getTypeVariableType(new ir.TypeParameterType(
-                typeParameter, ir.Nullability.nonNullable))
+            .getTypeVariableType(
+                ir.TypeParameterType(typeParameter, ir.Nullability.nonNullable))
             .element);
         HInstruction newParameter = localsHandler.directLocals[local];
         DartType bound = _getDartTypeIfValid(typeParameter.bound);
@@ -1470,7 +1468,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       var sourceInformation = _sourceInformationBuilder.buildAssert(context);
       _pushStaticInvocation(
           _commonElements.assertHelper,
-          <HInstruction>[pop()],
+          [pop()],
           _typeInferenceMap.getReturnTypeOf(_commonElements.assertHelper),
           const <DartType>[],
           sourceInformation: sourceInformation);
@@ -1610,7 +1608,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
     Map<Local, AbstractValue> parameterMap = {};
     List<ir.VariableDeclaration> elidedParameters = [];
-    Set<Local> elidedParameterSet = new Set();
+    Set<Local> elidedParameterSet = Set();
     if (functionNode != null) {
       assert(parameterStructure != null);
 
@@ -1637,7 +1635,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // but cannot receive constants before it has been closed. By closing it
     // here, we can use constants in the code that sets up the function.
     open(graph.entry);
-    close(new HGoto(_abstractValueDomain)).addSuccessor(block);
+    close(HGoto(_abstractValueDomain)).addSuccessor(block);
     open(block);
 
     localsHandler.startFunction(targetElement, parameterMap, elidedParameterSet,
@@ -1663,7 +1661,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _handleIf(
             visitCondition: () {
               HParameterValue parameter = parameters.values.first;
-              push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
+              push(HIdentity(parameter, graph.addConstantNull(closedWorld),
                   _abstractValueDomain.boolType));
             },
             visitThen: () {
@@ -1684,13 +1682,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   void _closeFunction() {
-    if (!isAborted()) _closeAndGotoExit(new HGoto(_abstractValueDomain));
+    if (!isAborted()) _closeAndGotoExit(HGoto(_abstractValueDomain));
     graph.finalize(_abstractValueDomain);
   }
 
   @override
   void defaultNode(ir.Node node) {
-    throw new UnsupportedError("Unhandled node $node (${node.runtimeType})");
+    throw UnsupportedError("Unhandled node $node (${node.runtimeType})");
   }
 
   /// Returns the current source element. This is used by the type builder.
@@ -1720,9 +1718,9 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _elementMap.getSpannable(targetElement, loadLibrary),
         _elementMap.getImport(loadLibrary.import));
     // TODO(efortuna): Source information!
-    push(new HInvokeStatic(
+    push(HInvokeStatic(
         _commonElements.loadDeferredLibrary,
-        <HInstruction>[graph.addConstantString(loadId, closedWorld)],
+        [graph.addConstantString(loadId, closedWorld)],
         _abstractValueDomain.nonNullType,
         const <DartType>[],
         targetCanThrow: false));
@@ -1768,8 +1766,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       _handleInTryStatement();
       SourceInformation sourceInformation =
           _sourceInformationBuilder.buildThrow(node.expression);
-      _closeAndGotoExit(
-          new HThrow(_abstractValueDomain, pop(), sourceInformation));
+      _closeAndGotoExit(HThrow(_abstractValueDomain, pop(), sourceInformation));
     } else {
       expression.accept(this);
       pop();
@@ -1787,8 +1784,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       OutputUnit outputUnit =
           closedWorld.outputUnitData.outputUnitForConstant(value);
       ConstantValue deferredConstant =
-          new DeferredGlobalConstantValue(value, outputUnit);
-      registry.registerConstantUse(new ConstantUse.deferred(deferredConstant));
+          DeferredGlobalConstantValue(value, outputUnit);
+      registry.registerConstantUse(ConstantUse.deferred(deferredConstant));
       stack.add(graph.addDeferredConstant(
           deferredConstant, sourceInformation, closedWorld));
     } else {
@@ -1912,7 +1909,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction originalLength = null; // Set for growable lists.
 
     HInstruction buildGetLength(SourceInformation sourceInformation) {
-      HGetLength result = new HGetLength(
+      HGetLength result = HGetLength(
           array, _abstractValueDomain.positiveIntType,
           isAssignable: !isFixed)
         ..sourceInformation = sourceInformation;
@@ -1930,7 +1927,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       SourceInformation sourceInformation =
           _sourceInformationBuilder.buildForInMoveNext(node);
       HInstruction length = buildGetLength(sourceInformation);
-      push(new HIdentity(length, originalLength, _abstractValueDomain.boolType)
+      push(HIdentity(length, originalLength, _abstractValueDomain.boolType)
         ..sourceInformation = sourceInformation);
       _pushStaticInvocation(
           _commonElements.checkConcurrentModificationError,
@@ -1963,9 +1960,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       HInstruction index = localsHandler.readLocal(indexVariable,
           sourceInformation: sourceInformation);
       HInstruction length = buildGetLength(sourceInformation);
-      HInstruction compare =
-          new HLess(index, length, _abstractValueDomain.boolType)
-            ..sourceInformation = sourceInformation;
+      HInstruction compare = HLess(index, length, _abstractValueDomain.boolType)
+        ..sourceInformation = sourceInformation;
       add(compare);
       return compare;
     }
@@ -1989,7 +1985,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           sourceInformation: sourceInformation);
       // No bound check is necessary on indexer as it is immediately guarded by
       // the condition.
-      HInstruction value = new HIndex(array, index, type)
+      HInstruction value = HIndex(array, index, type)
         ..sourceInformation = sourceInformation;
       add(value);
 
@@ -2018,7 +2014,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           sourceInformation: sourceInformation);
       HInstruction one = graph.addConstantInt(1, closedWorld);
       HInstruction addInstruction =
-          new HAdd(index, one, _abstractValueDomain.positiveIntType)
+          HAdd(index, one, _abstractValueDomain.positiveIntType)
             ..sourceInformation = sourceInformation;
       add(addInstruction);
       localsHandler.updateLocal(indexVariable, addInstruction,
@@ -2057,7 +2053,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           _getStaticType(node.iterable),
           receiverType,
           Selectors.iterator,
-          <HInstruction>[receiver],
+          [receiver],
           const <DartType>[],
           _sourceInformationBuilder.buildForInIterator(node));
       iterator = pop();
@@ -2071,7 +2067,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           iteratorType,
           receiverType,
           Selectors.moveNext,
-          <HInstruction>[iterator],
+          [iterator],
           const <DartType>[],
           _sourceInformationBuilder.buildForInMoveNext(node));
       return popBoolified();
@@ -2121,7 +2117,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         localsHandler.substInContext(dartTypes.interfaceType(cls, [typeArg]));
     // TODO(johnniwinther): This should be the exact type.
     StaticType staticInstanceType =
-        new StaticType(instanceType, ClassRelation.subtype);
+        StaticType(instanceType, ClassRelation.subtype);
     _addImplicitInstantiation(instanceType);
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildForInIterator(node);
@@ -2151,7 +2147,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           const <DartType>[],
           _sourceInformationBuilder.buildForInMoveNext(node));
       HInstruction future = pop();
-      push(new HAwait(future, _abstractValueDomain.dynamicType));
+      push(HAwait(future, _abstractValueDomain.dynamicType));
       return popBoolified();
     }
 
@@ -2174,8 +2170,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     void buildUpdate() {}
 
     // Creates a synthetic try/finally block in case anything async goes amiss.
-    TryCatchFinallyBuilder tryBuilder = new TryCatchFinallyBuilder(
-        this, _sourceInformationBuilder.buildLoop(node));
+    TryCatchFinallyBuilder tryBuilder =
+        TryCatchFinallyBuilder(this, _sourceInformationBuilder.buildLoop(node));
     // Build fake try body:
     _loopHandler.handleLoop(
         node,
@@ -2198,7 +2194,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           _sourceInformationBuilder
               // ignore:deprecated_member_use_from_same_package
               .buildGeneric(node));
-      add(new HAwait(pop(), _abstractValueDomain.dynamicType));
+      add(HAwait(pop(), _abstractValueDomain.dynamicType));
     }
 
     tryBuilder
@@ -2212,7 +2208,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // Set the runtime type information on the object.
     FunctionEntity typeInfoSetterFn = _commonElements.setArrayType;
     // TODO(efortuna): Insert source information in this static invocation.
-    _pushStaticInvocation(typeInfoSetterFn, <HInstruction>[newObject, typeInfo],
+    _pushStaticInvocation(typeInfoSetterFn, [newObject, typeInfo],
         _abstractValueDomain.dynamicType, const <DartType>[],
         sourceInformation: sourceInformation);
 
@@ -2255,7 +2251,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _sourceInformationBuilder.buildLoop(node);
     // TODO(efortuna): I think this can be rewritten using
     // LoopHandler.handleLoop with some tricks about when the "update" happens.
-    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
+    LocalsHandler savedLocals = LocalsHandler.from(localsHandler);
     CapturedLoopScope loopClosureInfo =
         _closureDataLookup.getCapturedLoopScope(node);
     localsHandler.startLoop(loopClosureInfo, sourceInformation);
@@ -2283,7 +2279,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HBasicBlock bodyExitBlock;
     bool isAbortingBody = false;
     if (current != null) {
-      bodyExitBlock = close(new HGoto(_abstractValueDomain));
+      bodyExitBlock = close(HGoto(_abstractValueDomain));
     } else {
       isAbortingBody = true;
       bodyExitBlock = lastOpenedBlock;
@@ -2309,16 +2305,15 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         if (!isAbortingBody) continueHandlers.add(localsHandler);
         localsHandler =
             savedLocals.mergeMultiple(continueHandlers, conditionBlock);
-        SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
+        SubGraph bodyGraph = SubGraph(bodyEntryBlock, bodyExitBlock);
         List<LabelDefinition> labels = jumpHandler.labels;
         HSubGraphBlockInformation bodyInfo =
-            new HSubGraphBlockInformation(bodyGraph);
+            HSubGraphBlockInformation(bodyGraph);
         HLabeledBlockInformation info;
         if (!labels.isEmpty) {
-          info =
-              new HLabeledBlockInformation(bodyInfo, labels, isContinue: true);
+          info = HLabeledBlockInformation(bodyInfo, labels, isContinue: true);
         } else {
-          info = new HLabeledBlockInformation.implicit(bodyInfo, target,
+          info = HLabeledBlockInformation.implicit(bodyInfo, target,
               isContinue: true);
         }
         bodyEntryBlock.setBlockFlow(info, conditionBlock);
@@ -2328,32 +2323,29 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       node.condition.accept(this);
       assert(!isAborted());
       HInstruction conditionInstruction = popBoolified();
-      HBasicBlock conditionEndBlock = close(new HLoopBranch(
-          _abstractValueDomain,
-          conditionInstruction,
-          HLoopBranch.DO_WHILE_LOOP));
+      HBasicBlock conditionEndBlock = close(HLoopBranch(_abstractValueDomain,
+          conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
 
       HBasicBlock avoidCriticalEdge = addNewBlock();
       conditionEndBlock.addSuccessor(avoidCriticalEdge);
       open(avoidCriticalEdge);
-      close(new HGoto(_abstractValueDomain));
+      close(HGoto(_abstractValueDomain));
       avoidCriticalEdge.addSuccessor(loopEntryBlock); // The back-edge.
 
-      conditionExpression =
-          new SubExpression(conditionBlock, conditionEndBlock);
+      conditionExpression = SubExpression(conditionBlock, conditionEndBlock);
 
       // Avoid a critical edge from the condition to the loop-exit body.
       HBasicBlock conditionExitBlock = addNewBlock();
       open(conditionExitBlock);
-      close(new HGoto(_abstractValueDomain));
+      close(HGoto(_abstractValueDomain));
       conditionEndBlock.addSuccessor(conditionExitBlock);
 
       _loopHandler.endLoop(
           loopEntryBlock, conditionExitBlock, jumpHandler, localsHandler);
 
       loopEntryBlock.postProcessLoopHeader();
-      SubGraph bodyGraph = new SubGraph(loopEntryBlock, bodyExitBlock);
-      HLoopBlockInformation loopBlockInfo = new HLoopBlockInformation(
+      SubGraph bodyGraph = SubGraph(loopEntryBlock, bodyExitBlock);
+      HLoopBlockInformation loopBlockInfo = HLoopBlockInformation(
           HLoopBlockInformation.DO_WHILE_LOOP,
           null,
           wrapExpressionGraph(conditionExpression),
@@ -2376,16 +2368,16 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
         // Since the body of the loop has a break, we attach a synthesized label
         // to the body.
-        SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
+        SubGraph bodyGraph = SubGraph(bodyEntryBlock, bodyExitBlock);
         JumpTarget target = _localsMap.getJumpTargetForDo(node);
         LabelDefinition label = target.addLabel('loop', isBreakTarget: true);
-        HLabeledBlockInformation info = new HLabeledBlockInformation(
-            new HSubGraphBlockInformation(bodyGraph), <LabelDefinition>[label]);
+        HLabeledBlockInformation info = HLabeledBlockInformation(
+            HSubGraphBlockInformation(bodyGraph), <LabelDefinition>[label]);
         loopEntryBlock.setBlockFlow(info, current);
         jumpHandler.forEachBreak((HBreak breakInstruction, _) {
           HBasicBlock block = breakInstruction.block;
-          block.addAtExit(new HBreak.toLabel(
-              _abstractValueDomain, label, sourceInformation));
+          block.addAtExit(
+              HBreak.toLabel(_abstractValueDomain, label, sourceInformation));
           block.remove(breakInstruction);
         });
       }
@@ -2408,7 +2400,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       void visitThen(),
       void visitElse(),
       SourceInformation sourceInformation}) {
-    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this,
+    SsaBranchBuilder branchBuilder = SsaBranchBuilder(this,
         node == null ? null : _elementMap.getSpannable(targetElement, node));
     branchBuilder.handleIf(visitCondition, visitThen, visitElse,
         sourceInformation: sourceInformation);
@@ -2503,7 +2495,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       node.condition.accept(this);
       _pushStaticInvocation(
           _commonElements.assertHelper,
-          <HInstruction>[pop()],
+          [pop()],
           _typeInferenceMap.getReturnTypeOf(_commonElements.assertHelper),
           const <DartType>[],
           sourceInformation: sourceInformation);
@@ -2516,7 +2508,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       node.condition.accept(this);
       _pushStaticInvocation(
           _commonElements.assertTest,
-          <HInstruction>[pop()],
+          [pop()],
           _typeInferenceMap.getReturnTypeOf(_commonElements.assertTest),
           const <DartType>[],
           sourceInformation: sourceInformation);
@@ -2526,7 +2518,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       node.message.accept(this);
       _pushStaticInvocation(
           _commonElements.assertThrow,
-          <HInstruction>[pop()],
+          [pop()],
           _typeInferenceMap.getReturnTypeOf(_commonElements.assertThrow),
           const <DartType>[],
           sourceInformation: sourceInformation);
@@ -2544,16 +2536,16 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// to distinguish the synthesized loop created for a switch statement with
   /// continue statements from simple switch statements.
   JumpHandler createJumpHandler(ir.TreeNode node, JumpTarget target,
-      {bool isLoopJump: false}) {
+      {bool isLoopJump = false}) {
     if (target == null) {
       // No breaks or continues to this node.
-      return new NullJumpHandler(reporter);
+      return NullJumpHandler(reporter);
     }
     if (isLoopJump && node is ir.SwitchStatement) {
-      return new KernelSwitchCaseJumpHandler(this, target, node, _localsMap);
+      return KernelSwitchCaseJumpHandler(this, target, node, _localsMap);
     }
 
-    return new JumpHandler(this, target);
+    return JumpHandler(this, target);
   }
 
   @override
@@ -2598,14 +2590,14 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
     JumpHandler handler = createJumpHandler(node, jumpTarget);
 
-    LocalsHandler beforeLocals = new LocalsHandler.from(localsHandler);
+    LocalsHandler beforeLocals = LocalsHandler.from(localsHandler);
 
     HBasicBlock newBlock = openNewBlock();
     body.accept(this);
-    SubGraph bodyGraph = new SubGraph(newBlock, lastOpenedBlock);
+    SubGraph bodyGraph = SubGraph(newBlock, lastOpenedBlock);
 
     HBasicBlock joinBlock = graph.addNewBlock();
-    List<LocalsHandler> breakHandlers = <LocalsHandler>[];
+    List<LocalsHandler> breakHandlers = [];
     handler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
       breakInstruction.block.addSuccessor(joinBlock);
       breakHandlers.add(locals);
@@ -2621,8 +2613,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
     // There was at least one reachable break, so the label is needed.
     newBlock.setBlockFlow(
-        new HLabeledBlockInformation(
-            new HSubGraphBlockInformation(bodyGraph), handler.labels),
+        HLabeledBlockInformation(
+            HSubGraphBlockInformation(bodyGraph), handler.labels),
         joinBlock);
     handler.close();
   }
@@ -2631,8 +2623,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// expressions to constants.
   Map<ir.Expression, ConstantValue> _buildSwitchCaseConstants(
       ir.SwitchStatement switchStatement) {
-    Map<ir.Expression, ConstantValue> constants =
-        new Map<ir.Expression, ConstantValue>();
+    Map<ir.Expression, ConstantValue> constants = {};
     for (ir.SwitchCase switchCase in switchStatement.cases) {
       for (ir.Expression caseExpression in switchCase.expressions) {
         ConstantValue constant =
@@ -2662,7 +2653,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // The switch case indices must match those computed in
     // [KernelSwitchCaseJumpHandler].
     bool hasContinue = false;
-    Map<ir.SwitchCase, int> caseIndex = new Map<ir.SwitchCase, int>();
+    Map<ir.SwitchCase, int> caseIndex = {};
     int switchIndex = 1;
     bool hasDefault = false;
     for (ir.SwitchCase switchCase in node.cases) {
@@ -2704,7 +2695,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       ir.SwitchStatement parentSwitch, ir.SwitchCase switchCase) {
     Map<ir.Expression, ConstantValue> constantsLookup =
         _buildSwitchCaseConstants(parentSwitch);
-    List<ConstantValue> constantList = <ConstantValue>[];
+    List<ConstantValue> constantList = [];
     if (switchCase != null) {
       for (var expression in switchCase.expressions) {
         constantList.add(constantsLookup[expression]);
@@ -2781,7 +2772,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // Use null as the marker for a synthetic default clause.
       // The synthetic default is added because otherwise there would be no
       // good place to give a default value to the local.
-      switchCases = new List<ir.SwitchCase>.from(switchCases);
+      switchCases = List<ir.SwitchCase>.from(switchCases);
       switchCases.add(null);
     }
 
@@ -2823,9 +2814,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
       List<ConstantValue> getConstants(
           ir.SwitchStatement parentSwitch, ir.SwitchCase switchCase) {
-        return <ConstantValue>[
-          constant_system.createIntFromInt(caseIndex[switchCase])
-        ];
+        return [constant_system.createIntFromInt(caseIndex[switchCase])];
       }
 
       void buildSwitchCase(ir.SwitchCase switchCase) {
@@ -2842,7 +2831,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // in the call to [handleLoop] below.
       _handleSwitch(
           switchStatement, // nor is buildExpression.
-          new NullJumpHandler(reporter),
+          NullJumpHandler(reporter),
           buildExpression,
           switchStatement.cases,
           getConstants,
@@ -2872,7 +2861,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // null, so we don't drop into the while loop.
       void buildCondition() {
         js.Template code = js.js.parseForeignJS('#');
-        push(new HForeignCode(code, _abstractValueDomain.boolType,
+        push(HForeignCode(code, _abstractValueDomain.boolType,
             [localsHandler.readLocal(switchTarget)],
             nativeBehavior: NativeBehavior.PURE));
       }
@@ -2907,12 +2896,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       return;
     }
 
-    HSwitch switchInstruction =
-        new HSwitch(_abstractValueDomain, <HInstruction>[expression]);
+    HSwitch switchInstruction = HSwitch(_abstractValueDomain, [expression]);
     HBasicBlock expressionEnd = close(switchInstruction);
     LocalsHandler savedLocals = localsHandler;
 
-    List<HStatementInformation> statements = <HStatementInformation>[];
+    List<HStatementInformation> statements = [];
     bool hasDefault = false;
     for (ir.SwitchCase switchCase in switchCases) {
       HBasicBlock block = graph.addNewBlock();
@@ -2931,7 +2919,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         hasDefault = true;
       }
       open(block);
-      localsHandler = new LocalsHandler.from(savedLocals);
+      localsHandler = LocalsHandler.from(savedLocals);
       buildSwitchCase(switchCase);
       if (!isAborted() &&
           // TODO(johnniwinther): Reinsert this if `isReachable` is no longer
@@ -2944,8 +2932,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         // sure the last case does not fall through to the default case.
         jumpHandler.generateBreak(sourceInformation);
       }
-      statements.add(
-          new HSubGraphBlockInformation(new SubGraph(block, lastOpenedBlock)));
+      statements
+          .add(HSubGraphBlockInformation(SubGraph(block, lastOpenedBlock)));
     }
 
     // Add a join-block if necessary.
@@ -2955,8 +2943,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // to create the phis in [joinBlock].
     // If we never jump to the join block, [caseHandlers] will stay empty, and
     // the join block is never added to the graph.
-    HBasicBlock joinBlock = new HBasicBlock();
-    List<LocalsHandler> caseHandlers = <LocalsHandler>[];
+    HBasicBlock joinBlock = HBasicBlock();
+    List<LocalsHandler> caseHandlers = [];
     jumpHandler.forEachBreak((HBreak instruction, LocalsHandler locals) {
       instruction.block.addSuccessor(joinBlock);
       caseHandlers.add(locals);
@@ -2968,7 +2956,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
               'Continue cannot target a switch.'));
     });
     if (!isAborted()) {
-      current.close(new HGoto(_abstractValueDomain));
+      current.close(HGoto(_abstractValueDomain));
       lastOpenedBlock.addSuccessor(joinBlock);
       caseHandlers.add(localsHandler);
     }
@@ -2978,11 +2966,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       HBasicBlock defaultCase = addNewBlock();
       expressionEnd.addSuccessor(defaultCase);
       open(defaultCase);
-      close(new HGoto(_abstractValueDomain));
+      close(HGoto(_abstractValueDomain));
       defaultCase.addSuccessor(joinBlock);
       caseHandlers.add(savedLocals);
-      statements.add(new HSubGraphBlockInformation(
-          new SubGraph(defaultCase, defaultCase)));
+      statements
+          .add(HSubGraphBlockInformation(SubGraph(defaultCase, defaultCase)));
     }
     assert(caseHandlers.length == joinBlock.predecessors.length);
     if (caseHandlers.isNotEmpty) {
@@ -2999,11 +2987,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     HSubExpressionBlockInformation expressionInfo =
-        new HSubExpressionBlockInformation(
-            new SubExpression(expressionStart, expressionEnd));
+        HSubExpressionBlockInformation(
+            SubExpression(expressionStart, expressionEnd));
     expressionStart.setBlockFlow(
-        new HSwitchBlockInformation(expressionInfo, statements,
-            jumpHandler.target, jumpHandler.labels, sourceInformation),
+        HSwitchBlockInformation(expressionInfo, statements, jumpHandler.target,
+            jumpHandler.labels, sourceInformation),
         joinBlock);
 
     jumpHandler.close();
@@ -3011,14 +2999,14 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   @override
   void visitConditionalExpression(ir.ConditionalExpression node) {
-    SsaBranchBuilder brancher = new SsaBranchBuilder(this);
+    SsaBranchBuilder brancher = SsaBranchBuilder(this);
     brancher.handleConditional(() => node.condition.accept(this),
         () => node.then.accept(this), () => node.otherwise.accept(this));
   }
 
   @override
   void visitLogicalExpression(ir.LogicalExpression node) {
-    SsaBranchBuilder brancher = new SsaBranchBuilder(this);
+    SsaBranchBuilder brancher = SsaBranchBuilder(this);
     _handleLogicalExpression(node.left, () => node.right.accept(this), brancher,
         node.operatorEnum, _sourceInformationBuilder.buildBinary(node));
   }
@@ -3112,7 +3100,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       listInstruction = graph.addConstant(
           _elementMap.getConstantValue(_memberContextNode, node), closedWorld);
     } else {
-      List<HInstruction> elements = <HInstruction>[];
+      List<HInstruction> elements = [];
       for (ir.Expression element in node.expressions) {
         element.accept(this);
         elements.add(pop());
@@ -3144,7 +3132,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     // The set literal constructors take the elements as a List.
-    List<HInstruction> elements = <HInstruction>[];
+    List<HInstruction> elements = [];
     for (ir.Expression element in node.expressions) {
       element.accept(this);
       elements.add(pop());
@@ -3152,7 +3140,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
     // The constructor is a procedure because it's a factory.
     FunctionEntity constructor;
-    List<HInstruction> inputs = <HInstruction>[];
+    List<HInstruction> inputs = [];
     if (elements.isEmpty) {
       constructor = _commonElements.setLiteralConstructorEmpty;
     } else {
@@ -3170,7 +3158,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     ClassEntity cls = constructor.enclosingClass;
 
     if (_rtiNeed.classNeedsTypeArguments(cls)) {
-      List<HInstruction> typeInputs = <HInstruction>[];
+      List<HInstruction> typeInputs = [];
       type.typeArguments.forEach((DartType argument) {
         typeInputs
             .add(_typeBuilder.analyzeTypeArgument(argument, sourceElement));
@@ -3223,7 +3211,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     // The map literal constructors take the key-value pairs as a List
-    List<HInstruction> constructorArgs = <HInstruction>[];
+    List<HInstruction> constructorArgs = [];
     for (ir.MapLiteralEntry mapEntry in node.entries) {
       mapEntry.key.accept(this);
       constructorArgs.add(pop());
@@ -3233,7 +3221,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
     // The constructor is a procedure because it's a factory.
     FunctionEntity constructor;
-    List<HInstruction> inputs = <HInstruction>[];
+    List<HInstruction> inputs = [];
     if (constructorArgs.isEmpty) {
       constructor = _commonElements.mapLiteralConstructorEmpty;
     } else {
@@ -3252,7 +3240,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     ClassEntity cls = constructor.enclosingClass;
 
     if (_rtiNeed.classNeedsTypeArguments(cls)) {
-      List<HInstruction> typeInputs = <HInstruction>[];
+      List<HInstruction> typeInputs = [];
       type.typeArguments.forEach((DartType argument) {
         typeInputs
             .add(_typeBuilder.analyzeTypeArgument(argument, sourceElement));
@@ -3307,34 +3295,25 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildGet(node);
     ir.DartType type = node.type;
-    if (type is ir.InterfaceType ||
-        type is ir.DynamicType ||
-        type is ir.NeverType ||
-        type is ir.TypedefType ||
-        type is ir.FunctionType ||
-        type is ir.FutureOrType) {
+    DartType dartType = _elementMap.getDartType(type);
+    if (!dartType.containsTypeVariables) {
       ConstantValue constant =
           _elementMap.getConstantValue(_memberContextNode, node);
       stack.add(graph.addConstant(constant, closedWorld,
           sourceInformation: sourceInformation));
       return;
     }
-    assert(
-        type is ir.TypeParameterType,
-        failedAt(
-            CURRENT_ELEMENT_SPANNABLE, "Unexpected type literal ${node}."));
     // For other types (e.g. TypeParameterType, function types from expanded
     // typedefs), look-up or construct a reified type representation and convert
     // to a RuntimeType.
 
-    DartType dartType = _elementMap.getDartType(type);
     dartType = localsHandler.substInContext(dartType);
     HInstruction value = _typeBuilder.analyzeTypeArgument(
         dartType, sourceElement,
         sourceInformation: sourceInformation);
     _pushStaticInvocation(
         _commonElements.createRuntimeType,
-        <HInstruction>[value],
+        [value],
         _typeInferenceMap.getReturnTypeOf(_commonElements.createRuntimeType),
         const <DartType>[],
         sourceInformation: sourceInformation);
@@ -3349,14 +3328,14 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         staticTarget.kind == ir.ProcedureKind.Getter) {
       FunctionEntity getter = _elementMap.getMember(staticTarget);
       // Invoke the getter
-      _pushStaticInvocation(getter, const <HInstruction>[],
+      _pushStaticInvocation(getter, const [],
           _typeInferenceMap.getReturnTypeOf(getter), const <DartType>[],
           sourceInformation: sourceInformation);
     } else if (staticTarget is ir.Field) {
       FieldEntity field = _elementMap.getField(staticTarget);
       FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(field);
       if (fieldData.isEager) {
-        push(new HStatic(field, _typeInferenceMap.getInferredTypeOf(field),
+        push(HStatic(field, _typeInferenceMap.getInferredTypeOf(field),
             sourceInformation));
       } else if (fieldData.isEffectivelyConstant) {
         OutputUnit outputUnit =
@@ -3367,10 +3346,9 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         // unit, the old FE would still generate a deferred wrapper here.
         if (!closedWorld.outputUnitData
             .hasOnlyNonDeferredImportPaths(targetElement, field)) {
-          ConstantValue deferredConstant = new DeferredGlobalConstantValue(
-              fieldData.initialValue, outputUnit);
-          registry
-              .registerConstantUse(new ConstantUse.deferred(deferredConstant));
+          ConstantValue deferredConstant =
+              DeferredGlobalConstantValue(fieldData.initialValue, outputUnit);
+          registry.registerConstantUse(ConstantUse.deferred(deferredConstant));
           stack.add(graph.addDeferredConstant(
               deferredConstant, sourceInformation, closedWorld));
         } else {
@@ -3380,7 +3358,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       } else {
         assert(
             fieldData.isLazy, "Unexpected field data for $field: $fieldData");
-        push(new HLazyStatic(field, _typeInferenceMap.getInferredTypeOf(field),
+        push(HLazyStatic(field, _typeInferenceMap.getInferredTypeOf(field),
             sourceInformation));
       }
     } else {
@@ -3388,7 +3366,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // created a constant value instead. Remove this case when we use CFE
       // constants.
       FunctionEntity member = _elementMap.getMember(staticTarget);
-      push(new HStatic(member, _typeInferenceMap.getInferredTypeOf(member),
+      push(HStatic(member, _typeInferenceMap.getInferredTypeOf(member),
           sourceInformation));
     }
   }
@@ -3402,7 +3380,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildGet(node);
     FunctionEntity member = _elementMap.getMember(staticTarget);
-    push(new HStatic(member, _typeInferenceMap.getInferredTypeOf(member),
+    push(HStatic(member, _typeInferenceMap.getInferredTypeOf(member),
         sourceInformation));
   }
 
@@ -3415,14 +3393,14 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     if (staticTarget is ir.Procedure) {
       FunctionEntity setter = _elementMap.getMember(staticTarget);
       // Invoke the setter
-      _pushStaticInvocation(setter, <HInstruction>[value],
+      _pushStaticInvocation(setter, [value],
           _typeInferenceMap.getReturnTypeOf(setter), const <DartType>[],
           sourceInformation: _sourceInformationBuilder.buildSet(node));
       pop();
     } else {
       MemberEntity target = _elementMap.getMember(staticTarget);
       if (!_fieldAnalysis.getFieldData(target).isElided) {
-        add(new HStaticStore(
+        add(HStaticStore(
             _abstractValueDomain,
             target,
             _typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
@@ -3440,8 +3418,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         node,
         _getStaticType(receiver),
         _typeInferenceMap.receiverTypeOfGet(node),
-        new Selector.getter(_elementMap.getName(name)),
-        <HInstruction>[receiverInstruction],
+        Selector.getter(_elementMap.getName(name)),
+        [receiverInstruction],
         const <DartType>[],
         _sourceInformationBuilder.buildGet(node));
   }
@@ -3491,8 +3469,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         node,
         _getStaticType(receiver),
         _typeInferenceMap.receiverTypeOfSet(node, _abstractValueDomain),
-        new Selector.setter(_elementMap.getName(name)),
-        <HInstruction>[receiverInstruction, valueInstruction],
+        Selector.setter(_elementMap.getName(name)),
+        [receiverInstruction, valueInstruction],
         const <DartType>[],
         _sourceInformationBuilder.buildAssignment(node));
 
@@ -3522,14 +3500,14 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       // TODO(johnniwinther): Remove this when the CFE checks for missing
       //  concrete super targets.
       _generateSuperNoSuchMethod(node, _elementMap.getSelector(node).name + "=",
-          <HInstruction>[value], const <DartType>[], sourceInformation);
+          [value], const <DartType>[], sourceInformation);
     } else {
       MemberEntity member = _elementMap.getMember(target);
       _buildInvokeSuper(
           _elementMap.getSelector(node),
           _elementMap.getClass(_containingClass(node)),
           member,
-          <HInstruction>[value],
+          [value],
           const <DartType>[],
           sourceInformation);
     }
@@ -3610,7 +3588,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   /// Extracts the list of instructions for the positional subset of arguments.
   List<HInstruction> _visitPositionalArguments(ir.Arguments arguments) {
-    List<HInstruction> result = <HInstruction>[];
+    List<HInstruction> result = [];
     for (ir.Expression argument in arguments.positional) {
       argument.accept(this);
       result.add(pop());
@@ -3628,7 +3606,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     List<HInstruction> values = _visitPositionalArguments(arguments);
 
     if (arguments.named.isNotEmpty) {
-      Map<String, HInstruction> namedValues = <String, HInstruction>{};
+      Map<String, HInstruction> namedValues = {};
       for (ir.NamedExpression argument in arguments.named) {
         argument.value.accept(this);
         namedValues[argument.name] = pop();
@@ -3660,7 +3638,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       if (function is ConstructorEntity && function.isFactoryConstructor) {
         // TODO(sra): Have a "CompiledArguments" structure to just update with
         // what values we have rather than creating a map and de-populating it.
-        var namedValues = <String, HInstruction>{};
+        Map<String, HInstruction> namedValues = {};
         for (ir.NamedExpression argument in arguments.named) {
           argument.value.accept(this);
           namedValues[argument.name] = pop();
@@ -3756,7 +3734,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           // Filter elided parameters.
           .where((p) => parameterStructure.namedParameters.contains(p.name))
           .toList()
-            ..sort(namedOrdering);
+        ..sort(namedOrdering);
       for (ir.VariableDeclaration parameter in namedParameters) {
         HInstruction value = namedValues[parameter.name];
         if (value == null) {
@@ -3994,7 +3972,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       List<HInstruction> arguments,
       SourceInformation sourceInformation) {
     // `List<T>()` is essentially the same as `<T>[]`.
-    push(_buildLiteralList(<HInstruction>[]));
+    push(_buildLiteralList([]));
     HInstruction allocation = pop();
     var inferredType = globalInferenceResults.typeOfNewList(invocation);
     if (inferredType != null) {
@@ -4023,7 +4001,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
             "Expected 1-2 argument, actual: $arguments."));
     HInstruction lengthInput = arguments.first;
     if (lengthInput.isNumber(_abstractValueDomain).isPotentiallyFalse) {
-      HPrimitiveCheck conversion = new HPrimitiveCheck(
+      HPrimitiveCheck conversion = HPrimitiveCheck(
           _commonElements.numType,
           HPrimitiveCheck.ARGUMENT_TYPE_CHECK,
           _abstractValueDomain.numType,
@@ -4033,7 +4011,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       lengthInput = conversion;
     }
     js.Template code = js.js.parseForeignJS('new Array(#)');
-    var behavior = new NativeBehavior();
+    var behavior = NativeBehavior();
 
     DartType expectedType = _getStaticType(invocation).type;
     behavior.typesInstantiated.add(expectedType);
@@ -4051,8 +4029,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     var resultType = globalInferenceResults.typeOfNewList(invocation) ??
         _abstractValueDomain.fixedListType;
 
-    HForeignCode foreign = new HForeignCode(
-        code, resultType, <HInstruction>[lengthInput],
+    HForeignCode foreign = HForeignCode(code, resultType, [lengthInput],
         nativeBehavior: behavior,
         throwBehavior:
             canThrow ? NativeThrowBehavior.MAY : NativeThrowBehavior.NEVER)
@@ -4065,7 +4042,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       js.Template code = js.js.parseForeignJS(r'#.fixed$length = Array');
       // We set the instruction as [canThrow] to avoid it being dead code.
       // We need a finer grained side effect.
-      add(new HForeignCode(code, _abstractValueDomain.nullType, [stack.last],
+      add(HForeignCode(code, _abstractValueDomain.nullType, [stack.last],
           throwBehavior: NativeThrowBehavior.MAY));
     }
 
@@ -4121,8 +4098,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction object = arguments[0];
     HInstruction closure = arguments[1];
 
-    List<HInstruction> inputs = <HInstruction>[closure];
-    List<DartType> typeArguments = <DartType>[];
+    List<HInstruction> inputs = [closure];
+    List<DartType> typeArguments = [];
 
     closedWorld.registerExtractTypeArguments(cls);
     HInstruction instanceType =
@@ -4135,7 +4112,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       TypeVariableType variable = _typeVariable;
       typeArguments.add(variable);
       TypeRecipe recipe = TypeExpressionRecipe(variable);
-      HInstruction typeEval = new HTypeEval(
+      HInstruction typeEval = HTypeEval(
           instanceType, envStructure, recipe, _abstractValueDomain.dynamicType);
       add(typeEval);
       inputs.add(typeEval);
@@ -4145,14 +4122,14 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // function of N type arguments.
 
     Selector selector =
-        new Selector.callClosure(0, const <String>[], typeArguments.length);
+        Selector.callClosure(0, const <String>[], typeArguments.length);
     StaticType receiverStaticType =
         _getStaticType(invocation.arguments.positional[1]);
     AbstractValue receiverType = _abstractValueDomain
         .createFromStaticType(receiverStaticType.type,
             classRelation: receiverStaticType.relation, nullable: true)
         .abstractValue;
-    push(new HInvokeClosure(selector, receiverType, inputs,
+    push(HInvokeClosure(selector, receiverType, inputs,
         _abstractValueDomain.dynamicType, typeArguments));
 
     return true;
@@ -4253,20 +4230,20 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     Map<String, ir.Expression> namedArguments = {};
     int kind = _readIntLiteral(invocation.arguments.positional[4]);
 
-    Name memberName = new Name(name, _currentFrame.member.library);
+    Name memberName = Name(name, _currentFrame.member.library);
     Selector selector;
     switch (kind) {
       case invocationMirrorGetterKind:
-        selector = new Selector.getter(memberName);
+        selector = Selector.getter(memberName);
         break;
       case invocationMirrorSetterKind:
-        selector = new Selector.setter(memberName);
+        selector = Selector.setter(memberName);
         break;
       case invocationMirrorMethodKind:
         if (memberName == Names.INDEX_NAME) {
-          selector = new Selector.index();
+          selector = Selector.index();
         } else if (memberName == Names.INDEX_SET_NAME) {
-          selector = new Selector.indexSet();
+          selector = Selector.indexSet();
         } else {
           if (namedArgumentsLiteral is ir.MapLiteral) {
             namedArgumentsLiteral.entries.forEach((ir.MapLiteralEntry entry) {
@@ -4278,8 +4255,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
             ir.MapConstant constant = namedArgumentsLiteral.constant;
             for (ir.ConstantMapEntry entry in constant.entries) {
               ir.StringConstant key = entry.key;
-              namedArguments[key.value] =
-                  new ir.ConstantExpression(entry.value);
+              namedArguments[key.value] = ir.ConstantExpression(entry.value);
             }
           } else {
             reporter.internalError(
@@ -4287,15 +4263,15 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
                 "Unexpected named arguments value in createInvocationMirrror: "
                 "${namedArgumentsLiteral}.");
           }
-          CallStructure callStructure = new CallStructure(
+          CallStructure callStructure = CallStructure(
               positionalArgumentsLiteral.expressions.length,
               namedArguments.keys.toList(),
               typeArguments.length);
           if (Selector.isOperatorName(name)) {
             selector =
-                new Selector(SelectorKind.OPERATOR, memberName, callStructure);
+                Selector(SelectorKind.OPERATOR, memberName, callStructure);
           } else {
-            selector = new Selector.call(memberName, callStructure);
+            selector = Selector.call(memberName, callStructure);
           }
         }
         break;
@@ -4305,13 +4281,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         constant_system.createSymbol(closedWorld.commonElements, name),
         closedWorld);
 
-    List<HInstruction> arguments = <HInstruction>[];
+    List<HInstruction> arguments = [];
     for (ir.Expression argument in positionalArgumentsLiteral.expressions) {
       argument.accept(this);
       arguments.add(pop());
     }
     if (namedArguments.isNotEmpty) {
-      Map<String, HInstruction> namedValues = <String, HInstruction>{};
+      Map<String, HInstruction> namedValues = {};
       namedArguments.forEach((String name, ir.Expression value) {
         value.accept(this);
         namedValues[name] = pop();
@@ -4523,12 +4499,16 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   int _extractEnumIndexFromConstantValue(
       ConstantValue constant, ClassEntity classElement) {
-    if (constant is ConstructedConstantValue) {
-      if (constant.type.element == classElement) {
-        assert(constant.fields.length == 1 || constant.fields.length == 2);
-        ConstantValue indexConstant = constant.fields.values.first;
-        if (indexConstant is IntConstantValue) {
-          return indexConstant.intValue.toInt();
+    if (constant is ConstructedConstantValue &&
+        constant.type.element == classElement) {
+      assert(constant.fields.length >= 1);
+      for (var field in constant.fields.keys) {
+        if (field.memberName.text == "index") {
+          ConstantValue indexConstant = constant.fields[field];
+          if (indexConstant is IntConstantValue) {
+            return indexConstant.intValue.toInt();
+          }
+          break;
         }
       }
     }
@@ -4565,7 +4545,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
     AbstractValue ssaType =
         _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
-    push(new HForeignCode(expr, ssaType, const <HInstruction>[],
+    push(HForeignCode(expr, ssaType, const <HInstruction>[],
         nativeBehavior: nativeBehavior));
   }
 
@@ -4596,7 +4576,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       return;
     }
 
-    List<HInstruction> inputs = <HInstruction>[];
+    List<HInstruction> inputs = [];
     for (ir.Expression argument in arguments.skip(2)) {
       argument.accept(this);
       inputs.add(pop());
@@ -4611,7 +4591,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
     AbstractValue ssaType =
         _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
-    push(new HForeignCode(template, ssaType, inputs,
+    push(HForeignCode(template, ssaType, inputs,
         nativeBehavior: nativeBehavior));
   }
 
@@ -4698,7 +4678,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         InterfaceType type =
             argumentConstant.representedType.withoutNullability;
         // TODO(sra): Check that type is a subclass of [Interceptor].
-        ConstantValue constant = new InterceptorConstantValue(type.element);
+        ConstantValue constant = InterceptorConstantValue(type.element);
         HInstruction instruction = graph.addConstant(constant, closedWorld);
         stack.add(instruction);
         return;
@@ -4769,7 +4749,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         failedAt(_elementMap.getSpannable(targetElement, invocation),
             "No NativeBehavior for $invocation"));
 
-    List<HInstruction> inputs = <HInstruction>[];
+    List<HInstruction> inputs = [];
     for (ir.Expression argument in invocation.arguments.positional.skip(2)) {
       argument.accept(this);
       inputs.add(pop());
@@ -4797,7 +4777,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
 
     SourceInformation sourceInformation = null;
-    HInstruction code = new HForeignCode(
+    HInstruction code = HForeignCode(
         nativeBehavior.codeTemplate, ssaType, inputs,
         isStatement: !nativeBehavior.codeTemplate.isExpression,
         effects: nativeBehavior.sideEffects,
@@ -4832,7 +4812,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         closedWorld.dartTypes
             .isNonNullableIfSound(_getStaticType(invocation).type)) {
       HInstruction code = pop();
-      push(new HNullCheck(
+      push(HNullCheck(
           code, _abstractValueDomain.excludeNull(code.instructionType),
           sticky: true));
     }
@@ -4846,8 +4826,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       return;
     }
     List<HInstruction> inputs = _visitPositionalArguments(invocation.arguments);
-    push(new HStringConcat(
-        inputs[0], inputs[1], _abstractValueDomain.stringType));
+    push(HStringConcat(inputs[0], inputs[1], _abstractValueDomain.stringType));
   }
 
   void _handleForeignTypeRef(ir.StaticInvocation invocation) {
@@ -4912,14 +4891,14 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       return;
     }
 
-    HInvokeStatic instruction = new HInvokeStatic(
+    HInvokeStatic instruction = HInvokeStatic(
         target, arguments, typeMask, typeArguments,
         targetCanThrow: !_inferredData.getCannotThrow(target))
       ..sourceInformation = sourceInformation;
 
     if (_currentImplicitInstantiations.isNotEmpty) {
       instruction.instantiatedTypes =
-          new List<InterfaceType>.from(_currentImplicitInstantiations);
+          List<InterfaceType>.from(_currentImplicitInstantiations);
     }
     instruction.sideEffects = _inferredData.getSideEffectsOfElement(target);
     push(instruction);
@@ -4989,7 +4968,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     HInstruction receiver = arguments.first;
-    List<HInstruction> inputs = <HInstruction>[];
+    List<HInstruction> inputs = [];
 
     selector ??= _elementMap.getSelector(node);
 
@@ -5041,8 +5020,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       ConstructorEntity constructor = element;
       int i = 0;
       int positions = 0;
-      var filteredArguments = <HInstruction>[];
-      var parameterNameMap = new Map<String, js.Expression>();
+      List<HInstruction> filteredArguments = [];
+      Map<String, js.Expression> parameterNameMap = {};
 
       // Note: we don't use `constructor.parameterStructure` here because
       // we don't elide parameters to js-interop external static targets
@@ -5061,17 +5040,16 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         if (argument != null) {
           filteredArguments.add(argument);
           var jsName = _nativeData.computeUnescapedJSInteropName(parameterName);
-          parameterNameMap[jsName] = new js.InterpolatedExpression(positions++);
+          parameterNameMap[jsName] = js.InterpolatedExpression(positions++);
         }
         i++;
       }
-      var codeTemplate =
-          new js.Template(null, js.objectLiteral(parameterNameMap));
+      var codeTemplate = js.Template(null, js.objectLiteral(parameterNameMap));
 
-      var nativeBehavior = new NativeBehavior()..codeTemplate = codeTemplate;
+      var nativeBehavior = NativeBehavior()..codeTemplate = codeTemplate;
       registry.registerNativeMethod(element);
       // TODO(efortuna): Source information.
-      return new HForeignCode(
+      return HForeignCode(
           codeTemplate, _abstractValueDomain.dynamicType, filteredArguments,
           nativeBehavior: nativeBehavior);
     }
@@ -5082,7 +5060,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // the factory constructor case.
     List<HInstruction> inputs = arguments.where((arg) => arg != null).toList();
 
-    var nativeBehavior = new NativeBehavior()..sideEffects.setAllSideEffects();
+    var nativeBehavior = NativeBehavior()..sideEffects.setAllSideEffects();
 
     DartType type = element is ConstructorEntity
         ? _elementEnvironment.getThisType(element.enclosingClass)
@@ -5123,7 +5101,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _closureDataLookup.getClosureInfo(node.parent);
     ClassEntity closureClassEntity = closureInfo.closureClassEntity;
 
-    List<HInstruction> capturedVariables = <HInstruction>[];
+    List<HInstruction> capturedVariables = [];
     _elementEnvironment.forEachInstanceField(closureClassEntity,
         (_, FieldEntity field) {
       if (_fieldAnalysis.getFieldData(field).isElided) return;
@@ -5134,8 +5112,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     AbstractValue type =
         _abstractValueDomain.createNonNullExact(closureClassEntity);
     // TODO(efortuna): Add source information here.
-    push(new HCreate(
-        closureClassEntity, capturedVariables, type, sourceInformation,
+    push(HCreate(closureClassEntity, capturedVariables, type, sourceInformation,
         callMethod: closureInfo.callMethod));
   }
 
@@ -5154,28 +5131,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   @override
   void visitInstantiation(ir.Instantiation node) {
-    var arguments = <HInstruction>[];
+    List<HInstruction> arguments = [];
     node.expression.accept(this);
     arguments.add(pop());
-    StaticType expressionType = _getStaticType(node.expression);
-    FunctionType functionType = expressionType.type.withoutNullability;
-    bool typeArgumentsNeeded = _rtiNeed.instantiationNeedsTypeArguments(
-        functionType, node.typeArguments.length);
-    List<DartType> typeArguments = node.typeArguments
-        .map((type) => typeArgumentsNeeded
-            ? _elementMap.getDartType(type)
-            : _commonElements.dynamicType)
-        .toList();
-    registry.registerGenericInstantiation(
-        new GenericInstantiation(functionType, typeArguments));
-    // TODO(johnniwinther): Can we avoid creating the instantiation object?
-    for (DartType type in typeArguments) {
-      HInstruction instruction =
-          _typeBuilder.analyzeTypeArgument(type, sourceElement);
-      arguments.add(instruction);
-    }
+
+    // A generic function instantiation is created by calling a helper function
+    // which takes the arguments.
     int typeArgumentCount = node.typeArguments.length;
-    bool targetCanThrow = false; // TODO(sra): Is this true?
     FunctionEntity target =
         _commonElements.getInstantiateFunction(typeArgumentCount);
     if (target == null) {
@@ -5186,10 +5148,36 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       stack.add(graph.addConstantNull(closedWorld));
       return;
     }
-    HInstruction instruction = new HInvokeStatic(
+
+    StaticType expressionType = _getStaticType(node.expression);
+    FunctionType functionType = expressionType.type.withoutNullability;
+    bool typeArgumentsNeeded = _rtiNeed.methodNeedsTypeArguments(target);
+
+    List<DartType> typeArguments = node.typeArguments
+        .map((type) => typeArgumentsNeeded
+            ? _elementMap.getDartType(type)
+            : _commonElements.dynamicType)
+        .toList();
+    registry.registerGenericInstantiation(
+        GenericInstantiation(functionType, typeArguments));
+
+    // TODO(sra): Add instantiations to SourceInformationBuilder.
+    SourceInformation sourceInformation = null;
+
+    // TODO(47484): Allow callee to have different calling convention for type
+    // arguments.
+    if (typeArgumentsNeeded) {
+      _addTypeArguments(arguments, typeArguments, sourceInformation);
+    }
+
+    bool targetCanThrow = false; // TODO(sra): Is this true?
+
+    // TODO(sra): Use [_pushStaticInvocation] to allow inlining. We don't now
+    // because inference can't tell that the call has no side-effects.
+    HInstruction instruction = HInvokeStatic(
         target, arguments, _abstractValueDomain.functionType, <DartType>[],
         targetCanThrow: targetCanThrow);
-    // TODO(sra): ..sourceInformation = sourceInformation
+    instruction.sourceInformation = sourceInformation;
     instruction.sideEffects
       ..clearAllDependencies()
       ..clearAllSideEffects();
@@ -5202,16 +5190,17 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     receiver.accept(this);
     HInstruction receiverInstruction = pop();
     Selector selector = _elementMap.getSelector(node);
-    List<DartType> typeArguments = <DartType>[];
+    List<DartType> typeArguments = [];
     selector = _fillDynamicTypeArguments(selector, arguments, typeArguments);
     _pushDynamicInvocation(
         node,
         _getStaticType(receiver),
         _typeInferenceMap.receiverTypeOfInvocation(node, _abstractValueDomain),
         selector,
-        <HInstruction>[receiverInstruction]..addAll(
-            _visitArgumentsForDynamicTarget(
-                selector, arguments, typeArguments)),
+        [
+          receiverInstruction,
+          ..._visitArgumentsForDynamicTarget(selector, arguments, typeArguments)
+        ],
         typeArguments,
         _sourceInformationBuilder.buildCall(receiver, node));
   }
@@ -5268,7 +5257,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _getStaticType(left),
         _typeInferenceMap.receiverTypeOfInvocation(node, _abstractValueDomain),
         Selectors.equals,
-        <HInstruction>[leftInstruction, rightInstruction],
+        [leftInstruction, rightInstruction],
         const <DartType>[],
         _sourceInformationBuilder.buildCall(left, node));
   }
@@ -5293,7 +5282,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   HInterceptor _interceptorFor(
       HInstruction intercepted, SourceInformation sourceInformation) {
     HInterceptor interceptor =
-        new HInterceptor(intercepted, _abstractValueDomain.nonNullType)
+        HInterceptor(intercepted, _abstractValueDomain.nonNullType)
           ..sourceInformation = sourceInformation;
     add(interceptor);
     return interceptor;
@@ -5326,7 +5315,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     var argumentsInstruction = _buildLiteralList(arguments);
     add(argumentsInstruction);
 
-    var argumentNames = <HInstruction>[];
+    List<HInstruction> argumentNames = [];
     for (String argumentName in selector.namedArguments) {
       ConstantValue argumentNameConstant =
           constant_system.createString(argumentName);
@@ -5353,7 +5342,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         sourceInformation: sourceInformation);
 
     _buildInvokeSuper(Selectors.noSuchMethod_, containingClass, noSuchMethod,
-        <HInstruction>[pop()], typeArguments, sourceInformation);
+        [pop()], typeArguments, sourceInformation);
   }
 
   HInstruction _buildInvokeSuper(
@@ -5366,7 +5355,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction receiver =
         localsHandler.readThis(sourceInformation: sourceInformation);
 
-    List<HInstruction> inputs = <HInstruction>[];
+    List<HInstruction> inputs = [];
     bool isIntercepted =
         closedWorld.interceptorData.isInterceptedSelector(selector);
     if (isIntercepted) {
@@ -5382,15 +5371,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     } else {
       typeMask = _abstractValueDomain.dynamicType;
     }
-    HInstruction instruction = new HInvokeSuper(
-        target,
-        containingClass,
-        selector,
-        inputs,
-        isIntercepted,
-        typeMask,
-        typeArguments,
-        sourceInformation,
+    HInstruction instruction = HInvokeSuper(target, containingClass, selector,
+        inputs, isIntercepted, typeMask, typeArguments, sourceInformation,
         isSetter: selector.isSetter || selector.isIndexSet);
     instruction.sideEffects =
         _inferredData.getSideEffectsOfSelector(selector, null);
@@ -5480,13 +5462,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     HInstruction methodNameInstruction =
         graph.addConstantString(methodName, closedWorld);
     FunctionEntity element = _commonElements.checkTypeBound;
-    var inputs = <HInstruction>[
+    List<HInstruction> inputs = [
       typeInstruction,
       boundInstruction,
       variableNameInstruction,
       methodNameInstruction,
     ];
-    HInstruction checkBound = new HInvokeStatic(
+    HInstruction checkBound = HInvokeStatic(
         element, inputs, typeInstruction.instructionType, const <DartType>[]);
     add(checkBound);
   }
@@ -5511,7 +5493,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         target.enclosingClass, node.arguments.types);
     instanceType = localsHandler.substInContext(instanceType);
 
-    List<HInstruction> arguments = <HInstruction>[];
+    List<HInstruction> arguments = [];
     if (constructor.isGenerativeConstructor &&
         _nativeData.isNativeOrExtendsNative(constructor.enclosingClass) &&
         !_nativeData.isJsInteropMember(constructor)) {
@@ -5580,8 +5562,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       SourceInformation sourceInformation =
           _sourceInformationBuilder.buildThrow(node);
       _handleInTryStatement();
-      push(
-          new HThrowExpression(_abstractValueDomain, pop(), sourceInformation));
+      push(HThrowExpression(_abstractValueDomain, pop(), sourceInformation));
       _isReachable = false;
     }
   }
@@ -5599,7 +5580,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   @override
   void visitYieldStatement(ir.YieldStatement node) {
     node.expression.accept(this);
-    add(new HYield(_abstractValueDomain, pop(), node.isYieldStar,
+    add(HYield(_abstractValueDomain, pop(), node.isYieldStar,
         _sourceInformationBuilder.buildYield(node)));
   }
 
@@ -5608,7 +5589,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     node.operand.accept(this);
     HInstruction awaited = pop();
     // TODO(herhut): Improve this type.
-    push(new HAwait(awaited, _abstractValueDomain.dynamicType)
+    push(HAwait(awaited, _abstractValueDomain.dynamicType)
       ..sourceInformation = _sourceInformationBuilder.buildAwait(node));
   }
 
@@ -5623,8 +5604,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     _handleInTryStatement();
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildThrow(node);
-    _closeAndGotoExit(new HThrow(
-        _abstractValueDomain, exception, sourceInformation,
+    _closeAndGotoExit(HThrow(_abstractValueDomain, exception, sourceInformation,
         isRethrow: true));
     // ir.Rethrow is an expression so we need to push a value - a constant with
     // no type.
@@ -5640,21 +5620,21 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   @override
   void visitNot(ir.Not node) {
     node.operand.accept(this);
-    push(new HNot(popBoolified(), _abstractValueDomain.boolType)
+    push(HNot(popBoolified(), _abstractValueDomain.boolType)
       ..sourceInformation = _sourceInformationBuilder.buildUnary(node));
   }
 
   @override
   void visitStringConcatenation(ir.StringConcatenation stringConcat) {
-    KernelStringBuilder stringBuilder = new KernelStringBuilder(this);
+    KernelStringBuilder stringBuilder = KernelStringBuilder(this);
     stringConcat.accept(stringBuilder);
     stack.add(stringBuilder.result);
   }
 
   @override
   void visitTryCatch(ir.TryCatch node) {
-    TryCatchFinallyBuilder tryBuilder = new TryCatchFinallyBuilder(
-        this, _sourceInformationBuilder.buildTry(node));
+    TryCatchFinallyBuilder tryBuilder =
+        TryCatchFinallyBuilder(this, _sourceInformationBuilder.buildTry(node));
     node.body.accept(this);
     tryBuilder
       ..closeTryBody()
@@ -5672,8 +5652,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// recursion.
   @override
   void visitTryFinally(ir.TryFinally node) {
-    TryCatchFinallyBuilder tryBuilder = new TryCatchFinallyBuilder(
-        this, _sourceInformationBuilder.buildTry(node));
+    TryCatchFinallyBuilder tryBuilder =
+        TryCatchFinallyBuilder(this, _sourceInformationBuilder.buildTry(node));
 
     // We do these shenanigans to produce better looking code that doesn't
     // have nested try statements.
@@ -5887,12 +5867,12 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     void doInlining() {
       if (function.isConstructor) {
         registry.registerStaticUse(
-            new StaticUse.constructorInlining(function, instanceType));
+            StaticUse.constructorInlining(function, instanceType));
       } else {
         assert(instanceType == null,
             "Unexpected instance type for $function: $instanceType");
         registry.registerStaticUse(
-            new StaticUse.methodInlining(function, typeArguments));
+            StaticUse.methodInlining(function, typeArguments));
       }
 
       // Add an explicit null check on the receiver before doing the inlining.
@@ -5977,7 +5957,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     ParameterStructure parameterStructure = function.parameterStructure;
     List<String> selectorArgumentNames =
         selector.callStructure.getOrderedNamedArguments();
-    List<HInstruction> compiledArguments = new List<HInstruction>.filled(
+    List<HInstruction> compiledArguments = List<HInstruction>.filled(
         parameterStructure.totalParameters +
             parameterStructure.typeParameters +
             1,
@@ -6070,7 +6050,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// [SsaGraphBuilder].
   void _enterInlinedMethod(FunctionEntity function,
       List<HInstruction> compiledArguments, InterfaceType instanceType) {
-    KernelInliningState state = new KernelInliningState(
+    KernelInliningState state = KernelInliningState(
         function,
         _returnLocal,
         _returnType,
@@ -6096,7 +6076,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// stores it in the [_returnLocal] field.
   void _setupStateForInlining(FunctionEntity function,
       List<HInstruction> compiledArguments, InterfaceType instanceType) {
-    localsHandler = new LocalsHandler(
+    localsHandler = LocalsHandler(
         this,
         function,
         function,
@@ -6108,7 +6088,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     CapturedScope scopeData = _closureDataLookup.getCapturedScope(function);
     bool forGenerativeConstructorBody = function is ConstructorBodyEntity;
 
-    _returnLocal = new SyntheticLocal("result", function, function);
+    _returnLocal = SyntheticLocal("result", function, function);
     localsHandler.updateLocal(_returnLocal, graph.addConstantNull(closedWorld));
 
     _inTryStatement = false; // TODO(lry): why? Document.
@@ -6339,25 +6319,21 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     String name = "${n(element.library)}:${n(element.enclosingClass)}."
         "${n(element)}";
     HConstant nameConstant = graph.addConstantString(name, closedWorld);
-    add(new HInvokeStatic(
-        _commonElements.traceHelper,
-        <HInstruction>[idConstant, nameConstant],
-        _abstractValueDomain.dynamicType,
-        const <DartType>[]));
+    add(HInvokeStatic(_commonElements.traceHelper, [idConstant, nameConstant],
+        _abstractValueDomain.dynamicType, const <DartType>[]));
   }
 }
 
 /// Data collected to create a constructor.
 class ConstructorData {
   /// Inlined (super) constructors.
-  final List<ir.Constructor> constructorChain = <ir.Constructor>[];
+  final List<ir.Constructor> constructorChain = [];
 
   /// Initial values for all instance fields.
-  final Map<FieldEntity, HInstruction> fieldValues =
-      <FieldEntity, HInstruction>{};
+  final Map<FieldEntity, HInstruction> fieldValues = {};
 
   /// Classes for which type variables have been prepared.
-  final Set<ClassEntity> includedClasses = new Set<ClassEntity>();
+  final Set<ClassEntity> includedClasses = {};
 }
 
 class KernelInliningState {
@@ -6418,8 +6394,8 @@ class TryCatchFinallyBuilder {
   LocalsHandler originalSavedLocals;
 
   TryCatchFinallyBuilder(this.kernelBuilder, this.trySourceInformation) {
-    tryInstruction = new HTry(kernelBuilder._abstractValueDomain);
-    originalSavedLocals = new LocalsHandler.from(kernelBuilder.localsHandler);
+    tryInstruction = HTry(kernelBuilder._abstractValueDomain);
+    originalSavedLocals = LocalsHandler.from(kernelBuilder.localsHandler);
     enterBlock = kernelBuilder.openNewBlock();
     kernelBuilder.close(tryInstruction);
     previouslyInTryStatement = kernelBuilder._inTryStatement;
@@ -6461,15 +6437,13 @@ class TryCatchFinallyBuilder {
     // The body has either the catch or the finally block as successor.
     if (endTryBlock != null) {
       assert(startCatchBlock != null || startFinallyBlock != null);
-      endTryBlock.addSuccessor(
-          startCatchBlock != null ? startCatchBlock : startFinallyBlock);
+      endTryBlock.addSuccessor(startCatchBlock ?? startFinallyBlock);
       endTryBlock.addSuccessor(exitBlock);
     }
 
     // The catch block has either the finally or the exit block as
     // successor.
-    endCatchBlock?.addSuccessor(
-        startFinallyBlock != null ? startFinallyBlock : exitBlock);
+    endCatchBlock?.addSuccessor(startFinallyBlock ?? exitBlock);
 
     // The finally block has the exit block as successor.
     endFinallyBlock?.addSuccessor(exitBlock);
@@ -6484,17 +6458,16 @@ class TryCatchFinallyBuilder {
   /// Build the finally{} clause of a try/{catch}/finally statement. Note this
   /// does not examine the body of the try clause, only the finally portion.
   void buildFinallyBlock(void buildFinalizer()) {
-    kernelBuilder.localsHandler = new LocalsHandler.from(originalSavedLocals);
+    kernelBuilder.localsHandler = LocalsHandler.from(originalSavedLocals);
     startFinallyBlock = kernelBuilder.graph.addNewBlock();
     kernelBuilder.open(startFinallyBlock);
     buildFinalizer();
     if (!kernelBuilder.isAborted()) {
       endFinallyBlock =
-          kernelBuilder.close(new HGoto(kernelBuilder._abstractValueDomain));
+          kernelBuilder.close(HGoto(kernelBuilder._abstractValueDomain));
     }
     tryInstruction.finallyBlock = startFinallyBlock;
-    finallyGraph =
-        new SubGraph(startFinallyBlock, kernelBuilder.lastOpenedBlock);
+    finallyGraph = SubGraph(startFinallyBlock, kernelBuilder.lastOpenedBlock);
   }
 
   void closeTryBody() {
@@ -6503,19 +6476,19 @@ class TryCatchFinallyBuilder {
     // the catch or finally block.
     if (!kernelBuilder.isAborted()) {
       endTryBlock =
-          kernelBuilder.close(new HExitTry(kernelBuilder._abstractValueDomain));
+          kernelBuilder.close(HExitTry(kernelBuilder._abstractValueDomain));
     }
-    bodyGraph = new SubGraph(startTryBlock, kernelBuilder.lastOpenedBlock);
+    bodyGraph = SubGraph(startTryBlock, kernelBuilder.lastOpenedBlock);
   }
 
   void buildCatch(ir.TryCatch tryCatch) {
-    kernelBuilder.localsHandler = new LocalsHandler.from(originalSavedLocals);
+    kernelBuilder.localsHandler = LocalsHandler.from(originalSavedLocals);
     startCatchBlock = kernelBuilder.graph.addNewBlock();
     kernelBuilder.open(startCatchBlock);
     // Note that the name of this local is irrelevant.
     SyntheticLocal local = kernelBuilder.localsHandler.createLocal('exception');
     exception =
-        new HLocalValue(local, kernelBuilder._abstractValueDomain.nonNullType)
+        HLocalValue(local, kernelBuilder._abstractValueDomain.nonNullType)
           ..sourceInformation = trySourceInformation;
     kernelBuilder.add(exception);
     HInstruction oldRethrowableException = kernelBuilder._rethrowableException;
@@ -6535,6 +6508,10 @@ class TryCatchFinallyBuilder {
         const <DartType>[],
         sourceInformation: trySourceInformation);
     HInvokeStatic unwrappedException = kernelBuilder.pop();
+    unwrappedException.sideEffects
+      ..clearAllDependencies()
+      ..clearAllSideEffects();
+    unwrappedException.targetCanThrow = false;
     tryInstruction.exception = exception;
     int catchesIndex = 0;
 
@@ -6575,7 +6552,7 @@ class TryCatchFinallyBuilder {
 
     void visitElse() {
       if (catchesIndex >= tryCatch.catches.length) {
-        kernelBuilder._closeAndGotoExit(new HThrow(
+        kernelBuilder._closeAndGotoExit(HThrow(
             kernelBuilder._abstractValueDomain,
             exception,
             exception.sourceInformation,
@@ -6604,12 +6581,12 @@ class TryCatchFinallyBuilder {
             kernelBuilder._sourceInformationBuilder.buildCatch(firstBlock));
     if (!kernelBuilder.isAborted()) {
       endCatchBlock =
-          kernelBuilder.close(new HGoto(kernelBuilder._abstractValueDomain));
+          kernelBuilder.close(HGoto(kernelBuilder._abstractValueDomain));
     }
 
     kernelBuilder._rethrowableException = oldRethrowableException;
     tryInstruction.catchBlock = startCatchBlock;
-    catchGraph = new SubGraph(startCatchBlock, kernelBuilder.lastOpenedBlock);
+    catchGraph = SubGraph(startCatchBlock, kernelBuilder.lastOpenedBlock);
   }
 
   void cleanUp() {
@@ -6621,7 +6598,7 @@ class TryCatchFinallyBuilder {
     kernelBuilder.localsHandler = originalSavedLocals;
     kernelBuilder.open(exitBlock);
     enterBlock.setBlockFlow(
-        new HTryBlockInformation(
+        HTryBlockInformation(
             kernelBuilder.wrapStatementGraph(bodyGraph),
             exception,
             kernelBuilder.wrapStatementGraph(catchGraph),
@@ -6632,7 +6609,7 @@ class TryCatchFinallyBuilder {
 }
 
 class KernelTypeBuilder extends TypeBuilder {
-  JsToElementMap _elementMap;
+  final JsToElementMap _elementMap;
 
   KernelTypeBuilder(KernelSsaGraphBuilder builder, this._elementMap)
       : super(builder);
@@ -6652,7 +6629,7 @@ class _ErroneousInitializerVisitor extends ir.Visitor<bool>
 
   // TODO(30809): Use const constructor.
   static bool check(ir.Initializer initializer) =>
-      initializer.accept(new _ErroneousInitializerVisitor());
+      initializer.accept(_ErroneousInitializerVisitor());
 
   @override
   bool defaultInitializer(ir.Node node) => false;
@@ -6754,13 +6731,14 @@ class InlineData {
       this.regularNodeCount,
       this.callCount});
 
-  bool canBeInlined({int maxInliningNodes, bool allowLoops: false}) {
+  bool canBeInlined({int maxInliningNodes, bool allowLoops = false}) {
     return cannotBeInlinedReason(
             maxInliningNodes: maxInliningNodes, allowLoops: allowLoops) ==
         null;
   }
 
-  String cannotBeInlinedReason({int maxInliningNodes, bool allowLoops: false}) {
+  String cannotBeInlinedReason(
+      {int maxInliningNodes, bool allowLoops = false}) {
     if (hasLoop && !allowLoops) {
       return 'loop';
     } else if (hasTry) {
@@ -6828,7 +6806,7 @@ class InlineData {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('InlineData(');
     String comma = '';
     if (isConstructor) {
@@ -6914,9 +6892,9 @@ class InlineDataCache {
   final bool omitImplicitCasts;
 
   InlineDataCache(
-      {this.enableUserAssertions: false, this.omitImplicitCasts: false});
+      {this.enableUserAssertions = false, this.omitImplicitCasts = false});
 
-  Map<FunctionEntity, InlineData> _cache = {};
+  final Map<FunctionEntity, InlineData> _cache = {};
 
   InlineData getInlineData(JsToElementMap elementMap, FunctionEntity function) {
     return _cache[function] ??= InlineWeeder.computeInlineData(
@@ -6967,12 +6945,12 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   bool discountParameters = false;
 
   InlineWeeder(
-      {this.enableUserAssertions: false, this.omitImplicitCasts: false});
+      {this.enableUserAssertions = false, this.omitImplicitCasts = false});
 
   static InlineData computeInlineData(
       JsToElementMap elementMap, FunctionEntity function,
-      {bool enableUserAssertions: false, bool omitImplicitCasts: false}) {
-    InlineWeeder visitor = new InlineWeeder(
+      {bool enableUserAssertions = false, bool omitImplicitCasts = false}) {
+    InlineWeeder visitor = InlineWeeder(
         enableUserAssertions: enableUserAssertions,
         omitImplicitCasts: omitImplicitCasts);
     ir.FunctionNode node = getFunctionNode(elementMap, function);

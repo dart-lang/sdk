@@ -5,7 +5,7 @@ import "foo_lib.dart" as foo;
 
 import "org-dartlang-testcase:///foo_lib.dart";
 
-static const field core::Set<foo::Foo> foo = #C5;
+static const field core::Set<foo::Foo> foo = #C2;
 static method main() → dynamic {}
 
 library /*isNonNullableByDefault*/;
@@ -18,12 +18,12 @@ import "org-dartlang-testcase:///bar_lib.dart";
 export "org-dartlang-testcase:///bar_lib.dart";
 
 abstract class Foo extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[foo::Foo::bar]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C3]/*isLegacy*/;
   const constructor •() → foo::Foo
     : super core::Object::•()
     ;
   static factory bar() → foo::Foo
-    let dynamic #redirecting_factory = bar::Bar::• in let dynamic #typeArg0 = null in invalid-expression;
+    return new bar::Bar::•<dynamic>();
 }
 
 library /*isNonNullableByDefault*/;
@@ -41,10 +41,8 @@ class Bar<T extends core::Object? = dynamic> extends foo::Foo /*hasConstConstruc
 
 constants  {
   #C1 = bar::Bar<dynamic> {}
-  #C2 = null
-  #C3 = <dynamic>[#C1, #C2]
-  #C4 = core::_ImmutableMap<foo::Foo*, Null> {_kvPairs:#C3}
-  #C5 = col::_UnmodifiableSet<foo::Foo*> {_map:#C4}
+  #C2 = <foo::Foo*>{#C1}
+  #C3 = constructor-tearoff foo::Foo::bar
 }
 
 

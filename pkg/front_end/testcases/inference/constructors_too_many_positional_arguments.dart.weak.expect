@@ -2,10 +2,10 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/constructors_too_many_positional_arguments.dart:11:72: Error: Too many positional arguments: 0 allowed, but 1 found.
+// pkg/front_end/testcases/inference/constructors_too_many_positional_arguments.dart:11:77: Error: Too many positional arguments: 0 allowed, but 1 found.
 // Try removing the extra positional arguments.
-//   var /*@type=dynamic*/ a = new A /*error:EXTRA_POSITIONAL_ARGUMENTS*/ (42);
-//                                                                        ^
+//   var /*@type=invalid-type*/ a = new A /*error:EXTRA_POSITIONAL_ARGUMENTS*/ (42);
+//                                                                             ^
 // pkg/front_end/testcases/inference/constructors_too_many_positional_arguments.dart:8:7: Context: The class 'A' has a constructor that takes no arguments.
 // class A<T> {}
 //       ^
@@ -29,9 +29,9 @@ class A<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test() → dynamic {
-  dynamic a = invalid-expression "pkg/front_end/testcases/inference/constructors_too_many_positional_arguments.dart:11:72: Error: Too many positional arguments: 0 allowed, but 1 found.
+  invalid-type a = invalid-expression "pkg/front_end/testcases/inference/constructors_too_many_positional_arguments.dart:11:77: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
-  var /*@type=dynamic*/ a = new A /*error:EXTRA_POSITIONAL_ARGUMENTS*/ (42);
-                                                                       ^";
+  var /*@type=invalid-type*/ a = new A /*error:EXTRA_POSITIONAL_ARGUMENTS*/ (42);
+                                                                            ^";
 }
 static method main() → dynamic {}

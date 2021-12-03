@@ -1,0 +1,50 @@
+Problems reported:
+
+parser/error_recovery/keyword_named_formal_parameter_start_of_next_top_level:2:1: Expected a function body, but got 'class'.
+class C {}
+^^^^^
+
+parser/error_recovery/keyword_named_formal_parameter_start_of_next_top_level:1:2: Can't find ')' to match '('.
+f(x /* guess the user was typing here... */
+ ^
+
+beginCompilationUnit(f)
+  beginMetadataStar(f)
+  endMetadataStar(0)
+  beginTopLevelMember(f)
+    beginTopLevelMethod(UnmatchedToken((), null)
+      handleNoType(UnmatchedToken(())
+      handleIdentifier(f, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+        beginMetadataStar(x)
+        endMetadataStar(0)
+        beginFormalParameter(x, MemberKind.TopLevelMethod, null, null, null)
+          handleNoType(()
+          handleIdentifier(x, formalParameterDeclaration)
+          handleFormalParameterWithoutValue(class)
+        endFormalParameter(null, null, x, null, null, FormalParameterKind.mandatory, MemberKind.TopLevelMethod)
+      endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleRecoverableError(Message[ExpectedFunctionBody, Expected a function body, but got 'class'., null, {lexeme: class}], class, class)
+      handleInvalidFunctionBody({)
+    endTopLevelMethod(f, null, })
+  endTopLevelDeclaration(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(C, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, C)
+      handleNoType(C)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleClassOrMixinImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration()
+  handleErrorToken(UnmatchedToken(())
+  handleRecoverableError(Message[UnmatchedToken, Can't find ')' to match '('., null, {string: ), lexeme: (}], UnmatchedToken((), UnmatchedToken(())
+endCompilationUnit(2, )

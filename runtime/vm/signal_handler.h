@@ -38,84 +38,19 @@ struct sigset_t {};
 #include <ucontext.h>  // NOLINT
 #endif
 
-// Old linux kernels on ARM might require a trampoline to
-// work around incorrect Thumb -> ARM transitions. See SignalHandlerTrampoline
-// below for more details.
-#if defined(HOST_ARCH_ARM) &&                                                  \
-    (defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)) &&          \
-    !defined(__thumb__)
-#define USE_SIGNAL_HANDLER_TRAMPOLINE
-#endif
-
 namespace dart {
 
 typedef void (*SignalAction)(int signal, siginfo_t* info, void* context);
 
 class SignalHandler : public AllStatic {
  public:
-  template <SignalAction action>
-  static void Install() {
-#if defined(USE_SIGNAL_HANDLER_TRAMPOLINE)
-    InstallImpl(SignalHandlerTrampoline<action>);
-#else
-    InstallImpl(action);
-#endif  // defined(USE_SIGNAL_HANDLER_TRAMPOLINE)
-  }
+  static void Install(SignalAction action);
   static void Remove();
   static uintptr_t GetProgramCounter(const mcontext_t& mcontext);
   static uintptr_t GetFramePointer(const mcontext_t& mcontext);
   static uintptr_t GetCStackPointer(const mcontext_t& mcontext);
   static uintptr_t GetDartStackPointer(const mcontext_t& mcontext);
   static uintptr_t GetLinkRegister(const mcontext_t& mcontext);
-
- private:
-  static void InstallImpl(SignalAction action);
-
-#if defined(USE_SIGNAL_HANDLER_TRAMPOLINE)
-  // Work around for a bug in old kernels (only fixed in 3.18 Android kernel):
-  //
-  // Kernel does not clear If-Then execution state bits when entering ARM signal
-  // handler which violates requirements imposed by ARM architecture reference.
-  // Some CPUs look at these bits even while in ARM mode which causes them
-  // to skip some instructions in the prologue of the signal handler.
-  //
-  // To work around the issue we insert enough NOPs in the prologue to ensure
-  // that no actual instructions are skipped and then branch to the actual
-  // signal handler.
-  //
-  // For the kernel patch that fixes the issue see:
-  // http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=6ecf830e5029598732e04067e325d946097519cb
-  //
-  // Note: this function is marked "naked" because we must guarantee that
-  // our NOPs occur before any compiler generated prologue.
-  template <SignalAction action>
-  static __attribute__((naked)) void SignalHandlerTrampoline(int signal,
-                                                             siginfo_t* info,
-                                                             void* context_) {
-    // IT (If-Then) instruction makes up to four instructions that follow it
-    // conditional.
-    // Note: clobber all register so that compiler does not attempt to hoist
-    // anything from the next assembly block past this one.
-    asm volatile("nop; nop; nop; nop;"
-                 :
-                 :
-                 : "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9",
-                   "r10", "r11", "r12", "r13", "r14", "memory");
-
-    // Tail-call into the actual signal handler.
-    //
-    // Note: this code is split into a separate inline assembly block because
-    // any code that compiler generates to satisfy register constraints must
-    // be generated after four NOPs.
-    //
-    // Note: there is no portable way to specify that we want to have
-    // signal, info and context_ in r0 - r2 respectively. So we just mark them
-    // as clobbered and hope that compiler does not emit any code that uses
-    // these registers to satisfy action constraint (we tested on clang and
-    // the generated code looks like one would expect).
-    asm volatile("bx %0;" : : "r"(action) : "r0", "r1", "r2", "memory");
-  }
-#endif  // defined(USE_SIGNAL_HANDLER_TRAMPOLINE)
 };
 
 #undef USE_SIGNAL_HANDLER_TRAMPOLINE

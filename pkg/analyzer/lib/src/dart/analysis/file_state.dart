@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -31,8 +32,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/either.dart';
@@ -120,16 +119,12 @@ class FileState {
   String? _content;
   String? _contentHash;
   LineInfo? _lineInfo;
-  Set<String>? _definedClassMemberNames;
-  Set<String>? _definedTopLevelNames;
-  Set<String>? _referencedNames;
-  List<int>? _unlinkedSignature;
+  Uint8List? _unlinkedSignature;
   String? _unlinkedKey;
-  String? _informativeKey;
   AnalysisDriverUnlinkedUnit? _driverUnlinkedUnit;
-  List<int>? _apiSignature;
+  Uint8List? _apiSignature;
 
-  UnlinkedUnit2? _unlinked2;
+  UnlinkedUnit? _unlinked2;
 
   List<FileState?>? _importedFiles;
   List<FileState?>? _exportedFiles;
@@ -140,8 +135,6 @@ class FileState {
   Set<FileState>? _directReferencedLibraries;
 
   LibraryCycle? _libraryCycle;
-  String? _transitiveSignature;
-  String? _transitiveSignatureLinked;
 
   /// The flag that shows whether the file has an error or warning that
   /// might be fixed by a change to another file.
@@ -158,7 +151,7 @@ class FileState {
   );
 
   /// The unlinked API signature of the file.
-  List<int> get apiSignature => _apiSignature!;
+  Uint8List get apiSignature => _apiSignature!;
 
   /// The content of the file.
   String get content => _content!;
@@ -168,14 +161,12 @@ class FileState {
 
   /// The class member names defined by the file.
   Set<String> get definedClassMemberNames {
-    return _definedClassMemberNames ??=
-        _driverUnlinkedUnit!.definedClassMemberNames.toSet();
+    return _driverUnlinkedUnit!.definedClassMemberNames;
   }
 
   /// The top-level names defined by the file.
   Set<String> get definedTopLevelNames {
-    return _definedTopLevelNames ??=
-        _driverUnlinkedUnit!.definedTopLevelNames.toSet();
+    return _driverUnlinkedUnit!.definedTopLevelNames;
   }
 
   /// Return the set of all directly referenced files - imported, exported or
@@ -202,19 +193,13 @@ class FileState {
 
   /// The list of files this file exports.
   List<FileState?> get exportedFiles {
-    if (_exportedFiles == null) {
-      _exportedFiles = <FileState?>[];
-      for (var directive in _unlinked2!.exports) {
-        var uri = _selectRelativeUri(directive);
-        _fileForRelativeUri(uri).map(
-          (file) {
-            _exportedFiles!.add(file);
-          },
-          (_) {},
-        );
-      }
-    }
-    return _exportedFiles!;
+    return _exportedFiles ??= _unlinked2!.exports.map((directive) {
+      var uri = _selectRelativeUri(directive);
+      return _fileForRelativeUri(uri).map(
+        (file) => file,
+        (_) => null,
+      );
+    }).toList();
   }
 
   @override
@@ -222,19 +207,13 @@ class FileState {
 
   /// The list of files this file imports.
   List<FileState?> get importedFiles {
-    if (_importedFiles == null) {
-      _importedFiles = <FileState?>[];
-      for (var directive in _unlinked2!.imports) {
-        var uri = _selectRelativeUri(directive);
-        _fileForRelativeUri(uri).map(
-          (file) {
-            _importedFiles!.add(file);
-          },
-          (_) {},
-        );
-      }
-    }
-    return _importedFiles!;
+    return _importedFiles ??= _unlinked2!.imports.map((directive) {
+      var uri = _selectRelativeUri(directive);
+      return _fileForRelativeUri(uri).map(
+        (file) => file,
+        (_) => null,
+      );
+    }).toList();
   }
 
   LibraryCycle? get internal_libraryCycle => _libraryCycle;
@@ -272,13 +251,6 @@ class FileState {
   /// Return the [LibraryCycle] this file belongs to, even if it consists of
   /// just this file.  If the library cycle is not known yet, compute it.
   LibraryCycle get libraryCycle {
-    if (isPart) {
-      final library = this.library;
-      if (library != null && !identical(library, this)) {
-        return library.libraryCycle;
-      }
-    }
-
     if (_libraryCycle == null) {
       computeLibraryCycle(_fsState._saltForElements, this);
     }
@@ -300,28 +272,24 @@ class FileState {
 
   /// The list of files this library file references as parts.
   List<FileState?> get partedFiles {
-    if (_partedFiles == null) {
-      _partedFiles = <FileState?>[];
-      for (var uri in _unlinked2!.parts) {
-        _fileForRelativeUri(uri).map(
-          (file) {
-            _partedFiles!.add(file);
-            if (file != null) {
-              _fsState._partToLibraries
-                  .putIfAbsent(file, () => <FileState>[])
-                  .add(this);
-            }
-          },
-          (_) {},
-        );
-      }
-    }
-    return _partedFiles!;
+    return _partedFiles ??= _unlinked2!.parts.map((uri) {
+      return _fileForRelativeUri(uri).map(
+        (file) {
+          if (file != null) {
+            _fsState._partToLibraries
+                .putIfAbsent(file, () => <FileState>[])
+                .add(this);
+          }
+          return file;
+        },
+        (_) => null,
+      );
+    }).toList();
   }
 
   /// The external names referenced by the file.
   Set<String> get referencedNames {
-    return _referencedNames ??= _driverUnlinkedUnit!.referencedNames.toSet();
+    return _driverUnlinkedUnit!.referencedNames;
   }
 
   @visibleForTesting
@@ -344,57 +312,30 @@ class FileState {
 
   /// Return the signature of the file, based on API signatures of the
   /// transitive closure of imported / exported files.
+  /// TODO(scheglov) Remove it.
   String get transitiveSignature {
-    libraryCycle; // sets _transitiveSignature
-    _transitiveSignature ??= _invalidTransitiveSignature;
-    return _transitiveSignature!;
+    var librarySignatureBuilder = ApiSignature()
+      ..addString(uriStr)
+      ..addString(libraryCycle.transitiveSignature);
+    return librarySignatureBuilder.toHex();
   }
 
-  /// The value `transitiveSignature.linked` is used often, so we cache it.
-  String get transitiveSignatureLinked {
-    return _transitiveSignatureLinked ??= '$transitiveSignature.linked';
-  }
-
-  /// The [UnlinkedUnit2] of the file.
-  UnlinkedUnit2 get unlinked2 => _unlinked2!;
+  /// The [UnlinkedUnit] of the file.
+  UnlinkedUnit get unlinked2 => _unlinked2!;
 
   /// The MD5 signature based on the content, feature sets, language version.
-  List<int> get unlinkedSignature => _unlinkedSignature!;
+  Uint8List get unlinkedSignature => _unlinkedSignature!;
 
   /// Return the [uri] string.
   String get uriStr => uri.toString();
-
-  String get _invalidTransitiveSignature {
-    return (ApiSignature()
-          ..addString(path)
-          ..addBytes(unlinkedSignature))
-        .toHex();
-  }
 
   @override
   bool operator ==(Object other) {
     return other is FileState && other.uri == uri;
   }
 
-  Uint8List getInformativeBytes({CompilationUnit? unit}) {
-    var bytes = _fsState._byteStore.get(_informativeKey!) as Uint8List?;
-    if (bytes == null) {
-      unit ??= parse();
-      bytes = writeUnitInformative(unit);
-      _fsState._byteStore.put(_informativeKey!, bytes);
-    }
-    return bytes;
-  }
-
-  void internal_setLibraryCycle(LibraryCycle? cycle, String? signature) {
-    if (cycle == null) {
-      _libraryCycle = null;
-      _transitiveSignature = null;
-      _transitiveSignatureLinked = null;
-    } else {
-      _libraryCycle = cycle;
-      _transitiveSignature = signature;
-    }
+  void internal_setLibraryCycle(LibraryCycle? cycle) {
+    _libraryCycle = cycle;
   }
 
   /// Return a new parsed unresolved [CompilationUnit].
@@ -442,21 +383,17 @@ class FileState {
       signature.addBool(_exists!);
       _unlinkedSignature = signature.toByteList();
       var signatureHex = hex.encode(_unlinkedSignature!);
-      _unlinkedKey = '$signatureHex.unlinked2';
       // TODO(scheglov) Use the path as the key, and store the signature.
-      _informativeKey = '$signatureHex.ast';
+      _unlinkedKey = '$signatureHex.unlinked2';
     }
 
-    // Prepare bytes of the unlinked bundle - existing or new.
-    var bytes = _getUnlinkedBytes();
-
-    // Read the unlinked bundle.
-    _driverUnlinkedUnit = AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
-    _unlinked2 = _driverUnlinkedUnit!.unit2;
+    // Prepare the unlinked unit.
+    _driverUnlinkedUnit = _getUnlinkedUnit();
+    _unlinked2 = _driverUnlinkedUnit!.unit;
     _lineInfo = LineInfo(_unlinked2!.lineStarts);
 
     // Prepare API signature.
-    var newApiSignature = Uint8List.fromList(_unlinked2!.apiSignature);
+    var newApiSignature = _unlinked2!.apiSignature;
     bool apiSignatureChanged = _apiSignature != null &&
         !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
@@ -536,41 +473,37 @@ class FileState {
     return _fsState.getFileForUri(absoluteUri);
   }
 
-  /// Return the bytes of the unlinked summary - existing or new.
-  List<int> _getUnlinkedBytes() {
+  /// Return the unlinked unit, from bytes or new.
+  AnalysisDriverUnlinkedUnit _getUnlinkedUnit() {
     var bytes = _fsState._byteStore.get(_unlinkedKey!);
     if (bytes != null && bytes.isNotEmpty) {
-      return bytes;
+      return AnalysisDriverUnlinkedUnit.fromBytes(bytes);
     }
 
     var unit = parse();
     return _fsState._logger.run('Create unlinked for $path', () {
       var unlinkedUnit = serializeAstUnlinked2(unit);
       var definedNames = computeDefinedNames(unit);
-      var referencedNames = computeReferencedNames(unit).toList();
-      var subtypedNames = computeSubtypedNames(unit).toList();
-      var bytes = AnalysisDriverUnlinkedUnitBuilder(
-        unit2: unlinkedUnit,
-        definedTopLevelNames: definedNames.topLevelNames.toList(),
-        definedClassMemberNames: definedNames.classMemberNames.toList(),
+      var referencedNames = computeReferencedNames(unit);
+      var subtypedNames = computeSubtypedNames(unit);
+      var driverUnlinkedUnit = AnalysisDriverUnlinkedUnit(
+        definedTopLevelNames: definedNames.topLevelNames,
+        definedClassMemberNames: definedNames.classMemberNames,
         referencedNames: referencedNames,
         subtypedNames: subtypedNames,
-      ).toBuffer();
+        unit: unlinkedUnit,
+      );
+      var bytes = driverUnlinkedUnit.toBytes();
       _fsState._byteStore.put(_unlinkedKey!, bytes);
       counterUnlinkedBytes += bytes.length;
       counterUnlinkedLinkedBytes += bytes.length;
-      return bytes;
+      return driverUnlinkedUnit;
     });
   }
 
   /// Invalidate any data that depends on the current unlinked data of the file,
   /// because [refresh] is going to recompute the unlinked data.
   void _invalidateCurrentUnresolvedData() {
-    // Invalidate unlinked information.
-    _definedTopLevelNames = null;
-    _definedClassMemberNames = null;
-    _referencedNames = null;
-
     if (_driverUnlinkedUnit != null) {
       for (var name in _driverUnlinkedUnit!.subtypedNames) {
         var files = _fsState._subtypedNameToFiles[name];
@@ -626,9 +559,9 @@ class FileState {
     return directive.uri;
   }
 
-  static UnlinkedUnit2Builder serializeAstUnlinked2(CompilationUnit unit) {
-    var exports = <UnlinkedNamespaceDirectiveBuilder>[];
-    var imports = <UnlinkedNamespaceDirectiveBuilder>[];
+  static UnlinkedUnit serializeAstUnlinked2(CompilationUnit unit) {
+    var exports = <UnlinkedNamespaceDirective>[];
+    var imports = <UnlinkedNamespaceDirective>[];
     var parts = <String>[];
     var hasDartCoreImport = false;
     var hasLibraryDirective = false;
@@ -654,19 +587,23 @@ class FileState {
     }
     if (!hasDartCoreImport) {
       imports.add(
-        UnlinkedNamespaceDirectiveBuilder(
+        UnlinkedNamespaceDirective(
+          configurations: [],
           uri: 'dart:core',
         ),
       );
     }
-    return UnlinkedUnit2Builder(
-      apiSignature: computeUnlinkedApiSignature(unit),
+    return UnlinkedUnit(
+      apiSignature: Uint8List.fromList(computeUnlinkedApiSignature(unit)),
       exports: exports,
-      imports: imports,
-      parts: parts,
       hasLibraryDirective: hasLibraryDirective,
       hasPartOfDirective: hasPartOfDirective,
-      lineStarts: unit.lineInfo!.lineStarts,
+      imports: imports,
+      informativeBytes: writeUnitInformative(unit),
+      lineStarts: Uint32List.fromList(unit.lineInfo!.lineStarts),
+      partOfName: null,
+      partOfUri: null,
+      parts: parts,
     );
   }
 
@@ -688,13 +625,13 @@ class FileState {
     return true;
   }
 
-  static UnlinkedNamespaceDirectiveBuilder _serializeNamespaceDirective(
+  static UnlinkedNamespaceDirective _serializeNamespaceDirective(
       NamespaceDirective directive) {
-    return UnlinkedNamespaceDirectiveBuilder(
+    return UnlinkedNamespaceDirective(
       configurations: directive.configurations.map((configuration) {
         var name = configuration.name.components.join('.');
         var value = configuration.value?.stringValue ?? '';
-        return UnlinkedNamespaceDirectiveConfigurationBuilder(
+        return UnlinkedNamespaceDirectiveConfiguration(
           name: name,
           value: value,
           uri: configuration.uri.stringValue ?? '',
@@ -796,6 +733,35 @@ class FileSystemState {
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
+
+  /// Collected files that transitively reference a file with the [path].
+  /// These files are potentially affected by the change.
+  void collectAffected(String path, Set<FileState> affected) {
+    final knownFiles = this.knownFiles.toList();
+
+    final fileToReferences = <FileState, List<FileState>>{};
+    for (var file in knownFiles) {
+      for (var referenced in file.directReferencedFiles) {
+        var references = fileToReferences[referenced] ??= [];
+        references.add(file);
+      }
+    }
+
+    collectAffected(FileState file) {
+      if (affected.add(file)) {
+        var references = fileToReferences[file];
+        if (references != null) {
+          for (var other in references) {
+            collectAffected(other);
+          }
+        }
+      }
+    }
+
+    for (var file in _pathToFiles[path] ?? <FileState>[]) {
+      collectAffected(file);
+    }
+  }
 
   FeatureSet contextFeatureSet(
     String path,
@@ -967,15 +933,6 @@ class FileSystemState {
     _clearFiles();
   }
 
-  /// Reset URI resolution, and forget all files. So, the next time any file is
-  /// requested, it will be read, and its whole (potentially different) graph
-  /// will be built.
-  void resetUriResolution() {
-    _sourceFactory.clearCache();
-    _fileContentCache.invalidateAll();
-    _clearFiles();
-  }
-
   void _addFileWithPath(String path, FileState file) {
     var files = _pathToFiles[path];
     if (files == null) {
@@ -993,8 +950,10 @@ class FileSystemState {
     _uriToFile.clear();
     knownFilePaths.clear();
     knownFiles.clear();
+    _hasUriForPath.clear();
     _pathToFiles.clear();
     _pathToCanonicalFile.clear();
+    _librariesWithoutPartsRead.clear();
     _partToLibraries.clear();
     _subtypedNameToFiles.clear();
   }

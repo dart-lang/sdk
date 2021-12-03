@@ -165,7 +165,7 @@ class AddDiagnosticPropertyReference extends CorrectionProducer {
         if (parameter is SimpleFormalParameter) {
           final type = parameter.type;
           final identifier = parameter.identifier;
-          if (type is TypeName && identifier != null) {
+          if (type is NamedType && identifier != null) {
             if (type.name.name == 'DiagnosticPropertiesBuilder') {
               propertiesBuilderName = identifier.name;
               break;

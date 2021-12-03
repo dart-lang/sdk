@@ -2,27 +2,27 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:22:5: Error: Method not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:22:5: Error: Couldn't find constructor 'dynamic'.
 //     dynamic();
 //     ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:23:9: Error: Method not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:23:9: Error: Couldn't find constructor 'dynamic'.
 //     use(dynamic());
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:24:5: Error: Method not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:24:5: Error: Couldn't find constructor 'T'.
 //     T();
 //     ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:25:9: Error: Method not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:25:9: Error: Couldn't find constructor 'T'.
 //     use(T());
 //         ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:26:5: Error: Method not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:26:5: Error: Couldn't find constructor 'Func'.
 //     Func();
 //     ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:27:9: Error: Method not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:27:9: Error: Couldn't find constructor 'Func'.
 //     use(Func());
 //         ^^^^
 //
@@ -301,22 +301,22 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     self::use(#C3);
     new self::C::•<dynamic>();
     self::use(new self::C::•<dynamic>());
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:22:5: Error: Method not found: 'dynamic'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:22:5: Error: Couldn't find constructor 'dynamic'.
     dynamic();
     ^^^^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:23:9: Error: Method not found: 'dynamic'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:23:9: Error: Couldn't find constructor 'dynamic'.
     use(dynamic());
         ^^^^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:24:5: Error: Method not found: 'T'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:24:5: Error: Couldn't find constructor 'T'.
     T();
     ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:25:9: Error: Method not found: 'T'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:25:9: Error: Couldn't find constructor 'T'.
     use(T());
         ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:26:5: Error: Method not found: 'Func'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:26:5: Error: Couldn't find constructor 'Func'.
     Func();
     ^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:27:9: Error: Method not found: 'Func'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:27:9: Error: Couldn't find constructor 'Func'.
     use(Func());
         ^^^^");
     invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:29:5: Error: Can't assign to a type literal.
@@ -439,28 +439,28 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:72:11: Error: Can't assign to a type literal.
     use(--Func);
           ^^^^");
-    (#C1) == null ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:74:5: Error: Can't assign to a type literal.
+    #C1 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:74:5: Error: Can't assign to a type literal.
     C ??= 42;
     ^" : null;
-    self::use(let final core::Type* #t1 = #C1 in #t1 == null ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:75:9: Error: Can't assign to a type literal.
+    self::use(let final core::Type* #t1 = #C1 in #t1 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:75:9: Error: Can't assign to a type literal.
     use(C ??= 42);
         ^" : #t1);
-    (#C2) == null ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:76:5: Error: Can't assign to a type literal.
+    #C2 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:76:5: Error: Can't assign to a type literal.
     dynamic ??= 42;
     ^^^^^^^" : null;
-    self::use(let final core::Type* #t2 = #C2 in #t2 == null ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:77:9: Error: Can't assign to a type literal.
+    self::use(let final core::Type* #t2 = #C2 in #t2 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:77:9: Error: Can't assign to a type literal.
     use(dynamic ??= 42);
         ^^^^^^^" : #t2);
-    self::C::T* == null ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:78:5: Error: Can't assign to a type literal.
+    self::C::T* == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:78:5: Error: Can't assign to a type literal.
     T ??= 42;
     ^" : null;
-    self::use(let final core::Type* #t3 = self::C::T* in #t3 == null ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:79:9: Error: Can't assign to a type literal.
+    self::use(let final core::Type* #t3 = self::C::T* in #t3 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:79:9: Error: Can't assign to a type literal.
     use(T ??= 42);
         ^" : #t3);
-    (#C3) == null ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:80:5: Error: Can't assign to a type literal.
+    #C3 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:80:5: Error: Can't assign to a type literal.
     Func ??= 42;
     ^^^^" : null;
-    self::use(let final core::Type* #t4 = #C3 in #t4 == null ?{dynamic} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:81:9: Error: Can't assign to a type literal.
+    self::use(let final core::Type* #t4 = #C3 in #t4 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:81:9: Error: Can't assign to a type literal.
     use(Func ??= 42);
         ^^^^" : #t4);
     invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:83:5: Error: Can't assign to a type literal.

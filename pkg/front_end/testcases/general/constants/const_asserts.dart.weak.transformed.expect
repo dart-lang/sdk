@@ -127,7 +127,7 @@ import "dart:core" as core;
 class Foo extends core::Object /*hasConstConstructor*/  {
   final field core::int* x;
   const constructor •(core::int* x) → self::Foo*
-    : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num*) →* core::bool*}, "x is not positive"), assert(x.{core::num::>}(0){(core::num*) →* core::bool*}), assert(x.{core::num::>}(0){(core::num*) →* core::bool*}, ""), assert((#C1) =={core::Object::==}{(core::Object*) →* core::bool*} false, "foo was ${#C1}"), assert((#C1) =={core::Object::==}{(core::Object*) →* core::bool*} false), super core::Object::•()
+    : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num*) →* core::bool*}, "x is not positive"), assert(x.{core::num::>}(0){(core::num*) →* core::bool*}), assert(x.{core::num::>}(0){(core::num*) →* core::bool*}, ""), assert(#C1 =={core::Object::==}{(core::Object*) →* core::bool*} false, "foo was ${#C1}"), assert(#C1 =={core::Object::==}{(core::Object*) →* core::bool*} false), super core::Object::•()
     ;
   const constructor withMessage(core::int* x) → self::Foo*
     : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num*) →* core::bool*}, "btw foo was ${#C1}"), super core::Object::•()
@@ -136,7 +136,7 @@ class Foo extends core::Object /*hasConstConstructor*/  {
     : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num*) →* core::bool*}, x), super core::Object::•()
     ;
   const constructor withInvalidCondition(core::int* x) → self::Foo*
-    : self::Foo::x = x, assert(let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/constants/const_asserts.dart:17:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+    : self::Foo::x = x, assert(invalid-expression "pkg/front_end/testcases/general/constants/const_asserts.dart:17:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
   const Foo.withInvalidCondition(this.x) : assert(x);
                                                   ^" in x as{TypeError} core::bool*), super core::Object::•()
     ;
@@ -210,7 +210,7 @@ Evaluated: EqualsCall @ org-dartlang-testcase:///const_asserts.dart:11:50 -> Boo
 Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:12:59 -> StringConstant("foo was false")
 Evaluated: EqualsCall @ org-dartlang-testcase:///const_asserts.dart:13:50 -> BoolConstant(true)
 Evaluated: StringConcatenation @ org-dartlang-testcase:///const_asserts.dart:15:73 -> StringConstant("btw foo was false")
-Extra constant evaluation: evaluated: 34, effectively constant: 4
+Extra constant evaluation: evaluated: 31, effectively constant: 4
 
 
 Constructor coverage from constants:

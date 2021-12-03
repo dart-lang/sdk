@@ -21,6 +21,8 @@ class ParallaxOptions extends core::Object /*hasConstConstructor*/  {
   external const constructor •() → self::ParallaxOptions
     : super core::Object::•()
     ;
+  static method _#new#tearOff() → self::ParallaxOptions
+    return new self::ParallaxOptions::•();
 }
 static method test() → dynamic
   return invalid-expression "External constructors can't be evaluated in constant expressions.";

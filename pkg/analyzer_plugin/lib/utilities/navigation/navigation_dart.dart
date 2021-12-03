@@ -27,6 +27,12 @@ NavigationCollector computeDartNavigation(
     unit.accept(visitor);
   } else {
     var node = _getNodeForRange(unit, offset, length);
+    // Take the outer-most node that shares this offset/length so that we get
+    // things like ConstructorName instead of SimpleIdentifier.
+    // https://github.com/dart-lang/sdk/issues/46725
+    if (node != null) {
+      node = _getOutermostNode(node);
+    }
     node?.accept(visitor);
   }
   return collector;
@@ -40,6 +46,19 @@ AstNode? _getNodeForRange(CompilationUnit unit, int offset, int length) {
     }
   }
   return node;
+}
+
+/// Gets the outer-most node with the same offset/length as node.
+AstNode _getOutermostNode(AstNode node) {
+  AstNode? current = node;
+  while (current != null &&
+      current.parent != null &&
+      current != current.parent &&
+      current.offset == current.parent!.offset &&
+      current.length == current.parent!.length) {
+    current = current.parent;
+  }
+  return current ?? node;
 }
 
 /// A Dart specific wrapper around [NavigationCollector].
@@ -284,13 +303,27 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorName(ConstructorName node) {
-    var parent = node.parent;
-    if (parent is InstanceCreationExpression &&
-        parent.constructorName == node) {
-      _addConstructorName(parent, node);
-    } else if (parent is ConstructorDeclaration &&
-        parent.redirectedConstructor == node) {
-      _addConstructorName(node, node);
+    Element? element = node.staticElement;
+    if (element == null) {
+      return;
+    }
+    // add regions
+    var typeName = node.type2;
+    // [prefix].ClassName
+    {
+      var name = typeName.name;
+      var className = name;
+      if (name is PrefixedIdentifier) {
+        name.prefix.accept(this);
+        className = name.identifier;
+      }
+      computer._addRegionForNode(className, element);
+    }
+    // <TypeA, TypeB>
+    typeName.typeArguments?.accept(this);
+    // optional "name"
+    if (node.name != null) {
+      computer._addRegionForNode(node.name, element);
     }
   }
 
@@ -431,34 +464,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       }
     }
     super.visitVariableDeclarationList(node);
-  }
-
-  void _addConstructorName(AstNode parent, ConstructorName node) {
-    Element? element = node.staticElement;
-    if (element == null) {
-      return;
-    }
-    // add regions
-    var typeName = node.type;
-    // [prefix].ClassName
-    {
-      var name = typeName.name;
-      var className = name;
-      if (name is PrefixedIdentifier) {
-        name.prefix.accept(this);
-        className = name.identifier;
-      }
-      computer._addRegionForNode(className, element);
-    }
-    // <TypeA, TypeB>
-    var typeArguments = typeName.typeArguments;
-    if (typeArguments != null) {
-      typeArguments.accept(this);
-    }
-    // optional "name"
-    if (node.name != null) {
-      computer._addRegionForNode(node.name, element);
-    }
   }
 
   /// If the source of the given [element] (referenced by the [node]) exists,

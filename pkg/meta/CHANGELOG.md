@@ -1,3 +1,9 @@
+## master
+
+* Add `@UseResult.unless`.
+* The mechanism behind `noInline` and `tryInline` from `dart2js.dart` has been
+  changed. This should not affect the use of these annotations in practice.
+
 ## 1.7.0
 
 * Restore `TargetKindExtension` and `get displayString`.

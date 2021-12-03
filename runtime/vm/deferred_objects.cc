@@ -273,7 +273,8 @@ void DeferredObject::Create() {
 }
 
 static intptr_t ToContextIndex(intptr_t offset_in_bytes) {
-  intptr_t result = (offset_in_bytes - Context::variable_offset(0)) / kWordSize;
+  intptr_t result = (offset_in_bytes - Context::variable_offset(0)) /
+                    Context::kBytesPerElement;
   ASSERT(result >= 0);
   return result;
 }

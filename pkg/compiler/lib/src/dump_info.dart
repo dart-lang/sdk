@@ -19,7 +19,7 @@ import 'common.dart';
 import 'common_elements.dart' show JElementEnvironment;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
-import 'deferred_load/deferred_load.dart' show OutputUnit, deferredPartFileName;
+import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
 import 'elements/entities.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
@@ -41,7 +41,7 @@ class ElementInfoCollector {
   JElementEnvironment get environment => closedWorld.elementEnvironment;
   CodegenWorldBuilder get codegenWorldBuilder => compiler.codegenWorldBuilder;
 
-  final AllInfo result = new AllInfo();
+  final AllInfo result = AllInfo();
   final Map<Entity, Info> _entityToInfo = <Entity, Info>{};
   final Map<ConstantValue, Info> _constantToInfo = <ConstantValue, Info>{};
   final Map<OutputUnit, OutputUnitInfo> _outputToInfo = {};
@@ -53,7 +53,7 @@ class ElementInfoCollector {
     dumpInfoTask._constantToNode.forEach((constant, node) {
       // TODO(sigmund): add dependencies on other constants
       var span = dumpInfoTask._nodeData[node];
-      var info = new ConstantInfo(
+      var info = ConstantInfo(
           size: span.end - span.start,
           code: [span],
           outputUnit: _unitInfoForConstant(constant));
@@ -79,7 +79,7 @@ class ElementInfoCollector {
       libname = '<unnamed>';
     }
     int size = dumpInfoTask.sizeOf(lib);
-    LibraryInfo info = new LibraryInfo(libname, lib.canonicalUri, null, size);
+    LibraryInfo info = LibraryInfo(libname, lib.canonicalUri, null, size);
     _entityToInfo[lib] = info;
 
     environment.forEachLibraryMember(lib, (MemberEntity member) {
@@ -99,6 +99,12 @@ class ElementInfoCollector {
     });
 
     environment.forEachClass(lib, (ClassEntity clazz) {
+      ClassTypeInfo classTypeInfo = visitClassType(clazz);
+      if (classTypeInfo != null) {
+        info.classTypes.add(classTypeInfo);
+        classTypeInfo.parent = info;
+      }
+
       ClassInfo classInfo = visitClass(clazz);
       if (classInfo != null) {
         info.classes.add(classInfo);
@@ -133,7 +139,7 @@ class ElementInfoCollector {
     // TODO(het): Why doesn't `size` account for the code size already?
     if (code != null) size += code.length;
 
-    FieldInfo info = new FieldInfo(
+    FieldInfo info = FieldInfo(
         name: field.name,
         type: '${environment.getFieldType(field)}',
         inferredType: '$inferredType',
@@ -159,9 +165,27 @@ class ElementInfoCollector {
     return info;
   }
 
+  ClassTypeInfo visitClassType(ClassEntity clazz) {
+    // Omit class type if it is not needed.
+    ClassTypeInfo classTypeInfo = ClassTypeInfo(
+        name: clazz.name, outputUnit: _unitInfoForClassType(clazz));
+
+    // TODO(joshualitt): Get accurate size information for class types.
+    classTypeInfo.size = 0;
+
+    bool isNeeded =
+        compiler.backendStrategy.emitterTask.neededClassTypes.contains(clazz);
+    if (!isNeeded) {
+      return null;
+    }
+
+    result.classTypes.add(classTypeInfo);
+    return classTypeInfo;
+  }
+
   ClassInfo visitClass(ClassEntity clazz) {
     // Omit class if it is not needed.
-    ClassInfo classInfo = new ClassInfo(
+    ClassInfo classInfo = ClassInfo(
         name: clazz.name,
         isAbstract: clazz.isAbstract,
         outputUnit: _unitInfoForClass(clazz));
@@ -188,7 +212,7 @@ class ElementInfoCollector {
           }
         }
       } else {
-        throw new StateError('Class member not a function or field');
+        throw StateError('Class member not a function or field');
       }
     });
     environment.forEachConstructor(clazz, (constructor) {
@@ -215,7 +239,7 @@ class ElementInfoCollector {
   }
 
   ClosureInfo visitClosureClass(ClassEntity element) {
-    ClosureInfo closureInfo = new ClosureInfo(
+    ClosureInfo closureInfo = ClosureInfo(
         name: element.name,
         outputUnit: _unitInfoForClass(element),
         size: dumpInfoTask.sizeOf(element));
@@ -257,7 +281,7 @@ class ElementInfoCollector {
 
     assert(kind != null);
 
-    FunctionModifiers modifiers = new FunctionModifiers(
+    FunctionModifiers modifiers = FunctionModifiers(
       isStatic: function.isStatic,
       isConst: function.isConst,
       isFactory: function.isConstructor
@@ -278,7 +302,7 @@ class ElementInfoCollector {
     closedWorld.elementEnvironment.forEachParameter(function, (type, name, _) {
       // Synthesized parameters have no name. This can happen on parameters of
       // setters derived from lowering late fields.
-      parameters.add(new ParameterInfo(name ?? '#t${parameterIndex}',
+      parameters.add(ParameterInfo(name ?? '#t${parameterIndex}',
           inferredParameterTypes[parameterIndex++], '$type'));
     });
 
@@ -292,7 +316,7 @@ class ElementInfoCollector {
     int inlinedCount = dumpInfoTask.inlineCount[function];
     if (inlinedCount == null) inlinedCount = 0;
 
-    FunctionInfo info = new FunctionInfo(
+    FunctionInfo info = FunctionInfo(
         name: name,
         functionKind: kind,
         modifiers: modifiers,
@@ -351,7 +375,7 @@ class ElementInfoCollector {
       var filename = outputUnit.isMainOutput
           ? compiler.options.outputUri.pathSegments.last
           : deferredPartFileName(compiler.options, outputUnit.name);
-      OutputUnitInfo info = new OutputUnitInfo(filename, outputUnit.name,
+      OutputUnitInfo info = OutputUnitInfo(filename, outputUnit.name,
           backendStrategy.emitterTask.emitter.generatedSize(outputUnit));
       info.imports
           .addAll(closedWorld.outputUnitData.getImportNames(outputUnit));
@@ -368,6 +392,11 @@ class ElementInfoCollector {
   OutputUnitInfo _unitInfoForClass(ClassEntity entity) {
     return _infoFromOutputUnit(
         closedWorld.outputUnitData.outputUnitForClass(entity, allowNull: true));
+  }
+
+  OutputUnitInfo _unitInfoForClassType(ClassEntity entity) {
+    return _infoFromOutputUnit(closedWorld.outputUnitData
+        .outputUnitForClassType(entity, allowNull: true));
   }
 
   OutputUnitInfo _unitInfoForConstant(ConstantValue constant) {
@@ -398,7 +427,7 @@ abstract class InfoReporter {
 }
 
 class DumpInfoTask extends CompilerTask implements InfoReporter {
-  static const ImpactUseCase IMPACT_USE = const ImpactUseCase('Dump info');
+  static const ImpactUseCase IMPACT_USE = ImpactUseCase('Dump info');
   final Compiler compiler;
   final bool useBinaryFormat;
 
@@ -467,15 +496,15 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     compiler.impactStrategy.visitImpact(
         entity,
         impact,
-        new WorldImpactVisitorImpl(visitDynamicUse: (member, dynamicUse) {
+        WorldImpactVisitorImpl(visitDynamicUse: (member, dynamicUse) {
           AbstractValue mask = dynamicUse.receiverConstraint;
           selections.addAll(closedWorld
               // TODO(het): Handle `call` on `Closure` through
               // `world.includesClosureCall`.
               .locateMembers(dynamicUse.selector, mask)
-              .map((MemberEntity e) => new Selection(e, mask)));
+              .map((MemberEntity e) => Selection(e, mask)));
         }, visitStaticUse: (member, staticUse) {
-          selections.add(new Selection(staticUse.element, null));
+          selections.add(Selection(staticUse.element, null));
         }),
         IMPACT_USE);
     return selections;
@@ -487,7 +516,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       {LibraryEntity library}) {
     if (compiler.options.dumpInfo) {
       _entityToNodes.putIfAbsent(entity, () => <jsAst.Node>[]).add(code);
-      _nodeData[code] ??= useBinaryFormat ? new CodeSpan() : new _CodeData();
+      _nodeData[code] ??= useBinaryFormat ? CodeSpan() : _CodeData();
     }
   }
 
@@ -496,13 +525,13 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       assert(_constantToNode[constant] == null ||
           _constantToNode[constant] == code);
       _constantToNode[constant] = code;
-      _nodeData[code] ??= useBinaryFormat ? new CodeSpan() : new _CodeData();
+      _nodeData[code] ??= useBinaryFormat ? CodeSpan() : _CodeData();
     }
   }
 
   bool get shouldEmitText => !useBinaryFormat;
   // TODO(sigmund): delete the stack once we stop emitting the source text.
-  List<_CodeData> _stack = [];
+  final List<_CodeData> _stack = [];
   void enterNode(jsAst.Node node, int start) {
     var data = _nodeData[node];
     data?.start = start;
@@ -556,7 +585,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   void dumpInfo(JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults) {
     measure(() {
-      infoCollector = new ElementInfoCollector(
+      infoCollector = ElementInfoCollector(
           compiler, this, closedWorld, globalInferenceResults)
         ..run();
 
@@ -570,11 +599,11 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   void dumpInfoJson(AllInfo data) {
-    StringBuffer jsonBuffer = new StringBuffer();
+    StringBuffer jsonBuffer = StringBuffer();
     JsonEncoder encoder = const JsonEncoder.withIndent('  ');
     ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(
-        new StringConversionSink.fromStringSink(jsonBuffer));
-    sink.add(new AllInfoJsonCodec(isBackwardCompatible: true).encode(data));
+        StringConversionSink.fromStringSink(jsonBuffer));
+    sink.add(AllInfoJsonCodec(isBackwardCompatible: true).encode(data));
     compiler.outputProvider.createOutputSink(
         compiler.options.outputUri.pathSegments.last,
         'info.json',
@@ -590,7 +619,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
 
   void dumpInfoBinary(AllInfo data) {
     var name = compiler.options.outputUri.pathSegments.last + ".info.data";
-    Sink<List<int>> sink = new BinaryOutputSinkAdapter(compiler.outputProvider
+    Sink<List<int>> sink = BinaryOutputSinkAdapter(compiler.outputProvider
         .createBinarySink(compiler.options.outputUri.resolve(name)));
     dump_info.encode(data, sink);
     compiler.reporter
@@ -601,7 +630,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   AllInfo buildDumpInfoData(JClosedWorld closedWorld) {
-    Stopwatch stopwatch = new Stopwatch();
+    Stopwatch stopwatch = Stopwatch();
     stopwatch.start();
 
     AllInfo result = infoCollector.result;
@@ -617,8 +646,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         // Don't register dart2js builtin functions that are not recorded.
         Info useInfo = infoCollector._entityToInfo[selection.selectedEntity];
         if (useInfo == null) continue;
-        info.uses.add(new DependencyInfo(
-            useInfo, selection.receiverConstraint?.toString()));
+        info.uses.add(
+            DependencyInfo(useInfo, selection.receiverConstraint?.toString()));
       }
     }
 
@@ -632,8 +661,8 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       for (Selection selection in uses) {
         Info useInfo = infoCollector._entityToInfo[selection.selectedEntity];
         if (useInfo == null) continue;
-        info.uses.add(new DependencyInfo(
-            useInfo, selection.receiverConstraint?.toString()));
+        info.uses.add(
+            DependencyInfo(useInfo, selection.receiverConstraint?.toString()));
       }
     }
 
@@ -647,7 +676,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       for (Entity inlined in inlineMap[entity]) {
         Info inlinedInfo = infoCollector._entityToInfo[inlined];
         if (inlinedInfo == null) continue;
-        outerInfo.uses.add(new DependencyInfo(inlinedInfo, 'inlined'));
+        outerInfo.uses.add(DependencyInfo(inlinedInfo, 'inlined'));
       }
     }
 
@@ -658,17 +687,16 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     result.deferredFiles = fragmentMerger.computeDeferredMap(fragmentsToLoad);
     stopwatch.stop();
 
-    result.program = new ProgramInfo(
+    result.program = ProgramInfo(
         entrypoint: infoCollector
             ._entityToInfo[closedWorld.elementEnvironment.mainFunction],
         size: _programSize,
         dart2jsVersion:
             compiler.options.hasBuildId ? compiler.options.buildId : null,
-        compilationMoment: new DateTime.now(),
+        compilationMoment: DateTime.now(),
         compilationDuration: compiler.measurer.elapsedWallClock,
-        toJsonDuration:
-            new Duration(milliseconds: stopwatch.elapsedMilliseconds),
-        dumpInfoDuration: new Duration(milliseconds: this.timing),
+        toJsonDuration: Duration(milliseconds: stopwatch.elapsedMilliseconds),
+        dumpInfoDuration: Duration(milliseconds: this.timing),
         noSuchMethodEnabled: closedWorld.backendUsage.isNoSuchMethodUsed,
         isRuntimeTypeUsed: closedWorld.backendUsage.isRuntimeTypeUsed,
         isIsolateInUse: false,
@@ -683,7 +711,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
 /// Helper class to store what dump-info will show for a piece of code.
 // TODO(sigmund): delete once we no longer emit text by default.
 class _CodeData extends CodeSpan {
-  StringBuffer _text = new StringBuffer();
+  final StringBuffer _text = StringBuffer();
   @override
   String get text => '$_text';
   int get length => end - start;

@@ -11,8 +11,6 @@
 
 import "package:expect/expect.dart";
 
-import 'dart:core';
-
 int kMin = 0x8000000000000000;
 int kMax = 0x7fffffffffffffff;
 
@@ -140,7 +138,7 @@ main() {
     bool threw = false;
     try {
       div0(i);
-    } on IntegerDivisionByZeroException catch (e) {
+    } on UnsupportedError catch (e) {
       threw = true;
     }
     Expect.isTrue(threw);
@@ -151,7 +149,7 @@ main() {
     bool threw = false;
     try {
       mod0(i);
-    } on IntegerDivisionByZeroException catch (e) {
+    } on UnsupportedError catch (e) {
       threw = true;
     }
     Expect.isTrue(threw);

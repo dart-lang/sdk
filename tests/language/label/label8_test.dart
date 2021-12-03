@@ -14,26 +14,19 @@ main() {
     case 111:
 //  ^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] 'case' can't be used as an identifier because it's a keyword.
-//  ^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
-// [cfe] Expected ';' after this.
-//  ^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Getter not found: 'case'.
-//  ^^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_STATEMENT
+// [cfe] 'case' can't be used as an identifier because it's a keyword.
+// [cfe] Expected ';' after this.
+// [cfe] Undefined name 'case'.
 //       ^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
 //          ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Expected ';' after this.
-//          ^
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-// [cfe] Expected an identifier, but got ':'.
-//          ^
 // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
+// [cfe] Expected an identifier, but got ':'.
 // [cfe] Unexpected token ':'.
       while (false) {
         break L;

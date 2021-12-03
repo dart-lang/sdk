@@ -5,7 +5,6 @@
 import 'dart:math' as math;
 
 import 'package:analysis_server/src/status/pages.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 import 'output_utilities.dart';
 
@@ -321,7 +320,7 @@ class Place {
   int get denominator => _denominator;
 
   @override
-  int get hashCode => JenkinsSmiHash.hash2(_numerator, _denominator);
+  int get hashCode => Object.hash(_numerator, _denominator);
 
   int get numerator => _numerator;
 

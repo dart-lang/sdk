@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
@@ -115,11 +114,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
   @override
-  void visitBreakStatement(covariant BreakStatementImpl node) {
-    node.target = _lookupBreakOrContinueTarget(node, node.label, false);
-  }
-
-  @override
   void visitClassDeclaration(ClassDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
@@ -131,42 +125,33 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitCommentReference(covariant CommentReferenceImpl node) {
-    var identifier = node.identifier;
-    if (identifier is SimpleIdentifierImpl) {
-      var element = _resolveSimpleIdentifier(identifier);
+    var expression = node.expression;
+    if (expression is SimpleIdentifierImpl) {
+      var element = _resolveSimpleIdentifier(expression);
       if (element == null) {
-        // TODO(brianwilkerson) Report this error?
-        //        resolver.reportError(
-        //            CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
-        //            simpleIdentifier,
-        //            simpleIdentifier.getName());
-      } else {
-        if (element.library == null || element.library != _definingLibrary) {
-          // TODO(brianwilkerson) Report this error?
-        }
-        identifier.staticElement = element;
-        if (node.newKeyword != null) {
-          if (element is ClassElement) {
-            var constructor = element.unnamedConstructor;
-            if (constructor == null) {
-              // TODO(brianwilkerson) Report this error.
-            } else {
-              identifier.staticElement = constructor;
-            }
-          } else {
+        return;
+      }
+      expression.staticElement = element;
+      if (node.newKeyword != null) {
+        if (element is ClassElement) {
+          var constructor = element.unnamedConstructor;
+          if (constructor == null) {
             // TODO(brianwilkerson) Report this error.
+          } else {
+            expression.staticElement = constructor;
           }
+        } else {
+          // TODO(brianwilkerson) Report this error.
         }
       }
-    } else if (identifier is PrefixedIdentifierImpl) {
-      var prefix = identifier.prefix;
+    } else if (expression is PrefixedIdentifierImpl) {
+      var prefix = expression.prefix;
       var prefixElement = _resolveSimpleIdentifier(prefix);
       prefix.staticElement = prefixElement;
 
-      var name = identifier.identifier;
+      var name = expression.identifier;
 
       if (prefixElement == null) {
-//        resolver.reportError(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, prefix, prefix.getName());
         return;
       }
 
@@ -177,11 +162,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
         element = _resolver.toLegacyElement(element);
         name.staticElement = element;
         return;
-      }
-
-      var library = prefixElement.library;
-      if (library != _definingLibrary) {
-        // TODO(brianwilkerson) Report this error.
       }
 
       if (node.newKeyword == null) {
@@ -244,7 +224,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorName(covariant ConstructorNameImpl node) {
-    DartType type = node.type.typeOrThrow;
+    var type = node.type2.type;
+    if (type == null) {
+      return;
+    }
     if (type.isDynamic) {
       // Nothing to do.
     } else if (type is InterfaceType) {
@@ -260,24 +243,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         name.staticElement = constructor;
       }
       node.staticElement = constructor;
-    } else {
-// TODO(brianwilkerson) Report these errors.
-//      ASTNode parent = node.getParent();
-//      if (parent instanceof InstanceCreationExpression) {
-//        if (((InstanceCreationExpression) parent).isConst()) {
-//          // CompileTimeErrorCode.CONST_WITH_NON_TYPE
-//        } else {
-//          // CompileTimeErrorCode.NEW_WITH_NON_TYPE
-//        }
-//      } else {
-//        // This is part of a redirecting factory constructor; not sure which error code to use
-//      }
     }
-  }
-
-  @override
-  void visitContinueStatement(covariant ContinueStatementImpl node) {
-    node.target = _lookupBreakOrContinueTarget(node, node.label, true);
   }
 
   @override
@@ -496,7 +462,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     // TODO(brianwilkerson) Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
     var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
-    var superclassName = declaration?.extendsClause?.superclass.name;
+    var superclassName = declaration?.extendsClause?.superclass2.name;
     if (superclassName != null &&
         _resolver.definingLibrary
             .shouldIgnoreUndefinedIdentifier(superclassName)) {
@@ -533,48 +499,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclarationList(VariableDeclarationList node) {
     _resolveAnnotations(node.metadata);
-  }
-
-  /// Return the target of a break or continue statement, and update the static
-  /// element of its label (if any). The [parentNode] is the AST node of the
-  /// break or continue statement. The [labelNode] is the label contained in
-  /// that statement (if any). The flag [isContinue] is `true` if the node being
-  /// visited is a continue statement.
-  AstNode? _lookupBreakOrContinueTarget(
-      AstNode parentNode, SimpleIdentifierImpl? labelNode, bool isContinue) {
-    if (labelNode == null) {
-      return _resolver.implicitLabelScope.getTarget(isContinue);
-    } else {
-      var labelScope = _resolver.labelScope;
-      if (labelScope == null) {
-        // There are no labels in scope, so by definition the label is
-        // undefined.
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, [labelNode.name]);
-        return null;
-      }
-      var definingScope = labelScope.lookup(labelNode.name);
-      if (definingScope == null) {
-        // No definition of the given label name could be found in any
-        // enclosing scope.
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, [labelNode.name]);
-        return null;
-      }
-      // The target has been found.
-      labelNode.staticElement = definingScope.element;
-      ExecutableElement? labelContainer =
-          definingScope.element.thisOrAncestorOfType();
-      if (!identical(labelContainer, _resolver.enclosingFunction)) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
-            labelNode,
-            [labelNode.name]);
-      }
-      return definingScope.node;
-    }
   }
 
   /// Given an [argumentList] and the [executableElement] that will be invoked
@@ -648,8 +574,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// Resolve the given simple [identifier] if possible. Return the element to
   /// which it could be resolved, or `null` if it could not be resolved. This
   /// does not record the results of the resolution.
-  Element? _resolveSimpleIdentifier(SimpleIdentifier identifier) {
-    var lookupResult = _resolver.nameScope.lookup(identifier.name);
+  Element? _resolveSimpleIdentifier(SimpleIdentifierImpl identifier) {
+    var lookupResult = identifier.scopeLookupResult!;
 
     var element = lookupResult.getter;
     element = _resolver.toLegacyElement(element);

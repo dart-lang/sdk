@@ -96,7 +96,7 @@ class Class extends in_::LegacyClass implements in_2::SuperQ {
     i = super.{in_2::Super::nullabilityMethod}(null);
     i = this.{in_::LegacyClass::optionalArgumentsMethod}(null, null){(core::int*, [core::int*]) →* core::int*};
     i = super.{in_2::Super::optionalArgumentsMethod}(null);
-    let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:21:34: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:21:34: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     super.optionalArgumentsMethod(null, null); // error
                                  ^" in super.{in_2::Super::optionalArgumentsMethod}(null, null);
@@ -124,19 +124,19 @@ class ClassQ extends in_::LegacyClassQ implements in_2::Super {
     ;
   method test() → dynamic {
     core::int i;
-    this.{self::ClassQ::nullabilityMethod}(let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:38:23: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
+    this.{self::ClassQ::nullabilityMethod}(invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:38:23: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
     nullabilityMethod(null); // error
                       ^" in null as{TypeError,ForNonNullableByDefault} core::int){(core::int) → core::int};
     i = super.{in_2::SuperQ::nullabilityMethod}(null);
     i = this.{in_::LegacyClassQ::optionalArgumentsMethod}(null, null){(core::int*, [core::int*]) →* core::int*};
     i = super.{in_2::SuperQ::optionalArgumentsMethod}(null);
-    let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:46:34: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:46:34: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     super.optionalArgumentsMethod(null, null); // error
                                  ^" in super.{in_2::SuperQ::optionalArgumentsMethod}(null, null);
     i = this.{self::ClassQ::nullabilityGetter}{core::int};
     i = super.{in_2::SuperQ::nullabilityGetter};
-    this.{self::ClassQ::nullabilitySetter} = let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:52:25: Error: The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.
+    this.{self::ClassQ::nullabilitySetter} = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:52:25: Error: The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.
     nullabilitySetter = null; // error
                         ^" in null as{TypeError,ForNonNullableByDefault} core::int;
     super.{in_2::SuperQ::nullabilitySetter} = null;
@@ -164,7 +164,7 @@ class ClassMixedIn extends in_::LegacyMixedIn implements in_2::SuperQ {
     i = super.{in_::_LegacyMixedIn&Object&Super::nullabilityMethod}(null);
     i = this.{in_::LegacyMixedIn::optionalArgumentsMethod}(null, null){(core::int*, [core::int*]) →* core::int*};
     i = super.{in_::_LegacyMixedIn&Object&Super::optionalArgumentsMethod}(null);
-    let final Never #t5 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:71:34: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:71:34: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     super.optionalArgumentsMethod(null, null); // error
                                  ^" in super.{in_::_LegacyMixedIn&Object&Super::optionalArgumentsMethod}(null, null);
@@ -192,19 +192,19 @@ class ClassMixedInQ extends in_::LegacyMixedInQ implements in_2::Super {
     ;
   method test() → dynamic {
     core::int i;
-    this.{self::ClassMixedInQ::nullabilityMethod}(let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:88:23: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
+    this.{self::ClassMixedInQ::nullabilityMethod}(invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:88:23: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
     nullabilityMethod(null); // error
                       ^" in null as{TypeError,ForNonNullableByDefault} core::int){(core::int) → core::int};
     i = super.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilityMethod}(null);
     i = this.{in_::LegacyMixedInQ::optionalArgumentsMethod}(null, null){(core::int*, [core::int*]) →* core::int*};
     i = super.{in_::_LegacyMixedInQ&Object&SuperQ::optionalArgumentsMethod}(null);
-    let final Never #t7 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:96:34: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:96:34: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     super.optionalArgumentsMethod(null, null); // error
                                  ^" in super.{in_::_LegacyMixedInQ&Object&SuperQ::optionalArgumentsMethod}(null, null);
     i = this.{self::ClassMixedInQ::nullabilityGetter}{core::int};
     i = super.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilityGetter};
-    this.{self::ClassMixedInQ::nullabilitySetter} = let final Never #t8 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:102:25: Error: The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.
+    this.{self::ClassMixedInQ::nullabilitySetter} = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_out_in.dart:102:25: Error: The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.
     nullabilitySetter = null; // error
                         ^" in null as{TypeError,ForNonNullableByDefault} core::int;
     super.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilitySetter} = null;

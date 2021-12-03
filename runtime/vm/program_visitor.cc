@@ -346,7 +346,7 @@ class Dedupper : public ValueObject {
   DirectChainedHashMap<S> canonical_objects_;
 };
 
-void ProgramVisitor::BindStaticCalls(Zone* zone, IsolateGroup* isolate_group) {
+void ProgramVisitor::BindStaticCalls(Thread* thread) {
   class BindStaticCallsVisitor : public CodeVisitor {
    public:
     explicit BindStaticCallsVisitor(Zone* zone)
@@ -422,17 +422,19 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, IsolateGroup* isolate_group) {
     Code& target_code_;
   };
 
-  BindStaticCallsVisitor visitor(zone);
-  WalkProgram(zone, isolate_group, &visitor);
+  StackZone stack_zone(thread);
+  BindStaticCallsVisitor visitor(thread->zone());
+  WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
 }
 
 DECLARE_FLAG(charp, trace_precompiler_to);
 DECLARE_FLAG(charp, write_v8_snapshot_profile_to);
 
-void ProgramVisitor::ShareMegamorphicBuckets(Zone* zone,
-                                             IsolateGroup* isolate_group) {
+void ProgramVisitor::ShareMegamorphicBuckets(Thread* thread) {
+  StackZone stack_zone(thread);
+  Zone* zone = thread->zone();
   const GrowableObjectArray& table = GrowableObjectArray::Handle(
-      zone, isolate_group->object_store()->megamorphic_cache_table());
+      zone, thread->isolate_group()->object_store()->megamorphic_cache_table());
   if (table.IsNull()) return;
   MegamorphicCache& cache = MegamorphicCache::Handle(zone);
 
@@ -467,7 +469,7 @@ class StackMapEntry : public ZoneAllocated {
     ASSERT(it.current_spill_slot_bit_count_ >= 0);
   }
 
-  static const intptr_t kHashBits = 30;
+  static constexpr intptr_t kHashBits = Object::kHashBits;
 
   uword Hash() {
     if (hash_ != 0) return hash_;
@@ -562,9 +564,7 @@ class StackMapEntryKeyIntValueTrait {
 
 typedef DirectChainedHashMap<StackMapEntryKeyIntValueTrait> StackMapEntryIntMap;
 
-void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(
-    Zone* zone,
-    IsolateGroup* isolate_group) {
+void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Thread* thread) {
   // Walks all the CSMs in Code objects and collects their entry information
   // for consolidation.
   class CollectStackMapEntriesVisitor : public CodeVisitor {
@@ -646,7 +646,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(
   class NormalizeAndDedupCompressedStackMapsVisitor
       : public CodeVisitor,
         public Dedupper<CompressedStackMaps,
-                        PointerKeyValueTrait<const CompressedStackMaps>> {
+                        PointerSetKeyValueTrait<const CompressedStackMaps>> {
    public:
     NormalizeAndDedupCompressedStackMapsVisitor(Zone* zone,
                                                 IsolateGroup* isolate_group)
@@ -724,9 +724,10 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(
     CompressedStackMaps& maps_;
   };
 
-  NormalizeAndDedupCompressedStackMapsVisitor dedup_visitor(zone,
-                                                            isolate_group);
-  WalkProgram(zone, isolate_group, &dedup_visitor);
+  StackZone stack_zone(thread);
+  NormalizeAndDedupCompressedStackMapsVisitor visitor(thread->zone(),
+                                                      thread->isolate_group());
+  WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
 }
 
 class PcDescriptorsKeyValueTrait {
@@ -747,15 +748,13 @@ class PcDescriptorsKeyValueTrait {
   }
 };
 
-void ProgramVisitor::DedupPcDescriptors(Zone* zone,
-                                        IsolateGroup* isolate_group) {
+void ProgramVisitor::DedupPcDescriptors(Thread* thread) {
   class DedupPcDescriptorsVisitor
       : public CodeVisitor,
         public Dedupper<PcDescriptors, PcDescriptorsKeyValueTrait> {
    public:
     explicit DedupPcDescriptorsVisitor(Zone* zone)
-        : Dedupper(zone),
-          pc_descriptor_(PcDescriptors::Handle(zone)) {
+        : Dedupper(zone), pc_descriptor_(PcDescriptors::Handle(zone)) {
       if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
         // Prefer existing objects in the VM isolate.
         AddVMBaseObjects();
@@ -772,8 +771,9 @@ void ProgramVisitor::DedupPcDescriptors(Zone* zone,
     PcDescriptors& pc_descriptor_;
   };
 
-  DedupPcDescriptorsVisitor visitor(zone);
-  WalkProgram(zone, isolate_group, &visitor);
+  StackZone stack_zone(thread);
+  DedupPcDescriptorsVisitor visitor(thread->zone());
+  WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
 }
 
 class TypedDataKeyValueTrait {
@@ -802,8 +802,7 @@ class TypedDataDedupper : public Dedupper<TypedData, TypedDataKeyValueTrait> {
   bool IsCorrectType(const Object& obj) const { return obj.IsTypedData(); }
 };
 
-void ProgramVisitor::DedupDeoptEntries(Zone* zone,
-                                       IsolateGroup* isolate_group) {
+void ProgramVisitor::DedupDeoptEntries(Thread* thread) {
   class DedupDeoptEntriesVisitor : public CodeVisitor,
                                    public TypedDataDedupper {
    public:
@@ -837,13 +836,14 @@ void ProgramVisitor::DedupDeoptEntries(Zone* zone,
   };
 
   if (FLAG_precompiled_mode) return;
-  DedupDeoptEntriesVisitor visitor(zone);
-  WalkProgram(zone, isolate_group, &visitor);
+
+  StackZone stack_zone(thread);
+  DedupDeoptEntriesVisitor visitor(thread->zone());
+  WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
 }
 
 #if defined(DART_PRECOMPILER)
-void ProgramVisitor::DedupCatchEntryMovesMaps(Zone* zone,
-                                              IsolateGroup* isolate_group) {
+void ProgramVisitor::DedupCatchEntryMovesMaps(Thread* thread) {
   class DedupCatchEntryMovesMapsVisitor : public CodeVisitor,
                                           public TypedDataDedupper {
    public:
@@ -862,8 +862,10 @@ void ProgramVisitor::DedupCatchEntryMovesMaps(Zone* zone,
   };
 
   if (!FLAG_precompiled_mode) return;
-  DedupCatchEntryMovesMapsVisitor visitor(zone);
-  WalkProgram(zone, isolate_group, &visitor);
+
+  StackZone stack_zone(thread);
+  DedupCatchEntryMovesMapsVisitor visitor(thread->zone());
+  WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
 }
 
 class UnlinkedCallKeyValueTrait {
@@ -884,8 +886,7 @@ class UnlinkedCallKeyValueTrait {
   }
 };
 
-void ProgramVisitor::DedupUnlinkedCalls(Zone* zone,
-                                        IsolateGroup* isolate_group) {
+void ProgramVisitor::DedupUnlinkedCalls(Thread* thread) {
   class DedupUnlinkedCallsVisitor
       : public CodeVisitor,
         public Dedupper<UnlinkedCall, UnlinkedCallKeyValueTrait> {
@@ -925,7 +926,8 @@ void ProgramVisitor::DedupUnlinkedCalls(Zone* zone,
 
   if (!FLAG_precompiled_mode) return;
 
-  DedupUnlinkedCallsVisitor deduper(zone, isolate_group);
+  StackZone stack_zone(thread);
+  DedupUnlinkedCallsVisitor visitor(thread->zone(), thread->isolate_group());
 
   // Note: in bare instructions mode we can still have object pools attached
   // to code objects and these pools need to be deduplicated.
@@ -936,11 +938,11 @@ void ProgramVisitor::DedupUnlinkedCalls(Zone* zone,
   if (!FLAG_use_bare_instructions ||
       FLAG_write_v8_snapshot_profile_to != nullptr ||
       FLAG_trace_precompiler_to != nullptr) {
-    WalkProgram(zone, isolate_group, &deduper);
+    WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
   }
 }
 
-void ProgramVisitor::PruneSubclasses(Zone* zone, IsolateGroup* isolate_group) {
+void ProgramVisitor::PruneSubclasses(Thread* thread) {
   class PruneSubclassesVisitor : public ClassVisitor {
    public:
     explicit PruneSubclassesVisitor(Zone* zone)
@@ -997,9 +999,10 @@ void ProgramVisitor::PruneSubclasses(Zone* zone, IsolateGroup* isolate_group) {
     GrowableObjectArray& null_list_;
   };
 
-  PruneSubclassesVisitor visitor(zone);
-  SafepointWriteRwLocker ml(Thread::Current(), isolate_group->program_lock());
-  WalkProgram(zone, isolate_group, &visitor);
+  StackZone stack_zone(thread);
+  PruneSubclassesVisitor visitor(thread->zone());
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
 }
 #endif  // defined(DART_PRECOMPILER)
 
@@ -1025,8 +1028,7 @@ class CodeSourceMapKeyValueTrait {
   }
 };
 
-void ProgramVisitor::DedupCodeSourceMaps(Zone* zone,
-                                         IsolateGroup* isolate_group) {
+void ProgramVisitor::DedupCodeSourceMaps(Thread* thread) {
   class DedupCodeSourceMapsVisitor
       : public CodeVisitor,
         public Dedupper<CodeSourceMap, CodeSourceMapKeyValueTrait> {
@@ -1049,8 +1051,9 @@ void ProgramVisitor::DedupCodeSourceMaps(Zone* zone,
     CodeSourceMap& code_source_map_;
   };
 
-  DedupCodeSourceMapsVisitor visitor(zone);
-  WalkProgram(zone, isolate_group, &visitor);
+  StackZone stack_zone(thread);
+  DedupCodeSourceMapsVisitor visitor(thread->zone());
+  WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
 }
 
 class ArrayKeyValueTrait {
@@ -1079,7 +1082,7 @@ class ArrayKeyValueTrait {
   }
 };
 
-void ProgramVisitor::DedupLists(Zone* zone, IsolateGroup* isolate_group) {
+void ProgramVisitor::DedupLists(Thread* thread) {
   class DedupListsVisitor : public CodeVisitor,
                             public Dedupper<Array, ArrayKeyValueTrait> {
    public:
@@ -1123,8 +1126,9 @@ void ProgramVisitor::DedupLists(Zone* zone, IsolateGroup* isolate_group) {
     Field& field_;
   };
 
-  DedupListsVisitor visitor(zone);
-  WalkProgram(zone, isolate_group, &visitor);
+  StackZone stack_zone(thread);
+  DedupListsVisitor visitor(thread->zone());
+  WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
 }
 
 // Traits for comparing two [Instructions] objects for equality, which is
@@ -1209,8 +1213,7 @@ class CodeKeyValueTrait {
 };
 #endif
 
-void ProgramVisitor::DedupInstructions(Zone* zone,
-                                       IsolateGroup* isolate_group) {
+void ProgramVisitor::DedupInstructions(Thread* thread) {
   class DedupInstructionsVisitor
       : public CodeVisitor,
         public Dedupper<Instructions, InstructionsKeyValueTrait>,
@@ -1298,33 +1301,31 @@ void ProgramVisitor::DedupInstructions(Zone* zone,
   };
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    DedupInstructionsWithSameMetadataVisitor visitor(zone);
-    return WalkProgram(zone, isolate_group, &visitor);
+    StackZone stack_zone(thread);
+    DedupInstructionsWithSameMetadataVisitor visitor(thread->zone());
+    WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
+    return;
   }
 #endif  // defined(DART_PRECOMPILER)
 
-  DedupInstructionsVisitor visitor(zone);
-  WalkProgram(zone, isolate_group, &visitor);
+  StackZone stack_zone(thread);
+  DedupInstructionsVisitor visitor(thread->zone());
+  WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
 }
 
 void ProgramVisitor::Dedup(Thread* thread) {
-  auto const isolate_group = thread->isolate_group();
-  StackZone stack_zone(thread);
-  HANDLESCOPE(thread);
-  auto const zone = thread->zone();
-
-  BindStaticCalls(zone, isolate_group);
-  ShareMegamorphicBuckets(zone, isolate_group);
-  NormalizeAndDedupCompressedStackMaps(zone, isolate_group);
-  DedupPcDescriptors(zone, isolate_group);
-  DedupDeoptEntries(zone, isolate_group);
+  BindStaticCalls(thread);
+  ShareMegamorphicBuckets(thread);
+  NormalizeAndDedupCompressedStackMaps(thread);
+  DedupPcDescriptors(thread);
+  DedupDeoptEntries(thread);
 #if defined(DART_PRECOMPILER)
-  DedupCatchEntryMovesMaps(zone, isolate_group);
-  DedupUnlinkedCalls(zone, isolate_group);
-  PruneSubclasses(zone, isolate_group);
+  DedupCatchEntryMovesMaps(thread);
+  DedupUnlinkedCalls(thread);
+  PruneSubclasses(thread);
 #endif
-  DedupCodeSourceMaps(zone, isolate_group);
-  DedupLists(zone, isolate_group);
+  DedupCodeSourceMaps(thread);
+  DedupLists(thread);
 
   // Reduces binary size but obfuscates profiler results.
   if (FLAG_dedup_instructions) {
@@ -1347,7 +1348,7 @@ void ProgramVisitor::Dedup(Thread* thread) {
     if (FLAG_precompiled_mode && !FLAG_use_bare_instructions) return;
 #endif
 
-    DedupInstructions(zone, isolate_group);
+    DedupInstructions(thread);
   }
 }
 
@@ -1420,8 +1421,7 @@ class AssignLoadingUnitsCodeVisitor : public CodeVisitor {
 
 void ProgramVisitor::AssignUnits(Thread* thread) {
   StackZone stack_zone(thread);
-  HANDLESCOPE(thread);
-  Zone* zone = thread->zone();
+  Zone* zone = stack_zone.GetZone();
 
   // VM stubs.
   Instructions& inst = Instructions::Handle(zone);
@@ -1504,7 +1504,6 @@ class ProgramHashVisitor : public CodeVisitor {
 
 uint32_t ProgramVisitor::Hash(Thread* thread) {
   StackZone stack_zone(thread);
-  HANDLESCOPE(thread);
   Zone* zone = thread->zone();
 
   ProgramHashVisitor visitor(zone);

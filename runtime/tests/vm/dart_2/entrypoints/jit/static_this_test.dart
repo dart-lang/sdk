@@ -6,6 +6,8 @@
 // VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=5 -Denable_inlining=true --compilation-counter-threshold=5
 // VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=-1 --compilation-counter-threshold=5
 
+// @dart = 2.9
+
 import '../static_this.dart';
 
 main(args) => test(args);

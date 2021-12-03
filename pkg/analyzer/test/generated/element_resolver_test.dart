@@ -9,11 +9,11 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/scope.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -59,12 +59,12 @@ class A {
       expect(name1!.staticElement, isClassElement);
       expect(name1.staticElement!.displayName, 'A');
       expect(name2!.staticElement, isConstructorElement);
-      expect(name2.staticElement!.displayName, 'named');
+      expect(name2.staticElement!.displayName, 'A.named');
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
         expect(annotationElement, same(name2.staticElement));
         expect(annotationElement.enclosingElement, name1.staticElement);
-        expect(annotationElement.displayName, 'named');
+        expect(annotationElement.displayName, 'A.named');
         expect(annotationElement.parameters, isEmpty);
       } else {
         fail('Expected "annotationElement" is ConstructorElement, '
@@ -86,11 +86,11 @@ class A {
       expect(name2!.staticElement, isClassElement);
       expect(name2.staticElement!.displayName, 'A');
       expect(name3!.staticElement, isConstructorElement);
-      expect(name3.staticElement!.displayName, 'named');
+      expect(name3.staticElement!.displayName, 'A.named');
       if (annotationElement is ConstructorElement) {
         expect(annotationElement, same(name3.staticElement));
         expect(annotationElement.enclosingElement, name2.staticElement);
-        expect(annotationElement.displayName, 'named');
+        expect(annotationElement.displayName, 'A.named');
         expect(annotationElement.parameters, isEmpty);
       } else {
         fail('Expected "annotationElement" is ConstructorElement, '
@@ -139,7 +139,7 @@ class A {
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
         expect(annotationElement.enclosingElement, name2.staticElement);
-        expect(annotationElement.displayName, '');
+        expect(annotationElement.displayName, 'A');
         expect(annotationElement.parameters, isEmpty);
       } else {
         fail('Expected "annotationElement" is ConstructorElement, '
@@ -186,7 +186,7 @@ class A {
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
         expect(annotationElement.enclosingElement, name1.staticElement);
-        expect(annotationElement.displayName, '');
+        expect(annotationElement.displayName, 'A');
         expect(annotationElement.parameters, isEmpty);
       } else {
         fail('Expected "annotationElement" is ConstructorElement, '
@@ -259,7 +259,7 @@ class C {}
       validator(name.prefix, name.identifier, annotation.constructorName,
           annotationElement);
     } else {
-      fail('Uknown "name": ${name.runtimeType} $name');
+      fail('Unknown "name": ${name.runtimeType} $name');
     }
   }
 }
@@ -363,9 +363,14 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitCommentReference_prefixedIdentifier_class_getter() async {
+    LibraryElementImpl library =
+        ElementFactory.library(_definingLibrary.context, "lib");
+    CompilationUnitElementImpl unit =
+        library.definingCompilationUnit as CompilationUnitElementImpl;
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    unit.classes = [classA];
+
     // set accessors
     String propName = "p";
     PropertyAccessorElement getter =
@@ -373,10 +378,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     PropertyAccessorElement setter =
         ElementFactory.setterElement(propName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter, setter];
-    // set name scope
-    _visitor.nameScope = LocalScope(_RootScopeMock.instance)..add(classA);
     // prepare "A.p"
-    PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'p');
+    PrefixedIdentifierImpl prefixed = AstTestFactory.identifier5('A', 'p');
+    prefixed.prefix.scopeLookupResult = ScopeLookupResult(classA, null);
     CommentReference commentReference =
         astFactory.commentReference(null, prefixed);
     // resolve
@@ -386,17 +390,20 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitCommentReference_prefixedIdentifier_class_method() async {
+    LibraryElementImpl library =
+        ElementFactory.library(_definingLibrary.context, "lib");
+    CompilationUnitElementImpl unit =
+        library.definingCompilationUnit as CompilationUnitElementImpl;
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    unit.classes = [classA];
     // set method
     MethodElement method =
         ElementFactory.methodElement("m", _typeProvider.intType);
     classA.methods = <MethodElement>[method];
-    // set name scope
-    _visitor.nameScope = LocalScope(_RootScopeMock.instance)..add(classA);
     // prepare "A.m"
-    PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'm');
+    PrefixedIdentifierImpl prefixed = AstTestFactory.identifier5('A', 'm');
+    prefixed.prefix.scopeLookupResult = ScopeLookupResult(classA, null);
     CommentReference commentReference =
         astFactory.commentReference(null, prefixed);
     // resolve
@@ -406,17 +413,20 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_visitCommentReference_prefixedIdentifier_class_operator() async {
+    LibraryElementImpl library =
+        ElementFactory.library(_definingLibrary.context, "lib");
+    CompilationUnitElementImpl unit =
+        library.definingCompilationUnit as CompilationUnitElementImpl;
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    unit.classes = [classA];
     // set method
     MethodElement method =
         ElementFactory.methodElement("==", _typeProvider.boolType);
     classA.methods = <MethodElement>[method];
-    // set name scope
-    _visitor.nameScope = LocalScope(_RootScopeMock.instance)..add(classA);
     // prepare "A.=="
-    PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', '==');
+    PrefixedIdentifierImpl prefixed = AstTestFactory.identifier5('A', '==');
+    prefixed.prefix.scopeLookupResult = ScopeLookupResult(classA, null);
     CommentReference commentReference =
         astFactory.commentReference(null, prefixed);
     // resolve
@@ -706,18 +716,19 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     Source source = FileSource(getFile("/test.dart"));
     CompilationUnitElementImpl unit = CompilationUnitElementImpl();
     unit.librarySource = unit.source = source;
-    _definingLibrary =
-        ElementFactory.library(context, "test", isNonNullableByDefault: false);
+    _definingLibrary = ElementFactory.library(context, "test");
     _definingLibrary.definingCompilationUnit = unit;
 
     _definingLibrary.typeProvider = context.typeProviderLegacy;
     _definingLibrary.typeSystem = context.typeSystemLegacy;
     var inheritance = InheritanceManager3();
 
+    var featureSet = FeatureSet.latestLanguageVersion();
     _visitor = ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
-        featureSet: FeatureSet.forTesting(),
-        nameScope: LibraryScope(_definingLibrary));
+        featureSet: featureSet,
+        flowAnalysisHelper:
+            FlowAnalysisHelper(context.typeSystemLegacy, false, featureSet));
     _resolver = _visitor.elementResolver;
   }
 
@@ -760,18 +771,11 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   ///          identifier
   /// @return the element to which the expression was resolved
   void _resolveInClass(AstNode node, ClassElement enclosingClass) {
-    Scope outerScope = _visitor.nameScope;
     try {
       _visitor.enclosingClass = enclosingClass;
-      EnclosedScope innerScope = ClassScope(
-        TypeParameterScope(outerScope, enclosingClass.typeParameters),
-        enclosingClass,
-      );
-      _visitor.nameScope = innerScope;
       node.accept(_resolver);
     } finally {
       _visitor.enclosingClass = null;
-      _visitor.nameScope = outerScope;
     }
   }
 
@@ -782,20 +786,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @param definedElements the elements that are to be defined in the scope in
   ///          which the element is being resolved
   /// @return the element to which the expression was resolved
-  void _resolveNode(AstNode node, [List<Element>? definedElements]) {
-    Scope outerScope = _visitor.nameScope;
-    try {
-      var innerScope = LocalScope(outerScope);
-      if (definedElements != null) {
-        for (Element element in definedElements) {
-          innerScope.add(element);
-        }
-      }
-      _visitor.nameScope = innerScope;
-      node.accept(_resolver);
-    } finally {
-      _visitor.nameScope = outerScope;
-    }
+  void _resolveNode(AstNode node) {
+    node.accept(_resolver);
   }
 
   /// Return the element associated with the label of the given statement after
@@ -807,31 +799,11 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @return the element to which the statement's label was resolved
   void _resolveStatement(Statement statement, LabelElementImpl? labelElement,
       AstNode? labelTarget) {
-    LabelScope? outerScope = _visitor.labelScope;
-    try {
-      LabelScope? innerScope;
-      if (labelElement == null) {
-        innerScope = outerScope;
-      } else {
-        innerScope = LabelScope(
-            outerScope, labelElement.name, labelTarget!, labelElement);
-      }
-      _visitor.labelScope = innerScope;
-      statement.accept(_resolver);
-    } finally {
-      _visitor.labelScope = outerScope;
-    }
+    statement.accept(_resolver);
   }
 }
 
 class _LibraryElementMock implements LibraryElement {
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _RootScopeMock implements Scope {
-  static final Scope instance = _RootScopeMock();
-
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

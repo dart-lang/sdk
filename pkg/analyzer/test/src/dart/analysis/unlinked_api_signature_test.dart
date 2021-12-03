@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,7 +11,6 @@ import '../ast/parse_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnitApiSignatureTest);
-    defineReflectiveTests(UnitApiSignatureWithNullSafetyTest);
   });
 }
 
@@ -117,7 +114,7 @@ class C {
   }
 
   test_class_constructor_initializer_empty() {
-    assertSameSignature(r'''
+    assertNotSameSignature(r'''
 class C {
   C.foo() : ;
 }
@@ -128,8 +125,9 @@ class C {
 ''');
   }
 
+  /// See https://github.com/dart-lang/sdk/issues/46206
   test_class_constructor_initializer_notConst() {
-    assertSameSignature(r'''
+    assertNotSameSignature(r'''
 class C {
   final int f;
   C.foo() : f = 1;
@@ -339,6 +337,30 @@ class C {
 ''', r'''
 class C {
   final int a = 0;
+}
+''');
+  }
+
+  test_class_field_late_add() {
+    assertNotSameSignature(r'''
+class C {
+  int a;
+}
+''', r'''
+class C {
+  late int a;
+}
+''');
+  }
+
+  test_class_field_late_remove() {
+    assertNotSameSignature(r'''
+class C {
+  late int a;
+}
+''', r'''
+class C {
+  int a;
 }
 ''');
   }
@@ -1223,6 +1245,22 @@ final int a = 0;
 ''');
   }
 
+  test_topLevelVariable_late_add() {
+    assertNotSameSignature(r'''
+int a;
+''', r'''
+late int a;
+''');
+  }
+
+  test_topLevelVariable_late_remove() {
+    assertNotSameSignature(r'''
+late int a;
+''', r'''
+int a;
+''');
+  }
+
   test_topLevelVariable_withoutType() {
     assertNotSameSignature(r'''
 var a = 1;
@@ -1284,54 +1322,6 @@ int a;
 typedef F = void Function(int);
 ''', r'''
 typedef F = void Function(double);
-''');
-  }
-}
-
-@reflectiveTest
-class UnitApiSignatureWithNullSafetyTest extends UnitApiSignatureTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  test_class_field_late_add() {
-    assertNotSameSignature(r'''
-class C {
-  int a;
-}
-''', r'''
-class C {
-  late int a;
-}
-''');
-  }
-
-  test_class_field_late_remove() {
-    assertNotSameSignature(r'''
-class C {
-  late int a;
-}
-''', r'''
-class C {
-  int a;
-}
-''');
-  }
-
-  test_topLevelVariable_late_add() {
-    assertNotSameSignature(r'''
-int a;
-''', r'''
-late int a;
-''');
-  }
-
-  test_topLevelVariable_late_remove() {
-    assertNotSameSignature(r'''
-late int a;
-''', r'''
-int a;
 ''');
   }
 }

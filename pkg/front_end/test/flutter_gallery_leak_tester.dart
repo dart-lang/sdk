@@ -26,7 +26,7 @@ Set<String> files = {};
 // but assumes that flutter has been setup as by the script
 // `tools/bots/flutter/compile_flutter.sh`.
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   if (Platform.isWindows) {
     throw "This script cannot run on Windows as it uses non-Windows "
         "assumptions both for the placement of pub packages and the presence "

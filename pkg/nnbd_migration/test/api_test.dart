@@ -356,6 +356,181 @@ g() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_angular_contentChild_field() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  // Initialize this.bar in the constructor just so the migration tool doesn't
+  // decide to make it nullable due to the lack of initializer.
+  MyComponent(this.bar);
+
+  @ContentChild('foo')
+  Element bar;
+}
+''';
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  // Initialize this.bar in the constructor just so the migration tool doesn't
+  // decide to make it nullable due to the lack of initializer.
+  MyComponent(this.bar);
+
+  @ContentChild('foo')
+  Element? bar;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_optional_constructor_param() async {
+    addAngularPackage();
+    var content = '''
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  MyComponent(@Optional() String foo);
+}
+''';
+    var expected = '''
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  MyComponent(@Optional() String? foo);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_optional_constructor_param_field_formal() async {
+    addAngularPackage();
+    var content = '''
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  String foo;
+  MyComponent(@Optional() this.foo);
+}
+''';
+    var expected = '''
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  String? foo;
+  MyComponent(@Optional() this.foo);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_optional_constructor_param_internal() async {
+    addAngularPackage(internalUris: true);
+    var content = '''
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  MyComponent(@Optional() String foo);
+}
+''';
+    var expected = '''
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  MyComponent(@Optional() String? foo);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_viewChild_field() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  // Initialize this.bar in the constructor just so the migration tool doesn't
+  // decide to make it nullable due to the lack of initializer.
+  MyComponent(this.bar);
+
+  @ViewChild('foo')
+  Element bar;
+}
+''';
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  // Initialize this.bar in the constructor just so the migration tool doesn't
+  // decide to make it nullable due to the lack of initializer.
+  MyComponent(this.bar);
+
+  @ViewChild('foo')
+  Element? bar;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_viewChild_field_internal() async {
+    addAngularPackage(internalUris: true);
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  // Initialize this.bar in the constructor just so the migration tool doesn't
+  // decide to make it nullable due to the lack of initializer.
+  MyComponent(this.bar);
+
+  @ViewChild('foo')
+  Element bar;
+}
+''';
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  // Initialize this.bar in the constructor just so the migration tool doesn't
+  // decide to make it nullable due to the lack of initializer.
+  MyComponent(this.bar);
+
+  @ViewChild('foo')
+  Element? bar;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_viewChild_setter() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ViewChild('foo')
+  set bar(Element element) {}
+}
+''';
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ViewChild('foo')
+  set bar(Element? element) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_argumentError_checkNotNull_implies_non_null_intent() async {
     var content = '''
 void f(int i) {
@@ -1422,6 +1597,26 @@ void f({@required String s}) {}
     var expected = '''
 import 'package:meta/meta.dart';
 void f({required String s}) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_custom_future() async {
+    var content = '''
+class CustomFuture<T> implements Future<T> {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+f(CustomFuture<List<int>> x) async => (await x).first;
+''';
+    var expected = '''
+class CustomFuture<T> implements Future<T> {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+f(CustomFuture<List<int>> x) async => (await x).first;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -3110,6 +3305,114 @@ g(bool b, int? j) {
   if (b) {
     f(j!);
   }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_constructor() async {
+    var content = '''
+class C {
+  external C(dynamic Function(dynamic) callback);
+  static Object g(Object Function(Object) callback) => C(callback);
+}
+''';
+    var expected = '''
+class C {
+  external C(dynamic Function(dynamic) callback);
+  static Object g(Object Function(Object?) callback) => C(callback);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_function() async {
+    var content = '''
+external dynamic f();
+Object g() => f();
+''';
+    var expected = '''
+external dynamic f();
+Object? g() => f();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_function_implicit_return() async {
+    var content = '''
+external f();
+Object g() => f();
+''';
+    var expected = '''
+external f();
+Object? g() => f();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_function_implicit_variance() async {
+    var content = '''
+external void f(callback(x));
+void g(Object Function(Object) callback) => f(callback);
+''';
+    var expected = '''
+external void f(callback(x));
+void g(Object Function(Object?) callback) => f(callback);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_function_implicit_variance_complex() async {
+    var content = '''
+external void f(callback(x()));
+void g(Object Function(Object Function()) callback) => f(callback);
+''';
+    var expected = '''
+external void f(callback(x()));
+void g(Object Function(Object? Function()) callback) => f(callback);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_function_variance() async {
+    var content = '''
+external void f(dynamic Function(dynamic) callback);
+void g(Object Function(Object) callback) => f(callback);
+''';
+    var expected = '''
+external void f(dynamic Function(dynamic) callback);
+void g(Object Function(Object?) callback) => f(callback);
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_method() async {
+    var content = '''
+class C {
+  external dynamic f();
+  Object g() => f();
+}
+''';
+    var expected = '''
+class C {
+  external dynamic f();
+  Object? g() => f();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_external_method_implicit() async {
+    var content = '''
+class C {
+  external f();
+  Object g() => f();
+}
+''';
+    var expected = '''
+class C {
+  external f();
+  Object? g() => f();
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -6547,6 +6850,24 @@ void f() {
 void f() {
   List<int>? x = false ? [] : null;
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_null_typed_expression_wiithout_valid_migration() async {
+    var content = '''
+void f(int/*!*/ x) {}
+void g() {
+  f(h());
+}
+Null h() => null;
+''';
+    var expected = '''
+void f(int x) {}
+void g() {
+  f(h());
+}
+Null h() => null;
 ''';
     await _checkSingleFileChanges(content, expected);
   }

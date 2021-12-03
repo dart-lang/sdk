@@ -5,8 +5,6 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
-import 'package:_fe_analyzer_shared/src/messages/codes.dart';
-import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
@@ -93,9 +91,14 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
   CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
   CompileTimeErrorCode.CAST_TO_NON_TYPE,
+  CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER,
+  CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER,
+  CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
   CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
   CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
+  CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER,
   CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+  CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER,
   CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
   CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
   CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
@@ -137,6 +140,8 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
   CompileTimeErrorCode.CONST_WITH_NON_TYPE,
   CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+  CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF,
+  CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
   CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
   CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
   CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH,
@@ -197,6 +202,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE,
   CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
   CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+  CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
   CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES,
   CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
   CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY,
@@ -220,6 +226,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
   CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
   CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+  CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY,
   CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC,
   CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
@@ -402,6 +409,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT,
   CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
   CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
+  CompileTimeErrorCode.TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
   CompileTimeErrorCode.THROW_OF_INVALID_TYPE,
   CompileTimeErrorCode.TOP_LEVEL_CYCLE,
   CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
@@ -415,7 +423,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
   CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
   CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
-  CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE,
   CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
   CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
   CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD,
@@ -432,13 +439,16 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
   CompileTimeErrorCode.UNDEFINED_FUNCTION,
   CompileTimeErrorCode.UNDEFINED_GETTER,
+  CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE,
   CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
   CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
   CompileTimeErrorCode.UNDEFINED_METHOD,
+  CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE,
   CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER,
   CompileTimeErrorCode.UNDEFINED_OPERATOR,
   CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
   CompileTimeErrorCode.UNDEFINED_SETTER,
+  CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE,
   CompileTimeErrorCode.UNDEFINED_SUPER_GETTER,
   CompileTimeErrorCode.UNDEFINED_SUPER_METHOD,
   CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
@@ -448,6 +458,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.URI_DOES_NOT_EXIST,
   CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED,
   CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+  CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
   CompileTimeErrorCode.USE_OF_VOID_RESULT,
   CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
   CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
@@ -471,7 +482,11 @@ const List<ErrorCode> errorCodeValues = [
   FfiCode.EMPTY_STRUCT,
   FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD,
   FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY,
-  FfiCode.FFI_NATIVE_ONLY_STATIC,
+  FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL,
+  FfiCode
+      .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
+  FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS,
+  FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
   FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER,
   FfiCode.FIELD_INITIALIZER_IN_STRUCT,
   FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT,
@@ -515,6 +530,7 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE,
   HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
   HintCode.DEPRECATED_MIXIN_FUNCTION,
+  HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE,
   HintCode.DIVISION_OPTIMIZATION,
   HintCode.DUPLICATE_HIDDEN_NAME,
   HintCode.DUPLICATE_IGNORE,
@@ -564,7 +580,6 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
   HintCode.INVALID_VISIBILITY_ANNOTATION,
   HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION,
-  HintCode.MISSING_JS_LIB_ANNOTATION,
   HintCode.MISSING_REQUIRED_PARAM,
   HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
   HintCode.MISSING_RETURN,
@@ -591,6 +606,7 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT,
   HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE,
   HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
+  HintCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS,
   HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT,
   HintCode.SDK_VERSION_EXTENSION_METHODS,
   HintCode.SDK_VERSION_GT_GT_GT_OPERATOR,
@@ -604,6 +620,7 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.TYPE_CHECK_IS_NOT_NULL,
   HintCode.TYPE_CHECK_IS_NULL,
   HintCode.UNDEFINED_HIDDEN_NAME,
+  HintCode.UNDEFINED_REFERENCED_PARAMETER,
   HintCode.UNDEFINED_SHOWN_NAME,
   HintCode.UNIGNORABLE_IGNORE,
   HintCode.UNNECESSARY_CAST,
@@ -615,6 +632,8 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.UNNECESSARY_QUESTION_MARK,
   HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
   HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
+  HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT,
+  HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL,
   HintCode.UNUSED_CATCH_CLAUSE,
   HintCode.UNUSED_CATCH_STACK,
   HintCode.UNUSED_ELEMENT,
@@ -626,7 +645,6 @@ const List<ErrorCode> errorCodeValues = [
   HintCode.UNUSED_RESULT,
   HintCode.UNUSED_RESULT_WITH_MESSAGE,
   HintCode.UNUSED_SHOWN_NAME,
-  HintCode.USE_OF_NATIVE_EXTENSION,
   LanguageCode.IMPLICIT_DYNAMIC_FIELD,
   LanguageCode.IMPLICIT_DYNAMIC_FUNCTION,
   LanguageCode.IMPLICIT_DYNAMIC_INVOKE,
@@ -672,6 +690,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.CONST_METHOD,
   ParserErrorCode.CONST_TYPEDEF,
   ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE,
+  ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS,
   ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
   ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE,
   ParserErrorCode.COVARIANT_AND_STATIC,
@@ -881,6 +900,9 @@ const List<ErrorCode> errorCodeValues = [
   StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
   StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION,
   TodoCode.TODO,
+  TodoCode.FIXME,
+  TodoCode.HACK,
+  TodoCode.UNDONE,
 ];
 
 /// The lazy initialized map from [ErrorCode.uniqueName] to the [ErrorCode]
@@ -953,7 +975,7 @@ class AnalysisError implements Diagnostic {
 
   /// The correction to be displayed for this error, or `null` if there is no
   /// correction information for this error.
-  String? _correction;
+  String? _correctionMessage;
 
   /// The source in which the error occurred, or `null` if unknown.
   final Source source;
@@ -967,22 +989,27 @@ class AnalysisError implements Diagnostic {
       [List<Object?>? arguments,
       List<DiagnosticMessage> contextMessages = const []])
       : _contextMessages = contextMessages {
-    String message = formatList(errorCode.message, arguments);
-    String? correctionTemplate = errorCode.correction;
+    assert(
+        (arguments ?? const []).length == errorCode.numParameters,
+        'Message $errorCode requires ${errorCode.numParameters} '
+        'argument(s), but ${(arguments ?? const []).length} argument(s) were '
+        'provided');
+    String problemMessage = formatList(errorCode.problemMessage, arguments);
+    String? correctionTemplate = errorCode.correctionMessage;
     if (correctionTemplate != null) {
-      _correction = formatList(correctionTemplate, arguments);
+      _correctionMessage = formatList(correctionTemplate, arguments);
     }
     _problemMessage = DiagnosticMessageImpl(
         filePath: source.fullName,
         length: length,
-        message: message,
+        message: problemMessage,
         offset: offset,
         url: null);
   }
 
   /// Initialize a newly created analysis error with given values.
   AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
-      String message, this._correction,
+      String message, this._correctionMessage,
       {List<DiagnosticMessage> contextMessages = const []})
       : _contextMessages = contextMessages {
     _problemMessage = DiagnosticMessageImpl(
@@ -998,23 +1025,15 @@ class AnalysisError implements Diagnostic {
   /// [length]. The error will have the given [errorCode] and the map  of
   /// [arguments] will be used to complete the message and correction. If any
   /// [contextMessages] are provided, they will be recorded with the error.
-  AnalysisError.withNamedArguments(this.source, int offset, int length,
-      this.errorCode, Map<String, dynamic> arguments,
+  ///
+  /// Deprecated - no analyzer errors use named arguments anymore.  Please use
+  /// `AnalysisError()`.
+  @deprecated
+  AnalysisError.withNamedArguments(Source source, int offset, int length,
+      ErrorCode errorCode, Map<String, dynamic> arguments,
       {List<DiagnosticMessage> contextMessages = const []})
-      : _contextMessages = contextMessages {
-    var messageText = applyArgumentsToTemplate(errorCode.message, arguments);
-    var correctionTemplate = errorCode.correction;
-    if (correctionTemplate != null) {
-      _correction = applyArgumentsToTemplate(correctionTemplate, arguments);
-    }
-    _problemMessage = DiagnosticMessageImpl(
-      filePath: source.fullName,
-      length: length,
-      message: messageText,
-      offset: offset,
-      url: null,
-    );
-  }
+      : this(source, offset, length, errorCode,
+            _translateNamedArguments(arguments), contextMessages);
 
   @override
   List<DiagnosticMessage> get contextMessages => _contextMessages;
@@ -1022,10 +1041,10 @@ class AnalysisError implements Diagnostic {
   /// Return the template used to create the correction to be displayed for this
   /// error, or `null` if there is no correction information for this error. The
   /// correction should indicate how the user can fix the error.
-  String? get correction => _correction;
+  String? get correction => _correctionMessage;
 
   @override
-  String? get correctionMessage => _correction;
+  String? get correctionMessage => _correctionMessage;
 
   @override
   int get hashCode {
@@ -1113,5 +1132,22 @@ class AnalysisError implements Diagnostic {
       errors.addAll(errorList);
     }
     return errors.toList();
+  }
+
+  static List<Object?>? _translateNamedArguments(
+      Map<String, dynamic> arguments) {
+    // All analyzer errors now use positional arguments, so if this method is
+    // being called, either no arguments were provided to the
+    // AnalysisError.withNamedArguments constructor, or the client was
+    // developed against an older version of the analyzer that used named
+    // arguments.  In either case, we'll make a best effort translation of named
+    // arguments to positional ones.  In the case where some arguments were
+    // provided, we have an assertion to alert the developer that they may not
+    // get correct results.
+    assert(
+        arguments.isEmpty,
+        'AnalysisError.withNamedArguments is no longer supported.  Making a '
+        'best effort translation to positional arguments.  Please use '
+        'AnalysisError() instead.');
   }
 }

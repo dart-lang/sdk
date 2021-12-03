@@ -50,7 +50,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
     }
   }
 
-  void pause() async {
+  Future<void> pause() async {
     await serviceClient.pause(_isolateRef.id);
   }
 

@@ -5,4 +5,4 @@
 import 'package:_fe_analyzer_shared/src/parser/parser_main.dart'
     show mainEntryPoint;
 
-main(List<String> arguments) => mainEntryPoint(arguments);
+void main(List<String> arguments) => mainEntryPoint(arguments);

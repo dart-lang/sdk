@@ -25,7 +25,7 @@ library;
 //   C notEvenAConstructor(a) = h;
 //                              ^
 //
-// pkg/front_end/testcases/rasta/issue_000044.dart:7:10: Error: Getter not found: 'd'.
+// pkg/front_end/testcases/rasta/issue_000044.dart:7:10: Error: Undefined name 'd'.
 // a b(c) = d;
 //          ^
 //
@@ -34,7 +34,7 @@ library;
 //   C.missingFactoryKeyword() = C.constant;
 //                             ^
 //
-// pkg/front_end/testcases/rasta/issue_000044.dart:14:33: Error: Getter not found: 'constant'.
+// pkg/front_end/testcases/rasta/issue_000044.dart:14:33: Error: Member not found: 'constant'.
 //   C.missingFactoryKeyword() = C.constant;
 //                                 ^^^^^^^^
 //
@@ -63,7 +63,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[self::C::good];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   const constructor constant() → self::C*
     : super core::Object::•()
     ;
@@ -74,13 +74,13 @@ Try removing the return type.
   C.missingFactoryKeyword() = C.constant;
                               ^";
   static factory good() → self::C*
-    let Never #redirecting_factory = self::C::constant in invalid-expression;
+    return new self::C::constant();
   method notEvenAConstructor(dynamic a) → self::C*
     return invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:21:30: Error: The getter 'h' isn't defined for the class 'C'.
  - 'C' is from 'pkg/front_end/testcases/rasta/issue_000044.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'h'.
   C notEvenAConstructor(a) = h;
-                             ^";
+                             ^" in this{<unresolved>}.h;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -93,22 +93,23 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method b(dynamic c) → invalid-type
-  return invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:7:10: Error: Getter not found: 'd'.
+  return invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:7:10: Error: Undefined name 'd'.
 a b(c) = d;
          ^";
 static method main() → dynamic {
   self::C* c = null;
-  core::print(#C1);
+  core::print(#C2);
   core::print(invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:27:15: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
   print(const C.missingFactoryKeyword());
               ^");
-  core::print(#C1);
+  core::print(#C2);
   core::print(new self::C::constant().{self::C::notEvenAConstructor}(null){(dynamic) →* self::C*});
 }
 
 constants  {
-  #C1 = self::C {}
+  #C1 = constructor-tearoff self::C::good
+  #C2 = self::C {}
 }
 
 

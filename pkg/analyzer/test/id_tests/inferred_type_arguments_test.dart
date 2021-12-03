@@ -22,7 +22,7 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
-          const _InferredTypeArgumentsDataComputer(), [analyzerNnbdConfig]));
+          const _InferredTypeArgumentsDataComputer(), [analyzerDefaultConfig]));
 }
 
 class _InferredTypeArgumentsDataComputer extends DataComputer<List<DartType>> {
@@ -55,9 +55,9 @@ class _InferredTypeArgumentsDataExtractor
     TypeArgumentList? typeArguments;
     List<DartType> typeArgumentTypes;
     if (node is InstanceCreationExpression) {
-      typeArguments = node.constructorName.type.typeArguments;
+      typeArguments = node.constructorName.type2.typeArguments;
       typeArgumentTypes =
-          (node.constructorName.type.type as InterfaceType).typeArguments;
+          (node.constructorName.type2.type as InterfaceType).typeArguments;
     } else if (node is InvocationExpression) {
       typeArguments = node.typeArguments;
       typeArgumentTypes = node.typeArgumentTypes!;

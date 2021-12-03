@@ -19,7 +19,7 @@ class DynamicDispatchRegistry<T extends core::Function*> extends core::Object {
   synthetic constructor •() → mai::DynamicDispatchRegistry<mai::DynamicDispatchRegistry::T*>*
     : super core::Object::•()
     ;
-  method register(generic-covariant-impl mai::DynamicDispatchRegistry::T* function) → mai::DynamicDispatchRegistry::T*
+  method register(covariant-by-class mai::DynamicDispatchRegistry::T* function) → mai::DynamicDispatchRegistry::T*
     return null;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

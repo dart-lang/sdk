@@ -10,13 +10,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnWithoutValueTest);
-    defineReflectiveTests(ReturnWithoutValueWithNullSafetyTest);
+    defineReflectiveTests(ReturnWithoutValueWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ReturnWithoutValueTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with ReturnWithoutValueTestCases {}
+
+mixin ReturnWithoutValueTestCases on PubPackageResolutionTest {
   test_async_futureInt() async {
     await assertErrorsInCode('''
 Future<int> f() async {
@@ -163,5 +165,5 @@ int f(int x) {
 }
 
 @reflectiveTest
-class ReturnWithoutValueWithNullSafetyTest extends ReturnWithoutValueTest
-    with WithNullSafetyMixin {}
+class ReturnWithoutValueWithoutNullSafetyTest extends PubPackageResolutionTest
+    with ReturnWithoutValueTestCases, WithoutNullSafetyMixin {}

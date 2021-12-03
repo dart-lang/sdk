@@ -38,6 +38,7 @@ annoying
 anon
 aoo
 aot
+applier
 approval
 approximation
 arbitrarily
@@ -144,6 +145,8 @@ c6c
 c7a
 c8a
 c8b
+c8c
+c8d
 ca
 cafebabe
 calloc
@@ -207,6 +210,7 @@ confirm
 consecutive
 considering
 consist
+constr
 constrains
 consts
 contract
@@ -386,6 +390,7 @@ f6a
 f6b
 f7a
 f8a
+f8b
 fac
 faking
 falling
@@ -451,8 +456,10 @@ fox
 frozen
 fulfill
 func
+futu
 futures
 fuzz
+fuzzed
 fuzzing
 fx
 g1a
@@ -545,6 +552,7 @@ instrument
 insufficient
 intdiv
 interactive
+interchangeable
 interested
 internet
 interpolate
@@ -708,6 +716,7 @@ outbound
 outlined
 overhead
 overlay
+overly
 ox
 pack
 paging
@@ -816,7 +825,8 @@ row
 rows
 runtimes
 rv
-sand
+sandboxed
+sanitize
 saves
 scans
 scheduler
@@ -843,6 +853,7 @@ sheets
 shipped
 shortest
 shot
+sidebar
 sigint
 signaling
 signalled
@@ -893,6 +904,7 @@ successes
 suite
 summarization
 summarized
+sup
 supermixin
 supplement
 suspension
@@ -917,6 +929,7 @@ timeout
 timer
 timings
 tinv
+tk
 told
 touch
 tpt

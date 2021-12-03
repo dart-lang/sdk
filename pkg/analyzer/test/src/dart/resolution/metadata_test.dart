@@ -27,6 +27,27 @@ class MetadataResolutionTest extends PubPackageResolutionTest {
     return findElement.importFind('package:test/a.dart');
   }
 
+  test_at_genericFunctionType_formalParameter() async {
+    await assertNoErrorsInCode(r'''
+const a = 42;
+List<void Function(@a int b)> f() => [];
+''');
+
+    var annotation = findNode.annotation('@a');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  atSign: @
+  element: self::@getter::a
+  name: SimpleIdentifier
+    staticElement: self::@getter::a
+    staticType: null
+    token: a
+''');
+    _assertAnnotationValueText(annotation, '''
+int 42
+''');
+  }
+
   test_location_partDirective() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 part of 'test.dart';
@@ -127,6 +148,46 @@ Annotation
 A
   f: A
     f: int 0
+''');
+  }
+
+  test_onLocalVariable() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+void f() {
+  @A(3)
+  int? x;
+  print(x);
+}
+''');
+
+    var annotation = findNode.annotation('@A');
+    _assertResolvedNodeText(annotation, '''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 3
+        staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: self::@class::A::@constructor::•
+  name: SimpleIdentifier
+    staticElement: self::@class::A
+    staticType: null
+    token: A
+''');
+
+    final localVariable = findElement.localVar('x');
+    final annotationOnElement = localVariable.metadata.single;
+    _assertElementAnnotationValueText(annotationOnElement, '''
+A
+  a: int 3
 ''');
   }
 
@@ -1179,7 +1240,7 @@ import 'a.dart';
 void f(C c) {}
 ''');
 
-    var classC = findNode.typeName('C c').name.staticElement!;
+    var classC = findNode.namedType('C c').name.staticElement!;
     var annotation = classC.metadata.single;
     _assertElementAnnotationValueText(annotation, r'''
 B
@@ -1209,7 +1270,7 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.typeName('B b').name.staticElement!;
+    var classB = findNode.namedType('B b').name.staticElement!;
     var annotation = classB.metadata.single;
     _assertElementAnnotationValueText(annotation, r'''
 A
@@ -1238,7 +1299,7 @@ import 'b.dart';
 void f(B b) {}
 ''');
 
-    var classB = findNode.typeName('B b').name.staticElement!;
+    var classB = findNode.namedType('B b').name.staticElement!;
     var annotation = classB.metadata.single;
     _assertElementAnnotationValueText(annotation, r'''
 A

@@ -79,12 +79,14 @@ void main() {
   }
 
   test_ifElementWithElse_mayBeConst() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void main() {
   const isTrue = true;
   const {1: null, if (isTrue) null: null else null: null};
 }
-''');
+''', [
+      error(HintCode.DEAD_CODE, 83, 10),
+    ]);
   }
 
   test_spreadElement_mayBeConst() async {

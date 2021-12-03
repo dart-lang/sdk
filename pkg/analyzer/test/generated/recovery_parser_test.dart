@@ -336,9 +336,9 @@ class B = Object with A {}''', codes:
     parser.parseCompilationUnit2();
     listener.assertErrors([
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 27, 0),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 26, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 26, 1),
       expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 27, 0),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 27, 0)
     ]);
   }
 
@@ -906,8 +906,8 @@ class C {
   void test_incompleteLocalVariable_atTheEndOfBlock_modifierOnly() {
     Statement statement = parseStatement('final }', expectedEndOffset: 6);
     listener.assertErrors([
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 5),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1)
     ]);
     expect(statement, isVariableDeclarationStatement);
     expect(statement.toSource(), 'final ;');
@@ -968,7 +968,7 @@ class C {
     VariableDeclaration field = fields[0];
     expect(field.name.name, 'f');
 // validate the type
-    var typeArguments = (fieldList.type as TypeName).typeArguments!;
+    var typeArguments = (fieldList.type as NamedType).typeArguments!;
     expect(typeArguments.arguments, hasLength(1));
 // synthetic '>'
     Token token = typeArguments.endToken;
@@ -1086,7 +1086,7 @@ class C {
     expect(expression.notOperator, isNotNull);
     TypeAnnotation type = expression.type;
     expect(type, isNotNull);
-    expect(type is TypeName && type.name.isSynthetic, isTrue);
+    expect(type is NamedType && type.name.isSynthetic, isTrue);
     var thenStatement = ifStatement.thenStatement as ExpressionStatement;
     expect(thenStatement.semicolon!.isSynthetic, isTrue);
     var simpleId = thenStatement.expression as SimpleIdentifier;
@@ -1411,8 +1411,8 @@ class C {
 
   void test_nonStringLiteralUri_import() {
     parseCompilationUnit("import dart:io; class C {}", errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 6),
       expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 4),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 4),
       expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 7, 4),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 4),
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 11, 1),
@@ -1468,7 +1468,7 @@ class C {
     var expression =
         parseExpression("x is", codes: [ParserErrorCode.EXPECTED_TYPE_NAME])
             as IsExpression;
-    expect(expression.type, isTypeName);
+    expect(expression.type, isNamedType);
     expect(expression.type.isSynthetic, isTrue);
   }
 

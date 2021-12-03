@@ -13,11 +13,11 @@ main() {
   new lib12.Library11(1);
   //        ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'Library11'.
+  // [cfe] Couldn't find constructor 'Library11'.
 
   // Variable should not be visible.
   lib12.top_level11;
   //    ^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
-  // [cfe] Getter not found: 'top_level11'.
+  // [cfe] Undefined name 'top_level11'.
 }

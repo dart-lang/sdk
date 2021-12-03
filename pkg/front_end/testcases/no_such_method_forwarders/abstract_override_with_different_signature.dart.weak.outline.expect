@@ -74,7 +74,7 @@ static method main() → dynamic
 Extra constant evaluation status:
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:8:8 -> SymbolConstant(#eatFood)
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:8:8 -> ListConstant(const <Type*>[])
-Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:8:8 -> InstanceConstant(const _ImmutableMap<Symbol*, dynamic>{_ImmutableMap._kvPairs: const <dynamic>[]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:8:8 -> MapConstant(const <Symbol*, dynamic>{})
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:23:8 -> SymbolConstant(#eatFood)
 Evaluated: ListLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:23:8 -> ListConstant(const <Type*>[])
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///abstract_override_with_different_signature.dart:23:8 -> SymbolConstant(#amount)

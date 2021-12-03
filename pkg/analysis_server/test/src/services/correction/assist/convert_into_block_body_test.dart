@@ -163,4 +163,23 @@ class A {
 }
 ''');
   }
+
+  Future<void> test_void() async {
+    await resolveTestCode('''
+class C {
+  String? _s;
+
+  set s(String s) => _s = s;
+}
+''');
+    await assertHasAssistAt('=>', '''
+class C {
+  String? _s;
+
+  set s(String s) {
+    _s = s;
+  }
+}
+''');
+  }
 }

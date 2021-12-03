@@ -356,9 +356,13 @@ typedef simd128_value_t fpu_register_t;
 
 // Determine whether we will be using the simulator.
 #if defined(TARGET_ARCH_IA32)
-// No simulator used.
+#if !defined(HOST_ARCH_IA32)
+#define USING_SIMULATOR 1
+#endif
 #elif defined(TARGET_ARCH_X64)
-// No simulator used.
+#if !defined(HOST_ARCH_X64)
+#define USING_SIMULATOR 1
+#endif
 #elif defined(TARGET_ARCH_ARM)
 #if !defined(HOST_ARCH_ARM)
 #define TARGET_HOST_MISMATCH 1
@@ -553,6 +557,9 @@ constexpr intptr_t RoundWordsToMB(intptr_t size_in_words) {
 }
 constexpr intptr_t RoundWordsToGB(intptr_t size_in_words) {
   return (size_in_words + (GBInWords >> 1)) >> GBInWordsLog2;
+}
+constexpr double WordsToMB(intptr_t size_in_words) {
+  return static_cast<double>(size_in_words) / MBInWords;
 }
 
 constexpr intptr_t kIntptrOne = 1;

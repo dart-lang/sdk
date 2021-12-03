@@ -41,7 +41,7 @@ class Simple extends core::Object /*hasConstConstructor*/  {
   final field core::String name;
   const constructor •(core::String name) → self::Simple
     : self::Simple::name = name, super core::Object::•() {
-    assert(!(this.{self::Simple::name}{core::String} =={core::String::==}{(core::Object) → core::bool} (#C1)));
+    assert(!(this.{self::Simple::name}{core::String} =={core::String::==}{(core::Object) → core::bool} #C1));
   }
 }
 class Simple2 extends core::Object /*hasConstConstructor*/  {
@@ -78,7 +78,7 @@ Try removing the return type.
     return Simple2(this.name);
     ^";
 static const field self::B var3 = invalid-expression "This assertion failed.";
-static const field dynamic var4 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:41:14: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+static const field invalid-type var4 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:41:14: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
 const var4 = C();
              ^";

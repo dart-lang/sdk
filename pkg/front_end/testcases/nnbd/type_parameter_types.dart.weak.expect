@@ -18,19 +18,19 @@ class B<X extends core::List<self::B::Y%> = core::List<core::Object?>, Y extends
   synthetic constructor •() → self::B<self::B::X, self::B::Y%>
     : super core::Object::•()
     ;
-  method foo(generic-covariant-impl self::B::X x, generic-covariant-impl self::B::Y% y) → dynamic {}
+  method foo(covariant-by-class self::B::X x, covariant-by-class self::B::Y% y) → dynamic {}
 }
 class C<X extends core::List<self::C::Y%>? = core::List<dynamic>?, Y extends core::List<self::C::X%>? = core::List<dynamic>?> extends core::Object {
   synthetic constructor •() → self::C<self::C::X%, self::C::Y%>
     : super core::Object::•()
     ;
-  method foo(generic-covariant-impl self::C::X% x, generic-covariant-impl self::C::Y% y) → dynamic {}
+  method foo(covariant-by-class self::C::X% x, covariant-by-class self::C::Y% y) → dynamic {}
 }
 class D<X extends self::D::Y% = dynamic, Y extends self::D::Z% = dynamic, Z extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::D<self::D::X%, self::D::Y%, self::D::Z%>
     : super core::Object::•()
     ;
-  method foo(generic-covariant-impl self::D::X% x, generic-covariant-impl self::D::Y% y, generic-covariant-impl self::D::Z% z) → dynamic {}
+  method foo(covariant-by-class self::D::X% x, covariant-by-class self::D::Y% y, covariant-by-class self::D::Z% z) → dynamic {}
 }
 static method never() → Never
   return throw "Never";

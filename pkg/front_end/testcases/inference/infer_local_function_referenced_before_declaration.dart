@@ -6,7 +6,7 @@
 library test;
 
 test() {
-  /*@ returnType=dynamic */ f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();
+  /*@returnType=invalid-type*/ f() => /*error:REFERENCED_BEFORE_DECLARATION*/ g();
 
   // Ignore inference for g since Fasta doesn't infer it due to the circularity,
   // and that's ok.
@@ -14,7 +14,7 @@ test() {
   g() => 0;
   /*@testedFeatures=inference*/
 
-  var /*@ type=() ->* dynamic */ v = f;
+  var /*@type=() ->* invalid-type*/ v = f;
 }
 
 main() {}

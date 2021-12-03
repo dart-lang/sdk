@@ -6,8 +6,8 @@ import '../common.dart';
 import '../util/util.dart';
 
 /// Function signature for [trace].
-typedef void Trace(String message,
-    {bool condition(String stackTrace), int limit, bool throwOnPrint});
+typedef Trace = void Function(String message,
+    {bool Function(String stackTrace) condition, int limit, bool throwOnPrint});
 
 /// Helper method for printing stack traces for debugging.
 ///
@@ -30,7 +30,7 @@ Trace get trace {
 }
 
 void _trace(String message,
-    {bool condition(String stackTrace), int limit, bool throwOnPrint: false}) {
+    {bool condition(String stackTrace), int limit, bool throwOnPrint = false}) {
   try {
     throw '';
   } catch (e, s) {
@@ -57,9 +57,9 @@ traceExceptions(List<String> exceptions) {
 }
 
 /// Function signature of [traceAndReport].
-typedef void TraceAndReport(
+typedef TraceAndReport = void Function(
     DiagnosticReporter reporter, Spannable node, String message,
-    {bool condition(String stackTrace), int limit, bool throwOnPrint});
+    {bool Function(String stackTrace) condition, int limit, bool throwOnPrint});
 
 /// Calls [reportHere] and [trace] with the same message.
 TraceAndReport get traceAndReport {
@@ -73,7 +73,7 @@ TraceAndReport get reportAndTrace => traceAndReport;
 /// Implementation of [traceAndReport].
 void _traceAndReport(
     DiagnosticReporter reporter, Spannable node, String message,
-    {bool condition(String stackTrace), int limit, bool throwOnPrint: false}) {
+    {bool condition(String stackTrace), int limit, bool throwOnPrint = false}) {
   trace(message, limit: limit, throwOnPrint: throwOnPrint,
       condition: (String stackTrace) {
     bool result = condition != null ? condition(stackTrace) : true;
@@ -89,13 +89,13 @@ void _traceAndReport(
 /// Use [offset] to discard the first [offset] calls of the call stack. Defaults
 /// to `1`, that is, discard the call to [stackTrace] itself. Use [limit] to
 /// limit the length of the stack trace lines.
-StackTraceLines stackTrace({int offset: 1, int limit: null}) {
+StackTraceLines stackTrace({int offset = 1, int limit = null}) {
   int rangeStart = offset;
   int rangeEnd = limit == null ? null : rangeStart + limit;
   try {
     throw '';
   } catch (_, stackTrace) {
-    return new StackTraceLines.fromTrace(stackTrace,
+    return StackTraceLines.fromTrace(stackTrace,
         rangeStart: offset,
         rangeEnd: rangeEnd,
         filePrefix: stackTraceFilePrefix);
@@ -110,15 +110,15 @@ class StackTraceLines {
   final int maxColumnNoLength;
 
   factory StackTraceLines.fromTrace(StackTrace s,
-      {int rangeStart, int rangeEnd, String filePrefix, String lambda: r'?'}) {
-    final RegExp indexPattern = new RegExp(r'#\d+\s*');
+      {int rangeStart, int rangeEnd, String filePrefix, String lambda = r'?'}) {
+    final RegExp indexPattern = RegExp(r'#\d+\s*');
     int index = -1;
     int maxFileLength = 0;
     int maxLineNoLength = 0;
     int maxColumnNoLength = 0;
 
     String stackTrace = '$s';
-    List<StackTraceLine> lines = <StackTraceLine>[];
+    List<StackTraceLine> lines = [];
     // Parse each line in the stack trace. The supported line formats from the
     // Dart VM are:
     //    #n     <method-name> (<uri>:<line-no>:<column-no>)
@@ -136,7 +136,7 @@ class StackTraceLines {
         // Strip index.
         line = line.replaceFirst(indexPattern, '');
         if (line == '<asynchronous suspension>') {
-          lines.add(new StackTraceLine(index, '', '', '', line));
+          lines.add(StackTraceLine(index, '', '', '', line));
           continue;
         }
 
@@ -198,12 +198,12 @@ class StackTraceLines {
         if (lambda != null) {
           method = method.replaceAll('<anonymous closure>', lambda);
         }
-        lines.add(new StackTraceLine(index, file, lineNo, columnNo, method));
+        lines.add(StackTraceLine(index, file, lineNo, columnNo, method));
       } catch (e) {
         throw 'Error prettifying "$line": $e';
       }
     }
-    return new StackTraceLines.fromLines(
+    return StackTraceLines.fromLines(
         lines, maxFileLength, maxLineNoLength, maxColumnNoLength);
   }
 
@@ -211,12 +211,12 @@ class StackTraceLines {
       this.maxLineNoLength, this.maxColumnNoLength);
 
   StackTraceLines subtrace(int offset) {
-    return new StackTraceLines.fromLines(lines.sublist(offset), maxFileLength,
+    return StackTraceLines.fromLines(lines.sublist(offset), maxFileLength,
         maxLineNoLength, maxColumnNoLength);
   }
 
-  String prettify({bool showColumnNo: false, bool showDots: true}) {
-    StringBuffer sb = new StringBuffer();
+  String prettify({bool showColumnNo = false, bool showDots = true}) {
+    StringBuffer sb = StringBuffer();
     bool dots = true;
     for (StackTraceLine line in lines) {
       sb.write('  ');
@@ -250,11 +250,11 @@ class StackTraceLine {
       this.index, this.file, this.lineNo, this.columnNo, this.method);
 
   void printOn(StringBuffer sb,
-      {String padding: ' ',
+      {String padding = ' ',
       int fileLength,
       int lineNoLength,
       int columnNoLength,
-      bool showColumnNo: false}) {
+      bool showColumnNo = false}) {
     String fileText = '${file} ';
     if (fileLength != null) {
       fileText = pad(fileText, fileLength, dots: padding);
@@ -312,11 +312,11 @@ class StackTraceLine {
 String prettifyStackTrace(StackTrace stackTrace,
     {int rangeStart,
     int rangeEnd,
-    bool showColumnNo: false,
-    bool showDots: true,
+    bool showColumnNo = false,
+    bool showDots = true,
     String filePrefix,
-    String lambda: r'?'}) {
-  return new StackTraceLines.fromTrace(stackTrace,
+    String lambda = r'?'}) {
+  return StackTraceLines.fromTrace(stackTrace,
           rangeStart: rangeStart,
           rangeEnd: rangeEnd,
           filePrefix: filePrefix,
@@ -329,12 +329,12 @@ String prettifyStackTrace(StackTrace stackTrace,
 /// If [padLeft] is [:true:] the text is padding inserted to the left of [text].
 /// A repetition of the [dots] text is used for padding.
 String pad(String text, int intendedLength,
-    {bool padLeft: false, String dots: ' '}) {
+    {bool padLeft = false, String dots = ' '}) {
   if (text.length == intendedLength) return text;
   if (text.length > intendedLength) return text.substring(0, intendedLength);
   if (dots == null || dots.isEmpty) dots = ' ';
   int dotsLength = dots.length;
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   if (!padLeft) {
     sb.write(text);
   }

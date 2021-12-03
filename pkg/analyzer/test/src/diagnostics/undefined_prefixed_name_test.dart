@@ -25,6 +25,18 @@ f() => p.c;
     ]);
   }
 
+  test_new() async {
+    newFile('$testPackageLibPath/lib.dart', content: '');
+    await assertErrorsInCode(r'''
+import 'lib.dart' as p;
+void f() {
+  p.new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 39, 3),
+    ]);
+  }
+
   test_setterContext() async {
     newFile('$testPackageLibPath/lib.dart');
     await assertErrorsInCode('''

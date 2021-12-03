@@ -66,13 +66,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginClassOrMixinBody(DeclarationKind kind, Token token) {
-    listener?.beginClassOrMixinBody(kind, token);
+  void beginClassOrMixinOrExtensionBody(DeclarationKind kind, Token token) {
+    listener?.beginClassOrMixinOrExtensionBody(kind, token);
   }
 
   @override
-  void beginClassOrNamedMixinApplicationPrelude(Token token) {
-    listener?.beginClassOrNamedMixinApplicationPrelude(token);
+  void beginClassOrMixinOrNamedMixinApplicationPrelude(Token token) {
+    listener?.beginClassOrMixinOrNamedMixinApplicationPrelude(token);
   }
 
   @override
@@ -156,9 +156,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginFactoryMethod(
-      Token lastConsumed, Token? externalToken, Token? constToken) {
-    listener?.beginFactoryMethod(lastConsumed, externalToken, constToken);
+  void beginFactoryMethod(DeclarationKind declarationKind, Token lastConsumed,
+      Token? externalToken, Token? constToken) {
+    listener?.beginFactoryMethod(
+        declarationKind, lastConsumed, externalToken, constToken);
   }
 
   @override
@@ -224,8 +225,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginFunctionTypeAlias(Token token) {
-    listener?.beginFunctionTypeAlias(token);
+  void beginTypedef(Token token) {
+    listener?.beginTypedef(token);
   }
 
   @override
@@ -315,14 +316,15 @@ class ForwardingListener implements Listener {
 
   @override
   void beginMethod(
+      DeclarationKind declarationKind,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
       Token name) {
-    listener?.beginMethod(externalToken, staticToken, covariantToken,
-        varFinalOrConst, getOrSet, name);
+    listener?.beginMethod(declarationKind, externalToken, staticToken,
+        covariantToken, varFinalOrConst, getOrSet, name);
   }
 
   @override
@@ -569,9 +571,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endClassOrMixinBody(
+  void endClassOrMixinOrExtensionBody(
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
-    listener?.endClassOrMixinBody(kind, memberCount, beginToken, endToken);
+    listener?.endClassOrMixinOrExtensionBody(
+        kind, memberCount, beginToken, endToken);
   }
 
   @override
@@ -610,9 +613,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endConstructorReference(
-      Token start, Token? periodBeforeName, Token endToken) {
-    listener?.endConstructorReference(start, periodBeforeName, endToken);
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
+    listener?.endConstructorReference(
+        start, periodBeforeName, endToken, constructorReferenceContext);
   }
 
   @override
@@ -650,9 +654,9 @@ class ForwardingListener implements Listener {
 
   @override
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token endToken) {
-    listener?.endExtensionDeclaration(
-        extensionKeyword, typeKeyword, onKeyword, endToken);
+      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
+    listener?.endExtensionDeclaration(extensionKeyword, typeKeyword, onKeyword,
+        showKeyword, hideKeyword, endToken);
   }
 
   @override
@@ -771,9 +775,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFunctionTypeAlias(
-      Token typedefKeyword, Token? equals, Token endToken) {
-    listener?.endFunctionTypeAlias(typedefKeyword, equals, endToken);
+  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+    listener?.endTypedef(typedefKeyword, equals, endToken);
   }
 
   @override
@@ -807,8 +810,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endImplicitCreationExpression(Token token) {
-    listener?.endImplicitCreationExpression(token);
+  void endImplicitCreationExpression(Token token, Token openAngleBracket) {
+    listener?.endImplicitCreationExpression(token, openAngleBracket);
   }
 
   @override
@@ -1021,8 +1024,17 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginFields(Token lastConsumed) {
-    listener?.beginFields(lastConsumed);
+  void beginFields(
+      DeclarationKind declarationKind,
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      Token lastConsumed) {
+    listener?.beginFields(declarationKind, abstractToken, externalToken,
+        staticToken, covariantToken, lateToken, varFinalOrConst, lastConsumed);
   }
 
   @override
@@ -1159,6 +1171,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
+      Token? hideKeyword, int hideElementCount) {
+    listener?.handleExtensionShowHide(
+        showKeyword, showElementCount, hideKeyword, hideElementCount);
+  }
+
+  @override
   void handleClassWithClause(Token withKeyword) {
     listener?.handleClassWithClause(withKeyword);
   }
@@ -1277,6 +1296,11 @@ class ForwardingListener implements Listener {
   @override
   void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
     listener?.handleFunctionBodySkipped(token, isExpressionBody);
+  }
+
+  @override
+  void handleShowHideIdentifier(Token? modifier, Token identifier) {
+    listener?.handleShowHideIdentifier(modifier, identifier);
   }
 
   @override

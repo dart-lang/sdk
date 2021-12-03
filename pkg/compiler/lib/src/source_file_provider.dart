@@ -38,14 +38,14 @@ abstract class SourceFileProvider implements CompilerInput {
         input = binarySourceFiles[resourceUri];
         break;
     }
-    if (input != null) return new Future.value(input);
+    if (input != null) return Future.value(input);
 
     if (resourceUri.scheme == 'file') {
       return _readFromFile(resourceUri, inputKind);
     } else if (resourceUri.scheme == 'http' || resourceUri.scheme == 'https') {
       return _readFromHttp(resourceUri, inputKind);
     } else {
-      throw new ArgumentError("Unknown scheme in uri '$resourceUri'");
+      throw ArgumentError("Unknown scheme in uri '$resourceUri'");
     }
   }
 
@@ -64,12 +64,11 @@ abstract class SourceFileProvider implements CompilerInput {
     api.Input input;
     switch (inputKind) {
       case api.InputKind.UTF8:
-        input = utf8SourceFiles[resourceUri] = new CachingUtf8BytesSourceFile(
+        input = utf8SourceFiles[resourceUri] = CachingUtf8BytesSourceFile(
             resourceUri, relativizeUri(resourceUri), source);
         break;
       case api.InputKind.binary:
-        input =
-            binarySourceFiles[resourceUri] = new Binary(resourceUri, source);
+        input = binarySourceFiles[resourceUri] = Binary(resourceUri, source);
         break;
     }
     return input;
@@ -93,15 +92,15 @@ abstract class SourceFileProvider implements CompilerInput {
     try {
       input = _readFromFileSync(resourceUri, inputKind);
     } catch (e) {
-      return new Future.error(e);
+      return Future.error(e);
     }
-    return new Future.value(input);
+    return Future.value(input);
   }
 
   Future<api.Input<List<int>>> _readFromHttp(
       Uri resourceUri, api.InputKind inputKind) {
     assert(resourceUri.scheme == 'http');
-    HttpClient client = new HttpClient();
+    HttpClient client = HttpClient();
     return client
         .getUrl(resourceUri)
         .then((HttpClientRequest request) => request.close())
@@ -116,7 +115,7 @@ abstract class SourceFileProvider implements CompilerInput {
       int totalLength = splitContent.fold(0, (int old, List list) {
         return old + list.length;
       });
-      Uint8List result = new Uint8List(totalLength);
+      Uint8List result = Uint8List(totalLength);
       int offset = 0;
       for (List<int> contentPart in splitContent) {
         result.setRange(offset, offset + contentPart.length, contentPart);
@@ -126,12 +125,11 @@ abstract class SourceFileProvider implements CompilerInput {
       api.Input<List<int>> input;
       switch (inputKind) {
         case api.InputKind.UTF8:
-          input = utf8SourceFiles[resourceUri] = new CachingUtf8BytesSourceFile(
+          input = utf8SourceFiles[resourceUri] = CachingUtf8BytesSourceFile(
               resourceUri, resourceUri.toString(), result);
           break;
         case api.InputKind.binary:
-          input =
-              binarySourceFiles[resourceUri] = new Binary(resourceUri, result);
+          input = binarySourceFiles[resourceUri] = Binary(resourceUri, result);
           break;
       }
       return input;
@@ -151,14 +149,14 @@ abstract class SourceFileProvider implements CompilerInput {
   }
 
   Iterable<Uri> getSourceUris() {
-    Set<Uri> uris = new Set<Uri>();
+    Set<Uri> uris = Set<Uri>();
     uris.addAll(utf8SourceFiles.keys);
     uris.addAll(binarySourceFiles.keys);
     return uris;
   }
 }
 
-List<int> readAll(String filename, {bool zeroTerminated: true}) {
+List<int> readAll(String filename, {bool zeroTerminated = true}) {
   RandomAccessFile file = File(filename).openSync();
   int length = file.lengthSync();
   int bufferLength = length;
@@ -166,7 +164,7 @@ List<int> readAll(String filename, {bool zeroTerminated: true}) {
     // +1 to have a 0 terminated list, see [Scanner].
     bufferLength++;
   }
-  var buffer = new Uint8List(bufferLength);
+  var buffer = Uint8List(bufferLength);
   file.readIntoSync(buffer, 0, length);
   file.closeSync();
   return buffer;
@@ -181,7 +179,7 @@ class CompilerSourceFileProvider extends SourceFileProvider {
 
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,
-          {InputKind inputKind: InputKind.UTF8}) =>
+          {InputKind inputKind = InputKind.UTF8}) =>
       readBytesFromUri(uri, inputKind);
 }
 
@@ -204,7 +202,7 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
 
   FormattingDiagnosticHandler([SourceFileProvider provider])
       : this.provider =
-            (provider == null) ? new CompilerSourceFileProvider() : provider;
+            (provider == null) ? CompilerSourceFileProvider() : provider;
 
   void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
     if (!verbose && kind == api.Diagnostic.VERBOSE_INFO) return;
@@ -301,7 +299,7 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
     }
     if (fatal && ++fatalCount >= throwOnErrorCount && throwOnError) {
       isAborting = true;
-      throw new AbortLeg(message);
+      throw AbortLeg(message);
     }
   }
 
@@ -312,7 +310,7 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
   }
 }
 
-typedef void MessageCallback(String message);
+typedef MessageCallback = void Function(String message);
 
 class RandomAccessFileOutputProvider implements CompilerOutput {
   final Uri out;
@@ -420,7 +418,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
       }
     }
 
-    return new _OutputSinkWrapper(writeStringSync, onDone);
+    return _OutputSinkWrapper(writeStringSync, onDone);
   }
 
   @override
@@ -453,7 +451,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
       totalDataWritten += bytesWritten;
     }
 
-    return new _BinaryOutputSinkWrapper(writeBytesSync, onDone);
+    return _BinaryOutputSinkWrapper(writeBytesSync, onDone);
   }
 }
 
@@ -461,7 +459,7 @@ class RandomAccessBinaryOutputSink implements api.BinaryOutputSink {
   final RandomAccessFile output;
 
   RandomAccessBinaryOutputSink(Uri uri)
-      : output = new File.fromUri(uri).openSync(mode: FileMode.write);
+      : output = File.fromUri(uri).openSync(mode: FileMode.write);
 
   @override
   void write(List<int> buffer, [int start = 0, int end]) {
@@ -546,14 +544,14 @@ class BazelInputProvider extends SourceFileProvider {
 
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,
-      {InputKind inputKind: InputKind.UTF8}) async {
+      {InputKind inputKind = InputKind.UTF8}) async {
     var resolvedUri = uri;
     var path = uri.path;
     if (path.startsWith('/bazel-root')) {
       path = path.substring('/bazel-root/'.length);
       for (var dir in dirs) {
         var file = dir.resolve(path);
-        if (await new File.fromUri(file).exists()) {
+        if (await File.fromUri(file).exists()) {
           resolvedUri = file;
           break;
         }
@@ -579,7 +577,7 @@ class BazelInputProvider extends SourceFileProvider {
       path = path.substring('/bazel-root/'.length);
       for (var dir in dirs) {
         var file = dir.resolve(path);
-        if (new File.fromUri(file).existsSync()) {
+        if (File.fromUri(file).existsSync()) {
           return super.autoReadFromFile(file);
         }
       }
@@ -607,14 +605,14 @@ class MultiRootInputProvider extends SourceFileProvider {
 
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,
-      {InputKind inputKind: InputKind.UTF8}) async {
+      {InputKind inputKind = InputKind.UTF8}) async {
     var resolvedUri = uri;
     if (resolvedUri.scheme == markerScheme) {
       var path = resolvedUri.path;
       if (path.startsWith('/')) path = path.substring(1);
       for (var dir in roots) {
         var fileUri = dir.resolve(path);
-        if (await new File.fromUri(fileUri).exists()) {
+        if (await File.fromUri(fileUri).exists()) {
           resolvedUri = fileUri;
           break;
         }
@@ -639,7 +637,7 @@ class MultiRootInputProvider extends SourceFileProvider {
       var path = resourceUri.path;
       for (var dir in roots) {
         var file = dir.resolve(path);
-        if (new File.fromUri(file).existsSync()) {
+        if (File.fromUri(file).existsSync()) {
           return super.autoReadFromFile(file);
         }
       }

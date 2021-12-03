@@ -11,12 +11,14 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib.dart" deferred as foo;
         main() {
           var f = foo.loadLibrary;
           f();
         }
       lib.dart: |
+        // @dart=2.9
         foo() {
           print("foo!");
         }
@@ -29,6 +31,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib.dart" deferred as foo;
         main() {
           var f = foo.loadLibrary;

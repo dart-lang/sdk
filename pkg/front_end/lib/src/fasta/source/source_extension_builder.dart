@@ -28,6 +28,8 @@ import '../fasta_codes.dart'
 
 import '../kernel/kernel_helper.dart';
 
+import '../operator.dart';
+
 import '../problems.dart';
 
 import '../scope.dart';
@@ -50,12 +52,15 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   @override
   final TypeBuilder onType;
 
+  final ExtensionTypeShowHideClauseBuilder extensionTypeShowHideClauseBuilder;
+
   SourceExtensionBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
       String name,
       this.typeParameters,
       this.onType,
+      this.extensionTypeShowHideClauseBuilder,
       Scope scope,
       SourceLibraryBuilder parent,
       bool isExtensionTypeDeclaration,
@@ -79,6 +84,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   @override
   SourceExtensionBuilder get origin => _origin ?? this;
 
+  @override
   Extension get extension => isPatch ? origin._extension : _extension;
 
   /// Builds the [Extension] for this extension build and inserts the members
@@ -92,6 +98,10 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   Extension build(
       SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
+    _extension.onType = onType.build(libraryBuilder);
+    extensionTypeShowHideClauseBuilder.buildAndStoreTypes(
+        _extension, libraryBuilder);
+
     SourceLibraryBuilder.checkMemberConflicts(library, scope,
         checkForInstanceVsStaticConflict: true,
         checkForMethodVsSetterConflict: true);
@@ -165,7 +175,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
               Reference memberReference;
               if (member is Field) {
                 libraryBuilder.library.addField(member);
-                memberReference = member.getterReference;
+                memberReference = member.fieldReference;
               } else if (member is Procedure) {
                 libraryBuilder.library.addProcedure(member);
                 memberReference = member.reference;
@@ -189,8 +199,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     }
 
     scope.forEach(buildBuilders);
-
-    _extension.onType = onType.build(libraryBuilder);
 
     return _extension;
   }
@@ -278,11 +286,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     MetadataBuilder.buildAnnotations(isPatch ? origin.extension : extension,
-        metadata, library, this, null, fileUri);
+        metadata, library, this, null, fileUri, library.scope);
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(
-            library, this, null, coreTypes, delayedActionPerformers);
+        typeParameters![i].buildOutlineExpressions(library, this, null,
+            coreTypes, delayedActionPerformers, scope.parent!);
       }
     }
 
@@ -293,5 +301,47 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     }
 
     scope.forEach(build);
+  }
+}
+
+class ExtensionTypeShowHideClauseBuilder {
+  final List<TypeBuilder> shownSupertypes;
+  final List<String> shownGetters;
+  final List<String> shownSetters;
+  final List<String> shownMembersOrTypes;
+  final List<Operator> shownOperators;
+
+  final List<TypeBuilder> hiddenSupertypes;
+  final List<String> hiddenGetters;
+  final List<String> hiddenSetters;
+  final List<String> hiddenMembersOrTypes;
+  final List<Operator> hiddenOperators;
+
+  ExtensionTypeShowHideClauseBuilder(
+      {required this.shownSupertypes,
+      required this.shownGetters,
+      required this.shownSetters,
+      required this.shownMembersOrTypes,
+      required this.shownOperators,
+      required this.hiddenSupertypes,
+      required this.hiddenGetters,
+      required this.hiddenSetters,
+      required this.hiddenMembersOrTypes,
+      required this.hiddenOperators});
+
+  void buildAndStoreTypes(Extension extension, LibraryBuilder libraryBuilder) {
+    List<Supertype> builtShownSupertypes = shownSupertypes
+        .map(
+            (t) => t.buildSupertype(libraryBuilder, t.charOffset!, t.fileUri!)!)
+        .toList();
+    List<Supertype> builtHiddenSupertypes = hiddenSupertypes
+        .map(
+            (t) => t.buildSupertype(libraryBuilder, t.charOffset!, t.fileUri!)!)
+        .toList();
+    ExtensionTypeShowHideClause showHideClause =
+        extension.showHideClause ?? new ExtensionTypeShowHideClause();
+    showHideClause.shownSupertypes.addAll(builtShownSupertypes);
+    showHideClause.hiddenSupertypes.addAll(builtHiddenSupertypes);
+    extension.showHideClause ??= showHideClause;
   }
 }

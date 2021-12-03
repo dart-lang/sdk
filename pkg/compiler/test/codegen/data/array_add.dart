@@ -6,9 +6,9 @@
 //
 // TODO(sra): Lower when type of input does not need a generic covariant check.
 @pragma('dart2js:noInline')
-/*spec.member: test1:function() {
-  var t1 = H._setArrayType([], type$.JSArray_int);
-  C.JSArray_methods.add$1(t1, 1);
+/*spec|canary.member: test1:function() {
+  var t1 = A._setArrayType([], type$.JSArray_int);
+  B.JSArray_methods.add$1(t1, 1);
   return t1;
 }*/
 /*prod.member: test1:function() {
@@ -16,20 +16,12 @@
   t1.push(1);
   return t1;
 }*/
-/*canary.member: test1:function() {
-  var t1 = B._setArrayType([], type$.JSArray_int);
-  A.JSArray_methods.add$1(t1, 1);
-  return t1;
-}*/
 test1() {
   return <int>[]..add(1);
 }
 
-/*spec|prod.member: main:function() {
-  F.test1();
-}*/
-/*canary.member: main:function() {
-  B.test1();
+/*member: main:function() {
+  A.test1();
 }*/
 main() {
   test1();

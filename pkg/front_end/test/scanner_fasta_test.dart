@@ -20,7 +20,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'scanner_test.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ScannerTest_Fasta);
     defineReflectiveTests(ScannerTest_Fasta_FuzzTestAPI);
@@ -32,7 +32,7 @@ main() {
 
 @reflectiveTest
 class ScannerTest_Fasta_FuzzTestAPI {
-  test_API() {
+  void test_API() {
     // These two API are used when fuzz testing the scanner.
     String source = 'class A { }';
 
@@ -76,8 +76,8 @@ class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
     return token;
   }
 
-  test_invalid_utf8() {
-    printBytes(List<int> bytes) {
+  void test_invalid_utf8() {
+    void printBytes(List<int> bytes) {
       var hex = bytes.map((b) => '0x${b.toRadixString(16).toUpperCase()}');
       print('$bytes\n[${hex.join(', ')}]');
       try {
@@ -88,7 +88,7 @@ class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
       }
     }
 
-    scanBytes(List<int> bytes) {
+    ScannerResult scanBytes(List<int> bytes) {
       try {
         return usedForFuzzTesting.scan(bytes);
       } catch (e) {
@@ -373,7 +373,7 @@ main() {}
 abstract class ScannerTest_Fasta_Base {
   Token scan(String source);
 
-  expectToken(Token token, TokenType type, int offset, int length,
+  void expectToken(Token token, TokenType type, int offset, int length,
       {bool isSynthetic: false, String lexeme}) {
     String description = '${token.type} $token';
     expect(token.type, type, reason: description);
@@ -742,6 +742,7 @@ abstract class ScannerTest_Fasta_Base {
 /// Scanner tests that exercise the Fasta scanner directly.
 @reflectiveTest
 class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
+  @override
   ScannerResult scanSource(source, {includeComments: true}) {
     List<int> encoded = utf8.encode(source).toList(growable: true);
     encoded.add(0); // Ensure 0 terminated bytes for UTF8 scanner

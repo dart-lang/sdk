@@ -329,7 +329,10 @@ class PubPackageService {
     }
   }
 
-  void shutdown() => _nextPackageNameListRequestTimer?.cancel();
+  void shutdown() {
+    _nextPackageNameListRequestTimer?.cancel();
+    _command?.shutdown();
+  }
 
   @visibleForTesting
   void writeDiskCache([PackageDetailsCache? cache]) {

@@ -27,7 +27,6 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/source_inset.dart';
 import 'package:observatory/src/elements/source_link.dart';
-import 'package:observatory/src/elements/view_footer.dart';
 
 class FunctionViewElement extends CustomElement implements Renderable {
   late RenderingScheduler<FunctionViewElement> _r;
@@ -145,7 +144,6 @@ class FunctionViewElement extends CustomElement implements Renderable {
                             queue: _r.queue)
                         .element
                   ],
-          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

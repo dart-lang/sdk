@@ -12,7 +12,7 @@ Deserialize INPUT and write it back to OUTPUT several times, measuring
 the time it takes, including I/O time.
 ''';
 
-main(List<String> args) async {
+void main(List<String> args) async {
   if (args.length != 2) {
     print(usage);
     exit(1);

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -14,20 +15,18 @@ import 'package:analyzer/dart/element/type.dart';
 /// A contributor that produces suggestions for named expression labels that
 /// correspond to named parameters when completing in argument lists.
 class ArgListContributor extends DartCompletionContributor {
-  /// The request that is currently being handled.
-  late DartCompletionRequest request;
-
-  /// The suggestion builder used to build suggestions.
-  late SuggestionBuilder builder;
-
   /// The argument list that is the containing node of the target, or `null` if
   /// the containing node of the target is not an argument list (such as when
   /// it's a named expression).
   ArgumentList? argumentList;
 
+  ArgListContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var parameters = request.target.executableElement?.parameters ??
         request.target.functionType?.parameters;
     if (parameters == null) {
@@ -39,8 +38,6 @@ class ArgListContributor extends DartCompletionContributor {
       argumentList = node;
     }
 
-    this.request = request;
-    this.builder = builder;
     _addSuggestions(parameters);
   }
 
@@ -66,8 +63,8 @@ class ArgListContributor extends DartCompletionContributor {
     // suppress inserting colons/commas. We check only replacing _after_ the
     // caret as some replacements (before) will still want colons, for example:
     //     foo(mySt^'bar');
-    var replacementEnd = request.replacementRange.offset +
-        (replacementLength ?? request.replacementRange.length);
+    var replacementEnd = request.replacementOffset +
+        (replacementLength ?? request.replacementLength);
     var willReplace =
         request.completionPreference == CompletionPreference.replace &&
             replacementEnd > request.offset;
@@ -109,7 +106,7 @@ class ArgListContributor extends DartCompletionContributor {
         // not be replaced.
         var replacementLength =
             request.offset == request.target.entity?.offset &&
-                    request.replacementRange.length != 0
+                    request.replacementLength != 0
                 ? 0
                 : null;
 

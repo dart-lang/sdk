@@ -69,7 +69,7 @@ class KFieldAnalysis {
             requireConstant: false, implicitNull: true);
       }
       if (value != null && value.isConstant) {
-        fieldData[fieldElement] = new AllocatorData(value);
+        fieldData[fieldElement] = AllocatorData(value);
       }
     }
 
@@ -95,7 +95,7 @@ class KFieldAnalysis {
               staticTypeContext, value,
               requireConstant: false, implicitNull: true);
           if (constantValue != null && constantValue.isConstant) {
-            initializerValue = new Initializer.direct(constantValue);
+            initializerValue = Initializer.direct(constantValue);
           } else if (value is ir.VariableGet) {
             ir.VariableDeclaration parameter = value.variable;
             int position =
@@ -107,7 +107,7 @@ class KFieldAnalysis {
                     requireConstant: false, implicitNull: true);
                 if (constantValue != null && constantValue.isConstant) {
                   initializerValue =
-                      new Initializer.positional(position, constantValue);
+                      Initializer.positional(position, constantValue);
                 }
               }
             } else {
@@ -119,7 +119,7 @@ class KFieldAnalysis {
                     requireConstant: false, implicitNull: true);
                 if (constantValue != null && constantValue.isConstant) {
                   initializerValue =
-                      new Initializer.named(parameter.name, constantValue);
+                      Initializer.named(parameter.name, constantValue);
                 }
               }
             }
@@ -128,7 +128,7 @@ class KFieldAnalysis {
         }
       }
     }
-    _classData[class_] = new ClassData(constructors, fieldData);
+    _classData[class_] = ClassData(constructors, fieldData);
   }
 
   void registerStaticField(KField field, EvaluationComplexity complexity) {
@@ -149,7 +149,7 @@ class KFieldAnalysis {
     }
     // TODO(johnniwinther): Remove evaluation of constant when [complexity]
     // holds the constant literal from CFE.
-    _staticFieldData[field] = new StaticFieldData(value, complexity);
+    _staticFieldData[field] = StaticFieldData(value, complexity);
   }
 
   AllocatorData getAllocatorDataForTesting(KField field) {
@@ -232,7 +232,7 @@ class Initializer {
       case InitializerKind.complex:
         return '?';
     }
-    throw new UnsupportedError('Unexpected kind $kind');
+    throw UnsupportedError('Unexpected kind $kind');
   }
 
   @override
@@ -255,9 +255,9 @@ class JFieldAnalysis {
       DataSource source, CompilerOptions options) {
     source.begin(tag);
     Map<FieldEntity, FieldAnalysisData> fieldData = source.readMemberMap(
-        (MemberEntity member) => new FieldAnalysisData.fromDataSource(source));
+        (MemberEntity member) => FieldAnalysisData.fromDataSource(source));
     source.end(tag);
-    return new JFieldAnalysis._(fieldData);
+    return JFieldAnalysis._(fieldData);
   }
 
   /// Serializes this [JFieldAnalysis] to [sink].
@@ -379,7 +379,7 @@ class JFieldAnalysis {
                 // because of deferred loading.
                 isInitializedInAllocator = true;
               }
-              fieldData[jField] = new FieldAnalysisData(
+              fieldData[jField] = FieldAnalysisData(
                   initialValue: value,
                   isEffectivelyFinal: isEffectivelyConstant,
                   isElided: isEffectivelyConstant,
@@ -526,7 +526,7 @@ class JFieldAnalysis {
           }
         }
 
-        data = fieldData[jField] = new FieldAnalysisData(
+        data = fieldData[jField] = FieldAnalysisData(
             initialValue: value,
             isEffectivelyFinal: isEffectivelyFinal,
             isElided: isElided,
@@ -562,7 +562,7 @@ class JFieldAnalysis {
 
     dependentFields.forEach(processField);
 
-    return new JFieldAnalysis._(fieldData);
+    return JFieldAnalysis._(fieldData);
   }
 
   // TODO(sra): Add way to let injected fields be initialized to a constant in
@@ -595,12 +595,12 @@ class FieldAnalysisData {
 
   const FieldAnalysisData(
       {this.initialValue,
-      this.isInitializedInAllocator: false,
-      this.isEffectivelyFinal: false,
-      this.isElided: false,
-      this.isEager: false,
-      this.eagerCreationIndex: null,
-      this.eagerFieldDependenciesForTesting: null});
+      this.isInitializedInAllocator = false,
+      this.isEffectivelyFinal = false,
+      this.isElided = false,
+      this.isEager = false,
+      this.eagerCreationIndex = null,
+      this.eagerFieldDependenciesForTesting = null});
 
   factory FieldAnalysisData.fromDataSource(DataSource source) {
     source.begin(tag);
@@ -614,7 +614,7 @@ class FieldAnalysisData {
     List<FieldEntity> eagerFieldDependencies =
         source.readMembers<FieldEntity>(emptyAsNull: true);
     source.end(tag);
-    return new FieldAnalysisData(
+    return FieldAnalysisData(
         initialValue: initialValue,
         isInitializedInAllocator: isInitializedInAllocator,
         isEffectivelyFinal: isEffectivelyFinal,

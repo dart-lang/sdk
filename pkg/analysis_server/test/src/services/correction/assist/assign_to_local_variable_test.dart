@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -77,6 +78,20 @@ main() {
 void f(p) {}
 ''');
     await assertNoAssistAt('345');
+  }
+
+  Future<void> test_lint_prefer_final_locals() async {
+    createAnalysisOptionsFile(lints: [LintNames.prefer_final_locals]);
+    await resolveTestCode(r'''
+main() {
+  12345;
+}
+''');
+    await assertHasAssistAt('345', '''
+main() {
+  final i = 12345;
+}
+''');
   }
 
   Future<void> test_recovery_splitExpression() async {

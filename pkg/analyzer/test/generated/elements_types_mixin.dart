@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -374,12 +373,7 @@ mixin ElementsTypesMixin {
       uriStr,
       -1,
       0,
-      FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
-        flags: typeSystem.isNonNullableByDefault
-            ? [EnableString.non_nullable]
-            : [],
-      ),
+      FeatureSet.latestLanguageVersion(),
     );
     library.typeSystem = typeSystem;
     library.typeProvider = typeSystem.typeProvider;
@@ -473,8 +467,11 @@ mixin ElementsTypesMixin {
     required DartType type,
     bool isCovariant = false,
   }) {
-    var parameter = ParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.NAMED;
+    var parameter = ParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.NAMED,
+    );
     parameter.type = type;
     parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
@@ -485,8 +482,11 @@ mixin ElementsTypesMixin {
     required DartType type,
     bool isCovariant = false,
   }) {
-    var parameter = ParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.NAMED_REQUIRED;
+    var parameter = ParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.NAMED_REQUIRED,
+    );
     parameter.type = type;
     parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
@@ -498,8 +498,11 @@ mixin ElementsTypesMixin {
     bool isCovariant = false,
     String? defaultValueCode,
   }) {
-    var parameter = ParameterElementImpl(name ?? '', 0);
-    parameter.parameterKind = ParameterKind.POSITIONAL;
+    var parameter = ParameterElementImpl(
+      name: name ?? '',
+      nameOffset: 0,
+      parameterKind: ParameterKind.POSITIONAL,
+    );
     parameter.type = type;
     parameter.isExplicitlyCovariant = isCovariant;
     parameter.defaultValueCode = defaultValueCode;
@@ -556,8 +559,11 @@ mixin ElementsTypesMixin {
     required DartType type,
     bool isCovariant = false,
   }) {
-    var parameter = ParameterElementImpl(name ?? '', 0);
-    parameter.parameterKind = ParameterKind.REQUIRED;
+    var parameter = ParameterElementImpl(
+      name: name ?? '',
+      nameOffset: 0,
+      parameterKind: ParameterKind.REQUIRED,
+    );
     parameter.type = type;
     parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
@@ -573,6 +579,16 @@ mixin ElementsTypesMixin {
     element.typeParameters = typeParameters;
     element.aliasedType = aliasedType;
     return element;
+  }
+
+  DartType typeAliasTypeNone(
+    TypeAliasElement element, {
+    List<DartType> typeArguments = const [],
+  }) {
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   TypeParameterElementImpl typeParameter(String name,

@@ -51,6 +51,7 @@ Supertype legacyErasureSupertype(Supertype supertype) {
 class _LegacyErasure extends ReplacementVisitor {
   const _LegacyErasure();
 
+  @override
   Nullability? visitNullability(DartType node) {
     if (node.declaredNullability != Nullability.legacy) {
       return Nullability.legacy;

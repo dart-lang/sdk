@@ -48,7 +48,11 @@ class Rename extends Change<_Data> {
           // named constructor.
           builder.addSimpleReplacement(range.node(nameNode), newName);
         }
-      } else if (parent is TypeName && parent.parent is ConstructorName) {
+      } else if (parent is NamedType && parent.parent is ConstructorName) {
+        // The constructor was renamed from an unnamed constructor to a named
+        // constructor.
+        builder.addSimpleInsertion(parent.end, '.$newName');
+      } else if (parent is PrefixedIdentifier) {
         // The constructor was renamed from an unnamed constructor to a named
         // constructor.
         builder.addSimpleInsertion(parent.end, '.$newName');
@@ -81,6 +85,8 @@ class Rename extends Change<_Data> {
       return _Data(node);
     } else if (node is ConstructorName) {
       return _Data(node.name);
+    } else if (node is PrefixedIdentifier) {
+      return _Data(node.identifier);
     }
     return null;
   }

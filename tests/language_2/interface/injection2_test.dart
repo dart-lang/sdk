@@ -24,5 +24,5 @@ class C implements S;
 main() {
   Expect.isFalse(new C() is S);
   //                 ^
-  // [cfe] Method not found: 'C'.
+  // [cfe] Couldn't find constructor 'C'.
 }

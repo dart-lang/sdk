@@ -159,7 +159,7 @@ const Null proxy = null;
 ///
 /// For example:
 ///
-/// ```dart
+/// ```dart template:none
 /// @pragma('Tool:pragma-name', [param1, param2, ...])
 /// class Foo { }
 ///

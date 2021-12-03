@@ -106,7 +106,7 @@ import "dart:core" as core;
 abstract class A extends core::Object {
   field core::int property4;
   field core::int? property5;
-  covariant field core::int property6;
+  covariant-by-declaration field core::int property6;
   constructor •(core::int property4, core::int? property5, core::int property6) → self::A
     ;
   abstract get property1() → core::int;

@@ -9,7 +9,7 @@ import 'package:kernel/binary/ast_to_binary.dart';
 import '../closure.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../deferred_load/deferred_load.dart';
+import '../deferred_load/output_unit.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
@@ -78,7 +78,7 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readList].
   void writeList<E>(Iterable<E> values, void f(E value),
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes the boolean [value] to this data sink.
   void writeBool(bool value);
@@ -106,7 +106,7 @@ abstract class DataSink {
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readStrings].
-  void writeStrings(Iterable<String> values, {bool allowNull: false});
+  void writeStrings(Iterable<String> values, {bool allowNull = false});
 
   /// Writes the [map] from string to [V] values to this data sink, calling [f]
   /// to write each value to the data sink. If [allowNull] is `true`, [map] is
@@ -115,7 +115,7 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readStringMap].
   void writeStringMap<V>(Map<String, V> map, void f(V value),
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes the enum value [value] to this data sink.
   // TODO(johnniwinther): Change the signature to
@@ -143,7 +143,7 @@ abstract class DataSink {
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readMemberNodes].
-  void writeMemberNodes(Iterable<ir.Member> values, {bool allowNull: false});
+  void writeMemberNodes(Iterable<ir.Member> values, {bool allowNull = false});
 
   /// Writes the [map] from references to kernel member nodes to [V] values to
   /// this data sink, calling [f] to write each value to the data sink. If
@@ -152,7 +152,7 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readMemberNodeMap].
   void writeMemberNodeMap<V>(Map<ir.Member, V> map, void f(V value),
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes a kernel name node to this data sink.
   void writeName(ir.Name value);
@@ -179,7 +179,7 @@ abstract class DataSink {
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readTreeNodes].
-  void writeTreeNodes(Iterable<ir.TreeNode> values, {bool allowNull: false});
+  void writeTreeNodes(Iterable<ir.TreeNode> values, {bool allowNull = false});
 
   /// Writes the [map] from references to kernel tree nodes to [V] values to
   /// this data sink, calling [f] to write each value to the data sink. If
@@ -188,7 +188,7 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readTreeNodeMap].
   void writeTreeNodeMap<V>(Map<ir.TreeNode, V> map, void f(V value),
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes a reference to the kernel tree node [value] in the known [context]
   /// to this data sink.
@@ -208,7 +208,7 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readTreeNodesInContext].
   void writeTreeNodesInContext(Iterable<ir.TreeNode> values,
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes the [map] from references to kernel tree nodes to [V] values in the
   /// known [context] to this data sink, calling [f] to write each value to the
@@ -217,7 +217,7 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readTreeNodeMapInContext].
   void writeTreeNodeMapInContext<V>(Map<ir.TreeNode, V> map, void f(V value),
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes a reference to the kernel type parameter node [value] to this data
   /// sink.
@@ -230,22 +230,22 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readTypeParameterNodes].
   void writeTypeParameterNodes(Iterable<ir.TypeParameter> values,
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes the type [value] to this data sink. If [allowNull] is `true`,
   /// [value] is allowed to be `null`.
-  void writeDartType(DartType value, {bool allowNull: false});
+  void writeDartType(DartType value, {bool allowNull = false});
 
   /// Writes the type [values] to this data sink. If [allowNull] is `true`,
   /// [values] is allowed to be `null`.
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readDartTypes].
-  void writeDartTypes(Iterable<DartType> values, {bool allowNull: false});
+  void writeDartTypes(Iterable<DartType> values, {bool allowNull = false});
 
   /// Writes the kernel type node [value] to this data sink. If [allowNull] is
   /// `true`, [value] is allowed to be `null`.
-  void writeDartTypeNode(ir.DartType value, {bool allowNull: false});
+  void writeDartTypeNode(ir.DartType value, {bool allowNull = false});
 
   /// Writes the kernel type node [values] to this data sink. If [allowNull] is
   /// `true`, [values] is allowed to be `null`.
@@ -253,7 +253,7 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readDartTypeNodes].
   void writeDartTypeNodes(Iterable<ir.DartType> values,
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes the source span [value] to this data sink.
   void writeSourceSpan(SourceSpan value);
@@ -275,7 +275,7 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readLibraryMap].
   void writeLibraryMap<V>(Map<LibraryEntity, V> map, void f(V value),
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes a reference to the indexed class [value] to this data sink.
   void writeClass(IndexedClass value);
@@ -292,7 +292,7 @@ abstract class DataSink {
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readClasses].
-  void writeClasses(Iterable<ClassEntity> values, {bool allowNull: false});
+  void writeClasses(Iterable<ClassEntity> values, {bool allowNull = false});
 
   /// Writes the [map] from references to indexed classes to [V] values to this
   /// data sink, calling [f] to write each value to the data sink. If
@@ -301,7 +301,7 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readClassMap].
   void writeClassMap<V>(Map<ClassEntity, V> map, void f(V value),
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes a reference to the indexed member [value] to this data sink.
   void writeMember(IndexedMember value);
@@ -318,7 +318,7 @@ abstract class DataSink {
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readMembers].
-  void writeMembers(Iterable<MemberEntity> values, {bool allowNull: false});
+  void writeMembers(Iterable<MemberEntity> values, {bool allowNull = false});
 
   /// Writes the [map] from references to indexed members to [V] values to this
   /// data sink, calling [f] to write each value to the data sink. If
@@ -328,7 +328,7 @@ abstract class DataSink {
   /// [DataSource.readMemberMap].
   void writeMemberMap<V>(
       Map<MemberEntity, V> map, void f(MemberEntity member, V value),
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes a reference to the indexed type variable [value] to this data sink.
   void writeTypeVariable(IndexedTypeVariable value);
@@ -340,7 +340,7 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readTypeVariableMap].
   void writeTypeVariableMap<V>(Map<IndexedTypeVariable, V> map, void f(V value),
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes a reference to the local [value] to this data sink.
   void writeLocal(Local local);
@@ -357,7 +357,7 @@ abstract class DataSink {
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readLocals].
-  void writeLocals(Iterable<Local> values, {bool allowNull: false});
+  void writeLocals(Iterable<Local> values, {bool allowNull = false});
 
   /// Writes the [map] from references to locals to [V] values to this data
   /// sink, calling [f] to write each value to the data sink. If [allowNull] is
@@ -366,7 +366,7 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readLocalMap].
   void writeLocalMap<V>(Map<Local, V> map, void f(V value),
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes the constant [value] to this data sink.
   void writeConstant(ConstantValue value);
@@ -379,7 +379,7 @@ abstract class DataSink {
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readConstants].
-  void writeConstants(Iterable<ConstantValue> values, {bool allowNull: false});
+  void writeConstants(Iterable<ConstantValue> values, {bool allowNull = false});
 
   /// Writes the [map] from constant values to [V] values to this data sink,
   /// calling [f] to write each value to the data sink. If [allowNull] is
@@ -388,7 +388,7 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readConstantMap].
   void writeConstantMap<V>(Map<ConstantValue, V> map, void f(V value),
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes a double value to this data sink.
   void writeDoubleValue(double value);
@@ -410,7 +410,7 @@ abstract class DataSink {
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readImports].
-  void writeImports(Iterable<ImportEntity> values, {bool allowNull: false});
+  void writeImports(Iterable<ImportEntity> values, {bool allowNull = false});
 
   /// Writes the [map] from imports to [V] values to this data sink,
   /// calling [f] to write each value to the data sink. If [allowNull] is
@@ -419,7 +419,7 @@ abstract class DataSink {
   /// This is a convenience method to be used together with
   /// [DataSource.readImportMap].
   void writeImportMap<V>(Map<ImportEntity, V> map, void f(V value),
-      {bool allowNull: false});
+      {bool allowNull = false});
 
   /// Writes an abstract [value] to this data sink.
   ///
@@ -460,8 +460,50 @@ abstract class DataSink {
   void inMemberContext(ir.Member member, void f());
 }
 
+/// Data class representing cache information for a given [T] which can be
+/// passed from a [DataSource] to other [DataSource]s and [DataSink]s.
+class DataSourceTypeIndices<E, T> {
+  /// Reshapes a [List<T>] to a [Map<E, int>] using [_getValue].
+  Map<E, int> _reshape() {
+    var cache = <E, int>{};
+    for (int i = 0; i < cacheAsList.length; i++) {
+      cache[_getValue(cacheAsList[i])] = i;
+    }
+    return cache;
+  }
+
+  Map<E, int> get cache {
+    return _cache ??= _reshape();
+  }
+
+  final List<T> cacheAsList;
+  E Function(T value) _getValue;
+  Map<E, int> _cache;
+
+  /// Though [DataSourceTypeIndices] supports two types of caches. If the
+  /// exported indices are imported into a [DataSource] then the [cacheAsList]
+  /// will be used as is. If, however, the exported indices are imported into a
+  /// [DataSink] then we need to reshape the [List<T>] into a [Map<E, int>]
+  /// where [E] is either [T] or some value which can be derived from [T] by
+  /// [_getValue].
+  DataSourceTypeIndices(this.cacheAsList, [this._getValue]) {
+    assert(_getValue != null || T == E);
+    _getValue ??= (T t) => t as E;
+  }
+}
+
+/// Data class representing the sum of all cache information for a given
+/// [DataSource].
+class DataSourceIndices {
+  final Map<Type, DataSourceTypeIndices> caches = {};
+}
+
 /// Interface for deserialization.
 abstract class DataSource {
+  /// Exports [DataSourceIndices] for use in other [DataSource]s and
+  /// [DataSink]s.
+  DataSourceIndices exportIndices();
+
   /// Registers that the section [tag] starts.
   ///
   /// This is used for debugging to verify that sections are correctly aligned
@@ -519,7 +561,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeList].
-  List<E> readList<E>(E f(), {bool emptyAsNull: false});
+  List<E> readList<E>(E f(), {bool emptyAsNull = false});
 
   /// Reads a boolean value from this data source.
   bool readBool();
@@ -548,7 +590,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeStrings].
-  List<String> readStrings({bool emptyAsNull: false});
+  List<String> readStrings({bool emptyAsNull = false});
 
   /// Reads a map from string values to [V] values from this data source,
   /// calling [f] to read each value from the data source. If [emptyAsNull] is
@@ -556,7 +598,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeStringMap].
-  Map<String, V> readStringMap<V>(V f(), {bool emptyAsNull: false});
+  Map<String, V> readStringMap<V>(V f(), {bool emptyAsNull = false});
 
   /// Reads an enum value from the list of enum [values] from this data source.
   ///
@@ -590,7 +632,7 @@ abstract class DataSource {
   /// This is a convenience method to be used together with
   /// [DataSink.writeMemberNodes].
   List<ir.Member> readMemberNodes<E extends ir.Member>(
-      {bool emptyAsNull: false});
+      {bool emptyAsNull = false});
 
   /// Reads a map from kernel member nodes to [V] values from this data source,
   /// calling [f] to read each value from the data source. If [emptyAsNull] is
@@ -599,7 +641,7 @@ abstract class DataSource {
   /// This is a convenience method to be used together with
   /// [DataSink.writeMemberNodeMap].
   Map<K, V> readMemberNodeMap<K extends ir.Member, V>(V f(),
-      {bool emptyAsNull: false});
+      {bool emptyAsNull = false});
 
   /// Reads a kernel name node from this data source.
   ir.Name readName();
@@ -623,7 +665,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeTreeNodes].
-  List<E> readTreeNodes<E extends ir.TreeNode>({bool emptyAsNull: false});
+  List<E> readTreeNodes<E extends ir.TreeNode>({bool emptyAsNull = false});
 
   /// Reads a map from kernel tree nodes to [V] values from this data source,
   /// calling [f] to read each value from the data source. If [emptyAsNull] is
@@ -632,7 +674,7 @@ abstract class DataSource {
   /// This is a convenience method to be used together with
   /// [DataSink.writeTreeNodeMap].
   Map<K, V> readTreeNodeMap<K extends ir.TreeNode, V>(V f(),
-      {bool emptyAsNull: false});
+      {bool emptyAsNull = false});
 
   /// Reads a reference to a kernel tree node in the known [context] from this
   /// data source.
@@ -649,7 +691,7 @@ abstract class DataSource {
   /// This is a convenience method to be used together with
   /// [DataSink.writeTreeNodesInContext].
   List<E> readTreeNodesInContext<E extends ir.TreeNode>(
-      {bool emptyAsNull: false});
+      {bool emptyAsNull = false});
 
   /// Reads a map from kernel tree nodes to [V] values in the known [context]
   /// from this data source, calling [f] to read each value from the data
@@ -659,7 +701,7 @@ abstract class DataSource {
   /// This is a convenience method to be used together with
   /// [DataSink.writeTreeNodeMapInContext].
   Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V f(),
-      {bool emptyAsNull: false});
+      {bool emptyAsNull = false});
 
   /// Reads a reference to a kernel type parameter node from this data source.
   ir.TypeParameter readTypeParameterNode();
@@ -670,29 +712,29 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeTypeParameterNodes].
-  List<ir.TypeParameter> readTypeParameterNodes({bool emptyAsNull: false});
+  List<ir.TypeParameter> readTypeParameterNodes({bool emptyAsNull = false});
 
   /// Reads a type from this data source. If [allowNull], the returned type is
   /// allowed to be `null`.
-  DartType readDartType({bool allowNull: false});
+  DartType readDartType({bool allowNull = false});
 
   /// Reads a list of types from this data source. If [emptyAsNull] is `true`,
   /// `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeDartTypes].
-  List<DartType> readDartTypes({bool emptyAsNull: false});
+  List<DartType> readDartTypes({bool emptyAsNull = false});
 
   /// Reads a kernel type node from this data source. If [allowNull], the
   /// returned type is allowed to be `null`.
-  ir.DartType readDartTypeNode({bool allowNull: false});
+  ir.DartType readDartTypeNode({bool allowNull = false});
 
   /// Reads a list of kernel type nodes from this data source. If [emptyAsNull]
   /// is `true`, `null` is returned instead of an empty list.
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeDartTypeNodes].
-  List<ir.DartType> readDartTypeNodes({bool emptyAsNull: false});
+  List<ir.DartType> readDartTypeNodes({bool emptyAsNull = false});
 
   /// Reads a source span from this data source.
   SourceSpan readSourceSpan();
@@ -704,7 +746,7 @@ abstract class DataSource {
   /// source.
   IndexedLibrary readLibraryOrNull();
   Map<K, V> readLibraryMap<K extends LibraryEntity, V>(V f(),
-      {bool emptyAsNull: false});
+      {bool emptyAsNull = false});
 
   /// Reads a reference to an indexed class from this data source.
   IndexedClass readClass();
@@ -718,7 +760,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeClasses].
-  List<E> readClasses<E extends ClassEntity>({bool emptyAsNull: false});
+  List<E> readClasses<E extends ClassEntity>({bool emptyAsNull = false});
 
   /// Reads a map from indexed classes to [V] values from this data source,
   /// calling [f] to read each value from the data source. If [emptyAsNull] is
@@ -727,7 +769,7 @@ abstract class DataSource {
   /// This is a convenience method to be used together with
   /// [DataSink.writeClassMap].
   Map<K, V> readClassMap<K extends ClassEntity, V>(V f(),
-      {bool emptyAsNull: false});
+      {bool emptyAsNull = false});
 
   /// Reads a reference to an indexed member from this data source.
   IndexedMember readMember();
@@ -741,7 +783,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeMembers].
-  List<E> readMembers<E extends MemberEntity>({bool emptyAsNull: false});
+  List<E> readMembers<E extends MemberEntity>({bool emptyAsNull = false});
 
   /// Reads a map from indexed members to [V] values from this data source,
   /// calling [f] to read each value from the data source. If [emptyAsNull] is
@@ -750,7 +792,7 @@ abstract class DataSource {
   /// This is a convenience method to be used together with
   /// [DataSink.writeMemberMap].
   Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member),
-      {bool emptyAsNull: false});
+      {bool emptyAsNull = false});
 
   /// Reads a reference to an indexed type variable from this data source.
   IndexedTypeVariable readTypeVariable();
@@ -762,7 +804,7 @@ abstract class DataSource {
   /// This is a convenience method to be used together with
   /// [DataSink.writeTypeVariableMap].
   Map<K, V> readTypeVariableMap<K extends IndexedTypeVariable, V>(V f(),
-      {bool emptyAsNull: false});
+      {bool emptyAsNull = false});
 
   /// Reads a reference to a local from this data source.
   Local readLocal();
@@ -775,7 +817,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeLocals].
-  List<E> readLocals<E extends Local>({bool emptyAsNull: false});
+  List<E> readLocals<E extends Local>({bool emptyAsNull = false});
 
   /// Reads a map from locals to [V] values from this data source, calling [f]
   /// to read each value from the data source. If [emptyAsNull] is `true`,
@@ -783,7 +825,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeLocalMap].
-  Map<K, V> readLocalMap<K extends Local, V>(V f(), {bool emptyAsNull: false});
+  Map<K, V> readLocalMap<K extends Local, V>(V f(), {bool emptyAsNull = false});
 
   /// Reads a constant value from this data source.
   ConstantValue readConstant();
@@ -805,7 +847,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeConstants].
-  List<E> readConstants<E extends ConstantValue>({bool emptyAsNull: false});
+  List<E> readConstants<E extends ConstantValue>({bool emptyAsNull = false});
 
   /// Reads a map from constant values to [V] values from this data source,
   /// calling [f] to read each value from the data source. If [emptyAsNull] is
@@ -814,7 +856,7 @@ abstract class DataSource {
   /// This is a convenience method to be used together with
   /// [DataSink.writeConstantMap].
   Map<K, V> readConstantMap<K extends ConstantValue, V>(V f(),
-      {bool emptyAsNull: false});
+      {bool emptyAsNull = false});
 
   /// Reads a import from this data source.
   ImportEntity readImport();
@@ -827,7 +869,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeImports].
-  List<ImportEntity> readImports({bool emptyAsNull: false});
+  List<ImportEntity> readImports({bool emptyAsNull = false});
 
   /// Reads a map from imports to [V] values from this data source,
   /// calling [f] to read each value from the data source. If [emptyAsNull] is
@@ -835,7 +877,7 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeImportMap].
-  Map<ImportEntity, V> readImportMap<V>(V f(), {bool emptyAsNull: false});
+  Map<ImportEntity, V> readImportMap<V>(V f(), {bool emptyAsNull = false});
 
   /// Reads an [AbstractValue] from this data source.
   ///

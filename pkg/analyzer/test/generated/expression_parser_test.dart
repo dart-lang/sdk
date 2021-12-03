@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show InstanceCreationExpressionImpl;
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
@@ -672,7 +671,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(instanceCreation.keyword, isNotNull);
     ConstructorName name = instanceCreation.constructorName;
     expect(name, isNotNull);
-    expect(name.type, isNotNull);
+    expect(name.type2, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
     expect(instanceCreation.argumentList, isNotNull);
@@ -1045,7 +1044,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    TypeName type = name.type;
+    NamedType type = name.type2;
     expect(type.name.name, 'A.B');
     expect(type.typeArguments, isNull);
     expect(name.period, isNull);
@@ -1062,7 +1061,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    TypeName type = name.type;
+    NamedType type = name.type2;
     expect(type, isNotNull);
     expect(type.typeArguments, isNull);
     expect(name.period, isNotNull);
@@ -1080,7 +1079,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    TypeName type = name.type;
+    NamedType type = name.type2;
     expect(type, isNotNull);
     expect(type.typeArguments!.arguments, hasLength(1));
     expect(name.period, isNotNull);
@@ -1097,7 +1096,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    TypeName type = name.type;
+    NamedType type = name.type2;
     expect(type, isNotNull);
     expect(type.typeArguments!.arguments, hasLength(1));
     expect(name.period, isNull);
@@ -1114,7 +1113,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    TypeName type = name.type;
+    NamedType type = name.type2;
     expect(type, isNotNull);
     expect(type.typeArguments, isNull);
     expect(name.period, isNull);
@@ -1131,7 +1130,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    TypeName type = name.type;
+    NamedType type = name.type2;
     expect(type, isNotNull);
     expect(type.typeArguments, isNull);
     expect(name.period, isNull);
@@ -1148,7 +1147,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    TypeName type = name.type;
+    NamedType type = name.type2;
     expect(type, isNotNull);
     expect(type.typeArguments!.arguments, hasLength(1));
     expect(name.period, isNotNull);
@@ -1159,14 +1158,13 @@ class ExpressionParserTest extends FastaParserTestCase {
 
   void test_parseInstanceCreationExpression_type_named_typeArguments_34403() {
     var expression = parseExpression('new a.b.c<C>()', errors: [
-      expectedError(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 8, 1)
+      expectedError(ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS, 8, 1)
     ]) as InstanceCreationExpressionImpl;
     expect(expression, isNotNull);
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    TypeName type = name.type;
+    NamedType type = name.type2;
     expect(type, isNotNull);
     expect(type.typeArguments, isNull);
     expect(name.period, isNotNull);
@@ -1184,7 +1182,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword!.keyword, Keyword.NEW);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    TypeName type = name.type;
+    NamedType type = name.type2;
     expect(type, isNotNull);
     expect(type.typeArguments!.arguments, hasLength(1));
     expect(name.period, isNull);
@@ -1429,7 +1427,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     expect(expression.keyword, isNotNull);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    expect(name.type, isNotNull);
+    expect(name.type2, isNotNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
@@ -1778,8 +1776,8 @@ class ExpressionParserTest extends FastaParserTestCase {
     var identifier = asExpression.expression as SimpleIdentifier;
     expect(identifier.name, 'x');
     expect(asExpression.asOperator, isNotNull);
-    var typeName = asExpression.type as TypeName;
-    expect(typeName.name.name, 'Y');
+    var namedType = asExpression.type as NamedType;
+    expect(namedType.name.name, 'Y');
   }
 
   void test_parseRelationalExpression_as_functionType_noReturnType() {
@@ -1810,7 +1808,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     var asExpression = expression as AsExpression;
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
-    expect(asExpression.type, isTypeName);
+    expect(asExpression.type, isNamedType);
   }
 
   void test_parseRelationalExpression_as_simple() {
@@ -1820,7 +1818,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     var asExpression = expression as AsExpression;
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
-    expect(asExpression.type, isTypeName);
+    expect(asExpression.type, isNamedType);
   }
 
   void test_parseRelationalExpression_as_simple_function() {
@@ -1830,7 +1828,7 @@ class ExpressionParserTest extends FastaParserTestCase {
     var asExpression = expression as AsExpression;
     expect(asExpression.expression, isNotNull);
     expect(asExpression.asOperator, isNotNull);
-    expect(asExpression.type, isTypeName);
+    expect(asExpression.type, isNamedType);
   }
 
   void test_parseRelationalExpression_is() {
@@ -1852,8 +1850,8 @@ class ExpressionParserTest extends FastaParserTestCase {
     var identifier = isExpression.expression as SimpleIdentifier;
     expect(identifier.name, 'x');
     expect(isExpression.isOperator, isNotNull);
-    var typeName = isExpression.type as TypeName;
-    expect(typeName.name.name, 'Y');
+    var namedType = isExpression.type as NamedType;
+    expect(namedType.name.name, 'Y');
   }
 
   void test_parseRelationalExpression_isNot() {

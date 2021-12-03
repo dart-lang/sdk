@@ -32,7 +32,7 @@ main() {
   test_constField() async {
     await assertErrorsInCode(r'''
 main() {
-  const {double.INFINITY: 0};
+  const {double.infinity: 0};
 }
 ''', [
       error(

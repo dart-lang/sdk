@@ -47,7 +47,7 @@ class SideEffects {
     source.begin(tag);
     int flags = source.readInt();
     source.end(tag);
-    return new SideEffects.fromFlags(flags);
+    return SideEffects.fromFlags(flags);
   }
 
   /// Serializes this [SideEffects] to [sink].
@@ -61,7 +61,7 @@ class SideEffects {
   bool operator ==(other) => _flags == other._flags;
 
   @override
-  int get hashCode => throw new UnsupportedError('SideEffects.hashCode');
+  int get hashCode => throw UnsupportedError('SideEffects.hashCode');
 
   bool _getFlag(int position) {
     return (_flags & (1 << position)) != 0;
@@ -204,7 +204,7 @@ class SideEffects {
 
   @override
   String toString() {
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write('SideEffects(reads');
     if (!dependsOnSomething()) {
       buffer.write(' nothing');
@@ -254,7 +254,7 @@ class SideEffects {
 
 class SideEffectsBuilder {
   final MemberEntity _member;
-  final SideEffects _sideEffects = new SideEffects.empty();
+  final SideEffects _sideEffects = SideEffects.empty();
   final bool _free;
   Set<SideEffectsBuilder> _depending;
 
@@ -295,7 +295,7 @@ class SideEffectsBuilder {
 
   void addInput(SideEffectsBuilder input) {
     if (_free) return;
-    (input._depending ??= new Set<SideEffectsBuilder>()).add(this);
+    (input._depending ??= {}).add(this);
   }
 
   bool add(SideEffects input) {
@@ -305,14 +305,13 @@ class SideEffectsBuilder {
 
   SideEffects get sideEffects => _sideEffects;
 
-  Iterable<SideEffectsBuilder> get depending =>
-      _depending != null ? _depending : const <SideEffectsBuilder>[];
+  Iterable<SideEffectsBuilder> get depending => _depending ?? const [];
 
   MemberEntity get member => _member;
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('SideEffectsBuilder(member=$member,');
     sb.write('free=$_free,');
     sb.write('sideEffects=$sideEffects,');

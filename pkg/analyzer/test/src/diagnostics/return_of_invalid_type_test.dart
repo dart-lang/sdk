@@ -11,13 +11,85 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnOfInvalidTypeTest);
     defineReflectiveTests(ReturnOfInvalidTypeWithNoImplicitCastsTest);
-    defineReflectiveTests(ReturnOfInvalidTypeWithNullSafetyTest);
+    defineReflectiveTests(ReturnOfInvalidTypeWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ReturnOfInvalidTypeTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with ReturnOfInvalidTypeTestCases {
+  test_function_async_block_int__to_Future_void() async {
+    await assertErrorsInCode(r'''
+Future<void> f() async {
+  return 0;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 34, 1),
+    ]);
+  }
+
+  test_function_async_block_void__to_Future_Null() async {
+    await assertErrorsInCode(r'''
+Future<Null> f(void a) async {
+  return a;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 1),
+    ]);
+  }
+
+  test_function_async_block_void__to_FutureOr_ObjectQ() async {
+    await assertErrorsInCode(r'''
+import 'dart:async';
+
+FutureOr<Object?> f(void a) async {
+  return a;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 67, 1),
+    ]);
+  }
+
+  test_function_async_expression_dynamic__to_Future_int() async {
+    await assertNoErrorsInCode(r'''
+Future<int> f(dynamic a) async => a;
+''');
+  }
+
+  test_functionExpression_async_futureOr_void__to_Object() async {
+    await assertNoErrorsInCode(r'''
+void a = null;
+
+Object Function() f = () async {
+  return a;
+};
+''');
+  }
+
+  test_functionExpression_async_futureQ_void__to_Object() async {
+    await assertNoErrorsInCode(r'''
+Future<void>? a = (throw 0);
+
+Object Function() f = () async {
+  return a;
+};
+''');
+  }
+
+  test_functionExpression_async_void__to_FutureOr_ObjectQ() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+
+void a = (throw 0);
+
+FutureOr<Object?> Function() f = () async {
+  return a;
+};
+''');
+  }
+}
+
+mixin ReturnOfInvalidTypeTestCases on PubPackageResolutionTest {
   test_closure() async {
     await assertErrorsInCode('''
 typedef Td = int Function();
@@ -186,6 +258,42 @@ void g2() {}
 ''');
   }
 
+  test_function_sync_block_genericFunction__to_genericFunction() async {
+    await assertNoErrorsInCode('''
+U Function<U>(U) foo(T Function<T>(T a) f) {
+  return f;
+}
+''');
+  }
+
+  test_function_sync_block_genericFunction__to_genericFunction_notAssignable() async {
+    await assertErrorsInCode('''
+U Function<U>(U, int) foo(T Function<T>(T a) f) {
+  return f;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 59, 1),
+    ]);
+  }
+
+  test_function_sync_block_genericFunction__to_nonGenericFunction() async {
+    await assertNoErrorsInCode('''
+int Function(int) foo(T Function<T>(T a) f) {
+  return f;
+}
+''');
+  }
+
+  test_function_sync_block_genericFunction__to_nonGenericFunction_notAssignable() async {
+    await assertErrorsInCode('''
+int Function(int, int) foo(T Function<T>(T a) f) {
+  return f;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 60, 1),
+    ]);
+  }
+
   test_function_sync_block_int__to_num() async {
     await assertNoErrorsInCode(r'''
 num f(int a) {
@@ -280,6 +388,34 @@ void f(void a) {
 ''');
   }
 
+  test_function_sync_expression_genericFunction__to_genericFunction() async {
+    await assertNoErrorsInCode('''
+U Function<U>(U) foo(T Function<T>(T a) f) => f;
+''');
+  }
+
+  test_function_sync_expression_genericFunction__to_genericFunction_notAssignable() async {
+    await assertErrorsInCode('''
+U Function<U>(U, int) foo(T Function<T>(T a) f) => f;
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 51, 1),
+    ]);
+  }
+
+  test_function_sync_expression_genericFunction__to_nonGenericFunction() async {
+    await assertNoErrorsInCode('''
+int Function(int) foo(T Function<T>(T a) f) => f;
+''');
+  }
+
+  test_function_sync_expression_genericFunction__to_nonGenericFunction_notAssignable() async {
+    await assertErrorsInCode('''
+int Function(int, int) foo(T Function<T>(T a) f) => f;
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 52, 1),
+    ]);
+  }
+
   test_function_sync_expression_int__to_void() async {
     await assertNoErrorsInCode('''
 void f() => 42;
@@ -340,7 +476,7 @@ class A {
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38162')
   test_method_async_block_callable_class() async {
-    if (isNullSafetySdkAndLegacyLibrary) {
+    if (isLegacyLibrary) {
       throw 'Make it fail for Null Safety as well, for now.';
     }
 
@@ -415,75 +551,5 @@ Future<List<String>> f() async {
 }
 
 @reflectiveTest
-class ReturnOfInvalidTypeWithNullSafetyTest extends ReturnOfInvalidTypeTest
-    with WithNullSafetyMixin {
-  test_function_async_block_int__to_Future_void() async {
-    await assertErrorsInCode(r'''
-Future<void> f() async {
-  return 0;
-}
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 34, 1),
-    ]);
-  }
-
-  test_function_async_block_void__to_Future_Null() async {
-    await assertErrorsInCode(r'''
-Future<Null> f(void a) async {
-  return a;
-}
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 1),
-    ]);
-  }
-
-  test_function_async_block_void__to_FutureOr_ObjectQ() async {
-    await assertErrorsInCode(r'''
-import 'dart:async';
-
-FutureOr<Object?> f(void a) async {
-  return a;
-}
-''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 67, 1),
-    ]);
-  }
-
-  test_function_async_expression_dynamic__to_Future_int() async {
-    await assertNoErrorsInCode(r'''
-Future<int> f(dynamic a) async => a;
-''');
-  }
-
-  test_functionExpression_async_futureOr_void__to_Object() async {
-    await assertNoErrorsInCode(r'''
-void a = null;
-
-Object Function() f = () async {
-  return a;
-};
-''');
-  }
-
-  test_functionExpression_async_futureQ_void__to_Object() async {
-    await assertNoErrorsInCode(r'''
-Future<void>? a = (throw 0);
-
-Object Function() f = () async {
-  return a;
-};
-''');
-  }
-
-  test_functionExpression_async_void__to_FutureOr_ObjectQ() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:async';
-
-void a = (throw 0);
-
-FutureOr<Object?> Function() f = () async {
-  return a;
-};
-''');
-  }
-}
+class ReturnOfInvalidTypeWithoutNullSafetyTest extends PubPackageResolutionTest
+    with ReturnOfInvalidTypeTestCases, WithoutNullSafetyMixin {}

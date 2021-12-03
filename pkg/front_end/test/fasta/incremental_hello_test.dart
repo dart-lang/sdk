@@ -34,7 +34,7 @@ void diagnosticMessageHandler(DiagnosticMessage message) {
   throw "Unexpected message: ${message.plainTextFormatted.join('\n')}";
 }
 
-test({bool sdkFromSource}) async {
+Future<void> test({bool sdkFromSource}) async {
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..packagesFileUri = Uri.base.resolve(".packages")
     ..target = new VmTarget(new TargetFlags())

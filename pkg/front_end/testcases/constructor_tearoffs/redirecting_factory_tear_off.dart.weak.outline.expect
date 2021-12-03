@@ -7,7 +7,7 @@ class Class1 extends core::Object {
   constructor _() → self::Class1
     ;
   static factory •() → self::Class1
-    let dynamic #redirecting_factory = self::Class1::_ in invalid-expression;
+    return new self::Class1::_();
 }
 class Class2 extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::Class2::named]/*isLegacy*/;
@@ -16,7 +16,7 @@ class Class2 extends core::Object {
   static factory _() → self::Class2
     ;
   static factory named() → self::Class2
-    let dynamic #redirecting_factory = self::Class2::_ in invalid-expression;
+    return self::Class2::_();
 }
 class Class3 extends core::Object {
   final field core::int field;
@@ -24,7 +24,7 @@ class Class3 extends core::Object {
   constructor _(core::int field) → self::Class3
     ;
   static factory •(core::int field) → self::Class3
-    let dynamic #redirecting_factory = self::Class3::_ in invalid-expression;
+    return new self::Class3::_(field);
 }
 class Class4 extends core::Object {
   final field core::int? field;
@@ -32,7 +32,7 @@ class Class4 extends core::Object {
   constructor _([core::int? field]) → self::Class4
     ;
   static factory •([core::int? field]) → self::Class4
-    let dynamic #redirecting_factory = self::Class4::_ in invalid-expression;
+    return new self::Class4::_(field);
 }
 class Class5 extends core::Object {
   final field core::int field1;
@@ -41,7 +41,7 @@ class Class5 extends core::Object {
   constructor _(core::int field1, [core::int? field2]) → self::Class5
     ;
   static factory •(core::int field1, [core::int? field2]) → self::Class5
-    let dynamic #redirecting_factory = self::Class5::_ in invalid-expression;
+    return new self::Class5::_(field1, field2);
 }
 class Class6 extends core::Object {
   final field core::int field1;
@@ -51,7 +51,7 @@ class Class6 extends core::Object {
   constructor _(core::int field1, {core::int? field2, required core::int field3}) → self::Class6
     ;
   static factory •(core::int field1, {core::int? field2, required core::int field3}) → self::Class6
-    let dynamic #redirecting_factory = self::Class6::_ in invalid-expression;
+    return new self::Class6::_(field1, field2: field2, field3: field3);
 }
 class Class7a extends core::Object implements self::Class7b {
   constructor •() → self::Class7a
@@ -60,7 +60,7 @@ class Class7a extends core::Object implements self::Class7b {
 class Class7b extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::Class7b::•]/*isLegacy*/;
   static factory •() → self::Class7b
-    let dynamic #redirecting_factory = self::Class7a::• in invalid-expression;
+    return new self::Class7a::•();
 }
 class Class8a<T extends core::Object? = dynamic> extends core::Object implements self::Class8b<self::Class8a::T%> {
   constructor •() → self::Class8a<self::Class8a::T%>
@@ -69,7 +69,7 @@ class Class8a<T extends core::Object? = dynamic> extends core::Object implements
 class Class8b<T extends core::Object? = dynamic> extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::Class8b::•]/*isLegacy*/;
   static factory •<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::•::T%>
-    let dynamic #redirecting_factory = self::Class8a::• in let self::Class8b::•::T% #typeArg0 = null in invalid-expression;
+    return new self::Class8a::•<self::Class8b::•::T%>();
 }
 static final field core::bool inSoundMode;
 static method main() → dynamic
@@ -82,3 +82,15 @@ static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 static method throws(() → dynamic f, {core::bool inSoundModeOnly}) → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:13:7 -> ConstructorTearOffConstant(Class1.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:18:7 -> ConstructorTearOffConstant(Class2.named)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:46:7 -> ConstructorTearOffConstant(Class3.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:53:7 -> ConstructorTearOffConstant(Class4.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:60:7 -> ConstructorTearOffConstant(Class5.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:68:7 -> ConstructorTearOffConstant(Class6.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:82:7 -> ConstructorTearOffConstant(Class7b.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off.dart:90:7 -> ConstructorTearOffConstant(Class8b.)
+Extra constant evaluation: evaluated: 31, effectively constant: 8

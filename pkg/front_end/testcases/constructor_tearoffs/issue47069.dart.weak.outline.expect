@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue47069.dart:7:2: Error: Couldn't find constructor 'func'.
+// @func()
+//  ^^^^
+//
+import self as self;
+
+static method func() → dynamic
+  ;
+@invalid-expression "pkg/front_end/testcases/constructor_tearoffs/issue47069.dart:7:2: Error: Couldn't find constructor 'func'.
+@func()
+ ^^^^"
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

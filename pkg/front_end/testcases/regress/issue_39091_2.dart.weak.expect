@@ -14,7 +14,7 @@ library /*isNonNullableByDefault*/;
 // "﻿";
 //    ^
 //
-// pkg/front_end/testcases/regress/issue_39091_2.dart:11:11: Error: Getter not found: 'hello'.
+// pkg/front_end/testcases/regress/issue_39091_2.dart:11:11: Error: Undefined name 'hello'.
 // "﻿";/*æ*/ hello; /*æ*/
 //           ^^^^^
 //
@@ -28,7 +28,7 @@ static method main() → dynamic {
   "A";
   "\u65279";
   "\u65279";
-  invalid-expression "pkg/front_end/testcases/regress/issue_39091_2.dart:11:11: Error: Getter not found: 'hello'.
+  invalid-expression "pkg/front_end/testcases/regress/issue_39091_2.dart:11:11: Error: Undefined name 'hello'.
 \"\u65279\";/*\u0230*/ hello; /*\u0230*/
           ^^^^^";
 }

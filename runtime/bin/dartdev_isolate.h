@@ -39,6 +39,11 @@ class DartDevIsolate {
     should_run_dart_dev_ = enable;
   }
 
+  static void PrintUsageErrorOnRun() {
+    set_should_run_dart_dev(true);
+    print_usage_error_ = true;
+  }
+
   static bool should_run_dart_dev() { return should_run_dart_dev_; }
 
   // Attempts to find the path of the DartDev kernel file.
@@ -95,6 +100,7 @@ class DartDevIsolate {
 
   static DartDevRunner runner_;
   static bool should_run_dart_dev_;
+  static bool print_usage_error_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(DartDevIsolate);

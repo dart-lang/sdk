@@ -41,27 +41,27 @@ class Class<T extends self::A*> extends core::Object {
   synthetic constructor •() → self::Class<self::Class::T*>*
     : super core::Object::•()
     ;
-  method method1a(generic-covariant-impl self::Class::T* t) → void {
+  method method1a(covariant-by-class self::Class::T* t) → void {
     if(t is self::B*) {
       core::List<self::Class::T*>* ys = core::_GrowableList::_literal1<self::Class::T*>(t{self::Class::T* & self::B* /* '*' & '*' = '*' */});
-      self::xs = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/issue39344.dart:19:12: Error: A value of type 'List<T>' can't be assigned to a variable of type 'List<B>'.
+      self::xs = invalid-expression "pkg/front_end/testcases/general/issue39344.dart:19:12: Error: A value of type 'List<T>' can't be assigned to a variable of type 'List<B>'.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/general/issue39344.dart'.
       xs = ys;
            ^" in ys as{TypeError} core::List<self::B*>*;
     }
   }
-  method method1b(generic-covariant-impl self::Class::T* t) → void {
+  method method1b(covariant-by-class self::Class::T* t) → void {
     if(t is self::B*) {
       core::List<core::List<self::Class::T*>*>* yss = core::_GrowableList::_literal1<core::List<self::Class::T*>*>(core::_GrowableList::_literal1<self::Class::T*>(t{self::Class::T* & self::B* /* '*' & '*' = '*' */}));
-      self::xss = let final Never* #t2 = invalid-expression "pkg/front_end/testcases/general/issue39344.dart:31:13: Error: A value of type 'List<List<T>>' can't be assigned to a variable of type 'List<List<B>>'.
+      self::xss = invalid-expression "pkg/front_end/testcases/general/issue39344.dart:31:13: Error: A value of type 'List<List<T>>' can't be assigned to a variable of type 'List<List<B>>'.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/general/issue39344.dart'.
       xss = yss;
             ^" in yss as{TypeError} core::List<core::List<self::B*>*>*;
     }
   }
-  method method2a(generic-covariant-impl self::Class::T* t) → void {
+  method method2a(covariant-by-class self::Class::T* t) → void {
     dynamic alias;
     if(t is self::B*) {
       core::List<self::Class::T*>* ys = core::_GrowableList::_literal1<self::Class::T*>(t{self::Class::T* & self::B* /* '*' & '*' = '*' */});
@@ -69,7 +69,7 @@ class Class<T extends self::A*> extends core::Object {
       self::xs = alias as{TypeError,ForDynamic} core::List<self::B*>*;
     }
   }
-  method method2b(generic-covariant-impl self::Class::T* t) → void {
+  method method2b(covariant-by-class self::Class::T* t) → void {
     dynamic alias;
     if(t is self::B*) {
       core::List<core::List<self::Class::T*>*>* yss = core::_GrowableList::_literal1<core::List<self::Class::T*>*>(core::_GrowableList::_literal1<self::Class::T*>(t{self::Class::T* & self::B* /* '*' & '*' = '*' */}));

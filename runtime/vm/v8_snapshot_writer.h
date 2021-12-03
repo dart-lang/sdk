@@ -154,7 +154,7 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
   static constexpr intptr_t kNumEdgeFields = 3;
 
   struct Edge {
-    enum class Type : intptr_t {
+    enum class Type : int32_t {
       kInvalid = -1,
       kContext = 0,
       kElement = 1,
@@ -177,24 +177,22 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
     Edge(V8SnapshotProfileWriter* profile_writer,
          Type type,
          intptr_t name_or_offset)
-        : type(type),
-          name_or_offset(name_or_offset),
-          profile_writer_(profile_writer) {}
+        : type(type), name_or_offset(name_or_offset) {}
 
     inline bool operator!=(const Edge& other) {
-      return profile_writer_ != other.profile_writer_ || type != other.type ||
-             name_or_offset != other.name_or_offset;
+      return type != other.type || name_or_offset != other.name_or_offset;
     }
     inline bool operator==(const Edge& other) { return !(*this != other); }
 
-    void Write(JSONWriter* writer, const ObjectId& target_id) const;
-    void WriteDebug(JSONWriter* writer, const ObjectId& target_id) const;
+    void Write(V8SnapshotProfileWriter* profile_writer,
+               JSONWriter* writer,
+               const ObjectId& target_id) const;
+    void WriteDebug(V8SnapshotProfileWriter* profile_writer,
+                    JSONWriter* writer,
+                    const ObjectId& target_id) const;
 
     Type type;
-    intptr_t name_or_offset;
-
-   private:
-    V8SnapshotProfileWriter* profile_writer_;
+    int32_t name_or_offset;
   };
 
   struct EdgeToObjectIdMapTrait {
@@ -219,10 +217,13 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
 
   struct EdgeMap : public ZoneDirectChainedHashMap<EdgeToObjectIdMapTrait> {
     explicit EdgeMap(Zone* zone)
-        : ZoneDirectChainedHashMap<EdgeToObjectIdMapTrait>(zone) {}
+        : ZoneDirectChainedHashMap<EdgeToObjectIdMapTrait>(zone, 1) {}
 
-    const char* ToCString(Zone* zone) const;
-    void WriteDebug(JSONWriter* writer, const char* property = nullptr) const;
+    const char* ToCString(V8SnapshotProfileWriter* profile_writer,
+                          Zone* zone) const;
+    void WriteDebug(V8SnapshotProfileWriter* profile_writer,
+                    JSONWriter* writer,
+                    const char* property = nullptr) const;
   };
 
   struct NodeInfo {
@@ -232,16 +233,14 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
              intptr_t type = kInvalidString,
              intptr_t name = kInvalidString)
         : id(id),
-          type(type),
-          name(name),
           edges(new (profile_writer->zone_) EdgeMap(profile_writer->zone_)),
-          profile_writer_(profile_writer) {}
+          type(type),
+          name(name) {}
 
     inline bool operator!=(const NodeInfo& other) {
       return id != other.id || type != other.type || name != other.name ||
              self_size != other.self_size || edges != other.edges ||
-             offset_ != other.offset_ ||
-             profile_writer_ != other.profile_writer_;
+             offset_ != other.offset_;
     }
     inline bool operator==(const NodeInfo& other) { return !(*this != other); }
 
@@ -250,9 +249,12 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
     }
     bool HasEdge(const Edge& edge) { return edges->HasKey(edge); }
 
-    const char* ToCString(Zone* zone) const;
-    void Write(JSONWriter* writer) const;
-    void WriteDebug(JSONWriter* writer) const;
+    const char* ToCString(V8SnapshotProfileWriter* profile_writer,
+                          Zone* zone) const;
+    void Write(V8SnapshotProfileWriter* profile_writer,
+               JSONWriter* writer) const;
+    void WriteDebug(V8SnapshotProfileWriter* profile_writer,
+                    JSONWriter* writer) const;
 
     intptr_t offset() const { return offset_; }
     void set_offset(intptr_t offset) {
@@ -261,19 +263,16 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
     }
 
     ObjectId id;
+    EdgeMap* edges = nullptr;
     intptr_t type = kInvalidString;
     intptr_t name = kInvalidString;
     intptr_t self_size = 0;
-    EdgeMap* edges = nullptr;
 
    private:
     // Populated during serialization.
     intptr_t offset_ = -1;
     // 'trace_node_id' isn't supported.
     // 'edge_count' is computed on-demand.
-
-    // Used for debugging prints and creating default names if none given.
-    V8SnapshotProfileWriter* profile_writer_ = nullptr;
   };
 
   NodeInfo* EnsureId(const ObjectId& object_id);

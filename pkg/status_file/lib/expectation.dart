@@ -206,17 +206,17 @@ class Expectation {
   }
 
   final String _name;
-  final Expectation _group;
+  final Expectation? _group;
 
   /// Whether this expectation is a test outcome. If not, it's a "meta marker".
   final bool isOutcome;
 
-  Expectation._(this._name, {Expectation group, bool isMeta: false})
+  Expectation._(this._name, {Expectation? group, bool isMeta: false})
       : _group = group,
         isOutcome = !isMeta;
 
   bool canBeOutcomeOf(Expectation expectation) {
-    var outcome = this;
+    Expectation? outcome = this;
     if (outcome == ignore) return true;
 
     while (outcome != null) {

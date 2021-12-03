@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core';
 import 'dart:io' as io;
 import 'dart:io';
 
@@ -168,7 +167,9 @@ abstract class AbstractAnalysisServer {
     if (baseResourceProvider is PhysicalResourceProvider) {
       processRunner ??= ProcessRunner();
     }
-    final pubCommand = processRunner != null
+    final pubCommand = processRunner != null &&
+            Platform.environment[PubCommand.disablePubCommandEnvironmentKey] ==
+                null
         ? PubCommand(instrumentationService, processRunner)
         : null;
 
@@ -219,6 +220,7 @@ abstract class AbstractAnalysisServer {
     contextManager = ContextManagerImpl(
       resourceProvider,
       sdkManager,
+      options.packagesFile,
       byteStore,
       fileContentCache,
       analysisPerformanceLogger,
@@ -251,7 +253,6 @@ abstract class AbstractAnalysisServer {
     extensionForContext.clear();
     for (var driver in driverMap.values) {
       declarationsTracker?.addContext(driver.analysisContext!);
-      driver.resetUriResolution();
     }
   }
 
@@ -330,7 +331,7 @@ abstract class AbstractAnalysisServer {
         return null;
       }
 
-      var unitElementResult = await driver.getUnitElement2(file);
+      var unitElementResult = await driver.getUnitElement(file);
       if (unitElementResult is! UnitElementResult) {
         return null;
       }
@@ -413,11 +414,10 @@ abstract class AbstractAnalysisServer {
     }
 
     return driver
-        .getResult2(path, sendCachedToStream: sendCachedToStream)
+        .getResult(path, sendCachedToStream: sendCachedToStream)
         .then((value) => value is ResolvedUnitResult ? value : null)
         .catchError((e, st) {
       instrumentationService.logException(e, st);
-      // ignore: invalid_return_type_for_catch_error
       return null;
     });
   }
@@ -459,9 +459,7 @@ abstract class AbstractAnalysisServer {
   /// Read all files, resolve all URIs, and perform required analysis in
   /// all current analysis drivers.
   void reanalyze() {
-    for (var driver in driverMap.values) {
-      driver.resetUriResolution();
-    }
+    contextManager.refresh();
   }
 
   /// Sends an error notification to the user.

@@ -14,7 +14,7 @@ import 'parser_impl.dart' show Parser;
 
 import 'type_info.dart' show isValidTypeReference;
 
-import 'util.dart' show isOneOfOrEof, optional;
+import 'util.dart' show isOneOf, isOneOfOrEof, optional;
 
 /// See [IdentifierContext.catchParameter].
 class CatchParameterIdentifierContext extends IdentifierContext {
@@ -371,6 +371,84 @@ class ExpressionIdentifierContext extends IdentifierContext {
   }
 }
 
+/// See [IdentifierContext.extensionShowHideElementGetter],
+/// [IdentifierContext.extensionShowHideElementMemberOrType],
+/// [IdentifierContext.extensionShowHideElementOperator],
+/// [IdentifierContext.extensionShowHideElementSetter].
+class ExtensionShowHideElementIdentifierContext extends IdentifierContext {
+  static const int _getterKind = 0;
+  static const int _memberOrTypeKind = 1;
+  static const int _operator = 2;
+  static const int _setterKind = 3;
+
+  final int _kind;
+
+  const ExtensionShowHideElementIdentifierContext.getter()
+      : _kind = _getterKind,
+        super('extensionShowHideElementGetter', inDeclaration: true);
+
+  const ExtensionShowHideElementIdentifierContext.memberOrType()
+      : _kind = _memberOrTypeKind,
+        super('extensionShowHideElementMemberOrType', inDeclaration: true);
+
+  const ExtensionShowHideElementIdentifierContext.operator()
+      : _kind = _operator,
+        super('extensionShowHideElementOperator', inDeclaration: true);
+
+  const ExtensionShowHideElementIdentifierContext.setter()
+      : _kind = _setterKind,
+        super('extensionShowHideElementSetter', inDeclaration: true);
+
+  @override
+  Token ensureIdentifier(Token token, Parser parser) {
+    Token identifier = token.next!;
+    if (identifier.isIdentifier ||
+        _kind == _operator && identifier.isOperator) {
+      return identifier;
+    }
+
+    // Recovery
+    const List<String> afterIdentifier = const [
+      '<',
+      '{',
+      'extends',
+      'with',
+      'implements',
+      'on',
+      '=',
+    ];
+    if (identifier.isEof ||
+        (looksLikeStartOfNextTopLevelDeclaration(identifier) &&
+            (identifier.next == null ||
+                !isOneOfOrEof(identifier.next!, afterIdentifier))) ||
+        (isOneOfOrEof(identifier, afterIdentifier) &&
+            (identifier.next == null ||
+                !isOneOfOrEof(identifier.next!, afterIdentifier)))) {
+      identifier = parser.insertSyntheticIdentifier(token, this,
+          message: codes.templateExpectedIdentifier.withArguments(identifier));
+    } else {
+      if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
+        // When in doubt, consume the token to ensure we make progress
+        // but insert a synthetic identifier to satisfy listeners.
+        identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
+      }
+    }
+    return identifier;
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return other is ExtensionShowHideElementIdentifierContext &&
+        _kind == other._kind;
+  }
+}
+
 /// See [IdentifierContext.fieldDeclaration].
 class FieldDeclarationIdentifierContext extends IdentifierContext {
   const FieldDeclarationIdentifierContext()
@@ -472,10 +550,12 @@ class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
       '[',
       ']',
       '{',
-      '}'
+      '}',
     ];
-    if (looksLikeStartOfNextClassMember(identifier) ||
-        looksLikeStatementStart(identifier) ||
+    if (((looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+                looksLikeStartOfNextClassMember(identifier) ||
+                looksLikeStatementStart(identifier)) &&
+            !isOneOf(identifier.next!, okNextValueInFormalParameter)) ||
         isOneOfOrEof(identifier, followingValues)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));

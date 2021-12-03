@@ -50,7 +50,8 @@ class _StdIOUtils {
   }
 
   @patch
-  static _getStdioHandleType(int fd) native "File_GetStdioHandleType";
+  @pragma("vm:external-name", "File_GetStdioHandleType")
+  external static _getStdioHandleType(int fd);
 }
 
 @patch
@@ -115,12 +116,18 @@ class Stdin {
     return result;
   }
 
-  static _echoMode(int fd) native "Stdin_GetEchoMode";
-  static _setEchoMode(int fd, bool enabled) native "Stdin_SetEchoMode";
-  static _lineMode(int fd) native "Stdin_GetLineMode";
-  static _setLineMode(int fd, bool enabled) native "Stdin_SetLineMode";
-  static _readByte(int fd) native "Stdin_ReadByte";
-  static _supportsAnsiEscapes(int fd) native "Stdin_AnsiSupported";
+  @pragma("vm:external-name", "Stdin_GetEchoMode")
+  external static _echoMode(int fd);
+  @pragma("vm:external-name", "Stdin_SetEchoMode")
+  external static _setEchoMode(int fd, bool enabled);
+  @pragma("vm:external-name", "Stdin_GetLineMode")
+  external static _lineMode(int fd);
+  @pragma("vm:external-name", "Stdin_SetLineMode")
+  external static _setLineMode(int fd, bool enabled);
+  @pragma("vm:external-name", "Stdin_ReadByte")
+  external static _readByte(int fd);
+  @pragma("vm:external-name", "Stdin_AnsiSupported")
+  external static _supportsAnsiEscapes(int fd);
 }
 
 @patch
@@ -140,7 +147,8 @@ class Stdout {
     return size;
   }
 
-  static _getTerminalSize(int fd) native "Stdout_GetTerminalSize";
+  @pragma("vm:external-name", "Stdout_GetTerminalSize")
+  external static _getTerminalSize(int fd);
 
   @patch
   static bool _supportsAnsiEscapes(int fd) {
@@ -151,9 +159,11 @@ class Stdout {
     return result;
   }
 
-  static _getAnsiSupported(int fd) native "Stdout_AnsiSupported";
+  @pragma("vm:external-name", "Stdout_AnsiSupported")
+  external static _getAnsiSupported(int fd);
 }
 
-bool _getStdioHandle(_NativeSocket socket, int num)
-    native "Socket_GetStdioHandle";
-_getSocketType(_NativeSocket nativeSocket) native "Socket_GetType";
+@pragma("vm:external-name", "Socket_GetStdioHandle")
+external bool _getStdioHandle(_NativeSocket socket, int num);
+@pragma("vm:external-name", "Socket_GetType")
+external _getSocketType(_NativeSocket nativeSocket);

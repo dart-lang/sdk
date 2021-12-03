@@ -7,13 +7,11 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddExplicitCastTest);
-    defineReflectiveTests(AddExplicitCastWithNullSafetyTest);
   });
 }
 
@@ -213,6 +211,24 @@ class A {
 }
 class B {}
 ''');
+  }
+
+  Future<void> test_assignment_null() async {
+    await resolveTestCode('''
+void f(int x) {
+  x = null;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_assignment_nullable() async {
+    await resolveTestCode('''
+void f(int x, int? y) {
+  x = y;
+}
+''');
+    await assertNoFix();
   }
 
   Future<void> test_assignment_set() async {
@@ -484,27 +500,5 @@ void foo(int a) {
         return e.errorCode == CompileTimeErrorCode.INVALID_ASSIGNMENT;
       },
     );
-  }
-}
-
-@reflectiveTest
-class AddExplicitCastWithNullSafetyTest extends AddExplicitCastTest
-    with WithNullSafetyMixin {
-  Future<void> test_assignment_null() async {
-    await resolveTestCode('''
-void f(int x) {
-  x = null;
-}
-''');
-    await assertNoFix();
-  }
-
-  Future<void> test_assignment_nullable() async {
-    await resolveTestCode('''
-void f(int x, int? y) {
-  x = y;
-}
-''');
-    await assertNoFix();
   }
 }

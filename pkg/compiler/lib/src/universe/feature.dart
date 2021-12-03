@@ -93,7 +93,7 @@ class MapLiteralUse {
   final bool isConstant;
   final bool isEmpty;
 
-  MapLiteralUse(this.type, {this.isConstant: false, this.isEmpty: false});
+  MapLiteralUse(this.type, {this.isConstant = false, this.isEmpty = false});
 
   @override
   int get hashCode {
@@ -123,7 +123,7 @@ class SetLiteralUse {
   final bool isConstant;
   final bool isEmpty;
 
-  SetLiteralUse(this.type, {this.isConstant: false, this.isEmpty: false});
+  SetLiteralUse(this.type, {this.isConstant = false, this.isEmpty = false});
 
   @override
   int get hashCode =>
@@ -149,7 +149,7 @@ class ListLiteralUse {
   final bool isConstant;
   final bool isEmpty;
 
-  ListLiteralUse(this.type, {this.isConstant: false, this.isEmpty: false});
+  ListLiteralUse(this.type, {this.isConstant = false, this.isEmpty = false});
 
   @override
   int get hashCode {
@@ -203,7 +203,7 @@ class RuntimeTypeUse {
 
   /// Short textual representation use for testing.
   String get shortText {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     switch (kind) {
       case RuntimeTypeUseKind.string:
         sb.write('string:');
@@ -246,7 +246,7 @@ class GenericInstantiation {
     DartType functionType = source.readDartType();
     List<DartType> typeArguments = source.readDartTypes();
     source.end(tag);
-    return new GenericInstantiation(functionType, typeArguments);
+    return GenericInstantiation(functionType, typeArguments);
   }
 
   void writeToDataSink(DataSink sink) {
@@ -267,13 +267,23 @@ class GenericInstantiation {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! GenericInstantiation) return false;
-    return functionType == other.functionType &&
-        equalElements(typeArguments, other.typeArguments);
+    if (functionType == other.functionType &&
+        equalElements(typeArguments, other.typeArguments)) {
+      assert(
+          this.hashCode == other.hashCode,
+          '\nthis:  ${this.hashCode}  $this'
+          '\nthis:  ${other.hashCode}  $other');
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override
   String toString() {
-    return 'GenericInstantiation(functionType:$functionType,'
-        'typeArguments:$typeArguments)';
+    return 'GenericInstantiation('
+        'functionType:$functionType,'
+        'typeArguments:$typeArguments'
+        ')';
   }
 }

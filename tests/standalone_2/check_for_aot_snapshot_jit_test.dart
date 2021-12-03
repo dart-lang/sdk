@@ -19,10 +19,7 @@ main() {
       path.join(sdkDir, 'pkg', 'vm', 'tool', 'gen_kernel$_batchSuffix');
   Expect.isTrue(File(genKernel).existsSync(),
       "Can't locate gen_kernel$_batchSuffix on this platform");
-  // Currently gen_snapshot is only in buildDir/clang_x64 on Mac ARM64.
-  final genSnapshot = Platform.isMacOS && buildDir.endsWith('XARM64')
-      ? path.join(buildDir, 'clang_x64', 'gen_snapshot$_execSuffix')
-      : path.join(buildDir, 'gen_snapshot$_execSuffix');
+  final genSnapshot = path.join(buildDir, 'gen_snapshot$_execSuffix');
   Expect.isTrue(File(genSnapshot).existsSync(),
       "Can't locate gen_snapshot$_execSuffix on this platform");
 
@@ -33,8 +30,8 @@ main() {
   Expect.isTrue(File(powTest).existsSync(),
       "Can't locate dart$_execSuffix on this platform");
   final d = Directory.systemTemp.createTempSync('aot_tmp');
-  final kernelOutput = d.uri.resolve('pow_test.dill').path;
-  final aotOutput = d.uri.resolve('pow_test.aot').path;
+  final kernelOutput = File.fromUri(d.uri.resolve('pow_test.dill')).path;
+  final aotOutput = File.fromUri(d.uri.resolve('pow_test.aot')).path;
 
   final genKernelResult = runAndPrintOutput(
     genKernel,

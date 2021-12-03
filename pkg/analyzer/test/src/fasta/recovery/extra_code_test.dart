@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -308,9 +309,9 @@ class A<in out X> {}
 ''', [ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS], '''
 class A<in X> {}
 ''',
-        featureSet: FeatureSet.forTesting(
-          sdkVersion: '2.5.0',
-          additionalFeatures: [Feature.variance],
+        featureSet: FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: ExperimentStatus.currentVersion,
+          flags: [EnableString.variance],
         ));
   }
 }

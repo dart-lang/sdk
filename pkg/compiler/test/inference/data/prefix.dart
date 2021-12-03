@@ -88,11 +88,10 @@ instanceFieldPrefixInc() {
   if (c. /*[exact=Class1]*/ field1 == null) {
     c. /*update: [exact=Class1]*/ field1 = 0;
   }
-  return
-      /*invoke: [null|subclass=JSPositiveInt]*/ ++c.
-          /*[exact=Class1]*/
-          /*update: [exact=Class1]*/
-          field1;
+  return /*invoke: [null|subclass=JSPositiveInt]*/ ++c.
+      /*[exact=Class1]*/
+      /*update: [exact=Class1]*/
+      field1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -111,11 +110,10 @@ instanceFieldPrefixDec() {
   if (c. /*[exact=Class2]*/ field2 == null) {
     c. /*update: [exact=Class2]*/ field2 = 0;
   }
-  return
-      /*invoke: [null|subclass=JSInt]*/ --c.
-          /*[exact=Class2]*/
-          /*update: [exact=Class2]*/
-          field2;
+  return /*invoke: [null|subclass=JSInt]*/ --c.
+      /*[exact=Class2]*/
+      /*update: [exact=Class2]*/
+      field2;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -134,11 +132,10 @@ conditionalInstanceFieldPrefixInc() {
   if (c. /*[exact=Class3]*/ field3 == null) {
     c. /*update: [exact=Class3]*/ field3 = 0;
   }
-  return
-      /*invoke: [null|subclass=JSPositiveInt]*/ ++c?.
-          /*[exact=Class3]*/
-          /*update: [exact=Class3]*/
-          field3;
+  return /*invoke: [null|subclass=JSPositiveInt]*/ ++c?.
+      /*[exact=Class3]*/
+      /*update: [exact=Class3]*/
+      field3;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -157,9 +154,8 @@ conditionalInstanceFieldPrefixDec() {
   if (c. /*[exact=Class4]*/ field4 == null) {
     c. /*update: [exact=Class4]*/ field4 = 0;
   }
-  return
-      /*invoke: [null|subclass=JSInt]*/ --c?.
-          /*[exact=Class4]*/
-          /*update: [exact=Class4]*/
-          field4;
+  return /*invoke: [null|subclass=JSInt]*/ --c?.
+      /*[exact=Class4]*/
+      /*update: [exact=Class4]*/
+      field4;
 }

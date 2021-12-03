@@ -24,18 +24,18 @@ class WorldImpact {
 
   MemberEntity get member => null;
 
-  Iterable<DynamicUse> get dynamicUses => const <DynamicUse>[];
+  Iterable<DynamicUse> get dynamicUses => const [];
 
-  Iterable<StaticUse> get staticUses => const <StaticUse>[];
+  Iterable<StaticUse> get staticUses => const [];
 
   // TODO(johnniwinther): Replace this by called constructors with type
   // arguments.
   // TODO(johnniwinther): Collect all checked types for checked mode separately
   // to support serialization.
 
-  Iterable<TypeUse> get typeUses => const <TypeUse>[];
+  Iterable<TypeUse> get typeUses => const [];
 
-  Iterable<ConstantUse> get constantUses => const <ConstantUse>[];
+  Iterable<ConstantUse> get constantUses => const [];
 
   bool get isEmpty => true;
 
@@ -52,7 +52,7 @@ class WorldImpact {
   String toString() => dump(this);
 
   static String dump(WorldImpact worldImpact) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     printOn(sb, worldImpact);
     return sb.toString();
   }
@@ -113,49 +113,49 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
   @override
   void registerDynamicUse(DynamicUse dynamicUse) {
     assert(dynamicUse != null);
-    _dynamicUses ??= new Setlet<DynamicUse>();
+    _dynamicUses ??= Setlet();
     _dynamicUses.add(dynamicUse);
   }
 
   @override
   Iterable<DynamicUse> get dynamicUses {
-    return _dynamicUses != null ? _dynamicUses : const <DynamicUse>[];
+    return _dynamicUses ?? const [];
   }
 
   @override
   void registerTypeUse(TypeUse typeUse) {
     assert(typeUse != null);
-    _typeUses ??= new Setlet<TypeUse>();
+    _typeUses ??= Setlet();
     _typeUses.add(typeUse);
   }
 
   @override
   Iterable<TypeUse> get typeUses {
-    return _typeUses != null ? _typeUses : const <TypeUse>[];
+    return _typeUses ?? const [];
   }
 
   @override
   void registerStaticUse(StaticUse staticUse) {
     assert(staticUse != null);
-    _staticUses ??= new Setlet<StaticUse>();
+    _staticUses ??= Setlet();
     _staticUses.add(staticUse);
   }
 
   @override
   Iterable<StaticUse> get staticUses {
-    return _staticUses != null ? _staticUses : const <StaticUse>[];
+    return _staticUses ?? const [];
   }
 
   @override
   void registerConstantUse(ConstantUse constantUse) {
     assert(constantUse != null);
-    _constantUses ??= new Setlet<ConstantUse>();
+    _constantUses ??= Setlet();
     _constantUses.add(constantUse);
   }
 
   @override
   Iterable<ConstantUse> get constantUses {
-    return _constantUses != null ? _constantUses : const <ConstantUse>[];
+    return _constantUses ?? const [];
   }
 }
 
@@ -164,13 +164,13 @@ class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
 class StagedWorldImpactBuilder implements WorldImpactBuilder {
   final bool collectImpacts;
   WorldImpactBuilderImpl _currentBuilder;
-  List<WorldImpactBuilderImpl> _builders = <WorldImpactBuilderImpl>[];
+  final List<WorldImpactBuilderImpl> _builders = [];
 
-  StagedWorldImpactBuilder({this.collectImpacts: false});
+  StagedWorldImpactBuilder({this.collectImpacts = false});
 
   void _ensureBuilder() {
     if (_currentBuilder == null) {
-      _currentBuilder = new WorldImpactBuilderImpl();
+      _currentBuilder = WorldImpactBuilderImpl();
       if (collectImpacts) {
         _builders.add(_currentBuilder);
       }
@@ -242,57 +242,45 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
 
   @override
   Iterable<DynamicUse> get dynamicUses {
-    return _dynamicUses != null ? _dynamicUses : worldImpact.dynamicUses;
+    return _dynamicUses ?? worldImpact.dynamicUses;
   }
 
   @override
   void registerDynamicUse(DynamicUse dynamicUse) {
-    if (_dynamicUses == null) {
-      _dynamicUses = new Setlet<DynamicUse>();
-      _dynamicUses.addAll(worldImpact.dynamicUses);
-    }
+    _dynamicUses ??= Setlet.of(worldImpact.dynamicUses);
     _dynamicUses.add(dynamicUse);
   }
 
   @override
   void registerTypeUse(TypeUse typeUse) {
-    if (_typeUses == null) {
-      _typeUses = new Setlet<TypeUse>();
-      _typeUses.addAll(worldImpact.typeUses);
-    }
+    _typeUses ??= Setlet.of(worldImpact.typeUses);
     _typeUses.add(typeUse);
   }
 
   @override
   Iterable<TypeUse> get typeUses {
-    return _typeUses != null ? _typeUses : worldImpact.typeUses;
+    return _typeUses ?? worldImpact.typeUses;
   }
 
   @override
   void registerStaticUse(StaticUse staticUse) {
-    if (_staticUses == null) {
-      _staticUses = new Setlet<StaticUse>();
-      _staticUses.addAll(worldImpact.staticUses);
-    }
+    _staticUses ??= Setlet.of(worldImpact.staticUses);
     _staticUses.add(staticUse);
   }
 
   @override
   Iterable<StaticUse> get staticUses {
-    return _staticUses != null ? _staticUses : worldImpact.staticUses;
+    return _staticUses ?? worldImpact.staticUses;
   }
 
   @override
   Iterable<ConstantUse> get constantUses {
-    return _constantUses != null ? _constantUses : worldImpact.constantUses;
+    return _constantUses ?? worldImpact.constantUses;
   }
 
   @override
   void registerConstantUse(ConstantUse constantUse) {
-    if (_constantUses == null) {
-      _constantUses = new Setlet<ConstantUse>();
-      _constantUses.addAll(worldImpact.constantUses);
-    }
+    _constantUses ??= Setlet.of(worldImpact.constantUses);
     _constantUses.add(constantUse);
   }
 
@@ -308,7 +296,7 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('TransformedWorldImpact($worldImpact)');
     WorldImpact.printOn(sb, this);
     return sb.toString();
@@ -352,7 +340,7 @@ abstract class WorldImpactVisitor {
 }
 
 // TODO(johnniwinther): Remove these when we get anonymous local classes.
-typedef void VisitUse<U>(MemberEntity member, U use);
+typedef VisitUse<U> = void Function(MemberEntity member, U use);
 
 class WorldImpactVisitorImpl implements WorldImpactVisitor {
   final VisitUse<StaticUse> _visitStaticUse;

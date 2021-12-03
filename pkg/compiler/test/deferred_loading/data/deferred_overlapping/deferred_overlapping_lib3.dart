@@ -5,8 +5,8 @@
 // @dart = 2.7
 
 /*class: C3:
- class_unit=1{lib1, lib2},
- type_unit=1{lib1, lib2}
+ class_unit=2{lib1, lib2},
+ type_unit=2{lib1, lib2}
 */
-/*member: C3.:member_unit=1{lib1, lib2}*/
+/*member: C3.:member_unit=2{lib1, lib2}*/
 class C3 {}

@@ -11,14 +11,17 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "b.dart";
         main() { b(); }
       b.dart: |
+        // @dart=2.9
         part 'c.dart';
         b() {
           c();
         }
       c.dart: |
+        // @dart=2.9
         part of 'b.dart';
         c() {}
     expectedLibraryCount: 2
@@ -29,6 +32,7 @@ worlds:
     expectInitializeFromDill: false
     sources:
       b.dart: |
+        // @dart=2.9
         b() {}
     expectedLibraryCount: 2
     uriToSourcesDoesntInclude:

@@ -37,7 +37,7 @@ class A extends core::Object {
   @self::Annotation::•()
   get covariantInstanceField() → core::num;
   @self::Annotation::•()
-  set covariantInstanceField(covariant core::num #t3) → void;
+  set covariantInstanceField(covariant-by-declaration core::num #t3) → void;
   @self::Annotation::•()
   static get staticField() → core::int;
   @self::Annotation::•()
@@ -77,7 +77,7 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
   @self::Annotation::•()
   get covariantInstanceField() → core::num;
   @self::Annotation::•()
-  set covariantInstanceField(covariant core::num #t8) → void;
+  set covariantInstanceField(covariant-by-declaration core::num #t8) → void;
   @self::Annotation::•()
   static get staticField() → core::int;
   @self::Annotation::•()

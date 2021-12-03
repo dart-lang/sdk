@@ -86,8 +86,10 @@ class _Sealed {
   const _Sealed();
 }
 class UseResult {
+  final String? parameterDefined;
   final String reason;
   const UseResult([this.reason = '']);
+  const UseResult.unless({required this.parameterDefined, this.reason = ''});
 }
 class _VisibleForOverriding {
   const _VisibleForOverriding();

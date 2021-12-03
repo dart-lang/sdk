@@ -178,18 +178,68 @@ class JSFunction extends Interceptor {
         dart.typeName(dart.getReifiedType(this)), this);
   }
 
-  // TODO(jmesserly): remove these once we canonicalize tearoffs.
+  // TODO(nshahan): We can remove these if we canonicalize all tearoffs and no
+  // longer support weak null safety "same type" equality.
   operator ==(other) {
-    if (other == null) return false;
-    var boundObj = JS<Object?>('', '#._boundObject', this);
-    if (boundObj == null) return JS<bool>('!', '# === #', this, other);
-    return JS(
-        'bool',
+    // Basic function values (no generics, no bound instances) are represented
+    // as the original functions so reference equality is sufficient.
+    if (JS<bool>('!', '# === #', this, other)) return true;
+
+    dynamic boundObj;
+    dynamic otherFn;
+    var originalFn = JS('', '#._originalFn', this);
+
+    if (originalFn == null) {
+      // No generic instantiation present.
+      boundObj = JS('', '#._boundObject', this);
+      if (boundObj == null) return false;
+      originalFn = this;
+      otherFn = other;
+    } else {
+      // Generic instantiation was present.
+      var typeArgs = JS('!', '#._typeArgs', this);
+      var otherTypeArgs = JS('', '#._typeArgs', other);
+      // Test if all instantiated type arguments are equal.
+      if (dart.compileTimeFlag('soundNullSafety')) {
+        // The list has been canonicalized on creation so reference equality
+        // is sufficient.
+        if (JS<bool>('!', '# !== #', typeArgs, otherTypeArgs)) return false;
+      } else {
+        // In weak null safety all types arguments must be compared in a way
+        // that is agnostic to legacy.
+        var typeArgCount = JS<int>('!', '#.length', typeArgs);
+        if (JS<bool>('!', '!#', otherTypeArgs) ||
+            typeArgCount != JS('', '#.length', otherTypeArgs)) {
+          return false;
+        }
+        for (var i = 0; i < typeArgCount; i++) {
+          var typeArg = JS('!', '#[#]', typeArgs, i);
+          var otherTypeArg = JS('!', '#[#]', otherTypeArgs, i);
+          // TODO(nshahan) Replace wrapType() with a lighter weight legacy
+          // erasure.
+          if (JS<bool>('!', '# !== #', dart.wrapType(typeArg),
+              dart.wrapType(otherTypeArg))) {
+            return false;
+          }
+        }
+      }
+      boundObj = JS('', '#._boundObject', originalFn);
+      otherFn = JS('', '#._originalFn', other);
+      if (boundObj == null) {
+        // This isn't an instance tearoff, test if the original uninstantiated
+        // methods are equal.
+        return JS<bool>('!', '# === #', originalFn, otherFn);
+      }
+    }
+    // This is an instance tearoff, test if the bound instances and methods
+    // are equal.
+    return JS<bool>(
+        '!',
         '# === #._boundObject && #._boundMethod === #._boundMethod',
         boundObj,
-        other,
-        this,
-        other);
+        otherFn,
+        originalFn,
+        otherFn);
   }
 
   get hashCode {

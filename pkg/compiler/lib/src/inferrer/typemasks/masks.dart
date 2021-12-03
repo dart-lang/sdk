@@ -45,6 +45,7 @@ class CommonMasks implements AbstractValueDomain {
   CommonElements get commonElements => _closedWorld.commonElements;
   DartTypes get dartTypes => _closedWorld.dartTypes;
 
+  TypeMask _internalTopType;
   TypeMask _dynamicType;
   TypeMask _nonNullType;
   TypeMask _nullType;
@@ -75,10 +76,10 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask _unmodifiableArrayType;
   TypeMask _interceptorType;
 
-  /// Cache of [FlatTypeMask]s grouped by the 8 possible values of the
+  /// Cache of [FlatTypeMask]s grouped by the possible values of the
   /// `FlatTypeMask.flags` property.
-  final List<Map<ClassEntity, TypeMask>> _canonicalizedTypeMasks =
-      new List<Map<ClassEntity, TypeMask>>.filled(8, null);
+  final List<Map<ClassEntity, TypeMask>> _canonicalizedTypeMasks = List.filled(
+      _FlatTypeMaskKind.values.length << FlatTypeMask._USED_INDICES, null);
 
   /// Return the cached mask for [base] with the given flags, or
   /// calls [createMask] to create the mask and cache it.
@@ -89,126 +90,129 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
-  TypeMask get dynamicType => _dynamicType ??= new TypeMask.subclass(
-      _closedWorld.commonElements.objectClass, _closedWorld);
+  TypeMask get internalTopType => _internalTopType ??= TypeMask.subclass(
+      _closedWorld.commonElements.objectClass, _closedWorld,
+      hasLateSentinel: true);
 
   @override
-  TypeMask get nonNullType => _nonNullType ??= new TypeMask.nonNullSubclass(
+  TypeMask get dynamicType => _dynamicType ??=
+      TypeMask.subclass(_closedWorld.commonElements.objectClass, _closedWorld);
+
+  @override
+  TypeMask get nonNullType => _nonNullType ??= TypeMask.nonNullSubclass(
       _closedWorld.commonElements.objectClass, _closedWorld);
 
   @override
   TypeMask get intType => _intType ??=
-      new TypeMask.nonNullSubclass(commonElements.jsIntClass, _closedWorld);
+      TypeMask.nonNullSubclass(commonElements.jsIntClass, _closedWorld);
 
   @override
   TypeMask get uint32Type => _uint32Type ??=
-      new TypeMask.nonNullSubclass(commonElements.jsUInt32Class, _closedWorld);
+      TypeMask.nonNullSubclass(commonElements.jsUInt32Class, _closedWorld);
 
   @override
   TypeMask get uint31Type => _uint31Type ??=
-      new TypeMask.nonNullExact(commonElements.jsUInt31Class, _closedWorld);
+      TypeMask.nonNullExact(commonElements.jsUInt31Class, _closedWorld);
 
   @override
-  TypeMask get positiveIntType =>
-      _positiveIntType ??= new TypeMask.nonNullSubclass(
-          commonElements.jsPositiveIntClass, _closedWorld);
+  TypeMask get positiveIntType => _positiveIntType ??=
+      TypeMask.nonNullSubclass(commonElements.jsPositiveIntClass, _closedWorld);
 
   @override
   TypeMask get numNotIntType => _numNotIntType ??=
-      new TypeMask.nonNullExact(commonElements.jsNumNotIntClass, _closedWorld);
+      TypeMask.nonNullExact(commonElements.jsNumNotIntClass, _closedWorld);
 
   @override
   TypeMask get numType => _numType ??=
-      new TypeMask.nonNullSubclass(commonElements.jsNumberClass, _closedWorld);
+      TypeMask.nonNullSubclass(commonElements.jsNumberClass, _closedWorld);
 
   @override
   TypeMask get boolType => _boolType ??=
-      new TypeMask.nonNullExact(commonElements.jsBoolClass, _closedWorld);
+      TypeMask.nonNullExact(commonElements.jsBoolClass, _closedWorld);
 
   @override
   TypeMask get functionType => _functionType ??=
-      new TypeMask.nonNullSubtype(commonElements.functionClass, _closedWorld);
+      TypeMask.nonNullSubtype(commonElements.functionClass, _closedWorld);
 
   @override
   TypeMask get listType => _listType ??=
-      new TypeMask.nonNullSubtype(commonElements.jsArrayClass, _closedWorld);
+      TypeMask.nonNullSubtype(commonElements.jsArrayClass, _closedWorld);
 
   @override
-  TypeMask get constListType => _constListType ??= new TypeMask.nonNullExact(
+  TypeMask get constListType => _constListType ??= TypeMask.nonNullExact(
       commonElements.jsUnmodifiableArrayClass, _closedWorld);
 
   @override
   TypeMask get fixedListType => _fixedListType ??=
-      new TypeMask.nonNullExact(commonElements.jsFixedArrayClass, _closedWorld);
+      TypeMask.nonNullExact(commonElements.jsFixedArrayClass, _closedWorld);
 
   @override
-  TypeMask get growableListType =>
-      _growableListType ??= new TypeMask.nonNullExact(
-          commonElements.jsExtendableArrayClass, _closedWorld);
+  TypeMask get growableListType => _growableListType ??= TypeMask.nonNullExact(
+      commonElements.jsExtendableArrayClass, _closedWorld);
 
   @override
   TypeMask get setType => _setType ??=
-      new TypeMask.nonNullSubtype(commonElements.setLiteralClass, _closedWorld);
+      TypeMask.nonNullSubtype(commonElements.setLiteralClass, _closedWorld);
 
   @override
-  TypeMask get constSetType => _constSetType ??= new TypeMask.nonNullSubtype(
+  TypeMask get constSetType => _constSetType ??= TypeMask.nonNullSubtype(
       commonElements.constSetLiteralClass, _closedWorld);
 
   @override
   TypeMask get mapType => _mapType ??=
-      new TypeMask.nonNullSubtype(commonElements.mapLiteralClass, _closedWorld);
+      TypeMask.nonNullSubtype(commonElements.mapLiteralClass, _closedWorld);
 
   @override
-  TypeMask get constMapType => _constMapType ??= new TypeMask.nonNullSubtype(
+  TypeMask get constMapType => _constMapType ??= TypeMask.nonNullSubtype(
       commonElements.constMapLiteralClass, _closedWorld);
 
   @override
   TypeMask get stringType => _stringType ??=
-      new TypeMask.nonNullExact(commonElements.jsStringClass, _closedWorld);
+      TypeMask.nonNullExact(commonElements.jsStringClass, _closedWorld);
 
   @override
   TypeMask get typeType => _typeType ??=
-      new TypeMask.nonNullExact(commonElements.typeLiteralClass, _closedWorld);
+      TypeMask.nonNullExact(commonElements.typeLiteralClass, _closedWorld);
 
   @override
   TypeMask get syncStarIterableType => _syncStarIterableType ??=
-      new TypeMask.nonNullExact(commonElements.syncStarIterable, _closedWorld);
+      TypeMask.nonNullExact(commonElements.syncStarIterable, _closedWorld);
 
   @override
-  TypeMask get asyncFutureType =>
-      _asyncFutureType ??= new TypeMask.nonNullExact(
-          commonElements.futureImplementation, _closedWorld);
+  TypeMask get asyncFutureType => _asyncFutureType ??=
+      TypeMask.nonNullExact(commonElements.futureImplementation, _closedWorld);
 
   @override
   TypeMask get asyncStarStreamType => _asyncStarStreamType ??=
-      new TypeMask.nonNullExact(commonElements.controllerStream, _closedWorld);
+      TypeMask.nonNullExact(commonElements.controllerStream, _closedWorld);
 
   // TODO(johnniwinther): Assert that the null type has been resolved.
   @override
-  TypeMask get nullType => _nullType ??= const TypeMask.empty();
+  TypeMask get nullType => _nullType ??= TypeMask.empty();
 
   @override
-  TypeMask get emptyType => const TypeMask.nonNullEmpty();
+  TypeMask get lateSentinelType => TypeMask.nonNullEmpty(hasLateSentinel: true);
 
-  TypeMask get indexablePrimitiveType =>
-      _indexablePrimitiveType ??= new TypeMask.nonNullSubtype(
-          commonElements.jsIndexableClass, _closedWorld);
+  @override
+  TypeMask get emptyType => TypeMask.nonNullEmpty();
+
+  TypeMask get indexablePrimitiveType => _indexablePrimitiveType ??=
+      TypeMask.nonNullSubtype(commonElements.jsIndexableClass, _closedWorld);
 
   TypeMask get readableArrayType => _readableArrayType ??=
-      new TypeMask.nonNullSubclass(commonElements.jsArrayClass, _closedWorld);
+      TypeMask.nonNullSubclass(commonElements.jsArrayClass, _closedWorld);
 
   @override
   TypeMask get mutableArrayType =>
-      _mutableArrayType ??= new TypeMask.nonNullSubclass(
+      _mutableArrayType ??= TypeMask.nonNullSubclass(
           commonElements.jsMutableArrayClass, _closedWorld);
 
   TypeMask get unmodifiableArrayType =>
-      _unmodifiableArrayType ??= new TypeMask.nonNullExact(
+      _unmodifiableArrayType ??= TypeMask.nonNullExact(
           commonElements.jsUnmodifiableArrayClass, _closedWorld);
 
-  TypeMask get interceptorType =>
-      _interceptorType ??= new TypeMask.nonNullSubclass(
-          commonElements.jsInterceptorClass, _closedWorld);
+  TypeMask get interceptorType => _interceptorType ??=
+      TypeMask.nonNullSubclass(commonElements.jsInterceptorClass, _closedWorld);
 
   @override
   AbstractBool isTypedArray(TypeMask mask) {
@@ -232,37 +236,37 @@ class CommonMasks implements AbstractValueDomain {
     ClassEntity typedDataClass = _closedWorld.commonElements.typedDataClass;
     return AbstractBool.maybeOrFalse(typedDataClass != null &&
         _closedWorld.classHierarchy.isInstantiated(typedDataClass) &&
-        intersects(mask, new TypeMask.subtype(typedDataClass, _closedWorld)) &&
+        intersects(mask, TypeMask.subtype(typedDataClass, _closedWorld)) &&
         intersects(
             mask,
-            new TypeMask.subtype(
+            TypeMask.subtype(
                 _closedWorld.commonElements.jsIndexingBehaviorInterface,
                 _closedWorld)));
   }
 
   @override
   TypeMask createNonNullExact(ClassEntity cls) {
-    return new TypeMask.nonNullExact(cls, _closedWorld);
+    return TypeMask.nonNullExact(cls, _closedWorld);
   }
 
   @override
   TypeMask createNullableExact(ClassEntity cls) {
-    return new TypeMask.exact(cls, _closedWorld);
+    return TypeMask.exact(cls, _closedWorld);
   }
 
   @override
   TypeMask createNonNullSubclass(ClassEntity cls) {
-    return new TypeMask.nonNullSubclass(cls, _closedWorld);
+    return TypeMask.nonNullSubclass(cls, _closedWorld);
   }
 
   @override
   TypeMask createNonNullSubtype(ClassEntity cls) {
-    return new TypeMask.nonNullSubtype(cls, _closedWorld);
+    return TypeMask.nonNullSubtype(cls, _closedWorld);
   }
 
   @override
   TypeMask createNullableSubtype(ClassEntity cls) {
-    return new TypeMask.subtype(cls, _closedWorld);
+    return TypeMask.subtype(cls, _closedWorld);
   }
 
   @override
@@ -395,6 +399,14 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask includeNull(TypeMask mask) => mask.nullable();
 
   @override
+  TypeMask excludeLateSentinel(TypeMask mask) =>
+      mask.withFlags(hasLateSentinel: false);
+
+  @override
+  TypeMask includeLateSentinel(TypeMask mask) =>
+      mask.withFlags(hasLateSentinel: true);
+
+  @override
   AbstractBool containsType(TypeMask typeMask, ClassEntity cls) {
     return AbstractBool.trueOrFalse(_containsType(typeMask, cls));
   }
@@ -443,12 +455,8 @@ class CommonMasks implements AbstractValueDomain {
       AbstractBool.trueOrMaybe(value.isEmpty);
 
   @override
-  AbstractBool isExact(TypeMask value) =>
-      AbstractBool.trueOrMaybe(value.isExact && !value.isNullable);
-
-  @override
-  AbstractBool isExactOrNull(TypeMask value) =>
-      AbstractBool.trueOrMaybe(value.isExact || _isNull(value));
+  AbstractBool isExact(TypeMask value) => AbstractBool.trueOrMaybe(
+      value.isExact && !value.isNullable && !value.hasLateSentinel);
 
   @override
   ClassEntity getExactClass(TypeMask mask) {
@@ -470,7 +478,7 @@ class CommonMasks implements AbstractValueDomain {
   @override
   AbstractValue createPrimitiveValue(
       covariant TypeMask originalValue, PrimitiveConstantValue value) {
-    return new ValueTypeMask(originalValue, value);
+    return ValueTypeMask(originalValue, value);
   }
 
   @override
@@ -484,7 +492,8 @@ class CommonMasks implements AbstractValueDomain {
     }
   }
 
-  bool _isNull(TypeMask value) => value.isNull;
+  @override
+  AbstractBool isLateSentinel(TypeMask value) => value.isLateSentinel;
 
   @override
   AbstractBool isPrimitive(TypeMask value) {
@@ -492,7 +501,7 @@ class CommonMasks implements AbstractValueDomain {
         _canBePrimitiveArray(value) ||
         _canBePrimitiveBoolean(value) ||
         _canBePrimitiveString(value) ||
-        _isNull(value));
+        value.isNull);
   }
 
   @override
@@ -517,10 +526,6 @@ class CommonMasks implements AbstractValueDomain {
   bool _canBePrimitiveBoolean(TypeMask value) {
     return _containsType(value, commonElements.jsBoolClass);
   }
-
-  @override
-  AbstractBool isPrimitiveArray(TypeMask value) =>
-      AbstractBool.maybeOrFalse(_canBePrimitiveArray(value));
 
   bool _canBePrimitiveArray(TypeMask value) {
     return _containsType(value, commonElements.jsArrayClass) ||
@@ -580,25 +585,29 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isInteger(TypeMask value) {
-    return AbstractBool.trueOrMaybe(
-        value.containsOnlyInt(_closedWorld) && !value.isNullable);
+    return AbstractBool.trueOrMaybe(value.containsOnlyInt(_closedWorld) &&
+        !value.isNullable &&
+        !value.hasLateSentinel);
   }
 
   @override
   AbstractBool isUInt32(TypeMask value) {
     return AbstractBool.trueOrMaybe(!value.isNullable &&
+        !value.hasLateSentinel &&
         _isInstanceOfOrNull(value, commonElements.jsUInt32Class));
   }
 
   @override
   AbstractBool isUInt31(TypeMask value) {
     return AbstractBool.trueOrMaybe(!value.isNullable &&
+        !value.hasLateSentinel &&
         _isInstanceOfOrNull(value, commonElements.jsUInt31Class));
   }
 
   @override
   AbstractBool isPositiveInteger(TypeMask value) {
     return AbstractBool.trueOrMaybe(!value.isNullable &&
+        !value.hasLateSentinel &&
         _isInstanceOfOrNull(value, commonElements.jsPositiveIntClass));
   }
 
@@ -615,8 +624,9 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isNumber(TypeMask value) {
-    return AbstractBool.trueOrMaybe(
-        value.containsOnlyNum(_closedWorld) && !value.isNullable);
+    return AbstractBool.trueOrMaybe(value.containsOnlyNum(_closedWorld) &&
+        !value.isNullable &&
+        !value.hasLateSentinel);
   }
 
   @override
@@ -629,8 +639,9 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isBoolean(TypeMask value) {
-    return AbstractBool.trueOrMaybe(
-        value.containsOnlyBool(_closedWorld) && !value.isNullable);
+    return AbstractBool.trueOrMaybe(value.containsOnlyBool(_closedWorld) &&
+        !value.isNullable &&
+        !value.hasLateSentinel);
   }
 
   @override
@@ -643,7 +654,7 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isTruthy(TypeMask value) {
-    if (value is ValueTypeMask && !value.isNullable) {
+    if (value is ValueTypeMask && !value.isNullable && !value.hasLateSentinel) {
       PrimitiveConstantValue constant = value.value;
       if (constant is BoolConstantValue) {
         return constant.boolValue ? AbstractBool.True : AbstractBool.False;
@@ -655,8 +666,9 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isString(TypeMask value) {
-    return AbstractBool.trueOrMaybe(
-        value.containsOnlyString(_closedWorld) && !value.isNullable);
+    return AbstractBool.trueOrMaybe(value.containsOnlyString(_closedWorld) &&
+        !value.isNullable &&
+        !value.hasLateSentinel);
   }
 
   @override
@@ -672,7 +684,7 @@ class CommonMasks implements AbstractValueDomain {
     return _isIndexablePrimitive(value) ||
         _isNumberOrNull(value) ||
         _isBooleanOrNull(value) ||
-        _isNull(value);
+        value.isNull;
   }
 
   @override
@@ -731,13 +743,13 @@ class CommonMasks implements AbstractValueDomain {
       MemberEntity allocationElement,
       AbstractValue elementType,
       int length) {
-    return new ContainerTypeMask(
+    return ContainerTypeMask(
         forwardTo, allocationNode, allocationElement, elementType, length);
   }
 
   @override
   AbstractValue unionOfMany(Iterable<AbstractValue> values) {
-    TypeMask result = const TypeMask.nonNullEmpty();
+    TypeMask result = TypeMask.nonNullEmpty();
     for (TypeMask value in values) {
       result = result.union(value, this);
     }
@@ -748,18 +760,18 @@ class CommonMasks implements AbstractValueDomain {
   AbstractValue computeReceiver(Iterable<MemberEntity> members) {
     assert(_closedWorld.classHierarchy
         .hasAnyStrictSubclass(_closedWorld.commonElements.objectClass));
-    return new TypeMask.unionOf(
+    return TypeMask.unionOf(
         members.expand((MemberEntity element) {
           ClassEntity cls = element.enclosingClass;
           return [cls]..addAll(_closedWorld.mixinUsesOf(cls));
         }).map((cls) {
           if (_closedWorld.commonElements.jsNullClass == cls) {
-            return const TypeMask.empty();
+            return TypeMask.empty();
           } else if (_closedWorld.classHierarchy.isInstantiated(cls)) {
-            return new TypeMask.nonNullSubclass(cls, _closedWorld);
+            return TypeMask.nonNullSubclass(cls, _closedWorld);
           } else {
             // TODO(johnniwinther): Avoid the need for this case.
-            return const TypeMask.empty();
+            return TypeMask.empty();
           }
         }),
         this);
@@ -880,7 +892,7 @@ class CommonMasks implements AbstractValueDomain {
   @override
   AbstractValue createMapValue(AbstractValue forwardTo, Object allocationNode,
       MemberEntity allocationElement, AbstractValue key, AbstractValue value) {
-    return new MapTypeMask(
+    return MapTypeMask(
         forwardTo, allocationNode, allocationElement, key, value);
   }
 
@@ -892,14 +904,14 @@ class CommonMasks implements AbstractValueDomain {
       AbstractValue key,
       AbstractValue value,
       Map<String, AbstractValue> mappings) {
-    return new DictionaryTypeMask(
-        forwardTo, allocationNode, allocationElement, key, value, mappings);
+    return DictionaryTypeMask(forwardTo, allocationNode, allocationElement, key,
+        value, Map.from(mappings));
   }
 
   @override
   AbstractValue createSetValue(AbstractValue forwardTo, Object allocationNode,
       MemberEntity allocationElement, AbstractValue elementType) {
-    return new SetTypeMask(
+    return SetTypeMask(
         forwardTo, allocationNode, allocationElement, elementType);
   }
 
@@ -963,8 +975,8 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   TypeMask readAbstractValueFromDataSource(DataSource source) {
-    return source.readCached<TypeMask>(
-        () => new TypeMask.readFromDataSource(source, this));
+    return source
+        .readCached<TypeMask>(() => TypeMask.readFromDataSource(source, this));
   }
 
   @override
@@ -985,14 +997,21 @@ String formatType(DartTypes dartTypes, TypeMask type) {
     //     can be really long and mess up the layout.
     // Capitalize Null to emphasize that it's the null type mask and not
     // a null value we accidentally printed out.
-    if (type.isEmptyOrNull) return type.isNullable ? 'Null' : 'Empty';
+    if (type.isEmpty) return 'Empty';
+    if (type.isEmptyOrFlagged) {
+      return [
+        if (type.isNullable) 'Null',
+        if (type.hasLateSentinel) '\$',
+      ].join('');
+    }
     String nullFlag = type.isNullable ? '?' : '';
     String subFlag = type.isExact
         ? ''
         : type.isSubclass
             ? '+'
             : '*';
-    return '${type.base.name}$nullFlag$subFlag';
+    String sentinelFlag = type.hasLateSentinel ? '\$' : '';
+    return '${type.base.name}$nullFlag$subFlag$sentinelFlag';
   }
   if (type is UnionTypeMask) {
     return type.disjointMasks.map((m) => formatType(dartTypes, m)).join(' | ');

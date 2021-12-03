@@ -5,6 +5,8 @@
 // Tests that functions with large number of optional positional parameters
 // are compiled correctly and don't overflow instruction encoding.
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 
 class CCC {

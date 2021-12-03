@@ -499,15 +499,10 @@ class TimelineEvent {
 
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)                            \
   TimelineBeginEndScope tbes(thread, Timeline::GetGCStream(), name);
-#define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)                      \
-  TIMELINE_FUNCTION_GC_DURATION(thread, name)                                  \
-  tbes.SetNumArguments(1);                                                     \
-  tbes.CopyArgument(0, "mode", "basic");
 #else
 #define TIMELINE_DURATION(thread, stream, name)
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
 #define TIMELINE_FUNCTION_GC_DURATION(thread, name)
-#define TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, name)
 #endif  // !PRODUCT
 
 // See |TimelineBeginEndScope|.
@@ -757,7 +752,6 @@ class TimelineEventRecorder : public MallocAllocated {
   int64_t time_high_micros_;
 
   friend class TimelineEvent;
-  friend class TimelineEventBlockIterator;
   friend class TimelineStream;
   friend class TimelineTestHelper;
   friend class Timeline;
@@ -885,25 +879,6 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   intptr_t block_index_;
 
   friend class TimelineTestHelper;
-};
-
-// An iterator for blocks.
-class TimelineEventBlockIterator {
- public:
-  explicit TimelineEventBlockIterator(TimelineEventRecorder* recorder);
-  ~TimelineEventBlockIterator();
-
-  void Reset(TimelineEventRecorder* recorder);
-
-  // Returns false when there are no more blocks.
-  bool HasNext() const;
-
-  // Returns the next block and moves forward.
-  TimelineEventBlock* Next();
-
- private:
-  TimelineEventBlock* current_;
-  TimelineEventRecorder* recorder_;
 };
 
 // The TimelineEventPlatformRecorder records timeline events to a platform

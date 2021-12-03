@@ -8,9 +8,12 @@ import 'ast.dart';
 import 'transformations/flags.dart';
 import 'type_environment.dart' show StatefulStaticTypeContext, TypeEnvironment;
 
-void verifyComponent(Component component, {bool? isOutline, bool? afterConst}) {
+void verifyComponent(Component component,
+    {bool? isOutline, bool? afterConst, bool constantsAreAlwaysInlined: true}) {
   VerifyingVisitor.check(component,
-      isOutline: isOutline, afterConst: afterConst);
+      isOutline: isOutline,
+      afterConst: afterConst,
+      constantsAreAlwaysInlined: constantsAreAlwaysInlined);
 }
 
 class VerificationError {
@@ -22,7 +25,8 @@ class VerificationError {
 
   VerificationError(this.context, this.node, this.details);
 
-  toString() {
+  @override
+  String toString() {
     Location? location;
     try {
       location = node?.location ?? context?.location;
@@ -66,6 +70,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   /// a verification error for anything that should have been removed by it.
   final bool afterConst;
 
+  /// If true, constant fields and local variables are expected to be inlined.
+  final bool constantsAreAlwaysInlined;
+
   AsyncMarker currentAsyncMarker = AsyncMarker.Sync;
 
   bool inCatchBlock = false;
@@ -87,33 +94,41 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   TreeNode? get currentClassOrExtensionOrMember =>
       currentMember ?? currentClass ?? currentExtension;
 
-  static void check(Component component, {bool? isOutline, bool? afterConst}) {
-    component.accept(
-        new VerifyingVisitor(isOutline: isOutline, afterConst: afterConst));
+  static void check(Component component,
+      {bool? isOutline,
+      bool? afterConst,
+      required bool constantsAreAlwaysInlined}) {
+    component.accept(new VerifyingVisitor(
+        isOutline: isOutline,
+        afterConst: afterConst,
+        constantsAreAlwaysInlined: constantsAreAlwaysInlined));
   }
 
-  VerifyingVisitor({bool? isOutline, bool? afterConst})
+  VerifyingVisitor(
+      {bool? isOutline,
+      bool? afterConst,
+      required this.constantsAreAlwaysInlined})
       : isOutline = isOutline ?? false,
         afterConst = afterConst ?? !(isOutline ?? false);
 
   @override
-  defaultTreeNode(TreeNode node) {
+  void defaultTreeNode(TreeNode node) {
     visitChildren(node);
   }
 
   @override
-  defaultConstantReference(Constant constant) {
+  void defaultConstantReference(Constant constant) {
     if (seenConstants.add(constant)) {
       constant.accept(this);
     }
   }
 
   @override
-  defaultConstant(Constant constant) {
+  void defaultConstant(Constant constant) {
     constant.visitChildren(this);
   }
 
-  problem(TreeNode? node, String details, {TreeNode? context}) {
+  void problem(TreeNode? node, String details, {TreeNode? context}) {
     context ??= currentClassOrExtensionOrMember;
     throw new VerificationError(context, node, details);
   }
@@ -209,7 +224,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
   }
 
-  visitComponent(Component component) {
+  @override
+  void visitComponent(Component component) {
     try {
       for (Library library in component.libraries) {
         for (Class class_ in library.classes) {
@@ -239,13 +255,15 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
   }
 
+  @override
   void visitLibrary(Library node) {
     currentLibrary = node;
     super.visitLibrary(node);
     currentLibrary = null;
   }
 
-  visitExtension(Extension node) {
+  @override
+  void visitExtension(Extension node) {
     currentExtension = node;
     declareTypeParameters(node.typeParameters);
     final TreeNode? oldParent = enterParent(node);
@@ -276,13 +294,15 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     typedefState[node] = TypedefState.Done;
   }
 
-  visitTypedef(Typedef node) {
+  @override
+  void visitTypedef(Typedef node) {
     checkTypedef(node);
     // Enter and exit the node to check the parent pointer on the typedef node.
     exitParent(enterParent(node));
   }
 
-  visitField(Field node) {
+  @override
+  void visitField(Field node) {
     currentMember = node;
     TreeNode? oldParent = enterParent(node);
     bool isTopLevel = node.parent == currentLibrary;
@@ -324,7 +344,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     currentMember = null;
   }
 
-  visitProcedure(Procedure node) {
+  @override
+  void visitProcedure(Procedure node) {
     currentMember = node;
     TreeNode? oldParent = enterParent(node);
     classTypeParametersAreInScope = !node.isStatic;
@@ -374,7 +395,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     currentMember = null;
   }
 
-  visitConstructor(Constructor node) {
+  @override
+  void visitConstructor(Constructor node) {
     currentMember = node;
     classTypeParametersAreInScope = true;
     // The constructor member needs special treatment due to parameters being
@@ -394,7 +416,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     currentMember = null;
   }
 
-  visitClass(Class node) {
+  @override
+  void visitClass(Class node) {
     currentClass = node;
     declareTypeParameters(node.typeParameters);
     TreeNode? oldParent = enterParent(node);
@@ -410,7 +433,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     currentClass = null;
   }
 
-  visitFunctionNode(FunctionNode node) {
+  @override
+  void visitFunctionNode(FunctionNode node) {
     declareTypeParameters(node.typeParameters);
     bool savedInCatchBlock = inCatchBlock;
     AsyncMarker savedAsyncMarker = currentAsyncMarker;
@@ -429,7 +453,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     undeclareTypeParameters(node.typeParameters);
   }
 
-  visitFunctionType(FunctionType node) {
+  @override
+  void visitFunctionType(FunctionType node) {
     for (int i = 1; i < node.namedParameters.length; ++i) {
       if (node.namedParameters[i - 1].compareTo(node.namedParameters[i]) >= 0) {
         problem(currentParent,
@@ -450,24 +475,34 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     undeclareTypeParameters(node.typeParameters);
   }
 
-  visitBlock(Block node) {
+  @override
+  void visitBlock(Block node) {
     visitWithLocalScope(node);
   }
 
-  visitForStatement(ForStatement node) {
+  @override
+  void visitForStatement(ForStatement node) {
     visitWithLocalScope(node);
   }
 
-  visitForInStatement(ForInStatement node) {
+  @override
+  void visitForInStatement(ForInStatement node) {
     visitWithLocalScope(node);
   }
 
-  visitLet(Let node) {
+  @override
+  void visitLet(Let node) {
     if (_isCompileTimeErrorEncoding(node)) return;
     visitWithLocalScope(node);
   }
 
-  visitBlockExpression(BlockExpression node) {
+  @override
+  void visitInvalidExpression(InvalidExpression node) {
+    return;
+  }
+
+  @override
+  void visitBlockExpression(BlockExpression node) {
     int stackHeight = enterLocalScope();
     // Do not visit the block directly because the value expression needs to
     // be in its scope.
@@ -482,7 +517,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     exitLocalScope(stackHeight);
   }
 
-  visitCatch(Catch node) {
+  @override
+  void visitCatch(Catch node) {
     bool savedInCatchBlock = inCatchBlock;
     inCatchBlock = true;
     visitWithLocalScope(node);
@@ -528,13 +564,14 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  visitRethrow(Rethrow node) {
+  void visitRethrow(Rethrow node) {
     if (!inCatchBlock) {
       problem(node, "Rethrow must be inside a Catch block.");
     }
   }
 
-  visitVariableDeclaration(VariableDeclaration node) {
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
     TreeNode? parent = node.parent;
     if (parent is! Block &&
         !(parent is Catch && parent.body != node) &&
@@ -554,29 +591,33 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     declareVariable(node);
     if (afterConst && node.isConst) {
       Expression? initializer = node.initializer;
-      if (!(initializer is InvalidExpression ||
-          initializer is ConstantExpression &&
-              initializer.constant is UnevaluatedConstant)) {
-        problem(node, "Constant VariableDeclaration");
+      if (constantsAreAlwaysInlined) {
+        if (!(initializer is InvalidExpression ||
+            initializer is ConstantExpression &&
+                initializer.constant is UnevaluatedConstant)) {
+          problem(node, "Constant VariableDeclaration");
+        }
       }
     }
   }
 
-  visitVariableGet(VariableGet node) {
+  @override
+  void visitVariableGet(VariableGet node) {
     checkVariableInScope(node.variable, node);
     visitChildren(node);
-    if (afterConst && node.variable.isConst) {
+    if (constantsAreAlwaysInlined && afterConst && node.variable.isConst) {
       problem(node, "VariableGet of const variable '${node.variable}'.");
     }
   }
 
-  visitVariableSet(VariableSet node) {
+  @override
+  void visitVariableSet(VariableSet node) {
     checkVariableInScope(node.variable, node);
     visitChildren(node);
   }
 
   @override
-  visitStaticGet(StaticGet node) {
+  void visitStaticGet(StaticGet node) {
     visitChildren(node);
     // ignore: unnecessary_null_comparison
     if (node.target == null) {
@@ -596,13 +637,16 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (node.target.isInstanceMember) {
       problem(node, "StaticGet of '${node.target}' that's an instance member.");
     }
-    if (afterConst && node.target is Field && node.target.isConst) {
+    if (constantsAreAlwaysInlined &&
+        afterConst &&
+        node.target is Field &&
+        node.target.isConst) {
       problem(node, "StaticGet of const field '${node.target}'.");
     }
   }
 
   @override
-  visitStaticSet(StaticSet node) {
+  void visitStaticSet(StaticSet node) {
     visitChildren(node);
     // ignore: unnecessary_null_comparison
     if (node.target == null) {
@@ -617,7 +661,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  visitStaticInvocation(StaticInvocation node) {
+  void visitStaticInvocation(StaticInvocation node) {
     checkTargetedInvocation(node.target, node);
     if (node.target.isInstanceMember) {
       problem(node,
@@ -669,7 +713,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  visitConstructorInvocation(ConstructorInvocation node) {
+  void visitConstructorInvocation(ConstructorInvocation node) {
     checkTargetedInvocation(node.target, node);
     if (node.target.enclosingClass.isAbstract) {
       problem(node, "ConstructorInvocation of abstract class.");
@@ -705,7 +749,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  visitListLiteral(ListLiteral node) {
+  void visitListLiteral(ListLiteral node) {
     visitChildren(node);
     if (afterConst && node.isConst) {
       problem(node, "Constant list literal.");
@@ -713,7 +757,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  visitSetLiteral(SetLiteral node) {
+  void visitSetLiteral(SetLiteral node) {
     visitChildren(node);
     if (afterConst && node.isConst) {
       problem(node, "Constant set literal.");
@@ -721,7 +765,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  visitMapLiteral(MapLiteral node) {
+  void visitMapLiteral(MapLiteral node) {
     visitChildren(node);
     if (afterConst && node.isConst) {
       problem(node, "Constant map literal.");
@@ -729,14 +773,14 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  visitSymbolLiteral(SymbolLiteral node) {
+  void visitSymbolLiteral(SymbolLiteral node) {
     if (afterConst) {
       problem(node, "Symbol literal.");
     }
   }
 
   @override
-  visitContinueSwitchStatement(ContinueSwitchStatement node) {
+  void visitContinueSwitchStatement(ContinueSwitchStatement node) {
     // ignore: unnecessary_null_comparison
     if (node.target == null) {
       problem(node, "No target.");
@@ -752,7 +796,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  visitInstanceConstant(InstanceConstant constant) {
+  void visitInstanceConstant(InstanceConstant constant) {
     constant.visitChildren(this);
     if (constant.typeArguments.length !=
         constant.classNode.typeParameters.length) {
@@ -789,7 +833,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  visitUnevaluatedConstant(UnevaluatedConstant constant) {
+  void visitUnevaluatedConstant(UnevaluatedConstant constant) {
     if (inUnevaluatedConstant) {
       problem(currentParent, "UnevaluatedConstant in UnevaluatedConstant.");
     }
@@ -803,7 +847,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  defaultMemberReference(Member node) {
+  void defaultMemberReference(Member node) {
     if (node.transformerFlags & TransformerFlag.seenByVerifier == 0) {
       problem(
           node, "Dangling reference to '$node', parent is: '${node.parent}'.");
@@ -811,7 +855,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  visitClassReference(Class node) {
+  void visitClassReference(Class node) {
     if (!classes.contains(node)) {
       problem(
           node, "Dangling reference to '$node', parent is: '${node.parent}'.");
@@ -819,7 +863,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  visitTypedefReference(Typedef node) {
+  void visitTypedefReference(Typedef node) {
     if (!typedefs.contains(node)) {
       problem(
           node, "Dangling reference to '$node', parent is: '${node.parent}'");
@@ -827,7 +871,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  visitTypeParameterType(TypeParameterType node) {
+  void visitTypeParameterType(TypeParameterType node) {
     TypeParameter parameter = node.parameter;
     if (!typeParametersInScope.contains(parameter)) {
       TreeNode? owner = parameter.parent is FunctionNode
@@ -847,7 +891,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  visitInterfaceType(InterfaceType node) {
+  void visitInterfaceType(InterfaceType node) {
     node.visitChildren(this);
     if (node.typeArguments.length != node.classNode.typeParameters.length) {
       problem(
@@ -877,7 +921,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  visitTypedefType(TypedefType node) {
+  void visitTypedefType(TypedefType node) {
     checkTypedef(node.typedefNode);
     node.visitChildren(this);
     if (node.typeArguments.length != node.typedefNode.typeParameters.length) {
@@ -968,6 +1012,11 @@ class VerifyGetStaticType extends RecursiveVisitor {
   }
 
   @override
+  void visitInvalidExpression(InvalidExpression node) {
+    return;
+  }
+
+  @override
   void defaultExpression(Expression node) {
     try {
       node.getStaticType(_staticTypeContext);
@@ -989,7 +1038,8 @@ class CheckParentPointers extends Visitor<void> with VisitorVoidMixin {
 
   CheckParentPointers([this.parent]);
 
-  defaultTreeNode(TreeNode node) {
+  @override
+  void defaultTreeNode(TreeNode node) {
     if (node.parent != parent) {
       throw new VerificationError(
           parent,

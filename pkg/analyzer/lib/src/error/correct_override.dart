@@ -26,7 +26,7 @@ class CorrectOverrideHelper {
   CorrectOverrideHelper({
     required LibraryElementImpl library,
     required ExecutableElement thisMember,
-  })   : _library = library,
+  })  : _library = library,
         _typeSystem = library.typeSystem,
         _thisMember = thisMember {
     _computeThisTypeForSubtype();
@@ -52,14 +52,17 @@ class CorrectOverrideHelper {
   }) {
     var isCorrect = isCorrectOverrideOf(superMember: superMember);
     if (!isCorrect) {
+      // Elements enclosing members that can participate in overrides are always
+      // named, so we can safely assume `_thisMember.enclosingElement.name` and
+      // `superMember.enclosingElement.name` are non-`null`.
       errorReporter.reportErrorForNode(
         errorCode ?? CompileTimeErrorCode.INVALID_OVERRIDE,
         errorNode,
         [
           _thisMember.name,
-          _thisMember.enclosingElement.name,
+          _thisMember.enclosingElement.name!,
           _thisMember.type,
-          superMember.enclosingElement.name,
+          superMember.enclosingElement.name!,
           superMember.type,
         ],
       );
@@ -69,7 +72,8 @@ class CorrectOverrideHelper {
   /// Fill [_thisTypeForSubtype]. If [_thisMember] has covariant formal
   /// parameters, replace their types with `Object?` or `Object`.
   void _computeThisTypeForSubtype() {
-    var parameters = _thisMember.parameters;
+    var type = _thisMember.type;
+    var parameters = type.parameters;
 
     List<ParameterElement>? newParameters;
     for (var i = 0; i < parameters.length; i++) {
@@ -84,7 +88,6 @@ class CorrectOverrideHelper {
       }
     }
 
-    var type = _thisMember.type;
     if (newParameters != null) {
       _thisTypeForSubtype = FunctionTypeImpl(
         typeFormals: type.typeFormals,
@@ -106,7 +109,7 @@ class CovariantParametersVerifier {
 
   CovariantParametersVerifier({
     required ExecutableElement thisMember,
-  })   : _session = thisMember.library.session as AnalysisSessionImpl,
+  })  : _session = thisMember.library.session as AnalysisSessionImpl,
         _typeSystem = thisMember.library.typeSystem as TypeSystemImpl,
         _thisMember = thisMember;
 
@@ -123,14 +126,18 @@ class CovariantParametersVerifier {
         if (!_typeSystem.isSubtypeOf(superType, thisType) &&
             !_typeSystem.isSubtypeOf(thisType, superType)) {
           var superMember = superParameter.member;
+          // Elements enclosing members that can participate in overrides are
+          // always named, so we can safely assume
+          // `_thisMember.enclosingElement.name` and
+          // `superMember.enclosingElement.name` are non-`null`.
           errorReporter.reportErrorForNode(
             CompileTimeErrorCode.INVALID_OVERRIDE,
             errorNode,
             [
               _thisMember.name,
-              _thisMember.enclosingElement.name,
+              _thisMember.enclosingElement.name!,
               _thisMember.type,
-              superMember.enclosingElement.name,
+              superMember.enclosingElement.name!,
               superMember.type,
             ],
           );

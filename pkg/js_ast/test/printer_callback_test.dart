@@ -28,8 +28,8 @@ class TestCase {
   const TestCase(this.data, [this.environment = const {}]);
 }
 
-const List<TestCase> DATA = const <TestCase>[
-  const TestCase(const {
+const List<TestCase> DATA = <TestCase>[
+  TestCase({
     TestMode.NONE: """
 function(a, b) {
   return null;
@@ -47,7 +47,7 @@ function(a@1, b@2) {
   return null@5;
 @4}@3@0"""
   }),
-  const TestCase(const {
+  TestCase({
     TestMode.NONE: """
 function() {
   if (true) {
@@ -105,7 +105,7 @@ function() {
 @26  }@22
 @20}@1@0""",
   }),
-  const TestCase(const {
+  TestCase({
     TestMode.NONE: """
 function() {
   function foo() {
@@ -127,7 +127,7 @@ function() {
   }@5@3
 @2}@1@0"""
   }),
-  const TestCase(const {
+  TestCase({
     TestMode.INPUT: """
 function() {
   a['b'];
@@ -154,13 +154,13 @@ function() {
 @2  [1@8,,@9 2@10]@7;
 @6}@1@0""",
   }),
-  const TestCase(const {
+  TestCase({
     TestMode.INPUT: "a.#nameTemplate = #nameTemplate",
     TestMode.NONE: "a.nameValue = nameValue",
     TestMode.ENTER: "@0@1@2a.@3nameValue = @3nameValue",
     TestMode.DELIMITER: "a.nameValue = nameValue",
     TestMode.EXIT: "a@2.nameValue@3@1 = nameValue@3@0",
-  }, const {
+  }, {
     'nameTemplate': 'nameValue'
   }),
 ];
@@ -179,16 +179,16 @@ void check(TestCase testCase) {
     // Input is the same as output.
     code = map[TestMode.NONE];
   }
-  JavaScriptPrintingOptions options = new JavaScriptPrintingOptions();
+  JavaScriptPrintingOptions options = JavaScriptPrintingOptions();
   Map arguments = {};
   testCase.environment.forEach((String name, String value) {
-    arguments[name] = new FixedName(value);
+    arguments[name] = FixedName(value);
   });
   Node node = js.parseForeignJS(code).instantiate(arguments);
   map.forEach((TestMode mode, String expectedOutput) {
     if (mode == TestMode.INPUT) return;
-    Context context = new Context(mode);
-    new Printer(options, context).visit(node);
+    Context context = Context(mode);
+    Printer(options, context).visit(node);
     // TODO(johnniwinther): Remove `replaceAll(...)` when dart2js behaves as the
     // VM on newline in multiline strings.
     expect(context.getText(), equals(expectedOutput.replaceAll('\r\n', '\n')),
@@ -227,7 +227,7 @@ class Context extends SimpleJavaScriptPrintingContext {
   String getText() {
     String text = super.getText();
     int offset = 0;
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     for (int position in tagMap.keys.toList()..sort()) {
       if (offset < position) {
         sb.write(text.substring(offset, position));

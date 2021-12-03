@@ -8,9 +8,14 @@ class A extends core::Object {
   constructor •([core::int field]) → self::A
     ;
   static factory redirect([core::int field]) → self::A
-    let dynamic #redirecting_factory = self::A::• in invalid-expression;
+    return new self::A::•(field);
 }
 static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_default_value.dart:5:7 -> ConstructorTearOffConstant(A.redirect)
+Extra constant evaluation: evaluated: 4, effectively constant: 1

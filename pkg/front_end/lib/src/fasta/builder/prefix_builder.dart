@@ -21,6 +21,7 @@ class PrefixBuilder extends BuilderImpl {
 
   final Scope exportScope = new Scope.top();
 
+  @override
   final SourceLibraryBuilder parent;
 
   final bool deferred;
@@ -43,6 +44,7 @@ class PrefixBuilder extends BuilderImpl {
     }
   }
 
+  @override
   Uri get fileUri => parent.fileUri;
 
   Builder? lookup(String name, int charOffset, Uri fileUri) {

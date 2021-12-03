@@ -1,12 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/general/super_call.dart:17:12: Error: Can't use 'super' as an expression.
-// To delegate a constructor to a super constructor, put the super call as an initializer.
-//     return super(5);
-//            ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -34,10 +26,7 @@ class B extends self::A {
   method call(core::int* x) → core::int*
     return x.{core::num::*}(3){(core::num*) →* core::int*};
   method call_super() → core::int* {
-    return invalid-expression "pkg/front_end/testcases/general/super_call.dart:17:12: Error: Can't use 'super' as an expression.
-To delegate a constructor to a super constructor, put the super call as an initializer.
-    return super(5);
-           ^";
+    return super.{self::A::call}(5);
   }
 }
 static method main() → dynamic {

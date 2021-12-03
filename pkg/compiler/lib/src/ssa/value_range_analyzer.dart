@@ -18,40 +18,39 @@ class ValueRangeInfo {
   }
 
   Value newIntValue(BigInt value) {
-    return new IntValue(value, this);
+    return IntValue(value, this);
   }
 
   Value newInstructionValue(HInstruction instruction) {
-    return new InstructionValue(instruction, this);
+    return InstructionValue(instruction, this);
   }
 
   Value newPositiveValue(HInstruction instruction) {
-    return new PositiveValue(instruction, this);
+    return PositiveValue(instruction, this);
   }
 
   Value newAddValue(Value left, Value right) {
-    return new AddValue(left, right, this);
+    return AddValue(left, right, this);
   }
 
   Value newSubtractValue(Value left, Value right) {
-    return new SubtractValue(left, right, this);
+    return SubtractValue(left, right, this);
   }
 
   Value newNegateValue(Value value) {
-    return new NegateValue(value, this);
+    return NegateValue(value, this);
   }
 
   Range newUnboundRange() {
-    return new Range.unbound(this);
+    return Range.unbound(this);
   }
 
   Range newNormalizedRange(Value low, Value up) {
-    return new Range.normalize(low, up, this);
+    return Range.normalize(low, up, this);
   }
 
   Range newMarkerRange() {
-    return new Range(
-        new MarkerValue(false, this), new MarkerValue(true, this), this);
+    return Range(MarkerValue(false, this), MarkerValue(true, this), this);
   }
 }
 
@@ -184,7 +183,7 @@ class IntValue extends Value {
   }
 
   @override
-  int get hashCode => throw new UnsupportedError('IntValue.hashCode');
+  int get hashCode => throw UnsupportedError('IntValue.hashCode');
 
   @override
   String toString() => 'IntValue $value';
@@ -274,7 +273,7 @@ class InstructionValue extends Value {
   }
 
   @override
-  int get hashCode => throw new UnsupportedError('InstructionValue.hashCode');
+  int get hashCode => throw UnsupportedError('InstructionValue.hashCode');
 
   @override
   Value operator +(Value other) {
@@ -347,7 +346,7 @@ class AddValue extends BinaryOperationValue {
   }
 
   @override
-  int get hashCode => throw new UnsupportedError('AddValue.hashCode');
+  int get hashCode => throw UnsupportedError('AddValue.hashCode');
 
   @override
   Value operator -() => -left - right;
@@ -402,7 +401,7 @@ class SubtractValue extends BinaryOperationValue {
   }
 
   @override
-  int get hashCode => throw new UnsupportedError('SubtractValue.hashCode');
+  int get hashCode => throw UnsupportedError('SubtractValue.hashCode');
 
   @override
   Value operator -() => right - left;
@@ -458,7 +457,7 @@ class NegateValue extends Value {
   }
 
   @override
-  int get hashCode => throw new UnsupportedError('Negate.hashCode');
+  int get hashCode => throw UnsupportedError('Negate.hashCode');
 
   @override
   Value operator +(other) {
@@ -602,7 +601,7 @@ class Range {
   }
 
   @override
-  int get hashCode => throw new UnsupportedError('Range.hashCode');
+  int get hashCode => throw UnsupportedError('Range.hashCode');
 
   bool operator <(Range other) {
     return upper != other.lower && upper.min(other.lower) == upper;
@@ -638,11 +637,11 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   /// List of [HRangeConversion] instructions created by the phase. We
   /// save them here in order to remove them once the phase is done.
-  final List<HRangeConversion> conversions = <HRangeConversion>[];
+  final List<HRangeConversion> conversions = [];
 
   /// Value ranges for integer instructions. This map gets populated by
   /// the dominator tree visit.
-  final Map<HInstruction, Range> ranges = new Map<HInstruction, Range>();
+  final Map<HInstruction, Range> ranges = {};
 
   final JClosedWorld closedWorld;
   final ValueRangeInfo info;
@@ -651,7 +650,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   HGraph graph;
 
   SsaValueRangeAnalyzer(JClosedWorld closedWorld, this.optimizer)
-      : info = new ValueRangeInfo(),
+      : info = ValueRangeInfo(),
         this.closedWorld = closedWorld;
 
   @override
@@ -719,8 +718,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       return info.newUnboundRange();
     }
     if (phi.block.isLoopHeader()) {
-      Range range =
-          new LoopUpdateRecognizer(closedWorld, ranges, info).run(phi);
+      Range range = LoopUpdateRecognizer(closedWorld, ranges, info).run(phi);
       if (range == null) return info.newUnboundRange();
       return range;
     }
@@ -750,12 +748,12 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       return info.newUnboundRange();
     }
     if (constantNum.isMinusZero) {
-      constantNum = new IntConstantValue(BigInt.zero);
+      constantNum = IntConstantValue(BigInt.zero);
     }
 
     BigInt intValue = constantNum is IntConstantValue
         ? constantNum.intValue
-        : new BigInt.from(constantNum.doubleValue.toInt());
+        : BigInt.from(constantNum.doubleValue.toInt());
     Value value = info.newIntValue(intValue);
     return info.newNormalizedRange(value, value);
   }
@@ -1018,8 +1016,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction createRangeConversion(
       HInstruction cursor, HInstruction instruction) {
-    HRangeConversion newInstruction = new HRangeConversion(
-        instruction, closedWorld.abstractValueDomain.intType);
+    HRangeConversion newInstruction =
+        HRangeConversion(instruction, closedWorld.abstractValueDomain.intType);
     conversions.add(newInstruction);
     cursor.block.addBefore(cursor, newInstruction);
     // Update the users of the instruction dominated by [cursor] to

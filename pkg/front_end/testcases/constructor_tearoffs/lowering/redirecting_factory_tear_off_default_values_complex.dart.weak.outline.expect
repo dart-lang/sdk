@@ -13,37 +13,37 @@ class Class1 extends core::Object {
   static method _#positional#tearOff([core::int field1, core::int field2]) → self::Class1
     return new self::Class1::positional(field1, field2);
   static factory redirectPositionalSame([core::int field1, core::int field2]) → self::Class1
-    let dynamic #redirecting_factory = self::Class1::positional in invalid-expression;
+    return new self::Class1::positional(field1, field2);
   static method _#redirectPositionalSame#tearOff([core::int field1, core::int field2]) → self::Class1
     return new self::Class1::positional(field1, field2);
   static factory redirectPositionalFewer1([core::int field1]) → self::Class1
-    let dynamic #redirecting_factory = self::Class1::positional in invalid-expression;
+    return new self::Class1::positional(field1);
   static method _#redirectPositionalFewer1#tearOff([core::int field1]) → self::Class1
     return new self::Class1::positional(field1);
   static factory redirectPositionalFewer2() → self::Class1
-    let dynamic #redirecting_factory = self::Class1::positional in invalid-expression;
+    return new self::Class1::positional();
   static method _#redirectPositionalFewer2#tearOff() → self::Class1
     return new self::Class1::positional();
   static method _#named#tearOff({core::int field1, core::int field2}) → self::Class1
     return new self::Class1::named(field1: field1, field2: field2);
   static factory redirectNamedSame({core::int field1, core::int field2}) → self::Class1
-    let dynamic #redirecting_factory = self::Class1::named in invalid-expression;
+    return new self::Class1::named(field1: field1, field2: field2);
   static method _#redirectNamedSame#tearOff({core::int field1, core::int field2}) → self::Class1
     return new self::Class1::named(field1: field1, field2: field2);
   static factory redirectNamedReorder({core::int field2, core::int field1}) → self::Class1
-    let dynamic #redirecting_factory = self::Class1::named in invalid-expression;
+    return new self::Class1::named(field2: field2, field1: field1);
   static method _#redirectNamedReorder#tearOff({core::int field2, core::int field1}) → self::Class1
     return new self::Class1::named(field2: field2, field1: field1);
   static factory redirectNamedFewer1({core::int field1}) → self::Class1
-    let dynamic #redirecting_factory = self::Class1::named in invalid-expression;
+    return new self::Class1::named(field1: field1);
   static method _#redirectNamedFewer1#tearOff({core::int field1}) → self::Class1
     return new self::Class1::named(field1: field1);
   static factory redirectNamedFewer2({core::int field2}) → self::Class1
-    let dynamic #redirecting_factory = self::Class1::named in invalid-expression;
+    return new self::Class1::named(field2: field2);
   static method _#redirectNamedFewer2#tearOff({core::int field2}) → self::Class1
     return new self::Class1::named(field2: field2);
   static factory redirectNamedFewer3() → self::Class1
-    let dynamic #redirecting_factory = self::Class1::named in invalid-expression;
+    return new self::Class1::named();
   static method _#redirectNamedFewer3#tearOff() → self::Class1
     return new self::Class1::named();
 }
@@ -56,3 +56,15 @@ static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 static method throws(() → dynamic f, {core::bool inSoundModeOnly}) → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectPositionalSame)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectPositionalFewer1)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectPositionalFewer2)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedSame)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedReorder)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedFewer1)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedFewer2)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedFewer3)
+Extra constant evaluation: evaluated: 49, effectively constant: 8

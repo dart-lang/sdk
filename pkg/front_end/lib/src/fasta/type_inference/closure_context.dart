@@ -113,6 +113,7 @@ abstract class ClosureContext {
 }
 
 class _SyncClosureContext implements ClosureContext {
+  @override
   bool get isAsync => false;
 
   /// The typing expectation for the subexpression of a `return` statement
@@ -462,6 +463,7 @@ class _SyncClosureContext implements ClosureContext {
 /// Keeps track of information about the innermost function or closure being
 /// inferred.
 class _AsyncClosureContext implements ClosureContext {
+  @override
   bool get isAsync => true;
 
   /// The typing expectation for the subexpression of a `return` statement
@@ -496,6 +498,7 @@ class _AsyncClosureContext implements ClosureContext {
   /// being inferred.
   List<DartType>? _returnExpressionTypes;
 
+  @override
   DartType? futureValueType;
 
   _AsyncClosureContext(this._returnContext, this._declaredReturnType,
@@ -870,6 +873,7 @@ class _AsyncClosureContext implements ClosureContext {
 /// Keeps track of information about the innermost function or closure being
 /// inferred.
 class _SyncStarClosureContext implements ClosureContext {
+  @override
   bool get isAsync => false;
 
   /// The typing expectation for the subexpression of a `return` or `yield`
@@ -1000,6 +1004,7 @@ class _SyncStarClosureContext implements ClosureContext {
 /// Keeps track of information about the innermost function or closure being
 /// inferred.
 class _AsyncStarClosureContext implements ClosureContext {
+  @override
   bool get isAsync => true;
 
   /// The typing expectation for the subexpression of a `return` or `yield`

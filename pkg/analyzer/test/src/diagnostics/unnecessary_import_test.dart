@@ -9,8 +9,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(srawlins): Re-enable this check once Flutter engine path is clear.
-    // defineReflectiveTests(UnnecessaryImportTest);
+    defineReflectiveTests(UnnecessaryImportTest);
   });
 }
 
@@ -224,6 +223,23 @@ import 'lib2.dart';
 f(A a, B b) {}
 ''', [
       error(HintCode.UNNECESSARY_IMPORT, 7, 11),
+    ]);
+  }
+
+  test_unnecessaryImport_sameUri() async {
+    newFile('$testPackageLibPath/lib1.dart', content: '''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', content: '''
+export 'lib1.dart';
+class B {}
+''');
+    await assertErrorsInCode('''
+import 'dart:async';
+import 'dart:async' show Completer;
+f(FutureOr<int> a, Completer<int> b) {}
+''', [
+      error(HintCode.UNNECESSARY_IMPORT, 28, 12),
     ]);
   }
 }

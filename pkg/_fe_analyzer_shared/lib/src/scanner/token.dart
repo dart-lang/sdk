@@ -776,6 +776,9 @@ class SyntheticStringToken extends StringToken {
       : super(type, value, offset);
 
   @override
+  Token? beforeSynthetic;
+
+  @override
   bool get isSynthetic => true;
 
   @override

@@ -11,8 +11,7 @@ class Class {
 }
 
 class SubClass extends Class {
-  SubClass(Type componentType) : super(
-            /*Type*/ componentType);
+  SubClass(Type componentType) : super(/*Type*/ componentType);
 }
 
 method1(Class c, Type type, [o]) {

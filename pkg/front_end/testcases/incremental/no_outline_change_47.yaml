@@ -7,7 +7,7 @@
 type: newworld
 worlds:
   - entry: main.dart
-    experiments: alternative-invalidation-strategy,non-nullable
+    experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
         late final int x = 42;

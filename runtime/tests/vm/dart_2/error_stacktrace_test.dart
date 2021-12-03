@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that the full stacktrace in an error object matches the stacktrace
 // handed to the catch clause.
+
+// @dart = 2.9
 library test.error_stacktrace;
 
 import "package:expect/expect.dart";

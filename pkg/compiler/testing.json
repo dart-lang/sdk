@@ -3,7 +3,7 @@
 "":"for details. All rights reserved. Use of this source code is governed by a",
 "":"BSD-style license that can be found in the LICENSE.md file.",
 
-  "packages": "../../.packages",
+  "packages": "../../.dart_tool/package_config.json",
 
   "analyze": {
     "options": "analysis_options.yaml",
@@ -15,6 +15,7 @@
     "exclude": [
       "^pkg/compiler/test/.*/data/.*",
       "^pkg/compiler/test/.*/data_2/.*",
+      "^pkg/compiler/test/.*/emission/.*",
       "^pkg/compiler/test/.*/model_data/.*",
       "^pkg/compiler/test/deferred_loading/libs/.*",
       "^pkg/compiler/test/sourcemaps/stacktrace/extension_method.dart"

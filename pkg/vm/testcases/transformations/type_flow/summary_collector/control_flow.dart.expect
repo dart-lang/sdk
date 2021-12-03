@@ -17,24 +17,22 @@ RESULT: _T {}?
 ------------ TestEnum. ------------
 %this = _Parameter #0 [_T (#lib::TestEnum)+]
 %index = _Parameter #1 [_T (dart.core::int)+?]
-%_name = _Parameter #2 [_T (dart.core::String)+?]
-t3 = _Call direct set [#lib::TestEnum.index] (%this, %index)
-t4 = _Call direct set [#lib::TestEnum._name] (%this, %_name)
-t5 = _Call direct [dart.core::Object.] (%this)
+%name = _Parameter #2 [_T (dart.core::String)+?]
+t3 = _Call direct [dart.core::_Enum.] (%this, %index, %name)
 RESULT: _T {}?
 ------------ TestEnum.toString ------------
 %this = _Parameter #0 [_T (#lib::TestEnum)+]
-t1* = _Call virtual get [#lib::TestEnum._name] (%this)
-RESULT: t1
+t1 = _Call virtual get [dart.core::_Enum._name] (%this)
+RESULT: _T (dart.core::String)+
 ------------ TestEnum.values ------------
 
-RESULT: _T (dart.core::_ImmutableList, const <#lib::TestEnum*>[const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: "TestEnum.v1"}, const #lib::TestEnum{#lib::TestEnum.index: 1, #lib::TestEnum._name: "TestEnum.v2"}])
+RESULT: _T (dart.core::_ImmutableList, const <#lib::TestEnum*>[const #lib::TestEnum{dart.core::_Enum.index: 0, dart.core::_Enum._name: "v1"}, const #lib::TestEnum{dart.core::_Enum.index: 1, dart.core::_Enum._name: "v2"}])
 ------------ TestEnum.v1 ------------
 
-RESULT: _T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: "TestEnum.v1"})
+RESULT: _T (#lib::TestEnum, const #lib::TestEnum{dart.core::_Enum.index: 0, dart.core::_Enum._name: "v1"})
 ------------ TestEnum.v2 ------------
 
-RESULT: _T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 1, #lib::TestEnum._name: "TestEnum.v2"})
+RESULT: _T (#lib::TestEnum, const #lib::TestEnum{dart.core::_Enum.index: 1, dart.core::_Enum._name: "v2"})
 ------------ foo ------------
 %x = _Parameter #0 [_T ANY?]
 RESULT: _T {}?
@@ -114,8 +112,8 @@ RESULT: _T {}?
 %x = _Parameter #0 [_T (dart.core::int)+?]
 %y = _Parameter #1 [_T (dart.core::String)+?]
 %z = _Parameter #2 [_T ANY?]
-t3* = _Call [dart.core::num.==] (%x, _T (dart.core::_Smi, 5))
-t4* = _Call [dart.core::String.==] (%y, _T (dart.core::_OneByteString, "hi"))
+t3* = _Call [dart.core::num.==] (_T (dart.core::int)+?, _T (dart.core::int)+?)
+t4* = _Call [dart.core::String.==] (_T (dart.core::String)+?, _T (dart.core::String)+?)
 t5 = _Call direct [dart.core::Object.==] (%z, _T {}?)
 t6 = _Narrow (%z to _T ANY)
 t7 = _Call direct [#lib::foo] (_T (dart.core::_Smi, 5))
@@ -129,8 +127,8 @@ t2 = _Call direct [#lib::foo] (t1)
 RESULT: _T {}?
 ------------ if9 ------------
 %x = _Parameter #0 [_T (#lib::TestEnum)+?]
-t1* = _Call [dart.core::Object.==] (%x, _T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: "TestEnum.v1"}))
-t2 = _Call direct [#lib::foo] (_T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: "TestEnum.v1"}))
+t1* = _Call [dart.core::Object.==] (_T (#lib::TestEnum)+?, _T (#lib::TestEnum)+?)
+t2 = _Call direct [#lib::foo] (_T (#lib::TestEnum, const #lib::TestEnum{dart.core::_Enum.index: 0, dart.core::_Enum._name: "v1"}))
 RESULT: _T {}?
 ------------ conditional1 ------------
 %cond1 = _Parameter #0 [_T (dart.core::bool)+?]

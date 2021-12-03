@@ -27,7 +27,7 @@ static method foo(dynamic d, void v, core::Object? onull, core::Object o, core::
   self::f<core::String?>(snull);
   self::f<core::String>(s);
   self::g<core::Object>(d);
-  self::g<core::Object>(let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/infer_object_from_dynamic.dart:20:5: Error: This expression has type 'void' and can't be used.
+  self::g<core::Object>(invalid-expression "pkg/front_end/testcases/nnbd/infer_object_from_dynamic.dart:20:5: Error: This expression has type 'void' and can't be used.
   g(v);
     ^" in v);
   self::g<core::Object>(onull);
@@ -35,7 +35,7 @@ static method foo(dynamic d, void v, core::Object? onull, core::Object o, core::
   self::g<core::String>(snull);
   self::g<core::String>(s);
   self::h<core::Object>(d);
-  self::h<core::Object>(let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/infer_object_from_dynamic.dart:27:5: Error: This expression has type 'void' and can't be used.
+  self::h<core::Object>(invalid-expression "pkg/front_end/testcases/nnbd/infer_object_from_dynamic.dart:27:5: Error: This expression has type 'void' and can't be used.
   h(v);
     ^" in v);
   self::h<core::Object>(onull);

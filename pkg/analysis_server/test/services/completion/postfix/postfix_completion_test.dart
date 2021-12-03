@@ -7,7 +7,6 @@ import 'package:analysis_server/src/services/completion/postfix/postfix_completi
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../abstract_context.dart';
 import '../../../abstract_single_unit.dart';
 
 void main() {
@@ -635,7 +634,7 @@ f(expr) {
 }
 
 @reflectiveTest
-class _TryTest extends PostfixCompletionTest with WithNullSafetyMixin {
+class _TryTest extends PostfixCompletionTest {
   Future<void> test_try() async {
     await _prepareCompletion('.try', '''
 f() {

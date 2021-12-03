@@ -22,17 +22,12 @@ bool IsZero(char* begin, char* end) {
 VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
   const intptr_t kVirtualMemoryBlockSize = 64 * KB;
   VirtualMemory* vm =
-      VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, "test");
+      VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, false, "test");
   EXPECT(vm != NULL);
   EXPECT(vm->address() != NULL);
   EXPECT_EQ(vm->start(), reinterpret_cast<uword>(vm->address()));
-#if defined(DART_COMPRESSED_POINTERS)
-  EXPECT_EQ(kCompressedHeapPageSize, vm->size());
-  EXPECT_EQ(vm->start() + kCompressedHeapPageSize, vm->end());
-#else
   EXPECT_EQ(kVirtualMemoryBlockSize, vm->size());
   EXPECT_EQ(vm->start() + kVirtualMemoryBlockSize, vm->end());
-#endif  // defined(DART_COMPRESSED_POINTERS)
   EXPECT(vm->Contains(vm->start()));
   EXPECT(vm->Contains(vm->start() + 1));
   EXPECT(vm->Contains(vm->start() + kVirtualMemoryBlockSize - 1));
@@ -63,7 +58,7 @@ VM_UNIT_TEST_CASE(AllocateAlignedVirtualMemory) {
   intptr_t kIterations = kHeapPageSize / kVirtualPageSize;
   for (intptr_t i = 0; i < kIterations; i++) {
     VirtualMemory* vm = VirtualMemory::AllocateAligned(
-        kHeapPageSize, kHeapPageSize, false, "test");
+        kHeapPageSize, kHeapPageSize, false, false, "test");
     EXPECT(Utils::IsAligned(vm->start(), kHeapPageSize));
     EXPECT_EQ(kHeapPageSize, vm->size());
     delete vm;
@@ -76,19 +71,19 @@ VM_UNIT_TEST_CASE(FreeVirtualMemory) {
   const intptr_t kIterations = 900;  // Enough to exhaust 32-bit address space.
   for (intptr_t i = 0; i < kIterations; ++i) {
     VirtualMemory* vm =
-        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, "test");
+        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, false, "test");
     delete vm;
   }
   // Check that truncation does not introduce leaks.
   for (intptr_t i = 0; i < kIterations; ++i) {
     VirtualMemory* vm =
-        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, "test");
+        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, false, "test");
     vm->Truncate(kVirtualMemoryBlockSize / 2);
     delete vm;
   }
   for (intptr_t i = 0; i < kIterations; ++i) {
     VirtualMemory* vm =
-        VirtualMemory::Allocate(kVirtualMemoryBlockSize, true, "test");
+        VirtualMemory::Allocate(kVirtualMemoryBlockSize, true, false, "test");
     vm->Truncate(0);
     delete vm;
   }

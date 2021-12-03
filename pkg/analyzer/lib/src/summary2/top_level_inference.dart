@@ -384,7 +384,7 @@ class _InitializerInference {
 
     if (node.initializer != null) {
       var inferenceNode =
-          _VariableInferenceNode(_walker, _unitElement, _scope, node);
+          _VariableInferenceNode(_walker, _unitElement, _scope, element, node);
       _walker._nodes[element] = inferenceNode;
       (element as PropertyInducingElementImpl).typeInference =
           _PropertyInducingElementTypeInference(inferenceNode);
@@ -413,6 +413,7 @@ class _VariableInferenceNode extends _InferenceNode {
   final CompilationUnitElementImpl _unitElement;
   final TypeSystemImpl _typeSystem;
   final Scope _scope;
+  final PropertyInducingElement _element;
   final VariableDeclaration _node;
 
   @override
@@ -422,6 +423,7 @@ class _VariableInferenceNode extends _InferenceNode {
     this._walker,
     this._unitElement,
     this._scope,
+    this._element,
     this._node,
   ) : _typeSystem = _unitElement.library.typeSystem;
 
@@ -502,8 +504,12 @@ class _VariableInferenceNode extends _InferenceNode {
   }
 
   void _resolveInitializer({required bool forDependencies}) {
-    var astResolver =
-        AstResolver(_walker._linker, _unitElement, _scope, _node.initializer!);
+    var enclosingElement = _element.enclosingElement;
+    var enclosingClassElement =
+        enclosingElement is ClassElement ? enclosingElement : null;
+    var astResolver = AstResolver(
+        _walker._linker, _unitElement, _scope, _node.initializer!,
+        enclosingClassElement: enclosingClassElement);
     astResolver.resolveExpression(() => _node.initializer!,
         buildElements: forDependencies);
   }

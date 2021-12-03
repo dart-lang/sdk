@@ -417,7 +417,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ cmpq(RDX, Immediate(0));
   __ j(EQUAL, &no_type_args, Assembler::kNearJump);
   __ movq(RAX, Address(RBP, target::kWordSize * kReceiverOffsetInWords));
-  __ movq(RCX, Address(RAX, RDX, TIMES_1, 0));
+  __ LoadCompressed(RCX, Address(RAX, RDX, TIMES_1, 0));
   __ Bind(&no_type_args);
   __ pushq(RCX);
 
@@ -427,16 +427,19 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   // Allocate context.
   {
     Label done, slow_path;
-    __ TryAllocateArray(kContextCid, target::Context::InstanceSize(1),
-                        &slow_path, Assembler::kFarJump,
-                        RAX,  // instance
-                        RSI,  // end address
-                        RDI);
-    __ movq(RSI, Address(THR, target::Thread::object_null_offset()));
-    __ movq(FieldAddress(RAX, target::Context::parent_offset()), RSI);
-    __ movq(FieldAddress(RAX, target::Context::num_variables_offset()),
-            Immediate(1));
-    __ jmp(&done);
+    if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+      __ TryAllocateArray(kContextCid, target::Context::InstanceSize(1),
+                          &slow_path, Assembler::kFarJump,
+                          RAX,  // instance
+                          RSI,  // end address
+                          RDI);
+      __ movq(RSI, Address(THR, target::Thread::object_null_offset()));
+      __ StoreCompressedIntoObjectNoBarrier(
+          RAX, FieldAddress(RAX, target::Context::parent_offset()), RSI);
+      __ movl(FieldAddress(RAX, target::Context::num_variables_offset()),
+              Immediate(1));
+      __ jmp(&done);
+    }
 
     __ Bind(&slow_path);
 
@@ -453,10 +456,11 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   // Store receiver in context
   __ movq(AllocateClosureABI::kScratchReg,
           Address(RBP, target::kWordSize * kReceiverOffsetInWords));
-  __ StoreIntoObject(AllocateClosureABI::kContextReg,
-                     FieldAddress(AllocateClosureABI::kContextReg,
-                                  target::Context::variable_offset(0)),
-                     AllocateClosureABI::kScratchReg);
+  __ StoreCompressedIntoObject(
+      AllocateClosureABI::kContextReg,
+      FieldAddress(AllocateClosureABI::kContextReg,
+                   target::Context::variable_offset(0)),
+      AllocateClosureABI::kScratchReg);
 
   // Pop function.
   __ popq(AllocateClosureABI::kFunctionReg);
@@ -1418,7 +1422,8 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   intptr_t fixed_size_plus_alignment_padding =
       (target::Context::header_size() +
        target::ObjectAlignment::kObjectAlignment - 1);
-  __ leaq(R13, Address(R10, TIMES_8, fixed_size_plus_alignment_padding));
+  __ leaq(R13, Address(R10, TIMES_COMPRESSED_WORD_SIZE,
+                       fixed_size_plus_alignment_padding));
   __ andq(R13, Immediate(-target::ObjectAlignment::kObjectAlignment));
 
   // Check for allocation tracing.
@@ -1452,7 +1457,8 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // R10: number of context variables.
   {
     Label size_tag_overflow, done;
-    __ leaq(R13, Address(R10, TIMES_8, fixed_size_plus_alignment_padding));
+    __ leaq(R13, Address(R10, TIMES_COMPRESSED_WORD_SIZE,
+                         fixed_size_plus_alignment_padding));
     __ andq(R13, Immediate(-target::ObjectAlignment::kObjectAlignment));
     __ cmpq(R13, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
@@ -1476,7 +1482,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // Setup up number of context variables field.
   // RAX: new object.
   // R10: number of context variables as integer value (not object).
-  __ movq(FieldAddress(RAX, target::Context::num_variables_offset()), R10);
+  __ movl(FieldAddress(RAX, target::Context::num_variables_offset()), R10);
 }
 
 // Called for inline allocation of contexts.
@@ -1497,7 +1503,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // RAX: new object.
     // R9: Parent object, initialised to null.
     // No generational barrier needed, since we are storing null.
-    __ StoreIntoObjectNoBarrier(
+    __ StoreCompressedIntoObjectNoBarrier(
         RAX, FieldAddress(RAX, target::Context::parent_offset()), R9);
 
     // Initialize the context variables.
@@ -1515,7 +1521,8 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
       __ Bind(&loop);
       __ decq(R10);
       // No generational barrier needed, since we are storing null.
-      __ StoreIntoObjectNoBarrier(RAX, Address(R13, R10, TIMES_8, 0), R9);
+      __ StoreCompressedIntoObjectNoBarrier(
+          RAX, Address(R13, R10, TIMES_COMPRESSED_WORD_SIZE, 0), R9);
       __ Bind(&entry);
       __ cmpq(R10, Immediate(0));
       __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
@@ -1565,11 +1572,11 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
     GenerateAllocateContextSpaceStub(assembler, &slow_case);
 
     // Load parent in the existing context.
-    __ movq(R13, FieldAddress(R9, target::Context::parent_offset()));
+    __ LoadCompressed(R13, FieldAddress(R9, target::Context::parent_offset()));
     // Setup the parent field.
     // RAX: new object.
     // R9: Old parent object.
-    __ StoreIntoObjectNoBarrier(
+    __ StoreCompressedIntoObjectNoBarrier(
         RAX, FieldAddress(RAX, target::Context::parent_offset()), R13);
 
     // Clone the context variables.
@@ -1580,11 +1587,12 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
       __ jmp(&entry, Assembler::kNearJump);
       __ Bind(&loop);
       __ decq(R10);
-      __ movq(R13, FieldAddress(R9, R10, TIMES_8,
-                                target::Context::variable_offset(0)));
-      __ StoreIntoObjectNoBarrier(
+      __ LoadCompressed(R13, FieldAddress(R9, R10, TIMES_COMPRESSED_WORD_SIZE,
+                                          target::Context::variable_offset(0)));
+      __ StoreCompressedIntoObjectNoBarrier(
           RAX,
-          FieldAddress(RAX, R10, TIMES_8, target::Context::variable_offset(0)),
+          FieldAddress(RAX, R10, TIMES_COMPRESSED_WORD_SIZE,
+                       target::Context::variable_offset(0)),
           R13);
       __ Bind(&entry);
       __ cmpq(R10, Immediate(0));
@@ -1649,7 +1657,7 @@ COMPILE_ASSERT(kWriteBarrierSlotReg == R13);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler,
                                            Address stub_code,
                                            bool cards) {
-  Label add_to_mark_stack, remember_card;
+  Label add_to_mark_stack, remember_card, lost_race;
   __ testq(RAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
   __ j(ZERO, &add_to_mark_stack);
 
@@ -1668,17 +1676,23 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 #endif
   }
 
-  // Update the tags that this object has been remembered.
-  // RDX: Address being stored
-  // RAX: Current tag value
-  // lock+andq is an atomic read-modify-write.
-  __ lock();
-  __ andq(FieldAddress(RDX, target::Object::tags_offset()),
-          Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
+  __ pushq(RAX);  // Spill.
+  __ pushq(RCX);  // Spill.
 
-  // Save registers being destroyed.
-  __ pushq(RAX);
-  __ pushq(RCX);
+  // Atomically clear kOldAndNotRemembered.
+  Label retry;
+  __ movq(RAX, FieldAddress(RDX, target::Object::tags_offset()));
+  __ Bind(&retry);
+  __ movq(RCX, RAX);
+  __ testq(RCX,
+           Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+  __ j(ZERO, &lost_race);  // Remembered by another thread.
+  __ andq(RCX,
+          Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
+  // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
+  // On failure, RAX is updated with the current value.
+  __ LockCmpxchgq(FieldAddress(RDX, target::Object::tags_offset()), RCX);
+  __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1696,9 +1710,8 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ incq(RCX);
   __ movl(Address(RAX, target::StoreBufferBlock::top_offset()), RCX);
   __ cmpl(RCX, Immediate(target::StoreBufferBlock::kSize));
-  // Restore values.
-  __ popq(RCX);
-  __ popq(RAX);
+  __ popq(RCX);  // Unspill.
+  __ popq(RAX);  // Unspill.
   __ j(EQUAL, &overflow, Assembler::kNearJump);
   __ ret();
 
@@ -1720,15 +1733,17 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ movq(TMP, RAX);  // RAX is fixed implicit operand of CAS.
 
   // Atomically clear kOldAndNotMarkedBit.
-  Label retry, lost_race, marking_overflow;
+  Label retry_marking, marking_overflow;
   __ movq(RAX, FieldAddress(TMP, target::Object::tags_offset()));
-  __ Bind(&retry);
+  __ Bind(&retry_marking);
   __ movq(RCX, RAX);
   __ testq(RCX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
   __ j(ZERO, &lost_race);  // Marked by another thread.
   __ andq(RCX, Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
+  // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
+  // On failure, RAX is updated with the current value.
   __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);
-  __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &retry_marking, Assembler::kNearJump);
 
   __ movq(RAX, Address(THR, target::Thread::marking_stack_block_offset()));
   __ movl(RCX, Address(RAX, target::MarkingStackBlock::top_offset()));
@@ -2724,13 +2739,11 @@ void StubCodeCompiler::GenerateUnoptStaticCallBreakpointStub(
   __ Stop("No debugging in PRODUCT mode");
 #else
   __ EnterStubFrame();
-  __ pushq(RDX);           // Preserve receiver.
   __ pushq(RBX);           // Preserve IC data.
   __ pushq(Immediate(0));  // Result slot.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ popq(CODE_REG);  // Original stub.
   __ popq(RBX);       // Restore IC data.
-  __ popq(RDX);       // Restore receiver.
   __ LeaveStubFrame();
 
   __ movq(RAX, FieldAddress(CODE_REG, target::Code::entry_point_offset()));

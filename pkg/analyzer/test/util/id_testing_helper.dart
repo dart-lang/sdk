@@ -21,23 +21,16 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 
-/// Test configuration used for testing the analyzer with constant evaluation.
-final TestConfig analyzerConstantUpdate2018Config = TestConfig(
-    analyzerMarker, 'analyzer with constant-update-2018',
-    featureSet: FeatureSet.forTesting(
-        sdkVersion: '2.2.2',
-        additionalFeatures: [Feature.constant_update_2018]));
-
-/// Test configuration used for testing the analyzer with NNBD.
-final TestConfig analyzerNnbdConfig = TestConfig(
-    analyzerMarker, 'analyzer with NNBD',
-    featureSet: FeatureSet.forTesting(
-        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]));
+/// Test configuration used for testing the analyzer without experiments.
+final TestConfig analyzerDefaultConfig = TestConfig(
+    analyzerMarker, 'analyzer without experiments',
+    featureSet: FeatureSet.latestLanguageVersion());
 
 /// A fake absolute directory used as the root of a memory-file system in ID
 /// tests.
@@ -136,7 +129,14 @@ Future<TestResult<T>> runTestForConfig<T>(
     resourceProvider.newFile(
         resourceProvider.convertPath(testUri.path), entry.value);
   }
-  var sdk = MockSdk(resourceProvider: resourceProvider);
+  var sdkRoot = resourceProvider.newFolder(
+    resourceProvider.convertPath('/sdk'),
+  );
+  createMockSdk(
+    resourceProvider: resourceProvider,
+    root: sdkRoot,
+  );
+  var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
   var logBuffer = StringBuffer();
   var logger = PerformanceLog(logBuffer);
   var scheduler = AnalysisDriverScheduler(logger);
@@ -171,7 +171,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   var results = <Uri, ResolvedUnitResult>{};
   for (var testUri in testUris) {
     var path = resourceProvider.convertPath(testUri.path);
-    var result = await driver.getResult2(path) as ResolvedUnitResult;
+    var result = await driver.getResult(path) as ResolvedUnitResult;
     var errors =
         result.errors.where((e) => e.severity == Severity.error).toList();
     if (errors.isNotEmpty) {

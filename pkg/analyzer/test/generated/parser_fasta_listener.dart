@@ -93,14 +93,14 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginClassOrMixinBody(DeclarationKind kind, Token token) {
-    super.beginClassOrMixinBody(kind, token);
+  void beginClassOrMixinOrExtensionBody(DeclarationKind kind, Token token) {
+    super.beginClassOrMixinOrExtensionBody(kind, token);
     begin('ClassOrMixinBody');
   }
 
   @override
-  void beginClassOrNamedMixinApplicationPrelude(Token token) {
-    super.beginClassOrNamedMixinApplicationPrelude(token);
+  void beginClassOrMixinOrNamedMixinApplicationPrelude(Token token) {
+    super.beginClassOrMixinOrNamedMixinApplicationPrelude(token);
     begin('ClassOrNamedMixinApplication');
   }
 
@@ -191,9 +191,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginFactoryMethod(
-      Token lastConsumed, Token? externalToken, Token? constToken) {
-    super.beginFactoryMethod(lastConsumed, externalToken, constToken);
+  void beginFactoryMethod(DeclarationKind declarationKind, Token lastConsumed,
+      Token? externalToken, Token? constToken) {
+    super.beginFactoryMethod(
+        declarationKind, lastConsumed, externalToken, constToken);
     begin('FactoryMethod');
   }
 
@@ -263,12 +264,6 @@ class ForwardingTestListener extends ForwardingListener {
   void beginFunctionType(Token beginToken) {
     super.beginFunctionType(beginToken);
     begin('FunctionType');
-  }
-
-  @override
-  void beginFunctionTypeAlias(Token token) {
-    super.beginFunctionTypeAlias(token);
-    begin('FunctionTypeAlias');
   }
 
   @override
@@ -371,14 +366,15 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void beginMethod(
+      DeclarationKind declarationKind,
       Token? externalToken,
       Token? staticToken,
       Token? covariantToken,
       Token? varFinalOrConst,
       Token? getOrSet,
       Token name) {
-    super.beginMethod(externalToken, staticToken, covariantToken,
-        varFinalOrConst, getOrSet, name);
+    super.beginMethod(declarationKind, externalToken, staticToken,
+        covariantToken, varFinalOrConst, getOrSet, name);
     begin('Method');
   }
 
@@ -495,6 +491,12 @@ class ForwardingTestListener extends ForwardingListener {
   void beginTypeArguments(Token token) {
     super.beginTypeArguments(token);
     begin('TypeArguments');
+  }
+
+  @override
+  void beginTypedef(Token token) {
+    super.beginTypedef(token);
+    begin('FunctionTypeAlias');
   }
 
   @override
@@ -658,10 +660,11 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endClassOrMixinBody(
+  void endClassOrMixinOrExtensionBody(
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     end('ClassOrMixinBody');
-    super.endClassOrMixinBody(kind, memberCount, beginToken, endToken);
+    super.endClassOrMixinOrExtensionBody(
+        kind, memberCount, beginToken, endToken);
   }
 
   @override
@@ -702,10 +705,11 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endConstructorReference(
-      Token start, Token? periodBeforeName, Token endToken) {
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     end('ConstructorReference');
-    super.endConstructorReference(start, periodBeforeName, endToken);
+    super.endConstructorReference(
+        start, periodBeforeName, endToken, constructorReferenceContext);
   }
 
   @override
@@ -749,9 +753,9 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token token) {
-    super.endExtensionDeclaration(
-        extensionKeyword, typeKeyword, onKeyword, token);
+      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token token) {
+    super.endExtensionDeclaration(extensionKeyword, typeKeyword, onKeyword,
+        showKeyword, hideKeyword, token);
     end('ExtensionDeclaration');
   }
 
@@ -880,13 +884,6 @@ class ForwardingTestListener extends ForwardingListener {
   void endFunctionType(Token functionToken, Token? questionMark) {
     end('FunctionType');
     super.endFunctionType(functionToken, questionMark);
-  }
-
-  @override
-  void endFunctionTypeAlias(
-      Token typedefKeyword, Token? equals, Token endToken) {
-    end('FunctionTypeAlias');
-    super.endFunctionTypeAlias(typedefKeyword, equals, endToken);
   }
 
   @override
@@ -1200,6 +1197,12 @@ class ForwardingTestListener extends ForwardingListener {
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     end('TypeArguments');
     super.endTypeArguments(count, beginToken, endToken);
+  }
+
+  @override
+  void endTypedef(Token typedefKeyword, Token? equals, Token endToken) {
+    end('FunctionTypeAlias');
+    super.endTypedef(typedefKeyword, equals, endToken);
   }
 
   @override

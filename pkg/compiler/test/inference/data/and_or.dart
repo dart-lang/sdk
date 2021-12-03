@@ -54,16 +54,14 @@ returnDyn6() {
 }
 
 /*member: returnDyn7b:Union([exact=JSString], [exact=JSUInt31])*/
-returnDyn7b(
-    /*Union([exact=JSString], [exact=JSUInt31])*/ x) {
+returnDyn7b(/*Union([exact=JSString], [exact=JSUInt31])*/ x) {
   return x;
 }
 
 /*member: returnDyn7:Union([exact=JSString], [exact=JSUInt31])*/
 returnDyn7() {
   dynamic a = "foo";
-  if (a. /*Value([exact=JSString], value: "foo")*/ length
-      /*invoke: [subclass=JSInt]*/ ==
+  if (a. /*Value([exact=JSString], value: "foo")*/ length /*invoke: [subclass=JSInt]*/ ==
       3) {
     a = 52;
   }
@@ -72,15 +70,13 @@ returnDyn7() {
 }
 
 /*member: returnDyn8:Union([exact=JSString], [exact=JSUInt31])*/
-returnDyn8(
-    /*Union([exact=JSString], [exact=JSUInt31])*/ x) {
+returnDyn8(/*Union([exact=JSString], [exact=JSUInt31])*/ x) {
   return x;
 }
 
 /*member: test8:Union(null, [exact=JSString], [exact=JSUInt31])*/ test8() {
   dynamic a = "foo";
-  if (a. /*Value([exact=JSString], value: "foo")*/ length
-      /*invoke: [subclass=JSInt]*/ ==
+  if (a. /*Value([exact=JSString], value: "foo")*/ length /*invoke: [subclass=JSInt]*/ ==
       3) {
     a = 52;
   }
@@ -89,16 +85,14 @@ returnDyn8(
 }
 
 /*member: returnDyn9:Union([exact=JSString], [exact=JSUInt31])*/
-returnDyn9(
-    /*Union([exact=JSString], [exact=JSUInt31])*/ x) {
+returnDyn9(/*Union([exact=JSString], [exact=JSUInt31])*/ x) {
   return x;
 }
 
 /*member: test9:[null]*/
 test9() {
   dynamic a = "foo";
-  if (a. /*Value([exact=JSString], value: "foo")*/ length
-      /*invoke: [subclass=JSInt]*/ ==
+  if (a. /*Value([exact=JSString], value: "foo")*/ length /*invoke: [subclass=JSInt]*/ ==
       3) {
     a = 52;
   }
@@ -112,8 +106,7 @@ test9() {
 /*member: test10:[null]*/
 test10() {
   dynamic a = "foo";
-  if (a. /*Value([exact=JSString], value: "foo")*/ length
-      /*invoke: [subclass=JSInt]*/ ==
+  if (a. /*Value([exact=JSString], value: "foo")*/ length /*invoke: [subclass=JSInt]*/ ==
       3) {
     a = 52;
   }

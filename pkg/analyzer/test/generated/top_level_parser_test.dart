@@ -79,9 +79,9 @@ class TopLevelParserTest extends FastaParserTestCase {
     expect(member, isNotNull);
     assertErrors(errors: [
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 2),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 0),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 0),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 0),
     ]);
 
     expect(member, isTopLevelVariableDeclaration);
@@ -92,16 +92,16 @@ class TopLevelParserTest extends FastaParserTestCase {
     // Ensure type parsed as "Future<List<[empty name]>>".
     expect(declaration.variables.type, isNotNull);
     expect(declaration.variables.type!.question, isNull);
-    expect(declaration.variables.type, TypeMatcher<TypeName>());
-    var type = declaration.variables.type as TypeName;
+    expect(declaration.variables.type, TypeMatcher<NamedType>());
+    var type = declaration.variables.type as NamedType;
     expect(type.name.name, "Future");
     expect(type.typeArguments!.arguments.length, 1);
-    expect(type.typeArguments!.arguments.single, TypeMatcher<TypeName>());
-    var subType = type.typeArguments!.arguments.single as TypeName;
+    expect(type.typeArguments!.arguments.single, TypeMatcher<NamedType>());
+    var subType = type.typeArguments!.arguments.single as NamedType;
     expect(subType.name.name, "List");
     expect(subType.typeArguments!.arguments.length, 1);
-    expect(subType.typeArguments!.arguments.single, TypeMatcher<TypeName>());
-    var subSubType = subType.typeArguments!.arguments.single as TypeName;
+    expect(subType.typeArguments!.arguments.single, TypeMatcher<NamedType>());
+    var subSubType = subType.typeArguments!.arguments.single as NamedType;
     expect(subSubType.name.name, "");
     expect(subSubType.typeArguments, isNull);
   }
@@ -398,7 +398,7 @@ class A native 'something' {
     expect(typeAlias.withClause, isNotNull);
     expect(typeAlias.implementsClause, isNotNull);
     expect(typeAlias.implementsClause!.implementsKeyword, isNotNull);
-    expect(typeAlias.implementsClause!.interfaces.length, 1);
+    expect(typeAlias.implementsClause!.interfaces2.length, 1);
     expect(typeAlias.semicolon, isNotNull);
   }
 
@@ -414,7 +414,7 @@ class A native 'something' {
     expect(typeAlias.typeParameters, isNull);
     expect(typeAlias.withClause, isNotNull);
     expect(typeAlias.withClause.withKeyword, isNotNull);
-    expect(typeAlias.withClause.mixinTypes.length, 1);
+    expect(typeAlias.withClause.mixinTypes2.length, 1);
     expect(typeAlias.implementsClause, isNull);
     expect(typeAlias.semicolon, isNotNull);
   }
@@ -573,7 +573,7 @@ class A native 'something' {
     expect(unit.declarations, hasLength(1));
   }
 
-  void test_parseCompilationUnit_pseudo_asTypeName() {
+  void test_parseCompilationUnit_pseudo_asNamedType() {
     for (Keyword keyword in Keyword.values) {
       if (keyword.isPseudo) {
         String lexeme = keyword.lexeme;
@@ -935,7 +935,7 @@ Function<A>(core.List<core.int> x) f() => null;
     expect(typeAlias.typeParameters, isNull);
     expect(typeAlias.equals, isNotNull);
     expect(typeAlias.abstractKeyword, isNotNull);
-    expect(typeAlias.superclass.name.name, "S");
+    expect(typeAlias.superclass2.name.name, "S");
     expect(typeAlias.withClause, isNotNull);
     expect(typeAlias.implementsClause, isNull);
     expect(typeAlias.semicolon, isNotNull);
@@ -953,7 +953,7 @@ Function<A>(core.List<core.int> x) f() => null;
     expect(typeAlias.typeParameters!.typeParameters, hasLength(1));
     expect(typeAlias.equals, isNotNull);
     expect(typeAlias.abstractKeyword, isNull);
-    expect(typeAlias.superclass.name.name, "S");
+    expect(typeAlias.superclass2.name.name, "S");
     expect(typeAlias.withClause, isNotNull);
     expect(typeAlias.implementsClause, isNotNull);
     expect(typeAlias.semicolon, isNotNull);
@@ -971,7 +971,7 @@ Function<A>(core.List<core.int> x) f() => null;
     expect(typeAlias.typeParameters, isNull);
     expect(typeAlias.equals, isNotNull);
     expect(typeAlias.abstractKeyword, isNull);
-    expect(typeAlias.superclass.name.name, "S");
+    expect(typeAlias.superclass2.name.name, "S");
     expect(typeAlias.withClause, isNotNull);
     expect(typeAlias.implementsClause, isNotNull);
     expect(typeAlias.semicolon, isNotNull);
@@ -989,7 +989,7 @@ Function<A>(core.List<core.int> x) f() => null;
     expect(typeAlias.typeParameters, isNull);
     expect(typeAlias.equals, isNotNull);
     expect(typeAlias.abstractKeyword, isNull);
-    expect(typeAlias.superclass.name.name, "S");
+    expect(typeAlias.superclass2.name.name, "S");
     expect(typeAlias.withClause, isNotNull);
     expect(typeAlias.implementsClause, isNull);
     expect(typeAlias.semicolon, isNotNull);
@@ -1467,7 +1467,7 @@ enum E {
     expect(declaration, isNotNull);
     assertNoErrors();
     expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect((declaration.returnType as NamedType).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
@@ -1483,7 +1483,7 @@ enum E {
     expect(declaration, isNotNull);
     assertNoErrors();
     expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect((declaration.returnType as NamedType).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
@@ -1499,7 +1499,7 @@ enum E {
     expect(declaration, isNotNull);
     assertNoErrors();
     expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect((declaration.returnType as NamedType).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
@@ -1516,7 +1516,7 @@ enum E {
     expect(declaration, isNotNull);
     assertNoErrors();
     expect(declaration.documentationComment, isNull);
-    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect((declaration.returnType as NamedType).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
@@ -1577,7 +1577,7 @@ enum E {
     expect(declaration, isNotNull);
     assertNoErrors();
     expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect((declaration.returnType as NamedType).name.name, 'T');
     expect(declaration.name, isNotNull);
     FunctionExpression expression = declaration.functionExpression;
     expect(expression, isNotNull);
@@ -1949,7 +1949,7 @@ enum E {
     expect(declaration.onClause, isNull);
     var implementsClause = declaration.implementsClause!;
     expect(implementsClause.implementsKeyword, isNotNull);
-    NodeList<TypeName> interfaces = implementsClause.interfaces;
+    NodeList<NamedType> interfaces = implementsClause.interfaces2;
     expect(interfaces, hasLength(1));
     expect(interfaces[0].name.name, 'B');
     expect(interfaces[0].typeArguments, isNull);
@@ -1971,7 +1971,7 @@ enum E {
     expect(declaration.onClause, isNull);
     var implementsClause = declaration.implementsClause!;
     expect(implementsClause.implementsKeyword, isNotNull);
-    NodeList<TypeName> interfaces = implementsClause.interfaces;
+    NodeList<NamedType> interfaces = implementsClause.interfaces2;
     expect(interfaces, hasLength(2));
     expect(interfaces[0].name.name, 'B');
     expect(interfaces[0].typeArguments!.arguments, hasLength(1));
@@ -2013,7 +2013,7 @@ enum E {
     expect(declaration.documentationComment, isNull);
     var onClause = declaration.onClause!;
     expect(onClause.onKeyword, isNotNull);
-    NodeList<TypeName> constraints = onClause.superclassConstraints;
+    NodeList<NamedType> constraints = onClause.superclassConstraints2;
     expect(constraints, hasLength(1));
     expect(constraints[0].name.name, 'B');
     expect(constraints[0].typeArguments, isNull);
@@ -2035,7 +2035,7 @@ enum E {
     expect(declaration.documentationComment, isNull);
     var onClause = declaration.onClause!;
     expect(onClause.onKeyword, isNotNull);
-    NodeList<TypeName> constraints = onClause.superclassConstraints;
+    NodeList<NamedType> constraints = onClause.superclassConstraints2;
     expect(constraints, hasLength(2));
     expect(constraints[0].name.name, 'B');
     expect(constraints[0].typeArguments, isNull);
@@ -2059,13 +2059,13 @@ enum E {
     expect(declaration.documentationComment, isNull);
     var onClause = declaration.onClause!;
     expect(onClause.onKeyword, isNotNull);
-    NodeList<TypeName> constraints = onClause.superclassConstraints;
+    NodeList<NamedType> constraints = onClause.superclassConstraints2;
     expect(constraints, hasLength(1));
     expect(constraints[0].name.name, 'B');
     expect(constraints[0].typeArguments, isNull);
     var implementsClause = declaration.implementsClause!;
     expect(implementsClause.implementsKeyword, isNotNull);
-    NodeList<TypeName> interfaces = implementsClause.interfaces;
+    NodeList<NamedType> interfaces = implementsClause.interfaces2;
     expect(interfaces, hasLength(1));
     expect(interfaces[0].name.name, 'C');
     expect(interfaces[0].typeArguments, isNull);

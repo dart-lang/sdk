@@ -996,6 +996,17 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
+    if ((function.HasOptionalPositionalParameters() ||
+         function.HasOptionalNamedParameters()) &&
+        !function.AreValidArguments(function.NumTypeParameters(),
+                                    arguments->length(), argument_names,
+                                    nullptr)) {
+      TRACE_INLINING(THR_Print("     Bailout: optional arg mismatch\n"));
+      PRINT_INLINING_TREE("Optional arg mismatch", &call_data->caller,
+                          &function, call_data->call);
+      return false;
+    }
+
     // Abort if this is a recursive occurrence.
     Definition* call = call_data->call;
     // Added 'volatile' works around a possible GCC 4.9 compiler bug.
@@ -1077,17 +1088,17 @@ class CallSiteInliner : public ValueObject {
           COMPILER_TIMINGS_TIMER_SCOPE(thread(), PopulateWithICData);
 
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
-        if (CompilerState::Current().is_aot()) {
-          callee_graph->PopulateWithICData(parsed_function->function());
-        }
+          if (CompilerState::Current().is_aot()) {
+            callee_graph->PopulateWithICData(parsed_function->function());
+          }
 #endif
 
-        // If we inline a function which is intrinsified without a fall-through
-        // to IR code, we will not have any ICData attached, so we do it
-        // manually here.
-        if (!CompilerState::Current().is_aot() && function.is_intrinsic()) {
-          callee_graph->PopulateWithICData(parsed_function->function());
-        }
+          // If we inline a function which is intrinsified without a
+          // fall-through to IR code, we will not have any ICData attached, so
+          // we do it manually here.
+          if (!CompilerState::Current().is_aot() && function.is_intrinsic()) {
+            callee_graph->PopulateWithICData(parsed_function->function());
+          }
         }
 
         // The parameter stubs are a copy of the actual arguments providing
@@ -1336,6 +1347,7 @@ class CallSiteInliner : public ValueObject {
     // changes while compiling. Propagate that 'error' and retry compilation
     // later.
     ASSERT(CompilerState::Current().is_aot() ||
+           (error.ptr() == Object::out_of_memory_error().ptr()) ||
            Compiler::IsBackgroundCompilation() || error.IsUnhandledException());
     Thread::Current()->long_jump_base()->Jump(1, error);
     UNREACHABLE();
@@ -1584,10 +1596,14 @@ class CallSiteInliner : public ValueObject {
     intptr_t arg_count = arguments->length();
     intptr_t param_count = function.NumParameters();
     intptr_t fixed_param_count = function.num_fixed_parameters();
+    intptr_t argument_names_count =
+        (argument_names.IsNull()) ? 0 : argument_names.Length();
     ASSERT(fixed_param_count <= arg_count - first_arg_index);
     ASSERT(arg_count - first_arg_index <= param_count);
 
     if (function.HasOptionalPositionalParameters()) {
+      // Arguments mismatch: Caller supplied unsupported named argument.
+      ASSERT(argument_names_count == 0);
       // Create a stub for each optional positional parameters with an actual.
       for (intptr_t i = first_arg_index + fixed_param_count; i < arg_count;
            ++i) {
@@ -1609,12 +1625,10 @@ class CallSiteInliner : public ValueObject {
 
     ASSERT(function.HasOptionalNamedParameters());
 
-    // Passed arguments (not counting optional type args) must match fixed
-    // parameters plus named arguments.
-    intptr_t argument_names_count =
-        (argument_names.IsNull()) ? 0 : argument_names.Length();
-    ASSERT((arg_count - first_arg_index) ==
-           (fixed_param_count + argument_names_count));
+    const intptr_t positional_args =
+        arg_count - first_arg_index - argument_names_count;
+    // Arguments mismatch: Caller supplied unsupported positional argument.
+    ASSERT(positional_args == fixed_param_count);
 
     // Fast path when no optional named parameters are given.
     if (argument_names_count == 0) {
@@ -2297,6 +2311,9 @@ static bool IsInlineableOperator(const Function& function) {
 }
 
 bool FlowGraphInliner::FunctionHasPreferInlinePragma(const Function& function) {
+  if (!function.has_pragma()) {
+    return false;
+  }
   Thread* thread = dart::Thread::Current();
   COMPILER_TIMINGS_TIMER_SCOPE(thread, CheckForPragma);
   Object& options = Object::Handle();
@@ -2306,6 +2323,9 @@ bool FlowGraphInliner::FunctionHasPreferInlinePragma(const Function& function) {
 }
 
 bool FlowGraphInliner::FunctionHasNeverInlinePragma(const Function& function) {
+  if (!function.has_pragma()) {
+    return false;
+  }
   Thread* thread = dart::Thread::Current();
   COMPILER_TIMINGS_TIMER_SCOPE(thread, CheckForPragma);
   Object& options = Object::Handle();
@@ -3524,54 +3544,6 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
   return true;
 }
 
-static bool InlineMathCFunction(FlowGraph* flow_graph,
-                                Instruction* call,
-                                MethodRecognizer::Kind kind,
-                                GraphEntryInstr* graph_entry,
-                                FunctionEntryInstr** entry,
-                                Instruction** last,
-                                Definition** result) {
-  if (!CanUnboxDouble()) {
-    return false;
-  }
-
-  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-    if (call->ArgumentAt(i)->Type()->ToCid() != kDoubleCid) {
-      return false;
-    }
-  }
-
-  *entry =
-      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
-                                 call->GetBlock()->try_index(), DeoptId::kNone);
-  (*entry)->InheritDeoptTarget(Z, call);
-  Instruction* cursor = *entry;
-
-  switch (kind) {
-    case MethodRecognizer::kMathSqrt: {
-      *last = new (Z)
-          MathUnaryInstr(MathUnaryInstr::kSqrt,
-                         new (Z) Value(call->ArgumentAt(0)), call->deopt_id());
-      break;
-    }
-    default: {
-      ZoneGrowableArray<Value*>* args =
-          new (Z) ZoneGrowableArray<Value*>(call->ArgumentCount());
-      for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-        args->Add(new (Z) Value(call->ArgumentAt(i)));
-      }
-      *last = new (Z) InvokeMathCFunctionInstr(args, call->deopt_id(), kind,
-                                               call->source());
-      break;
-    }
-  }
-  flow_graph->AppendTo(cursor, *last,
-                       call->deopt_id() != DeoptId::kNone ? call->env() : NULL,
-                       FlowGraph::kValue);
-  *result = (*last)->AsDefinition();
-  return true;
-}
-
 static Instruction* InlineMul(FlowGraph* flow_graph,
                               Instruction* cursor,
                               Definition* x,
@@ -4020,20 +3992,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat64x2Sub:
       return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
                           graph_entry, entry, last, result);
-
-    case MethodRecognizer::kMathSqrt:
-    case MethodRecognizer::kMathDoublePow:
-    case MethodRecognizer::kMathSin:
-    case MethodRecognizer::kMathCos:
-    case MethodRecognizer::kMathTan:
-    case MethodRecognizer::kMathAsin:
-    case MethodRecognizer::kMathAcos:
-    case MethodRecognizer::kMathAtan:
-    case MethodRecognizer::kMathAtan2:
-    case MethodRecognizer::kMathExp:
-    case MethodRecognizer::kMathLog:
-      return InlineMathCFunction(flow_graph, call, kind, graph_entry, entry,
-                                 last, result);
 
     case MethodRecognizer::kMathIntPow:
       return InlineMathIntPow(flow_graph, call, graph_entry, entry, last,

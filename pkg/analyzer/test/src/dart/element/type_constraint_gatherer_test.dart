@@ -18,7 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class TypeConstraintGathererTest extends AbstractTypeSystemNullSafetyTest {
+class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   late final TypeParameterElement T;
   late final TypeParameterType T_none;
   late final TypeParameterType T_question;

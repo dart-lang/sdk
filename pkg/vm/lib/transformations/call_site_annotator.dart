@@ -110,7 +110,7 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
   /// Return [true] if the given list of [VariableDeclaration] contains
   /// any annotated with generic-covariant-impl.
   static bool containsGenericCovariantImpl(List<VariableDeclaration> decls) =>
-      decls.any((p) => p.isGenericCovariantImpl);
+      decls.any((p) => p.isCovariantByClass);
 
   /// Returns [true] if the given [member] has any parameters annotated with
   /// generic-covariant-impl attribute.
@@ -120,7 +120,7 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
               member.function.positionalParameters) ||
           containsGenericCovariantImpl(member.function.namedParameters);
     } else if (member is Field) {
-      return member.isGenericCovariantImpl;
+      return member.isCovariantByClass;
     }
 
     return false;

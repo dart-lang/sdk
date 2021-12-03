@@ -32,16 +32,15 @@ class LocalsHandler {
   /// iteration order a function only of insertions and not a function of
   /// e.g. Element hash codes.  I'd prefer to use a SortedMap but some elements
   /// don't have source locations for [Elements.compareByPosition].
-  Map<Local, HInstruction> directLocals = new Map<Local, HInstruction>();
-  Map<Local, FieldEntity> redirectionMapping = new Map<Local, FieldEntity>();
+  Map<Local, HInstruction> directLocals = {};
+  Map<Local, FieldEntity> redirectionMapping = {};
   final KernelSsaGraphBuilder builder;
 
   MemberEntity _scopeInfoMember;
   ScopeInfo _scopeInfo;
   KernelToLocalsMap _localsMap;
 
-  Map<TypeVariableEntity, TypeVariableLocal> typeVariableLocals =
-      new Map<TypeVariableEntity, TypeVariableLocal>();
+  Map<TypeVariableEntity, TypeVariableLocal> typeVariableLocals = {};
   final Entity executableContext;
   final MemberEntity memberContext;
 
@@ -106,7 +105,7 @@ class LocalsHandler {
   /// copy the [directLocals], since the other fields can be shared
   /// throughout the AST visit.
   LocalsHandler.from(LocalsHandler other)
-      : directLocals = new Map<Local, HInstruction>.from(other.directLocals),
+      : directLocals = Map<Local, HInstruction>.from(other.directLocals),
         redirectionMapping = other.redirectionMapping,
         executableContext = other.executableContext,
         memberContext = other.memberContext,
@@ -148,7 +147,7 @@ class LocalsHandler {
   }
 
   HInstruction createBox(SourceInformation sourceInformation) {
-    HInstruction box = new HCreateBox(_abstractValueDomain.nonNullType)
+    HInstruction box = HCreateBox(_abstractValueDomain.nonNullType)
       ..sourceInformation = sourceInformation;
     builder.add(box);
     return box;
@@ -158,7 +157,7 @@ class LocalsHandler {
   /// method creates a box and sets up the redirections.
   void enterScope(
       CapturedScope closureInfo, SourceInformation sourceInformation,
-      {bool forGenerativeConstructorBody: false, HInstruction inlinedBox}) {
+      {bool forGenerativeConstructorBody = false, HInstruction inlinedBox}) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
     if (!closureInfo.requiresContextBox) return;
@@ -261,7 +260,7 @@ class LocalsHandler {
       });
       // Inside closure redirect references to itself to [:this:].
       HThis thisInstruction =
-          new HThis(closureData.thisLocal, _abstractValueDomain.nonNullType);
+          HThis(closureData.thisLocal, _abstractValueDomain.nonNullType);
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
       updateLocal(closureData.getClosureEntity(_localsMap), thisInstruction);
@@ -269,7 +268,7 @@ class LocalsHandler {
       // Once closures have been mapped to classes their instance members might
       // not have any thisElement if the closure was created inside a static
       // context.
-      HThis thisInstruction = new HThis(scopeInfo.thisLocal, getTypeOfThis());
+      HThis thisInstruction = HThis(scopeInfo.thisLocal, getTypeOfThis());
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
       directLocals[scopeInfo.thisLocal] = thisInstruction;
@@ -289,7 +288,7 @@ class LocalsHandler {
         _nativeData.isNativeOrExtendsNative(cls);
     if (_interceptorData.isInterceptedMethod(element)) {
       SyntheticLocal parameter = createLocal('receiver');
-      HParameterValue value = new HParameterValue(parameter, getTypeOfThis());
+      HParameterValue value = HParameterValue(parameter, getTypeOfThis());
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAfter(directLocals[scopeInfo.thisLocal], value);
       if (builder.lastAddedParameter == null) {
@@ -301,7 +300,7 @@ class LocalsHandler {
       SyntheticLocal parameter = createLocal('receiver');
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
-      HParameterValue value = new HParameterValue(
+      HParameterValue value = HParameterValue(
           parameter, _closedWorld.abstractValueDomain.createNullableExact(cls));
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAtEntry(value);
@@ -359,7 +358,7 @@ class LocalsHandler {
       }
       HInstruction value = directLocals[local];
       if (sourceInformation != null) {
-        value = new HRef(value, sourceInformation);
+        value = HRef(value, sourceInformation);
         builder.add(value);
       }
       return value;
@@ -372,7 +371,7 @@ class LocalsHandler {
           ? _abstractValueDomain.nonNullType
           : getTypeOfCapturedVariable(redirect);
       HInstruction fieldGet =
-          new HFieldGet(redirect, receiver, type, sourceInformation);
+          HFieldGet(redirect, receiver, type, sourceInformation);
       builder.add(fieldGet);
       return fieldGet;
     } else if (isBoxed(local)) {
@@ -389,14 +388,14 @@ class LocalsHandler {
       assert(localBox != null);
 
       HInstruction box = readLocal(localBox);
-      HInstruction lookup = new HFieldGet(redirect, box,
+      HInstruction lookup = HFieldGet(redirect, box,
           getTypeOfCapturedVariable(redirect), sourceInformation);
       builder.add(lookup);
       return lookup;
     } else {
       assert(_isUsedInTryOrGenerator(local));
       HLocalValue localValue = getLocal(local);
-      HInstruction instruction = new HLocalGet(local, localValue,
+      HInstruction instruction = HLocalGet(local, localValue,
           _abstractValueDomain.dynamicType, sourceInformation);
       builder.add(instruction);
       return instruction;
@@ -424,7 +423,7 @@ class LocalsHandler {
 
     return activationVariables.putIfAbsent(local, () {
       HLocalValue localValue =
-          new HLocalValue(local, _abstractValueDomain.nonNullType)
+          HLocalValue(local, _abstractValueDomain.nonNullType)
             ..sourceInformation = sourceInformation;
       builder.graph.entry.addAtExit(localValue);
       return localValue;
@@ -432,8 +431,7 @@ class LocalsHandler {
   }
 
   Local getTypeVariableAsLocal(TypeVariableType type) {
-    return typeVariableLocals[type.element] ??=
-        new TypeVariableLocal(type.element);
+    return typeVariableLocals[type.element] ??= TypeVariableLocal(type.element);
   }
 
   /// Sets the [element] to [value]. If the element is boxed or stored in a
@@ -462,12 +460,12 @@ class LocalsHandler {
       // Inside the closure the box is stored in a closure-field and cannot
       // be accessed directly.
       HInstruction box = readLocal(localBox);
-      builder.add(new HFieldSet(_abstractValueDomain, redirect, box, value)
+      builder.add(HFieldSet(_abstractValueDomain, redirect, box, value)
         ..sourceInformation = sourceInformation);
     } else {
       assert(_isUsedInTryOrGenerator(local));
       HLocalValue localValue = getLocal(local);
-      builder.add(new HLocalSet(_abstractValueDomain, local, localValue, value)
+      builder.add(HLocalSet(_abstractValueDomain, local, localValue, value)
         ..sourceInformation = sourceInformation);
     }
   }
@@ -532,14 +530,14 @@ class LocalsHandler {
   void beginLoopHeader(HBasicBlock loopEntry) {
     // Create a copy because we modify the map while iterating over it.
     Map<Local, HInstruction> savedDirectLocals =
-        new Map<Local, HInstruction>.from(directLocals);
+        Map<Local, HInstruction>.from(directLocals);
 
     // Create phis for all elements in the definitions environment.
     savedDirectLocals.forEach((Local local, HInstruction instruction) {
       if (isAccessedDirectly(local)) {
         // We know 'this' cannot be modified.
         if (local != _scopeInfo.thisLocal) {
-          HPhi phi = new HPhi.singleInput(
+          HPhi phi = HPhi.singleInput(
               local, instruction, _abstractValueDomain.dynamicType);
           loopEntry.addPhi(phi);
           directLocals[local] = phi;
@@ -595,7 +593,7 @@ class LocalsHandler {
     // block. Since variable declarations are scoped the declared
     // variable cannot be alive outside the block. Note: this is only
     // true for nodes where we do joins.
-    Map<Local, HInstruction> joinedLocals = new Map<Local, HInstruction>();
+    Map<Local, HInstruction> joinedLocals = {};
     otherLocals.directLocals.forEach((Local local, HInstruction instruction) {
       // We know 'this' cannot be modified.
       if (local == _scopeInfo.thisLocal) {
@@ -607,7 +605,7 @@ class LocalsHandler {
         if (identical(instruction, mine)) {
           joinedLocals[local] = instruction;
         } else {
-          HInstruction phi = new HPhi.manyInputs(
+          HInstruction phi = HPhi.manyInputs(
               local,
               <HInstruction>[mine, instruction],
               _abstractValueDomain.dynamicType);
@@ -628,11 +626,11 @@ class LocalsHandler {
       List<LocalsHandler> localsHandlers, HBasicBlock joinBlock) {
     assert(localsHandlers.length > 0);
     if (localsHandlers.length == 1) return localsHandlers.single;
-    Map<Local, HInstruction> joinedLocals = new Map<Local, HInstruction>();
+    Map<Local, HInstruction> joinedLocals = {};
     HInstruction thisValue = null;
     directLocals.forEach((Local local, HInstruction instruction) {
       if (local != _scopeInfo.thisLocal) {
-        HPhi phi = new HPhi.noInputs(local, _abstractValueDomain.dynamicType);
+        HPhi phi = HPhi.noInputs(local, _abstractValueDomain.dynamicType);
         joinedLocals[local] = phi;
         joinBlock.addPhi(phi);
       } else {
@@ -656,7 +654,7 @@ class LocalsHandler {
     }
 
     // Remove locals that are not in all handlers.
-    directLocals = new Map<Local, HInstruction>();
+    directLocals = {};
     joinedLocals.forEach((Local local, HInstruction instruction) {
       if (local != _scopeInfo.thisLocal &&
           instruction.inputs.length != localsHandlers.length) {
@@ -689,8 +687,7 @@ class LocalsHandler {
     return result;
   }
 
-  Map<FieldEntity, AbstractValue> cachedTypesOfCapturedVariables =
-      new Map<FieldEntity, AbstractValue>();
+  Map<FieldEntity, AbstractValue> cachedTypesOfCapturedVariables = {};
 
   AbstractValue getTypeOfCapturedVariable(FieldEntity element) {
     return cachedTypesOfCapturedVariables.putIfAbsent(element, () {
@@ -702,10 +699,10 @@ class LocalsHandler {
   /// Variables stored in the current activation. These variables are
   /// being updated in try/catch blocks, and should be
   /// accessed indirectly through [HLocalGet] and [HLocalSet].
-  Map<Local, HLocalValue> activationVariables = <Local, HLocalValue>{};
+  Map<Local, HLocalValue> activationVariables = {};
 
   SyntheticLocal createLocal(String name) {
-    return new SyntheticLocal(name, executableContext, memberContext);
+    return SyntheticLocal(name, executableContext, memberContext);
   }
 }
 

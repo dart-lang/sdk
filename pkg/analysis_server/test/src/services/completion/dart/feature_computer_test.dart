@@ -438,6 +438,30 @@ class C {
 ''', 'num');
   }
 
+  Future<void> test_className_period() async {
+    await assertContextType('''
+int x = List.^;
+''', 'int');
+  }
+
+  Future<void> test_className_period_identifier() async {
+    await assertContextType('''
+int x = List.^;
+''', 'int');
+  }
+
+  Future<void> test_className_typeArguments_period() async {
+    await assertContextType('''
+int x = List<double>.^;
+''', 'int');
+  }
+
+  Future<void> test_className_typeArguments_period_identifier() async {
+    await assertContextType('''
+int x = List<double>.foo^;
+''', 'int');
+  }
+
   Future<void> test_fieldDeclaration_int() async {
     await assertContextType('''
 class Foo {

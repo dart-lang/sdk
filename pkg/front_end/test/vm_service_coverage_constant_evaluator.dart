@@ -6,7 +6,7 @@
 
 import 'vm_service_coverage.dart' as helper;
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   CoverageHelper coverageHelper = new CoverageHelper();
 
   List<String> allArgs = <String>[];
@@ -17,12 +17,13 @@ main(List<String> args) async {
   ]);
   allArgs.addAll(args);
 
-  coverageHelper.start(allArgs);
+  await coverageHelper.start(allArgs);
 }
 
 class CoverageHelper extends helper.CoverageHelper {
   CoverageHelper() : super(printHits: false);
 
+  @override
   bool includeCoverageFor(Uri uri) {
     if (uri.scheme != "package") return false;
     if (uri.path.startsWith("front_end/src/fasta/kernel/constant_")) {

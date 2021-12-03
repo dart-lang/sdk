@@ -1013,6 +1013,7 @@ class ProfileBuilder : public ValueObject {
       RegisterLiveProfileCode(new ProfileCode(
           ProfileCode::kDartCode, code.PayloadStart(),
           code.PayloadStart() + code.Size(), code.compile_timestamp(), code));
+      thread_->CheckForSafepoint();
     }
 
     // Iterate over samples.
@@ -1047,6 +1048,7 @@ class ProfileBuilder : public ValueObject {
       }
 
       TickExitFrame(sample->vm_tag(), sample_index, sample);
+      thread_->CheckForSafepoint();
     }
     SanitizeMinMaxTimes();
   }
@@ -1095,18 +1097,21 @@ class ProfileBuilder : public ValueObject {
       ProfileCode* code = live_table->At(i);
       ASSERT(code != NULL);
       code->SetFunctionAndName(function_table);
+      thread_->CheckForSafepoint();
     }
 
     for (intptr_t i = 0; i < dead_table->length(); i++) {
       ProfileCode* code = dead_table->At(i);
       ASSERT(code != NULL);
       code->SetFunctionAndName(function_table);
+      thread_->CheckForSafepoint();
     }
 
     for (intptr_t i = 0; i < tag_table->length(); i++) {
       ProfileCode* code = tag_table->At(i);
       ASSERT(code != NULL);
       code->SetFunctionAndName(function_table);
+      thread_->CheckForSafepoint();
     }
   }
 
@@ -1450,9 +1455,8 @@ class ProfileBuilder : public ValueObject {
   ProfileInfoKind info_kind_;
 };  // ProfileBuilder.
 
-Profile::Profile(Isolate* isolate)
-    : isolate_(isolate),
-      zone_(Thread::Current()->zone()),
+Profile::Profile()
+    : zone_(Thread::Current()->zone()),
       samples_(NULL),
       live_code_(NULL),
       dead_code_(NULL),
@@ -1461,9 +1465,7 @@ Profile::Profile(Isolate* isolate)
       dead_code_index_offset_(-1),
       tag_code_index_offset_(-1),
       min_time_(kMaxInt64),
-      max_time_(0) {
-  ASSERT(isolate_ != NULL);
-}
+      max_time_(0) {}
 
 void Profile::Build(Thread* thread,
                     SampleFilter* filter,
@@ -1728,6 +1730,7 @@ void Profile::PrintProfileJSON(JSONStream* stream, bool include_code_samples) {
 
 void Profile::PrintProfileJSON(JSONObject* obj, bool include_code_samples) {
   ScopeTimer sw("Profile::PrintProfileJSON", FLAG_trace_profiler);
+  Thread* thread = Thread::Current();
   obj->AddProperty("type", "CpuSamples");
   PrintHeaderJSON(obj);
   if (include_code_samples) {
@@ -1736,16 +1739,19 @@ void Profile::PrintProfileJSON(JSONObject* obj, bool include_code_samples) {
       ProfileCode* code = live_code_->At(i);
       ASSERT(code != NULL);
       code->PrintToJSONArray(&codes);
+      thread->CheckForSafepoint();
     }
     for (intptr_t i = 0; i < dead_code_->length(); i++) {
       ProfileCode* code = dead_code_->At(i);
       ASSERT(code != NULL);
       code->PrintToJSONArray(&codes);
+      thread->CheckForSafepoint();
     }
     for (intptr_t i = 0; i < tag_code_->length(); i++) {
       ProfileCode* code = tag_code_->At(i);
       ASSERT(code != NULL);
       code->PrintToJSONArray(&codes);
+      thread->CheckForSafepoint();
     }
   }
 
@@ -1755,9 +1761,11 @@ void Profile::PrintProfileJSON(JSONObject* obj, bool include_code_samples) {
       ProfileFunction* function = functions_->At(i);
       ASSERT(function != NULL);
       function->PrintToJSONArray(&functions);
+      thread->CheckForSafepoint();
     }
   }
   PrintSamplesJSON(obj, include_code_samples);
+  thread->CheckForSafepoint();
 }
 
 void ProfilerService::PrintJSONImpl(Thread* thread,
@@ -1765,14 +1773,11 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
                                     SampleFilter* filter,
                                     ProcessedSampleBufferBuilder* buffer,
                                     bool include_code_samples) {
-  Isolate* isolate = thread->isolate();
-
   // We should bail out in service.cc if the profiler is disabled.
   ASSERT(buffer != nullptr);
 
   StackZone zone(thread);
-  HANDLESCOPE(thread);
-  Profile profile(isolate);
+  Profile profile;
   profile.Build(thread, filter, buffer);
   profile.PrintProfileJSON(stream, include_code_samples);
 }

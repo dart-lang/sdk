@@ -9,7 +9,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../abstract_context.dart';
 import '../abstract_single_unit.dart';
 
 void main() {
@@ -74,8 +73,7 @@ class A {
 }
 
 @reflectiveTest
-class ConvertElementTest extends AbstractSingleUnitTest
-    with WithNonFunctionTypeAliasesMixin {
+class ConvertElementTest extends AbstractSingleUnitTest {
   Future<void> test_CLASS() async {
     await resolveTestCode('''
 @deprecated
@@ -123,7 +121,7 @@ class A {
     // create notification Element
     var element = convertElement(engineElement, withNullability: true);
     expect(element.kind, ElementKind.CONSTRUCTOR);
-    expect(element.name, 'myConstructor');
+    expect(element.name, 'A.myConstructor');
     expect(element.typeParameters, isNull);
     {
       var location = element.location!;
@@ -588,6 +586,7 @@ class ElementKindTest {
     expect(ElementKind(ElementKind.SETTER.name), ElementKind.SETTER);
     expect(ElementKind(ElementKind.TOP_LEVEL_VARIABLE.name),
         ElementKind.TOP_LEVEL_VARIABLE);
+    expect(ElementKind(ElementKind.TYPE_ALIAS.name), ElementKind.TYPE_ALIAS);
     expect(ElementKind(ElementKind.TYPE_PARAMETER.name),
         ElementKind.TYPE_PARAMETER);
     expect(ElementKind(ElementKind.UNIT_TEST_TEST.name),

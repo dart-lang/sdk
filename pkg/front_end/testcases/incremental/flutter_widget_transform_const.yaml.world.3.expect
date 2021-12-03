@@ -30,6 +30,8 @@ library from "package:flutter/src/widgets/widget_inspector.dart" as wid {
     const constructor •({required dart.core::String file = #C1, required dart.core::int line = #C1, required dart.core::int column = #C1, required dart.core::String name = #C1, required dart.core::List<wid::_Location> parameterLocations = #C1}) → wid::_Location
       : wid::_Location::file = file, wid::_Location::line = line, wid::_Location::column = column, wid::_Location::name = name, wid::_Location::parameterLocations = parameterLocations, super dart.core::Object::•()
       ;
+    static method _#new#tearOff({required dart.core::String file = #C1, required dart.core::int line = #C1, required dart.core::int column = #C1, required dart.core::String name = #C1, required dart.core::List<wid::_Location> parameterLocations = #C1}) → wid::_Location
+      return new wid::_Location::•(file: file, line: line, column: column, name: name, parameterLocations: parameterLocations);
   }
 }
 library from "org-dartlang-test:///foo.dart" as foo {
@@ -43,24 +45,38 @@ library from "org-dartlang-test:///foo.dart" as foo {
       ;
     static factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Foo
       return #C7;
+    static method _#new#tearOff() → foo::Foo
+      return foo::Foo::•($creationLocationd_0dea112b090073317d4: #C9);
+    static method _#_#tearOff() → foo::Foo
+      return new foo::Foo::_($creationLocationd_0dea112b090073317d4: #C12);
   }
   class Bar extends fra::Widget /*hasConstConstructor*/  {
-    static final field dynamic _redirecting# = <dynamic>[foo::Bar::•]/*isLegacy*/;
+    static final field dynamic _redirecting# = <dynamic>[#C13]/*isLegacy*/;
     const constructor _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Bar
       : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
     static factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Bar
-      let dynamic #redirecting_factory = foo::Bar::_ in invalid-expression;
+      return new foo::Bar::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
+    static method _#new#tearOff() → foo::Bar
+      return new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C17);
+    static method _#_#tearOff() → foo::Bar
+      return new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C19);
   }
   class Baz extends fra::Widget /*hasConstConstructor*/  {
-    static final field dynamic _redirecting# = <dynamic>[foo::Baz::_]/*isLegacy*/;
+    static final field dynamic _redirecting# = <dynamic>[#C20]/*isLegacy*/;
     const constructor __({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz
       : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
     static factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz
-      return #C11;
+      return #C24;
+    static method _#new#tearOff() → foo::Baz
+      return foo::Baz::•($creationLocationd_0dea112b090073317d4: #C25);
     static factory _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz
-      let dynamic #redirecting_factory = foo::Baz::__ in invalid-expression;
+      return new foo::Baz::__($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
+    static method _#_#tearOff() → foo::Baz
+      return new foo::Baz::__($creationLocationd_0dea112b090073317d4: #C27);
+    static method _#__#tearOff() → foo::Baz
+      return new foo::Baz::__($creationLocationd_0dea112b090073317d4: #C29);
   }
   class Boz extends fra::Widget /*hasConstConstructor*/  {
     const constructor _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Boz
@@ -71,21 +87,25 @@ library from "org-dartlang-test:///foo.dart" as foo {
         return new foo::Boz::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
       }
       else {
-        return #C16;
+        return #C34;
       }
     }
+    static method _#new#tearOff({required dart.core::bool createNew = #C1}) → foo::Boz
+      return foo::Boz::•(createNew: createNew, $creationLocationd_0dea112b090073317d4: #C35);
+    static method _#_#tearOff() → foo::Boz
+      return new foo::Boz::_($creationLocationd_0dea112b090073317d4: #C37);
   }
 }
 library from "org-dartlang-test:///main.dart" as main {
 
   import "org-dartlang-test:///foo.dart";
 
-  static field foo::Foo newFoo = foo::Foo::•($creationLocationd_0dea112b090073317d4: #C19);
-  static field foo::Bar newBar = new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C22);
-  static field foo::Bar constBar = #C26;
-  static field foo::Baz newBaz = foo::Baz::•($creationLocationd_0dea112b090073317d4: #C28);
-  static field foo::Boz newBoz = foo::Boz::•(createNew: true, $creationLocationd_0dea112b090073317d4: #C29);
-  static field foo::Boz constBoz = foo::Boz::•(createNew: false, $creationLocationd_0dea112b090073317d4: #C32);
+  static field foo::Foo newFoo = foo::Foo::•($creationLocationd_0dea112b090073317d4: #C40);
+  static field foo::Bar newBar = new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C41);
+  static field foo::Bar constBar = #C44;
+  static field foo::Baz newBaz = foo::Baz::•($creationLocationd_0dea112b090073317d4: #C45);
+  static field foo::Boz newBoz = foo::Boz::•(createNew: true, $creationLocationd_0dea112b090073317d4: #C46);
+  static field foo::Boz constBoz = foo::Boz::•(createNew: false, $creationLocationd_0dea112b090073317d4: #C48);
 }
 constants  {
   #C1 = null
@@ -95,29 +115,45 @@ constants  {
   #C5 = "Foo"
   #C6 = wid::_Location {file:#C2, line:#C3, column:#C4, name:#C5, parameterLocations:#C1}
   #C7 = foo::Foo {_location:#C6}
-  #C8 = 6.0
-  #C9 = "Baz"
-  #C10 = wid::_Location {file:#C2, line:#C8, column:#C4, name:#C9, parameterLocations:#C1}
-  #C11 = foo::Baz {_location:#C10}
-  #C12 = 9.0
-  #C13 = 128.0
-  #C14 = "Boz"
-  #C15 = wid::_Location {file:#C2, line:#C12, column:#C13, name:#C14, parameterLocations:#C1}
-  #C16 = foo::Boz {_location:#C15}
-  #C17 = "org-dartlang-test:///main.dart"
-  #C18 = 18.0
-  #C19 = wid::_Location {file:#C17, line:#C3, column:#C18, name:#C5, parameterLocations:#C1}
-  #C20 = 3.0
-  #C21 = "Bar"
-  #C22 = wid::_Location {file:#C17, line:#C20, column:#C18, name:#C21, parameterLocations:#C1}
-  #C23 = 4.0
-  #C24 = 22.0
-  #C25 = wid::_Location {file:#C17, line:#C23, column:#C24, name:#C21, parameterLocations:#C1}
-  #C26 = foo::Bar {_location:#C25}
-  #C27 = 5.0
-  #C28 = wid::_Location {file:#C17, line:#C27, column:#C18, name:#C9, parameterLocations:#C1}
-  #C29 = wid::_Location {file:#C17, line:#C8, column:#C18, name:#C14, parameterLocations:#C1}
-  #C30 = 7.0
-  #C31 = 20.0
-  #C32 = wid::_Location {file:#C17, line:#C30, column:#C31, name:#C14, parameterLocations:#C1}
+  #C8 = 36.0
+  #C9 = wid::_Location {file:#C2, line:#C3, column:#C8, name:#C5, parameterLocations:#C1}
+  #C10 = 3.0
+  #C11 = 7.0
+  #C12 = wid::_Location {file:#C2, line:#C10, column:#C11, name:#C5, parameterLocations:#C1}
+  #C13 = constructor-tearoff foo::Bar::•
+  #C14 = 4.0
+  #C15 = 42.0
+  #C16 = "Bar"
+  #C17 = wid::_Location {file:#C2, line:#C14, column:#C15, name:#C16, parameterLocations:#C1}
+  #C18 = 5.0
+  #C19 = wid::_Location {file:#C2, line:#C18, column:#C11, name:#C16, parameterLocations:#C1}
+  #C20 = constructor-tearoff foo::Baz::_
+  #C21 = 6.0
+  #C22 = "Baz"
+  #C23 = wid::_Location {file:#C2, line:#C21, column:#C4, name:#C22, parameterLocations:#C1}
+  #C24 = foo::Baz {_location:#C23}
+  #C25 = wid::_Location {file:#C2, line:#C21, column:#C8, name:#C22, parameterLocations:#C1}
+  #C26 = 15.0
+  #C27 = wid::_Location {file:#C2, line:#C11, column:#C26, name:#C22, parameterLocations:#C1}
+  #C28 = 8.0
+  #C29 = wid::_Location {file:#C2, line:#C28, column:#C11, name:#C22, parameterLocations:#C1}
+  #C30 = 9.0
+  #C31 = 128.0
+  #C32 = "Boz"
+  #C33 = wid::_Location {file:#C2, line:#C30, column:#C31, name:#C32, parameterLocations:#C1}
+  #C34 = foo::Boz {_location:#C33}
+  #C35 = wid::_Location {file:#C2, line:#C30, column:#C8, name:#C32, parameterLocations:#C1}
+  #C36 = 10.0
+  #C37 = wid::_Location {file:#C2, line:#C36, column:#C11, name:#C32, parameterLocations:#C1}
+  #C38 = "org-dartlang-test:///main.dart"
+  #C39 = 18.0
+  #C40 = wid::_Location {file:#C38, line:#C3, column:#C39, name:#C5, parameterLocations:#C1}
+  #C41 = wid::_Location {file:#C38, line:#C10, column:#C39, name:#C16, parameterLocations:#C1}
+  #C42 = 22.0
+  #C43 = wid::_Location {file:#C38, line:#C14, column:#C42, name:#C16, parameterLocations:#C1}
+  #C44 = foo::Bar {_location:#C43}
+  #C45 = wid::_Location {file:#C38, line:#C18, column:#C39, name:#C22, parameterLocations:#C1}
+  #C46 = wid::_Location {file:#C38, line:#C21, column:#C39, name:#C32, parameterLocations:#C1}
+  #C47 = 20.0
+  #C48 = wid::_Location {file:#C38, line:#C11, column:#C47, name:#C32, parameterLocations:#C1}
 }

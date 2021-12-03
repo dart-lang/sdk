@@ -25,15 +25,7 @@ class ThreadState : public BaseThread {
  public:
   // The currently executing thread, or NULL if not yet initialized.
   static ThreadState* Current() {
-#if defined(HAS_C11_THREAD_LOCAL)
     return OSThread::CurrentVMThread();
-#else
-    BaseThread* thread = OSThread::GetCurrentTLS();
-    if (thread == NULL || thread->is_os_thread()) {
-      return NULL;
-    }
-    return static_cast<ThreadState*>(thread);
-#endif
   }
 
   explicit ThreadState(bool is_os_thread);
@@ -47,17 +39,6 @@ class ThreadState : public BaseThread {
   Zone* zone() const { return zone_; }
 
   bool ZoneIsOwnedByThread(Zone* zone) const;
-
-  void IncrementMemoryCapacity(uintptr_t value) {
-    current_zone_capacity_ += value;
-  }
-
-  void DecrementMemoryCapacity(uintptr_t value) {
-    ASSERT(current_zone_capacity_ >= value);
-    current_zone_capacity_ -= value;
-  }
-
-  uintptr_t current_zone_capacity() const { return current_zone_capacity_; }
 
   StackResource* top_resource() const { return top_resource_; }
   void set_top_resource(StackResource* value) { top_resource_ = value; }
@@ -94,7 +75,6 @@ class ThreadState : public BaseThread {
 
   OSThread* os_thread_ = nullptr;
   Zone* zone_ = nullptr;
-  uintptr_t current_zone_capacity_ = 0;
   StackResource* top_resource_ = nullptr;
   LongJumpScope* long_jump_base_ = nullptr;
 

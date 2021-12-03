@@ -98,7 +98,7 @@ abstract class JsToElementMap {
   //  constant expressions during resolution.
   ConstantValue getConstantValue(
       ir.Member memberContext, ir.Expression expression,
-      {bool requireConstant: true, bool implicitNull: false});
+      {bool requireConstant = true, bool implicitNull = false});
 
   /// Returns the [ConstantValue] for the sentinel used to indicate that a
   /// parameter is required.
@@ -342,17 +342,17 @@ abstract class MemberDefinition {
     MemberKind kind = source.readEnum(MemberKind.values);
     switch (kind) {
       case MemberKind.regular:
-        return new RegularMemberDefinition.readFromDataSource(source);
+        return RegularMemberDefinition.readFromDataSource(source);
       case MemberKind.constructor:
       case MemberKind.constructorBody:
       case MemberKind.signature:
       case MemberKind.generatorBody:
-        return new SpecialMemberDefinition.readFromDataSource(source, kind);
+        return SpecialMemberDefinition.readFromDataSource(source, kind);
       case MemberKind.closureCall:
       case MemberKind.closureField:
-        return new ClosureMemberDefinition.readFromDataSource(source, kind);
+        return ClosureMemberDefinition.readFromDataSource(source, kind);
     }
-    throw new UnsupportedError("Unexpected MemberKind $kind");
+    throw UnsupportedError("Unexpected MemberKind $kind");
   }
 
   /// Serializes this [MemberDefinition] to [sink].
@@ -382,7 +382,7 @@ class RegularMemberDefinition implements MemberDefinition {
     source.begin(tag);
     ir.Member node = source.readMemberNode();
     source.end(tag);
-    return new RegularMemberDefinition(node);
+    return RegularMemberDefinition(node);
   }
 
   @override
@@ -422,7 +422,7 @@ class SpecialMemberDefinition implements MemberDefinition {
     source.begin(tag);
     ir.TreeNode node = source.readTreeNode();
     source.end(tag);
-    return new SpecialMemberDefinition(node, kind);
+    return SpecialMemberDefinition(node, kind);
   }
 
   @override
@@ -458,13 +458,13 @@ abstract class ClassDefinition {
     ClassKind kind = source.readEnum(ClassKind.values);
     switch (kind) {
       case ClassKind.regular:
-        return new RegularClassDefinition.readFromDataSource(source);
+        return RegularClassDefinition.readFromDataSource(source);
       case ClassKind.closure:
-        return new ClosureClassDefinition.readFromDataSource(source);
+        return ClosureClassDefinition.readFromDataSource(source);
       case ClassKind.record:
-        return new RecordContainerDefinition.readFromDataSource(source);
+        return RecordContainerDefinition.readFromDataSource(source);
     }
-    throw new UnsupportedError("Unexpected ClassKind $kind");
+    throw UnsupportedError("Unexpected ClassKind $kind");
   }
 
   /// Serializes this [ClassDefinition] to [sink].
@@ -486,7 +486,7 @@ class RegularClassDefinition implements ClassDefinition {
     source.begin(tag);
     ir.Class node = source.readClassNode();
     source.end(tag);
-    return new RegularClassDefinition(node);
+    return RegularClassDefinition(node);
   }
 
   @override
@@ -527,7 +527,7 @@ void forEachOrderedParameterByFunctionNode(
     ir.FunctionNode node,
     ParameterStructure parameterStructure,
     void f(ir.VariableDeclaration parameter, {bool isOptional, bool isElided}),
-    {bool useNativeOrdering: false}) {
+    {bool useNativeOrdering = false}) {
   for (int position = 0;
       position < node.positionalParameters.length;
       position++) {

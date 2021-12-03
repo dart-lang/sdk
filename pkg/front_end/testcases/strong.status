@@ -6,34 +6,25 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
-dart2js/late_statics: SemiFuzzFailure # dartbug.com/45854
-
 constructor_tearoffs/call_instantiation: TypeCheckError
-constructor_tearoffs/const_tear_off: RuntimeError
-constructor_tearoffs/redirecting_constructors: RuntimeError
-constructor_tearoffs/redirecting_factory_tear_off: RuntimeError
+constructor_tearoffs/lowering/invalid_redirect: VerificationError
+extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
+extension_types/call_not_get: ExpectationFileMismatchSerialized # Expected.
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
 extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
+extension_types/show_and_run_ceil: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_getter_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_method_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
+extension_types/type_variable_in_static_context: ExpectationFileMismatchSerialized # Expected.
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
-nnbd/issue42546: TypeCheckError
 nnbd/issue42603: TypeCheckError
 nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
-nnbd/nullable_object_access: TypeCheckError
-nnbd/nullable_receiver: TypeCheckError
-nnbd/potentially_nullable_access: TypeCheckError
-none/equals: TypeCheckError
-none/method_invocation: TypeCheckError
-none/operator: TypeCheckError
-none/property_get: TypeCheckError
-none/property_set: TypeCheckError
 value_class/copy_with_call_sites: RuntimeError # Expected
 value_class/simple: RuntimeError # Expected
 value_class/value_extends_non_value: RuntimeError # Expected

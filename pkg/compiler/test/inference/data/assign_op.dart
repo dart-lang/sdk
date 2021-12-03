@@ -39,9 +39,8 @@ class Class1 {
 /*member: instanceAssignPlus:[subclass=JSPositiveInt]*/
 instanceAssignPlus() {
   var c = new Class1();
-  return c.
-          /*[exact=Class1]*/ /*update: [exact=Class1]*/ field
-      /*invoke: [subclass=JSPositiveInt]*/ += 42;
+  return c. /*[exact=Class1]*/ /*update: [exact=Class1]*/ field /*invoke: [subclass=JSPositiveInt]*/ +=
+      42;
 }
 
 /*member: Class2.:[exact=Class2]*/
@@ -53,9 +52,8 @@ class Class2 {
 /*member: instanceAssignAnd:[exact=JSUInt31]*/
 instanceAssignAnd() {
   var c = new Class2();
-  return c.
-          /*[exact=Class2]*/ /*update: [exact=Class2]*/ field
-      /*invoke: [exact=JSUInt31]*/ &= 42;
+  return c. /*[exact=Class2]*/ /*update: [exact=Class2]*/ field /*invoke: [exact=JSUInt31]*/ &=
+      42;
 }
 
 /*member: assignIndexPlus:[subclass=JSPositiveInt]*/
@@ -88,9 +86,8 @@ assignIndexInc() {
 /*member: assignIndexDec:[subclass=JSInt]*/
 assignIndexDec() {
   var i = [87];
-  return
-      /*invoke: [subclass=JSInt]*/ --i
-          /*Container([exact=JSExtendableArray], element: [subclass=JSInt], length: 1)*/
-          /*update: Container([exact=JSExtendableArray], element: [subclass=JSInt], length: 1)*/
-          [0];
+  return /*invoke: [subclass=JSInt]*/ --i
+      /*Container([exact=JSExtendableArray], element: [subclass=JSInt], length: 1)*/
+      /*update: Container([exact=JSExtendableArray], element: [subclass=JSInt], length: 1)*/
+      [0];
 }

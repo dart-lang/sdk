@@ -1,4 +1,44 @@
-## 2.1.0-dev
+## 2.8.0-dev
+* Deprecations and renames for `getXyz` methods in `AnalysisDriver`.
+* Removed uppercase named constants from `double` in mock SDK.
+* Deprecated `path` and `uri` from `AnalysisResult`.
+
+## 2.7.0
+* Updated `ConstructorElement.displayName` to either `Class` or `Class.constructor`.
+* Deprecated `InterfaceType.getSmartLeastUpperBound`, use `TypeSystem.leastUpperBound` instead.
+* Deprecated `MockSdk`, use `createMockSdk` and `FolderBasedDartSdk` instead.
+
+## 2.6.0
+* Deprecated `AnalysisResult.state`, check for specific valid or invalid subtypes.
+* Deprecated `ResultState`.
+* Deprecated `LibraryElement.hasExtUri`, FFI should be used instead.
+
+## 2.5.0
+* Updated `MockSdk` to include more declarations.
+
+## 2.4.0
+* Deprecated `ResourceProvider.getModificationTimes()`.
+* Deprecated `MemoryResourceProvider.newDummyLink()`.
+* Deprecated `MemoryResourceProvider.updateFile()`.
+* Deprecated `TypeName`, use `NamedType` instead.
+* Override `AstVisitor.visitNamedType()` instead of `visitTypeName()`.
+* Deprecated `ClassTypeAlias.superclass`, use `superclass2` instead.
+* Deprecated `ConstructorName.type`, use `type2` instead.
+* Deprecated `ExtendsClause.superclass`, use `superclass2` instead.
+* Deprecated `ImplementsClause.interfaces`, use `interfaces2` instead.
+* Deprecated `OnClause.superclassConstraints`, use `superclassConstraints2` instead.
+* Deprecated `TypeLiteral.typeName`, use `type` instead.
+* Deprecated `WithClause.mixinTypes`, use `mixinTypes2` instead.
+* Deprecated `AstFactory.typeName()`, use `namedType()` instead.
+
+## 2.3.0
+* Enable `constructor-tearoffs` feature by default in `2.15`.
+* Improvements in constructors tear-off implementation.
+
+## 2.2.0
+* Improvements in constructors tear-off implementation.
+
+## 2.1.0
 * Changed `AnalysisResult.path` to be non-nullable.
 * Changed `ParsedLibraryResult.units` to be non-nullable.
 * Changed `ResolvedLibraryResult.element` to be non-nullable.
@@ -14,6 +54,7 @@
 * Added `DartType.alias` with information about instantiated type alias.
   The type alias element and arguments are present or absent together.
 * Deprecated `DartType.aliasElement` and `DartType.aliasArguments`.
+* Updated the current language version to `2.15`.
 
 ## 2.0.0
 * Removed deprecated `Scope.lookup2()`.
@@ -959,7 +1000,7 @@ void myMagicTest(String name, FutureOr Function() body) {
   test(name, body);
 }
 ```
-  When subscribed to [notifications for outlines of a test file](https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html#notification_analysis.outline),
+  When subscribed to [notifications for outlines of a test file](https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server/doc/api.html#notification_analysis.outline),
   they will include elements for UNIT_TEST_GROUP and UNIT_TEST_TEST.
 * Improve guess for type name identifier. (#32765)
 * Fix LineInfo.getOffsetOfLineAfter().

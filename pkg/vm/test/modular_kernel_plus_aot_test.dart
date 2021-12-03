@@ -83,7 +83,7 @@ Future compileToKernel(
     Uri outputFile,
     List<Uri> sources,
     List<Uri> additionalDills) async {
-  final state = await fe.initializeCompiler(
+  final state = fe.initializeCompiler(
       null,
       sdkSummary,
       librariesFile,

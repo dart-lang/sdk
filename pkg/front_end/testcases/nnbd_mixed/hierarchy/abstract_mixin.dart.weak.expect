@@ -15,8 +15,8 @@ class Interface extends core::Object {
   synthetic constructor •() → self::Interface
     : super core::Object::•()
     ;
-  method extendedConcreteMixedInAbstractImplementedMethod(covariant core::num i) → void {}
-  method extendedConcreteMixedInConcreteImplementedMethod(covariant core::num i) → void {}
+  method extendedConcreteMixedInAbstractImplementedMethod(covariant-by-declaration core::num i) → void {}
+  method extendedConcreteMixedInConcreteImplementedMethod(covariant-by-declaration core::num i) → void {}
 }
 abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   abstract method extendedConcreteMixedInAbstractMethod() → void;
@@ -31,9 +31,9 @@ class Class = self::Super with self::Mixin implements self::Interface {
   abstract mixin-stub method extendedConcreteMixedInAbstractMethod() → void; -> self::Mixin::extendedConcreteMixedInAbstractMethod
   mixin-super-stub method extendedConcreteMixedInConcreteMethod() → void
     return super.{self::Mixin::extendedConcreteMixedInConcreteMethod}();
-  forwarding-stub method extendedConcreteMixedInAbstractImplementedMethod(covariant core::int i) → void
+  forwarding-stub method extendedConcreteMixedInAbstractImplementedMethod(covariant-by-declaration core::int i) → void
     return super.{self::Super::extendedConcreteMixedInAbstractImplementedMethod}(i);
-  forwarding-stub method extendedConcreteMixedInConcreteImplementedMethod(covariant core::int i) → void
+  forwarding-stub method extendedConcreteMixedInConcreteImplementedMethod(covariant-by-declaration core::int i) → void
     return super.{self::Mixin::extendedConcreteMixedInConcreteImplementedMethod}(i);
 }
 class Sub extends self::Class {

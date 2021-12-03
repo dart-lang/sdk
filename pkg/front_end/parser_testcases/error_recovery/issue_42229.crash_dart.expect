@@ -16,11 +16,9 @@ Stream<List<>> /* nothing here */
 
 WARNING: Reporting at eof --- see below for details.
 
-parser/error_recovery/issue_42229.crash:1:34: Expected ';' after this.
+parser/error_recovery/issue_42229.crash:1:14: Expected ';' after this.
 Stream<List<>> /* nothing here */
-                                 ^...
-
-WARNING: Reporting at eof --- see below for details.
+             ^
 
 beginCompilationUnit(Stream)
   beginMetadataStar(Stream)
@@ -28,7 +26,7 @@ beginCompilationUnit(Stream)
   beginTopLevelMember(Stream)
     handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ''., Try inserting an identifier before ''., {lexeme: }], , )
     // WARNING: Reporting at eof for .
-    beginFields()
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, )
       handleIdentifier(Stream, typeReference)
       beginTypeArguments(<)
         handleIdentifier(List, typeReference)
@@ -45,8 +43,7 @@ beginCompilationUnit(Stream)
       // WARNING: Reporting at eof for .
       handleIdentifier(, topLevelVariableDeclaration)
       handleNoFieldInitializer()
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], , )
-      // WARNING: Reporting at eof for .
+      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], >, >)
     endTopLevelFields(null, null, null, null, null, 1, Stream, ;)
   endTopLevelDeclaration()
 endCompilationUnit(1, )

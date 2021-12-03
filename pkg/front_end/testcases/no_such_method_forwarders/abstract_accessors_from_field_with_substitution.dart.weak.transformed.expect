@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A<X extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field core::List<self::A::X*>* foo = null;
+  covariant-by-class field core::List<self::A::X*>* foo = null;
   synthetic constructor •() → self::A<self::A::X*>*
     : super core::Object::•()
     ;
@@ -35,7 +35,7 @@ class B extends core::Object implements self::A<core::int*> {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   no-such-method-forwarder get foo() → core::List<core::int*>*
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} core::List<core::int*>*;
-  no-such-method-forwarder set foo(generic-covariant-impl core::List<core::int*>* value) → void
+  no-such-method-forwarder set foo(covariant-by-class core::List<core::int*>* value) → void
     return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(value)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
 }
 static method expectTypeError(() →* dynamic callback) → void {
@@ -56,6 +56,6 @@ constants  {
   #C1 = #foo
   #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
+  #C4 = <core::Symbol*, dynamic>{)
   #C5 = #foo=
 }

@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:core';
 import 'dart:io' as io;
 import 'dart:math' show max;
 
@@ -612,6 +611,10 @@ class AnalysisServerOptions {
 
   /// Base path where to cache data.
   String? cacheFolder;
+
+  /// The path to the package config file override.
+  /// If `null`, then the default discovery mechanism is used.
+  String? packagesFile;
 
   /// The analytics instance; note, this object can be `null`, and should be
   /// accessed via a null-aware operator.

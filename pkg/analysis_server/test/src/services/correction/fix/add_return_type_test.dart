@@ -12,7 +12,33 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddReturnTypeLintTest);
+    defineReflectiveTests(AddReturnTypeBulkTest);
   });
+}
+
+@reflectiveTest
+class AddReturnTypeBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.always_declare_return_types;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class A {
+  get foo => 0;
+  m(p) {
+    return p;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int get foo => 0;
+  dynamic m(p) {
+    return p;
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -150,6 +176,22 @@ class A {
   int get foo => 0;
 }
 ''');
+  }
+
+  Future<void> test_privateType() async {
+    addSource('/home/test/lib/a.dart', '''
+class A {
+  _B b => _B();
+}
+class _B {}
+''');
+
+    await resolveTestCode('''
+import 'package:test/a.dart';
+
+f(A a) => a.b();
+''');
+    await assertNoFix();
   }
 
   Future<void> test_topLevelFunction_block() async {

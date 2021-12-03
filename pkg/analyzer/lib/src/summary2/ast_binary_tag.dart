@@ -7,16 +7,6 @@ class AliasedElementTag {
   static const int genericFunctionElement = 1;
 }
 
-/// A `MethodInvocation` in unresolved AST might be rewritten later as
-/// another kinds of AST node. We store this rewrite with resolution data.
-class MethodInvocationRewriteTag {
-  static const int extensionOverride = 1;
-  static const int functionExpressionInvocation = 2;
-  static const int instanceCreationExpression_withName = 3;
-  static const int instanceCreationExpression_withoutName = 4;
-  static const int none = 5;
-}
-
 class Tag {
   static const int Nothing = 0;
   static const int Something = 1;
@@ -34,6 +24,7 @@ class Tag {
   static const int ConditionalExpression = 51;
   static const int ConstructorFieldInitializer = 50;
   static const int ConstructorName = 7;
+  static const int ConstructorReference = 101;
   static const int DeclaredIdentifier = 90;
   static const int DefaultFormalParameter = 8;
   static const int DottedName = 47;
@@ -49,6 +40,7 @@ class Tag {
   static const int FunctionDeclaration_setter = 58;
   static const int FunctionExpressionStub = 19;
   static const int FunctionExpressionInvocation = 93;
+  static const int FunctionReference = 103;
   static const int FunctionTypedFormalParameter = 20;
   static const int GenericFunctionType = 21;
   static const int HideCombinator = 48;
@@ -70,6 +62,7 @@ class Tag {
   static const int MethodInvocation = 59;
   static const int MixinDeclaration = 67;
   static const int NamedExpression = 60;
+  static const int NamedType = 39;
   static const int NullLiteral = 49;
   static const int ParenthesizedExpression = 53;
   static const int PostfixExpression = 94;
@@ -90,7 +83,7 @@ class Tag {
   static const int ThisExpression = 70;
   static const int ThrowExpression = 81;
   static const int TypeArgumentList = 38;
-  static const int TypeName = 39;
+  static const int TypeLiteral = 102;
   static const int TypeParameter = 40;
   static const int TypeParameterList = 41;
   static const int VariableDeclaration = 42;

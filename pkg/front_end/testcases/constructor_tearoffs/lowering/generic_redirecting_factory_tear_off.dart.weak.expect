@@ -35,62 +35,62 @@ import self as self;
 import "dart:core" as core;
 
 class Class1<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class1::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor _() → self::Class1<self::Class1::T%>
     : super core::Object::•()
     ;
   static method _#_#tearOff<T extends core::Object? = dynamic>() → self::Class1<self::Class1::_#_#tearOff::T%>
     return new self::Class1::_<self::Class1::_#_#tearOff::T%>();
   static factory •<T extends core::Object? = dynamic>() → self::Class1<self::Class1::•::T%>
-    let dynamic #redirecting_factory = self::Class1::_ in let self::Class1::•::T% #typeArg0 = null in invalid-expression;
+    return new self::Class1::_<self::Class1::•::T%>();
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class1<self::Class1::_#new#tearOff::T%>
     return new self::Class1::_<self::Class1::_#new#tearOff::T%>();
 }
 class Class2<T extends core::num> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class2::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
   constructor _() → self::Class2<self::Class2::T>
     : super core::Object::•()
     ;
   static method _#_#tearOff<T extends core::num>() → self::Class2<self::Class2::_#_#tearOff::T>
     return new self::Class2::_<self::Class2::_#_#tearOff::T>();
   static factory •<T extends core::num>() → self::Class2<self::Class2::•::T>
-    let dynamic #redirecting_factory = self::Class2::_ in let self::Class2::•::T #typeArg0 = null in invalid-expression;
+    return new self::Class2::_<self::Class2::•::T>();
   static method _#new#tearOff<T extends core::num>() → self::Class2<self::Class2::_#new#tearOff::T>
     return new self::Class2::_<self::Class2::_#new#tearOff::T>();
 }
 class Class3<T extends self::Class3::S% = dynamic, S extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class3::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C3]/*isLegacy*/;
   constructor _() → self::Class3<self::Class3::T%, self::Class3::S%>
     : super core::Object::•()
     ;
   static method _#_#tearOff<T extends self::Class3::_#_#tearOff::S% = dynamic, S extends core::Object? = dynamic>() → self::Class3<self::Class3::_#_#tearOff::T%, self::Class3::_#_#tearOff::S%>
     return new self::Class3::_<self::Class3::_#_#tearOff::T%, self::Class3::_#_#tearOff::S%>();
   static factory •<T extends self::Class3::•::S% = dynamic, S extends core::Object? = dynamic>() → self::Class3<self::Class3::•::T%, self::Class3::•::S%>
-    let dynamic #redirecting_factory = self::Class3::_ in let self::Class3::•::T% #typeArg0 = null in let self::Class3::•::S% #typeArg1 = null in invalid-expression;
+    return new self::Class3::_<self::Class3::•::T%, self::Class3::•::S%>();
   static method _#new#tearOff<T extends self::Class3::_#new#tearOff::S% = dynamic, S extends core::Object? = dynamic>() → self::Class3<self::Class3::_#new#tearOff::T%, self::Class3::_#new#tearOff::S%>
     return new self::Class3::_<self::Class3::_#new#tearOff::T%, self::Class3::_#new#tearOff::S%>();
 }
 class Class4<T extends self::Class4<self::Class4::T> = self::Class4<dynamic>> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class4::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C4]/*isLegacy*/;
   constructor _() → self::Class4<self::Class4::T>
     : super core::Object::•()
     ;
   static method _#_#tearOff<T extends self::Class4<self::Class4::_#_#tearOff::T> = self::Class4<dynamic>>() → self::Class4<self::Class4::_#_#tearOff::T>
     return new self::Class4::_<self::Class4::_#_#tearOff::T>();
   static factory •<T extends self::Class4<self::Class4::•::T> = self::Class4<dynamic>>() → self::Class4<self::Class4::•::T>
-    let dynamic #redirecting_factory = self::Class4::_ in let self::Class4::•::T #typeArg0 = null in invalid-expression;
+    return new self::Class4::_<self::Class4::•::T>();
   static method _#new#tearOff<T extends self::Class4<self::Class4::_#new#tearOff::T> = self::Class4<dynamic>>() → self::Class4<self::Class4::_#new#tearOff::T>
     return new self::Class4::_<self::Class4::_#new#tearOff::T>();
 }
 class Class4int extends self::Class4<self::Class4int> {
-  static final field dynamic _redirecting# = <dynamic>[self::Class4int::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C5]/*isLegacy*/;
   constructor _() → self::Class4int
     : super self::Class4::_()
     ;
   static method _#_#tearOff() → self::Class4int
     return new self::Class4int::_();
   static factory •() → self::Class4int
-    let dynamic #redirecting_factory = self::Class4int::_ in invalid-expression;
+    return new self::Class4int::_();
   static method _#new#tearOff() → self::Class4int
     return new self::Class4int::_();
 }
@@ -101,7 +101,7 @@ static method main() → dynamic {
   self::testBounded();
 }
 static method testGeneric() → dynamic {
-  <T extends core::Object? = dynamic>() → self::Class1<T%> f1a = #C1;
+  <T extends core::Object? = dynamic>() → self::Class1<T%> f1a = #C6;
   self::Class1<dynamic> c1a = f1a<dynamic>(){() → self::Class1<dynamic>};
   self::expect(true, c1a is{ForNonNullableByDefault} self::Class1<dynamic>);
   self::expect(false, c1a is{ForNonNullableByDefault} self::Class1<core::int>);
@@ -109,7 +109,7 @@ static method testGeneric() → dynamic {
   self::expect(true, c1b is{ForNonNullableByDefault} self::Class1<core::int>);
   self::expect(false, c1b is{ForNonNullableByDefault} self::Class1<core::String>);
   () → Null {
-    let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:27:8: Error: Expected 1 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:27:8: Error: Expected 1 type arguments.
     f1a<int, String>(); // error
        ^" in f1a{<inapplicable>}.<core::int, core::String>();
   };
@@ -118,18 +118,18 @@ static method testGeneric() → dynamic {
   self::expect(true, c1c is{ForNonNullableByDefault} self::Class1<core::int>);
   self::expect(false, c1c is{ForNonNullableByDefault} self::Class1<core::String>);
   () → Null {
-    let final Never #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:35:8: Error: Expected 0 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:35:8: Error: Expected 0 type arguments.
     f1b<int>(); // error
        ^" in f1b{<inapplicable>}.<core::int>();
   };
-  dynamic f1c = #C1;
+  dynamic f1c = #C6;
   dynamic c1d = f1c{dynamic}.call();
   self::expect(true, c1a is{ForNonNullableByDefault} self::Class1<dynamic>);
   self::expect(false, c1a is{ForNonNullableByDefault} self::Class1<core::int>);
   self::throws(() → dynamic => f1c{dynamic}.call<core::int, core::String>());
 }
 static method testBounded() → dynamic {
-  <T extends core::num>() → self::Class2<T> f2a = #C2;
+  <T extends core::num>() → self::Class2<T> f2a = #C7;
   self::Class2<core::num> c2a = f2a<core::num>(){() → self::Class2<core::num>};
   self::expect(true, c2a is{ForNonNullableByDefault} self::Class2<core::num>);
   self::expect(false, c2a is{ForNonNullableByDefault} self::Class2<core::int>);
@@ -138,11 +138,11 @@ static method testBounded() → dynamic {
   self::expect(false, c2b is{ForNonNullableByDefault} self::Class2<core::double>);
   () → Null {
     f2a<core::String>(){() → self::Class2<core::String>};
-    let final Never #t3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:75:8: Error: Expected 1 type arguments.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/generic_redirecting_factory_tear_off.dart:75:8: Error: Expected 1 type arguments.
     f2a<int, String>(); // error
        ^" in f2a{<inapplicable>}.<core::int, core::String>();
   };
-  dynamic f2b = #C2;
+  dynamic f2b = #C7;
   dynamic c2c = f2b{dynamic}.call();
   self::expect(true, c2c is{ForNonNullableByDefault} self::Class2<core::num>);
   self::expect(false, c2c is{ForNonNullableByDefault} self::Class2<core::int>);
@@ -151,7 +151,7 @@ static method testBounded() → dynamic {
   self::expect(false, c2d is{ForNonNullableByDefault} self::Class2<core::double>);
   self::throws(() → dynamic => f2b{dynamic}.call<core::String>());
   self::throws(() → dynamic => f2b{dynamic}.call<core::int, core::String>());
-  <T extends S% = dynamic, S extends core::Object? = dynamic>() → self::Class3<T%, S%> f3a = #C3;
+  <T extends S% = dynamic, S extends core::Object? = dynamic>() → self::Class3<T%, S%> f3a = #C8;
   self::Class3<dynamic, dynamic> c3a = f3a<dynamic, dynamic>(){() → self::Class3<dynamic, dynamic>};
   self::expect(true, c3a is{ForNonNullableByDefault} self::Class3<dynamic, dynamic>);
   self::expect(false, c3a is{ForNonNullableByDefault} self::Class3<core::int, core::num>);
@@ -161,7 +161,7 @@ static method testBounded() → dynamic {
   () → Null {
     f3a<core::num, core::int>(){() → self::Class3<core::num, core::int>};
   };
-  dynamic f3b = #C3;
+  dynamic f3b = #C8;
   dynamic c3c = f3b{dynamic}.call();
   self::expect(true, c3c is{ForNonNullableByDefault} self::Class3<dynamic, dynamic>);
   self::expect(false, c3c is{ForNonNullableByDefault} self::Class3<core::int, core::num>);
@@ -169,11 +169,11 @@ static method testBounded() → dynamic {
   self::expect(true, c3d is{ForNonNullableByDefault} self::Class3<core::int, core::num>);
   self::expect(false, c3d is{ForNonNullableByDefault} self::Class3<core::double, core::num>);
   self::throws(() → dynamic => f3b{dynamic}.call<core::num, core::int>());
-  <T extends self::Class4<T> = self::Class4<dynamic>>() → self::Class4<T> f4a = #C4;
+  <T extends self::Class4<T> = self::Class4<dynamic>>() → self::Class4<T> f4a = #C9;
   () → Null {
     self::Class4<self::Class4<core::Object?>> c4a = f4a<self::Class4<core::Object?>>(){() → self::Class4<self::Class4<core::Object?>>};
   };
-  dynamic f4b = #C4;
+  dynamic f4b = #C9;
   self::throws(() → dynamic => f4b{dynamic}.call());
   dynamic c4b = f4b{dynamic}.call<self::Class4int>();
   self::expect(true, c4b is{ForNonNullableByDefault} self::Class4<self::Class4int>);
@@ -182,7 +182,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
-static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C5}) → dynamic {
+static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C10}) → dynamic {
   try {
     f(){() → dynamic};
   }
@@ -197,9 +197,14 @@ static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C5}) → d
 }
 
 constants  {
-  #C1 = static-tearoff self::Class1::_#new#tearOff
-  #C2 = static-tearoff self::Class2::_#new#tearOff
-  #C3 = static-tearoff self::Class3::_#new#tearOff
-  #C4 = static-tearoff self::Class4::_#new#tearOff
-  #C5 = false
+  #C1 = constructor-tearoff self::Class1::•
+  #C2 = constructor-tearoff self::Class2::•
+  #C3 = constructor-tearoff self::Class3::•
+  #C4 = constructor-tearoff self::Class4::•
+  #C5 = constructor-tearoff self::Class4int::•
+  #C6 = static-tearoff self::Class1::_#new#tearOff
+  #C7 = static-tearoff self::Class2::_#new#tearOff
+  #C8 = static-tearoff self::Class3::_#new#tearOff
+  #C9 = static-tearoff self::Class4::_#new#tearOff
+  #C10 = false
 }

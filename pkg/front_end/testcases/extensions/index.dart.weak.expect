@@ -9,7 +9,7 @@ class MapLike<K extends core::Object* = dynamic, V extends core::Object* = dynam
     ;
   method get(core::Object* key) → self::MapLike::V*
     return this.{self::MapLike::_map}{core::Map<self::MapLike::K*, self::MapLike::V*>*}.{core::Map::[]}(key){(core::Object*) →* self::MapLike::V*};
-  method put(generic-covariant-impl self::MapLike::K* key, generic-covariant-impl self::MapLike::V* value) → self::MapLike::V*
+  method put(covariant-by-class self::MapLike::K* key, covariant-by-class self::MapLike::V* value) → self::MapLike::V*
     return let final core::Map<self::MapLike::K*, self::MapLike::V*>* #t1 = this.{self::MapLike::_map}{core::Map<self::MapLike::K*, self::MapLike::V*>*} in let final self::MapLike::K* #t2 = key in let final self::MapLike::V* #t3 = value in let final void #t4 = #t1.{core::Map::[]=}(#t2, #t3){(self::MapLike::K*, self::MapLike::V*) →* void} in #t3;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

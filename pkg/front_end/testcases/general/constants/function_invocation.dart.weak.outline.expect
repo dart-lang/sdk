@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/function_invocation.dart:7:20: Error: Method invocation is not a constant expression.
+// const invocation = tearOff();
+//                    ^^^^^^^
+//
+import self as self;
+
+static const field () → dynamic tearOff = self::method;
+static const field invalid-type invocation = invalid-expression "pkg/front_end/testcases/general/constants/function_invocation.dart:7:20: Error: Method invocation is not a constant expression.
+const invocation = tearOff();
+                   ^^^^^^^";
+static method method() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticTearOff @ org-dartlang-testcase:///function_invocation.dart:6:17 -> StaticTearOffConstant(method)
+Extra constant evaluation: evaluated: 1, effectively constant: 1

@@ -8,7 +8,7 @@ library from "package:foo/nonexisting.dart" as non {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:1:8: Error: Not found: 'package:foo/nonexisting.dart'
+// org-dartlang-test:///main.dart:2:8: Error: Not found: 'package:foo/nonexisting.dart'
 // import "package:foo/nonexisting.dart";
 //        ^
 //

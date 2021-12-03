@@ -13,6 +13,11 @@ localVariable() {
   x;
 }
 
+localVariable_null() {
+  var x = null;
+  x;
+}
+
 localVariable_hasInitializer(num a) {
   var x = a;
   x = 1;

@@ -101,37 +101,37 @@ class Options {
       ..addFlag("onlyTestsThatRequireGit",
           help: "Whether to only run tests that require git",
           defaultsTo: false);
-    var parsedArguments = parser.parse(args);
-    String outputPath = parsedArguments["output-directory"] ?? ".";
+    var parsedOptions = parser.parse(args);
+    String outputPath = parsedOptions["output-directory"] ?? ".";
     Uri outputDirectory = Uri.base.resolveUri(Uri.directory(outputPath));
 
-    bool verbose = parsedArguments["verbose"];
+    bool verbose = parsedOptions["verbose"];
 
     String? filter;
-    if (parsedArguments.rest.length == 1) {
-      filter = parsedArguments.rest.single;
+    if (parsedOptions.rest.length == 1) {
+      filter = parsedOptions.rest.single;
       if (filter.startsWith("$suiteNamePrefix/")) {
         filter = filter.substring(suiteNamePrefix.length + 1);
       }
     }
-    String tasksString = parsedArguments["tasks"];
+    String tasksString = parsedOptions["tasks"];
     int? tasks = int.tryParse(tasksString);
     if (tasks == null || tasks < 1) {
       throw "--tasks (-j) has to be an integer >= 1";
     }
 
-    String shardsString = parsedArguments["shards"];
+    String shardsString = parsedOptions["shards"];
     int? shardCount = int.tryParse(shardsString);
     if (shardCount == null || shardCount < 1) {
       throw "--shards has to be an integer >= 1";
     }
-    String shardString = parsedArguments["shard"];
+    String shardString = parsedOptions["shard"];
     int? shard = int.tryParse(shardString);
     if (shard == null || shard < 1 || shard > shardCount) {
       throw "--shard has to be an integer >= 1 (and <= --shards)";
     }
-    bool skipTestsThatRequireGit = parsedArguments["skipTestsThatRequireGit"];
-    bool onlyTestsThatRequireGit = parsedArguments["onlyTestsThatRequireGit"];
+    bool skipTestsThatRequireGit = parsedOptions["skipTestsThatRequireGit"];
+    bool onlyTestsThatRequireGit = parsedOptions["onlyTestsThatRequireGit"];
     if (skipTestsThatRequireGit && onlyTestsThatRequireGit) {
       throw "Only one of --skipTestsThatRequireGit and "
           "--onlyTestsThatRequireGit can be provided.";
@@ -139,12 +139,12 @@ class Options {
 
     if (verbose) {
       print("NOTE: Created with options\n  "
-          "${parsedArguments["named-configuration"]},\n  "
+          "${parsedOptions["named-configuration"]},\n  "
           "${verbose},\n  "
-          "${parsedArguments["print"]},\n  "
+          "${parsedOptions["print"]},\n  "
           "${outputDirectory},\n  "
           "${filter},\n  "
-          "${parsedArguments['environment']},\n  "
+          "${parsedOptions['environment']},\n  "
           "shardCount: ${shardCount},\n  "
           "shard: ${shard - 1 /* make it 0-indexed */},\n  "
           "onlyTestsThatRequireGit: ${onlyTestsThatRequireGit},\n  "
@@ -153,12 +153,12 @@ class Options {
     }
 
     return Options(
-      parsedArguments["named-configuration"],
+      parsedOptions["named-configuration"],
       verbose,
-      parsedArguments["print"],
+      parsedOptions["print"],
       outputDirectory,
       filter,
-      parsedArguments['environment'],
+      parsedOptions['environment'],
       shardCount: shardCount,
       shard: shard - 1 /* make it 0-indexed */,
       onlyTestsThatRequireGit: onlyTestsThatRequireGit,
@@ -209,7 +209,7 @@ class ResultLogger implements Logger {
   @override
   void logSuiteComplete(testing.Suite suite) {}
 
-  handleTestResult(
+  void handleTestResult(
       testing.Suite suite,
       TestDescription testDescription,
       Result result,
@@ -295,6 +295,7 @@ class ResultLogger implements Logger {
     }
   }
 
+  @override
   void logTestStart(int completed, int failed, int total, testing.Suite suite,
       TestDescription description) {
     String name = getTestName(description);
@@ -308,6 +309,7 @@ class ResultLogger implements Logger {
   @override
   void logUncaughtError(error, StackTrace stackTrace) {}
 
+  @override
   void logExpectedResult(testing.Suite suite, TestDescription description,
       Result result, Set<Expectation> expectedOutcomes) {
     handleTestResult(
@@ -493,7 +495,7 @@ class SuiteConfiguration {
   );
 }
 
-void runSuite(SuiteConfiguration configuration) async {
+Future<void> runSuite(SuiteConfiguration configuration) async {
   Suite suite = configuration.suite;
   String name = suite.prefix;
   String fullSuiteName = "$suiteNamePrefix/$name";
@@ -529,7 +531,7 @@ Future<void> writeLinesToFile(Uri uri, List<String> lines) async {
   await File.fromUri(uri).writeAsString(lines.map((line) => "$line\n").join());
 }
 
-main([List<String> arguments = const <String>[]]) async {
+Future<void> main([List<String> arguments = const <String>[]]) async {
   Stopwatch totalRuntime = new Stopwatch()..start();
 
   List<String> results = [];
@@ -606,14 +608,26 @@ main([List<String> arguments = const <String>[]]) async {
           });
           await exitPort.first;
           errorPort.close();
-          bool gotError = !await errorPort.isEmpty;
+          List<dynamic> allErrors = await errorPort.toList();
+          bool gotError = allErrors.isNotEmpty;
           if (gotError) {
+            print("Suite $naming encountered ${allErrors.length} error(s).");
+            print("Errors:");
+            for (int i = 0; i < allErrors.length; i++) {
+              print("-----------");
+              print("Error #$i:");
+              print(allErrors[i]);
+            }
+            print("-----------");
             timedOutOrCrash = true;
           }
           timer.cancel();
+          int seconds = stopwatch.elapsedMilliseconds ~/ 1000;
           if (!timedOutOrCrash) {
-            int seconds = stopwatch.elapsedMilliseconds ~/ 1000;
             print("Suite $naming finished (took ${seconds} seconds)");
+          } else {
+            print("Suite $naming finished badly (see above) "
+                "(took ${seconds} seconds)");
           }
           return timedOutOrCrash;
         } finally {
@@ -624,7 +638,7 @@ main([List<String> arguments = const <String>[]]) async {
     }
   }
   // Wait for isolates to terminate and clean up.
-  Iterable<bool> timeouts = await Future.wait(futures);
+  Iterable<bool> timeoutsOrCrashes = await Future.wait(futures);
   resultsPort.close();
   logsPort.close();
   // Write results.json and logs.json.
@@ -636,9 +650,9 @@ main([List<String> arguments = const <String>[]]) async {
       " ${logsJsonUri.toFilePath()}");
   print("Entire run took ${totalRuntime.elapsed}.");
   // Return with exit code 1 if at least one suite timed out.
-  bool timeout = timeouts.any((timeout) => timeout);
-  if (timeout) {
-    exitCode = 1;
+  bool timedOutOrCrashed = timeoutsOrCrashes.any((timeout) => timeout);
+  if (timedOutOrCrashed) {
+    throw "Crashed or timed out. Check stdout for more details.";
   } else {
     // The testing framework (package:testing) sets the exitCode to `1` if any
     // test failed, so we reset it here to indicate that the test runner was

@@ -8,7 +8,7 @@ import 'dart:io' show exitCode;
 
 import "package:testing/src/run_tests.dart" as testing show main;
 
-main() async {
+Future<void> main() async {
   await testing.main(<String>[
     "--config=pkg/front_end/testing_with_lints.json",
     "--verbose",

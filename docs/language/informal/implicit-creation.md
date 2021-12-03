@@ -11,7 +11,7 @@ feature. **The feature** adds support for omitting some occurrences of the
 reserved words `new` and `const` in instance creation expressions.
 
 This feature specification was written with a
-[combined proposal](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/optional-new-const.md)
+[combined proposal](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/optional-new-const.md)
 as the starting point. That proposal presents optional new and optional const
 together with several other features.
 
@@ -303,5 +303,5 @@ eliminated by the code transformation.
 
 - 0.1 (2017-08-15) Stand-alone informal specification for optional new created,
   using version 0.8 of the combined proposal
-  [optional-new-const.md](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/optional-new-const.md)
+  [optional-new-const.md](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/optional-new-const.md)
   as the starting point.

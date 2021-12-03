@@ -21,6 +21,7 @@ class ParseError {
   ParseError(this.message,
       {required this.filename, required this.byteIndex, required this.path});
 
+  @override
   String toString() => '$filename:$byteIndex: $message at $path';
 }
 
@@ -30,6 +31,7 @@ class InvalidKernelVersionError {
 
   InvalidKernelVersionError(this.filename, this.version);
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('Unexpected Kernel Format Version ${version} '
@@ -46,6 +48,7 @@ class InvalidKernelSdkVersionError {
 
   InvalidKernelSdkVersionError(this.version);
 
+  @override
   String toString() {
     return 'Unexpected Kernel SDK Version ${version} '
         '(expected ${expectedSdkHash}).';
@@ -57,6 +60,7 @@ class CompilationModeError {
 
   CompilationModeError(this.message);
 
+  @override
   String toString() => "CompilationModeError[$message]";
 }
 
@@ -179,7 +183,7 @@ class BinaryBuilder {
             (alwaysCreateNewNamedNodes == true),
         this.alwaysCreateNewNamedNodes = alwaysCreateNewNamedNodes ?? false;
 
-  fail(String message) {
+  Never fail(String message) {
     throw ParseError(message,
         byteIndex: _byteOffset, filename: filename, path: debugPath.join('::'));
   }
@@ -523,6 +527,17 @@ class BinaryBuilder {
     }
     return new List<String>.generate(length, (_) => readStringReference(),
         growable: useGrowableLists);
+  }
+
+  List<Reference> readNonNullReferenceList(List<Reference> result) {
+    int length = readUInt30();
+    if (!useGrowableLists && length == 0) {
+      return emptyListOfReference;
+    }
+    for (int i = 0; i < length; ++i) {
+      result.add(readNonNullMemberReference());
+    }
+    return result;
   }
 
   String? readStringOrNullIfEmpty() {
@@ -1444,6 +1459,22 @@ class BinaryBuilder {
 
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType onType = readDartType();
+
+    if (readAndCheckOptionTag()) {
+      ExtensionTypeShowHideClause showHideClause =
+          node.showHideClause = new ExtensionTypeShowHideClause();
+      readSupertypeList(showHideClause.shownSupertypes);
+      readNonNullReferenceList(showHideClause.shownMethods);
+      readNonNullReferenceList(showHideClause.shownGetters);
+      readNonNullReferenceList(showHideClause.shownSetters);
+      readNonNullReferenceList(showHideClause.shownOperators);
+      readSupertypeList(showHideClause.hiddenSupertypes);
+      readNonNullReferenceList(showHideClause.hiddenMethods);
+      readNonNullReferenceList(showHideClause.hiddenGetters);
+      readNonNullReferenceList(showHideClause.hiddenSetters);
+      readNonNullReferenceList(showHideClause.hiddenOperators);
+    }
+
     typeParameterStack.length = 0;
 
     node.name = name;
@@ -1547,11 +1578,13 @@ class BinaryBuilder {
   Field readField() {
     int tag = readByte();
     assert(tag == Tag.Field);
+    CanonicalName fieldCanonicalName = readNonNullCanonicalNameReference();
+    Reference fieldReference = fieldCanonicalName.reference;
     CanonicalName getterCanonicalName = readNonNullCanonicalNameReference();
     Reference getterReference = getterCanonicalName.reference;
     CanonicalName? setterCanonicalName = readNullableCanonicalNameReference();
     Reference? setterReference = setterCanonicalName?.reference;
-    Field? node = getterReference.node as Field?;
+    Field? node = fieldReference.node as Field?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
@@ -1563,12 +1596,15 @@ class BinaryBuilder {
     if (node == null) {
       if (setterReference != null) {
         node = new Field.mutable(name,
+            fieldReference: fieldReference,
             getterReference: getterReference,
             setterReference: setterReference,
             fileUri: fileUri);
       } else {
         node = new Field.immutable(name,
-            getterReference: getterReference, fileUri: fileUri);
+            fieldReference: fieldReference,
+            getterReference: getterReference,
+            fileUri: fileUri);
       }
     }
     List<Expression> annotations = readAnnotationList(node);
@@ -1666,6 +1702,7 @@ class BinaryBuilder {
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
     Reference? stubTargetReference = readNullableMemberReference();
+    FunctionType? signatureType = readDartTypeOption() as FunctionType?;
     FunctionNode function = readFunctionNode(
         lazyLoadBody: !readFunctionNodeNow, outerEndOffset: endOffset);
     if (node == null) {
@@ -1688,6 +1725,7 @@ class BinaryBuilder {
     node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
     node.stubKind = stubKind;
     node.stubTargetReference = stubTargetReference;
+    node.signatureType = signatureType;
 
     assert((node.stubKind == ProcedureStubKind.ConcreteForwardingStub &&
             node.stubTargetReference != null) ||
@@ -2103,7 +2141,8 @@ class BinaryBuilder {
 
   Expression _readInvalidExpression() {
     int offset = readOffset();
-    return new InvalidExpression(readStringOrNullIfEmpty())
+    return new InvalidExpression(
+        readStringOrNullIfEmpty(), readExpressionOption())
       ..fileOffset = offset;
   }
 
@@ -2913,15 +2952,22 @@ class BinaryBuilder {
     return readAndCheckOptionTag() ? readSupertype() : null;
   }
 
-  List<Supertype> readSupertypeList() {
+  List<Supertype> readSupertypeList([List<Supertype>? result]) {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use an
       // almost constant one for the empty list.
       return emptyListOfSupertype;
     }
-    return new List<Supertype>.generate(length, (_) => readSupertype(),
-        growable: useGrowableLists);
+    if (result != null) {
+      for (int i = 0; i < length; ++i) {
+        result.add(readSupertype());
+      }
+      return result;
+    } else {
+      return new List<Supertype>.generate(length, (_) => readSupertype(),
+          growable: useGrowableLists);
+    }
   }
 
   List<DartType> readDartTypeList() {

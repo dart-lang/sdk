@@ -5,11 +5,13 @@
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart' as element;
+import 'package:analyzer/source/line_info.dart';
 
 class ExpectedCompletion {
   final String _filePath;
@@ -122,11 +124,12 @@ class ExpectedCompletion {
 }
 
 class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
-  final List<ExpectedCompletion> expectedCompletions;
+  /// The result of resolving the file being visited.
+  final ResolvedUnitResult result;
 
-  final String filePath;
-
-  late CompilationUnit _enclosingCompilationUnit;
+  /// The completions that are expected to be produced in the file being
+  /// visited.
+  final List<ExpectedCompletion> expectedCompletions = [];
 
   /// This boolean is set to enable whether or not we should assert that some
   /// found keyword in Dart syntax should be in the completion set returned from
@@ -141,22 +144,22 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   /// comment don't yield an error like Dart syntax mistakes would yield.
   final bool _doExpectCommentRefs = false;
 
-  ExpectedCompletionsVisitor(this.filePath)
-      : expectedCompletions = <ExpectedCompletion>[];
+  ExpectedCompletionsVisitor(this.result);
+
+  /// Return the path of the file that is being visited.
+  String get filePath => result.path;
+
+  /// Return the line info for the file that is being visited.
+  LineInfo get lineInfo => result.lineInfo;
 
   void safelyRecordEntity(SyntacticEntity? entity,
       {protocol.CompletionSuggestionKind? kind,
       protocol.ElementKind? elementKind}) {
     // Only record if this entity is not null, has a length, etc.
-    if (entity != null && entity.offset > 0 && entity.length > 0) {
-      // Compute the line number at this offset
-      var lineNumber = _enclosingCompilationUnit.lineInfo!
-          .getLocation(entity.offset)
-          .lineNumber;
-
-      var columnNumber = _enclosingCompilationUnit.lineInfo!
-          .getLocation(entity.offset)
-          .columnNumber;
+    if (entity != null && entity.offset >= 0 && entity.length > 0) {
+      var location = lineInfo.getLocation(entity.offset);
+      var lineNumber = location.lineNumber;
+      var columnNumber = location.columnNumber;
 
       bool isKeyword() => kind == protocol.CompletionSuggestionKind.KEYWORD;
 
@@ -312,12 +315,6 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     safelyRecordKeywordCompletion(node.abstractKeyword);
     safelyRecordKeywordCompletion(node.typedefKeyword);
     super.visitClassTypeAlias(node);
-  }
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    _enclosingCompilationUnit = node;
-    super.visitCompilationUnit(node);
   }
 
   @override
@@ -656,7 +653,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
           if (constructorName is ConstructorName) {
             var instanceCreationExpression = constructorName.parent;
             if (instanceCreationExpression is InstanceCreationExpression &&
-                constructorName.type.name == node) {
+                constructorName.type2.name == node) {
               if (instanceCreationExpression.keyword != null ||
                   constructorName.name == null) {
                 elementKind = protocol.ElementKind.CONSTRUCTOR;

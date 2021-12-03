@@ -1,0 +1,11 @@
+import 'dart:async';
+
+Future<X?> foo<X extends Object?>(A<X> x) => throw 42;
+bar(String? y) {}
+
+class A<X> {}
+
+main() {}
+test(A<String> a) async {}
+test2(A<String> a) async {}
+test3(A<String> a) {}

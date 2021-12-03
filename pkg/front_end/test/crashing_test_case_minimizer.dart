@@ -19,7 +19,7 @@ import 'crashing_test_case_minimizer_impl.dart';
 // TODO(jensj): Add asserts or similar where - after each rewrite - we run the
 // parser on it and verifies that no syntax errors have been introduced.
 
-main(List<String> arguments) async {
+Future<void> main(List<String> arguments) async {
   String filename;
   Uri loadJson;
   for (String arg in arguments) {

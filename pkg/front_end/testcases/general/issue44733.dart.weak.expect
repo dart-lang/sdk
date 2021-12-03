@@ -55,7 +55,7 @@ abstract class D extends core::Object {
     : super core::Object::•()
     ;
   get y() → self::E {
-    return let final Never #t1 = invalid-expression "pkg/front_end/testcases/general/issue44733.dart:18:9: Error: A non-null value must be returned since the return type 'E' doesn't allow null.
+    return invalid-expression "pkg/front_end/testcases/general/issue44733.dart:18:9: Error: A non-null value must be returned since the return type 'E' doesn't allow null.
  - 'E' is from 'pkg/front_end/testcases/general/issue44733.dart'.
   E get y {}
         ^" in null;
@@ -71,7 +71,7 @@ abstract class A extends core::Object {
 static get x() → self::B
   return invalid-expression "pkg/front_end/testcases/general/issue44733.dart:9:12: Error: Expected identifier, but got 'super'.
 B get x => super.x;
-           ^^^^^"{dynamic}.x as{TypeError,ForDynamic,ForNonNullableByDefault} self::B;
+           ^^^^^"{<invalid>}.x;
 static method f() → void {
   switch(self::x.{self::A::y}{invalid-type}{<invalid>}.z) {
   }

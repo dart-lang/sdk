@@ -46,8 +46,9 @@ class String {
   }
 
   @patch
-  const factory String.fromEnvironment(String name, {String defaultValue = ""})
-      native "String_fromEnvironment";
+  @pragma("vm:external-name", "String_fromEnvironment")
+  external const factory String.fromEnvironment(String name,
+      {String defaultValue = ""});
 
   bool get _isOneByte;
   String _substringUnchecked(int startIndex, int endIndex);
@@ -96,11 +97,13 @@ abstract class _StringBase implements String {
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int get hashCode native "String_getHashCode";
+  @pragma("vm:external-name", "String_getHashCode")
+  external int get hashCode;
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int get _identityHashCode native "String_getHashCode";
+  @pragma("vm:external-name", "String_getHashCode")
+  external int get _identityHashCode;
 
   bool get _isOneByte {
     // Alternatively return false and override it on one-byte string classes.
@@ -248,18 +251,21 @@ abstract class _StringBase implements String {
     return s;
   }
 
-  static String _createFromCodePoints(List<int> codePoints, int start, int end)
-      native "StringBase_createFromCodePoints";
+  @pragma("vm:external-name", "StringBase_createFromCodePoints")
+  external static String _createFromCodePoints(
+      List<int> codePoints, int start, int end);
 
   @pragma("vm:recognized", "asm-intrinsic")
-  String operator [](int index) native "String_charAt";
+  @pragma("vm:external-name", "String_charAt")
+  external String operator [](int index);
 
   int codeUnitAt(int index); // Implemented in the subclasses.
 
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get length native "String_getLength";
+  @pragma("vm:external-name", "String_getLength")
+  external int get length;
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
@@ -269,7 +275,8 @@ abstract class _StringBase implements String {
 
   bool get isNotEmpty => !isEmpty;
 
-  String operator +(String other) native "String_concat";
+  @pragma("vm:external-name", "String_concat")
+  external String operator +(String other);
 
   String toString() {
     return this;
@@ -412,8 +419,8 @@ abstract class _StringBase implements String {
     return _substringUncheckedNative(startIndex, endIndex);
   }
 
-  String _substringUncheckedNative(int startIndex, int endIndex)
-      native "StringBase_substringUnchecked";
+  @pragma("vm:external-name", "StringBase_substringUnchecked")
+  external String _substringUncheckedNative(int startIndex, int endIndex);
 
   // Checks for one-byte whitespaces only.
   static bool _isOneByteWhitespace(int codeUnit) {
@@ -633,7 +640,7 @@ abstract class _StringBase implements String {
     if (replacement == null) throw new ArgumentError.notNull("replacement");
 
     int startIndex = 0;
-    // String fragments that replace the the prefix [this] up to [startIndex].
+    // String fragments that replace the prefix [this] up to [startIndex].
     List matches = [];
     int length = 0; // Length of all fragments.
     int replacementLength = replacement.length;
@@ -716,10 +723,9 @@ abstract class _StringBase implements String {
    * If they are, then we have to check the base string slices to know
    * whether the result must be a one-byte string.
    */
-  static String
-      _joinReplaceAllResult(String base, List matches, int length,
-          bool replacementStringsAreOneByte)
-      native "StringBase_joinReplaceAllResult";
+  @pragma("vm:external-name", "StringBase_joinReplaceAllResult")
+  external static String _joinReplaceAllResult(
+      String base, List matches, int length, bool replacementStringsAreOneByte);
 
   String replaceAllMapped(Pattern pattern, String replace(Match match)) {
     if (pattern == null) throw new ArgumentError.notNull("pattern");
@@ -823,8 +829,9 @@ abstract class _StringBase implements String {
   static String _interpolateSingle(Object? o) {
     if (o is String) return o;
     final s = o.toString();
+    // TODO(40614): Remove once non-nullability is sound.
     if (s is! String) {
-      throw new ArgumentError(s);
+      throw _interpolationError(o, s);
     }
     return s;
   }
@@ -849,15 +856,17 @@ abstract class _StringBase implements String {
         totalLength += s.length;
         i++;
       } else if (s is! String) {
-        throw new ArgumentError(s);
+        // TODO(40614): Remove once non-nullability is sound.
+        throw _interpolationError(e, s);
       } else {
         // Handle remaining elements without checking for one-byte-ness.
         while (++i < numValues) {
           final e = values[i];
           final s = e.toString();
           values[i] = s;
+          // TODO(40614): Remove once non-nullability is sound.
           if (s is! String) {
-            throw new ArgumentError(s);
+            throw _interpolationError(e, s);
           }
         }
         return _concatRangeNative(values, 0, numValues);
@@ -865,6 +874,12 @@ abstract class _StringBase implements String {
     }
     // All strings were one-byte strings.
     return _OneByteString._concatAll(values, totalLength);
+  }
+
+  static ArgumentError _interpolationError(Object? o, Object? result) {
+    // Since Dart 2.0, [result] can only be null.
+    return new ArgumentError.value(
+        o, "object", "toString method returned 'null'");
   }
 
   Iterable<Match> allMatches(String string, [int start = 0]) {
@@ -929,9 +944,11 @@ abstract class _StringBase implements String {
 
   Runes get runes => new Runes(this);
 
-  String toUpperCase() native "String_toUpperCase";
+  @pragma("vm:external-name", "String_toUpperCase")
+  external String toUpperCase();
 
-  String toLowerCase() native "String_toLowerCase";
+  @pragma("vm:external-name", "String_toLowerCase")
+  external String toLowerCase();
 
   // Concatenate ['start', 'end'[ elements of 'strings'.
   static String _concatRange(List<String> strings, int start, int end) {
@@ -943,8 +960,8 @@ abstract class _StringBase implements String {
 
   // Call this method if all elements of [strings] are known to be strings
   // but not all are known to be OneByteString(s).
-  static String _concatRangeNative(List strings, int start, int end)
-      native "String_concatRange";
+  @pragma("vm:external-name", "String_concatRange")
+  external static String _concatRangeNative(List strings, int start, int end);
 }
 
 @pragma("vm:entry-point")
@@ -955,11 +972,13 @@ class _OneByteString extends _StringBase {
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int get hashCode native "String_getHashCode";
+  @pragma("vm:external-name", "String_getHashCode")
+  external int get hashCode;
 
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int codeUnitAt(int index) native "String_codeUnitAt";
+  @pragma("vm:external-name", "String_codeUnitAt")
+  external int codeUnitAt(int index);
 
   bool _isWhitespace(int codeUnit) {
     return _StringBase._isOneByteWhitespace(codeUnit);
@@ -973,8 +992,8 @@ class _OneByteString extends _StringBase {
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", _OneByteString)
-  String _substringUncheckedNative(int startIndex, int endIndex)
-      native "OneByteString_substringUnchecked";
+  @pragma("vm:external-name", "OneByteString_substringUnchecked")
+  external String _substringUncheckedNative(int startIndex, int endIndex);
 
   List<String> _splitWithCharCode(int charCode) {
     final parts = <String>[];
@@ -1248,8 +1267,9 @@ class _OneByteString extends _StringBase {
     return unsafeCast<_OneByteString>(allocateOneByteString(length));
   }
 
-  static _OneByteString _allocateFromOneByteList(List<int> list, int start,
-      int end) native "OneByteString_allocateFromOneByteList";
+  @pragma("vm:external-name", "OneByteString_allocateFromOneByteList")
+  external static _OneByteString _allocateFromOneByteList(
+      List<int> list, int start, int end);
 
   // This is internal helper method. Code point value must be a valid
   // Latin1 value (0..0xFF), index must be valid.
@@ -1290,8 +1310,9 @@ class _TwoByteString extends _StringBase {
     return unsafeCast<_TwoByteString>(allocateTwoByteString(length));
   }
 
-  static String _allocateFromTwoByteList(List<int> list, int start, int end)
-      native "TwoByteString_allocateFromTwoByteList";
+  @pragma("vm:external-name", "TwoByteString_allocateFromTwoByteList")
+  external static String _allocateFromTwoByteList(
+      List<int> list, int start, int end);
 
   // This is internal helper method. Code point value must be a valid
   // UTF-16 value (0..0xFFFF), index must be valid.
@@ -1306,7 +1327,8 @@ class _TwoByteString extends _StringBase {
 
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int codeUnitAt(int index) native "String_codeUnitAt";
+  @pragma("vm:external-name", "String_codeUnitAt")
+  external int codeUnitAt(int index);
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", bool)
@@ -1327,7 +1349,8 @@ class _ExternalOneByteString extends _StringBase {
 
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int codeUnitAt(int index) native "String_codeUnitAt";
+  @pragma("vm:external-name", "String_codeUnitAt")
+  external int codeUnitAt(int index);
 
   bool operator ==(Object other) {
     return super == other;
@@ -1346,7 +1369,8 @@ class _ExternalTwoByteString extends _StringBase {
 
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int codeUnitAt(int index) native "String_codeUnitAt";
+  @pragma("vm:external-name", "String_codeUnitAt")
+  external int codeUnitAt(int index);
 
   bool operator ==(Object other) {
     return super == other;

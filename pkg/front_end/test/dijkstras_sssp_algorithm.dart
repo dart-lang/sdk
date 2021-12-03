@@ -104,6 +104,7 @@ class GraphNode<E> {
     }
   }
 
+  @override
   String toString() {
     return "GraphNode[$node]";
   }

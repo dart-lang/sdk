@@ -114,9 +114,10 @@ class ForResolver {
     iterable.accept(_resolver);
     iterable = forEachParts.iterable;
 
-    _resolver.nullableDereferenceVerifier.expression(iterable,
-        errorCode:
-            CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR);
+    _resolver.nullableDereferenceVerifier.expression(
+      CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+      iterable,
+    );
 
     loopVariable?.accept(_resolver);
     var elementType = _computeForEachElementType(iterable, isAsync);
@@ -129,20 +130,19 @@ class ForResolver {
     }
 
     if (loopVariable != null) {
-      _resolver.flowAnalysis?.flow
-          ?.declare(loopVariable.declaredElement!, true);
+      _resolver.flowAnalysis.flow?.declare(loopVariable.declaredElement!, true);
     }
 
-    _resolver.flowAnalysis?.flow?.forEach_bodyBegin(node);
+    _resolver.flowAnalysis.flow?.forEach_bodyBegin(node);
     if (identifierElement is PromotableElement &&
         forEachParts is ForEachPartsWithIdentifier) {
-      _resolver.flowAnalysis?.flow?.write(forEachParts, identifierElement,
+      _resolver.flowAnalysis.flow?.write(forEachParts, identifierElement,
           elementType ?? DynamicTypeImpl.instance, null);
     }
 
-    _resolveBody(body);
+    body.accept(_resolver);
 
-    _resolver.flowAnalysis?.flow?.forEach_end();
+    _resolver.flowAnalysis.flow?.forEach_end();
   }
 
   void _forParts(AstNode node, ForParts forParts, AstNode body) {
@@ -152,7 +152,7 @@ class ForResolver {
       forParts.initialization?.accept(_resolver);
     }
 
-    _resolver.flowAnalysis?.for_conditionBegin(node);
+    _resolver.flowAnalysis.for_conditionBegin(node);
 
     var condition = forParts.condition;
     if (condition != null) {
@@ -160,25 +160,17 @@ class ForResolver {
       condition.accept(_resolver);
       condition = forParts.condition!;
       var whyNotPromoted =
-          _resolver.flowAnalysis?.flow?.whyNotPromoted(condition);
+          _resolver.flowAnalysis.flow?.whyNotPromoted(condition);
       _resolver.boolExpressionVerifier
           .checkForNonBoolCondition(condition, whyNotPromoted: whyNotPromoted);
     }
 
-    _resolver.flowAnalysis?.for_bodyBegin(node, condition);
-    _resolveBody(body);
+    _resolver.flowAnalysis.for_bodyBegin(node, condition);
+    body.accept(_resolver);
 
-    _resolver.flowAnalysis?.flow?.for_updaterBegin();
+    _resolver.flowAnalysis.flow?.for_updaterBegin();
     forParts.updaters.accept(_resolver);
 
-    _resolver.flowAnalysis?.flow?.for_end();
-  }
-
-  void _resolveBody(AstNode body) {
-    if (body is Statement) {
-      _resolver.visitStatementInScope(body);
-    } else {
-      body.accept(_resolver);
-    }
+    _resolver.flowAnalysis.flow?.for_end();
   }
 }

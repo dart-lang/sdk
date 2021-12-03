@@ -139,10 +139,6 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "Client",
       maturity: Maturity.WEB_STABLE,
       platforms: DART2JS_PLATFORM),
-  "web_sql": const LibraryInfo("web_sql/dart2js/web_sql_dart2js.dart",
-      categories: "Client",
-      maturity: Maturity.WEB_STABLE,
-      platforms: DART2JS_PLATFORM),
   "_internal": const LibraryInfo("internal/internal.dart",
       categories: "",
       documented: false,
@@ -153,6 +149,11 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
   "_rti": const LibraryInfo("_internal/js_runtime/lib/rti.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
+  "_dart2js_runtime_metrics": const LibraryInfo(
+      "_internal/js_runtime/lib/dart2js_runtime_metrics.dart",
+      categories: "",
+      documented: false,
+      platforms: DART2JS_PLATFORM),
   "_interceptors": const LibraryInfo(
       "_internal/js_runtime/lib/interceptors.dart",
       categories: "",

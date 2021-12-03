@@ -216,7 +216,7 @@ class StringReferenceFinalizerImpl implements StringReferenceFinalizer {
 
   /// Maps the recipe (type expression) to the references with the same recipe.
   /// Much of the algorithm's state is stored in the _ReferenceSet objects.
-  Map<StringConstantValue, _ReferenceSet> _referencesByString = {};
+  final Map<StringConstantValue, _ReferenceSet> _referencesByString = {};
 
   StringReferenceFinalizerImpl(this._minify,
       {this.shortestSharedLength =

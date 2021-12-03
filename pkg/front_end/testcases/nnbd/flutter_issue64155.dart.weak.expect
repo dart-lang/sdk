@@ -4,7 +4,7 @@ import "dart:core" as core;
 import "dart:async" as asy;
 
 abstract class TestMixin<R extends core::Object? = dynamic, T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
-  method test(generic-covariant-impl asy::Future<self::TestMixin::R%> fetch) → asy::Future<self::TestMixin::T%> async {
+  method test(covariant-by-class asy::Future<self::TestMixin::R%> fetch) → asy::Future<self::TestMixin::T%> async {
     final self::TestMixin::R% response = await fetch;
     self::TestMixin::T% result;
     if(response is{ForNonNullableByDefault} self::Response<dynamic>) {
@@ -46,7 +46,7 @@ abstract class _Class1&Object&TestMixin = core::Object with self::TestMixin<self
   const synthetic constructor •() → self::_Class1&Object&TestMixin
     : super core::Object::•()
     ;
-  mixin-super-stub method test(generic-covariant-impl asy::Future<self::Response<core::String>> fetch) → asy::Future<core::String>
+  mixin-super-stub method test(covariant-by-class asy::Future<self::Response<core::String>> fetch) → asy::Future<core::String>
     return super.{self::TestMixin::test}(fetch);
 }
 class Class1 extends self::_Class1&Object&TestMixin {
@@ -62,7 +62,7 @@ abstract class _Class2&Object&TestMixin = core::Object with self::TestMixin<self
   const synthetic constructor •() → self::_Class2&Object&TestMixin
     : super core::Object::•()
     ;
-  mixin-super-stub method test(generic-covariant-impl asy::Future<self::PagingResponse<core::String>> fetch) → asy::Future<core::String>
+  mixin-super-stub method test(covariant-by-class asy::Future<self::PagingResponse<core::String>> fetch) → asy::Future<core::String>
     return super.{self::TestMixin::test}(fetch);
 }
 class Class2 extends self::_Class2&Object&TestMixin {

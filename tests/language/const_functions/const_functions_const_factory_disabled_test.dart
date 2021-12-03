@@ -7,6 +7,8 @@
 import "package:expect/expect.dart";
 
 const printConst = MessageType.parse("print");
+//                             ^
+// [cfe] Non-redirecting const factory invocation is not a constant expression.
 
 class MessageType {
   static const print = MessageType._('print');

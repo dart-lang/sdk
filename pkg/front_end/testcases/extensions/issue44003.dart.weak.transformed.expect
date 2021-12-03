@@ -27,7 +27,7 @@ static method test(core::List<core::String*>* args) → void {
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'foo'.
   args.foo('1', 2);
-       ^^^";
+       ^^^" in args{<unresolved>}.foo("1", 2);
 }
 static method _extension#0|foo(lowered final core::List<core::String*>* #this, core::String* bar) → void {
   core::print(1);

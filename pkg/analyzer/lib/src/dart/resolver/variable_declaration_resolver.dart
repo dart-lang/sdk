@@ -45,25 +45,27 @@ class VariableDeclarationResolver {
 
     InferenceContext.setTypeFromNode(initializer, node);
     if (isTopLevel) {
-      _resolver.flowAnalysis?.topLevelDeclaration_enter(node, null);
+      _resolver.flowAnalysis.topLevelDeclaration_enter(node, null);
     } else if (element.isLate) {
-      _resolver.flowAnalysis?.flow?.lateInitializer_begin(node);
+      _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
     }
 
     initializer.accept(_resolver);
     initializer = node.initializer!;
     var whyNotPromoted =
-        _resolver.flowAnalysis?.flow?.whyNotPromoted(initializer);
+        _resolver.flowAnalysis.flow?.whyNotPromoted(initializer);
 
     if (parent.type == null) {
       _setInferredType(element, initializer.typeOrThrow);
     }
 
     if (isTopLevel) {
-      _resolver.flowAnalysis?.topLevelDeclaration_exit();
+      _resolver.flowAnalysis.topLevelDeclaration_exit();
     } else if (element.isLate) {
-      _resolver.flowAnalysis?.flow?.lateInitializer_end();
+      _resolver.flowAnalysis.flow?.lateInitializer_end();
     }
+
+    initializer = _resolver.insertImplicitCallReference(initializer);
 
     // Initializers of top-level variables and fields are already included
     // into elements during linking.

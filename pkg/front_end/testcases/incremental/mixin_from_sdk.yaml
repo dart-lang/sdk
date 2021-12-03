@@ -12,6 +12,7 @@ invalidate:
   - a.dart
 sources:
   a.dart: |
+    // @dart=2.9
     import 'dart:collection';
 
     class Foo extends Object with ListMixin<int> {

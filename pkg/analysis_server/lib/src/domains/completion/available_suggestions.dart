@@ -6,7 +6,6 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 
 /// Compute which suggestion sets should be included into completion inside
@@ -165,6 +164,8 @@ protocol.ElementKind protocolElementKind(DeclarationKind kind) {
       return protocol.ElementKind.MIXIN;
     case DeclarationKind.SETTER:
       return protocol.ElementKind.SETTER;
+    case DeclarationKind.TYPE_ALIAS:
+      return protocol.ElementKind.TYPE_ALIAS;
     case DeclarationKind.VARIABLE:
       return protocol.ElementKind.TOP_LEVEL_VARIABLE;
   }
@@ -359,8 +360,7 @@ class _ImportedElement {
   @override
   final int hashCode;
 
-  _ImportedElement(this.uri, this.name)
-      : hashCode = JenkinsSmiHash.hash2(uri, name);
+  _ImportedElement(this.uri, this.name) : hashCode = Object.hash(uri, name);
 
   @override
   bool operator ==(other) {

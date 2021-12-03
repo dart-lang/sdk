@@ -17,7 +17,7 @@ import 'package:kernel/kernel.dart' show Component;
 
 import 'incremental_suite.dart' as helper;
 
-main() async {
+Future<void> main() async {
   CompilerAndOptions compilerAndOptions = TestCompiler.initialize();
   TestCompiler compiler = compilerAndOptions.compiler;
   bool hasNewline = true;
@@ -66,7 +66,6 @@ main() async {
 const Set<Code> ignoredCodes = {
   codeInvalidAssignmentError,
   codeTypeVariableInStaticContext,
-  codeNonInstanceTypeVariableUse,
   codeExtensionDeclaresInstanceField,
   codeExtraneousModifier,
 };

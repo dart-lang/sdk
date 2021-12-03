@@ -11,6 +11,7 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         class A extends Object with B {
           foo() {}
         }
@@ -26,6 +27,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         class A extends Object with B {
           foo() {}
         }

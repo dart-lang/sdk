@@ -6,6 +6,8 @@
 // when lazy async stacks are enabled by dropping frames below a synchronous
 // start to an async function.
 
+// @dart = 2.9
+
 import "package:test/test.dart";
 import "package:stack_trace/src/stack_zone_specification.dart";
 

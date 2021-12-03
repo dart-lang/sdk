@@ -13,10 +13,12 @@ class Stopwatch {
 
   // Returns the current clock tick.
   @patch
-  static int _now() native "Stopwatch_now";
+  @pragma("vm:external-name", "Stopwatch_now")
+  external static int _now();
 
   // Returns the frequency of clock ticks in Hz.
-  static int _computeFrequency() native "Stopwatch_frequency";
+  @pragma("vm:external-name", "Stopwatch_frequency")
+  external static int _computeFrequency();
 
   @patch
   int get elapsedMicroseconds {

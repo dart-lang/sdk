@@ -46,6 +46,7 @@ namespace dart {
 // Forward declarations.
 class ApiState;
 class BackgroundCompiler;
+class Become;
 class Capability;
 class CodeIndexTable;
 class Debugger;
@@ -160,7 +161,9 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
     FLAG_use_field_guards)                                                     \
   V(PRODUCT, should_load_vmservice_library, ShouldLoadVmService,               \
     load_vmservice_library, false)                                             \
-  V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)
+  V(NONPRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                        \
+  V(NONPRODUCT, snapshot_is_dontneed_safe, SnapshotIsDontNeedSafe,             \
+    snapshot_is_dontneed_safe, false)
 
 #define BOOL_ISOLATE_FLAG_LIST_DEFAULT_GETTER(V)                               \
   V(PRODUCT, copy_parent_code, CopyParentCode, copy_parent_code, false)        \
@@ -589,6 +592,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return deferred_marking_stack_;
   }
 
+  void NotifyLowMemory();
+
   // Runs the given [function] on every isolate in the isolate group.
   //
   // During the duration of this function, no new isolates can be added or
@@ -687,6 +692,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 #endif
   }
 
+  Become* become() const { return become_; }
+  void set_become(Become* become) { become_ = become; }
+
   uint64_t id() const { return id_; }
 
   static void Init();
@@ -713,6 +721,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // running, and the visitor must not allocate.
   void VisitObjectPointers(ObjectPointerVisitor* visitor,
                            ValidationPolicy validate_frames);
+  void VisitSharedPointers(ObjectPointerVisitor* visitor);
   void VisitStackPointers(ObjectPointerVisitor* visitor,
                           ValidationPolicy validate_frames);
   void VisitObjectIdRingPointers(ObjectPointerVisitor* visitor);
@@ -781,7 +790,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   V(NullSafetySet)                                                             \
   V(Obfuscate)                                                                 \
   V(UseFieldGuards)                                                            \
-  V(UseOsr)
+  V(UseOsr)                                                                    \
+  V(SnapshotIsDontNeedSafe)
 
   // Isolate group specific flags.
   enum FlagBits {
@@ -828,6 +838,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   RelaxedAtomic<intptr_t> reload_every_n_stack_overflow_checks_;
   ProgramReloadContext* program_reload_context_ = nullptr;
 #endif
+  Become* become_ = nullptr;
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
@@ -1098,6 +1109,13 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   SampleBlock* current_sample_block() const { return current_sample_block_; }
   void set_current_sample_block(SampleBlock* current);
 
+  void FreeSampleBlock(SampleBlock* block);
+  void ProcessFreeSampleBlocks(Thread* thread);
+  bool should_process_blocks() const {
+    return free_block_list_.load(std::memory_order_relaxed) != nullptr;
+  }
+  std::atomic<SampleBlock*> free_block_list_ = nullptr;
+
   // Returns the current SampleBlock used to track Dart allocation samples.
   //
   // Allocations should only occur on the mutator thread for an isolate, so we
@@ -1319,13 +1337,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
   void set_is_kernel_isolate(bool value) {
     UpdateIsolateFlagsBit<IsKernelIsolateBit>(value);
-  }
-
-  // Whether it's possible for unoptimized code to optimize immediately on entry
-  // (can happen with random or very low optimization counter thresholds)
-  bool CanOptimizeImmediately() const {
-    return FLAG_optimization_counter_threshold < 2 ||
-           FLAG_randomize_optimization_counter;
   }
 
   const DispatchTable* dispatch_table() const {
@@ -1766,29 +1777,8 @@ class NoActiveIsolateScope : public StackResource {
   }
 
  private:
-  friend class DisabledNoActiveIsolateScope;
   Thread* thread_;
   Isolate* saved_isolate_;
-};
-
-// Can be used inside a [NoActiveIsolateScope] to set the current isolate.
-class DisabledNoActiveIsolateScope : public StackResource {
- public:
-  explicit DisabledNoActiveIsolateScope(NoActiveIsolateScope* scope)
-      : StackResource(Thread::Current()),
-        thread_(static_cast<Thread*>(thread())),
-        scope_(scope) {
-    ASSERT(thread_->isolate() == nullptr);
-    thread_->isolate_ = scope_->saved_isolate_;
-  }
-  ~DisabledNoActiveIsolateScope() {
-    ASSERT(thread_->isolate_ == scope_->saved_isolate_);
-    thread_->isolate_ = nullptr;
-  }
-
- private:
-  Thread* thread_;
-  NoActiveIsolateScope* scope_;
 };
 
 }  // namespace dart

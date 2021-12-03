@@ -264,9 +264,9 @@ class Getter_NodeReplacerTest_test_classDeclaration_6
 }
 
 class Getter_NodeReplacerTest_test_classTypeAlias
-    implements NodeReplacerTest_Getter<ClassTypeAlias, TypeName> {
+    implements NodeReplacerTest_Getter<ClassTypeAlias, NamedType> {
   @override
-  TypeName get(ClassTypeAlias node) => node.superclass;
+  NamedType get(ClassTypeAlias node) => node.superclass2;
 }
 
 class Getter_NodeReplacerTest_test_classTypeAlias_2
@@ -294,9 +294,10 @@ class Getter_NodeReplacerTest_test_classTypeAlias_5
 }
 
 class Getter_NodeReplacerTest_test_commentReference
-    implements NodeReplacerTest_Getter<CommentReference, Identifier> {
+    implements
+        NodeReplacerTest_Getter<CommentReference, CommentReferableExpression> {
   @override
-  Identifier get(CommentReference node) => node.identifier;
+  CommentReferableExpression get(CommentReference node) => node.expression;
 }
 
 class Getter_NodeReplacerTest_test_compilationUnit
@@ -372,9 +373,9 @@ class Getter_NodeReplacerTest_test_constructorFieldInitializer_2
 }
 
 class Getter_NodeReplacerTest_test_constructorName
-    implements NodeReplacerTest_Getter<ConstructorName, TypeName> {
+    implements NodeReplacerTest_Getter<ConstructorName, NamedType> {
   @override
-  TypeName get(ConstructorName node) => node.type;
+  NamedType get(ConstructorName node) => node.type2;
 }
 
 class Getter_NodeReplacerTest_test_constructorName_2
@@ -452,9 +453,9 @@ class Getter_NodeReplacerTest_test_expressionStatement
 }
 
 class Getter_NodeReplacerTest_test_extendsClause
-    implements NodeReplacerTest_Getter<ExtendsClause, TypeName> {
+    implements NodeReplacerTest_Getter<ExtendsClause, NamedType> {
   @override
-  TypeName get(ExtendsClause node) => node.superclass;
+  NamedType get(ExtendsClause node) => node.superclass2;
 }
 
 class Getter_NodeReplacerTest_test_fieldDeclaration
@@ -947,15 +948,15 @@ class Getter_NodeReplacerTest_test_tryStatement_2
 }
 
 class Getter_NodeReplacerTest_test_typeName
-    implements NodeReplacerTest_Getter<TypeName, TypeArgumentList> {
+    implements NodeReplacerTest_Getter<NamedType, TypeArgumentList> {
   @override
-  TypeArgumentList? get(TypeName node) => node.typeArguments;
+  TypeArgumentList? get(NamedType node) => node.typeArguments;
 }
 
 class Getter_NodeReplacerTest_test_typeName_2
-    implements NodeReplacerTest_Getter<TypeName, Identifier> {
+    implements NodeReplacerTest_Getter<NamedType, Identifier> {
   @override
-  Identifier get(TypeName node) => node.name;
+  Identifier get(NamedType node) => node.name;
 }
 
 class Getter_NodeReplacerTest_test_typeParameter
@@ -1221,11 +1222,11 @@ class ListGetter_NodeReplacerTest_test_hideCombinator
 }
 
 class ListGetter_NodeReplacerTest_test_implementsClause
-    extends NodeReplacerTest_ListGetter<ImplementsClause, TypeName> {
+    extends NodeReplacerTest_ListGetter<ImplementsClause, NamedType> {
   ListGetter_NodeReplacerTest_test_implementsClause(int arg0) : super(arg0);
 
   @override
-  NodeList<TypeName> getList(ImplementsClause node) => node.interfaces;
+  NodeList<NamedType> getList(ImplementsClause node) => node.interfaces2;
 }
 
 class ListGetter_NodeReplacerTest_test_labeledStatement
@@ -1323,11 +1324,11 @@ class ListGetter_NodeReplacerTest_test_variableDeclarationList
 }
 
 class ListGetter_NodeReplacerTest_test_withClause
-    extends NodeReplacerTest_ListGetter<WithClause, TypeName> {
+    extends NodeReplacerTest_ListGetter<WithClause, NamedType> {
   ListGetter_NodeReplacerTest_test_withClause(int arg0) : super(arg0);
 
   @override
-  NodeList<TypeName> getList(WithClause node) => node.mixinTypes;
+  NodeList<NamedType> getList(WithClause node) => node.mixinTypes2;
 }
 
 class ListGetter_NodeReplacerTest_testAnnotatedNode
@@ -2189,7 +2190,7 @@ class NodeReplacerTest {
   }
 
   void test_typeName() {
-    TypeName node = AstTestFactory.typeName4(
+    NamedType node = AstTestFactory.typeName4(
         "T", [AstTestFactory.typeName4("E"), AstTestFactory.typeName4("F")]);
     _assertReplace(node, Getter_NodeReplacerTest_test_typeName_2());
     _assertReplace(node, Getter_NodeReplacerTest_test_typeName());

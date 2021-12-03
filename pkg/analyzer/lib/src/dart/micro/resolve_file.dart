@@ -11,7 +11,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -116,13 +115,11 @@ class FileResolver {
   FileResolver(
     PerformanceLog logger,
     ResourceProvider resourceProvider,
-    @deprecated ByteStore byteStore,
     SourceFactory sourceFactory,
     String Function(String path) getFileDigest,
     void Function(List<String> paths)? prefetchFiles, {
     required Workspace workspace,
     bool Function(String path)? isGenerated,
-    @deprecated Duration? libraryContextResetTimeout,
   }) : this.from(
           logger: logger,
           resourceProvider: resourceProvider,
@@ -131,9 +128,6 @@ class FileResolver {
           prefetchFiles: prefetchFiles,
           workspace: workspace,
           isGenerated: isGenerated,
-
-          // ignore: deprecated_member_use_from_same_package
-          libraryContextResetTimeout: libraryContextResetTimeout,
         );
 
   FileResolver.from({
@@ -145,7 +139,6 @@ class FileResolver {
     required Workspace workspace,
     bool Function(String path)? isGenerated,
     CiderByteStore? byteStore,
-    @deprecated Duration? libraryContextResetTimeout,
   })  : logger = logger,
         sourceFactory = sourceFactory,
         resourceProvider = resourceProvider,
@@ -175,7 +168,6 @@ class FileResolver {
     // Schedule disposing references to cached unlinked data.
     for (var removedFile in removedFiles) {
       removedCacheIds.add(removedFile.unlinkedId);
-      removedCacheIds.add(removedFile.informativeId);
     }
 
     // Remove libraries represented by removed files.
@@ -191,9 +183,6 @@ class FileResolver {
     removedCacheIds.addAll(fsState!.collectSharedDataIdentifiers());
     removedCacheIds.addAll(libraryContext!.collectSharedDataIdentifiers());
   }
-
-  @deprecated
-  void dispose() {}
 
   /// Looks for references to the Element at the given offset and path. All the
   /// files currently cached by the resolver are searched, generated files are
@@ -275,17 +264,6 @@ class FileResolver {
     });
   }
 
-  @deprecated
-  ErrorsResult getErrors2({
-    required String path,
-    OperationPerformanceImpl? performance,
-  }) {
-    return getErrors(
-      path: path,
-      performance: performance,
-    );
-  }
-
   FileContext getFileContext({
     required String path,
     required OperationPerformanceImpl performance,
@@ -311,6 +289,17 @@ class FileResolver {
 
       return FileContext(analysisOptions, file);
     });
+  }
+
+  /// Return files that have a top-level declaration with the [name].
+  List<FileWithTopLevelDeclaration> getFilesWithTopLevelDeclarations(
+    String name,
+  ) {
+    final fsState = this.fsState;
+    if (fsState == null) {
+      return const [];
+    }
+    return fsState.getFilesWithTopLevelDeclarations(name);
   }
 
   LibraryElement getLibraryByUri({
@@ -415,7 +404,6 @@ class FileResolver {
     var removedFiles = fsState!.removeUnusedFiles(files);
     for (var removedFile in removedFiles) {
       removedCacheIds.add(removedFile.unlinkedId);
-      removedCacheIds.add(removedFile.informativeId);
     }
   }
 
@@ -442,7 +430,7 @@ class FileResolver {
       var libraryFile = file;
       var partOfLibrary = file.partOfLibrary;
       if (partOfLibrary != null) {
-        if (partOfLibrary.libraryFiles.contains(file)) {
+        if (partOfLibrary.files().ofLibrary.contains(file)) {
           libraryFile = partOfLibrary;
         }
       }
@@ -489,7 +477,7 @@ class FileResolver {
       var libraryFile = file;
       var partOfLibrary = file.partOfLibrary;
       if (partOfLibrary != null) {
-        if (partOfLibrary.libraryFiles.contains(file)) {
+        if (partOfLibrary.files().ofLibrary.contains(file)) {
           libraryFile = partOfLibrary;
         }
       }
@@ -521,12 +509,12 @@ class FileResolver {
           libraryContext!.elementFactory,
           contextObjects!.inheritanceManager,
           libraryFile,
-          (file) => file.getContentWithSameDigest(),
+          (file) => file.getContent(),
         );
 
         try {
           results = performance!.run('analyze', (performance) {
-            return libraryAnalyzer.analyzeSync(
+            return libraryAnalyzer.analyze(
               completionPath: completionOffset != null ? completionPath : null,
               completionOffset: completionOffset,
               performance: performance,
@@ -534,7 +522,7 @@ class FileResolver {
           });
         } catch (exception, stackTrace) {
           var fileContentMap = <String, String>{};
-          for (var file in libraryFile.libraryFiles) {
+          for (var file in libraryFile.files().ofLibrary) {
             var path = file.path;
             fileContentMap[path] = _getFileContent(path);
           }
@@ -555,7 +543,7 @@ class FileResolver {
           file.exists,
           file.getContent(),
           file.lineInfo,
-          file.unlinked2.hasPartOfDirective,
+          file.unlinkedUnit.hasPartOfDirective,
           fileResult.unit,
           fileResult.errors,
         );
@@ -610,9 +598,7 @@ class FileResolver {
         byteStore,
         sourceFactory,
         workspace,
-        analysisOptions,
-        Uint32List(0),
-        // linkedSalt
+        Uint32List(0), // linkedSalt
         featureSetProvider,
         getFileDigest,
         prefetchFiles,
@@ -836,11 +822,9 @@ class _LibraryContext {
 
       var unitsInformativeBytes = <Uri, Uint8List>{};
       for (var library in cycle.libraries) {
-        for (var file in library.libraryFiles) {
-          var informativeBytes = file.informativeBytes;
-          if (informativeBytes != null) {
-            unitsInformativeBytes[file.uri] = informativeBytes;
-          }
+        for (var file in library.files().ofLibrary) {
+          var informativeBytes = file.unlinkedUnit.informativeBytes;
+          unitsInformativeBytes[file.uri] = informativeBytes;
         }
       }
 
@@ -854,10 +838,10 @@ class _LibraryContext {
 
           var inputUnits = <link2.LinkInputUnit>[];
           var partIndex = -1;
-          for (var file in libraryFile.libraryFiles) {
+          for (var file in libraryFile.files().ofLibrary) {
             var isSynthetic = !file.exists;
 
-            var content = file.getContentWithSameDigest();
+            var content = file.getContent();
             performance.getDataInt('parseCount').increment();
             performance.getDataInt('parseLength').add(content.length);
 
@@ -868,7 +852,7 @@ class _LibraryContext {
 
             String? partUriStr;
             if (partIndex >= 0) {
-              partUriStr = libraryFile.unlinked2.parts[partIndex];
+              partUriStr = libraryFile.unlinkedUnit.parts[partIndex];
             }
             partIndex++;
 
@@ -893,7 +877,7 @@ class _LibraryContext {
         }
         inputsTimer.stop();
 
-        var linkResult = link2.link(elementFactory, inputLibraries, true);
+        var linkResult = link2.link(elementFactory, inputLibraries);
         librariesLinked += cycle.libraries.length;
 
         resolutionBytes = linkResult.resolutionBytes;
@@ -910,7 +894,7 @@ class _LibraryContext {
           BundleReader(
             elementFactory: elementFactory,
             unitsInformativeBytes: unitsInformativeBytes,
-            resolutionBytes: resolutionBytes as Uint8List,
+            resolutionBytes: resolutionBytes,
           ),
         );
       }

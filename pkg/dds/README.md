@@ -33,4 +33,4 @@ void main() {
 ```
 
 [dds-protocol]: dds_protocol.md
-[service-protocol]: https://github.com/dart-lang/sdk/blob/master/runtime/vm/service/service.md
+[service-protocol]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md

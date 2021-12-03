@@ -13,7 +13,7 @@ import "dart:core" as core;
 class DynamicDispatchRegistry<T extends core::Function*> extends core::Object {
   synthetic constructor •() → self2::DynamicDispatchRegistry<self2::DynamicDispatchRegistry::T*>*
     ;
-  method register(generic-covariant-impl self2::DynamicDispatchRegistry::T* function) → self2::DynamicDispatchRegistry::T*
+  method register(covariant-by-class self2::DynamicDispatchRegistry::T* function) → self2::DynamicDispatchRegistry::T*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

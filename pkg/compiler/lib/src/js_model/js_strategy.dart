@@ -13,7 +13,7 @@ import '../common/tasks.dart';
 import '../common/work.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../compiler.dart';
-import '../deferred_load/deferred_load.dart' hide WorkItem;
+import '../deferred_load/output_unit.dart';
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../enqueue.dart';
@@ -84,18 +84,17 @@ class JsBackendStrategy implements BackendStrategy {
   SourceInformationStrategy sourceInformationStrategy;
 
   /// The generated code as a js AST for compiled methods.
-  final Map<MemberEntity, js.Expression> generatedCode =
-      <MemberEntity, js.Expression>{};
+  final Map<MemberEntity, js.Expression> generatedCode = {};
 
   JsBackendStrategy(this._compiler) {
     bool generateSourceMap = _compiler.options.generateSourceMap;
     if (!generateSourceMap) {
       sourceInformationStrategy = const JavaScriptSourceInformationStrategy();
     } else {
-      sourceInformationStrategy = new KernelSourceInformationStrategy(this);
+      sourceInformationStrategy = KernelSourceInformationStrategy(this);
     }
-    _emitterTask = new CodeEmitterTask(_compiler, generateSourceMap);
-    _functionCompiler = new SsaFunctionCompiler(
+    _emitterTask = CodeEmitterTask(_compiler, generateSourceMap);
+    _functionCompiler = SsaFunctionCompiler(
         _compiler.options,
         _compiler.reporter,
         this,
@@ -163,23 +162,20 @@ class JsBackendStrategy implements BackendStrategy {
   JClosedWorld createJClosedWorld(
       KClosedWorld closedWorld, OutputUnitData outputUnitData) {
     KernelFrontendStrategy strategy = _compiler.frontendStrategy;
-    _elementMap = new JsKernelToElementMap(
+    _elementMap = JsKernelToElementMap(
         _compiler.reporter,
         _compiler.environment,
         strategy.elementMap,
         closedWorld.liveMemberUsage,
         closedWorld.annotationsData);
     ClosureDataBuilder closureDataBuilder =
-        new ClosureDataBuilder(_elementMap, closedWorld.annotationsData);
-    JsClosedWorldBuilder closedWorldBuilder = new JsClosedWorldBuilder(
-        _elementMap,
-        closureDataBuilder,
-        _compiler.options,
-        _compiler.abstractValueStrategy);
+        ClosureDataBuilder(_elementMap, closedWorld.annotationsData);
+    JsClosedWorldBuilder closedWorldBuilder = JsClosedWorldBuilder(_elementMap,
+        closureDataBuilder, _compiler.options, _compiler.abstractValueStrategy);
     JClosedWorld jClosedWorld = closedWorldBuilder.convertClosedWorld(
         closedWorld, strategy.closureModels, outputUnitData);
     _elementMap.lateOutputUnitDataBuilder =
-        new LateOutputUnitDataBuilder(jClosedWorld.outputUnitData);
+        LateOutputUnitDataBuilder(jClosedWorld.outputUnitData);
     return jClosedWorld;
   }
 
@@ -197,23 +193,23 @@ class JsBackendStrategy implements BackendStrategy {
         : const FixedNames();
 
     Tracer tracer =
-        new Tracer(closedWorld, _compiler.options, _compiler.outputProvider);
+        Tracer(closedWorld, _compiler.options, _compiler.outputProvider);
 
     RuntimeTypesSubstitutions rtiSubstitutions;
     if (_compiler.options.disableRtiOptimization) {
-      rtiSubstitutions = new TrivialRuntimeTypesSubstitutions(closedWorld);
+      rtiSubstitutions = TrivialRuntimeTypesSubstitutions(closedWorld);
       _rtiChecksBuilder =
-          new TrivialRuntimeTypesChecksBuilder(closedWorld, rtiSubstitutions);
+          TrivialRuntimeTypesChecksBuilder(closedWorld, rtiSubstitutions);
     } else {
-      RuntimeTypesImpl runtimeTypesImpl = new RuntimeTypesImpl(closedWorld);
+      RuntimeTypesImpl runtimeTypesImpl = RuntimeTypesImpl(closedWorld);
       _rtiChecksBuilder = runtimeTypesImpl;
       rtiSubstitutions = runtimeTypesImpl;
     }
 
-    RecipeEncoder rtiRecipeEncoder = new RecipeEncoderImpl(closedWorld,
+    RecipeEncoder rtiRecipeEncoder = RecipeEncoderImpl(closedWorld,
         rtiSubstitutions, closedWorld.nativeData, closedWorld.commonElements);
 
-    CodegenInputs codegen = new CodegenInputsImpl(
+    CodegenInputs codegen = CodegenInputsImpl(
         rtiSubstitutions, rtiRecipeEncoder, tracer, fixedNames);
 
     functionCompiler.initialize(globalTypeInferenceResults, codegen);
@@ -229,7 +225,7 @@ class JsBackendStrategy implements BackendStrategy {
       CodegenResults codegenResults) {
     assert(_elementMap != null,
         "JsBackendStrategy.elementMap has not been created yet.");
-    OneShotInterceptorData oneShotInterceptorData = new OneShotInterceptorData(
+    OneShotInterceptorData oneShotInterceptorData = OneShotInterceptorData(
         closedWorld.interceptorData,
         closedWorld.commonElements,
         closedWorld.nativeData);
@@ -237,26 +233,25 @@ class JsBackendStrategy implements BackendStrategy {
         globalInferenceResults, codegen, oneShotInterceptorData);
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
-    BackendImpacts impacts =
-        new BackendImpacts(commonElements, _compiler.options);
-    _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
+    BackendImpacts impacts = BackendImpacts(commonElements, _compiler.options);
+    _customElementsCodegenAnalysis = CustomElementsCodegenAnalysis(
         commonElements, elementEnvironment, closedWorld.nativeData);
-    return new CodegenEnqueuer(
+    return CodegenEnqueuer(
         task,
-        new CodegenWorldBuilderImpl(
+        CodegenWorldBuilderImpl(
             closedWorld,
             _compiler.abstractValueStrategy.createSelectorStrategy(),
             oneShotInterceptorData),
-        new KernelCodegenWorkItemBuilder(
+        KernelCodegenWorkItemBuilder(
             this,
             closedWorld,
             codegenResults,
-            new ClosedEntityLookup(_elementMap),
+            ClosedEntityLookup(_elementMap),
             // TODO(johnniwinther): Avoid the need for a [ComponentLookup]. This
             // is caused by some type masks holding a kernel node for using in
             // tracing.
-            new ComponentLookup(_elementMap.programEnv.mainComponent)),
-        new CodegenEnqueuerListener(
+            ComponentLookup(_elementMap.programEnv.mainComponent)),
+        CodegenEnqueuerListener(
             _compiler.options,
             elementEnvironment,
             commonElements,
@@ -277,10 +272,10 @@ class JsBackendStrategy implements BackendStrategy {
     FixedNames fixedNames = codegen.fixedNames;
     _namer = _compiler.options.enableMinification
         ? _compiler.options.useFrequencyNamer
-            ? new FrequencyBasedNamer(closedWorld, fixedNames)
-            : new MinifyNamer(closedWorld, fixedNames)
-        : new Namer(closedWorld, fixedNames);
-    _nativeCodegenEnqueuer = new NativeCodegenEnqueuer(
+            ? FrequencyBasedNamer(closedWorld, fixedNames)
+            : MinifyNamer(closedWorld, fixedNames)
+        : Namer(closedWorld, fixedNames);
+    _nativeCodegenEnqueuer = NativeCodegenEnqueuer(
         _compiler.options,
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
@@ -292,9 +287,9 @@ class JsBackendStrategy implements BackendStrategy {
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
     BackendImpacts impacts =
-        new BackendImpacts(closedWorld.commonElements, _compiler.options);
+        BackendImpacts(closedWorld.commonElements, _compiler.options);
 
-    _codegenImpactTransformer = new CodegenImpactTransformer(
+    _codegenImpactTransformer = CodegenImpactTransformer(
         closedWorld,
         closedWorld.elementEnvironment,
         impacts,
@@ -319,14 +314,14 @@ class JsBackendStrategy implements BackendStrategy {
     if (_compiler.options.testMode) {
       bool useDataKinds = true;
       List<Object> data = [];
-      DataSink sink = new ObjectSink(data, useDataKinds: useDataKinds);
-      sink.registerCodegenWriter(new CodegenWriterImpl(closedWorld));
+      DataSink sink = ObjectSink(data, useDataKinds: useDataKinds);
+      sink.registerCodegenWriter(CodegenWriterImpl(closedWorld));
       result.writeToDataSink(sink);
-      DataSource source = new ObjectSource(data, useDataKinds: useDataKinds);
+      DataSource source = ObjectSource(data, useDataKinds: useDataKinds);
       List<ModularName> modularNames = [];
       List<ModularExpression> modularExpression = [];
       source.registerCodegenReader(
-          new CodegenReaderImpl(closedWorld, modularNames, modularExpression));
+          CodegenReaderImpl(closedWorld, modularNames, modularExpression));
       source.registerEntityLookup(entityLookup);
       source.registerComponentLookup(componentLookup);
       result = CodegenResult.readFromDataSource(
@@ -336,7 +331,7 @@ class JsBackendStrategy implements BackendStrategy {
       generatedCode[member] = result.code;
     }
     if (retainDataForTesting) {
-      codegenImpactsForTesting ??= <MemberEntity, WorldImpact>{};
+      codegenImpactsForTesting ??= {};
       codegenImpactsForTesting[member] = result.impact;
     }
     WorldImpact worldImpact =
@@ -364,7 +359,7 @@ class JsBackendStrategy implements BackendStrategy {
   @override
   SsaBuilder createSsaBuilder(
       CompilerTask task, SourceInformationStrategy sourceInformationStrategy) {
-    return new KernelSsaBuilder(
+    return KernelSsaBuilder(
         task,
         _compiler.options,
         _compiler.reporter,
@@ -384,23 +379,22 @@ class JsBackendStrategy implements BackendStrategy {
       JClosedWorld closedWorld,
       GlobalLocalsMap globalLocalsMap,
       InferredDataBuilder inferredDataBuilder) {
-    return new TypeGraphInferrer(
+    return TypeGraphInferrer(
         _compiler, closedWorld, globalLocalsMap, inferredDataBuilder);
   }
 
   @override
   void prepareCodegenReader(DataSource source) {
-    source.registerEntityReader(new ClosedEntityReader(_elementMap));
-    source.registerEntityLookup(new ClosedEntityLookup(_elementMap));
+    source.registerEntityReader(ClosedEntityReader(_elementMap));
+    source.registerEntityLookup(ClosedEntityLookup(_elementMap));
     source.registerComponentLookup(
-        new ComponentLookup(_elementMap.programEnv.mainComponent));
+        ComponentLookup(_elementMap.programEnv.mainComponent));
   }
 
   @override
   EntityWriter forEachCodegenMember(void Function(MemberEntity member) f) {
     int earlyMemberIndexLimit = _elementMap.prepareForCodegenSerialization();
-    ClosedEntityWriter entityWriter =
-        new ClosedEntityWriter(earlyMemberIndexLimit);
+    ClosedEntityWriter entityWriter = ClosedEntityWriter(earlyMemberIndexLimit);
     for (int memberIndex = 0;
         memberIndex < _elementMap.members.length;
         memberIndex++) {
@@ -425,7 +419,7 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
   @override
   WorkItem createWorkItem(MemberEntity entity) {
     if (entity.isAbstract) return null;
-    return new KernelCodegenWorkItem(_backendStrategy, _closedWorld,
+    return KernelCodegenWorkItem(_backendStrategy, _closedWorld,
         _codegenResults, _entityLookup, _componentLookup, entity);
   }
 }
@@ -478,12 +472,12 @@ class KernelSsaBuilder implements SsaBuilder {
       CodegenRegistry registry,
       ModularNamer namer,
       ModularEmitter emitter) {
-    _inlineCache ??= new FunctionInlineCache(closedWorld.annotationsData);
-    _inlineDataCache ??= new InlineDataCache(
+    _inlineCache ??= FunctionInlineCache(closedWorld.annotationsData);
+    _inlineDataCache ??= InlineDataCache(
         enableUserAssertions: _options.enableUserAssertions,
         omitImplicitCasts: _options.omitImplicitChecks);
     return _task.measure(() {
-      KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
+      KernelSsaGraphBuilder builder = KernelSsaGraphBuilder(
           _options,
           _reporter,
           member,
@@ -574,7 +568,7 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   @override
   AbstractValue inferredIndexType(ir.ForInStatement node) {
     return AbstractValueFactory.inferredResultTypeForSelector(
-        new Selector.index(), typeOfIterator(node), _globalInferenceResults);
+        Selector.index(), typeOfIterator(node), _globalInferenceResults);
   }
 
   @override

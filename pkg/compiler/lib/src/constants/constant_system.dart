@@ -12,37 +12,37 @@ import '../elements/operators.dart';
 import '../elements/types.dart';
 import 'values.dart';
 
-final _BITS32 = new BigInt.from(0xFFFFFFFF);
+final _BITS32 = BigInt.from(0xFFFFFFFF);
 
-const add = const AddOperation();
-const bitAnd = const BitAndOperation();
-const bitNot = const BitNotOperation();
-const bitOr = const BitOrOperation();
-const bitXor = const BitXorOperation();
-const booleanAnd = const BooleanAndOperation();
-const booleanOr = const BooleanOrOperation();
-const divide = const DivideOperation();
-const equal = const EqualsOperation();
-const greaterEqual = const GreaterEqualOperation();
-const greater = const GreaterOperation();
-const identity = const IdentityOperation();
-const ifNull = const IfNullOperation();
-const lessEqual = const LessEqualOperation();
-const less = const LessOperation();
-const modulo = const ModuloOperation();
-const multiply = const MultiplyOperation();
-const negate = const NegateOperation();
-const not = const NotOperation();
-const remainder = const RemainderOperation();
-const shiftLeft = const ShiftLeftOperation();
-const shiftRight = const ShiftRightOperation();
-const shiftRightUnsigned = const ShiftRightUnsignedOperation();
-const subtract = const SubtractOperation();
-const truncatingDivide = const TruncatingDivideOperation();
-const codeUnitAt = const CodeUnitAtOperation();
-const round = const RoundOperation();
-const toInt = const ToIntOperation();
-const abs = const UnfoldedUnaryOperation('abs');
+const add = AddOperation();
+const bitAnd = BitAndOperation();
+const bitNot = BitNotOperation();
+const bitOr = BitOrOperation();
+const bitXor = BitXorOperation();
+const booleanAnd = BooleanAndOperation();
+const booleanOr = BooleanOrOperation();
+const divide = DivideOperation();
+const equal = EqualsOperation();
+const greaterEqual = GreaterEqualOperation();
+const greater = GreaterOperation();
+const identity = IdentityOperation();
+const ifNull = IfNullOperation();
+const lessEqual = LessEqualOperation();
+const less = LessOperation();
+const modulo = ModuloOperation();
+const multiply = MultiplyOperation();
+const negate = NegateOperation();
+const not = NotOperation();
+const remainder = RemainderOperation();
+const shiftLeft = ShiftLeftOperation();
+const shiftRight = ShiftRightOperation();
+const shiftRightUnsigned = ShiftRightUnsignedOperation();
+const subtract = SubtractOperation();
+const truncatingDivide = TruncatingDivideOperation();
+const codeUnitAt = CodeUnitAtOperation();
+const round = RoundOperation();
+const toInt = ToIntOperation();
+const abs = UnfoldedUnaryOperation('abs');
 
 /// Returns true if [value] will turn into NaN or infinity
 /// at runtime.
@@ -56,13 +56,13 @@ NumConstantValue _convertToJavaScriptConstant(NumConstantValue constant) {
     IntConstantValue intConstant = constant;
     BigInt intValue = intConstant.intValue;
     if (_integerBecomesNanOrInfinity(intValue)) {
-      return new DoubleConstantValue(intValue.toDouble());
+      return DoubleConstantValue(intValue.toDouble());
     }
     // If the integer loses precision with JavaScript numbers, use
     // the floored version JavaScript will use.
-    BigInt floorValue = new BigInt.from(intValue.toDouble());
+    BigInt floorValue = BigInt.from(intValue.toDouble());
     if (floorValue != intValue) {
-      return new IntConstantValue(floorValue);
+      return IntConstantValue(floorValue);
     }
   } else if (constant.isDouble) {
     DoubleConstantValue doubleResult = constant;
@@ -72,7 +72,7 @@ NumConstantValue _convertToJavaScriptConstant(NumConstantValue constant) {
         !constant.isMinusZero) {
       double truncated = doubleValue.truncateToDouble();
       if (truncated == doubleValue) {
-        return new IntConstantValue(new BigInt.from(truncated));
+        return IntConstantValue(BigInt.from(truncated));
       }
     }
   }
@@ -80,15 +80,14 @@ NumConstantValue _convertToJavaScriptConstant(NumConstantValue constant) {
 }
 
 NumConstantValue createInt(BigInt i) =>
-    _convertToJavaScriptConstant(new IntConstantValue(i));
-NumConstantValue createIntFromInt(int i) => createInt(new BigInt.from(i));
-NumConstantValue _createInt32(BigInt i) => new IntConstantValue(i & _BITS32);
+    _convertToJavaScriptConstant(IntConstantValue(i));
+NumConstantValue createIntFromInt(int i) => createInt(BigInt.from(i));
+NumConstantValue _createInt32(BigInt i) => IntConstantValue(i & _BITS32);
 NumConstantValue createDouble(double d) =>
-    _convertToJavaScriptConstant(new DoubleConstantValue(d));
-StringConstantValue createString(String string) =>
-    new StringConstantValue(string);
-BoolConstantValue createBool(bool value) => new BoolConstantValue(value);
-NullConstantValue createNull() => new NullConstantValue();
+    _convertToJavaScriptConstant(DoubleConstantValue(d));
+StringConstantValue createString(String string) => StringConstantValue(string);
+BoolConstantValue createBool(bool value) => BoolConstantValue(value);
+NullConstantValue createNull() => NullConstantValue();
 
 ListConstantValue createList(CommonElements commonElements,
     InterfaceType sourceType, List<ConstantValue> values) {
@@ -98,7 +97,7 @@ ListConstantValue createList(CommonElements commonElements,
 
 ConstantValue createType(CommonElements commonElements, DartType type) {
   InterfaceType instanceType = commonElements.typeLiteralType;
-  return new TypeConstantValue(type, instanceType);
+  return TypeConstantValue(type, instanceType);
 }
 
 /// Returns true if the [constant] is an integer at runtime.
@@ -146,10 +145,10 @@ SetConstantValue createSet(CommonElements commonElements,
   DartType elementType = type.typeArguments.first;
   InterfaceType mapType =
       commonElements.mapType(elementType, commonElements.nullType);
-  List<NullConstantValue> nulls = new List<NullConstantValue>.filled(
-      values.length, const NullConstantValue());
+  List<NullConstantValue> nulls =
+      List<NullConstantValue>.filled(values.length, const NullConstantValue());
   MapConstantValue entries = createMap(commonElements, mapType, values, nulls);
-  return new JavaScriptSetConstant(type, entries);
+  return JavaScriptSetConstant(type, entries);
 }
 
 MapConstantValue createMap(
@@ -180,7 +179,7 @@ ConstantValue createSymbol(CommonElements commonElements, String text) {
   // TODO(johnniwinther): Use type arguments when all uses no longer expect
   // a [FieldElement].
   var fields = <FieldEntity, ConstantValue>{field: argument};
-  return new ConstructedConstantValue(type, fields);
+  return ConstructedConstantValue(type, fields);
 }
 
 UnaryOperation lookupUnary(UnaryOperator operator) {
@@ -407,7 +406,7 @@ class ShiftLeftOperation extends BinaryBitOperation {
   BigInt foldInts(BigInt left, BigInt right) {
     // TODO(floitsch): find a better way to guard against excessive shifts to
     // the left.
-    if (right > new BigInt.from(100) || right < BigInt.zero) return null;
+    if (right > BigInt.from(100) || right < BigInt.zero) return null;
     return left << right.toInt();
   }
 
@@ -439,7 +438,7 @@ class ShiftRightOperation extends BinaryBitOperation {
         // Example: 0xFFFFFFFF - 0x100000000 => -1.
         // We simply and with the sign-bit and multiply by two. If the sign-bit
         // was set, then the result is 0. Otherwise it will become 2^32.
-        final BigInt SIGN_BIT = new BigInt.from(0x80000000);
+        final BigInt SIGN_BIT = BigInt.from(0x80000000);
         truncatedValue -= BigInt.two * (truncatedValue & SIGN_BIT);
       }
       if (value != truncatedValue) {
@@ -646,7 +645,7 @@ class TruncatingDivideOperation extends ArithmeticNumOperation {
   BigInt foldNums(num left, num right) {
     num ratio = left / right;
     if (ratio.isNaN || ratio.isInfinite) return null;
-    return new BigInt.from(ratio.truncateToDouble());
+    return BigInt.from(ratio.truncateToDouble());
   }
 
   @override
@@ -855,7 +854,7 @@ class IdentityOperation implements BinaryOperation {
       // In order to preserve runtime semantics which says that NaN !== NaN
       // don't constant fold NaN === NaN. Otherwise the output depends on
       // inlined variables and other optimizations.
-      if (left.isNaN && right.isNaN) return new FalseConstantValue();
+      if (left.isNaN && right.isNaN) return FalseConstantValue();
       return createBool(left == right);
     }
 
@@ -866,14 +865,14 @@ class IdentityOperation implements BinaryOperation {
     if (left.isInt && right.isInt) {
       IntConstantValue leftInt = left;
       IntConstantValue rightInt = right;
-      return new BoolConstantValue(leftInt.intValue == rightInt.intValue);
+      return BoolConstantValue(leftInt.intValue == rightInt.intValue);
     }
     if (left.isNum && right.isNum) {
       NumConstantValue leftNum = left;
       NumConstantValue rightNum = right;
       double leftDouble = leftNum.doubleValue;
       double rightDouble = rightNum.doubleValue;
-      return new BoolConstantValue(leftDouble == rightDouble);
+      return BoolConstantValue(leftDouble == rightDouble);
     }
     return result;
   }
@@ -943,7 +942,7 @@ class RoundOperation implements UnaryOperation {
       double rounded2 = (value * (1.0 - severalULP)).roundToDouble();
       if (rounded != rounded1 || rounded != rounded2) return null;
       return _convertToJavaScriptConstant(
-          new IntConstantValue(new BigInt.from(value.round())));
+          IntConstantValue(BigInt.from(value.round())));
     }
 
     if (constant.isInt) {

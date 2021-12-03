@@ -15,7 +15,7 @@ import "dart:core" as core;
 class Supertype extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::Supertype::•];
   static factory •() → self::Supertype*
-    let dynamic #redirecting_factory = self::X::• in invalid-expression;
+    return new self::X::•();
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -43,3 +43,8 @@ class X extends core::Object implements self::Supertype {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_35260.dart:5:7 -> ConstructorTearOffConstant(Supertype.)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

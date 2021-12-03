@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:package_config/package_config_types.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
@@ -24,6 +25,11 @@ class ProtocolConverter {
   /// The parent debug adapter, used to access arguments and the VM Service for
   /// the debug session.
   final DartDebugAdapter _adapter;
+
+  /// Temporary PackageConfig used for resolving package: URIs.
+  /// TODO(dantup): Replace this implementation with one that calls the VM
+  ///   Service once https://github.com/dart-lang/sdk/issues/45530 is done.
+  PackageConfig packageConfig = PackageConfig.empty;
 
   ProtocolConverter(this._adapter);
 
@@ -55,17 +61,22 @@ class ProtocolConverter {
     ThreadInfo thread,
     vm.InstanceRef ref, {
     required bool allowCallingToString,
+    bool allowTruncatedValue = true,
     bool includeQuotesAroundString = true,
   }) async {
     final isTruncated = ref.valueAsStringIsTruncated ?? false;
     if (ref.kind == vm.InstanceKind.kString && isTruncated) {
-      // Call toString() if allowed, otherwise (or if it returns null) fall back
-      // to the truncated value with "…" suffix.
-      var stringValue = allowCallingToString
+      // Call toString() if allowed (and we don't already have a value),
+      // otherwise (or if it returns null) fall back to the truncated value
+      // with "…" suffix.
+      var stringValue = allowCallingToString &&
+              (ref.valueAsString == null || !allowTruncatedValue)
           ? await _callToString(
               thread,
               ref,
-              includeQuotesAroundString: includeQuotesAroundString,
+              // Quotes are handled below, so they can be wrapped around the
+              // elipsis.
+              includeQuotesAroundString: false,
             )
           : null;
       stringValue ??= '${ref.valueAsString}…';
@@ -88,7 +99,11 @@ class ProtocolConverter {
           ref,
           includeQuotesAroundString: false,
         );
-        stringValue += ' ($toStringValue)';
+        // Include the toString() result only if it's not the default (which
+        // duplicates the type name we're already showing).
+        if (toStringValue != "Instance of '${ref.classRef?.name}'") {
+          stringValue += ' ($toStringValue)';
+        }
       }
       return stringValue;
     } else if (ref.kind == 'List') {
@@ -110,6 +125,7 @@ class ProtocolConverter {
   Future<List<dap.Variable>> convertVmInstanceToVariablesList(
     ThreadInfo thread,
     vm.Instance instance, {
+    required String? evaluateName,
     required bool allowCallingToString,
     int? startItem = 0,
     int? numItems,
@@ -124,6 +140,8 @@ class ProtocolConverter {
         await convertVmResponseToVariable(
           thread,
           instance,
+          name: null,
+          evaluateName: evaluateName,
           allowCallingToString: allowCallingToString,
         )
       ];
@@ -137,7 +155,9 @@ class ProtocolConverter {
             (index, response) => convertVmResponseToVariable(
               thread,
               response,
-              name: '${start + index}',
+              name: '[${start + index}]',
+              evaluateName: _adapter.combineEvaluateName(
+                  evaluateName, '[${start + index}]'),
               allowCallingToString:
                   allowCallingToString && index <= maxToStringsPerEvaluation,
             ),
@@ -152,14 +172,26 @@ class ProtocolConverter {
       return Future.wait(associations
           .sublist(start, numItems != null ? start + numItems : null)
           .mapIndexed((index, mapEntry) async {
+        final key = mapEntry.key;
+        final value = mapEntry.value;
         final callToString =
             allowCallingToString && index <= maxToStringsPerEvaluation;
-        final keyDisplay = await convertVmResponseToDisplayString(
-            thread, mapEntry.key,
+
+        final keyDisplay = await convertVmResponseToDisplayString(thread, key,
             allowCallingToString: callToString);
         final valueDisplay = await convertVmResponseToDisplayString(
-            thread, mapEntry.value,
+            thread, value,
             allowCallingToString: callToString);
+
+        // We only provide an evaluateName for the value, and only if the
+        // key is a simple value.
+        if (key is vm.InstanceRef &&
+            value is vm.InstanceRef &&
+            evaluateName != null &&
+            isSimpleKind(key.kind)) {
+          _adapter.storeEvaluateName(value, '$evaluateName[$keyDisplay]');
+        }
+
         return dap.Variable(
           name: '${start + index}',
           value: '$keyDisplay -> $valueDisplay',
@@ -169,11 +201,17 @@ class ProtocolConverter {
     } else if (fields != null) {
       // Otherwise, show the fields from the instance.
       final variables = await Future.wait(fields.mapIndexed(
-          (index, field) async => convertVmResponseToVariable(
-              thread, field.value,
-              name: field.decl?.name ?? '<unnamed field>',
+        (index, field) async {
+          final name = field.decl?.name;
+          return convertVmResponseToVariable(thread, field.value,
+              name: name ?? '<unnamed field>',
+              evaluateName: name != null
+                  ? _adapter.combineEvaluateName(evaluateName, '.$name')
+                  : null,
               allowCallingToString:
-                  allowCallingToString && index <= maxToStringsPerEvaluation)));
+                  allowCallingToString && index <= maxToStringsPerEvaluation);
+        },
+      ));
 
       // Also evaluate the getters if evaluateGettersInDebugViews=true enabled.
       final service = _adapter.vmService;
@@ -186,23 +224,36 @@ class ProtocolConverter {
         /// Helper to evaluate each getter and convert the response to a
         /// variable.
         Future<dap.Variable> evaluate(int index, String getterName) async {
-          final response = await service.evaluate(
-            thread.isolate.id!,
-            instance.id!,
-            getterName,
-          );
-          // Convert results to variables.
-          return convertVmResponseToVariable(
-            thread,
-            response,
-            name: getterName,
-            allowCallingToString:
-                allowCallingToString && index <= maxToStringsPerEvaluation,
-          );
+          try {
+            final response = await service.evaluate(
+              thread.isolate.id!,
+              instance.id!,
+              getterName,
+            );
+            // Convert results to variables.
+            return convertVmResponseToVariable(
+              thread,
+              response,
+              name: getterName,
+              evaluateName:
+                  _adapter.combineEvaluateName(evaluateName, '.$getterName'),
+              allowCallingToString:
+                  allowCallingToString && index <= maxToStringsPerEvaluation,
+            );
+          } catch (e) {
+            return dap.Variable(
+              name: getterName,
+              value: _adapter.extractEvaluationErrorMessage('$e'),
+              variablesReference: 0,
+            );
+          }
         }
 
         variables.addAll(await Future.wait(getterNames.mapIndexed(evaluate)));
       }
+
+      // Sort the fields/getters by name.
+      variables.sortBy((v) => v.name);
 
       return variables;
     } else {
@@ -248,7 +299,8 @@ class ProtocolConverter {
   Future<dap.Variable> convertVmResponseToVariable(
     ThreadInfo thread,
     vm.Response response, {
-    String? name,
+    required String? name,
+    required String? evaluateName,
     required bool allowCallingToString,
   }) async {
     if (response is vm.InstanceRef) {
@@ -259,6 +311,7 @@ class ProtocolConverter {
 
       return dap.Variable(
         name: name ?? response.kind.toString(),
+        evaluateName: evaluateName,
         value: await convertVmResponseToDisplayString(
           thread,
           response,
@@ -268,13 +321,21 @@ class ProtocolConverter {
       );
     } else if (response is vm.Sentinel) {
       return dap.Variable(
-        name: '<sentinel>',
+        name: name ?? '<sentinel>',
         value: response.valueAsString.toString(),
+        variablesReference: 0,
+      );
+    } else if (response is vm.ErrorRef) {
+      final errorMessage = _adapter
+          .extractUnhandledExceptionMessage(response.message ?? '<error>');
+      return dap.Variable(
+        name: name ?? '<error>',
+        value: '<$errorMessage>',
         variablesReference: 0,
       );
     } else {
       return dap.Variable(
-        name: '<error>',
+        name: name ?? '<error>',
         value: response.runtimeType.toString(),
         variablesReference: 0,
       );
@@ -325,14 +386,16 @@ class ProtocolConverter {
 
     final scriptRef = location.script;
     final tokenPos = location.tokenPos;
-    final uri = scriptRef?.uri;
+    final scriptRefUri = scriptRef?.uri;
+    final uri = scriptRefUri != null ? Uri.parse(scriptRefUri) : null;
+    final uriIsPackage = uri?.isScheme('package') ?? false;
     final sourcePath = uri != null ? await convertVmUriToSourcePath(uri) : null;
     var canShowSource = sourcePath != null && File(sourcePath).existsSync();
 
     // Download the source if from a "dart:" uri.
     int? sourceReference;
     if (uri != null &&
-        (uri.startsWith('dart:') || uri.startsWith('org-dartlang-app:')) &&
+        (uri.isScheme('dart') || uri.isScheme('org-dartlang-app')) &&
         scriptRef != null) {
       sourceReference = thread.storeData(scriptRef);
       canShowSource = true;
@@ -349,13 +412,31 @@ class ProtocolConverter {
       }
     }
 
+    // If a source would be considered not-debuggable (for example it's in the
+    // SDK and debugSdkLibraries=false) then we should also mark it as
+    // deemphasized so that the editor can jump up the stack to the first frame
+    // of debuggable code.
+    final isDebuggable = uri != null && _adapter.libaryIsDebuggable(uri);
+    final presentationHint = isDebuggable ? null : 'deemphasize';
+    final origin = uri != null && _adapter.isSdkLibrary(uri)
+        ? 'from the SDK'
+        : uri != null && _adapter.isExternalPackageLibrary(uri)
+            ? 'from external packages'
+            : null;
+
     final source = canShowSource
         ? dap.Source(
-            name: sourcePath != null ? convertToRelativePath(sourcePath) : uri,
+            name: uriIsPackage
+                ? uri!.toString()
+                : sourcePath != null
+                    ? convertToRelativePath(sourcePath)
+                    : uri?.toString() ?? '<unknown source>',
             path: sourcePath,
             sourceReference: sourceReference,
-            origin: null,
-            adapterData: location.script)
+            origin: origin,
+            adapterData: location.script,
+            presentationHint: presentationHint,
+          )
         : null;
 
     // The VM only allows us to restart from frames that are not the top frame,
@@ -374,18 +455,17 @@ class ProtocolConverter {
     );
   }
 
-  /// Converts the source path from the VM to a file path.
+  /// Converts the source URI from the VM to a file path.
   ///
   /// This is required so that when the user stops (or navigates via a stack
   /// frame) we open the same file on their local disk. If we downloaded the
   /// source from the VM, they would end up seeing two copies of files (and they
   /// would each have their own breakpoints) which can be confusing.
-  Future<String?> convertVmUriToSourcePath(String uri) async {
-    if (uri.startsWith('file://')) {
-      return Uri.parse(uri).toFilePath();
-    } else if (uri.startsWith('package:')) {
-      // TODO(dantup): Handle mapping package: uris ?
-      return null;
+  Future<String?> convertVmUriToSourcePath(Uri uri) async {
+    if (uri.isScheme('file')) {
+      return uri.toFilePath();
+    } else if (uri.isScheme('package')) {
+      return resolvePackageUri(uri);
     } else {
       return null;
     }
@@ -400,6 +480,19 @@ class ProtocolConverter {
         kind == 'Double' ||
         kind == 'Null' ||
         kind == 'Closure';
+  }
+
+  /// Resolves a `package: URI` to the real underlying source path.
+  ///
+  /// Returns `null` if no mapping was possible, for example if the package is
+  /// not in the package mapping file.
+  String? resolvePackageUri(Uri uri) {
+    // TODO(dantup): Replace this implementation with one that calls the VM
+    //   Service once https://github.com/dart-lang/sdk/issues/45530 is done.
+    // This implementation makes assumptions about the package file being used
+    // that might not be correct (for example if the user uses the --packages
+    // flag).
+    return packageConfig.resolve(uri)?.toFilePath();
   }
 
   /// Invokes the toString() method on a [vm.InstanceRef] and converts the

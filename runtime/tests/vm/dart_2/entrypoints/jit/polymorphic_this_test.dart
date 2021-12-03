@@ -6,6 +6,8 @@
 // VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=10 --compilation-counter-threshold=1
 // VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=-1 --compilation-counter-threshold=1
 
+// @dart = 2.9
+
 // Test that 'PolymorphicInstanceCall's against "this" go through the unchecked
 // entrypoint.
 

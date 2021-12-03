@@ -16,4 +16,4 @@ GENERATED_DIR=$DIR/lib/generated
 protoc --dart_out=$GENERATED_DIR -I$DIR/protos $DIR/protos/*.proto
 rm $GENERATED_DIR/*.pbenum.dart $GENERATED_DIR/*.pbjson.dart $GENERATED_DIR/*.pbserver.dart
 
-dartfmt -w $DIR/lib/generated
+dart format $DIR/lib/generated

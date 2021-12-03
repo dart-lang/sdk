@@ -75,9 +75,10 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
 
   /// Validates that there is an identifier region at [regionSearch] with target
   /// at [targetSearch].
-  void assertHasRegionTarget(String regionSearch, String targetSearch) {
+  void assertHasRegionTarget(String regionSearch, String targetSearch,
+      {int targetLength = -1}) {
     assertHasRegion(regionSearch);
-    assertHasTarget(targetSearch);
+    assertHasTarget(targetSearch, targetLength);
   }
 
   /// Validates that there is a target in [testTargets]  with [testFile], at the
@@ -391,6 +392,62 @@ class BBB {}
     assertHasRegionTarget('BBB p', 'BBB {}');
   }
 
+  Future<void> test_constructorReference_named() async {
+    addTestFile('''
+class A {}
+class B<T> {
+  B.named();
+}
+void f() {
+  B<A>.named;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('B<A>.named;', 'named();');
+    assertHasRegionTarget('named;', 'named();');
+    assertHasRegionTarget('A>', 'A {}');
+  }
+
+  Future<void> test_constructorReference_unnamed_declared() async {
+    addTestFile('''
+class A {
+  A();
+}
+void f() {
+  A.new;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('A.new;', 'A();', targetLength: 0);
+    assertHasRegionTarget('new;', 'A();', targetLength: 0);
+  }
+
+  Future<void> test_constructorReference_unnamed_declared_new() async {
+    addTestFile('''
+class A {
+  A.new();
+}
+void f() {
+  A.new;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('A.new;', 'new();');
+    assertHasRegionTarget('new;', 'new();');
+  }
+
+  Future<void> test_constructorReference_unnamed_default() async {
+    addTestFile('''
+class A {}
+void f() {
+  A.new;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('A.new;', 'A {}');
+    assertHasRegionTarget('new;', 'A {}');
+  }
+
   Future<void> test_enum_constant() async {
     addTestFile('''
 enum E { a, b }
@@ -583,6 +640,92 @@ class AAA {
 ''');
     await prepareNavigation();
     assertNoRegion('fff);', 3);
+  }
+
+  Future<void> test_functionReference_className_staticMethod() async {
+    addTestFile('''
+class A {
+  static void foo<T>() {}
+}
+void f() {
+  A.foo<A>;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('foo<A>', 'foo<T>');
+    assertHasRegionTarget('A>', 'A {');
+  }
+
+  Future<void> test_functionReference_function() async {
+    addTestFile('''
+class A {}
+void foo<T>() {}
+void f() {
+  foo<A>;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('foo<A>', 'foo<T>');
+    assertHasRegionTarget('A>', 'A {');
+  }
+
+  Future<void> test_functionReference_importPrefix_function() async {
+    newFile(join(testFolder, 'a.dart'), content: r'''
+void foo<T>() {}
+''');
+    addTestFile('''
+import 'a.dart' as prefix;
+class A {}
+void f() {
+  prefix.foo<A>;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('prefix.', 'prefix;');
+    assertHasRegion('foo<A>');
+    assertHasRegionTarget('A>', 'A {');
+  }
+
+  Future<void> test_functionReference_instance_method() async {
+    addTestFile('''
+class A {
+  void foo<T>() {}
+}
+void f(A a) {
+  a.foo<A>;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('foo<A>', 'foo<T>');
+    assertHasRegionTarget('A>', 'A {');
+  }
+
+  Future<void> test_functionReference_method() async {
+    addTestFile('''
+class A {
+  void foo<T>() {}
+  void f() {
+    foo<A>;
+  }
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('foo<A>', 'foo<T>');
+    assertHasRegionTarget('A>', 'A {');
+  }
+
+  Future<void> test_functionReference_staticMethod() async {
+    addTestFile('''
+class A {
+  static void foo<T>() {}
+  void f() {
+    foo<A>;
+  }
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('foo<A>', 'foo<T>');
+    assertHasRegionTarget('A>', 'A {');
   }
 
   Future<void> test_identifier_resolved() async {

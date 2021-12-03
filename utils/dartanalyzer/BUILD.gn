@@ -40,7 +40,7 @@ prebuilt_dart_action("generate_summary_strong") {
     "../../sdk:write_version_file",
   ]
   script = "../../pkg/analyzer/tool/summary/build_sdk_summaries.dart"
-  packages = "../../.packages"
+  packages = "../../.dart_tool/package_config.json"
   output = "$root_gen_dir/strong.sum"
   outputs = [ output ]
   vm_args = [ "-Dsdk_hash=$sdk_hash" ]

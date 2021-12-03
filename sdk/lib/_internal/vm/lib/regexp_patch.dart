@@ -210,11 +210,12 @@ class _RegExpMatch implements RegExpMatch {
 
 @pragma("vm:entry-point")
 class _RegExp implements RegExp {
-  factory _RegExp(String pattern,
+  @pragma("vm:external-name", "RegExp_factory")
+  external factory _RegExp(String pattern,
       {bool multiLine: false,
       bool caseSensitive: true,
       bool unicode: false,
-      bool dotAll: false}) native "RegExp_factory";
+      bool dotAll: false});
 
   RegExpMatch? firstMatch(String input) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
@@ -265,17 +266,23 @@ class _RegExp implements RegExp {
     return input._substringUnchecked(match[0], match[1]);
   }
 
-  String get pattern native "RegExp_getPattern";
+  @pragma("vm:external-name", "RegExp_getPattern")
+  external String get pattern;
 
-  bool get isMultiLine native "RegExp_getIsMultiLine";
+  @pragma("vm:external-name", "RegExp_getIsMultiLine")
+  external bool get isMultiLine;
 
-  bool get isCaseSensitive native "RegExp_getIsCaseSensitive";
+  @pragma("vm:external-name", "RegExp_getIsCaseSensitive")
+  external bool get isCaseSensitive;
 
-  bool get isUnicode native "RegExp_getIsUnicode";
+  @pragma("vm:external-name", "RegExp_getIsUnicode")
+  external bool get isUnicode;
 
-  bool get isDotAll native "RegExp_getIsDotAll";
+  @pragma("vm:external-name", "RegExp_getIsDotAll")
+  external bool get isDotAll;
 
-  int get _groupCount native "RegExp_getGroupCount";
+  @pragma("vm:external-name", "RegExp_getGroupCount")
+  external int get _groupCount;
 
   /// The names and indices of named capture group.
   ///
@@ -284,7 +291,8 @@ class _RegExp implements RegExp {
   /// [String] is the name of a capture group and the following
   /// [int] is that capture group's index.
   /// Returns `null` if there are no group names.
-  List? get _groupNameList native "RegExp_getGroupNameMap";
+  @pragma("vm:external-name", "RegExp_getGroupNameMap")
+  external List? get _groupNameList;
 
   Iterable<String> get _groupNames sync* {
     final nameList = _groupNameList;
@@ -351,12 +359,12 @@ class _RegExp implements RegExp {
   ];
 
   @pragma("vm:recognized", "asm-intrinsic")
-  List<int>? _ExecuteMatch(String str, int start_index)
-      native "RegExp_ExecuteMatch";
+  @pragma("vm:external-name", "RegExp_ExecuteMatch")
+  external List<int>? _ExecuteMatch(String str, int start_index);
 
   @pragma("vm:recognized", "asm-intrinsic")
-  List<int>? _ExecuteMatchSticky(String str, int start_index)
-      native "RegExp_ExecuteMatchSticky";
+  @pragma("vm:external-name", "RegExp_ExecuteMatchSticky")
+  external List<int>? _ExecuteMatchSticky(String str, int start_index);
 }
 
 class _AllMatchesIterable extends IterableBase<RegExpMatch> {

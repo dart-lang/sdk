@@ -117,7 +117,7 @@ void VerifyCanonicalVisitor::VisitObject(ObjectPtr obj) {
   // Therefore we disable the handle verification here.
   const bool old_verify_flag = FLAG_verify_handles;
   FLAG_verify_handles = false;
-  if ((obj->GetClassId() >= kInstanceCid) &&
+  if (!IsInternalOnlyClassId(obj->GetClassId()) &&
       (obj->GetClassId() != kTypeArgumentsCid)) {
     if (obj->untag()->IsCanonical()) {
       instanceHandle_ ^= obj;

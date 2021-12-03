@@ -19,7 +19,7 @@ compiler/test/closure/closure_test: Slow, Pass
 compiler/test/codegen/load_elimination_test: Slow, Pass
 compiler/test/codegen/model_test: Slow, Pass
 compiler/test/deferred_loading/deferred_loading_test: Slow, Pass
-compiler/test/end_to_end/dump_info_test: Slow, Pass
+compiler/test/end_to_end/dump_info_test: Skip #47401
 compiler/test/impact/impact_test: Slow, Pass
 compiler/test/inference/inference0_test: Slow, Pass
 compiler/test/inference/inference1_test: Slow, Pass
@@ -134,6 +134,7 @@ dartdev/test/*: Slow, Pass
 dds/test/dap/integration/*: Slow, Pass
 
 [ $runtime != vm ]
+dart2js_info/test/*: SkipByDesign # Only meant to run on vm
 dds/test/*: SkipByDesign # Only meant to run on vm
 dev_compiler/test/options/*: SkipByDesign
 front_end/test/hot_reload_e2e_test: Skip

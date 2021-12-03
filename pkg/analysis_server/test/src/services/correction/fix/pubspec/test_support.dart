@@ -10,7 +10,6 @@ import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
-import 'package:yaml/src/yaml_node.dart';
 import 'package:yaml/yaml.dart';
 
 abstract class PubspecFixTest with ResourceProviderMixin {

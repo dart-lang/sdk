@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 
 import '../kernel/class_hierarchy_builder.dart';
-import '../kernel/kernel_api.dart';
 import '../kernel/member_covariance.dart';
 
-import '../loader.dart' show Loader;
-
+import '../source/name_scheme.dart';
+import '../source/source_loader.dart' show SourceLoader;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'builder.dart';
@@ -30,6 +30,7 @@ abstract class ProcedureBuilder implements FunctionBuilder {
 
   Procedure get procedure;
 
+  @override
   ProcedureKind get kind;
 
   Procedure get actualProcedure;
@@ -53,6 +54,7 @@ class SourceProcedureBuilder extends FunctionBuilderImpl
   @override
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
+  @override
   final bool isExtensionInstanceMember;
 
   late Procedure _procedure;
@@ -92,7 +94,7 @@ class SourceProcedureBuilder extends FunctionBuilderImpl
       Reference? procedureReference,
       this._tearOffReference,
       AsyncMarker asyncModifier,
-      ProcedureNameScheme procedureNameScheme,
+      NameScheme nameScheme,
       {required bool isExtensionMember,
       required bool isInstanceMember,
       String? nativeMethodName})
@@ -105,7 +107,7 @@ class SourceProcedureBuilder extends FunctionBuilderImpl
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             libraryBuilder, charOffset, nativeMethodName) {
     _procedure = new Procedure(
-        procedureNameScheme.getName(kind, name),
+        nameScheme.getProcedureName(kind, name),
         isExtensionInstanceMember ? ProcedureKind.Method : kind,
         new FunctionNode(null),
         fileUri: libraryBuilder.fileUri,
@@ -117,7 +119,7 @@ class SourceProcedureBuilder extends FunctionBuilderImpl
     this.asyncModifier = asyncModifier;
     if (isExtensionMember && isInstanceMember && kind == ProcedureKind.Method) {
       _extensionTearOff ??= new Procedure(
-          procedureNameScheme.getName(ProcedureKind.Getter, name),
+          nameScheme.getProcedureName(ProcedureKind.Getter, name),
           ProcedureKind.Method,
           new FunctionNode(null),
           isStatic: true,
@@ -308,35 +310,6 @@ class SourceProcedureBuilder extends FunctionBuilderImpl
     return _procedure;
   }
 
-  static String createProcedureName(bool isExtensionMethod, bool isStatic,
-      ProcedureKind kind, String? extensionName, String name) {
-    if (isExtensionMethod) {
-      String kindInfix = '';
-      if (!isStatic) {
-        // Instance getter and setter are converted to methods so we use an
-        // infix to make their names unique.
-        switch (kind) {
-          case ProcedureKind.Getter:
-            kindInfix = 'get#';
-            break;
-          case ProcedureKind.Setter:
-            kindInfix = 'set#';
-            break;
-          case ProcedureKind.Method:
-          case ProcedureKind.Operator:
-            kindInfix = '';
-            break;
-          case ProcedureKind.Factory:
-            throw new UnsupportedError(
-                'Unexpected extension method kind ${kind}');
-        }
-      }
-      return '${extensionName}|${kindInfix}${name}';
-    } else {
-      return name;
-    }
-  }
-
   /// Creates a top level function that creates a tear off of an extension
   /// instance method.
   ///
@@ -503,7 +476,7 @@ class SourceProcedureBuilder extends FunctionBuilderImpl
           : const <ClassMember>[];
 
   @override
-  void becomeNative(Loader loader) {
+  void becomeNative(SourceLoader loader) {
     _procedure.isExternal = true;
     super.becomeNative(loader);
   }
@@ -587,35 +560,5 @@ class SourceProcedureMember extends BuilderClassMember {
   bool isSameDeclaration(ClassMember other) {
     return other is SourceProcedureMember &&
         memberBuilder == other.memberBuilder;
-  }
-}
-
-class ProcedureNameScheme {
-  final bool isExtensionMember;
-  final bool isStatic;
-  final String? extensionName;
-  final Reference libraryReference;
-
-  ProcedureNameScheme(
-      {required this.isExtensionMember,
-      required this.isStatic,
-      this.extensionName,
-      required this.libraryReference})
-      // ignore: unnecessary_null_comparison
-      : assert(isExtensionMember != null),
-        // ignore: unnecessary_null_comparison
-        assert(isStatic != null),
-        // ignore: unnecessary_null_comparison
-        assert(!isExtensionMember || extensionName != null),
-        // ignore: unnecessary_null_comparison
-        assert(libraryReference != null);
-
-  Name getName(ProcedureKind kind, String name) {
-    // ignore: unnecessary_null_comparison
-    assert(kind != null);
-    return new Name.byReference(
-        SourceProcedureBuilder.createProcedureName(
-            isExtensionMember, isStatic, kind, extensionName, name),
-        libraryReference);
   }
 }

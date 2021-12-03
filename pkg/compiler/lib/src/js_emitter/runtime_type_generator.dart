@@ -5,7 +5,7 @@
 library dart2js.js_emitter.runtime_type_generator;
 
 import '../common_elements.dart' show CommonElements;
-import '../deferred_load/deferred_load.dart' show OutputUnit, OutputUnitData;
+import '../deferred_load/output_unit.dart' show OutputUnit, OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
@@ -20,7 +20,8 @@ import '../util/util.dart' show Setlet;
 import 'code_emitter_task.dart' show CodeEmitterTask;
 
 // Function signatures used in the generation of runtime type information.
-typedef void FunctionTypeSignatureEmitter(ClassFunctionType classFunctionType);
+typedef FunctionTypeSignatureEmitter = void Function(
+    ClassFunctionType classFunctionType);
 
 class TypeTest {
   final jsAst.Name name;
@@ -48,22 +49,22 @@ class TypeTestProperties {
   /// The properties that must be installed on the prototype of the
   /// JS constructor of the [ClassEntity] for which the is checks were
   /// generated.
-  final Map<ClassEntity, TypeTests> _properties = <ClassEntity, TypeTests>{};
+  final Map<ClassEntity, TypeTests> _properties = {};
 
   void addIsTest(ClassEntity cls, jsAst.Name name, jsAst.Node expression) {
-    TypeTests typeTests = _properties.putIfAbsent(cls, () => new TypeTests());
-    typeTests.isTest = new TypeTest(name, expression);
+    TypeTests typeTests = _properties.putIfAbsent(cls, () => TypeTests());
+    typeTests.isTest = TypeTest(name, expression);
   }
 
   void addSubstitution(
       ClassEntity cls, jsAst.Name name, jsAst.Node expression) {
-    TypeTests typeTests = _properties.putIfAbsent(cls, () => new TypeTests());
-    typeTests.substitution = new TypeTest(name, expression);
+    TypeTests typeTests = _properties.putIfAbsent(cls, () => TypeTests());
+    typeTests.substitution = TypeTest(name, expression);
   }
 
   void addSignature(ClassEntity cls, jsAst.Name name, jsAst.Node expression) {
-    TypeTests typeTests = _properties.putIfAbsent(cls, () => new TypeTests());
-    typeTests.signature = new TypeTest(name, expression);
+    TypeTests typeTests = _properties.putIfAbsent(cls, () => TypeTests());
+    typeTests.signature = TypeTest(name, expression);
   }
 
   void forEachProperty(
@@ -91,8 +92,8 @@ class RuntimeTypeGenerator {
 
   RuntimeTypeGenerator(CommonElements _commonElements, this._outputUnitData,
       this.emitterTask, this._namer, this._rtiChecks)
-      : _outputUnitVisitor = new _TypeContainedInOutputUnitVisitor(
-            _commonElements, _outputUnitData);
+      : _outputUnitVisitor =
+            _TypeContainedInOutputUnitVisitor(_commonElements, _outputUnitData);
 
   /// Generate "is tests" for [cls] itself, and the "is tests" for the
   /// classes it implements and type argument substitution functions for these
@@ -112,8 +113,8 @@ class RuntimeTypeGenerator {
   /// type variables.
   TypeTestProperties generateIsTests(ClassEntity classElement,
       Map<MemberEntity, jsAst.Expression> generatedCode,
-      {bool storeFunctionTypeInMetadata: true}) {
-    TypeTestProperties result = new TypeTestProperties();
+      {bool storeFunctionTypeInMetadata = true}) {
+    TypeTestProperties result = TypeTestProperties();
 
     // TODO(johnniwinther): Include function signatures in [ClassChecks].
     void generateFunctionTypeSignature(ClassFunctionType classFunctionType) {
@@ -154,10 +155,8 @@ class RuntimeTypeGenerator {
           if (isDeferred) {
             // The function type index must be offset by the number of types
             // already loaded.
-            encoding = new jsAst.Binary(
-                '+',
-                new jsAst.VariableUse(_namer.typesOffsetName),
-                functionTypeIndex);
+            encoding = jsAst.Binary('+',
+                jsAst.VariableUse(_namer.typesOffsetName), functionTypeIndex);
           } else {
             encoding = functionTypeIndex;
           }
@@ -188,7 +187,7 @@ class RuntimeTypeGenerator {
       ClassEntity cls,
       FunctionTypeSignatureEmitter generateFunctionTypeSignature,
       void emitTypeCheck(TypeCheck check)) {
-    Setlet<ClassEntity> generated = new Setlet<ClassEntity>();
+    Setlet<ClassEntity> generated = Setlet();
 
     // Precomputed is checks.
     ClassChecks classChecks = _rtiChecks.requiredChecks[cls];

@@ -40,23 +40,24 @@ static Dart_NativeFunction native_resolver(Dart_Handle name,
 }
 
 TEST_CASE(StackMapGC) {
-  const char* kScriptChars =
-      "class A {"
-      "  static void func(var i, var k) native 'NativeFunc';"
-      "  static foo() {"
-      "    var i;"
-      "    var s1;"
-      "    var k;"
-      "    var s2;"
-      "    var s3;"
-      "    i = 10; s1 = 'abcd'; k = 20; s2 = 'B'; s3 = 'C';"
-      "    func(i, k);"
-      "    return i + k; }"
-      "  static void moo() {"
-      "    var i = A.foo();"
-      "    if (i != 30) throw '$i != 30';"
-      "  }\n"
-      "}\n";
+  const char* kScriptChars = R"(
+class A {
+  @pragma("vm:external-name", "NativeFunc")
+  external static void func(var i, var k);
+  static foo() {
+    var i;
+    var s1;
+    var k;
+    var s2;
+    var s3;
+    i = 10; s1 = 'abcd'; k = 20; s2 = 'B'; s3 = 'C';
+    func(i, k);
+    return i + k; }
+  static void moo() {
+    var i = A.foo();
+    if (i != 30) throw '$i != 30';
+  }
+})";
   // First setup the script and compile the script.
   TestCase::LoadTestScript(kScriptChars, native_resolver);
   TransitionNativeToVM transition(thread);

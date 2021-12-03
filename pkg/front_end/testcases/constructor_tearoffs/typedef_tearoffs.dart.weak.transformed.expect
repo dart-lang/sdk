@@ -75,10 +75,10 @@ static method test7() → () → self::B<core::String>
 static method test8() → () → self::B<core::String>
   return #C4;
 static method test9() → () → self::B<core::num>
-  return let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:33:30: Error: A value of type 'B<String> Function()' can't be returned from a function with return type 'B<num> Function()'.
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:33:30: Error: A value of type 'B<String> Function()' can't be returned from a function with return type 'B<num> Function()'.
  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
 B<num> Function() test9() => DB1.new; // Error.
-                             ^" in (#C4) as{TypeError,ForNonNullableByDefault} () → self::B<core::num>;
+                             ^" in #C4 as{TypeError,ForNonNullableByDefault} () → self::B<core::num>;
 static method test10() → () → self::B<core::String>
   return #C6;
 static method test11() → () → self::B<core::String>
@@ -94,13 +94,13 @@ static method test15() → () → self::B<core::num>
 static method test16() → <Y extends core::num = dynamic>() → self::B<Y>
   return #C12;
 static method test17() → <Y extends core::Object? = dynamic>() → self::B<Y%>
-  return let final Never #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:42:32: Error: A value of type 'B<X> Function<X extends num>()' can't be returned from a function with return type 'B<Y> Function<Y>()'.
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:42:32: Error: A value of type 'B<X> Function<X extends num>()' can't be returned from a function with return type 'B<Y> Function<Y>()'.
  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
 B<Y> Function<Y>() test17() => DB2.new; // Error.
-                               ^" in let final Never #t3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:42:32: Error: A value of type 'B<X> Function<X extends num>()' can't be assigned to a variable of type 'B<Y> Function<Y>()'.
+                               ^" in invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:42:32: Error: A value of type 'B<X> Function<X extends num>()' can't be assigned to a variable of type 'B<Y> Function<Y>()'.
  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
 B<Y> Function<Y>() test17() => DB2.new; // Error.
-                               ^" in (#C12) as{TypeError,ForNonNullableByDefault} <Y extends core::Object? = dynamic>() → self::B<Y%>;
+                               ^" in #C12 as{TypeError,ForNonNullableByDefault} <Y extends core::Object? = dynamic>() → self::B<Y%>;
 static method test18() → () → self::B<core::num>
   return #C9;
 static method test19() → () → self::B<core::num>
@@ -112,30 +112,30 @@ static method test21() → () → self::B<core::num>
 static method test22() → <Y extends core::num = dynamic, Z extends core::String = dynamic>() → self::B<Y>
   return #C13;
 static method test23() → <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%>
-  return let final Never #t4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:49:35: Error: A value of type 'B<X> Function<X extends num, Y extends String>()' can't be returned from a function with return type 'B<Y> Function<Y, Z>()'.
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:49:35: Error: A value of type 'B<X> Function<X extends num, Y extends String>()' can't be returned from a function with return type 'B<Y> Function<Y, Z>()'.
  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
 B<Y> Function<Y, Z>() test23() => DB3.new; // Error.
-                                  ^" in let final Never #t5 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:49:35: Error: A value of type 'B<X> Function<X extends num, Y extends String>()' can't be assigned to a variable of type 'B<Y> Function<Y, Z>()'.
+                                  ^" in invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:49:35: Error: A value of type 'B<X> Function<X extends num, Y extends String>()' can't be assigned to a variable of type 'B<Y> Function<Y, Z>()'.
  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
 B<Y> Function<Y, Z>() test23() => DB3.new; // Error.
-                                  ^" in (#C13) as{TypeError,ForNonNullableByDefault} <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%>;
+                                  ^" in #C13 as{TypeError,ForNonNullableByDefault} <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%>;
 static method test24() → () → self::B<core::String>
   return #C14;
 static method main() → dynamic {}
 
 constants  {
   #C1 = constructor-tearoff self::A::•
-  #C2 = instantiation self::A::• <>
+  #C2 = instantiation #C1 <>
   #C3 = constructor-tearoff self::B::•
-  #C4 = instantiation self::B::• <core::String*>
+  #C4 = instantiation #C3 <core::String*>
   #C5 = constructor-tearoff self::B::foo
-  #C6 = instantiation self::B::foo <core::String*>
-  #C7 = static-tearoff self::B::bar
-  #C8 = instantiation self::B::bar <core::String*>
-  #C9 = instantiation self::B::• <core::num*>
-  #C10 = instantiation self::B::foo <core::num*>
-  #C11 = instantiation self::B::bar <core::num*>
+  #C6 = instantiation #C5 <core::String*>
+  #C7 = constructor-tearoff self::B::bar
+  #C8 = instantiation #C7 <core::String*>
+  #C9 = instantiation #C3 <core::num*>
+  #C10 = instantiation #C5 <core::num*>
+  #C11 = instantiation #C7 <core::num*>
   #C12 = typedef-tearoff <X extends core::num>.(#C3<X>)
   #C13 = typedef-tearoff <X extends core::num, unrelated Y extends core::String>.(#C3<X>)
-  #C14 = instantiation self::B::• <Never*>
+  #C14 = instantiation #C3 <Never*>
 }

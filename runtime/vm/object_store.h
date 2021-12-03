@@ -68,13 +68,9 @@ class ObjectPointerVisitor;
   RW(Class, never_class)                                                       \
   RW(Type, never_type)                                                         \
   RW(Type, function_type)                                                      \
-  RW(Type, legacy_function_type)                                               \
-  RW(Type, non_nullable_function_type)                                         \
   RW(Type, type_type)                                                          \
   RW(Class, closure_class)                                                     \
   RW(Type, number_type)                                                        \
-  RW(Type, legacy_number_type)                                                 \
-  RW(Type, non_nullable_number_type)                                           \
   RW(Type, int_type)                                                           \
   RW(Type, legacy_int_type)                                                    \
   RW(Type, non_nullable_int_type)                                              \
@@ -83,38 +79,23 @@ class ObjectPointerVisitor;
   RW(Type, int64_type)                                                         \
   RW(Class, smi_class)                                                         \
   RW(Type, smi_type)                                                           \
-  RW(Type, legacy_smi_type)                                                    \
-  RW(Type, non_nullable_smi_type)                                              \
   RW(Class, mint_class)                                                        \
   RW(Type, mint_type)                                                          \
-  RW(Type, legacy_mint_type)                                                   \
-  RW(Type, non_nullable_mint_type)                                             \
   RW(Class, double_class)                                                      \
   RW(Type, double_type)                                                        \
-  RW(Type, legacy_double_type)                                                 \
-  RW(Type, non_nullable_double_type)                                           \
   RW(Type, nullable_double_type)                                               \
   RW(Type, float32x4_type)                                                     \
   RW(Type, int32x4_type)                                                       \
   RW(Type, float64x2_type)                                                     \
   RW(Type, string_type)                                                        \
   RW(Type, legacy_string_type)                                                 \
-  RW(Type, non_nullable_string_type)                                           \
   RW(TypeArguments, type_argument_int)                                         \
   RW(TypeArguments, type_argument_legacy_int)                                  \
-  RW(TypeArguments, type_argument_non_nullable_int)                            \
   RW(TypeArguments, type_argument_double)                                      \
-  RW(TypeArguments, type_argument_legacy_double)                               \
-  RW(TypeArguments, type_argument_non_nullable_double)                         \
   RW(TypeArguments, type_argument_string)                                      \
   RW(TypeArguments, type_argument_legacy_string)                               \
-  RW(TypeArguments, type_argument_non_nullable_string)                         \
   RW(TypeArguments, type_argument_string_dynamic)                              \
-  RW(TypeArguments, type_argument_legacy_string_dynamic)                       \
-  RW(TypeArguments, type_argument_non_nullable_string_dynamic)                 \
   RW(TypeArguments, type_argument_string_string)                               \
-  RW(TypeArguments, type_argument_legacy_string_legacy_string)                 \
-  RW(TypeArguments, type_argument_non_nullable_string_non_nullable_string)     \
   RW(Class, compiletime_error_class)                                           \
   RW(Class, pragma_class)                                                      \
   RW(Field, pragma_name)                                                       \
@@ -126,17 +107,15 @@ class ObjectPointerVisitor;
   RW(Class, external_one_byte_string_class)                                    \
   RW(Class, external_two_byte_string_class)                                    \
   RW(Type, bool_type)                                                          \
-  RW(Type, legacy_bool_type)                                                   \
-  RW(Type, non_nullable_bool_type)                                             \
   RW(Class, bool_class)                                                        \
   RW(Class, array_class)                                                       \
   RW(Type, array_type)                                                         \
-  RW(Type, legacy_array_type)                                                  \
-  RW(Type, non_nullable_array_type)                                            \
   RW(Class, immutable_array_class)                                             \
   RW(Class, growable_object_array_class)                                       \
   RW(Class, linked_hash_map_class)                                             \
+  RW(Class, immutable_linked_hash_map_class)                                   \
   RW(Class, linked_hash_set_class)                                             \
+  RW(Class, immutable_linked_hash_set_class)                                   \
   RW(Class, float32x4_class)                                                   \
   RW(Class, int32x4_class)                                                     \
   RW(Class, float64x2_class)                                                   \
@@ -149,7 +128,6 @@ class ObjectPointerVisitor;
   RW(Array, canonical_type_parameters)                                         \
   RW(Array, canonical_type_arguments)                                          \
   RW(Library, async_library)                                                   \
-  RW(Library, builtin_library)                                                 \
   RW(Library, core_library)                                                    \
   RW(Library, collection_library)                                              \
   RW(Library, convert_library)                                                 \
@@ -160,12 +138,14 @@ class ObjectPointerVisitor;
   RW(Library, math_library)                                                    \
   RW(Library, mirrors_library)                                                 \
   RW(Library, native_wrappers_library)                                         \
-  RW(Library, profiler_library)                                                \
   RW(Library, root_library)                                                    \
   RW(Library, typed_data_library)                                              \
   RW(Library, _vmservice_library)                                              \
   RW(GrowableObjectArray, libraries)                                           \
   RW(Array, libraries_map)                                                     \
+  RW(Array, uri_to_resolved_uri_map)                                           \
+  RW(Array, resolved_uri_to_uri_map)                                           \
+  RW(Smi, last_libraries_count)                                                \
   RW(Array, loading_units)                                                     \
   RW(GrowableObjectArray, closure_functions)                                   \
   RW(GrowableObjectArray, pending_classes)                                     \

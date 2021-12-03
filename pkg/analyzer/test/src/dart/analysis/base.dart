@@ -8,9 +8,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -39,8 +39,6 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   late final String testProject;
   late final String testFile;
   late final String testCode;
-
-  List<String> enabledExperiments = [];
 
   void addTestFile(String content, {bool priority = false}) {
     testCode = content;
@@ -98,10 +96,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
 
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
     ..useFastaParser = true
-    ..contextFeatures = FeatureSet.fromEnableFlags2(
-      sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
-      flags: enabledExperiments,
-    );
+    ..contextFeatures = FeatureSet.latestLanguageVersion();
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);
@@ -133,7 +128,13 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   }
 
   void setUp() {
-    sdk = MockSdk(resourceProvider: resourceProvider);
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+    sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
+
     testProject = convertPath('/test');
     testFile = convertPath('/test/lib/test.dart');
     logger = PerformanceLog(logBuffer);

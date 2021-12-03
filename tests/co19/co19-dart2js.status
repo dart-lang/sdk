@@ -8,7 +8,6 @@ Language/Expressions/Constants/integer_size_t04: SkipByDesign # uses integer lit
 Language/Expressions/Constants/literal_number_t01: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/math_operators_t01: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/math_operators_t06: SkipByDesign # uses integer literal not representable as JavaScript number
-Language/Expressions/Null/instance_of_class_null_t01: SkipByDesign # dart:mirrors not supported https://github.com/dart-lang/co19/issues/522.
 Language/Expressions/Numbers/integer_size_t03: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Numbers/static_type_of_int_t01: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Numbers/syntax_t06: SkipByDesign # uses integer literal not representable as JavaScript number
@@ -20,10 +19,10 @@ Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign # dart:is
 Language/Functions/External_Functions/not_connected_to_a_body_t01: SkipByDesign # Non-JS-interop external members are not supported
 Language/Libraries_and_Scripts/Scripts/main_optional_parameters_t01: SkipByDesign # https://github.com/dart-lang/co19/issues/952
 Language/Libraries_and_Scripts/Scripts/main_optional_parameters_t03: SkipByDesign # https://github.com/dart-lang/co19/issues/952
+Language/Libraries_and_Scripts/Scripts/top_level_main_t01: SkipByDesign # Uses dart:io.
+Language/Libraries_and_Scripts/Scripts/top_level_main_t06: SkipByDesign # Uses dart:io.
 Language/Libraries_and_Scripts/Scripts/top_level_syntax_t01: SkipByDesign # Non-JS-interop external members are not supported
 Language/Libraries_and_Scripts/top_level_syntax_t01: SkipByDesign # Non-JS-interop external members are not supported
-Language/Metadata/before*: SkipByDesign # dart:mirrors not supported https://github.com/dart-lang/co19/issues/523.
-Language/Metadata/syntax_t10: SkipByDesign # dart:mirrors is not supported
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t01: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t02: SkipByDesign # Non-JS-interop external members are not supported
@@ -59,22 +58,24 @@ LibTest/html/HttpRequestUpload/*: Skip # https://github.com/dart-lang/co19/issue
 LibTest/io/*: SkipByDesign # dart:io not supported.
 LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
 LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported
-LibTest/typed_data/ByteBuffer/*: SkipByDesign # not supported on the web
-LibTest/typed_data/ByteData/getInt64_A01_t01: SkipByDesign # uses integer literal not representable as JavaScript number
-LibTest/typed_data/ByteData/getInt64_A02_t01: SkipByDesign # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/getInt64_A02_t02: SkipByDesign # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/getUint64_A01_t01: SkipByDesign # uses integer literal not representable as JavaScript number
-LibTest/typed_data/ByteData/getUint64_A02_t01: SkipByDesign # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/getUint64_A02_t02: SkipByDesign # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/setInt64_A01_t01: SkipByDesign # uses integer literal not representable as JavaScript number
-LibTest/typed_data/ByteData/setInt64_A02_t01: SkipByDesign # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/setInt64_A02_t02: SkipByDesign # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/setUint64_A01_t01: SkipByDesign # uses integer literal not representable as JavaScript number
-LibTest/typed_data/ByteData/setUint64_A02_t01: SkipByDesign # Uint64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/setUint64_A02_t02: SkipByDesign # Uint64 accessor not supported by dart2js
-LibTest/typed_data/Int32x4/operator_OR_A01_t01: SkipByDesign # Bitwise operations in JS are unsigned.
-LibTest/typed_data/Int32x4List/join_A01_t01: SkipByDesign # Different string represrntation on VM and in JS
-LibTest/typed_data/Int32x4List/join_A01_t02: SkipByDesign # Different string represrntation on VM and in JS
+LibTest/typed_data/ByteBuffer/asInt64List_A01_t01: SkipByDesign # Int64List not supported on the web
+LibTest/typed_data/ByteBuffer/asInt64List_A02_t01: SkipByDesign # Int64List not supported on the web
+LibTest/typed_data/ByteBuffer/asInt64List_A03_t01: SkipByDesign # Int64List not supported on the web
+LibTest/typed_data/ByteBuffer/asUint64List_A01_t01: SkipByDesign # UInt64List not supported on the web
+LibTest/typed_data/ByteBuffer/asUint64List_A02_t01: SkipByDesign # UInt64List not supported on the web
+LibTest/typed_data/ByteBuffer/asUint64List_A03_t01: SkipByDesign # UInt64List not supported on the web
+LibTest/typed_data/ByteData/getInt64_A01_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/getInt64_A02_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/getInt64_A02_t02: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/getUint64_A01_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/getUint64_A02_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/getUint64_A02_t02: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/setInt64_A01_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/setInt64_A02_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/setInt64_A02_t02: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/setUint64_A01_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/setUint64_A02_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/setUint64_A02_t02: SkipByDesign # 64-bit int not supported on the web
 LibTest/typed_data/Int64List/*: SkipByDesign # Int64List not supported on the web
 LibTest/typed_data/Uint64List/*: SkipByDesign # Uint64List not supported on the web
 

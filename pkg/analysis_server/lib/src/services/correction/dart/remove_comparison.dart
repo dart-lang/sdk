@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
@@ -15,7 +16,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveComparison extends CorrectionProducer {
   @override
+  bool get canBeAppliedInBulk => true;
+
+  @override
+  bool get canBeAppliedToFile => true;
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_COMPARISON;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_COMPARISON_MULTI;
 
   /// Return `true` if the null comparison will always return `false`.
   bool get _conditionIsFalse =>
@@ -23,9 +33,11 @@ class RemoveComparison extends CorrectionProducer {
       HintCode.UNNECESSARY_NULL_COMPARISON_FALSE;
 
   /// Return `true` if the null comparison will always return `true`.
-  bool get _conditionIsTrue =>
-      (diagnostic as AnalysisError).errorCode ==
-      HintCode.UNNECESSARY_NULL_COMPARISON_TRUE;
+  bool get _conditionIsTrue {
+    var errorCode = (diagnostic as AnalysisError).errorCode;
+    return errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_TRUE ||
+        errorCode.name == LintNames.avoid_null_checks_in_equality_operators;
+  }
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

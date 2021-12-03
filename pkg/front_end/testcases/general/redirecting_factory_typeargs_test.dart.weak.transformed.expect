@@ -23,12 +23,12 @@ class Y extends self::X {
     ;
 }
 class A extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::redir];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   constructor •() → self::A*
     : super core::Object::•()
     ;
   static factory redir() → self::A*
-    let Never #redirecting_factory = self::B::• in let self::Y* #typeArg0 = null in invalid-expression;
+    return new self::B::•<self::Y*>();
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -47,4 +47,8 @@ class B<T extends self::X*> extends self::A {
 }
 static method main() → dynamic {
   new self::B::•<self::Y*>();
+}
+
+constants  {
+  #C1 = constructor-tearoff self::A::redir
 }

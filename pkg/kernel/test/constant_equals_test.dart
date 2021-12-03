@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart';
 
-testEquals(Constant a, Constant b) {
+void testEquals(Constant a, Constant b) {
   if (a != b) {
     throw 'Expected $a and $b to be equal.';
   }
@@ -13,13 +13,13 @@ testEquals(Constant a, Constant b) {
   }
 }
 
-testNotEquals(Constant a, Constant b) {
+void testNotEquals(Constant a, Constant b) {
   if (a == b) {
     throw 'Expected $a and $b to be not equal.';
   }
 }
 
-main() {
+void main() {
   Uri uri = Uri.parse('test:uri');
   Procedure procedure1 = new Procedure(
       new Name('foo'), ProcedureKind.Method, new FunctionNode(null),

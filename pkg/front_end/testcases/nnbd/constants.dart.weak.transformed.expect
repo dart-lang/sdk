@@ -13,22 +13,22 @@ static const field con::Class<core::int> instance = #C5;
 static const field core::Type functionTypeLiteral = #C6;
 static const field core::Type genericFunctionTypeLiteral = #C7;
 static const field core::List<core::int> listLiteral = #C8;
-static const field core::Set<core::int> setLiteral = #C12;
-static const field core::Map<core::int, core::String> mapLiteral = #C15;
+static const field core::Set<core::int> setLiteral = #C9;
+static const field core::Map<core::int, core::String> mapLiteral = #C11;
 static const field core::List<core::int> listConcatenation = #C8;
-static const field core::Set<core::int> setConcatenation = #C12;
-static const field core::Map<core::int, core::String> mapConcatenation = #C15;
-static const field core::bool objectTypeLiteralIdentical = #C16;
-static const field core::bool partialInstantiationIdentical = #C16;
-static const field core::bool instanceIdentical = #C16;
-static const field core::bool functionTypeLiteralIdentical = #C16;
-static const field core::bool genericFunctionTypeLiteralIdentical = #C16;
-static const field core::bool listLiteralIdentical = #C16;
-static const field core::bool setLiteralIdentical = #C16;
-static const field core::bool mapLiteralIdentical = #C16;
-static const field core::bool listConcatenationIdentical = #C16;
-static const field core::bool setConcatenationIdentical = #C16;
-static const field core::bool mapConcatenationIdentical = #C16;
+static const field core::Set<core::int> setConcatenation = #C9;
+static const field core::Map<core::int, core::String> mapConcatenation = #C11;
+static const field core::bool objectTypeLiteralIdentical = #C12;
+static const field core::bool partialInstantiationIdentical = #C12;
+static const field core::bool instanceIdentical = #C12;
+static const field core::bool functionTypeLiteralIdentical = #C12;
+static const field core::bool genericFunctionTypeLiteralIdentical = #C12;
+static const field core::bool listLiteralIdentical = #C12;
+static const field core::bool setLiteralIdentical = #C12;
+static const field core::bool mapLiteralIdentical = #C12;
+static const field core::bool listConcatenationIdentical = #C12;
+static const field core::bool setConcatenationIdentical = #C12;
+static const field core::bool mapConcatenationIdentical = #C12;
 static method main() → dynamic {
   self::test(#C1, #C1);
   self::test(#C3, #C3);
@@ -36,22 +36,22 @@ static method main() → dynamic {
   self::test(#C6, #C6);
   self::test(#C7, #C7);
   self::test(#C8, #C8);
-  self::test(#C12, #C12);
-  self::test(#C15, #C15);
+  self::test(#C9, #C9);
+  self::test(#C11, #C11);
   self::test(#C8, #C8);
-  self::test(#C12, #C12);
-  self::test(#C15, #C15);
-  self::test(true, #C16);
-  self::test(true, #C16);
-  self::test(true, #C16);
-  self::test(true, #C16);
-  self::test(true, #C16);
-  self::test(true, #C16);
-  self::test(true, #C16);
-  self::test(true, #C16);
-  self::test(true, #C16);
-  self::test(true, #C16);
-  self::test(true, #C16);
+  self::test(#C9, #C9);
+  self::test(#C11, #C11);
+  self::test(true, #C12);
+  self::test(true, #C12);
+  self::test(true, #C12);
+  self::test(true, #C12);
+  self::test(true, #C12);
+  self::test(true, #C12);
+  self::test(true, #C12);
+  self::test(true, #C12);
+  self::test(true, #C12);
+  self::test(true, #C12);
+  self::test(true, #C12);
 }
 static method test(dynamic expected, dynamic actual) → dynamic {
   core::print("test(${expected}, ${actual})");
@@ -73,38 +73,34 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
     ;
 }
 static const field core::Type objectTypeLiteral = #C1;
-static const field (core::Object?, core::Object?) → core::bool c2 = #C17;
+static const field (core::Object?, core::Object?) → core::bool c2 = #C13;
 static const field (core::int) → core::int partialInstantiation = #C3;
 static const field con::Class<core::int> instance = #C5;
 static const field core::Type functionTypeLiteral = #C6;
 static const field core::Type genericFunctionTypeLiteral = #C7;
 static const field core::List<core::int> listLiteral = #C8;
-static const field core::Set<core::int> setLiteral = #C12;
-static const field core::Map<core::int, core::String> mapLiteral = #C15;
+static const field core::Set<core::int> setLiteral = #C9;
+static const field core::Map<core::int, core::String> mapLiteral = #C11;
 static const field core::List<core::int> listConcatenation = #C8;
-static const field core::Set<core::int> setConcatenation = #C12;
-static const field core::Map<core::int, core::String> mapConcatenation = #C15;
+static const field core::Set<core::int> setConcatenation = #C9;
+static const field core::Map<core::int, core::String> mapConcatenation = #C11;
 static method id<T extends core::Object? = dynamic>(con::id::T% t) → con::id::T%
   return t;
 
 constants  {
   #C1 = TypeLiteralConstant(core::Object*)
   #C2 = static-tearoff con::id
-  #C3 = instantiation con::id <core::int*>
+  #C3 = instantiation #C2 <core::int*>
   #C4 = 0
   #C5 = con::Class<core::int*> {field:#C4}
   #C6 = TypeLiteralConstant((dynamic) →* dynamic)
   #C7 = TypeLiteralConstant(<T extends core::Object? = dynamic>(T*) →* T*)
   #C8 = <core::int*>[#C4]
-  #C9 = null
-  #C10 = <dynamic>[#C4, #C9]
-  #C11 = core::_ImmutableMap<core::int*, Null> {_kvPairs:#C10}
-  #C12 = col::_UnmodifiableSet<core::int*> {_map:#C11}
-  #C13 = "foo"
-  #C14 = <dynamic>[#C4, #C13]
-  #C15 = core::_ImmutableMap<core::int*, core::String*> {_kvPairs:#C14}
-  #C16 = true
-  #C17 = static-tearoff core::identical
+  #C9 = <core::int*>{#C4}
+  #C10 = "foo"
+  #C11 = <core::int*, core::String*>{#C4:#C10)
+  #C12 = true
+  #C13 = static-tearoff core::identical
 }
 
 

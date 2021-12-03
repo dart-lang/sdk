@@ -635,6 +635,16 @@ class AssemblerBase : public StackResource {
     kValueIsNotSmi,
   };
 
+  enum MemoryOrder {
+    // All previous writes to memory in this thread must be visible to other
+    // threads. Currently, only used for lazily populating hash indices in
+    // shared const maps and sets.
+    kRelease,
+
+    // All other stores.
+    kRelaxedNonAtomic,
+  };
+
   virtual void LoadField(Register dst, const FieldAddress& address) = 0;
   virtual void LoadFieldFromOffset(Register reg,
                                    Register base,
@@ -646,11 +656,13 @@ class AssemblerBase : public StackResource {
       Register object,      // Object we are storing into.
       const Address& dest,  // Where we are storing into.
       Register value,       // Value we are storing.
-      CanBeSmi can_be_smi = kValueCanBeSmi) = 0;
+      CanBeSmi can_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic) = 0;
   virtual void StoreIntoObjectNoBarrier(
       Register object,      // Object we are storing into.
       const Address& dest,  // Where we are storing into.
-      Register value) = 0;  // Value we are storing.
+      Register value,       // Value we are storing.
+      MemoryOrder memory_order = kRelaxedNonAtomic) = 0;
   // For native unboxed slots, both methods are the same, as no write barrier
   // is needed.
   void StoreToSlot(Register src, Register base, const Slot& slot);
@@ -669,11 +681,13 @@ class AssemblerBase : public StackResource {
       Register object,      // Object we are storing into.
       const Address& dest,  // Where we are storing into.
       Register value,       // Value we are storing.
-      CanBeSmi can_be_smi = kValueCanBeSmi) = 0;
+      CanBeSmi can_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic) = 0;
   virtual void StoreCompressedIntoObjectNoBarrier(
       Register object,      // Object we are storing into.
       const Address& dest,  // Where we are storing into.
-      Register value) = 0;  // Value we are storing.
+      Register value,       // Value we are storing.
+      MemoryOrder memory_order = kRelaxedNonAtomic) = 0;
 #else
   virtual void LoadCompressedField(Register dst, const FieldAddress& address) {
     LoadField(dst, address);
@@ -687,16 +701,48 @@ class AssemblerBase : public StackResource {
       Register object,      // Object we are storing into.
       const Address& dest,  // Where we are storing into.
       Register value,       // Value we are storing.
-      CanBeSmi can_be_smi = kValueCanBeSmi) {
+      CanBeSmi can_be_smi = kValueCanBeSmi,
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
     StoreIntoObject(object, dest, value, can_be_smi);
   }
   virtual void StoreCompressedIntoObjectNoBarrier(
       Register object,      // Object we are storing into.
       const Address& dest,  // Where we are storing into.
-      Register value) {     // Value we are storing.
+      Register value,       // Value we are storing.
+      MemoryOrder memory_order = kRelaxedNonAtomic) {
     StoreIntoObjectNoBarrier(object, dest, value);
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
+
+  virtual void StoreRelease(Register src,
+                            Register address,
+                            int32_t offset = 0) = 0;
+
+  // Retrieves nullability from a FunctionTypePtr in [type] and compares it
+  // to [value].
+  //
+  // TODO(dartbug.com/47034): Change how nullability is stored so that it
+  // can be accessed without checking the class id first.
+  virtual void CompareFunctionTypeNullabilityWith(Register type,
+                                                  int8_t value) = 0;
+
+  // Retrieves nullability from a TypePtr in [type] and compares it to [value].
+  //
+  // TODO(dartbug.com/47034): Change how nullability is stored so that it
+  // can be accessed without checking the class id first.
+  virtual void CompareTypeNullabilityWith(Register type, int8_t value) = 0;
+
+  void LoadTypeClassId(Register dst, Register src) {
+#if !defined(TARGET_ARCH_IA32)
+    EnsureHasClassIdInDEBUG(kTypeCid, src, TMP);
+#endif
+    ASSERT(!compiler::target::UntaggedType::kTypeClassIdIsSigned);
+    ASSERT_EQUAL(compiler::target::UntaggedType::kTypeClassIdBitSize,
+                 kBitsPerInt16);
+    LoadFieldFromOffset(dst, src,
+                        compiler::target::Type::type_class_id_offset(),
+                        kUnsignedTwoBytes);
+  }
 
   virtual void EnsureHasClassIdInDEBUG(intptr_t cid,
                                        Register src,

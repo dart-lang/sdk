@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:math' as Math;
 import 'dart:convert';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/object_graph.dart';
@@ -25,6 +26,25 @@ import 'package:observatory/src/elements/tree_map.dart';
 import 'package:observatory/repositories.dart';
 import 'package:observatory/utils.dart';
 
+enum ProcessSnapshotTreeMode {
+  treeMap,
+  tree,
+  treeMapDiff,
+  treeDiff,
+}
+
+// Note the order of these lists is reflected in the UI, and the first option
+// is the default.
+const _viewModes = [
+  ProcessSnapshotTreeMode.treeMap,
+  ProcessSnapshotTreeMode.tree,
+];
+
+const _diffModes = [
+  ProcessSnapshotTreeMode.treeMapDiff,
+  ProcessSnapshotTreeMode.treeDiff,
+];
+
 class ProcessItemTreeMap extends NormalTreeMap<Map> {
   ProcessSnapshotElement element;
   ProcessItemTreeMap(this.element);
@@ -43,6 +63,148 @@ class ProcessItemTreeMap extends NormalTreeMap<Map> {
   void onDetails(Map node) {}
 }
 
+class ProcessItemDiff {
+  Map? _a;
+  Map? _b;
+  ProcessItemDiff? parent;
+  List<ProcessItemDiff>? children;
+  int retainedGain = -1;
+  int retainedLoss = -1;
+  int retainedCommon = -1;
+
+  int get retainedSizeA => _a == null ? 0 : _a!["size"];
+  int get retainedSizeB => _b == null ? 0 : _b!["size"];
+  int get retainedSizeDiff => retainedSizeB - retainedSizeA;
+
+  int get shallowSizeA {
+    if (_a == null) return 0;
+    var s = _a!["size"];
+    for (var c in _a!["children"]) {
+      s -= c["size"];
+    }
+    return s;
+  }
+
+  int get shallowSizeB {
+    if (_b == null) return 0;
+    var s = _b!["size"];
+    for (var c in _b!["children"]) {
+      s -= c["size"];
+    }
+    return s;
+  }
+
+  int get shallowSizeDiff => shallowSizeB - shallowSizeA;
+
+  String get name => _a == null ? _b!["name"] : _a!["name"];
+
+  static ProcessItemDiff from(Map a, Map b) {
+    var root = new ProcessItemDiff();
+    root._a = a;
+    root._b = b;
+
+    // We must use an explicit stack instead of the call stack because the
+    // dominator tree can be arbitrarily deep. We need to compute the full
+    // tree to compute areas, so we do this eagerly to avoid having to
+    // repeatedly test for initialization.
+    var worklist = <ProcessItemDiff>[];
+    worklist.add(root);
+    // Compute children top-down.
+    for (var i = 0; i < worklist.length; i++) {
+      worklist[i]._computeChildren(worklist);
+    }
+    // Compute area botton-up.
+    for (var i = worklist.length - 1; i >= 0; i--) {
+      worklist[i]._computeArea();
+    }
+
+    return root;
+  }
+
+  void _computeChildren(List<ProcessItemDiff> worklist) {
+    assert(children == null);
+    children = <ProcessItemDiff>[];
+
+    // Matching children by name.
+    final childrenB = <String, Map>{};
+    if (_b != null)
+      for (var childB in _b!["children"]) {
+        childrenB[childB["name"]] = childB;
+      }
+    if (_a != null)
+      for (var childA in _a!["children"]) {
+        var childDiff = new ProcessItemDiff();
+        childDiff.parent = this;
+        childDiff._a = childA;
+        var qualifiedName = childA["name"];
+        var childB = childrenB[qualifiedName];
+        if (childB != null) {
+          childrenB.remove(qualifiedName);
+          childDiff._b = childB;
+        }
+        children!.add(childDiff);
+        worklist.add(childDiff);
+      }
+    for (var childB in childrenB.values) {
+      var childDiff = new ProcessItemDiff();
+      childDiff.parent = this;
+      childDiff._b = childB;
+      children!.add(childDiff);
+      worklist.add(childDiff);
+    }
+
+    if (children!.length == 0) {
+      // Compress.
+      children = const <ProcessItemDiff>[];
+    }
+  }
+
+  void _computeArea() {
+    int g = 0;
+    int l = 0;
+    int c = 0;
+    for (var child in children!) {
+      g += child.retainedGain;
+      l += child.retainedLoss;
+      c += child.retainedCommon;
+    }
+    int d = shallowSizeDiff;
+    if (d > 0) {
+      g += d;
+      c += shallowSizeA;
+    } else {
+      l -= d;
+      c += shallowSizeB;
+    }
+    assert(retainedSizeA + g - l == retainedSizeB);
+    retainedGain = g;
+    retainedLoss = l;
+    retainedCommon = c;
+  }
+}
+
+class ProcessItemDiffTreeMap extends DiffTreeMap<ProcessItemDiff> {
+  ProcessSnapshotElement element;
+  ProcessItemDiffTreeMap(this.element);
+
+  int getSizeA(ProcessItemDiff node) => node.retainedSizeA;
+  int getSizeB(ProcessItemDiff node) => node.retainedSizeB;
+  int getGain(ProcessItemDiff node) => node.retainedGain;
+  int getLoss(ProcessItemDiff node) => node.retainedLoss;
+  int getCommon(ProcessItemDiff node) => node.retainedCommon;
+
+  String getType(ProcessItemDiff node) => node.name;
+  String getName(ProcessItemDiff node) => node.name;
+  ProcessItemDiff? getParent(ProcessItemDiff node) => node.parent;
+  Iterable<ProcessItemDiff> getChildren(ProcessItemDiff node) => node.children!;
+  void onSelect(ProcessItemDiff node) {
+    element.diffSelection = node;
+    element._r.dirty();
+  }
+
+  void onDetails(ProcessItemDiff node) {}
+}
+
 class ProcessSnapshotElement extends CustomElement implements Renderable {
   late RenderingScheduler<ProcessSnapshotElement> _r;
 
@@ -56,8 +218,10 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
 
   List<Map> _loadedSnapshots = <Map>[];
   Map? selection;
+  ProcessItemDiff? diffSelection;
   Map? _snapshotA;
   Map? _snapshotB;
+  ProcessSnapshotTreeMode _mode = ProcessSnapshotTreeMode.treeMap;
 
   factory ProcessSnapshotElement(
       M.VM vm, M.EventRepository events, M.NotificationRepository notifications,
@@ -134,6 +298,7 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
     var blob = new Blob([jsonEncode(_snapshotA)], 'application/json');
     var blobUrl = Url.createObjectUrl(blob);
     var link = new AnchorElement();
+    // ignore: unsafe_html
     link.href = blobUrl;
     var now = new DateTime.now();
     link.download = 'dart-process-${now.year}-${now.month}-${now.day}.json';
@@ -159,6 +324,8 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
     _loadedSnapshots.add(snapshot);
     _snapshotA = snapshot;
     _snapshotB = snapshot;
+    selection = null;
+    diffSelection = null;
     _r.dirty();
   }
 
@@ -209,25 +376,208 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
                     ..classes = ['memberName']
                     ..children = _createSnapshotSelectA()
                 ],
-              // TODO(rmacnak): Diffing.
-              // new DivElement()
-              //  ..classes = ['memberItem']
-              //  ..children = <Element>[
-              //    new DivElement()
-              //      ..classes = ['memberName']
-              //      ..text = 'Snapshot B',
-              //    new DivElement()
-              //      ..classes = ['memberName']
-              //      ..children = _createSnapshotSelectB()
-              //  ],
+              new DivElement()
+                ..classes = ['memberItem']
+                ..children = <Element>[
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..text = 'Snapshot B',
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..children = _createSnapshotSelectB()
+                ],
+              new DivElement()
+                ..classes = ['memberItem']
+                ..children = <Element>[
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..text = (_snapshotA == _snapshotB) ? 'View ' : 'Compare ',
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..children = _createModeSelect()
+                ]
             ]
         ],
     ];
-    if (selection == null) {
-      selection = _snapshotA!["root"];
+
+    switch (_mode) {
+      case ProcessSnapshotTreeMode.treeMap:
+        if (selection == null) {
+          selection = _snapshotA!["root"];
+        }
+        _createTreeMap(report, new ProcessItemTreeMap(this), selection);
+        break;
+      case ProcessSnapshotTreeMode.tree:
+        if (selection == null) {
+          selection = _snapshotA!["root"];
+        }
+        _tree = new VirtualTreeElement(
+            _createItem, _updateItem, _getChildrenItem,
+            items: [selection], queue: _r.queue);
+        _tree!.expand(selection!);
+        report.add(_tree!.element);
+        break;
+      case ProcessSnapshotTreeMode.treeMapDiff:
+        if (diffSelection == null) {
+          diffSelection =
+              ProcessItemDiff.from(_snapshotA!["root"], _snapshotB!["root"]);
+        }
+        _createTreeMap(report, new ProcessItemDiffTreeMap(this), diffSelection);
+        break;
+      case ProcessSnapshotTreeMode.treeDiff:
+        var root =
+            ProcessItemDiff.from(_snapshotA!["root"], _snapshotB!["root"]);
+        _tree = new VirtualTreeElement(
+            _createItemDiff, _updateItemDiff, _getChildrenItemDiff,
+            items: [root], queue: _r.queue);
+        _tree!.expand(root);
+        report.add(_tree!.element);
+        break;
+      default:
+        throw new Exception('Unknown ProcessSnapshotTreeMode: $_mode');
     }
-    _createTreeMap(report, new ProcessItemTreeMap(this), selection);
+
     return report;
+  }
+
+  VirtualTreeElement? _tree;
+
+  static HtmlElement _createItem(toggle) {
+    return new DivElement()
+      ..classes = ['tree-item']
+      ..children = <Element>[
+        new SpanElement()
+          ..classes = ['percentage']
+          ..title = 'percentage of total',
+        new SpanElement()
+          ..classes = ['size']
+          ..title = 'retained size',
+        new SpanElement()..classes = ['lines'],
+        new ButtonElement()
+          ..classes = ['expander']
+          ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
+        new SpanElement()..classes = ['name'],
+      ];
+  }
+
+  static HtmlElement _createItemDiff(toggle) {
+    return new DivElement()
+      ..classes = ['tree-item']
+      ..children = <Element>[
+        new SpanElement()
+          ..classes = ['percentage']
+          ..title = 'percentage of total',
+        new SpanElement()
+          ..classes = ['size']
+          ..title = 'retained size A',
+        new SpanElement()
+          ..classes = ['percentage']
+          ..title = 'percentage of total',
+        new SpanElement()
+          ..classes = ['size']
+          ..title = 'retained size B',
+        new SpanElement()
+          ..classes = ['size']
+          ..title = 'retained size change',
+        new SpanElement()..classes = ['lines'],
+        new ButtonElement()
+          ..classes = ['expander']
+          ..onClick.listen((_) => toggle(autoToggleSingleChildNodes: true)),
+        new SpanElement()..classes = ['name']
+      ];
+  }
+
+  void _updateItem(HtmlElement element, node, int depth) {
+    var size = node["size"];
+    var rootSize = _snapshotA!["root"]["size"];
+    element.children[0].text =
+        Utils.formatPercentNormalized(size * 1.0 / rootSize);
+    element.children[1].text = Utils.formatSize(size);
+    _updateLines(element.children[2].children, depth);
+    if (_getChildrenItem(node).isNotEmpty) {
+      element.children[3].text = _tree!.isExpanded(node) ? '▼' : '►';
+    } else {
+      element.children[3].text = '';
+    }
+    element.children[4].text = node["name"];
+    element.children[4].title = node["description"];
+  }
+
+  void _updateItemDiff(HtmlElement element, nodeDynamic, int depth) {
+    ProcessItemDiff node = nodeDynamic;
+    element.children[0].text = Utils.formatPercentNormalized(
+        node.retainedSizeA * 1.0 / _snapshotA!["root"]["size"]);
+    element.children[1].text = Utils.formatSize(node.retainedSizeA);
+    element.children[2].text = Utils.formatPercentNormalized(
+        node.retainedSizeB * 1.0 / _snapshotB!["root"]["size"]);
+    element.children[3].text = Utils.formatSize(node.retainedSizeB);
+    element.children[4].text = (node.retainedSizeDiff > 0 ? '+' : '') +
+        Utils.formatSize(node.retainedSizeDiff);
+    element.children[4].style.color =
+        node.retainedSizeDiff > 0 ? "red" : "green";
+    _updateLines(element.children[5].children, depth);
+    if (_getChildrenItemDiff(node).isNotEmpty) {
+      element.children[6].text = _tree!.isExpanded(node) ? '▼' : '►';
+    } else {
+      element.children[6].text = '';
+    }
+    element.children[7]..text = node.name;
+  }
+
+  static Iterable _getChildrenItem(node) {
+    return new List<Map>.from(node["children"]);
+  }
+
+  static Iterable _getChildrenItemDiff(nodeDynamic) {
+    ProcessItemDiff node = nodeDynamic;
+    final list = node.children!.toList();
+    list.sort((a, b) => b.retainedSizeDiff - a.retainedSizeDiff);
+    return list;
+  }
+
+  static _updateLines(List<Element> lines, int n) {
+    n = Math.max(0, n);
+    while (lines.length > n) {
+      lines.removeLast();
+    }
+    while (lines.length < n) {
+      lines.add(new SpanElement());
+    }
+  }
+
+  static String modeToString(ProcessSnapshotTreeMode mode) {
+    switch (mode) {
+      case ProcessSnapshotTreeMode.treeMap:
+      case ProcessSnapshotTreeMode.treeMapDiff:
+        return 'Tree Map';
+      case ProcessSnapshotTreeMode.tree:
+      case ProcessSnapshotTreeMode.treeDiff:
+        return 'Tree';
+    }
+    throw new Exception('Unknown ProcessSnapshotTreeMode: $mode');
+  }
+
+  List<Element> _createModeSelect() {
+    var s;
+    var modes = _snapshotA == _snapshotB ? _viewModes : _diffModes;
+    if (!modes.contains(_mode)) {
+      _mode = modes[0];
+      _r.dirty();
+    }
+    return [
+      s = new SelectElement()
+        ..classes = ['analysis-select']
+        ..value = modeToString(_mode)
+        ..children = modes.map((mode) {
+          return new OptionElement(
+              value: modeToString(mode), selected: _mode == mode)
+            ..text = modeToString(mode);
+        }).toList(growable: false)
+        ..onChange.listen((_) {
+          _mode = modes[s.selectedIndex];
+          _r.dirty();
+        })
+    ];
   }
 
   String snapshotToString(snapshot) {
@@ -252,6 +602,7 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
         ..onChange.listen((_) {
           _snapshotA = _loadedSnapshots[s.selectedIndex];
           selection = null;
+          diffSelection = null;
           _r.dirty();
         })
     ];
@@ -272,6 +623,7 @@ class ProcessSnapshotElement extends CustomElement implements Renderable {
         ..onChange.listen((_) {
           _snapshotB = _loadedSnapshots[s.selectedIndex];
           selection = null;
+          diffSelection = null;
           _r.dirty();
         })
     ];

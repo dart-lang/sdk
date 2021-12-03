@@ -9,17 +9,15 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class Enum extends core::Object implements core::Enum /*isEnum*/  {
-  final field core::int index;
-  final field core::String _name;
+class Enum extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Enum> values = #C7;
   static const field self::Enum e1 = #C3;
   static const field self::Enum e2 = #C6;
-  const constructor •(core::int index, core::String _name) → self::Enum
-    : self::Enum::index = index, self::Enum::_name = _name, super core::Object::•()
+  const constructor •(core::int index, core::String name) → self::Enum
+    : super core::_Enum::•(index, name)
     ;
   method toString() → core::String
-    return this.{self::Enum::_name}{core::String};
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
 }
 static method method1(self::Enum? e) → core::int {
   switch(e) {
@@ -30,7 +28,7 @@ static method method1(self::Enum? e) → core::int {
         return 0;
       }
   }
-  return let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/switch_nullable_enum.dart:7:5: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+  return invalid-expression "pkg/front_end/testcases/nnbd/switch_nullable_enum.dart:7:5: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
 int method1(Enum? e) {
     ^" in null;
 }
@@ -102,10 +100,10 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 
 constants  {
   #C1 = 0
-  #C2 = "Enum.e1"
+  #C2 = "e1"
   #C3 = self::Enum {index:#C1, _name:#C2}
   #C4 = 1
-  #C5 = "Enum.e2"
+  #C5 = "e2"
   #C6 = self::Enum {index:#C4, _name:#C5}
   #C7 = <self::Enum>[#C3, #C6]
   #C8 = null
@@ -115,4 +113,5 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///switch_nullable_enum.dart:
 - Enum. (from org-dartlang-testcase:///switch_nullable_enum.dart:5:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -272,25 +274,21 @@ class FileTest extends OverlayTestSupport {
   test_renameSync_notExisting_withoutOverlay() {
     String oldPath = '/foo/bar/file.txt';
     String newPath = baseProvider.convertPath('/foo/bar/new-file.txt');
-    File oldFile = _file(exists: true, path: oldPath);
-    File newFile = oldFile.renameSync(newPath);
-    expect(oldFile.path, baseProvider.convertPath(oldPath));
-    expect(oldFile.exists, isFalse);
-    expect(newFile.path, newPath);
-    expect(newFile.exists, isTrue);
-    expect(newFile.readAsStringSync(), 'a');
+    File oldFile = _file(exists: false, path: oldPath);
+    expect(
+      () => oldFile.renameSync(newPath),
+      throwsFileSystemException,
+    );
   }
 
   test_renameSync_notExisting_withOverlay() {
     String oldPath = '/foo/bar/file.txt';
     String newPath = baseProvider.convertPath('/foo/bar/new-file.txt');
     File oldFile = _file(exists: false, path: oldPath, withOverlay: true);
-    File newFile = oldFile.renameSync(newPath);
-    expect(oldFile.path, baseProvider.convertPath(oldPath));
-    expect(oldFile.exists, isFalse);
-    expect(newFile.path, newPath);
-    expect(newFile.exists, isTrue);
-    expect(newFile.readAsStringSync(), 'bbb');
+    expect(
+      () => oldFile.renameSync(newPath),
+      throwsFileSystemException,
+    );
   }
 
   @failingTest
@@ -364,14 +362,18 @@ class FileTest extends OverlayTestSupport {
 
   test_writeAsBytesSync_withoutOverlay() {
     File file = _file(exists: true);
-    file.writeAsBytesSync(<int>[99, 99]);
-    expect(file.readAsBytesSync(), <int>[99, 99]);
+    var bytes = Uint8List.fromList([99, 99]);
+    file.writeAsBytesSync(bytes);
+    expect(file.readAsBytesSync(), bytes);
   }
 
   test_writeAsBytesSync_withOverlay() {
     File file = _file(exists: true, withOverlay: true);
-    expect(() => file.writeAsBytesSync(<int>[99, 99]),
-        throwsA(_isFileSystemException));
+    var bytes = Uint8List.fromList([99, 99]);
+    expect(
+      () => file.writeAsBytesSync(bytes),
+      throwsA(_isFileSystemException),
+    );
   }
 
   test_writeAsStringSync_withoutOverlay() {
@@ -480,7 +482,7 @@ class FolderTest extends OverlayTestSupport {
   test_delete_notExisting() {
     Folder folder = _folder(exists: false);
     expect(folder.exists, isFalse);
-    expect(() => folder.delete(), throwsA(TypeMatcher<ArgumentError>()));
+    expect(() => folder.delete(), throwsFileSystemException);
   }
 
   void test_exists_links_existing() {
@@ -810,12 +812,14 @@ class OverlayResourceProviderTest extends OverlayTestSupport {
     expect(folder.exists, isTrue);
   }
 
+  @Deprecated('Not used by clients')
   test_getModificationTimes_withoutOverlay() async {
     Source source = _file(exists: true).createSource();
     List<int> times = await provider.getModificationTimes([source]);
     expect(times, [source.modificationStamp]);
   }
 
+  @Deprecated('Not used by clients')
   test_getModificationTimes_withOverlay() async {
     Source source = _file(exists: true, withOverlay: true).createSource();
     List<int> times = await provider.getModificationTimes([source]);

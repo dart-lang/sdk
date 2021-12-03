@@ -78,7 +78,7 @@ class B<E extends core::Object* = dynamic> extends test::A<test::B::E*> implemen
   method m(dynamic a, (dynamic, core::int*) →* dynamic f) → test::A<test::B::E*>* {}
 }
 static method foo() → dynamic {
-  core::int* y = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_in_library_cycle.dart:30:29: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  core::int* y = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_in_library_cycle.dart:30:29: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       . /*@target=A.value*/ value;
                             ^" in new test::B::•<core::String*>().{test::B::m}(null, null){(dynamic, (dynamic, core::int*) →* dynamic) →* test::A<core::String*>*}.{test::A::value}{core::String*} as{TypeError} core::int*;
   core::String* z = new test::B::•<core::String*>().{test::B::m}(null, null){(dynamic, (dynamic, core::int*) →* dynamic) →* test::A<core::String*>*}.{test::A::value}{core::String*};

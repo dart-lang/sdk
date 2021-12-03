@@ -12,7 +12,7 @@ import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests<String>(dataDir,
       args: args,
@@ -40,6 +40,7 @@ class StaticTypeDataComputer extends DataComputer<String> {
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,
@@ -75,21 +76,21 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
         super(compilerResult, actualMap);
 
   @override
-  visitField(Field node) {
+  void visitField(Field node) {
     _staticTypeContext = new StaticTypeContext(node, _environment);
     super.visitField(node);
     _staticTypeContext = null;
   }
 
   @override
-  visitConstructor(Constructor node) {
+  void visitConstructor(Constructor node) {
     _staticTypeContext = new StaticTypeContext(node, _environment);
     super.visitConstructor(node);
     _staticTypeContext = null;
   }
 
   @override
-  visitProcedure(Procedure node) {
+  void visitProcedure(Procedure node) {
     _staticTypeContext = new StaticTypeContext(node, _environment);
     super.visitProcedure(node);
     _staticTypeContext = null;
@@ -169,6 +170,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
       isNewReachabilityErrorArgument(object) ||
       isNewReachabilityError(object);
 
+  @override
   ActualData<String> mergeData(
       ActualData<String> value1, ActualData<String> value2) {
     if (value1.object is NullLiteral && value2.object is! NullLiteral) {

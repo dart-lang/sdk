@@ -19,7 +19,7 @@ abstract class Pattern {
   /// of the pattern in the string, initially starting from [start],
   /// and then from the end of the previous match (but always
   /// at least one position later than the *start* of the previous
-  /// match, in case the patter matches an empty substring).
+  /// match, in case the pattern matches an empty substring).
   Iterable<Match> allMatches(String string, [int start = 0]);
 
   /// Matches this pattern against the start of `string`.
@@ -50,7 +50,7 @@ abstract class Pattern {
 /// }
 /// ```
 /// The output of the example is:
-/// ```dart
+/// ```
 /// Parse
 /// my
 /// string

@@ -16,7 +16,7 @@ import 'package:expect/expect.dart';
 @pragma("vm:prefer-inline")
 bar() {
   // Keep the 'throw' and its argument on separate lines.
-  throw // force linebreak with dartfmt
+  throw // force linebreak with dart format
       "Hello, Dwarf!";
 }
 

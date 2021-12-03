@@ -14,7 +14,7 @@ import self as self;
 import "dart:core" as core;
 
 class Class1<T extends core::Function*> extends core::Object {
-  generic-covariant-impl field self::Class1::T* field;
+  covariant-by-class field self::Class1::T* field;
   constructor •(self::Class1::T* field) → self::Class1<self::Class1::T*>*
     : self::Class1::field = field, super core::Object::•()
     ;
@@ -37,17 +37,17 @@ class Class1<T extends core::Function*> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Class2<T extends (core::int*) →* core::String*> extends core::Object {
-  generic-covariant-impl field self::Class2::T* field;
+  covariant-by-class field self::Class2::T* field;
   constructor •(self::Class2::T* field) → self::Class2<self::Class2::T*>*
     : self::Class2::field = field, super core::Object::•()
     ;
   method method() → dynamic {
-    invalid-type v1 = let final Never* #t2 = invalid-expression "pkg/front_end/testcases/general/callable_type_variable.dart:25:19: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-type v1 = invalid-expression "pkg/front_end/testcases/general/callable_type_variable.dart:25:19: Error: Too few positional arguments: 1 required, 0 given.
     var v1 = field(); // error
                   ^" in this.{self::Class2::field}{self::Class2::T*}{<inapplicable>}.();
-    core::String* v2 = let final core::int* #t3 = 0 in this.{self::Class2::field}{self::Class2::T*}(#t3){(core::int*) →* core::String*};
+    core::String* v2 = let final core::int* #t2 = 0 in this.{self::Class2::field}{self::Class2::T*}(#t2){(core::int*) →* core::String*};
     self::Class2::T* v3 = this.{self::Class2::field}{self::Class2::T*}.call;
-    invalid-type v4 = let final Never* #t4 = invalid-expression "pkg/front_end/testcases/general/callable_type_variable.dart:28:24: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-type v4 = invalid-expression "pkg/front_end/testcases/general/callable_type_variable.dart:28:24: Error: Too few positional arguments: 1 required, 0 given.
     var v4 = field.call(); // error
                        ^" in this.{self::Class2::field}{self::Class2::T*}{<inapplicable>}.();
     core::String* v5 = this.{self::Class2::field}{self::Class2::T*}(0){(core::int*) →* core::String*};
@@ -69,4 +69,4 @@ static method main() → dynamic {}
 Extra constant evaluation status:
 Evaluated: VariableGet @ org-dartlang-testcase:///callable_type_variable.dart:12:20 -> IntConstant(0)
 Evaluated: VariableGet @ org-dartlang-testcase:///callable_type_variable.dart:26:20 -> IntConstant(0)
-Extra constant evaluation: evaluated: 38, effectively constant: 2
+Extra constant evaluation: evaluated: 30, effectively constant: 2

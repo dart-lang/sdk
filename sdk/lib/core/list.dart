@@ -137,7 +137,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// ```dart
   /// List<dynamic> dynList = ...some JSON value...;
   /// List<Map<String, dynamic>> fooList =
-  ///     List.from(dynList.where((x) => x is Map && map["kind"] == "foo"));
+  ///     List.from(dynList.where((x) => x is Map && x["kind"] == "foo"));
   /// ```
   ///
   /// This constructor creates a growable list when [growable] is true;
@@ -188,8 +188,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// of [S],
   /// then the returned list can be used as a `List<T>`.
   ///
-  /// Methods like [contains] and [remove]
-  /// which accept `Object?` as argument
+  /// Methods which accept `Object?` as argument, like [contains] and [remove],
   /// will pass the argument directly to the this list's method
   /// without any checks.
   static List<T> castFrom<S, T>(List<S> source) => CastList<S, T>(source);
@@ -267,8 +266,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// and they must be instances of [E] as well to be accepted by
   /// this list as well.
   ///
-  /// Methods like [contains] and [remove]
-  /// which accept `Object?` as argument
+  /// Methods which accept `Object?` as argument, like [contains] and [remove],
   /// will pass the argument directly to the this list's method
   /// without any checks.
   /// That means that you can do `listOfStrings.cast<int>().remove("a")`
@@ -692,7 +690,6 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// ```dart
   /// var words = ['fee', 'fi', 'fo', 'fum'];
   /// var map = words.asMap();  // {0: fee, 1: fi, 2: fo, 3: fum}
-  /// map[0] + map[1];   // 'feefi';
   /// map.keys.toList(); // [0, 1, 2, 3]
   /// ```
   Map<int, E> asMap();

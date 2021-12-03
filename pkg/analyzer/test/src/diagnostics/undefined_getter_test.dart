@@ -388,6 +388,36 @@ class B extends A<List> {
 @reflectiveTest
 class UndefinedGetterWithNullSafetyTest extends PubPackageResolutionTest
     with UndefinedGetterTestCases {
+  test_functionAlias_typeInstantiated_getter() async {
+    await assertErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn<int>.foo;
+}
+
+extension E on Type {
+  int get foo => 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE, 58, 3),
+    ]);
+  }
+
+  test_functionAlias_typeInstantiated_getter_parenthesized() async {
+    await assertNoErrorsInCode('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  (Fn<int>).foo;
+}
+
+extension E on Type {
+  int get foo => 1;
+}
+''');
+  }
+
   test_get_from_abstract_field_final_valid() async {
     await assertNoErrorsInCode('''
 abstract class A {
@@ -440,5 +470,89 @@ class A {
 }
 int f() => A.x;
 ''');
+  }
+
+  test_new_cascade() async {
+    await assertErrorsInCode('''
+class C {}
+
+f(C? c) {
+  c..new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 3),
+    ]);
+  }
+
+  test_new_dynamic() async {
+    await assertErrorsInCode('''
+f(dynamic d) {
+  d.new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 19, 3),
+    ]);
+  }
+
+  test_new_expression() async {
+    await assertErrorsInCode('''
+class C {}
+
+f(C? c1, C c2) {
+  (c1 ?? c2).new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 42, 3),
+    ]);
+  }
+
+  test_new_nullAware() async {
+    await assertErrorsInCode('''
+class C {}
+
+f(C? c) {
+  c?.new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 3),
+    ]);
+  }
+
+  test_new_prefixedIdentifier() async {
+    await assertErrorsInCode('''
+class C {}
+
+abstract class D {
+  C get c;
+}
+
+f(D d) {
+  d.c.new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 60, 3),
+    ]);
+  }
+
+  test_new_simpleIdentifier() async {
+    await assertErrorsInCode('''
+class C {}
+
+f(C c) {
+  c.new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 25, 3),
+    ]);
+  }
+
+  test_new_typeVariable() async {
+    await assertErrorsInCode('''
+f<T>(T t) {
+  t.new;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 16, 3),
+    ]);
   }
 }

@@ -59,6 +59,7 @@ class LspClientCapabilities {
   final bool documentChanges;
   final bool configuration;
   final bool createResourceOperations;
+  final bool renameResourceOperations;
   final bool completionDeprecatedFlag;
   final bool applyEdit;
   final bool workDoneProgress;
@@ -101,6 +102,10 @@ class LspClientCapabilities {
         createResourceOperations = raw
                 .workspace?.workspaceEdit?.resourceOperations
                 ?.contains(ResourceOperationKind.Create) ??
+            false,
+        renameResourceOperations = raw
+                .workspace?.workspaceEdit?.resourceOperations
+                ?.contains(ResourceOperationKind.Rename) ??
             false,
         definitionLocationLink =
             raw.textDocument?.definition?.linkSupport ?? false,

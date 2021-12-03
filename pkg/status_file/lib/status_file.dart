@@ -45,7 +45,7 @@ final _issuePattern = new RegExp(r"[Ii]ssue (\d+)");
 class StatusFile {
   final String path;
   final List<StatusSection> sections = [];
-  final List<String> _comments = [];
+  final List<String?> _comments = [];
 
   int _lineCount = 0;
 
@@ -58,13 +58,10 @@ class StatusFile {
     var lines = new File(path).readAsLinesSync();
     _comments.length = lines.length + 1;
 
-    // The current section whose rules are being parsed.
-    StatusSection section;
-
     for (var line in lines) {
       _lineCount++;
 
-      fail(String message, [List<String> errors]) {
+      fail(String message, [List<String>? errors]) {
         throw new SyntaxError(_shortPath, _lineCount, line, message, errors);
       }
 
@@ -86,9 +83,8 @@ class StatusFile {
       var match = _sectionPattern.firstMatch(source);
       if (match != null) {
         try {
-          var condition = Expression.parse(match[1].trim());
-          section = new StatusSection(condition, _lineCount);
-          sections.add(section);
+          var condition = Expression.parse(match[1]!.trim());
+          sections.add(new StatusSection(condition, _lineCount));
         } on FormatException {
           fail("Status expression syntax error");
         }
@@ -98,10 +94,10 @@ class StatusFile {
       // Otherwise, it should be a new entry under the current section.
       match = _entryPattern.firstMatch(source);
       if (match != null) {
-        var path = match[1].trim();
+        var path = match[1]!.trim();
         // TODO(whesse): Handle test names ending in a wildcard (*).
         var expectations = <Expectation>[];
-        for (var name in match[2].split(",")) {
+        for (var name in match[2]!.split(",")) {
           name = name.trim();
           try {
             expectations.add(Expectation.find(name));
@@ -114,12 +110,11 @@ class StatusFile {
 
         // If we haven't found a section header yet, create an implicit section
         // that matches everything.
-        if (section == null) {
-          section = new StatusSection(null, -1);
-          sections.add(section);
+        if (sections.isEmpty) {
+          sections.add(new StatusSection(Expression.always, -1));
         }
 
-        section.entries
+        sections.last.entries
             .add(new StatusEntry(path, _lineCount, expectations, issue));
         continue;
       }
@@ -138,8 +133,6 @@ class StatusFile {
     // TODO(rnystrom): It would be more useful if it reported all of the errors
     // instead of stopping on the first.
     for (var section in sections) {
-      if (section.condition == null) continue;
-
       var errors = <String>[];
       section.condition.validate(environment, errors);
 
@@ -158,11 +151,11 @@ class StatusFile {
   }
 
   /// Returns the issue number embedded in [comment] or `null` if there is none.
-  int _issueNumber(String comment) {
+  int? _issueNumber(String comment) {
     var match = _issuePattern.firstMatch(comment);
     if (match == null) return null;
 
-    return int.parse(match[1]);
+    return int.parse(match[1]!);
   }
 
   String toString() {
@@ -192,7 +185,7 @@ class StatusFile {
     var lastLine = 0;
     var needBlankLine = false;
 
-    void writeLine(String text, int line) {
+    void writeLine(String? text, int line) {
       var comment = _comments[line];
       if (text == null && comment == null) {
         // There's no comment on this line, so it's blank.
@@ -216,17 +209,15 @@ class StatusFile {
     }
 
     void writeText(String text, int line) {
-      if (line != null) {
-        while (++lastLine < line) {
-          writeLine(null, lastLine);
-        }
+      while (++lastLine < line) {
+        writeLine(null, lastLine);
       }
 
       writeLine(text, line);
     }
 
     for (var section in sections) {
-      if (section.condition != null) {
+      if (section.condition != Expression.always) {
         writeText("[ ${section.condition} ]", section.lineNumber);
       }
 
@@ -254,8 +245,8 @@ class StatusFile {
 class StatusSection {
   /// The expression that determines when this section is applied.
   ///
-  /// May be `null` for paths that appear before any section header in the file.
-  /// In that case, the section always applies.
+  /// Will be [Expression.always] for paths that appear before any section
+  /// header in the file. In that case, the section always applies.
   final Expression condition;
 
   /// The one-based line number where the entry appears in the file.
@@ -264,8 +255,7 @@ class StatusSection {
   final List<StatusEntry> entries = [];
 
   /// Returns true if this section should apply in the given [environment].
-  bool isEnabled(Environment environment) =>
-      condition == null || condition.evaluate(environment);
+  bool isEnabled(Environment environment) => condition.evaluate(environment);
 
   StatusSection(this.condition, this.lineNumber);
 }
@@ -278,7 +268,7 @@ class StatusEntry {
   final int lineNumber;
 
   final List<Expectation> expectations;
-  final int issue;
+  final int? issue;
 
   StatusEntry(this.path, this.lineNumber, this.expectations, this.issue);
 }
@@ -289,7 +279,7 @@ class SyntaxError implements Exception {
   final int lineNumber;
   final String line;
   final String message;
-  final List<String> errors;
+  final List<String>? errors;
 
   SyntaxError(this.file, this.lineNumber, this.line, this.message, this.errors);
 
@@ -298,10 +288,8 @@ class SyntaxError implements Exception {
     buffer.writeln('$message in "$file" line $lineNumber:');
     buffer.writeln(line);
 
-    if (errors != null) {
-      for (var error in errors) {
-        buffer.writeln("- ${error.replaceAll('\n', '\n  ')}");
-      }
+    for (var error in errors ?? const []) {
+      buffer.writeln("- ${error.replaceAll('\n', '\n  ')}");
     }
 
     return buffer.toString().trimRight();

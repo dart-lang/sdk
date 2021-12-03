@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This test is ensuring that the flag for --use-bare-instructions given at
 // AOT compile-time will be used at runtime (irrespective if other values were
 // passed to the runtime).

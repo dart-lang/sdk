@@ -4,13 +4,13 @@
 
 // @dart = 2.9
 
-import 'package:front_end/src/base/libraries_specification.dart';
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:package_config/package_config.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UriTranslatorImplTest);
   });

@@ -25,6 +25,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
         NATIVE_SUPERCLASS_TAG_NAME,
         RTI_UNIVERSE,
         RtiUniverseFieldNames,
+        STARTUP_METRICS,
         TearOffParametersPropertyNames,
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
@@ -37,7 +38,7 @@ import '../../common/tasks.dart';
 import '../../constants/values.dart'
     show ConstantValue, FunctionConstantValue, LateSentinelConstantValue;
 import '../../common_elements.dart' show CommonElements, JElementEnvironment;
-import '../../deferred_load/deferred_load.dart' show OutputUnit;
+import '../../deferred_load/output_unit.dart' show OutputUnit;
 import '../../dump_info.dart';
 import '../../elements/entities.dart';
 import '../../elements/types.dart';
@@ -136,6 +137,8 @@ class ModelEmitter {
   static const String deferredInitializersGlobal =
       r"$__dart_deferred_initializers__";
 
+  static const String startupMetricsGlobal = r'$__dart_startupMetrics';
+
   static const String partExtension = "part";
   static const String deferredExtension = "part.js";
 
@@ -154,10 +157,10 @@ class ModelEmitter {
       this._sourceInformationStrategy,
       RecipeEncoder rtiRecipeEncoder,
       this._shouldGenerateSourceMap)
-      : _constantOrdering = new ConstantOrdering(_closedWorld.sorter),
+      : _constantOrdering = ConstantOrdering(_closedWorld.sorter),
         fragmentMerger = FragmentMerger(_options,
             _closedWorld.elementEnvironment, _closedWorld.outputUnitData) {
-    this.constantEmitter = new ConstantEmitter(
+    this.constantEmitter = ConstantEmitter(
         _options,
         _namer,
         _closedWorld.commonElements,
@@ -226,9 +229,9 @@ class ModelEmitter {
   int emitProgram(Program program, CodegenWorld codegenWorld) {
     MainFragment mainFragment = program.fragments.first;
     List<DeferredFragment> deferredFragments =
-        new List<DeferredFragment>.from(program.deferredFragments);
+        List<DeferredFragment>.from(program.deferredFragments);
 
-    FragmentEmitter fragmentEmitter = new FragmentEmitter(
+    FragmentEmitter fragmentEmitter = FragmentEmitter(
         _options,
         _dumpInfoTask,
         _namer,
@@ -302,12 +305,12 @@ class ModelEmitter {
         finalizedFragmentsToLoad);
 
     // Emit main Fragment.
-    var deferredLoadingState = new DeferredLoadingState();
+    var deferredLoadingState = DeferredLoadingState();
     js.Statement mainCode = fragmentEmitter.emitMainFragment(
         program, finalizedFragmentsToLoad, deferredLoadingState);
 
     // Count tokens and run finalizers.
-    js.TokenCounter counter = new js.TokenCounter();
+    js.TokenCounter counter = js.TokenCounter();
     for (var emittedFragments in deferredFragmentsCode.values) {
       for (var emittedFragment in emittedFragments) {
         counter.countTokens(emittedFragment.code);
@@ -359,7 +362,6 @@ class ModelEmitter {
     if (_options.laxRuntimeTypeToString) {
       flavor.write(', lax runtime type');
     }
-    if (_options.useContentSecurityPolicy) flavor.write(', CSP');
     var featureString = _options.features.flavorString();
     if (featureString.isNotEmpty) flavor.write(', $featureString');
     return js.Comment(generatedBy(_options, flavor: '$flavor'));
@@ -372,6 +374,32 @@ class ModelEmitter {
         {'deferredInitializers': deferredInitializersGlobal});
   }
 
+  js.Statement buildStartupMetrics() {
+    // We want the code that initializes the startup metrics to execute as early
+    // as possible, so it is placed ahead of the main program IIFE instead of,
+    // e.g. as a parameter of the IIFE. It is OK to use a top-level variable,
+    // since the IIFE immediately reads the variable.
+    return js.js.statement('''
+var ${startupMetricsGlobal} =
+(function(){
+  // The timestamp metrics use `performance.now()`. We feature-detect and
+  // fall back on `Date.now()` for JavaScript run in a non-browser evironment.
+  var _performance =
+      (typeof performance == "object" &&
+       performance != null &&
+       typeof performance.now == "function")
+          ? performance
+          : Date;
+  var metrics = {
+    a: [],
+    now: function() { return _performance.now() },
+    add: function(name) { this.a.push(name, this.now()); }
+  };
+  metrics.add('firstMs');
+  return metrics;
+})();''');
+  }
+
   // Writes the given [fragment]'s [code] into a file.
   //
   // Updates the shared [outputBuffers] field with the output.
@@ -382,7 +410,7 @@ class ModelEmitter {
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
         locationCollector = LocationCollector();
-        codeOutputListeners = <CodeOutputListener>[locationCollector];
+        codeOutputListeners = [locationCollector];
       });
     }
 
@@ -395,6 +423,8 @@ class ModelEmitter {
       buildGeneratedBy(),
       js.Comment(HOOKS_API_USAGE),
       if (isSplit) buildDeferredInitializerGlobal(),
+      if (_closedWorld.backendUsage.requiresStartupMetrics)
+        buildStartupMetrics(),
       code
     ]);
 
@@ -450,7 +480,7 @@ class ModelEmitter {
     LocationCollector locationCollector;
     if (_shouldGenerateSourceMap) {
       _task.measureSubtask('source-maps', () {
-        locationCollector = new LocationCollector();
+        locationCollector = LocationCollector();
         outputListeners.add(locationCollector);
       });
     }
@@ -525,13 +555,13 @@ class ModelEmitter {
     //   deferredInitializer.current = <pretty-printed code>;
     //   deferredInitializer[<hash>] = deferredInitializer.current;
 
-    js.Program program = new js.Program([
+    js.Program program = js.Program([
       if (isFirst) buildGeneratedBy(),
       if (isFirst) buildDeferredInitializerGlobal(),
       js.js.statement('$deferredInitializersGlobal.current = #', code)
     ]);
 
-    Hasher hasher = new Hasher();
+    Hasher hasher = Hasher();
     CodeBuffer buffer = js.createCodeBuffer(
         program, _options, _sourceInformationStrategy,
         monitor: _dumpInfoTask, listeners: [hasher]);

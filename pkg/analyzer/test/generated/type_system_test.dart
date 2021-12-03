@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -19,12 +18,12 @@ import 'test_analysis_context.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AssignabilityTest);
+    defineReflectiveTests(AssignabilityWithoutNullSafetyTest);
     defineReflectiveTests(TryPromoteToTest);
   });
 }
 
-abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
+abstract class AbstractTypeSystemTest with ElementsTypesMixin {
   late TestAnalysisContext analysisContext;
 
   @override
@@ -35,16 +34,8 @@ abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
 
   late TypeSystemImpl typeSystem;
 
-  FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting(
-      additionalFeatures: [Feature.non_nullable],
-    );
-  }
-
   void setUp() {
-    analysisContext = TestAnalysisContext(
-      featureSet: testFeatureSet,
-    );
+    analysisContext = TestAnalysisContext();
     typeProvider = analysisContext.typeProviderNonNullableByDefault;
     typeSystem = analysisContext.typeSystemNonNullableByDefault;
 
@@ -57,7 +48,7 @@ abstract class AbstractTypeSystemNullSafetyTest with ElementsTypesMixin {
   }
 }
 
-abstract class AbstractTypeSystemTest with ElementsTypesMixin {
+abstract class AbstractTypeSystemWithoutNullSafetyTest with ElementsTypesMixin {
   late TestAnalysisContext analysisContext;
 
   @override
@@ -68,14 +59,8 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
 
   late TypeSystemImpl typeSystem;
 
-  FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting();
-  }
-
   void setUp() {
-    analysisContext = TestAnalysisContext(
-      featureSet: testFeatureSet,
-    );
+    analysisContext = TestAnalysisContext();
     typeProvider = analysisContext.typeProviderLegacy;
     typeSystem = analysisContext.typeSystemLegacy;
 
@@ -89,7 +74,8 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
 }
 
 @reflectiveTest
-class AssignabilityTest extends AbstractTypeSystemTest {
+class AssignabilityWithoutNullSafetyTest
+    extends AbstractTypeSystemWithoutNullSafetyTest {
   void test_isAssignableTo_bottom_isBottom() {
     var A = class_(name: 'A');
     List<DartType> interassignable = <DartType>[
@@ -438,13 +424,6 @@ class AssignabilityTest extends AbstractTypeSystemTest {
 
 @reflectiveTest
 class TryPromoteToTest extends AbstractTypeSystemTest {
-  @override
-  FeatureSet get testFeatureSet {
-    return FeatureSet.forTesting(
-      additionalFeatures: [Feature.non_nullable],
-    );
-  }
-
   void notPromotes(DartType from, DartType to) {
     var result = typeSystem.tryPromoteToType(to, from);
     expect(result, isNull);

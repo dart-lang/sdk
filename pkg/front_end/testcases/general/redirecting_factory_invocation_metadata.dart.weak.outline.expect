@@ -1,0 +1,102 @@
+@name::Const::internal()
+library name /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart" as self;
+export "org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart";
+
+part redirecting_factory_invocation_metadata_lib.dart;
+@self::Const::internal()
+typedef Typedef1<@self::Const::internal() unrelated T extends core::Object? = dynamic> = <T extends core::Object? = dynamic>(self::Class<dynamic>, [self::Class<dynamic>]) → dynamic;
+@self::Const::internal()
+typedef Typedef2<@self::Const::internal() unrelated T extends core::Object? = dynamic> = <T extends core::Object? = dynamic>(self::Class<dynamic>, {o2: self::Class<dynamic>}) → dynamic;
+@self::Const::internal()
+typedef Typedef3<@self::Const::internal() unrelated T extends core::Object? = dynamic> = (dynamic, [dynamic]) → void;
+@self::Const::internal()
+typedef Typedef4<@self::Const::internal() unrelated T extends core::Object? = dynamic> = (dynamic, {o2: dynamic}) → void;
+@self::Const::internal()
+class Const extends core::Object /*hasConstConstructor*/  {
+  static final field dynamic _redirecting# = <dynamic>[self::Const::•]/*isLegacy*/;
+  const constructor internal() → self::Const
+    : super core::Object::•()
+    ;
+  static factory •() → self::Const
+    return new self::Const::internal();
+}
+class Class<@self::Const::internal() T extends core::Object? = dynamic> extends core::Object {
+  @self::Const::internal()
+  field <T extends core::Object? = dynamic>(dynamic, {o2: dynamic}) → Null field;
+  @self::Const::internal()
+  constructor •() → self::Class<self::Class::T%>
+    ;
+  @self::Const::internal()
+  method method1<@self::Const::internal() T extends core::Object? = dynamic>(dynamic o1, [dynamic o2]) → dynamic
+    ;
+  @self::Const::internal()
+  method method2<@self::Const::internal() T extends core::Object? = dynamic>(dynamic o1, {dynamic o2}) → dynamic
+    ;
+}
+@self::Const::internal()
+extension Extension<@self::Const::internal() T extends core::Object? = dynamic> on self::Class<T%> {
+  static field field = self::Extension|field;
+  method method1 = self::Extension|method1;
+  tearoff method1 = self::Extension|get#method1;
+  method method2 = self::Extension|method2;
+  tearoff method2 = self::Extension|get#method2;
+}
+@self::Const::internal()
+static field <T extends core::Object? = dynamic>(dynamic, [dynamic]) → Null field;
+@self::Const::internal()
+static field <T extends core::Object? = dynamic>(dynamic, [dynamic]) → Null Extension|field;
+@self::Const::internal()
+static method method1<@self::Const::internal() T extends core::Object? = dynamic>(dynamic o1, [dynamic o2]) → dynamic
+  ;
+@self::Const::internal()
+static method method2<@self::Const::internal() T extends core::Object? = dynamic>(dynamic o1, {dynamic o2}) → dynamic
+  ;
+@self::Const::internal()
+static method Extension|method1<#T extends core::Object? = dynamic, @self::Const::internal() T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|method1::#T%> #this, dynamic o1, [dynamic o2]) → dynamic
+  ;
+static method Extension|get#method1<#T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#method1::#T%> #this) → <T extends core::Object? = dynamic>(dynamic, [dynamic]) → dynamic
+  return <T extends core::Object? = dynamic>(dynamic o1, [dynamic o2]) → dynamic => self::Extension|method1<self::Extension|get#method1::#T%, T%>(#this, o1, o2);
+@self::Const::internal()
+static method Extension|method2<#T extends core::Object? = dynamic, @self::Const::internal() T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|method2::#T%> #this, dynamic o1, {dynamic o2}) → dynamic
+  ;
+static method Extension|get#method2<#T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#method2::#T%> #this) → <T extends core::Object? = dynamic>(dynamic, {o2: dynamic}) → dynamic
+  return <T extends core::Object? = dynamic>(dynamic o1, {dynamic o2}) → dynamic => self::Extension|method2<self::Extension|get#method2::#T%, T%>(#this, o1, o2: o2);
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:5:2 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:74:2 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:75:19 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:78:2 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:79:19 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:82:2 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:83:24 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:85:2 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:86:24 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:17:2 -> InstanceConstant(const Const{})
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:18:7 -> ConstructorTearOffConstant(Const.)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:46:14 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:56:4 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:59:4 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:60:12 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:68:4 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:69:12 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:47:4 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:89:22 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:32:2 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:33:10 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:41:2 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:42:10 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:99:4 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:100:12 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:108:4 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:109:12 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:23:2 -> InstanceConstant(const Const{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:90:4 -> InstanceConstant(const Const{})
+Extra constant evaluation: evaluated: 41, effectively constant: 29

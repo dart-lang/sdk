@@ -11,6 +11,7 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
         main() {
           libMethod();
@@ -20,7 +21,6 @@ worlds:
     expectedLibraryCount: 2
 
   - entry: main.dart
-    experiments: non-nullable
     nnbdMode: strong
     expectInitializeFromDill: false # loading the dill should fail because of mismatching NNBD settings
     checkInvalidatedFiles: false

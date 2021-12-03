@@ -356,8 +356,7 @@ class DartFuzzTest {
       }
       // Report every 10 minutes.
       if ((current_time - report_time) > (10 * 60 * 1000)) {
-        print(
-            '\n$isolate: busy @$numTests ${current_time - start_time} seconds....');
+        print('\n$isolate: busy @$numTests ${current_time - start_time}ms....');
         report_time = current_time;
       }
     }

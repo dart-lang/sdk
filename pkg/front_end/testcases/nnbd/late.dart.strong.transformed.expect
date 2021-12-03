@@ -67,7 +67,7 @@ class Class extends core::Object {
  - 'Class' is from 'pkg/front_end/testcases/nnbd/late.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'lateFinalInstanceFieldWithInit'.
     lateFinalInstanceFieldWithInit = 0;
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in this{<unresolved>}.lateFinalInstanceFieldWithInit = 0;
     invalid-expression "pkg/front_end/testcases/nnbd/late.dart:44:5: Error: Setter not found: 'lateFinalStaticFieldWithInit'.
     lateFinalStaticFieldWithInit = 0;
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
@@ -97,7 +97,7 @@ static method errors() → dynamic {
  - 'Class' is from 'pkg/front_end/testcases/nnbd/late.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'lateFinalInstanceFieldWithInit'.
   c.lateFinalInstanceFieldWithInit = 0;
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.lateFinalInstanceFieldWithInit = 0;
   c.{self::Class::methodWithErrors}(){() → dynamic};
   invalid-expression "pkg/front_end/testcases/nnbd/late.dart:67:9: Error: Setter not found: 'lateFinalStaticFieldWithInit'.
   Class.lateFinalStaticFieldWithInit = 0;

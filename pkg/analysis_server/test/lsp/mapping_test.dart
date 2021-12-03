@@ -18,31 +18,38 @@ void main() {
 
 @reflectiveTest
 class MappingTest extends AbstractLspAnalysisServerTest {
-  Future<void> test_completionItemKind_firstNotSupported() async {
-    // TYPE_PARAMETER maps to TypeParameter first, but since originally LSP
-    // did not support it, it'll map to Variable if the client doesn't support
-    // that.
-    var supportedKinds = {
-      lsp.CompletionItemKind.TypeParameter,
-      lsp.CompletionItemKind.Variable,
-    };
-    var result = lsp.elementKindToCompletionItemKind(
-      supportedKinds,
-      server.ElementKind.TYPE_PARAMETER,
+  void test_completionItemKind_enum() {
+    // Enums should always map to Enums, never EumMember.
+    verifyCompletionItemKind(
+      kind: server.ElementKind.ENUM,
+      supportedKinds: {
+        lsp.CompletionItemKind.Enum,
+        lsp.CompletionItemKind.EnumMember,
+      },
+      expectedKind: lsp.CompletionItemKind.Enum,
     );
-    expect(result, equals(lsp.CompletionItemKind.TypeParameter));
   }
 
-  Future<void> test_completionItemKind_firstSupported() async {
-    // TYPE_PARAMETER maps to TypeParameter first, but since originally LSP
-    // did not support it, it'll map to Variable if the client doesn't support
+  void test_completionItemKind_enumValueNotSupported() {
+    // ENUM_CONSTANT maps to EnumMember first, but since originally LSP
+    // did not support it, it'll map to Enum if the client doesn't support
     // that.
-    var supportedKinds = {lsp.CompletionItemKind.Variable};
-    var result = lsp.elementKindToCompletionItemKind(
-      supportedKinds,
-      server.ElementKind.TYPE_PARAMETER,
+    verifyCompletionItemKind(
+      kind: server.ElementKind.ENUM_CONSTANT,
+      supportedKinds: {lsp.CompletionItemKind.Enum},
+      expectedKind: lsp.CompletionItemKind.Enum,
     );
-    expect(result, equals(lsp.CompletionItemKind.Variable));
+  }
+
+  void test_completionItemKind_enumValueSupported() {
+    verifyCompletionItemKind(
+      kind: server.ElementKind.ENUM_CONSTANT,
+      supportedKinds: {
+        lsp.CompletionItemKind.Enum,
+        lsp.CompletionItemKind.EnumMember,
+      },
+      expectedKind: lsp.CompletionItemKind.EnumMember,
+    );
   }
 
   Future<void> test_completionItemKind_knownMapping() async {
@@ -70,6 +77,28 @@ class MappingTest extends AbstractLspAnalysisServerTest {
       server.ElementKind.CLASS,
     );
     expect(result, isNull);
+  }
+
+  void test_completionItemKind_typeParamNotSupported() {
+    // TYPE_PARAMETER maps to TypeParameter first, but since originally LSP
+    // did not support it, it'll map to Variable if the client doesn't support
+    // that.
+    verifyCompletionItemKind(
+      kind: server.ElementKind.TYPE_PARAMETER,
+      supportedKinds: {lsp.CompletionItemKind.Variable},
+      expectedKind: lsp.CompletionItemKind.Variable,
+    );
+  }
+
+  void test_completionItemKind_typeParamSupported() {
+    verifyCompletionItemKind(
+      kind: server.ElementKind.TYPE_PARAMETER,
+      supportedKinds: {
+        lsp.CompletionItemKind.TypeParameter,
+        lsp.CompletionItemKind.Variable,
+      },
+      expectedKind: lsp.CompletionItemKind.TypeParameter,
+    );
   }
 
   void test_relevanceToSortText() {
@@ -118,5 +147,16 @@ class MappingTest extends AbstractLspAnalysisServerTest {
   Future<void> test_tabStopsInSnippets_startsWith() async {
     var result = lsp.buildSnippetStringWithTabStops('a, b', [0, 1]);
     expect(result, equals(r'${0:a}, b'));
+  }
+
+  /// Verifies that [kind] maps to [expectedKind] when the client supports
+  /// [supportedKinds].
+  void verifyCompletionItemKind({
+    required server.ElementKind kind,
+    required Set<lsp.CompletionItemKind> supportedKinds,
+    required lsp.CompletionItemKind expectedKind,
+  }) {
+    final result = lsp.elementKindToCompletionItemKind(supportedKinds, kind);
+    expect(result, equals(expectedKind));
   }
 }

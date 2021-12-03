@@ -12,8 +12,7 @@ import 'common_elements.dart'
         JElementEnvironment,
         KCommonElements,
         KElementEnvironment;
-import 'deferred_load/deferred_load.dart';
-import 'diagnostics/diagnostic_listener.dart';
+import 'deferred_load/output_unit.dart';
 import 'elements/entities.dart';
 import 'elements/names.dart';
 import 'elements/types.dart';

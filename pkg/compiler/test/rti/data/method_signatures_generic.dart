@@ -18,7 +18,7 @@ class Class1 {
 }
 
 class Class2 {
-  /*spec.member: Class2.method4:direct,explicit=[method4.T*],needsArgs,needsInst=[<num*>,<num*>,<num*>,<num*>]*/
+  /*spec.member: Class2.method4:direct,explicit=[method4.T*],needsArgs,needsInst=[<num*>,<num*>]*/
   num method4<T>(T n) => null;
 }
 
@@ -32,7 +32,7 @@ class Class4 {
   num method6<T>(num n, T t) => null;
 }
 
-/*spec.member: method7:direct,explicit=[method7.T*],needsArgs,needsInst=[<num*>,<num*>,<num*>,<num*>]*/
+/*spec.member: method7:direct,explicit=[method7.T*],needsArgs,needsInst=[<num*>,<num*>]*/
 num method7<T>(T n) => null;
 
 /*member: method8:*/

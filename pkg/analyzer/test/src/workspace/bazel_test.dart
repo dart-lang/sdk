@@ -658,6 +658,26 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
     expect(package?.workspace, equals(workspace));
   }
 
+  void test_findPackageFor_generatedFileInBlazeOutAndBin() {
+    _addResources([
+      '/ws/blaze-out/host/bin/some/code/code.packages',
+      '/ws/blaze-out/host/bin/some/code/code.dart',
+      '/ws/blaze-bin/some/code/code.dart',
+    ]);
+    workspace = BazelWorkspace.find(
+      resourceProvider,
+      convertPath('/ws/some/code/testing'),
+    )!;
+
+    // Make sure that we can find the package of the generated file.
+    var file = workspace.findFile(convertPath('/ws/some/code/code.dart'));
+    package = workspace.findPackageFor(file!.path);
+
+    expect(package, isNotNull);
+    expect(package?.root, convertPath('/ws/some/code'));
+    expect(package?.workspace, equals(workspace));
+  }
+
   void test_findPackageFor_inBlazeOut_notPackage() {
     var path =
         convertPath('/ws/blaze-out/k8-opt/bin/news/lib/news_base.pb.dart');
@@ -858,8 +878,8 @@ class BazelWorkspaceTest with ResourceProviderMixin {
         resourceProvider, convertPath('/workspace/my/module'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
-    expect(workspace.binPaths.single,
-        convertPath('/workspace/blaze-out/host/bin'));
+    expect(
+        workspace.binPaths.first, convertPath('/workspace/blaze-out/host/bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
     expect(
         workspace
@@ -893,11 +913,12 @@ class BazelWorkspaceTest with ResourceProviderMixin {
         resourceProvider, convertPath('/workspace/my/module'))!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.readonly, isNull);
-    expect(workspace.binPaths, hasLength(2));
+    expect(workspace.binPaths, hasLength(3));
     expect(workspace.binPaths,
         contains(convertPath('/workspace/blaze-out/host/bin')));
     expect(workspace.binPaths,
         contains(convertPath('/workspace/blaze-out/k8-fastbuild/bin')));
+    expect(workspace.binPaths, contains(convertPath('/workspace/blaze-bin')));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
   }
 

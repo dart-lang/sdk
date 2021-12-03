@@ -131,6 +131,10 @@ template("build_elf_loader") {
     sources = [
       "elf_loader.cc",
       "elf_loader.h",
+      "virtual_memory.h",
+      "virtual_memory_fuchsia.cc",
+      "virtual_memory_posix.cc",
+      "virtual_memory_win.cc",
     ]
     deps = invoker.deps
   }
@@ -199,6 +203,7 @@ template("build_gen_snapshot") {
       frameworks = [
         "CoreFoundation.framework",
         "CoreServices.framework",
+        "Foundation.framework",
       ]
     }
 
@@ -332,6 +337,12 @@ template("build_gen_snapshot_dart_io") {
       "io_natives.cc",
       "io_natives.h",
     ]
+    if (is_ios || is_mac) {
+      sources += [
+        "platform_macos_cocoa.h",
+        "platform_macos_cocoa.mm",
+      ]
+    }
 
     include_dirs = [
       "..",
@@ -408,6 +419,7 @@ template("dart_io") {
       frameworks = [
         "CoreFoundation.framework",
         "Security.framework",
+        "Foundation.framework",
       ]
 
       if (is_mac) {
@@ -433,6 +445,12 @@ template("dart_io") {
                  "io_natives.cc",
                  "io_natives.h",
                ] + extra_sources
+    if (is_ios || is_mac) {
+      sources += [
+        "platform_macos_cocoa.h",
+        "platform_macos_cocoa.mm",
+      ]
+    }
 
     if (is_linux || is_win || is_fuchsia) {
       if (dart_use_fallback_root_certificates) {
@@ -717,18 +735,6 @@ template("dart_executable") {
     } else {
       configs += [ "..:dart_maybe_product_config" ]
     }
-    if (target_os != current_os && target_os == "fuchsia") {
-      # We already have these in the standalone build, but Fuchsia doesn't
-      # have them. They are needed for running Fuchsia binaries built for the
-      # host.
-      if (is_linux) {
-        # TODO(liama): Commenting this line out because it causes problems for
-        # --os=fuchsia. If no one complains, remove it.
-        # configs += [ "../../build/config/gcc:executable_ldconfig" ]
-      } else if (is_mac) {
-        configs += [ "../../build/config/mac:mac_dynamic_flags" ]
-      }
-    }
 
     deps = [
       ":crashpad",
@@ -973,9 +979,9 @@ executable("run_vm_tests") {
   }
 }
 
-shared_library("test_extension") {
+shared_library("entrypoints_verification_test") {
   deps = [ ":dart" ]
-  sources = [ "test_extension.c" ]
+  sources = [ "entrypoints_verification_test.cc" ]
   include_dirs = [ ".." ]
   defines = [
     # The only effect of DART_SHARED_LIB is to export the Dart API.
@@ -985,26 +991,7 @@ shared_library("test_extension") {
     cflags = [ "-fPIC" ]
   }
   if (is_win) {
-    sources += [ "test_extension_dllmain_win.cc" ]
-    libs = [ "dart.lib" ]
-    abs_root_out_dir = rebase_path(root_out_dir)
-    ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
-  }
-}
-
-shared_library("entrypoints_verification_test_extension") {
-  deps = [ ":dart" ]
-  sources = [ "entrypoints_verification_test_extension.cc" ]
-  include_dirs = [ ".." ]
-  defines = [
-    # The only effect of DART_SHARED_LIB is to export the Dart API.
-    "DART_SHARED_LIB",
-  ]
-  if (is_linux || is_android) {
-    cflags = [ "-fPIC" ]
-  }
-  if (is_win) {
-    sources += [ "entrypoints_verification_test_extension_dllmain_win.cc" ]
+    # TODO(dartbug.com/40579): This wrongly links in dart.exe on precompiled.
     libs = [ "dart.lib" ]
     abs_root_out_dir = rebase_path(root_out_dir)
     ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
@@ -1060,26 +1047,6 @@ shared_library("ffi_test_functions") {
   }
   if (is_win) {
     # TODO(dartbug.com/40579): This wrongly links in dart.exe on precompiled.
-    libs = [ "dart.lib" ]
-    abs_root_out_dir = rebase_path(root_out_dir)
-    ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
-  }
-}
-
-shared_library("sample_extension") {
-  deps = [ ":dart" ]
-  sources = [ "../../samples/sample_extension/sample_extension.cc" ]
-  include_dirs = [ ".." ]
-  defines = [
-    # The only effect of DART_SHARED_LIB is to export the Dart API.
-    "DART_SHARED_LIB",
-  ]
-  if (is_linux || is_android) {
-    cflags = [ "-fPIC" ]
-  }
-  if (is_win) {
-    sources +=
-        [ "../../samples/sample_extension/sample_extension_dllmain_win.cc" ]
     libs = [ "dart.lib" ]
     abs_root_out_dir = rebase_path(root_out_dir)
     ldflags = [ "/LIBPATH:$abs_root_out_dir" ]

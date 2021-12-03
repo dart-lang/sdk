@@ -46,7 +46,8 @@ class ImportLibrary extends MultiCorrectionProducer {
         if (targetType == null) {
           return;
         }
-        var definingLibraries = extensionCache.membersByName[memberName];
+        var definingLibraries =
+            extensionCache.membersByName[memberName]?.toList();
         if (definingLibraries != null) {
           for (var definingLibrary in definingLibraries) {
             var libraryPath = definingLibrary.libraryPath;
@@ -120,10 +121,13 @@ class ImportLibrary extends MultiCorrectionProducer {
         var typeName = (targetNode is SimpleIdentifier)
             ? targetNode.name
             : (targetNode as PrefixedIdentifier).prefix.name;
-        yield* _importLibraryForElement(
-            typeName,
-            const [ElementKind.CLASS, ElementKind.FUNCTION_TYPE_ALIAS],
-            const [TopLevelDeclarationKind.type]);
+        yield* _importLibraryForElement(typeName, const [
+          ElementKind.CLASS,
+          ElementKind.FUNCTION_TYPE_ALIAS,
+          ElementKind.TYPE_ALIAS
+        ], const [
+          TopLevelDeclarationKind.type
+        ]);
       } else if (mightBeImplicitConstructor(targetNode)) {
         var typeName = (targetNode as SimpleIdentifier).name;
         yield* _importLibraryForElement(typeName, const [ElementKind.CLASS],
@@ -139,7 +143,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     }
     if (node is PrefixedIdentifier) {
       var parent = node.parent;
-      if (parent is TypeName) {
+      if (parent is NamedType) {
         return true;
       }
     }

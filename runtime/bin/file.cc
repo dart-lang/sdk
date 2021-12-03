@@ -68,6 +68,10 @@ void FUNCTION_NAME(File_GetPointer)(Dart_NativeArguments args) {
   Dart_SetIntegerReturnValue(args, file_pointer);
 }
 
+void FUNCTION_NAME(File_GetFD)(Dart_NativeArguments args) {
+  Dart_SetIntegerReturnValue(args, GetFile(args)->GetFD());
+}
+
 static void ReleaseFile(void* isolate_callback_data, void* peer) {
   File* file = reinterpret_cast<File*>(peer);
   file->Release();
@@ -135,7 +139,7 @@ void FUNCTION_NAME(File_Close)(Dart_NativeArguments args) {
 #if !defined(PRODUCT)
   if (!IsFile(dart_this)) {
     Dart_PropagateError(DartUtils::NewInternalError(
-        "File_Close expects the reciever to be a _RandomAccessFileOpsImpl."));
+        "File_Close expects the receiver to be a _RandomAccessFileOpsImpl."));
   }
 #endif
   File* file;
@@ -923,8 +927,8 @@ CObject* File::OpenRequest(const CObjectArray& request) {
   if (file == NULL) {
     return CObject::NewOSError();
   }
-  return new CObjectIntptr(
-      CObject::NewIntptr(reinterpret_cast<intptr_t>(file)));
+  return new CObjectNativePointer(CObject::NewNativePointer(
+      reinterpret_cast<intptr_t>(file), sizeof(*file), ReleaseFile));
 }
 
 CObject* File::DeleteRequest(const CObjectArray& request) {

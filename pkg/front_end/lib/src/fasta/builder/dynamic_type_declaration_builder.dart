@@ -14,5 +14,6 @@ class DynamicTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
       DartType type, LibraryBuilder compilationUnit, int charOffset)
       : super("dynamic", type, compilationUnit, charOffset);
 
+  @override
   String get debugName => "DynamicTypeDeclarationBuilder";
 }

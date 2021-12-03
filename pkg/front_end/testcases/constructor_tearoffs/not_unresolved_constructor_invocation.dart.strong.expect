@@ -1,0 +1,66 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class ResolvedClass<T extends core::Object? = dynamic> extends core::Object {
+  constructor named() → self::ResolvedClass<self::ResolvedClass::T%>
+    : super core::Object::•()
+    ;
+  static method unresolvedConstructor() → dynamic {}
+}
+class unresolved_prefix extends core::Object {
+  synthetic constructor •() → self::unresolved_prefix
+    : super core::Object::•()
+    ;
+  static method UnresolvedClass<T extends core::Object? = dynamic>() → dynamic {}
+}
+class resolved_prefix extends core::Object {
+  synthetic constructor •() → self::resolved_prefix
+    : super core::Object::•()
+    ;
+  static method UnresolvedClass<T extends core::Object? = dynamic>() → dynamic {}
+}
+extension Extension on core::Function {
+  method unresolvedConstructor = self::Extension|unresolvedConstructor;
+  tearoff unresolvedConstructor = self::Extension|get#unresolvedConstructor;
+}
+static method UnresolvedClass<T extends core::Object? = dynamic>() → dynamic {}
+static method Extension|unresolvedConstructor(lowered final core::Function #this) → dynamic {}
+static method Extension|get#unresolvedConstructor(lowered final core::Function #this) → () → dynamic
+  return () → dynamic => self::Extension|unresolvedConstructor(#this);
+static method main() → dynamic {
+  self::UnresolvedClass<dynamic>();
+  self::Extension|unresolvedConstructor(#C1);
+  self::Extension|unresolvedConstructor(#C1);
+  self::unresolved_prefix::UnresolvedClass<dynamic>();
+  self::unresolved_prefix::UnresolvedClass<dynamic>();
+  self::Extension|unresolvedConstructor(#C2);
+  self::Extension|unresolvedConstructor(#C2);
+  self::UnresolvedClass<core::int>();
+  self::UnresolvedClass<core::int>();
+  self::Extension|unresolvedConstructor(#C3);
+  self::Extension|unresolvedConstructor(#C3);
+  self::unresolved_prefix::UnresolvedClass<core::int>();
+  self::unresolved_prefix::UnresolvedClass<core::int>();
+  self::Extension|unresolvedConstructor(#C4);
+  self::Extension|unresolvedConstructor(#C4);
+  self::ResolvedClass::unresolvedConstructor();
+  self::ResolvedClass::unresolvedConstructor();
+  self::resolved_prefix::UnresolvedClass<dynamic>();
+  self::resolved_prefix::UnresolvedClass<dynamic>();
+  self::Extension|unresolvedConstructor(#C5);
+  self::Extension|unresolvedConstructor(#C5);
+  self::resolved_prefix::UnresolvedClass<core::int>();
+  self::resolved_prefix::UnresolvedClass<core::int>();
+  self::Extension|unresolvedConstructor(#C6);
+  self::Extension|unresolvedConstructor(#C6);
+}
+
+constants  {
+  #C1 = static-tearoff self::UnresolvedClass
+  #C2 = static-tearoff self::unresolved_prefix::UnresolvedClass
+  #C3 = instantiation #C1 <core::int>
+  #C4 = instantiation #C2 <core::int>
+  #C5 = static-tearoff self::resolved_prefix::UnresolvedClass
+  #C6 = instantiation #C5 <core::int>
+}

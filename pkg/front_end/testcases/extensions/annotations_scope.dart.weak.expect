@@ -1,0 +1,31 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+extension E on core::int {
+  static field constField = self::E|constField;
+  static field constField1 = self::E|constField1;
+  static field constField2 = self::E|constField2;
+  static method staticMethod = self::E|staticMethod;
+  method instanceMethod = self::E|instanceMethod;
+  tearoff instanceMethod = self::E|get#instanceMethod;
+}
+@#C1
+static const field core::int E|constField = #C1;
+@#C2
+static const field core::int E|constField1 = #C3;
+@#C3
+static const field core::int E|constField2 = #C2;
+@#C1
+static method E|staticMethod() → void {}
+@#C1
+static method E|instanceMethod(lowered final core::int #this) → void {}
+static method E|get#instanceMethod(lowered final core::int #this) → () → void
+  return () → void => self::E|instanceMethod(#this);
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 1
+  #C2 = 3
+  #C3 = 2
+}

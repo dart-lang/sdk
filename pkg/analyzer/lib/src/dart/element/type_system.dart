@@ -228,35 +228,22 @@ class TypeSystemImpl implements TypeSystem {
       return (flatten(S) as TypeImpl).withNullability(nullabilitySuffix);
     }
 
+    // otherwise if T is FutureOr<S> then flatten(T) = S
+    // otherwise if T is Future<S> then flatten(T) = S (shortcut)
     if (type is InterfaceType) {
-      // Implement the cases:
-      //  - "If T = FutureOr<S> then flatten(T) = S."
-      //  - "If T = Future<S> then flatten(T) = S."
       if (type.isDartAsyncFutureOr || type.isDartAsyncFuture) {
-        return type.typeArguments.isNotEmpty
-            ? type.typeArguments[0]
-            : DynamicTypeImpl.instance;
-      }
-      // Implement the case: "Otherwise if T <: Future then let S be a type
-      // such that T << Future<S> and for all R, if T << Future<R> then S << R.
-      // Then flatten(T) = S."
-      //
-      // In other words, given the set of all types R such that T << Future<R>,
-      // let S be the most specific of those types, if any such S exists.
-      //
-      // Since we only care about the most specific type, it is sufficient to
-      // look at the types appearing as a parameter to Future in the type
-      // hierarchy of T.  We don't need to consider the supertypes of those
-      // types, since they are by definition less specific.
-      List<DartType> candidateTypes =
-          _searchTypeHierarchyForFutureTypeParameters(type);
-      var flattenResult =
-          InterfaceTypeImpl.findMostSpecificType(candidateTypes, this);
-      if (flattenResult != null) {
-        return flattenResult;
+        return type.typeArguments[0];
       }
     }
-    // Implement the case: "In any other circumstance, flatten(T) = T."
+
+    // otherwise if T <: Future then let S be a type such that T <: Future<S>
+    //   and for all R, if T <: Future<R> then S <: R; then flatten(T) = S
+    var futureType = type.asInstanceOf(typeProvider.futureElement);
+    if (futureType != null) {
+      return futureType.typeArguments[0];
+    }
+
+    // otherwise flatten(T) = T
     return type;
   }
 
@@ -325,11 +312,17 @@ class TypeSystemImpl implements TypeSystem {
         .toList();
   }
 
-  /// Given a type t, if t is an interface type with a call method defined,
-  /// return the function type for the call method, otherwise return null.
+  /// Given a type [t], if [t] is an interface type with a `call` method
+  /// defined, return the function type for the `call` method, otherwise return
+  /// `null`.
+  ///
+  /// This does not find extension methods (which are not defined on an
+  /// interface type); it is meant to find implicit call references.
   FunctionType? getCallMethodType(DartType t) {
     if (t is InterfaceType) {
-      return t.lookUpMethod2('call', t.element.library)?.type;
+      return t
+          .lookUpMethod2(FunctionElement.CALL_METHOD_NAME, t.element.library)
+          ?.type;
     }
     return null;
   }
@@ -696,7 +689,7 @@ class TypeSystemImpl implements TypeSystem {
       return true;
     }
 
-    // A call method tearoff
+    // A 'call' method tearoff.
     if (fromType is InterfaceType &&
         !isNullable(fromType) &&
         acceptsFunctionType(toType)) {
@@ -1852,31 +1845,6 @@ class TypeSystemImpl implements TypeSystem {
           : typeProvider.nullType,
       type: type,
     );
-  }
-
-  /// Starting from the given [type], search its class hierarchy for types of
-  /// the form Future<R>, and return a list of the resulting R's.
-  List<DartType> _searchTypeHierarchyForFutureTypeParameters(
-      InterfaceType type) {
-    List<DartType> result = <DartType>[];
-    HashSet<ClassElement> visitedClasses = HashSet<ClassElement>();
-    void recurse(InterfaceType type) {
-      if (type.isDartAsyncFuture && type.typeArguments.isNotEmpty) {
-        result.add(type.typeArguments[0]);
-      }
-      if (visitedClasses.add(type.element)) {
-        if (type.superclass != null) {
-          recurse(type.superclass!);
-        }
-        for (InterfaceType interface in type.interfaces) {
-          recurse(interface);
-        }
-        visitedClasses.remove(type.element);
-      }
-    }
-
-    recurse(type);
-    return result;
   }
 
   static NullabilitySuffix _promotedTypeParameterTypeNullability(

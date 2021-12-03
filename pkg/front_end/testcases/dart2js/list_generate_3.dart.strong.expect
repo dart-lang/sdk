@@ -1,0 +1,36 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static field core::List<core::int> list1 = core::List::generate<core::int>(10, (core::int i) → core::int {
+  return i;
+});
+static field core::List<core::int> list2 = core::List::generate<core::int>(10, (core::int i) → core::int {
+  return i;
+}, growable: true);
+static field core::List<core::int> list3 = core::List::generate<core::int>(10, (core::int i) → core::int {
+  return i;
+}, growable: false);
+static field core::List<core::int> list4 = core::List::generate<core::int>(10, (core::int i) → core::int {
+  return i;
+}, growable: self::someGrowable);
+static field core::List<core::int> list5 = core::List::generate<core::int>(10, (core::int i) → core::int {
+  if(i.{core::int::isEven}{core::bool})
+    return i.{core::num::+}(1){(core::num) → core::int};
+  return i.{core::num::-}(1){(core::num) → core::int};
+});
+static field core::List<core::int> list6 = core::List::generate<core::int>(10, #C1);
+static field core::List<core::int> list7 = core::List::generate<core::int>(10, self::bar);
+static field core::bool someGrowable = true;
+static method foo(core::int i) → core::int
+  return i;
+static get bar() → (core::int) → core::int
+  return #C1;
+static method main() → void {
+  self::someGrowable = !self::someGrowable;
+  core::print(<core::List<core::int>>[self::list1, self::list2, self::list3, self::list4, self::list5, self::list6, self::list7]);
+}
+
+constants  {
+  #C1 = static-tearoff self::foo
+}

@@ -73,7 +73,7 @@ class Tester {
   CompilerOptions options;
   IncrementalCompiler compiler;
 
-  void compileExpectInitializeFailAndSpecificWarning(
+  Future<void> compileExpectInitializeFailAndSpecificWarning(
       Code expectedWarningCode, bool writeFileOnCrashReport) async {
     errorMessages.clear();
     warningMessages.clear();
@@ -124,7 +124,7 @@ class Tester {
     return component;
   }
 
-  initialize() async {
+  Future<void> initialize() async {
     sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
     base = Uri.parse("org-dartlang-test:///");
     sdkSummary = base.resolve("vm_platform.dill");
@@ -305,6 +305,7 @@ class DeleteTempFilesIncrementalCompiler extends IncrementalCompiler {
       [Uri initializeFromDillUri])
       : super(context, initializeFromDillUri);
 
+  @override
   void recordTemporaryFileForTesting(Uri uri) {
     File f = new File.fromUri(uri);
     if (f.existsSync()) f.deleteSync();

@@ -36,6 +36,8 @@ library from "package:flutter/src/widgets/widget_inspector.dart" as wid {
     const constructor •({required dart.core::String file = #C1, required dart.core::int line = #C1, required dart.core::int column = #C1, required dart.core::String name = #C1, required dart.core::List<wid::_Location> parameterLocations = #C1}) → wid::_Location
       : wid::_Location::file = file, wid::_Location::line = line, wid::_Location::column = column, wid::_Location::name = name, wid::_Location::parameterLocations = parameterLocations, super dart.core::Object::•()
       ;
+    static method _#new#tearOff({required dart.core::String file = #C1, required dart.core::int line = #C1, required dart.core::int column = #C1, required dart.core::String name = #C1, required dart.core::List<wid::_Location> parameterLocations = #C1}) → wid::_Location
+      return new wid::_Location::•(file: file, line: line, column: column, name: name, parameterLocations: parameterLocations);
   }
 }
 library from "org-dartlang-test:///foo.dart" as foo {
@@ -47,6 +49,8 @@ library from "org-dartlang-test:///foo.dart" as foo {
     const constructor •([dart.core::Object* key = #C1]) → foo::Foo*
       : super fra::StatelessWidget::•(key: key)
       ;
+    static method _#new#tearOff([dart.core::Object* key = #C1]) → foo::Foo*
+      return new foo::Foo::•(key);
     abstract member-signature get key() → dart.core::Object*; -> fra::Widget::key
     abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
     abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode

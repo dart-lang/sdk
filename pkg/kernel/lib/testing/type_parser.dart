@@ -51,6 +51,7 @@ class ParsedInterfaceType extends ParsedType {
 
   ParsedInterfaceType(this.name, this.arguments, this.parsedNullability);
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write(name);
@@ -63,6 +64,7 @@ class ParsedInterfaceType extends ParsedType {
     return "$sb";
   }
 
+  @override
   R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitInterfaceType(this, a);
   }
@@ -85,6 +87,7 @@ class ParsedClass extends ParsedDeclaration {
       this.interfaces, this.callableType)
       : super(name);
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("class ");
@@ -112,6 +115,7 @@ class ParsedClass extends ParsedDeclaration {
     return "$sb";
   }
 
+  @override
   R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitClass(this, a);
   }
@@ -123,6 +127,7 @@ class ParsedExtension extends ParsedDeclaration {
 
   ParsedExtension(String name, this.typeVariables, this.onType) : super(name);
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("extension ");
@@ -138,6 +143,7 @@ class ParsedExtension extends ParsedDeclaration {
     return "$sb";
   }
 
+  @override
   R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitExtension(this, a);
   }
@@ -150,6 +156,7 @@ class ParsedTypedef extends ParsedDeclaration {
 
   ParsedTypedef(String name, this.typeVariables, this.type) : super(name);
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("typedef ");
@@ -164,6 +171,7 @@ class ParsedTypedef extends ParsedDeclaration {
     return "$sb;";
   }
 
+  @override
   R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitTypedef(this, a);
   }
@@ -181,6 +189,7 @@ class ParsedFunctionType extends ParsedType {
   ParsedFunctionType(this.typeVariables, this.returnType, this.arguments,
       this.parsedNullability);
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     if (typeVariables.isNotEmpty) {
@@ -196,14 +205,17 @@ class ParsedFunctionType extends ParsedType {
     return "$sb";
   }
 
+  @override
   R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitFunctionType(this, a);
   }
 }
 
 class ParsedVoidType extends ParsedType {
+  @override
   String toString() => "void";
 
+  @override
   R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitVoidType(this, a);
   }
@@ -216,6 +228,7 @@ class ParsedTypeVariable extends ParsedType {
 
   ParsedTypeVariable(this.name, this.bound);
 
+  @override
   String toString() {
     if (bound == null) return name;
     StringBuffer sb = new StringBuffer();
@@ -225,6 +238,7 @@ class ParsedTypeVariable extends ParsedType {
     return "$sb";
   }
 
+  @override
   R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitTypeVariable(this, a);
   }
@@ -237,6 +251,7 @@ class ParsedIntersectionType extends ParsedType {
 
   ParsedIntersectionType(this.a, this.b);
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write(a);
@@ -245,6 +260,7 @@ class ParsedIntersectionType extends ParsedType {
     return "$sb";
   }
 
+  @override
   R accept<R, A>(Visitor<R, A> visitor, A a) {
     return visitor.visitIntersectionType(this, a);
   }
@@ -258,6 +274,7 @@ class ParsedArguments {
   ParsedArguments(this.required, this.positional, this.named)
       : assert(positional.isEmpty || named.isEmpty);
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("(");
@@ -291,6 +308,7 @@ class ParsedNamedArgument {
 
   ParsedNamedArgument(this.isRequired, this.type, this.name);
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     if (isRequired) {
@@ -637,49 +655,20 @@ List<ParsedTypeVariable> parseTypeVariables(String text) {
   return result;
 }
 
-abstract class DefaultAction<R, A> {
-  R defaultAction(ParsedType node, A a);
-
-  static perform<R, A>(Visitor<R, A> visitor, ParsedType node, A a) {
-    if (visitor is DefaultAction<R, A>) {
-      DefaultAction<R, A> defaultAction = visitor as DefaultAction<R, A>;
-      return defaultAction.defaultAction(node, a);
-    } else {
-      return null;
-    }
-  }
-}
-
 abstract class Visitor<R, A> {
-  R visitInterfaceType(ParsedInterfaceType node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitInterfaceType(ParsedInterfaceType node, A a);
 
-  R visitClass(ParsedClass node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitClass(ParsedClass node, A a);
 
-  R visitExtension(ParsedExtension node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitExtension(ParsedExtension node, A a);
 
-  R visitTypedef(ParsedTypedef node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitTypedef(ParsedTypedef node, A a);
 
-  R visitFunctionType(ParsedFunctionType node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitFunctionType(ParsedFunctionType node, A a);
 
-  R visitVoidType(ParsedVoidType node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitVoidType(ParsedVoidType node, A a);
 
-  R visitTypeVariable(ParsedTypeVariable node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitTypeVariable(ParsedTypeVariable node, A a);
 
-  R visitIntersectionType(ParsedIntersectionType node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitIntersectionType(ParsedIntersectionType node, A a);
 }

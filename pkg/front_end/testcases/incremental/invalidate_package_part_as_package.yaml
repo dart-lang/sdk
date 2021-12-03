@@ -10,12 +10,14 @@ invalidate:
   - "package:example/b.dart"
 sources:
   pkg/example/main.dart: |
+    // @dart=2.9
     part "b.dart";
     main() {
       print("hello");
       b();
     }
   pkg/example/b.dart: |
+    // @dart=2.9
     part of "main.dart";
     b() {
       print("b1");

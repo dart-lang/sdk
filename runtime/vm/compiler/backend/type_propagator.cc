@@ -256,9 +256,7 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
   CompileType result = CompileType::None();
   for (intptr_t i = 0, n = cids.length(); i < n; i++) {
     CidRange* cid_range = cids.At(i);
-    if (cid_range->IsIllegalRange()) {
-      return;
-    }
+    ASSERT(!cid_range->IsIllegalRange());
     for (intptr_t cid = cid_range->cid_start; cid <= cid_range->cid_end;
          cid++) {
       CompileType tp = CompileType::FromCid(cid);
@@ -821,7 +819,7 @@ const AbstractType* CompileType::ToAbstractType() {
 
     // VM-internal objects don't have a compile-type. Return dynamic-type
     // in this case.
-    if ((cid_ < kInstanceCid) || (cid_ == kTypeArgumentsCid)) {
+    if (IsInternalOnlyClassId(cid_) || cid_ == kTypeArgumentsCid) {
       type_ = &Object::dynamic_type();
       return type_;
     }
@@ -1348,10 +1346,35 @@ CompileType InstanceCallBaseInstr::ComputeType() const {
   // TODO(alexmarkov): calculate type of InstanceCallInstr eagerly
   // (in optimized mode) and avoid keeping separate result_type.
   CompileType* inferred_type = result_type();
-  if ((inferred_type != NULL) &&
-      (inferred_type->ToNullableCid() != kDynamicCid)) {
+  if ((inferred_type != nullptr) &&
+      ((inferred_type->ToNullableCid() != kDynamicCid) ||
+       (!inferred_type->ToAbstractType()->IsDynamicType()))) {
     TraceStrongModeType(this, inferred_type);
     return *inferred_type;
+  }
+
+  // Include special cases of type inference for int operations.
+  // This helps if both type feedback and results of TFA
+  // are not available (e.g. in AOT unit tests).
+  switch (token_kind()) {
+    case Token::kADD:
+    case Token::kSUB:
+    case Token::kMUL:
+    case Token::kMOD:
+      if ((ArgumentCount() == 2) &&
+          ArgumentValueAt(0)->Type()->IsNullableInt() &&
+          ArgumentValueAt(1)->Type()->IsNullableInt()) {
+        return CompileType::Int();
+      }
+      break;
+    case Token::kNEGATE:
+      if ((ArgumentCount() == 1) &&
+          ArgumentValueAt(0)->Type()->IsNullableInt()) {
+        return CompileType::Int();
+      }
+      break;
+    default:
+      break;
   }
 
   const Function& target = interface_target();
@@ -1441,8 +1464,11 @@ CompileType StaticCallInstr::ComputeType() const {
   if (is_known_list_constructor()) {
     return ComputeListFactoryType(inferred_type, ArgumentValueAt(0));
   }
-  if ((inferred_type != NULL) &&
-      (inferred_type->ToNullableCid() != kDynamicCid)) {
+
+  if ((inferred_type != nullptr) &&
+      ((inferred_type->ToNullableCid() != kDynamicCid) ||
+       (!inferred_type->ToAbstractType()->IsDynamicType()))) {
+    TraceStrongModeType(this, inferred_type);
     return *inferred_type;
   }
 
@@ -1505,31 +1531,41 @@ CompileType StringToCharCodeInstr::ComputeType() const {
 
 CompileType LoadStaticFieldInstr::ComputeType() const {
   const Field& field = this->field();
-  bool is_nullable = CompileType::kCanBeNull;
+  ASSERT(field.is_static());
+  bool is_nullable = true;
   intptr_t cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
+
   AbstractType* abstract_type = &AbstractType::ZoneHandle(field.type());
   TraceStrongModeType(this, *abstract_type);
-  ASSERT(field.is_static());
+  if (abstract_type->IsStrictlyNonNullable()) {
+    is_nullable = false;
+  }
+
   auto& obj = Object::Handle();
   const bool is_initialized = IsFieldInitialized(&obj);
   if (field.is_final() && is_initialized) {
     if (!obj.IsNull()) {
-      is_nullable = CompileType::kCannotBeNull;
+      is_nullable = false;
       cid = obj.GetClassId();
       abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
     }
   }
+
   if ((field.guarded_cid() != kIllegalCid) &&
       (field.guarded_cid() != kDynamicCid)) {
     cid = field.guarded_cid();
-    is_nullable = field.is_nullable();
+    if (!field.is_nullable()) {
+      is_nullable = false;
+    }
     abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
   }
+
   if (field.needs_load_guard()) {
     // Should be kept in sync with Slot::Get.
     DEBUG_ASSERT(IsolateGroup::Current()->HasAttemptedReload());
     return CompileType::Dynamic();
   }
+
   const bool can_be_sentinel = !calls_initializer() && field.is_late() &&
                                field.is_final() && !field.has_initializer();
   return CompileType(is_nullable, can_be_sentinel, cid, abstract_type);

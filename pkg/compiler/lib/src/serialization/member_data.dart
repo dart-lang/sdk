@@ -18,7 +18,7 @@ class ComponentLookup {
     if (_libraryMap == null) {
       _libraryMap = {};
       for (ir.Library library in _component.libraries) {
-        _libraryMap[library.importUri] = new _LibraryData(library);
+        _libraryMap[library.importUri] = _LibraryData(library);
       }
     }
     _LibraryData data = _libraryMap[canonicalUri];
@@ -30,12 +30,12 @@ class ComponentLookup {
 /// Returns a name uniquely identifying a member within its enclosing library
 /// or class.
 String _computeMemberName(ir.Member member) {
-  if (member.name.isPrivate &&
-      member.name.libraryName != member.enclosingLibrary.reference) {
-    // TODO(33732): Handle noSuchMethod forwarders for private members from
-    // other libraries.
-    return null;
-  }
+  // This should mostly be empty except when serializing the name of nSM
+  // forwarders (see dartbug.com/33732).
+  String libraryPrefix = member.name.isPrivate &&
+          member.name.libraryName != member.enclosingLibrary.reference
+      ? '${member.name.libraryName.canonicalName.name}:'
+      : '';
   String name = member.name.text;
   if (member is ir.Constructor) {
     name = '.$name';
@@ -46,7 +46,7 @@ String _computeMemberName(ir.Member member) {
       name += "=";
     }
   }
-  return name;
+  return '${libraryPrefix}${name}';
 }
 
 /// Helper for looking up classes and members from an [ir.Library] node.
@@ -80,7 +80,7 @@ class _LibraryData {
             !_classesByNode.containsKey(cls),
             "Duplicate class '${cls.name}' in $_classesByNode "
             "trying to add $cls.");
-        _classesByNode[cls] = _classesByName[cls.name] = new _ClassData(cls);
+        _classesByNode[cls] = _classesByName[cls.name] = _ClassData(cls);
       }
     }
   }
@@ -126,7 +126,7 @@ class _LibraryData {
             !_membersByNode.containsKey(member),
             "Duplicate member '$name' in $_membersByNode "
             "trying to add $member.");
-        _membersByNode[member] = _membersByName[name] = new _MemberData(member);
+        _membersByNode[member] = _membersByName[name] = _MemberData(member);
       }
     }
   }
@@ -174,7 +174,7 @@ class _ClassData {
             !_membersByNode.containsKey(member),
             "Duplicate member '$name' in $_membersByNode "
             "trying to add $member.");
-        _membersByNode[member] = _membersByName[name] = new _MemberData(member);
+        _membersByNode[member] = _membersByName[name] = _MemberData(member);
       }
     }
   }
@@ -219,14 +219,13 @@ class _MemberData {
     if (_indexToNodeMap == null) {
       _indexToNodeMap = {};
       _nodeToIndexMap = {};
-      node.accept(
-          new _TreeNodeIndexerVisitor(_indexToNodeMap, _nodeToIndexMap));
+      node.accept(_TreeNodeIndexerVisitor(_indexToNodeMap, _nodeToIndexMap));
     }
   }
 
   _ConstantNodeIndexerVisitor _createConstantIndexer(
       ir.ConstantExpression node) {
-    _ConstantNodeIndexerVisitor indexer = new _ConstantNodeIndexerVisitor();
+    _ConstantNodeIndexerVisitor indexer = _ConstantNodeIndexerVisitor();
     node.constant.accept(indexer);
     return indexer;
   }

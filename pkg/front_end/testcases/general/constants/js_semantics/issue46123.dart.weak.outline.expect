@@ -9,6 +9,8 @@ import "package:js/js.dart";
 @js::anonymous
 class ParallaxOptions extends core::Object {
   external static factory •() → self::ParallaxOptions;
+  static method _#new#tearOff() → self::ParallaxOptions
+    return self::ParallaxOptions::•();
 }
 static method test() → dynamic
   ;
@@ -19,4 +21,4 @@ static method main() → dynamic
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue46123.dart:7:2 -> InstanceConstant(const JS{JS.name: null})
 Evaluated: StaticGet @ org-dartlang-testcase:///issue46123.dart:8:2 -> InstanceConstant(const _Anonymous{})
-Extra constant evaluation: evaluated: 2, effectively constant: 2
+Extra constant evaluation: evaluated: 3, effectively constant: 2

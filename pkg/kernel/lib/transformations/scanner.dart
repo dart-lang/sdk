@@ -5,7 +5,6 @@
 library kernel.transformations.scanner;
 
 import '../ast.dart';
-import '../kernel.dart';
 
 abstract class Scanner<X extends TreeNode?, Y extends TreeNode?> {
   final Scanner<Y, TreeNode?>? next;
@@ -18,18 +17,22 @@ class ScanResult<X extends TreeNode?, Y extends TreeNode?> {
   Map<X, ScanResult<Y, TreeNode?>?> targets = new Map();
   Map<X, ScanError>? errors;
 
+  @override
   String toString() => 'ScanResult<$X,$Y>';
 }
 
 class ScanError {}
 
 abstract class ClassScanner<Y extends TreeNode?> implements Scanner<Class, Y> {
+  @override
   final Scanner<Y, TreeNode?>? next;
 
   ClassScanner(this.next);
 
+  @override
   bool predicate(Class node);
 
+  @override
   ScanResult<Class, Y> scan(TreeNode node) {
     ScanResult<Class, Y> result = new ScanResult<Class, Y>();
 
@@ -64,12 +67,15 @@ abstract class ClassScanner<Y extends TreeNode?> implements Scanner<Class, Y> {
 }
 
 abstract class FieldScanner<Y extends TreeNode> implements Scanner<Field, Y> {
+  @override
   final Scanner<Y, TreeNode>? next;
 
   FieldScanner(this.next);
 
+  @override
   bool predicate(Field node);
 
+  @override
   ScanResult<Field, Y> scan(TreeNode node) {
     ScanResult<Field, Y> result = new ScanResult<Field, Y>();
 
@@ -115,12 +121,15 @@ abstract class FieldScanner<Y extends TreeNode> implements Scanner<Field, Y> {
 }
 
 abstract class MemberScanner<Y extends TreeNode> implements Scanner<Member, Y> {
+  @override
   final Scanner<Y, TreeNode?>? next;
 
   MemberScanner(this.next);
 
+  @override
   bool predicate(Member node);
 
+  @override
   ScanResult<Member, Y> scan(TreeNode node) {
     ScanResult<Member, Y> result = new ScanResult<Member, Y>();
 
@@ -167,12 +176,15 @@ abstract class MemberScanner<Y extends TreeNode> implements Scanner<Member, Y> {
 
 abstract class ProcedureScanner<Y extends TreeNode?>
     implements Scanner<Procedure, Y> {
+  @override
   final Scanner<Y, TreeNode>? next;
 
   ProcedureScanner(this.next);
 
+  @override
   bool predicate(Procedure node);
 
+  @override
   ScanResult<Procedure, Y> scan(TreeNode node) {
     ScanResult<Procedure, Y> result = new ScanResult<Procedure, Y>();
 
@@ -219,13 +231,16 @@ abstract class ProcedureScanner<Y extends TreeNode?>
 
 abstract class ExpressionScanner<Y extends TreeNode>
     extends RecursiveResultVisitor<void> implements Scanner<Expression, Y> {
+  @override
   final Scanner<Y, TreeNode>? next;
   ScanResult<Expression, Y>? _result;
 
   ExpressionScanner(this.next);
 
+  @override
   bool predicate(Expression node);
 
+  @override
   ScanResult<Expression, Y> scan(TreeNode node) {
     ScanResult<Expression, Y> result =
         _result = new ScanResult<Expression, Y>();
@@ -245,13 +260,16 @@ abstract class ExpressionScanner<Y extends TreeNode>
 abstract class MethodInvocationScanner<Y extends TreeNode?>
     extends RecursiveVisitor
     implements Scanner<InstanceInvocationExpression, Y> {
+  @override
   final Scanner<Y, TreeNode>? next;
   ScanResult<InstanceInvocationExpression, Y>? _result;
 
   MethodInvocationScanner(this.next);
 
+  @override
   bool predicate(InstanceInvocationExpression node);
 
+  @override
   ScanResult<InstanceInvocationExpression, Y> scan(TreeNode node) {
     ScanResult<InstanceInvocationExpression, Y> result =
         _result = new ScanResult<InstanceInvocationExpression, Y>();
@@ -260,6 +278,7 @@ abstract class MethodInvocationScanner<Y extends TreeNode?>
     return result;
   }
 
+  @override
   void visitInstanceInvocation(InstanceInvocation node) {
     if (predicate(node)) {
       _result!.targets[node] = next?.scan(node);

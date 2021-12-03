@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 class Class<T extends core::num*> extends core::Object {
-  generic-covariant-impl field self::Class::T* field1;
-  generic-covariant-impl field self::Class::T* field2;
+  covariant-by-class field self::Class::T* field1;
+  covariant-by-class field self::Class::T* field2;
   constructor •(self::Class::T* field1, self::Class::T* field2) → self::Class<self::Class::T*>*
     : self::Class::field1 = field1, self::Class::field2 = field2, super core::Object::•()
     ;

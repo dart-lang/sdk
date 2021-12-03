@@ -8,8 +8,6 @@ import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
-import 'package:front_end/src/api_unstable/vm.dart'
-    show getRedirectingFactoryBody;
 
 import 'calls.dart';
 import 'types.dart';
@@ -73,26 +71,6 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
   visitProcedure(Procedure proc) {
     var type = _annotationsDefineRoot(proc.annotations);
     if (type == null) return;
-
-    if (proc.isRedirectingFactory) {
-      if (type != PragmaEntryPointType.CallOnly &&
-          type != PragmaEntryPointType.Default) {
-        throw "Error: factory $proc doesn't have a setter or getter";
-      }
-      Member target = proc;
-      while (target is Procedure && target.isRedirectingFactory) {
-        target = getRedirectingFactoryBody(target)!.target!;
-        assert(
-            (target is Procedure && target.isFactory) || target is Constructor);
-      }
-      entryPoints
-          .addRawCall(new DirectSelector(target, callKind: CallKind.Method));
-      if (target is Constructor) {
-        entryPoints.addAllocatedClass(target.enclosingClass);
-      }
-      nativeCodeOracle.setMemberReferencedFromNativeCode(target);
-      return;
-    }
 
     void addSelector(CallKind ck) {
       entryPoints.addRawCall(proc.isInstanceMember

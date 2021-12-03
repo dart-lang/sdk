@@ -17,23 +17,23 @@ import 'call_structure.dart' show CallStructure;
 
 class SelectorKind {
   final String name;
+  final int index;
+  const SelectorKind(this.name, this.index);
+
+  static const SelectorKind GETTER = SelectorKind('getter', 0);
+  static const SelectorKind SETTER = SelectorKind('setter', 1);
+  static const SelectorKind CALL = SelectorKind('call', 2);
+  static const SelectorKind OPERATOR = SelectorKind('operator', 3);
+  static const SelectorKind INDEX = SelectorKind('index', 4);
+  static const SelectorKind SPECIAL = SelectorKind('special', 5);
+
   @override
-  final int hashCode;
-  const SelectorKind(this.name, this.hashCode);
-
-  static const SelectorKind GETTER = const SelectorKind('getter', 0);
-  static const SelectorKind SETTER = const SelectorKind('setter', 1);
-  static const SelectorKind CALL = const SelectorKind('call', 2);
-  static const SelectorKind OPERATOR = const SelectorKind('operator', 3);
-  static const SelectorKind INDEX = const SelectorKind('index', 4);
-  static const SelectorKind SPECIAL = const SelectorKind('special', 5);
-
-  int get index => hashCode;
+  int get hashCode => index;
 
   @override
   String toString() => name;
 
-  static List<SelectorKind> values = const <SelectorKind>[
+  static const List<SelectorKind> values = [
     GETTER,
     SETTER,
     CALL,
@@ -104,13 +104,12 @@ class Selector {
 
   // TODO(johnniwinther): Extract caching.
   static Map<int, List<Selector>> canonicalizedValues =
-      new Map<int, List<Selector>>();
+      Map<int, List<Selector>>();
 
   factory Selector(SelectorKind kind, Name name, CallStructure callStructure) {
     // TODO(johnniwinther): Maybe use equality instead of implicit hashing.
     int hashCode = computeHashCode(kind, name, callStructure);
-    List<Selector> list =
-        canonicalizedValues.putIfAbsent(hashCode, () => <Selector>[]);
+    List<Selector> list = canonicalizedValues.putIfAbsent(hashCode, () => []);
     for (int i = 0; i < list.length; i++) {
       Selector existing = list[i];
       if (existing.match(kind, name, callStructure)) {
@@ -118,8 +117,7 @@ class Selector {
         return existing;
       }
     }
-    Selector result =
-        new Selector.internal(kind, name, callStructure, hashCode);
+    Selector result = Selector.internal(kind, name, callStructure, hashCode);
     list.add(result);
     return result;
   }
@@ -129,77 +127,76 @@ class Selector {
     if (element.isFunction) {
       FunctionEntity function = element;
       if (name == Names.INDEX_NAME) {
-        return new Selector.index();
+        return Selector.index();
       } else if (name == Names.INDEX_SET_NAME) {
-        return new Selector.indexSet();
+        return Selector.indexSet();
       }
       CallStructure callStructure = function.parameterStructure.callStructure;
       if (isOperatorName(element.name)) {
         // Operators cannot have named arguments, however, that doesn't prevent
         // a user from declaring such an operator.
-        return new Selector(SelectorKind.OPERATOR, name, callStructure);
+        return Selector(SelectorKind.OPERATOR, name, callStructure);
       } else {
-        return new Selector.call(name, callStructure);
+        return Selector.call(name, callStructure);
       }
     } else if (element.isSetter) {
-      return new Selector.setter(name);
+      return Selector.setter(name);
     } else if (element.isGetter) {
-      return new Selector.getter(name);
+      return Selector.getter(name);
     } else if (element.isField) {
-      return new Selector.getter(name);
+      return Selector.getter(name);
     } else if (element.isConstructor) {
-      return new Selector.callConstructor(name);
+      return Selector.callConstructor(name);
     } else {
       throw failedAt(element, "Can't get selector from $element");
     }
   }
 
   factory Selector.getter(Name name) =>
-      new Selector(SelectorKind.GETTER, name.getter, CallStructure.NO_ARGS);
+      Selector(SelectorKind.GETTER, name.getter, CallStructure.NO_ARGS);
 
   factory Selector.setter(Name name) =>
-      new Selector(SelectorKind.SETTER, name.setter, CallStructure.ONE_ARG);
+      Selector(SelectorKind.SETTER, name.setter, CallStructure.ONE_ARG);
 
-  factory Selector.unaryOperator(String name) => new Selector(
+  factory Selector.unaryOperator(String name) => Selector(
       SelectorKind.OPERATOR,
-      new PublicName(utils.constructOperatorName(name, true)),
+      PublicName(utils.constructOperatorName(name, true)),
       CallStructure.NO_ARGS);
 
-  factory Selector.binaryOperator(String name) => new Selector(
+  factory Selector.binaryOperator(String name) => Selector(
       SelectorKind.OPERATOR,
-      new PublicName(utils.constructOperatorName(name, false)),
+      PublicName(utils.constructOperatorName(name, false)),
       CallStructure.ONE_ARG);
 
   factory Selector.index() =>
-      new Selector(SelectorKind.INDEX, Names.INDEX_NAME, CallStructure.ONE_ARG);
+      Selector(SelectorKind.INDEX, Names.INDEX_NAME, CallStructure.ONE_ARG);
 
-  factory Selector.indexSet() => new Selector(
+  factory Selector.indexSet() => Selector(
       SelectorKind.INDEX, Names.INDEX_SET_NAME, CallStructure.TWO_ARGS);
 
   factory Selector.call(Name name, CallStructure callStructure) =>
-      new Selector(SelectorKind.CALL, name, callStructure);
+      Selector(SelectorKind.CALL, name, callStructure);
 
   factory Selector.callClosure(int arity,
           [List<String> namedArguments, int typeArgumentCount = 0]) =>
-      new Selector(SelectorKind.CALL, Names.call,
-          new CallStructure(arity, namedArguments, typeArgumentCount));
+      Selector(SelectorKind.CALL, Names.call,
+          CallStructure(arity, namedArguments, typeArgumentCount));
 
   factory Selector.callClosureFrom(Selector selector) =>
-      new Selector(SelectorKind.CALL, Names.call, selector.callStructure);
+      Selector(SelectorKind.CALL, Names.call, selector.callStructure);
 
   factory Selector.callConstructor(Name name,
           [int arity = 0, List<String> namedArguments]) =>
-      new Selector(
-          SelectorKind.CALL, name, new CallStructure(arity, namedArguments));
+      Selector(SelectorKind.CALL, name, CallStructure(arity, namedArguments));
 
-  factory Selector.callDefaultConstructor() => new Selector(
-      SelectorKind.CALL, const PublicName(''), CallStructure.NO_ARGS);
+  factory Selector.callDefaultConstructor() =>
+      Selector(SelectorKind.CALL, const PublicName(''), CallStructure.NO_ARGS);
 
   // TODO(31953): Remove this if we can implement via static calls.
-  factory Selector.genericInstantiation(int typeArguments) => new Selector(
+  factory Selector.genericInstantiation(int typeArguments) => Selector(
       SelectorKind.SPECIAL,
       Names.genericInstantiation,
-      new CallStructure(0, null, typeArguments));
+      CallStructure(0, null, typeArguments));
 
   /// Deserializes a [Selector] object from [source].
   factory Selector.readFromDataSource(DataSource source) {
@@ -208,10 +205,10 @@ class Selector {
     bool isSetter = source.readBool();
     LibraryEntity library = source.readLibraryOrNull();
     String text = source.readString();
-    CallStructure callStructure = new CallStructure.readFromDataSource(source);
+    CallStructure callStructure = CallStructure.readFromDataSource(source);
     source.end(tag);
-    return new Selector(
-        kind, new Name(text, library, isSetter: isSetter), callStructure);
+    return Selector(
+        kind, Name(text, library, isSetter: isSetter), callStructure);
   }
 
   /// Serializes this [Selector] to [sink].
@@ -322,14 +319,14 @@ class Selector {
   // especially where selectors are used in sets or as keys in maps.
   Selector toNormalized() => callStructure.isNormalized
       ? this
-      : new Selector(kind, memberName, callStructure.toNormalized());
+      : Selector(kind, memberName, callStructure.toNormalized());
 
-  Selector toCallSelector() => new Selector.callClosureFrom(this);
+  Selector toCallSelector() => Selector.callClosureFrom(this);
 
   /// Returns the non-generic [Selector] corresponding to this selector.
   Selector toNonGeneric() {
     return callStructure.typeArgumentCount > 0
-        ? new Selector(kind, memberName, callStructure.nonGeneric)
+        ? Selector(kind, memberName, callStructure.nonGeneric)
         : this;
   }
 }

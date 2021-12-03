@@ -37,9 +37,7 @@ main() {
   ]);
 
   AnalysisError use_of_void_result = AnalysisError(
-      TestSource(), 0, 1, CompileTimeErrorCode.USE_OF_VOID_RESULT, [
-    ['x']
-  ]);
+      TestSource(), 0, 1, CompileTimeErrorCode.USE_OF_VOID_RESULT, []);
 
   // We in-line a lint code here in order to avoid adding a dependency on the
   // linter package.

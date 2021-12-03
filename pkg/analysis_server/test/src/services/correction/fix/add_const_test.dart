@@ -26,8 +26,6 @@ class AddConst_PreferConstConstructorsBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.prefer_const_constructors;
 
-  /// Disabled in BulkFixProcessor.
-  @failingTest
   Future<void> test_noKeyword() async {
     writeTestPackageConfig(meta: true);
     await resolveTestCode(r'''
@@ -36,12 +34,11 @@ class C {
 }
 var c = C(C());
 ''');
-    // TODO (pq): results are incompatible w/ `unnecessary_const`
     await assertHasFix(r'''
 class C {
   const C([C c]);
 }
-var c = const C(const C());
+var c = const C(C());
 ''');
   }
 }

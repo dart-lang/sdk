@@ -443,14 +443,7 @@ abstract class _TypeSubstitutor
     inner.invertVariance();
 
     var returnType = type.returnType.accept(inner);
-
-    var alias = type.alias;
-    var newAlias = alias != null
-        ? InstantiatedTypeAliasElementImpl(
-            element: alias.element,
-            typeArguments: _mapList(alias.typeArguments),
-          )
-        : null;
+    var alias = _mapAlias(type.alias);
 
     if (useCounter == before) return type;
 
@@ -459,7 +452,7 @@ abstract class _TypeSubstitutor
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: type.nullabilitySuffix,
-      alias: newAlias,
+      alias: alias,
     );
   }
 
@@ -509,12 +502,13 @@ abstract class _TypeSubstitutor
 
   @override
   DartType visitInterfaceType(InterfaceType type) {
-    if (type.typeArguments.isEmpty) {
+    if (type.typeArguments.isEmpty && type.alias == null) {
       return type;
     }
 
     int before = useCounter;
     var typeArguments = _mapList(type.typeArguments);
+    var alias = _mapAlias(type.alias);
     if (useCounter == before) {
       return type;
     }
@@ -523,6 +517,7 @@ abstract class _TypeSubstitutor
       element: type.element,
       typeArguments: typeArguments,
       nullabilitySuffix: type.nullabilitySuffix,
+      alias: alias,
     );
   }
 
@@ -568,6 +563,17 @@ abstract class _TypeSubstitutor
 
   @override
   DartType visitVoidType(VoidType type) => type;
+
+  InstantiatedTypeAliasElementImpl? _mapAlias(
+    InstantiatedTypeAliasElement? alias,
+  ) {
+    if (alias != null) {
+      return InstantiatedTypeAliasElementImpl(
+        element: alias.element,
+        typeArguments: _mapList(alias.typeArguments),
+      );
+    }
+  }
 
   List<DartType> _mapList(List<DartType> types) {
     return types.map((e) => e.accept(this)).toList();

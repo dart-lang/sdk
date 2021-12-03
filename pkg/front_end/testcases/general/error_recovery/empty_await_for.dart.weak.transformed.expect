@@ -33,7 +33,7 @@ static method main() → dynamic /* originally async */ {
       #L1:
       {
         {
-          asy::Stream<dynamic>* :stream = invalid-expression "pkg/front_end/testcases/general/error_recovery/empty_await_for.dart:3:14: Error: This couldn't be parsed.
+          Never :stream = invalid-expression "pkg/front_end/testcases/general/error_recovery/empty_await_for.dart:3:14: Error: This couldn't be parsed.
   await for () {}
              ^";
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);

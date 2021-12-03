@@ -56,7 +56,6 @@
           "_internal/vm/lib/function_patch.dart",
           "_internal/vm/lib/growable_array.dart",
           "_internal/vm/lib/identical_patch.dart",
-          "_internal/vm/lib/immutable_map.dart",
           "_internal/vm/lib/integers.dart",
           "_internal/vm/lib/integers_patch.dart",
           "_internal/vm/lib/invocation_mirror_patch.dart",
@@ -232,8 +231,8 @@
       "web_gl": {
         "uri": "web_gl/dart2js/web_gl_dart2js.dart"
       },
-      "web_sql": {
-        "uri": "web_sql/dart2js/web_sql_dart2js.dart"
+      "_dart2js_runtime_metrics": {
+        "uri": "_internal/js_runtime/lib/dart2js_runtime_metrics.dart"
       },
       "_internal": {
         "uri": "internal/internal.dart",
@@ -337,6 +336,9 @@
       "_internal": {
         "uri": "internal/internal.dart",
         "patches": "_internal/js_runtime/lib/internal_patch.dart"
+      },
+      "_dart2js_runtime_metrics": {
+        "uri": "_internal/js_runtime/lib/dart2js_runtime_metrics.dart"
       },
       "_js_helper": {
         "uri": "_internal/js_runtime/lib/js_helper.dart"
@@ -471,9 +473,6 @@
       },
       "web_gl": {
         "uri": "web_gl/dart2js/web_gl_dart2js.dart"
-      },
-      "web_sql": {
-        "uri": "web_sql/dart2js/web_sql_dart2js.dart"
       }
     }
   }

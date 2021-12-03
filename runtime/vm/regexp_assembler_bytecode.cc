@@ -468,13 +468,13 @@ static intptr_t Prepare(const RegExp& regexp,
          (regexp.num_bracket_expressions() + 1) * 2;
 }
 
-static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
-                                                   const String& subject,
-                                                   intptr_t index,
-                                                   bool sticky,
-                                                   int32_t* output,
-                                                   intptr_t output_size,
-                                                   Zone* zone) {
+static ObjectPtr ExecRaw(const RegExp& regexp,
+                         const String& subject,
+                         intptr_t index,
+                         bool sticky,
+                         int32_t* output,
+                         intptr_t output_size,
+                         Zone* zone) {
   bool is_one_byte =
       subject.IsOneByteString() || subject.IsExternalOneByteString();
 
@@ -493,29 +493,26 @@ static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
   const TypedData& bytecode =
       TypedData::Handle(zone, regexp.bytecode(is_one_byte, sticky));
   ASSERT(!bytecode.IsNull());
-  IrregexpInterpreter::IrregexpResult result =
-      IrregexpInterpreter::Match(bytecode, subject, raw_output, index, zone);
+  const Object& result = Object::Handle(
+      zone, IrregexpInterpreter::Match(bytecode, subject, raw_output, index));
 
-  if (result == IrregexpInterpreter::RE_SUCCESS) {
+  if (result.ptr() == Bool::True().ptr()) {
     // Copy capture results to the start of the registers array.
     memmove(output, raw_output, number_of_capture_registers * sizeof(int32_t));
   }
-  if (result == IrregexpInterpreter::RE_EXCEPTION) {
-    Thread* thread = Thread::Current();
-    auto isolate_group = thread->isolate_group();
-    const Instance& exception =
-        Instance::Handle(isolate_group->object_store()->stack_overflow());
-    Exceptions::Throw(thread, exception);
+  if (result.ptr() == Object::null()) {
+    // Exception during regexp processing
+    Exceptions::ThrowStackOverflow();
     UNREACHABLE();
   }
-  return result;
+  return result.ptr();
 }
 
-InstancePtr BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
-                                                    const String& subject,
-                                                    const Smi& start_index,
-                                                    bool sticky,
-                                                    Zone* zone) {
+ObjectPtr BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
+                                                  const String& subject,
+                                                  const Smi& start_index,
+                                                  bool sticky,
+                                                  Zone* zone) {
   intptr_t required_registers = Prepare(regexp, subject, sticky, zone);
   if (required_registers < 0) {
     // Compiling failed with an exception.
@@ -525,11 +522,10 @@ InstancePtr BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
   // V8 uses a shared copy on the isolate when smaller than some threshold.
   int32_t* output_registers = zone->Alloc<int32_t>(required_registers);
 
-  IrregexpInterpreter::IrregexpResult result =
-      ExecRaw(regexp, subject, start_index.Value(), sticky, output_registers,
-              required_registers, zone);
-
-  if (result == IrregexpInterpreter::RE_SUCCESS) {
+  const Object& result =
+      Object::Handle(zone, ExecRaw(regexp, subject, start_index.Value(), sticky,
+                                   output_registers, required_registers, zone));
+  if (result.ptr() == Bool::True().ptr()) {
     intptr_t capture_count = regexp.num_bracket_expressions();
     intptr_t capture_register_count = (capture_count + 1) * 2;
     ASSERT(required_registers >= capture_register_count);
@@ -553,10 +549,15 @@ InstancePtr BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
 
     return result.ptr();
   }
-  if (result == IrregexpInterpreter::RE_EXCEPTION) {
+  if (result.ptr() == Object::null()) {
+    // internal exception
     UNREACHABLE();
   }
-  ASSERT(result == IrregexpInterpreter::RE_FAILURE);
+  if (result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
+    UNREACHABLE();
+  }
+  ASSERT(result.ptr() == Bool::False().ptr());
   return Instance::null();
 }
 

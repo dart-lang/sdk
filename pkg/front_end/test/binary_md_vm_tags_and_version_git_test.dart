@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show File, Platform;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -31,7 +29,7 @@ final RegExp tagParser = new RegExp(r"V\((\w*),\s*(\d+)\)");
 // Match stuff like "kNullConstant = 0,"
 final RegExp constantTagParser = new RegExp(r"k(\w*)\s*=\s*(\d+)");
 
-main() async {
+Future<void> main() async {
   File binaryMd = new File("$repoDir/pkg/kernel/binary.md");
   String binaryMdContent = binaryMd.readAsStringSync();
 
@@ -42,7 +40,7 @@ main() async {
   File vmTagFile = new File("$repoDir/runtime/vm/kernel_binary.h");
   String vmTagContent = vmTagFile.readAsStringSync();
   List<String> vmTagLines = vmTagContent.split("\n");
-  int vmVersion;
+  int? vmVersion;
   Map<int, String> vmTagToName = {};
   Map<int, String> vmConstantTagToName = {};
   for (int i = 0; i < vmTagLines.length; i++) {
@@ -54,15 +52,15 @@ main() async {
           .trim());
     } else if (line.startsWith("#define KERNEL_TAG_LIST(V)")) {
       while (true) {
-        RegExpMatch match = tagParser.firstMatch(line);
+        RegExpMatch? match = tagParser.firstMatch(line);
         if (match != null) {
-          int value = int.parse(match.group(2));
+          int value = int.parse(match.group(2)!);
           int end = value + 1;
-          if (uses8Tags(match.group(1))) {
+          if (uses8Tags(match.group(1)!)) {
             end = value + 8;
           }
           for (int j = value; j < end; j++) {
-            vmTagToName[j] = match.group(1);
+            vmTagToName[j] = match.group(1)!;
           }
         }
         if (!vmTagLines[i].trim().endsWith(r"\")) {
@@ -73,9 +71,9 @@ main() async {
       }
     } else if (line.startsWith("enum ConstantTag {")) {
       while (true) {
-        RegExpMatch match = constantTagParser.firstMatch(line);
+        RegExpMatch? match = constantTagParser.firstMatch(line);
         if (match != null) {
-          vmConstantTagToName[int.parse(match.group(2))] = match.group(1);
+          vmConstantTagToName[int.parse(match.group(2)!)] = match.group(1)!;
         }
         if (vmTagLines[i].trim().startsWith("}")) {
           break;
@@ -102,7 +100,7 @@ main() async {
   Class constantTagClass =
       tagLibrary.classes.firstWhere((c) => c.name == "ConstantTag");
 
-  int tagVersion;
+  int? tagVersion;
   for (TagCompare compareMe in [
     new TagCompare(binaryMdReader.tagToName, binaryMdReader.version,
         vmTagToName, vmVersion, tagClass),
@@ -116,8 +114,8 @@ main() async {
       if (f.name.text.endsWith("HighBit")) continue;
       if (f.name.text.endsWith("Bias")) continue;
       if (f.name.text == "ComponentFile") continue;
-      ConstantExpression value = f.initializer;
-      IntConstant intConstant = value.constant;
+      ConstantExpression value = f.initializer as ConstantExpression;
+      IntConstant intConstant = value.constant as IntConstant;
       int intValue = intConstant.value;
       if (f.name.text == "BinaryFormatVersion") {
         tagVersion = intValue;
@@ -150,14 +148,14 @@ main() async {
 
     // Kernels tag.dart vs binary.mds tags.
     for (int key in tagToNameMd.keys) {
-      String nameMd = tagToNameMd[key];
-      String name = tagToName[key];
+      String nameMd = tagToNameMd[key]!;
+      String name = tagToName[key]!;
       if (nameMd == name) continue;
       throw "$key: $nameMd vs $name";
     }
     for (int key in tagToName.keys) {
-      String nameMd = tagToNameMd[key];
-      String name = tagToName[key];
+      String nameMd = tagToNameMd[key]!;
+      String name = tagToName[key]!;
       if (nameMd == name) continue;
       throw "$key: $nameMd vs $name";
     }
@@ -169,8 +167,8 @@ main() async {
     // Kernels tag.dart vs the VMs tags.
     // Here we only compare one way because the VM can have more (old) tags.
     for (int key in tagToName.keys) {
-      String nameVm = compareMe.vmTagToName[key];
-      String name = tagToName[key];
+      String nameVm = compareMe.vmTagToName[key]!;
+      String name = tagToName[key]!;
       if (nameVm == name) continue;
       throw "$key: $nameVm vs $name";
     }
@@ -195,9 +193,9 @@ String get dartVm => Platform.executable;
 
 class TagCompare {
   final Map<int, String> mdTagToName;
-  final int mdVersion;
+  final int? mdVersion;
   final Map<int, String> vmTagToName;
-  final int vmVersion;
+  final int? vmVersion;
   final Class tagClass;
 
   TagCompare(this.mdTagToName, this.mdVersion, this.vmTagToName, this.vmVersion,

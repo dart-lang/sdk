@@ -12,6 +12,7 @@
 library dart._http;
 
 import "dart:async";
+import "dart:convert";
 import "dart:io";
 import "dart:math";
 import "dart:typed_data";
@@ -48,8 +49,8 @@ class SecurityConfiguration {
       : HttpServer.bind(HOST_NAME, 0, backlog: backlog);
 
   Future<WebSocket> createClient(int port) =>
-      // TODO(whesse): Add a client context argument to WebSocket.connect.
-      WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/');
+      WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/',
+          customClient: secure ? HttpClient(context: clientContext) : null);
 
   void testForceCloseServerEnd(int totalConnections) {
     createServer().then((server) {
@@ -61,7 +62,7 @@ class SecurityConfiguration {
         String? key = request.headers.value("Sec-WebSocket-Key");
         _SHA1 sha1 = new _SHA1();
         sha1.add("$key$webSocketGUID".codeUnits);
-        String accept = _CryptoUtils.bytesToBase64(sha1.close());
+        String accept = base64Encode(sha1.close());
         response.headers.add("Sec-WebSocket-Accept", accept);
         response.headers.contentLength = 0;
         response.detachSocket().then((socket) {
@@ -94,7 +95,6 @@ class SecurityConfiguration {
 main() {
   asyncStart();
   new SecurityConfiguration(secure: false).runTests();
-  // TODO(whesse): WebSocket.connect needs an optional context: parameter
-  // new SecurityConfiguration(secure: true).runTests();
+  new SecurityConfiguration(secure: true).runTests();
   asyncEnd();
 }

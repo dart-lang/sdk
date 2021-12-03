@@ -251,6 +251,31 @@ class CompletionTarget {
         argIndex = _computeArgIndex(containingNode, entity),
         droppedToken = _computeDroppedToken(containingNode, entity, offset);
 
+  /// Return the expression to the left of the "dot" or "dot dot",
+  /// or `null` if this is not a "dot" completion (e.g. `{ foo^; }`).
+  Expression? get dotTarget {
+    var node = containingNode;
+    if (node is MethodInvocation) {
+      if (identical(node.methodName, entity)) {
+        return node.realTarget;
+      } else if (node.isCascaded && node.operator!.offset + 1 == offset) {
+        return node.realTarget;
+      }
+    }
+    if (node is PropertyAccess) {
+      if (identical(node.propertyName, entity)) {
+        return node.realTarget;
+      } else if (node.isCascaded && node.operator.offset + 1 == offset) {
+        return node.realTarget;
+      }
+    }
+    if (node is PrefixedIdentifier) {
+      if (identical(node.identifier, entity)) {
+        return node.prefix;
+      }
+    }
+  }
+
   /// If the target is an argument in an argument list, and the invocation is
   /// resolved, return the invoked [ExecutableElement].
   ExecutableElement? get executableElement {

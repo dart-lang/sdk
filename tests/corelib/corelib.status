@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+bigint_parse_radix_test/3: Slow # Issue http://dartbug.com/47050
+
 [ $compiler == dartdevk ]
 regexp/lookbehind_test/01: Skip # Flaky in uncatchable way.  Issue 36280
 

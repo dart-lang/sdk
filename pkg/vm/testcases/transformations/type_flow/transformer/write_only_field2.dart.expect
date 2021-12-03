@@ -16,13 +16,13 @@ class B extends core::Object {
     ;
 }
 abstract class C<T extends core::Object? = dynamic> extends core::Object {
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1]  abstract set /*isLegacy*/ bar(generic-covariant-impl self::C::T? value) → void;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1]  abstract set /*isLegacy*/ bar(covariant-by-class self::C::T? value) → void;
 }
 class D extends core::Object implements self::C<core::int> {
   synthetic constructor •() → self::D
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1]  set /*isLegacy*/ bar(generic-covariant-impl core::int? value) → void;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1]  set /*isLegacy*/ bar(covariant-by-class core::int? value) → void;
 }
 abstract class E extends core::Object {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2] [@vm.unboxing-info.metadata=()->i]  abstract get /*isLegacy*/ bar() → core::int;
@@ -61,7 +61,7 @@ static method main() → void {
   });
   self::E e = new self::F::•();
   let final core::int #t3 = [@vm.direct-call.metadata=#lib::F.bar] [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] e.{self::E::bar}{core::int} in exp::Expect::equals();
-  exp::Expect::isTrue(![@vm.inferred-type.metadata=dart.core::bool] core::identical(#C2, #C4));
+  exp::Expect::isTrue(!core::identical(#C2, #C4));
   [@vm.direct-call.metadata=#lib::I.foo] [@vm.inferred-type.metadata=!? (skip check)] new self::I::•().{self::I::foo}(){() → dynamic};
   5;
 }

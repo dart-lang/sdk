@@ -2211,7 +2211,7 @@ TEST_CASE(IsolateReload_EnumDelete) {
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("Deleted enum value from Fruit true -1",
+  EXPECT_STREQ("Fruit.Deleted enum value from Fruit true -1",
                SimpleInvokeStr(lib, "main"));
 }
 

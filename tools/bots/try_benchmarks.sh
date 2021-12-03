@@ -75,7 +75,7 @@ for command; do
     rm -f linux-x64_profile.tar.gz
   elif [ "$command" = linux-ia32-build ]; then
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
-    ./tools/build.py --mode=release --arch=ia32 create_sdk runtime dart2js_platform.dill dart2js_nnbd_strong_platform.dill kernel-service.dart.snapshot
+    ./tools/build.py --mode=release --arch=ia32 create_sdk runtime dart2js_platform.dill dart2js_platform_unsound.dill kernel-service.dart.snapshot
   elif [ "$command" = linux-ia32-archive ]; then
     strip -w \
       -K 'kDartVmSnapshotData' \
@@ -142,13 +142,13 @@ for command; do
       --exclude pkg/front_end/testcases \
       -- \
       out/ReleaseIA32/dart2js_platform.dill \
+      out/ReleaseIA32/dart2js_platform_unsound.dill \
       out/ReleaseIA32/vm_outline_strong.dill \
       out/ReleaseIA32/vm_platform_strong.dill \
       out/ReleaseIA32/gen/kernel_service.dill \
       out/ReleaseIA32/dart-sdk \
       out/ReleaseIA32/dart \
       out/ReleaseIA32/gen_snapshot \
-      out/ReleaseIA32/dart2js_nnbd_strong_platform.dill \
       out/ReleaseIA32/kernel-service.dart.snapshot \
       out/ReleaseIA32/run_vm_tests \
       sdk \
@@ -196,7 +196,7 @@ EOF
     rm -rf tmp
   elif [ "$command" = linux-x64-build ]; then
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
-    ./tools/build.py --mode=release --arch=x64 create_sdk runtime gen_snapshot dart_precompiled_runtime dart2js_platform.dill dart2js_nnbd_strong_platform.dill kernel-service.dart.snapshot dartdevc_test
+    ./tools/build.py --mode=release --arch=x64 create_sdk runtime gen_snapshot dart_precompiled_runtime dart2js_platform.dill dart2js_platform_unsound.dill kernel-service.dart.snapshot dartdevc_test
   elif [ "$command" = linux-x64-archive ]; then
     strip -w \
       -K 'kDartVmSnapshotData' \
@@ -282,13 +282,13 @@ EOF
       --exclude pkg/front_end/testcases \
       -- \
       out/ReleaseX64/dart2js_platform.dill \
+      out/ReleaseX64/dart2js_platform_unsound.dill \
       out/ReleaseX64/vm_outline_strong.dill \
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/gen/kernel_service.dill \
       out/ReleaseX64/dart-sdk \
       out/ReleaseX64/dart \
       out/ReleaseX64/gen_snapshot \
-      out/ReleaseX64/dart2js_nnbd_strong_platform.dill \
       out/ReleaseX64/kernel-service.dart.snapshot \
       out/ReleaseX64/run_vm_tests \
       third_party/d8/linux/x64 \

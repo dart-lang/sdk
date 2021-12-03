@@ -140,10 +140,12 @@ void flavorStringTests() {
   flavorStringTest(['--no-sf1', '--sf3', '--sf4'], 'sf2');
   flavorStringTest(['--no-sf1', '--no-sf2', '--sf3', '--sf4', '--cf1'], 'cf1');
   flavorStringTest(['--cf1'], 'sf1, sf2, no-sf3, no-sf4, cf1');
-  flavorStringTest(['--no-sf1', '--no-sf2', '--sf3', '--sf4', '--no-cf3'], 'no-cf3');
+  flavorStringTest(
+      ['--no-sf1', '--no-sf2', '--sf3', '--sf4', '--no-cf3'], 'no-cf3');
   flavorStringTest(['--no-cf3'], 'sf1, sf2, no-sf3, no-sf4, no-cf3');
-  flavorStringTest(['--no-sf1', '--no-sf2', '--sf3', '--sf4', '--cf1',
-      '--no-cf3'], 'cf1, no-cf3');
+  flavorStringTest(
+      ['--no-sf1', '--no-sf2', '--sf3', '--sf4', '--cf1', '--no-cf3'],
+      'cf1, no-cf3');
 }
 
 void main() {

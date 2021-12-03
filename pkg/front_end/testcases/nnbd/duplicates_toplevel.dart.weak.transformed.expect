@@ -112,55 +112,123 @@ library /*isNonNullableByDefault*/;
 // int topLevelMethodAndSetter2() => 1;
 //     ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:83:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:82:13: Error: Can't use 'topLevelMethod' because it is declared more than once.
+// var field = topLevelMethod;
+//             ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:84:2: Error: Can't use 'topLevelMethod' because it is declared more than once.
+// @topLevelMethod
+//  ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:84:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// @topLevelMethod
+//  ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:86:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
 //   topLevelMethod();
 //   ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:84:4: Error: Can't use 'topLevelMethod' because it is declared more than once.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:87:4: Error: Can't use 'topLevelMethod' because it is declared more than once.
 //   (topLevelMethod)();
 //    ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:85:3: Error: Can't use 'topLevelGetter' because it is declared more than once.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:88:7: Error: Can't use 'topLevelMethod' because it is declared more than once.
+//   if (topLevelMethod) {}
+//       ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:89:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
+//   topLevelMethod;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:90:4: Error: Can't use 'topLevelMethod' because it is declared more than once.
+//   @topLevelMethod
+//    ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:90:4: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+//   @topLevelMethod
+//    ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:93:24: Error: Expected ':' before this.
+//     case topLevelMethod;
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:93:10: Error: Can't use 'topLevelMethod' because it is declared more than once.
+//     case topLevelMethod;
+//          ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:95:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
+//   topLevelMethod || topLevelMethod;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:95:21: Error: Can't use 'topLevelMethod' because it is declared more than once.
+//   topLevelMethod || topLevelMethod;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:96:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
+//   topLevelMethod + 0;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:97:18: Error: '~' isn't a binary operator.
+//   topLevelMethod ~ 0;
+//                  ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:98:21: Error: Can't use 'topLevelMethod' because it is declared more than once.
+//   topLevelMethod ?? topLevelMethod;
+//                     ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:98:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
+//   topLevelMethod ?? topLevelMethod;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:99:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
+//   topLevelMethod?.foo;
+//   ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:100:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
+//   topLevelMethod?.foo();
+//   ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:101:3: Error: Can't use 'topLevelGetter' because it is declared more than once.
 //   topLevelGetter;
 //   ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:86:18: Error: Can't assign to this.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:102:18: Error: Can't assign to this.
 //   topLevelSetter = 0;
 //                  ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:87:3: Error: Can't use 'topLevelField' because it is declared more than once.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:103:3: Error: Can't use 'topLevelField' because it is declared more than once.
 //   topLevelField;
 //   ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:88:17: Error: Can't assign to this.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:104:17: Error: Can't assign to this.
 //   topLevelField = 0;
 //                 ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:89:3: Error: Can't use 'topLevelDuplicateFieldAndSetter' because it is declared more than once.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:105:3: Error: Can't use 'topLevelDuplicateFieldAndSetter' because it is declared more than once.
 //   topLevelDuplicateFieldAndSetter;
 //   ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:90:35: Error: Can't assign to this.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:106:35: Error: Can't assign to this.
 //   topLevelDuplicateFieldAndSetter = 0;
 //                                   ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:92:3: Error: Setter not found: 'topLevelFieldAndDuplicateSetter'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:108:3: Error: Setter not found: 'topLevelFieldAndDuplicateSetter'.
 //   topLevelFieldAndDuplicateSetter = 0;
 //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:93:3: Error: Can't use 'topLevelDuplicateFieldAndDuplicateSetter' because it is declared more than once.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:109:3: Error: Can't use 'topLevelDuplicateFieldAndDuplicateSetter' because it is declared more than once.
 //   topLevelDuplicateFieldAndDuplicateSetter;
 //   ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:94:44: Error: Can't assign to this.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:110:44: Error: Can't assign to this.
 //   topLevelDuplicateFieldAndDuplicateSetter = 0;
 //                                            ^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:95:3: Error: Setter not found: 'topLevelMethodAndSetter1'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:111:3: Error: Setter not found: 'topLevelMethodAndSetter1'.
 //   topLevelMethodAndSetter1 = 0;
 //   ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:96:3: Error: Setter not found: 'topLevelMethodAndSetter2'.
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:112:3: Error: Setter not found: 'topLevelMethodAndSetter2'.
 //   topLevelMethodAndSetter2 = 0;
 //   ^^^^^^^^^^^^^^^^^^^^^^^^
 //
@@ -176,6 +244,9 @@ late static final [setter] field core::int topLevelLateFinalFieldAndSetter2;
 static final field core::int topLevelDuplicateFieldAndSetter;
 static final field core::int topLevelFieldAndDuplicateSetter = 1;
 static final field core::int topLevelDuplicateFieldAndDuplicateSetter;
+static field invalid-type field = invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:82:13: Error: Can't use 'topLevelMethod' because it is declared more than once.
+var field = topLevelMethod;
+            ^";
 static const field dynamic _exports# = #C1 /*isLegacy*/;
 static method topLevelMethod() → core::int
   return 1;
@@ -203,45 +274,89 @@ static set topLevelMethodAndSetter2(core::int value) → void {
 }
 static method topLevelMethodAndSetter2() → core::int
   return 1;
+@invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:84:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+@topLevelMethod
+ ^"
 static method test() → dynamic {
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:83:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:86:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
   topLevelMethod();
   ^"{dynamic}.call();
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:84:4: Error: Can't use 'topLevelMethod' because it is declared more than once.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:87:4: Error: Can't use 'topLevelMethod' because it is declared more than once.
   (topLevelMethod)();
    ^"{dynamic}.call();
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:85:3: Error: Can't use 'topLevelGetter' because it is declared more than once.
+  if(invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:88:7: Error: Can't use 'topLevelMethod' because it is declared more than once.
+  if (topLevelMethod) {}
+      ^") {
+  }
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:89:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
+  topLevelMethod;
+  ^";
+  @invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:90:4: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+  @topLevelMethod
+   ^" dynamic foo;
+  switch(null) {
+    #L1:
+    case invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:93:10: Error: Can't use 'topLevelMethod' because it is declared more than once.
+    case topLevelMethod;
+         ^":
+      {
+        ;
+      }
+  }
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:95:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
+  topLevelMethod || topLevelMethod;
+  ^" || invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:95:21: Error: Can't use 'topLevelMethod' because it is declared more than once.
+  topLevelMethod || topLevelMethod;
+                    ^";
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:96:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
+  topLevelMethod + 0;
+  ^"{<invalid>}.+(0);
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:97:18: Error: '~' isn't a binary operator.
+  topLevelMethod ~ 0;
+                 ^";
+  let final invalid-type #t1 = invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:98:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
+  topLevelMethod ?? topLevelMethod;
+  ^" in #t1 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:98:21: Error: Can't use 'topLevelMethod' because it is declared more than once.
+  topLevelMethod ?? topLevelMethod;
+                    ^" : #t1;
+  let final invalid-type #t2 = invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:99:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
+  topLevelMethod?.foo;
+  ^" in #t2 == null ?{invalid-type} null : #t2{<invalid>}.foo;
+  let final invalid-type #t3 = invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:100:3: Error: Can't use 'topLevelMethod' because it is declared more than once.
+  topLevelMethod?.foo();
+  ^" in #t3 == null ?{dynamic} null : #t3{dynamic}.foo();
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:101:3: Error: Can't use 'topLevelGetter' because it is declared more than once.
   topLevelGetter;
   ^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:86:18: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:102:18: Error: Can't assign to this.
   topLevelSetter = 0;
                  ^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:87:3: Error: Can't use 'topLevelField' because it is declared more than once.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:103:3: Error: Can't use 'topLevelField' because it is declared more than once.
   topLevelField;
   ^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:88:17: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:104:17: Error: Can't assign to this.
   topLevelField = 0;
                 ^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:89:3: Error: Can't use 'topLevelDuplicateFieldAndSetter' because it is declared more than once.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:105:3: Error: Can't use 'topLevelDuplicateFieldAndSetter' because it is declared more than once.
   topLevelDuplicateFieldAndSetter;
   ^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:90:35: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:106:35: Error: Can't assign to this.
   topLevelDuplicateFieldAndSetter = 0;
                                   ^";
   self::topLevelFieldAndDuplicateSetter;
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:92:3: Error: Setter not found: 'topLevelFieldAndDuplicateSetter'.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:108:3: Error: Setter not found: 'topLevelFieldAndDuplicateSetter'.
   topLevelFieldAndDuplicateSetter = 0;
   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:93:3: Error: Can't use 'topLevelDuplicateFieldAndDuplicateSetter' because it is declared more than once.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:109:3: Error: Can't use 'topLevelDuplicateFieldAndDuplicateSetter' because it is declared more than once.
   topLevelDuplicateFieldAndDuplicateSetter;
   ^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:94:44: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:110:44: Error: Can't assign to this.
   topLevelDuplicateFieldAndDuplicateSetter = 0;
                                            ^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:95:3: Error: Setter not found: 'topLevelMethodAndSetter1'.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:111:3: Error: Setter not found: 'topLevelMethodAndSetter1'.
   topLevelMethodAndSetter1 = 0;
   ^^^^^^^^^^^^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:96:3: Error: Setter not found: 'topLevelMethodAndSetter2'.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:112:3: Error: Setter not found: 'topLevelMethodAndSetter2'.
   topLevelMethodAndSetter2 = 0;
   ^^^^^^^^^^^^^^^^^^^^^^^^";
 }

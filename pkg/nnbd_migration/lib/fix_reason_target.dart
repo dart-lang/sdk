@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/utilities_general.dart';
-
 /// Data structure representing a part of a type.  When a fix has multiple
 /// reasons (due to a complex type having different nullabilities at different
 /// locations), this data structure allows us to tell which part of the type
@@ -53,7 +51,7 @@ class _FixReasonTarget_NamedParameter extends _FixReasonTarget_Part {
       : super(inner);
 
   @override
-  int get hashCode => JenkinsSmiHash.hash3(2, inner.hashCode, name.hashCode);
+  int get hashCode => Object.hash(2, inner, name);
 
   @override
   bool operator ==(Object other) =>
@@ -82,7 +80,7 @@ class _FixReasonTarget_PositionalParameter extends _FixReasonTarget_Part {
       : super(inner);
 
   @override
-  int get hashCode => JenkinsSmiHash.hash3(1, inner.hashCode, index);
+  int get hashCode => Object.hash(1, inner, index);
 
   @override
   bool operator ==(Object other) =>
@@ -100,7 +98,7 @@ class _FixReasonTarget_ReturnType extends _FixReasonTarget_Part {
   _FixReasonTarget_ReturnType(FixReasonTarget inner) : super(inner);
 
   @override
-  int get hashCode => JenkinsSmiHash.hash2(3, inner.hashCode);
+  int get hashCode => Object.hash(3, inner);
 
   @override
   bool operator ==(Object other) =>
@@ -133,7 +131,7 @@ class _FixReasonTarget_TypeArgument extends _FixReasonTarget_Part {
       : super(inner);
 
   @override
-  int get hashCode => JenkinsSmiHash.hash3(5, inner.hashCode, index);
+  int get hashCode => Object.hash(5, inner, index);
 
   @override
   bool operator ==(Object other) =>
@@ -164,7 +162,7 @@ class _FixReasonTarget_YieldedType extends _FixReasonTarget_Part {
   _FixReasonTarget_YieldedType(FixReasonTarget inner) : super(inner);
 
   @override
-  int get hashCode => JenkinsSmiHash.hash2(4, inner.hashCode);
+  int get hashCode => Object.hash(4, inner);
 
   @override
   bool operator ==(Object other) =>

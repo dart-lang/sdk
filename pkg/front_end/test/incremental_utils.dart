@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert' show utf8;
 
 import "package:front_end/src/api_prototype/file_system.dart" show FileSystem;
@@ -64,7 +62,7 @@ int countEmptyMixinBodies(Component component) {
 }
 
 Future<void> throwOnInsufficientUriToSource(Component component,
-    {FileSystem fileSystem}) async {
+    {FileSystem? fileSystem}) async {
   UriFinder uriFinder = new UriFinder();
   component.accept(uriFinder);
   Set<Uri> uris = uriFinder.seenUris.toSet();
@@ -77,13 +75,14 @@ Future<void> throwOnInsufficientUriToSource(Component component,
   if (fileSystem != null) {
     uris = uriFinder.seenUris.toSet();
     for (Uri uri in uris) {
+      // ignore: unnecessary_null_comparison
       if (uri == null) continue;
       if (uri.scheme != "org-dartlang-test") continue;
       // The file system doesn't have the sources for any modules.
       // For now assume that that is always what's going on.
       if (!await fileSystem.entityForUri(uri).exists()) continue;
       List<int> expected = await fileSystem.entityForUri(uri).readAsBytes();
-      List<int> actual = component.uriToSource[uri].source;
+      List<int> actual = component.uriToSource[uri]!.source;
       bool fail = false;
       if (expected.length != actual.length) {
         fail = true;
@@ -110,7 +109,8 @@ Future<void> throwOnInsufficientUriToSource(Component component,
 
 class UriFinder extends RecursiveVisitor {
   Set<Uri> seenUris = new Set<Uri>();
-  defaultNode(Node node) {
+  @override
+  void defaultNode(Node node) {
     super.defaultNode(node);
     if (node is FileUriNode) {
       seenUris.add(node.fileUri);

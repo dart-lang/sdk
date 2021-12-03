@@ -146,10 +146,10 @@ static field core::Map<core::int*, core::int*>* map12 = block {
       for (final core::MapEntry<core::int*, core::int*>* #t21 in <core::int*, core::int*>{0: 1}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::int*>>})
         #t20.{core::Map::[]=}{Invariant}(#t21.{core::MapEntry::key}{core::int*}, #t21.{core::MapEntry::value}{core::int*}){(core::int*, core::int*) →* void};
 } =>#t20;
-static field core::Map<dynamic, Null>* error4 = <dynamic, Null>{invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:35:32: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+static field core::Map<invalid-type, Null>* error4 = <invalid-type, Null>{invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:35:32: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
 var error4 = {if (b) 0: 1 else for (var a in list) a};
                                ^": null};
-static field core::Map<dynamic, Null>* error5 = <dynamic, Null>{invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:36:22: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+static field core::Map<invalid-type, Null>* error5 = <invalid-type, Null>{invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:36:22: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
 var error5 = {if (b) for (var a in list) a else 0: 1};
                      ^": null};
 static field Null error6 = invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:37:14: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
@@ -158,10 +158,10 @@ var error6 = {
 static field Null error7 = invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:40:14: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
 var error7 = {
              ^";
-static field core::Map<dynamic, Null>* error8 = <dynamic, Null>{invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:43:32: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+static field core::Map<invalid-type, Null>* error8 = <invalid-type, Null>{invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:43:32: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
 var error8 = {if (b) 0: 1 else for (var i = 0; i < list.length; i++) list[i]};
                                ^": null};
-static field core::Map<dynamic, Null>* error9 = <dynamic, Null>{invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:44:22: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+static field core::Map<invalid-type, Null>* error9 = <invalid-type, Null>{invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:44:22: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
 var error9 = {if (b) for (var i = 0; i < list.length; i++) list[i] else 0: 1};
                      ^": null};
 static field Null error10 = invalid-expression "pkg/front_end/testcases/unified_collections/mixed_entries.dart:45:15: Error: Both Iterable and Map spread elements encountered in ambiguous literal.

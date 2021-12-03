@@ -1,0 +1,31 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class _AttributeName extends core::_Enum /*isEnum*/  {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method toString() → core::String
+    return "_AttributeName.${[@vm.direct-call.metadata=dart.core::_Enum._name] this.{core::_Enum::_name}{core::String}}";
+}
+class _Attribute extends core::Object {
+  constructor _() → self::_Attribute
+    : super core::Object::•()
+    ;
+  static method fromReader() → self::_Attribute {
+    final self::_AttributeName name = [@vm.direct-call.metadata=dart.collection::_InternalImmutableLinkedHashMap.[]] [@vm.inferred-type.metadata=#lib::_AttributeName? (skip check)] #C8.{core::Map::[]}(#C1){(core::Object?) → self::_AttributeName?}!;
+    return new self::_Attribute::_();
+  }
+}
+static method main() → void {
+  final self::_Attribute result = [@vm.inferred-type.metadata=#lib::_Attribute] self::_Attribute::fromReader();
+  core::print(result);
+}
+constants  {
+  #C1 = 1
+  #C2 = "sibling"
+  #C3 = self::_AttributeName {index:#C1, _name:#C2}
+  #C4 = 3
+  #C5 = 0
+  #C6 = "name"
+  #C7 = self::_AttributeName {index:#C5, _name:#C6}
+  #C8 = <core::int*, self::_AttributeName*>{#C1:#C3, #C4:#C7)
+}

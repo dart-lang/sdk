@@ -13,7 +13,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TokenStreamRewriterTest_NoPrevious);
     defineReflectiveTests(TokenStreamRewriterTest_UsingPrevious);
@@ -220,8 +220,8 @@ abstract class TokenStreamRewriterTest {
     setupDone(a);
 
     TokenStreamRewriter rewriter = getTokenStreamRewriter();
-    ReplacementToken replacement = rewriter
-        .replaceNextTokensWithSyntheticToken(a, 3, TokenType.AMPERSAND);
+    ReplacementToken replacement =
+        rewriter.replaceNextTokensWithSyntheticToken(a, 3, TokenType.AMPERSAND);
     expect(b.offset, same(replacement.offset));
     expect(b.precedingComments, same(replacement.precedingComments));
     expect(replacement.replacedToken, same(b));
@@ -246,8 +246,8 @@ abstract class TokenStreamRewriterTest {
     setupDone(a);
 
     TokenStreamRewriter rewriter = getTokenStreamRewriter();
-    ReplacementToken replacement = rewriter
-        .replaceNextTokensWithSyntheticToken(a, 2, TokenType.AMPERSAND);
+    ReplacementToken replacement =
+        rewriter.replaceNextTokensWithSyntheticToken(a, 2, TokenType.AMPERSAND);
     expect(b.offset, same(replacement.offset));
     expect(b.precedingComments, same(replacement.precedingComments));
     expect(replacement.replacedToken, same(b));
@@ -354,6 +354,7 @@ class TokenStreamRewriterTest_NoPrevious extends TokenStreamRewriterTest {
   @override
   bool get setPrevious => false;
 
+  @override
   TokenStreamRewriter getTokenStreamRewriter() => new TokenStreamRewriterImpl();
 }
 
@@ -368,6 +369,7 @@ class TokenStreamRewriterTest_UsingPrevious extends TokenStreamRewriterTest {
   @override
   bool get setPrevious => true;
 
+  @override
   TokenStreamRewriter getTokenStreamRewriter() => new TokenStreamRewriterImpl();
 }
 
@@ -378,11 +380,13 @@ class TokenStreamRewriterTest_Undoable extends TokenStreamRewriterTest {
   @override
   bool get setPrevious => true;
 
+  @override
   TokenStreamRewriter getTokenStreamRewriter() =>
       new UndoableTokenStreamRewriter();
 
   List<CachedTokenSetup> setup;
 
+  @override
   void setupDone(Token first) {
     setup = [];
     Token token = first;
@@ -392,6 +396,7 @@ class TokenStreamRewriterTest_Undoable extends TokenStreamRewriterTest {
     }
   }
 
+  @override
   void normalTestDone(TokenStreamRewriter rewriter, Token first) {
     UndoableTokenStreamRewriter undoableTokenStreamRewriter = rewriter;
     undoableTokenStreamRewriter.undo();
@@ -424,6 +429,7 @@ class CachedTokenSetup {
         next = token.next,
         precedingComments = token.precedingComments;
 
+  @override
   bool operator ==(Object other) {
     if (other is! CachedTokenSetup) return false;
     CachedTokenSetup o = other;
@@ -433,6 +439,7 @@ class CachedTokenSetup {
         precedingComments == o.precedingComments;
   }
 
+  @override
   String toString() {
     return "CachedTokenSetup["
         "token = $token, "

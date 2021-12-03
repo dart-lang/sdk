@@ -1,0 +1,11 @@
+class A {
+  num foo(num n) {}
+}
+
+abstract class B<X> {
+  X foo(X x);
+}
+
+class C extends A with B<num> {}
+
+void main() {}

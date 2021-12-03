@@ -167,7 +167,7 @@ import "dart:core" as core;
 abstract class A extends core::Object {
   field core::int* property4 = null;
   field core::int* property5 = null;
-  covariant field core::String* property6 = null;
+  covariant-by-declaration field core::String* property6 = null;
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
@@ -391,17 +391,17 @@ static method Extension|get#property3<T extends core::num*, S extends self::Exte
   return "";
 static method Extension|set#property3<T extends core::num*, S extends self::Extension|set#property3::T* = core::num*>(lowered final core::int* #this, core::int* i) → void {}
 static method Extension|get#property4<T extends core::num*, S extends self::Extension|get#property4::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property4::S*
-  return let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:133:22: Error: A value of type 'int' can't be assigned to a variable of type 'S'.
+  return invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:133:22: Error: A value of type 'int' can't be assigned to a variable of type 'S'.
   S get property4 => 0; // ok
                      ^" in 0 as{TypeError} Never;
 static method Extension|set#property4<T extends core::num*, S extends self::Extension|set#property4::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property4::S* i) → void {}
 static method Extension|get#property5a<T extends core::num*, S extends self::Extension|get#property5a::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property5a::S*
-  return let final Never* #t2 = invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:136:23: Error: A value of type 'int' can't be assigned to a variable of type 'S'.
+  return invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:136:23: Error: A value of type 'int' can't be assigned to a variable of type 'S'.
   S get property5a => 0; // ok
                       ^" in 0 as{TypeError} Never;
 static method Extension|set#property5a<T extends core::num*, S extends self::Extension|set#property5a::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property5a::T* i) → void {}
 static method Extension|get#property5b<T extends core::num*, S extends self::Extension|get#property5b::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property5b::T*
-  return let final Never* #t3 = invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:139:23: Error: A value of type 'int' can't be assigned to a variable of type 'T'.
+  return invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:139:23: Error: A value of type 'int' can't be assigned to a variable of type 'T'.
   T get property5b => 0; // ok
                       ^" in 0 as{TypeError} Never;
 static method Extension|set#property5b<T extends core::num*, S extends self::Extension|set#property5b::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property5b::S* i) → void {}

@@ -17,7 +17,7 @@ class CheckedModeHelper {
   StaticUse getStaticUse(CommonElements commonElements) {
     // TODO(johnniwinther): Refactor this to avoid looking up directly in the
     // js helper library but instead access commonElements.
-    return new StaticUse.staticInvoke(
+    return StaticUse.staticInvoke(
         commonElements.findHelperFunction(name), callStructure);
   }
 
@@ -28,7 +28,7 @@ class CheckedModeHelpers {
   CheckedModeHelpers();
 
   /// All the checked mode helpers.
-  static const List<CheckedModeHelper> helpers = const <CheckedModeHelper>[
-    const CheckedModeHelper('boolConversionCheck'),
+  static const List<CheckedModeHelper> helpers = [
+    CheckedModeHelper('boolConversionCheck'),
   ];
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Do not call exit() directly. Use VmInteropHandler.exit() instead.
+import 'dart:async';
 import 'dart:io' as io hide exit;
 import 'dart:isolate';
 
@@ -10,9 +11,8 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dart_style/src/cli/format_command.dart';
-import 'package:dartdev/src/commands/migrate.dart';
+import 'package:devtools_server/devtools_server.dart';
 import 'package:meta/meta.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:pub/pub.dart';
 import 'package:usage/usage.dart';
 
@@ -20,13 +20,16 @@ import 'src/analytics.dart';
 import 'src/commands/analyze.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
+import 'src/commands/debug_adapter.dart';
 import 'src/commands/fix.dart';
 import 'src/commands/language_server.dart';
+import 'src/commands/migrate.dart';
 import 'src/commands/run.dart';
 import 'src/commands/test.dart';
 import 'src/core.dart';
 import 'src/events.dart';
 import 'src/experiments.dart';
+import 'src/sdk.dart';
 import 'src/utils.dart';
 import 'src/vm_interop_handler.dart';
 
@@ -34,6 +37,15 @@ import 'src/vm_interop_handler.dart';
 /// analytics logic, it has been moved here.
 Future<void> runDartdev(List<String> args, SendPort port) async {
   VmInteropHandler.initialize(port);
+
+  // TODO(sigurdm): Remove when top-level pub is removed.
+  if (args[0] == '__deprecated_pub') {
+    // This is the entry-point supporting the top-level `pub` script.
+    // ignore: deprecated_member_use
+    VmInteropHandler.exit(await deprecatedpubCommand().run(args.skip(1)));
+    return;
+  }
+
   if (args.contains('run')) {
     // These flags have a format that can't be handled by package:args, so while
     // they are valid flags we'll assume the VM has verified them by this point.
@@ -100,12 +112,24 @@ class DartdevRunner extends CommandRunner<int> {
 
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CreateCommand(verbose: verbose));
+    addCommand(DebugAdapterCommand(verbose: verbose));
     addCommand(CompileCommand(verbose: verbose));
+    addCommand(DevToolsCommand(
+      verbose: verbose,
+      customDevToolsPath: sdk.devToolsBinaries,
+    ));
     addCommand(FixCommand(verbose: verbose));
     addCommand(FormatCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
     addCommand(MigrateCommand(verbose: verbose));
-    addCommand(pubCommand());
+    addCommand(
+      pubCommand(
+        analytics: PubAnalytics(
+          () => analytics,
+          dependencyKindCustomDimensionName: dependencyKindCustomDimensionName,
+        ),
+      ),
+    );
     addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand());
   }
@@ -116,6 +140,7 @@ class DartdevRunner extends CommandRunner<int> {
   @override
   String get invocation =>
       'dart ${verbose ? '[vm-options] ' : ''}<command|dart-file> [arguments]';
+
   @override
   String get usageFooter =>
       'See https://dart.dev/tools/dart-tool for detailed documentation.';

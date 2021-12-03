@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Implementation of a union-find algorithm.
+///
+/// See https://en.wikipedia.org/wiki/Disjoint-set_data_structure
+
 import 'dart:collection';
 
 class UnionFindNode<T> {
@@ -46,6 +50,7 @@ class UnionFind<T> {
 
   UnionFindNode<T> findNode(UnionFindNode<T> node) {
     if (node.parent != null) {
+      // Perform path compression by updating to the effective target.
       return node.parent = findNode(node.parent!);
     }
     return node;

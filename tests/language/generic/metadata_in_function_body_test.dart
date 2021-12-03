@@ -17,11 +17,11 @@ main() {
   @C()
   @C<dynamic>()
   //^
-  // [analyzer] SYNTACTIC_ERROR.ANNOTATION_WITH_TYPE_ARGUMENTS
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
   // [cfe] An annotation can't use type arguments.
   @C<int>()
   //^
-  // [analyzer] SYNTACTIC_ERROR.ANNOTATION_WITH_TYPE_ARGUMENTS
+  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
   // [cfe] An annotation can't use type arguments.
   int i = 0;
   ignore(i);

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -866,7 +866,7 @@ class _MockSdkElementsBuilder {
       'dart.async',
       0,
       0,
-      ExperimentStatus.latestWithNullSafety,
+      FeatureSet.latestLanguageVersion(),
     );
 
     var asyncUnit = CompilationUnitElementImpl();
@@ -959,7 +959,7 @@ class _MockSdkElementsBuilder {
       'dart.core',
       0,
       0,
-      ExperimentStatus.latestWithNullSafety,
+      FeatureSet.latestLanguageVersion(),
     );
     coreLibrary.definingCompilationUnit = coreUnit;
 
@@ -1073,23 +1073,32 @@ class _MockSdkElementsBuilder {
 
   ParameterElement _namedParameter(String name, DartType type,
       {String? initializerCode}) {
-    var parameter = DefaultParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.NAMED;
+    var parameter = DefaultParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.NAMED,
+    );
     parameter.type = type;
     parameter.defaultValueCode = initializerCode;
     return parameter;
   }
 
   ParameterElement _positionalParameter(String name, DartType type) {
-    var parameter = ParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.POSITIONAL;
+    var parameter = ParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.POSITIONAL,
+    );
     parameter.type = type;
     return parameter;
   }
 
   ParameterElement _requiredParameter(String name, DartType type) {
-    var parameter = ParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.REQUIRED;
+    var parameter = ParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.REQUIRED,
+    );
     parameter.type = type;
     return parameter;
   }

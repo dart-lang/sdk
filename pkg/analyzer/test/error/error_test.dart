@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core';
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -38,7 +37,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
       if (declaration is ClassDeclaration) {
         var extendsClause = declaration.extendsClause;
         if (extendsClause != null &&
-            extendsClause.superclass.name.name == 'ErrorCode') {
+            extendsClause.superclass2.name.name == 'ErrorCode') {
           String className = declaration.name.name;
           for (ClassMember member in declaration.members) {
             if (member is FieldDeclaration && member.isStatic) {
@@ -78,7 +77,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
     return parseString(
       path: filePath,
       content: File(filePath).readAsStringSync(),
-      featureSet: ExperimentStatus.latestWithNullSafety,
+      featureSet: FeatureSet.latestLanguageVersion(),
     ).unit;
   }
 

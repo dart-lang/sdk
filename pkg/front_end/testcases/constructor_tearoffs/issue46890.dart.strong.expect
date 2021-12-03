@@ -1,0 +1,75 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue46890.dart:22:14: Error: A constructor tear-off can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   List.filled<int>; // Error.
+//              ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue46890.dart:23:8: Error: A constructor tear-off can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   A.foo<int>; // Error.
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue46890.dart:24:8: Error: A constructor tear-off can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   A.bar<int>; // Error.
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue46890.dart:25:8: Error: A constructor tear-off can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   A.baz<int>; // Error.
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor foo() → self::A<self::A::X%>
+    : super core::Object::•() {}
+  static factory bar<X extends core::Object? = dynamic>() → self::A<self::A::bar::X%>
+    return new self::A::foo<self::A::bar::X%>();
+  static factory baz<X extends core::Object? = dynamic>() → self::A<self::A::baz::X%>
+    return self::A::bar<self::A::baz::X%>();
+}
+static method test() → dynamic {
+  #C2;
+  #C3;
+  #C4;
+  #C5;
+  #C6;
+  #C7;
+  #C8;
+  #C9;
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/issue46890.dart:22:14: Error: A constructor tear-off can't have type arguments after the constructor name.
+Try removing the type arguments or placing them after the class name.
+  List.filled<int>; // Error.
+             ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/issue46890.dart:23:8: Error: A constructor tear-off can't have type arguments after the constructor name.
+Try removing the type arguments or placing them after the class name.
+  A.foo<int>; // Error.
+       ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/issue46890.dart:24:8: Error: A constructor tear-off can't have type arguments after the constructor name.
+Try removing the type arguments or placing them after the class name.
+  A.bar<int>; // Error.
+       ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/issue46890.dart:25:8: Error: A constructor tear-off can't have type arguments after the constructor name.
+Try removing the type arguments or placing them after the class name.
+  A.baz<int>; // Error.
+       ^";
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::A::baz
+  #C2 = constructor-tearoff core::List::filled
+  #C3 = constructor-tearoff self::A::foo
+  #C4 = constructor-tearoff self::A::bar
+  #C5 = redirecting-factory-tearoff self::A::baz
+  #C6 = instantiation #C2 <core::int>
+  #C7 = instantiation #C3 <core::int>
+  #C8 = instantiation #C4 <core::int>
+  #C9 = instantiation #C5 <core::int>
+}

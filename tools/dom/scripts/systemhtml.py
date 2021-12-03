@@ -10,11 +10,20 @@ import logging
 import monitored
 import os
 import re
+from collections import OrderedDict
 from generator import *
 from htmldartgenerator import *
 from htmlrenamer import generateCallbackInterface
 
 _logger = logging.getLogger('systemhtml')
+
+
+def CanUseStaticExtensions(interface, should):
+    if not should:
+        return False
+    static_extension_interfaces = []  # Classes to be migrated
+    return interface in static_extension_interfaces
+
 
 HTML_LIBRARY_NAMES = [
     'html', 'indexed_db', 'svg', 'web_audio', 'web_gl', 'web_sql'
@@ -175,14 +184,14 @@ class ElementConstructorInfo(object):
         info.js_name = None
         info.type_name = interface_name
         # optional parameters are always nullable
-        info.param_infos = map(
-            lambda tXn: ParamInfo(
-                name=tXn[1],
-                type_id=tXn[0],
-                is_optional=True,
-                is_nullable=True,
-                default_value=None,
-                default_value_is_null=False), self.opt_params)
+        info.param_infos = [
+            ParamInfo(name=tXn[1],
+                      type_id=tXn[0],
+                      is_optional=True,
+                      is_nullable=True,
+                      default_value=None,
+                      default_value_is_null=False) for tXn in self.opt_params
+        ]
         info.requires_named_arguments = True
         info.factory_parameters = ['"%s"' % self.tag]
         info.pure_dart_constructor = True
@@ -505,67 +514,69 @@ _js_support_checks_additional_element = [
     'SVGSetElement',
 ]
 
-js_support_checks = dict({
-    'Animation':
-    "JS('bool', '!!(document.body.animate)')",
-    'AudioContext':
-    "JS('bool', '!!(window.AudioContext ||"
-    " window.webkitAudioContext)')",
-    'Crypto':
-    "JS('bool', '!!(window.crypto && window.crypto.getRandomValues)')",
-    'Database':
-    "JS('bool', '!!(window.openDatabase)')",
-    'DOMPoint':
-    "JS('bool', '!!(window.DOMPoint) || !!(window.WebKitPoint)')",
-    'ApplicationCache':
-    "JS('bool', '!!(window.applicationCache)')",
-    'DOMFileSystem':
-    "JS('bool', '!!(window.webkitRequestFileSystem)')",
-    'FormData':
-    "JS('bool', '!!(window.FormData)')",
-    'HashChangeEvent':
-    "Device.isEventTypeSupported('HashChangeEvent')",
-    'HTMLShadowElement':
-    ElemSupportStr('shadow'),
-    'HTMLTemplateElement':
-    ElemSupportStr('template'),
-    'MediaStreamEvent':
-    "Device.isEventTypeSupported('MediaStreamEvent')",
-    'MediaStreamTrackEvent':
-    "Device.isEventTypeSupported('MediaStreamTrackEvent')",
-    'MediaSource':
-    "JS('bool', '!!(window.MediaSource)')",
-    'Notification':
-    "JS('bool', '!!(window.Notification)')",
-    'Performance':
-    "JS('bool', '!!(window.performance)')",
-    'SpeechRecognition':
-    "JS('bool', '!!(window.SpeechRecognition || "
-    "window.webkitSpeechRecognition)')",
-    'SVGExternalResourcesRequired':
-    ('supported(SvgElement element)',
-     "JS('bool', '#.externalResourcesRequired !== undefined && "
-     "#.externalResourcesRequired.animVal !== undefined', "
-     "element, element)"),
-    'SVGLangSpace':
-    ('supported(SvgElement element)',
-     "JS('bool', '#.xmlspace !== undefined && #.xmllang !== undefined', "
-     "element, element)"),
-    'TouchList':
-    "JS('bool', '!!document.createTouchList')",
-    'WebGLRenderingContext':
-    "JS('bool', '!!(window.WebGLRenderingContext)')",
-    'WebSocket':
-    "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
-    'Worker':
-    "JS('bool', '(typeof window.Worker != \"undefined\")')",
-    'XSLTProcessor':
-    "JS('bool', '!!(window.XSLTProcessor)')",
-}.items() + dict(
-    (key, SvgSupportStr(_svg_element_constructors[key]) if key.
-     startswith('SVG') else ElemSupportStr(_html_element_constructors[key]))
-    for key in _js_support_checks_basic_element_with_constructors +
-    _js_support_checks_additional_element).items())
+js_support_checks = dict(
+    list({
+        'Animation':
+        "JS('bool', '!!(document.body.animate)')",
+        'AudioContext':
+        "JS('bool', '!!(window.AudioContext ||"
+        " window.webkitAudioContext)')",
+        'Crypto':
+        "JS('bool', '!!(window.crypto && window.crypto.getRandomValues)')",
+        'Database':
+        "JS('bool', '!!(window.openDatabase)')",
+        'DOMPoint':
+        "JS('bool', '!!(window.DOMPoint) || !!(window.WebKitPoint)')",
+        'ApplicationCache':
+        "JS('bool', '!!(window.applicationCache)')",
+        'DOMFileSystem':
+        "JS('bool', '!!(window.webkitRequestFileSystem)')",
+        'FormData':
+        "JS('bool', '!!(window.FormData)')",
+        'HashChangeEvent':
+        "Device.isEventTypeSupported('HashChangeEvent')",
+        'HTMLShadowElement':
+        ElemSupportStr('shadow'),
+        'HTMLTemplateElement':
+        ElemSupportStr('template'),
+        'MediaStreamEvent':
+        "Device.isEventTypeSupported('MediaStreamEvent')",
+        'MediaStreamTrackEvent':
+        "Device.isEventTypeSupported('MediaStreamTrackEvent')",
+        'MediaSource':
+        "JS('bool', '!!(window.MediaSource)')",
+        'Notification':
+        "JS('bool', '!!(window.Notification)')",
+        'Performance':
+        "JS('bool', '!!(window.performance)')",
+        'SpeechRecognition':
+        "JS('bool', '!!(window.SpeechRecognition || "
+        "window.webkitSpeechRecognition)')",
+        'SVGExternalResourcesRequired':
+        ('supported(SvgElement element)',
+         "JS('bool', '#.externalResourcesRequired !== undefined && "
+         "#.externalResourcesRequired.animVal !== undefined', "
+         "element, element)"),
+        'SVGLangSpace':
+        ('supported(SvgElement element)',
+         "JS('bool', '#.xmlspace !== undefined && #.xmllang !== undefined', "
+         "element, element)"),
+        'TouchList':
+        "JS('bool', '!!document.createTouchList')",
+        'WebGLRenderingContext':
+        "JS('bool', '!!(window.WebGLRenderingContext)')",
+        'WebSocket':
+        "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
+        'Worker':
+        "JS('bool', '(typeof window.Worker != \"undefined\")')",
+        'XSLTProcessor':
+        "JS('bool', '!!(window.XSLTProcessor)')",
+    }.items()) + list(
+        dict((key,
+              SvgSupportStr(_svg_element_constructors[key]) if key.startswith(
+                  'SVG') else ElemSupportStr(_html_element_constructors[key]))
+             for key in _js_support_checks_basic_element_with_constructors +
+             _js_support_checks_additional_element).items()))
 
 # JavaScript element class names of elements for which createElement does not
 # always return exactly the right element, either because it might not be
@@ -711,7 +722,9 @@ class HtmlDartInterfaceGenerator(object):
 
         implements_str = ''
         if implements:
-            implements_str = ' implements ' + ', '.join(set(implements))
+            # Get rid of duplicates using OrderedDict.
+            implements = list(OrderedDict([(i, None) for i in implements]))
+            implements_str = ' implements ' + ', '.join(implements)
 
         mixins = self._backend.Mixins()
 
@@ -807,26 +820,39 @@ class HtmlDartInterfaceGenerator(object):
             NULLABLE='?',
             NULLSAFECAST=True,
             NULLASSERT='!')
+        if self._interface.doc_js_name is 'RadioNodeList':
+            print(self._backend.ImplementationTemplate())
+            print(implementation_members_emitter)
         stream_getter_signatures_emitter = None
         element_stream_getters_emitter = None
+        class_members_emitter = None
         if type(implementation_members_emitter) == tuple:
             # We add event stream getters for both Element and ElementList, so in
             # impl_Element.darttemplate, we have two additional "holes" for emitters
             # to fill in, with small variations. These store these specialized
             # emitters.
-            assert len(implementation_members_emitter) == 3
-            stream_getter_signatures_emitter = \
-                implementation_members_emitter[0]
-            element_stream_getters_emitter = implementation_members_emitter[1]
-            implementation_members_emitter = \
-                implementation_members_emitter[2]
+            if (len(implementation_members_emitter) == 3):
+                stream_getter_signatures_emitter = \
+                    implementation_members_emitter[0]
+                element_stream_getters_emitter = implementation_members_emitter[
+                    1]
+                implementation_members_emitter = \
+                    implementation_members_emitter[2]
+
+            # We add special emmiters for classes migrated to static type extensions
+            elif (len(implementation_members_emitter) == 2):
+                class_members_emitter = \
+                    implementation_members_emitter[0]
+                implementation_members_emitter = \
+                    implementation_members_emitter[1]
         self._backend.StartInterface(implementation_members_emitter)
-        self._backend.EmitHelpers(base_class)
+        self._backend.EmitHelpers(base_class, class_members_emitter)
         self._event_generator.EmitStreamProviders(
             self._interface, self._backend.CustomJSMembers(),
             implementation_members_emitter, self._library_name)
         self._backend.AddConstructors(constructors, factory_provider,
-                                      factory_constructor_name)
+                                      factory_constructor_name,
+                                      class_members_emitter)
 
         isElement = False
         for parent in self._database.Hierarchy(self._interface):
@@ -1243,9 +1269,14 @@ class Dart2JSBackend(HtmlDartGenerator):
   interface.
   """
 
-    def __init__(self, interface, options, logging_level=logging.WARNING):
+    def __init__(self,
+                 interface,
+                 options,
+                 logging_level=logging.WARNING,
+                 generate_static_extensions=False):
         super(Dart2JSBackend, self).__init__(interface, options, False, _logger)
 
+        self._generate_static_extensions = generate_static_extensions
         self._database = options.database
         self._template_loader = options.templates
         self._type_registry = options.type_registry
@@ -1253,6 +1284,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         self._metadata = options.metadata
         self._interface_type_info = self._type_registry.TypeInfo(
             self._interface.id)
+        self._interface_name = self._interface_type_info.interface_name()
         self._current_secondary_parent = None
         self._library_name = self._renamer.GetLibraryName(self._interface)
         # Global constants for all WebGLRenderingContextBase, WebGL2RenderingContextBase, WebGLDrawBuffers
@@ -1289,9 +1321,15 @@ class Dart2JSBackend(HtmlDartGenerator):
                 # TODO(terry): There are no mutable maplikes yet.
                 template_file_content = self._template_loader.Load(
                     'dart2js_maplike_impl.darttemplate')
+
             else:
-                template_file_content = self._template_loader.Load(
-                    'dart2js_impl.darttemplate')
+                if CanUseStaticExtensions(self._interface_name,
+                                          self._generate_static_extensions):
+                    template_file_content = self._template_loader.Load(
+                        'dart2js_static_extension_impl.darttemplate')
+                else:
+                    template_file_content = self._template_loader.Load(
+                        'dart2js_impl.darttemplate')
         return template_file_content
 
     def StartInterface(self, members_emitter):
@@ -1349,7 +1387,8 @@ class Dart2JSBackend(HtmlDartGenerator):
     def IsConstructorArgumentOptional(self, argument):
         return argument.optional
 
-    def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
+    def EmitStaticFactoryOverload(self, constructor_info, name, arguments,
+                                  emmiter):
         if self._interface_type_info.has_generated_interface():
             # Use dart_type name, we're generating.
             interface_name = self._interface_type_info.interface_name()
@@ -1361,7 +1400,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         arguments = constructor_info.ParametersAsArgumentList(index)
         if arguments:
             arguments = ', ' + arguments
-        self._members_emitter.Emit(
+        (emmiter if (emmiter != None) else self._members_emitter).Emit(
             "  static $INTERFACE_NAME $NAME($PARAMETERS) => "
             "JS('$INTERFACE_NAME', 'new $CTOR_NAME($PLACEHOLDERS)'$ARGUMENTS);\n",
             INTERFACE_NAME=interface_name,
@@ -1598,7 +1637,8 @@ class Dart2JSBackend(HtmlDartGenerator):
                 if attribute.type.nullable:
                     promiseType += '?'
 
-                template = '\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => $PROMISE_CALL(JS("$TYPE_DESC", "#.$NAME", this));\n'
+                template = '\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => '\
+                    '$PROMISE_CALL(JS("$TYPE_DESC", "#.$NAME", this));\n'
 
                 self._members_emitter.Emit(
                     template,
@@ -1676,10 +1716,17 @@ class Dart2JSBackend(HtmlDartGenerator):
                 \n
                 \n  $STATIC $NONNULLTYPE get $HTML_NAME => _$HTML_NAME$NULLASSERT;"""
         else:
-            template = """\n  $RENAME
-                \n  $METADATA
-                \n  $STATIC $TYPE get $HTML_NAME native;
-                \n"""
+            if CanUseStaticExtensions(self._interface_name,
+                                      self._generate_static_extensions):
+                template = """\n $RENAME
+                    \n $METADATA
+                    \n $STATIC $TYPE get $HTML_NAME => js_util.getProperty(this, '$JSNAME');
+                    \n"""
+            else:
+                template = """\n  $RENAME
+                    \n  $METADATA
+                    \n  $STATIC $TYPE get $HTML_NAME native;
+                    \n"""
         self._members_emitter.Emit(template,
                                    RENAME=rename if rename else '',
                                    METADATA=metadata if metadata else '',
@@ -1687,7 +1734,8 @@ class Dart2JSBackend(HtmlDartGenerator):
                                    STATIC='static' if attr.is_static else '',
                                    TYPE=return_type,
                                    NULLASSERT='!',
-                                   NONNULLTYPE=non_null_return_type)
+                                   NONNULLTYPE=non_null_return_type,
+                                   JSNAME=rename if rename else html_name)
 
     def _AddRenamingSetter(self, attr, html_name, rename):
         conversion = self._InputConversion(attr.type.id, attr.id)
@@ -1705,14 +1753,23 @@ class Dart2JSBackend(HtmlDartGenerator):
         if self._IsACompatibilityConflict(self._interface.id, attr):
             # Force non-nullable if it's a manual conflict.
             nullable_type = False
-        self._members_emitter.Emit(
-            '\n  $RENAME'
-            '\n  $STATIC set $HTML_NAME($TYPE value) native;'
-            '\n',
-            RENAME=rename if rename else '',
-            HTML_NAME=html_name,
-            STATIC='static ' if attr.is_static else '',
-            TYPE=self.SecureOutputType(attr.type.id, nullable=nullable_type))
+        if CanUseStaticExtensions(self._interface_name,
+                                  self._generate_static_extensions):
+            template = """\n $RENAME
+                \n $STATIC set $HTML_NAME($TYPE value)
+                 => js_util.setProperty(this, '$JSNAME', value);
+                \n"""
+        else:
+            template = """\n  $RENAME
+                \n $STATIC set $HTML_NAME($TYPE value) native;
+                \n"""
+        self._members_emitter.Emit(template,
+                                   RENAME=rename if rename else '',
+                                   HTML_NAME=html_name,
+                                   STATIC='static ' if attr.is_static else '',
+                                   TYPE=self.SecureOutputType(
+                                       attr.type.id, nullable=nullable_type),
+                                   JSNAME=rename if rename else html_name)
 
     def _AddConvertingGetter(self, attr, html_name, conversion):
         # dynamic should not be marked with ?
@@ -1950,19 +2007,25 @@ class Dart2JSBackend(HtmlDartGenerator):
         else:
             self._members_emitter.Emit(
                 '\n'
-                '  $RENAME$METADATA$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
+                '  $RENAME$METADATA$MODIFIERS$TYPE $NAME($PARAMS) => '\
+                'js_util.callMethod(this, \'$JSNAME\', [$ARGS]);\n'
+                if CanUseStaticExtensions(self._interface_name, self._generate_static_extensions) else
+                '\n  $RENAME$METADATA$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
                 RENAME=self._RenamingAnnotation(info.declared_name, html_name),
-                METADATA=self._Metadata(info.type_name, info.declared_name,
-                                        self.SecureOutputType(info.type_name,
-                                            nullable=info.type_nullable),
-                                        info.type_nullable),
+                METADATA=self._Metadata(
+                    info.type_name, info.declared_name,
+                    self.SecureOutputType(info.type_name,
+                                          nullable=info.type_nullable),
+                    info.type_nullable),
                 MODIFIERS='static ' if info.IsStatic() else '',
                 TYPE=self.SecureOutputType(resultType,
                                            can_narrow_type=True,
                                            nullable=info.type_nullable),
                 NAME=html_name,
                 PARAMS=info.ParametersAsDeclaration(self._NarrowInputType,
-                                                    force_optional))
+                                                    force_optional),
+                ARGS=info.ParametersAsArgumentList(),
+                JSNAME=info.declared_name if info.declared_name != html_name else html_name)
 
     def _AddOperationWithConversions(self, info, html_name):
         # Assert all operations have same return type.
@@ -2029,7 +2092,8 @@ class Dart2JSBackend(HtmlDartGenerator):
                         )
                 self._members_emitter.Emit(
                     '  $RENAME$METADATA$MODIFIERS$TYPE$TARGET($PARAMS) =>\n'
-                    '      promiseToFuture(JS("", "#.$JSNAME($HASH_STR)", this$CALLING_PARAMS));\n',
+                    '      promiseToFuture(JS("", "#.$JSNAME($HASH_STR)"'\
+                    ', this$CALLING_PARAMS));\n',
                     RENAME=self._RenamingAnnotation(info.declared_name, target),
                     METADATA=self._Metadata(info.type_name, info.declared_name,
                                             None, info.type_nullable),
@@ -2139,7 +2203,7 @@ class Dart2JSBackend(HtmlDartGenerator):
                 return re.search('^@.*Returns', ann) or re.search(
                     '^@.*Creates', ann)
 
-            if not filter(js_type_annotation, anns):
+            if not list(filter(js_type_annotation, anns)):
                 _logger.warn('Member with wildcard native type: %s.%s' %
                              (self._interface.id, idl_member_name))
 
@@ -2261,7 +2325,7 @@ class DartLibrary():
 
         # Emit the $!TYPE_MAP
         if map_emitter:
-            items = self._typeMap.items()
+            items = list(self._typeMap.items())
             items.sort()
             for (idl_name, dart_name) in items:
                 map_emitter.Emit(

@@ -241,7 +241,22 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   }
   Definition* defn = instr->AsDefinition();
   if ((defn != NULL) && defn->HasTemp()) {
-    __ Push(defn->locs()->out(0).reg());
+    const Location value = defn->locs()->out(0);
+    if (value.IsRegister()) {
+      __ PushRegister(value.reg());
+    } else if (value.IsFpuRegister()) {
+      ASSERT(instr->representation() == kUnboxedDouble);
+      // In unoptimized code at instruction epilogue the only
+      // live register is an output register.
+      instr->locs()->live_registers()->Clear();
+      __ MoveUnboxedDouble(BoxDoubleStubABI::kValueReg, value.fpu_reg());
+      GenerateNonLazyDeoptableStubCall(
+          InstructionSource(),  // No token position.
+          StubCode::BoxDouble(), UntaggedPcDescriptors::kOther, instr->locs());
+      __ PushRegister(BoxDoubleStubABI::kResultReg);
+    } else {
+      UNREACHABLE();
+    }
   }
 }
 
@@ -551,9 +566,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     const Array& arguments_descriptor,
     intptr_t deopt_id,
     const InstructionSource& source,
-    LocationSummary* locs,
-    intptr_t try_index,
-    intptr_t slow_path_argument_count) {
+    LocationSummary* locs) {
   ASSERT(CanCallDart());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const ArgumentsDescriptor args_desc(arguments_descriptor);
@@ -569,7 +582,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   if (FLAG_precompiled_mode) {
     if (FLAG_use_bare_instructions) {
       // The AOT runtime will replace the slot in the object pool with the
-      // entrypoint address - see clustered_snapshot.cc.
+      // entrypoint address - see app_snapshot.cc.
       CLOBBERS_LR(__ LoadUniqueObject(LR, StubCode::MegamorphicCall()));
     } else {
       __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
@@ -588,26 +601,20 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
         CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
   }
 
-  RecordSafepoint(locs, slow_path_argument_count);
-  const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
-  if (FLAG_precompiled_mode) {
-    // Megamorphic calls may occur in slow path stubs.
-    // If valid use try_index argument.
-    if (try_index == kInvalidTryIndex) {
-      try_index = CurrentTryIndex();
+  RecordSafepoint(locs);
+  AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone, source);
+  if (!FLAG_precompiled_mode) {
+    const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
+    if (is_optimizing()) {
+      AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
+    } else {
+      // Add deoptimization continuation point after the call and before the
+      // arguments are removed.
+      AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after,
+                           source);
     }
-    AddDescriptor(UntaggedPcDescriptors::kOther, assembler()->CodeSize(),
-                  DeoptId::kNone, source, try_index);
-  } else if (is_optimizing()) {
-    AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone, source);
-    AddDeoptIndexAtCall(deopt_id_after, pending_deoptimization_env_);
-  } else {
-    AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone, source);
-    // Add deoptimization continuation point after the call and before the
-    // arguments are removed.
-    AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt, deopt_id_after, source);
   }
-  RecordCatchEntryMoves(pending_deoptimization_env_, try_index);
+  RecordCatchEntryMoves(pending_deoptimization_env_);
   __ Drop(args_desc.SizeWithTypeArgs());
 }
 
@@ -636,7 +643,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
       (ic_data.SizeWithoutTypeArgs() - 1) * compiler::target::kWordSize);
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     // The AOT runtime will replace the slot in the object pool with the
-    // entrypoint address - see clustered_snapshot.cc.
+    // entrypoint address - see app_snapshot.cc.
     CLOBBERS_LR(__ LoadUniqueObject(LR, initial_stub));
   } else {
     __ LoadUniqueObject(CODE_REG, initial_stub);

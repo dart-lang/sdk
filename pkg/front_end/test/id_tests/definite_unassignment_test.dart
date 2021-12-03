@@ -14,7 +14,7 @@ import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Variance;
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/definite_unassignment/'
       'data'));
@@ -35,6 +35,7 @@ class DefiniteUnassignmentDataComputer extends DataComputer<String> {
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.
+  @override
   void computeMemberData(
       TestConfig config,
       InternalCompilerResult compilerResult,

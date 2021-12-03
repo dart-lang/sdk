@@ -4,9 +4,9 @@
 
 import 'dart:async';
 
-import 'package:dds/src/dap/adapters/dart.dart';
-
-import 'adapters/dart_cli.dart';
+import 'adapters/dart.dart';
+import 'adapters/dart_cli_adapter.dart';
+import 'adapters/dart_test_adapter.dart';
 import 'logging.dart';
 import 'protocol_stream.dart';
 
@@ -22,6 +22,7 @@ class DapServer {
   final bool ipv6;
   final bool enableDds;
   final bool enableAuthCodes;
+  final bool test;
   final Logger? logger;
 
   DapServer(
@@ -30,15 +31,24 @@ class DapServer {
     this.ipv6 = false,
     this.enableDds = true,
     this.enableAuthCodes = true,
+    this.test = false,
     this.logger,
   }) : channel = ByteStreamServerChannel(_input, _output, logger) {
-    adapter = DartCliDebugAdapter(
-      channel,
-      ipv6: ipv6,
-      enableDds: enableDds,
-      enableAuthCodes: enableAuthCodes,
-      logger: logger,
-    );
+    adapter = test
+        ? DartTestDebugAdapter(
+            channel,
+            ipv6: ipv6,
+            enableDds: enableDds,
+            enableAuthCodes: enableAuthCodes,
+            logger: logger,
+          )
+        : DartCliDebugAdapter(
+            channel,
+            ipv6: ipv6,
+            enableDds: enableDds,
+            enableAuthCodes: enableAuthCodes,
+            logger: logger,
+          );
   }
 
   void stop() {

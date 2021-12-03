@@ -17,7 +17,7 @@ main() {
   //  ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   //          ^
-  // [cfe] Method not found: 'Foo.bar.baz'.
+  // [cfe] Couldn't find constructor 'Foo.bar.baz'.
   new Foo<int>();
   new Foo<int>.bar();
   new Foo<int>.bar.baz();
@@ -29,24 +29,21 @@ main() {
   // [cfe] The method 'baz' isn't defined for the class 'Foo<int>'.
   new Foo.bar<int>();
   //      ^
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
   //         ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   new Foo.bar<int>.baz();
-  //      ^
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
   //  ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   //               ^
-  // [cfe] Method not found: 'Foo.bar.baz'.
+  // [cfe] Couldn't find constructor 'Foo.bar.baz'.
   new Foo.bar.baz<int>();
   //  ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   //          ^^^
-  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
-  //          ^
-  // [cfe] Method not found: 'Foo.bar.baz'.
+  // [analyzer] SYNTACTIC_ERROR.CONSTRUCTOR_WITH_TYPE_ARGUMENTS
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
+  // [cfe] Couldn't find constructor 'Foo.bar.baz'.
 
   const Foo();
   const Foo.bar();
@@ -54,7 +51,7 @@ main() {
   //    ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   //            ^
-  // [cfe] Method not found: 'Foo.bar.baz'.
+  // [cfe] Couldn't find constructor 'Foo.bar.baz'.
   const Foo<int>();
   const Foo<int>.bar();
   const Foo<int>.bar.baz();
@@ -66,31 +63,29 @@ main() {
   // [cfe] The method 'baz' isn't defined for the class 'Foo<int>'.
   const Foo.bar<int>();
   //        ^
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
   //           ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   const Foo.bar<int>.baz();
-  //        ^
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
   //    ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   //                 ^
-  // [cfe] Method not found: 'Foo.bar.baz'.
+  // [cfe] Couldn't find constructor 'Foo.bar.baz'.
   const Foo.bar.baz<int>();
   //    ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   //            ^^^
-  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
-  //            ^
-  // [cfe] Method not found: 'Foo.bar.baz'.
+  // [analyzer] SYNTACTIC_ERROR.CONSTRUCTOR_WITH_TYPE_ARGUMENTS
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
+  // [cfe] Couldn't find constructor 'Foo.bar.baz'.
 
   Foo();
   Foo.bar();
   Foo.bar.baz();
-  //  ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] Getter not found: 'bar'.
+//    ^
+// [cfe] Member not found: 'bar'.
+//        ^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   Foo<int>();
   Foo<int>.bar();
   Foo<int>.bar.baz();
@@ -98,21 +93,22 @@ main() {
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
   // [cfe] This requires the 'constructor-tearoffs' language feature to be enabled.
   //       ^
-  // [cfe] Getter not found: 'bar'.
+  // [cfe] Member not found: 'bar'.
+  //           ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   Foo.bar<int>();
   //  ^
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
   //     ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   Foo.bar<int>.baz();
-  //  ^
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  //           ^
-  // [cfe] Method not found: 'Foo.bar.baz'.
+//    ^
+// [cfe] Couldn't find constructor 'bar'.
+//       ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   Foo.bar.baz<int>();
-  //  ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] Getter not found: 'bar'.
+//    ^
+// [cfe] Member not found: 'bar'.
+//        ^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
 }

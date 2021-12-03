@@ -57,7 +57,7 @@ static const field core::List<core::String> copy50 = self::copy49;
 
 Extra constant evaluation status:
 Evaluated with empty environment: ListLiteral @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:1:18 -> ListConstant(const <String*>["lots", "of", "strings", "", "that", "are", "already", "constants"])
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:5:10 -> StringConstant("")
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:5:10 -> StringConstant("")
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:11:15 -> ListConstant(const <String*>["lots", "of", "strings", "", "that", "are", "already", "constants"])
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:12:15 -> ListConstant(const <String*>["lots", "of", "strings", "", "that", "are", "already", "constants"])
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///many_fields_pointing_to_previous_field.dart:13:15 -> ListConstant(const <String*>["lots", "of", "strings", "", "that", "are", "already", "constants"])

@@ -7,7 +7,6 @@
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, StringDataInterpreter, runTests;
-import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'dart:io' show Directory, Platform;
 import 'package:front_end/src/fasta/messages.dart' show FormattedMessage;
 import 'package:front_end/src/testing/id_testing_helper.dart'
@@ -30,7 +29,7 @@ import 'package:kernel/ast.dart'
         Library,
         TreeNode;
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests<String>(dataDir,
       args: args,
@@ -62,6 +61,7 @@ class IdTestingDataComputer extends DataComputer<String> {
     new IdTestingDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,
@@ -75,6 +75,7 @@ class IdTestingDataComputer extends DataComputer<String> {
   @override
   bool get supportsErrors => true;
 
+  @override
   String computeErrorData(TestConfig config, InternalCompilerResult compiler,
       Id id, List<FormattedMessage> errors) {
     return errorsToText(errors);

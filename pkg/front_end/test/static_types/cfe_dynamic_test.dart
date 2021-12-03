@@ -21,7 +21,7 @@ bool cfeOnly(Uri uri) {
   return false;
 }
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   await run(Uri.base.resolve('pkg/front_end/tool/_fasta/compile.dart'),
       'pkg/front_end/test/static_types/cfe_allowed.json',
       analyzedUrisFilter: cfeOnly,

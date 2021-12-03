@@ -13,100 +13,10 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
-
-/// A simple data-holder for a method that needs to return multiple values.
-class CommentAndMetadata {
-  /// The documentation comment that was parsed, or `null` if none was given.
-  final Comment? comment;
-
-  /// The metadata that was parsed, or `null` if none was given.
-  final List<Annotation>? metadata;
-
-  /// Initialize a newly created holder with the given [comment] and [metadata].
-  CommentAndMetadata(this.comment, this.metadata);
-
-  /// Return `true` if some metadata was parsed.
-  bool get hasMetadata => metadata != null && metadata!.isNotEmpty;
-}
-
-/// A simple data-holder for a method that needs to return multiple values.
-class FinalConstVarOrType {
-  /// The 'final', 'const' or 'var' keyword, or `null` if none was given.
-  final Token keyword;
-
-  /// The type, or `null` if no type was specified.
-  final TypeAnnotation type;
-
-  /// Initialize a newly created holder with the given [keyword] and [type].
-  FinalConstVarOrType(this.keyword, this.type);
-}
-
-/// A simple data-holder for a method that needs to return multiple values.
-class Modifiers {
-  /// The token representing the keyword 'abstract', or `null` if the keyword
-  /// was not found.
-  Token? abstractKeyword;
-
-  /// The token representing the keyword 'const', or `null` if the keyword was
-  /// not found.
-  Token? constKeyword;
-
-  /// The token representing the keyword 'covariant', or `null` if the keyword
-  /// was not found.
-  Token? covariantKeyword;
-
-  /// The token representing the keyword 'external', or `null` if the keyword
-  /// was not found.
-  Token? externalKeyword;
-
-  /// The token representing the keyword 'factory', or `null` if the keyword was
-  /// not found.
-  Token? factoryKeyword;
-
-  /// The token representing the keyword 'final', or `null` if the keyword was
-  /// not found.
-  Token? finalKeyword;
-
-  /// The token representing the keyword 'static', or `null` if the keyword was
-  /// not found.
-  Token? staticKeyword;
-
-  /// The token representing the keyword 'var', or `null` if the keyword was not
-  /// found.
-  Token? varKeyword;
-
-  @override
-  String toString() {
-    StringBuffer buffer = StringBuffer();
-    bool needsSpace = _appendKeyword(buffer, false, abstractKeyword);
-    needsSpace = _appendKeyword(buffer, needsSpace, constKeyword);
-    needsSpace = _appendKeyword(buffer, needsSpace, externalKeyword);
-    needsSpace = _appendKeyword(buffer, needsSpace, factoryKeyword);
-    needsSpace = _appendKeyword(buffer, needsSpace, finalKeyword);
-    needsSpace = _appendKeyword(buffer, needsSpace, staticKeyword);
-    _appendKeyword(buffer, needsSpace, varKeyword);
-    return buffer.toString();
-  }
-
-  /// If the given [keyword] is not `null`, append it to the given [buffer],
-  /// prefixing it with a space if [needsSpace] is `true`. Return `true` if
-  /// subsequent keywords need to be prefixed with a space.
-  bool _appendKeyword(StringBuffer buffer, bool needsSpace, Token? keyword) {
-    if (keyword != null) {
-      if (needsSpace) {
-        buffer.writeCharCode(0x20);
-      }
-      buffer.write(keyword.lexeme);
-      return true;
-    }
-    return needsSpace;
-  }
-}
 
 /// A parser used to parse tokens into an AST structure.
 class Parser {
@@ -146,7 +56,7 @@ class Parser {
 
   set enableSetLiterals(bool value) {
     // TODO(danrubel): Remove this method once the reference to this flag
-    // has been removed from dartfmt.
+    // has been removed from dart format.
   }
 
   set parseFunctionBodies(bool parseFunctionBodies) {
@@ -338,13 +248,13 @@ class Parser {
     return astBuilder.pop() as TypeArgumentList;
   }
 
-  TypeName parseTypeName(bool inExpression) {
+  NamedType parseTypeName(bool inExpression) {
     Token previous = fastaParser.syntheticPreviousToken(currentToken);
     currentToken = fasta
         .computeType(previous, true, !inExpression)
         .parseType(previous, fastaParser)
         .next!;
-    return astBuilder.pop() as TypeName;
+    return astBuilder.pop() as NamedType;
   }
 
   TypeParameter parseTypeParameter() {

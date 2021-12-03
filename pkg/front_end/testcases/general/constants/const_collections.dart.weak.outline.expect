@@ -49,14 +49,14 @@ class ConstIterable extends col::IterableBase<core::int*> /*hasConstConstructor*
   get iterator() → core::Iterator<core::int*>*
     ;
   abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::ConstIterable::cast::R*>*; -> core::Iterable::cast
-  abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::int*>* other) → core::Iterable<core::int*>*; -> core::Iterable::followedBy
+  abstract member-signature method followedBy(covariant-by-class core::Iterable<core::int*>* other) → core::Iterable<core::int*>*; -> core::Iterable::followedBy
   abstract member-signature method map<T extends core::Object* = dynamic>((core::int*) →* self::ConstIterable::map::T* toElement) → core::Iterable<self::ConstIterable::map::T*>*; -> core::Iterable::map
   abstract member-signature method where((core::int*) →* core::bool* test) → core::Iterable<core::int*>*; -> core::Iterable::where
   abstract member-signature method whereType<T extends core::Object* = dynamic>() → core::Iterable<self::ConstIterable::whereType::T*>*; -> core::Iterable::whereType
   abstract member-signature method expand<T extends core::Object* = dynamic>((core::int*) →* core::Iterable<self::ConstIterable::expand::T*>* toElements) → core::Iterable<self::ConstIterable::expand::T*>*; -> core::Iterable::expand
   abstract member-signature method contains(core::Object* element) → core::bool*; -> core::Iterable::contains
   abstract member-signature method forEach((core::int*) →* void action) → void; -> core::Iterable::forEach
-  abstract member-signature method reduce(generic-covariant-impl (core::int*, core::int*) →* core::int* combine) → core::int*; -> core::Iterable::reduce
+  abstract member-signature method reduce(covariant-by-class (core::int*, core::int*) →* core::int* combine) → core::int*; -> core::Iterable::reduce
   abstract member-signature method fold<T extends core::Object* = dynamic>(self::ConstIterable::fold::T* initialValue, (self::ConstIterable::fold::T*, core::int*) →* self::ConstIterable::fold::T* combine) → self::ConstIterable::fold::T*; -> core::Iterable::fold
   abstract member-signature method every((core::int*) →* core::bool* test) → core::bool*; -> core::Iterable::every
   abstract member-signature method join([core::String* separator]) → core::String*; -> core::Iterable::join
@@ -70,9 +70,9 @@ class ConstIterable extends col::IterableBase<core::int*> /*hasConstConstructor*
   abstract member-signature method takeWhile((core::int*) →* core::bool* test) → core::Iterable<core::int*>*; -> core::Iterable::takeWhile
   abstract member-signature method skip(core::int* count) → core::Iterable<core::int*>*; -> core::Iterable::skip
   abstract member-signature method skipWhile((core::int*) →* core::bool* test) → core::Iterable<core::int*>*; -> core::Iterable::skipWhile
-  abstract member-signature method firstWhere((core::int*) →* core::bool* test, {generic-covariant-impl () →* core::int* orElse}) → core::int*; -> core::Iterable::firstWhere
-  abstract member-signature method lastWhere((core::int*) →* core::bool* test, {generic-covariant-impl () →* core::int* orElse}) → core::int*; -> core::Iterable::lastWhere
-  abstract member-signature method singleWhere((core::int*) →* core::bool* test, {generic-covariant-impl () →* core::int* orElse}) → core::int*; -> core::Iterable::singleWhere
+  abstract member-signature method firstWhere((core::int*) →* core::bool* test, {covariant-by-class () →* core::int* orElse}) → core::int*; -> core::Iterable::firstWhere
+  abstract member-signature method lastWhere((core::int*) →* core::bool* test, {covariant-by-class () →* core::int* orElse}) → core::int*; -> core::Iterable::lastWhere
+  abstract member-signature method singleWhere((core::int*) →* core::bool* test, {covariant-by-class () →* core::int* orElse}) → core::int*; -> core::Iterable::singleWhere
   abstract member-signature method elementAt(core::int* index) → core::int*; -> core::Iterable::elementAt
   abstract member-signature method toString() → core::String*; -> core::Iterable::toString
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -109,14 +109,14 @@ class CustomIterable extends col::IterableBase<core::String*> /*hasConstConstruc
   get iterator() → core::Iterator<core::String*>*
     ;
   abstract member-signature method cast<R extends core::Object* = dynamic>() → core::Iterable<self::CustomIterable::cast::R*>*; -> core::Iterable::cast
-  abstract member-signature method followedBy(generic-covariant-impl core::Iterable<core::String*>* other) → core::Iterable<core::String*>*; -> core::Iterable::followedBy
+  abstract member-signature method followedBy(covariant-by-class core::Iterable<core::String*>* other) → core::Iterable<core::String*>*; -> core::Iterable::followedBy
   abstract member-signature method map<T extends core::Object* = dynamic>((core::String*) →* self::CustomIterable::map::T* toElement) → core::Iterable<self::CustomIterable::map::T*>*; -> core::Iterable::map
   abstract member-signature method where((core::String*) →* core::bool* test) → core::Iterable<core::String*>*; -> core::Iterable::where
   abstract member-signature method whereType<T extends core::Object* = dynamic>() → core::Iterable<self::CustomIterable::whereType::T*>*; -> core::Iterable::whereType
   abstract member-signature method expand<T extends core::Object* = dynamic>((core::String*) →* core::Iterable<self::CustomIterable::expand::T*>* toElements) → core::Iterable<self::CustomIterable::expand::T*>*; -> core::Iterable::expand
   abstract member-signature method contains(core::Object* element) → core::bool*; -> core::Iterable::contains
   abstract member-signature method forEach((core::String*) →* void action) → void; -> core::Iterable::forEach
-  abstract member-signature method reduce(generic-covariant-impl (core::String*, core::String*) →* core::String* combine) → core::String*; -> core::Iterable::reduce
+  abstract member-signature method reduce(covariant-by-class (core::String*, core::String*) →* core::String* combine) → core::String*; -> core::Iterable::reduce
   abstract member-signature method fold<T extends core::Object* = dynamic>(self::CustomIterable::fold::T* initialValue, (self::CustomIterable::fold::T*, core::String*) →* self::CustomIterable::fold::T* combine) → self::CustomIterable::fold::T*; -> core::Iterable::fold
   abstract member-signature method every((core::String*) →* core::bool* test) → core::bool*; -> core::Iterable::every
   abstract member-signature method join([core::String* separator]) → core::String*; -> core::Iterable::join
@@ -130,9 +130,9 @@ class CustomIterable extends col::IterableBase<core::String*> /*hasConstConstruc
   abstract member-signature method takeWhile((core::String*) →* core::bool* test) → core::Iterable<core::String*>*; -> core::Iterable::takeWhile
   abstract member-signature method skip(core::int* count) → core::Iterable<core::String*>*; -> core::Iterable::skip
   abstract member-signature method skipWhile((core::String*) →* core::bool* test) → core::Iterable<core::String*>*; -> core::Iterable::skipWhile
-  abstract member-signature method firstWhere((core::String*) →* core::bool* test, {generic-covariant-impl () →* core::String* orElse}) → core::String*; -> core::Iterable::firstWhere
-  abstract member-signature method lastWhere((core::String*) →* core::bool* test, {generic-covariant-impl () →* core::String* orElse}) → core::String*; -> core::Iterable::lastWhere
-  abstract member-signature method singleWhere((core::String*) →* core::bool* test, {generic-covariant-impl () →* core::String* orElse}) → core::String*; -> core::Iterable::singleWhere
+  abstract member-signature method firstWhere((core::String*) →* core::bool* test, {covariant-by-class () →* core::String* orElse}) → core::String*; -> core::Iterable::firstWhere
+  abstract member-signature method lastWhere((core::String*) →* core::bool* test, {covariant-by-class () →* core::String* orElse}) → core::String*; -> core::Iterable::lastWhere
+  abstract member-signature method singleWhere((core::String*) →* core::bool* test, {covariant-by-class () →* core::String* orElse}) → core::String*; -> core::Iterable::singleWhere
   abstract member-signature method elementAt(core::int* index) → core::String*; -> core::Iterable::elementAt
   abstract member-signature method toString() → core::String*; -> core::Iterable::toString
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -156,7 +156,7 @@ class CustomMap extends core::Object implements core::Map<core::String*, core::S
   operator [](core::Object* key) → core::String*
     ;
   @core::override
-  operator []=(generic-covariant-impl core::String* key, generic-covariant-impl core::String* value) → void
+  operator []=(covariant-by-class core::String* key, covariant-by-class core::String* value) → void
     ;
   @core::override
   method cast<RK extends core::Object* = dynamic, RV extends core::Object* = dynamic>() → core::Map<self::CustomMap::cast::RK*, self::CustomMap::cast::RV*>*
@@ -189,24 +189,24 @@ class CustomMap extends core::Object implements core::Map<core::String*, core::S
   get values() → core::Iterable<core::String*>*
     ;
   @core::override
-  method addAll(generic-covariant-impl core::Map<core::String*, core::String*>* other) → void
+  method addAll(covariant-by-class core::Map<core::String*, core::String*>* other) → void
     ;
   @core::override
-  method addEntries(generic-covariant-impl core::Iterable<core::MapEntry<core::String*, core::String*>*>* newEntries) → void
+  method addEntries(covariant-by-class core::Iterable<core::MapEntry<core::String*, core::String*>*>* newEntries) → void
     ;
   @core::override
   method forEach((core::String*, core::String*) →* void f) → void
     ;
   @core::override
-  method putIfAbsent(generic-covariant-impl core::String* key, generic-covariant-impl () →* core::String* ifAbsent) → core::String*
+  method putIfAbsent(covariant-by-class core::String* key, covariant-by-class () →* core::String* ifAbsent) → core::String*
     ;
   @core::override
-  method updateAll(generic-covariant-impl (core::String*, core::String*) →* core::String* update) → void
+  method updateAll(covariant-by-class (core::String*, core::String*) →* core::String* update) → void
     ;
   @core::override
   method removeWhere((core::String*, core::String*) →* core::bool* predicate) → void
     ;
-  method update(generic-covariant-impl core::String* key, generic-covariant-impl (core::String*) →* core::String* update, {generic-covariant-impl () →* core::String* ifAbsent}) → core::String*
+  method update(covariant-by-class core::String* key, covariant-by-class (core::String*) →* core::String* update, {covariant-by-class () →* core::String* ifAbsent}) → core::String*
     ;
   method map<K2 extends core::Object* = dynamic, V2 extends core::Object* = dynamic>((core::String*, core::String*) →* core::MapEntry<self::CustomMap::map::K2*, self::CustomMap::map::V2*>* f) → core::Map<self::CustomMap::map::K2*, self::CustomMap::map::V2*>*
     ;
@@ -253,7 +253,7 @@ const Set<String> quxWithMapSpread = {...baz, ...quux};
                                      ^";
 static const field core::Set<core::String*>* quxWithCustomIterableSpread1 = self::baz + const self::CustomIterable::•();
 static const field core::Set<core::String*>* quxWithCustomIterableSpread2 = self::baz + const self::CustomIterable::•();
-static const field core::Set<core::String*>* quxWithCustomIterableSpread3 = self::baz + const <core::String*>{let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:48:59: Error: A value of type 'CustomIterable' can't be assigned to a variable of type 'String'.
+static const field core::Set<core::String*>* quxWithCustomIterableSpread3 = self::baz + const <core::String*>{invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:48:59: Error: A value of type 'CustomIterable' can't be assigned to a variable of type 'String'.
  - 'CustomIterable' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.
 const Set<String> quxWithCustomIterableSpread3 = {...baz, customIterable};
                                                           ^" in self::customIterable as{TypeError} core::String*};
@@ -332,26 +332,25 @@ Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:32:55 -> 
 Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:32:63 -> InstanceConstant(const CustomIterable{})
 Evaluated: ListLiteral @ org-dartlang-testcase:///const_collections.dart:33:33 -> ListConstant(const <String*>["Hello"])
 Evaluated: ListLiteral @ org-dartlang-testcase:///const_collections.dart:33:45 -> ListConstant(const <String*>["World"])
-Evaluated: SetLiteral @ org-dartlang-testcase:///const_collections.dart:36:25 -> InstanceConstant(const _UnmodifiableSet<String*>{_UnmodifiableSet._map: const _ImmutableMap<String*, Null>{_ImmutableMap._kvPairs: const <dynamic>["hello", null, "world", null]}})
-Evaluated: SetConcatenation @ org-dartlang-testcase:///const_collections.dart:38:25 -> InstanceConstant(const _UnmodifiableSet<String*>{_UnmodifiableSet._map: const _ImmutableMap<String*, Null>{_ImmutableMap._kvPairs: const <dynamic>["hello", null, "world", null, "!", null]}})
-Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:40:43 -> InstanceConstant(const _UnmodifiableSet<String*>{_UnmodifiableSet._map: const _ImmutableMap<String*, Null>{_ImmutableMap._kvPairs: const <dynamic>["hello", null, "world", null]}})
+Evaluated: SetLiteral @ org-dartlang-testcase:///const_collections.dart:36:25 -> SetConstant(const <String*>{"hello", "world"})
+Evaluated: SetConcatenation @ org-dartlang-testcase:///const_collections.dart:38:25 -> SetConstant(const <String*>{"hello", "world", "!"})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:40:43 -> SetConstant(const <String*>{"hello", "world"})
 Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:40:51 -> NullConstant(null)
-Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:41:42 -> InstanceConstant(const _UnmodifiableSet<String*>{_UnmodifiableSet._map: const _ImmutableMap<String*, Null>{_ImmutableMap._kvPairs: const <dynamic>["hello", null, "world", null]}})
-Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:44:6 -> InstanceConstant(const _UnmodifiableSet<String*>{_UnmodifiableSet._map: const _ImmutableMap<String*, Null>{_ImmutableMap._kvPairs: const <dynamic>["hello", null, "world", null]}})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:41:42 -> SetConstant(const <String*>{"hello", "world"})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:44:6 -> SetConstant(const <String*>{"hello", "world"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:45:12 -> InstanceConstant(const CustomIterable{})
-Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:47:54 -> InstanceConstant(const _UnmodifiableSet<String*>{_UnmodifiableSet._map: const _ImmutableMap<String*, Null>{_ImmutableMap._kvPairs: const <dynamic>["hello", null, "world", null]}})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:47:54 -> SetConstant(const <String*>{"hello", "world"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:47:62 -> InstanceConstant(const CustomIterable{})
-Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:48:54 -> InstanceConstant(const _UnmodifiableSet<String*>{_UnmodifiableSet._map: const _ImmutableMap<String*, Null>{_ImmutableMap._kvPairs: const <dynamic>["hello", null, "world", null]}})
-Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:48:59 -> InstanceConstant(const CustomIterable{})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:48:54 -> SetConstant(const <String*>{"hello", "world"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:49:55 -> InstanceConstant(const WithEquals{WithEquals.i: 42})
-Evaluated: MapLiteral @ org-dartlang-testcase:///const_collections.dart:53:34 -> InstanceConstant(const _ImmutableMap<String*, String*>{_ImmutableMap._kvPairs: const <dynamic>["hello", "world"]})
-Evaluated: MapConcatenation @ org-dartlang-testcase:///const_collections.dart:55:27 -> InstanceConstant(const _ImmutableMap<String*, String*>{_ImmutableMap._kvPairs: const <dynamic>["hello", "world", "!", "bye!"]})
-Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:57:52 -> InstanceConstant(const _ImmutableMap<String*, String*>{_ImmutableMap._kvPairs: const <dynamic>["hello", "world"]})
+Evaluated: MapLiteral @ org-dartlang-testcase:///const_collections.dart:53:34 -> MapConstant(const <String*, String*>{"hello": "world"})
+Evaluated: MapConcatenation @ org-dartlang-testcase:///const_collections.dart:55:27 -> MapConstant(const <String*, String*>{"hello": "world", "!": "bye!"})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:57:52 -> MapConstant(const <String*, String*>{"hello": "world"})
 Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:57:61 -> NullConstant(null)
-Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:58:51 -> InstanceConstant(const _ImmutableMap<String*, String*>{_ImmutableMap._kvPairs: const <dynamic>["hello", "world"]})
+Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:58:51 -> MapConstant(const <String*, String*>{"hello": "world"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:61:57 -> InstanceConstant(const CustomMap{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:62:51 -> InstanceConstant(const CustomMap{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:63:45 -> InstanceConstant(const CustomMap{})
 Evaluated: StaticGet @ org-dartlang-testcase:///const_collections.dart:64:51 -> InstanceConstant(const CustomMap{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_collections.dart:66:9 -> InstanceConstant(const WithEquals{WithEquals.i: 42})
-Extra constant evaluation: evaluated: 90, effectively constant: 59
+Extra constant evaluation: evaluated: 87, effectively constant: 58

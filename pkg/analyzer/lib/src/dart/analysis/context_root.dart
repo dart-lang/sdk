@@ -96,13 +96,25 @@ class ContextRootImpl implements ContextRoot {
     Folder folder,
     String includedPath,
   ) sync* {
-    for (Resource resource in folder.getChildren()) {
+    List<Resource> children;
+    try {
+      children = folder.getChildren();
+    } on FileSystemException {
+      return;
+    }
+
+    for (Resource resource in children) {
       String path = resource.path;
       if (!_isExcluded(path, includedPath)) {
         if (resource is File) {
           yield path;
         } else if (resource is Folder) {
-          var canonicalPath = resource.resolveSymbolicLinksSync().path;
+          String canonicalPath;
+          try {
+            canonicalPath = resource.resolveSymbolicLinksSync().path;
+          } on FileSystemException {
+            return;
+          }
           if (visited.add(canonicalPath)) {
             yield* _includedFilesInFolder(visited, resource, includedPath);
             visited.remove(canonicalPath);

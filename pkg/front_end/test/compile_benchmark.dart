@@ -22,7 +22,7 @@ import "simple_stats.dart";
 final Uri benchmarkHelper =
     Platform.script.resolve("compile_benchmark_helper.dart");
 
-main(List<String> args) {
+void main(List<String> args) {
   List<String> arguments;
   bool tryToAnnotate = false;
   bool tryToSlowDown = false;
@@ -234,6 +234,7 @@ class IntPair {
 
   IntPair(this.key, this.value);
 
+  @override
   String toString() {
     return "IntPair[$key: $value]";
   }
@@ -361,14 +362,16 @@ class RegisterCallTransformer extends RecursiveVisitor {
   RegisterCallTransformer(this.registerCallProcedure);
   List<Procedure> procedures = [];
 
-  visitLibrary(Library node) {
+  @override
+  void visitLibrary(Library node) {
     if (node.importUri.scheme == "package" &&
         node.importUri.pathSegments.first == "front_end") {
       super.visitLibrary(node);
     }
   }
 
-  visitProcedure(Procedure node) {
+  @override
+  void visitProcedure(Procedure node) {
     if (node.function.body == null) return;
     int procedureNum = procedures.length;
     procedures.add(node);
@@ -391,14 +394,16 @@ class RegisterTimeTransformer extends RecursiveVisitor {
 
   List<Procedure> procedures = [];
 
-  visitLibrary(Library node) {
+  @override
+  void visitLibrary(Library node) {
     if (node.importUri.scheme == "package" &&
         node.importUri.pathSegments.first == "front_end") {
       super.visitLibrary(node);
     }
   }
 
-  visitProcedure(Procedure node) {
+  @override
+  void visitProcedure(Procedure node) {
     if (node.function.body == null) return;
     if (node.function.dartAsyncMarker != AsyncMarker.Sync) return;
     int procedureNum = procedures.length;

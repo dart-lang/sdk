@@ -27,6 +27,96 @@ class FlutterConvertToStatefulWidgetTest extends AssistProcessorTest {
     );
   }
 
+  Future<void> test_comment() async {
+    await resolveTestCode(r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatelessWidget {
+  // something for a
+  final bool a = false;
+
+  const MyWidget();
+
+  // another for b
+  final bool b = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatefulWidget {
+
+  const MyWidget();
+
+  @override
+  State<MyWidget> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<MyWidget> {
+  // something for a
+  final bool a = false;
+
+  // another for b
+  final bool b = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''');
+  }
+
+  Future<void> test_comment_documentation() async {
+    await resolveTestCode(r'''
+import 'package:flutter/material.dart';
+
+class /*caret*/MyWidget extends StatelessWidget {
+  /// something for a
+  final bool a = false;
+
+  const MyWidget();
+
+  /// another for b
+  final bool b = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatefulWidget {
+
+  const MyWidget();
+
+  @override
+  State<MyWidget> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<MyWidget> {
+  /// something for a
+  final bool a = false;
+
+  /// another for b
+  final bool b = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+''');
+  }
+
   Future<void> test_empty() async {
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';

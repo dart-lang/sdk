@@ -4,16 +4,14 @@
 
 library fasta.source_loader;
 
+import 'dart:collection' show Queue;
 import 'dart:convert' show utf8;
-
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
-
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Parser, lengthForToken;
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show
         ErrorToken,
@@ -23,56 +21,24 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         ScannerResult,
         Token,
         scan;
-
-import 'package:kernel/ast.dart'
-    show
-        Arguments,
-        AsyncMarker,
-        Class,
-        Component,
-        Constructor,
-        DartType,
-        Expression,
-        FunctionNode,
-        InterfaceType,
-        Library,
-        LibraryDependency,
-        Member,
-        NeverType,
-        Nullability,
-        Procedure,
-        ProcedureKind,
-        Reference,
-        Supertype,
-        TreeNode,
-        Version;
-
+import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, HandleAmbiguousSupertypes;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
-
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
-
 import 'package:kernel/type_environment.dart';
-
-import 'package:package_config/package_config.dart';
+import 'package:package_config/package_config.dart' as package_config;
 
 import '../../api_prototype/experimental_flags.dart';
 import '../../api_prototype/file_system.dart';
-
 import '../../base/common.dart';
-
 import '../../base/instrumentation.dart' show Instrumentation;
-
 import '../../base/nnbd_mode.dart';
-
-import '../denylisted_classes.dart'
-    show denylistedCoreClasses, denylistedTypedDataClasses;
-
+import '../dill/dill_library_builder.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
+import '../builder/declaration_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
@@ -80,6 +46,7 @@ import '../builder/field_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/modifier_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/prefix_builder.dart';
@@ -87,38 +54,39 @@ import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
-
+import '../crash.dart' show firstSourceUri;
+import '../denylisted_classes.dart'
+    show denylistedCoreClasses, denylistedTypedDataClasses;
 import '../export.dart' show Export;
-
 import '../fasta_codes.dart';
-
 import '../kernel/body_builder.dart' show BodyBuilder;
-import '../kernel/kernel_builder.dart'
-    show ClassHierarchyBuilder, ClassMember, DelayedCheck;
+import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart'
     show SynthesizedFunctionNode, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/transform_collections.dart' show CollectionTransformer;
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
-
 import '../loader.dart' show Loader, untranslatableUriScheme;
-
-import '../problems.dart' show internalProblem;
-
-import '../source/stack_listener_impl.dart' show offsetForToken;
-
+import '../problems.dart' show internalProblem, unhandled;
+import '../scope.dart';
+import '../ticker.dart' show Ticker;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
-
 import '../util/helpers.dart';
-
 import 'diet_listener.dart' show DietListener;
-import 'diet_parser.dart' show DietParser;
+import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
+import 'name_scheme.dart';
 import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
-import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_library_builder.dart'
+    show
+        LanguageVersion,
+        InvalidLanguageVersion,
+        ImplicitLanguageVersion,
+        SourceLibraryBuilder;
 import 'source_type_alias_builder.dart';
+import 'stack_listener_impl.dart' show offsetForToken;
 
 class SourceLoader extends Loader {
   /// The [FileSystem] which should be used to access files.
@@ -174,12 +142,503 @@ class SourceLoader extends Loader {
 
   final SourceLoaderDataForTesting? dataForTesting;
 
-  SourceLoader(this.fileSystem, this.includeComments, KernelTarget target)
+  final Map<Uri, LibraryBuilder> _builders = <Uri, LibraryBuilder>{};
+
+  final Queue<LibraryBuilder> _unparsedLibraries = new Queue<LibraryBuilder>();
+
+  final List<Library> libraries = <Library>[];
+
+  @override
+  final KernelTarget target;
+
+  /// List of all handled compile-time errors seen so far by libraries loaded
+  /// by this loader.
+  ///
+  /// A handled error is an error that has been added to the generated AST
+  /// already, for example, as a throw expression.
+  final List<LocatedMessage> handledErrors = <LocatedMessage>[];
+
+  /// List of all unhandled compile-time errors seen so far by libraries loaded
+  /// by this loader.
+  ///
+  /// An unhandled error is an error that hasn't been handled, see
+  /// [handledErrors].
+  final List<LocatedMessage> unhandledErrors = <LocatedMessage>[];
+
+  /// List of all problems seen so far by libraries loaded by this loader that
+  /// does not belong directly to a library.
+  final List<FormattedMessage> allComponentProblems = <FormattedMessage>[];
+
+  /// The text of the messages that have been reported.
+  ///
+  /// This is used filter messages so that we don't report the same error twice.
+  final Set<String> seenMessages = new Set<String>();
+
+  /// Set to `true` if one of the reported errors had severity `Severity.error`.
+  ///
+  /// This is used for [hasSeenError].
+  bool _hasSeenError = false;
+
+  /// Clears the [seenMessages] and [hasSeenError] state.
+  void resetSeenMessages() {
+    seenMessages.clear();
+    _hasSeenError = false;
+  }
+
+  /// Returns `true` if a compile time error has been reported.
+  bool get hasSeenError => _hasSeenError;
+
+  LibraryBuilder? _coreLibrary;
+  LibraryBuilder? typedDataLibrary;
+
+  /// The first library that we've been asked to compile. When compiling a
+  /// program (aka script), this is the library that should have a main method.
+  LibraryBuilder? first;
+
+  int byteCount = 0;
+
+  Uri? currentUriForCrashReporting;
+
+  SourceLoader(this.fileSystem, this.includeComments, this.target)
       : dataForTesting =
-            retainDataForTesting ? new SourceLoaderDataForTesting() : null,
-        super(target);
+            retainDataForTesting ? new SourceLoaderDataForTesting() : null;
+
+  bool containsLibraryBuilder(Uri importUri) =>
+      _builders.containsKey(importUri);
+
+  @override
+  LibraryBuilder? lookupLibraryBuilder(Uri importUri) => _builders[importUri];
+
+  Iterable<LibraryBuilder> get libraryBuilders => _builders.values;
+
+  Iterable<Uri> get libraryImportUris => _builders.keys;
+
+  void registerLibraryBuilder(LibraryBuilder libraryBuilder, [Uri? uri]) {
+    uri ??= libraryBuilder.importUri;
+    if (uri.scheme == "dart" && uri.path == "core") {
+      _coreLibrary = libraryBuilder;
+    }
+    _builders[uri] = libraryBuilder;
+  }
+
+  LibraryBuilder? deregisterLibraryBuilder(Uri importUri) {
+    return _builders.remove(importUri);
+  }
+
+  void clearLibraryBuilders() {
+    _builders.clear();
+  }
+
+  @override
+  LibraryBuilder get coreLibrary => _coreLibrary!;
+
+  Ticker get ticker => target.ticker;
+
+  /// Creates a [SourceLibraryBuilder] corresponding to [uri], if one doesn't
+  /// exist already.
+  ///
+  /// [fileUri] must not be null and is a URI that can be passed to FileSystem
+  /// to locate the corresponding file.
+  ///
+  /// [origin] is non-null if the created library is a patch to [origin].
+  ///
+  /// [packageUri] is the base uri for the package which the library belongs to.
+  /// For instance 'package:foo'.
+  ///
+  /// This is used to associate libraries in for instance the 'bin' and 'test'
+  /// folders of a package source with the package uri of the 'lib' folder.
+  ///
+  /// If the [packageUri] is `null` the package association of this library is
+  /// based on its [importUri].
+  ///
+  /// For libraries with a 'package:' [importUri], the package path must match
+  /// the path in the [importUri]. For libraries with a 'dart:' [importUri] the
+  /// [packageUri] must be `null`.
+  ///
+  /// [packageLanguageVersion] is the language version defined by the package
+  /// which the library belongs to, or the current sdk version if the library
+  /// doesn't belong to a package.
+  SourceLibraryBuilder createLibraryBuilder(
+      Uri uri,
+      Uri fileUri,
+      Uri? packageUri,
+      LanguageVersion packageLanguageVersion,
+      SourceLibraryBuilder? origin,
+      Library? referencesFrom,
+      bool? referenceIsPartOwner) {
+    return new SourceLibraryBuilder(
+        uri, fileUri, packageUri, packageLanguageVersion, this, origin,
+        referencesFrom: referencesFrom,
+        referenceIsPartOwner: referenceIsPartOwner);
+  }
+
+  SourceLibraryBuilder _createSourceLibraryBuilder(
+      Uri uri,
+      Uri? fileUri,
+      SourceLibraryBuilder? origin,
+      Library? referencesFrom,
+      bool? referenceIsPartOwner) {
+    if (fileUri != null &&
+        (fileUri.scheme == "dart" ||
+            fileUri.scheme == "package" ||
+            fileUri.scheme == "dart-ext")) {
+      fileUri = null;
+    }
+    package_config.Package? packageForLanguageVersion;
+    if (fileUri == null) {
+      switch (uri.scheme) {
+        case "package":
+        case "dart":
+          fileUri = target.translateUri(uri) ??
+              new Uri(
+                  scheme: untranslatableUriScheme,
+                  path: Uri.encodeComponent("$uri"));
+          if (uri.scheme == "package") {
+            packageForLanguageVersion = target.uriTranslator.getPackage(uri);
+          } else {
+            packageForLanguageVersion =
+                target.uriTranslator.packages.packageOf(fileUri);
+          }
+          break;
+
+        default:
+          fileUri = uri;
+          packageForLanguageVersion =
+              target.uriTranslator.packages.packageOf(fileUri);
+          break;
+      }
+    } else {
+      packageForLanguageVersion =
+          target.uriTranslator.packages.packageOf(fileUri);
+    }
+    LanguageVersion? packageLanguageVersion;
+    Uri? packageUri;
+    Message? packageLanguageVersionProblem;
+    if (packageForLanguageVersion != null) {
+      Uri importUri = origin?.importUri ?? uri;
+      if (importUri.scheme != 'dart' &&
+          importUri.scheme != 'package' &&
+          // ignore: unnecessary_null_comparison
+          packageForLanguageVersion.name != null) {
+        packageUri =
+            new Uri(scheme: 'package', path: packageForLanguageVersion.name);
+      }
+      if (packageForLanguageVersion.languageVersion != null) {
+        if (packageForLanguageVersion.languageVersion
+            is package_config.InvalidLanguageVersion) {
+          packageLanguageVersionProblem =
+              messageLanguageVersionInvalidInDotPackages;
+          packageLanguageVersion = new InvalidLanguageVersion(
+              fileUri, 0, noLength, target.currentSdkVersion, false);
+        } else {
+          Version version = new Version(
+              packageForLanguageVersion.languageVersion!.major,
+              packageForLanguageVersion.languageVersion!.minor);
+          if (version > target.currentSdkVersion) {
+            packageLanguageVersionProblem =
+                templateLanguageVersionTooHigh.withArguments(
+                    target.currentSdkVersion.major,
+                    target.currentSdkVersion.minor);
+            packageLanguageVersion = new InvalidLanguageVersion(
+                fileUri, 0, noLength, target.currentSdkVersion, false);
+          } else {
+            packageLanguageVersion = new ImplicitLanguageVersion(version);
+          }
+        }
+      }
+    }
+    packageLanguageVersion ??=
+        new ImplicitLanguageVersion(target.currentSdkVersion);
+
+    SourceLibraryBuilder libraryBuilder = createLibraryBuilder(
+        uri,
+        fileUri,
+        packageUri,
+        packageLanguageVersion,
+        origin,
+        referencesFrom,
+        referenceIsPartOwner);
+    if (packageLanguageVersionProblem != null) {
+      libraryBuilder.addPostponedProblem(
+          packageLanguageVersionProblem, 0, noLength, libraryBuilder.fileUri);
+    }
+
+    // Add any additional logic after this block. Setting the
+    // firstSourceUri and first library should be done as early as
+    // possible.
+    firstSourceUri ??= uri;
+    first ??= libraryBuilder;
+
+    _checkForDartCore(uri, libraryBuilder);
+
+    Uri libraryUri = origin?.importUri ?? uri;
+    if (target.backendTarget.mayDefineRestrictedType(libraryUri)) {
+      libraryBuilder.mayImplementRestrictedTypes = true;
+    }
+    if (uri.scheme == "dart") {
+      target.readPatchFiles(libraryBuilder);
+    }
+    _unparsedLibraries.addLast(libraryBuilder);
+
+    return libraryBuilder;
+  }
+
+  DillLibraryBuilder? _lookupDillLibraryBuilder(Uri uri) {
+    DillLibraryBuilder? libraryBuilder =
+        target.dillTarget.loader.lookupLibraryBuilder(uri);
+    if (libraryBuilder != null) {
+      _checkDillLibraryBuilderNnbdMode(libraryBuilder);
+      _checkForDartCore(uri, libraryBuilder);
+    }
+    return libraryBuilder;
+  }
+
+  void _checkDillLibraryBuilderNnbdMode(DillLibraryBuilder libraryBuilder) {
+    if (!libraryBuilder.isNonNullableByDefault &&
+        (nnbdMode == NnbdMode.Strong || nnbdMode == NnbdMode.Agnostic)) {
+      registerStrongOptOutLibrary(libraryBuilder);
+    } else {
+      NonNullableByDefaultCompiledMode libraryMode =
+          libraryBuilder.library.nonNullableByDefaultCompiledMode;
+      if (libraryMode == NonNullableByDefaultCompiledMode.Invalid) {
+        registerNnbdMismatchLibrary(
+            libraryBuilder, messageInvalidNnbdDillLibrary);
+      } else {
+        switch (nnbdMode) {
+          case NnbdMode.Weak:
+            if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
+                libraryMode != NonNullableByDefaultCompiledMode.Weak) {
+              registerNnbdMismatchLibrary(
+                  libraryBuilder, messageWeakWithStrongDillLibrary);
+            }
+            break;
+          case NnbdMode.Strong:
+            if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic &&
+                libraryMode != NonNullableByDefaultCompiledMode.Strong) {
+              registerNnbdMismatchLibrary(
+                  libraryBuilder, messageStrongWithWeakDillLibrary);
+            }
+            break;
+          case NnbdMode.Agnostic:
+            if (libraryMode != NonNullableByDefaultCompiledMode.Agnostic) {
+              if (libraryMode == NonNullableByDefaultCompiledMode.Strong) {
+                registerNnbdMismatchLibrary(
+                    libraryBuilder, messageAgnosticWithStrongDillLibrary);
+              } else {
+                registerNnbdMismatchLibrary(
+                    libraryBuilder, messageAgnosticWithWeakDillLibrary);
+              }
+            }
+            break;
+        }
+      }
+    }
+  }
+
+  void _checkForDartCore(Uri uri, LibraryBuilder libraryBuilder) {
+    if (uri.scheme == "dart") {
+      if (uri.path == "core") {
+        _coreLibrary = libraryBuilder;
+      } else if (uri.path == "typed_data") {
+        typedDataLibrary = libraryBuilder;
+      }
+    }
+    // TODO(johnniwinther): If we save the created library in [_builders]
+    // here, i.e. before calling `target.loadExtraRequiredLibraries` below,
+    // the order of the libraries change, making `dart:core` come before the
+    // required arguments. Currently [DillLoader.appendLibrary] one works
+    // when this is not the case.
+    if (_coreLibrary == libraryBuilder) {
+      target.loadExtraRequiredLibraries(this);
+    }
+  }
+
+  /// Look up a library builder by the [uri], or if such doesn't exist, create
+  /// one. The canonical URI of the library is [uri], and its actual location is
+  /// [fileUri].
+  ///
+  /// Canonical URIs have schemes like "dart", or "package", and the actual
+  /// location is often a file URI.
+  ///
+  /// The [accessor] is the library that's trying to import, export, or include
+  /// as part [uri], and [charOffset] is the location of the corresponding
+  /// directive. If [accessor] isn't allowed to access [uri], it's a
+  /// compile-time error.
+  LibraryBuilder read(Uri uri, int charOffset,
+      {Uri? fileUri,
+      LibraryBuilder? accessor,
+      LibraryBuilder? origin,
+      Library? referencesFrom,
+      bool? referenceIsPartOwner}) {
+    LibraryBuilder? libraryBuilder = _builders[uri];
+    if (libraryBuilder == null) {
+      if (target.dillTarget.isLoaded) {
+        libraryBuilder = _lookupDillLibraryBuilder(uri);
+      }
+      if (libraryBuilder == null) {
+        libraryBuilder = _createSourceLibraryBuilder(
+            uri,
+            fileUri,
+            origin as SourceLibraryBuilder?,
+            referencesFrom,
+            referenceIsPartOwner);
+      }
+
+      _builders[uri] = libraryBuilder;
+    }
+    if (accessor == null) {
+      if (libraryBuilder.loader == this && first != libraryBuilder) {
+        unhandled("null", "accessor", charOffset, uri);
+      }
+    } else {
+      libraryBuilder.recordAccess(charOffset, noLength, accessor.fileUri);
+      if (!accessor.isPatch &&
+          !accessor.isPart &&
+          !target.backendTarget
+              .allowPlatformPrivateLibraryAccess(accessor.importUri, uri)) {
+        accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
+            noLength, accessor.fileUri);
+      }
+    }
+    return libraryBuilder;
+  }
+
+  void _ensureCoreLibrary() {
+    if (_coreLibrary == null) {
+      read(Uri.parse("dart:core"), 0, accessor: first);
+      // TODO(askesc): When all backends support set literals, we no longer
+      // need to index dart:collection, as it is only needed for desugaring of
+      // const sets. We can remove it from this list at that time.
+      read(Uri.parse("dart:collection"), 0, accessor: first);
+      assert(_coreLibrary != null);
+    }
+  }
+
+  Future<Null> buildBodies() async {
+    assert(_coreLibrary != null);
+    for (LibraryBuilder library in libraryBuilders) {
+      if (library.loader == this) {
+        currentUriForCrashReporting = library.importUri;
+        await buildBody(library);
+      }
+    }
+    currentUriForCrashReporting = null;
+    logSummary(templateSourceBodySummary);
+  }
+
+  void logSummary(Template<SummaryTemplate> template) {
+    ticker.log((Duration elapsed, Duration sinceStart) {
+      int libraryCount = 0;
+      for (LibraryBuilder library in libraryBuilders) {
+        if (library.loader == this) libraryCount++;
+      }
+      double ms = elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
+      Message message = template.withArguments(
+          libraryCount, byteCount, ms, byteCount / ms, ms / libraryCount);
+      print("$sinceStart: ${message.problemMessage}");
+    });
+  }
+
+  /// Register [message] as a problem with a severity determined by the
+  /// intrinsic severity of the message.
+  @override
+  FormattedMessage? addProblem(
+      Message message, int charOffset, int length, Uri? fileUri,
+      {bool wasHandled: false,
+      List<LocatedMessage>? context,
+      Severity? severity,
+      bool problemOnLibrary: false,
+      List<Uri>? involvedFiles}) {
+    return addMessage(message, charOffset, length, fileUri, severity,
+        wasHandled: wasHandled,
+        context: context,
+        problemOnLibrary: problemOnLibrary,
+        involvedFiles: involvedFiles);
+  }
+
+  /// All messages reported by the compiler (errors, warnings, etc.) are routed
+  /// through this method.
+  ///
+  /// Returns a FormattedMessage if the message is new, that is, not previously
+  /// reported. This is important as some parser errors may be reported up to
+  /// three times by `OutlineBuilder`, `DietListener`, and `BodyBuilder`.
+  /// If the message is not new, [null] is reported.
+  ///
+  /// If [severity] is `Severity.error`, the message is added to
+  /// [handledErrors] if [wasHandled] is true or to [unhandledErrors] if
+  /// [wasHandled] is false.
+  FormattedMessage? addMessage(Message message, int charOffset, int length,
+      Uri? fileUri, Severity? severity,
+      {bool wasHandled: false,
+      List<LocatedMessage>? context,
+      bool problemOnLibrary: false,
+      List<Uri>? involvedFiles}) {
+    severity ??= message.code.severity;
+    if (severity == Severity.ignored) return null;
+    String trace = """
+message: ${message.problemMessage}
+charOffset: $charOffset
+fileUri: $fileUri
+severity: $severity
+""";
+    if (!seenMessages.add(trace)) return null;
+    if (message.code.severity == Severity.error) {
+      _hasSeenError = true;
+    }
+    if (message.code.severity == Severity.context) {
+      internalProblem(
+          templateInternalProblemContextSeverity
+              .withArguments(message.code.name),
+          charOffset,
+          fileUri);
+    }
+    target.context.report(
+        fileUri != null
+            ? message.withLocation(fileUri, charOffset, length)
+            : message.withoutLocation(),
+        severity,
+        context: context,
+        involvedFiles: involvedFiles);
+    if (severity == Severity.error) {
+      (wasHandled ? handledErrors : unhandledErrors).add(fileUri != null
+          ? message.withLocation(fileUri, charOffset, length)
+          : message.withoutLocation());
+    }
+    FormattedMessage formattedMessage = target.createFormattedMessage(
+        message, charOffset, length, fileUri, context, severity,
+        involvedFiles: involvedFiles);
+    if (!problemOnLibrary) {
+      allComponentProblems.add(formattedMessage);
+    }
+    return formattedMessage;
+  }
+
+  MemberBuilder getAbstractClassInstantiationError() {
+    return target.getAbstractClassInstantiationError(this);
+  }
+
+  MemberBuilder getCompileTimeError() => target.getCompileTimeError(this);
+
+  MemberBuilder getDuplicatedFieldInitializerError() {
+    return target.getDuplicatedFieldInitializerError(this);
+  }
+
+  MemberBuilder getNativeAnnotation() => target.getNativeAnnotation(this);
+
+  BodyBuilder createBodyBuilderForOutlineExpression(
+      SourceLibraryBuilder library,
+      DeclarationBuilder? declarationBuilder,
+      ModifierBuilder member,
+      Scope scope,
+      Uri fileUri) {
+    return new BodyBuilder.forOutlineExpression(
+        library, declarationBuilder, member, scope, fileUri);
+  }
 
   NnbdMode get nnbdMode => target.context.options.nnbdMode;
+
+  bool get enableUnscheduledExperiments =>
+      target.context.options.enableUnscheduledExperiments;
 
   CoreTypes get coreTypes {
     assert(_coreTypes != null, "CoreTypes has not been computed.");
@@ -205,8 +664,6 @@ class SourceLoader extends Loader {
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateSourceOutlineSummary;
-
-  bool get isSourceLoader => true;
 
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
@@ -271,10 +728,9 @@ class SourceLoader extends Loader {
                     library.importUri,
                     library.packageLanguageVersion.version),
             enableNonNullable: target.isExperimentEnabledInLibraryByVersion(
-                    ExperimentalFlag.nonNullable,
-                    library.importUri,
-                    library.packageLanguageVersion.version) &&
-                !SourceLibraryBuilder.isOptOutTest(library.importUri)),
+                ExperimentalFlag.nonNullable,
+                library.importUri,
+                library.packageLanguageVersion.version)),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
       if (!suppressLexicalErrors) {
@@ -339,7 +795,8 @@ class SourceLoader extends Loader {
         return utf8.encode(defaultDartTypedDataSource);
 
       default:
-        return utf8.encode(message == null ? "" : "/* ${message.message} */");
+        return utf8
+            .encode(message == null ? "" : "/* ${message.problemMessage} */");
     }
   }
 
@@ -371,9 +828,15 @@ class SourceLoader extends Loader {
     _typeInferenceEngine!.typeDependencies[member] = typeDependency;
   }
 
-  @override
   Future<Null> buildOutlines() async {
-    await super.buildOutlines();
+    _ensureCoreLibrary();
+    while (_unparsedLibraries.isNotEmpty) {
+      LibraryBuilder library = _unparsedLibraries.removeFirst();
+      currentUriForCrashReporting = library.importUri;
+      await buildOutline(library as SourceLibraryBuilder);
+    }
+    currentUriForCrashReporting = null;
+    logSummary(outlineSummaryTemplate);
 
     if (_strongOptOutLibraries != null) {
       // We have libraries that are opted out in strong mode "non-explicitly",
@@ -408,9 +871,9 @@ class SourceLoader extends Loader {
       Set<LibraryBuilder> libraries,
       {required bool emitNonPackageErrors}) {
     Map<String?, List<LibraryBuilder>> libraryByPackage = {};
-    Map<Package, Version> enableNonNullableVersionByPackage = {};
+    Map<package_config.Package, Version> enableNonNullableVersionByPackage = {};
     for (LibraryBuilder libraryBuilder in libraries) {
-      final Package? package =
+      final package_config.Package? package =
           target.uriTranslator.getPackage(libraryBuilder.importUri);
 
       if (package != null &&
@@ -483,6 +946,7 @@ class SourceLoader extends Loader {
     new ClassMemberParser(listener).parseUnit(tokens);
   }
 
+  /// Builds all the method bodies found in the given [library].
   Future<Null> buildBody(LibraryBuilder library) async {
     if (library is SourceLibraryBuilder) {
       // We tokenize source files twice to keep memory usage low. This is the
@@ -510,26 +974,32 @@ class SourceLoader extends Loader {
     }
   }
 
-  // TODO(johnniwinther,jensj): Handle expression in extensions?
   Future<Expression> buildExpression(
       SourceLibraryBuilder libraryBuilder,
-      String? enclosingClass,
+      String? enclosingClassOrExtension,
       bool isClassInstanceMember,
-      FunctionNode parameters) async {
+      FunctionNode parameters,
+      VariableDeclaration? extensionThis) async {
     Token token = await tokenize(libraryBuilder, suppressLexicalErrors: false);
     DietListener dietListener = createDietListener(libraryBuilder);
 
     Builder parent = libraryBuilder;
-    if (enclosingClass != null) {
+    if (enclosingClassOrExtension != null) {
       Builder? cls = dietListener.memberScope
-          .lookup(enclosingClass, -1, libraryBuilder.fileUri);
+          .lookup(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
       if (cls is ClassBuilder) {
         parent = cls;
         dietListener
           ..currentDeclaration = cls
           ..memberScope = cls.scope.copyWithParent(
               dietListener.memberScope.withTypeVariables(cls.typeVariables),
-              "debugExpression in $enclosingClass");
+              "debugExpression in class $enclosingClassOrExtension");
+      } else if (cls is ExtensionBuilder) {
+        parent = cls;
+        dietListener
+          ..currentDeclaration = cls
+          ..memberScope = cls.scope.copyWithParent(dietListener.memberScope,
+              "debugExpression in extension $enclosingClassOrExtension");
       }
     }
     ProcedureBuilder builder = new SourceProcedureBuilder(
@@ -548,22 +1018,26 @@ class SourceLoader extends Loader {
         null,
         null,
         AsyncMarker.Sync,
-        new ProcedureNameScheme(
+        new NameScheme(
+            className: null,
+            extensionName: null,
             isExtensionMember: false,
-            isStatic: true,
+            isInstanceMember: false,
             libraryReference: libraryBuilder.library.reference),
         isInstanceMember: false,
         isExtensionMember: false)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
-        isDeclarationInstanceMember: isClassInstanceMember) as BodyBuilder;
+        isDeclarationInstanceMember: isClassInstanceMember,
+        extensionThis: extensionThis);
 
     return listener.parseSingleExpression(
-        new Parser(listener), token, parameters);
+        new Parser(listener,
+            useImplicitCreationExpression: useImplicitCreationExpressionInCfe),
+        token,
+        parameters);
   }
-
-  KernelTarget get target => super.target as KernelTarget;
 
   DietListener createDietListener(SourceLibraryBuilder library) {
     return new DietListener(library, hierarchy, coreTypes, typeInferenceEngine);
@@ -572,7 +1046,7 @@ class SourceLoader extends Loader {
   void resolveParts() {
     List<Uri> parts = <Uri>[];
     List<SourceLibraryBuilder> libraries = <SourceLibraryBuilder>[];
-    builders.forEach((Uri uri, LibraryBuilder library) {
+    _builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == this) {
         if (library.isPart) {
           parts.add(uri);
@@ -587,16 +1061,17 @@ class SourceLoader extends Loader {
     }
     for (Uri uri in parts) {
       if (usedParts.contains(uri)) {
-        builders.remove(uri);
+        _builders.remove(uri);
       } else {
-        SourceLibraryBuilder part = builders[uri] as SourceLibraryBuilder;
+        SourceLibraryBuilder part =
+            lookupLibraryBuilder(uri) as SourceLibraryBuilder;
         part.addProblem(messagePartOrphan, 0, 1, part.fileUri);
         part.validatePart(null, null);
       }
     }
     ticker.logMs("Resolved parts");
 
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         library.applyPatches();
       }
@@ -607,7 +1082,7 @@ class SourceLoader extends Loader {
   void computeLibraryScopes() {
     Set<LibraryBuilder> exporters = new Set<LibraryBuilder>();
     Set<LibraryBuilder> exportees = new Set<LibraryBuilder>();
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
         sourceLibrary.buildInitialScopes();
@@ -641,7 +1116,7 @@ class SourceLoader extends Loader {
         }
       }
     } while (wasChanged);
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
         sourceLibrary.addImportsToScope();
@@ -660,7 +1135,7 @@ class SourceLoader extends Loader {
 
   void debugPrintExports() {
     // TODO(sigmund): should be `covariant SourceLibraryBuilder`.
-    builders.forEach((Uri uri, dynamic l) {
+    _builders.forEach((Uri uri, dynamic l) {
       SourceLibraryBuilder library = l;
       Set<Builder> members = new Set<Builder>();
       Iterator<Builder> iterator = library.iterator;
@@ -684,7 +1159,7 @@ class SourceLoader extends Loader {
 
   void resolveTypes() {
     int typeCount = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
         typeCount += sourceLibrary.resolveTypes();
@@ -695,7 +1170,7 @@ class SourceLoader extends Loader {
 
   void finishDeferredLoadTearoffs() {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.finishDeferredLoadTearoffs();
       }
@@ -705,7 +1180,7 @@ class SourceLoader extends Loader {
 
   void finishNoSuchMethodForwarders() {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.finishForwarders();
       }
@@ -715,7 +1190,7 @@ class SourceLoader extends Loader {
 
   void resolveConstructors() {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.resolveConstructors(null);
       }
@@ -725,7 +1200,7 @@ class SourceLoader extends Loader {
 
   void installTypedefTearOffs() {
     if (target.backendTarget.isTypedefTearOffLoweringEnabled) {
-      for (LibraryBuilder library in builders.values) {
+      for (LibraryBuilder library in libraryBuilders) {
         if (library.loader == this && library is SourceLibraryBuilder) {
           library.installTypedefTearOffs();
         }
@@ -735,7 +1210,7 @@ class SourceLoader extends Loader {
 
   void finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.finishTypeVariables(object, dynamicType);
       }
@@ -745,7 +1220,7 @@ class SourceLoader extends Loader {
 
   void computeVariances() {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.computeVariances();
       }
@@ -756,7 +1231,7 @@ class SourceLoader extends Loader {
   void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
       TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.computeDefaultTypes(
             dynamicType, nullType, bottomType, objectClass);
@@ -767,7 +1242,7 @@ class SourceLoader extends Loader {
 
   void finishNativeMethods() {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.finishNativeMethods();
       }
@@ -777,7 +1252,7 @@ class SourceLoader extends Loader {
 
   void finishPatchMethods() {
     int count = 0;
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         count += library.finishPatchMethods();
       }
@@ -816,7 +1291,7 @@ class SourceLoader extends Loader {
   List<SourceClassBuilder> handleHierarchyCycles(ClassBuilder objectClass) {
     // Compute the initial work list of all classes declared in this loader.
     List<SourceClassBuilder> workList = <SourceClassBuilder>[];
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         Iterator<Builder> members = library.iterator;
         while (members.moveNext()) {
@@ -1015,7 +1490,7 @@ class SourceLoader extends Loader {
 
   /// Builds the core AST structure needed for the outline of the component.
   void buildComponent() {
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
         Library target = sourceLibrary.build(coreLibrary);
@@ -1035,7 +1510,7 @@ class SourceLoader extends Loader {
   Component computeFullComponent() {
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
-    for (LibraryBuilder libraryBuilder in builders.values) {
+    for (LibraryBuilder libraryBuilder in libraryBuilders) {
       if (!libraryBuilder.isPatch &&
           (libraryBuilder.loader == this ||
               libraryBuilder.importUri.scheme == "dart" ||
@@ -1081,6 +1556,16 @@ class SourceLoader extends Loader {
     ticker.logMs("Computed class hierarchy");
   }
 
+  void computeShowHideElements() {
+    for (LibraryBuilder libraryBuilder in libraryBuilders) {
+      if (libraryBuilder.loader == this &&
+          libraryBuilder is SourceLibraryBuilder) {
+        libraryBuilder.computeShowHideElements(_builderHierarchy!);
+      }
+    }
+    ticker.logMs("Computed show and hide elements");
+  }
+
   void handleAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {
     addProblem(
         templateAmbiguousSupertypes.withArguments(cls.name, a.asInterfaceType,
@@ -1120,7 +1605,7 @@ class SourceLoader extends Loader {
   }
 
   void checkTypes() {
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library is SourceLibraryBuilder) {
         if (library.loader == this) {
           library
@@ -1201,7 +1686,7 @@ class SourceLoader extends Loader {
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     List<DelayedActionPerformer> delayedActionPerformers =
         <DelayedActionPerformer>[];
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         (library as SourceLibraryBuilder).buildOutlineExpressions();
         Iterator<Builder> iterator = library.iterator;
@@ -1258,7 +1743,7 @@ class SourceLoader extends Loader {
     builderHierarchy.computeTypes();
 
     List<FieldBuilder> allImplicitlyTypedFields = <FieldBuilder>[];
-    for (LibraryBuilder library in builders.values) {
+    for (LibraryBuilder library in libraryBuilders) {
       if (library.loader == this) {
         List<FieldBuilder>? implicitlyTypedFields =
             library.takeImplicitlyTypedFields();
@@ -1354,7 +1839,7 @@ class SourceLoader extends Loader {
   void checkMainMethods() {
     DartType? listOfString;
 
-    for (LibraryBuilder libraryBuilder in builders.values) {
+    for (LibraryBuilder libraryBuilder in libraryBuilders) {
       if (libraryBuilder.loader == this &&
           libraryBuilder.isNonNullableByDefault) {
         Builder? mainBuilder =
@@ -1483,7 +1968,7 @@ class SourceLoader extends Loader {
     hierarchy = null;
     _builderHierarchy = null;
     _typeInferenceEngine = null;
-    builders.clear();
+    _builders.clear();
     libraries.clear();
     first = null;
     sourceBytes.clear();
@@ -1497,7 +1982,7 @@ class SourceLoader extends Loader {
   @override
   ClassBuilder computeClassBuilderFromTargetClass(Class cls) {
     Library kernelLibrary = cls.enclosingLibrary;
-    LibraryBuilder? library = builders[kernelLibrary.importUri];
+    LibraryBuilder? library = lookupLibraryBuilder(kernelLibrary.importUri);
     if (library == null) {
       return target.dillTarget.loader.computeClassBuilderFromTargetClass(cls);
     }
@@ -1582,10 +2067,6 @@ abstract class Map<K, V> extends Iterable {
   void operator []=(K key, V value) {}
 }
 
-abstract class _ImmutableMap<K, V> implements Map<K, V> {
-  dynamic _kvPairs;
-}
-
 abstract class pragma {
   String name;
   Object options;
@@ -1608,6 +2089,9 @@ class Object {
 }
 
 abstract class Enum {
+}
+
+abstract class _Enum {
 }
 
 class String {}

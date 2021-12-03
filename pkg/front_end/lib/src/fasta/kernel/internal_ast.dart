@@ -87,12 +87,14 @@ abstract class TypeArgumentsInfo {
 class AllInferredTypeArgumentsInfo extends TypeArgumentsInfo {
   const AllInferredTypeArgumentsInfo();
 
+  @override
   bool isInferred(int index) => true;
 }
 
 class NoneInferredTypeArgumentsInfo extends TypeArgumentsInfo {
   const NoneInferredTypeArgumentsInfo();
 
+  @override
   bool isInferred(int index) => false;
 }
 
@@ -101,6 +103,7 @@ class ExtensionMethodTypeArgumentsInfo implements TypeArgumentsInfo {
 
   ExtensionMethodTypeArgumentsInfo(this.arguments);
 
+  @override
   bool isInferred(int index) {
     if (index < arguments._extensionTypeParameterCount) {
       // The index refers to a type argument for a type parameter declared on
@@ -114,6 +117,7 @@ class ExtensionMethodTypeArgumentsInfo implements TypeArgumentsInfo {
         arguments._explicitTypeArgumentCount;
   }
 
+  @override
   int getOffsetForIndex(int index, int offset) {
     if (index < arguments._extensionTypeParameterCount) {
       return arguments._extensionTypeArgumentOffset ?? offset;
@@ -487,8 +491,28 @@ class ArgumentsImpl extends Arguments {
 
   int _explicitTypeArgumentCount;
 
+  List<Object?>? argumentsOriginalOrder;
+
+  ArgumentsImpl.internal(
+      {required List<Expression> positional,
+      required List<DartType>? types,
+      required List<NamedExpression>? named,
+      required int extensionTypeParameterCount,
+      required int explicitExtensionTypeArgumentCount,
+      required int? extensionTypeArgumentOffset,
+      required int explicitTypeArgumentCount})
+      : this._extensionTypeParameterCount = extensionTypeParameterCount,
+        this._explicitExtensionTypeArgumentCount =
+            explicitExtensionTypeArgumentCount,
+        this._extensionTypeArgumentOffset = extensionTypeArgumentOffset,
+        this._explicitTypeArgumentCount = explicitTypeArgumentCount,
+        this.argumentsOriginalOrder = null,
+        super(positional, types: types, named: named);
+
   ArgumentsImpl(List<Expression> positional,
-      {List<DartType>? types, List<NamedExpression>? named})
+      {List<DartType>? types,
+      List<NamedExpression>? named,
+      this.argumentsOriginalOrder})
       : _explicitTypeArgumentCount = types?.length ?? 0,
         _extensionTypeParameterCount = 0,
         _explicitExtensionTypeArgumentCount = 0,
@@ -502,7 +526,8 @@ class ArgumentsImpl extends Arguments {
       int? extensionTypeArgumentOffset,
       List<DartType> typeArguments = const <DartType>[],
       List<Expression> positionalArguments = const <Expression>[],
-      List<NamedExpression> namedArguments = const <NamedExpression>[]})
+      List<NamedExpression> namedArguments = const <NamedExpression>[],
+      this.argumentsOriginalOrder})
       : _extensionTypeParameterCount = extensionTypeParameterCount,
         _explicitExtensionTypeArgumentCount = extensionTypeArguments.length,
         _explicitTypeArgumentCount = typeArguments.length,
@@ -518,6 +543,19 @@ class ArgumentsImpl extends Arguments {
                   extensionTypeParameterCount, extensionTypeArguments))
               ..addAll(
                   _normalizeTypeArguments(typeParameterCount, typeArguments)));
+
+  static ArgumentsImpl clone(ArgumentsImpl node, List<Expression> positional,
+      List<NamedExpression> named, List<DartType> types) {
+    return new ArgumentsImpl.internal(
+        positional: positional,
+        named: named,
+        types: types,
+        extensionTypeParameterCount: node._extensionTypeParameterCount,
+        explicitExtensionTypeArgumentCount:
+            node._explicitExtensionTypeArgumentCount,
+        explicitTypeArgumentCount: node._explicitTypeArgumentCount,
+        extensionTypeArgumentOffset: node._extensionTypeArgumentOffset);
+  }
 
   static List<DartType> _normalizeTypeArguments(
       int length, List<DartType> arguments) {
@@ -668,6 +706,7 @@ class DeferredCheck extends InternalExpression {
     return visitor.visitDeferredCheck(this, typeContext);
   }
 
+  @override
   InternalExpressionKind get kind => InternalExpressionKind.DeferredCheck;
 
   @override
@@ -729,23 +768,23 @@ abstract class ExpressionJudgment extends Expression {
 
 /// Shadow object for [StaticInvocation] when the procedure being invoked is a
 /// factory constructor.
-class FactoryConstructorInvocationJudgment extends StaticInvocation
+class FactoryConstructorInvocation extends StaticInvocation
     implements ExpressionJudgment {
   bool hasBeenInferred = false;
 
-  FactoryConstructorInvocationJudgment(Procedure target, Arguments arguments,
+  FactoryConstructorInvocation(Procedure target, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
   @override
   ExpressionInferenceResult acceptInference(
       InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitFactoryConstructorInvocationJudgment(this, typeContext);
+    return visitor.visitFactoryConstructorInvocation(this, typeContext);
   }
 
   @override
   String toString() {
-    return "FactoryConstructorInvocationJudgment(${toStringInternal()})";
+    return "FactoryConstructorInvocation(${toStringInternal()})";
   }
 
   @override
@@ -767,12 +806,12 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
 
 /// Shadow object for [ConstructorInvocation] when the procedure being invoked
 /// is a type aliased constructor.
-class TypeAliasedConstructorInvocationJudgment extends ConstructorInvocation
+class TypeAliasedConstructorInvocation extends ConstructorInvocation
     implements ExpressionJudgment {
   bool hasBeenInferred = false;
   final TypeAliasBuilder typeAliasBuilder;
 
-  TypeAliasedConstructorInvocationJudgment(
+  TypeAliasedConstructorInvocation(
       this.typeAliasBuilder, Constructor target, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
@@ -780,13 +819,12 @@ class TypeAliasedConstructorInvocationJudgment extends ConstructorInvocation
   @override
   ExpressionInferenceResult acceptInference(
       InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitTypeAliasedConstructorInvocationJudgment(
-        this, typeContext);
+    return visitor.visitTypeAliasedConstructorInvocation(this, typeContext);
   }
 
   @override
   String toString() {
-    return "TypeAliasedConstructorInvocationJudgment(${toStringInternal()})";
+    return "TypeAliasedConstructorInvocation(${toStringInternal()})";
   }
 
   @override
@@ -797,12 +835,12 @@ class TypeAliasedConstructorInvocationJudgment extends ConstructorInvocation
 
 /// Shadow object for [StaticInvocation] when the procedure being invoked is a
 /// type aliased factory constructor.
-class TypeAliasedFactoryInvocationJudgment extends StaticInvocation
+class TypeAliasedFactoryInvocation extends StaticInvocation
     implements ExpressionJudgment {
   bool hasBeenInferred = false;
   final TypeAliasBuilder typeAliasBuilder;
 
-  TypeAliasedFactoryInvocationJudgment(
+  TypeAliasedFactoryInvocation(
       this.typeAliasBuilder, Procedure target, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
@@ -810,12 +848,12 @@ class TypeAliasedFactoryInvocationJudgment extends StaticInvocation
   @override
   ExpressionInferenceResult acceptInference(
       InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitTypeAliasedFactoryInvocationJudgment(this, typeContext);
+    return visitor.visitTypeAliasedFactoryInvocation(this, typeContext);
   }
 
   @override
   String toString() {
-    return "TypeAliasedConstructorInvocationJudgment(${toStringInternal()})";
+    return "TypeAliasedConstructorInvocation(${toStringInternal()})";
   }
 
   @override
@@ -853,7 +891,7 @@ class InvalidSuperInitializerJudgment extends LocalInitializer
       : super(variable);
 
   @override
-  void acceptInference(InferenceVisitor visitor) {
+  InitializerInferenceResult acceptInference(InferenceVisitor visitor) {
     return visitor.visitInvalidSuperInitializerJudgment(this);
   }
 
@@ -944,7 +982,7 @@ class IfNullExpression extends InternalExpression {
 abstract class InitializerJudgment implements Initializer {
   /// Performs type inference for whatever concrete type of
   /// [InitializerJudgment] this is.
-  void acceptInference(InferenceVisitor visitor);
+  InitializerInferenceResult acceptInference(InferenceVisitor visitor);
 }
 
 Expression? checkWebIntLiteralsErrorIfUnexact(
@@ -1005,6 +1043,7 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
 
 class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   final String literal;
+  @override
   final int fileOffset;
   bool isParenthesized = false;
 
@@ -1050,7 +1089,7 @@ class ShadowInvalidInitializer extends LocalInitializer
   ShadowInvalidInitializer(VariableDeclaration variable) : super(variable);
 
   @override
-  void acceptInference(InferenceVisitor visitor) {
+  InitializerInferenceResult acceptInference(InferenceVisitor visitor) {
     return visitor.visitShadowInvalidInitializer(this);
   }
 
@@ -1075,7 +1114,7 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   }
 
   @override
-  void acceptInference(InferenceVisitor visitor) {
+  InitializerInferenceResult acceptInference(InferenceVisitor visitor) {
     return visitor.visitShadowInvalidFieldInitializer(this);
   }
 
@@ -1558,8 +1597,8 @@ class VariableDeclarationImpl extends VariableDeclaration {
       DartType? type,
       bool isFinal: false,
       bool isConst: false,
-      bool isFieldFormal: false,
-      bool isCovariant: false,
+      bool isInitializingFormal: false,
+      bool isCovariantByDeclaration: false,
       bool isLocalFunction: false,
       bool isLate: false,
       bool isRequired: false,
@@ -1572,8 +1611,8 @@ class VariableDeclarationImpl extends VariableDeclaration {
             type: type ?? const DynamicType(),
             isFinal: isFinal,
             isConst: isConst,
-            isFieldFormal: isFieldFormal,
-            isCovariant: isCovariant,
+            isInitializingFormal: isInitializingFormal,
+            isCovariantByDeclaration: isCovariantByDeclaration,
             isLate: isLate,
             isRequired: isRequired,
             isLowered: isLowered);
@@ -2547,6 +2586,14 @@ class IndexGet extends InternalExpression {
   String toString() {
     return "IndexGet(${toStringInternal()})";
   }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('[');
+    printer.writeExpression(index);
+    printer.write(']');
+  }
 }
 
 /// Internal expression representing an index set expression.
@@ -2645,6 +2692,15 @@ class IndexSet extends InternalExpression {
   @override
   String toString() {
     return "IndexSet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('[');
+    printer.writeExpression(index);
+    printer.write('] = ');
+    printer.writeExpression(value);
   }
 }
 

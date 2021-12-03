@@ -14,7 +14,8 @@ import "package:kernel/core_types.dart" show CoreTypes;
 
 import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
 
-import 'package:kernel/testing/type_parser_environment.dart' show parseComponent;
+import 'package:kernel/testing/type_parser_environment.dart'
+    show parseComponent;
 
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
@@ -30,7 +31,7 @@ import "package:front_end/src/fasta/dill/dill_loader.dart" show DillLoader;
 
 import "package:front_end/src/fasta/dill/dill_target.dart" show DillTarget;
 
-import "package:front_end/src/fasta/kernel/kernel_builder.dart"
+import "package:front_end/src/fasta/kernel/class_hierarchy_builder.dart"
     show ClassHierarchyBuilder;
 
 import "package:front_end/src/fasta/ticker.dart" show Ticker;
@@ -100,7 +101,7 @@ F:
   interfaceSetters:
 """;
 
-main() {
+void main() {
   final Ticker ticker = new Ticker(isVerbose: false);
   final Component component = parseComponent("""
 class A;

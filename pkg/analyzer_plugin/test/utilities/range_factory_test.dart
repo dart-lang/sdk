@@ -13,12 +13,175 @@ import '../support/abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RangeFactory_ArgumentRangeTest);
+    defineReflectiveTests(RangeFactory_NodeInListTest);
     defineReflectiveTests(RangeFactoryTest);
   });
 }
 
 @reflectiveTest
-class RangeFactoryTest extends AbstractSingleUnitTest {
+class RangeFactory_ArgumentRangeTest extends AbstractSingleUnitTest {
+  Future<void> test_all_mixed_noTrailingComma() async {
+    await resolveTestCode('''
+void f() {
+  g(0, 1, c: 2);
+}
+void g(int a, int b, {int? c}) {}
+''');
+    _assertArgumentRange(0, 2, SourceRange(15, 10), SourceRange(15, 10));
+  }
+
+  Future<void> test_all_mixed_trailingComma() async {
+    await resolveTestCode('''
+void f() {
+  g(0, 1, c: 2, );
+}
+void g(int a, int b, {int? c}) {}
+''');
+    _assertArgumentRange(0, 2, SourceRange(15, 12), SourceRange(15, 10));
+  }
+
+  Future<void> test_all_named_noTrailingComma() async {
+    await resolveTestCode('''
+void f() {
+  g(a: 0, b: 1, c: 2);
+}
+void g({int? a, int? b, int? c}) {}
+''');
+    _assertArgumentRange(0, 2, SourceRange(15, 16), SourceRange(15, 16));
+  }
+
+  Future<void> test_all_named_trailingComma() async {
+    await resolveTestCode('''
+void f() {
+  g(a: 0, b: 1, c: 2, );
+}
+void g({int? a, int? b, int? c}) {}
+''');
+    _assertArgumentRange(0, 2, SourceRange(15, 18), SourceRange(15, 16));
+  }
+
+  Future<void> test_all_positional_noTrailingComma() async {
+    await resolveTestCode('''
+void f() {
+  g(0, 1, 2);
+}
+void g(int a, int b, int c) {}
+''');
+    _assertArgumentRange(0, 2, SourceRange(15, 7), SourceRange(15, 7));
+  }
+
+  Future<void> test_all_positional_trailingComma() async {
+    await resolveTestCode('''
+void f() {
+  g(0, 1, 2, );
+}
+void g(int a, int b, int c) {}
+''');
+    _assertArgumentRange(0, 2, SourceRange(15, 9), SourceRange(15, 7));
+  }
+
+  Future<void> test_first_noTrailingComma() async {
+    await resolveTestCode('''
+void f() {
+  g(0, 1);
+}
+void g(int a, int b) {}
+''');
+    _assertArgumentRange(0, 0, SourceRange(15, 3), SourceRange(15, 1));
+  }
+
+  Future<void> test_first_trailingComma() async {
+    await resolveTestCode('''
+void f() {
+  g(0, 1, );
+}
+void g(int a, int b) {}
+''');
+    _assertArgumentRange(0, 0, SourceRange(15, 3), SourceRange(15, 1));
+  }
+
+  Future<void> test_last_noTrailingComma() async {
+    await resolveTestCode('''
+void f() {
+  g(0, 1);
+}
+void g(int a, int b) {}
+''');
+    _assertArgumentRange(1, 1, SourceRange(16, 3), SourceRange(18, 1));
+  }
+
+  Future<void> test_last_trailingComma() async {
+    await resolveTestCode('''
+void f() {
+  g(0, 1, );
+}
+void g(int a, int b) {}
+''');
+    _assertArgumentRange(1, 1, SourceRange(16, 3), SourceRange(18, 1));
+  }
+
+  Future<void> test_middle_noTrailingComma() async {
+    await resolveTestCode('''
+void f() {
+  g(0, 1, 2, 3);
+}
+void g(int a, int b, int c, int d) {}
+''');
+    _assertArgumentRange(1, 2, SourceRange(16, 6), SourceRange(18, 4));
+  }
+
+  Future<void> test_middle_trailingComma() async {
+    await resolveTestCode('''
+void f() {
+  g(0, 1, 2, 3, );
+}
+void g(int a, int b, int c, int d) {}
+''');
+    _assertArgumentRange(1, 2, SourceRange(16, 6), SourceRange(18, 4));
+  }
+
+  Future<void> test_only_named() async {
+    await resolveTestCode('''
+void f() {
+  g(a: 0);
+}
+void g({int? a}) {}
+''');
+    _assertArgumentRange(0, 0, SourceRange(15, 4), SourceRange(15, 4));
+  }
+
+  Future<void> test_only_positional() async {
+    await resolveTestCode('''
+void f() {
+  g(0);
+}
+void g(int a) {}
+''');
+    _assertArgumentRange(0, 0, SourceRange(15, 1), SourceRange(15, 1));
+  }
+
+  /// Assuming that the test code starts with a function whose block body starts
+  /// with a method invocation, compute the range for the arguments in the
+  /// invocation's argument list between [lower] and [upper]. Validate that the
+  /// range for deletion matches [expectedForDeletion] and that the range not
+  /// for deletion matches [expectedNoDeletion].
+  void _assertArgumentRange(int lower, int upper,
+      SourceRange expectedForDeletion, SourceRange expectedNoDeletion) {
+    var f = testUnit.declarations[0] as FunctionDeclaration;
+    var body = f.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var invocation = statement.expression as MethodInvocation;
+    var argumentList = invocation.argumentList;
+    expect(range.argumentRange(argumentList, lower, upper, true),
+        expectedForDeletion);
+    expect(range.argumentRange(argumentList, lower, upper, false),
+        expectedNoDeletion);
+  }
+}
+
+@reflectiveTest
+class RangeFactory_NodeInListTest extends AbstractSingleUnitTest {
   /// Assuming that the test code starts with a function whose block body starts
   /// with a method invocation, return the list of arguments in that invocation.
   NodeList<Expression> get _argumentList {
@@ -29,146 +192,119 @@ class RangeFactoryTest extends AbstractSingleUnitTest {
     return invocation.argumentList.arguments;
   }
 
-  Future<void> test_argumentRange_all_mixed_noTrailingComma() async {
+  Future<void> test_argumentList_first_named() async {
     await resolveTestCode('''
 void f() {
-  g(0, 1, c: 2);
+  g(a: 1, b: 2);
 }
-void g(int a, int b, {int c}) {}
+void g({int? a, int? b}) {}
 ''');
-    _assertArgumentRange(0, 2, SourceRange(15, 10), SourceRange(15, 10));
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[0]), SourceRange(15, 6));
   }
 
-  Future<void> test_argumentRange_all_mixed_trailingComma() async {
+  Future<void> test_argumentList_first_positional() async {
     await resolveTestCode('''
 void f() {
-  g(0, 1, c: 2, );
+  g(1, 2);
 }
-void g(int a, int b, {int c}) {}
+void g(int a, int b) {}
 ''');
-    _assertArgumentRange(0, 2, SourceRange(15, 12), SourceRange(15, 10));
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[0]), SourceRange(15, 3));
   }
 
-  Future<void> test_argumentRange_all_named_noTrailingComma() async {
+  Future<void> test_argumentList_last_named() async {
     await resolveTestCode('''
 void f() {
-  g(a: 0, b: 1, c: 2);
+  g(a: 1, b: 2);
 }
-void g({int a, int b, int c}) {}
+void g({int? a, int? b}) {}
 ''');
-    _assertArgumentRange(0, 2, SourceRange(15, 16), SourceRange(15, 16));
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[1]), SourceRange(19, 6));
   }
 
-  Future<void> test_argumentRange_all_named_trailingComma() async {
+  Future<void> test_argumentList_last_positional() async {
     await resolveTestCode('''
 void f() {
-  g(a: 0, b: 1, c: 2, );
+  g(1, 2);
 }
-void g({int a, int b, int c}) {}
+void g(int a, int b) {}
 ''');
-    _assertArgumentRange(0, 2, SourceRange(15, 18), SourceRange(15, 16));
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[1]), SourceRange(16, 3));
   }
 
-  Future<void> test_argumentRange_all_positional_noTrailingComma() async {
+  Future<void> test_argumentList_middle_named() async {
     await resolveTestCode('''
 void f() {
-  g(0, 1, 2);
+  g(a: 1, b: 2, c: 3);
+}
+void g({int? a, int? b, int? c}) {}
+''');
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[1]), SourceRange(19, 6));
+  }
+
+  Future<void> test_argumentList_middle_positional() async {
+    await resolveTestCode('''
+void f() {
+  g(1, 2, 3);
 }
 void g(int a, int b, int c) {}
 ''');
-    _assertArgumentRange(0, 2, SourceRange(15, 7), SourceRange(15, 7));
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[1]), SourceRange(16, 3));
   }
 
-  Future<void> test_argumentRange_all_positional_trailingComma() async {
+  Future<void> test_argumentList_only_named() async {
     await resolveTestCode('''
 void f() {
-  g(0, 1, 2, );
+  g(a: 1);
 }
-void g(int a, int b, int c) {}
+void g({int? a}) {}
 ''');
-    _assertArgumentRange(0, 2, SourceRange(15, 9), SourceRange(15, 7));
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[0]), SourceRange(15, 4));
   }
 
-  Future<void> test_argumentRange_first_noTrailingComma() async {
+  Future<void> test_argumentList_only_named_trailingComma() async {
     await resolveTestCode('''
 void f() {
-  g(0, 1);
+  g(a: 1,);
 }
-void g(int a, int b) {}
+void g({int? a}) {}
 ''');
-    _assertArgumentRange(0, 0, SourceRange(15, 3), SourceRange(15, 1));
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[0]), SourceRange(15, 5));
   }
 
-  Future<void> test_argumentRange_first_trailingComma() async {
+  Future<void> test_argumentList_only_positional() async {
     await resolveTestCode('''
 void f() {
-  g(0, 1, );
-}
-void g(int a, int b) {}
-''');
-    _assertArgumentRange(0, 0, SourceRange(15, 3), SourceRange(15, 1));
-  }
-
-  Future<void> test_argumentRange_last_noTrailingComma() async {
-    await resolveTestCode('''
-void f() {
-  g(0, 1);
-}
-void g(int a, int b) {}
-''');
-    _assertArgumentRange(1, 1, SourceRange(16, 3), SourceRange(18, 1));
-  }
-
-  Future<void> test_argumentRange_last_trailingComma() async {
-    await resolveTestCode('''
-void f() {
-  g(0, 1, );
-}
-void g(int a, int b) {}
-''');
-    _assertArgumentRange(1, 1, SourceRange(16, 3), SourceRange(18, 1));
-  }
-
-  Future<void> test_argumentRange_middle_noTrailingComma() async {
-    await resolveTestCode('''
-void f() {
-  g(0, 1, 2, 3);
-}
-void g(int a, int b, int c, int d) {}
-''');
-    _assertArgumentRange(1, 2, SourceRange(16, 6), SourceRange(18, 4));
-  }
-
-  Future<void> test_argumentRange_middle_trailingComma() async {
-    await resolveTestCode('''
-void f() {
-  g(0, 1, 2, 3, );
-}
-void g(int a, int b, int c, int d) {}
-''');
-    _assertArgumentRange(1, 2, SourceRange(16, 6), SourceRange(18, 4));
-  }
-
-  Future<void> test_argumentRange_only_named() async {
-    await resolveTestCode('''
-void f() {
-  g(a: 0);
-}
-void g({int a}) {}
-''');
-    _assertArgumentRange(0, 0, SourceRange(15, 4), SourceRange(15, 4));
-  }
-
-  Future<void> test_argumentRange_only_positional() async {
-    await resolveTestCode('''
-void f() {
-  g(0);
+  g(1);
 }
 void g(int a) {}
 ''');
-    _assertArgumentRange(0, 0, SourceRange(15, 1), SourceRange(15, 1));
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[0]), SourceRange(15, 1));
   }
 
+  Future<void> test_argumentList_only_positional_trailingComma() async {
+    await resolveTestCode('''
+void f() {
+  g(1,);
+}
+void g(int a) {}
+''');
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[0]), SourceRange(15, 2));
+  }
+}
+
+@reflectiveTest
+class RangeFactoryTest extends AbstractSingleUnitTest {
   Future<void> test_elementName() async {
     await resolveTestCode('class ABC {}');
     var element = findElement.class_('ABC');
@@ -213,117 +349,6 @@ const class B {}
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
     var mainName = mainFunction.name;
     expect(range.node(mainName), SourceRange(0, 4));
-  }
-
-  Future<void> test_nodeInList_argumentList_first_named() async {
-    await resolveTestCode('''
-void f() {
-  g(a: 1, b: 2);
-}
-void g({int a, int b}) {}
-''');
-    var list = _argumentList;
-    expect(range.nodeInList(list, list[0]), SourceRange(15, 6));
-  }
-
-  Future<void> test_nodeInList_argumentList_first_positional() async {
-    await resolveTestCode('''
-void f() {
-  g(1, 2);
-}
-void g(int a, int b) {}
-''');
-    var list = _argumentList;
-    expect(range.nodeInList(list, list[0]), SourceRange(15, 3));
-  }
-
-  Future<void> test_nodeInList_argumentList_last_named() async {
-    await resolveTestCode('''
-void f() {
-  g(a: 1, b: 2);
-}
-void g({int a, int b}) {}
-''');
-    var list = _argumentList;
-    expect(range.nodeInList(list, list[1]), SourceRange(19, 6));
-  }
-
-  Future<void> test_nodeInList_argumentList_last_positional() async {
-    await resolveTestCode('''
-void f() {
-  g(1, 2);
-}
-void g(int a, int b) {}
-''');
-    var list = _argumentList;
-    expect(range.nodeInList(list, list[1]), SourceRange(16, 3));
-  }
-
-  Future<void> test_nodeInList_argumentList_middle_named() async {
-    await resolveTestCode('''
-void f() {
-  g(a: 1, b: 2, c: 3);
-}
-void g({int a, int b, int c}) {}
-''');
-    var list = _argumentList;
-    expect(range.nodeInList(list, list[1]), SourceRange(19, 6));
-  }
-
-  Future<void> test_nodeInList_argumentList_middle_positional() async {
-    await resolveTestCode('''
-void f() {
-  g(1, 2, 3);
-}
-void g(int a, int b, int c) {}
-''');
-    var list = _argumentList;
-    expect(range.nodeInList(list, list[1]), SourceRange(16, 3));
-  }
-
-  Future<void> test_nodeInList_argumentList_only_named() async {
-    await resolveTestCode('''
-void f() {
-  g(a: 1);
-}
-void g({int a}) {}
-''');
-    var list = _argumentList;
-    expect(range.nodeInList(list, list[0]), SourceRange(15, 4));
-  }
-
-  Future<void> test_nodeInList_argumentList_only_named_trailingComma() async {
-    await resolveTestCode('''
-void f() {
-  g(a: 1,);
-}
-void g({int a}) {}
-''');
-    var list = _argumentList;
-    expect(range.nodeInList(list, list[0]), SourceRange(15, 5));
-  }
-
-  Future<void> test_nodeInList_argumentList_only_positional() async {
-    await resolveTestCode('''
-void f() {
-  g(1);
-}
-void g(int a) {}
-''');
-    var list = _argumentList;
-    expect(range.nodeInList(list, list[0]), SourceRange(15, 1));
-  }
-
-  Future<void>
-      test_nodeInList_argumentList_only_positional_trailingComma() async {
-    await resolveTestCode('''
-void f() {
-  g(1,);
-}
-void g(int a) {}
-''');
-    var list = _argumentList;
-    expect(range.nodeInList(list, list[0]), SourceRange(15, 2));
   }
 
   Future<void> test_nodes() async {
@@ -375,23 +400,5 @@ void g(int a) {}
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
     var mainName = mainFunction.name;
     expect(range.token(mainName.beginToken), SourceRange(1, 4));
-  }
-
-  /// Assuming that the test code starts with a function whose block body starts
-  /// with a method invocation, compute the range for the arguments in the
-  /// invocation's argument list between [lower] and [upper]. Validate that the
-  /// range for deletion matches [expectedForDeletion] and that the range not
-  /// for deletion matches [expectedNoDeletion].
-  void _assertArgumentRange(int lower, int upper,
-      SourceRange expectedForDeletion, SourceRange expectedNoDeletion) {
-    var f = testUnit.declarations[0] as FunctionDeclaration;
-    var body = f.functionExpression.body as BlockFunctionBody;
-    var statement = body.block.statements[0] as ExpressionStatement;
-    var invocation = statement.expression as MethodInvocation;
-    var argumentList = invocation.argumentList;
-    expect(range.argumentRange(argumentList, lower, upper, true),
-        expectedForDeletion);
-    expect(range.argumentRange(argumentList, lower, upper, false),
-        expectedNoDeletion);
   }
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: constant_identifier_names
+
 import 'dart:typed_data';
 
 import 'reader.dart';
@@ -16,41 +18,33 @@ int _readElfBytes(Reader reader, int bytes, int alignment) {
 }
 
 // Reads an Elf{32,64}_Addr.
-int _readElfAddress(Reader reader) {
-  return _readElfBytes(reader, reader.wordSize, reader.wordSize);
-}
+int _readElfAddress(Reader reader) =>
+    _readElfBytes(reader, reader.wordSize, reader.wordSize);
 
 // Reads an Elf{32,64}_Off.
-int _readElfOffset(Reader reader) {
-  return _readElfBytes(reader, reader.wordSize, reader.wordSize);
-}
+int _readElfOffset(Reader reader) =>
+    _readElfBytes(reader, reader.wordSize, reader.wordSize);
 
 // Reads an Elf{32,64}_Half.
-int _readElfHalf(Reader reader) {
-  return _readElfBytes(reader, 2, 2);
-}
+int _readElfHalf(Reader reader) => _readElfBytes(reader, 2, 2);
 
 // Reads an Elf{32,64}_Word.
-int _readElfWord(Reader reader) {
-  return _readElfBytes(reader, 4, 4);
-}
+int _readElfWord(Reader reader) => _readElfBytes(reader, 4, 4);
 
 // Reads an Elf64_Xword.
 int _readElfXword(Reader reader) {
   switch (reader.wordSize) {
     case 4:
-      throw "Internal reader error: reading Elf64_Xword in 32-bit ELF file";
+      throw 'Internal reader error: reading Elf64_Xword in 32-bit ELF file';
     case 8:
       return _readElfBytes(reader, 8, 8);
     default:
-      throw "Unsupported word size ${reader.wordSize}";
+      throw 'Unsupported word size ${reader.wordSize}';
   }
 }
 
 // Reads an Elf{32,64}_Section.
-int _readElfSection(Reader reader) {
-  return _readElfBytes(reader, 2, 2);
-}
+int _readElfSection(Reader reader) => _readElfBytes(reader, 2, 2);
 
 // Used in cases where the value read for a given field is Elf32_Word on 32-bit
 // and Elf64_Xword on 64-bit.
@@ -61,7 +55,7 @@ int _readElfNative(Reader reader) {
     case 8:
       return _readElfXword(reader);
     default:
-      throw "Unsupported word size ${reader.wordSize}";
+      throw 'Unsupported word size ${reader.wordSize}';
   }
 }
 
@@ -113,14 +107,14 @@ class ElfHeader {
         wordSize = 8;
         break;
       default:
-        throw FormatException("Unexpected e_ident[EI_CLASS] value");
+        throw FormatException('Unexpected e_ident[EI_CLASS] value');
     }
     final calculatedHeaderSize = 0x18 + 3 * wordSize + 0x10;
 
     if (fileSize < calculatedHeaderSize) {
-      throw FormatException("ELF file too small for header: "
-          "file size ${fileSize} < "
-          "calculated header size $calculatedHeaderSize");
+      throw FormatException('ELF file too small for header: '
+          'file size $fileSize < '
+          'calculated header size $calculatedHeaderSize');
     }
 
     Endian endian;
@@ -132,11 +126,11 @@ class ElfHeader {
         endian = Endian.big;
         break;
       default:
-        throw FormatException("Unexpected e_indent[EI_DATA] value");
+        throw FormatException('Unexpected e_indent[EI_DATA] value');
     }
 
     if (reader.readByte() != 0x01) {
-      throw FormatException("Unexpected e_ident[EI_VERSION] value");
+      throw FormatException('Unexpected e_ident[EI_VERSION] value');
     }
 
     // After this point, we need the reader to be correctly set up re: word
@@ -147,7 +141,7 @@ class ElfHeader {
     // Skip rest of e_ident/e_type/e_machine, i.e. move to e_version.
     reader.seek(0x14, absolute: true);
     if (_readElfWord(reader) != 0x01) {
-      throw FormatException("Unexpected e_version value");
+      throw FormatException('Unexpected e_version value');
     }
 
     final entry = _readElfAddress(reader);
@@ -167,25 +161,25 @@ class ElfHeader {
     final sectionHeaderStringsIndex = _readElfHalf(reader);
 
     if (reader.offset != headerSize) {
-      throw FormatException("Only read ${reader.offset} bytes, not the "
-          "full header size ${headerSize}");
+      throw FormatException('Only read ${reader.offset} bytes, not the '
+          'full header size $headerSize');
     }
 
     if (headerSize != calculatedHeaderSize) {
-      throw FormatException("Stored ELF header size ${headerSize} != "
-          "calculated ELF header size $calculatedHeaderSize");
+      throw FormatException('Stored ELF header size $headerSize != '
+          'calculated ELF header size $calculatedHeaderSize');
     }
     if (fileSize < programHeaderOffset) {
-      throw FormatException("File is truncated before program header");
+      throw FormatException('File is truncated before program header');
     }
     if (fileSize < programHeaderOffset + programHeaderSize) {
-      throw FormatException("File is truncated within the program header");
+      throw FormatException('File is truncated within the program header');
     }
     if (fileSize < sectionHeaderOffset) {
-      throw FormatException("File is truncated before section header");
+      throw FormatException('File is truncated before section header');
     }
     if (fileSize < sectionHeaderOffset + sectionHeaderSize) {
-      throw FormatException("File is truncated within the section header");
+      throw FormatException('File is truncated within the section header');
     }
 
     return ElfHeader._(
@@ -207,7 +201,7 @@ class ElfHeader {
   int get sectionHeaderSize => sectionHeaderCount * sectionHeaderEntrySize;
 
   // Constants used within the ELF specification.
-  static const _ELFMAG = "\x7fELF";
+  static const _ELFMAG = '\x7fELF';
   static const _ELFCLASS32 = 0x01;
   static const _ELFCLASS64 = 0x02;
   static const _ELFDATA2LSB = 0x01;
@@ -220,10 +214,10 @@ class ElfHeader {
       ..write(' bits');
     switch (endian) {
       case Endian.little:
-        buffer..writeln(' and little-endian');
+        buffer.writeln(' and little-endian');
         break;
       case Endian.big:
-        buffer..writeln(' and big-endian');
+        buffer.writeln(' and big-endian');
         break;
     }
     buffer
@@ -278,7 +272,7 @@ class ProgramHeaderEntry {
       this.paddr, this.filesz, this.memsz, this.align, this.wordSize);
 
   static ProgramHeaderEntry fromReader(Reader reader) {
-    int wordSize = reader.wordSize;
+    var wordSize = reader.wordSize;
     assert(wordSize == 4 || wordSize == 8);
     final type = _readElfWord(reader);
     late int flags;
@@ -299,14 +293,14 @@ class ProgramHeaderEntry {
   }
 
   static const _typeStrings = <int, String>{
-    _PT_NULL: "PT_NULL",
-    _PT_LOAD: "PT_LOAD",
-    _PT_DYNAMIC: "PT_DYNAMIC",
-    _PT_PHDR: "PT_PHDR",
+    _PT_NULL: 'PT_NULL',
+    _PT_LOAD: 'PT_LOAD',
+    _PT_DYNAMIC: 'PT_DYNAMIC',
+    _PT_PHDR: 'PT_PHDR',
   };
 
   static String _typeToString(int type) =>
-      _typeStrings[type] ?? "unknown (${paddedHex(type, 4)})";
+      _typeStrings[type] ?? 'unknown (${paddedHex(type, 4)})';
 
   void writeToStringBuffer(StringBuffer buffer) {
     buffer
@@ -328,6 +322,7 @@ class ProgramHeaderEntry {
       ..write(paddedHex(align, wordSize));
   }
 
+  @override
   String toString() {
     final buffer = StringBuffer();
     writeToStringBuffer(buffer);
@@ -364,10 +359,11 @@ class ProgramHeader {
 
   void writeToStringBuffer(StringBuffer buffer) {
     for (var i = 0; i < length; i++) {
-      if (i != 0)
+      if (i != 0) {
         buffer
           ..writeln()
           ..writeln();
+      }
       buffer
         ..write('Entry ')
         ..write(i)
@@ -376,6 +372,7 @@ class ProgramHeader {
     }
   }
 
+  @override
   String toString() {
     final buffer = StringBuffer();
     writeToStringBuffer(buffer);
@@ -453,19 +450,19 @@ class SectionHeaderEntry {
   }
 
   static const _typeStrings = <int, String>{
-    _SHT_NULL: "SHT_NULL",
-    _SHT_PROGBITS: "SHT_PROGBITS",
-    _SHT_SYMTAB: "SHT_SYMTAB",
-    _SHT_STRTAB: "SHT_STRTAB",
-    _SHT_HASH: "SHT_HASH",
-    _SHT_DYNAMIC: "SHT_DYNAMIC",
-    _SHT_NOTE: "SHT_NOTE",
-    _SHT_NOBITS: "SHT_NOBITS",
-    _SHT_DYNSYM: "SHT_DYNSYM",
+    _SHT_NULL: 'SHT_NULL',
+    _SHT_PROGBITS: 'SHT_PROGBITS',
+    _SHT_SYMTAB: 'SHT_SYMTAB',
+    _SHT_STRTAB: 'SHT_STRTAB',
+    _SHT_HASH: 'SHT_HASH',
+    _SHT_DYNAMIC: 'SHT_DYNAMIC',
+    _SHT_NOTE: 'SHT_NOTE',
+    _SHT_NOBITS: 'SHT_NOBITS',
+    _SHT_DYNSYM: 'SHT_DYNSYM',
   };
 
   static String _typeToString(int type) =>
-      _typeStrings[type] ?? "unknown (${paddedHex(type, 4)})";
+      _typeStrings[type] ?? 'unknown (${paddedHex(type, 4)})';
 
   void writeToStringBuffer(StringBuffer buffer) {
     buffer.write('Name: ');
@@ -496,6 +493,7 @@ class SectionHeaderEntry {
       ..write(entrySize);
   }
 
+  @override
   String toString() {
     final buffer = StringBuffer();
     writeToStringBuffer(buffer);
@@ -521,10 +519,11 @@ class SectionHeader {
 
   void writeToStringBuffer(StringBuffer buffer) {
     for (var i = 0; i < entries.length; i++) {
-      if (i != 0)
+      if (i != 0) {
         buffer
           ..writeln()
           ..writeln();
+      }
       buffer
         ..write('Entry ')
         ..write(i)
@@ -620,6 +619,7 @@ class Note extends Section {
     return Note._(entry, type, name, description);
   }
 
+  @override
   void writeToStringBuffer(StringBuffer buffer) {
     buffer
       ..write('Section "')
@@ -669,9 +669,9 @@ class StringTable extends Section {
       ..writeln('" is a string table:');
     for (var key in _entries.keys) {
       buffer
-        ..write("  ")
+        ..write('  ')
         ..write(key)
-        ..write(" => ")
+        ..write(' => ')
         ..writeln(_entries[key]);
     }
   }
@@ -734,7 +734,7 @@ class Symbol {
   void _cacheNameFromStringTable(StringTable table) {
     final nameFromTable = table[nameIndex];
     if (nameFromTable == null) {
-      throw FormatException("Index $nameIndex not found in string table");
+      throw FormatException('Index $nameIndex not found in string table');
     }
     name = nameFromTable;
   }
@@ -750,31 +750,31 @@ class Symbol {
       ..write('" =>');
     switch (bind) {
       case SymbolBinding.STB_GLOBAL:
-        buffer..write(' a global');
+        buffer.write(' a global');
         break;
       case SymbolBinding.STB_LOCAL:
-        buffer..write(' a local');
+        buffer.write(' a local');
         break;
     }
     switch (visibility) {
       case SymbolVisibility.STV_DEFAULT:
         break;
       case SymbolVisibility.STV_HIDDEN:
-        buffer..write(' hidden');
+        buffer.write(' hidden');
         break;
       case SymbolVisibility.STV_INTERNAL:
-        buffer..write(' internal');
+        buffer.write(' internal');
         break;
       case SymbolVisibility.STV_PROTECTED:
-        buffer..write(' protected');
+        buffer.write(' protected');
         break;
     }
     buffer
-      ..write(" symbol that points to ")
+      ..write(' symbol that points to ')
       ..write(size)
-      ..write(" bytes at location 0x")
+      ..write(' bytes at location 0x')
       ..write(paddedHex(value, _wordSize))
-      ..write(" in section ")
+      ..write(' in section ')
       ..write(sectionIndex);
   }
 
@@ -821,7 +821,7 @@ class SymbolTable extends Section {
       ..write(headerEntry.name)
       ..writeln('" is a symbol table:');
     for (var symbol in _entries) {
-      buffer.write(" ");
+      buffer.write(' ');
       symbol.writeToStringBuffer(buffer);
       buffer.writeln();
     }
@@ -851,7 +851,7 @@ class DynamicTable extends Section {
   // We don't use DynamicTableTag for the key so that we can handle ELF files
   // that may use unknown (to us) tags.
   final Map<int, int> _entries;
-  final _wordSize;
+  final int _wordSize;
 
   DynamicTable._(SectionHeaderEntry entry, this._entries, this._wordSize)
       : super._(entry);
@@ -922,7 +922,7 @@ class DynamicTable extends Section {
         }
       } else {
         buffer
-          ..write("Unknown tag ")
+          ..write('Unknown tag ')
           ..write(kv.key)
           ..write(' => ')
           ..writeln(kv.value);
@@ -975,7 +975,7 @@ class Elf {
   ///
   /// Returns -1 if there is no dynamic symbol that matches [name].
   Symbol? dynamicSymbolFor(String name) {
-    for (final section in namedSections(".dynsym")) {
+    for (final section in namedSections('.dynsym')) {
       final dynsym = section as SymbolTable;
       if (dynsym.containsKey(name)) return dynsym[name];
     }
@@ -1026,7 +1026,7 @@ class Elf {
     // header entries.
     if (header.sectionHeaderStringsIndex < 0 ||
         header.sectionHeaderStringsIndex >= sectionHeader.entries.length) {
-      throw FormatException("Section header string table index invalid");
+      throw FormatException('Section header string table index invalid');
     }
     final sectionHeaderStringTableEntry =
         sectionHeader.entries[header.sectionHeaderStringsIndex];
@@ -1034,13 +1034,13 @@ class Elf {
         sections[sectionHeaderStringTableEntry] as StringTable?;
     if (sectionHeaderStringTable == null) {
       throw FormatException(
-          "No section for entry ${sectionHeaderStringTableEntry}");
+          'No section for entry $sectionHeaderStringTableEntry');
     }
     final sectionsByName = <String, Set<Section>>{};
     for (final entry in sectionHeader.entries) {
       final section = sections[entry];
       if (section == null) {
-        throw FormatException("No section found for entry ${entry}");
+        throw FormatException('No section found for entry $entry');
       }
       entry.setName(sectionHeaderStringTable);
       sectionsByName.putIfAbsent(entry.name, () => {}).add(section);
@@ -1062,7 +1062,7 @@ class Elf {
         final stringTable = stringTableMap[entry];
         if (stringTable == null) {
           throw FormatException(
-              "String table not found at section header entry ${link}");
+              'String table not found at section header entry $link');
         }
         symbolTable._cacheNames(stringTable);
       }
@@ -1115,7 +1115,7 @@ class Elf {
 
   @override
   String toString() {
-    StringBuffer buffer = StringBuffer();
+    var buffer = StringBuffer();
     writeToStringBuffer(buffer);
     return buffer.toString();
   }

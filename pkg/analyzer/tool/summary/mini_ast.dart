@@ -261,7 +261,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endClassOrMixinBody(
+  void endClassOrMixinOrExtensionBody(
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody");
     push(popList(memberCount,
@@ -582,7 +582,7 @@ class MiniAstBuilder extends StackListener {
 
   @override
   internalProblem(Message message, int charOffset, Uri? uri) {
-    throw UnsupportedError(message.message);
+    throw UnsupportedError(message.problemMessage);
   }
 
   List? popList(int n, List list) {

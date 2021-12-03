@@ -2,27 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:kernel/ast.dart"
-    show
-        Arguments,
-        Class,
-        DartType,
-        Expression,
-        FunctionNode,
-        Member,
-        Name,
-        NamedExpression,
-        Procedure,
-        ProcedureKind,
-        ProcedureStubKind,
-        ReturnStatement,
-        SuperMethodInvocation,
-        SuperPropertyGet,
-        SuperPropertySet,
-        TypeParameterType,
-        VariableGet;
+import "package:kernel/ast.dart";
 
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
+import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 import "../source/source_class_builder.dart";
 
@@ -183,20 +167,10 @@ class ForwardingNode {
       superTarget = superTarget.memberSignatureOrigin ?? superTarget;
     }
     procedure.isAbstract = false;
-    List<Expression> positionalArguments = function.positionalParameters
-        .map<Expression>((parameter) => new VariableGet(parameter))
-        .toList();
-    List<NamedExpression> namedArguments = function.namedParameters
-        .map((parameter) =>
-            new NamedExpression(parameter.name!, new VariableGet(parameter)))
-        .toList();
-    List<DartType> typeArguments = function.typeParameters
-        .map<DartType>((typeParameter) =>
-            new TypeParameterType.withDefaultNullabilityForLibrary(
-                typeParameter, enclosingClass.enclosingLibrary))
-        .toList();
-    Arguments arguments = new Arguments(positionalArguments,
-        types: typeArguments, named: namedArguments);
+    FunctionType signatureType = procedure.function
+        .computeFunctionType(procedure.enclosingLibrary.nonNullable);
+    bool isForwardingSemiStub = isForwardingStub && !procedure.isSynthetic;
+    bool needsSignatureType = false;
     Expression superCall;
     // ignore: unnecessary_null_comparison
     assert(superTarget != null,
@@ -208,6 +182,80 @@ class ForwardingNode {
     switch (kind) {
       case ProcedureKind.Method:
       case ProcedureKind.Operator:
+        FunctionType type = _combinedMemberSignature
+            .getMemberTypeForTarget(superTarget) as FunctionType;
+        if (type.typeParameters.isNotEmpty) {
+          type = Substitution.fromPairs(
+                  type.typeParameters,
+                  function.typeParameters
+                      .map((TypeParameter parameter) => new TypeParameterType
+                              .withDefaultNullabilityForLibrary(
+                          parameter, procedure.enclosingLibrary))
+                      .toList())
+              .substituteType(type.withoutTypeParameters) as FunctionType;
+        }
+        List<Expression> positionalArguments = new List.generate(
+            function.positionalParameters.length, (int index) {
+          VariableDeclaration parameter = function.positionalParameters[index];
+          int fileOffset = parameter.fileOffset;
+          Expression expression = new VariableGet(parameter)
+            ..fileOffset = fileOffset;
+          DartType superParameterType = type.positionalParameters[index];
+          if (isForwardingSemiStub) {
+            if (parameter.type != superParameterType) {
+              parameter.type = superParameterType;
+              needsSignatureType = true;
+            }
+          } else {
+            if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
+                parameter.type,
+                superParameterType,
+                _combinedMemberSignature
+                        .classBuilder.library.isNonNullableByDefault
+                    ? SubtypeCheckMode.withNullabilities
+                    : SubtypeCheckMode.ignoringNullabilities)) {
+              expression = new AsExpression(expression, superParameterType)
+                ..fileOffset = fileOffset;
+            }
+          }
+          return expression;
+        }, growable: true);
+        List<NamedExpression> namedArguments =
+            new List.generate(function.namedParameters.length, (int index) {
+          VariableDeclaration parameter = function.namedParameters[index];
+          int fileOffset = parameter.fileOffset;
+          Expression expression = new VariableGet(parameter)
+            ..fileOffset = fileOffset;
+          DartType superParameterType = type.namedParameters
+              .singleWhere(
+                  (NamedType namedType) => namedType.name == parameter.name)
+              .type;
+          if (isForwardingSemiStub) {
+            if (parameter.type != superParameterType) {
+              parameter.type = superParameterType;
+              needsSignatureType = true;
+            }
+          } else {
+            if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
+                parameter.type,
+                superParameterType,
+                _combinedMemberSignature
+                        .classBuilder.library.isNonNullableByDefault
+                    ? SubtypeCheckMode.withNullabilities
+                    : SubtypeCheckMode.ignoringNullabilities)) {
+              expression = new AsExpression(expression, superParameterType)
+                ..fileOffset = fileOffset;
+            }
+          }
+          return new NamedExpression(parameter.name!, expression);
+        }, growable: true);
+        List<DartType> typeArguments = function.typeParameters
+            .map<DartType>((typeParameter) =>
+                new TypeParameterType.withDefaultNullabilityForLibrary(
+                    typeParameter, enclosingClass.enclosingLibrary))
+            .toList();
+        Arguments arguments = new Arguments(positionalArguments,
+            types: typeArguments, named: namedArguments);
         superCall = new SuperMethodInvocation(
             name, arguments, superTarget as Procedure);
         break;
@@ -215,17 +263,44 @@ class ForwardingNode {
         superCall = new SuperPropertyGet(name, superTarget);
         break;
       case ProcedureKind.Setter:
-        superCall =
-            new SuperPropertySet(name, positionalArguments[0], superTarget);
+        DartType superParameterType =
+            _combinedMemberSignature.getMemberTypeForTarget(superTarget);
+        VariableDeclaration parameter = function.positionalParameters[0];
+        int fileOffset = parameter.fileOffset;
+        Expression expression = new VariableGet(parameter)
+          ..fileOffset = fileOffset;
+        if (isForwardingSemiStub) {
+          if (parameter.type != superParameterType) {
+            parameter.type = superParameterType;
+            needsSignatureType = true;
+          }
+        } else {
+          if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
+              parameter.type,
+              superParameterType,
+              _combinedMemberSignature
+                      .classBuilder.library.isNonNullableByDefault
+                  ? SubtypeCheckMode.withNullabilities
+                  : SubtypeCheckMode.ignoringNullabilities)) {
+            expression = new AsExpression(expression, superParameterType)
+              ..fileOffset = fileOffset;
+          }
+        }
+        superCall = new SuperPropertySet(name, expression, superTarget);
         break;
       default:
         unhandled('$kind', '_createForwardingImplIfNeeded', -1, null);
     }
-    function.body = new ReturnStatement(superCall)..parent = function;
+    function.body = new ReturnStatement(superCall)
+      ..fileOffset = procedure.fileOffset
+      ..parent = function;
     procedure.transformerFlags |= TransformerFlag.superCalls;
     procedure.stubKind = isForwardingStub
         ? ProcedureStubKind.ConcreteForwardingStub
         : ProcedureStubKind.ConcreteMixinStub;
     procedure.stubTarget = superTarget;
+    if (needsSignatureType) {
+      procedure.signatureType = signatureType;
+    }
   }
 }

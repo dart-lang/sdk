@@ -12,6 +12,7 @@ abstract class AbstractDataSource extends DataSourceMixin
       List<ir.DartType>.filled(0, null, growable: false);
 
   final bool useDataKinds;
+  DataSourceIndices importedIndices;
   EntityReader _entityReader = const EntityReader();
   ComponentLookup _componentLookup;
   EntityLookup _entityLookup;
@@ -24,17 +25,44 @@ abstract class AbstractDataSource extends DataSourceMixin
   IndexedSource<ImportEntity> _importIndex;
   IndexedSource<ConstantValue> _constantIndex;
 
-  Map<Type, IndexedSource> _generalCaches = {};
+  final Map<Type, IndexedSource> _generalCaches = {};
 
   ir.Member _currentMemberContext;
   _MemberData _currentMemberData;
 
-  AbstractDataSource({this.useDataKinds: false}) {
-    _stringIndex = new IndexedSource<String>(this);
-    _uriIndex = new IndexedSource<Uri>(this);
-    _memberNodeIndex = new IndexedSource<_MemberData>(this);
-    _importIndex = new IndexedSource<ImportEntity>(this);
-    _constantIndex = new IndexedSource<ConstantValue>(this);
+  IndexedSource<T> _createSource<T>() {
+    if (importedIndices == null || !importedIndices.caches.containsKey(T)) {
+      return IndexedSource<T>(this);
+    } else {
+      List<T> cacheCopy = importedIndices.caches[T].cacheAsList.toList();
+      return IndexedSource<T>(this, cache: cacheCopy);
+    }
+  }
+
+  AbstractDataSource({this.useDataKinds = false, this.importedIndices}) {
+    _stringIndex = _createSource<String>();
+    _uriIndex = _createSource<Uri>();
+    _memberNodeIndex = _createSource<_MemberData>();
+    _importIndex = _createSource<ImportEntity>();
+    _constantIndex = _createSource<ConstantValue>();
+  }
+
+  @override
+  DataSourceIndices exportIndices() {
+    var indices = DataSourceIndices();
+    indices.caches[String] = DataSourceTypeIndices(_stringIndex.cache);
+    indices.caches[Uri] = DataSourceTypeIndices(_uriIndex.cache);
+    indices.caches[ImportEntity] = DataSourceTypeIndices(_importIndex.cache);
+    // _memberNodeIndex needs two entries depending on if the indices will be
+    // consumed by a [DataSource] or [DataSink].
+    indices.caches[_MemberData] = DataSourceTypeIndices(_memberNodeIndex.cache);
+    indices.caches[ir.Member] = DataSourceTypeIndices<ir.Member, _MemberData>(
+        _memberNodeIndex.cache, (_MemberData data) => data?.node);
+    indices.caches[ConstantValue] = DataSourceTypeIndices(_constantIndex.cache);
+    _generalCaches.forEach((type, indexedSource) {
+      indices.caches[type] = DataSourceTypeIndices(indexedSource.cache);
+    });
+    return indices;
   }
 
   @override
@@ -119,7 +147,7 @@ abstract class AbstractDataSource extends DataSourceMixin
 
   @override
   E readCached<E>(E f()) {
-    IndexedSource source = _generalCaches[E] ??= new IndexedSource<E>(this);
+    IndexedSource source = _generalCaches[E] ??= _createSource<E>();
     return source.read(f);
   }
 
@@ -147,7 +175,7 @@ abstract class AbstractDataSource extends DataSourceMixin
       List<ir.TypeParameter> functionTypeVariables) {
     int count = readInt();
     if (count == 0) return emptyListOfDartTypes;
-    List<ir.DartType> types = new List<ir.DartType>.filled(count, null);
+    List<ir.DartType> types = List<ir.DartType>.filled(count, null);
     for (int index = 0; index < count; index++) {
       types[index] = _readDartTypeNode(functionTypeVariables);
     }
@@ -160,11 +188,11 @@ abstract class AbstractDataSource extends DataSourceMixin
     Uri uri = _readUri();
     int begin = _readIntInternal();
     int end = _readIntInternal();
-    return new SourceSpan(uri, begin, end);
+    return SourceSpan(uri, begin, end);
   }
 
   @override
-  DartType readDartType({bool allowNull: false}) {
+  DartType readDartType({bool allowNull = false}) {
     _checkDataKind(DataKind.dartType);
     DartType type = DartType.readFromDataSource(this, []);
     assert(type != null || allowNull);
@@ -172,7 +200,7 @@ abstract class AbstractDataSource extends DataSourceMixin
   }
 
   @override
-  ir.DartType readDartTypeNode({bool allowNull: false}) {
+  ir.DartType readDartTypeNode({bool allowNull = false}) {
     _checkDataKind(DataKind.dartTypeNode);
     ir.DartType type = _readDartTypeNode([]);
     assert(type != null || allowNull);
@@ -198,7 +226,7 @@ abstract class AbstractDataSource extends DataSourceMixin
         ir.Nullability typeParameterTypeNullability =
             readEnum(ir.Nullability.values);
         ir.DartType promotedBound = _readDartTypeNode(functionTypeVariables);
-        return new ir.TypeParameterType(
+        return ir.TypeParameterType(
             typeParameter, typeParameterTypeNullability, promotedBound);
       case DartTypeNodeKind.functionTypeVariable:
         int index = readInt();
@@ -206,16 +234,15 @@ abstract class AbstractDataSource extends DataSourceMixin
         ir.Nullability typeParameterTypeNullability =
             readEnum(ir.Nullability.values);
         ir.DartType promotedBound = _readDartTypeNode(functionTypeVariables);
-        return new ir.TypeParameterType(functionTypeVariables[index],
+        return ir.TypeParameterType(functionTypeVariables[index],
             typeParameterTypeNullability, promotedBound);
       case DartTypeNodeKind.functionType:
         begin(functionTypeNodeTag);
         int typeParameterCount = readInt();
-        List<ir.TypeParameter> typeParameters =
-            new List<ir.TypeParameter>.generate(
-                typeParameterCount, (int index) => new ir.TypeParameter());
+        List<ir.TypeParameter> typeParameters = List<ir.TypeParameter>.generate(
+            typeParameterCount, (int index) => ir.TypeParameter());
         functionTypeVariables =
-            new List<ir.TypeParameter>.from(functionTypeVariables)
+            List<ir.TypeParameter>.from(functionTypeVariables)
               ..addAll(typeParameters);
         for (int index = 0; index < typeParameterCount; index++) {
           typeParameters[index].name = readString();
@@ -231,18 +258,17 @@ abstract class AbstractDataSource extends DataSourceMixin
             _readDartTypeNodes(functionTypeVariables);
         int namedParameterCount = readInt();
         List<ir.NamedType> namedParameters =
-            new List<ir.NamedType>.filled(namedParameterCount, null);
+            List<ir.NamedType>.filled(namedParameterCount, null);
         for (int index = 0; index < namedParameterCount; index++) {
           String name = readString();
           bool isRequired = readBool();
           ir.DartType type = _readDartTypeNode(functionTypeVariables);
           namedParameters[index] =
-              new ir.NamedType(name, type, isRequired: isRequired);
+              ir.NamedType(name, type, isRequired: isRequired);
         }
         ir.TypedefType typedefType = _readDartTypeNode(functionTypeVariables);
         end(functionTypeNodeTag);
-        return new ir.FunctionType(
-            positionalParameters, returnType, nullability,
+        return ir.FunctionType(positionalParameters, returnType, nullability,
             namedParameters: namedParameters,
             typeParameters: typeParameters,
             requiredParameterCount: requiredParameterCount,
@@ -253,35 +279,35 @@ abstract class AbstractDataSource extends DataSourceMixin
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
-        return new ir.InterfaceType(cls, nullability, typeArguments);
+        return ir.InterfaceType(cls, nullability, typeArguments);
       case DartTypeNodeKind.thisInterfaceType:
         ir.Class cls = readClassNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
-        return new ThisInterfaceType(cls, nullability, typeArguments);
+        return ThisInterfaceType(cls, nullability, typeArguments);
       case DartTypeNodeKind.exactInterfaceType:
         ir.Class cls = readClassNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
-        return new ExactInterfaceType(cls, nullability, typeArguments);
+        return ExactInterfaceType(cls, nullability, typeArguments);
       case DartTypeNodeKind.typedef:
         ir.Typedef typedef = readTypedefNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
-        return new ir.TypedefType(typedef, nullability, typeArguments);
+        return ir.TypedefType(typedef, nullability, typeArguments);
       case DartTypeNodeKind.dynamicType:
         return const ir.DynamicType();
       case DartTypeNodeKind.futureOrType:
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         ir.DartType typeArgument = _readDartTypeNode(functionTypeVariables);
-        return new ir.FutureOrType(typeArgument, nullability);
+        return ir.FutureOrType(typeArgument, nullability);
       case DartTypeNodeKind.nullType:
         return const ir.NullType();
     }
-    throw new UnsupportedError("Unexpected DartTypeKind $kind");
+    throw UnsupportedError("Unexpected DartTypeKind $kind");
   }
 
   _MemberData _readMemberData() {
@@ -300,7 +326,7 @@ abstract class AbstractDataSource extends DataSourceMixin
         String name = _readString();
         return library.lookupMemberDataByName(name);
     }
-    throw new UnsupportedError("Unsupported _MemberKind $kind");
+    throw UnsupportedError("Unsupported _MemberKind $kind");
   }
 
   @override
@@ -426,10 +452,10 @@ abstract class AbstractDataSource extends DataSourceMixin
 
   @override
   List<E> readTreeNodesInContext<E extends ir.TreeNode>(
-      {bool emptyAsNull: false}) {
+      {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
-    List<E> list = new List<E>.filled(count, null);
+    List<E> list = List<E>.filled(count, null);
     for (int i = 0; i < count; i++) {
       ir.TreeNode node = readTreeNodeInContextInternal(currentMemberData);
       list[i] = node;
@@ -439,7 +465,7 @@ abstract class AbstractDataSource extends DataSourceMixin
 
   @override
   Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V f(),
-      {bool emptyAsNull: false}) {
+      {bool emptyAsNull = false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     Map<K, V> map = {};
@@ -464,7 +490,7 @@ abstract class AbstractDataSource extends DataSourceMixin
   }
 
   double _readDoubleValue() {
-    ByteData data = new ByteData(8);
+    ByteData data = ByteData(8);
     data.setUint16(0, readInt());
     data.setUint16(2, readInt());
     data.setUint16(4, readInt());
@@ -491,60 +517,60 @@ abstract class AbstractDataSource extends DataSourceMixin
     switch (kind) {
       case ConstantValueKind.BOOL:
         bool value = readBool();
-        return new BoolConstantValue(value);
+        return BoolConstantValue(value);
       case ConstantValueKind.INT:
         BigInt value = _readBigInt();
-        return new IntConstantValue(value);
+        return IntConstantValue(value);
       case ConstantValueKind.DOUBLE:
         double value = _readDoubleValue();
-        return new DoubleConstantValue(value);
+        return DoubleConstantValue(value);
       case ConstantValueKind.STRING:
         String value = readString();
-        return new StringConstantValue(value);
+        return StringConstantValue(value);
       case ConstantValueKind.NULL:
         return const NullConstantValue();
       case ConstantValueKind.FUNCTION:
         IndexedFunction function = readMember();
         DartType type = readDartType();
-        return new FunctionConstantValue(function, type);
+        return FunctionConstantValue(function, type);
       case ConstantValueKind.LIST:
         DartType type = readDartType();
         List<ConstantValue> entries = readConstants();
-        return new ListConstantValue(type, entries);
+        return ListConstantValue(type, entries);
       case ConstantValueKind.SET:
         DartType type = readDartType();
         MapConstantValue entries = readConstant();
-        return new constant_system.JavaScriptSetConstant(type, entries);
+        return constant_system.JavaScriptSetConstant(type, entries);
       case ConstantValueKind.MAP:
         DartType type = readDartType();
         ListConstantValue keyList = readConstant();
         List<ConstantValue> values = readConstants();
         bool onlyStringKeys = readBool();
-        return new constant_system.JavaScriptMapConstant(
+        return constant_system.JavaScriptMapConstant(
             type, keyList, values, onlyStringKeys);
       case ConstantValueKind.CONSTRUCTED:
         InterfaceType type = readDartType();
         Map<FieldEntity, ConstantValue> fields =
             readMemberMap<FieldEntity, ConstantValue>(
                 (MemberEntity member) => readConstant());
-        return new ConstructedConstantValue(type, fields);
+        return ConstructedConstantValue(type, fields);
       case ConstantValueKind.TYPE:
         DartType representedType = readDartType();
         DartType type = readDartType();
-        return new TypeConstantValue(representedType, type);
+        return TypeConstantValue(representedType, type);
       case ConstantValueKind.INSTANTIATION:
         List<DartType> typeArguments = readDartTypes();
         ConstantValue function = readConstant();
-        return new InstantiationConstantValue(typeArguments, function);
+        return InstantiationConstantValue(typeArguments, function);
       case ConstantValueKind.NON_CONSTANT:
-        return new NonConstantValue();
+        return NonConstantValue();
       case ConstantValueKind.INTERCEPTOR:
         ClassEntity cls = readClass();
-        return new InterceptorConstantValue(cls);
+        return InterceptorConstantValue(cls);
       case ConstantValueKind.DEFERRED_GLOBAL:
         ConstantValue constant = readConstant();
         OutputUnit unit = readOutputUnitReference();
-        return new DeferredGlobalConstantValue(constant, unit);
+        return DeferredGlobalConstantValue(constant, unit);
       case ConstantValueKind.DUMMY_INTERCEPTOR:
         return DummyInterceptorConstantValue();
       case ConstantValueKind.LATE_SENTINEL:
@@ -553,9 +579,9 @@ abstract class AbstractDataSource extends DataSourceMixin
         return UnreachableConstantValue();
       case ConstantValueKind.JS_NAME:
         js.LiteralString name = readJsNode();
-        return new JsNameConstantValue(name);
+        return JsNameConstantValue(name);
     }
-    throw new UnsupportedError("Unexpexted constant value kind ${kind}.");
+    throw UnsupportedError("Unexpexted constant value kind ${kind}.");
   }
 
   ir.TreeNode _readTreeNode(_MemberData memberData) {
@@ -577,7 +603,7 @@ abstract class AbstractDataSource extends DataSourceMixin
         ir.ConstantExpression expression = _readTreeNode(memberData);
         ir.Constant constant =
             memberData.getConstantByIndex(expression, _readIntInternal());
-        return new ConstantReference(expression, constant);
+        return ConstantReference(expression, constant);
       case _TreeNodeKind.node:
         memberData ??= _readMemberData();
         int index = _readIntInternal();
@@ -588,7 +614,7 @@ abstract class AbstractDataSource extends DataSourceMixin
             "${memberData.node}.$_errorContext");
         return treeNode;
     }
-    throw new UnsupportedError("Unexpected _TreeNodeKind $kind");
+    throw UnsupportedError("Unexpected _TreeNodeKind $kind");
   }
 
   ir.FunctionNode _readFunctionNode(_MemberData memberData) {
@@ -607,7 +633,7 @@ abstract class AbstractDataSource extends DataSourceMixin
         ir.FunctionDeclaration functionDeclaration = _readTreeNode(memberData);
         return functionDeclaration.function;
     }
-    throw new UnsupportedError("Unexpected _FunctionNodeKind $kind");
+    throw UnsupportedError("Unexpected _FunctionNodeKind $kind");
   }
 
   @override
@@ -626,7 +652,7 @@ abstract class AbstractDataSource extends DataSourceMixin
         ir.FunctionNode functionNode = _readFunctionNode(memberData);
         return functionNode.typeParameters[_readIntInternal()];
     }
-    throw new UnsupportedError("Unexpected _TypeParameterKind kind $kind");
+    throw UnsupportedError("Unexpected _TypeParameterKind kind $kind");
   }
 
   void _checkDataKind(DataKind expectedKind) {
@@ -648,18 +674,18 @@ abstract class AbstractDataSource extends DataSourceMixin
         return localLookup.getLocalByIndex(memberContext, localIndex);
       case LocalKind.thisLocal:
         ClassEntity cls = readClass();
-        return new ThisLocal(cls);
+        return ThisLocal(cls);
       case LocalKind.boxLocal:
         ClassEntity cls = readClass();
-        return new BoxLocal(cls);
+        return BoxLocal(cls);
       case LocalKind.anonymousClosureLocal:
         ClassEntity cls = readClass();
-        return new AnonymousClosureLocal(cls);
+        return AnonymousClosureLocal(cls);
       case LocalKind.typeVariableLocal:
         TypeVariableEntity typeVariable = readTypeVariable();
-        return new TypeVariableLocal(typeVariable);
+        return TypeVariableLocal(typeVariable);
     }
-    throw new UnsupportedError("Unexpected local kind $kind");
+    throw UnsupportedError("Unexpected local kind $kind");
   }
 
   @override
@@ -677,7 +703,7 @@ abstract class AbstractDataSource extends DataSourceMixin
     Uri uri = _readUri();
     Uri enclosingLibraryUri = _readUri();
     bool isDeferred = _readBool();
-    return new ImportEntity(isDeferred, name, uri, enclosingLibraryUri);
+    return ImportEntity(isDeferred, name, uri, enclosingLibraryUri);
   }
 
   @override

@@ -1,0 +1,120 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue46719.dart:27:12: Error: Couldn't find constructor 'm.applyAndPrint'.
+//   a.m<int>.applyAndPrint([2]);
+//            ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/issue46719.dart:28:15: Error: Couldn't find constructor 'm.applyAndPrint'.
+//   a.m<String>.applyAndPrint(['three']);
+//               ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/issue46719.dart:29:12: Error: Couldn't find constructor 'n.applyAndPrint'.
+//   A.n<int>.applyAndPrint([2]);
+//            ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/issue46719.dart:30:15: Error: Couldn't find constructor 'n.applyAndPrint'.
+//   A.n<String>.applyAndPrint(['three']);
+//               ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/issue46719.dart:31:15: Error: Couldn't find constructor 'm.applyAndPrint'.
+//   self.m<int>.applyAndPrint([2]);
+//               ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/issue46719.dart:32:18: Error: Couldn't find constructor 'm.applyAndPrint'.
+//   self.m<String>.applyAndPrint(['three']);
+//                  ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/issue46719.dart:33:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   self.A.n<int>.applyAndPrint([2]);
+//           ^
+//
+// pkg/front_end/testcases/general/issue46719.dart:34:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   self.A.n<String>.applyAndPrint(['three']);
+//           ^
+//
+// pkg/front_end/testcases/general/issue46719.dart:35:5: Error: Member not found: 'named'.
+//   A.named.toString();
+//     ^^^^^
+//
+// pkg/front_end/testcases/general/issue46719.dart:36:4: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   A<int>.named.toString();
+//    ^
+//
+// pkg/front_end/testcases/general/issue46719.dart:36:10: Error: Member not found: 'named'.
+//   A<int>.named.toString();
+//          ^^^^^
+//
+// pkg/front_end/testcases/general/issue46719.dart:37:5: Error: Couldn't find constructor 'named'.
+//   A.named<int>.toString();
+//     ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue46719.dart" as self;
+
+class A<T extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+  constructor named() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+  method m<X extends core::Object? = dynamic>(self::A::m::X% x) → core::List<self::A::m::X%>
+    return core::_GrowableList::_literal1<self::A::m::X%>(x);
+  static method n<X extends core::Object? = dynamic>(self::A::n::X% x) → core::List<self::A::n::X%>
+    return core::_GrowableList::_literal1<self::A::n::X%>(x);
+}
+extension FunctionApplier on core::Function {
+  method applyAndPrint = self::FunctionApplier|applyAndPrint;
+  tearoff applyAndPrint = self::FunctionApplier|get#applyAndPrint;
+}
+static method m<X extends core::Object? = dynamic>(self::m::X% x) → core::List<self::m::X%>
+  return core::_GrowableList::_literal1<self::m::X%>(x);
+static method FunctionApplier|applyAndPrint(lowered final core::Function #this, core::List<core::Object?> positionalArguments) → void
+  return core::print(core::Function::apply(#this, positionalArguments, #C1));
+static method FunctionApplier|get#applyAndPrint(lowered final core::Function #this) → (core::List<core::Object?>) → void
+  return (core::List<core::Object?> positionalArguments) → void => self::FunctionApplier|applyAndPrint(#this, positionalArguments);
+static method test() → dynamic {
+  self::A<dynamic> a = new self::A::•<dynamic>();
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:27:12: Error: Couldn't find constructor 'm.applyAndPrint'.
+  a.m<int>.applyAndPrint([2]);
+           ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:28:15: Error: Couldn't find constructor 'm.applyAndPrint'.
+  a.m<String>.applyAndPrint(['three']);
+              ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:29:12: Error: Couldn't find constructor 'n.applyAndPrint'.
+  A.n<int>.applyAndPrint([2]);
+           ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:30:15: Error: Couldn't find constructor 'n.applyAndPrint'.
+  A.n<String>.applyAndPrint(['three']);
+              ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:31:15: Error: Couldn't find constructor 'm.applyAndPrint'.
+  self.m<int>.applyAndPrint([2]);
+              ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:32:18: Error: Couldn't find constructor 'm.applyAndPrint'.
+  self.m<String>.applyAndPrint(['three']);
+                 ^^^^^^^^^^^^^";
+  self::FunctionApplier|applyAndPrint(#C2, core::_GrowableList::_literal1<core::Object?>(2));
+  self::FunctionApplier|applyAndPrint(#C2, core::_GrowableList::_literal1<core::Object?>("three"));
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:35:5: Error: Member not found: 'named'.
+  A.named.toString();
+    ^^^^^".{core::Object::toString}(){() → core::String};
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:36:10: Error: Member not found: 'named'.
+  A<int>.named.toString();
+         ^^^^^".{core::Object::toString}(){() → core::String};
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:37:5: Error: Couldn't find constructor 'named'.
+  A.named<int>.toString();
+    ^^^^^";
+}
+static method main() → void {}
+
+constants  {
+  #C1 = <core::Symbol*, dynamic>{)
+  #C2 = static-tearoff self::A::n
+}

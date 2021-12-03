@@ -8,36 +8,36 @@ import "org-dartlang-testcase:///constants_lib.dart" as lib;
 static const field (core::int) → core::int partialInstantiation = #C2;
 static const field con::Class<core::int> instance = #C4;
 static const field core::List<core::int> listLiteral = #C5;
-static const field core::Set<core::int> setLiteral = #C9;
-static const field core::Map<core::int, core::String> mapLiteral = #C12;
+static const field core::Set<core::int> setLiteral = #C6;
+static const field core::Map<core::int, core::String> mapLiteral = #C8;
 static const field core::List<core::int> listConcatenation = #C5;
-static const field core::Set<core::int> setConcatenation = #C9;
-static const field core::Map<core::int, core::String> mapConcatenation = #C12;
-static const field core::bool partialInstantiationIdentical = #C13;
-static const field core::bool instanceIdentical = #C13;
-static const field core::bool listLiteralIdentical = #C13;
-static const field core::bool setLiteralIdentical = #C13;
-static const field core::bool mapLiteralIdentical = #C13;
-static const field core::bool listConcatenationIdentical = #C13;
-static const field core::bool setConcatenationIdentical = #C13;
-static const field core::bool mapConcatenationIdentical = #C13;
+static const field core::Set<core::int> setConcatenation = #C6;
+static const field core::Map<core::int, core::String> mapConcatenation = #C8;
+static const field core::bool partialInstantiationIdentical = #C9;
+static const field core::bool instanceIdentical = #C9;
+static const field core::bool listLiteralIdentical = #C9;
+static const field core::bool setLiteralIdentical = #C9;
+static const field core::bool mapLiteralIdentical = #C9;
+static const field core::bool listConcatenationIdentical = #C9;
+static const field core::bool setConcatenationIdentical = #C9;
+static const field core::bool mapConcatenationIdentical = #C9;
 static method main() → dynamic {
   self::test(#C2, #C2);
   self::test(#C4, #C4);
   self::test(#C5, #C5);
-  self::test(#C9, #C9);
-  self::test(#C12, #C12);
+  self::test(#C6, #C6);
+  self::test(#C8, #C8);
   self::test(#C5, #C5);
-  self::test(#C9, #C9);
-  self::test(#C12, #C12);
-  self::test(true, #C13);
-  self::test(true, #C13);
-  self::test(true, #C13);
-  self::test(true, #C13);
-  self::test(true, #C13);
-  self::test(true, #C13);
-  self::test(true, #C13);
-  self::test(true, #C13);
+  self::test(#C6, #C6);
+  self::test(#C8, #C8);
+  self::test(true, #C9);
+  self::test(true, #C9);
+  self::test(true, #C9);
+  self::test(true, #C9);
+  self::test(true, #C9);
+  self::test(true, #C9);
+  self::test(true, #C9);
+  self::test(true, #C9);
 }
 static method test(dynamic expected, dynamic actual) → dynamic {
   core::print("test(${expected}, ${actual})");
@@ -68,33 +68,29 @@ class Class<T extends core::Object* = dynamic> extends core::Object /*hasConstCo
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static const field (core::Object*, core::Object*) →* core::bool* c2 = #C14;
+static const field (core::Object*, core::Object*) →* core::bool* c2 = #C10;
 static const field (core::int*) →* core::int* partialInstantiation = #C2;
 static const field con::Class<core::int*>* instance = #C4;
 static const field core::List<core::int*>* listLiteral = #C5;
-static const field core::Set<core::int*>* setLiteral = #C9;
-static const field core::Map<core::int*, core::String*>* mapLiteral = #C12;
+static const field core::Set<core::int*>* setLiteral = #C6;
+static const field core::Map<core::int*, core::String*>* mapLiteral = #C8;
 static const field core::List<core::int*>* listConcatenation = #C5;
-static const field core::Set<core::int*>* setConcatenation = #C9;
-static const field core::Map<core::int*, core::String*>* mapConcatenation = #C12;
+static const field core::Set<core::int*>* setConcatenation = #C6;
+static const field core::Map<core::int*, core::String*>* mapConcatenation = #C8;
 static method id<T extends core::Object* = dynamic>(con::id::T* t) → con::id::T*
   return t;
 
 constants  {
   #C1 = static-tearoff con::id
-  #C2 = instantiation con::id <core::int*>
+  #C2 = instantiation #C1 <core::int*>
   #C3 = 0
   #C4 = con::Class<core::int*> {field:#C3}
   #C5 = <core::int*>[#C3]
-  #C6 = null
-  #C7 = <dynamic>[#C3, #C6]
-  #C8 = core::_ImmutableMap<core::int*, Null> {_kvPairs:#C7}
-  #C9 = col::_UnmodifiableSet<core::int*> {_map:#C8}
-  #C10 = "foo"
-  #C11 = <dynamic>[#C3, #C10]
-  #C12 = core::_ImmutableMap<core::int*, core::String*> {_kvPairs:#C11}
-  #C13 = true
-  #C14 = static-tearoff core::identical
+  #C6 = <core::int*>{#C3}
+  #C7 = "foo"
+  #C8 = <core::int*, core::String*>{#C3:#C7)
+  #C9 = true
+  #C10 = static-tearoff core::identical
 }
 
 

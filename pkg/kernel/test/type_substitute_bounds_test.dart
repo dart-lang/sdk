@@ -41,6 +41,7 @@ class TestCase {
 
   TestCase(this.type, this.bounds, this.expected);
 
+  @override
   String toString() {
     var substitution = bounds.keys.map((key) {
       var bound = bounds[key]!;
@@ -62,7 +63,7 @@ TestCase testCase(String type, Map<String, TypeBound> bounds, String expected) {
   return new TestCase(type, bounds, expected);
 }
 
-main() {
+void main() {
   for (var testCase in testCases) {
     test('$testCase', () {
       var environment = new LazyTypeEnvironment();

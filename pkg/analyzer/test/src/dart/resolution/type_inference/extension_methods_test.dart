@@ -371,7 +371,7 @@ void f(A<int> a) {
 ''');
     var override = findNode.extensionOverride('E<num>(a)');
     assertElement(override, findElement.extension_('E'));
-    assertElementTypeStrings(override.typeArgumentTypes, ['num']);
+    assertElementTypes(override.typeArgumentTypes, ['num']);
     assertType(override.extendedType, 'A<num>');
 
     var propertyAccess = findNode.propertyAccess('.foo');
@@ -397,7 +397,7 @@ void f(A<int> a) {
 ''');
     var override = findNode.extensionOverride('E<num>(a)');
     assertElement(override, findElement.extension_('E'));
-    assertElementTypeStrings(override.typeArgumentTypes, ['num']);
+    assertElementTypes(override.typeArgumentTypes, ['num']);
     assertType(override.extendedType, 'A<num>');
 
     // TODO(scheglov) We need to instantiate "foo" fully.
@@ -450,7 +450,7 @@ void f(A<int> a) {
 ''');
     var override = findNode.extensionOverride('E<num>(a)');
     assertElement(override, findElement.extension_('E'));
-    assertElementTypeStrings(override.typeArgumentTypes, ['num']);
+    assertElementTypes(override.typeArgumentTypes, ['num']);
     assertType(override.extendedType, 'A<num>');
 
     assertAssignment(
@@ -489,7 +489,7 @@ f(String s) {
       error(CompileTimeErrorCode.COULD_NOT_INFER, 69, 1),
     ]);
     var override = findNode.extensionOverride('E(s)');
-    assertElementTypeStrings(override.typeArgumentTypes, ['String']);
+    assertElementTypes(override.typeArgumentTypes, ['String']);
     assertType(override.extendedType, 'String');
   }
 
@@ -507,7 +507,7 @@ void f(A<int> a) {
 ''');
     var override = findNode.extensionOverride('E(a)');
     assertElement(override, findElement.extension_('E'));
-    assertElementTypeStrings(override.typeArgumentTypes, ['int']);
+    assertElementTypes(override.typeArgumentTypes, ['int']);
     assertType(override.extendedType, 'A<int>');
 
     var propertyAccess = findNode.propertyAccess('.foo');
@@ -533,7 +533,7 @@ void f(A<int> a) {
 ''');
     var override = findNode.extensionOverride('E(a)');
     assertElement(override, findElement.extension_('E'));
-    assertElementTypeStrings(override.typeArgumentTypes, ['int']);
+    assertElementTypes(override.typeArgumentTypes, ['int']);
     assertType(override.extendedType, 'A<int>');
 
     // TODO(scheglov) We need to instantiate "foo" fully.
@@ -565,7 +565,7 @@ void f(A<int> a) {
 ''');
     var override = findNode.extensionOverride('E(a)');
     assertElement(override, findElement.extension_('E'));
-    assertElementTypeStrings(override.typeArgumentTypes, ['int']);
+    assertElementTypes(override.typeArgumentTypes, ['int']);
     assertType(override.extendedType, 'A<int>');
 
     var propertyAccess = findNode.propertyAccess('foo;');
@@ -591,7 +591,7 @@ void f(A<int> a) {
 ''');
     var override = findNode.extensionOverride('E(a)');
     assertElement(override, findElement.extension_('E'));
-    assertElementTypeStrings(override.typeArgumentTypes, ['int']);
+    assertElementTypes(override.typeArgumentTypes, ['int']);
     assertType(override.extendedType, 'A<int>');
 
     assertAssignment(

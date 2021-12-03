@@ -6,7 +6,7 @@ library dart2js.new_js_emitter.model;
 
 import '../common_elements.dart';
 import '../constants/values.dart' show ConstantValue;
-import '../deferred_load/deferred_load.dart' show OutputUnit;
+import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js show Expression, Name, Statement, TokenFinalizer;
@@ -187,8 +187,8 @@ class StaticField {
   StaticField(this.element, this.name, this.getterName, this.code,
       {this.isFinal,
       this.isLazy,
-      this.isInitializedByConstant: false,
-      this.usesNonNullableInitialization: false});
+      this.isInitializedByConstant = false,
+      this.usesNonNullableInitialization = false});
 
   @override
   String toString() {
@@ -309,7 +309,7 @@ class Class {
     _mixinClass = mixinClass;
   }
 
-  js.Name get superclassName => superclass == null ? null : superclass.name;
+  js.Name get superclassName => superclass?.name;
 
   @override
   String toString() => 'Class(name=${name.key},element=$element)';

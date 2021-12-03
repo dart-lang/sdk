@@ -12,12 +12,12 @@ import 'package:kernel/text/indentation.dart' show Indentation, Tagging;
 import '../io/code_output.dart' show BufferedCodeOutput;
 
 /// Unparse the JavaScript [node].
-String nodeToString(Node node, {bool pretty: false}) {
-  JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
+String nodeToString(Node node, {bool pretty = false}) {
+  JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
       shouldCompressOutput: !pretty,
       preferSemicolonToNewlineInMinifiedOutput: !pretty);
-  LenientPrintingContext printingContext = new LenientPrintingContext();
-  new Printer(options, printingContext).visit(node);
+  LenientPrintingContext printingContext = LenientPrintingContext();
+  Printer(options, printingContext).visit(node);
   return printingContext.getText();
 }
 
@@ -25,7 +25,7 @@ String nodeToString(Node node, {bool pretty: false}) {
 /// JavaScript [Node].
 class DebugPrinter extends BaseVisitor with Indentation, Tagging<Node> {
   @override
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
 
   void visitNodeWithChildren(Node node, String type, [Map params]) {
     openNode(node, type, params);
@@ -55,7 +55,7 @@ class DebugPrinter extends BaseVisitor with Indentation, Tagging<Node> {
 
   /// Pretty-prints given node tree into string.
   static String prettyPrint(Node node) {
-    var p = new DebugPrinter();
+    var p = DebugPrinter();
     node.accept(p);
     return p.sb.toString();
   }

@@ -574,6 +574,58 @@ void g() {
 }
 ''');
   }
+
+  Future<void> test_addParameter_withImport() async {
+    newFile('$workspaceRootPath/p/lib/d.dart', content: '''
+class D {}
+''');
+    setPackageContent('''
+import 'd.dart';
+
+class C {
+  void m(D x) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add parameter'
+  date: 2021-08-03
+  element:
+    uris: ['$importUri']
+    method: 'm'
+    inClass: 'C'
+  changes:
+    - kind: 'addParameter'
+      index: 0
+      name: 'x'
+      style: required_positional
+      argumentValue:
+        expression: '{% d %}()'
+        variables:
+          d:
+            kind: 'import'
+            uris: ['d.dart']
+            name: 'D'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(C c) {
+  c.m();
+  c.m();
+}
+''');
+    await assertHasFix('''
+import 'package:p/d.dart';
+import '$importUri';
+
+void f(C c) {
+  c.m(D());
+  c.m(D());
+}
+''');
+  }
 }
 
 @reflectiveTest

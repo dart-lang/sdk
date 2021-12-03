@@ -17,32 +17,32 @@ class Covariance {
 
   /// Returns the covariance mask for [parameter].
   static int covarianceFromParameter(VariableDeclaration parameter) =>
-      (parameter.isCovariant ? Covariant : 0) |
-      (parameter.isGenericCovariantImpl ? GenericCovariantImpl : 0);
+      (parameter.isCovariantByDeclaration ? Covariant : 0) |
+      (parameter.isCovariantByClass ? GenericCovariantImpl : 0);
 
   /// Returns the covariance mask for [field].
   static int covarianceFromField(Field field) =>
-      (field.isCovariant ? Covariant : 0) |
-      (field.isGenericCovariantImpl ? GenericCovariantImpl : 0);
+      (field.isCovariantByDeclaration ? Covariant : 0) |
+      (field.isCovariantByClass ? GenericCovariantImpl : 0);
 
   /// Applies the [covariance] mask to [parameter].
   static void covarianceToParameter(
       int covariance, VariableDeclaration parameter) {
     if ((covariance & Covariant) != 0) {
-      parameter.isCovariant = true;
+      parameter.isCovariantByDeclaration = true;
     }
     if ((covariance & GenericCovariantImpl) != 0) {
-      parameter.isGenericCovariantImpl = true;
+      parameter.isCovariantByClass = true;
     }
   }
 
   /// Applies the [covariance] mask to parameter.
   static void covarianceToField(int covariance, Field field) {
     if ((covariance & Covariant) != 0) {
-      field.isCovariant = true;
+      field.isCovariantByDeclaration = true;
     }
     if ((covariance & GenericCovariantImpl) != 0) {
-      field.isGenericCovariantImpl = true;
+      field.isCovariantByClass = true;
     }
   }
 
@@ -133,7 +133,7 @@ class Covariance {
     List<bool>? typeParameters;
     if (function.typeParameters.isNotEmpty) {
       for (int index = 0; index < function.typeParameters.length; index++) {
-        if (function.typeParameters[index].isGenericCovariantImpl) {
+        if (function.typeParameters[index].isCovariantByClass) {
           typeParameters ??=
               new List<bool>.filled(function.typeParameters.length, false);
           typeParameters[index] = true;
@@ -289,7 +289,7 @@ class Covariance {
         for (int index = 0; index < typeParameters.length; index++) {
           if (index < function.typeParameters.length) {
             if (typeParameters[index]) {
-              function.typeParameters[index].isGenericCovariantImpl = true;
+              function.typeParameters[index].isCovariantByClass = true;
             }
           }
         }

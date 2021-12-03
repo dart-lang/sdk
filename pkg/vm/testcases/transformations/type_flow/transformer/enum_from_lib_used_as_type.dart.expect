@@ -1,0 +1,27 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "enum_from_lib_used_as_type.lib.dart" as lib;
+import "dart:_internal" as _in;
+
+import "file:pkg/vm/testcases/transformations/type_flow/transformer/enum_from_lib_used_as_type.lib.dart";
+
+static method main() → dynamic {
+  core::List<dynamic> list = [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::•<dynamic>(0);
+  if([@vm.direct-call.metadata=dart.core::_GrowableList.isNotEmpty] [@vm.inferred-type.metadata=dart.core::bool] list.{core::Iterable::isNotEmpty}{core::bool}) {
+    [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/enum_from_lib_used_as_type.lib.dart::Class.method] [@vm.inferred-type.metadata=!? (skip check)] new lib::Class::•().{lib::Class::method}(_in::unsafeCast<lib::Enum>(_in::unsafeCast<dynamic>(null))){(lib::Enum) → core::int};
+  }
+}
+library enum_from_lib_used_as_type.lib.dart /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class Enum extends core::_Enum {
+}
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3252,getterSelectorId:3253]  method method([@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::Enum e) → core::int
+    return [@vm.inferred-type.metadata=!] e.{core::_Enum::index}{core::int};
+}

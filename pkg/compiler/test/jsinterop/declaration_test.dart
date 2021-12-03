@@ -94,23 +94,6 @@ class A {
 
 main() => new A();
 '''),
-  const Test(
-      'Js-interop class with abstract getter.',
-      '''
-@JS()
-library test;
-
-import 'package:js/js.dart';
-
-@JS()
-class A {
-  get foo;
-}
-
-main() => new A();
-''',
-      warnings: const [MessageKind.ABSTRACT_GETTER],
-      skipForKernel: true),
   const Test('Js-interop class that extends a js-interop class.', '''
 @JS()
 library test;
@@ -392,21 +375,18 @@ class Test {
   final Map<String, String> _sources;
   final List<MessageKind> errors;
   final List<MessageKind> warnings;
-  final bool skipForKernel;
 
   const Test(this.name, this._source,
       {this.errors: const <MessageKind>[],
-      this.warnings: const <MessageKind>[],
-      this.skipForKernel: false})
+      this.warnings: const <MessageKind>[]})
       : _sources = null;
 
   const Test.multi(this.name, this._sources,
       {this.errors: const <MessageKind>[],
-      this.warnings: const <MessageKind>[],
-      this.skipForKernel: false})
+      this.warnings: const <MessageKind>[]})
       : _source = null;
 
-  String get source => _source != null ? _source : _sources['main.dart'];
+  String get source => _source ?? _sources['main.dart'];
 
   Map<String, String> get sources =>
       _source != null ? {'main.dart': _source} : _sources;
@@ -415,9 +395,7 @@ class Test {
 runTest(Test test) async {
   print('==${test.name}======================================================');
   print(test.source);
-  if (!test.skipForKernel) {
-    await runTestInternal(test);
-  }
+  await runTestInternal(test);
 }
 
 runTestInternal(Test test) async {

@@ -15,7 +15,7 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:2:1: Error: 'x' is exported from both 'org-dartlang-test:///lib1.dart' and 'org-dartlang-test:///lib2.dart'.
+// org-dartlang-test:///main.dart:3:1: Error: 'x' is exported from both 'org-dartlang-test:///lib1.dart' and 'org-dartlang-test:///lib2.dart'.
 // export "lib2.dart" show x;
 // ^
 //

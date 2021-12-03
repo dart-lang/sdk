@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This test ensures that the AOT compiler can generate stripped versions of
 // ELF and assembly output. This test is currently very weak, in that it just
 // checks that the stripped version is strictly smaller than the unstripped one.

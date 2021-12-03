@@ -36,7 +36,7 @@ class C extends core::Object /*hasConstConstructor*/  {
   constructor missingFactoryKeyword() → self::C*
     ;
   static factory good() → self::C*
-    let dynamic #redirecting_factory = self::C::constant in invalid-expression;
+    return new self::C::constant();
   method notEvenAConstructor(dynamic a) → self::C*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -54,3 +54,8 @@ static method b(dynamic c) → invalid-type
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_000044.dart:9:7 -> ConstructorTearOffConstant(C.good)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

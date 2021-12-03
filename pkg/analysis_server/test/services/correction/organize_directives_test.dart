@@ -42,6 +42,46 @@ B b;
 ''');
   }
 
+  Future<void> test_ignore_asFirstComment() async {
+    // Usually the first comment is treated as a library comment and not moved
+    // but if it's an 'ignore:' it should be treated as attached to the import.
+    await _computeUnitAndErrors(r'''
+// ignore: unused_import
+import 'dart:io';
+import 'dart:async';
+
+Future a;
+''');
+    // validate change
+    _assertOrganize(r'''
+import 'dart:async';
+// ignore: unused_import
+import 'dart:io';
+
+Future a;
+''');
+  }
+
+  Future<void> test_ignoreForFile_asFirstComment() async {
+    // Unlike 'ignore:', 'ignore_for_file:' still _should_ be kept at the top
+    // of the file and not attached to the import.
+    await _computeUnitAndErrors(r'''
+// ignore_for_file: unused_import
+import 'dart:io';
+import 'dart:async';
+
+Future a;
+''');
+    // validate change
+    _assertOrganize(r'''
+// ignore_for_file: unused_import
+import 'dart:async';
+import 'dart:io';
+
+Future a;
+''');
+  }
+
   Future<void> test_keep_duplicateImports_withDifferentPrefix() async {
     await _computeUnitAndErrors(r'''
 import 'dart:async' as async1;
@@ -76,6 +116,76 @@ part 'no_such_part.dart';
 ''';
     await _computeUnitAndErrors(code);
     _assertOrganize(code);
+  }
+
+  Future<void> test_languageVersion_afterLibraryComment() async {
+    await _computeUnitAndErrors(r'''
+// Copyright
+
+// @dart=2.10
+
+import 'dart:io';
+import 'dart:async';
+
+File f;
+Future a;
+''');
+    // validate change
+    _assertOrganize(r'''
+// Copyright
+
+// @dart=2.10
+
+import 'dart:async';
+import 'dart:io';
+
+File f;
+Future a;
+''');
+  }
+
+  Future<void> test_languageVersion_asFirstComment() async {
+    await _computeUnitAndErrors(r'''
+// @dart=2.10
+import 'dart:io';
+import 'dart:async';
+
+File f;
+Future a;
+''');
+    // validate change
+    _assertOrganize(r'''
+// @dart=2.10
+import 'dart:async';
+import 'dart:io';
+
+File f;
+Future a;
+''');
+  }
+
+  Future<void> test_languageVersion_beforeImportWithoutNewline() async {
+    await _computeUnitAndErrors(r'''
+// Copyright
+
+// @dart=2.10
+import 'dart:io';
+import 'dart:async';
+
+File f;
+Future a;
+''');
+    // validate change
+    _assertOrganize(r'''
+// Copyright
+
+// @dart=2.10
+import 'dart:async';
+import 'dart:io';
+
+File f;
+Future a;
+''');
   }
 
   Future<void> test_remove_duplicateImports() async {

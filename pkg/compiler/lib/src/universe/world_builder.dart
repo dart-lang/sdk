@@ -94,7 +94,7 @@ class StrongModeWorldStrategy implements SelectorConstraintsStrategy {
   @override
   StrongModeWorldConstraints createSelectorConstraints(
       Selector selector, Object initialConstraint) {
-    return new StrongModeWorldConstraints()
+    return StrongModeWorldConstraints()
       ..addReceiverConstraint(initialConstraint);
   }
 
@@ -148,7 +148,7 @@ class StrongModeWorldConstraints extends UniverseSelectorConstraints {
       _constraints = null;
       return true;
     }
-    _constraints ??= new Set<StrongModeConstraint>();
+    _constraints ??= {};
     return _constraints.add(constraint);
   }
 
@@ -177,7 +177,7 @@ class StrongModeConstraint {
       cls = commonElements.jsJavaScriptObjectClass;
       relation = ClassRelation.subtype;
     }
-    return new StrongModeConstraint.internal(cls, relation);
+    return StrongModeConstraint.internal(cls, relation);
   }
 
   const StrongModeConstraint.internal(this.cls, this.relation);
@@ -220,27 +220,24 @@ abstract class WorldBuilder {
 }
 
 abstract class WorldBuilderBase {
-  final Map<Entity, Set<DartType>> staticTypeArgumentDependencies =
-      <Entity, Set<DartType>>{};
+  final Map<Entity, Set<DartType>> staticTypeArgumentDependencies = {};
 
-  final Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies =
-      <Selector, Set<DartType>>{};
+  final Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies = {};
 
-  final Set<TypeVariableType> typeVariableTypeLiterals =
-      new Set<TypeVariableType>();
+  final Set<TypeVariableType> typeVariableTypeLiterals = {};
 
   void _registerStaticTypeArgumentDependency(
       Entity element, List<DartType> typeArguments) {
-    staticTypeArgumentDependencies.putIfAbsent(
-        element, () => new Set<DartType>())
-      ..addAll(typeArguments);
+    staticTypeArgumentDependencies
+        .putIfAbsent(element, () => {})
+        .addAll(typeArguments);
   }
 
   void _registerDynamicTypeArgumentDependency(
       Selector selector, List<DartType> typeArguments) {
-    dynamicTypeArgumentDependencies.putIfAbsent(
-        selector, () => new Set<DartType>())
-      ..addAll(typeArguments);
+    dynamicTypeArgumentDependencies
+        .putIfAbsent(selector, () => {})
+        .addAll(typeArguments);
   }
 
   void registerStaticInvocation(StaticUse staticUse) {

@@ -9,7 +9,7 @@ class C<T extends core::num?, S extends core::Object? = dynamic, U extends core:
   synthetic constructor •() → self::C<self::C::T%, self::C::S%, self::C::U%>
     : super core::Object::•()
     ;
-  method promoteNullable(generic-covariant-impl self::C::T? t) → void {
+  method promoteNullable(covariant-by-class self::C::T? t) → void {
     if(t is{ForNonNullableByDefault} core::int) {
       t{self::C::T? & core::int /* '?' & '!' = '!' */};
     }
@@ -17,7 +17,7 @@ class C<T extends core::num?, S extends core::Object? = dynamic, U extends core:
       t{self::C::T? & core::int? /* '?' & '?' = '?' */};
     }
   }
-  method nullableAsUndetermined(generic-covariant-impl self::C::S? s) → void {
+  method nullableAsUndetermined(covariant-by-class self::C::S? s) → void {
     s as{ForNonNullableByDefault} self::C::U%;
   }
 }
@@ -40,7 +40,7 @@ class D<T extends core::num*> extends core::Object {
   synthetic constructor •() → typ::D<typ::D::T*>*
     : super core::Object::•()
     ;
-  method promoteLegacy(generic-covariant-impl typ::D::T* t) → void {
+  method promoteLegacy(covariant-by-class typ::D::T* t) → void {
     if(t is core::int*) {
       let final typ::D::T* & core::int* /* '*' & '*' = '*' */ #t1 = t{typ::D::T* & core::int* /* '*' & '*' = '*' */} in #t1 == null ?{core::bool*} null : #t1.{core::int::isEven}{core::bool*};
     }

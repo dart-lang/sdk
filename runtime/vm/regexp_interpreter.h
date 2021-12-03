@@ -15,13 +15,13 @@ namespace dart {
 
 class IrregexpInterpreter : public AllStatic {
  public:
-  enum IrregexpResult { RE_FAILURE = 0, RE_SUCCESS = 1, RE_EXCEPTION = -1 };
-
-  static IrregexpResult Match(const TypedData& bytecode,
-                              const String& subject,
-                              int32_t* captures,
-                              intptr_t start_position,
-                              Zone* zone);
+  // Returns True in case of a success, False in case of a failure,
+  // Null in case of internal exception,
+  // Error in case VM error has to propagated up to the caller.
+  static ObjectPtr Match(const TypedData& bytecode,
+                         const String& subject,
+                         int32_t* captures,
+                         intptr_t start_position);
 };
 
 }  // namespace dart

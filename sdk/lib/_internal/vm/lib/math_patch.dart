@@ -101,7 +101,8 @@ double _doublePow(double base, double exponent) {
   return _pow(base.toDouble(), exponent.toDouble());
 }
 
-double _pow(double base, double exponent) native "Math_doublePow";
+@pragma("vm:external-name", "Math_doublePow")
+external double _pow(double base, double exponent);
 
 @pragma("vm:recognized", "other")
 int _intPow(int base, int exponent) {
@@ -121,70 +122,92 @@ int _intPow(int base, int exponent) {
 }
 
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double sin(num radians) => _sin(radians.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double cos(num radians) => _cos(radians.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double tan(num radians) => _tan(radians.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double acos(num x) => _acos(x.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double asin(num x) => _asin(x.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double atan(num x) => _atan(x.toDouble());
 @patch
-@pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double sqrt(num x) => _sqrt(x.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double exp(num x) => _exp(x.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double log(num x) => _log(x.toDouble());
 
-double _atan2(double a, double b) native "Math_atan2";
-double _sin(double x) native "Math_sin";
-double _cos(double x) native "Math_cos";
-double _tan(double x) native "Math_tan";
-double _acos(double x) native "Math_acos";
-double _asin(double x) native "Math_asin";
-double _atan(double x) native "Math_atan";
-double _sqrt(double x) native "Math_sqrt";
-double _exp(double x) native "Math_exp";
-double _log(double x) native "Math_log";
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
+@pragma("vm:external-name", "Math_atan2")
+external double _atan2(double a, double b);
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
+@pragma("vm:external-name", "Math_sin")
+external double _sin(double x);
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
+@pragma("vm:external-name", "Math_cos")
+external double _cos(double x);
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
+@pragma("vm:external-name", "Math_tan")
+external double _tan(double x);
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
+@pragma("vm:external-name", "Math_acos")
+external double _acos(double x);
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
+@pragma("vm:external-name", "Math_asin")
+external double _asin(double x);
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
+@pragma("vm:external-name", "Math_atan")
+external double _atan(double x);
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
+@pragma("vm:external-name", "Math_sqrt")
+external double _sqrt(double x);
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
+@pragma("vm:external-name", "Math_exp")
+external double _exp(double x);
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
+@pragma("vm:external-name", "Math_log")
+external double _log(double x);
 
 // TODO(iposva): Handle patch methods within a patch class correctly.
 @patch
 class Random {
+  static final Random _secureRandom = _SecureRandom();
+
   @patch
   factory Random([int? seed]) {
     var state = _Random._setupSeed((seed == null) ? _Random._nextSeed() : seed);
@@ -197,9 +220,7 @@ class Random {
   }
 
   @patch
-  factory Random.secure() {
-    return new _SecureRandom();
-  }
+  factory Random.secure() => _secureRandom;
 }
 
 class _Random implements Random {
@@ -225,7 +246,8 @@ class _Random implements Random {
   // fail with --throw_on_javascript_int_overflow.
   // TODO(regis): Implement in Dart and remove Random_nextState in math.cc.
   @pragma("vm:recognized", "asm-intrinsic")
-  void _nextState() native "Random_nextState";
+  @pragma("vm:external-name", "Random_nextState")
+  external void _nextState();
 
   int nextInt(int max) {
     const limit = 0x3FFFFFFF;
@@ -268,9 +290,11 @@ class _Random implements Random {
   // This is a native to prevent 64-bit operations in Dart, which
   // fail with --throw_on_javascript_int_overflow.
   // TODO(regis): Implement here in Dart and remove native in math.cc.
-  static Uint32List _setupSeed(int seed) native "Random_setupSeed";
+  @pragma("vm:external-name", "Random_setupSeed")
+  external static Uint32List _setupSeed(int seed);
   // Get a seed from the VM's random number provider.
-  static Uint32List _initialSeed() native "Random_initialSeed";
+  @pragma("vm:external-name", "Random_initialSeed")
+  external static Uint32List _initialSeed();
 
   static int _nextSeed() {
     // Trigger the PRNG once to change the internal state.
@@ -286,7 +310,8 @@ class _SecureRandom implements Random {
   }
 
   // Return count bytes of entropy as a positive integer; count <= 8.
-  static int _getBytes(int count) native "SecureRandom_getBytes";
+  @pragma("vm:external-name", "SecureRandom_getBytes")
+  external static int _getBytes(int count);
 
   int nextInt(int max) {
     RangeError.checkValueInInterval(

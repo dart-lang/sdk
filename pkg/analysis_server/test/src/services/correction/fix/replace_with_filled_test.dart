@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -16,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceWithFilledTest extends FixProcessorTest with WithNullSafetyMixin {
+class ReplaceWithFilledTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REPLACE_WITH_FILLED;
 

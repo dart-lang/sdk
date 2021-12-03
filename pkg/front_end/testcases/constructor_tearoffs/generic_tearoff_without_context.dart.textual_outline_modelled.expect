@@ -1,7 +1,17 @@
-bar() => A.foo;
-
 class A<X> {
+  A() {}
   A.foo() {}
+  factory A.bar() => new A<X>();
 }
 
 main() {}
+method() {}
+testBar() => A.bar;
+testBarArgs() => A<int>.bar;
+testBarExtraArgs() => A<int, String>.bar;
+testFoo() => A.foo;
+testFooArgs() => A<int>.foo;
+testFooExtraArgs() => A<int, String>.foo;
+testNew() => A.new;
+testNewArgs() => A<int>.new;
+testNewExtraArgs() => A<int, String>.new;

@@ -10,6 +10,7 @@ type: newworld
 modules:
   moduleA:
     moduleA/a.dart: |
+      // @dart=2.9
       export 'package:moduleB/b.dart';
 
       class A { }
@@ -18,6 +19,7 @@ modules:
       moduleB:../moduleB
   moduleB:
     moduleB/b.dart: |
+      // @dart=2.9
       class B {
         int foo = 42;
       }
@@ -28,6 +30,7 @@ worlds:
     fromComponent: true
     sources:
       main.dart: |
+        // @dart=2.9
         import "package:moduleA/a.dart";
 
         main() {

@@ -2,8 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+LibTest/io/HttpClient/findProxy_A01_t01: Skip # https://github.com/dart-lang/co19/issues/1129
+LibTest/io/HttpClient/findProxy_A01_t02: Skip # https://github.com/dart-lang/co19/issues/1129
+LibTest/io/HttpClient/findProxy_A02_t01: Skip # https://github.com/dart-lang/co19/issues/1129
+LibTest/io/HttpClient/findProxy_A02_t02: Skip # https://github.com/dart-lang/co19/issues/1129
 LibTest/io/RawDatagramSocket/*: Skip # https://github.com/dart-lang/co19/issues/195
 
 [ $compiler == dart2analyzer ]
 LanguageFeatures/nnbd/static/strong/*: SkipByDesign # Strong mode tests should not be run with analyzer
 LanguageFeatures/nnbd/static/weak/*: SkipByDesign # Weak mode tests should not be run with analyzer
+

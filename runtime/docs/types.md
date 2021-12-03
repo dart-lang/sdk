@@ -1,6 +1,6 @@
 # Representation of Types
 
-The Dart VM keeps track of the runtime type of Dart objects (also called *instances*) allocated in the heap by storing information in the objects themselves.  Heap objects contain a header and zero or more fields that can point to further objects.  Small integer objects (*Smi*) are not allocated as separate instances in the heap, but appear as immediate fields of instances. They are identified by their least significant bit being zero, as opposed to tagged object pointers whose least significant bit is one.  Refer to the document [gc.md](https://github.com/dart-lang/sdk/blob/master/runtime/docs/gc.md) for a description of objects and tagged object pointers.
+The Dart VM keeps track of the runtime type of Dart objects (also called *instances*) allocated in the heap by storing information in the objects themselves.  Heap objects contain a header and zero or more fields that can point to further objects.  Small integer objects (*Smi*) are not allocated as separate instances in the heap, but appear as immediate fields of instances. They are identified by their least significant bit being zero, as opposed to tagged object pointers whose least significant bit is one.  Refer to the document [gc.md](https://github.com/dart-lang/sdk/blob/main/runtime/docs/gc.md) for a description of objects and tagged object pointers.
 
 ## Runtime Type of an Instance
 
@@ -27,7 +27,7 @@ A parameter type in the signature can be either a `Type`, a `FunctionType`, or a
 
 ## AbstractType
 
-The VM declares the class `AbstractType` as a placeholder to store a concrete type. The following classes extend `AbstractType`: `Type`, `FunctionType`, `TypeParameter`, and `TypeRef`. The latter one, `TypeRef` is used to break cycles in recursive type graphs. More on it later. `AbstractType` declares several virtual methods that may be overridden by concrete types. See its declaration in [object.h](https://github.com/dart-lang/sdk/blob/master/runtime/vm/object.h).
+The VM declares the class `AbstractType` as a placeholder to store a concrete type. The following classes extend `AbstractType`: `Type`, `FunctionType`, `TypeParameter`, and `TypeRef`. The latter one, `TypeRef` is used to break cycles in recursive type graphs. More on it later. `AbstractType` declares several virtual methods that may be overridden by concrete types. See its declaration in [object.h](https://github.com/dart-lang/sdk/blob/main/runtime/vm/object.h).
 
 ## TypeArguments
 
@@ -145,7 +145,7 @@ D<D<T>>:    D[D<D<D<T>>>, D<T>]
 D<D<D<T>>>: D[D<D<D<D<T>>>>, D<D<T>>]
 ...
 ```
-The representation is divergent and therefore not possible. The VM detects non-contractive types (search for `ClassFinalizer::CheckRecursiveType` in the [class finalizer](https://github.com/dart-lang/sdk/blob/master/runtime/vm/class_finalizer.cc)) and reports an error. These non-contractive types make no sense in real programs and rejecting them is not an issue at all.
+The representation is divergent and therefore not possible. The VM detects non-contractive types (search for `ClassFinalizer::CheckRecursiveType` in the [class finalizer](https://github.com/dart-lang/sdk/blob/main/runtime/vm/class_finalizer.cc)) and reports an error. These non-contractive types make no sense in real programs and rejecting them is not an issue at all.
 
 ## Compile Time Type
 
@@ -216,7 +216,7 @@ Instead of implementing three different traversals, the kind of type equality is
 
 ## Finalization
 
-Types read from kernel files (produced by the Common Front End) need finalization before being used in the VM runtime. Finalization consists in flattening type argument vectors and in assigning indices to type parameters. A generic type provided by CFE will always have as many type arguments as the number of type parameters declared by the type’s class. As explained above, type arguments get prepended to the type argument vector, so that the vector can be used unchanged in any super class of the type’s class. This is done by methods of the [class finalizer](https://github.com/dart-lang/sdk/blob/master/runtime/vm/class_finalizer.h) called `ExpandAndFinalizeTypeArguments` and `FillAndFinalizeTypeArguments`.
+Types read from kernel files (produced by the Common Front End) need finalization before being used in the VM runtime. Finalization consists in flattening type argument vectors and in assigning indices to type parameters. A generic type provided by CFE will always have as many type arguments as the number of type parameters declared by the type’s class. As explained above, type arguments get prepended to the type argument vector, so that the vector can be used unchanged in any super class of the type’s class. This is done by methods of the [class finalizer](https://github.com/dart-lang/sdk/blob/main/runtime/vm/class_finalizer.h) called `ExpandAndFinalizeTypeArguments` and `FillAndFinalizeTypeArguments`.
 
 The index of function type parameters can be assigned immediately upon loading of the type parameter from the kernel file. This is possible because enclosing generic functions are always loaded prior to inner generic functions. Therefore the number of type parameters declared in the  enclosing scope is known. The picture is more complicated with class type parameters. Classes can reference each other and a clear order is not defined in the kernel file. Clusters of classes must be fully loaded before type arguments can be flattened, which in turn determines the indices of class type parameters.
 
@@ -226,7 +226,7 @@ As a last step of finalization, types and type argument vectors get canonicalize
 
 The VM keeps global tables of canonical types and type arguments. Canonicalizing a type or a type argument vector consists in a table look up using a hash code to find a candidate, and then comparing the type with the candidate using the `IsEquivalent` method mentioned above (passing `kind = kCanonical`).
 
-It is therefore imperative that two canonically equal types share the same hash code. `TypeRef` objects pose a problem in this regard. Namely, the hash of a `TypeRef` node cannot depend on the hash of the referenced type graph, otherwise, the hash code would depend on the location in the cycle where hash computation started and ended. Instead, the hash of a `TypeRef` node can only depend on information obtainable by “peeking” at the referenced type node, but not at the whole referenced type graph. See the comments in the [implementation](https://github.com/dart-lang/sdk/blob/master/runtime/vm/object.cc) of `TypeRef::Hash()` for details.
+It is therefore imperative that two canonically equal types share the same hash code. `TypeRef` objects pose a problem in this regard. Namely, the hash of a `TypeRef` node cannot depend on the hash of the referenced type graph, otherwise, the hash code would depend on the location in the cycle where hash computation started and ended. Instead, the hash of a `TypeRef` node can only depend on information obtainable by “peeking” at the referenced type node, but not at the whole referenced type graph. See the comments in the [implementation](https://github.com/dart-lang/sdk/blob/main/runtime/vm/object.cc) of `TypeRef::Hash()` for details.
 
 ## Cached Instantiations of TypeArguments
 
@@ -249,5 +249,5 @@ For details, search for the string *ShareInstantiator* in the source.
 
 ## Nullability of TypeArguments
 
-The previous section ignores an important point, namely, sharing is only allowed if the nullability of each type argument in the instantiator is not modified by the instantiation. If the new instance was allocated with `A<S?, T>()` instead, it would only work if the first type argument in the instantiator is nullable, otherwise, its nullability would change from legacy or non-nullable to nullable. This check cannot be performed at compile time and performing it at run time undermines the benefits of the optimization. However, whether the nullability will remain unchanged for each type argument in the vector can be computed quickly for the whole vector with a simple integer operation. Each type argument vector is assigned a nullability value reflecting the nullability of each one of its type arguments. Since two bits are required per type argument, there is a maximal vector length allowed to apply this optimization. For a more detailed explanation, search for `kNullabilityBitsPerType` in the [source](https://github.com/dart-lang/sdk/blob/master/runtime/vm/object.h) and read the comments.
+The previous section ignores an important point, namely, sharing is only allowed if the nullability of each type argument in the instantiator is not modified by the instantiation. If the new instance was allocated with `A<S?, T>()` instead, it would only work if the first type argument in the instantiator is nullable, otherwise, its nullability would change from legacy or non-nullable to nullable. This check cannot be performed at compile time and performing it at run time undermines the benefits of the optimization. However, whether the nullability will remain unchanged for each type argument in the vector can be computed quickly for the whole vector with a simple integer operation. Each type argument vector is assigned a nullability value reflecting the nullability of each one of its type arguments. Since two bits are required per type argument, there is a maximal vector length allowed to apply this optimization. For a more detailed explanation, search for `kNullabilityBitsPerType` in the [source](https://github.com/dart-lang/sdk/blob/main/runtime/vm/object.h) and read the comments.
 

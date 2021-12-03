@@ -2,17 +2,20 @@ var A_new = A.new;
 var B_new = B.new;
 var F_new = F.new;
 var G_new = G.new;
+
 class A {
   int field1 = 0;
   A(this.field1);
   A.named(this.field1);
 }
+
 class B<T> implements A {
   var field1;
   T field2;
   B(this.field1, this.field2);
   B.named(this.field1, this.field2);
 }
+
 typedef F<T> = A;
 typedef G<T extends num> = B;
 var A_named = A.named;

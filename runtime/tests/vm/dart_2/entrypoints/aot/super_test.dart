@@ -4,6 +4,8 @@
 //
 // VMOptions=--enable-testing-pragmas -Denable_inlining=true
 
+// @dart = 2.9
+
 import "../super.dart";
 
 main(args) => test(args);

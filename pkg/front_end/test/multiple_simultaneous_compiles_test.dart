@@ -18,7 +18,7 @@ import 'package:kernel/ast.dart' show Component;
 
 import 'incremental_suite.dart' show getOptions;
 
-main() async {
+Future<void> main() async {
   Uri compileTarget = Platform.script.resolve("binary_md_dill_reader.dart");
   if (!(new File.fromUri(compileTarget)).existsSync()) {
     throw "$compileTarget doesn't exist";

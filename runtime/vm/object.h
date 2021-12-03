@@ -67,6 +67,7 @@ class LocalScope;
 class CallSiteResetter;
 class CodeStatistics;
 class IsolateGroupReloadContext;
+class ObjectGraphCopier;
 
 #define REUSABLE_FORWARD_DECLARATION(name) class Reusable##name##HandleScope;
 REUSABLE_HANDLE_LIST(REUSABLE_FORWARD_DECLARATION)
@@ -290,6 +291,11 @@ class Object {
  public:
   using UntaggedObjectType = UntaggedObject;
   using ObjectPtrType = ObjectPtr;
+
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
 
   static ObjectPtr RawCast(ObjectPtr obj) { return obj; }
 
@@ -859,6 +865,7 @@ class Object {
   friend void UntaggedObject::Validate(IsolateGroup* isolate_group) const;
   friend class Closure;
   friend class InstanceDeserializationCluster;
+  friend class ObjectGraphCopier;  // For Object::InitializeObject
   friend class Simd128MessageDeserializationCluster;
   friend class OneByteString;
   friend class TwoByteString;
@@ -944,7 +951,7 @@ enum class Nullability : uint8_t {
   kNullable = 0,
   kNonNullable = 1,
   kLegacy = 2,
-  // Adjust kNullabilityBitSize in clustered_snapshot.cc if adding new values.
+  // Adjust kNullabilityBitSize in app_snapshot.cc if adding new values.
 };
 
 // Equality kind between types.
@@ -1264,6 +1271,71 @@ class Class : public Object {
     return untag()->interfaces();
   }
   void set_interfaces(const Array& value) const;
+
+  // Returns whether a path from [this] to [cls] can be found, where the first
+  // element is a direct supertype of [this], each following element is a direct
+  // supertype of the previous element and the final element has [cls] as its
+  // type class. If [this] and [cls] are the same class, then the path is empty.
+  //
+  // If [path] is not nullptr, then the elements of the path are added to it.
+  // This path can then be used to compute type arguments of [cls] given type
+  // arguments for an instance of [this].
+  //
+  // Note: There may be multiple paths to [cls], but the result of applying each
+  // path must be equal to the other results.
+  bool FindInstantiationOf(Zone* zone,
+                           const Class& cls,
+                           GrowableArray<const AbstractType*>* path,
+                           bool consider_only_super_classes = false) const;
+  bool FindInstantiationOf(Zone* zone,
+                           const Class& cls,
+                           bool consider_only_super_classes = false) const {
+    return FindInstantiationOf(zone, cls, /*path=*/nullptr,
+                               consider_only_super_classes);
+  }
+
+  // Returns whether a path from [this] to [type] can be found, where the first
+  // element is a direct supertype of [this], each following element is a direct
+  // supertype of the previous element and the final element has the same type
+  // class as [type]. If [this] is the type class of [type], then the path is
+  // empty.
+  //
+  // If [path] is not nullptr, then the elements of the path are added to it.
+  // This path can then be used to compute type arguments of [type]'s type
+  // class given type arguments for an instance of [this].
+  //
+  // Note: There may be multiple paths to [type]'s type class, but the result of
+  // applying each path must be equal to the other results.
+  bool FindInstantiationOf(Zone* zone,
+                           const Type& type,
+                           GrowableArray<const AbstractType*>* path,
+                           bool consider_only_super_classes = false) const;
+  bool FindInstantiationOf(Zone* zone,
+                           const Type& type,
+                           bool consider_only_super_classes = false) const {
+    return FindInstantiationOf(zone, type, /*path=*/nullptr,
+                               consider_only_super_classes);
+  }
+
+  // If [this] is a subtype of a type with type class [cls], then this
+  // returns [cls]<X_0, ..., X_n>, where n is the number of type arguments for
+  // [cls] and where each type argument X_k is either instantiated or has free
+  // class type parameters corresponding to the type parameters of [this].
+  // Thus, given an instance of [this], the result can be instantiated
+  // with the instance type arguments to get the type of the instance.
+  //
+  // If [this] is not a subtype of a type with type class [cls], returns null.
+  TypePtr GetInstantiationOf(Zone* zone, const Class& cls) const;
+
+  // If [this] is a subtype of [type], then this returns [cls]<X_0, ..., X_n>,
+  // where [cls] is the type class of [type], n is the number of type arguments
+  // for [cls], and where each type argument X_k is either instantiated or has
+  // free class type parameters corresponding to the type parameters of [this].
+  // Thus, given an instance of [this], the result can be instantiated with the
+  // instance type arguments to get the type of the instance.
+  //
+  // If [this] is not a subtype of a type with type class [cls], returns null.
+  TypePtr GetInstantiationOf(Zone* zone, const Type& type) const;
 
 #if !defined(PRODUCT) || !defined(DART_PRECOMPILED_RUNTIME)
   // Returns the list of classes directly implementing this class.
@@ -2309,6 +2381,12 @@ class ICData : public CallSiteData {
   // Generates a new ICData with descriptor and data array copied (deep clone).
   static ICDataPtr Clone(const ICData& from);
 
+  // Gets the [ICData] from the [ICData::entries_] array (which stores a back
+  // ref).
+  //
+  // May return `null` if the [ICData] is empty.
+  static ICDataPtr ICDataOfEntriesArray(const Array& array);
+
   static intptr_t TestEntryLengthFor(intptr_t num_args,
                                      bool tracking_exactness);
 
@@ -2357,6 +2435,8 @@ class ICData : public CallSiteData {
   void set_receiver_cannot_be_smi(bool value) const {
     untag()->state_bits_.UpdateBool<ReceiverCannotBeSmiBit>(value);
   }
+
+  uword Hash() const;
 
  private:
   static ICDataPtr New();
@@ -2468,7 +2548,9 @@ class ICData : public CallSiteData {
                                  RebindRule rebind_rule,
                                  const AbstractType& receiver_type);
 
-  static void WriteSentinel(const Array& data, intptr_t test_entry_length);
+  static void WriteSentinel(const Array& data,
+                            intptr_t test_entry_length,
+                            const Object& back_ref);
 
   // A cache of VM heap allocated preinitialized empty ic data entry arrays.
   static ArrayPtr cached_icdata_arrays_[kCachedICDataArrayCount];
@@ -2871,7 +2953,7 @@ class Function : public Object {
   intptr_t ComputeClosureHash() const;
 
   FunctionPtr ForwardingTarget() const;
-  void SetForwardingChecks(const Array& checks) const;
+  void SetForwardingTarget(const Function& target) const;
 
   UntaggedFunction::Kind kind() const {
     return untag()->kind_tag_.Read<KindBits>();
@@ -3593,15 +3675,30 @@ class Function : public Object {
   // Works with map [deopt-id] -> ICData.
   void SaveICDataMap(
       const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
-      const Array& edge_counters_array) const;
+      const Array& edge_counters_array,
+      const Array& coverage_array) const;
   // Uses 'ic_data_array' to populate the table 'deopt_id_to_ic_data'. Clone
   // ic_data (array and descriptor) if 'clone_ic_data' is true.
   void RestoreICDataMap(ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
                         bool clone_ic_data) const;
 
+  // ic_data_array attached to the function stores edge counters in the
+  // first element, coverage data array in the second element and the rest
+  // are ICData objects.
+  struct ICDataArrayIndices {
+    static constexpr intptr_t kEdgeCounters = 0;
+    static constexpr intptr_t kCoverageData = 1;
+    static constexpr intptr_t kFirstICData = 2;
+  };
+
   ArrayPtr ic_data_array() const;
   void ClearICDataArray() const;
   ICDataPtr FindICData(intptr_t deopt_id) const;
+
+  // Coverage data array is a list of pairs:
+  //   element 2 * i + 0 is token position
+  //   element 2 * i + 1 is coverage hit (zero meaning code was not hit)
+  ArrayPtr GetCoverageArray() const;
 
   // Sets deopt reason in all ICData-s with given deopt_id.
   void SetDeoptReasonForAll(intptr_t deopt_id, ICData::DeoptReasonId reason);
@@ -4886,7 +4983,6 @@ class Library : public Object {
   static LibraryPtr MirrorsLibrary();
 #endif
   static LibraryPtr NativeWrappersLibrary();
-  static LibraryPtr ProfilerLibrary();
   static LibraryPtr TypedDataLibrary();
   static LibraryPtr VMServiceLibrary();
 
@@ -5173,10 +5269,13 @@ class ObjectPool : public Object {
     return PatchableBit::decode(untag()->entry_bits()[index]);
   }
 
+  static uint8_t EncodeBits(EntryType type, Patchability patchable) {
+    return PatchableBit::encode(patchable) | TypeBits::encode(type);
+  }
+
   void SetTypeAt(intptr_t index, EntryType type, Patchability patchable) const {
     ASSERT(index >= 0 && index <= Length());
-    const uint8_t bits =
-        PatchableBit::encode(patchable) | TypeBits::encode(type);
+    const uint8_t bits = EncodeBits(type, patchable);
     StoreNonPointer(&untag()->entry_bits()[index], bits);
   }
 
@@ -5808,8 +5907,6 @@ class CodeSourceMap : public Object {
 
 class CompressedStackMaps : public Object {
  public:
-  static const intptr_t kHashBits = 30;
-
   uintptr_t payload_size() const { return PayloadSizeOf(ptr()); }
   static uintptr_t PayloadSizeOf(const CompressedStackMapsPtr raw) {
     return UntaggedCompressedStackMaps::SizeField::decode(
@@ -6742,7 +6839,7 @@ class Context : public Object {
 
   void Dump(int indent = 0) const;
 
-  static const intptr_t kBytesPerElement = kWordSize;
+  static const intptr_t kBytesPerElement = kCompressedWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static const intptr_t kAwaitJumpVarIndex = 0;
@@ -6759,11 +6856,11 @@ class Context : public Object {
 
   static intptr_t variable_offset(intptr_t context_index) {
     return OFFSET_OF_RETURNED_VALUE(UntaggedContext, data) +
-           (kWordSize * context_index);
+           (kBytesPerElement * context_index);
   }
 
   static bool IsValidLength(intptr_t len) {
-    return 0 <= len && len <= compiler::target::Array::kMaxElements;
+    return 0 <= len && len <= compiler::target::Context::kMaxElements;
   }
 
   static intptr_t InstanceSize() {
@@ -7055,6 +7152,12 @@ class SubtypeTestCache : public Object {
                                  intptr_t index,
                                  const char* line_prefix = nullptr) const;
   void Reset() const;
+
+  // Tests that [other] contains the same entries in the same order.
+  bool Equals(const SubtypeTestCache& other) const;
+
+  // Creates a separate copy of the current STC contents.
+  SubtypeTestCachePtr Copy(Thread* thread) const;
 
   static SubtypeTestCachePtr New();
 
@@ -7623,11 +7726,6 @@ class TypeParameters : public Object {
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   // Hash value for a type argument vector consisting solely of dynamic types.
   static const intptr_t kAllDynamicHash = 1;
 
@@ -7898,11 +7996,6 @@ class TypeArguments : public Instance {
 // Subclasses of AbstractType are Type and TypeParameter.
 class AbstractType : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   virtual bool IsFinalized() const;
   virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const;
@@ -8339,6 +8432,10 @@ class Type : public AbstractType {
  private:
   void SetHash(intptr_t value) const;
 
+  // Takes an intptr_t since the cids of some classes are larger than will fit
+  // in ClassIdTagType. This allows us to guard against that case, instead of
+  // silently truncating the cid.
+  void set_type_class_id(intptr_t id) const;
   void set_type_state(uint8_t state) const;
   void set_nullability(Nullability value) const {
     ASSERT(!IsCanonical());
@@ -9136,11 +9233,6 @@ class Symbol : public AllStatic {
 // String may not be '\0' terminated.
 class String : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   static const intptr_t kOneByteChar = 1;
   static const intptr_t kTwoByteChar = 2;
 
@@ -9990,11 +10082,6 @@ class Bool : public Instance {
 
 class Array : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   // Returns `true` if we use card marking for arrays of length [array_length].
   static bool UseCardMarkingForAllocation(const intptr_t array_length) {
     return Array::InstanceSize(array_length) > Heap::kNewAllocatableSize;
@@ -10035,6 +10122,10 @@ class Array : public Instance {
     const intptr_t length = LengthOf(a);
     return memcmp(a->untag()->data(), b->untag()->data(),
                   kBytesPerElement * length) == 0;
+  }
+  bool Equals(const Array& other) const {
+    NoSafepointScope scope;
+    return Equals(ptr(), other.ptr());
   }
 
   static CompressedObjectPtr* DataOf(ArrayPtr array) {
@@ -10146,6 +10237,9 @@ class Array : public Instance {
                                   bool unique = false);
 
   ArrayPtr Slice(intptr_t start, intptr_t count, bool with_type_argument) const;
+  ArrayPtr Copy() const {
+    return Slice(0, Length(), /*with_type_argument=*/true);
+  }
 
  protected:
   static ArrayPtr New(intptr_t class_id,
@@ -10544,11 +10638,6 @@ class TypedDataBase : public PointerBase {
 
 class TypedData : public TypedDataBase {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const;
 
@@ -10906,6 +10995,16 @@ class DynamicLibrary : public Instance {
 
 class LinkedHashBase : public Instance {
  public:
+  // Keep consistent with _indexSizeToHashMask in compact_hash.dart.
+  static intptr_t IndexSizeToHashMask(intptr_t index_size) {
+    ASSERT(index_size >= kInitialIndexSize);
+    intptr_t index_bits = Utils::BitLength(index_size) - 2;
+#if defined(HAS_SMI_63_BITS)
+    return (1 << (32 - index_bits)) - 1;
+#else
+    return (1 << (Object::kHashBits - index_bits)) - 1;
+#endif
+  }
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedLinkedHashBase));
   }
@@ -10934,13 +11033,99 @@ class LinkedHashBase : public Instance {
     return OFFSET_OF(UntaggedLinkedHashBase, deleted_keys_);
   }
 
+  static const LinkedHashBase& Cast(const Object& obj) {
+    ASSERT(obj.IsLinkedHashMap() || obj.IsLinkedHashSet());
+    return static_cast<const LinkedHashBase&>(obj);
+  }
+
+  bool IsImmutable() const {
+    return GetClassId() == kImmutableLinkedHashMapCid ||
+           GetClassId() == kImmutableLinkedHashSetCid;
+  }
+
+  virtual TypeArgumentsPtr GetTypeArguments() const {
+    return untag()->type_arguments();
+  }
+  virtual void SetTypeArguments(const TypeArguments& value) const {
+    const intptr_t num_type_args = IsLinkedHashMap() ? 2 : 1;
+    ASSERT(value.IsNull() ||
+           ((value.Length() >= num_type_args) &&
+            value.IsInstantiated() /*&& value.IsCanonical()*/));
+    // TODO(asiva): Values read from a message snapshot are not properly marked
+    // as canonical. See for example tests/isolate/message3_test.dart.
+    untag()->set_type_arguments(value.ptr());
+  }
+
+  TypedDataPtr index() const { return untag()->index(); }
+  void set_index(const TypedData& value) const {
+    ASSERT(!value.IsNull());
+    untag()->set_index(value.ptr());
+  }
+
+  ArrayPtr data() const { return untag()->data(); }
+  void set_data(const Array& value) const { untag()->set_data(value.ptr()); }
+
+  SmiPtr hash_mask() const { return untag()->hash_mask(); }
+  void set_hash_mask(intptr_t value) const {
+    untag()->set_hash_mask(Smi::New(value));
+  }
+
+  SmiPtr used_data() const { return untag()->used_data(); }
+  void set_used_data(intptr_t value) const {
+    untag()->set_used_data(Smi::New(value));
+  }
+
+  SmiPtr deleted_keys() const { return untag()->deleted_keys(); }
+  void set_deleted_keys(intptr_t value) const {
+    untag()->set_deleted_keys(Smi::New(value));
+  }
+
+  intptr_t Length() const {
+    // The map or set may be uninitialized.
+    if (untag()->used_data() == Object::null()) return 0;
+    if (untag()->deleted_keys() == Object::null()) return 0;
+
+    intptr_t used = Smi::Value(untag()->used_data());
+    if (IsLinkedHashMap()) {
+      used >>= 1;
+    }
+    const intptr_t deleted = Smi::Value(untag()->deleted_keys());
+    return used - deleted;
+  }
+
+  // We do not compute the indices in the VM, but we do precompute the hash
+  // mask to avoid a load acquire barrier on reading the combination of index
+  // and hash mask.
+  void ComputeAndSetHashMask() const;
+
+  virtual bool CanonicalizeEquals(const Instance& other) const;
+  virtual uint32_t CanonicalizeHash() const;
+  virtual void CanonicalizeFieldsLocked(Thread* thread) const;
+
  protected:
   // Keep this in sync with Dart implementation (lib/compact_hash.dart).
   static const intptr_t kInitialIndexBits = 2;
   static const intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
 
+ private:
+  LinkedHashBasePtr ptr() const { return static_cast<LinkedHashBasePtr>(ptr_); }
+  UntaggedLinkedHashBase* untag() const {
+    ASSERT(ptr() != null());
+    return const_cast<UntaggedLinkedHashBase*>(ptr()->untag());
+  }
+
   friend class Class;
+  friend class ImmutableLinkedHashBase;
   friend class LinkedHashBaseDeserializationCluster;
+};
+
+class ImmutableLinkedHashBase : public AllStatic {
+ public:
+  static constexpr bool ContainsCompressedPointers() {
+    return LinkedHashBase::ContainsCompressedPointers();
+  }
+
+  static intptr_t data_offset() { return LinkedHashBase::data_offset(); }
 };
 
 // Corresponds to
@@ -10954,59 +11139,15 @@ class LinkedHashMap : public LinkedHashBase {
   }
 
   // Allocates a map with some default capacity, just like "new Map()".
-  static LinkedHashMapPtr NewDefault(Heap::Space space = Heap::kNew);
-  static LinkedHashMapPtr New(const Array& data,
+  static LinkedHashMapPtr NewDefault(intptr_t class_id = kLinkedHashMapCid,
+                                     Heap::Space space = Heap::kNew);
+  static LinkedHashMapPtr New(intptr_t class_id,
+                              const Array& data,
                               const TypedData& index,
                               intptr_t hash_mask,
                               intptr_t used_data,
                               intptr_t deleted_keys,
                               Heap::Space space = Heap::kNew);
-
-  virtual TypeArgumentsPtr GetTypeArguments() const {
-    return untag()->type_arguments();
-  }
-  virtual void SetTypeArguments(const TypeArguments& value) const {
-    ASSERT(value.IsNull() ||
-           ((value.Length() >= 2) &&
-            value.IsInstantiated() /*&& value.IsCanonical()*/));
-    // TODO(asiva): Values read from a message snapshot are not properly marked
-    // as canonical. See for example tests/isolate/message3_test.dart.
-    untag()->set_type_arguments(value.ptr());
-  }
-
-  TypedDataPtr index() const { return untag()->index(); }
-  void SetIndex(const TypedData& value) const {
-    ASSERT(!value.IsNull());
-    untag()->set_index(value.ptr());
-  }
-
-  ArrayPtr data() const { return untag()->data(); }
-  void SetData(const Array& value) const { untag()->set_data(value.ptr()); }
-
-  SmiPtr hash_mask() const { return untag()->hash_mask(); }
-  void SetHashMask(intptr_t value) const {
-    untag()->set_hash_mask(Smi::New(value));
-  }
-
-  SmiPtr used_data() const { return untag()->used_data(); }
-  void SetUsedData(intptr_t value) const {
-    untag()->set_used_data(Smi::New(value));
-  }
-
-  SmiPtr deleted_keys() const { return untag()->deleted_keys(); }
-  void SetDeletedKeys(intptr_t value) const {
-    untag()->set_deleted_keys(Smi::New(value));
-  }
-
-  intptr_t Length() const {
-    // The map may be uninitialized.
-    if (untag()->used_data() == Object::null()) return 0;
-    if (untag()->deleted_keys() == Object::null()) return 0;
-
-    intptr_t used = Smi::Value(untag()->used_data());
-    intptr_t deleted = Smi::Value(untag()->deleted_keys());
-    return (used >> 1) - deleted;
-  }
 
   // This iterator differs somewhat from its Dart counterpart (_CompactIterator
   // in runtime/lib/compact_hash.dart):
@@ -11051,10 +11192,40 @@ class LinkedHashMap : public LinkedHashBase {
 
   // Allocate a map, but leave all fields set to null.
   // Used during deserialization (since map might contain itself as key/value).
-  static LinkedHashMapPtr NewUninitialized(Heap::Space space = Heap::kNew);
+  static LinkedHashMapPtr NewUninitialized(intptr_t class_id,
+                                           Heap::Space space = Heap::kNew);
 
   friend class Class;
+  friend class ImmutableLinkedHashMap;
   friend class LinkedHashMapDeserializationCluster;
+};
+
+class ImmutableLinkedHashMap : public AllStatic {
+ public:
+  static constexpr bool ContainsCompressedPointers() {
+    return LinkedHashMap::ContainsCompressedPointers();
+  }
+
+  static ImmutableLinkedHashMapPtr NewDefault(Heap::Space space = Heap::kNew);
+
+  static ImmutableLinkedHashMapPtr NewUninitialized(
+      Heap::Space space = Heap::kNew);
+
+  static const ClassId kClassId = kImmutableLinkedHashMapCid;
+
+  static intptr_t InstanceSize() { return LinkedHashMap::InstanceSize(); }
+
+ private:
+  static intptr_t NextFieldOffset() {
+    // Indicates this class cannot be extended by dart code.
+    return -kWordSize;
+  }
+
+  static ImmutableLinkedHashMapPtr raw(const LinkedHashMap& map) {
+    return static_cast<ImmutableLinkedHashMapPtr>(map.ptr());
+  }
+
+  friend class Class;
 };
 
 class LinkedHashSet : public LinkedHashBase {
@@ -11064,59 +11235,15 @@ class LinkedHashSet : public LinkedHashBase {
   }
 
   // Allocates a set with some default capacity, just like "new Set()".
-  static LinkedHashSetPtr NewDefault(Heap::Space space = Heap::kNew);
-  static LinkedHashSetPtr New(const Array& data,
+  static LinkedHashSetPtr NewDefault(intptr_t class_id = kLinkedHashSetCid,
+                                     Heap::Space space = Heap::kNew);
+  static LinkedHashSetPtr New(intptr_t class_id,
+                              const Array& data,
                               const TypedData& index,
                               intptr_t hash_mask,
                               intptr_t used_data,
                               intptr_t deleted_keys,
                               Heap::Space space = Heap::kNew);
-
-  virtual TypeArgumentsPtr GetTypeArguments() const {
-    return untag()->type_arguments();
-  }
-  virtual void SetTypeArguments(const TypeArguments& value) const {
-    ASSERT(value.IsNull() ||
-           ((value.Length() >= 1) &&
-            value.IsInstantiated() /*&& value.IsCanonical()*/));
-    // TODO(asiva): Values read from a message snapshot are not properly marked
-    // as canonical. See for example tests/isolate/message3_test.dart.
-    untag()->set_type_arguments(value.ptr());
-  }
-
-  TypedDataPtr index() const { return untag()->index(); }
-  void SetIndex(const TypedData& value) const {
-    ASSERT(!value.IsNull());
-    untag()->set_index(value.ptr());
-  }
-
-  ArrayPtr data() const { return untag()->data(); }
-  void SetData(const Array& value) const { untag()->set_data(value.ptr()); }
-
-  SmiPtr hash_mask() const { return untag()->hash_mask(); }
-  void SetHashMask(intptr_t value) const {
-    untag()->set_hash_mask(Smi::New(value));
-  }
-
-  SmiPtr used_data() const { return untag()->used_data(); }
-  void SetUsedData(intptr_t value) const {
-    untag()->set_used_data(Smi::New(value));
-  }
-
-  SmiPtr deleted_keys() const { return untag()->deleted_keys(); }
-  void SetDeletedKeys(intptr_t value) const {
-    untag()->set_deleted_keys(Smi::New(value));
-  }
-
-  intptr_t Length() const {
-    // The map may be uninitialized.
-    if (untag()->used_data() == Object::null()) return 0;
-    if (untag()->deleted_keys() == Object::null()) return 0;
-
-    intptr_t used = Smi::Value(untag()->used_data());
-    intptr_t deleted = Smi::Value(untag()->deleted_keys());
-    return used - deleted;
-  }
 
   // This iterator differs somewhat from its Dart counterpart (_CompactIterator
   // in runtime/lib/compact_hash.dart):
@@ -11159,7 +11286,38 @@ class LinkedHashSet : public LinkedHashBase {
 
   // Allocate a set, but leave all fields set to null.
   // Used during deserialization (since set might contain itself as key/value).
-  static LinkedHashSetPtr NewUninitialized(Heap::Space space = Heap::kNew);
+  static LinkedHashSetPtr NewUninitialized(intptr_t class_id,
+                                           Heap::Space space = Heap::kNew);
+
+  friend class Class;
+  friend class ImmutableLinkedHashSet;
+  friend class LinkedHashSetDeserializationCluster;
+};
+
+class ImmutableLinkedHashSet : public AllStatic {
+ public:
+  static constexpr bool ContainsCompressedPointers() {
+    return LinkedHashSet::ContainsCompressedPointers();
+  }
+
+  static ImmutableLinkedHashSetPtr NewDefault(Heap::Space space = Heap::kNew);
+
+  static ImmutableLinkedHashSetPtr NewUninitialized(
+      Heap::Space space = Heap::kNew);
+
+  static const ClassId kClassId = kImmutableLinkedHashSetCid;
+
+  static intptr_t InstanceSize() { return LinkedHashSet::InstanceSize(); }
+
+ private:
+  static intptr_t NextFieldOffset() {
+    // Indicates this class cannot be extended by dart code.
+    return -kWordSize;
+  }
+
+  static ImmutableLinkedHashSetPtr raw(const LinkedHashSet& map) {
+    return static_cast<ImmutableLinkedHashSetPtr>(map.ptr());
+  }
 
   friend class Class;
 };

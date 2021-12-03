@@ -122,6 +122,14 @@ class Double extends _NativeDouble {
   const Double();
 }
 
+/// Represents a native bool in C.
+///
+/// [Bool] is not constructible in the Dart code and serves purely as marker
+/// in type signatures.
+class Bool extends NativeType {
+  const Bool();
+}
+
 /// Represents a void type in C.
 ///
 /// [Void] is not constructible in the Dart code and serves purely as marker in

@@ -127,19 +127,19 @@ DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode,
                       hot_reload_rollback_test_mode_callback);
 
 void Options::PrintVersion() {
-  Syslog::PrintErr("Dart SDK version: %s\n", Dart_VersionString());
+  Syslog::Print("Dart SDK version: %s\n", Dart_VersionString());
 }
 
 // clang-format off
 void Options::PrintUsage() {
-  Syslog::PrintErr(
+  Syslog::Print(
       "Usage: dart [<vm-flags>] <dart-script-file> [<script-arguments>]\n"
       "\n"
       "Executes the Dart script <dart-script-file> with "
       "the given list of <script-arguments>.\n"
       "\n");
   if (!Options::verbose_option()) {
-    Syslog::PrintErr(
+    Syslog::Print(
 "Common VM flags:\n"
 "--enable-asserts\n"
 "  Enable assert statements.\n"
@@ -176,7 +176,7 @@ void Options::PrintUsage() {
 "--version\n"
 "  Print the SDK version.\n");
   } else {
-    Syslog::PrintErr(
+    Syslog::Print(
 "Supported options:\n"
 "--enable-asserts\n"
 "  Enable assert statements.\n"
@@ -454,6 +454,11 @@ bool Options::ParseArguments(int argc,
       } else if (IsOption(argv[i], "no-serve-devtools")) {
         serve_devtools = false;
         skipVmOption = true;
+      } else if (IsOption(argv[i], "dds")) {
+        // This flag is set by default in dartdev, so we ignore it. --no-dds is
+        // a VM flag as disabling DDS changes how we configure the VM service,
+        // so we don't need to handle that case here.
+        skipVmOption = true;
       }
       if (!skipVmOption) {
         temp_vm_options.AddArgument(argv[i]);
@@ -526,24 +531,40 @@ bool Options::ParseArguments(int argc,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  else if (!Options::disable_dart_dev() &&  // NOLINT
-           ((Options::help_option() && !Options::verbose_option()) ||
-            (argc == 1))) {
-    DartDevIsolate::set_should_run_dart_dev(true);
-    // Let DartDev handle the default help message.
-    dart_options->AddArgument("help");
-    return true;
-  } else if (!Options::disable_dart_dev() &&
-             (enable_dartdev_analytics || disable_dartdev_analytics)) {
-    // The analytics flags are a special case as we don't have a target script
-    // or DartDev command but we still want to launch DartDev.
-    DartDevIsolate::set_should_run_dart_dev(true);
-    dart_options->AddArgument(enable_dartdev_analytics ? "--enable-analytics"
-                                                       : "--disable-analytics");
-    return true;
+  else if (!Options::disable_dart_dev()) {  // NOLINT
+    // Handles following invocation arguments:
+    //   - dart help
+    //   - dart --help
+    //   - dart
+    if (((Options::help_option() && !Options::verbose_option()) ||
+         (argc == 1))) {
+      DartDevIsolate::set_should_run_dart_dev(true);
+      // Let DartDev handle the default help message.
+      dart_options->AddArgument("help");
+      return true;
+    }
+    // Handles cases where only analytics flags are provided. We need to start
+    // the DartDev isolate to set this state.
+    else if (enable_dartdev_analytics || disable_dartdev_analytics) {  // NOLINT
+      // The analytics flags are a special case as we don't have a target script
+      // or DartDev command but we still want to launch DartDev.
+      DartDevIsolate::set_should_run_dart_dev(true);
+      dart_options->AddArgument(enable_dartdev_analytics
+                                    ? "--enable-analytics"
+                                    : "--disable-analytics");
+      return true;
+    }
+    // Let the VM handle '--version' and '--help --disable-dart-dev'.
+    // Otherwise, we'll launch the DartDev isolate to print its help message
+    // and set an error exit code.
+    else if (!Options::help_option() && !Options::version_option()) {  // NOLINT
+      DartDevIsolate::PrintUsageErrorOnRun();
+      return true;
+    }
+    return false;
   }
-
-#endif    // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  // Handle argument parsing errors.
   else {  // NOLINT
     return false;
   }
@@ -607,7 +628,8 @@ bool Options::ParseArguments(int argc,
       if (!run_command && strcmp(argv[i - 1], "run") == 0) {
         run_command = true;
       }
-      if (!Options::disable_dart_dev() && enable_vm_service_ && run_command) {
+      if (!Options::disable_dart_dev() && !Options::disable_dds() &&
+          enable_vm_service_ && run_command) {
         const char* dds_format_str = "--launch-dds=%s\\:%d";
         size_t size =
             snprintf(nullptr, 0, dds_format_str, vm_service_server_ip(),

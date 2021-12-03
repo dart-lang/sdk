@@ -2327,6 +2327,116 @@ class BarState extends State<FizzWidget> {
       expect(count, 3);
     });
 
+    test('compiled Javascript includes web library environment defines',
+        () async {
+      var file = File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync(
+          "main() {print(const bool.fromEnvironment('dart.library.html'));}\n");
+      var package_config =
+          File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "hello",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
+
+      var library = 'package:hello/foo.dart';
+      var module = 'packages/hello/foo.dart';
+
+      var dillFile = File('${tempDir.path}/foo.dart.dill');
+      var sourceFile = File('${dillFile.path}.sources');
+      var manifestFile = File('${dillFile.path}.json');
+      var sourceMapsFile = File('${dillFile.path}.map');
+
+      expect(dillFile.existsSync(), false);
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        '--packages=${package_config.path}',
+      ];
+
+      final StreamController<List<int>> streamController =
+          StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          StreamController<List<int>>();
+      final IOSink ioSink = IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = StreamController<Result>();
+      final outputParser = OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: streamController.stream, output: ioSink);
+      streamController.add('compile $library\n'.codeUnits);
+      int count = 0;
+      receivedResults.stream.listen((Result compiledResult) {
+        CompilationResult result =
+            CompilationResult.parse(compiledResult.status);
+        if (count == 0) {
+          // Request to 'compile', which results in full JavaScript.
+          expect(result.errorsCount, equals(0));
+          expect(sourceFile.existsSync(), equals(true));
+          expect(manifestFile.existsSync(), equals(true));
+          expect(sourceMapsFile.existsSync(), equals(true));
+          expect(result.filename, dillFile.path);
+
+          var compiledOutput = sourceFile.readAsStringSync();
+          // The constant environment variable should be inlined as a boolean
+          // literal.
+          expect(compiledOutput, contains('print(true);'));
+
+          streamController.add('accept\n'.codeUnits);
+
+          // 'compile-expression-to-js <boundarykey>
+          // libraryUri
+          // line
+          // column
+          // jsModules (one k-v pair per line)
+          // ...
+          // <boundarykey>
+          // jsFrameValues (one k-v pair per line)
+          // ...
+          // <boundarykey>
+          // moduleName
+          // expression
+          outputParser.expectSources = false;
+          streamController.add('compile-expression-to-js abc\n'
+                  '$library\n2\n1\nabc\nabc\n$module\n'
+                  'const bool.fromEnvironment("dart.library.html")\n'
+              .codeUnits);
+          count += 1;
+        } else {
+          expect(count, 1);
+          // Second request is to 'compile-expression-to-js' that should
+          // result in a literal `true` .
+          expect(result.errorsCount, 0);
+          var resultFile = File(result.filename);
+          // The constant environment variable should be inlined as a boolean
+          // literal.
+          expect(resultFile.readAsStringSync(), contains('return true;'));
+          outputParser.expectSources = false;
+          count += 1;
+          streamController.add('quit\n'.codeUnits);
+        }
+      });
+      expect(await result, 0);
+      expect(count, 2);
+    });
+
     test('mixed compile expression commands with web target', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {\n\n}\n");

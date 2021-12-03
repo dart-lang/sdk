@@ -56,6 +56,8 @@ import 'async_modifier.dart' show AsyncModifier;
 
 import 'block_kind.dart';
 
+import 'constructor_reference_context.dart' show ConstructorReferenceContext;
+
 import 'declaration_kind.dart' show DeclarationKind;
 
 import 'directive_context.dart';
@@ -69,7 +71,10 @@ import 'formal_parameter_kind.dart'
 import 'forwarding_listener.dart' show ForwardingListener, NullListener;
 
 import 'identifier_context.dart'
-    show IdentifierContext, looksLikeExpressionStart;
+    show
+        IdentifierContext,
+        looksLikeExpressionStart,
+        okNextValueInFormalParameter;
 
 import 'listener.dart' show Listener;
 
@@ -297,7 +302,22 @@ class Parser {
     return cachedRewriter ??= new TokenStreamRewriterImpl();
   }
 
-  Parser(this.listener)
+  /// If `true`, syntax like `foo<bar>.baz()` is parsed like an implicit
+  /// creation expression. Otherwise it is parsed as a explicit instantiation
+  /// followed by an invocation.
+  ///
+  /// With the constructor-tearoffs experiment, such syntax can lead to a valid
+  /// expression that is _not_ an implicit creation expression, and the parser
+  /// should therefore not special case the syntax but instead let listeners
+  /// resolve the expression by the seen selectors.
+  ///
+  /// Use this flag to test that the implementation doesn't need the special
+  /// casing.
+  // TODO(johnniwinther): Remove this when both analyzer and CFE can parse the
+  // implicit create expression without the special casing.
+  final bool useImplicitCreationExpression;
+
+  Parser(this.listener, {this.useImplicitCreationExpression: true})
       : assert(listener != null); // ignore:unnecessary_null_comparison
 
   bool get inGenerator {
@@ -668,8 +688,9 @@ class Parser {
       listener.handleImportPrefix(/* deferredKeyword = */ null, asKeyword);
     } else {
       listener.handleImportPrefix(
-          /* deferredKeyword = */ null,
-          /* asKeyword = */ null);
+        /* deferredKeyword = */ null,
+        /* asKeyword = */ null,
+      );
     }
     return token;
   }
@@ -1141,7 +1162,7 @@ class Parser {
   Token parseTypedef(Token typedefKeyword) {
     assert(optional('typedef', typedefKeyword));
     listener.beginUncategorizedTopLevelDeclaration(typedefKeyword);
-    listener.beginFunctionTypeAlias(typedefKeyword);
+    listener.beginTypedef(typedefKeyword);
     TypeInfo typeInfo = computeType(typedefKeyword, /* required = */ false);
     Token token = typeInfo.skipType(typedefKeyword);
     Token next = token.next!;
@@ -1243,7 +1264,7 @@ class Parser {
           parseFormalParametersRequiredOpt(token, MemberKind.FunctionTypeAlias);
     }
     token = ensureSemicolon(token);
-    listener.endFunctionTypeAlias(typedefKeyword, equals, token);
+    listener.endTypedef(typedefKeyword, equals, token);
     return token;
   }
 
@@ -1447,9 +1468,10 @@ class Parser {
       }
       // Parse the (potential) new type.
       TypeInfo typeInfoAlternative = computeType(
-          token,
-          /* required = */ false,
-          /* inDeclaration = */ true);
+        token,
+        /* required = */ false,
+        /* inDeclaration = */ true,
+      );
       token = typeInfoAlternative.skipType(token);
       next = token.next!;
 
@@ -1569,7 +1591,12 @@ class Parser {
 
     // Type is required in a generalized function type, but optional otherwise.
     final Token beforeType = token;
-    TypeInfo typeInfo = computeType(token, inFunctionType);
+    TypeInfo typeInfo = computeType(
+      token,
+      inFunctionType,
+      /* inDeclaration = */ false,
+      /* acceptKeywordForSimpleType = */ true,
+    );
     token = typeInfo.skipType(token);
     next = token.next!;
     if (typeInfo == noType &&
@@ -1590,18 +1617,33 @@ class Parser {
         IdentifierContext.formalParameterDeclaration;
 
     if (!inFunctionType && optional('this', next)) {
+      Token originalToken = token;
       thisKeyword = token = next;
       next = token.next!;
       if (!optional('.', next)) {
-        // Recover from a missing period by inserting one.
-        next = rewriteAndRecover(
-            token,
-            codes.templateExpectedButGot.withArguments('.'),
-            new SyntheticToken(TokenType.PERIOD, next.charOffset));
+        if (isOneOf(next, okNextValueInFormalParameter)) {
+          // Recover by not parsing as 'this' --- an error will be given
+          // later that it's not an allowed identifier.
+          token = originalToken;
+          next = token.next!;
+          thisKeyword = null;
+        } else {
+          // Recover from a missing period by inserting one.
+          next = rewriteAndRecover(
+              token,
+              codes.templateExpectedButGot.withArguments('.'),
+              new SyntheticToken(TokenType.PERIOD, next.charOffset));
+          // These 3 lines are duplicated here and below.
+          periodAfterThis = token = next;
+          next = token.next!;
+          nameContext = IdentifierContext.fieldInitializer;
+        }
+      } else {
+        // These 3 lines are duplicated here and above.
+        periodAfterThis = token = next;
+        next = token.next!;
+        nameContext = IdentifierContext.fieldInitializer;
       }
-      periodAfterThis = token = next;
-      next = token.next!;
-      nameContext = IdentifierContext.fieldInitializer;
     }
 
     if (next.isIdentifier) {
@@ -1944,7 +1986,7 @@ class Parser {
       Token? abstractToken, Token classKeyword) {
     assert(optional('class', classKeyword));
     Token begin = abstractToken ?? classKeyword;
-    listener.beginClassOrNamedMixinApplicationPrelude(begin);
+    listener.beginClassOrMixinOrNamedMixinApplicationPrelude(begin);
     Token name = ensureIdentifier(
         classKeyword, IdentifierContext.classOrMixinOrExtensionDeclaration);
     Token token = computeTypeParamOrArg(
@@ -2115,8 +2157,9 @@ class Parser {
     } else {
       listener.handleNoType(token);
       listener.handleClassExtends(
-          /* extendsKeyword = */ null,
-          /* typeCount = */ 1);
+        /* extendsKeyword = */ null,
+        /* typeCount = */ 1,
+      );
     }
     return token;
   }
@@ -2173,7 +2216,7 @@ class Parser {
   /// ```
   Token parseMixin(Token mixinKeyword) {
     assert(optional('mixin', mixinKeyword));
-    listener.beginClassOrNamedMixinApplicationPrelude(mixinKeyword);
+    listener.beginClassOrMixinOrNamedMixinApplicationPrelude(mixinKeyword);
     Token name = ensureIdentifier(
         mixinKeyword, IdentifierContext.classOrMixinOrExtensionDeclaration);
     Token headerStart = computeTypeParamOrArg(
@@ -2348,6 +2391,63 @@ class Parser {
     }
     TypeInfo typeInfo = computeType(onKeyword, /* required = */ true);
     token = typeInfo.ensureTypeOrVoid(onKeyword, this);
+
+    int handleShowHideElements() {
+      int elementCount = 0;
+      do {
+        Token next = token.next!.next!;
+        if (optional('get', next)) {
+          token = IdentifierContext.extensionShowHideElementGetter
+              .ensureIdentifier(next, this);
+          listener.handleShowHideIdentifier(next, token);
+        } else if (optional('operator', next)) {
+          token = IdentifierContext.extensionShowHideElementOperator
+              .ensureIdentifier(next, this);
+          listener.handleShowHideIdentifier(next, token);
+        } else if (optional('set', next)) {
+          token = IdentifierContext.extensionShowHideElementSetter
+              .ensureIdentifier(next, this);
+          listener.handleShowHideIdentifier(next, token);
+        } else {
+          TypeInfo typeInfo = computeType(
+              token.next!,
+              /* required = */ true,
+              /* inDeclaration = */ true,
+              /* acceptKeywordForSimpleType = */ true);
+          final bool isUnambiguouslyType =
+              typeInfo.hasTypeArguments || typeInfo is PrefixedType;
+          if (isUnambiguouslyType) {
+            token = typeInfo.ensureTypeOrVoid(token.next!, this);
+          } else {
+            token = IdentifierContext.extensionShowHideElementMemberOrType
+                .ensureIdentifier(token.next!, this);
+            listener.handleShowHideIdentifier(null, token);
+          }
+        }
+        ++elementCount;
+      } while (optional(',', token.next!));
+      return elementCount;
+    }
+
+    Token? showKeyword = token.next!;
+    int showElementCount = 0;
+    if (optional('show', showKeyword)) {
+      showElementCount = handleShowHideElements();
+    } else {
+      showKeyword = null;
+    }
+
+    Token? hideKeyword = token.next!;
+    int hideElementCount = 0;
+    if (optional('hide', hideKeyword)) {
+      hideElementCount = handleShowHideElements();
+    } else {
+      hideKeyword = null;
+    }
+
+    listener.handleExtensionShowHide(
+        showKeyword, showElementCount, hideKeyword, hideElementCount);
+
     if (!optional('{', token.next!)) {
       // Recovery
       Token next = token.next!;
@@ -2374,8 +2474,8 @@ class Parser {
     }
     token = parseClassOrMixinOrExtensionBody(
         token, DeclarationKind.Extension, name?.lexeme);
-    listener.endExtensionDeclaration(
-        extensionKeyword, typeKeyword, onKeyword, token);
+    listener.endExtensionDeclaration(extensionKeyword, typeKeyword, onKeyword,
+        showKeyword, hideKeyword, token);
     return token;
   }
 
@@ -2524,9 +2624,10 @@ class Parser {
       }
       // Parse the (potential) new type.
       TypeInfo typeInfoAlternative = computeType(
-          token,
-          /* required = */ false,
-          /* inDeclaration = */ true);
+        token,
+        /* required = */ false,
+        /* inDeclaration = */ true,
+      );
       token = typeInfoAlternative.skipType(token);
       next = token.next!;
 
@@ -2643,9 +2744,10 @@ class Parser {
         indicatesMethodOrField(next.next!.next!)) {
       // Recovery: Use the reserved keyword despite that not being legal.
       typeInfo = computeType(
-          token,
-          /*required = */ true,
-          /* inDeclaration = */ true);
+        token,
+        /* required = */ true,
+        /* inDeclaration = */ true,
+      );
       token = typeInfo.skipType(token);
       next = token.next!;
       nameIsRecovered = true;
@@ -2764,7 +2866,8 @@ class Parser {
       DeclarationKind kind,
       String? enclosingDeclarationName,
       bool nameIsRecovered) {
-    listener.beginFields(beforeStart);
+    listener.beginFields(kind, abstractToken, externalToken, staticToken,
+        covariantToken, lateToken, varFinalOrConst, beforeStart);
 
     // Covariant affects only the setter and final fields do not have a setter,
     // unless it's a late field (dartbug.com/40805).
@@ -3431,7 +3534,7 @@ class Parser {
       Token token, DeclarationKind kind, String? enclosingDeclarationName) {
     Token begin = token = token.next!;
     assert(optional('{', token));
-    listener.beginClassOrMixinBody(kind, token);
+    listener.beginClassOrMixinOrExtensionBody(kind, token);
     int count = 0;
     while (notEofOrValue('}', token.next!)) {
       token = parseClassOrMixinOrExtensionMemberImpl(
@@ -3440,7 +3543,7 @@ class Parser {
     }
     token = token.next!;
     assert(token.isEof || optional('}', token));
-    listener.endClassOrMixinBody(kind, count, begin, token);
+    listener.endClassOrMixinOrExtensionBody(kind, count, begin, token);
     return token;
   }
 
@@ -3610,9 +3713,10 @@ class Parser {
 
     Token beforeType = token;
     TypeInfo typeInfo = computeType(
-        token,
-        /*required = */ false,
-        /* inDeclaration = */ true);
+      token,
+      /* required = */ false,
+      /* inDeclaration = */ true,
+    );
     token = typeInfo.skipType(token);
     next = token.next!;
 
@@ -3757,9 +3861,10 @@ class Parser {
           indicatesMethodOrField(next2.next!)) {
         // Recovery: Use the reserved keyword despite that not being legal.
         typeInfo = computeType(
-            token,
-            /*required = */ true,
-            /* inDeclaration = */ true);
+          token,
+          /* required = */ true,
+          /* inDeclaration = */ true,
+        );
         token = typeInfo.skipType(token);
         next = token.next!;
         nameIsRecovered = true;
@@ -3890,7 +3995,7 @@ class Parser {
 
     // TODO(danrubel): Consider parsing the name before calling beginMethod
     // rather than passing the name token into beginMethod.
-    listener.beginMethod(externalToken, staticToken, covariantToken,
+    listener.beginMethod(kind, externalToken, staticToken, covariantToken,
         varFinalOrConst, getOrSet, name);
 
     Token token = typeInfo.parseType(beforeType, this);
@@ -3974,8 +4079,11 @@ class Parser {
       reportRecoverableError(bodyStart, codes.messageRedirectionInNonFactory);
       token = parseRedirectingFactoryBody(token);
     } else {
-      token = parseFunctionBody(token, /* ofFunctionExpression = */ false,
-          (staticToken == null || externalToken != null) && inPlainSync);
+      token = parseFunctionBody(
+        token,
+        /* ofFunctionExpression = */ false,
+        (staticToken == null || externalToken != null) && inPlainSync,
+      );
     }
     asyncState = savedAsyncModifier;
 
@@ -4102,7 +4210,8 @@ class Parser {
       varFinalOrConst = null;
     }
 
-    listener.beginFactoryMethod(beforeStart, externalToken, varFinalOrConst);
+    listener.beginFactoryMethod(
+        kind, beforeStart, externalToken, varFinalOrConst);
     token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
     token = parseQualifiedRestOpt(
         token, IdentifierContext.methodDeclarationContinuation);
@@ -4124,9 +4233,10 @@ class Parser {
         reportRecoverableError(next, codes.messageExternalFactoryWithBody);
       }
       token = parseFunctionBody(
-          token,
-          /* ofFunctionExpression = */ false,
-          /* allowAbstract = */ true);
+        token,
+        /* ofFunctionExpression = */ false,
+        /* allowAbstract = */ true,
+      );
     } else {
       if (varFinalOrConst != null && !optional('native', next)) {
         if (optional('const', varFinalOrConst)) {
@@ -4134,9 +4244,10 @@ class Parser {
         }
       }
       token = parseFunctionBody(
-          token,
-          /* ofFunctionExpression = */ false,
-          /* allowAbstract = */ false);
+        token,
+        /* ofFunctionExpression = */ false,
+        /* allowAbstract = */ false,
+      );
     }
     switch (kind) {
       case DeclarationKind.Class:
@@ -4278,7 +4389,9 @@ class Parser {
     return token;
   }
 
-  Token parseConstructorReference(Token token, [TypeParamOrArgInfo? typeArg]) {
+  Token parseConstructorReference(
+      Token token, ConstructorReferenceContext constructorReferenceContext,
+      [TypeParamOrArgInfo? typeArg]) {
     Token start =
         ensureIdentifier(token, IdentifierContext.constructorReference);
     listener.beginConstructorReference(start);
@@ -4295,7 +4408,8 @@ class Parser {
       listener.handleNoConstructorReferenceContinuationAfterTypeArguments(
           token.next!);
     }
-    listener.endConstructorReference(start, period, token.next!);
+    listener.endConstructorReference(
+        start, period, token.next!, constructorReferenceContext);
     return token;
   }
 
@@ -4304,7 +4418,8 @@ class Parser {
     assert(optional('=', token));
     listener.beginRedirectingFactoryBody(token);
     Token equals = token;
-    token = parseConstructorReference(token);
+    token = parseConstructorReference(
+        token, ConstructorReferenceContext.RedirectingFactory);
     token = ensureSemicolon(token);
     listener.endRedirectingFactoryBody(equals, token);
     return token;
@@ -5273,7 +5388,7 @@ class Parser {
           token.next!, POSTFIX_PRECEDENCE, allowCascades);
       listener.handleUnaryPrefixAssignmentExpression(operator);
       return token;
-    } else if (token.next!.isIdentifier) {
+    } else if (useImplicitCreationExpression && token.next!.isIdentifier) {
       Token identifier = token.next!;
       if (optional(".", identifier.next!)) {
         identifier = identifier.next!.next!;
@@ -5289,7 +5404,8 @@ class Parser {
               Token afterPeriod = afterTypeArguments.next!;
               if (_isNewOrIdentifier(afterPeriod) &&
                   optional('(', afterPeriod.next!)) {
-                return parseImplicitCreationExpression(token, typeArg);
+                return parseImplicitCreationExpression(
+                    token, identifier.next!, typeArg);
               }
             }
           }
@@ -5574,10 +5690,11 @@ class Parser {
     if (optional('[]', token)) {
       token = rewriteSquareBrackets(beforeToken).next!;
       listener.handleLiteralList(
-          /* count = */ 0,
-          token,
-          constKeyword,
-          token.next!);
+        /* count = */ 0,
+        token,
+        constKeyword,
+        token.next!,
+      );
       return token.next!;
     }
     bool old = mayParseFunctionExpressions;
@@ -5933,19 +6050,21 @@ class Parser {
     }
 
     listener.beginNewExpression(newKeyword);
-    token = parseConstructorReference(newKeyword, potentialTypeArg);
+    token = parseConstructorReference(
+        newKeyword, ConstructorReferenceContext.New, potentialTypeArg);
     token = parseConstructorInvocationArguments(token);
     listener.endNewExpression(newKeyword);
     return token;
   }
 
   Token parseImplicitCreationExpression(
-      Token token, TypeParamOrArgInfo typeArg) {
-    Token begin = token;
-    listener.beginImplicitCreationExpression(token);
-    token = parseConstructorReference(token, typeArg);
+      Token token, Token openAngleBracket, TypeParamOrArgInfo typeArg) {
+    Token begin = token.next!; // This is the class name.
+    listener.beginImplicitCreationExpression(begin);
+    token = parseConstructorReference(
+        token, ConstructorReferenceContext.Implicit, typeArg);
     token = parseConstructorInvocationArguments(token);
-    listener.endImplicitCreationExpression(begin);
+    listener.endImplicitCreationExpression(begin, openAngleBracket);
     return token;
   }
 
@@ -6059,7 +6178,8 @@ class Parser {
       }
     }
     listener.beginConstExpression(constKeyword);
-    token = parseConstructorReference(token, potentialTypeArg);
+    token = parseConstructorReference(
+        token, ConstructorReferenceContext.Const, potentialTypeArg);
     token = parseConstructorInvocationArguments(token);
     listener.endConstExpression(constKeyword);
     return token;
@@ -6327,7 +6447,6 @@ class Parser {
     assert(optional('(', begin));
     listener.beginArguments(begin);
     int argumentCount = 0;
-    bool hasSeenNamedArgument = false;
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     while (true) {
@@ -6342,10 +6461,6 @@ class Parser {
             ensureIdentifier(token, IdentifierContext.namedArgumentReference)
                 .next!;
         colon = token;
-        hasSeenNamedArgument = true;
-      } else if (hasSeenNamedArgument) {
-        // Positional argument after named argument.
-        reportRecoverableError(next, codes.messagePositionalAfterNamedArgument);
       }
       token = parseExpression(token);
       next = token.next!;
@@ -6630,10 +6745,11 @@ class Parser {
         listener.beginLocalFunctionDeclaration(start.next!);
         token = typeInfo.parseType(beforeType, this);
         return parseNamedFunctionRest(
-            token,
-            start.next!,
-            beforeFormals,
-            /* isFunctionExpression = */ false);
+          token,
+          start.next!,
+          beforeFormals,
+          /* isFunctionExpression = */ false,
+        );
       }
     }
 
@@ -8137,6 +8253,16 @@ class Parser {
     if (token.isIdentifier && optional('.', token.next!)) {
       prefix = token;
       period = token.next!;
+      Token identifier = period.next!;
+      if (identifier.kind == KEYWORD_TOKEN && optional('new', identifier)) {
+        // Treat `new` after `.` is as an identifier so that it can represent an
+        // unnamed constructor. This support is separate from the
+        // constructor-tearoffs feature.
+        rewriter.replaceTokenFollowing(
+            period,
+            new StringToken(TokenType.IDENTIFIER, identifier.lexeme,
+                identifier.charOffset));
+      }
       token = period.next!;
     }
     if (token.isEof) {

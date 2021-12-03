@@ -12,7 +12,7 @@ import 'spell_checking_utils.dart' as spell;
 
 import 'testing_utils.dart' show checkEnvironment;
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<SpellContext> createContext(

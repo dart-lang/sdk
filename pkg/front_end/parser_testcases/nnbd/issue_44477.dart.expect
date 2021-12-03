@@ -16,11 +16,9 @@ Future<List<>>
 
 WARNING: Reporting at eof --- see below for details.
 
-parser/nnbd/issue_44477:1:15: Expected ';' after this.
+parser/nnbd/issue_44477:1:14: Expected ';' after this.
 Future<List<>>
-              ^...
-
-WARNING: Reporting at eof --- see below for details.
+             ^
 
 beginCompilationUnit(Future)
   beginMetadataStar(Future)
@@ -28,7 +26,7 @@ beginCompilationUnit(Future)
   beginTopLevelMember(Future)
     handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ''., Try inserting an identifier before ''., {lexeme: }], , )
     // WARNING: Reporting at eof for .
-    beginFields()
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, )
       handleIdentifier(Future, typeReference)
       beginTypeArguments(<)
         handleIdentifier(List, typeReference)
@@ -45,8 +43,7 @@ beginCompilationUnit(Future)
       // WARNING: Reporting at eof for .
       handleIdentifier(, topLevelVariableDeclaration)
       handleNoFieldInitializer()
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], , )
-      // WARNING: Reporting at eof for .
+      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], >, >)
     endTopLevelFields(null, null, null, null, null, 1, Future, ;)
   endTopLevelDeclaration()
 endCompilationUnit(1, )

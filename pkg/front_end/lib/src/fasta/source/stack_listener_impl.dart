@@ -12,8 +12,6 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
 import 'package:kernel/ast.dart';
 
-import '../../api_prototype/experimental_flags.dart';
-
 import '../fasta_codes.dart';
 
 import '../problems.dart' as problems
@@ -47,19 +45,6 @@ abstract class StackListenerImpl extends StackListener {
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  void finishFunction(
-      covariant formals, AsyncMarker asyncModifier, covariant body) {
-    problems.unsupported("finishFunction", -1, uri);
-  }
-
-  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
-  // and ast_builder.dart.
-  dynamic finishFields() {
-    return problems.unsupported("finishFields", -1, uri);
-  }
-
-  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
-  // and ast_builder.dart.
   List<Expression> finishMetadata(Annotatable? parent) {
     return problems.unsupported("finishMetadata", -1, uri);
   }
@@ -75,7 +60,8 @@ abstract class StackListenerImpl extends StackListener {
   }
 
   /// Used to report an internal error encountered in the stack listener.
-  internalProblem(Message message, int charOffset, Uri uri) {
+  @override
+  Never internalProblem(Message message, int charOffset, Uri uri) {
     return problems.internalProblem(message, charOffset, uri);
   }
 
@@ -109,8 +95,7 @@ abstract class StackListenerImpl extends StackListener {
             token.charOffset,
             token.charCount);
       }
-    } else if (libraryBuilder.loader.target
-        .isExperimentEnabledByDefault(ExperimentalFlag.nonNullable)) {
+    } else {
       if (libraryBuilder.languageVersion.version <
           libraryBuilder.enableNonNullableVersionInLibrary) {
         addProblem(
@@ -122,25 +107,6 @@ abstract class StackListenerImpl extends StackListener {
         addProblem(templateExperimentDisabled.withArguments('non-nullable'),
             token.offset, noLength);
       }
-    } else if (!libraryBuilder.loader.target
-        .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
-      if (libraryBuilder.languageVersion.version <
-          libraryBuilder.enableNonNullableVersionInLibrary) {
-        addProblem(
-            templateExperimentNotEnabledNoFlagInvalidLanguageVersion
-                .withArguments(
-                    libraryBuilder.enableNonNullableVersionInLibrary.toText()),
-            token.offset,
-            noLength);
-      } else {
-        addProblem(messageExperimentNotEnabledNoFlag, token.offset, noLength);
-      }
-    } else {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('non-nullable',
-              libraryBuilder.enableNonNullableVersionInLibrary.toText()),
-          token.offset,
-          noLength);
     }
   }
 

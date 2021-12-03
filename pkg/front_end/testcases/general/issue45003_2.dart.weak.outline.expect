@@ -18,7 +18,7 @@ abstract class A extends core::Object /*hasConstConstructor*/  {
     : super core::Object::•()
     ;
   static factory foo() → self::A
-    let dynamic #redirecting_factory = self::B::• in let dynamic #typeArg0 = null in invalid-expression;
+    return new self::B::•<dynamic>();
 }
 static method main() → dynamic
   ;
@@ -26,4 +26,5 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue45003_2.dart:6:30 -> InstanceConstant(const B<dynamic>{})
-Extra constant evaluation: evaluated: 6, effectively constant: 1
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue45003_2.dart:13:16 -> ConstructorTearOffConstant(A.foo)
+Extra constant evaluation: evaluated: 4, effectively constant: 2

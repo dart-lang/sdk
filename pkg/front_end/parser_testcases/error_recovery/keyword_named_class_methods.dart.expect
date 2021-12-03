@@ -16,9 +16,9 @@ parser/error_recovery/keyword_named_class_methods:29:12: Expected an identifier,
     return break(x-1) + 1;
            ^^^^^
 
-parser/error_recovery/keyword_named_class_methods:29:12: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:29:5: Expected ';' after this.
     return break(x-1) + 1;
-           ^^^^^
+    ^^^^^^
 
 parser/error_recovery/keyword_named_class_methods:29:12: A break statement can't be used outside of a loop or switch statement.
     return break(x-1) + 1;
@@ -68,9 +68,9 @@ parser/error_recovery/keyword_named_class_methods:54:12: Expected an identifier,
     return continue(x-1) + 1;
            ^^^^^^^^
 
-parser/error_recovery/keyword_named_class_methods:54:12: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:54:5: Expected ';' after this.
     return continue(x-1) + 1;
-           ^^^^^^^^
+    ^^^^^^
 
 parser/error_recovery/keyword_named_class_methods:54:12: A continue statement can't be used outside of a loop or switch statement.
     return continue(x-1) + 1;
@@ -96,9 +96,9 @@ parser/error_recovery/keyword_named_class_methods:74:12: Expected an identifier,
     return do(x-1) + 1;
            ^^
 
-parser/error_recovery/keyword_named_class_methods:74:12: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:74:5: Expected ';' after this.
     return do(x-1) + 1;
-           ^^
+    ^^^^^^
 
 parser/error_recovery/keyword_named_class_methods:75:3: Expected 'while' before this.
   }
@@ -124,17 +124,17 @@ parser/error_recovery/keyword_named_class_methods:84:12: Expected an identifier,
     return else(x-1) + 1;
            ^^^^
 
-parser/error_recovery/keyword_named_class_methods:84:12: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:84:5: Expected ';' after this.
     return else(x-1) + 1;
-           ^^^^
+    ^^^^^^
 
 parser/error_recovery/keyword_named_class_methods:84:12: Expected an identifier, but got 'else'.
     return else(x-1) + 1;
            ^^^^
 
-parser/error_recovery/keyword_named_class_methods:84:12: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:84:5: Expected ';' after this.
     return else(x-1) + 1;
-           ^^^^
+    ^^^^^^
 
 parser/error_recovery/keyword_named_class_methods:84:12: Unexpected token ';'.
     return else(x-1) + 1;
@@ -168,17 +168,17 @@ parser/error_recovery/keyword_named_class_methods:124:12: Expected an identifier
     return final(x-1) + 1;
            ^^^^^
 
-parser/error_recovery/keyword_named_class_methods:124:12: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:124:5: Expected ';' after this.
     return final(x-1) + 1;
-           ^^^^^
+    ^^^^^^
 
 parser/error_recovery/keyword_named_class_methods:124:17: Expected an identifier, but got '('.
     return final(x-1) + 1;
                 ^
 
-parser/error_recovery/keyword_named_class_methods:124:18: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:124:17: Expected ';' after this.
     return final(x-1) + 1;
-                 ^
+                ^
 
 parser/error_recovery/keyword_named_class_methods:124:20: Expected ';' after this.
     return final(x-1) + 1;
@@ -188,9 +188,9 @@ parser/error_recovery/keyword_named_class_methods:124:21: Expected an identifier
     return final(x-1) + 1;
                     ^
 
-parser/error_recovery/keyword_named_class_methods:124:21: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:124:20: Expected ';' after this.
     return final(x-1) + 1;
-                    ^
+                   ^
 
 parser/error_recovery/keyword_named_class_methods:124:21: Unexpected token ';'.
     return final(x-1) + 1;
@@ -216,9 +216,9 @@ parser/error_recovery/keyword_named_class_methods:134:12: Expected an identifier
     return for(x-1) + 1;
            ^^^
 
-parser/error_recovery/keyword_named_class_methods:134:12: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:134:5: Expected ';' after this.
     return for(x-1) + 1;
-           ^^^
+    ^^^^^^
 
 parser/error_recovery/keyword_named_class_methods:134:18: Expected ';' after this.
     return for(x-1) + 1;
@@ -228,9 +228,9 @@ parser/error_recovery/keyword_named_class_methods:134:19: Expected an identifier
     return for(x-1) + 1;
                   ^
 
-parser/error_recovery/keyword_named_class_methods:134:19: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:134:18: Expected ';' after this.
     return for(x-1) + 1;
-                  ^
+                 ^
 
 parser/error_recovery/keyword_named_class_methods:134:21: '+' is not a prefix operator.
     return for(x-1) + 1;
@@ -244,9 +244,9 @@ parser/error_recovery/keyword_named_class_methods:154:12: Expected an identifier
     return if(x-1) + 1;
            ^^
 
-parser/error_recovery/keyword_named_class_methods:154:12: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:154:5: Expected ';' after this.
     return if(x-1) + 1;
-           ^^
+    ^^^^^^
 
 parser/error_recovery/keyword_named_class_methods:154:20: '+' is not a prefix operator.
     return if(x-1) + 1;
@@ -272,9 +272,9 @@ parser/error_recovery/keyword_named_class_methods:184:14: Expected a type, but g
     return is(x-1) + 1;
              ^
 
-parser/error_recovery/keyword_named_class_methods:184:14: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:184:12: Expected ';' after this.
     return is(x-1) + 1;
-             ^
+           ^^
 
 parser/error_recovery/keyword_named_class_methods:207:7: 'new' can't be used as an identifier because it's a keyword.
   int new(int x) {
@@ -316,9 +316,9 @@ parser/error_recovery/keyword_named_class_methods:289:12: Expected an identifier
     return switch(x-1) + 1;
            ^^^^^^
 
-parser/error_recovery/keyword_named_class_methods:289:12: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:289:5: Expected ';' after this.
     return switch(x-1) + 1;
-           ^^^^^^
+    ^^^^^^
 
 parser/error_recovery/keyword_named_class_methods:289:22: A switch statement must have a body, even if it is empty.
     return switch(x-1) + 1;
@@ -356,9 +356,9 @@ parser/error_recovery/keyword_named_class_methods:314:12: Expected an identifier
     return try(x-1) + 1;
            ^^^
 
-parser/error_recovery/keyword_named_class_methods:314:12: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:314:5: Expected ';' after this.
     return try(x-1) + 1;
-           ^^^
+    ^^^^^^
 
 parser/error_recovery/keyword_named_class_methods:314:12: A try statement must have a body, even if it is empty.
     return try(x-1) + 1;
@@ -376,17 +376,17 @@ parser/error_recovery/keyword_named_class_methods:324:12: Expected an identifier
     return var(x-1) + 1;
            ^^^
 
-parser/error_recovery/keyword_named_class_methods:324:12: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:324:5: Expected ';' after this.
     return var(x-1) + 1;
-           ^^^
+    ^^^^^^
 
 parser/error_recovery/keyword_named_class_methods:324:15: Expected an identifier, but got '('.
     return var(x-1) + 1;
               ^
 
-parser/error_recovery/keyword_named_class_methods:324:16: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:324:15: Expected ';' after this.
     return var(x-1) + 1;
-               ^
+              ^
 
 parser/error_recovery/keyword_named_class_methods:324:18: Expected ';' after this.
     return var(x-1) + 1;
@@ -396,9 +396,9 @@ parser/error_recovery/keyword_named_class_methods:324:19: Expected an identifier
     return var(x-1) + 1;
                   ^
 
-parser/error_recovery/keyword_named_class_methods:324:19: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:324:18: Expected ';' after this.
     return var(x-1) + 1;
-                  ^
+                 ^
 
 parser/error_recovery/keyword_named_class_methods:324:19: Unexpected token ';'.
     return var(x-1) + 1;
@@ -416,17 +416,17 @@ parser/error_recovery/keyword_named_class_methods:329:12: Expected an identifier
     return void(x-1) + 1;
            ^^^^
 
-parser/error_recovery/keyword_named_class_methods:329:12: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:329:5: Expected ';' after this.
     return void(x-1) + 1;
-           ^^^^
+    ^^^^^^
 
 parser/error_recovery/keyword_named_class_methods:329:16: Expected an identifier, but got '('.
     return void(x-1) + 1;
                ^
 
-parser/error_recovery/keyword_named_class_methods:329:17: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:329:16: Expected ';' after this.
     return void(x-1) + 1;
-                ^
+               ^
 
 parser/error_recovery/keyword_named_class_methods:329:19: Expected ';' after this.
     return void(x-1) + 1;
@@ -436,9 +436,9 @@ parser/error_recovery/keyword_named_class_methods:329:20: Expected an identifier
     return void(x-1) + 1;
                    ^
 
-parser/error_recovery/keyword_named_class_methods:329:20: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:329:19: Expected ';' after this.
     return void(x-1) + 1;
-                   ^
+                  ^
 
 parser/error_recovery/keyword_named_class_methods:329:20: Unexpected token ';'.
     return void(x-1) + 1;
@@ -456,9 +456,9 @@ parser/error_recovery/keyword_named_class_methods:334:12: Expected an identifier
     return while(x-1) + 1;
            ^^^^^
 
-parser/error_recovery/keyword_named_class_methods:334:12: Expected ';' after this.
+parser/error_recovery/keyword_named_class_methods:334:5: Expected ';' after this.
     return while(x-1) + 1;
-           ^^^^^
+    ^^^^^^
 
 parser/error_recovery/keyword_named_class_methods:334:23: '+' is not a prefix operator.
     return while(x-1) + 1;
@@ -475,7 +475,7 @@ parser/error_recovery/keyword_named_class_methods:339:12: 'with' can't be used a
 beginCompilationUnit(class)
   beginMetadataStar(class)
   endMetadataStar(0)
-  beginClassOrNamedMixinApplicationPrelude(class)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
     handleIdentifier(WrapperClass, classOrMixinDeclaration)
     handleNoTypeVariables({)
     beginClassDeclaration(class, null, WrapperClass)
@@ -484,11 +484,11 @@ beginCompilationUnit(class)
       handleClassNoWithClause()
       handleClassOrMixinImplements(null, 0)
       handleClassHeader(class, class, null)
-      beginClassOrMixinBody(DeclarationKind.Class, {)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, abstract)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, abstract)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(abstract)
             handleType(int, null)
@@ -546,7 +546,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, as)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, as)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(as)
             handleType(int, null)
@@ -604,7 +604,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, assert)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, assert)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(assert)
             handleType(int, null)
@@ -661,7 +661,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, async)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, async)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(async)
             handleType(int, null)
@@ -719,7 +719,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, await)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, await)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(await)
             handleType(int, null)
@@ -777,7 +777,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, break)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, break)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(break)
             handleType(int, null)
@@ -819,7 +819,7 @@ beginCompilationUnit(class)
                 handleNoTypeArguments(break)
                 handleNoArguments(break)
                 handleSend(, break)
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], break, break)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
               endReturnStatement(true, return, ;)
               handleRecoverableError(BreakOutsideOfLoop, break, break)
               handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], break, break)
@@ -842,7 +842,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, case)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, case)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(case)
             handleType(int, null)
@@ -902,7 +902,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, catch)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, catch)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(catch)
             handleType(int, null)
@@ -962,7 +962,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, class)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(class)
             handleType(int, null)
@@ -1022,7 +1022,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, const)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, const)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(const)
             handleType(int, null)
@@ -1065,7 +1065,7 @@ beginCompilationUnit(class)
                   beginConstructorReference()
                     handleNoTypeArguments(()
                     handleNoConstructorReferenceContinuationAfterTypeArguments(()
-                  endConstructorReference(, null, ()
+                  endConstructorReference(, null, (, ConstructorReferenceContext.Const)
                   beginArguments(()
                     handleIdentifier(x, expression)
                     handleNoTypeArguments(-)
@@ -1086,7 +1086,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, continue)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, continue)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(continue)
             handleType(int, null)
@@ -1128,7 +1128,7 @@ beginCompilationUnit(class)
                 handleNoTypeArguments(continue)
                 handleNoArguments(continue)
                 handleSend(, continue)
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], continue, continue)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
               endReturnStatement(true, return, ;)
               handleRecoverableError(ContinueOutsideOfLoop, continue, continue)
               handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], continue, continue)
@@ -1151,7 +1151,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, covariant)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, covariant)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(covariant)
             handleType(int, null)
@@ -1209,7 +1209,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, default)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, default)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(default)
             handleType(int, null)
@@ -1269,7 +1269,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, deferred)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, deferred)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(deferred)
             handleType(int, null)
@@ -1327,7 +1327,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, do)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, do)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(do)
             handleType(int, null)
@@ -1369,7 +1369,7 @@ beginCompilationUnit(class)
                 handleNoTypeArguments(do)
                 handleNoArguments(do)
                 handleSend(, do)
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], do, do)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
               endReturnStatement(true, return, ;)
               beginDoWhileStatement(do)
                 beginDoWhileStatementBody(()
@@ -1402,7 +1402,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, dynamic)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, dynamic)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(dynamic)
             handleType(int, null)
@@ -1460,7 +1460,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, else)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, else)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(else)
             handleType(int, null)
@@ -1502,14 +1502,14 @@ beginCompilationUnit(class)
                 handleNoTypeArguments(else)
                 handleNoArguments(else)
                 handleSend(, else)
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], else, else)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
               endReturnStatement(true, return, ;)
               handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'else'., Try inserting an identifier before 'else'., {lexeme: else}], else, else)
               handleIdentifier(, expression)
               handleNoTypeArguments(else)
               handleNoArguments(else)
               handleSend(, else)
-              handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], else, else)
+              handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
               handleExpressionStatement(;)
               handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {lexeme: ;}], else, else)
               handleIdentifier(x, expression)
@@ -1530,7 +1530,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, enum)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, enum)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(enum)
             handleType(int, null)
@@ -1590,7 +1590,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, export)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, export)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(export)
             handleType(int, null)
@@ -1648,7 +1648,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, extends)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, extends)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(extends)
             handleType(int, null)
@@ -1708,7 +1708,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, extension)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, extension)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(extension)
             handleType(int, null)
@@ -1766,7 +1766,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, external)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, external)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(external)
             handleType(int, null)
@@ -1824,7 +1824,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, factory)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, factory)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(factory)
             handleType(int, null)
@@ -1882,7 +1882,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, false)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, false)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(false)
             handleType(int, null)
@@ -1941,7 +1941,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, final)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, final)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(final)
             handleType(int, null)
@@ -1983,7 +1983,7 @@ beginCompilationUnit(class)
                 handleNoTypeArguments(final)
                 handleNoArguments(final)
                 handleSend(, final)
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], final, final)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
               endReturnStatement(true, return, ;)
               beginMetadataStar(final)
               endMetadataStar(0)
@@ -1994,7 +1994,7 @@ beginCompilationUnit(class)
                 beginInitializedIdentifier()
                   handleNoVariableInitializer()
                 endInitializedIdentifier()
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], x, x)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], (, ()
               endVariablesDeclaration(1, ;)
               handleIdentifier(x, expression)
               handleNoTypeArguments(-)
@@ -2010,7 +2010,7 @@ beginCompilationUnit(class)
               handleNoTypeArguments())
               handleNoArguments())
               handleSend(, ))
-              handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], ), ))
+              handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 1, 1)
               handleExpressionStatement(;)
               handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {lexeme: ;}], ), ))
               handleRecoverableError(UnsupportedPrefixPlus, +, +)
@@ -2028,7 +2028,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, finally)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, finally)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(finally)
             handleType(int, null)
@@ -2088,7 +2088,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, for)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, for)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(for)
             handleType(int, null)
@@ -2130,7 +2130,7 @@ beginCompilationUnit(class)
                 handleNoTypeArguments(for)
                 handleNoArguments(for)
                 handleSend(, for)
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], for, for)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
               endReturnStatement(true, return, ;)
               beginForStatement(for)
                 handleIdentifier(x, expression)
@@ -2147,7 +2147,7 @@ beginCompilationUnit(class)
                 handleNoTypeArguments())
                 handleNoArguments())
                 handleSend(, ))
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], ), ))
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 1, 1)
                 handleExpressionStatement(;)
                 handleForLoopParts(for, (, ;, 0)
                 beginForStatementBody(+)
@@ -2168,7 +2168,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, Function)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, Function)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(Function)
             handleType(int, null)
@@ -2226,7 +2226,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, get)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, get)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(get)
             handleType(int, null)
@@ -2284,7 +2284,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, hide)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, hide)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(hide)
             handleType(int, null)
@@ -2342,7 +2342,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, if)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, if)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(if)
             handleType(int, null)
@@ -2384,7 +2384,7 @@ beginCompilationUnit(class)
                 handleNoTypeArguments(if)
                 handleNoArguments(if)
                 handleSend(, if)
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], if, if)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
               endReturnStatement(true, return, ;)
               beginIfStatement(if)
                 handleIdentifier(x, expression)
@@ -2413,7 +2413,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, implements)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, implements)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(implements)
             handleType(int, null)
@@ -2471,7 +2471,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, import)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, import)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(import)
             handleType(int, null)
@@ -2529,7 +2529,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, in)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, in)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(in)
             handleType(int, null)
@@ -2589,7 +2589,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, inout)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, inout)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(inout)
             handleType(int, null)
@@ -2647,7 +2647,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, interface)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, interface)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(interface)
             handleType(int, null)
@@ -2705,7 +2705,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, is)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, is)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(is)
             handleType(int, null)
@@ -2754,7 +2754,7 @@ beginCompilationUnit(class)
                   handleType(, null)
                 endIsOperatorType(is)
                 handleIsOperator(is, null)
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], (, ()
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], is, is)
               endReturnStatement(true, return, ;)
               handleIdentifier(x, expression)
               handleNoTypeArguments(-)
@@ -2774,7 +2774,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, late)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, late)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(late)
             handleType(int, null)
@@ -2832,7 +2832,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, library)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, library)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(library)
             handleType(int, null)
@@ -2890,7 +2890,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, mixin)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, mixin)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(mixin)
             handleType(int, null)
@@ -2948,7 +2948,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, native)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, native)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(native)
             handleType(int, null)
@@ -3006,7 +3006,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, new)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, new)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(new)
             handleType(int, null)
@@ -3049,7 +3049,7 @@ beginCompilationUnit(class)
                   beginConstructorReference()
                     handleNoTypeArguments(()
                     handleNoConstructorReferenceContinuationAfterTypeArguments(()
-                  endConstructorReference(, null, ()
+                  endConstructorReference(, null, (, ConstructorReferenceContext.New)
                   beginArguments(()
                     handleIdentifier(x, expression)
                     handleNoTypeArguments(-)
@@ -3070,7 +3070,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, null)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, null)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(null)
             handleType(int, null)
@@ -3129,7 +3129,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, of)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, of)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(of)
             handleType(int, null)
@@ -3187,7 +3187,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, on)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, on)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(on)
             handleType(int, null)
@@ -3245,7 +3245,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, operator)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, operator)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(operator)
             handleType(int, null)
@@ -3303,7 +3303,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, out)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, out)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(out)
             handleType(int, null)
@@ -3361,7 +3361,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, part)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, part)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(part)
             handleType(int, null)
@@ -3419,7 +3419,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, patch)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, patch)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(patch)
             handleType(int, null)
@@ -3477,7 +3477,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, required)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, required)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(required)
             handleType(int, null)
@@ -3535,7 +3535,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, rethrow)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, rethrow)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(rethrow)
             handleType(int, null)
@@ -3595,7 +3595,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, return)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, return)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(return)
             handleType(int, null)
@@ -3651,7 +3651,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, set)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, set)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(set)
             handleType(int, null)
@@ -3709,7 +3709,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, show)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, show)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(show)
             handleType(int, null)
@@ -3767,7 +3767,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, source)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, source)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(source)
             handleType(int, null)
@@ -3825,7 +3825,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, static)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, static)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(static)
             handleType(int, null)
@@ -3883,7 +3883,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, super)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, super)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(super)
             handleType(int, null)
@@ -3942,7 +3942,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, switch)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, switch)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(switch)
             handleType(int, null)
@@ -3984,7 +3984,7 @@ beginCompilationUnit(class)
                 handleNoTypeArguments(switch)
                 handleNoArguments(switch)
                 handleSend(, switch)
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], switch, switch)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
               endReturnStatement(true, return, ;)
               beginSwitchStatement(switch)
                 handleIdentifier(x, expression)
@@ -4014,7 +4014,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, sync)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, sync)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(sync)
             handleType(int, null)
@@ -4072,7 +4072,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginFields(})
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, })
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(this)
             handleType(int, null)
@@ -4085,7 +4085,7 @@ beginCompilationUnit(class)
         beginMetadataStar(()
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, ()
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, ()
             handleNoType(;)
             handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., Try inserting an identifier before '('., {lexeme: (}], (, ()
             handleIdentifier(, methodDeclaration)
@@ -4142,7 +4142,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, throw)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, throw)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(throw)
             handleType(int, null)
@@ -4198,7 +4198,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, true)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, true)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(true)
             handleType(int, null)
@@ -4257,7 +4257,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, try)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, try)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(try)
             handleType(int, null)
@@ -4299,7 +4299,7 @@ beginCompilationUnit(class)
                 handleNoTypeArguments(try)
                 handleNoArguments(try)
                 handleSend(, try)
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], try, try)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
               endReturnStatement(true, return, ;)
               beginTryStatement(try)
                 handleRecoverableError(Message[ExpectedClassOrMixinBody, A try statement must have a body, even if it is empty., Try adding an empty body., {string: try statement}], try, try)
@@ -4325,7 +4325,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, typedef)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, typedef)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(typedef)
             handleType(int, null)
@@ -4383,7 +4383,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, var)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, var)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(var)
             handleType(int, null)
@@ -4425,7 +4425,7 @@ beginCompilationUnit(class)
                 handleNoTypeArguments(var)
                 handleNoArguments(var)
                 handleSend(, var)
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], var, var)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
               endReturnStatement(true, return, ;)
               beginMetadataStar(var)
               endMetadataStar(0)
@@ -4436,7 +4436,7 @@ beginCompilationUnit(class)
                 beginInitializedIdentifier()
                   handleNoVariableInitializer()
                 endInitializedIdentifier()
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], x, x)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], (, ()
               endVariablesDeclaration(1, ;)
               handleIdentifier(x, expression)
               handleNoTypeArguments(-)
@@ -4452,7 +4452,7 @@ beginCompilationUnit(class)
               handleNoTypeArguments())
               handleNoArguments())
               handleSend(, ))
-              handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], ), ))
+              handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 1, 1)
               handleExpressionStatement(;)
               handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {lexeme: ;}], ), ))
               handleRecoverableError(UnsupportedPrefixPlus, +, +)
@@ -4470,7 +4470,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, void)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, void)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(void)
             handleType(int, null)
@@ -4512,7 +4512,7 @@ beginCompilationUnit(class)
                 handleNoTypeArguments(void)
                 handleNoArguments(void)
                 handleSend(, void)
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], void, void)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
               endReturnStatement(true, return, ;)
               beginMetadataStar(void)
               endMetadataStar(0)
@@ -4523,7 +4523,7 @@ beginCompilationUnit(class)
                 beginInitializedIdentifier()
                   handleNoVariableInitializer()
                 endInitializedIdentifier()
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], x, x)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], (, ()
               endVariablesDeclaration(1, ;)
               handleIdentifier(x, expression)
               handleNoTypeArguments(-)
@@ -4539,7 +4539,7 @@ beginCompilationUnit(class)
               handleNoTypeArguments())
               handleNoArguments())
               handleSend(, ))
-              handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], ), ))
+              handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 1, 1)
               handleExpressionStatement(;)
               handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {lexeme: ;}], ), ))
               handleRecoverableError(UnsupportedPrefixPlus, +, +)
@@ -4557,7 +4557,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, while)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, while)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(while)
             handleType(int, null)
@@ -4599,7 +4599,7 @@ beginCompilationUnit(class)
                 handleNoTypeArguments(while)
                 handleNoArguments(while)
                 handleSend(, while)
-                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], while, while)
+                handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
               endReturnStatement(true, return, ;)
               beginWhileStatement(while)
                 handleIdentifier(x, expression)
@@ -4628,7 +4628,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, with)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, with)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(with)
             handleType(int, null)
@@ -4688,7 +4688,7 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(null, null, null, null, null, yield)
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, yield)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(yield)
             handleType(int, null)
@@ -4743,7 +4743,7 @@ beginCompilationUnit(class)
             endBlockFunctionBody(2, {, })
           endClassMethod(null, int, (, null, })
         endMember()
-      endClassOrMixinBody(DeclarationKind.Class, 70, {, })
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 70, {, })
     endClassDeclaration(class, })
   endTopLevelDeclaration()
 endCompilationUnit(1, )

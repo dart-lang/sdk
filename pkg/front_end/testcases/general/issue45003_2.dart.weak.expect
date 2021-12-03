@@ -13,17 +13,18 @@ class B<X extends core::Object? = dynamic> extends self::A /*hasConstConstructor
     ;
 }
 abstract class A extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[self::A::foo]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
   const constructor •() → self::A
     : super core::Object::•()
     ;
   static factory foo() → self::A
-    let dynamic #redirecting_factory = self::B::• in let dynamic #typeArg0 = null in invalid-expression;
+    return new self::B::•<dynamic>();
 }
 static method main() → dynamic {}
 
 constants  {
   #C1 = self::B<dynamic> {}
+  #C2 = constructor-tearoff self::A::foo
 }
 
 

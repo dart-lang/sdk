@@ -73,13 +73,12 @@ class ClassStubGenerator {
       }
     }
 
-    Map<jsAst.Name, jsAst.Expression> generatedStubs =
-        <jsAst.Name, jsAst.Expression>{};
+    Map<jsAst.Name, jsAst.Expression> generatedStubs = {};
 
     // Two selectors may match but differ only in type.  To avoid generating
     // identical stubs for each we track untyped selectors which already have
     // stubs.
-    Set<Selector> generatedSelectors = new Set<Selector>();
+    Set<Selector> generatedSelectors = {};
     for (Selector selector in selectors.keys) {
       if (generatedSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member)) continue;
@@ -88,13 +87,13 @@ class ClassStubGenerator {
         generatedSelectors.add(selector);
 
         jsAst.Name invocationName = _namer.invocationName(selector);
-        Selector callSelector = new Selector.callClosureFrom(selector);
+        Selector callSelector = Selector.callClosureFrom(selector);
         jsAst.Name closureCallName = _namer.invocationName(callSelector);
 
-        List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
-        List<jsAst.Expression> arguments = <jsAst.Expression>[];
+        List<jsAst.Parameter> parameters = [];
+        List<jsAst.Expression> arguments = [];
         if (isInterceptedMethod) {
-          parameters.add(new jsAst.Parameter(receiverArgumentName));
+          parameters.add(jsAst.Parameter(receiverArgumentName));
         }
 
         for (int i = 0; i < selector.argumentCount; i++) {
@@ -120,7 +119,7 @@ class ClassStubGenerator {
   }
 
   Map<jsAst.Name, Selector> computeSelectorsForNsmHandlers() {
-    Map<jsAst.Name, Selector> jsNames = <jsAst.Name, Selector>{};
+    Map<jsAst.Name, Selector> jsNames = {};
 
     // Do not generate no such method handlers if there is no class.
     if (_codegenWorld.directlyInstantiatedClasses.isEmpty) {
@@ -158,8 +157,8 @@ class ClassStubGenerator {
     // Values match JSInvocationMirror in js-helper library.
     int type = selector.invocationMirrorKind;
     List<String> parameterNames =
-        new List.generate(selector.argumentCount, (i) => '\$$i') +
-            new List.generate(selector.typeArgumentCount, (i) => '\$T${i + 1}');
+        List.generate(selector.argumentCount, (i) => '\$$i') +
+            List.generate(selector.typeArgumentCount, (i) => '\$T${i + 1}');
 
     List<jsAst.Expression> argNames = selector.callStructure
         .getOrderedNamedArguments()
@@ -186,9 +185,9 @@ class ClassStubGenerator {
           js.quoteName(enableMinification ? internalName : methodName),
       'internalName': js.quoteName(internalName),
       'type': js.number(type),
-      'arguments': new jsAst.ArrayInitializer(
+      'arguments': jsAst.ArrayInitializer(
           parameterNames.map<jsAst.Expression>(js).toList()),
-      'namedArguments': new jsAst.ArrayInitializer(argNames),
+      'namedArguments': jsAst.ArrayInitializer(argNames),
       'typeArgumentCount': js.number(selector.typeArgumentCount)
     });
 
@@ -199,7 +198,7 @@ class ClassStubGenerator {
     } else {
       function = js(r'function(#) { return # }', [parameterNames, expression]);
     }
-    return new StubMethod(name, function);
+    return StubMethod(name, function);
   }
 
   /// Generates a getter for the given [field].
@@ -292,7 +291,7 @@ List<jsAst.Statement> buildTearOffCode(
   }
 
   jsAst.Statement instanceTearOffGetter;
-  if (options.useContentSecurityPolicy) {
+  if (options.features.useContentSecurityPolicy.isEnabled) {
     instanceTearOffGetter = js.statement(
       '''
       function instanceTearOffGetter(isIntercepted, parameters) {

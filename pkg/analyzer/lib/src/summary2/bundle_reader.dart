@@ -63,7 +63,6 @@ class BundleReader {
     });
 
     for (var libraryHeader in libraryHeaderList) {
-      _reader.offset = libraryHeader.offset;
       var uriStr = libraryHeader.uriStr;
       var reference = elementFactory.rootReference.getChild(uriStr);
       libraryMap[uriStr] = LibraryReader._(
@@ -73,7 +72,7 @@ class BundleReader {
         baseResolutionOffset: baseResolutionOffset,
         referenceReader: referenceReader,
         reference: reference,
-        offset: _reader.offset,
+        offset: libraryHeader.offset,
         classMembersLengths: libraryHeader.classMembersLengths,
       );
     }
@@ -162,11 +161,8 @@ class ConstructorElementLinkedData
     );
     reader._addFormalParameters(element.parameters);
     _readFormalParameters(reader, element.parameters);
-    if (element.isConst || element.isFactory) {
-      element.redirectedConstructor =
-          reader.readElement() as ConstructorElement?;
-      element.constantInitializers = reader._readNodeList();
-    }
+    element.redirectedConstructor = reader.readElement() as ConstructorElement?;
+    element.constantInitializers = reader._readNodeList();
     applyConstantOffsets?.perform();
   }
 }
@@ -495,10 +491,8 @@ class LibraryReader {
 
     _declareDartCoreDynamicNever();
 
-    InformativeDataApplier(_elementFactory).applyTo(
-      _unitsInformativeBytes,
-      libraryElement,
-    );
+    InformativeDataApplier(_elementFactory, _unitsInformativeBytes)
+        .applyTo(libraryElement);
 
     return libraryElement;
   }
@@ -592,7 +586,6 @@ class LibraryReader {
       element.setLinkedData(reference, linkedData);
       ConstructorElementFlags.read(_reader, element);
       element.parameters = _readParameters(element, reference);
-      _readMacro(element, element);
       return element;
     });
   }
@@ -853,20 +846,6 @@ class LibraryReader {
     return LibraryLanguageVersion(package: package, override: override);
   }
 
-  void _readMacro(Element element, HasMacroGenerationData hasMacro) {
-    if (_reader.readBool()) {
-      hasMacro.macro = MacroGenerationData(
-        _reader.readUInt30(),
-        _reader.readStringUtf8(),
-        Uint8List(0),
-      );
-      InformativeDataApplier(_elementFactory).applyToDeclaration(
-        element,
-        _reader.readUint8List(),
-      );
-    }
-  }
-
   List<MethodElementImpl> _readMethods(
     CompilationUnitElementImpl unitElement,
     ElementImpl enclosingElement,
@@ -890,7 +869,6 @@ class LibraryReader {
       element.typeParameters = _readTypeParameters();
       element.parameters = _readParameters(element, reference);
       element.typeInferenceError = _readTopLevelInferenceError();
-      _readMacro(element, element);
       return element;
     });
   }
@@ -972,20 +950,35 @@ class LibraryReader {
       ParameterElementImpl element;
       if (kind.isRequiredPositional) {
         if (isInitializingFormal) {
-          element = FieldFormalParameterElementImpl(name, -1);
+          element = FieldFormalParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          );
         } else {
-          element = ParameterElementImpl(name, -1);
+          element = ParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          );
         }
       } else {
         if (isInitializingFormal) {
-          element = DefaultFieldFormalParameterElementImpl(name, -1);
+          element = DefaultFieldFormalParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          );
         } else {
-          element = DefaultParameterElementImpl(name, -1);
+          element = DefaultParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          );
         }
         element.reference = reference;
         reference.element = element;
       }
-      element.parameterKind = kind;
       ParameterElementFlags.read(_reader, element);
       element.typeParameters = _readTypeParameters();
       element.parameters = _readParameters(element, reference);
@@ -1017,7 +1010,6 @@ class LibraryReader {
     element.setLinkedData(reference, linkedData);
 
     element.parameters = _readParameters(element, reference);
-    _readMacro(element, element);
     return element;
   }
 
@@ -1236,7 +1228,6 @@ class LibraryReader {
 
     unitElement.uri = _reader.readOptionalStringReference();
     unitElement.isSynthetic = _reader.readBool();
-    unitElement.sourceContent = _reader.readOptionalStringUtf8();
 
     _readClasses(unitElement, unitReference);
     _readEnums(unitElement, unitReference);
@@ -1618,13 +1609,17 @@ class ResolutionReader {
       if (kind.isRequiredPositional) {
         ParameterElementImpl element;
         if (isInitializingFormal) {
-          element = FieldFormalParameterElementImpl(name, -1)
-            ..parameterKind = kind
-            ..type = type;
+          element = FieldFormalParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          )..type = type;
         } else {
-          element = ParameterElementImpl(name, -1)
-            ..parameterKind = kind
-            ..type = type;
+          element = ParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          )..type = type;
         }
         element.hasImplicitType = hasImplicitType;
         element.typeParameters = typeParameters;
@@ -1636,9 +1631,11 @@ class ResolutionReader {
         }
         return element;
       } else {
-        var element = DefaultParameterElementImpl(name, -1)
-          ..parameterKind = kind
-          ..type = type;
+        var element = DefaultParameterElementImpl(
+          name: name,
+          nameOffset: -1,
+          parameterKind: kind,
+        )..type = type;
         element.hasImplicitType = hasImplicitType;
         element.typeParameters = typeParameters;
         element.parameters = _readFormalParameters(unitElement);

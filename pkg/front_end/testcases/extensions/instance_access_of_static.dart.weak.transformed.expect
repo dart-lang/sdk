@@ -79,30 +79,30 @@ static method main() → dynamic {
  - 'Class1' is from 'pkg/front_end/testcases/extensions/instance_access_of_static.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'staticMethod'.
   c.staticMethod();
-    ^^^^^^^^^^^^";
+    ^^^^^^^^^^^^" in c{<unresolved>}.staticMethod();
   invalid-expression "pkg/front_end/testcases/extensions/instance_access_of_static.dart:27:5: Error: The getter 'staticMethod' isn't defined for the class 'Class1'.
  - 'Class1' is from 'pkg/front_end/testcases/extensions/instance_access_of_static.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'staticMethod'.
   c.staticMethod;
-    ^^^^^^^^^^^^";
+    ^^^^^^^^^^^^" in c{<unresolved>}.staticMethod;
   invalid-expression "pkg/front_end/testcases/extensions/instance_access_of_static.dart:28:5: Error: The getter 'staticProperty' isn't defined for the class 'Class1'.
  - 'Class1' is from 'pkg/front_end/testcases/extensions/instance_access_of_static.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'staticProperty'.
   c.staticProperty;
-    ^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^" in c{<unresolved>}.staticProperty;
   invalid-expression "pkg/front_end/testcases/extensions/instance_access_of_static.dart:29:5: Error: The setter 'staticProperty' isn't defined for the class 'Class1'.
  - 'Class1' is from 'pkg/front_end/testcases/extensions/instance_access_of_static.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'staticProperty'.
   c.staticProperty = 42;
-    ^^^^^^^^^^^^^^";
+    ^^^^^^^^^^^^^^" in c{<unresolved>}.staticProperty = 42;
   invalid-expression "pkg/front_end/testcases/extensions/instance_access_of_static.dart:30:5: Error: The getter 'staticField' isn't defined for the class 'Class1'.
  - 'Class1' is from 'pkg/front_end/testcases/extensions/instance_access_of_static.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'staticField'.
   c.staticField;
-    ^^^^^^^^^^^";
+    ^^^^^^^^^^^" in c{<unresolved>}.staticField;
   invalid-expression "pkg/front_end/testcases/extensions/instance_access_of_static.dart:31:5: Error: The setter 'staticField' isn't defined for the class 'Class1'.
  - 'Class1' is from 'pkg/front_end/testcases/extensions/instance_access_of_static.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'staticField'.
   c.staticField = 42;
-    ^^^^^^^^^^^";
+    ^^^^^^^^^^^" in c{<unresolved>}.staticField = 42;
 }

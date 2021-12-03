@@ -415,6 +415,13 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   // Load the code object.
   __ LoadFromOffset(R10, THR, compiler::target::Thread::callback_code_offset());
+#if defined(DART_COMPRESSED_POINTERS)
+  // Partially setup HEAP_BITS for LoadCompressed[FieldFromOffset].
+  ASSERT(IsAbiPreservedRegister(HEAP_BITS));  // Need to save and restore.
+  __ Push(HEAP_BITS);
+  __ ldr(HEAP_BITS, compiler::Address(THR, target::Thread::heap_base_offset()));
+  __ LsrImmediate(HEAP_BITS, HEAP_BITS, 32);
+#endif
   __ LoadCompressedFieldFromOffset(
       R10, R10, compiler::target::GrowableObjectArray::data_offset());
   __ LoadCompressed(
@@ -427,6 +434,9 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
           /*array=*/R10,
           /*index=*/R9,
           /*temp=*/TMP));
+#if defined(DART_COMPRESSED_POINTERS)
+  __ Pop(HEAP_BITS);
+#endif
   __ LoadFieldFromOffset(R10, R10,
                          compiler::target::Code::entry_point_offset());
 
@@ -472,7 +482,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ cmp(R4, Operand(0));
   __ b(&no_type_args, EQ);
   __ ldr(R0, Address(FP, kReceiverOffset * target::kWordSize));
-  __ ldr(R3, Address(R0, R4));
+  __ LoadCompressed(R3, Address(R0, R4));
   __ Bind(&no_type_args);
 
   // Push type arguments & extracted method.
@@ -482,16 +492,19 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   // Allocate context.
   {
     Label done, slow_path;
-    __ TryAllocateArray(kContextCid, target::Context::InstanceSize(1),
-                        &slow_path,
-                        R0,  // instance
-                        R1,  // end address
-                        R2, R3);
-    __ ldr(R1, Address(THR, target::Thread::object_null_offset()));
-    __ str(R1, FieldAddress(R0, target::Context::parent_offset()));
-    __ LoadImmediate(R1, 1);
-    __ str(R1, FieldAddress(R0, target::Context::num_variables_offset()));
-    __ b(&done);
+    if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+      __ TryAllocateArray(kContextCid, target::Context::InstanceSize(1),
+                          &slow_path,
+                          R0,  // instance
+                          R1,  // end address
+                          R2, R3);
+      __ StoreCompressedIntoObjectNoBarrier(
+          R0, FieldAddress(R0, target::Context::parent_offset()), NULL_REG);
+      __ LoadImmediate(R1, 1);
+      __ str(R1, FieldAddress(R0, target::Context::num_variables_offset()),
+             kFourBytes);
+      __ b(&done);
+    }
 
     __ Bind(&slow_path);
 
@@ -509,10 +522,11 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   // Store receiver in context
   __ ldr(AllocateClosureABI::kScratchReg,
          Address(FP, target::kWordSize * kReceiverOffset));
-  __ StoreIntoObject(AllocateClosureABI::kContextReg,
-                     FieldAddress(AllocateClosureABI::kContextReg,
-                                  target::Context::variable_offset(0)),
-                     AllocateClosureABI::kScratchReg);
+  __ StoreCompressedIntoObject(
+      AllocateClosureABI::kContextReg,
+      FieldAddress(AllocateClosureABI::kContextReg,
+                   target::Context::variable_offset(0)),
+      AllocateClosureABI::kScratchReg);
 
   // Pop function before pushing context.
   __ Pop(AllocateClosureABI::kFunctionReg);
@@ -1485,7 +1499,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
       target::Context::header_size() +
       target::ObjectAlignment::kObjectAlignment - 1;
   __ LoadImmediate(R2, fixed_size_plus_alignment_padding);
-  __ add(R2, R2, Operand(R1, LSL, 3));
+  __ add(R2, R2, Operand(R1, LSL, kCompressedWordSizeLog2));
   ASSERT(kSmiTagShift == 1);
   __ andi(R2, R2, Immediate(~(target::ObjectAlignment::kObjectAlignment - 1)));
 
@@ -1537,7 +1551,8 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // Setup up number of context variables field.
   // R0: new object.
   // R1: number of context variables as integer value (not object).
-  __ StoreFieldToOffset(R1, R0, target::Context::num_variables_offset());
+  __ StoreFieldToOffset(R1, R0, target::Context::num_variables_offset(),
+                        kFourBytes);
 }
 
 // Called for inline allocation of contexts.
@@ -1556,13 +1571,12 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // Setup the parent field.
     // R0: new object.
     // R1: number of context variables.
-    __ LoadObject(R2, NullObject());
-    __ StoreFieldToOffset(R2, R0, target::Context::parent_offset());
+    __ StoreCompressedIntoObjectOffset(R0, target::Context::parent_offset(),
+                                       NULL_REG);
 
     // Initialize the context variables.
     // R0: new object.
     // R1: number of context variables.
-    // R2: raw null.
     {
       Label loop, done;
       __ AddImmediate(R3, R0,
@@ -1570,7 +1584,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
       __ Bind(&loop);
       __ subs(R1, R1, Operand(1));
       __ b(&done, MI);
-      __ str(R2, Address(R3, R1, UXTX, Address::Scaled));
+      __ str(NULL_REG, Address(R3, R1, UXTX, Address::Scaled), kObjectBytes);
       __ b(&loop, NE);  // Loop if R1 not zero.
       __ Bind(&done);
     }
@@ -1624,10 +1638,10 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
     GenerateAllocateContextSpaceStub(assembler, &slow_case);
 
     // Load parent in the existing context.
-    __ ldr(R3, FieldAddress(R5, target::Context::parent_offset()));
+    __ LoadCompressed(R3, FieldAddress(R5, target::Context::parent_offset()));
     // Setup the parent field.
     // R0: new context.
-    __ StoreIntoObjectNoBarrier(
+    __ StoreCompressedIntoObjectNoBarrier(
         R0, FieldAddress(R0, target::Context::parent_offset()), R3);
 
     // Clone the context variables.
@@ -1646,8 +1660,8 @@ void StubCodeCompiler::GenerateCloneContextStub(Assembler* assembler) {
       __ subs(R1, R1, Operand(1));
       __ b(&done, MI);
 
-      __ ldr(R5, Address(R4, R1, UXTX, Address::Scaled));
-      __ str(R5, Address(R3, R1, UXTX, Address::Scaled));
+      __ ldr(R5, Address(R4, R1, UXTX, Address::Scaled), kObjectBytes);
+      __ str(R5, Address(R3, R1, UXTX, Address::Scaled), kObjectBytes);
       __ b(&loop, NE);  // Loop if R1 not zero.
 
       __ Bind(&done);
@@ -1713,7 +1727,7 @@ COMPILE_ASSERT(kWriteBarrierSlotReg == R25);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler,
                                            Address stub_code,
                                            bool cards) {
-  Label add_to_mark_stack, remember_card;
+  Label add_to_mark_stack, remember_card, lost_race;
   __ tbz(&add_to_mark_stack, R0,
          target::ObjectAlignment::kNewObjectBitPosition);
 
@@ -1735,13 +1749,14 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ Push(R3);
   __ Push(R4);
 
-  // Atomically set the remembered bit of the object header.
+  // Atomically clear kOldAndNotRememberedBit.
   ASSERT(target::Object::tags_offset() == 0);
   __ sub(R3, R1, Operand(kHeapObjectTag));
   // R3: Untagged address of header word (ldxr/stxr do not support offsets).
   Label retry;
   __ Bind(&retry);
   __ ldxr(R2, R3, kEightBytes);
+  __ tbz(&lost_race, R2, target::UntaggedObject::kOldAndNotRememberedBit);
   __ AndImmediate(R2, R2,
                   ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
   __ stxr(R4, R2, R3, kEightBytes);
@@ -1787,7 +1802,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ Push(R4);  // Spill.
 
   // Atomically clear kOldAndNotMarkedBit.
-  Label marking_retry, lost_race, marking_overflow;
+  Label marking_retry, marking_overflow;
   ASSERT(target::Object::tags_offset() == 0);
   __ sub(R3, R0, Operand(kHeapObjectTag));
   // R3: Untagged address of header word (ldxr/stxr do not support offsets).
@@ -1824,6 +1839,7 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ ret();
 
   __ Bind(&lost_race);
+  __ clrex();
   __ Pop(R4);  // Unspill.
   __ Pop(R3);  // Unspill.
   __ Pop(R2);  // Unspill.

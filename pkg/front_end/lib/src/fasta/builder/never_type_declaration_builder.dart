@@ -19,15 +19,17 @@ class NeverTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
     assert(coreLibrary.importUri == Uri.parse('dart:core'));
   }
 
+  @override
   String get debugName => "NeverTypeDeclarationBuilder";
 
+  @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
     return type.withDeclaredNullability(nullabilityBuilder.build(library));
   }
 
-  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+  @override
+  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
     return type.withDeclaredNullability(nullability);
   }

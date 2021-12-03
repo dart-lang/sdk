@@ -72,6 +72,12 @@ class TypePropertyResolver {
 
     receiverType = _resolveTypeParameter(receiverType, ifLegacy: true);
 
+    if (name == 'new') {
+      _needsGetterError = true;
+      _needsSetterError = true;
+      return _toResult();
+    }
+
     if (_typeSystem.isDynamicBounded(receiverType)) {
       _lookupInterfaceType(
         _typeProvider.objectType,
@@ -106,8 +112,10 @@ class TypePropertyResolver {
       }
 
       CompileTimeErrorCode errorCode;
+      List<String> arguments;
       if (parentExpression == null) {
         errorCode = CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE;
+        arguments = [];
       } else {
         if (parentExpression is CascadeExpression) {
           parentExpression = parentExpression.cascadeSections.first;
@@ -115,21 +123,25 @@ class TypePropertyResolver {
         if (parentExpression is BinaryExpression) {
           errorCode = CompileTimeErrorCode
               .UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE;
+          arguments = [name];
         } else if (parentExpression is MethodInvocation ||
             parentExpression is MethodReferenceExpression) {
           errorCode = CompileTimeErrorCode
               .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE;
+          arguments = [name];
         } else if (parentExpression is FunctionExpressionInvocation) {
           errorCode =
               CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE;
+          arguments = [];
         } else {
           errorCode =
               CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE;
+          arguments = [name];
         }
       }
 
       List<DiagnosticMessage> messages = [];
-      var flow = _resolver.flowAnalysis?.flow;
+      var flow = _resolver.flowAnalysis.flow;
       if (flow != null) {
         if (receiver != null) {
           messages = _resolver.computeWhyNotPromotedMessages(
@@ -143,8 +155,8 @@ class TypePropertyResolver {
         }
       }
       _resolver.nullableDereferenceVerifier.report(
-          propertyErrorEntity, receiverType,
-          errorCode: errorCode, arguments: [name], messages: messages);
+          errorCode, propertyErrorEntity, receiverType,
+          arguments: arguments, messages: messages);
       _reportedGetterError = true;
       _reportedSetterError = true;
 
@@ -164,14 +176,16 @@ class TypePropertyResolver {
         if (_hasGetterOrSetter) {
           return _toResult();
         }
-        if (receiverTypeResolved.isDartCoreFunction && _name == 'call') {
+        if (receiverTypeResolved.isDartCoreFunction &&
+            _name == FunctionElement.CALL_METHOD_NAME) {
           _needsGetterError = false;
           _needsSetterError = false;
           return _toResult();
         }
       }
 
-      if (receiverTypeResolved is FunctionType && _name == 'call') {
+      if (receiverTypeResolved is FunctionType &&
+          _name == FunctionElement.CALL_METHOD_NAME) {
         return _toResult();
       }
 

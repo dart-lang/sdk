@@ -124,7 +124,7 @@ LibraryBuilder? lookupLibraryBuilder(
     InternalCompilerResult compilerResult, Library library,
     {bool required: true}) {
   SourceLoader loader = compilerResult.kernelTargetForTesting!.loader;
-  LibraryBuilder? builder = loader.builders[library.importUri];
+  LibraryBuilder? builder = loader.lookupLibraryBuilder(library.importUri);
   if (builder == null && required) {
     throw new ArgumentError("DeclarationBuilder for $library not found.");
   }
@@ -137,7 +137,7 @@ TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
   SourceLibraryBuilder builder =
       lookupLibraryBuilder(compilerResult, library, required: required)
           as SourceLibraryBuilder;
-  return builder.libraryDeclaration;
+  return builder.libraryTypeParameterScopeBuilderForTesting;
 }
 
 ClassBuilder? lookupClassBuilder(
@@ -330,33 +330,41 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
     }
   }
 
+  @override
   void defaultConstant(Constant node) => throw new UnimplementedError(
       'Unexpected constant $node (${node.runtimeType})');
 
+  @override
   void visitNullConstant(NullConstant node) {
     sb.write('Null()');
   }
 
+  @override
   void visitBoolConstant(BoolConstant node) {
     sb.write('Bool(${node.value})');
   }
 
+  @override
   void visitIntConstant(IntConstant node) {
     sb.write('Int(${node.value})');
   }
 
+  @override
   void visitDoubleConstant(DoubleConstant node) {
     sb.write('Double(${node.value})');
   }
 
+  @override
   void visitStringConstant(StringConstant node) {
     sb.write('String(${node.value})');
   }
 
+  @override
   void visitSymbolConstant(SymbolConstant node) {
     sb.write('Symbol(${node.name})');
   }
 
+  @override
   void visitMapConstant(MapConstant node) {
     sb.write('Map<');
     typeToText.visit(node.keyType);
@@ -374,6 +382,7 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
     sb.write(')');
   }
 
+  @override
   void visitListConstant(ListConstant node) {
     sb.write('List<');
     typeToText.visit(node.typeArgument);
@@ -382,6 +391,7 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
     sb.write(')');
   }
 
+  @override
   void visitSetConstant(SetConstant node) {
     sb.write('Set<');
     typeToText.visit(node.typeArgument);
@@ -390,6 +400,7 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
     sb.write(')');
   }
 
+  @override
   void visitInstanceConstant(InstanceConstant node) {
     sb.write('Instance(');
     sb.write(node.classNode.name);
@@ -413,6 +424,7 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
     sb.write(')');
   }
 
+  @override
   void visitInstantiationConstant(InstantiationConstant node) {
     sb.write('Instantiation(');
     Constant tearOffConstant = node.tearOffConstant;
@@ -426,6 +438,7 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
     sb.write('>)');
   }
 
+  @override
   void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
     sb.write('TypedefTearOff(');
     sb.write(getMemberName(node.tearOffConstant.target));
@@ -454,18 +467,21 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
     sb.write('>)');
   }
 
+  @override
   void visitStaticTearOffConstant(StaticTearOffConstant node) {
     sb.write('Function(');
     sb.write(getMemberName(node.target));
     sb.write(')');
   }
 
+  @override
   void visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
     sb.write('Constructor(');
     sb.write(getMemberName(node.target));
     sb.write(')');
   }
 
+  @override
   void visitRedirectingFactoryTearOffConstant(
       RedirectingFactoryTearOffConstant node) {
     sb.write('RedirectingFactory(');
@@ -473,12 +489,14 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
     sb.write(')');
   }
 
+  @override
   void visitTypeLiteralConstant(TypeLiteralConstant node) {
     sb.write('TypeLiteral(');
     typeToText.visit(node.type);
     sb.write(')');
   }
 
+  @override
   void visitUnevaluatedConstant(UnevaluatedConstant node) {
     sb.write('Unevaluated()');
   }
@@ -509,21 +527,26 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     }
   }
 
+  @override
   void defaultDartType(DartType node) => throw new UnimplementedError(
       'Unexpected type $node (${node.runtimeType})');
 
+  @override
   void visitInvalidType(InvalidType node) {
     sb.write('<invalid>');
   }
 
+  @override
   void visitDynamicType(DynamicType node) {
     sb.write('dynamic');
   }
 
+  @override
   void visitVoidType(VoidType node) {
     sb.write('void');
   }
 
+  @override
   void visitNeverType(NeverType node) {
     sb.write('Never');
     if (node.nullability != Nullability.nonNullable) {
@@ -531,10 +554,12 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     }
   }
 
+  @override
   void visitNullType(NullType node) {
     sb.write('Null');
   }
 
+  @override
   void visitInterfaceType(InterfaceType node) {
     sb.write(node.classNode.name);
     if (node.typeArguments.isNotEmpty) {
@@ -547,6 +572,7 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     }
   }
 
+  @override
   void visitFutureOrType(FutureOrType node) {
     sb.write('FutureOr<');
     visit(node.typeArgument);
@@ -554,6 +580,7 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     sb.write(nullabilityToText(node.declaredNullability, typeRepresentation));
   }
 
+  @override
   void visitFunctionType(FunctionType node) {
     visit(node.returnType);
     sb.write(' Function');
@@ -610,6 +637,7 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     sb.write(nullabilityToText(node.nullability, typeRepresentation));
   }
 
+  @override
   void visitTypeParameterType(TypeParameterType node) {
     sb.write(node.parameter.name);
     sb.write(nullabilityToText(node.nullability, typeRepresentation));
@@ -619,6 +647,7 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     }
   }
 
+  @override
   void visitTypedefType(TypedefType node) {
     sb.write(node.typedefNode.name);
     if (node.typeArguments.isNotEmpty) {
@@ -629,6 +658,7 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     sb.write(nullabilityToText(node.nullability, typeRepresentation));
   }
 
+  @override
   void visitExtensionType(ExtensionType node) {
     sb.write(node.extension.name);
     if (node.typeArguments.isNotEmpty) {
@@ -704,7 +734,7 @@ String errorsToText(List<FormattedMessage> errors, {bool useCodes: false}) {
   if (useCodes) {
     return errors.map((m) => m.code).join(',');
   } else {
-    return errors.map((m) => m.message).join(',');
+    return errors.map((m) => m.problemMessage).join(',');
   }
 }
 

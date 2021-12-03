@@ -4,6 +4,8 @@
 
 // @dart = 2.9
 
+import 'package:front_end/src/fasta/kernel/constructor_tearoff_lowering.dart'
+    show isTearOffLowering;
 import 'package:kernel/kernel.dart';
 
 import 'module_symbols.dart';
@@ -47,12 +49,38 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
       // TODO(nshahan) How to handle function types or types from other modules?
       type is InterfaceType ? _classJsNames[type.classNode] : null;
 
+  /// Returns the symbol for the function defined by [node].
+  void _createFunctionSymbol(Member node) {
+    var functionSymbol = FunctionSymbol(
+        name: node.name.text,
+        // TODO(nshahan) typeId - probably should canonicalize but keep original
+        // type argument names.
+        // TODO(nshahan) Should we mark all constructors static?
+        isStatic: node is Procedure ? node.isStatic : false,
+        isConst: node.isConst,
+        localId: _memberJsNames[node] ?? _procedureJsNames[node],
+        scopeId: _scopes.last.id,
+        variableIds: <String>[],
+        scopeIds: <String>[],
+        location: SourceLocation(
+            scriptId: _scriptId(node.location.file),
+            tokenPos: node.fileOffset,
+            endTokenPos: node.fileEndOffset));
+
+    _scopes.add(functionSymbol);
+    node.visitChildren(this);
+    _scopes
+      ..removeLast()
+      ..last.scopeIds.add(functionSymbol.id);
+    _moduleSymbols.functions.add(functionSymbol);
+  }
+
   @override
   void visitClass(Class node) {
     var classSymbol = ClassSymbol(
         name: node.name,
         isAbstract: node.isAbstract,
-        // TODO(nshahan) isConst - Does this mean has a const constructor?
+        isConst: node.constructors.any((constructor) => constructor.isConst),
         superClassId: _classJsNames[node.superclass],
         interfaceIds: [
           for (var type in node.implementedTypes) _classJsNames[type.classNode]
@@ -79,6 +107,9 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
       ..last.scopeIds.add(classSymbol.id);
     _moduleSymbols.classes.add(classSymbol);
   }
+
+  @override
+  void visitConstructor(Constructor node) => _createFunctionSymbol(node);
 
   @override
   void visitField(Field node) {
@@ -143,33 +174,16 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
   void visitProcedure(Procedure node) {
     // Legacy libraries contain procedures with no bodies for all Object methods
     // in every class. We can ignore these unless they actually contain a body.
-    if (node.function.body == null) return;
-    var functionSymbol = FunctionSymbol(
-        name: node.name.text,
-        // TODO(nshahan) typeId - probably should canonicalize but keep original
-        // type argument names.
-        isStatic: node.isStatic,
-        isConst: node.isConst,
-        localId: _memberJsNames[node] ?? _procedureJsNames[node],
-        scopeId: _scopes.last.id,
-        variableIds: <String>[],
-        scopeIds: <String>[],
-        location: SourceLocation(
-            scriptId: _scriptId(node.location.file),
-            tokenPos: node.fileOffset,
-            endTokenPos: node.fileEndOffset));
-
-    _scopes.add(functionSymbol);
-    node.visitChildren(this);
-    _scopes
-      ..removeLast()
-      ..last.scopeIds.add(functionSymbol.id);
-    _moduleSymbols.functions.add(functionSymbol);
+    //
+    // Also avoid adding information for the static methods introduced by the
+    // CFE lowering for constructor tearoffs.
+    if (node.function.body == null || isTearOffLowering(node)) return;
+    _createFunctionSymbol(node);
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var kind = node.isFieldFormal
+    var kind = node.isInitializingFormal
         ? VariableSymbolKind.formal
         : VariableSymbolKind.local;
     var variableSymbol = _createVariableSymbol(node, kind);

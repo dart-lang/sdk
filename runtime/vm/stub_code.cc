@@ -6,7 +6,7 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "vm/clustered_snapshot.h"
+#include "vm/app_snapshot.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/flags.h"
 #include "vm/heap/safepoint.h"
@@ -22,7 +22,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, disassemble_stubs, false, "Disassemble generated stubs.");
 DECLARE_FLAG(bool, precompiled_mode);
 
 StubCode::StubCodeEntry StubCode::entries_[kNumStubEntries] = {

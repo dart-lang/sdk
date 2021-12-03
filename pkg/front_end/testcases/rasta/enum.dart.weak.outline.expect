@@ -2,17 +2,17 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Foo extends core::Object implements core::Enum /*isEnum*/  {
-  final field core::int* index;
-  final field core::String* _name;
+class Foo extends core::_Enum /*isEnum*/  {
   static const field core::List<self::Foo*>* values = const <self::Foo*>[self::Foo::ec1, self::Foo::ec2];
-  static const field self::Foo* ec1 = const self::Foo::•(0, "Foo.ec1");
-  static const field self::Foo* ec2 = const self::Foo::•(1, "Foo.ec2");
-  const constructor •(core::int* index, core::String* _name) → self::Foo*
-    : self::Foo::index = index, self::Foo::_name = _name, super core::Object::•()
+  static const field self::Foo* ec1 = const self::Foo::•(0, "ec1");
+  static const field self::Foo* ec2 = const self::Foo::•(1, "ec2");
+  const constructor •(core::int* index, core::String* name) → self::Foo*
+    : super core::_Enum::•(index, name)
     ;
   method toString() → core::String*
-    return this.{self::Foo::_name}{core::String*};
+    return "Foo.${this.{core::_Enum::_name}{core::String}}";
+  abstract member-signature get index() → core::int*; -> core::_Enum::index
+  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -28,7 +28,7 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///enum.dart:5:6 -> ListConstant(const <Foo*>[const Foo{Foo.index: 0, Foo._name: "Foo.ec1"}, const Foo{Foo.index: 1, Foo._name: "Foo.ec2"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum.dart:6:3 -> InstanceConstant(const Foo{Foo.index: 0, Foo._name: "Foo.ec1"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum.dart:7:3 -> InstanceConstant(const Foo{Foo.index: 1, Foo._name: "Foo.ec2"})
-Extra constant evaluation: evaluated: 7, effectively constant: 3
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum.dart:5:6 -> ListConstant(const <Foo*>[const Foo{_Enum.index: 0, _Enum._name: "ec1"}, const Foo{_Enum.index: 1, _Enum._name: "ec2"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum.dart:6:3 -> InstanceConstant(const Foo{_Enum.index: 0, _Enum._name: "ec1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum.dart:7:3 -> InstanceConstant(const Foo{_Enum.index: 1, _Enum._name: "ec2"})
+Extra constant evaluation: evaluated: 8, effectively constant: 3

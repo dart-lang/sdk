@@ -50,7 +50,7 @@ abstract class _RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildM
   synthetic constructor •() → self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin
     : super self::RenderSliver::•()
     ;
-  forwarding-stub method handleEvent(invalid-type event, covariant invalid-type entry) → void
+  forwarding-stub method handleEvent(invalid-type event, covariant-by-declaration invalid-type entry) → void
     return super.{self::RenderSliver::handleEvent}(event, entry);
 }
 abstract class _RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin&RenderSliverHelpers extends self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin /*isAnonymousMixin*/  {
@@ -92,7 +92,7 @@ abstract class RenderObject extends core::Object {
   synthetic constructor •() → mai::RenderObject
     : super core::Object::•()
     ;
-  method handleEvent(invalid-type event, covariant invalid-type entry) → void {}
+  method handleEvent(invalid-type event, covariant-by-declaration invalid-type entry) → void {}
 }
 abstract class RenderObjectWithChildMixin<ChildType extends mai::RenderObject> extends mai::RenderObject /*isMixinDeclaration*/  {
 }

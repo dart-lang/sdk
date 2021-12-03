@@ -24,26 +24,26 @@ import "dart:typed_data" show Int32List, Uint8List;
 bool typeAcceptsNull<T>() => (const <Null>[]) is List<int> || null is T;
 
 @patch
-List<T> makeListFixedLength<T>(List<T> growableList)
-    native "Internal_makeListFixedLength";
+@pragma("vm:external-name", "Internal_makeListFixedLength")
+external List<T> makeListFixedLength<T>(List<T> growableList);
 
 @patch
-List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList)
-    native "Internal_makeFixedListUnmodifiable";
+@pragma("vm:external-name", "Internal_makeFixedListUnmodifiable")
+external List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList);
 
 @patch
-Object? extractTypeArguments<T>(T instance, Function extract)
-    native "Internal_extractTypeArguments";
+@pragma("vm:external-name", "Internal_extractTypeArguments")
+external Object? extractTypeArguments<T>(T instance, Function extract);
 
 /// The returned string is a [_OneByteString] with uninitialized content.
 @pragma("vm:recognized", "asm-intrinsic")
-String allocateOneByteString(int length)
-    native "Internal_allocateOneByteString";
+@pragma("vm:external-name", "Internal_allocateOneByteString")
+external String allocateOneByteString(int length);
 
 /// The [string] must be a [_OneByteString]. The [index] must be valid.
 @pragma("vm:recognized", "asm-intrinsic")
-void writeIntoOneByteString(String string, int index, int codePoint)
-    native "Internal_writeIntoOneByteString";
+@pragma("vm:external-name", "Internal_writeIntoOneByteString")
+external void writeIntoOneByteString(String string, int index, int codePoint);
 
 /// It is assumed that [from] is a native [Uint8List] class and [to] is a
 /// [_OneByteString]. The [fromStart] and [toStart] indices together with the
@@ -59,13 +59,13 @@ void copyRangeFromUint8ListToOneByteString(
 
 /// The returned string is a [_TwoByteString] with uninitialized content.
 @pragma("vm:recognized", "asm-intrinsic")
-String allocateTwoByteString(int length)
-    native "Internal_allocateTwoByteString";
+@pragma("vm:external-name", "Internal_allocateTwoByteString")
+external String allocateTwoByteString(int length);
 
 /// The [string] must be a [_TwoByteString]. The [index] must be valid.
 @pragma("vm:recognized", "asm-intrinsic")
-void writeIntoTwoByteString(String string, int index, int codePoint)
-    native "Internal_writeIntoTwoByteString";
+@pragma("vm:external-name", "Internal_writeIntoTwoByteString")
+external void writeIntoTwoByteString(String string, int index, int codePoint);
 
 class VMLibraryHooks {
   // Example: "dart:isolate _Timer._factory"
@@ -104,7 +104,8 @@ class VMLibraryHooks {
 
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
-bool get has63BitSmis native "Internal_has63BitSmis";
+@pragma("vm:external-name", "Internal_has63BitSmis")
+external bool get has63BitSmis;
 
 @pragma("vm:recognized", "other")
 @pragma("vm:entry-point", "call")
@@ -137,14 +138,15 @@ class Lists {
 // vectors are null or is a newly allocated and canonicalized vector of length
 // 'totalLen'.
 @pragma("vm:entry-point", "call")
-_prependTypeArguments(functionTypeArguments, parentTypeArguments, parentLen,
-    totalLen) native "Internal_prependTypeArguments";
+@pragma("vm:external-name", "Internal_prependTypeArguments")
+external _prependTypeArguments(
+    functionTypeArguments, parentTypeArguments, parentLen, totalLen);
 
 // Check that a set of type arguments satisfy the type parameter bounds on a
 // closure.
 @pragma("vm:entry-point", "call")
-_boundsCheckForPartialInstantiation(closure, typeArgs)
-    native "Internal_boundsCheckForPartialInstantiation";
+@pragma("vm:external-name", "Internal_boundsCheckForPartialInstantiation")
+external _boundsCheckForPartialInstantiation(closure, typeArgs);
 
 // Called by IRRegExpMacroAssembler::GrowStack.
 Int32List _growRegExpStack(Int32List stack) {
@@ -160,42 +162,30 @@ Int32List _growRegExpStack(Int32List stack) {
 // type of a value.
 //
 // Important: this is unsafe and must be used with care.
-T unsafeCast<T>(Object? v) native "Internal_unsafeCast";
+@pragma("vm:external-name", "Internal_unsafeCast")
+external T unsafeCast<T>(Object? v);
 
-// This function can be used to keep an object alive til that point.
+// This function can be used to keep an object alive till that point.
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
-void reachabilityFence(Object object) native "Internal_reachabilityFence";
+@pragma("vm:external-name", "Internal_reachabilityFence")
+external void reachabilityFence(Object object);
 
 // This function can be used to encode native side effects.
 //
 // The function call and it's argument are removed in flow graph construction.
 @pragma("vm:recognized", "other")
-void _nativeEffect(Object object) native "Internal_nativeEffect";
-
-void sendAndExit(SendPort sendPort, var message)
-    native "SendPortImpl_sendAndExitInternal_";
-
-void spawnFunction(
-    SendPort readyPort,
-    String uri,
-    Function topLevelFunction,
-    var message,
-    bool paused,
-    bool errorsAreFatal,
-    SendPort? onExit,
-    SendPort? onError,
-    String? packageConfig,
-    bool newIsolateGroup,
-    String? debugName) native "Isolate_spawnFunction";
+@pragma("vm:external-name", "Internal_nativeEffect")
+external void _nativeEffect(Object object);
 
 // Collection of functions which should only be used for testing purposes.
 abstract class VMInternalsForTesting {
   // This function can be used by tests to enforce garbage collection.
-  static void collectAllGarbage() native "Internal_collectAllGarbage";
+  @pragma("vm:external-name", "Internal_collectAllGarbage")
+  external static void collectAllGarbage();
 
-  static void deoptimizeFunctionsOnStack()
-      native "Internal_deoptimizeFunctionsOnStack";
+  @pragma("vm:external-name", "Internal_deoptimizeFunctionsOnStack")
+  external static void deoptimizeFunctionsOnStack();
 }
 
 @patch

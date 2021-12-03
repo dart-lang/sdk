@@ -3,10 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:dds/dds.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
+
 import 'common/test_helper.dart';
 
 void main() {
@@ -27,27 +30,32 @@ void main() {
     process.kill();
   });
 
+  Future<void> streamSubscribeUnsubscribe(
+    VmService client, {
+    required bool delay,
+  }) async {
+    await client.streamListen('Service');
+    await Future.delayed(
+      Duration(milliseconds: delay ? Random().nextInt(200) : 0),
+    );
+    await client.streamCancel('Service');
+  }
+
   test('Ensure streamListen and streamCancel calls are handled atomically',
       () async {
-    dds = await DartDevelopmentService.startDartDevelopmentService(
-      remoteVmServiceUri,
-    );
-    expect(dds.isRunning, true);
-    final connection1 = await vmServiceConnectUri(dds.wsUri.toString());
-    final connection2 = await vmServiceConnectUri(dds.wsUri.toString());
+    for (int i = 0; i < 100; ++i) {
+      dds = await DartDevelopmentService.startDartDevelopmentService(
+        remoteVmServiceUri,
+      );
+      expect(dds.isRunning, true);
+      final connection1 = await vmServiceConnectUri(dds.wsUri.toString());
+      final connection2 = await vmServiceConnectUri(dds.wsUri.toString());
 
-    for (int i = 0; i < 50; ++i) {
-      final listenFutures = <Future>[
-        connection1.streamListen('Service'),
-        connection2.streamListen('Service'),
-      ];
-      await Future.wait(listenFutures);
-
-      final cancelFutures = <Future>[
-        connection1.streamCancel('Service'),
-        connection2.streamCancel('Service'),
-      ];
-      await Future.wait(cancelFutures);
+      await Future.wait([
+        streamSubscribeUnsubscribe(connection1, delay: true),
+        streamSubscribeUnsubscribe(connection2, delay: false),
+      ]);
+      await dds.shutdown();
     }
   });
 }

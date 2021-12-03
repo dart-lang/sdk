@@ -90,8 +90,10 @@ var tests = <IsolateTest>[
       int internalSum = 0;
       int externalSum = 0;
       for (SnapshotObject instance in klass.instances) {
-        if (instance == graph.root) {
-          // The root may have 0 self size.
+        if (instance == graph.root ||
+            instance.klass.name.contains("Isolate") ||
+            instance.klass.name.contains("Read-Only Pages")) {
+          // The root and fake root subdivisions have 0 self size.
           expect(instance.internalSize, greaterThanOrEqualTo(0));
           expect(instance.externalSize, greaterThanOrEqualTo(0));
           expect(instance.shallowSize, greaterThanOrEqualTo(0));
@@ -122,8 +124,10 @@ var tests = <IsolateTest>[
     int internalSum = 0;
     int externalSum = 0;
     for (SnapshotObject instance in graph.objects) {
-      if (instance == graph.root) {
-        // The root may have 0 self size.
+      if (instance == graph.root ||
+          instance.klass.name.contains("Isolate") ||
+          instance.klass.name.contains("Read-Only Pages")) {
+        // The root and fake root subdivisions have 0 self size.
         expect(instance.internalSize, greaterThanOrEqualTo(0));
         expect(instance.externalSize, greaterThanOrEqualTo(0));
         expect(instance.shallowSize, greaterThanOrEqualTo(0));

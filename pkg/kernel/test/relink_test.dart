@@ -7,7 +7,7 @@ import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/src/tool/find_referenced_libraries.dart';
 import 'binary/utils.dart';
 
-main() {
+void main() {
   Component component1 = createComponent(42);
   Component component2 = createComponent(43);
 

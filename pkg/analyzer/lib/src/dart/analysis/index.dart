@@ -140,7 +140,8 @@ class IndexElementInfo {
       if (elementKind == ElementKind.CONSTRUCTOR) {
         kind = IndexSyntheticElementKind.constructor;
         element = element.enclosingElement!;
-      } else if (element is FunctionElement && element.name == 'loadLibrary') {
+      } else if (element is FunctionElement &&
+          element.name == FunctionElement.LOAD_LIBRARY_NAME) {
         kind = IndexSyntheticElementKind.loadLibrary;
         element = element.library;
       } else if (elementKind == ElementKind.FIELD) {
@@ -521,9 +522,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     recordRelationOffset(element, kind, token.offset, token.length, true);
   }
 
-  /// Record a relation between a super [typeName] and its [Element].
-  void recordSuperType(TypeName typeName, IndexRelationKind kind) {
-    Identifier name = typeName.name;
+  /// Record a relation between a super [namedType] and its [Element].
+  void recordSuperType(NamedType namedType, IndexRelationKind kind) {
+    Identifier name = namedType.name;
     Element? element = name.staticElement;
     bool isQualified;
     SimpleIdentifier relNode;
@@ -537,7 +538,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     recordRelation(element, kind, relNode, isQualified);
     recordRelation(
         element, IndexRelationKind.IS_REFERENCED_BY, relNode, isQualified);
-    typeName.typeArguments?.accept(this);
+    namedType.typeArguments?.accept(this);
   }
 
   void recordUriReference(Element? element, StringLiteral uri) {
@@ -578,21 +579,26 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitCommentReference(CommentReference node) {
-    var identifier = node.identifier;
-    var element = identifier.staticElement;
-    if (element is ConstructorElement) {
-      if (identifier is PrefixedIdentifier) {
-        var offset = identifier.prefix.end;
-        var length = identifier.end - offset;
-        recordRelationOffset(
-            element, IndexRelationKind.IS_REFERENCED_BY, offset, length, true);
-        return;
-      } else {
-        var offset = identifier.end;
-        recordRelationOffset(
-            element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
-        return;
+    var expression = node.expression;
+    if (expression is Identifier) {
+      var element = expression.staticElement;
+      if (element is ConstructorElement) {
+        if (expression is PrefixedIdentifier) {
+          var offset = expression.prefix.end;
+          var length = expression.end - offset;
+          recordRelationOffset(element, IndexRelationKind.IS_REFERENCED_BY,
+              offset, length, true);
+          return;
+        } else {
+          var offset = expression.end;
+          recordRelationOffset(
+              element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
+          return;
+        }
       }
+    } else {
+      throw UnimplementedError('Unhandled CommentReference expression type: '
+          '${expression.runtimeType}');
     }
 
     return super.visitCommentReference(node);
@@ -610,18 +616,29 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitConstructorName(ConstructorName node) {
     var element = node.staticElement?.declaration;
     element = _getActualConstructorElement(element);
-    // record relation
-    if (node.name != null) {
-      int offset = node.period!.offset;
-      int length = node.name!.end - offset;
-      recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, length, true);
+
+    IndexRelationKind kind;
+    if (node.parent is ConstructorReference) {
+      kind = IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF;
+    } else if (node.parent is InstanceCreationExpression) {
+      kind = IndexRelationKind.IS_INVOKED_BY;
     } else {
-      int offset = node.type.end;
-      recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
+      kind = IndexRelationKind.IS_REFERENCED_BY;
     }
-    node.type.accept(this);
+
+    int offset;
+    int length;
+    if (node.name != null) {
+      offset = node.period!.offset;
+      length = node.name!.end - offset;
+    } else {
+      offset = node.type2.end;
+      length = 0;
+    }
+
+    recordRelationOffset(element, kind, offset, length, true);
+
+    node.type2.accept(this);
   }
 
   @override
@@ -643,13 +660,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
+    recordSuperType(node.superclass2, IndexRelationKind.IS_EXTENDED_BY);
   }
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    for (TypeName typeName in node.interfaces) {
-      recordSuperType(typeName, IndexRelationKind.IS_IMPLEMENTED_BY);
+    for (NamedType namedType in node.interfaces2) {
+      recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);
     }
   }
 
@@ -700,9 +717,19 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    AstNode parent = node.parent!;
+    if (parent is ClassTypeAlias && parent.superclass2 == node) {
+      recordSuperType(node, IndexRelationKind.IS_EXTENDED_BY);
+    } else {
+      super.visitNamedType(node);
+    }
+  }
+
+  @override
   void visitOnClause(OnClause node) {
-    for (TypeName typeName in node.superclassConstraints) {
-      recordSuperType(typeName, IndexRelationKind.IS_IMPLEMENTED_BY);
+    for (NamedType namedType in node.superclassConstraints2) {
+      recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);
     }
   }
 
@@ -735,13 +762,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
       int offset = node.period!.offset;
       int length = node.constructorName!.end - offset;
       recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, length, true);
+          element, IndexRelationKind.IS_INVOKED_BY, offset, length, true);
     } else {
       int offset = node.thisKeyword.end;
       recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
+          element, IndexRelationKind.IS_INVOKED_BY, offset, 0, true);
     }
-    super.visitRedirectingConstructorInvocation(node);
+    node.argumentList.accept(this);
   }
 
   @override
@@ -797,35 +824,25 @@ class _IndexContributor extends GeneralizingAstVisitor {
       int offset = node.period!.offset;
       int length = node.constructorName!.end - offset;
       recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, length, true);
+          element, IndexRelationKind.IS_INVOKED_BY, offset, length, true);
     } else {
       int offset = node.superKeyword.end;
       recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
+          element, IndexRelationKind.IS_INVOKED_BY, offset, 0, true);
     }
     node.argumentList.accept(this);
   }
 
   @override
-  void visitTypeName(TypeName node) {
-    AstNode parent = node.parent!;
-    if (parent is ClassTypeAlias && parent.superclass == node) {
-      recordSuperType(node, IndexRelationKind.IS_EXTENDED_BY);
-    } else {
-      super.visitTypeName(node);
-    }
-  }
-
-  @override
   void visitWithClause(WithClause node) {
-    for (TypeName typeName in node.mixinTypes) {
-      recordSuperType(typeName, IndexRelationKind.IS_MIXED_IN_BY);
+    for (NamedType namedType in node.mixinTypes2) {
+      recordSuperType(namedType, IndexRelationKind.IS_MIXED_IN_BY);
     }
   }
 
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtype(String name,
-      {TypeName? superclass,
+      {NamedType? superclass,
       WithClause? withClause,
       OnClause? onClause,
       ImplementsClause? implementsClause,
@@ -841,7 +858,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
           element.name;
     }
 
-    void addSupertype(TypeName? type) {
+    void addSupertype(NamedType? type) {
       var element = type?.name.staticElement;
       if (element is ClassElement) {
         String id = getClassElementId(element);
@@ -850,9 +867,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     addSupertype(superclass);
-    withClause?.mixinTypes.forEach(addSupertype);
-    onClause?.superclassConstraints.forEach(addSupertype);
-    implementsClause?.interfaces.forEach(addSupertype);
+    withClause?.mixinTypes2.forEach(addSupertype);
+    onClause?.superclassConstraints2.forEach(addSupertype);
+    implementsClause?.interfaces2.forEach(addSupertype);
 
     void addMemberName(SimpleIdentifier identifier) {
       String name = identifier.name;
@@ -880,7 +897,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassDeclaration(ClassDeclaration node) {
     _addSubtype(node.name.name,
-        superclass: node.extendsClause?.superclass,
+        superclass: node.extendsClause?.superclass2,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
         memberNodes: node.members);
@@ -889,7 +906,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
     _addSubtype(node.name.name,
-        superclass: node.superclass,
+        superclass: node.superclass2,
         withClause: node.withClause,
         implementsClause: node.implementsClause,
         memberNodes: const []);

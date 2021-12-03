@@ -111,11 +111,7 @@ abstract class D3 implements B, C {
 /*cfe|cfe:builder.member: D4._simpleInstanceOfTrue:bool* Function(dynamic)**/
 /*cfe|cfe:builder.member: D4.==:bool* Function(dynamic)**/
 abstract class D4 implements C, B {
-  /// TODO: Solve CFE / analyzer difference.
-  /// In opt-out library we can choose any valid override, so the analyzer
-  /// takes the first one.
-  /*cfe|cfe:builder.member: D4.method:void Function(num*)**/
-  /*analyzer.member: D4.method:void Function(int*)**/
+  /*member: D4.method:void Function(num*)**/
 }
 
 /*class: D5:A,C,D5,Object*/
@@ -192,9 +188,5 @@ abstract class G1 implements E, F {
 /*cfe|cfe:builder.member: G2._simpleInstanceOfTrue:bool* Function(dynamic)**/
 /*cfe|cfe:builder.member: G2.==:bool* Function(dynamic)**/
 abstract class G2 implements F, E {
-  /// TODO: Solve CFE / analyzer difference.
-  /// In opt-out library we can choose any valid override, so the analyzer
-  /// takes the first one.
-  /*cfe|cfe:builder.member: G2.method:void Function(num*)**/
-  /*analyzer.member: G2.method:void Function(int*)**/
+  /*member: G2.method:void Function(num*)**/
 }

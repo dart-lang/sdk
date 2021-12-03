@@ -17,12 +17,12 @@ class FunctionSet {
   final Map<String, FunctionSetNode> _nodes;
 
   factory FunctionSet(Iterable<MemberEntity> liveInstanceMembers) {
-    Map<String, FunctionSetNode> nodes = new Map<String, FunctionSetNode>();
+    Map<String, FunctionSetNode> nodes = {};
     for (MemberEntity member in liveInstanceMembers) {
       String name = member.name;
-      (nodes[name] ??= new FunctionSetNode(name)).add(member);
+      (nodes[name] ??= FunctionSetNode(name)).add(member);
     }
-    return new FunctionSet.internal(nodes);
+    return FunctionSet.internal(nodes);
   }
 
   FunctionSet.internal(this._nodes);
@@ -58,8 +58,8 @@ class FunctionSet {
   SelectorMask _createSelectorMask(
       Selector selector, AbstractValue receiver, AbstractValueDomain domain) {
     return receiver != null
-        ? new SelectorMask(selector, receiver)
-        : new SelectorMask(selector, domain.dynamicType);
+        ? SelectorMask(selector, receiver)
+        : SelectorMask(selector, domain.dynamicType);
   }
 
   /// Returns the set of functions that can be the target of a call to
@@ -70,7 +70,7 @@ class FunctionSet {
     String name = selector.name;
     SelectorMask selectorMask = _createSelectorMask(selector, receiver, domain);
     SelectorMask noSuchMethodMask =
-        new SelectorMask(Selectors.noSuchMethod_, selectorMask.receiver);
+        SelectorMask(Selectors.noSuchMethod_, selectorMask.receiver);
     FunctionSetNode node = _nodes[name];
     FunctionSetNode noSuchMethods = _nodes[Identifiers.noSuchMethod_];
     if (node != null) {
@@ -136,14 +136,13 @@ class SelectorMask {
 /// selectors with the same [name].
 class FunctionSetNode {
   final String name;
-  final Map<SelectorMask, FunctionSetQuery> cache =
-      <SelectorMask, FunctionSetQuery>{};
+  final Map<SelectorMask, FunctionSetQuery> cache = {};
 
   // Initially, we keep the elements in a list because it is more
   // compact than a hash set. Once we get enough elements, we change
   // the representation to be a set to get faster contains checks.
   static const int MAX_ELEMENTS_IN_LIST = 8;
-  Iterable<MemberEntity> elements = <MemberEntity>[];
+  Iterable<MemberEntity> elements = [];
   bool isList = true;
 
   FunctionSetNode(this.name);
@@ -211,12 +210,10 @@ class FunctionSetNode {
     Setlet<MemberEntity> functions;
     for (MemberEntity element in elements) {
       if (selectorMask.applies(element, domain)) {
-        if (functions == null) {
-          // Defer the allocation of the functions set until we are
-          // sure we need it. This allows us to return immutable empty
-          // lists when the filtering produced no results.
-          functions = new Setlet<MemberEntity>();
-        }
+        // Defer the allocation of the functions set until we are
+        // sure we need it. This allows us to return immutable empty
+        // lists when the filtering produced no results.
+        functions ??= Setlet();
         functions.add(element);
       }
     }
@@ -229,23 +226,19 @@ class FunctionSetNode {
       FunctionSetQuery noSuchMethodQuery =
           noSuchMethods.query(noSuchMethodMask, domain);
       if (!noSuchMethodQuery.functions.isEmpty) {
-        if (functions == null) {
-          functions =
-              new Setlet<MemberEntity>.from(noSuchMethodQuery.functions);
-        } else {
-          functions.addAll(noSuchMethodQuery.functions);
-        }
+        functions ??= Setlet();
+        functions.addAll(noSuchMethodQuery.functions);
       }
     }
     cache[selectorMask] = result = (functions != null)
-        ? new FullFunctionSetQuery(functions)
+        ? FullFunctionSetQuery(functions)
         : const EmptyFunctionSetQuery();
     return result;
   }
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('FunctionSetNode(');
     String comma = '';
     cache.forEach((mask, query) {
@@ -277,7 +270,7 @@ class EmptyFunctionSetQuery implements FunctionSetQuery {
   AbstractValue computeMask(AbstractValueDomain domain) => domain.emptyType;
 
   @override
-  Iterable<MemberEntity> get functions => const <MemberEntity>[];
+  Iterable<MemberEntity> get functions => const [];
 
   @override
   String toString() => '<empty>';

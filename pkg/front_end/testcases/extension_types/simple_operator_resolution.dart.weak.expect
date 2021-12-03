@@ -93,48 +93,48 @@ static method test(self::A a, self::E e, self::ET et) → dynamic {
  - 'A' is from 'pkg/front_end/testcases/extension_types/simple_operator_resolution.dart'.
 Try correcting the operator to an existing operator, or defining a '~/' operator.
   a ~/ \"foobar\"; // Error.
-    ^^";
+    ^^" in a{<unresolved>}.~/("foobar");
   invalid-expression "pkg/front_end/testcases/extension_types/simple_operator_resolution.dart:28:5: Error: The operator '*' isn't defined for the extension 'E'.
 Try correcting the operator to an existing operator, or defining a '*' operator.
   e * \"foobar\"; // Error.
-    ^";
+    ^" in e{<unresolved>}.*("foobar");
   invalid-expression "pkg/front_end/testcases/extension_types/simple_operator_resolution.dart:29:4: Error: The operator '[]' isn't defined for the extension 'E'.
 Try correcting the operator to an existing operator, or defining a '[]' operator.
   e[0]; // Error.
-   ^";
+   ^" in e{<unresolved>}.[](0);
   invalid-expression "pkg/front_end/testcases/extension_types/simple_operator_resolution.dart:30:4: Error: The operator '[]=' isn't defined for the extension 'E'.
 Try correcting the operator to an existing operator, or defining a '[]=' operator.
   e[0] = \"foobar\"; // Error.
-   ^";
+   ^" in e{<unresolved>}.[]=(0, "foobar");
   invalid-expression "pkg/front_end/testcases/extension_types/simple_operator_resolution.dart:31:3: Error: The operator 'unary-' isn't defined for the extension 'E'.
 Try correcting the operator to an existing operator, or defining a 'unary-' operator.
   -e; // Error.
-  ^";
+  ^" in e{<unresolved>}.unary-();
   self::E|+(e, "foobar");
   invalid-expression "pkg/front_end/testcases/extension_types/simple_operator_resolution.dart:33:5: Error: The operator '~/' isn't defined for the extension 'E'.
 Try correcting the operator to an existing operator, or defining a '~/' operator.
   e ~/ \"foobar\"; // Error.
-    ^^";
+    ^^" in e{<unresolved>}.~/("foobar");
   invalid-expression "pkg/front_end/testcases/extension_types/simple_operator_resolution.dart:35:6: Error: The operator '*' isn't defined for the extension 'ET'.
 Try correcting the operator to an existing operator, or defining a '*' operator.
   et * \"foobar\"; // Error.
-     ^";
+     ^" in et{<unresolved>}.*("foobar");
   invalid-expression "pkg/front_end/testcases/extension_types/simple_operator_resolution.dart:36:5: Error: The operator '[]' isn't defined for the extension 'ET'.
 Try correcting the operator to an existing operator, or defining a '[]' operator.
   et[0]; // Error.
-    ^";
+    ^" in et{<unresolved>}.[](0);
   invalid-expression "pkg/front_end/testcases/extension_types/simple_operator_resolution.dart:37:5: Error: The operator '[]=' isn't defined for the extension 'ET'.
 Try correcting the operator to an existing operator, or defining a '[]=' operator.
   et[0] = \"foobar\"; // Error.
-    ^";
+    ^" in et{<unresolved>}.[]=(0, "foobar");
   invalid-expression "pkg/front_end/testcases/extension_types/simple_operator_resolution.dart:38:3: Error: The operator 'unary-' isn't defined for the extension 'ET'.
 Try correcting the operator to an existing operator, or defining a 'unary-' operator.
   -et; // Error.
-  ^";
+  ^" in et{<unresolved>}.unary-();
   invalid-expression "pkg/front_end/testcases/extension_types/simple_operator_resolution.dart:39:6: Error: The operator '+' isn't defined for the extension 'ET'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
   et + \"foobar\"; // Error.
-     ^";
+     ^" in et{<unresolved>}.+("foobar");
   self::ET|~/(et, "foobar");
 }
 static method main() → dynamic {}

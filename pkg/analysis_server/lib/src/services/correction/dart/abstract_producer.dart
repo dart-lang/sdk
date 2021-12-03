@@ -276,9 +276,7 @@ class CorrectionProducerContext {
     var selectionEnd = selectionOffset + selectionLength;
     var locator = NodeLocator(selectionOffset, selectionEnd);
     var node = locator.searchWithin(resolvedResult.unit);
-    if (node == null) {
-      return null;
-    }
+    node ??= resolvedResult.unit;
 
     return CorrectionProducerContext._(
       resolvedResult: resolvedResult,
@@ -541,7 +539,7 @@ abstract class _AbstractCorrectionProducer {
   bool mightBeTypeIdentifier(AstNode node) {
     if (node is SimpleIdentifier) {
       var parent = node.parent;
-      if (parent is TypeName) {
+      if (parent is NamedType) {
         return true;
       }
       return _isNameOfType(node.name);

@@ -9,9 +9,11 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
         class A extends B {}
       lib.dart: |
+        // @dart=2.9
         class B {
           void bMethod() {}
         }
@@ -23,9 +25,11 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
         class A extends B {}
       lib.dart: |
+        // @dart=2.9
         class B {
           void bMethod() {}
         }
@@ -49,9 +53,11 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
         class A extends B {}
       lib.dart: |
+        // @dart=2.9
         class B {
           void bMethod() {}
         }

@@ -25,12 +25,11 @@ static method test() → dynamic /* originally async */ {
     try {
       #L1:
       {
-        final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41108.dart:6:12: Error: A value of type 'List<dynamic>?' can't be assigned to a variable of type 'List<dynamic>' because 'List<dynamic>?' is nullable and 'List<dynamic>' isn't.
+        [yield] let dynamic #t1 = asy::_awaitHelper(self::l(), :async_op_then, :async_op_error, :async_op) in null;
+        core::List<dynamic> y = invalid-expression "pkg/front_end/testcases/nnbd/issue41108.dart:6:12: Error: A value of type 'List<dynamic>?' can't be assigned to a variable of type 'List<dynamic>' because 'List<dynamic>?' is nullable and 'List<dynamic>' isn't.
  - 'List' is from 'dart:core'.
   List y = await l(); // should be a List?
-           ^";
-        [yield] let dynamic #t2 = asy::_awaitHelper(self::l(), :async_op_then, :async_op_error, :async_op) in null;
-        core::List<dynamic> y = _in::unsafeCast<core::List<dynamic>?>(:result);
+           ^" in _in::unsafeCast<core::List<dynamic>?>(:result);
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
       return;

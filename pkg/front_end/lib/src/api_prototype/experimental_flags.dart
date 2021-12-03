@@ -47,19 +47,11 @@ class AllowedExperimentalFlags {
 ///
 /// If [explicitExperimentalFlags] is `null` or doesn't contain [flag], the
 /// default value from [defaultExperimentalFlags] is returned.
-///
-/// If [flag] is marked as expired in [expiredExperimentalFlags], the value from
-/// [defaultExperimentalFlags] is always returned.
 bool isExperimentEnabled(ExperimentalFlag flag,
     {Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
     Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting}) {
   assert(defaultExperimentalFlags.containsKey(flag),
       "No default value for $flag.");
-  assert(expiredExperimentalFlags.containsKey(flag),
-      "No expired value for $flag.");
-  if (expiredExperimentalFlags[flag]!) {
-    return defaultExperimentalFlags[flag]!;
-  }
   bool? enabled;
   if (explicitExperimentalFlags != null) {
     enabled = explicitExperimentalFlags[flag];
@@ -81,9 +73,6 @@ bool isExperimentEnabled(ExperimentalFlag flag,
 /// If [allowedExperimentalFlags] is `null` [defaultAllowedExperimentalFlags] is
 /// used for the per library flag state.
 ///
-/// If [flag] is marked as expired in [expiredExperimentalFlags], the value from
-/// [defaultExperimentalFlags] is always returned.
-///
 /// The canonical uri, also known as the import uri, is the absolute uri that
 /// defines the identity of a library, for instance `dart:core`, `package:foo`,
 /// or `file:///path/dir/file.dart`.
@@ -93,11 +82,6 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
     AllowedExperimentalFlags? allowedExperimentalFlags}) {
   assert(defaultExperimentalFlags.containsKey(flag),
       "No default value for $flag.");
-  assert(expiredExperimentalFlags.containsKey(flag),
-      "No expired value for $flag.");
-  if (expiredExperimentalFlags[flag]!) {
-    return defaultExperimentalFlags[flag]!;
-  }
   bool? enabled;
   if (explicitExperimentalFlags != null) {
     enabled = explicitExperimentalFlags[flag];
@@ -190,11 +174,6 @@ bool isExperimentEnabledInLibraryByVersion(
     Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting}) {
   assert(defaultExperimentalFlags.containsKey(flag),
       "No default value for $flag.");
-  assert(expiredExperimentalFlags.containsKey(flag),
-      "No expired value for $flag.");
-  if (expiredExperimentalFlags[flag]!) {
-    return defaultExperimentalFlags[flag]!;
-  }
 
   bool? enabledByDefault;
   if (defaultExperimentFlagsForTesting != null) {

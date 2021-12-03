@@ -54,7 +54,7 @@ void main() {
       // This test verifies that an error isn't thrown when a valid experiment
       // is passed.
       // Experiments are lists here:
-      // https://github.com/dart-lang/sdk/blob/master/tools/experimental_features.yaml
+      // https://github.com/dart-lang/sdk/blob/main/tools/experimental_features.yaml
       test(
           'dart --enable-experiment=variance '
           'run smoke.dart', () async {

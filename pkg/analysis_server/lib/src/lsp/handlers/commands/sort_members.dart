@@ -36,7 +36,7 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
     final docIdentifier = server.getVersionedDocumentIdentifier(path);
 
     var driver = server.getAnalysisDriver(path);
-    final result = await driver?.parseFile2(path);
+    final result = driver?.parseFileSync(path);
 
     if (cancellationToken.isCancellationRequested) {
       return error(ErrorCodes.RequestCancelled, 'Request was cancelled');

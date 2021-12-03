@@ -61,14 +61,14 @@ class KernelStringBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   HInstruction concat(HInstruction left, HInstruction right) {
     HInstruction instruction =
-        new HStringConcat(left, right, _abstractValueDomain.stringType);
+        HStringConcat(left, right, _abstractValueDomain.stringType);
     builder.add(instruction);
     return instruction;
   }
 
   HInstruction stringify(HInstruction expression) {
     HInstruction instruction =
-        new HStringify(expression, _abstractValueDomain.stringType)
+        HStringify(expression, _abstractValueDomain.stringType)
           ..sourceInformation = expression.sourceInformation;
     builder.add(instruction);
     return instruction;

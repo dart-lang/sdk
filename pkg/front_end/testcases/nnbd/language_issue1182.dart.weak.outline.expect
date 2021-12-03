@@ -5,7 +5,7 @@ import "dart:core" as core;
 class Foo<S extends core::num> extends core::Object {
   synthetic constructor •() → self::Foo<self::Foo::S>
     ;
-  method test1(generic-covariant-impl self::Foo::S x) → void
+  method test1(covariant-by-class self::Foo::S x) → void
     ;
 }
 extension Test<T extends core::Object? = dynamic> on T% {

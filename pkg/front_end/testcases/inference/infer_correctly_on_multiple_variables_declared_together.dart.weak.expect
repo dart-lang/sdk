@@ -58,16 +58,16 @@ static method foo() → dynamic {
   core::String* s;
   core::int* i;
   s = new self::B::•().{self::B::x}{dynamic} as{TypeError,ForDynamic} core::String*;
-  s = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:21:61: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  s = invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:21:61: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.y*/ y;
                                                             ^" in new self::B::•().{self::B::y}{core::int*} as{TypeError} core::String*;
   s = new self::B::•().{self::B::z}{core::String*};
-  s = let final Never* #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:23:61: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  s = invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:23:61: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.w*/ w;
                                                             ^" in new self::B::•().{self::B::w}{core::int*} as{TypeError} core::String*;
   i = new self::B::•().{self::B::x}{dynamic} as{TypeError,ForDynamic} core::int*;
   i = new self::B::•().{self::B::y}{core::int*};
-  i = let final Never* #t3 = invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:27:61: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  i = invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:27:61: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   i = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.z*/ z;
                                                             ^" in new self::B::•().{self::B::z}{core::String*} as{TypeError} core::int*;
   i = new self::B::•().{self::B::w}{core::int*};

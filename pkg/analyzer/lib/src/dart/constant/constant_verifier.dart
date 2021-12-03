@@ -73,8 +73,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               _currentLibrary.featureSet.isEnabled(Feature.non_nullable),
         );
 
-  bool get _isNonNullableByDefault => _currentLibrary.isNonNullableByDefault;
-
   @override
   void visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
@@ -114,16 +112,53 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstructorReference(ConstructorReference node) {
+    super.visitConstructorReference(node);
+    if (node.inConstantContext || node.inConstantExpression) {
+      _checkForConstWithTypeParameters(node.constructorName.type2,
+          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF);
+    }
+  }
+
+  @override
   void visitFunctionExpression(FunctionExpression node) {
     super.visitFunctionExpression(node);
     _validateDefaultValues(node.parameters);
   }
 
   @override
+  void visitFunctionReference(FunctionReference node) {
+    super.visitFunctionReference(node);
+    if (node.inConstantContext || node.inConstantExpression) {
+      var typeArguments = node.typeArguments;
+      if (typeArguments == null) {
+        return;
+      }
+      for (var typeArgument in typeArguments.arguments) {
+        _checkForConstWithTypeParameters(typeArgument,
+            CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF);
+      }
+    }
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    // TODO(srawlins): Also check interface types (TypeName?).
+    super.visitGenericFunctionType(node);
+    var parent = node.parent;
+    if ((parent is AsExpression || parent is IsExpression) &&
+        (parent as Expression).inConstantContext) {
+      _checkForConstWithTypeParameters(
+          node, CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS);
+    }
+  }
+
+  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      TypeName typeName = node.constructorName.type;
-      _checkForConstWithTypeParameters(typeName);
+      NamedType namedType = node.constructorName.type2;
+      _checkForConstWithTypeParameters(
+          namedType, CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS);
 
       node.argumentList.accept(this);
 
@@ -136,6 +171,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         _evaluationEngine.evaluateConstructorCall(
             _currentLibrary,
             node,
+            constructor.returnType.typeArguments,
             node.argumentList.arguments,
             constructor,
             constantVisitor,
@@ -222,7 +258,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    if (_isNonNullableByDefault) {
+    if (_currentLibrary.isNonNullableByDefault) {
       _validateSwitchStatement_nullSafety(node);
     } else {
       _validateSwitchStatement_legacy(node);
@@ -261,32 +297,53 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// Verify that the given [type] does not reference any type parameters.
   ///
   /// See [CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS].
-  void _checkForConstWithTypeParameters(TypeAnnotation type) {
-    // something wrong with AST
-    if (type is! TypeName) {
-      return;
-    }
-    TypeName typeName = type;
-    Identifier name = typeName.name;
-    // should not be a type parameter
-    if (name.staticElement is TypeParameterElement) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, name);
-    }
-    // check type arguments
-    var typeArguments = typeName.typeArguments;
-    if (typeArguments != null) {
-      for (TypeAnnotation argument in typeArguments.arguments) {
-        _checkForConstWithTypeParameters(argument);
+  void _checkForConstWithTypeParameters(
+      TypeAnnotation type, ErrorCode errorCode) {
+    if (type is NamedType) {
+      Identifier name = type.name;
+      // Should not be a type parameter.
+      if (name.staticElement is TypeParameterElement) {
+        _errorReporter.reportErrorForNode(errorCode, name);
+      }
+      // Check type arguments.
+      var typeArguments = type.typeArguments;
+      if (typeArguments != null) {
+        for (TypeAnnotation argument in typeArguments.arguments) {
+          _checkForConstWithTypeParameters(argument, errorCode);
+        }
+      }
+    } else if (type is GenericFunctionType) {
+      var returnType = type.returnType;
+      if (returnType != null) {
+        _checkForConstWithTypeParameters(returnType, errorCode);
+      }
+      for (var parameter in type.parameters.parameters) {
+        // [parameter] cannot be a [DefaultFormalParameter], a
+        // [FieldFormalParameter], nor a [FunctionTypedFormalParameter].
+        if (parameter is SimpleFormalParameter) {
+          var parameterType = parameter.type;
+          if (parameterType != null) {
+            _checkForConstWithTypeParameters(parameterType, errorCode);
+          }
+        }
+      }
+      var typeParameters = type.typeParameters;
+      if (typeParameters != null) {
+        for (var typeParameter in typeParameters.typeParameters) {
+          var bound = typeParameter.bound;
+          if (bound != null) {
+            _checkForConstWithTypeParameters(bound, errorCode);
+          }
+        }
       }
     }
   }
 
   /// @return `true` if given [Type] implements operator <i>==</i>, and it is
   ///         not <i>int</i> or <i>String</i>.
-  bool _implementsEqualsWhenNotAllowed(DartType? type) {
+  bool _implementsEqualsWhenNotAllowed(DartType type) {
     // ignore int or String
-    if (type == null || type.isDartCoreInt || type.isDartCoreString) {
+    if (type.isDartCoreInt || type.isDartCoreString) {
       return false;
     } else if (type.isDartCoreDouble) {
       return true;
@@ -316,7 +373,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ///        consists of a reference to a deferred library
   void _reportErrorIfFromDeferredLibrary(
       Expression expression, ErrorCode errorCode,
-      [List<Object?>? arguments, List<DiagnosticMessage>? messages]) {
+      [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
     DeferredLibraryReferenceDetector referenceDetector =
         DeferredLibraryReferenceDetector();
     expression.accept(referenceDetector);
@@ -366,7 +423,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   void _reportNotPotentialConstants(AstNode node) {
     var notPotentiallyConstants = getNotPotentiallyConstants(
       node,
-      isNonNullableByDefault: _isNonNullableByDefault,
+      featureSet: _currentLibrary.featureSet,
     );
     if (notPotentiallyConstants.isEmpty) return;
 
@@ -389,7 +446,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// Check if the object [obj] matches the type [type] according to runtime
   /// type checking rules.
   bool _runtimeTypeMatch(DartObjectImpl obj, DartType type) {
-    return _evaluationEngine.runtimeTypeMatch(_currentLibrary, obj, type);
+    return _currentLibrary.typeSystem.runtimeTypeMatch(obj, type);
   }
 
   /// Validate that the given expression is a compile time constant. Return the
@@ -426,8 +483,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         _reportErrorIfFromDeferredLibrary(
             realArgument,
             CompileTimeErrorCode
-                .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
-            [realArgument]);
+                .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
       }
     }
   }
@@ -488,13 +544,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Validates that the expressions of any field initializers in the class
-  /// declaration are all compile time constants. Since this is only required if
-  /// the class has a constant constructor, the error is reported at the
-  /// constructor site.
-  ///
-  /// @param classDeclaration the class which should be validated
-  /// @param errorSite the site at which errors should be reported.
+  /// Validates that the expressions of any field initializers in
+  /// [classDeclaration] are all compile-time constants. Since this is only
+  /// required if the class has a constant constructor, the error is reported at
+  /// [constKeyword], the const keyword on such a constant constructor.
   void _validateFieldInitializers(
       ClassOrMixinDeclaration classDeclaration, Token constKeyword) {
     NodeList<ClassMember> members = classDeclaration.members;
@@ -575,7 +628,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (_implementsEqualsWhenNotAllowed(firstType)) {
+    if (firstType != null && _implementsEqualsWhenNotAllowed(firstType)) {
       _errorReporter.reportErrorForToken(
         CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
         node.switchKeyword,
@@ -719,7 +772,7 @@ class _ConstLiteralVerifier {
   bool _reportNotPotentialConstants(AstNode node) {
     var notPotentiallyConstants = getNotPotentiallyConstants(
       node,
-      isNonNullableByDefault: verifier._isNonNullableByDefault,
+      featureSet: verifier._currentLibrary.featureSet,
     );
     if (notPotentiallyConstants.isEmpty) return true;
 
@@ -801,6 +854,11 @@ class _ConstLiteralVerifier {
       return false;
     }
 
+    final setConfig = this.setConfig;
+    if (setConfig == null) {
+      return true;
+    }
+
     if (listValue != null) {
       var type = value.type;
       if (type is InterfaceType) {
@@ -816,16 +874,13 @@ class _ConstLiteralVerifier {
       }
     }
 
-    final setConfig = this.setConfig;
-    if (setConfig != null) {
-      for (var item in iterableValue) {
-        Expression expression = element.expression;
-        var existingValue = setConfig.uniqueValues[item];
-        if (existingValue != null) {
-          setConfig.duplicateElements[expression] = existingValue;
-        } else {
-          setConfig.uniqueValues[item] = expression;
-        }
+    for (var item in iterableValue) {
+      Expression expression = element.expression;
+      var existingValue = setConfig.uniqueValues[item];
+      if (existingValue != null) {
+        setConfig.duplicateElements[expression] = existingValue;
+      } else {
+        setConfig.uniqueValues[item] = expression;
       }
     }
 
@@ -988,4 +1043,45 @@ class _SetVerifierConfig {
   _SetVerifierConfig({
     required this.elementType,
   });
+}
+
+extension on Expression {
+  /// Returns whether `this` is found in a constant expression.
+  ///
+  /// This does not check whether `this` is found in a constant context.
+  bool get inConstantExpression {
+    AstNode child = this;
+    var parent = child.parent;
+    while (parent != null) {
+      if (parent is DefaultFormalParameter && child == parent.defaultValue) {
+        // A parameter default value does not constitute a constant context, but
+        // must be a constant expression.
+        return true;
+      } else if (parent is VariableDeclaration && child == parent.initializer) {
+        var declarationList = parent.parent;
+        if (declarationList is VariableDeclarationList) {
+          var declarationListParent = declarationList.parent;
+          if (declarationListParent is FieldDeclaration &&
+              !declarationListParent.isStatic) {
+            var container = declarationListParent.parent;
+            if (container is ClassOrMixinDeclaration) {
+              var enclosingClass = container.declaredElement;
+              if (enclosingClass != null) {
+                // A field initializer of a class with at least one generative
+                // const constructor does not constitute a constant context, but
+                // must be a constant expression.
+                return enclosingClass.constructors
+                    .any((c) => c.isConst && !c.isFactory);
+              }
+            }
+          }
+        }
+        return false;
+      } else {
+        child = parent;
+        parent = child.parent;
+      }
+    }
+    return false;
+  }
 }

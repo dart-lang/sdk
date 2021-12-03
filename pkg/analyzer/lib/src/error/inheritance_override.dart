@@ -45,7 +45,7 @@ class InheritanceOverrideVerifier {
           classNameNode: declaration.name,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
-          superclass: declaration.extendsClause?.superclass,
+          superclass: declaration.extendsClause?.superclass2,
           withClause: declaration.withClause,
         ).verify();
       } else if (declaration is ClassTypeAlias) {
@@ -58,7 +58,7 @@ class InheritanceOverrideVerifier {
           library: library,
           classNameNode: declaration.name,
           implementsClause: declaration.implementsClause,
-          superclass: declaration.superclass,
+          superclass: declaration.superclass2,
           withClause: declaration.withClause,
         ).verify();
       } else if (declaration is MixinDeclaration) {
@@ -100,7 +100,7 @@ class _ClassVerifier {
   final List<ClassMember> members;
   final ImplementsClause? implementsClause;
   final OnClause? onClause;
-  final TypeName? superclass;
+  final NamedType? superclass;
   final WithClause? withClause;
 
   final List<InterfaceType> directSuperInterfaces = [];
@@ -152,7 +152,7 @@ class _ClassVerifier {
     //   class C extends S&M2 { ...members of C... }
     // So, we need to check members of each mixin against superinterfaces
     // of `S`, and superinterfaces of all previous mixins.
-    var mixinNodes = withClause?.mixinTypes;
+    var mixinNodes = withClause?.mixinTypes2;
     var mixinTypes = classElement.mixins;
     for (var i = 0; i < mixinTypes.length; i++) {
       var mixinType = mixinTypes[i];
@@ -318,10 +318,10 @@ class _ClassVerifier {
     }
   }
 
-  /// Verify that the given [typeName] does not extend, implement, or mixes-in
+  /// Verify that the given [namedType] does not extend, implement, or mixes-in
   /// types such as `num` or `String`.
-  bool _checkDirectSuperType(TypeName typeName, ErrorCode errorCode) {
-    if (typeName.isSynthetic) {
+  bool _checkDirectSuperType(NamedType namedType, ErrorCode errorCode) {
+    if (namedType.isSynthetic) {
       return false;
     }
 
@@ -331,10 +331,10 @@ class _ClassVerifier {
       return false;
     }
 
-    DartType type = typeName.typeOrThrow;
+    DartType type = namedType.typeOrThrow;
     if (type is InterfaceType &&
         typeProvider.isNonSubtypableClass(type.element)) {
-      reporter.reportErrorForNode(errorCode, typeName, [type]);
+      reporter.reportErrorForNode(errorCode, namedType, [type]);
       return true;
     }
 
@@ -347,9 +347,9 @@ class _ClassVerifier {
   bool _checkDirectSuperTypes() {
     var hasError = false;
     if (implementsClause != null) {
-      for (var typeName in implementsClause!.interfaces) {
+      for (var namedType in implementsClause!.interfaces2) {
         if (_checkDirectSuperType(
-          typeName,
+          namedType,
           CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
         )) {
           hasError = true;
@@ -357,9 +357,9 @@ class _ClassVerifier {
       }
     }
     if (onClause != null) {
-      for (var typeName in onClause!.superclassConstraints) {
+      for (var namedType in onClause!.superclassConstraints2) {
         if (_checkDirectSuperType(
-          typeName,
+          namedType,
           CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
         )) {
           hasError = true;
@@ -375,9 +375,9 @@ class _ClassVerifier {
       }
     }
     if (withClause != null) {
-      for (var typeName in withClause!.mixinTypes) {
+      for (var namedType in withClause!.mixinTypes2) {
         if (_checkDirectSuperType(
-          typeName,
+          namedType,
           CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
         )) {
           hasError = true;
@@ -621,13 +621,17 @@ class _ClassVerifier {
     var name = conflict.name;
 
     if (conflict is GetterMethodConflict) {
+      // Members that participate in inheritance are always enclosed in named
+      // elements so it is safe to assume that
+      // `conflict.getter.enclosingElement.name` and
+      // `conflict.method.enclosingElement.name` are both non-`null`.
       reporter.reportErrorForNode(
         CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
         node,
         [
           name.name,
-          conflict.getter.enclosingElement.name,
-          conflict.method.enclosingElement.name
+          conflict.getter.enclosingElement.name!,
+          conflict.method.enclosingElement.name!
         ],
       );
     } else if (conflict is CandidatesConflict) {

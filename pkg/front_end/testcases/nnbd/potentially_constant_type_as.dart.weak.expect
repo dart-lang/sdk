@@ -138,7 +138,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstCo
 class ClassWithBound<T extends core::num> extends core::Object /*hasConstConstructor*/  {
   final field self::ClassWithBound::T field;
   const constructor •() → self::ClassWithBound<self::ClassWithBound::T>
-    : self::ClassWithBound::field = (#C1) as{ForNonNullableByDefault} self::ClassWithBound::T, super core::Object::•()
+    : self::ClassWithBound::field = #C1 as{ForNonNullableByDefault} self::ClassWithBound::T, super core::Object::•()
     ;
   const constructor withValue(dynamic value) → self::ClassWithBound<self::ClassWithBound::T>
     : self::ClassWithBound::field = value as{ForNonNullableByDefault} self::ClassWithBound::T, super core::Object::•()
@@ -217,7 +217,7 @@ static method errors() → dynamic {
 constants  {
   #C1 = 3
   #C2 = static-tearoff self::idFunction
-  #C3 = instantiation self::idFunction <core::int*>
+  #C3 = instantiation #C2 <core::int*>
   #C4 = 0
   #C5 = self::Class<dynamic> {field:#C4}
   #C6 = self::Class<core::num*> {field:#C4}

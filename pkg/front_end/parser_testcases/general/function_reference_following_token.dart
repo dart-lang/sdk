@@ -5,17 +5,8 @@
 // The test cases called `typeArgs_...` verify that `<` and `>` are treated as
 // delimiting type arguments when the `>` is followed by one of the tokens:
 //
-//     ( ) ] } : ; , . ? == != .. ?. ?? ?..
-//     & | ^ + * %  / ~/
-//
-// Unless otherwise noted, these test cases should not result in a parse error,
-// because they can be made into valid expressions through user-defined
-// operators.
+//     ( . == != ) ] } ; : ,
 
-var typeArgs_ampersand = f<a, b> & 0;
-var typeArgs_asterisk = f<a, b> * 0;
-var typeArgs_bar = f<a, b> | 0;
-var typeArgs_caret = f<a, b> ^ 0;
 var typeArgs_closeBrace = {f<a, b>};
 var typeArgs_closeBracket = [f<a, b>];
 var typeArgs_closeParen = g(f<a, b>);
@@ -28,41 +19,29 @@ var typeArgs_not_equals = f<a, b> != null;
 // parsed as a MethodInvocation rather than a GenericInstantiation.
 var typeArgs_openParen = f<a, b>();
 
-var typeArgs_percent = f<a, b> % 0;
-
 // This is a special case because `f<a, b>.methodName(...)` is parsed as an
 // InstanceCreationExpression.
 var typeArgs_period_methodInvocation = f<a, b>.toString();
 
 var typeArgs_period_methodInvocation_generic = f<a, b>.foo<c>();
-var typeArgs_period_period = f<a, b>..toString();
 var typeArgs_period_propertyAccess = f<a, b>.hashCode;
-var typeArgs_plus = f<a, b> + 0;
 
-// Note: this could never be a valid expression because the thing to the left of
-// `?` is required to have type `bool`, and `f<a, b>` can only have type `Type`
-// or a function type.  But it is not the responsibility of the parser to report
-// an error here; that should be done by type analysis.
-var typeArgs_question = f<a, b> ? null : null;
-
-var typeArgs_question_period_methodInvocation = f<a, b>?.toString();
-var typeArgs_question_period_methodInvocation_generic = f<a, b>?.foo<c>();
-var typeArgs_question_period_period = f<a, b>?..toString();
-var typeArgs_question_period_propertyAccess = f<a, b>?.hashCode;
-var typeArgs_question_question = f<a, b> ?? 0;
 var typeArgs_semicolon = f<a, b>;
-var typeArgs_slash = f<a, b> / 1;
-var typeArgs_tilde_slash = f<a, b> ~/ 1;
 
 // The test cases called `operators_...` verify that `<` and `>` are treated as
 // operators when the `>` is not followed by one of the tokens:
 //
-//     ( ) ] } : ; , . ? == != .. ?. ?? ?..
-//     & | ^ + * %  / ~/
+//     ( . == != ) ] } ; : ,
 //
-// Unless otherwise noted, these test cases should not result in a parse error,
-// because they can be made into valid expressions through user-defined
-// operators.
+// Except as noted, these test cases should result in parse errors.
+
+var operators_ampersand = f(a<b,c>&d);
+
+// Note: this should not be a parse error since it is allowed to have an
+// identifier called `as`.
+var operators_as = f(a<b,c>as);
+
+var operators_asterisk = f(a<b,c>*d);
 
 // Note: this could never be a valid expression because the thing to the right
 // of `!` is required to have type `bool`, and the type of `[d]` will always be
@@ -70,7 +49,13 @@ var typeArgs_tilde_slash = f<a, b> ~/ 1;
 // error here; that should be done by type analysis.
 var operators_bang_openBracket = f(a<b,c>![d]);
 
+// Note: this should not be a parse error since `c` could have a type that
+// defines a `>` operator that accepts `bool`.
 var operators_bang_paren = f(a<b,c>!(d));
+
+var operators_bar = f(a<b,c>|d);
+var operators_caret = f(a<b,c>^d);
+var operators_is = f(a<b,c> is int);
 
 // Note: in principle we could parse this as a generic instantiation of a
 // generic instantiation, but since `<` is not one of the tokens that signals
@@ -78,7 +63,12 @@ var operators_bang_paren = f(a<b,c>!(d));
 // and `>` is treated as operators, and this results in a parse error.
 var operators_lessThan = f<a><b>;
 
+// Note: this should not be a parse error (indeed, this is valid if `a`, `b`,
+// `c`, and `d` are all of type `num`).
 var operators_minus = f(a<b,c>-d);
+
+// Note: this should not be a parse error since `c` could have a type that
+// defines a `>` operator that accepts `List`.
 var operators_openBracket = f(a<b,c>[d]);
 
 // Note: in principle we could parse `<b, c>` as type arguments, `[d]` as an
@@ -88,4 +78,18 @@ var operators_openBracket = f(a<b,c>[d]);
 // in a parse error.
 var operators_openBracket_error = f(a<b,c>[d]>e);
 
+// Note: this should not be a parse error since `c` could have a type that
+// defines a `>` operator that accepts `List`.
 var operators_openBracket_unambiguous = f(a<b,c>[d, e]);
+
+var operators_percent = f(a<b,c>%d);
+var operators_period_period = f(a<b,c>..toString());
+var operators_plus = f(a<b,c>+d);
+var operators_question = f(a<b,c> ? null : null);
+var operators_question_period_methodInvocation = f(a<b,c>?.toString());
+var operators_question_period_methodInvocation_generic = f(a<b,c>?.foo<c>());
+var operators_question_period_period = f(a<b,c>?..toString());
+var operators_question_period_propertyAccess = f(a<b,c>?.hashCode);
+var operators_question_question = f(a<b,c> ?? d);
+var operators_slash = f(a<b,c>/d);
+var operators_tilde_slash = f(a<b,c>~/d);

@@ -3,11 +3,11 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A<T extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field core::List<self::A::T*>* z;
+  covariant-by-class field core::List<self::A::T*>* z;
   synthetic constructor •() → self::A<self::A::T*>*
     ;
   abstract get x() → core::List<self::A::T*>*;
-  abstract set y(generic-covariant-impl core::List<self::A::T*>* value) → void;
+  abstract set y(covariant-by-class core::List<self::A::T*>* value) → void;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -21,8 +21,8 @@ abstract class A<T extends core::Object* = dynamic> extends core::Object {
 }
 class B extends self::A<core::int*> {
   field core::List<core::int*>* x;
-  generic-covariant-impl field core::List<core::int*>* y;
-  generic-covariant-impl field core::List<core::int*>* z;
+  covariant-by-class field core::List<core::int*>* y;
+  covariant-by-class field core::List<core::int*>* z;
   synthetic constructor •() → self::B*
     ;
 }

@@ -15,4 +15,6 @@ class ConstFactoryWithBody {
 
 main() {
   const ConstFactoryWithBody.one();
+  //    ^
+  // [cfe] Non-redirecting const factory invocation is not a constant expression.
 }

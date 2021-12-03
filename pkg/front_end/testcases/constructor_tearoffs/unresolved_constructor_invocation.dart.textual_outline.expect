@@ -1,0 +1,19 @@
+import 'unresolved_constructor_invocation.dart' as resolved_prefix;
+
+class Super {
+  Super.named();
+}
+
+class Class extends Super {
+  Class.constructor1() : super();
+  Class.constructor2() : super.unresolved();
+  Class.constructor3() : this();
+  Class.constructor4() : this.unresolved();
+}
+
+class ResolvedClass<T> {
+  ResolvedClass.named();
+}
+
+test() {}
+main() {}

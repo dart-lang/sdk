@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
@@ -27,15 +25,16 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 import 'package:front_end/src/fasta/kernel/constant_evaluator.dart' as constants
     show EvaluationMode, transformLibraries, ErrorReporter;
-import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
-
 import 'package:kernel/target/targets.dart'
     show ConstantsBackend, DiagnosticReporter, Target, TargetFlags;
+import 'package:kernel/type_environment.dart';
 
 import "package:vm/target/flutter.dart" show FlutterTarget;
 
@@ -45,21 +44,21 @@ import 'incremental_suite.dart' show getOptions;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 
-bool tryWithNoEnvironment;
+bool? tryWithNoEnvironment;
 bool verbose = false;
 bool skipNonNullEnvironment = false;
 bool skipNullEnvironment = false;
 
 void benchmark(Component component, List<Library> libraries) {
   if (tryWithNoEnvironment == null) throw "tryWithNoEnvironment not set";
-  KernelTarget target = incrementalCompiler.userCode;
+  KernelTarget target = incrementalCompiler.userCode as KernelTarget;
   constants.EvaluationMode evaluationMode =
       target.getConstantEvaluationModeForTesting();
 
   Uint8List serializedComponent = serializeComponent(component);
 
   for (int k = 0; k < 3; k++) {
-    Map<String, String> environmentDefines = null;
+    Map<String, String>? environmentDefines = null;
     String environmentDefinesDescription = "null environment";
 
     for (int j = 0; j < 2; j++) {
@@ -67,7 +66,7 @@ void benchmark(Component component, List<Library> libraries) {
       int iterations = 0;
       int sum = 0;
       for (int i = 0; i < 5; i++) {
-        if (!tryWithNoEnvironment && environmentDefines == null) continue;
+        if (!tryWithNoEnvironment! && environmentDefines == null) continue;
         if (skipNullEnvironment && environmentDefines == null) continue;
         if (skipNonNullEnvironment && environmentDefines != null) continue;
         stopwatch.reset();
@@ -82,7 +81,7 @@ void benchmark(Component component, List<Library> libraries) {
         stopwatch.reset();
         CoreTypes coreTypes = new CoreTypes(component);
         ConstantsBackend constantsBackend =
-            target.backendTarget.constantsBackend(coreTypes);
+            target.backendTarget.constantsBackend;
         ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
         TypeEnvironment environment = new TypeEnvironment(coreTypes, hierarchy);
         if (verbose) {
@@ -125,25 +124,20 @@ void benchmark(Component component, List<Library> libraries) {
 
 class SilentErrorReporter implements constants.ErrorReporter {
   @override
-  void report(LocatedMessage message, List<LocatedMessage> context) {
-    // ignore
-  }
-
-  @override
-  void reportInvalidExpression(InvalidExpression node) {
+  void report(LocatedMessage message, [List<LocatedMessage>? context]) {
     // ignore
   }
 }
 
-IncrementalCompiler incrementalCompiler;
+late IncrementalCompiler incrementalCompiler;
 
-main(List<String> arguments) async {
-  Uri platformUri;
+Future<void> main(List<String> arguments) async {
+  Uri? platformUri;
   Uri mainUri;
   bool nnbd = false;
   String targetString = "VM";
 
-  String filename;
+  String? filename;
   for (String arg in arguments) {
     if (arg.startsWith("--")) {
       if (arg == "--nnbd") {
@@ -242,13 +236,14 @@ CompilerContext setupCompilerContext(bool nnbd, String targetString,
 class HookInVmTarget extends VmTarget {
   HookInVmTarget(TargetFlags flags) : super(flags);
 
+  @override
   void performPreConstantEvaluationTransformations(
       Component component,
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg),
-      ChangedStructureNotifier changedStructureNotifier}) {
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
     super.performPreConstantEvaluationTransformations(
         component, coreTypes, libraries, diagnosticReporter,
         logger: logger, changedStructureNotifier: changedStructureNotifier);
@@ -259,13 +254,14 @@ class HookInVmTarget extends VmTarget {
 class HookInDart2jsTarget extends Dart2jsTarget {
   HookInDart2jsTarget(String name, TargetFlags flags) : super(name, flags);
 
+  @override
   void performPreConstantEvaluationTransformations(
       Component component,
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg),
-      ChangedStructureNotifier changedStructureNotifier}) {
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
     super.performPreConstantEvaluationTransformations(
         component, coreTypes, libraries, diagnosticReporter,
         logger: logger, changedStructureNotifier: changedStructureNotifier);
@@ -276,13 +272,14 @@ class HookInDart2jsTarget extends Dart2jsTarget {
 class HookInDevCompilerTarget extends DevCompilerTarget {
   HookInDevCompilerTarget(TargetFlags flags) : super(flags);
 
+  @override
   void performPreConstantEvaluationTransformations(
       Component component,
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg),
-      ChangedStructureNotifier changedStructureNotifier}) {
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
     super.performPreConstantEvaluationTransformations(
         component, coreTypes, libraries, diagnosticReporter,
         logger: logger, changedStructureNotifier: changedStructureNotifier);
@@ -293,13 +290,14 @@ class HookInDevCompilerTarget extends DevCompilerTarget {
 class HookInFlutterTarget extends FlutterTarget {
   HookInFlutterTarget(TargetFlags flags) : super(flags);
 
+  @override
   void performPreConstantEvaluationTransformations(
       Component component,
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg),
-      ChangedStructureNotifier changedStructureNotifier}) {
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
     super.performPreConstantEvaluationTransformations(
         component, coreTypes, libraries, diagnosticReporter,
         logger: logger, changedStructureNotifier: changedStructureNotifier);

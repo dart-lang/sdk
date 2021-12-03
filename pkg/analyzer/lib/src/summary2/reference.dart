@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/summary2/scope.dart';
 
 /// Indirection between a name and the corresponding [Element].
 ///
@@ -39,43 +38,50 @@ class Reference {
 
   Map<String, Reference>? _children;
 
-  /// If this reference is an import prefix, the scope of this prefix.
-  Scope? prefixScope;
-
   Reference.root() : this._(null, '');
 
   Reference._(this.parent, this.name);
 
   Iterable<Reference> get children {
-    if (_children != null) {
-      return _children!.values;
-    }
-    return const [];
+    return _children?.values ?? const [];
   }
 
-  bool get isLibrary => parent != null && parent!.isRoot;
+  bool get isLibrary => parent?.isRoot == true;
 
-  bool get isPrefix => parent != null && parent!.name == '@prefix';
+  bool get isPrefix => parent?.name == '@prefix';
 
   bool get isRoot => parent == null;
 
-  bool get isSetter => parent != null && parent!.name == '@setter';
+  bool get isSetter => parent?.name == '@setter';
 
   /// Return the child with the given name, or `null` if does not exist.
   Reference? operator [](String name) {
-    return _children != null ? _children![name] : null;
+    name = _rewriteDartUi(name);
+    return _children?[name];
   }
 
   /// Return the child with the given name, create if does not exist yet.
   Reference getChild(String name) {
+    name = _rewriteDartUi(name);
     var map = _children ??= <String, Reference>{};
     return map[name] ??= Reference._(this, name);
   }
 
-  void removeChild(String name) {
-    _children!.remove(name);
+  Reference? removeChild(String name) {
+    name = _rewriteDartUi(name);
+    return _children?.remove(name);
   }
 
   @override
   String toString() => parent == null ? 'root' : '$parent::$name';
+
+  /// TODO(scheglov) Remove it, once when the actual issue is fixed.
+  /// https://buganizer.corp.google.com/issues/203423390
+  static String _rewriteDartUi(String name) {
+    const srcPrefix = 'dart:ui/src/ui/';
+    if (name.startsWith(srcPrefix)) {
+      return 'dart:ui/${name.substring(srcPrefix.length)}';
+    }
+    return name;
+  }
 }

@@ -77,7 +77,7 @@ const Map<String, String> data = {
       'Y_extends_dynamic & X_extends_dynamic',
 };
 
-main() {
+void main() {
   Env env = new Env('', isNonNullableByDefault: true)
     ..extendWithTypeParameters('X,'
         'X_extends_Object extends Object,'

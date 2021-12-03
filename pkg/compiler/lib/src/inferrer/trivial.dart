@@ -25,6 +25,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   const TrivialAbstractValueDomain();
 
   @override
+  AbstractValue get internalTopType => const TrivialAbstractValue();
+
+  @override
   AbstractValue get dynamicType => const TrivialAbstractValue();
 
   @override
@@ -98,14 +101,13 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue getDictionaryValueForKey(AbstractValue value, String key) {
-    throw new UnsupportedError(
+    throw UnsupportedError(
         "TrivialAbstractValueDomain.getDictionaryValueForKey");
   }
 
   @override
   bool containsDictionaryKey(AbstractValue value, String key) {
-    throw new UnsupportedError(
-        "TrivialAbstractValueDomain.containsDictionaryKey");
+    throw UnsupportedError("TrivialAbstractValueDomain.containsDictionaryKey");
   }
 
   @override
@@ -123,12 +125,12 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue getMapValueType(AbstractValue value) {
-    throw new UnsupportedError("TrivialAbstractValueDomain.getMapValueType");
+    throw UnsupportedError("TrivialAbstractValueDomain.getMapValueType");
   }
 
   @override
   AbstractValue getMapKeyType(AbstractValue value) {
-    throw new UnsupportedError("TrivialAbstractValueDomain.getMapKeyType");
+    throw UnsupportedError("TrivialAbstractValueDomain.getMapKeyType");
   }
 
   @override
@@ -145,7 +147,7 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue getSetElementType(AbstractValue value) {
-    throw new UnsupportedError("TrivialAbstractValueDomain.getSetElementType");
+    throw UnsupportedError("TrivialAbstractValueDomain.getSetElementType");
   }
 
   @override
@@ -164,7 +166,7 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue getContainerElementType(AbstractValue value) {
-    throw new UnsupportedError(
+    throw UnsupportedError(
         "TrivialAbstractValueDomain.getContainerElementType");
   }
 
@@ -275,9 +277,6 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractBool isIndexablePrimitive(AbstractValue value) => AbstractBool.Maybe;
 
   @override
-  AbstractBool isPrimitiveArray(AbstractValue value) => AbstractBool.Maybe;
-
-  @override
   AbstractBool isPrimitiveBoolean(AbstractValue value) => AbstractBool.Maybe;
 
   @override
@@ -290,10 +289,10 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractBool isNull(AbstractValue value) => AbstractBool.Maybe;
 
   @override
-  ClassEntity getExactClass(AbstractValue value) => null;
+  AbstractBool isLateSentinel(AbstractValue value) => AbstractBool.Maybe;
 
   @override
-  AbstractBool isExactOrNull(AbstractValue value) => AbstractBool.Maybe;
+  ClassEntity getExactClass(AbstractValue value) => null;
 
   @override
   AbstractBool isExact(AbstractValue value) => AbstractBool.Maybe;
@@ -326,6 +325,14 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
       const TrivialAbstractValue();
 
   @override
+  AbstractValue includeLateSentinel(AbstractValue value) =>
+      const TrivialAbstractValue();
+
+  @override
+  AbstractValue excludeLateSentinel(AbstractValue value) =>
+      const TrivialAbstractValue();
+
+  @override
   AbstractBool couldBeTypedArray(AbstractValue value) => AbstractBool.Maybe;
 
   @override
@@ -355,8 +362,7 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractValueWithPrecision createFromStaticType(DartType type,
       {ClassRelation classRelation = ClassRelation.subtype, bool nullable}) {
     assert(nullable != null);
-    return const AbstractValueWithPrecision(
-        const TrivialAbstractValue(), false);
+    return const AbstractValueWithPrecision(TrivialAbstractValue(), false);
   }
 
   @override
@@ -403,6 +409,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractValue get nonNullType => const TrivialAbstractValue();
+
+  @override
+  AbstractValue get lateSentinelType => const TrivialAbstractValue();
 
   @override
   AbstractValue get mapType => const TrivialAbstractValue();

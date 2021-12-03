@@ -22,7 +22,7 @@ abstract class Qux extends core::Object implements stu2::EventFileA {
   synthetic constructor •() → stu::Qux*
     : super core::Object::•()
     ;
-  method handleEvent(covariant stu2::EvenFileB* entry) → void {}
+  method handleEvent(covariant-by-declaration stu2::EvenFileB* entry) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -43,13 +43,13 @@ abstract class Baz extends stu::Qux {
   synthetic constructor •() → stu::Baz*
     : super stu::Qux::•()
     ;
-  method handleEvent(covariant stu::EvenFileBPrime* entry) → void {}
+  method handleEvent(covariant-by-declaration stu::EvenFileBPrime* entry) → void {}
 }
 abstract class Foo extends stu::Baz implements stu::Qux {
   synthetic constructor •() → stu::Foo*
     : super stu::Baz::•()
     ;
-  abstract member-signature method handleEvent(covariant stu2::EvenFileB* entry) → void; -> stu::Qux::handleEvent
+  abstract member-signature method handleEvent(covariant-by-declaration stu2::EvenFileB* entry) → void; -> stu::Qux::handleEvent
 }
 
 library;

@@ -30,6 +30,7 @@ import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
 
 import 'package:kernel/ast.dart' show Component;
+import 'package:kernel/target/targets.dart';
 
 const Map<String, String> files = const <String, String>{
   "repro.dart": """
@@ -88,7 +89,8 @@ Future<void> test() async {
   options = new CompilerOptions()
     ..fileSystem = fs
     ..additionalDills = <Uri>[base.resolve("lib.dart.dill")]
-    ..sdkSummary = platformDill;
+    ..sdkSummary = platformDill
+    ..target = new NoneTarget(new TargetFlags());
 
   List<Uri> inputs = <Uri>[base.resolve("repro.dart")];
 
@@ -106,6 +108,6 @@ Future<void> test() async {
   }
 }
 
-main() {
+void main() {
   asyncTest(test);
 }

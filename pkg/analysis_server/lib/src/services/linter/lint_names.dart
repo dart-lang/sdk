@@ -13,9 +13,14 @@ class LintNames {
   static const String avoid_annotating_with_dynamic =
       'avoid_annotating_with_dynamic';
   static const String avoid_empty_else = 'avoid_empty_else';
+  static const String avoid_escaping_inner_quotes =
+      'avoid_escaping_inner_quotes';
   static const String avoid_function_literals_in_foreach_calls =
       'avoid_function_literals_in_foreach_calls';
   static const String avoid_init_to_null = 'avoid_init_to_null';
+  static const String avoid_null_checks_in_equality_operators =
+      'avoid_null_checks_in_equality_operators';
+  static const String avoid_print = 'avoid_print';
   static const String avoid_private_typedef_functions =
       'avoid_private_typedef_functions';
   static const String avoid_redundant_argument_values =
@@ -46,6 +51,7 @@ class LintNames {
   static const String empty_catches = 'empty_catches';
   static const String empty_constructor_bodies = 'empty_constructor_bodies';
   static const String empty_statements = 'empty_statements';
+  static const String eol_at_end_of_file = 'eol_at_end_of_file';
   static const String exhaustive_cases = 'exhaustive_cases';
   static const String hash_and_equals = 'hash_and_equals';
   static const String no_duplicate_case_values = 'no_duplicate_case_values';
@@ -65,6 +71,7 @@ class LintNames {
   static const String prefer_const_literals_to_create_immutables =
       'prefer_const_literals_to_create_immutables';
   static const String prefer_contains = 'prefer_contains';
+  static const String prefer_double_quotes = 'prefer_double_quotes';
   static const String prefer_equal_for_default_values =
       'prefer_equal_for_default_values';
   static const String prefer_expression_function_bodies =
@@ -98,6 +105,7 @@ class LintNames {
   static const String prefer_typing_uninitialized_variables =
       'prefer_typing_uninitialized_variables';
   static const String prefer_void_to_null = 'prefer_void_to_null';
+  static const String require_trailing_commas = 'require_trailing_commas';
   static const String sized_box_for_whitespace = 'sized_box_for_whitespace';
   static const String slash_for_doc_comments = 'slash_for_doc_comments';
   static const String sort_child_properties_last = 'sort_child_properties_last';
@@ -108,7 +116,11 @@ class LintNames {
   static const String unnecessary_brace_in_string_interps =
       'unnecessary_brace_in_string_interps';
   static const String unnecessary_const = 'unnecessary_const';
+  static const String unnecessary_constructor_name =
+      'unnecessary_constructor_name';
   static const String unnecessary_final = 'unnecessary_final';
+  static const String unnecessary_getters_setters =
+      'unnecessary_getters_setters';
   static const String unnecessary_lambdas = 'unnecessary_lambdas';
   static const String unnecessary_new = 'unnecessary_new';
   static const String unnecessary_null_in_if_null_operators =
@@ -117,6 +129,7 @@ class LintNames {
       'unnecessary_nullable_for_final_variable_declarations';
   static const String unnecessary_overrides = 'unnecessary_overrides';
   static const String unnecessary_parenthesis = 'unnecessary_parenthesis';
+  static const String unnecessary_raw_strings = 'unnecessary_raw_strings';
   static const String unnecessary_string_escapes = 'unnecessary_string_escapes';
   static const String unnecessary_string_interpolations =
       'unnecessary_string_interpolations';

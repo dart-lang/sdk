@@ -54,7 +54,7 @@ class EnqueueTask extends CompilerTask {
     _resolutionEnqueuerCreated = true;
     ResolutionEnqueuer enqueuer = compiler.frontendStrategy
         .createResolutionEnqueuer(this, compiler)
-          ..onEmptyForTesting = compiler.onResolutionQueueEmptyForTesting;
+      ..onEmptyForTesting = compiler.onResolutionQueueEmptyForTesting;
     if (retainDataForTesting) {
       resolutionEnqueuerForTesting = enqueuer;
     }
@@ -121,7 +121,7 @@ abstract class Enqueuer {
 abstract class EnqueuerListener {
   /// Called to instruct to the backend that [type] has been instantiated.
   void registerInstantiatedType(InterfaceType type,
-      {bool isGlobal: false, bool nativeUsage: false});
+      {bool isGlobal = false, bool nativeUsage = false});
 
   /// Called to notify to the backend that a class is being instantiated. Any
   /// backend specific [WorldImpact] of this is returned.
@@ -224,8 +224,7 @@ abstract class EnqueuerImpl extends Enqueuer {
 
 /// [Enqueuer] which is specific to resolution.
 class ResolutionEnqueuer extends EnqueuerImpl {
-  static const ImpactUseCase IMPACT_USE =
-      const ImpactUseCase('ResolutionEnqueuer');
+  static const ImpactUseCase IMPACT_USE = ImpactUseCase('ResolutionEnqueuer');
 
   @override
   final CompilerTask task;
@@ -233,7 +232,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   @override
   final EnqueuerListener listener;
 
-  final Set<ClassEntity> _recentClasses = new Setlet<ClassEntity>();
+  final Set<ClassEntity> _recentClasses = Setlet<ClassEntity>();
   bool _recentConstants = false;
   final ResolutionEnqueuerWorldBuilder _worldBuilder;
   WorkItemBuilder _workItemBuilder;
@@ -245,7 +244,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   WorldImpactVisitor _impactVisitor;
 
-  final Queue<WorkItem> _queue = new Queue<WorkItem>();
+  final Queue<WorkItem> _queue = Queue<WorkItem>();
 
   // If not `null` this is called when the queue has been emptied. It allows for
   // applying additional impacts before re-emptying the queue.
@@ -254,7 +253,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   ResolutionEnqueuer(this.task, this._reporter, this.listener,
       this._worldBuilder, this._workItemBuilder, this._annotationsData,
       [this.name = 'resolution enqueuer']) {
-    _impactVisitor = new EnqueuerImplImpactVisitor(this);
+    _impactVisitor = EnqueuerImplImpactVisitor(this);
   }
 
   @override
@@ -282,8 +281,8 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   void _registerInstantiatedType(InterfaceType type,
       {ConstructorEntity constructor,
-      bool nativeUsage: false,
-      bool globalDependency: false}) {
+      bool nativeUsage = false,
+      bool globalDependency = false}) {
     task.measureSubtask('resolution.typeUse', () {
       _worldBuilder.registerTypeInstantiation(type, _applyClassUse,
           constructor: constructor);

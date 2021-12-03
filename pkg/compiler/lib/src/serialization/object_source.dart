@@ -12,8 +12,9 @@ class ObjectSource extends AbstractDataSource {
   int _index = 0;
   final List<dynamic> _data;
 
-  ObjectSource(this._data, {bool useDataKinds})
-      : super(useDataKinds: useDataKinds);
+  ObjectSource(this._data,
+      {bool useDataKinds, DataSourceIndices importedIndices})
+      : super(useDataKinds: useDataKinds, importedIndices: importedIndices);
 
   T _read<T>() {
     dynamic value = _data[_index++];
@@ -23,7 +24,7 @@ class ObjectSource extends AbstractDataSource {
 
   @override
   void _begin(String tag) {
-    Tag expectedTag = new Tag('begin:$tag');
+    Tag expectedTag = Tag('begin:$tag');
     Tag actualTag = _read();
     assert(
         expectedTag == actualTag,
@@ -33,7 +34,7 @@ class ObjectSource extends AbstractDataSource {
 
   @override
   void _end(String tag) {
-    Tag expectedTag = new Tag('end:$tag');
+    Tag expectedTag = Tag('end:$tag');
     Tag actualTag = _read();
     assert(
         expectedTag == actualTag,
@@ -55,7 +56,7 @@ class ObjectSource extends AbstractDataSource {
 
   @override
   String get _errorContext {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     for (int i = _index - 50; i < _index + 10; i++) {
       if (i >= 0 && i < _data.length) {
         if (i == _index - 1) {

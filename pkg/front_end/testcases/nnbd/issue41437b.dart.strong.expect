@@ -56,13 +56,13 @@ static method test2() → core::Iterable<core::bool>
 static method test3() → core::bool
   return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
 static method test4() → core::Iterable<core::bool> sync* {
-  yield* let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:21:10: Error: A value of type 'Iterable<dynamic>' can't be assigned to a variable of type 'Iterable<bool>'.
+  yield* invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:21:10: Error: A value of type 'Iterable<dynamic>' can't be assigned to a variable of type 'Iterable<bool>'.
  - 'Iterable' is from 'dart:core'.
   yield* getIterableNull(); // error
          ^" in self::getIterableNull() as{TypeError,ForNonNullableByDefault} core::Iterable<core::bool>;
 }
 static method test5() → core::Iterable<core::bool>
-  return let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:24:27: Error: A value of type 'Iterable<dynamic>' can't be returned from a function with return type 'Iterable<bool>'.
+  return invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:24:27: Error: A value of type 'Iterable<dynamic>' can't be returned from a function with return type 'Iterable<bool>'.
  - 'Iterable' is from 'dart:core'.
 Iterable<bool> test5() => getIterableNull(); // error
                           ^" in self::getIterableNull() as{TypeError,ForNonNullableByDefault} core::Iterable<core::bool>;
@@ -80,13 +80,13 @@ static method test() → dynamic async {
   function test3() → core::bool
     return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
   function test4() → core::Iterable<core::bool> sync* {
-    yield* let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:38:12: Error: A value of type 'Iterable<dynamic>' can't be assigned to a variable of type 'Iterable<bool>'.
+    yield* invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:38:12: Error: A value of type 'Iterable<dynamic>' can't be assigned to a variable of type 'Iterable<bool>'.
  - 'Iterable' is from 'dart:core'.
     yield* getIterableNull(); // error
            ^" in self::getIterableNull() as{TypeError,ForNonNullableByDefault} core::Iterable<core::bool>;
   }
   function test5() → core::Iterable<core::bool>
-    return let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:41:29: Error: A value of type 'Iterable<dynamic>' can't be returned from a function with return type 'Iterable<bool>'.
+    return invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:41:29: Error: A value of type 'Iterable<dynamic>' can't be returned from a function with return type 'Iterable<bool>'.
  - 'Iterable' is from 'dart:core'.
   Iterable<bool> test5() => getIterableNull(); // error
                             ^" in self::getIterableNull() as{TypeError,ForNonNullableByDefault} core::Iterable<core::bool>;
@@ -95,7 +95,7 @@ static method test() → dynamic async {
   function test7() → core::Iterable<core::bool> sync* {
     yield* self::getIterableBool();
   }
-  core::Iterable<core::bool> var1 = let final Never #t5 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:49:5: Error: A value of type 'Iterable<dynamic>' can't be assigned to a variable of type 'Iterable<bool>'.
+  core::Iterable<core::bool> var1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:49:5: Error: A value of type 'Iterable<dynamic>' can't be assigned to a variable of type 'Iterable<bool>'.
  - 'Iterable' is from 'dart:core'.
   })(); // error
     ^" in (() → core::Iterable<dynamic> sync* {
@@ -103,13 +103,13 @@ static method test() → dynamic async {
   })(){() → core::Iterable<dynamic>} as{TypeError,ForNonNullableByDefault} core::Iterable<core::bool>;
   core::Iterable<core::bool> var2 = (() → dynamic => self::getNull())(){() → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<core::bool>;
   core::bool var3 = (() → dynamic => self::getNull())(){() → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
-  core::Iterable<core::bool> var4 = let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:54:5: Error: A value of type 'Iterable<dynamic>' can't be assigned to a variable of type 'Iterable<bool>'.
+  core::Iterable<core::bool> var4 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:54:5: Error: A value of type 'Iterable<dynamic>' can't be assigned to a variable of type 'Iterable<bool>'.
  - 'Iterable' is from 'dart:core'.
   })(); // error
     ^" in (() → core::Iterable<dynamic> sync* {
     yield* self::getIterableNull();
   })(){() → core::Iterable<dynamic>} as{TypeError,ForNonNullableByDefault} core::Iterable<core::bool>;
-  core::Iterable<core::bool> var5 = let final Never #t7 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:55:50: Error: A value of type 'Iterable<dynamic>' can't be assigned to a variable of type 'Iterable<bool>'.
+  core::Iterable<core::bool> var5 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:55:50: Error: A value of type 'Iterable<dynamic>' can't be assigned to a variable of type 'Iterable<bool>'.
  - 'Iterable' is from 'dart:core'.
   Iterable<bool> var5 = (() => getIterableNull())(); // error
                                                  ^" in (() → core::Iterable<dynamic> => self::getIterableNull())(){() → core::Iterable<dynamic>} as{TypeError,ForNonNullableByDefault} core::Iterable<core::bool>;

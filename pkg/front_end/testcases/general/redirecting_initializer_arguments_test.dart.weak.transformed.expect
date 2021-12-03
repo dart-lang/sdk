@@ -10,9 +10,9 @@ import self as self;
 import "dart:core" as core;
 
 class Foo<T extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field self::Foo::T* x;
+  covariant-by-class field self::Foo::T* x;
   constructor from(core::String* _init) → self::Foo<self::Foo::T*>*
-    : this self::Foo::_internal(x: let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/redirecting_initializer_arguments_test.dart:12:46: Error: The argument type 'String' can't be assigned to the parameter type 'T'.
+    : this self::Foo::_internal(x: invalid-expression "pkg/front_end/testcases/general/redirecting_initializer_arguments_test.dart:12:46: Error: The argument type 'String' can't be assigned to the parameter type 'T'.
   Foo.from(String _init) : this._internal(x: _init);
                                              ^" in _init as{TypeError} Never)
     ;

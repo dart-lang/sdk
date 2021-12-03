@@ -7,9 +7,9 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   static field core::int? _#lateStaticField2 = null;
   field core::int? _#Class#lateInstanceField = null;
   final field self::Class::T% field;
-  generic-covariant-impl field self::Class::T? _#Class#lateGenericField1 = null;
+  covariant-by-class field self::Class::T? _#Class#lateGenericField1 = null;
   field core::bool _#Class#lateGenericField1#isSet = false;
-  generic-covariant-impl field self::Class::T? _#Class#lateGenericField2 = null;
+  covariant-by-class field self::Class::T? _#Class#lateGenericField2 = null;
   field core::bool _#Class#lateGenericField2#isSet = false;
   constructor •(self::Class::T% field) → self::Class<self::Class::T%>
     : self::Class::field = field, super core::Object::•()
@@ -38,7 +38,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     }
     return let final self::Class::T? #t7 = this.{self::Class::_#Class#lateGenericField1}{self::Class::T?} in #t7{self::Class::T%};
   }
-  set lateGenericField1(generic-covariant-impl self::Class::T% #t8) → void {
+  set lateGenericField1(covariant-by-class self::Class::T% #t8) → void {
     this.{self::Class::_#Class#lateGenericField1#isSet} = true;
     this.{self::Class::_#Class#lateGenericField1} = #t8;
   }
@@ -49,11 +49,11 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     }
     return let final self::Class::T? #t9 = this.{self::Class::_#Class#lateGenericField2}{self::Class::T?} in #t9{self::Class::T%};
   }
-  set lateGenericField2(generic-covariant-impl self::Class::T% #t10) → void {
+  set lateGenericField2(covariant-by-class self::Class::T% #t10) → void {
     this.{self::Class::_#Class#lateGenericField2#isSet} = true;
     this.{self::Class::_#Class#lateGenericField2} = #t10;
   }
-  method instanceMethod(generic-covariant-impl self::Class::T% value) → dynamic {
+  method instanceMethod(covariant-by-class self::Class::T% value) → dynamic {
     self::expect(16, this.{self::Class::lateInstanceField}{core::int});
     this.{self::Class::lateInstanceField} = 17;
     self::expect(17, this.{self::Class::lateInstanceField}{core::int});

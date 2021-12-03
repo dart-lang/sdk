@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -13,8 +15,8 @@ main() {
   });
 }
 
-List<int> _b(int length) {
-  return List<int>.filled(length, 0);
+Uint8List _b(int length) {
+  return Uint8List(length);
 }
 
 @reflectiveTest

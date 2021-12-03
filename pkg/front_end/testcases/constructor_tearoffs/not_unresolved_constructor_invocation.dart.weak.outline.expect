@@ -1,0 +1,34 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class ResolvedClass<T extends core::Object? = dynamic> extends core::Object {
+  constructor named() → self::ResolvedClass<self::ResolvedClass::T%>
+    ;
+  static method unresolvedConstructor() → dynamic
+    ;
+}
+class unresolved_prefix extends core::Object {
+  synthetic constructor •() → self::unresolved_prefix
+    ;
+  static method UnresolvedClass<T extends core::Object? = dynamic>() → dynamic
+    ;
+}
+class resolved_prefix extends core::Object {
+  synthetic constructor •() → self::resolved_prefix
+    ;
+  static method UnresolvedClass<T extends core::Object? = dynamic>() → dynamic
+    ;
+}
+extension Extension on core::Function {
+  method unresolvedConstructor = self::Extension|unresolvedConstructor;
+  tearoff unresolvedConstructor = self::Extension|get#unresolvedConstructor;
+}
+static method UnresolvedClass<T extends core::Object? = dynamic>() → dynamic
+  ;
+static method Extension|unresolvedConstructor(lowered final core::Function #this) → dynamic
+  ;
+static method Extension|get#unresolvedConstructor(lowered final core::Function #this) → () → dynamic
+  return () → dynamic => self::Extension|unresolvedConstructor(#this);
+static method main() → dynamic
+  ;

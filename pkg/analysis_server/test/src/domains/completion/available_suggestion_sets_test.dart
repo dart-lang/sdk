@@ -469,6 +469,83 @@ var stringV = 'hi';
 ''');
   }
 
+  Future<void> test_suggestion_typedef() async {
+    var path = convertPath('/home/test/lib/a.dart');
+    var uriStr = 'package:test/a.dart';
+
+    newFile(path, content: r'''
+typedef MyAlias = double;
+''');
+
+    var set = await waitForSetWithUri(uriStr);
+    assertJsonText(_getSuggestion(set, 'MyAlias'), '''
+{
+  "label": "MyAlias",
+  "declaringLibraryUri": "package:test/a.dart",
+  "element": {
+    "kind": "TYPE_ALIAS",
+    "name": "MyAlias",
+    "location": {
+      "file": ${jsonOfPath(path)},
+      "offset": 8,
+      "length": 0,
+      "startLine": 1,
+      "startColumn": 9,
+      "endLine": 1,
+      "endColumn": 9
+    },
+    "flags": 0
+  },
+  "relevanceTags": [
+    "ElementKind.TYPE_ALIAS",
+    "package:test/a.dart::MyAlias",
+    "MyAlias"
+  ]
+}
+''');
+  }
+
+  Future<void> test_suggestion_typedef_function() async {
+    var path = convertPath('/home/test/lib/a.dart');
+    var uriStr = 'package:test/a.dart';
+
+    newFile(path, content: r'''
+typedef MyAlias = void Function();
+''');
+
+    var set = await waitForSetWithUri(uriStr);
+    assertJsonText(_getSuggestion(set, 'MyAlias'), '''
+{
+  "label": "MyAlias",
+  "declaringLibraryUri": "package:test/a.dart",
+  "element": {
+    "kind": "FUNCTION_TYPE_ALIAS",
+    "name": "MyAlias",
+    "location": {
+      "file": ${jsonOfPath(path)},
+      "offset": 8,
+      "length": 0,
+      "startLine": 1,
+      "startColumn": 9,
+      "endLine": 1,
+      "endColumn": 9
+    },
+    "flags": 0,
+    "parameters": "()",
+    "returnType": "void"
+  },
+  "parameterNames": [],
+  "parameterTypes": [],
+  "relevanceTags": [
+    "ElementKind.FUNCTION_TYPE_ALIAS",
+    "package:test/a.dart::MyAlias",
+    "MyAlias"
+  ],
+  "requiredParameterCount": 0
+}
+''');
+  }
+
   static void assertNoSuggestion(AvailableSuggestionSet set, String label,
       {ElementKind? kind}) {
     var suggestion = set.items.singleWhereOrNull(

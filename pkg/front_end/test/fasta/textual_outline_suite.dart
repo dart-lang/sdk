@@ -47,15 +47,16 @@ const List<Map<String, String>> EXPECTATIONS = [
   },
 ];
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
-  return new Context(environment["updateExpectations"] == "true");
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
+  return new Future.value(
+      new Context(environment["updateExpectations"] == "true"));
 }
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../../testing.json");
 
 class Context extends ChainContext with MatchContext {
+  @override
   final bool updateExpectations;
 
   @override
@@ -66,10 +67,12 @@ class Context extends ChainContext with MatchContext {
 
   Context(this.updateExpectations);
 
+  @override
   final List<Step> steps = const <Step>[
     const TextualOutline(),
   ];
 
+  @override
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(EXPECTATIONS);
 }
@@ -77,8 +80,10 @@ class Context extends ChainContext with MatchContext {
 class TextualOutline extends Step<TestDescription, TestDescription, Context> {
   const TextualOutline();
 
+  @override
   String get name => "TextualOutline";
 
+  @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) async {
     List<int> bytes = new File.fromUri(description.uri).readAsBytesSync();

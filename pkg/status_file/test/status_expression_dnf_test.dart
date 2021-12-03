@@ -55,13 +55,13 @@ void testDnf() {
   // https://en.wikipedia.org/wiki/Quine%E2%80%93McCluskey_algorithm
   shouldDnfTo(
       r"$a && !$b && !$c && !$d || $a && !$b && !$c && $d || "
-      r"$a && !$b && $c && !$d || $a && !$b && $c && $d",
+          r"$a && !$b && $c && !$d || $a && !$b && $c && $d",
       r"$a && !$b");
 
   shouldDnfTo(
       r"!$a && $b && !$c && !$d || $a && !$b && !$c && !$d || "
-      r"$a && !$b && $c && !$d || $a && !$b && $c && $d || $a && $b && !$c && !$d ||"
-      r" $a && $b && $c && $d || $a && !$b && !$c && $d || $a && $b && $c && !$d",
+          r"$a && !$b && $c && !$d || $a && !$b && $c && $d || $a && $b && !$c && !$d ||"
+          r" $a && $b && $c && $d || $a && !$b && !$c && $d || $a && $b && $c && !$d",
       r"$a && !$b || $a && $c || $b && !$c && !$d");
 
   // Test that an expression is converted to dnf and minified correctly.

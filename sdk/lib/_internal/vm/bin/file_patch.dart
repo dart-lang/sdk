@@ -7,50 +7,59 @@
 @patch
 class _File {
   @patch
-  static _exists(_Namespace namespace, Uint8List rawPath) native "File_Exists";
+  @pragma("vm:external-name", "File_Exists")
+  external static _exists(_Namespace namespace, Uint8List rawPath);
   @patch
-  static _create(_Namespace namespace, Uint8List rawPath) native "File_Create";
+  @pragma("vm:external-name", "File_Create")
+  external static _create(_Namespace namespace, Uint8List rawPath);
   @patch
-  static _createLink(_Namespace namespace, Uint8List rawPath, String target)
-      native "File_CreateLink";
+  @pragma("vm:external-name", "File_CreateLink")
+  external static _createLink(
+      _Namespace namespace, Uint8List rawPath, String target);
   @patch
-  static _linkTarget(_Namespace namespace, Uint8List rawPath)
-      native "File_LinkTarget";
+  @pragma("vm:external-name", "File_LinkTarget")
+  external static _linkTarget(_Namespace namespace, Uint8List rawPath);
   @patch
-  static _deleteNative(_Namespace namespace, Uint8List rawPath)
-      native "File_Delete";
+  @pragma("vm:external-name", "File_Delete")
+  external static _deleteNative(_Namespace namespace, Uint8List rawPath);
   @patch
-  static _deleteLinkNative(_Namespace namespace, Uint8List rawPath)
-      native "File_DeleteLink";
+  @pragma("vm:external-name", "File_DeleteLink")
+  external static _deleteLinkNative(_Namespace namespace, Uint8List rawPath);
   @patch
-  static _rename(_Namespace namespace, Uint8List oldPath, String newPath)
-      native "File_Rename";
+  @pragma("vm:external-name", "File_Rename")
+  external static _rename(
+      _Namespace namespace, Uint8List oldPath, String newPath);
   @patch
-  static _renameLink(_Namespace namespace, Uint8List oldPath, String newPath)
-      native "File_RenameLink";
+  @pragma("vm:external-name", "File_RenameLink")
+  external static _renameLink(
+      _Namespace namespace, Uint8List oldPath, String newPath);
   @patch
-  static _copy(_Namespace namespace, Uint8List oldPath, String newPath)
-      native "File_Copy";
+  @pragma("vm:external-name", "File_Copy")
+  external static _copy(
+      _Namespace namespace, Uint8List oldPath, String newPath);
   @patch
-  static _lengthFromPath(_Namespace namespace, Uint8List rawPath)
-      native "File_LengthFromPath";
+  @pragma("vm:external-name", "File_LengthFromPath")
+  external static _lengthFromPath(_Namespace namespace, Uint8List rawPath);
   @patch
-  static _lastModified(_Namespace namespace, Uint8List rawPath)
-      native "File_LastModified";
+  @pragma("vm:external-name", "File_LastModified")
+  external static _lastModified(_Namespace namespace, Uint8List rawPath);
   @patch
-  static _setLastModified(_Namespace namespace, Uint8List rawPath, int millis)
-      native "File_SetLastModified";
+  @pragma("vm:external-name", "File_SetLastModified")
+  external static _setLastModified(
+      _Namespace namespace, Uint8List rawPath, int millis);
   @patch
-  static _lastAccessed(_Namespace namespace, Uint8List rawPath)
-      native "File_LastAccessed";
+  @pragma("vm:external-name", "File_LastAccessed")
+  external static _lastAccessed(_Namespace namespace, Uint8List rawPath);
   @patch
-  static _setLastAccessed(_Namespace namespace, Uint8List rawPath, int millis)
-      native "File_SetLastAccessed";
+  @pragma("vm:external-name", "File_SetLastAccessed")
+  external static _setLastAccessed(
+      _Namespace namespace, Uint8List rawPath, int millis);
   @patch
-  static _open(_Namespace namespace, Uint8List rawPath, int mode)
-      native "File_Open";
+  @pragma("vm:external-name", "File_Open")
+  external static _open(_Namespace namespace, Uint8List rawPath, int mode);
   @patch
-  static int _openStdio(int fd) native "File_OpenStdio";
+  @pragma("vm:external-name", "File_OpenStdio")
+  external static int _openStdio(int fd);
 }
 
 @patch
@@ -68,21 +77,36 @@ class _RandomAccessFileOpsImpl extends NativeFieldWrapperClass1
   factory _RandomAccessFileOpsImpl(int pointer) =>
       new _RandomAccessFileOpsImpl._().._setPointer(pointer);
 
-  void _setPointer(int pointer) native "File_SetPointer";
-
-  int getPointer() native "File_GetPointer";
-  int close() native "File_Close";
-  readByte() native "File_ReadByte";
-  read(int bytes) native "File_Read";
-  readInto(List<int> buffer, int start, int? end) native "File_ReadInto";
-  writeByte(int value) native "File_WriteByte";
-  writeFrom(List<int> buffer, int start, int? end) native "File_WriteFrom";
-  position() native "File_Position";
-  setPosition(int position) native "File_SetPosition";
-  truncate(int length) native "File_Truncate";
-  length() native "File_Length";
-  flush() native "File_Flush";
-  lock(int lock, int start, int end) native "File_Lock";
+  @pragma("vm:external-name", "File_SetPointer")
+  external void _setPointer(int pointer);
+  @pragma("vm:external-name", "File_GetPointer")
+  external int getPointer();
+  @pragma("vm:external-name", "File_GetFD")
+  external int get fd;
+  @pragma("vm:external-name", "File_Close")
+  external int close();
+  @pragma("vm:external-name", "File_ReadByte")
+  external readByte();
+  @pragma("vm:external-name", "File_Read")
+  external read(int bytes);
+  @pragma("vm:external-name", "File_ReadInto")
+  external readInto(List<int> buffer, int start, int? end);
+  @pragma("vm:external-name", "File_WriteByte")
+  external writeByte(int value);
+  @pragma("vm:external-name", "File_WriteFrom")
+  external writeFrom(List<int> buffer, int start, int? end);
+  @pragma("vm:external-name", "File_Position")
+  external position();
+  @pragma("vm:external-name", "File_SetPosition")
+  external setPosition(int position);
+  @pragma("vm:external-name", "File_Truncate")
+  external truncate(int length);
+  @pragma("vm:external-name", "File_Length")
+  external length();
+  @pragma("vm:external-name", "File_Flush")
+  external flush();
+  @pragma("vm:external-name", "File_Lock")
+  external lock(int lock, int start, int end);
 }
 
 class _WatcherPath {
@@ -339,19 +363,23 @@ abstract class _FileSystemWatcher {
   }
 
   @patch
-  static bool get isSupported native "FileSystemWatcher_IsSupported";
+  @pragma("vm:external-name", "FileSystemWatcher_IsSupported")
+  external static bool get isSupported;
 
-  static int _initWatcher() native "FileSystemWatcher_InitWatcher";
-  static void _closeWatcher(int id) native "FileSystemWatcher_CloseWatcher";
+  @pragma("vm:external-name", "FileSystemWatcher_InitWatcher")
+  external static int _initWatcher();
+  @pragma("vm:external-name", "FileSystemWatcher_CloseWatcher")
+  external static void _closeWatcher(int id);
 
-  static int _watchPath(int id, _Namespace namespace, String path, int events,
-      bool recursive) native "FileSystemWatcher_WatchPath";
-  static void _unwatchPath(int id, int path_id)
-      native "FileSystemWatcher_UnwatchPath";
-  static List _readEvents(int id, int path_id)
-      native "FileSystemWatcher_ReadEvents";
-  static int _getSocketId(int id, int path_id)
-      native "FileSystemWatcher_GetSocketId";
+  @pragma("vm:external-name", "FileSystemWatcher_WatchPath")
+  external static int _watchPath(
+      int id, _Namespace namespace, String path, int events, bool recursive);
+  @pragma("vm:external-name", "FileSystemWatcher_UnwatchPath")
+  external static void _unwatchPath(int id, int path_id);
+  @pragma("vm:external-name", "FileSystemWatcher_ReadEvents")
+  external static List _readEvents(int id, int path_id);
+  @pragma("vm:external-name", "FileSystemWatcher_GetSocketId")
+  external static int _getSocketId(int id, int path_id);
 }
 
 class _InotifyFileSystemWatcher extends _FileSystemWatcher {

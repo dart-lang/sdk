@@ -1,0 +1,32 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  static const field dart.core::int constFromLib = #C1;
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:moduleB/lib.dart";
+  import "org-dartlang-test:///lib.dart";
+
+  static const field dart.core::List<dart.core::Object> constA = #C7;
+  static const field dart.core::int constLib = #C1;
+}
+library from "package:moduleB/lib.dart" as lib2 {
+
+  import "package:moduleC/lib.dart";
+
+  static const field dart.core::List<dart.core::Object*>* constB = const <dart.core::Object*>["value_b", lib3::constC];
+}
+library from "package:moduleC/lib.dart" as lib3 {
+
+  static const field dart.core::List<dart.core::String*>* constC = const <dart.core::String*>["value_c"];
+}
+constants  {
+  #C1 = 42.0
+  #C2 = "value_a"
+  #C3 = "value_b"
+  #C4 = "value_c"
+  #C5 = <dart.core::String*>[#C4]
+  #C6 = <dart.core::Object*>[#C3, #C5]
+  #C7 = <dart.core::Object*>[#C2, #C6]
+}

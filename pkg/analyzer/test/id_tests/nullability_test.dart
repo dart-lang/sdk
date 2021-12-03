@@ -26,8 +26,8 @@ main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest:
-          runTestFor(const _NullabilityDataComputer(), [analyzerNnbdConfig]));
+      runTest: runTestFor(
+          const _NullabilityDataComputer(), [analyzerDefaultConfig]));
 }
 
 class FlowTestBase {
@@ -35,11 +35,8 @@ class FlowTestBase {
 
   /// Resolve the given [code] and track nullability in the unit.
   Future<void> trackCode(String code) async {
-    TestResult<String> testResult = await checkTests(
-        code,
-        const _NullabilityDataComputer(),
-        FeatureSet.forTesting(
-            sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]));
+    TestResult<String> testResult = await checkTests(code,
+        const _NullabilityDataComputer(), FeatureSet.latestLanguageVersion());
     if (testResult.hasFailures) {
       fail('Failure(s)');
     }

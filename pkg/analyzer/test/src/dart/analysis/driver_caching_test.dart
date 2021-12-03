@@ -18,9 +18,11 @@ main() {
 
 @reflectiveTest
 class AnalysisDriverCachingTest extends PubPackageResolutionTest {
+  String get testFilePathPlatform => convertPath(testFilePath);
+
   List<Set<String>> get _linkedCycles {
     var driver = driverFor(testFilePath);
-    return driver.test.libraryContext.linkedCycles;
+    return driver.test.libraryContextTestView.linkedCycles;
   }
 
   test_change_factoryConstructor_addEqNothing() async {
@@ -30,7 +32,7 @@ class A {
 }
 ''');
 
-    driverFor(testFilePath).changeFile(testFilePath);
+    driverFor(testFilePathPlatform).changeFile(testFilePathPlatform);
     await resolveTestCode(r'''
 class A {
   factory A() =;
@@ -46,7 +48,7 @@ class A {
 }
 ''');
 
-    driverFor(testFilePath).changeFile(testFilePath);
+    driverFor(testFilePathPlatform).changeFile(testFilePathPlatform);
     await resolveTestCode(r'''
 class A {
   factory A() =
@@ -62,7 +64,7 @@ class A {
 }
 ''');
 
-    driverFor(testFilePath).changeFile(testFilePath);
+    driverFor(testFilePathPlatform).changeFile(testFilePathPlatform);
     await resolveTestCode(r'''
 class A {
   const

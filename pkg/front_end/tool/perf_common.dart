@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /// Shared code used by fasta_perf and incremental_perf.
 library front_end.tool.perf_common;
 
@@ -89,7 +87,7 @@ class TimingsCollector {
 
   TimingsCollector(this.verbose);
 
-  String currentKey;
+  String? currentKey;
 
   void start(String key) {
     if (currentKey != null) {

@@ -68,6 +68,7 @@
   ARRAY_SIZEOF(TwoByteString, InstanceSize, element_offset)                    \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
+  CONSTANT(Context, kMaxElements)                                              \
   CONSTANT(Instructions, kMonomorphicEntryOffsetJIT)                           \
   CONSTANT(Instructions, kPolymorphicEntryOffsetJIT)                           \
   CONSTANT(Instructions, kMonomorphicEntryOffsetAOT)                           \
@@ -157,6 +158,7 @@
   NOT_IN_PRODUCT(FIELD(Isolate, single_step_offset))                           \
   FIELD(Isolate, user_tag_offset)                                              \
   FIELD(LinkedHashBase, data_offset)                                           \
+  FIELD(ImmutableLinkedHashBase, data_offset)                                  \
   FIELD(LinkedHashBase, deleted_keys_offset)                                   \
   FIELD(LinkedHashBase, hash_mask_offset)                                      \
   FIELD(LinkedHashBase, index_offset)                                          \
@@ -212,6 +214,7 @@
   FIELD(Thread, call_to_runtime_stub_offset)                                   \
   FIELD(Thread, dart_stream_offset)                                            \
   FIELD(Thread, dispatch_table_array_offset)                                   \
+  FIELD(Thread, double_truncate_round_supported_offset)                        \
   FIELD(Thread, optimize_entry_offset)                                         \
   FIELD(Thread, optimize_stub_offset)                                          \
   FIELD(Thread, deoptimize_entry_offset)                                       \
@@ -275,6 +278,7 @@
   FIELD(Thread, top_offset)                                                    \
   FIELD(Thread, top_resource_offset)                                           \
   FIELD(Thread, unboxed_int64_runtime_arg_offset)                              \
+  FIELD(Thread, unboxed_double_runtime_arg_offset)                             \
   FIELD(Thread, vm_tag_offset)                                                 \
   FIELD(Thread, write_barrier_code_offset)                                     \
   FIELD(Thread, write_barrier_entry_point_offset)                              \
@@ -290,10 +294,11 @@
   FIELD(Type, type_state_offset)                                               \
   FIELD(Type, nullability_offset)                                              \
   FIELD(FunctionType, hash_offset)                                             \
+  FIELD(FunctionType, named_parameter_names_offset)                            \
+  FIELD(FunctionType, nullability_offset)                                      \
   FIELD(FunctionType, packed_parameter_counts_offset)                          \
   FIELD(FunctionType, packed_type_parameter_counts_offset)                     \
   FIELD(FunctionType, parameter_types_offset)                                  \
-  FIELD(FunctionType, named_parameter_names_offset)                            \
   FIELD(FunctionType, type_parameters_offset)                                  \
   FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \

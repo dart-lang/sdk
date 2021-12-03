@@ -370,7 +370,7 @@ restrictions on Dart programs.
 
 Strong mode effectively treats all standard Dart static warnings as static errors.  Most of these warnings are required for soundness (e.g., if a concrete class is missing methods required by a declared interface).  A full list of Dart static warnings may found in the [Dart specification][dartspec], or enumerated here:
 
-[https://github.com/dart-lang/sdk/blob/master/pkg/analyzer/lib/src/generated/error.dart#L3772](https://www.google.com/url?q=https%3A%2F%2Fgithub.com%2Fdart-lang%2Fsdk%2Fblob%2Fmaster%2Fpkg%2Fanalyzer%2Flib%2Fsrc%2Fgenerated%2Ferror.dart%23L3772&sa=D&sntz=1&usg=AFQjCNFc4E37M1PshVcw4zk7C9jXgqfGbw)
+[https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/lib/src/generated/error.dart#L3772](https://www.google.com/url?q=https%3A%2F%2Fgithub.com%2Fdart-lang%2Fsdk%2Fblob%2Fmaster%2Fpkg%2Fanalyzer%2Flib%2Fsrc%2Fgenerated%2Ferror.dart%23L3772&sa=D&sntz=1&usg=AFQjCNFc4E37M1PshVcw4zk7C9jXgqfGbw)
 
 ### Super Invocations
 

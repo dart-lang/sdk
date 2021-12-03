@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--no-use-vfp
 
+// @dart = 2.9
+
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';

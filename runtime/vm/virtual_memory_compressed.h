@@ -33,7 +33,7 @@ class VirtualMemoryCompressedHeap : public AllStatic {
  public:
   // Initializes the compressed heap. The callee must allocate a region of
   // kCompressedHeapSize bytes, aligned to kCompressedHeapSize.
-  static void Init(void* compressed_heap_region);
+  static void Init(void* compressed_heap_region, size_t size);
 
   // Cleans up the compressed heap. The callee is responsible for freeing the
   // region's memory.
@@ -58,6 +58,7 @@ class VirtualMemoryCompressedHeap : public AllStatic {
   static void ClearPageUsed(uword page_id);
 
   static uword base_;
+  static uword size_;
   static uint8_t* pages_;
   static uword minimum_free_page_id_;
   static Mutex* mutex_;

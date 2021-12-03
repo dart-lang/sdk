@@ -104,13 +104,13 @@ static method main() → dynamic {
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'copyWith'.
  Cat cat4 = (cat as Object).copyWith(numberOfWhiskers: 4);
-                            ^^^^^^^^";
+                            ^^^^^^^^" in cat{<unresolved>}.copyWith(numberOfWhiskers: 4);
   self::Cat cat5 = (cat as{ForNonNullableByDefault} dynamic){dynamic}.copyWith() as{ForNonNullableByDefault} self::Cat;
   self::Cat cat6 = (cat as{ForNonNullableByDefault} dynamic){dynamic}.copyWith(numberOfWhiskers: 4, numberOfHorns: 5) as{ForNonNullableByDefault} self::Cat;
   self::A a;
-  self::A a2 = ((let final Never #t1 = invalid-expression "pkg/front_end/testcases/value_class/copy_with_call_sites.dart:43:10: Error: Non-nullable variable 'a' must be assigned before it can be used.
+  self::A a2 = (invalid-expression "pkg/front_end/testcases/value_class/copy_with_call_sites.dart:43:10: Error: Non-nullable variable 'a' must be assigned before it can be used.
  A a2 = (a as dynamic).copyWith(x: 42, y: 42) as A;
-         ^" in a) as{ForNonNullableByDefault} dynamic){dynamic}.copyWith(x: 42, y: 42) as{ForNonNullableByDefault} self::A;
+         ^" in a as{ForNonNullableByDefault} dynamic){dynamic}.copyWith(x: 42, y: 42) as{ForNonNullableByDefault} self::A;
   self::Foo foo = new self::Foo::•(bar: 4, bar2: 5);
   self::Foo foo2 = (foo as{ForNonNullableByDefault} dynamic){dynamic}.copyWith(bar: 4) as{ForNonNullableByDefault} self::Foo;
 }
@@ -143,4 +143,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: StringConcatenation @ org-dartlang-testcase:///copy_with_call_sites.dart:26:7 -> StringConstant("A()")
-Extra constant evaluation: evaluated: 108, effectively constant: 1
+Extra constant evaluation: evaluated: 106, effectively constant: 1

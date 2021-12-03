@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element;
 
@@ -233,7 +234,10 @@ class ImportOrganizer {
   ///
   /// Leading comments for the first directive in a file are considered library
   /// comments and not returned unless they contain blank lines, in which case
-  /// only the last part of the comment will be returned.
+  /// only the last part of the comment will be returned (unless it is a
+  /// language directive comment, in which case it will also be skipped) or an
+  /// '// ignore:' comment which should always be treated as attached to the
+  /// import.
   static Token? getLeadingComment(
       CompilationUnit unit, UriBasedDirective directive, LineInfo lineInfo) {
     if (directive.beginToken.precedingComments == null) {
@@ -254,22 +258,30 @@ class ImportOrganizer {
       nextComment = comment.next;
     }
 
-    // Check if the comment is the first comment in the document
-    if (firstComment != unit.beginToken.precedingComments) {
-      var previousDirectiveLine =
-          lineInfo.getLocation(directive.beginToken.previous!.end).lineNumber;
-
-      // Skip over any comments on the same line as the previous directive
-      // as they will be attached to the end of it.
-      var comment = firstComment;
-      while (comment != null &&
-          previousDirectiveLine ==
-              lineInfo.getLocation(comment.offset).lineNumber) {
-        comment = comment.next;
-      }
-      return comment;
+    // Language version tokens should never be attached so skip over.
+    if (firstComment is LanguageVersionToken) {
+      firstComment = firstComment.next;
     }
-    return null;
+
+    // If the comment is the first comment in the document then whether we
+    // consider it the leading comment depends on whether it's an ignore comment
+    // or not.
+    if (firstComment != null &&
+        firstComment == unit.beginToken.precedingComments) {
+      return _isIgnoreComment(firstComment) ? firstComment : null;
+    }
+
+    // Skip over any comments on the same line as the previous directive
+    // as they will be attached to the end of it.
+    var previousDirectiveLine =
+        lineInfo.getLocation(directive.beginToken.previous!.end).lineNumber;
+    comment = firstComment;
+    while (comment != null &&
+        previousDirectiveLine ==
+            lineInfo.getLocation(comment.offset).lineNumber) {
+      comment = comment.next;
+    }
+    return comment;
   }
 
   /// Gets the last comment token considered to be the trailing comment for this
@@ -289,6 +301,11 @@ class ImportOrganizer {
     }
     return null;
   }
+
+  /// Returns whether this token is a '// ignore:' comment (but not an
+  /// '// ignore_for_file:' comment).
+  static bool _isIgnoreComment(Token token) =>
+      IgnoreInfo.IGNORE_MATCHER.matchAsPrefix(token.lexeme) != null;
 }
 
 class _DirectiveInfo implements Comparable<_DirectiveInfo> {
@@ -333,23 +350,16 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   @override
   String toString() => '(priority=$priority; text=$text)';
 
+  /// Should keep these in sync! Copied from
+  /// https://github.com/dart-lang/linter/blob/658f497eef/lib/src/rules/directives_ordering.dart#L380-L387
+  /// Consider finding a way to share this code!
   static int _compareUri(String a, String b) {
-    var aList = _splitUri(a);
-    var bList = _splitUri(b);
-    int result;
-    if ((result = aList[0].compareTo(bList[0])) != 0) return result;
-    if ((result = aList[1].compareTo(bList[1])) != 0) return result;
-    return 0;
-  }
-
-  /// Split the given [uri] like `package:some.name/and/path.dart` into a list
-  /// like `[package:some.name, and/path.dart]`.
-  static List<String> _splitUri(String uri) {
-    var index = uri.indexOf('/');
-    if (index == -1) {
-      return <String>[uri, ''];
-    }
-    return <String>[uri.substring(0, index), uri.substring(index + 1)];
+    var indexA = a.indexOf('/');
+    var indexB = b.indexOf('/');
+    if (indexA == -1 || indexB == -1) return a.compareTo(b);
+    var result = a.substring(0, indexA).compareTo(b.substring(0, indexB));
+    if (result != 0) return result;
+    return a.substring(indexA + 1).compareTo(b.substring(indexB + 1));
   }
 }
 

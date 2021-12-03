@@ -12,7 +12,6 @@ import logging
 import monitored
 import os
 import re
-from generator import ConstantOutputOrder
 from htmlrenamer import renamed_html_members, html_interface_renames
 
 _logger = logging.getLogger('dartmetadata')
@@ -714,7 +713,7 @@ class DartMetadata(object):
 
         if _monitor_type_metadata:
             monitored_interfaces = {}
-            for interface_id, interface_data in self._types.items():
+            for interface_id, interface_data in list(self._types.items()):
                 monitored_interface = interface_data.copy()
                 monitored_interface['members'] = monitored.Dict(
                     'dartmetadata.%s' % interface_id, interface_data['members'])

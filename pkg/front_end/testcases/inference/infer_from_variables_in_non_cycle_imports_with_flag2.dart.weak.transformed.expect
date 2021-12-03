@@ -33,10 +33,10 @@ class B extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method test1() → dynamic {
-  inf::A::x = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:15:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  inf::A::x = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:15:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   A.x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
                                      ^" in "hi" as{TypeError} core::int*;
-  self::B::y = let final Never* #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:16:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  self::B::y = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:16:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   B.y = /*error:INVALID_ASSIGNMENT*/ \"hi\";
                                      ^" in "hi" as{TypeError} core::int*;
 }

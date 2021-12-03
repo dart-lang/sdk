@@ -79,7 +79,7 @@ abstract class RenderBox extends mai::RenderObject {
     return false;
 }
 abstract class RenderObjectWithChildMixin<ChildType extends mai::RenderObject> extends mai::RenderObject /*isMixinDeclaration*/  {
-  generic-covariant-impl field mai::RenderObjectWithChildMixin::ChildType? _child = null;
+  covariant-by-class field mai::RenderObjectWithChildMixin::ChildType? _child = null;
   get child() → mai::RenderObjectWithChildMixin::ChildType?
     return this.{mai::RenderObjectWithChildMixin::_child}{mai::RenderObjectWithChildMixin::ChildType?};
 }
@@ -95,7 +95,7 @@ abstract class RenderProxyBoxMixin<T extends mai::RenderBox> extends mai::_Rende
   }
 }
 abstract class _RenderProxyBox&RenderBox&RenderObjectWithChildMixin extends mai::RenderBox implements mai::RenderObjectWithChildMixin<mai::RenderBox> /*isAnonymousMixin,isEliminatedMixin*/  {
-  generic-covariant-impl field mai::RenderBox? _child = null;
+  covariant-by-class field mai::RenderBox? _child = null;
   synthetic constructor •() → mai::_RenderProxyBox&RenderBox&RenderObjectWithChildMixin
     : super mai::RenderBox::•()
     ;

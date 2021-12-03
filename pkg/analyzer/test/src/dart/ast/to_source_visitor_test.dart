@@ -792,6 +792,21 @@ class ToSourceVisitor2Test {
         ]));
   }
 
+  void test_visitExportDirective_configurations() {
+    var unit = parseString(content: r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''').unit;
+    var directive = unit.directives[0] as ExportDirective;
+    _assertSource(
+      "export 'foo.dart'"
+      " if (dart.library.io) 'foo_io.dart'"
+      " if (dart.library.html) 'foo_html.dart';",
+      directive,
+    );
+  }
+
   void test_visitExportDirective_minimal() {
     _assertSource(
         "export 'a.dart';", AstTestFactory.exportDirective2("a.dart"));
@@ -808,6 +823,13 @@ class ToSourceVisitor2Test {
     _assertSource(
         "async => a;",
         AstTestFactory.asyncExpressionFunctionBody(
+            AstTestFactory.identifier3("a")));
+  }
+
+  void test_visitExpressionFunctionBody_async_star() {
+    _assertSource(
+        "async* => a;",
+        AstTestFactory.asyncGeneratorExpressionFunctionBody(
             AstTestFactory.identifier3("a")));
   }
 
@@ -871,6 +893,201 @@ class ToSourceVisitor2Test {
                   false, Keyword.VAR, [AstTestFactory.variableDeclaration('a')])
             ],
             isExtensionTypeDeclaration: false));
+  }
+
+  void test_visitExtensionDeclarationHideClause_empty() {
+    _assertSource(
+        'extension type E on C hide B {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            hideClause:
+                AstTestFactory.hideClause([AstTestFactory.typeName4("B")]),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionDeclarationHideClause_multipleMember() {
+    _assertSource(
+        'extension type E on C hide B {var a; var b;}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            members: [
+              AstTestFactory.fieldDeclaration2(false, Keyword.VAR,
+                  [AstTestFactory.variableDeclaration('a')]),
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration('b')])
+            ],
+            hideClause:
+                AstTestFactory.hideClause([AstTestFactory.typeName4("B")]),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionDeclarationHideClause_parameters() {
+    _assertSource(
+        'extension type E<T> on C hide B {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            typeParameters: AstTestFactory.typeParameterList(['T']),
+            extendedType: AstTestFactory.typeName4('C'),
+            hideClause:
+                AstTestFactory.hideClause([AstTestFactory.typeName4("B")]),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionDeclarationHideClause_singleMember() {
+    _assertSource(
+        'extension type E on C hide B {var a;}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            members: [
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration('a')])
+            ],
+            hideClause:
+                AstTestFactory.hideClause([AstTestFactory.typeName4("B")]),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionDeclarationShowClause_ambiguousElement() {
+    _assertSource(
+        'extension type E on C show foo {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            showClause: AstTestFactory.showClause(
+                [AstTestFactory.showHideElement("foo")]),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionDeclarationShowClause_empty() {
+    _assertSource(
+        'extension type E on C show B {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            showClause:
+                AstTestFactory.showClause([AstTestFactory.typeName4("B")]),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionDeclarationShowClause_getterElement() {
+    _assertSource(
+        'extension type E on C show get foo {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            showClause: AstTestFactory.showClause(
+                [AstTestFactory.showHideElementGetter("foo")]),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionDeclarationShowClause_multipleMember() {
+    _assertSource(
+        'extension type E on C show B {var a; var b;}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            members: [
+              AstTestFactory.fieldDeclaration2(false, Keyword.VAR,
+                  [AstTestFactory.variableDeclaration('a')]),
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration('b')])
+            ],
+            showClause:
+                AstTestFactory.showClause([AstTestFactory.typeName4("B")]),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionDeclarationShowClause_operatorElement() {
+    _assertSource(
+        'extension type E on C show operator * {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            showClause: AstTestFactory.showClause(
+                [AstTestFactory.showHideElementOperator("*")]),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionDeclarationShowClause_parameters() {
+    _assertSource(
+        'extension type E<T> on C show B {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            typeParameters: AstTestFactory.typeParameterList(['T']),
+            extendedType: AstTestFactory.typeName4('C'),
+            showClause:
+                AstTestFactory.showClause([AstTestFactory.typeName4("B")]),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionDeclarationShowClause_qualifiedTypeElement() {
+    _assertSource(
+        'extension type E on C show prefix.B {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            showClause: AstTestFactory.showClause([
+              AstTestFactory.typeName3(
+                  AstTestFactory.identifier5('prefix', 'B'))
+            ]),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionDeclarationShowClause_setterElement() {
+    _assertSource(
+        'extension type E on C show set foo {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            showClause: AstTestFactory.showClause(
+                [AstTestFactory.showHideElementSetter("foo")]),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionDeclarationShowClause_singleMember() {
+    _assertSource(
+        'extension type E on C show B {var a;}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            members: [
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration('a')])
+            ],
+            showClause:
+                AstTestFactory.showClause([AstTestFactory.typeName4("B")]),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionDeclarationShowClause_typeWithArgumentsElement() {
+    _assertSource(
+        'extension type E on C show B<int, String> {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            showClause: AstTestFactory.showClause([
+              AstTestFactory.typeName3(AstTestFactory.identifier3('B'), [
+                AstTestFactory.typeName4('int'),
+                AstTestFactory.typeName4('String')
+              ])
+            ]),
+            isExtensionTypeDeclaration: true));
+  }
+
+  void test_visitExtensionDeclarationShowHideClause_empty() {
+    _assertSource(
+        'extension type E on C show B hide foo {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            showClause:
+                AstTestFactory.showClause([AstTestFactory.typeName4("B")]),
+            hideClause: AstTestFactory.hideClause(
+                [AstTestFactory.showHideElement("foo")]),
+            isExtensionTypeDeclaration: true));
   }
 
   void test_visitExtensionOverride_prefixedName_noTypeArgs() {
@@ -1708,7 +1925,7 @@ class ToSourceVisitor2Test {
 
   void test_visitGenericTypeAlias() {
     _assertSource(
-        "typedef X<S> = S Function<T>(T)",
+        "typedef X<S> = S Function<T>(T);",
         AstTestFactory.genericTypeAlias(
             'X',
             AstTestFactory.typeParameterList2(['S']),
@@ -1786,6 +2003,21 @@ class ToSourceVisitor2Test {
           AstTestFactory.showCombinator([AstTestFactory.identifier3("A")]),
           AstTestFactory.hideCombinator([AstTestFactory.identifier3("B")])
         ]));
+  }
+
+  void test_visitImportDirective_configurations() {
+    var unit = parseString(content: r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''').unit;
+    var directive = unit.directives[0] as ImportDirective;
+    _assertSource(
+      "import 'foo.dart'"
+      " if (dart.library.io) 'foo_io.dart'"
+      " if (dart.library.html) 'foo_html.dart';",
+      directive,
+    );
   }
 
   void test_visitImportDirective_deferred() {

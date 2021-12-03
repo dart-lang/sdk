@@ -22,7 +22,7 @@ abstract class _SubClass&Class&Mixin = cov::Class with cov::Mixin /*isAnonymousM
   synthetic constructor •() → self::_SubClass&Class&Mixin*
     : super cov::Class::•()
     ;
-  abstract member-signature method covariant(covariant cov::Class* cls) → void; -> cov::Class::covariant
+  abstract member-signature method covariant(covariant-by-declaration cov::Class* cls) → void; -> cov::Class::covariant
   abstract member-signature method invariant(cov::Class* cls) → void; -> cov::Class::invariant
   abstract member-signature method contravariant(cov::Class* cls) → void; -> cov::Class::contravariant
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -40,7 +40,7 @@ class SubClass extends self::_SubClass&Class&Mixin {
   synthetic constructor •() → self::SubClass*
     : super self::_SubClass&Class&Mixin::•()
     ;
-  method covariant(covariant self::SubClass* cls) → void {}
+  method covariant(covariant-by-declaration self::SubClass* cls) → void {}
   method invariant(self::SubClass* cls) → void {}
   method contravariant(core::Object* cls) → void {}
 }
@@ -56,7 +56,7 @@ abstract class Class extends core::Object {
   synthetic constructor •() → cov::Class
     : super core::Object::•()
     ;
-  abstract method covariant(covariant cov::Class cls) → void;
+  abstract method covariant(covariant-by-declaration cov::Class cls) → void;
   abstract method invariant(cov::Class cls) → void;
   abstract method contravariant(cov::Class cls) → void;
 }

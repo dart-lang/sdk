@@ -1,0 +1,56 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "tree_shake_enum_from_lib.lib.dart" as lib;
+import "dart:_internal" as _in;
+
+import "file:pkg/vm/testcases/transformations/type_flow/transformer/tree_shake_enum_from_lib.lib.dart";
+
+abstract class UnusedEnum extends core::_Enum {
+}
+class UsedEnum extends core::_Enum /*isEnum*/  {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method toString() → core::String
+    return "UsedEnum.${[@vm.direct-call.metadata=dart.core::_Enum._name] this.{core::_Enum::_name}{core::String}}";
+}
+abstract class UnusedInterface extends core::Object {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  abstract get /*isLegacy*/ usedInterfaceField() → core::int?;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  abstract set /*isLegacy*/ usedInterfaceField(core::int? value) → void;
+}
+class UsedClass extends core::Object implements self::UnusedInterface {
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  field core::int? usedField = null;
+[@vm.inferred-type.metadata=dart.core::Null? (value: null)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  field core::int? usedInterfaceField = null;
+  synthetic constructor •() → self::UsedClass
+    : super core::Object::•()
+    ;
+}
+static method usedMethod([@vm.inferred-type.metadata=#lib::UsedClass] self::UnusedInterface c) → dynamic {
+  [@vm.direct-call.metadata=#lib::UsedClass.usedInterfaceField] [@vm.inferred-type.metadata=!? (skip check)] c.{self::UnusedInterface::usedInterfaceField} = [@vm.direct-call.metadata=#lib::UsedClass.usedInterfaceField] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] c.{self::UnusedInterface::usedInterfaceField}{core::int?};
+}
+static method main() → dynamic {
+  self::usedMethod(let final self::UsedClass #t1 = new self::UsedClass::•() in block {
+    [@vm.direct-call.metadata=#lib::UsedClass.usedField] #t1.{self::UsedClass::usedField}{core::int?};
+  } =>#t1);
+  #C3;
+  core::List<self::UnusedEnum> list = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::UnusedEnum>] core::_GrowableList::•<self::UnusedEnum>(0);
+  if([@vm.direct-call.metadata=dart.core::_GrowableList.isNotEmpty] [@vm.inferred-type.metadata=dart.core::bool] list.{core::Iterable::isNotEmpty}{core::bool}) {
+    [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/tree_shake_enum_from_lib.lib.dart::ConstClass.method] [@vm.inferred-type.metadata=!? (skip check)] new lib::ConstClass::•().{lib::ConstClass::method}(_in::unsafeCast<lib::ConstEnum>(_in::unsafeCast<dynamic>(null))){(lib::ConstEnum) → core::int};
+  }
+}
+constants  {
+  #C1 = 1
+  #C2 = "usedValue"
+  #C3 = self::UsedEnum {index:#C1, _name:#C2}
+}
+library tree_shake_enum_from_lib.lib.dart /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class ConstEnum extends core::_Enum {
+}
+class ConstClass extends core::Object {
+  synthetic constructor •() → self::ConstClass
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3256,getterSelectorId:3257]  method method([@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::ConstEnum e) → core::int
+    return [@vm.inferred-type.metadata=!] e.{core::_Enum::index}{core::int};
+}

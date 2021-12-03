@@ -10,13 +10,23 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinOfNonClassTest);
-    defineReflectiveTests(MixinOfNonClassWithNullSafetyTest);
+    defineReflectiveTests(MixinOfNonClassWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class MixinOfNonClassTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with MixinOfNonClassTestCases {
+  test_Never() async {
+    await assertErrorsInCode('''
+class A with Never {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 13, 5),
+    ]);
+  }
+}
+
+mixin MixinOfNonClassTestCases on PubPackageResolutionTest {
   test_class() async {
     await assertErrorsInCode(r'''
 int A = 7;
@@ -165,13 +175,5 @@ class C with p.M {}
 }
 
 @reflectiveTest
-class MixinOfNonClassWithNullSafetyTest extends MixinOfNonClassTest
-    with WithNullSafetyMixin {
-  test_Never() async {
-    await assertErrorsInCode('''
-class A with Never {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 13, 5),
-    ]);
-  }
-}
+class MixinOfNonClassWithoutNullSafetyTest extends PubPackageResolutionTest
+    with MixinOfNonClassTestCases, WithoutNullSafetyMixin {}

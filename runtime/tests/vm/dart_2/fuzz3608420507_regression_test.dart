@@ -2,6 +2,8 @@
 // Program generated as:
 //   dart dartfuzz.dart --seed 3608420507
 
+// @dart = 2.9
+
 bool var0 = false;
 bool var1 = false;
 int var2 = -49;

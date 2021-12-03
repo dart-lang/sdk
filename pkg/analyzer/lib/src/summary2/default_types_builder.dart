@@ -91,7 +91,7 @@ class DefaultTypesBuilder {
         var boundNode = element.parameter.bound;
         if (boundNode is GenericFunctionTypeImpl) {
           boundNode.type = DynamicTypeImpl.instance;
-        } else if (boundNode is TypeNameImpl) {
+        } else if (boundNode is NamedTypeImpl) {
           boundNode.type = DynamicTypeImpl.instance;
         } else {
           throw UnimplementedError('(${boundNode.runtimeType}) $boundNode');
@@ -108,7 +108,7 @@ class DefaultTypesBuilder {
     for (var parameter in typeParameters) {
       parameter as TypeParameterImpl;
       var boundNode = parameter.bound;
-      if (boundNode is TypeNameImpl) {
+      if (boundNode is NamedTypeImpl) {
         if (typeParametersByName == null) {
           typeParametersByName = {};
           for (var parameterNode in typeParameters) {
@@ -122,7 +122,7 @@ class DefaultTypesBuilder {
             current != null && step < typeParameters.length;
             ++step) {
           var bound = current.bound;
-          if (bound is TypeName) {
+          if (bound is NamedType) {
             var typeNameIdentifier = bound.name;
             if (typeNameIdentifier is SimpleIdentifier) {
               current = typeParametersByName[typeNameIdentifier.name];

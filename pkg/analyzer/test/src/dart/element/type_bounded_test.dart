@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class DynamicBoundedTest extends AbstractTypeSystemNullSafetyTest {
+class DynamicBoundedTest extends AbstractTypeSystemTest {
   test_dynamic() {
     _assertDynamicBounded(dynamicNone);
   }
@@ -97,7 +97,7 @@ class DynamicBoundedTest extends AbstractTypeSystemNullSafetyTest {
 }
 
 @reflectiveTest
-class FunctionBoundedTest extends AbstractTypeSystemNullSafetyTest {
+class FunctionBoundedTest extends AbstractTypeSystemTest {
   test_dynamic() {
     _assertNotFunctionBounded(dynamicNone);
   }

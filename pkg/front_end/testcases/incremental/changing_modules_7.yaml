@@ -10,12 +10,14 @@ type: newworld
 modules:
   module:
     module/lib1.dart: |
+      // @dart=2.9
       import 'lib3.dart';
 
       class Class1 {
         Class3a get c3a {}
       }
     module/lib2.dart: |
+      // @dart=2.9
       import 'lib4.dart';
 
       class Class2 {
@@ -25,6 +27,7 @@ modules:
         }
       }
     module/lib3.dart: |
+      // @dart=2.9
       class Class3a {
         Class3b get c3b {}
       }
@@ -41,6 +44,7 @@ worlds:
     fromComponent: true
     sources:
       compileme.dart: |
+        // @dart=2.9
         import 'package:module/lib1.dart';
         import 'package:module/lib2.dart';
 
@@ -85,6 +89,7 @@ worlds:
     skipOutlineBodyCheck: true
     sources:
       compileme.dart: |
+        // @dart=2.9
         import 'package:module/lib1.dart';
         import 'package:module/lib2.dart';
 

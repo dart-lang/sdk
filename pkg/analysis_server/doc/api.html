@@ -1528,6 +1528,8 @@ a:focus, a:hover {
   
   
   
+  
+  
 <h3>Requests</h3><dl><dt class="request"><a name="request_completion.getSuggestions">completion.getSuggestions</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "completion.getSuggestions"
@@ -4337,7 +4339,7 @@ a:focus, a:hover {
       An enumeration of the kinds of highlighting that can be applied to files.
     </p>
     
-  <dl><dt class="value">ANNOTATION</dt><dt class="value">BUILT_IN</dt><dt class="value">CLASS</dt><dt class="value">COMMENT_BLOCK</dt><dt class="value">COMMENT_DOCUMENTATION</dt><dt class="value">COMMENT_END_OF_LINE</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">DIRECTIVE</dt><dt class="value">DYNAMIC_TYPE</dt><dd>
+  <dl><dt class="value">ANNOTATION</dt><dt class="value">BUILT_IN</dt><dt class="value">CLASS</dt><dt class="value">COMMENT_BLOCK</dt><dt class="value">COMMENT_DOCUMENTATION</dt><dt class="value">COMMENT_END_OF_LINE</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">CONSTRUCTOR_TEAR_OFF</dt><dt class="value">DIRECTIVE</dt><dt class="value">DYNAMIC_TYPE</dt><dd>
         
         <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">DYNAMIC_LOCAL_VARIABLE_DECLARATION</dt><dt class="value">DYNAMIC_LOCAL_VARIABLE_REFERENCE</dt><dt class="value">DYNAMIC_PARAMETER_DECLARATION</dt><dt class="value">DYNAMIC_PARAMETER_REFERENCE</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dd>
@@ -4355,7 +4357,7 @@ a:focus, a:hover {
       </dd><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER_DECLARATION</dt><dd>
         
         <p>Deprecated - no longer sent.</p>
-      </dd><dt class="value">IDENTIFIER_DEFAULT</dt><dt class="value">IMPORT_PREFIX</dt><dt class="value">INSTANCE_FIELD_DECLARATION</dt><dt class="value">INSTANCE_FIELD_REFERENCE</dt><dt class="value">INSTANCE_GETTER_DECLARATION</dt><dt class="value">INSTANCE_GETTER_REFERENCE</dt><dt class="value">INSTANCE_METHOD_DECLARATION</dt><dt class="value">INSTANCE_METHOD_REFERENCE</dt><dt class="value">INSTANCE_SETTER_DECLARATION</dt><dt class="value">INSTANCE_SETTER_REFERENCE</dt><dt class="value">INVALID_STRING_ESCAPE</dt><dt class="value">KEYWORD</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY_NAME</dt><dt class="value">LITERAL_BOOLEAN</dt><dt class="value">LITERAL_DOUBLE</dt><dt class="value">LITERAL_INTEGER</dt><dt class="value">LITERAL_LIST</dt><dt class="value">LITERAL_MAP</dt><dt class="value">LITERAL_STRING</dt><dt class="value">LOCAL_FUNCTION_DECLARATION</dt><dt class="value">LOCAL_FUNCTION_REFERENCE</dt><dt class="value">LOCAL_VARIABLE</dt><dd>
+      </dd><dt class="value">IDENTIFIER_DEFAULT</dt><dt class="value">IMPORT_PREFIX</dt><dt class="value">INSTANCE_FIELD_DECLARATION</dt><dt class="value">INSTANCE_FIELD_REFERENCE</dt><dt class="value">INSTANCE_GETTER_DECLARATION</dt><dt class="value">INSTANCE_GETTER_REFERENCE</dt><dt class="value">INSTANCE_METHOD_DECLARATION</dt><dt class="value">INSTANCE_METHOD_REFERENCE</dt><dt class="value">INSTANCE_METHOD_TEAR_OFF</dt><dt class="value">INSTANCE_SETTER_DECLARATION</dt><dt class="value">INSTANCE_SETTER_REFERENCE</dt><dt class="value">INVALID_STRING_ESCAPE</dt><dt class="value">KEYWORD</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY_NAME</dt><dt class="value">LITERAL_BOOLEAN</dt><dt class="value">LITERAL_DOUBLE</dt><dt class="value">LITERAL_INTEGER</dt><dt class="value">LITERAL_LIST</dt><dt class="value">LITERAL_MAP</dt><dt class="value">LITERAL_STRING</dt><dt class="value">LOCAL_FUNCTION_DECLARATION</dt><dt class="value">LOCAL_FUNCTION_REFERENCE</dt><dt class="value">LOCAL_FUNCTION_TEAR_OFF</dt><dt class="value">LOCAL_VARIABLE</dt><dd>
         
         <p>Deprecated - no longer sent.</p>
       </dd><dt class="value">LOCAL_VARIABLE_DECLARATION</dt><dt class="value">LOCAL_VARIABLE_REFERENCE</dt><dt class="value">METHOD</dt><dd>
@@ -4379,7 +4381,7 @@ a:focus, a:hover {
       </dd><dt class="value">TOP_LEVEL_VARIABLE</dt><dd>
         
         <p>Deprecated - no longer sent.</p>
-      </dd><dt class="value">PARAMETER_DECLARATION</dt><dt class="value">PARAMETER_REFERENCE</dt><dt class="value">STATIC_FIELD_DECLARATION</dt><dt class="value">STATIC_GETTER_DECLARATION</dt><dt class="value">STATIC_GETTER_REFERENCE</dt><dt class="value">STATIC_METHOD_DECLARATION</dt><dt class="value">STATIC_METHOD_REFERENCE</dt><dt class="value">STATIC_SETTER_DECLARATION</dt><dt class="value">STATIC_SETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_FUNCTION_DECLARATION</dt><dt class="value">TOP_LEVEL_FUNCTION_REFERENCE</dt><dt class="value">TOP_LEVEL_GETTER_DECLARATION</dt><dt class="value">TOP_LEVEL_GETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_SETTER_DECLARATION</dt><dt class="value">TOP_LEVEL_SETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_VARIABLE_DECLARATION</dt><dt class="value">TYPE_ALIAS</dt><dt class="value">TYPE_NAME_DYNAMIC</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNRESOLVED_INSTANCE_MEMBER_REFERENCE</dt><dt class="value">VALID_STRING_ESCAPE</dt></dl></dd><dt class="typeDefinition"><a name="type_HoverInformation">HoverInformation: object</a></dt><dd>
+      </dd><dt class="value">PARAMETER_DECLARATION</dt><dt class="value">PARAMETER_REFERENCE</dt><dt class="value">STATIC_FIELD_DECLARATION</dt><dt class="value">STATIC_GETTER_DECLARATION</dt><dt class="value">STATIC_GETTER_REFERENCE</dt><dt class="value">STATIC_METHOD_DECLARATION</dt><dt class="value">STATIC_METHOD_REFERENCE</dt><dt class="value">STATIC_METHOD_TEAR_OFF</dt><dt class="value">STATIC_SETTER_DECLARATION</dt><dt class="value">STATIC_SETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_FUNCTION_DECLARATION</dt><dt class="value">TOP_LEVEL_FUNCTION_REFERENCE</dt><dt class="value">TOP_LEVEL_FUNCTION_TEAR_OFF</dt><dt class="value">TOP_LEVEL_GETTER_DECLARATION</dt><dt class="value">TOP_LEVEL_GETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_SETTER_DECLARATION</dt><dt class="value">TOP_LEVEL_SETTER_REFERENCE</dt><dt class="value">TOP_LEVEL_VARIABLE_DECLARATION</dt><dt class="value">TYPE_ALIAS</dt><dt class="value">TYPE_NAME_DYNAMIC</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNRESOLVED_INSTANCE_MEMBER_REFERENCE</dt><dt class="value">VALID_STRING_ESCAPE</dt></dl></dd><dt class="typeDefinition"><a name="type_HoverInformation">HoverInformation: object</a></dt><dd>
     <p>
       The hover information associated with a specific location.
     </p>

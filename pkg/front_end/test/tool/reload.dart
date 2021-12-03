@@ -107,7 +107,7 @@ const VERBOSE_DEBUG = false;
 /// launched with `--observe` to enable the service protocol.
 ///
 // TODO(sigmund): provide flags to configure the vm-service port.
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   if (args.length == 0) {
     print('usage: reload <entry-uri>');
     return;

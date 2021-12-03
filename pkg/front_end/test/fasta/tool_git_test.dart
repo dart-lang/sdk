@@ -47,14 +47,14 @@ const List<String> unsafeTools = const <String>[
   "testing",
 ];
 
-main() {
+void main() {
   if (!Platform.isMacOS && !Platform.isLinux) {
     // The tool is a shell script and only works on Mac and Linux.
     return;
   }
   Set<String> testedSubtools = new Set<String>.from(subtools)
       .difference(new Set<String>.from(unsafeTools));
-  String usage = messageFastaUsageShort.message;
+  String usage = messageFastaUsageShort.problemMessage;
   Map expectations = {
     "abcompile": {
       "exitCode": 1,

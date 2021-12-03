@@ -112,6 +112,18 @@ library /*isNonNullableByDefault*/;
 // int topLevelMethodAndSetter2() => 1;
 //     ^
 //
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:82:13: Error: Can't use 'topLevelMethod' because it is declared more than once.
+// var field = topLevelMethod;
+//             ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:84:2: Error: Can't use 'topLevelMethod' because it is declared more than once.
+// @topLevelMethod
+//  ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:84:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// @topLevelMethod
+//  ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -124,6 +136,7 @@ late static final [setter] field core::int topLevelLateFinalFieldAndSetter2;
 static final field core::int topLevelDuplicateFieldAndSetter;
 static final field core::int topLevelFieldAndDuplicateSetter;
 static final field core::int topLevelDuplicateFieldAndDuplicateSetter;
+static field invalid-type field;
 static const field dynamic _exports# = "{\"topLevelSetter\":\"'topLevelSetter' is exported from both 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart' and 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart'.\",\"topLevelFieldAndDuplicateSetter\":\"'topLevelFieldAndDuplicateSetter' is exported from both 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart' and 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart'.\",\"topLevelDuplicateFieldAndDuplicateSetter\":\"'topLevelDuplicateFieldAndDuplicateSetter' is exported from both 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart' and 'pkg/front_end/testcases/nnbd/duplicates_toplevel.dart'.\"}" /*isLegacy*/;
 static method topLevelMethod() → core::int
   ;
@@ -145,6 +158,11 @@ static set topLevelMethodAndSetter2(core::int value) → void
   ;
 static method topLevelMethodAndSetter2() → core::int
   ;
+@invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:84:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+@topLevelMethod
+ ^" in invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:84:2: Error: Can't use 'topLevelMethod' because it is declared more than once.
+@topLevelMethod
+ ^"
 static method test() → dynamic
   ;
 static method main() → dynamic

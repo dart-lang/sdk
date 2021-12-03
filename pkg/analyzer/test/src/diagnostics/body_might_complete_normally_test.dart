@@ -367,4 +367,15 @@ class A {
 }
 ''');
   }
+
+  test_setter() async {
+    // Even though this code has an illegal return type for a setter, do not
+    // use the invalid return type to report BODY_MIGHT_COMPLETE_NORMALLY for
+    // setters.
+    await assertErrorsInCode(r'''
+bool set s(int value) {}
+''', [
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 0, 4),
+    ]);
+  }
 }

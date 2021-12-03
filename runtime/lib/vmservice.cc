@@ -62,7 +62,7 @@ DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 0, 2) {
   // Serialize message.
   // TODO(turnidge): Throw an exception when the return value is false?
   bool result = PortMap::PostMessage(WriteMessage(
-      /* can_send_any_object */ false, message, sp.Id(),
+      /* can_send_any_object */ false, /* same_group */ false, message, sp.Id(),
       Message::kOOBPriority));
   return Bool::Get(result).ptr();
 #else

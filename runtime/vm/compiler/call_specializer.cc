@@ -968,21 +968,6 @@ bool CallSpecializer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   return TryInlineImplicitInstanceGetter(call);
 }
 
-void CallSpecializer::ReplaceWithMathCFunction(
-    InstanceCallInstr* call,
-    MethodRecognizer::Kind recognized_kind) {
-  ASSERT(call->type_args_len() == 0);
-  AddReceiverCheck(call);
-  ZoneGrowableArray<Value*>* args =
-      new (Z) ZoneGrowableArray<Value*>(call->ArgumentCount());
-  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
-    args->Add(new (Z) Value(call->ArgumentAt(i)));
-  }
-  InvokeMathCFunctionInstr* invoke = new (Z) InvokeMathCFunctionInstr(
-      args, call->deopt_id(), recognized_kind, call->source());
-  ReplaceCall(call, invoke);
-}
-
 // Inline only simple, frequently called core library methods.
 bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   const CallTargets& targets = call->Targets();
@@ -1025,7 +1010,8 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         Definition* d2i_instr = NULL;
         if (ic_data.HasDeoptReason(ICData::kDeoptDoubleToSmi)) {
           // Do not repeatedly deoptimize because result didn't fit into Smi.
-          d2i_instr = new (Z) DoubleToIntegerInstr(new (Z) Value(input), call);
+          d2i_instr = new (Z) DoubleToIntegerInstr(
+              new (Z) Value(input), recognized_kind, call->deopt_id());
         } else {
           // Optimistically assume result fits into Smi.
           d2i_instr =
@@ -1034,23 +1020,6 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         ReplaceCall(call, d2i_instr);
         return true;
       }
-      case MethodRecognizer::kDoubleMod:
-      case MethodRecognizer::kDoubleRound:
-        ReplaceWithMathCFunction(call, recognized_kind);
-        return true;
-      case MethodRecognizer::kDoubleTruncate:
-      case MethodRecognizer::kDoubleFloor:
-      case MethodRecognizer::kDoubleCeil:
-        if (!TargetCPUFeatures::double_truncate_round_supported()) {
-          ReplaceWithMathCFunction(call, recognized_kind);
-        } else {
-          AddReceiverCheck(call);
-          DoubleToDoubleInstr* d2d_instr =
-              new (Z) DoubleToDoubleInstr(new (Z) Value(call->ArgumentAt(0)),
-                                          recognized_kind, call->deopt_id());
-          ReplaceCall(call, d2d_instr);
-        }
-        return true;
       default:
         break;
     }

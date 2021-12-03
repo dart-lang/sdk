@@ -52,7 +52,6 @@ Future checkTests(Directory dataDir,
     testCount++;
     List<String> testOptions = options.toList();
     testOptions.add(Flags.dumpInfo);
-    testOptions.add('--out=out.js');
     if (onTest != null) {
       onTest(entity.uri);
     }

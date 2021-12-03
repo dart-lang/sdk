@@ -103,6 +103,18 @@ static inline void objcpy(void* dst, const void* src, size_t size) {
   } while (size > 0);
 }
 
+DART_FORCE_INLINE
+static uword ReadHeaderRelaxed(ObjectPtr raw_obj) {
+  return reinterpret_cast<std::atomic<uword>*>(UntaggedObject::ToAddr(raw_obj))
+      ->load(std::memory_order_relaxed);
+}
+
+DART_FORCE_INLINE
+static void WriteHeaderRelaxed(ObjectPtr raw_obj, uword header) {
+  reinterpret_cast<std::atomic<uword>*>(UntaggedObject::ToAddr(raw_obj))
+      ->store(header, std::memory_order_relaxed);
+}
+
 template <bool parallel>
 class ScavengerVisitorBase : public ObjectPointerVisitor {
  public:
@@ -121,6 +133,9 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
         visiting_old_object_(nullptr),
         promoted_list_(promotion_stack),
         delayed_weak_properties_(WeakProperty::null()) {}
+  ~ScavengerVisitorBase() {
+    ASSERT(delayed_weak_properties_ == WeakProperty::null());
+  }
 
   virtual void VisitTypedDataViewPointers(TypedDataViewPtr view,
                                           CompressedObjectPtr* first,
@@ -151,16 +166,14 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     }
 
     // Validate 'this' is a typed data view.
-    const uword view_header =
-        *reinterpret_cast<uword*>(UntaggedObject::ToAddr(view));
+    const uword view_header = ReadHeaderRelaxed(view);
     ASSERT(!IsForwarding(view_header) || view->IsOldObject());
     ASSERT(IsTypedDataViewClassId(view->GetClassIdMayBeSmi()));
 
     // Validate that the backing store is not a forwarding word.
     TypedDataBasePtr td = view->untag()->typed_data();
     ASSERT(td->IsHeapObject());
-    const uword td_header =
-        *reinterpret_cast<uword*>(UntaggedObject::ToAddr(td));
+    const uword td_header = ReadHeaderRelaxed(td);
     ASSERT(!IsForwarding(td_header) || td->IsOldObject());
 
     if (!parallel) {
@@ -265,6 +278,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   void Finalize() {
     if (scavenger_->abort_) {
       promoted_list_.AbandonWork();
+      delayed_weak_properties_ = WeakProperty::null();
     } else {
       ASSERT(!HasWork());
 
@@ -288,11 +302,12 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   void UpdateStoreBuffer(ObjectPtr obj) {
     ASSERT(obj->IsHeapObject());
     // If the newly written object is not a new object, drop it immediately.
-    if (!obj->IsNewObject() || visiting_old_object_->untag()->IsRemembered()) {
+    if (!obj->IsNewObject()) {
       return;
     }
-    visiting_old_object_->untag()->SetRememberedBit();
-    thread_->StoreBufferAddObjectGC(visiting_old_object_);
+    if (visiting_old_object_->untag()->TryAcquireRememberedBit()) {
+      thread_->StoreBufferAddObjectGC(visiting_old_object_);
+    }
   }
 
   DART_FORCE_INLINE
@@ -351,8 +366,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     ASSERT(from_->Contains(raw_addr));
     // Read the header word of the object and determine if the object has
     // already been copied.
-    uword header = reinterpret_cast<std::atomic<uword>*>(raw_addr)->load(
-        std::memory_order_relaxed);
+    uword header = ReadHeaderRelaxed(raw_obj);
     ObjectPtr new_obj;
     if (IsForwarding(header)) {
       // Get the new location of the object.
@@ -637,15 +651,17 @@ void SemiSpace::Init() {
   page_cache_mutex = new Mutex(NOT_IN_PRODUCT("page_cache_mutex"));
 }
 
-void SemiSpace::Cleanup() {
-  {
-    MutexLocker ml(page_cache_mutex);
-    ASSERT(page_cache_size >= 0);
-    ASSERT(page_cache_size <= kPageCacheCapacity);
-    while (page_cache_size > 0) {
-      delete page_cache[--page_cache_size];
-    }
+void SemiSpace::DrainCache() {
+  MutexLocker ml(page_cache_mutex);
+  ASSERT(page_cache_size >= 0);
+  ASSERT(page_cache_size <= kPageCacheCapacity);
+  while (page_cache_size > 0) {
+    delete page_cache[--page_cache_size];
   }
+}
+
+void SemiSpace::Cleanup() {
+  DrainCache();
   delete page_cache_mutex;
   page_cache_mutex = nullptr;
 }
@@ -669,9 +685,10 @@ NewPage* NewPage::Allocate() {
   if (memory == nullptr) {
     const intptr_t alignment = kNewPageSize;
     const bool is_executable = false;
+    const bool compressed = true;
     const char* const name = Heap::RegionName(Heap::kNew);
-    memory =
-        VirtualMemory::AllocateAligned(size, alignment, is_executable, name);
+    memory = VirtualMemory::AllocateAligned(size, alignment, is_executable,
+                                            compressed, name);
   }
   if (memory == nullptr) {
     return nullptr;  // Out of memory.
@@ -803,17 +820,26 @@ Scavenger::~Scavenger() {
   ASSERT(blocks_ == nullptr);
 }
 
-intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
-  if (stats_history_.Size() == 0) {
+intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words,
+                                   GCReason reason) const {
+  if (reason != GCReason::kNewSpace) {
+    // If we GC for a reason other than new-space being full, that's not an
+    // indication that new-space is too small.
     return old_size_in_words;
   }
-  double garbage = stats_history_.Get(0).ExpectedGarbageFraction();
-  if (garbage < (FLAG_new_gen_garbage_threshold / 100.0)) {
-    return Utils::Minimum(max_semi_capacity_in_words_,
-                          old_size_in_words * FLAG_new_gen_growth_factor);
-  } else {
-    return old_size_in_words;
+
+  if (stats_history_.Size() != 0) {
+    double garbage = stats_history_.Get(0).ExpectedGarbageFraction();
+    if (garbage < (FLAG_new_gen_garbage_threshold / 100.0)) {
+      // Too much survived last time; grow new-space in the hope that a greater
+      // fraction of objects will become unreachable before new-space becomes
+      // full.
+      return Utils::Minimum(max_semi_capacity_in_words_,
+                            old_size_in_words * FLAG_new_gen_growth_factor);
+    }
   }
+
+  return old_size_in_words;
 }
 
 class CollectStoreBufferVisitor : public ObjectPointerVisitor {
@@ -960,7 +986,7 @@ void Scavenger::VerifyStoreBuffers() {
   }
 }
 
-SemiSpace* Scavenger::Prologue() {
+SemiSpace* Scavenger::Prologue(GCReason reason) {
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Prologue");
 
   heap_->isolate_group()->ReleaseStoreBuffers();
@@ -982,7 +1008,7 @@ SemiSpace* Scavenger::Prologue() {
   {
     MutexLocker ml(&space_lock_);
     from = to_;
-    to_ = new SemiSpace(NewSizeInWords(from->max_capacity_in_words()));
+    to_ = new SemiSpace(NewSizeInWords(from->max_capacity_in_words(), reason));
   }
   UpdateMaxHeapCapacity();
 
@@ -1083,8 +1109,10 @@ bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
 
   // TODO(rmacnak): Investigate collecting a history of idle period durations.
   intptr_t used_in_words = UsedInWords();
+  intptr_t external_in_words = ExternalInWords();
   // Normal reason: new space is getting full.
-  bool for_new_space = used_in_words >= idle_scavenge_threshold_in_words_;
+  bool for_new_space = (used_in_words >= idle_scavenge_threshold_in_words_) ||
+                       (external_in_words >= idle_scavenge_threshold_in_words_);
   // New-space objects are roots during old-space GC. This means that even
   // unreachable new-space objects prevent old-space objects they reference
   // from being collected during an old-space GC. Normally this is not an
@@ -1120,13 +1148,10 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
   // Grab the deduplication sets out of the isolate's consolidated store buffer.
   StoreBuffer* store_buffer = heap_->isolate_group()->store_buffer();
   StoreBufferBlock* pending = blocks_;
-  intptr_t total_count = 0;
   while (pending != nullptr) {
     StoreBufferBlock* next = pending->next();
     // Generated code appends to store buffers; tell MemorySanitizer.
     MSAN_UNPOISON(pending, sizeof(*pending));
-    intptr_t count = pending->Count();
-    total_count += count;
     while (!pending->IsEmpty()) {
       ObjectPtr raw_object = pending->Pop();
       ASSERT(!raw_object->IsForwardingCorpse());
@@ -1144,10 +1169,6 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor) {
   }
   // Done iterating through old objects remembered in the store buffers.
   visitor->VisitingOldObject(nullptr);
-
-  heap_->RecordData(kStoreBufferEntries, total_count);
-  heap_->RecordData(kDataUnused1, 0);
-  heap_->RecordData(kDataUnused2, 0);
 }
 
 template <bool parallel>
@@ -1291,7 +1312,7 @@ void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
     ASSERT(raw_key->IsNewObject());
     uword raw_addr = UntaggedObject::ToAddr(raw_key);
     ASSERT(from_->Contains(raw_addr));
-    uword header = *reinterpret_cast<uword*>(raw_addr);
+    uword header = ReadHeaderRelaxed(raw_key);
     // Reset the next pointer in the weak property.
     cur_weak->untag()->next_ = WeakProperty::null();
     if (IsForwarding(header)) {
@@ -1336,8 +1357,7 @@ void ScavengerVisitorBase<parallel>::EnqueueWeakProperty(
   ASSERT(raw_weak->IsNewObject());
   ASSERT(raw_weak->IsWeakProperty());
 #if defined(DEBUG)
-  uword raw_addr = UntaggedObject::ToAddr(raw_weak);
-  uword header = *reinterpret_cast<uword*>(raw_addr);
+  uword header = ReadHeaderRelaxed(raw_weak);
   ASSERT(!IsForwarding(header));
 #endif  // defined(DEBUG)
   ASSERT(raw_weak->untag()->next_ ==
@@ -1354,8 +1374,7 @@ intptr_t ScavengerVisitorBase<parallel>::ProcessCopied(ObjectPtr raw_obj) {
     // The fate of the weak property is determined by its key.
     ObjectPtr raw_key = raw_weak->untag()->key();
     if (raw_key->IsHeapObject() && raw_key->IsNewObject()) {
-      uword raw_addr = UntaggedObject::ToAddr(raw_key);
-      uword header = *reinterpret_cast<uword*>(raw_addr);
+      uword header = ReadHeaderRelaxed(raw_key);
       if (!IsForwarding(header)) {
         // Key is white.  Enqueue the weak property.
         EnqueueWeakProperty(raw_weak);
@@ -1560,7 +1579,7 @@ uword ScavengerVisitorBase<parallel>::TryAllocateCopySlow(intptr_t size) {
   return tail_->TryAllocateGC(size);
 }
 
-void Scavenger::Scavenge() {
+void Scavenger::Scavenge(GCReason reason) {
   int64_t start = OS::GetCurrentMonotonicMicros();
 
   // Ensure that all threads for this isolate are at a safepoint (either stopped
@@ -1599,7 +1618,7 @@ void Scavenger::Scavenge() {
     }
     promo_candidate_words += page->promo_candidate_words();
   }
-  SemiSpace* from = Prologue();
+  SemiSpace* from = Prologue(reason);
 
   intptr_t bytes_promoted;
   if (FLAG_scavenger_tasks == 0) {
@@ -1699,20 +1718,11 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
   TIMELINE_FUNCTION_GC_DURATION(thread, "ReverseScavenge");
 
   class ReverseFromForwardingVisitor : public ObjectVisitor {
-    uword ReadHeader(ObjectPtr raw_obj) {
-      return reinterpret_cast<std::atomic<uword>*>(
-                 UntaggedObject::ToAddr(raw_obj))
-          ->load(std::memory_order_relaxed);
-    }
-    void WriteHeader(ObjectPtr raw_obj, uword header) {
-      reinterpret_cast<std::atomic<uword>*>(UntaggedObject::ToAddr(raw_obj))
-          ->store(header, std::memory_order_relaxed);
-    }
     void VisitObject(ObjectPtr from_obj) {
-      uword from_header = ReadHeader(from_obj);
+      uword from_header = ReadHeaderRelaxed(from_obj);
       if (IsForwarding(from_header)) {
         ObjectPtr to_obj = ForwardedObj(from_header);
-        uword to_header = ReadHeader(to_obj);
+        uword to_header = ReadHeaderRelaxed(to_obj);
         intptr_t size = to_obj->untag()->HeapSize();
 
         // Reset the ages bits in case this was a promotion.
@@ -1724,7 +1734,7 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
         from_header =
             UntaggedObject::OldAndNotMarkedBit::update(false, from_header);
 
-        WriteHeader(from_obj, from_header);
+        WriteHeaderRelaxed(from_obj, from_header);
 
         ForwardingCorpse::AsForwarder(UntaggedObject::ToAddr(to_obj), size)
             ->set_target(from_obj);
@@ -1803,7 +1813,7 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
 }
 #endif  // !PRODUCT
 
-void Scavenger::Evacuate() {
+void Scavenger::Evacuate(GCReason reason) {
   // We need a safepoint here to prevent allocation right before or right after
   // the scavenge.
   // The former can introduce an object that we might fail to collect.
@@ -1815,7 +1825,7 @@ void Scavenger::Evacuate() {
   // Forces the next scavenge to promote all the objects in the new space.
   early_tenure_ = true;
 
-  Scavenge();
+  Scavenge(reason);
 
   // It is possible for objects to stay in the new space
   // if the VM cannot create more pages for these objects.

@@ -32,7 +32,7 @@ bool CHA::IsGuardedClass(intptr_t cid) const {
 
 bool CHA::HasSubclasses(const Class& cls) {
   ASSERT(!cls.IsNull());
-  ASSERT(cls.id() >= kInstanceCid);
+  ASSERT(!IsInternalOnlyClassId(cls.id()));
   // Can't track dependencies for classes on the VM heap since those are
   // read-only.
   // TODO(fschneider): Enable tracking of CHA dependent code for VM heap

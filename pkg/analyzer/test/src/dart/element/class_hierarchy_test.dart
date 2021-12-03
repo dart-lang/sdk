@@ -15,38 +15,13 @@ import '../../../generated/type_system_test.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ClassHierarchyLegacyTest);
-    defineReflectiveTests(ClassHierarchyNullSafetyTest);
+    defineReflectiveTests(ClassHierarchyTest);
+    defineReflectiveTests(ClassHierarchyWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ClassHierarchyLegacyTest extends AbstractTypeSystemTest
-    with _AbstractClassHierarchyMixin {
-  @override
-  void setUp() {
-    super.setUp();
-    _createSharedElements();
-  }
-
-  test_invalid() {
-    _checkA(
-      typeArguments: [intNone, doubleNone],
-      interfaces: ['A<int*>'],
-      errors: ['A<int*> vs. A<double*>'],
-    );
-  }
-
-  test_valid() {
-    _checkA(
-      typeArguments: [intNone, intQuestion],
-      interfaces: ['A<int*>'],
-    );
-  }
-}
-
-@reflectiveTest
-class ClassHierarchyNullSafetyTest extends AbstractTypeSystemNullSafetyTest
+class ClassHierarchyTest extends AbstractTypeSystemTest
     with _AbstractClassHierarchyMixin {
   @override
   void setUp() {
@@ -80,6 +55,32 @@ class ClassHierarchyNullSafetyTest extends AbstractTypeSystemNullSafetyTest
     _checkA(
       typeArguments: [objectQuestion, dynamicNone],
       interfaces: ['A<Object?>'],
+    );
+  }
+}
+
+@reflectiveTest
+class ClassHierarchyWithoutNullSafetyTest
+    extends AbstractTypeSystemWithoutNullSafetyTest
+    with _AbstractClassHierarchyMixin {
+  @override
+  void setUp() {
+    super.setUp();
+    _createSharedElements();
+  }
+
+  test_invalid() {
+    _checkA(
+      typeArguments: [intNone, doubleNone],
+      interfaces: ['A<int*>'],
+      errors: ['A<int*> vs. A<double*>'],
+    );
+  }
+
+  test_valid() {
+    _checkA(
+      typeArguments: [intNone, intQuestion],
+      interfaces: ['A<int*>'],
     );
   }
 }

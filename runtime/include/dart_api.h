@@ -28,7 +28,7 @@
 #ifdef __cplusplus
 #define DART_EXTERN_C extern "C"
 #else
-#define DART_EXTERN_C
+#define DART_EXTERN_C extern
 #endif
 
 #if defined(__CYGWIN__)
@@ -608,6 +608,7 @@ typedef struct {
   bool copy_parent_code;
   bool null_safety;
   bool is_system_isolate;
+  bool snapshot_is_dontneed_safe;
 } Dart_IsolateFlags;
 
 /**
@@ -3046,7 +3047,7 @@ typedef const uint8_t* (*Dart_NativeEntrySymbol)(Dart_NativeFunction nf);
  *
  * See Dart_SetFfiNativeResolver.
  */
-typedef void* (*Dart_FfiNativeResolver)(const char* name);
+typedef void* (*Dart_FfiNativeResolver)(const char* name, uintptr_t args_n);
 
 /*
  * ===========
@@ -3136,7 +3137,6 @@ typedef enum {
   Dart_kCanonicalizeUrl = 0,
   Dart_kImportTag,
   Dart_kKernelTag,
-  Dart_kImportExtensionTag,
 } Dart_LibraryTag;
 
 /**
@@ -3171,10 +3171,6 @@ typedef enum {
  * script tags. The return value should be an error or a TypedData containing
  * the kernel bytes.
  *
- * Dart_kImportExtensionTag
- *
- * This tag is used to load an external import (shared object file). The
- * extension path must have the scheme 'dart-ext:'.
  */
 typedef Dart_Handle (*Dart_LibraryTagHandler)(
     Dart_LibraryTag tag,
@@ -3455,17 +3451,6 @@ Dart_LoadLibraryFromKernel(const uint8_t* kernel_buffer,
                            intptr_t kernel_buffer_size);
 
 /**
- * Returns a flattened list of pairs. The first element in each pair is the
- * importing library and and the second element is the imported library for each
- * import in the isolate of a library whose URI's scheme is [scheme].
- *
- * Requires there to be a current isolate.
- *
- * \return A handle to a list of flattened pairs of importer-importee.
- */
-DART_EXPORT Dart_Handle Dart_GetImportsOfScheme(Dart_Handle scheme);
-
-/**
  * Indicates that all outstanding load requests have been satisfied.
  * This finalizes all the new classes loaded and optionally completes
  * deferred library futures.
@@ -3538,6 +3523,7 @@ typedef enum {
   Dart_KernelCompilationStatus_Ok = 0,
   Dart_KernelCompilationStatus_Error = 1,
   Dart_KernelCompilationStatus_Crash = 2,
+  Dart_KernelCompilationStatus_MsgFailed = 3,
 } Dart_KernelCompilationStatus;
 
 typedef struct {

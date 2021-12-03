@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -94,7 +93,6 @@ main() {
 ''', [
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 71,
           1),
-      error(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, 71, 1),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 71, 1),
     ]);
   }

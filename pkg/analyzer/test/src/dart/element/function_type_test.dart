@@ -5,13 +5,11 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
+import '../../../generated/type_system_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -24,10 +22,7 @@ DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
 VoidTypeImpl get voidType => VoidTypeImpl.instance;
 
 @reflectiveTest
-class FunctionTypeTest with ElementsTypesMixin {
-  @override
-  final TypeProvider typeProvider = TestTypeProvider();
-
+class FunctionTypeTest extends AbstractTypeSystemTest {
   InterfaceType get intType => typeProvider.intType;
 
   ClassElement get listElement => typeProvider.listElement;

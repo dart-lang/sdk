@@ -99,10 +99,16 @@ class NoType implements TypeInfo {
   bool get couldBeExpression => false;
 
   @override
+  bool get hasTypeArguments => false;
+
+  @override
   bool get isNullable => false;
 
   @override
   bool get isFunctionType => false;
+
+  @override
+  bool get recovered => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
@@ -143,10 +149,16 @@ class PrefixedType implements TypeInfo {
   bool get couldBeExpression => true;
 
   @override
+  bool get hasTypeArguments => false;
+
+  @override
   bool get isNullable => false;
 
   @override
   bool get isFunctionType => false;
+
+  @override
+  bool get recovered => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -201,6 +213,9 @@ class SimpleNullableTypeWith1Argument extends SimpleTypeWith1Argument {
   bool get isFunctionType => false;
 
   @override
+  bool get recovered => false;
+
+  @override
   Token parseTypeRest(Token start, Token token, Parser parser) {
     token = token.next!;
     assert(optional('?', token));
@@ -229,10 +244,16 @@ class SimpleTypeWith1Argument implements TypeInfo {
   bool get couldBeExpression => false;
 
   @override
+  bool get hasTypeArguments => true;
+
+  @override
   bool get isNullable => false;
 
   @override
   bool get isFunctionType => false;
+
+  @override
+  bool get recovered => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -282,6 +303,9 @@ class SimpleNullableType extends SimpleType {
   bool get isFunctionType => false;
 
   @override
+  bool get recovered => false;
+
+  @override
   Token parseTypeRest(Token start, Parser parser) {
     Token token = start.next!;
     assert(optional('?', token));
@@ -306,10 +330,16 @@ class SimpleType implements TypeInfo {
   bool get couldBeExpression => true;
 
   @override
+  bool get hasTypeArguments => false;
+
+  @override
   bool get isNullable => false;
 
   @override
   bool get isFunctionType => false;
+
+  @override
+  bool get recovered => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -354,10 +384,16 @@ class VoidType implements TypeInfo {
   bool get couldBeExpression => false;
 
   @override
+  bool get hasTypeArguments => false;
+
+  @override
   bool get isNullable => false;
 
   @override
   bool get isFunctionType => false;
+
+  @override
+  bool get recovered => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
@@ -413,14 +449,6 @@ class VoidType implements TypeInfo {
 }
 
 bool looksLikeName(Token token) {
-  // End-of-file isn't a name, but this is called in a situation where
-  // if there had been a name it would have used the type-info it had
-  // collected --- this being eof probably mean the user is currently
-  // typing and will probably write a name in a moment.
-  return looksLikeNameSimpleType(token) || token.isEof;
-}
-
-bool looksLikeNameSimpleType(Token token) {
   return token.kind == IDENTIFIER_TOKEN ||
       optional('this', token) ||
       (token.isIdentifier &&
@@ -428,6 +456,16 @@ bool looksLikeNameSimpleType(Token token) {
           // type `typedef` identifier is not legal and in this situation
           // `typedef` is probably a separate declaration.
           (!optional('typedef', token) || !token.next!.isIdentifier));
+}
+
+bool looksLikeNameOrEndOfBlock(Token token) {
+  // End-of-file isn't a name, but this is called in a situation where
+  // if there had been a name it would have used the type-info it had
+  // collected --- this being eof probably mean the user is currently
+  // typing and will probably write a name in a moment.
+  // The same logic applies to "}" which ends for instance a class. Again,
+  // the user is likely typing and will soon write a name.
+  return looksLikeName(token) || token.isEof || optional('}', token);
 }
 
 /// When missing a comma, determine if the given token looks like it should
@@ -469,26 +507,38 @@ class ComplexTypeInfo implements TypeInfo {
   /// whether it has a return type, otherwise this is `null`.
   bool? gftHasReturnType;
 
+  @override
+  bool recovered;
+
   ComplexTypeInfo(Token beforeStart, this.typeArguments)
-      : this.start = beforeStart.next! {
+      : this.start = beforeStart.next!,
+        recovered = typeArguments.recovered {
     // ignore: unnecessary_null_comparison
     assert(typeArguments != null);
   }
 
   ComplexTypeInfo._nonNullable(this.start, this.typeArguments, this.end,
-      this.typeVariableStarters, this.gftHasReturnType);
+      this.typeVariableStarters, this.gftHasReturnType, this.recovered);
 
   @override
   TypeInfo get asNonNullable {
     return beforeQuestionMark == null
         ? this
-        : new ComplexTypeInfo._nonNullable(start, typeArguments,
-            beforeQuestionMark, typeVariableStarters, gftHasReturnType);
+        : new ComplexTypeInfo._nonNullable(
+            start,
+            typeArguments,
+            beforeQuestionMark,
+            typeVariableStarters,
+            gftHasReturnType,
+            recovered);
   }
 
   @override
   bool get couldBeExpression =>
       typeArguments == noTypeParamOrArg && typeVariableStarters.isEmpty;
+
+  @override
+  bool get hasTypeArguments => typeArguments is! NoTypeParamOrArg;
 
   @override
   bool get isNullable => beforeQuestionMark != null;
@@ -669,7 +719,7 @@ class ComplexTypeInfo implements TypeInfo {
 
   /// Given a builtin, return the receiver so that parseType will report
   /// an error for the builtin used as a type.
-  TypeInfo computeBuiltinOrVarAsType(bool required) {
+  ComplexTypeInfo computeBuiltinOrVarAsType(bool required) {
     assert(start.type.isBuiltIn || optional('var', start));
 
     end = typeArguments.skip(start);
@@ -688,7 +738,9 @@ class ComplexTypeInfo implements TypeInfo {
     end = typeArguments.skip(start);
     computeRest(end!, required);
 
-    if (!required && !looksLikeName(end!.next!) && gftHasReturnType == null) {
+    if (!required &&
+        !looksLikeNameOrEndOfBlock(end!.next!) &&
+        gftHasReturnType == null) {
       return noType;
     }
     assert(end != null);
@@ -824,11 +876,8 @@ class SimpleTypeArgument1 extends TypeParamOrArgInfo {
     listener.beginTypeVariable(token);
     listener.handleTypeVariablesDefined(token, /* count = */ 1);
     listener.handleNoType(token);
-    listener.endTypeVariable(
-        endGroup,
-        /* index = */ 0,
-        /* extendsOrSuper = */ null,
-        /* variance = */ null);
+    listener.endTypeVariable(endGroup, /* index = */ 0,
+        /* extendsOrSuper = */ null, /* variance = */ null);
     listener.endTypeVariables(beginGroup, endGroup);
     return endGroup;
   }
@@ -944,6 +993,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     while (true) {
       TypeInfo typeInfo =
           computeType(next, /* required = */ true, inDeclaration);
+      recovered = recovered | typeInfo.recovered;
       if (typeInfo == noType) {
         while (typeInfo == noType && optional('@', next.next!)) {
           next = skipMetadata(next);

@@ -12,11 +12,13 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
         main() {
           foo();
         }
       lib.dart: |
+        // @dart=2.9
         class Foo {
           const Foo(int i) : assert(i > 0);
         }
@@ -32,6 +34,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
         import 'lib2.dart';
         main() {
@@ -39,6 +42,7 @@ worlds:
           bar();
         }
       lib2.dart: |
+        // @dart=2.9
         import 'lib.dart';
         class Bar {
           final Foo x;
@@ -54,6 +58,7 @@ worlds:
       - lib2.dart
     sources:
       lib2.dart: |
+        // @dart=2.9
         import 'lib.dart';
         class Bar {
           final Foo x;

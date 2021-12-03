@@ -315,9 +315,15 @@ class AnnotateKernel extends RecursiveVisitor {
     Constant? constantValue;
     bool isInt = false;
 
-    final nullable = type is NullableType;
+    // Note: the explicit type `bool` is needed because the checked-in version
+    // of the CFE that we use for bootstrapping doesn't yet have constructor
+    // tearoffs enabled, and the fix for bug
+    // https://github.com/dart-lang/language/issues/1785 only takes effect when
+    // constructor tearoffs are enabled.  TODO(paulberry): remove the type after
+    // the bootstrap CFE enables constructor tearoffs.
+    final bool nullable = type is NullableType;
     if (nullable) {
-      type = (type as NullableType).baseType;
+      type = type.baseType;
     }
 
     if (nullable && type == const EmptyType()) {
@@ -874,8 +880,8 @@ class FieldMorpher {
     if (isSetter) {
       final isAbstract = !shaker.isFieldSetterReachable(field);
       final parameter = new VariableDeclaration('value', type: field.type)
-        ..isCovariant = field.isCovariant
-        ..isGenericCovariantImpl = field.isGenericCovariantImpl
+        ..isCovariantByDeclaration = field.isCovariantByDeclaration
+        ..isCovariantByClass = field.isCovariantByClass
         ..fileOffset = field.fileOffset;
       accessor = new Procedure(
           field.name,
@@ -1391,9 +1397,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
       return _makeUnreachableCall([]);
     } else {
       if (!shaker.isMemberBodyReachable(node.target)) {
-        // Annotations could contain references to constant fields.
-        assert((node.target is Field) && (node.target as Field).isConst);
-        shaker.addUsedMember(node.target);
+        throw '${node.runtimeType} "$node" uses unreachable member '
+            '${node.target} at ${node.location}';
       }
       return node;
     }
@@ -1429,9 +1434,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
       return _makeUnreachableCall(_flattenArguments(node.arguments));
     } else {
       if (!shaker.isMemberBodyReachable(node.target)) {
-        // Annotations could contain references to const constructors.
-        assert(node.isConst);
-        shaker.addUsedMember(node.target);
+        throw '${node.runtimeType} "$node" uses unreachable member '
+            '${node.target} at ${node.location}';
       }
       return node;
     }
@@ -1753,6 +1757,11 @@ class _TreeShakerPass2 extends RemovingTransformer {
       // write a dangling reference to the deleted member.
       if (node is Field) {
         assert(
+            node.fieldReference.node == node,
+            "Trying to remove canonical name from field reference on $node "
+            "which has been repurposed for ${node.fieldReference.node}.");
+        node.fieldReference.canonicalName?.unbind();
+        assert(
             node.getterReference.node == node,
             "Trying to remove canonical name from getter reference on $node "
             "which has been repurposed for ${node.getterReference.node}.");
@@ -1900,6 +1909,13 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   visitDoubleConstant(DoubleConstant constant) {}
 
   @override
+  visitSetConstant(SetConstant constant) {
+    for (final entry in constant.entries) {
+      analyzeConstant(entry);
+    }
+  }
+
+  @override
   visitStringConstant(StringConstant constant) {}
 
   @override
@@ -1908,8 +1924,11 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   }
 
   @override
-  visitMapConstant(MapConstant node) {
-    throw 'The kernel2kernel constants transformation desugars const maps!';
+  visitMapConstant(MapConstant constant) {
+    for (final entry in constant.entries) {
+      analyzeConstant(entry.key);
+      analyzeConstant(entry.value);
+    }
   }
 
   @override
@@ -1940,6 +1959,12 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
 
   @override
   visitConstructorTearOffConstant(ConstructorTearOffConstant constant) {
+    shaker.addUsedMember(constant.target);
+  }
+
+  @override
+  visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant constant) {
     shaker.addUsedMember(constant.target);
   }
 

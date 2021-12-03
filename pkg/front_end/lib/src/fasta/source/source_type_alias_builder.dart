@@ -18,7 +18,9 @@ import '../fasta_codes.dart'
     show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
 
 import '../problems.dart' show unhandled;
+import '../scope.dart';
 
+import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -40,15 +42,19 @@ import '../util/helpers.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
+  @override
   final TypeBuilder? type;
 
   final List<TypeVariableBuilder>? _typeVariables;
 
   /// The [Typedef] built by this builder.
+  @override
   final Typedef typedef;
 
+  @override
   DartType? thisType;
 
+  @override
   Map<Name, Procedure>? tearOffs;
 
   SourceTypeAliasBuilder(
@@ -131,6 +137,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     return typedef;
   }
 
+  @override
   DartType buildThisType() {
     if (thisType != null) {
       if (identical(thisType, pendingTypeAliasMarker)) {
@@ -209,8 +216,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      LibraryBuilder library, List<TypeBuilder>? arguments) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
@@ -230,7 +236,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       return unhandled(
           templateTypeArgumentMismatch
               .withArguments(typeVariablesCount)
-              .message,
+              .problemMessage,
           "buildTypeArguments",
           -1,
           null);
@@ -256,11 +262,16 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     MetadataBuilder.buildAnnotations(
-        typedef, metadata, library, null, null, fileUri);
+        typedef, metadata, library, null, null, fileUri, library.scope);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
         typeVariables![i].buildOutlineExpressions(
-            library, null, null, coreTypes, delayedActionPerformers);
+            library,
+            null,
+            null,
+            coreTypes,
+            delayedActionPerformers,
+            computeTypeParameterScope(library.scope));
       }
     }
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
@@ -273,14 +284,30 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     });
   }
 
+  Scope computeTypeParameterScope(Scope parent) {
+    if (typeVariables == null) return parent;
+    Map<String, Builder> local = <String, Builder>{};
+    for (TypeVariableBuilder variable in typeVariables!) {
+      local[variable.name] = variable;
+    }
+    return new Scope(
+        local: local,
+        parent: parent,
+        debugName: "type parameter",
+        isModifiable: false);
+  }
+
   Map<Procedure, Member>? _tearOffDependencies;
 
   void buildTypedefTearOffs(
       SourceLibraryBuilder library, void Function(Procedure) f) {
     TypeDeclarationBuilder? declaration = unaliasDeclaration(null);
+    DartType? targetType = typedef.type;
     if (declaration is ClassBuilder &&
+        targetType is InterfaceType &&
         typedef.typeParameters.isNotEmpty &&
-        !isProperRenameForClass(library.loader.typeEnvironment, typedef)) {
+        !isProperRenameForClass(
+            library.loader.typeEnvironment, typedef, library.library)) {
       tearOffs = {};
       _tearOffDependencies = {};
       declaration
@@ -292,11 +319,18 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           }
           Name targetName =
               new Name(constructorName, declaration.library.library);
+          Reference? tearOffReference;
+          if (library.referencesFromIndexed != null) {
+            tearOffReference = library.referencesFromIndexed!
+                .lookupGetterReference(typedefTearOffName(name, constructorName,
+                    library.referencesFromIndexed!.library));
+          }
+
           Procedure tearOff = tearOffs![targetName] =
-              createTypedefTearOffProcedure(
-                  name, constructorName, library, fileUri, charOffset);
+              createTypedefTearOffProcedure(name, constructorName, library,
+                  target.fileUri, target.fileOffset, tearOffReference);
           _tearOffDependencies![tearOff] = target;
-          InterfaceType targetType = typedef.type as InterfaceType;
+
           buildTypedefTearOffProcedure(tearOff, target, declaration.cls,
               typedef.typeParameters, targetType.typeArguments, library);
           f(tearOff);

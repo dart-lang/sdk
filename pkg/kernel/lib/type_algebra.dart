@@ -109,7 +109,9 @@ bool containsFreeTypeVariables(DartType type) {
 /// mapping to be used for replacing other types to use the new type parameters.
 FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
   List<TypeParameter> freshParameters = new List<TypeParameter>.generate(
-      typeParameters.length, (i) => new TypeParameter(typeParameters[i].name),
+      typeParameters.length,
+      (i) => new TypeParameter(typeParameters[i].name)
+        ..flags = typeParameters[i].flags,
       growable: true);
   List<DartType> freshTypeArguments =
       new List<DartType>.generate(typeParameters.length, (int i) {
@@ -138,8 +140,10 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
 class FreshTypeParameters {
   /// The newly created type parameters.
   final List<TypeParameter> freshTypeParameters;
+
   /// List of [TypeParameterType]s for [TypeParameter].
   final List<DartType> freshTypeArguments;
+
   /// Substitution from the original type parameters to [freshTypeArguments].
   final Substitution substitution;
 
@@ -294,6 +298,7 @@ class _NullSubstitution extends Substitution {
 
   const _NullSubstitution();
 
+  @override
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {
     return new TypeParameterType.forAlphaRenaming(parameter, parameter);
   }
@@ -314,6 +319,7 @@ class _MapSubstitution extends Substitution {
 
   _MapSubstitution(this.upper, this.lower);
 
+  @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
     return upperBound ? upper[parameter] : lower[parameter];
   }
@@ -331,10 +337,12 @@ class _TopSubstitutor extends _TypeSubstitutor {
     }
   }
 
+  @override
   DartType? lookup(TypeParameter parameter, bool upperBound) {
     return substitution.getSubstitute(parameter, upperBound);
   }
 
+  @override
   TypeParameter freshTypeParameter(TypeParameter node) {
     throw 'Create a fresh environment first';
   }
@@ -345,6 +353,7 @@ class _ClassBottomSubstitution extends Substitution {
 
   _ClassBottomSubstitution(this.class_);
 
+  @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
     if (parameter.parent == class_) {
       return upperBound ? const NeverType.nonNullable() : const DynamicType();
@@ -358,6 +367,7 @@ class _CombinedSubstitution extends Substitution {
 
   _CombinedSubstitution(this.first, this.second);
 
+  @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
     return first.getSubstitute(parameter, upperBound) ??
         second.getSubstitute(parameter, upperBound);
@@ -372,6 +382,7 @@ class _FilteredSubstitution extends Substitution {
 
   _FilteredSubstitution(this.base, this.filterFn);
 
+  @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
     return filterFn(parameter)
         ? base.getSubstitute(parameter, upperBound)
@@ -384,12 +395,14 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
 
   _InnerTypeSubstitutor(_TypeSubstitutor? outer) : super(outer);
 
+  @override
   DartType? lookup(TypeParameter parameter, bool upperBound) {
     return substitution[parameter];
   }
 
+  @override
   TypeParameter freshTypeParameter(TypeParameter node) {
-    TypeParameter fresh = new TypeParameter(node.name);
+    TypeParameter fresh = new TypeParameter(node.name)..flags = node.flags;
     TypeParameterType typeParameterType = substitution[node] =
         new TypeParameterType.forAlphaRenaming(node, fresh);
     fresh.bound = visit(node.bound);
@@ -574,13 +587,20 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
   DartType visit(DartType node) => node.accept(this);
 
+  @override
   DartType defaultDartType(DartType node) => node;
+  @override
   DartType visitInvalidType(InvalidType node) => node;
+  @override
   DartType visitDynamicType(DynamicType node) => node;
+  @override
   DartType visitVoidType(VoidType node) => node;
+  @override
   DartType visitNeverType(NeverType node) => node;
+  @override
   DartType visitNullType(NullType node) => node;
 
+  @override
   DartType visitInterfaceType(InterfaceType node) {
     if (node.typeArguments.isEmpty) return node;
     int before = useCounter;
@@ -589,6 +609,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     return new InterfaceType(node.classNode, node.nullability, typeArguments);
   }
 
+  @override
   DartType visitFutureOrType(FutureOrType node) {
     int before = useCounter;
     DartType typeArgument = node.typeArgument.accept(this);
@@ -596,6 +617,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     return new FutureOrType(typeArgument, node.declaredNullability);
   }
 
+  @override
   DartType visitTypedefType(TypedefType node) {
     if (node.typeArguments.isEmpty) return node;
     int before = useCounter;
@@ -611,6 +633,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
   TypeParameter freshTypeParameter(TypeParameter node);
 
+  @override
   DartType visitFunctionType(FunctionType node) {
     // This is a bit tricky because we have to generate fresh type parameters
     // in order to change the bounds.  At the same time, if the function type
@@ -678,6 +701,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     return null;
   }
 
+  @override
   DartType visitTypeParameterType(TypeParameterType node) {
     DartType? replacement = getSubstitute(node.parameter);
     if (replacement is InvalidType) return replacement;
@@ -745,6 +769,7 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
     return visit(node.type);
   }
 
+  @override
   bool defaultDartType(DartType node) {
     if (unhandledTypeHandler == null) {
       throw new UnsupportedError("Unsupported type '${node.runtimeType}'.");
@@ -753,28 +778,38 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
     }
   }
 
+  @override
   bool visitNeverType(NeverType node) => false;
+  @override
   bool visitNullType(NullType node) => false;
+  @override
   bool visitInvalidType(InvalidType node) => false;
+  @override
   bool visitDynamicType(DynamicType node) => false;
+  @override
   bool visitVoidType(VoidType node) => false;
 
+  @override
   bool visitInterfaceType(InterfaceType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitExtensionType(ExtensionType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitFutureOrType(FutureOrType node) {
     return visit(node.typeArgument);
   }
 
+  @override
   bool visitTypedefType(TypedefType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitFunctionType(FunctionType node) {
     return node.typeParameters.any(handleTypeParameter) ||
         node.positionalParameters.any(visit) ||
@@ -782,6 +817,7 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
         visit(node.returnType);
   }
 
+  @override
   bool visitTypeParameterType(TypeParameterType node) {
     return variables.contains(node.parameter);
   }
@@ -802,6 +838,7 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   bool visit(DartType node) => node.accept(this);
 
+  @override
   bool defaultDartType(DartType node) {
     throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
   }
@@ -810,28 +847,38 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
     return visit(node.type);
   }
 
+  @override
   bool visitNeverType(NeverType node) => false;
+  @override
   bool visitNullType(NullType node) => false;
+  @override
   bool visitInvalidType(InvalidType node) => false;
+  @override
   bool visitDynamicType(DynamicType node) => false;
+  @override
   bool visitVoidType(VoidType node) => false;
 
+  @override
   bool visitInterfaceType(InterfaceType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitExtensionType(ExtensionType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitFutureOrType(FutureOrType node) {
     return visit(node.typeArgument);
   }
 
+  @override
   bool visitTypedefType(TypedefType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitFunctionType(FunctionType node) {
     variables.addAll(node.typeParameters);
     bool result = node.typeParameters.any(handleTypeParameter) ||
@@ -842,6 +889,7 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
     return result;
   }
 
+  @override
   bool visitTypeParameterType(TypeParameterType node) {
     return node.parameter.parent == null && !variables.contains(node.parameter);
   }
@@ -862,6 +910,7 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   bool visit(DartType node) => node.accept(this);
 
+  @override
   bool defaultDartType(DartType node) {
     throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
   }
@@ -870,28 +919,38 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
     return visit(node.type);
   }
 
+  @override
   bool visitNeverType(NeverType node) => false;
+  @override
   bool visitNullType(NullType node) => false;
+  @override
   bool visitInvalidType(InvalidType node) => false;
+  @override
   bool visitDynamicType(DynamicType node) => false;
+  @override
   bool visitVoidType(VoidType node) => false;
 
+  @override
   bool visitInterfaceType(InterfaceType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitExtensionType(ExtensionType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitFutureOrType(FutureOrType node) {
     return visit(node.typeArgument);
   }
 
+  @override
   bool visitTypedefType(TypedefType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitFunctionType(FunctionType node) {
     variables.addAll(node.typeParameters);
     bool result = node.typeParameters.any(handleTypeParameter) ||
@@ -902,6 +961,7 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
     return result;
   }
 
+  @override
   bool visitTypeParameterType(TypeParameterType node) {
     return !variables.contains(node.parameter);
   }
@@ -1361,4 +1421,61 @@ Nullability _defaultNullabilityForTypeParameterType(TypeParameter parameter,
   return isNonNullableByDefault
       ? TypeParameterType.computeNullabilityFromBound(parameter)
       : Nullability.legacy;
+}
+
+/// Recalculates and updates nullabilities of the bounds in [typeParameters].
+///
+/// The procedure is intended to be used on type parameters that are in the
+/// scope of another declaration with type parameters. After a substitution
+/// involving the outer type parameters is performed, some potentially nullable
+/// bounds of the inner parameters can change to non-nullable. Since type
+/// parameters can depend on each other, the occurrences of those with changed
+/// nullabilities need to be updated in the bounds of the entire type parameter
+/// set.
+void updateBoundNullabilities(List<TypeParameter> typeParameters) {
+  if (typeParameters.isEmpty) return;
+  List<bool> visited =
+      new List<bool>.filled(typeParameters.length, false, growable: false);
+  for (int parameterIndex = 0;
+      parameterIndex < typeParameters.length;
+      parameterIndex++) {
+    _updateBoundNullabilities(typeParameters, visited, parameterIndex);
+  }
+}
+
+void _updateBoundNullabilities(
+    List<TypeParameter> typeParameters, List<bool> visited, int startIndex) {
+  if (visited[startIndex]) return;
+  visited[startIndex] = true;
+
+  TypeParameter parameter = typeParameters[startIndex];
+  DartType bound = parameter.bound;
+  while (bound is FutureOrType) {
+    bound = bound.typeArgument;
+  }
+  if (bound is TypeParameterType) {
+    int nextIndex = typeParameters.indexOf(bound.parameter);
+    if (nextIndex != -1) {
+      _updateBoundNullabilities(typeParameters, visited, nextIndex);
+      Nullability updatedNullability =
+          TypeParameterType.computeNullabilityFromBound(
+              typeParameters[nextIndex]);
+      if (bound.declaredNullability != updatedNullability) {
+        parameter.bound = _updateNestedFutureOrNullability(
+            parameter.bound, updatedNullability);
+      }
+    }
+  }
+}
+
+DartType _updateNestedFutureOrNullability(
+    DartType typeToUpdate, Nullability updatedNullability) {
+  if (typeToUpdate is FutureOrType) {
+    return new FutureOrType(
+        _updateNestedFutureOrNullability(
+            typeToUpdate.typeArgument, updatedNullability),
+        typeToUpdate.declaredNullability);
+  } else {
+    return typeToUpdate.withDeclaredNullability(updatedNullability);
+  }
 }

@@ -12,6 +12,7 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         part "package:foo/nonexisting.dart";
     expectedLibraryCount: 1
     expectedSyntheticLibraryCount: 1

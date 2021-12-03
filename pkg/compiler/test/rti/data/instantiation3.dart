@@ -11,11 +11,12 @@ int f<T>(T a) => null;
 typedef int F<R>(R a);
 
 /*spec.class: B:direct,explicit=[int* Function(B.S*)*],implicit=[B.S],needsArgs*/
+/*prod.class: B:needsArgs*/
 class B<S> {
   F<S> c;
 
   method() {
-    return /*spec.needsSignature*/() {
+    return /*spec.needsSignature*/ () {
       c = f;
     };
   }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'ast_model.dart';
@@ -13,7 +11,7 @@ Uri computeEquivalenceUri(Uri repoDir) {
   return repoDir.resolve('pkg/kernel/lib/src/equivalence.dart');
 }
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   Uri output = args.isEmpty
       ? computeEquivalenceUri(Uri.base)
       : new File(args[0]).absolute.uri;
@@ -21,8 +19,8 @@ main(List<String> args) async {
   new File.fromUri(output).writeAsStringSync(result);
 }
 
-Future<String> generateAstEquivalence(Uri repoDir) async {
-  AstModel astModel = await deriveAstModel(repoDir);
+Future<String> generateAstEquivalence(Uri repoDir, [AstModel? astModel]) async {
+  astModel ??= await deriveAstModel(repoDir);
   return generateVisitor(astModel, new EquivalenceVisitorStrategy());
 }
 
@@ -31,6 +29,10 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
   Map<AstField, String> _fieldStrategyMembers = {};
 
   EquivalenceVisitorStrategy();
+
+  @override
+  String get generatorCommand =>
+      'dart pkg/front_end/tool/generate_ast_equivalence.dart';
 
   @override
   String get argumentType => 'Node';
@@ -106,11 +108,12 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
 
   String classCheckName(AstClass astClass) => 'check${astClass.name}';
 
-  String fieldCheckName(AstClass astClass, AstField field) =>
-      'check${astClass.name}_${field.name}';
+  String fieldCheckName(AstField field) =>
+      'check${field.astClass.name}_${field.name}';
 
   @override
-  void handleDefaultVisit(AstClass astClass, StringBuffer sb) {
+  void handleDefaultVisit(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
     return false;''');
   }
@@ -136,13 +139,13 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
       case AstFieldKind.use:
         return '$prefix$shallowMatchDeclarations';
       case AstFieldKind.list:
-        ListFieldType listFieldType = fieldType;
+        ListFieldType listFieldType = fieldType as ListFieldType;
         String elementEquivalence =
             computeMatchingHelper(listFieldType.elementType);
         return '($thisName, $otherName) => $prefix$matchLists('
             '$thisName, $otherName, $elementEquivalence)';
       case AstFieldKind.set:
-        SetFieldType setFieldType = fieldType;
+        SetFieldType setFieldType = fieldType as SetFieldType;
         String elementMatching =
             computeMatchingHelper(setFieldType.elementType);
         String elementEquivalence =
@@ -150,7 +153,7 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
         return '($thisName, $otherName) => $prefix$checkSets('
             '$thisName, $otherName, $elementMatching, $elementEquivalence)';
       case AstFieldKind.map:
-        MapFieldType mapFieldType = fieldType;
+        MapFieldType mapFieldType = fieldType as MapFieldType;
         String keyMatching = computeMatchingHelper(mapFieldType.keyType);
         String keyEquivalence = computeEquivalenceHelper(mapFieldType.keyType);
         String valueEquivalence =
@@ -160,7 +163,7 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
             '$keyEquivalence, $valueEquivalence)';
       case AstFieldKind.utility:
         StringBuffer sb = new StringBuffer();
-        UtilityFieldType utilityFieldType = fieldType;
+        UtilityFieldType utilityFieldType = fieldType as UtilityFieldType;
         registerAstClassEquivalence(utilityFieldType.astClass);
         sb.writeln('''($thisName, $otherName, _) {
     if (identical($thisName, $otherName)) return true;
@@ -173,7 +176,6 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
   }''');
         return sb.toString();
     }
-    throw ArgumentError("Unexpected field type ${fieldType}");
   }
 
   /// Computes the expression code for checking the equivalence of two fields
@@ -196,13 +198,13 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
       case AstFieldKind.use:
         return '$prefix$checkDeclarations';
       case AstFieldKind.list:
-        ListFieldType listFieldType = fieldType;
+        ListFieldType listFieldType = fieldType as ListFieldType;
         String elementEquivalence =
             computeEquivalenceHelper(listFieldType.elementType);
         return '($thisName, $otherName) => $prefix$checkLists('
             '$thisName, $otherName, $elementEquivalence)';
       case AstFieldKind.set:
-        SetFieldType setFieldType = fieldType;
+        SetFieldType setFieldType = fieldType as SetFieldType;
         String elementMatching =
             computeMatchingHelper(setFieldType.elementType);
         String elementEquivalence =
@@ -210,7 +212,7 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
         return '($thisName, $otherName) => $prefix$checkSets('
             '$thisName, $otherName, $elementMatching, $elementEquivalence)';
       case AstFieldKind.map:
-        MapFieldType mapFieldType = fieldType;
+        MapFieldType mapFieldType = fieldType as MapFieldType;
         String keyMatching = computeMatchingHelper(mapFieldType.keyType);
         String keyEquivalence = computeEquivalenceHelper(mapFieldType.keyType);
         String valueEquivalence =
@@ -220,7 +222,7 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
             '$keyEquivalence, $valueEquivalence)';
       case AstFieldKind.utility:
         StringBuffer sb = new StringBuffer();
-        UtilityFieldType utilityFieldType = fieldType;
+        UtilityFieldType utilityFieldType = fieldType as UtilityFieldType;
         registerAstClassEquivalence(utilityFieldType.astClass);
         sb.writeln('''($thisName, $otherName, _) {
     if (identical($thisName, $otherName)) return true;
@@ -233,7 +235,6 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
   }''');
         return sb.toString();
     }
-    throw ArgumentError("Unexpected field type ${fieldType}");
   }
 
   /// Registers that a strategy method is needed for checking [astClass].
@@ -274,10 +275,10 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
     }
     classStrategy.writeln('''
     bool result = true;''');
-    for (AstField field in astClass.fields) {
-      registerAstFieldEquivalence(astClass, field);
+    for (AstField field in astClass.fields.values) {
+      registerAstFieldEquivalence(field);
       classStrategy.writeln('''
-    if (!${fieldCheckName(astClass, field)}(visitor, $thisName, $otherName)) {
+    if (!${fieldCheckName(field)}(visitor, $thisName, $otherName)) {
       result = visitor.$resultOnInequivalence;
     }''');
     }
@@ -299,69 +300,75 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
   ///
   /// If the method has not already been generated, it is generated and stored
   /// in [_fieldStrategyMembers].
-  void registerAstFieldEquivalence(AstClass astClass, AstField field) {
+  void registerAstFieldEquivalence(AstField field) {
     if (_fieldStrategyMembers.containsKey(field)) return;
 
+    AstClass astClass = field.astClass;
     String thisName = 'node';
     String otherName = 'other';
     StringBuffer fieldStrategy = new StringBuffer();
     fieldStrategy.writeln('''
-  bool ${fieldCheckName(astClass, field)}(
+  bool ${fieldCheckName(field)}(
       $visitorName visitor,
       ${astClass.name} $thisName,
       ${astClass.name} $otherName) {''');
-
-    switch (field.type.kind) {
-      case AstFieldKind.value:
-        fieldStrategy.writeln('''
+    if (field.parentField != null) {
+      registerAstFieldEquivalence(field.parentField!);
+      fieldStrategy.writeln('''
+    return ${fieldCheckName(field.parentField!)}(
+        visitor, $thisName, $otherName);''');
+    } else {
+      switch (field.type.kind) {
+        case AstFieldKind.value:
+          fieldStrategy.writeln('''
     return visitor.$checkValues(
         $thisName.${field.name},
         $otherName.${field.name},
         '${field.name}');''');
-        break;
-      case AstFieldKind.node:
-        fieldStrategy.writeln('''
+          break;
+        case AstFieldKind.node:
+          fieldStrategy.writeln('''
     return visitor.$checkNodes(
         $thisName.${field.name},
         $otherName.${field.name},
         '${field.name}');''');
-        break;
-      case AstFieldKind.reference:
-        fieldStrategy.writeln('''
+          break;
+        case AstFieldKind.reference:
+          fieldStrategy.writeln('''
     return visitor.$checkReferences(
         $thisName.${field.name},
         $otherName.${field.name},
         '${field.name}');''');
-        break;
-      case AstFieldKind.use:
-        fieldStrategy.writeln('''
+          break;
+        case AstFieldKind.use:
+          fieldStrategy.writeln('''
     return visitor.$checkDeclarations(
         $thisName.${field.name},
         $otherName.${field.name},
         '${field.name}');''');
-        break;
-      case AstFieldKind.list:
-        ListFieldType listFieldType = field.type;
-        fieldStrategy.writeln('''
+          break;
+        case AstFieldKind.list:
+          ListFieldType listFieldType = field.type as ListFieldType;
+          fieldStrategy.writeln('''
     return visitor.$checkLists(
         $thisName.${field.name},
         $otherName.${field.name},
         ${computeEquivalenceHelper(listFieldType.elementType, 'visitor.')},
         '${field.name}');''');
-        break;
-      case AstFieldKind.set:
-        SetFieldType setFieldType = field.type;
-        fieldStrategy.writeln('''
+          break;
+        case AstFieldKind.set:
+          SetFieldType setFieldType = field.type as SetFieldType;
+          fieldStrategy.writeln('''
     return visitor.$checkSets(
         $thisName.${field.name},
         $otherName.${field.name},
         ${computeMatchingHelper(setFieldType.elementType, 'visitor.')},
         ${computeEquivalenceHelper(setFieldType.elementType, 'visitor.')},
         '${field.name}');''');
-        break;
-      case AstFieldKind.map:
-        MapFieldType mapFieldType = field.type;
-        fieldStrategy.writeln('''
+          break;
+        case AstFieldKind.map:
+          MapFieldType mapFieldType = field.type as MapFieldType;
+          fieldStrategy.writeln('''
     return visitor.$checkMaps(
         $thisName.${field.name},
         $otherName.${field.name},
@@ -369,17 +376,18 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
         ${computeEquivalenceHelper(mapFieldType.keyType, 'visitor.')},
         ${computeEquivalenceHelper(mapFieldType.valueType, 'visitor.')},
         '${field.name}');''');
-        break;
-      case AstFieldKind.utility:
-        UtilityFieldType utilityFieldType = field.type;
-        registerAstClassEquivalence(utilityFieldType.astClass);
-        fieldStrategy.writeln('''
+          break;
+        case AstFieldKind.utility:
+          UtilityFieldType utilityFieldType = field.type as UtilityFieldType;
+          registerAstClassEquivalence(utilityFieldType.astClass);
+          fieldStrategy.writeln('''
     '${field.name}';
     return ${classCheckName(utilityFieldType.astClass)}(
         visitor,
         $thisName.${field.name},
         $otherName.${field.name});''');
-        break;
+          break;
+      }
     }
     fieldStrategy.writeln('''
   }''');
@@ -387,7 +395,7 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
   }
 
   @override
-  void handleVisit(AstClass astClass, StringBuffer sb) {
+  void handleVisit(AstModel astModel, AstClass astClass, StringBuffer sb) {
     registerAstClassEquivalence(astClass);
     sb.writeln('''
     return strategy.${classCheckName(astClass)}(
@@ -395,26 +403,23 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
   }
 
   @override
-  void handleDefaultVisitReference(AstClass astClass, StringBuffer sb) {
+  void handleDefaultVisitReference(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
     return false;''');
   }
 
   @override
-  void handleVisitReference(AstClass astClass, StringBuffer sb) {
+  void handleVisitReference(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
     return false;''');
   }
 
+  @override
   void generateHeader(AstModel astModel, StringBuffer sb) {
     sb.writeln('''
-// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
-//
-// Run 'dart pkg/front_end/tool/generate_ast_equivalence.dart' to update.
+$preamble
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
@@ -428,7 +433,7 @@ part 'equivalence_helpers.dart';
 /// current assumptions. The current state has two modes. In the asserting mode,
 /// the default, inequivalences are registered when found. In the non-asserting
 /// mode, inequivalences are _not_ registered. The latter is used to compute
-/// equivalences in sand boxed state, for instance to determine which elements
+/// equivalences in sandboxed state, for instance to determine which elements
 /// to pair when checking equivalence of two sets.
 class $visitorName$visitorTypeParameters
     implements Visitor1<$returnType, $argumentType> {
@@ -504,12 +509,14 @@ class $visitorName$visitorTypeParameters
     return result;
   }
 
-  /// Returns `true` if [a] and [b] are equivalent, as defined by their
-  /// corresponding canonical names. Inequivalence is _not_ registered.
+  /// Returns `true` if [a] and [b] are equivalent, either by existing 
+  /// assumption or as defined by their corresponding canonical names. 
+  /// Inequivalence is _not_ registered.
   bool $matchNamedNodes(NamedNode? a, NamedNode? b) {
     return identical(a, b) ||
         a == null ||
         b == null ||
+        checkAssumedReferences(a.reference, b.reference) ||
         new ReferenceName.fromNamedNode(a) ==
             new ReferenceName.fromNamedNode(b);
   }
@@ -527,10 +534,12 @@ class $visitorName$visitorTypeParameters
     return $checkingState.$assumeReferences(a, b);
   }
 
-  /// Returns `true` if [a] and [b] are equivalent, as defined by their
-  /// corresponding canonical names. Inequivalence is _not_ registered.
+  /// Returns `true` if [a] and [b] are equivalent, either by existing
+  /// assumption or as defined by their corresponding canonical names. 
+  /// Inequivalence is _not_ registered.
   bool $matchReferences(Reference? a, Reference? b) {
     return identical(a, b) ||
+        checkAssumedReferences(a, b) ||
         ReferenceName.fromReference(a) ==
             ReferenceName.fromReference(b);
   }

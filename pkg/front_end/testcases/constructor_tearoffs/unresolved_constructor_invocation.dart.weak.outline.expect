@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///unresolved_constructor_invocation.dart" as resolved_prefix;
+
+class Super extends core::Object {
+  constructor named() → self::Super
+    ;
+}
+class Class extends self::Super {
+  constructor constructor1() → self::Class
+    ;
+  constructor constructor2() → self::Class
+    ;
+  constructor constructor3() → self::Class
+    ;
+  constructor constructor4() → self::Class
+    ;
+}
+class ResolvedClass<T extends core::Object? = dynamic> extends core::Object {
+  constructor named() → self::ResolvedClass<self::ResolvedClass::T%>
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

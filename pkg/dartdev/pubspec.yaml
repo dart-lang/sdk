@@ -12,11 +12,14 @@ dependencies:
     path: ../analysis_server_client
   analyzer:
     path: ../analyzer
-  args: ^1.6.0
-  cli_util: '>=0.1.4 <0.3.0'
+  args: any
+  cli_util: any
   dart2native:
     path: ../dart2native
   dart_style: any
+  dds:
+    path: ../dds
+  devtools_server: any
   front_end:
     path: ../front_end
   intl: any
@@ -24,15 +27,16 @@ dependencies:
     path: ../meta
   nnbd_migration:
     path: ../nnbd_migration
-  path: ^1.0.0
-  pedantic: ^1.9.0
+  path: any
   pub: any
   telemetry:
     path: ../telemetry
-  usage: ^3.4.0
+  usage: any
 
 dev_dependencies:
+  expect:
+    path: ../expect
   lints: any
   pub_semver: any
-  test: ^1.0.0
+  test: any
   yaml: any

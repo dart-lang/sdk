@@ -12,9 +12,7 @@ import '../resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsConstantTypeExpressionTest);
-    defineReflectiveTests(IsPotentiallyConstantTypeExpressionTest);
     defineReflectiveTests(PotentiallyConstantTest);
-    defineReflectiveTests(PotentiallyConstantWithoutNullSafetyTest);
   });
 }
 
@@ -104,11 +102,36 @@ class A<T> {
 ''');
   }
 
-  test_typeParameter() async {
+  test_typeParameter_ofClass() async {
     await _assertPotentiallyConst(r'''
 class A<T> {
-  m() {
-    T x;
+  T x;
+}
+''');
+  }
+
+  test_typeParameter_ofClass_nested() async {
+    await _assertPotentiallyConst(r'''
+class A<T> {
+  List<T> x;
+}
+''');
+  }
+
+  test_typeParameter_ofFunction() async {
+    await _assertPotentiallyConst('''
+void foo<T>() {
+  T x;
+}
+''');
+  }
+
+  test_typeParameter_ofFunctionType() async {
+    await _assertPotentiallyConst('''
+class A<U> {
+  const A();
+  void foo() {
+    void Function<X>(X) x;
   }
 }
 ''');
@@ -123,58 +146,22 @@ void x;
   Future<void> _assertConst(String code) async {
     await resolveTestCode(code);
     var type = findNode.variableDeclarationList('x;').type!;
+    expect(isPotentiallyConstantTypeExpression(type), isTrue);
     expect(isConstantTypeExpression(type), isTrue);
   }
 
   Future<void> _assertNeverConst(String code) async {
     await resolveTestCode(code);
     var type = findNode.variableDeclarationList('x;').type!;
+    expect(isPotentiallyConstantTypeExpression(type), isFalse);
     expect(isConstantTypeExpression(type), isFalse);
   }
 
   Future<void> _assertPotentiallyConst(String code) async {
     await resolveTestCode(code);
     var type = findNode.variableDeclarationList('x;').type!;
+    expect(isPotentiallyConstantTypeExpression(type), isTrue);
     expect(isConstantTypeExpression(type), isFalse);
-  }
-}
-
-@reflectiveTest
-class IsPotentiallyConstantTypeExpressionTest
-    extends IsConstantTypeExpressionTest {
-  @override
-  test_typeParameter() async {
-    await _assertConst(r'''
-class A<T> {
-  m() {
-    T x;
-  }
-}
-''');
-  }
-
-  test_typeParameter_nested() async {
-    await _assertConst(r'''
-class A<T> {
-  m() {
-    List<T> x;
-  }
-}
-''');
-  }
-
-  @override
-  Future<void> _assertConst(String code) async {
-    await resolveTestCode(code);
-    var type = findNode.variableDeclarationList('x;').type!;
-    expect(isPotentiallyConstantTypeExpression(type), isTrue);
-  }
-
-  @override
-  Future<void> _assertPotentiallyConst(String code) async {
-    await resolveTestCode(code);
-    var type = findNode.variableDeclarationList('x;').type!;
-    expect(isPotentiallyConstantTypeExpression(type), isTrue);
   }
 }
 
@@ -209,6 +196,18 @@ class A<T> {
   }
 }
 ''', () => _xInitializer());
+  }
+
+  test_asExpression_typeParameter_29() async {
+    await _assertNotConst(r'''
+// @dart = 2.9
+const a = 0;
+class A<T> {
+  m() {
+    var x = a as T;
+  }
+}
+''', () => _xInitializer(), () => [findNode.namedType('T;')]);
   }
 
   test_asExpression_typeParameter_nested() async {
@@ -442,6 +441,76 @@ var x = a ? b : c;
             ]);
   }
 
+  test_constructorReference_explicitTypeArguments() async {
+    await _assertConst('''
+class A {
+  final B Function() x;
+  const A(): x = B<int>.new;
+}
+
+class B<T> {}
+''', () => findNode.constructorReference('B<int>.new'));
+  }
+
+  test_constructorReference_explicitTypeArguments_nonConst() async {
+    await _assertNotConst('''
+import '' deferred as self;
+class A {
+  Object x;
+  const A(): x = B<self.A>.new;
+}
+
+class B<T> {}
+''', () => findNode.constructorReference('B<self.A>.new'),
+        () => [findNode.typeAnnotation('self.A')]);
+  }
+
+  test_constructorReference_noTypeArguments() async {
+    await _assertConst('''
+class A {
+  final B Function() x;
+  const A(): x = B.new;
+}
+
+class B {}
+''', () => findNode.constructorReference('B.new'));
+  }
+
+  test_functionReference_explicitTypeArguments() async {
+    await _assertConst('''
+class A {
+  final int Function(int) x;
+  const A(): x = id<int>;
+}
+
+X id<X>(X x) => x;
+''', () => findNode.functionReference('id<int>'));
+  }
+
+  test_functionReference_explicitTypeArguments_nonConst() async {
+    await _assertNotConst('''
+import '' deferred as self;
+class A {
+  final int Function(int) x;
+  const A(): x = id<self.A>;
+}
+
+X id<X>(X x) => x;
+''', () => findNode.functionReference('id<self.A>'),
+        () => [findNode.typeAnnotation('self.A')]);
+  }
+
+  test_functionReference_noTypeArguments() async {
+    await _assertConst('''
+class A {
+  final int Function(int) x;
+  const A(): x = id;
+}
+
+X id<X>(X x) => x;
+''', () => findNode.simple('id;'));
+  }
+
   test_ifElement_then() async {
     await _assertConst(r'''
 const a = 0;
@@ -513,6 +582,18 @@ class A<T> {
 ''', () => _xInitializer());
   }
 
+  test_isExpression_typeParameter_29() async {
+    await _assertNotConst(r'''
+// @dart = 2.9
+const a = 0;
+class A<T> {
+  m() {
+    var x = a is T;
+  }
+}
+''', () => _xInitializer(), () => [findNode.namedType('T;')]);
+  }
+
   test_isExpression_typeParameter_nested() async {
     await _assertConst(r'''
 const a = 0;
@@ -545,6 +626,24 @@ var x = const [a, b, 2];
         () => [findNode.simple('a,'), findNode.simple('b,')]);
   }
 
+  test_listLiteral_ofDynamic() async {
+    await _assertConst('''
+var x = const <dynamic>[];
+''', () => _xInitializer());
+  }
+
+  test_listLiteral_ofNever() async {
+    await _assertConst('''
+var x = const <Never>[];
+''', () => _xInitializer());
+  }
+
+  test_listLiteral_ofVoid() async {
+    await _assertConst('''
+var x = const <void>[];
+''', () => _xInitializer());
+  }
+
   test_listLiteral_typeArgument() async {
     await _assertConst(r'''
 var x = const <int>[0, 1, 2];
@@ -552,13 +651,14 @@ var x = const <int>[0, 1, 2];
   }
 
   test_listLiteral_typeArgument_notConstType() async {
-    await _assertNotConst(r'''
-class A<T> {
+    await _assertNotConst('''
+import '' deferred as self;
+class A {
   m() {
-    var x = const <T>[0, 1, 2];
+    var x = const <self.A>[];
   }
 }
-''', () => _xInitializer(), () => [findNode.typeName('T>[0')]);
+''', () => _xInitializer(), () => [findNode.namedType('A>[')]);
   }
 
   test_literal_bool() async {
@@ -641,7 +741,7 @@ class A<T> {
   }
 }
 ''', () => _xInitializer(),
-        () => [findNode.typeName('T,'), findNode.typeName('T>{')]);
+        () => [findNode.namedType('T,'), findNode.namedType('T>{')]);
   }
 
   test_methodInvocation_identical() async {
@@ -967,13 +1067,14 @@ var x = const <int>{0, 1, 2};
   }
 
   test_setLiteral_typeArgument_notConstType() async {
-    await _assertNotConst(r'''
-class A<T> {
+    await _assertNotConst('''
+import '' deferred as self;
+class A {
   m() {
-    var x = const <T>{0, 1, 2};
+    var x = const <self.A>{};
   }
 }
-''', () => _xInitializer(), () => [findNode.typeName('T>{0')]);
+''', () => _xInitializer(), () => [findNode.namedType('A>{')]);
   }
 
   test_simpleIdentifier_class() async {
@@ -1092,6 +1193,25 @@ var x = A;
 ''', () => _xInitializer());
   }
 
+  test_simpleIdentifier_typeParameter_class() async {
+    await _assertConst(r'''
+class A<T> {
+  final Object f;
+  A() : f = T;
+}
+''', () => findNode.simple('T;'));
+  }
+
+  test_simpleIdentifier_typeParameter_class_214() async {
+    await _assertNotConst(r'''
+// @dart = 2.14
+class A<T> {
+  final Object f;
+  A() : f = T;
+}
+''', () => findNode.simple('T;'), () => [findNode.simple('T;')]);
+  }
+
   test_spreadElement() async {
     await _assertConst(r'''
 const a = [0, 1, 2];
@@ -1130,12 +1250,32 @@ var x = 'a';
 ''', () => _xInitializer());
   }
 
+  test_typeLiteral() async {
+    await _assertConst('''
+class A {
+  Type x;
+  const A(): x = List<int>;
+}
+''', () => findNode.typeLiteral('List<int>'));
+  }
+
+  test_typeLiteral_nonConst() async {
+    await _assertNotConst('''
+import '' deferred as self;
+class A {
+  Type x;
+  const A(): x = List<self.A>;
+}
+''', () => findNode.typeLiteral('List<self.A>'),
+        () => [findNode.typeAnnotation('self.A')]);
+  }
+
   _assertConst(String code, AstNode Function() getNode) async {
     await resolveTestCode(code);
     var node = getNode();
     var notConstList = getNotPotentiallyConstants(
       node,
-      isNonNullableByDefault: typeSystem.isNonNullableByDefault,
+      featureSet: featureSet,
     );
     expect(notConstList, isEmpty);
   }
@@ -1146,50 +1286,7 @@ var x = 'a';
     var node = getNode();
     var notConstList = getNotPotentiallyConstants(
       node,
-      isNonNullableByDefault: typeSystem.isNonNullableByDefault,
-    );
-
-    var expectedNotConst = getNotConstList();
-    expect(notConstList, unorderedEquals(expectedNotConst));
-  }
-
-  Expression _xInitializer() {
-    return findNode.variableDeclaration('x = ').initializer!;
-  }
-}
-
-@reflectiveTest
-class PotentiallyConstantWithoutNullSafetyTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  test_asExpression_typeParameter() async {
-    await _assertNotConst(r'''
-const a = 0;
-class A<T> {
-  m() {
-    var x = a as T;
-  }
-}
-''', () => _xInitializer(), () => [findNode.typeName('T;')]);
-  }
-
-  test_isExpression_typeParameter() async {
-    await _assertNotConst(r'''
-const a = 0;
-class A<T> {
-  m() {
-    var x = a is T;
-  }
-}
-''', () => _xInitializer(), () => [findNode.typeName('T;')]);
-  }
-
-  _assertNotConst(String code, AstNode Function() getNode,
-      List<AstNode> Function() getNotConstList) async {
-    await resolveTestCode(code);
-    var node = getNode();
-    var notConstList = getNotPotentiallyConstants(
-      node,
-      isNonNullableByDefault: typeSystem.isNonNullableByDefault,
+      featureSet: featureSet,
     );
 
     var expectedNotConst = getNotConstList();

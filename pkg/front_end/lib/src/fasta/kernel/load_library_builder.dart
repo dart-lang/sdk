@@ -25,11 +25,13 @@ import 'forest.dart' show Forest;
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
 class LoadLibraryBuilder extends BuilderImpl {
+  @override
   final SourceLibraryBuilder parent;
 
   final LibraryDependency importDependency;
 
   /// Offset of the import prefix.
+  @override
   final int charOffset;
 
   /// Synthetic static method to represent the tear-off of 'loadLibrary'.  If
@@ -38,6 +40,7 @@ class LoadLibraryBuilder extends BuilderImpl {
 
   LoadLibraryBuilder(this.parent, this.importDependency, this.charOffset);
 
+  @override
   Uri get fileUri => parent.fileUri;
 
   LoadLibrary createLoadLibrary(

@@ -7,13 +7,15 @@
 @patch
 class _WindowsCodePageDecoder {
   @patch
-  static String _decodeBytes(List<int> bytes) native "SystemEncodingToString";
+  @pragma("vm:external-name", "SystemEncodingToString")
+  external static String _decodeBytes(List<int> bytes);
 }
 
 @patch
 class _WindowsCodePageEncoder {
   @patch
-  static List<int> _encodeString(String string) native "StringToSystemEncoding";
+  @pragma("vm:external-name", "StringToSystemEncoding")
+  external static List<int> _encodeString(String string);
 }
 
 @patch
@@ -124,9 +126,10 @@ class _SignalController {
     }
   }
 
-  static _setSignalHandler(int signal) native "Process_SetSignalHandler";
-  static void _clearSignalHandler(int signal)
-      native "Process_ClearSignalHandler";
+  @pragma("vm:external-name", "Process_SetSignalHandler")
+  external static _setSignalHandler(int signal);
+  @pragma("vm:external-name", "Process_ClearSignalHandler")
+  external static void _clearSignalHandler(int signal);
 }
 
 @pragma("vm:entry-point", "call")
@@ -135,16 +138,22 @@ Function _getWatchSignalInternal() => _ProcessUtils._watchSignalInternal;
 @patch
 class _ProcessUtils {
   @patch
-  static Never _exit(int status) native "Process_Exit";
+  @pragma("vm:external-name", "Process_Exit")
+  external static Never _exit(int status);
   @patch
-  static void _setExitCode(int status) native "Process_SetExitCode";
+  @pragma("vm:external-name", "Process_SetExitCode")
+  external static void _setExitCode(int status);
   @patch
-  static int _getExitCode() native "Process_GetExitCode";
+  @pragma("vm:external-name", "Process_GetExitCode")
+  external static int _getExitCode();
   @patch
-  static void _sleep(int millis) native "Process_Sleep";
+  @pragma("vm:external-name", "Process_Sleep")
+  external static void _sleep(int millis);
   @patch
-  static int _pid(Process? process) native "Process_Pid";
-  static bool _killPid(int pid, int signal) native "Process_KillPid";
+  @pragma("vm:external-name", "Process_Pid")
+  external static int _pid(Process? process);
+  @pragma("vm:external-name", "Process_KillPid")
+  external static bool _killPid(int pid, int signal);
   @patch
   static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {
     if (signal != ProcessSignal.sighup &&
@@ -188,8 +197,10 @@ class ProcessInfo {
     return result;
   }
 
-  static _maxRss() native "ProcessInfo_MaxRSS";
-  static _currentRss() native "ProcessInfo_CurrentRSS";
+  @pragma("vm:external-name", "ProcessInfo_MaxRSS")
+  external static _maxRss();
+  @pragma("vm:external-name", "ProcessInfo_CurrentRSS")
+  external static _currentRss();
 }
 
 @pragma("vm:entry-point")
@@ -496,7 +507,8 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
         getOutput(result[3], stderrEncoding));
   }
 
-  bool _startNative(
+  @pragma("vm:external-name", "Process_Start")
+  external bool _startNative(
       _Namespace namespace,
       String path,
       List<String> arguments,
@@ -507,10 +519,11 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
       _NativeSocket? stdout,
       _NativeSocket? stderr,
       _NativeSocket? exitHandler,
-      _ProcessStartStatus status) native "Process_Start";
+      _ProcessStartStatus status);
 
-  _wait(_NativeSocket? stdin, _NativeSocket? stdout, _NativeSocket? stderr,
-      _NativeSocket exitHandler) native "Process_Wait";
+  @pragma("vm:external-name", "Process_Wait")
+  external _wait(_NativeSocket? stdin, _NativeSocket? stdout,
+      _NativeSocket? stderr, _NativeSocket exitHandler);
 
   Stream<List<int>> get stdout =>
       _stdout ?? (throw StateError("stdio is not connected"));

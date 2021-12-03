@@ -21,7 +21,7 @@ class GetterSetterTypesVerifier {
   GetterSetterTypesVerifier({
     required TypeSystemImpl typeSystem,
     required ErrorReporter errorReporter,
-  })   : _typeSystem = typeSystem,
+  })  : _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 
   ErrorCode get _errorCode {

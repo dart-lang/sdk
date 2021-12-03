@@ -19,6 +19,34 @@ import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
 
+/// Boolean environment variables that indicate which libraries are available in
+/// dev compiler.
+// TODO(jmesserly): provide an option to compile without dart:html & friends?
+const sdkLibraryEnvironmentDefines = {
+  'dart.isVM': 'false',
+  'dart.library.async': 'true',
+  'dart.library.core': 'true',
+  'dart.library.collection': 'true',
+  'dart.library.convert': 'true',
+  // TODO(jmesserly): this is not really supported in dart4web other than
+  // `debugger()`
+  'dart.library.developer': 'true',
+  'dart.library.io': 'false',
+  'dart.library.isolate': 'false',
+  'dart.library.js': 'true',
+  'dart.library.js_util': 'true',
+  'dart.library.math': 'true',
+  'dart.library.mirrors': 'false',
+  'dart.library.typed_data': 'true',
+  'dart.library.indexed_db': 'true',
+  'dart.library.html': 'true',
+  'dart.library.html_common': 'true',
+  'dart.library.svg': 'true',
+  'dart.library.ui': 'false',
+  'dart.library.web_audio': 'true',
+  'dart.library.web_gl': 'true',
+};
+
 /// A kernel [Target] to configure the Dart Front End for dartdevc.
 class DevCompilerTarget extends Target {
   DevCompilerTarget(this.flags);
@@ -29,6 +57,10 @@ class DevCompilerTarget extends Target {
   WidgetCreatorTracker? _widgetTracker;
 
   Map<String, Class>? _nativeClasses;
+
+  @override
+  Map<String, String> updateEnvironmentDefines(Map<String, String> map) =>
+      map..addAll(sdkLibraryEnvironmentDefines);
 
   @override
   bool get enableSuperMixins => true;
@@ -48,7 +80,7 @@ class DevCompilerTarget extends Target {
   bool get supportsExplicitGetterCalls => false;
 
   @override
-  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.none;
+  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.all;
 
   @override
   String get name => 'dartdevc';
@@ -81,7 +113,6 @@ class DevCompilerTarget extends Target {
         'dart:svg',
         'dart:web_audio',
         'dart:web_gl',
-        'dart:web_sql'
       ];
 
   // The libraries required to be indexed via CoreTypes.
@@ -97,7 +128,6 @@ class DevCompilerTarget extends Target {
         'dart:svg',
         'dart:web_audio',
         'dart:web_gl',
-        'dart:web_sql',
         'dart:_foreign_helper',
         'dart:_interceptors',
         'dart:_js_helper',
@@ -160,12 +190,12 @@ class DevCompilerTarget extends Target {
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
-      jsUtilOptimizer.visitLibrary(library);
       JsInteropChecks(
               coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
               _nativeClasses!)
           .visitLibrary(library);
+      jsUtilOptimizer.visitLibrary(library);
     }
   }
 
@@ -243,8 +273,7 @@ class DevCompilerTarget extends Target {
   }
 
   @override
-  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      const DevCompilerConstantsBackend();
+  ConstantsBackend get constantsBackend => const DevCompilerConstantsBackend();
 }
 
 /// Analyzes a component to determine if any covariance checks in private
@@ -277,14 +306,15 @@ class _CovarianceTransformer extends RecursiveVisitor {
 
   _CovarianceTransformer(this._library);
 
-  /// Transforms [_library], eliminating unncessary checks for private members.
+  /// Transforms [_library], eliminating unnecessary checks for private members.
   ///
   /// Kernel will mark covariance checks on members, for example:
-  /// - a field with [Field.isGenericCovariantImpl] or [Field.isCovariant].
+  /// - a field with [Field.isCovariantByClass] or
+  ///   [Field.isCovariantByDeclaration].
   /// - a method/setter with parameter(s) or type parameter(s) that have
-  ///   `isGenericCovariantImpl` or `isCovariant` set.
+  ///   `isCovariantByClass` or `isCovariantByDeclaration` set.
   ///
-  /// If the check can be safely eliminanted, those properties will be set to
+  /// If the check can be safely eliminated, those properties will be set to
   /// false so the JS compiler does not emit checks.
   ///
   /// Public members always need covariance checks (we cannot see all potential
@@ -320,13 +350,13 @@ class _CovarianceTransformer extends RecursiveVisitor {
     // Update the tree based on the methods that need checks.
     for (var field in _privateFields) {
       if (!_checkedMembers.contains(field)) {
-        field.isCovariant = false;
-        field.isGenericCovariantImpl = false;
+        field.isCovariantByDeclaration = false;
+        field.isCovariantByClass = false;
       }
     }
     void clearCovariant(VariableDeclaration parameter) {
-      parameter.isCovariant = false;
-      parameter.isGenericCovariantImpl = false;
+      parameter.isCovariantByDeclaration = false;
+      parameter.isCovariantByClass = false;
     }
 
     for (var member in _privateProcedures) {
@@ -335,7 +365,7 @@ class _CovarianceTransformer extends RecursiveVisitor {
         function.positionalParameters.forEach(clearCovariant);
         function.namedParameters.forEach(clearCovariant);
         for (var t in function.typeParameters) {
-          t.isGenericCovariantImpl = false;
+          t.isCovariantByClass = false;
         }
       }
     }

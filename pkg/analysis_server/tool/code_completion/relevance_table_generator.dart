@@ -463,7 +463,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    _recordDataForNode('ClassTypeAlias_superclass', node.superclass);
+    _recordDataForNode('ClassTypeAlias_superclass', node.superclass2);
     var context = 'superclass';
     _recordKeyword('ClassTypeAlias_$context', node.withClause);
     context = 'with';
@@ -479,7 +479,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitCommentReference(CommentReference node) {
-    _recordDataForNode('CommentReference_identifier', node.identifier);
+    _recordDataForNode('CommentReference_expression', node.expression);
     super.visitCommentReference(node);
   }
 
@@ -643,7 +643,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    _recordDataForNode('ExtendsClause_superclass', node.superclass);
+    _recordDataForNode('ExtendsClause_superclass', node.superclass2);
     super.visitExtendsClause(node);
   }
 
@@ -819,8 +819,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitImplementsClause(ImplementsClause node) {
     // At the start of each type name.
-    for (var typeName in node.interfaces) {
-      _recordDataForNode('ImplementsClause_interface', typeName);
+    for (var namedType in node.interfaces2) {
+      _recordDataForNode('ImplementsClause_interface', namedType);
     }
     super.visitImplementsClause(node);
   }
@@ -973,6 +973,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    // There are no completions.
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     // There are no completions.
     super.visitNativeClause(node);
@@ -992,7 +998,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitOnClause(OnClause node) {
-    for (var constraint in node.superclassConstraints) {
+    for (var constraint in node.superclassConstraints2) {
       _recordDataForNode('OnClause_superclassConstraint', constraint);
     }
     super.visitOnClause(node);
@@ -1199,12 +1205,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitTypeName(TypeName node) {
-    // There are no completions.
-    super.visitTypeName(node);
-  }
-
-  @override
   void visitTypeParameter(TypeParameter node) {
     if (node.bound != null) {
       _recordDataForNode('TypeParameter_bound', node.bound);
@@ -1251,8 +1251,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitWithClause(WithClause node) {
-    for (var typeName in node.mixinTypes) {
-      _recordDataForNode('WithClause_mixinType', typeName);
+    for (var namedType in node.mixinTypes2) {
+      _recordDataForNode('WithClause_mixinType', namedType);
     }
     super.visitWithClause(node);
   }

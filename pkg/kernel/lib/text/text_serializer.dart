@@ -15,6 +15,7 @@ abstract class Tagger<T> {
 class NameTagger implements Tagger<Name> {
   const NameTagger();
 
+  @override
   String tag(Name name) => name.isPrivate ? "private" : "public";
 }
 
@@ -33,92 +34,153 @@ class ExpressionTagger extends ExpressionVisitor<String>
     implements Tagger<Expression> {
   const ExpressionTagger();
 
+  @override
   String tag(Expression expression) => expression.accept(this);
 
+  @override
   String visitStringLiteral(StringLiteral _) => "string";
+  @override
   String visitIntLiteral(IntLiteral _) => "int";
+  @override
   String visitDoubleLiteral(DoubleLiteral _) => "double";
+  @override
   String visitBoolLiteral(BoolLiteral _) => "bool";
+  @override
   String visitNullLiteral(NullLiteral _) => "null";
+  @override
   String visitInvalidExpression(InvalidExpression _) => "invalid";
+  @override
   String visitNot(Not _) => "not";
+  @override
   String visitLogicalExpression(LogicalExpression expression) {
     return logicalExpressionOperatorToString(expression.operatorEnum);
   }
 
+  @override
   String visitStringConcatenation(StringConcatenation _) => "concat";
+  @override
   String visitSymbolLiteral(SymbolLiteral _) => "symbol";
+  @override
   String visitThisExpression(ThisExpression _) => "this";
+  @override
   String visitRethrow(Rethrow _) => "rethrow";
+  @override
   String visitThrow(Throw _) => "throw";
+  @override
   String visitAwaitExpression(AwaitExpression _) => "await";
+  @override
   String visitConditionalExpression(ConditionalExpression _) => "cond";
+  @override
   String visitIsExpression(IsExpression _) => "is";
+  @override
   String visitAsExpression(AsExpression _) => "as";
+  @override
   String visitTypeLiteral(TypeLiteral _) => "type";
+  @override
   String visitListLiteral(ListLiteral expression) {
     return expression.isConst ? "const-list" : "list";
   }
 
+  @override
   String visitSetLiteral(SetLiteral expression) {
     return expression.isConst ? "const-set" : "set";
   }
 
+  @override
   String visitMapLiteral(MapLiteral expression) {
     return expression.isConst ? "const-map" : "map";
   }
 
+  @override
   String visitLet(Let _) => "let";
 
+  @override
   String visitInstanceGet(InstanceGet _) => "get-instance";
+  @override
   String visitInstanceSet(InstanceSet _) => "set-instance";
+  @override
   String visitDynamicGet(DynamicGet _) => "get-dynamic";
+  @override
   String visitDynamicSet(DynamicSet _) => "set-dynamic";
+  @override
   String visitInstanceTearOff(InstanceTearOff _) => "tearoff-instance";
+  @override
   String visitFunctionTearOff(FunctionTearOff _) => "tearoff-function";
+  @override
   String visitSuperPropertyGet(SuperPropertyGet _) => "get-super";
+  @override
   String visitSuperPropertySet(SuperPropertySet _) => "set-super";
+  @override
   String visitInstanceInvocation(InstanceInvocation _) => "invoke-instance";
+  @override
   String visitInstanceGetterInvocation(InstanceGetterInvocation _) =>
       "invoke-instance-getter";
+  @override
   String visitDynamicInvocation(DynamicInvocation _) => "invoke-dynamic";
+  @override
   String visitFunctionInvocation(FunctionInvocation _) => "invoke-function";
+  @override
   String visitLocalFunctionInvocation(LocalFunctionInvocation _) =>
       "invoke-local-function";
+  @override
   String visitEqualsNull(EqualsNull _) => "equals-null";
+  @override
   String visitEqualsCall(EqualsCall _) => "equals-call";
+  @override
   String visitSuperMethodInvocation(SuperMethodInvocation _) => "invoke-super";
 
+  @override
   String visitVariableGet(VariableGet _) => "get-var";
+  @override
   String visitVariableSet(VariableSet _) => "set-var";
+  @override
   String visitStaticGet(StaticGet _) => "get-static";
+  @override
   String visitStaticSet(StaticSet _) => "set-static";
+  @override
   String visitStaticTearOff(StaticTearOff _) => "tearoff-static";
+  @override
   String visitConstructorTearOff(ConstructorTearOff _) => "tearoff-constructor";
+  @override
   String visitRedirectingFactoryTearOff(RedirectingFactoryTearOff _) =>
       "tearoff-redirecting-factory";
+  @override
   String visitTypedefTearOff(TypedefTearOff _) => "tearoff-typedef";
+  @override
   String visitStaticInvocation(StaticInvocation expression) {
     return expression.isConst ? "invoke-const-static" : "invoke-static";
   }
 
+  @override
   String visitConstructorInvocation(ConstructorInvocation expression) {
     return expression.isConst
         ? "invoke-const-constructor"
         : "invoke-constructor";
   }
 
+  @override
   String visitFunctionExpression(FunctionExpression _) => "fun";
+  @override
   String visitListConcatenation(ListConcatenation _) => "lists";
+  @override
   String visitSetConcatenation(SetConcatenation _) => "sets";
+  @override
   String visitMapConcatenation(MapConcatenation _) => "maps";
+  @override
   String visitBlockExpression(BlockExpression _) => "let-block";
+  @override
   String visitInstantiation(Instantiation _) => "apply";
+  @override
   String visitNullCheck(NullCheck _) => "not-null";
+  @override
   String visitFileUriExpression(FileUriExpression _) => "with-uri";
+  @override
   String visitCheckLibraryIsLoaded(CheckLibraryIsLoaded _) => "is-loaded";
+  @override
   String visitLoadLibrary(LoadLibrary _) => "load";
+  @override
   String visitConstantExpression(ConstantExpression _) => "const";
+  @override
   String visitInstanceCreation(InstanceCreation _) => "object";
 
   @override
@@ -128,16 +190,20 @@ class ExpressionTagger extends ExpressionVisitor<String>
   }
 }
 
-const TextSerializer<InvalidExpression> invalidExpressionSerializer =
-    const Wrapped<String?, InvalidExpression>(
-        unwrapInvalidExpression, wrapInvalidExpression, const DartString());
+TextSerializer<InvalidExpression> invalidExpressionSerializer =
+    new Wrapped<Tuple2<String?, Expression?>, InvalidExpression>(
+        unwrapInvalidExpression,
+        wrapInvalidExpression,
+        Tuple2Serializer<String?, Expression?>(
+            Optional(DartString()), Optional(expressionSerializer)));
 
-String? unwrapInvalidExpression(InvalidExpression expression) {
-  return expression.message;
+Tuple2<String?, Expression?> unwrapInvalidExpression(
+    InvalidExpression expression) {
+  return Tuple2(expression.message, expression.expression);
 }
 
-InvalidExpression wrapInvalidExpression(String? message) {
-  return new InvalidExpression(message);
+InvalidExpression wrapInvalidExpression(Tuple2<String?, Expression?> tuple) {
+  return new InvalidExpression(tuple.first, tuple.second);
 }
 
 TextSerializer<Not> notSerializer =
@@ -570,6 +636,7 @@ const Map<InstanceAccessKind, String> instanceAccessKindToName = const {
 class InstanceAccessKindTagger implements Tagger<InstanceAccessKind> {
   const InstanceAccessKindTagger();
 
+  @override
   String tag(InstanceAccessKind kind) {
     return instanceAccessKindToName[kind] ??
         (throw StateError("Unknown InstanceAccessKind flag value: ${kind}."));
@@ -661,6 +728,7 @@ const Map<DynamicAccessKind, String> dynamicAccessKindToName = const {
 class DynamicAccessKindTagger implements Tagger<DynamicAccessKind> {
   const DynamicAccessKindTagger();
 
+  @override
   String tag(DynamicAccessKind kind) {
     return dynamicAccessKindToName[kind] ??
         (throw StateError("Unknown DynamicAccessKind flag value: ${kind}."));
@@ -700,6 +768,7 @@ const Map<FunctionAccessKind, String> functionAccessKindToName = const {
 class FunctionAccessKindTagger implements Tagger<FunctionAccessKind> {
   const FunctionAccessKindTagger();
 
+  @override
   String tag(FunctionAccessKind kind) {
     return functionAccessKindToName[kind] ??
         (throw StateError("Unknown FunctionAccessKind flag value: ${kind}."));
@@ -845,6 +914,7 @@ class CanonicalNameSerializer extends TextSerializer<CanonicalName> {
     }
   }
 
+  @override
   CanonicalName readFrom(
       Iterator<Object?> stream, DeserializationState? state) {
     if (state == null) {
@@ -859,6 +929,7 @@ class CanonicalNameSerializer extends TextSerializer<CanonicalName> {
     return name;
   }
 
+  @override
   void writeTo(
       StringBuffer buffer, CanonicalName name, SerializationState? state) {
     StringBuffer sb = new StringBuffer();
@@ -1140,15 +1211,16 @@ Arguments wrapArguments(
 const Map<int, String> variableDeclarationFlagToName = const {
   VariableDeclaration.FlagFinal: "final",
   VariableDeclaration.FlagConst: "const",
-  VariableDeclaration.FlagFieldFormal: "field-formal",
-  VariableDeclaration.FlagCovariant: "covariant",
-  VariableDeclaration.FlagGenericCovariantImpl: "generic-covariant-impl",
+  VariableDeclaration.FlagInitializingFormal: "field-formal",
+  VariableDeclaration.FlagCovariantByDeclaration: "covariant",
+  VariableDeclaration.FlagCovariantByClass: "generic-covariant-impl",
   VariableDeclaration.FlagLate: "late",
   VariableDeclaration.FlagRequired: "required",
   VariableDeclaration.FlagLowered: "lowered",
 };
 
 class VariableDeclarationFlagTagger implements Tagger<int> {
+  @override
   String tag(int flag) {
     return variableDeclarationFlagToName[flag] ??
         (throw StateError("Unknown VariableDeclaration flag value: ${flag}."));
@@ -1222,17 +1294,28 @@ class DartTypeTagger extends DartTypeVisitor<String>
     implements Tagger<DartType> {
   const DartTypeTagger();
 
+  @override
   String tag(DartType type) => type.accept(this);
 
+  @override
   String visitInvalidType(InvalidType _) => "invalid";
+  @override
   String visitDynamicType(DynamicType _) => "dynamic";
+  @override
   String visitVoidType(VoidType _) => "void";
+  @override
   String visitFunctionType(FunctionType _) => "->";
+  @override
   String visitTypeParameterType(TypeParameterType _) => "par";
+  @override
   String visitInterfaceType(InterfaceType _) => "interface";
+  @override
   String visitNeverType(NeverType _) => "never";
+  @override
   String visitTypedefType(TypedefType _) => "typedef";
+  @override
   String visitFutureOrType(FutureOrType _) => "futureor";
+  @override
   String visitNullType(NullType _) => "null-type";
 
   @override
@@ -1386,37 +1469,58 @@ class StatementTagger extends StatementVisitor<String>
     implements Tagger<Statement> {
   const StatementTagger();
 
+  @override
   String tag(Statement statement) => statement.accept(this);
 
+  @override
   String visitExpressionStatement(ExpressionStatement _) => "expr";
+  @override
   String visitReturnStatement(ReturnStatement node) {
     return node.expression == null ? "ret-void" : "ret";
   }
 
+  @override
   String visitYieldStatement(YieldStatement _) => "yield";
+  @override
   String visitBlock(Block _) => "block";
+  @override
   String visitVariableDeclaration(VariableDeclaration _) => "local";
+  @override
   String visitIfStatement(IfStatement node) {
     return node.otherwise == null ? "if" : "if-else";
   }
 
+  @override
   String visitEmptyStatement(EmptyStatement node) => "skip";
+  @override
   String visitWhileStatement(WhileStatement node) => "while";
+  @override
   String visitDoStatement(DoStatement node) => "do-while";
+  @override
   String visitForStatement(ForStatement node) => "for";
+  @override
   String visitForInStatement(ForInStatement node) {
     return node.isAsync ? "await-for-in" : "for-in";
   }
 
+  @override
   String visitAssertStatement(AssertStatement node) => "assert";
+  @override
   String visitAssertBlock(AssertBlock node) => "assert-block";
+  @override
   String visitLabeledStatement(LabeledStatement node) => "label";
+  @override
   String visitBreakStatement(BreakStatement node) => "break";
+  @override
   String visitTryFinally(TryFinally node) => "try-finally";
+  @override
   String visitTryCatch(TryCatch node) => "try-catch";
+  @override
   String visitSwitchStatement(SwitchStatement node) => "switch";
+  @override
   String visitContinueSwitchStatement(ContinueSwitchStatement node) =>
       "continue";
+  @override
   String visitFunctionDeclaration(FunctionDeclaration node) => "local-fun";
 
   @override
@@ -1505,6 +1609,7 @@ class BlockSerializer
     extends TextSerializer<Tuple2<List<Statement>, Expression?>> {
   const BlockSerializer();
 
+  @override
   Tuple2<List<Statement>, Expression?> readFrom(
       Iterator<Object?> stream, DeserializationState? state) {
     if (state == null) {
@@ -1531,6 +1636,7 @@ class BlockSerializer
     return new Tuple2(statements, expression);
   }
 
+  @override
   void writeTo(StringBuffer buffer, Tuple2<List<Statement>, Expression?> tuple,
       SerializationState? state) {
     if (state == null) {
@@ -1723,6 +1829,7 @@ TextSerializer<SwitchStatement> switchStatementSerializer =
                 (SwitchCase z) => Tuple2(z, z.body))));
 
 class SwitchCaseTagger implements Tagger<SwitchCase> {
+  @override
   String tag(SwitchCase node) {
     return node.isDefault ? "default" : "case";
   }
@@ -1773,6 +1880,7 @@ const Map<AsyncMarker, String> asyncMarkerToName = {
 class AsyncMarkerTagger implements Tagger<AsyncMarker> {
   const AsyncMarkerTagger();
 
+  @override
   String tag(AsyncMarker node) {
     return asyncMarkerToName[node] ?? (throw new UnsupportedError("${node}"));
   }
@@ -1787,8 +1895,10 @@ TextSerializer<Tuple2<FunctionNode, List<Initializer>?>> /**/
     functionNodeWithInitializersSerializer = Wrapped<
             Tuple2<
                 AsyncMarker,
-                Tuple2< /**/
-                    Tuple2< /**/
+                Tuple2<
+                    /**/
+                    Tuple2<
+                        /**/
                         List<TypeParameter>,
                         Tuple3<
                             List<VariableDeclaration>,
@@ -1852,6 +1962,7 @@ const Map<int, String> procedureFlagToName = const {
 class ProcedureFlagTagger implements Tagger<int> {
   const ProcedureFlagTagger();
 
+  @override
   String tag(int flag) {
     return procedureFlagToName[flag] ??
         (throw StateError("Unknown Procedure flag value: ${flag}."));
@@ -1869,7 +1980,7 @@ const Map<int, String> fieldFlagToName = const {
   Field.FlagConst: "const",
   Field.FlagStatic: "static",
   Field.FlagCovariant: "covariant",
-  Field.FlagGenericCovariantImpl: "generic-covariant-impl",
+  Field.FlagCovariantByClass: "generic-covariant-impl",
   Field.FlagLate: "late",
   Field.FlagExtensionMember: "extension-member",
   Field.FlagNonNullableByDefault: "non-nullable-by-default",
@@ -1879,6 +1990,7 @@ const Map<int, String> fieldFlagToName = const {
 class FieldFlagTagger implements Tagger<int> {
   const FieldFlagTagger();
 
+  @override
   String tag(int flag) {
     return fieldFlagToName[flag] ??
         (throw StateError("Unknown Field flag value: ${flag}."));
@@ -1900,6 +2012,7 @@ const Map<int, String> constructorFlagToName = const {
 class ConstructorFlagTagger implements Tagger<int> {
   const ConstructorFlagTagger();
 
+  @override
   String tag(int flag) {
     return constructorFlagToName[flag] ??
         (throw StateError("Unknown Constructor flag value: ${flag}."));
@@ -1921,6 +2034,7 @@ const Map<int, String> redirectingFactoryFlagToName = const {
 class RedirectingFactoryFlagTagger implements Tagger<int> {
   const RedirectingFactoryFlagTagger();
 
+  @override
   String tag(int flag) {
     return redirectingFactoryFlagToName[flag] ??
         (throw StateError("Unknown RedirectingFactory flag value: ${flag}."));
@@ -1939,6 +2053,7 @@ TextSerializer<int> redirectingFactoryConstructorFlagsSerializer =
 class MemberTagger implements Tagger<Member> {
   const MemberTagger();
 
+  @override
   String tag(Member node) {
     if (node is Field) {
       return node.hasSetter ? "mutable-field" : "immutable-field";
@@ -2021,13 +2136,14 @@ TextSerializer<Procedure> operatorSerializer =
         Tuple4Serializer(nameSerializer, procedureFlagsSerializer,
             functionNodeSerializer, UriSerializer()));
 
-TextSerializer<Procedure> factorySerializer = Wrapped<
-        Tuple4<Name, int, FunctionNode, Uri>, Procedure>(
-    (w) => Tuple4(w.name, w.flags, w.function, w.fileUri),
-    (u) => Procedure(u.first, ProcedureKind.Factory, u.third, fileUri: u.fourth)
-      ..flags = u.second,
-    Tuple4Serializer(nameSerializer, procedureFlagsSerializer,
-        functionNodeSerializer, UriSerializer()));
+TextSerializer<Procedure> factorySerializer =
+    Wrapped<Tuple4<Name, int, FunctionNode, Uri>, Procedure>(
+        (w) => Tuple4(w.name, w.flags, w.function, w.fileUri),
+        (u) => Procedure(u.first, ProcedureKind.Factory, u.third,
+            fileUri: u.fourth)
+          ..flags = u.second,
+        Tuple4Serializer(nameSerializer, procedureFlagsSerializer,
+            functionNodeSerializer, UriSerializer()));
 
 TextSerializer<Constructor> constructorSerializer = Wrapped<
         Tuple4<Name, int, Tuple2<FunctionNode, List<Initializer>?>, Uri>,
@@ -2072,6 +2188,7 @@ TextSerializer<LibraryPart> libraryPartSerializer =
 class LibraryTagger implements Tagger<Library> {
   const LibraryTagger();
 
+  @override
   String tag(Library node) {
     return node.isNonNullableByDefault ? "null-safe" : "legacy";
   }
@@ -2087,6 +2204,7 @@ const Map<int, String> libraryFlagToName = const {
 class LibraryFlagTagger implements Tagger<int> {
   const LibraryFlagTagger();
 
+  @override
   String tag(int flag) {
     return libraryFlagToName[flag] ??
         (throw StateError("Unknown Library flag value: ${flag}."));
@@ -2133,6 +2251,7 @@ TextSerializer<Component> componentSerializer =
         ListSerializer(librarySerializer));
 
 class ShowHideTagger implements Tagger<Combinator> {
+  @override
   String tag(Combinator node) => node.isShow ? "show" : "hide";
 }
 
@@ -2167,30 +2286,48 @@ class ConstantTagger extends ConstantVisitor<String>
     implements Tagger<Constant> {
   const ConstantTagger();
 
+  @override
   String tag(Constant node) => node.accept(this);
 
+  @override
   String visitBoolConstant(BoolConstant node) => "const-bool";
+  @override
   String visitDoubleConstant(DoubleConstant node) => "const-double";
+  @override
   String visitInstanceConstant(InstanceConstant node) => "const-object";
+  @override
   String visitIntConstant(IntConstant node) => "const-int";
+  @override
   String visitListConstant(ListConstant node) => "const-list";
+  @override
   String visitMapConstant(MapConstant node) => "const-map";
+  @override
   String visitNullConstant(NullConstant node) => "const-null";
+  @override
   String visitInstantiationConstant(InstantiationConstant node) =>
       "const-apply";
+  @override
   String visitSetConstant(SetConstant node) => "const-set";
+  @override
   String visitStringConstant(StringConstant node) => "const-string";
+  @override
   String visitSymbolConstant(SymbolConstant node) => "const-symbol";
+  @override
   String visitStaticTearOffConstant(StaticTearOffConstant node) =>
       "const-tearoff-static";
+  @override
   String visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
       "const-tearoff-constructor";
+  @override
   String visitRedirectingFactoryTearOffConstant(
           RedirectingFactoryTearOffConstant node) =>
       "const-tearoff-redirecting-factory";
+  @override
   String visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
       "const-tearoff-typedef";
+  @override
   String visitTypeLiteralConstant(TypeLiteralConstant node) => "const-type";
+  @override
   String visitUnevaluatedConstant(UnevaluatedConstant node) => "const-expr";
 
   @override
@@ -2331,6 +2468,7 @@ Case<Constant> constantSerializer = Case.uninitialized(ConstantTagger());
 class InitializerTagger implements Tagger<Initializer> {
   const InitializerTagger();
 
+  @override
   String tag(Initializer node) {
     if (node is AssertInitializer) {
       return "assert";
@@ -2402,6 +2540,7 @@ const Map<int, String> classFlagToName = const {
 class ClassFlagTagger implements Tagger<int> {
   const ClassFlagTagger();
 
+  @override
   String tag(int flag) {
     return classFlagToName[flag] ??
         (throw StateError("Unknown Class flag value: ${flag}."));
@@ -2478,6 +2617,7 @@ const Map<int, String> extensionMemberDescriptorFlagToName = const {
 class ExtensionMemberDescriptorFlagTagger implements Tagger<int> {
   const ExtensionMemberDescriptorFlagTagger();
 
+  @override
   String tag(int flag) {
     return extensionMemberDescriptorFlagToName[flag] ??
         (throw StateError(
@@ -2506,6 +2646,7 @@ const Map<ExtensionMemberKind, String> extensionMemberKindToName = const {
 class ExtensionMemberKindTagger implements Tagger<ExtensionMemberKind> {
   const ExtensionMemberKindTagger();
 
+  @override
   String tag(ExtensionMemberKind kind) {
     return extensionMemberKindToName[kind] ??
         (throw StateError("Unknown ExtensionMemberKind flag value: ${kind}."));

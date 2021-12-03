@@ -334,8 +334,12 @@ class ContextLocatorImpl implements ContextLocator {
     }
 
     // Stop infinite recursion via links.
-    var canonicalFolderPath = folder.resolveSymbolicLinksSync().path;
-    if (!visited.add(canonicalFolderPath)) {
+    try {
+      var canonicalFolderPath = folder.resolveSymbolicLinksSync().path;
+      if (!visited.add(canonicalFolderPath)) {
+        return;
+      }
+    } on FileSystemException {
       return;
     }
 

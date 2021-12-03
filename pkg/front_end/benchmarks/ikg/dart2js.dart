@@ -6,4 +6,4 @@
 
 import 'package:compiler/src/dart2js.dart' as dart2js;
 
-main(args) => dart2js.main(args);
+void main(args) => dart2js.main(args);

@@ -24,7 +24,7 @@ abstract class int extends num {
   /// Returns the integer value of the given environment declaration [name].
   ///
   /// The result is the same as would be returned by:
-  /// ```dart
+  /// ```dart template:expression
   /// int.tryParse(const String.fromEnvironment(name, defaultValue: ""))
   ///     ?? defaultValue
   /// ```
@@ -37,6 +37,11 @@ abstract class int extends num {
   /// must be consistent across all calls to [String.fromEnvironment],
   /// `int.fromEnvironment`, [bool.fromEnvironment] and [bool.hasEnvironment]
   /// in a single program.
+  ///
+  /// This constructor is only guaranteed to work when invoked as `const`.
+  /// It may work as a non-constant invocation on some platforms which
+  /// have access to compiler options at run-time, but most ahead-of-time
+  /// compiled platforms will not have this information.
   // The .fromEnvironment() constructors are special in that we do not want
   // users to call them using "new". We prohibit that by giving them bodies
   // that throw, even though const constructors are not allowed to have bodies.
@@ -107,8 +112,6 @@ abstract class int extends num {
 
   /// Bitwise unsigned right shift by [shiftAmount] bits.
   ///
-  /// NOT IMPLEMENTED YET.
-  ///
   /// The least significant [shiftAmount] bits are dropped,
   /// the remaining bits (if any) are shifted down,
   /// and zero-bits are shifted in as the new most significant bits.
@@ -158,7 +161,7 @@ abstract class int extends num {
   /// To find the number of bits needed to store the value as a signed value,
   /// add one, i.e. use `x.bitLength + 1`.
   /// ```dart
-  /// x.bitLength == (-x-1).bitLength
+  /// x.bitLength == (-x-1).bitLength;
   ///
   /// 3.bitLength == 2;     // 00000011
   /// 2.bitLength == 2;     // 00000010
@@ -198,10 +201,10 @@ abstract class int extends num {
   /// returned value has the same bit value in all positions higher than [width].
   ///
   /// ```dart
-  ///                                V--sign bit-V
-  /// 16.toSigned(5) == -16   //  00010000 -> 11110000
-  /// 239.toSigned(5) == 15   //  11101111 -> 00001111
-  ///                                ^           ^
+  ///                          //     V--sign bit-V
+  /// 16.toSigned(5) == -16;   //  00010000 -> 11110000
+  /// 239.toSigned(5) == 15;   //  11101111 -> 00001111
+  ///                          //     ^           ^
   /// ```
   /// This operation can be used to simulate arithmetic from low level languages.
   /// For example, to increment an 8 bit signed quantity:
@@ -309,7 +312,10 @@ abstract class int extends num {
   /// Example:
   /// ```dart
   /// var value = int.tryParse(text);
-  /// if (value == null) ... handle the problem
+  /// if (value == null) {
+  ///   // handle the problem
+  ///   // ...
+  /// }
   /// ```
   ///
   /// The [onError] parameter is deprecated and will be removed.

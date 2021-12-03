@@ -192,6 +192,23 @@ class A {
 ''');
   }
 
+  Future<void> test_unusedField_notUsed_assign_nested() async {
+    await resolveTestCode(r'''
+class A {
+  var _f;
+  main() {
+    _f = () { _f = 0; };
+  }
+}
+''');
+    await assertHasFix(r'''
+class A {
+  main() {
+  }
+}
+''');
+  }
+
   Future<void> test_unusedField_notUsed_compoundAssign() async {
     await resolveTestCode(r'''
 class A {

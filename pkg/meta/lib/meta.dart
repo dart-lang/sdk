@@ -357,11 +357,29 @@ class Required {
 })
 class UseResult {
   /// A human-readable explanation of the reason why the value returned by
-  /// accessing this member should be checked.
+  /// accessing this member should be used.
   final String reason;
 
+  /// Names a parameter of a method or function that, when present, signals that
+  /// the annotated member's value is used by that method or function and does
+  /// not need to be further checked.
+  final String? parameterDefined;
+
   /// Initialize a newly created instance to have the given [reason].
-  const UseResult([this.reason = '']);
+  const UseResult([this.reason = '']) : parameterDefined = null;
+
+  /// Initialize a newly created instance to annotate a function or method that
+  /// identifies a parameter [parameterDefined] that when present signals that
+  /// the result is used by the annotated member and does not need to be further
+  /// checked.  For values that need to be used unconditionally, use the unnamed
+  /// `UseResult` constructor, or if no reason is specified, the [useResult]
+  /// constant.
+  ///
+  /// Tools, such as the analyzer, can provide feedback if
+  ///
+  /// * a parameter named by [parameterDefined] is not declared by the annotated
+  ///   method or function.
+  const UseResult.unless({required this.parameterDefined, this.reason = ''});
 }
 
 class _AlwaysThrows {

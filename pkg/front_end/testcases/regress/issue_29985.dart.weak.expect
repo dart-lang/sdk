@@ -11,14 +11,14 @@ library;
 //   🔛
 //   ^^
 //
-// pkg/front_end/testcases/regress/issue_29985.dart:6:3: Error: Getter not found: '🔛'.
+// pkg/front_end/testcases/regress/issue_29985.dart:6:3: Error: Undefined name '🔛'.
 //   🔛
 //   ^^
 //
 import self as self;
 
 static method bad() → dynamic {
-  invalid-expression "pkg/front_end/testcases/regress/issue_29985.dart:6:3: Error: Getter not found: '\u55357\u56603'.
+  invalid-expression "pkg/front_end/testcases/regress/issue_29985.dart:6:3: Error: Undefined name '\u55357\u56603'.
   \u55357\u56603
   ^^";
 }

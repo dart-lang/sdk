@@ -43,8 +43,8 @@ bool failedAt(Spannable spannable, [String message]) {
   // TODO(johnniwinther): Use [spannable] and [message] to provide better
   // information on assertion errors.
   if (spannable == null) {
-    throw new SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
+    throw SpannableAssertionFailure(CURRENT_ELEMENT_SPANNABLE,
         'Spannable was null for failedAt. Use CURRENT_ELEMENT_SPANNABLE.');
   }
-  throw new SpannableAssertionFailure(spannable, message);
+  throw SpannableAssertionFailure(spannable, message);
 }

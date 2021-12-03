@@ -9,29 +9,14 @@ import '../context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LogicalAndTest);
-    defineReflectiveTests(LogicalAndWithNullSafetyTest);
+    defineReflectiveTests(LogicalAndWithoutNullSafetyTest);
     defineReflectiveTests(LogicalOrTest);
-    defineReflectiveTests(LogicalOrWithNullSafetyTest);
+    defineReflectiveTests(LogicalOrWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class LogicalAndTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  test_upward() async {
-    await resolveTestCode('''
-void f(bool a, bool b) {
-  var c = a && b;
-  print(c);
-}
-''');
-    assertType(findNode.simple('c)'), 'bool');
-  }
-}
-
-@reflectiveTest
-class LogicalAndWithNullSafetyTest extends LogicalAndTest
-    with WithNullSafetyMixin {
+class LogicalAndTest extends PubPackageResolutionTest with LogicalAndTestCases {
   @failingTest
   test_downward() async {
     await resolveTestCode('''
@@ -47,13 +32,11 @@ T b<T>() => throw '';
   }
 }
 
-@reflectiveTest
-class LogicalOrTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+mixin LogicalAndTestCases on PubPackageResolutionTest {
   test_upward() async {
     await resolveTestCode('''
 void f(bool a, bool b) {
-  var c = a || b;
+  var c = a && b;
   print(c);
 }
 ''');
@@ -62,8 +45,11 @@ void f(bool a, bool b) {
 }
 
 @reflectiveTest
-class LogicalOrWithNullSafetyTest extends LogicalOrTest
-    with WithNullSafetyMixin {
+class LogicalAndWithoutNullSafetyTest extends PubPackageResolutionTest
+    with LogicalAndTestCases, WithoutNullSafetyMixin {}
+
+@reflectiveTest
+class LogicalOrTest extends PubPackageResolutionTest with LogicalOrTestCases {
   @failingTest
   test_downward() async {
     await resolveTestCode('''
@@ -78,3 +64,19 @@ T b<T>() => throw '';
     assertInvokeType(findNode.methodInvocation('b('), 'bool Function()');
   }
 }
+
+mixin LogicalOrTestCases on PubPackageResolutionTest {
+  test_upward() async {
+    await resolveTestCode('''
+void f(bool a, bool b) {
+  var c = a || b;
+  print(c);
+}
+''');
+    assertType(findNode.simple('c)'), 'bool');
+  }
+}
+
+@reflectiveTest
+class LogicalOrWithoutNullSafetyTest extends PubPackageResolutionTest
+    with LogicalOrTestCases, WithoutNullSafetyMixin {}

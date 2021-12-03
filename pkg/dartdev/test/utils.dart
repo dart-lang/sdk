@@ -23,12 +23,14 @@ TestProject project(
         String analysisOptions,
         bool logAnalytics = false,
         String name = TestProject._defaultProjectName,
-        VersionConstraint sdkConstraint}) =>
+        VersionConstraint sdkConstraint,
+        Map<String, dynamic> pubspec}) =>
     TestProject(
         mainSrc: mainSrc,
         analysisOptions: analysisOptions,
         logAnalytics: logAnalytics,
-        sdkConstraint: sdkConstraint);
+        sdkConstraint: sdkConstraint,
+        pubspec: pubspec);
 
 class TestProject {
   static const String _defaultProjectName = 'dartdev_temp';
@@ -47,21 +49,28 @@ class TestProject {
 
   final VersionConstraint sdkConstraint;
 
+  final Map<String, dynamic> pubspec;
+
   TestProject(
       {String mainSrc,
       String analysisOptions,
       this.name = _defaultProjectName,
       this.logAnalytics = false,
-      this.sdkConstraint}) {
+      this.sdkConstraint,
+      this.pubspec}) {
     dir = Directory.systemTemp.createTempSync('a');
-    file('pubspec.yaml', '''
+    file(
+        'pubspec.yaml',
+        pubspec == null
+            ? '''
 name: $name
 environment:
   sdk: '${sdkConstraint ?? '>=2.10.0 <3.0.0'}'
 
 dev_dependencies:
   test: any
-''');
+'''
+            : json.encode(pubspec));
     if (analysisOptions != null) {
       file('analysis_options.yaml', analysisOptions);
     }
@@ -140,6 +149,11 @@ dev_dependencies:
 
   String get absolutePathToDartdevFile =>
       path.join(sdkRootPath, 'pkg', 'dartdev', 'bin', 'dartdev.dart');
+
+  Directory findDirectory(String name) {
+    var directory = Directory(path.join(dir.path, name));
+    return directory.existsSync() ? directory : null;
+  }
 
   File findFile(String name) {
     var file = File(path.join(dir.path, name));

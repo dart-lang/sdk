@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ResolverVisitor;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
@@ -502,7 +503,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         CompilationUnitElementImpl();
     definingCompilationUnit.librarySource =
         definingCompilationUnit.source = source;
-    var featureSet = FeatureSet.forTesting();
+    var featureSet = FeatureSet.latestLanguageVersion();
 
     _definingLibrary = LibraryElementImpl(
         context, _AnalysisSessionMock(), 'name', -1, 0, featureSet);
@@ -514,7 +515,9 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
 
     _visitor = ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
-        featureSet: featureSet, nameScope: _definingLibrary.scope);
+        featureSet: featureSet,
+        flowAnalysisHelper:
+            FlowAnalysisHelper(context.typeSystemLegacy, false, featureSet));
     _analyzer = _visitor.typeAnalyzer;
   }
 

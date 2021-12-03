@@ -24,6 +24,7 @@
 #include "vm/signal_handler.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
+#include "vm/timeline.h"
 #include "vm/version.h"
 
 namespace dart {
@@ -66,6 +67,13 @@ SampleBlockBuffer* Profiler::sample_block_buffer_ = nullptr;
 AllocationSampleBuffer* Profiler::allocation_sample_buffer_ = nullptr;
 ProfilerCounters Profiler::counters_ = {};
 
+bool SampleBlockProcessor::initialized_ = false;
+bool SampleBlockProcessor::shutdown_ = false;
+bool SampleBlockProcessor::thread_running_ = false;
+ThreadJoinId SampleBlockProcessor::processor_thread_id_ =
+    OSThread::kInvalidThreadJoinId;
+Monitor* SampleBlockProcessor::monitor_ = nullptr;
+
 void Profiler::Init() {
   // Place some sane restrictions on user controlled flags.
   SetSampleDepth(FLAG_max_profile_depth);
@@ -83,6 +91,8 @@ void Profiler::Init() {
   }
   ThreadInterrupter::Init();
   ThreadInterrupter::Startup();
+  SampleBlockProcessor::Init();
+  SampleBlockProcessor::Startup();
   initialized_ = true;
 }
 
@@ -113,6 +123,7 @@ void Profiler::Cleanup() {
   }
   ASSERT(initialized_);
   ThreadInterrupter::Cleanup();
+  SampleBlockProcessor::Cleanup();
   SampleBlockCleanupVisitor visitor;
   Isolate::VisitIsolates(&visitor);
   initialized_ = false;
@@ -175,8 +186,10 @@ SampleBlockBuffer::SampleBlockBuffer(intptr_t blocks,
                                      intptr_t samples_per_block) {
   const intptr_t size = Utils::RoundUp(
       blocks * samples_per_block * sizeof(Sample), VirtualMemory::PageSize());
-  const bool kNotExecutable = false;
-  memory_ = VirtualMemory::Allocate(size, kNotExecutable, "dart-profiler");
+  const bool executable = false;
+  const bool compressed = false;
+  memory_ =
+      VirtualMemory::Allocate(size, executable, compressed, "dart-profiler");
   if (memory_ == NULL) {
     OUT_OF_MEMORY();
   }
@@ -223,24 +236,29 @@ SampleBlock* SampleBlockBuffer::ReserveSampleBlock() {
 
 void SampleBlockBuffer::ProcessCompletedBlocks() {
   Thread* thread = Thread::Current();
+  DisableThreadInterruptsScope dtis(thread);
   int64_t start = Dart_TimelineGetMicros();
-  for (intptr_t i = 0; i < capacity_; ++i) {
-    SampleBlock* block = &blocks_[i];
-    if (block->is_full() && !block->evictable()) {
-      if (Service::profiler_stream.enabled()) {
-        Profile profile(block->owner());
-        profile.Build(thread, nullptr, block);
-        ServiceEvent event(block->owner(), ServiceEvent::kCpuSamples);
-        event.set_cpu_profile(&profile);
-        Service::HandleEvent(&event);
-      }
-      block->evictable_ = true;
-      FreeBlock(block);
-    }
-  }
+  thread->isolate()->ProcessFreeSampleBlocks(thread);
   int64_t end = Dart_TimelineGetMicros();
   Dart_TimelineEvent("SampleBlockBuffer::ProcessCompletedBlocks", start, end,
                      Dart_Timeline_Event_Duration, 0, nullptr, nullptr);
+}
+
+ProcessedSampleBuffer* SampleBlockListProcessor::BuildProcessedSampleBuffer(
+    SampleFilter* filter,
+    ProcessedSampleBuffer* buffer) {
+  ASSERT(filter != NULL);
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  if (buffer == nullptr) {
+    buffer = new (zone) ProcessedSampleBuffer();
+  }
+  while (head_ != nullptr) {
+    head_->BuildProcessedSampleBuffer(filter, buffer);
+    head_ = head_->next_free_;
+  }
+  return buffer;
 }
 
 ProcessedSampleBuffer* SampleBlockBuffer::BuildProcessedSampleBuffer(
@@ -306,12 +324,6 @@ Sample* SampleBlockBuffer::ReserveSampleImpl(Isolate* isolate,
   Sample* sample = nullptr;
   if (block != nullptr) {
     sample = block->ReserveSample();
-    if (sample != nullptr && block->is_full()) {
-      // TODO(bkonyi): remove once streaming is re-enabled.
-      // https://github.com/dart-lang/sdk/issues/46825
-      block->evictable_ = true;
-      FreeBlock(block);
-    }
   }
   if (sample != nullptr) {
     return sample;
@@ -326,6 +338,7 @@ Sample* SampleBlockBuffer::ReserveSampleImpl(Isolate* isolate,
       return nullptr;
     }
     isolate->set_current_allocation_sample_block(next);
+    isolate->FreeSampleBlock(block);
   } else {
     MutexLocker locker(isolate->current_sample_block_lock());
     next = ReserveSampleBlock();
@@ -334,21 +347,24 @@ Sample* SampleBlockBuffer::ReserveSampleImpl(Isolate* isolate,
       return nullptr;
     }
     isolate->set_current_sample_block(next);
+    isolate->FreeSampleBlock(block);
   }
   next->set_is_allocation_block(allocation_sample);
 
-  can_process_block_.store(true);
-  // TODO(bkonyi): re-enable after block streaming is fixed.
-  // See https://github.com/dart-lang/sdk/issues/46825
-  // isolate->mutator_thread()->ScheduleInterrupts(Thread::kVMInterrupt);
+  bool scheduled = can_process_block_.exchange(true);
+  if (!scheduled) {
+    isolate->mutator_thread()->ScheduleInterrupts(Thread::kVMInterrupt);
+  }
   return ReserveSampleImpl(isolate, allocation_sample);
 }
 
 AllocationSampleBuffer::AllocationSampleBuffer(intptr_t capacity) {
   const intptr_t size =
       Utils::RoundUp(capacity * sizeof(Sample), VirtualMemory::PageSize());
-  const bool kNotExecutable = false;
-  memory_ = VirtualMemory::Allocate(size, kNotExecutable, "dart-profiler");
+  const bool executable = false;
+  const bool compressed = false;
+  memory_ =
+      VirtualMemory::Allocate(size, executable, compressed, "dart-profiler");
   if (memory_ == NULL) {
     OUT_OF_MEMORY();
   }
@@ -1554,13 +1570,17 @@ void CodeLookupTable::Build(Thread* thread) {
   // Clear.
   code_objects_.Clear();
 
+  thread->CheckForSafepoint();
   // Add all found Code objects.
   {
+    TimelineBeginEndScope tl(Timeline::GetIsolateStream(),
+                             "CodeLookupTable::Build HeapIterationScope");
     HeapIterationScope iteration(thread);
     CodeLookupTableBuilder cltb(this);
     iteration.IterateVMIsolateObjects(&cltb);
     iteration.IterateOldObjects(&cltb);
   }
+  thread->CheckForSafepoint();
 
   // Sort by entry.
   code_objects_.Sort(CodeDescriptor::Compare);
@@ -1634,6 +1654,7 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
 
   const intptr_t length = capacity();
   for (intptr_t i = 0; i < length; i++) {
+    thread->CheckForSafepoint();
     Sample* sample = At(i);
     if (sample->ignore_sample()) {
       // Bad sample.
@@ -1823,6 +1844,94 @@ void ProcessedSample::CheckForMissingDartFrame(const CodeLookupTable& clt,
 ProcessedSampleBuffer::ProcessedSampleBuffer()
     : code_lookup_table_(new CodeLookupTable(Thread::Current())) {
   ASSERT(code_lookup_table_ != NULL);
+}
+
+void SampleBlockProcessor::Init() {
+  ASSERT(!initialized_);
+  if (monitor_ == nullptr) {
+    monitor_ = new Monitor();
+  }
+  ASSERT(monitor_ != nullptr);
+  initialized_ = true;
+  shutdown_ = false;
+}
+
+void SampleBlockProcessor::Startup() {
+  ASSERT(initialized_);
+  ASSERT(processor_thread_id_ == OSThread::kInvalidThreadJoinId);
+  MonitorLocker startup_ml(monitor_);
+  OSThread::Start("Dart Profiler SampleBlockProcessor", ThreadMain, 0);
+  while (!thread_running_) {
+    startup_ml.Wait();
+  }
+  ASSERT(processor_thread_id_ != OSThread::kInvalidThreadJoinId);
+}
+
+void SampleBlockProcessor::Cleanup() {
+  {
+    MonitorLocker shutdown_ml(monitor_);
+    if (shutdown_) {
+      // Already shutdown.
+      return;
+    }
+    shutdown_ = true;
+    // Notify.
+    shutdown_ml.Notify();
+    ASSERT(initialized_);
+  }
+
+  // Join the thread.
+  ASSERT(processor_thread_id_ != OSThread::kInvalidThreadJoinId);
+  OSThread::Join(processor_thread_id_);
+  processor_thread_id_ = OSThread::kInvalidThreadJoinId;
+  initialized_ = false;
+  ASSERT(!thread_running_);
+}
+
+class SampleBlockProcessorVisitor : public IsolateVisitor {
+ public:
+  SampleBlockProcessorVisitor() = default;
+  virtual ~SampleBlockProcessorVisitor() = default;
+
+  void VisitIsolate(Isolate* isolate) {
+    if (!isolate->should_process_blocks()) {
+      return;
+    }
+    Thread::EnterIsolateAsHelper(isolate, Thread::kSampleBlockTask);
+    Thread* thread = Thread::Current();
+    {
+      DisableThreadInterruptsScope dtis(thread);
+      isolate->ProcessFreeSampleBlocks(thread);
+    }
+    Thread::ExitIsolateAsHelper();
+  }
+};
+
+void SampleBlockProcessor::ThreadMain(uword parameters) {
+  ASSERT(initialized_);
+  {
+    // Signal to main thread we are ready.
+    MonitorLocker startup_ml(monitor_);
+    OSThread* os_thread = OSThread::Current();
+    ASSERT(os_thread != NULL);
+    processor_thread_id_ = OSThread::GetCurrentThreadJoinId(os_thread);
+    thread_running_ = true;
+    startup_ml.Notify();
+  }
+
+  SampleBlockProcessorVisitor visitor;
+  MonitorLocker wait_ml(monitor_);
+  // Wakeup every 100ms.
+  const int64_t wakeup_interval = 1000 * 100;
+  while (true) {
+    wait_ml.WaitMicros(wakeup_interval);
+    if (shutdown_) {
+      break;
+    }
+    Isolate::VisitIsolates(&visitor);
+  }
+  // Signal to main thread we are exiting.
+  thread_running_ = false;
 }
 
 #endif  // !PRODUCT

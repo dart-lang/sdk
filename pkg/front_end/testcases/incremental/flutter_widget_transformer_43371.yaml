@@ -7,7 +7,6 @@ target: DDC
 trackWidgetCreation: true
 worlds:
   - entry: main.dart
-    experiments: non-nullable
     sources:
       main.dart: |
         // @dart=2.8

@@ -17,10 +17,10 @@ class Test1 {
     var /*@ type=num* */ v2 = t. /*@target=Test1.prop*/ prop = getNum();
     var /*@ type=int* */ v4 = /*@ type=Test1* */ /*@target=Test1.prop*/ t
             . /*@target=Test1.prop*/ prop
-        /*@target=num.==*/ ??= getInt();
+         ??= getInt();
     var /*@ type=num* */ v5 = /*@ type=Test1* */ /*@target=Test1.prop*/ t
             . /*@target=Test1.prop*/ prop
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
     var /*@ type=int* */ v7 = /*@ type=Test1* */ t
             . /*@target=Test1.prop*/ /*@target=Test1.prop*/ prop
         /*@target=num.+*/ += getInt();
@@ -45,13 +45,13 @@ class Test2 {
     var /*@ type=double* */ v3 = t. /*@target=Test2.prop*/ prop = getDouble();
     var /*@ type=num* */ v4 = /*@ type=Test2* */ /*@target=Test2.prop*/ t
             . /*@target=Test2.prop*/ prop
-        /*@target=num.==*/ ??= getInt();
+         ??= getInt();
     var /*@ type=num* */ v5 = /*@ type=Test2* */ /*@target=Test2.prop*/ t
             . /*@target=Test2.prop*/ prop
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
     var /*@ type=num* */ v6 = /*@ type=Test2* */ /*@target=Test2.prop*/ t
             . /*@target=Test2.prop*/ prop
-        /*@target=num.==*/ ??= getDouble();
+         ??= getDouble();
     var /*@ type=num* */ v7 = /*@ type=Test2* */ t
             . /*@target=Test2.prop*/ /*@target=Test2.prop*/ prop
         /*@target=num.+*/ += getInt();
@@ -78,10 +78,10 @@ class Test3 {
     var /*@ type=double* */ v3 = t. /*@target=Test3.prop*/ prop = getDouble();
     var /*@ type=num* */ v5 = /*@ type=Test3* */ /*@target=Test3.prop*/ t
             . /*@target=Test3.prop*/ prop
-        /*@target=num.==*/ ??= getNum();
+         ??= getNum();
     var /*@ type=double* */ v6 = /*@ type=Test3* */ /*@target=Test3.prop*/ t
             . /*@target=Test3.prop*/ prop
-        /*@target=num.==*/ ??= getDouble();
+         ??= getDouble();
     var /*@ type=double* */ v7 = /*@ type=Test3* */ t
             . /*@target=Test3.prop*/ /*@target=Test3.prop*/ prop
         /*@target=double.+*/ += getInt();

@@ -11,7 +11,6 @@ import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:dev_compiler/dev_compiler.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/ast.dart' show Component, Library;
@@ -22,9 +21,11 @@ import 'package:kernel/src/tool/find_referenced_libraries.dart'
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:meta/meta.dart';
 
+import '../../dev_compiler.dart';
 import '../compiler/js_names.dart';
 import 'asset_file_system.dart';
 import 'command.dart';
+import 'target.dart' show sdkLibraryEnvironmentDefines;
 
 /// The service that handles expression compilation requests from
 /// the debugger.
@@ -83,6 +84,8 @@ class ExpressionCompilerWorker {
   final ModuleFormat _moduleFormat;
   final Component _sdkComponent;
 
+  void Function() onDone;
+
   ExpressionCompilerWorker._(
     this._processedOptions,
     this._compilerOptions,
@@ -90,6 +93,7 @@ class ExpressionCompilerWorker {
     this._sdkComponent,
     this.requestStream,
     this.sendResponse,
+    this.onDone,
   );
 
   /// Create expression compiler worker from [args] and start it.
@@ -140,6 +144,7 @@ class ExpressionCompilerWorker {
     }
   }
 
+  /// Parse args and create the worker, hook cleanup code to run when done.
   static Future<ExpressionCompilerWorker> createFromArgs(
     List<String> args, {
     Stream<Map<String, dynamic>> requestStream,
@@ -186,6 +191,9 @@ class ExpressionCompilerWorker {
       verbose: parsedArgs['verbose'] as bool,
       requestStream: requestStream,
       sendResponse: sendResponse,
+      onDone: () {
+        if (fileSystem is AssetFileSystem) fileSystem.close();
+      },
     );
   }
 
@@ -199,7 +207,7 @@ class ExpressionCompilerWorker {
     @required Uri sdkSummary,
     @required FileSystem fileSystem,
     Uri packagesFile,
-    Map<String, String> environmentDefines = const {},
+    Map<String, String> environmentDefines,
     Map<ExperimentalFlag, bool> explicitExperimentalFlags = const {},
     Uri sdkRoot,
     bool trackWidgetCreation = false,
@@ -209,6 +217,7 @@ class ExpressionCompilerWorker {
     Stream<Map<String, dynamic>> requestStream, // Defaults to read from stdin
     void Function(Map<String, dynamic>)
         sendResponse, // Defaults to write to stdout
+    void Function() onDone,
   }) async {
     var compilerOptions = CompilerOptions()
       ..compileSdk = false
@@ -220,7 +229,11 @@ class ExpressionCompilerWorker {
           TargetFlags(trackWidgetCreation: trackWidgetCreation))
       ..fileSystem = fileSystem
       ..omitPlatform = true
-      ..environmentDefines = environmentDefines
+      ..environmentDefines = {
+        if (environmentDefines != null) ...environmentDefines,
+        // TODO(47243) Remove when all code paths read these from the `Target`.
+        ...sdkLibraryEnvironmentDefines
+      }
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..onDiagnostic = _onDiagnosticHandler(errors, warnings, infos)
       ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
@@ -241,7 +254,7 @@ class ExpressionCompilerWorker {
       throw Exception('Could not load SDK component: $sdkSummary');
     }
     return ExpressionCompilerWorker._(processedOptions, compilerOptions,
-        moduleFormat, sdkComponent, requestStream, sendResponse)
+        moduleFormat, sdkComponent, requestStream, sendResponse, onDone)
       .._updateCache(sdkComponent, dartSdkModule, true);
   }
 
@@ -281,10 +294,7 @@ class ExpressionCompilerWorker {
     _processedOptions.ticker.logMs('Stopped expression compiler worker.');
   }
 
-  void close() {
-    var fileSystem = _processedOptions?.fileSystem;
-    if (fileSystem != null && fileSystem is AssetFileSystem) fileSystem.close();
-  }
+  void close() => onDone?.call();
 
   /// Handles a `CompileExpression` request.
   Future<Map<String, dynamic>> _compileExpression(

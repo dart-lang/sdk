@@ -126,9 +126,10 @@ class YieldStatementResolver {
     node.expression.accept(_resolver);
 
     if (node.star != null) {
-      _resolver.nullableDereferenceVerifier.expression(node.expression,
-          errorCode: CompileTimeErrorCode
-              .UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH);
+      _resolver.nullableDereferenceVerifier.expression(
+        CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
+        node.expression,
+      );
     }
 
     bodyContext.addYield(node);

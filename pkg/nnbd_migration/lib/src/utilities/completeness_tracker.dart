@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/annotation_tracker.dart';
-import 'package:nnbd_migration/src/utilities/type_name_tracker.dart';
+import 'package:nnbd_migration/src/utilities/named_type_tracker.dart';
+import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 
 /// Mixin that verifies (via assertion checks) that a visitor visits a
 /// compilation unit to "completeness" -- currently tracks Annotations and
@@ -15,13 +15,7 @@ import 'package:nnbd_migration/src/utilities/type_name_tracker.dart';
 /// disabled.
 mixin CompletenessTracker<T> on AstVisitor<T>, PermissiveModeVisitor<T> {
   AnnotationTracker? _annotationTracker;
-  TypeNameTracker? _typeNameTracker;
-
-  @override
-  T? visitAnnotation(Annotation node) {
-    annotationVisited(node);
-    return super.visitAnnotation(node);
-  }
+  NamedTypeTracker? _namedTypeTracker;
 
   void annotationVisited(Annotation node) {
     assert(() {
@@ -30,11 +24,17 @@ mixin CompletenessTracker<T> on AstVisitor<T>, PermissiveModeVisitor<T> {
     }());
   }
 
-  void typeNameVisited(TypeName node) {
+  void namedTypeVisited(NamedType node) {
     assert(() {
-      _typeNameTracker!.nodeVisited(node);
+      _namedTypeTracker!.nodeVisited(node);
       return true;
     }());
+  }
+
+  @override
+  T? visitAnnotation(Annotation node) {
+    annotationVisited(node);
+    return super.visitAnnotation(node);
   }
 
   @override
@@ -43,21 +43,21 @@ mixin CompletenessTracker<T> on AstVisitor<T>, PermissiveModeVisitor<T> {
     reportExceptionsIfPermissive(node, () {
       assert(() {
         assert(_annotationTracker == null);
-        assert(_typeNameTracker == null);
+        assert(_namedTypeTracker == null);
         _annotationTracker = AnnotationTracker()..visitCompilationUnit(node);
-        _typeNameTracker = TypeNameTracker()..visitCompilationUnit(node);
+        _namedTypeTracker = NamedTypeTracker()..visitCompilationUnit(node);
         return true;
       }());
       try {
         result = super.visitCompilationUnit(node);
         assert(() {
           _annotationTracker!.finalize();
-          _typeNameTracker!.finalize();
+          _namedTypeTracker!.finalize();
           return true;
         }());
       } finally {
         _annotationTracker = null;
-        _typeNameTracker = null;
+        _namedTypeTracker = null;
       }
     });
     return result;

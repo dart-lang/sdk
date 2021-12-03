@@ -5,22 +5,28 @@
 // part of "developer.dart";
 
 @patch
-bool _isDartStreamEnabled() native "Timeline_isDartStreamEnabled";
+@pragma("vm:external-name", "Timeline_isDartStreamEnabled")
+external bool _isDartStreamEnabled();
 
 @patch
-int _getTraceClock() native "Timeline_getTraceClock";
+@pragma("vm:external-name", "Timeline_getTraceClock")
+external int _getTraceClock();
 
 @patch
-int _getNextAsyncId() native "Timeline_getNextAsyncId";
+@pragma("vm:external-name", "Timeline_getNextAsyncId")
+external int _getNextAsyncId();
 
 @patch
-void _reportTaskEvent(int taskId, String phase, String category, String name,
-    String argumentsAsJson) native "Timeline_reportTaskEvent";
+@pragma("vm:external-name", "Timeline_reportTaskEvent")
+external void _reportTaskEvent(int taskId, String phase, String category,
+    String name, String argumentsAsJson);
 
 @patch
-void _reportFlowEvent(String category, String name, int type, int id,
-    String argumentsAsJson) native "Timeline_reportFlowEvent";
+@pragma("vm:external-name", "Timeline_reportFlowEvent")
+external void _reportFlowEvent(
+    String category, String name, int type, int id, String argumentsAsJson);
 
 @patch
-void _reportInstantEvent(String category, String name, String argumentsAsJson)
-    native "Timeline_reportInstantEvent";
+@pragma("vm:external-name", "Timeline_reportInstantEvent")
+external void _reportInstantEvent(
+    String category, String name, String argumentsAsJson);

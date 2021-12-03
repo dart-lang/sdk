@@ -12,9 +12,9 @@ import "dart:core" as core;
 
 class C extends core::Object {
   final field dynamic n = null;
-  static final field dynamic _redirecting# = <dynamic>[self::C::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   static factory •(dynamic n) → self::C
-    let dynamic #redirecting_factory = self::D::• in invalid-expression;
+    return new self::D::•(n);
 }
 class D extends core::Object implements self::C {
   final field dynamic n;
@@ -23,3 +23,7 @@ class D extends core::Object implements self::C {
     ;
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::C::•
+}

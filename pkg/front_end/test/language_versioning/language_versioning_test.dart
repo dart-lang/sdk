@@ -26,7 +26,7 @@ import 'package:front_end/src/testing/id_testing_utils.dart';
 
 import 'package:kernel/ast.dart' show Component, Library, Version;
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   // Fix default/max major and minor version so we can test it.
   // This config sets it to 2.8.
   TestConfigWithLanguageVersion cfeConfig =
@@ -83,6 +83,7 @@ class Tags {
 class LanguageVersioningDataComputer extends DataComputer<Features> {
   const LanguageVersioningDataComputer();
 
+  @override
   Future<void> inspectComponent(Component component) async {
     for (Library library in component.libraries) {
       if (library.importUri.scheme == "dart") continue;
@@ -103,6 +104,7 @@ Language version API (import URI): ${lvImportUri}
     }
   }
 
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,
@@ -116,6 +118,7 @@ Language version API (import URI): ${lvImportUri}
   @override
   bool get supportsErrors => true;
 
+  @override
   Features computeErrorData(TestConfig config, InternalCompilerResult compiler,
       Id id, List<FormattedMessage> errors) {
     Features features = new Features();

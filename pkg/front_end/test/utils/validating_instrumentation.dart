@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'dart:convert' show utf8;
 
 import 'dart:io' show File;
@@ -101,7 +99,7 @@ class ValidatingInstrumentation implements Instrumentation {
   /// pairs that were observed.
   Future<Null> fixSource(Uri uri, bool offsetsCountCharacters) async {
     uri = Uri.base.resolveUri(uri);
-    List<_Fix> fixes = _fixes[uri];
+    List<_Fix>? fixes = _fixes[uri];
     if (fixes == null) return;
     File file = new File.fromUri(uri);
     List<int> bytes = (await file.readAsBytes()).toList();
@@ -135,9 +133,9 @@ class ValidatingInstrumentation implements Instrumentation {
         _testedFeaturesState.putIfAbsent(uri, () => {});
     List<int> tokenOffsets = _tokenOffsets.putIfAbsent(uri, () => []);
     ScannerResult result = scan(bytes, includeComments: true);
-    for (Token token = result.tokens; !token.isEof; token = token.next) {
+    for (Token token = result.tokens; !token.isEof; token = token.next!) {
       tokenOffsets.add(token.offset);
-      for (analyzer.Token commentToken = token.precedingComments;
+      for (analyzer.Token? commentToken = token.precedingComments;
           commentToken != null;
           commentToken = commentToken.next) {
         String lexeme = commentToken.lexeme;
@@ -153,7 +151,7 @@ class ValidatingInstrumentation implements Instrumentation {
             property = expectation.substring(0, equals);
             value = expectation
                 .substring(equals + 1)
-                .replaceAllMapped(_ESCAPE_SEQUENCE, (m) => m.group(1));
+                .replaceAllMapped(_ESCAPE_SEQUENCE, (m) => m.group(1)!);
           }
           property = property.trim();
           value = value.trim();
@@ -185,11 +183,11 @@ class ValidatingInstrumentation implements Instrumentation {
     if (offset == -1) {
       throw _formatProblem(uri, 0, 'No offset for $property=$value', null);
     }
-    Map<int, List<_Expectation>> expectationsForUri =
+    Map<int, List<_Expectation>>? expectationsForUri =
         _unsatisfiedExpectations[uri];
     if (expectationsForUri == null) return;
-    offset = _normalizeOffset(offset, _tokenOffsets[uri]);
-    List<_Expectation> expectationsAtOffset = expectationsForUri[offset];
+    offset = _normalizeOffset(offset, _tokenOffsets[uri]!);
+    List<_Expectation>? expectationsAtOffset = expectationsForUri[offset];
     if (expectationsAtOffset != null) {
       for (int i = 0; i < expectationsAtOffset.length; i++) {
         _Expectation expectation = expectationsAtOffset[i];
@@ -227,7 +225,7 @@ class ValidatingInstrumentation implements Instrumentation {
   }
 
   String _formatProblem(
-      Uri uri, int offset, String desc, StackTrace stackTrace) {
+      Uri uri, int offset, String desc, StackTrace? stackTrace) {
     return CompilerContext.current
         .format(
             templateUnspecified
@@ -285,11 +283,12 @@ class ValidatingInstrumentation implements Instrumentation {
 
   bool _shouldCheck(String property, Uri uri, int offset) {
     bool state = false;
-    Map<int, Set<String>> testedFeaturesStateForUri = _testedFeaturesState[uri];
+    Map<int, Set<String>>? testedFeaturesStateForUri =
+        _testedFeaturesState[uri];
     if (testedFeaturesStateForUri == null) return false;
     for (int i in testedFeaturesStateForUri.keys) {
       if (i > offset) break;
-      Set<String> testedFeaturesStateAtOffset = testedFeaturesStateForUri[i];
+      Set<String> testedFeaturesStateAtOffset = testedFeaturesStateForUri[i]!;
       state = testedFeaturesStateAtOffset.contains(property);
     }
     return state;

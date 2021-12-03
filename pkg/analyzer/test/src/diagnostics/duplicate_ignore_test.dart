@@ -15,7 +15,18 @@ main() {
 
 @reflectiveTest
 class DuplicateIgnoreTest extends PubPackageResolutionTest {
-  test_file() async {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        experiments: experiments,
+        lints: ['avoid_types_as_parameter_names'],
+      ),
+    );
+  }
+
+  test_name_file() async {
     await assertErrorsInCode(r'''
 // ignore_for_file: unused_local_variable, unused_local_variable
 void f() {
@@ -26,7 +37,7 @@ void f() {
     ]);
   }
 
-  test_line() async {
+  test_name_line() async {
     await assertErrorsInCode(r'''
 void f() {
   // ignore: unused_local_variable, unused_local_variable
@@ -37,7 +48,7 @@ void f() {
     ]);
   }
 
-  test_lineAndFile() async {
+  test_name_lineAndFile() async {
     await assertErrorsInCode(r'''
 // ignore_for_file: unused_local_variable
 void f() {
@@ -46,6 +57,36 @@ void f() {
 }
 ''', [
       error(HintCode.DUPLICATE_IGNORE, 66, 21),
+    ]);
+  }
+
+  test_type_file() async {
+    await assertErrorsInCode(r'''
+// ignore_for_file: type=lint, TYPE=LINT
+void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
+''', [
+      error(HintCode.DUPLICATE_IGNORE, 31, 10),
+    ]);
+  }
+
+  test_type_line() async {
+    await assertErrorsInCode(r'''
+void f() {}
+// ignore: type=lint, TYPE=LINT
+void g(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
+''', [
+      error(HintCode.DUPLICATE_IGNORE, 34, 10),
+    ]);
+  }
+
+  test_type_lineAndFile() async {
+    await assertErrorsInCode(r'''
+// ignore_for_file: type=lint
+void f() {}
+// ignore: type=lint
+void g(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
+''', [
+      error(HintCode.DUPLICATE_IGNORE, 53, 10),
     ]);
   }
 }

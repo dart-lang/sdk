@@ -295,15 +295,15 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
       // ClassDeclarations) and super.visitClassTypeAlias is not sufficient.
       //
       _handleRefEdge(
-        node.superclass.name.staticElement,
+        node.superclass2.name.staticElement,
         const <String>[schema.REF_EDGE],
-        syntacticEntity: node.superclass,
+        syntacticEntity: node.superclass2,
       );
       // TODO(jwren) refactor the following lines into a method that can be used
       // by visitClassDeclaration()
       // extends
       var recordSupertypeVName = _vNameFromElement(
-          node.superclass.name.staticElement, schema.RECORD_KIND);
+          node.superclass2.name.staticElement, schema.RECORD_KIND);
       addEdge(_enclosingClassVName!, schema.EXTENDS_EDGE, recordSupertypeVName);
 
       // implements
@@ -558,7 +558,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
     // return type
     //
     var returnType = node.returnType;
-    if (returnType is TypeName) {
+    if (returnType is NamedType) {
       _handleRefEdge(
         returnType.name.staticElement,
         const <String>[schema.REF_EDGE],
@@ -659,7 +659,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
       //   assert (element.enclosingElement != null);
     }
     // visit children
-    _safelyVisitList(constructorName.type.typeArguments?.arguments);
+    _safelyVisitList(constructorName.type2.typeArguments?.arguments);
     _safelyVisit(node.argumentList);
   }
 
@@ -748,7 +748,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor<void> with OutputUtils {
     var identifier = node.identifier;
     if (identifier != null) {
       // The anchor and anchor edges generation are broken into two cases, the
-      // first case is "method(parameter_name) ...", where the the parameter
+      // first case is "method(parameter_name) ...", where the parameter
       // character range only includes a parameter name.  The second case is for
       // parameter declarations which are prefixed with a type, 'var', or
       // 'dynamic', as in "method(var parameter_name) ...".
@@ -1235,7 +1235,7 @@ mixin OutputUtils {
     addEdge(funcTypeVName, schema.PARAM_EDGE, fnBuiltin, ordinalIntValue: i++);
 
     KytheVName? returnTypeVName;
-    if (returnNode is TypeName) {
+    if (returnNode is NamedType) {
       // MethodDeclaration and FunctionDeclaration both return a TypeName from
       // returnType
       if (returnNode.typeOrThrow.isVoid) {
@@ -1379,7 +1379,9 @@ class SignatureElementVisitor extends GeneralizingElementVisitor<StringBuffer> {
       buffer.write(e.name);
     }
     if (enclosingElt is ExecutableElement) {
-      buffer..write('@')..write(e.nameOffset - enclosingElt.nameOffset);
+      buffer
+        ..write('@')
+        ..write(e.nameOffset - enclosingElt.nameOffset);
     }
     return buffer;
   }
@@ -1394,6 +1396,8 @@ class SignatureElementVisitor extends GeneralizingElementVisitor<StringBuffer> {
     // It is legal to have a named constructor with the same name as a type
     // parameter.  So we distinguish them by using '.' between the class (or
     // typedef) name and the type parameter name.
-    return e.enclosingElement!.accept(this)!..write('.')..write(e.name);
+    return e.enclosingElement!.accept(this)!
+      ..write('.')
+      ..write(e.name);
   }
 }

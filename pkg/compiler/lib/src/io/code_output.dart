@@ -53,9 +53,9 @@ class _SourceLocationsImpl implements SourceLocations {
   @override
   final String name;
   final AbstractCodeOutput codeOutput;
-  Map<int, List<SourceLocation>> markers = <int, List<SourceLocation>>{};
+  Map<int, List<SourceLocation>> markers = {};
   @override
-  Map<int, List<FrameEntry>> frameMarkers = <int, List<FrameEntry>>{};
+  Map<int, List<FrameEntry>> frameMarkers = {};
 
   _SourceLocationsImpl(this.name, this.codeOutput);
 
@@ -63,7 +63,7 @@ class _SourceLocationsImpl implements SourceLocations {
   void addSourceLocation(int targetOffset, SourceLocation sourceLocation) {
     assert(targetOffset <= codeOutput.length);
     List<SourceLocation> sourceLocations =
-        markers.putIfAbsent(targetOffset, () => <SourceLocation>[]);
+        markers.putIfAbsent(targetOffset, () => []);
     sourceLocations.add(sourceLocation);
   }
 
@@ -72,14 +72,14 @@ class _SourceLocationsImpl implements SourceLocations {
       String inlinedMethodName) {
     assert(targetOffset <= codeOutput.length);
     List<FrameEntry> frames = frameMarkers[targetOffset] ??= [];
-    frames.add(new FrameEntry.push(sourceLocation, inlinedMethodName));
+    frames.add(FrameEntry.push(sourceLocation, inlinedMethodName));
   }
 
   @override
   void addPop(int targetOffset, bool isEmpty) {
     assert(targetOffset <= codeOutput.length);
     List<FrameEntry> frames = frameMarkers[targetOffset] ??= [];
-    frames.add(new FrameEntry.pop(isEmpty));
+    frames.add(FrameEntry.pop(isEmpty));
   }
 
   @override
@@ -98,14 +98,13 @@ class _SourceLocationsImpl implements SourceLocations {
     if (other.markers.length > 0) {
       other.markers
           .forEach((int targetOffset, List<SourceLocation> sourceLocations) {
-        (markers[length + targetOffset] ??= <SourceLocation>[])
-            .addAll(sourceLocations);
+        (markers[length + targetOffset] ??= []).addAll(sourceLocations);
       });
     }
 
     if (other.frameMarkers.length > 0) {
       other.frameMarkers.forEach((int targetOffset, List<FrameEntry> frames) {
-        (frameMarkers[length + targetOffset] ??= <FrameEntry>[]).addAll(frames);
+        (frameMarkers[length + targetOffset] ??= []).addAll(frames);
       });
     }
   }
@@ -162,7 +161,7 @@ abstract class AbstractCodeOutput extends CodeOutput {
   @override
   void add(String text) {
     if (isClosed) {
-      throw new StateError("Code output is closed. Trying to write '$text'.");
+      throw StateError("Code output is closed. Trying to write '$text'.");
     }
     _add(text);
   }
@@ -181,7 +180,7 @@ abstract class AbstractCodeOutput extends CodeOutput {
   @override
   void close() {
     if (isClosed) {
-      throw new StateError("Code output is already closed.");
+      throw StateError("Code output is already closed.");
     }
     isClosed = true;
     _listeners?.forEach((listener) => listener.onDone(length));
@@ -192,7 +191,7 @@ abstract class AbstractCodeOutput extends CodeOutput {
 
   @override
   _SourceLocationsImpl createSourceLocations(String name) {
-    return sourceLocationsMap[name] ??= new _SourceLocationsImpl(name, this);
+    return sourceLocationsMap[name] ??= _SourceLocationsImpl(name, this);
   }
 }
 
@@ -202,7 +201,7 @@ abstract class BufferedCodeOutput {
 
 /// [CodeOutput] using a [StringBuffer] as backend.
 class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
-  StringBuffer buffer = new StringBuffer();
+  StringBuffer buffer = StringBuffer();
 
   CodeBuffer([List<CodeOutputListener> listeners]) : super(listeners);
 

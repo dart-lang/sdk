@@ -1,0 +1,11 @@
+import 'dart:async';
+
+FutureOr<FutureOr<void>> test() {}
+FutureOr<FutureOr<void>> test1() {}
+FutureOr<FutureOr<void>> test2() {}
+FutureOr<FutureOr<void>> test3() {}
+FutureOr<FutureOr<void>> test4() {}
+FutureOr<FutureOr<void>> test5() {}
+FutureOr<FutureOr<void>> test6() {}
+void main() {}
+void voidValue = null;

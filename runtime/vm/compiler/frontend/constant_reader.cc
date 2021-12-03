@@ -4,6 +4,8 @@
 
 #include "vm/compiler/frontend/constant_reader.h"
 
+#include "vm/object_store.h"
+
 namespace dart {
 namespace kernel {
 
@@ -226,9 +228,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       break;
     }
     case kListConstant: {
-      const auto& corelib = Library::Handle(Z, Library::CoreLibrary());
-      const auto& list_class =
-          Class::Handle(Z, corelib.LookupClassAllowPrivate(Symbols::_List()));
+      const auto& list_class = Class::Handle(
+          Z, H.isolate_group()->object_store()->immutable_array_class());
+      ASSERT(!list_class.IsNull());
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(
           &reader, this, active_class_, /* finalize = */ true,
@@ -257,6 +259,108 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
         array.SetAt(j, constant);
       }
       instance = array.ptr();
+      break;
+    }
+    case kMapConstant: {
+      const auto& map_class = Class::Handle(
+          Z,
+          H.isolate_group()->object_store()->immutable_linked_hash_map_class());
+      ASSERT(!map_class.IsNull());
+
+      // Build types from the raw bytes (needs temporary translator).
+      TypeTranslator type_translator(
+          &reader, this, active_class_, /* finalize = */ true,
+          active_class_->RequireConstCanonicalTypeErasure(null_safety),
+          /* in_constant_context = */ true);
+      auto& type_arguments =
+          TypeArguments::Handle(Z, TypeArguments::New(2, Heap::kOld));
+      AbstractType& type = type_translator.BuildType();
+      type_arguments.SetTypeAt(0, type);
+      type = type_translator.BuildType().ptr();
+      type_arguments.SetTypeAt(1, type);
+
+      // Instantiate class.
+      type = Type::New(map_class, type_arguments);
+      type = ClassFinalizer::FinalizeType(type, ClassFinalizer::kCanonicalize);
+      type_arguments = type.arguments();
+
+      // Fill map with constant elements.
+      const auto& map = LinkedHashMap::Handle(
+          Z, ImmutableLinkedHashMap::NewUninitialized(Heap::kOld));
+      ASSERT_EQUAL(map.GetClassId(), kImmutableLinkedHashMapCid);
+      map.SetTypeArguments(type_arguments);
+      const intptr_t length = reader.ReadUInt();
+      const intptr_t used_data = (length << 1);
+      map.set_used_data(used_data);
+
+      const intptr_t data_size = Utils::RoundUpToPowerOfTwo(used_data);
+      const auto& data = Array::Handle(Z, Array::New(data_size));
+      map.set_data(data);
+
+      map.set_deleted_keys(0);
+      map.ComputeAndSetHashMask();
+
+      Instance& constant = Instance::Handle(Z);
+      for (intptr_t j = 0; j < used_data; ++j) {
+        // Recurse into lazily evaluating all "sub" constants
+        // needed to evaluate the current constant.
+        const intptr_t entry_index = reader.ReadUInt();
+        ASSERT(entry_index < constant_offset);  // DAG!
+        constant = ReadConstant(entry_index);
+        data.SetAt(j, constant);
+      }
+
+      instance = map.ptr();
+      break;
+    }
+    case kSetConstant: {
+      const auto& set_class = Class::Handle(
+          Z,
+          H.isolate_group()->object_store()->immutable_linked_hash_set_class());
+      ASSERT(!set_class.IsNull());
+
+      // Build types from the raw bytes (needs temporary translator).
+      TypeTranslator type_translator(
+          &reader, this, active_class_, /* finalize = */ true,
+          active_class_->RequireConstCanonicalTypeErasure(null_safety),
+          /* in_constant_context = */ true);
+      auto& type_arguments =
+          TypeArguments::Handle(Z, TypeArguments::New(1, Heap::kOld));
+      AbstractType& type = type_translator.BuildType();
+      type_arguments.SetTypeAt(0, type);
+
+      // Instantiate class.
+      type = Type::New(set_class, type_arguments);
+      type = ClassFinalizer::FinalizeType(type, ClassFinalizer::kCanonicalize);
+      type_arguments = type.arguments();
+
+      // Fill set with constant elements.
+      const auto& set = LinkedHashSet::Handle(
+          Z, ImmutableLinkedHashSet::NewUninitialized(Heap::kOld));
+      ASSERT_EQUAL(set.GetClassId(), kImmutableLinkedHashSetCid);
+      set.SetTypeArguments(type_arguments);
+      const intptr_t length = reader.ReadUInt();
+      const intptr_t used_data = length;
+      set.set_used_data(used_data);
+
+      const intptr_t data_size = Utils::RoundUpToPowerOfTwo(used_data);
+      const auto& data = Array::Handle(Z, Array::New(data_size));
+      set.set_data(data);
+
+      set.set_deleted_keys(0);
+      set.ComputeAndSetHashMask();
+
+      Instance& constant = Instance::Handle(Z);
+      for (intptr_t j = 0; j < used_data; ++j) {
+        // Recurse into lazily evaluating all "sub" constants
+        // needed to evaluate the current constant.
+        const intptr_t entry_index = reader.ReadUInt();
+        ASSERT(entry_index < constant_offset);  // DAG!
+        constant = ReadConstant(entry_index);
+        data.SetAt(j, constant);
+      }
+
+      instance = set.ptr();
       break;
     }
     case kInstanceConstant: {
@@ -299,8 +403,7 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       Field& field = Field::Handle(Z);
       Instance& constant = Instance::Handle(Z);
       for (intptr_t j = 0; j < number_of_fields; ++j) {
-        field = H.LookupFieldByKernelGetterOrSetter(
-            reader.ReadCanonicalNameReference());
+        field = H.LookupFieldByKernelField(reader.ReadCanonicalNameReference());
         // Recurse into lazily evaluating all "sub" constants
         // needed to evaluate the current constant.
         const intptr_t entry_index = reader.ReadUInt();
@@ -345,15 +448,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
                               type_arguments, function, context, Heap::kOld);
       break;
     }
-    case kStaticTearOffConstant: {
-      const NameIndex index = reader.ReadCanonicalNameReference();
-      Function& function =
-          Function::Handle(Z, H.LookupStaticMethodByKernelProcedure(index));
-      function = function.ImplicitClosureFunction();
-      instance = function.ImplicitStaticClosure();
-      break;
-    }
-    case kConstructorTearOffConstant: {
+    case kStaticTearOffConstant:
+    case kConstructorTearOffConstant:
+    case kRedirectingFactoryTearOffConstant: {
       const NameIndex index = reader.ReadCanonicalNameReference();
       Function& function = Function::Handle(Z);
       if (H.IsConstructor(index)) {
@@ -380,12 +477,9 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       break;
     }
     default:
-      // Set literals (kSetConstant) are currently desugared in the frontend
-      // and will not reach the VM. See http://dartbug.com/35124 for some
-      // discussion. Map constants (kMapConstant ) are already lowered to
-      // InstanceConstant or ListConstant. We should never see unevaluated
-      // constants (kUnevaluatedConstant) in the constant table, they should
-      // have been fully evaluated before we get them.
+      // We should never see unevaluated constants (kUnevaluatedConstant) in
+      // the constant table, they should have been fully evaluated before we
+      // get them.
       H.ReportError(script_, TokenPosition::kNoSource,
                     "Cannot lazily read constant: unexpected kernel tag (%" Pd
                     ")",

@@ -16,6 +16,7 @@ import 'src/types.dart';
 typedef void ErrorHandler(TreeNode node, String message);
 
 abstract class TypeEnvironment extends Types {
+  @override
   final CoreTypes coreTypes;
 
   TypeEnvironment.fromSubclass(this.coreTypes, ClassHierarchyBase base)
@@ -101,8 +102,7 @@ abstract class TypeEnvironment extends Types {
       List<DartType>? futureArguments =
           getTypeArgumentsAsInstanceOf(resolved, coreTypes.futureClass);
       if (futureArguments != null) {
-        return _withDeclaredNullability(
-            futureArguments.single, t.declaredNullability);
+        return _withDeclaredNullability(futureArguments.single, t.nullability);
       }
     }
 
@@ -509,6 +509,7 @@ class IsSubtypeOf {
     return _value == _valueAlways;
   }
 
+  @override
   String toString() {
     switch (_value) {
       case _valueAlways:
@@ -540,15 +541,18 @@ class StaticTypeCacheImpl implements StaticTypeCache {
   late Map<ForInStatement, DartType> _forInIteratorTypes = {};
   late Map<ForInStatement, DartType> _forInElementTypes = {};
 
+  @override
   DartType getExpressionType(Expression node, StaticTypeContext context) {
     return _expressionTypes[node] ??= node.getStaticTypeInternal(context);
   }
 
+  @override
   DartType getForInIteratorType(
       ForInStatement node, StaticTypeContext context) {
     return _forInIteratorTypes[node] ??= node.getIteratorTypeInternal(context);
   }
 
+  @override
   DartType getForInElementType(ForInStatement node, StaticTypeContext context) {
     return _forInElementTypes[node] ??= node.getElementTypeInternal(context);
   }
@@ -610,6 +614,7 @@ class StaticTypeContextImpl implements StaticTypeContext {
   /// The [TypeEnvironment] used for the static type computation.
   ///
   /// This provides access to the core types and the class hierarchy.
+  @override
   final TypeEnvironment typeEnvironment;
 
   /// The library in which the static type is computed.
@@ -619,6 +624,7 @@ class StaticTypeContextImpl implements StaticTypeContext {
   final Library _library;
 
   /// The static type of a `this` expression.
+  @override
   final InterfaceType? thisType;
 
   final StaticTypeCache? _cache;
@@ -642,21 +648,26 @@ class StaticTypeContextImpl implements StaticTypeContext {
   /// The [Nullability] used for non-nullable types.
   ///
   /// For opt out libraries this is [Nullability.legacy].
+  @override
   Nullability get nonNullable => _library.nonNullable;
 
   /// The [Nullability] used for nullable types.
   ///
   /// For opt out libraries this is [Nullability.legacy].
+  @override
   Nullability get nullable => _library.nullable;
 
   /// Return `true` if the current library is opted in to non-nullable by
   /// default.
+  @override
   bool get isNonNullableByDefault => _library.isNonNullableByDefault;
 
   /// Returns the mode under which the current library was compiled.
+  @override
   NonNullableByDefaultCompiledMode get nonNullableByDefaultCompiledMode =>
       _library.nonNullableByDefaultCompiledMode;
 
+  @override
   DartType getExpressionType(Expression node) {
     if (_cache != null) {
       return _cache!.getExpressionType(node, this);
@@ -665,6 +676,7 @@ class StaticTypeContextImpl implements StaticTypeContext {
     }
   }
 
+  @override
   DartType getForInIteratorType(ForInStatement node) {
     if (_cache != null) {
       return _cache!.getForInIteratorType(node, this);
@@ -673,6 +685,7 @@ class StaticTypeContextImpl implements StaticTypeContext {
     }
   }
 
+  @override
   DartType getForInElementType(ForInStatement node) {
     if (_cache != null) {
       return _cache!.getForInElementType(node, this);

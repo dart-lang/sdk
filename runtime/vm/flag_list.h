@@ -35,6 +35,7 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(disassemble, bool, false, "Disassemble dart code.")                        \
   P(disassemble_optimized, bool, false, "Disassemble optimized code.")         \
   P(disassemble_relative, bool, false, "Use offsets instead of absolute PCs")  \
+  P(disassemble_stubs, bool, false, "Disassemble generated stubs.")            \
   P(support_disassembler, bool, true, "Support the disassembler.")
 #else
 #define DISASSEMBLE_FLAGS(P, R, C, D)                                          \
@@ -42,6 +43,7 @@ constexpr bool kDartUseBackgroundCompilation = true;
   R(disassemble_optimized, false, bool, false, "Disassemble optimized code.")  \
   R(disassemble_relative, false, bool, false,                                  \
     "Use offsets instead of absolute PCs")                                     \
+  R(disassemble_stubs, false, bool, false, "Disassemble generated stubs.")     \
   R(support_disassembler, false, bool, true, "Support the disassembler.")
 #endif
 
@@ -150,7 +152,7 @@ constexpr bool FLAG_support_il_printer = false;
     "Maximum number of polymorphic check, otherwise it is megamorphic.")       \
   P(max_equality_polymorphic_checks, int, 32,                                  \
     "Maximum number of polymorphic checks in equality operator,")              \
-  P(new_gen_semi_max_size, int, (kWordSize <= 4) ? 8 : 16,                     \
+  P(new_gen_semi_max_size, int, kDefaultNewGenSemiMaxSize,                     \
     "Max size of new gen semi space in MB")                                    \
   P(new_gen_semi_initial_size, int, (kWordSize <= 4) ? 1 : 2,                  \
     "Initial size of new gen semi space in MB")                                \
@@ -194,8 +196,7 @@ constexpr bool FLAG_support_il_printer = false;
   P(retain_code_objects, bool, true,                                           \
     "Serialize all code objects even if not otherwise "                        \
     "needed in the precompiled runtime.")                                      \
-  P(enable_isolate_groups, bool, false,                                        \
-    "Enable isolate group support in AOT.")                                    \
+  P(enable_isolate_groups, bool, true, "Enable isolate group support.")        \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \
   D(trace_cha, bool, false, "Trace CHA operations")                            \

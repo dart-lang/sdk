@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=constructor-tearoffs
-
 import "package:expect/expect.dart";
 
 import "../static_type_helper.dart";
@@ -91,23 +89,23 @@ void main() {
 
   GGen<int>.new.expectStaticType<Exactly<GGen<int> Function(int)>>();
   GGen<int>.named.expectStaticType<Exactly<GGen<int> Function(int)>>();
-  GGenRedir<int>.new
-      .expectStaticType<Exactly<GGenRedir<int> Function(int)>>();
-  GGenRedir<int>.named
+  GGenRedir<int>.new.expectStaticType<Exactly<GGenRedir<int> Function(int)>>();
+  GGenRedir<int>
+      .named
       .expectStaticType<Exactly<GGenRedir<int> Function(int)>>();
   GFac<int>.new.expectStaticType<Exactly<GFac<int> Function(int)>>();
   GFac<int>.named.expectStaticType<Exactly<GFac<int> Function(int)>>();
-  GFacRedir<int>.new
-      .expectStaticType<Exactly<GFacRedir<int> Function(int)>>();
-  GFacRedir<int>.named
+  GFacRedir<int>.new.expectStaticType<Exactly<GFacRedir<int> Function(int)>>();
+  GFacRedir<int>
+      .named
       .expectStaticType<Exactly<GFacRedir<int> Function(int)>>();
 
   context<GGen<int> Function(int)>(
       GGen.new..expectStaticType<Exactly<GGen<int> Function(int)>>());
   context<GGen<int> Function(int)>(
       GGen.named..expectStaticType<Exactly<GGen<int> Function(int)>>());
-  context<GGenRedir<int> Function(int)>(GGenRedir.new
-    ..expectStaticType<Exactly<GGenRedir<int> Function(int)>>());
+  context<GGenRedir<int> Function(int)>(
+      GGenRedir.new..expectStaticType<Exactly<GGenRedir<int> Function(int)>>());
   context<GGenRedir<int> Function(int)>(GGenRedir.named
     ..expectStaticType<Exactly<GGenRedir<int> Function(int)>>());
   context<GFac<int> Function(int)>(
@@ -156,15 +154,13 @@ void main() {
 
   // Generic class constructors torn off with explicit instantiation
   // to constant type.
-  test<GGen<int> Function(int)>(
-      GGen<int>.new, GGen<int>.new, GGen<int>.named);
+  test<GGen<int> Function(int)>(GGen<int>.new, GGen<int>.new, GGen<int>.named);
   test<GGen<int> Function(int)>(GGen<int>.named, GGen<int>.named);
   test<GGenRedir<int> Function(int)>(
       GGenRedir<int>.new, GGenRedir<int>.new, GGenRedir<int>.named);
   test<GGenRedir<int> Function(int)>(
       GGenRedir<int>.named, GGenRedir<int>.named);
-  test<GFac<int> Function(int)>(
-      GFac<int>.new, GFac<int>.new, GFac<int>.named);
+  test<GFac<int> Function(int)>(GFac<int>.new, GFac<int>.new, GFac<int>.named);
   test<GFac<int> Function(int)>(GFac<int>.named, GFac<int>.named);
   test<GFacRedir<int> Function(int)>(
       GFacRedir<int>.new, GFacRedir<int>.new, GFacRedir<int>.named);
@@ -196,21 +192,21 @@ void main() {
   testImplicit<GFacRedir<int> Function(int)>(GFacRedir.named, GFacRedir.named);
 
   // Using a type variable, not a constant type expression.
-  // Results are not canonicalized and not equal.
+  // Canonicalization is unspecified, but equality holds.
   (<T>() {
     // Tear off with explicit instantation to the same non-constant type.
-    Expect.notEquals(GGen<T>.new, GGen<T>.new);
-    Expect.notEquals(GGen<T>.named, GGen<T>.named);
-    Expect.notEquals(GGenRedir<T>.new, GGenRedir<T>.new);
-    Expect.notEquals(GGenRedir<T>.named, GGenRedir<T>.named);
-    Expect.notEquals(GFac<T>.new, GFac<T>.new);
-    Expect.notEquals(GFac<T>.named, GFac<T>.named);
-    Expect.notEquals(GFacRedir<T>.new, GFacRedir<T>.new);
-    Expect.notEquals(GFacRedir<T>.named, GFacRedir<T>.named);
+    Expect.equals(GGen<T>.new, GGen<T>.new);
+    Expect.equals(GGen<T>.named, GGen<T>.named);
+    Expect.equals(GGenRedir<T>.new, GGenRedir<T>.new);
+    Expect.equals(GGenRedir<T>.named, GGenRedir<T>.named);
+    Expect.equals(GFac<T>.new, GFac<T>.new);
+    Expect.equals(GFac<T>.named, GFac<T>.named);
+    Expect.equals(GFacRedir<T>.new, GFacRedir<T>.new);
+    Expect.equals(GFacRedir<T>.named, GFacRedir<T>.named);
 
     // Tear off with implicit instantiation to the same non-constant type.
     void testImplicit2<T>(T f1, T f2) {
-      Expect.notEquals(f1, f2);
+      Expect.equals(f1, f2);
     }
 
     testImplicit2<GGen<T> Function(int)>(GGen.new, GGen.new);

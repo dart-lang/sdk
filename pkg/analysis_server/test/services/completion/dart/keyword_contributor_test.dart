@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -11,13 +13,11 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../abstract_context.dart';
 import 'completion_contributor_util.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(KeywordContributorTest);
-    defineReflectiveTests(KeywordContributorWithNullSafetyTest);
   });
 }
 
@@ -445,8 +445,11 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   }
 
   @override
-  DartCompletionContributor createContributor() {
-    return KeywordContributor();
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) {
+    return KeywordContributor(request, builder);
   }
 
   /// Return `true` if the given [feature] is enabled.
@@ -2331,7 +2334,3 @@ f() => [...^];
     return true;
   }
 }
-
-@reflectiveTest
-class KeywordContributorWithNullSafetyTest extends KeywordContributorTest
-    with WithNullSafetyMixin {}

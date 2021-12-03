@@ -10,13 +10,16 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeParameterSupertypeOfItsBoundTest);
-    defineReflectiveTests(TypeParameterSupertypeOfItsBoundWithNullSafetyTest);
+    defineReflectiveTests(
+        TypeParameterSupertypeOfItsBoundWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class TypeParameterSupertypeOfItsBoundTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with TypeParameterSupertypeOfItsBoundTestCases {}
+
+mixin TypeParameterSupertypeOfItsBoundTestCases on PubPackageResolutionTest {
   test_1of1() async {
     await assertErrorsInCode(r'''
 class A<T extends T> {
@@ -50,5 +53,6 @@ class A<T1 extends T3, T2, T3 extends T1> {
 }
 
 @reflectiveTest
-class TypeParameterSupertypeOfItsBoundWithNullSafetyTest
-    extends TypeParameterSupertypeOfItsBoundTest with WithNullSafetyMixin {}
+class TypeParameterSupertypeOfItsBoundWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with TypeParameterSupertypeOfItsBoundTestCases, WithoutNullSafetyMixin {}

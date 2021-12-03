@@ -43,7 +43,7 @@ class SlotCache : public ZoneAllocated {
       : zone_(thread->zone()), fields_(thread->zone()) {}
 
   Zone* const zone_;
-  DirectChainedHashMap<PointerKeyValueTrait<const Slot> > fields_;
+  PointerSet<const Slot> fields_;
 };
 
 #define NATIVE_SLOT_NAME(C, F) Kind::k##C##_##F
@@ -201,7 +201,9 @@ bool Slot::IsImmutableLengthSlot() const {
       UNBOXED_NATIVE_SLOTS_LIST(UNBOXED_NATIVE_SLOT_CASE)
 #undef UNBOXED_NATIVE_SLOT_CASE
     case Slot::Kind::kLinkedHashBase_index:
+    case Slot::Kind::kImmutableLinkedHashBase_index:
     case Slot::Kind::kLinkedHashBase_data:
+    case Slot::Kind::kImmutableLinkedHashBase_data:
     case Slot::Kind::kLinkedHashBase_hash_mask:
     case Slot::Kind::kLinkedHashBase_used_data:
     case Slot::Kind::kLinkedHashBase_deleted_keys:

@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static field (core::int) → core::int implicitInstantiation = #C1<core::int>;
+static field (core::int) → core::int implicitInstantiation = #C2;
 static const field (core::int) → core::int implicitConstInstantiation = #C2;
 static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
   return t;
@@ -10,9 +10,9 @@ static method create<T extends core::Object? = dynamic>() → (self::create::T%)
   return #C1<self::create::T%>;
 static method main() → dynamic {
   self::expect(true, core::identical(self::implicitInstantiation, self::implicitInstantiation));
-  self::expect(false, core::identical(self::implicitInstantiation, #C2));
+  self::expect(true, core::identical(self::implicitInstantiation, #C2));
   self::expect(false, core::identical(self::implicitInstantiation, self::create<core::int>()));
-  self::expect(false, core::identical(#C2, self::implicitInstantiation));
+  self::expect(true, core::identical(#C2, self::implicitInstantiation));
   self::expect(true, core::identical(#C2, #C2));
   self::expect(false, core::identical(#C2, self::create<core::int>()));
 }
@@ -23,10 +23,9 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 
 constants  {
   #C1 = static-tearoff self::id
-  #C2 = instantiation self::id <core::int*>
+  #C2 = instantiation #C1 <core::int*>
 }
 
 Extra constant evaluation status:
-Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:28:13 -> BoolConstant(true)
-Evaluated: Instantiation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:16:43 -> InstantiationConstant(id<int*>)
-Extra constant evaluation: evaluated: 30, effectively constant: 2
+Evaluated: StaticInvocation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:19:13 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 29, effectively constant: 1

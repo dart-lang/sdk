@@ -11,7 +11,6 @@ import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/js_backend/runtime_types_resolution.dart';
@@ -35,7 +34,6 @@ runTests(List<String> args, [int shardIndex]) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const RtiNeedDataComputer(),
-        options: [],
         args: args,
         shardIndex: shardIndex ?? 0,
         shards: shardIndex != null ? 4 : 1);

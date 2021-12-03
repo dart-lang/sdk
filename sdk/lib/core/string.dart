@@ -49,13 +49,13 @@ part of dart.core;
 /// You can use `${}` to interpolate the value of Dart expressions
 /// within strings. The curly braces can be omitted when evaluating identifiers:
 /// ```dart
-/// string = 'dartlang';
+/// var string = 'dartlang';
 /// '$string has ${string.length} letters'; // 'dartlang has 8 letters'
 /// ```
 /// A string is represented by a sequence of Unicode UTF-16 code units
 /// accessible through the [codeUnitAt] or the [codeUnits] members:
 /// ```dart
-/// string = 'Dart';
+/// var string = 'Dart';
 /// string.codeUnitAt(0); // 68
 /// string.codeUnits;     // [68, 97, 114, 116]
 /// ```
@@ -151,6 +151,11 @@ abstract class String implements Comparable<String>, Pattern {
   /// must be consistent across all calls to `String.fromEnvironment`,
   /// [int.fromEnvironment], [bool.fromEnvironment] and [bool.hasEnvironment]
   /// in a single program.
+  ///
+  /// This constructor is only guaranteed to work when invoked as `const`.
+  /// It may work as a non-constant invocation on some platforms which
+  /// have access to compiler options at run-time, but most ahead-of-time
+  /// compiled platforms will not have this information.
   // The .fromEnvironment() constructors are special in that we do not want
   // users to call them using "new". We prohibit that by giving them bodies
   // that throw, even though const constructors are not allowed to have bodies.
@@ -314,6 +319,9 @@ abstract class String implements Comparable<String>, Pattern {
   /// string.substring(1);    // 'artlang'
   /// string.substring(1, 4); // 'art'
   /// ```
+  ///
+  /// Both [start] and [end] must be non-negative and no greater than [length], and
+  /// [end], if provided, must be greater than or equal to [start].
   String substring(int start, [int? end]);
 
   /// The string without any leading and trailing whitespace.
@@ -551,17 +559,18 @@ abstract class String implements Comparable<String>, Pattern {
   /// ```dart
   /// var string = "Pub";
   /// string.split("");                       // ["P", "u", "b"]
+  ///
   /// // Same as:
   /// [for (var unit in string.codeUnits)
-  ///     String.fromCharCode(unit)]          // ["P", "u", "b"]
+  ///     String.fromCharCode(unit)];         // ["P", "u", "b"]
   /// ```
   ///
   /// Splitting happens at UTF-16 code unit boundaries,
   /// and not at rune (Unicode code point) boundaries:
   /// ```dart
   /// // String made up of two code units, but one rune.
-  /// string = '\u{1D11E}';
-  /// string.split('')  // ["\ud834", "\udd1e"] - 2 unpaired surrogate values
+  /// var string = '\u{1D11E}';
+  /// string.split('');  // ["\ud834", "\udd1e"] - 2 unpaired surrogate values
   /// ```
   /// To get a list of strings containing the individual runes of a string,
   /// you should not use split.

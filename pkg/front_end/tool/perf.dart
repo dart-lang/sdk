@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /// An entrypoint used to run portions of analyzer and measure its performance.
 ///
 /// TODO(sigmund): rename to 'analyzer_perf.dart' in sync with changes to the
@@ -30,11 +28,10 @@ import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:path/path.dart' as path;
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
   if (args.length < 2) {
     print('usage: perf.dart <bench-id> <entry.dart>');
@@ -44,7 +41,7 @@ main(List<String> args) async {
   var bench = args[0];
   var entryUri = Uri.base.resolve(args[1]);
 
-  await setup(path.fromUri(entryUri));
+  setup(path.fromUri(entryUri));
 
   Set<Source> files = scanReachableFiles(entryUri);
   var handlers = {
@@ -80,7 +77,7 @@ Stopwatch scanTimer = new Stopwatch();
 int inputSize = 0;
 
 /// Factory to load and resolve app, packages, and sdk sources.
-SourceFactory sources;
+late SourceFactory sources;
 
 /// Path to the root of the built SDK that is being used to execute this script.
 final _sdkPath = _findSdkPath();
@@ -91,7 +88,7 @@ void collectSources(Source start, Set<Source> files) {
   var unit = parseDirectives(start);
   for (var directive in unit.directives) {
     if (directive is UriBasedDirective) {
-      var next = sources.resolveUri(start, directive.uri.stringValue);
+      var next = sources.resolveUri(start, directive.uri.stringValue)!;
       collectSources(next, files);
     }
   }
@@ -164,7 +161,7 @@ Set<Source> scanReachableFiles(Uri entryUri) {
   var files = new Set<Source>();
   var loadTimer = new Stopwatch()..start();
   scanTimer = new Stopwatch();
-  collectSources(sources.forUri2(entryUri), files);
+  collectSources(sources.forUri2(entryUri)!, files);
 
   var libs = [
     'dart:async',
@@ -181,7 +178,7 @@ Set<Source> scanReachableFiles(Uri entryUri) {
   ];
 
   for (var lib in libs) {
-    collectSources(sources.forUri(lib), files);
+    collectSources(sources.forUri(lib)!, files);
   }
 
   loadTimer.stop();
@@ -199,7 +196,7 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 
 /// Sets up analyzer to be able to load and resolve app, packages, and sdk
 /// sources.
-Future setup(String path) async {
+void setup(String path) {
   var provider = PhysicalResourceProvider.INSTANCE;
 
   var packages = findPackagesFrom(
@@ -231,7 +228,7 @@ Token tokenize(Source source) {
   if (result.hasErrors) {
     // Ignore errors.
     while (token is ErrorToken) {
-      token = token.next;
+      token = token.next!;
     }
   }
   scanTimer.stop();

@@ -199,6 +199,19 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   void visitLibraryIdentifier(LibraryIdentifier node) {}
 
   @override
+  void visitNamedType(NamedType node) {
+    // Note: do not visit children from this node, the child SimpleIdentifier in
+    // TypeName (i.e. "String") does not have a static type defined.
+    // TODO(brianwilkerson) Not visiting the children means that we won't catch
+    // type arguments that were not resolved.
+    if (node.type == null) {
+      _unresolvedTypes.add(node);
+    } else {
+      _resolvedTypeCount++;
+    }
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     // In cases where we have a prefixed identifier where the prefix is dynamic,
     // we don't want to assert that the node will have a type.
@@ -241,19 +254,6 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
       _resolvedTypeCount++;
     }
     super.visitTypeAnnotation(node);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    // Note: do not visit children from this node, the child SimpleIdentifier in
-    // TypeName (i.e. "String") does not have a static type defined.
-    // TODO(brianwilkerson) Not visiting the children means that we won't catch
-    // type arguments that were not resolved.
-    if (node.type == null) {
-      _unresolvedTypes.add(node);
-    } else {
-      _resolvedTypeCount++;
-    }
   }
 
   String _getFileName(AstNode? node) {

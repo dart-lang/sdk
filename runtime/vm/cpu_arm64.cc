@@ -45,10 +45,9 @@ void CPU::FlushICache(uword start, uword size) {
 #if defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)
   sys_icache_invalidate(reinterpret_cast<void*>(start), size);
 #elif defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
-  extern void __clear_cache(char*, char*);
   char* beg = reinterpret_cast<char*>(start);
   char* end = reinterpret_cast<char*>(start + size);
-  ::__clear_cache(beg, end);
+  __builtin___clear_cache(beg, end);
 #elif defined(DART_HOST_OS_FUCHSIA)
   zx_status_t result = zx_cache_flush(reinterpret_cast<const void*>(start),
                                       size, ZX_CACHE_FLUSH_INSN);
@@ -64,7 +63,7 @@ const char* CPU::Id() {
   return
 #if defined(USING_SIMULATOR)
       "sim"
-#endif  // !defined(HOST_ARCH_ARM64)
+#endif  // !defined(USING_SIMULATOR)
       "arm64";
 }
 

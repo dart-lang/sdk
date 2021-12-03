@@ -22,7 +22,7 @@ import 'incremental_suite.dart' show getOptions, normalCompileToComponent;
 
 import 'utils/io_utils.dart' show computeRepoDir;
 
-main() async {
+Future<void> main() async {
   final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/bin/dart2js.dart");
   Stopwatch stopwatch = new Stopwatch()..start();
   Component component = await normalCompileToComponent(dart2jsUrl,

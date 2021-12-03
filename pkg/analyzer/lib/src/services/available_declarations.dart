@@ -122,6 +122,7 @@ enum DeclarationKind {
   METHOD,
   MIXIN,
   SETTER,
+  TYPE_ALIAS,
   VARIABLE
 }
 
@@ -888,6 +889,7 @@ class RelevanceTags {
       case DeclarationKind.ENUM:
       case DeclarationKind.MIXIN:
       case DeclarationKind.FUNCTION_TYPE_ALIAS:
+      case DeclarationKind.TYPE_ALIAS:
         var name = declaration.name;
         return <String>['$uriStr::$name'];
       case DeclarationKind.CONSTRUCTOR:
@@ -1013,6 +1015,8 @@ class _DeclarationStorage {
         return DeclarationKind.MIXIN;
       case idl.AvailableDeclarationKind.SETTER:
         return DeclarationKind.SETTER;
+      case idl.AvailableDeclarationKind.TYPE_ALIAS:
+        return DeclarationKind.TYPE_ALIAS;
       case idl.AvailableDeclarationKind.VARIABLE:
         return DeclarationKind.VARIABLE;
       default:
@@ -1048,6 +1052,8 @@ class _DeclarationStorage {
         return idl.AvailableDeclarationKind.MIXIN;
       case DeclarationKind.SETTER:
         return idl.AvailableDeclarationKind.SETTER;
+      case DeclarationKind.TYPE_ALIAS:
+        return idl.AvailableDeclarationKind.TYPE_ALIAS;
       case DeclarationKind.VARIABLE:
         return idl.AvailableDeclarationKind.VARIABLE;
       default:
@@ -1141,7 +1147,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 16;
+  static const int DATA_VERSION = 17;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -1672,21 +1678,30 @@ class _File {
         }
       } else if (node is GenericTypeAlias) {
         var functionType = node.functionType;
-        if (functionType == null) continue;
-
-        var parameters = functionType.parameters;
-        addDeclaration(
-          isDeprecated: isDeprecated,
-          kind: DeclarationKind.FUNCTION_TYPE_ALIAS,
-          name: node.name,
-          parameters: parameters.toSource(),
-          parameterNames: _getFormalParameterNames(parameters),
-          parameterTypes: _getFormalParameterTypes(parameters),
-          relevanceTags: ['ElementKind.FUNCTION_TYPE_ALIAS'],
-          requiredParameterCount: _getFormalParameterRequiredCount(parameters),
-          returnType: _getTypeAnnotationString(functionType.returnType),
-          typeParameters: functionType.typeParameters?.toSource(),
-        );
+        var type = node.type;
+        if (functionType != null) {
+          var parameters = functionType.parameters;
+          addDeclaration(
+            isDeprecated: isDeprecated,
+            kind: DeclarationKind.FUNCTION_TYPE_ALIAS,
+            name: node.name,
+            parameters: parameters.toSource(),
+            parameterNames: _getFormalParameterNames(parameters),
+            parameterTypes: _getFormalParameterTypes(parameters),
+            relevanceTags: ['ElementKind.FUNCTION_TYPE_ALIAS'],
+            requiredParameterCount:
+                _getFormalParameterRequiredCount(parameters),
+            returnType: _getTypeAnnotationString(functionType.returnType),
+            typeParameters: functionType.typeParameters?.toSource(),
+          );
+        } else if (type is NamedType && type.name.name.isNotEmpty) {
+          addDeclaration(
+            isDeprecated: isDeprecated,
+            kind: DeclarationKind.TYPE_ALIAS,
+            name: node.name,
+            relevanceTags: ['ElementKind.TYPE_ALIAS'],
+          );
+        }
       } else if (node is FunctionTypeAlias) {
         var parameters = node.parameters;
         addDeclaration(

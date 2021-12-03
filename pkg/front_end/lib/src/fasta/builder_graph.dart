@@ -25,8 +25,10 @@ class BuilderGraph implements Graph<Uri> {
 
   BuilderGraph(this.builders);
 
+  @override
   Iterable<Uri> get vertices => builders.keys;
 
+  @override
   Iterable<Uri> neighborsOf(Uri vertex) sync* {
     LibraryBuilder? library = builders[vertex];
     if (library == null) {

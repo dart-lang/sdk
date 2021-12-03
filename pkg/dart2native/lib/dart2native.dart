@@ -44,7 +44,7 @@ Future<ProcessResult> generateAotKernel(
     String platformDill,
     String sourceFile,
     String kernelFile,
-    String packages,
+    String? packages,
     List<String> defines,
     {String enableExperiment = '',
     List<String> extraGenKernelOptions = const []}) {
@@ -68,7 +68,7 @@ Future generateAotSnapshot(
     String genSnapshot,
     String kernelFile,
     String snapshotFile,
-    String debugFile,
+    String? debugFile,
     bool enableAsserts,
     List<String> extraGenSnapshotOptions) {
   return Process.run(genSnapshot, [

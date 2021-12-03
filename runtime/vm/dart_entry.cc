@@ -474,7 +474,7 @@ ArrayPtr ArgumentsDescriptor::New(intptr_t type_args_len,
   ASSERT(num_arguments >= 0);
   const intptr_t num_pos_args = num_arguments - num_named_args;
 
-  // Build the arguments descriptor array, which consists of the the type
+  // Build the arguments descriptor array, which consists of the type
   // argument vector length (0 if none); total argument count; the positional
   // argument count; a sequence of (name, position) pairs, sorted by name, for
   // each named optional argument; and a terminating null to simplify iterating
@@ -727,7 +727,7 @@ ObjectPtr DartLibraryCalls::LookupOpenPorts() {
   return result.ptr();
 }
 
-ObjectPtr DartLibraryCalls::HandleMessage(const Object& handler,
+ObjectPtr DartLibraryCalls::HandleMessage(Dart_Port port_id,
                                           const Instance& message) {
   auto thread = Thread::Current();
   auto zone = thread->zone();
@@ -743,7 +743,7 @@ ObjectPtr DartLibraryCalls::HandleMessage(const Object& handler,
     args = Array::New(kNumArguments);
     isolate->isolate_object_store()->set_dart_args_2(args);
   }
-  args.SetAt(0, handler);
+  args.SetAt(0, Integer::Handle(zone, Integer::New(port_id)));
   args.SetAt(1, message);
 #if !defined(PRODUCT)
   if (isolate->debugger()->IsStepping()) {
@@ -753,10 +753,9 @@ ObjectPtr DartLibraryCalls::HandleMessage(const Object& handler,
     isolate->debugger()->SetResumeAction(Debugger::kStepInto);
   }
 #endif
-  const Object& result =
+  const Object& handler =
       Object::Handle(zone, DartEntry::InvokeFunction(function, args));
-  ASSERT(result.IsNull() || result.IsError());
-  return result.ptr();
+  return handler.ptr();
 }
 
 ObjectPtr DartLibraryCalls::DrainMicrotaskQueue() {
@@ -786,24 +785,36 @@ ObjectPtr DartLibraryCalls::EnsureScheduleImmediate() {
   return result.ptr();
 }
 
-ObjectPtr DartLibraryCalls::RehashObjects(
-    Thread* thread,
-    const Object& array_or_growable_array) {
+static ObjectPtr RehashObjects(Zone* zone,
+                               const Library& library,
+                               const Object& array_or_growable_array) {
   ASSERT(array_or_growable_array.IsArray() ||
          array_or_growable_array.IsGrowableObjectArray());
-
-  auto zone = thread->zone();
-  const Library& collections_lib =
-      Library::Handle(zone, Library::CollectionLibrary());
-  const Function& rehashing_function = Function::Handle(
-      zone,
-      collections_lib.LookupFunctionAllowPrivate(Symbols::_rehashObjects()));
+  const auto& rehashing_function = Function::Handle(
+      zone, library.LookupFunctionAllowPrivate(Symbols::_rehashObjects()));
   ASSERT(!rehashing_function.IsNull());
 
-  const Array& arguments = Array::Handle(zone, Array::New(1));
+  const auto& arguments = Array::Handle(zone, Array::New(1));
   arguments.SetAt(0, array_or_growable_array);
 
   return DartEntry::InvokeFunction(rehashing_function, arguments);
+}
+
+ObjectPtr DartLibraryCalls::RehashObjectsInDartCollection(
+    Thread* thread,
+    const Object& array_or_growable_array) {
+  auto zone = thread->zone();
+  const auto& collections_lib =
+      Library::Handle(zone, Library::CollectionLibrary());
+  return RehashObjects(zone, collections_lib, array_or_growable_array);
+}
+
+ObjectPtr DartLibraryCalls::RehashObjectsInDartCore(
+    Thread* thread,
+    const Object& array_or_growable_array) {
+  auto zone = thread->zone();
+  const auto& core_lib = Library::Handle(zone, Library::CoreLibrary());
+  return RehashObjects(zone, core_lib, array_or_growable_array);
 }
 
 }  // namespace dart

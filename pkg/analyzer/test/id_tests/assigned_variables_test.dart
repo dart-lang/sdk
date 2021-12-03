@@ -24,7 +24,7 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
-          const _AssignedVariablesDataComputer(), [analyzerNnbdConfig]));
+          const _AssignedVariablesDataComputer(), [analyzerDefaultConfig]));
 }
 
 class _AssignedVariablesDataComputer extends DataComputer<_Data> {
@@ -100,7 +100,7 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   }
 
   Set<String> _convertVars(Iterable<PromotableElement> x) =>
-      x.map((e) => e.name!).toSet();
+      x.map((e) => e.name).toSet();
 
   void _handlePossibleTopLevelDeclaration(
       AstNode node, void Function() callback) {

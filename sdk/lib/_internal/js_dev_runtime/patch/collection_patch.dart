@@ -8,9 +8,6 @@ import 'dart:_runtime' as dart;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_js_helper'
     show
-        NoInline,
-        NoSideEffects,
-        NoThrows,
         patch,
         LinkedMap,
         IdentityMap,

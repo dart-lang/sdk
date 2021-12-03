@@ -10,7 +10,7 @@ class Class1 extends core::Object {
   static method _#_#tearOff([core::int field]) → self::Class1
     return new self::Class1::_(field);
   static factory •([core::int field]) → self::Class1
-    let dynamic #redirecting_factory = self::Class1::_ in invalid-expression;
+    return new self::Class1::_(field);
   static method _#new#tearOff([core::int field]) → self::Class1
     return new self::Class1::_(field);
 }
@@ -22,7 +22,7 @@ class Class2 extends core::Object {
   static method _#_#tearOff({core::int field}) → self::Class2
     return new self::Class2::_(field: field);
   static factory •({core::int field}) → self::Class2
-    let dynamic #redirecting_factory = self::Class2::_ in invalid-expression;
+    return new self::Class2::_(field: field);
   static method _#new#tearOff({core::int field}) → self::Class2
     return new self::Class2::_(field: field);
 }
@@ -35,3 +35,9 @@ static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 static method throws(() → dynamic f, {core::bool inSoundModeOnly}) → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values.dart:12:7 -> ConstructorTearOffConstant(Class1.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values.dart:19:7 -> ConstructorTearOffConstant(Class2.)
+Extra constant evaluation: evaluated: 16, effectively constant: 2

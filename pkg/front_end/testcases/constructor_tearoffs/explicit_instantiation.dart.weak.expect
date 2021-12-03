@@ -13,7 +13,7 @@ class C extends core::Object {
     return value;
   method method() → void {
     (core::int) → core::int f1 = #C2;
-    core::String f1TypeName = (#C2).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
+    core::String f1TypeName = #C2.{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f2 = this.{self::C::inst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
     core::String f2TypeName = (this.{self::C::inst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f3 = this.{self::C::inst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
@@ -27,7 +27,7 @@ abstract class M extends self::C /*isMixinDeclaration*/  {
     return value;
   method mmethod() → void {
     (core::int) → core::int f1 = #C4;
-    core::String f1TypeName = (#C4).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
+    core::String f1TypeName = #C4.{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f2 = this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
     core::String f2TypeName = (this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
     (core::int) → core::int f3 = this.{self::M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
@@ -69,7 +69,7 @@ static method Ext|get#einst(lowered final self::C #this) → <T extends core::Ob
   return <T extends core::Object? = dynamic>(T% value) → T% => self::Ext|einst<T%>(#this, value);
 static method Ext|emethod(lowered final self::C #this) → void {
   (core::int) → core::int f1 = #C6;
-  core::String f1TypeName = (#C6).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
+  core::String f1TypeName = #C6.{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
   (core::int) → core::int f2 = self::Ext|get#einst(#this)<core::int>;
   core::String f2TypeName = (self::Ext|get#einst(#this)<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
   (core::int) → core::int f3 = self::Ext|get#einst(#this)<core::int>;
@@ -87,17 +87,17 @@ static method main() → void {
   (core::int) → core::int f4 = d.{self::C::inst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
   (core::int) → core::int f5 = d.{self::_D&C&M::minst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
   (core::int) → core::int f6 = self::Ext|get#einst(d)<core::int>;
-  core::String typeName = (#C7).{core::Type::toString}(){() → core::String};
+  core::String typeName = #C7.{core::Type::toString}(){() → core::String};
   core::String functionTypeName = (local<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
 }
 
 constants  {
   #C1 = static-tearoff self::C::stat
-  #C2 = instantiation self::C::stat <core::int*>
+  #C2 = instantiation #C1 <core::int*>
   #C3 = static-tearoff self::M::mstat
-  #C4 = instantiation self::M::mstat <core::int*>
+  #C4 = instantiation #C3 <core::int*>
   #C5 = static-tearoff self::Ext|estat
-  #C6 = instantiation self::Ext|estat <core::int*>
+  #C6 = instantiation #C5 <core::int*>
   #C7 = TypeLiteralConstant(core::List<core::int*>*)
   #C8 = TypeLiteralConstant(core::List<core::List<core::int*>*>*)
 }

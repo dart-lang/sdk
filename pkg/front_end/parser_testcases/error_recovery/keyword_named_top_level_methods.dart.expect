@@ -16,9 +16,9 @@ parser/error_recovery/keyword_named_top_level_methods:28:10: Expected an identif
   return break(x-1) + 1;
          ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:28:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:28:3: Expected ';' after this.
   return break(x-1) + 1;
-         ^^^^^
+  ^^^^^^
 
 parser/error_recovery/keyword_named_top_level_methods:28:10: A break statement can't be used outside of a loop or switch statement.
   return break(x-1) + 1;
@@ -68,9 +68,9 @@ parser/error_recovery/keyword_named_top_level_methods:53:10: Expected an identif
   return continue(x-1) + 1;
          ^^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:53:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:53:3: Expected ';' after this.
   return continue(x-1) + 1;
-         ^^^^^^^^
+  ^^^^^^
 
 parser/error_recovery/keyword_named_top_level_methods:53:10: A continue statement can't be used outside of a loop or switch statement.
   return continue(x-1) + 1;
@@ -96,9 +96,9 @@ parser/error_recovery/keyword_named_top_level_methods:73:10: Expected an identif
   return do(x-1) + 1;
          ^^
 
-parser/error_recovery/keyword_named_top_level_methods:73:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:73:3: Expected ';' after this.
   return do(x-1) + 1;
-         ^^
+  ^^^^^^
 
 parser/error_recovery/keyword_named_top_level_methods:74:1: Expected 'while' before this.
 }
@@ -124,17 +124,17 @@ parser/error_recovery/keyword_named_top_level_methods:83:10: Expected an identif
   return else(x-1) + 1;
          ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:83:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:83:3: Expected ';' after this.
   return else(x-1) + 1;
-         ^^^^
+  ^^^^^^
 
 parser/error_recovery/keyword_named_top_level_methods:83:10: Expected an identifier, but got 'else'.
   return else(x-1) + 1;
          ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:83:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:83:3: Expected ';' after this.
   return else(x-1) + 1;
-         ^^^^
+  ^^^^^^
 
 parser/error_recovery/keyword_named_top_level_methods:83:10: Unexpected token ';'.
   return else(x-1) + 1;
@@ -168,17 +168,17 @@ parser/error_recovery/keyword_named_top_level_methods:123:10: Expected an identi
   return final(x-1) + 1;
          ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:123:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:123:3: Expected ';' after this.
   return final(x-1) + 1;
-         ^^^^^
+  ^^^^^^
 
 parser/error_recovery/keyword_named_top_level_methods:123:15: Expected an identifier, but got '('.
   return final(x-1) + 1;
               ^
 
-parser/error_recovery/keyword_named_top_level_methods:123:16: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:123:15: Expected ';' after this.
   return final(x-1) + 1;
-               ^
+              ^
 
 parser/error_recovery/keyword_named_top_level_methods:123:18: Expected ';' after this.
   return final(x-1) + 1;
@@ -188,9 +188,9 @@ parser/error_recovery/keyword_named_top_level_methods:123:19: Expected an identi
   return final(x-1) + 1;
                   ^
 
-parser/error_recovery/keyword_named_top_level_methods:123:19: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:123:18: Expected ';' after this.
   return final(x-1) + 1;
-                  ^
+                 ^
 
 parser/error_recovery/keyword_named_top_level_methods:123:19: Unexpected token ';'.
   return final(x-1) + 1;
@@ -216,9 +216,9 @@ parser/error_recovery/keyword_named_top_level_methods:133:10: Expected an identi
   return for(x-1) + 1;
          ^^^
 
-parser/error_recovery/keyword_named_top_level_methods:133:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:133:3: Expected ';' after this.
   return for(x-1) + 1;
-         ^^^
+  ^^^^^^
 
 parser/error_recovery/keyword_named_top_level_methods:133:16: Expected ';' after this.
   return for(x-1) + 1;
@@ -228,9 +228,9 @@ parser/error_recovery/keyword_named_top_level_methods:133:17: Expected an identi
   return for(x-1) + 1;
                 ^
 
-parser/error_recovery/keyword_named_top_level_methods:133:17: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:133:16: Expected ';' after this.
   return for(x-1) + 1;
-                ^
+               ^
 
 parser/error_recovery/keyword_named_top_level_methods:133:19: '+' is not a prefix operator.
   return for(x-1) + 1;
@@ -244,9 +244,9 @@ parser/error_recovery/keyword_named_top_level_methods:153:10: Expected an identi
   return if(x-1) + 1;
          ^^
 
-parser/error_recovery/keyword_named_top_level_methods:153:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:153:3: Expected ';' after this.
   return if(x-1) + 1;
-         ^^
+  ^^^^^^
 
 parser/error_recovery/keyword_named_top_level_methods:153:18: '+' is not a prefix operator.
   return if(x-1) + 1;
@@ -272,9 +272,9 @@ parser/error_recovery/keyword_named_top_level_methods:183:12: Expected a type, b
   return is(x-1) + 1;
            ^
 
-parser/error_recovery/keyword_named_top_level_methods:183:12: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:183:10: Expected ';' after this.
   return is(x-1) + 1;
-           ^
+         ^^
 
 parser/error_recovery/keyword_named_top_level_methods:206:5: 'new' can't be used as an identifier because it's a keyword.
 int new(int x) {
@@ -316,9 +316,9 @@ parser/error_recovery/keyword_named_top_level_methods:288:10: Expected an identi
   return switch(x-1) + 1;
          ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:288:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:288:3: Expected ';' after this.
   return switch(x-1) + 1;
-         ^^^^^^
+  ^^^^^^
 
 parser/error_recovery/keyword_named_top_level_methods:288:20: A switch statement must have a body, even if it is empty.
   return switch(x-1) + 1;
@@ -348,9 +348,9 @@ parser/error_recovery/keyword_named_top_level_methods:313:10: Expected an identi
   return try(x-1) + 1;
          ^^^
 
-parser/error_recovery/keyword_named_top_level_methods:313:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:313:3: Expected ';' after this.
   return try(x-1) + 1;
-         ^^^
+  ^^^^^^
 
 parser/error_recovery/keyword_named_top_level_methods:313:10: A try statement must have a body, even if it is empty.
   return try(x-1) + 1;
@@ -368,17 +368,17 @@ parser/error_recovery/keyword_named_top_level_methods:323:10: Expected an identi
   return var(x-1) + 1;
          ^^^
 
-parser/error_recovery/keyword_named_top_level_methods:323:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:323:3: Expected ';' after this.
   return var(x-1) + 1;
-         ^^^
+  ^^^^^^
 
 parser/error_recovery/keyword_named_top_level_methods:323:13: Expected an identifier, but got '('.
   return var(x-1) + 1;
             ^
 
-parser/error_recovery/keyword_named_top_level_methods:323:14: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:323:13: Expected ';' after this.
   return var(x-1) + 1;
-             ^
+            ^
 
 parser/error_recovery/keyword_named_top_level_methods:323:16: Expected ';' after this.
   return var(x-1) + 1;
@@ -388,9 +388,9 @@ parser/error_recovery/keyword_named_top_level_methods:323:17: Expected an identi
   return var(x-1) + 1;
                 ^
 
-parser/error_recovery/keyword_named_top_level_methods:323:17: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:323:16: Expected ';' after this.
   return var(x-1) + 1;
-                ^
+               ^
 
 parser/error_recovery/keyword_named_top_level_methods:323:17: Unexpected token ';'.
   return var(x-1) + 1;
@@ -408,17 +408,17 @@ parser/error_recovery/keyword_named_top_level_methods:328:10: Expected an identi
   return void(x-1) + 1;
          ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:328:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:328:3: Expected ';' after this.
   return void(x-1) + 1;
-         ^^^^
+  ^^^^^^
 
 parser/error_recovery/keyword_named_top_level_methods:328:14: Expected an identifier, but got '('.
   return void(x-1) + 1;
              ^
 
-parser/error_recovery/keyword_named_top_level_methods:328:15: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:328:14: Expected ';' after this.
   return void(x-1) + 1;
-              ^
+             ^
 
 parser/error_recovery/keyword_named_top_level_methods:328:17: Expected ';' after this.
   return void(x-1) + 1;
@@ -428,9 +428,9 @@ parser/error_recovery/keyword_named_top_level_methods:328:18: Expected an identi
   return void(x-1) + 1;
                  ^
 
-parser/error_recovery/keyword_named_top_level_methods:328:18: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:328:17: Expected ';' after this.
   return void(x-1) + 1;
-                 ^
+                ^
 
 parser/error_recovery/keyword_named_top_level_methods:328:18: Unexpected token ';'.
   return void(x-1) + 1;
@@ -448,9 +448,9 @@ parser/error_recovery/keyword_named_top_level_methods:333:10: Expected an identi
   return while(x-1) + 1;
          ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:333:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:333:3: Expected ';' after this.
   return while(x-1) + 1;
-         ^^^^^
+  ^^^^^^
 
 parser/error_recovery/keyword_named_top_level_methods:333:21: '+' is not a prefix operator.
   return while(x-1) + 1;
@@ -793,7 +793,7 @@ beginCompilationUnit(int)
           handleNoTypeArguments(break)
           handleNoArguments(break)
           handleSend(, break)
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], break, break)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
         endReturnStatement(true, return, ;)
         handleRecoverableError(BreakOutsideOfLoop, break, break)
         handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], break, break)
@@ -1035,7 +1035,7 @@ beginCompilationUnit(int)
             beginConstructorReference()
               handleNoTypeArguments(()
               handleNoConstructorReferenceContinuationAfterTypeArguments(()
-            endConstructorReference(, null, ()
+            endConstructorReference(, null, (, ConstructorReferenceContext.Const)
             beginArguments(()
               handleIdentifier(x, expression)
               handleNoTypeArguments(-)
@@ -1097,7 +1097,7 @@ beginCompilationUnit(int)
           handleNoTypeArguments(continue)
           handleNoArguments(continue)
           handleSend(, continue)
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], continue, continue)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
         endReturnStatement(true, return, ;)
         handleRecoverableError(ContinueOutsideOfLoop, continue, continue)
         handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], continue, continue)
@@ -1334,7 +1334,7 @@ beginCompilationUnit(int)
           handleNoTypeArguments(do)
           handleNoArguments(do)
           handleSend(, do)
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], do, do)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
         endReturnStatement(true, return, ;)
         beginDoWhileStatement(do)
           beginDoWhileStatementBody(()
@@ -1465,14 +1465,14 @@ beginCompilationUnit(int)
           handleNoTypeArguments(else)
           handleNoArguments(else)
           handleSend(, else)
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], else, else)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
         endReturnStatement(true, return, ;)
         handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'else'., Try inserting an identifier before 'else'., {lexeme: else}], else, else)
         handleIdentifier(, expression)
         handleNoTypeArguments(else)
         handleNoArguments(else)
         handleSend(, else)
-        handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], else, else)
+        handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
         handleExpressionStatement(;)
         handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {lexeme: ;}], else, else)
         handleIdentifier(x, expression)
@@ -1938,7 +1938,7 @@ beginCompilationUnit(int)
           handleNoTypeArguments(final)
           handleNoArguments(final)
           handleSend(, final)
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], final, final)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
         endReturnStatement(true, return, ;)
         beginMetadataStar(final)
         endMetadataStar(0)
@@ -1949,7 +1949,7 @@ beginCompilationUnit(int)
           beginInitializedIdentifier()
             handleNoVariableInitializer()
           endInitializedIdentifier()
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], x, x)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], (, ()
         endVariablesDeclaration(1, ;)
         handleIdentifier(x, expression)
         handleNoTypeArguments(-)
@@ -1965,7 +1965,7 @@ beginCompilationUnit(int)
         handleNoTypeArguments())
         handleNoArguments())
         handleSend(, ))
-        handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], ), ))
+        handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 1, 1)
         handleExpressionStatement(;)
         handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {lexeme: ;}], ), ))
         handleRecoverableError(UnsupportedPrefixPlus, +, +)
@@ -2083,7 +2083,7 @@ beginCompilationUnit(int)
           handleNoTypeArguments(for)
           handleNoArguments(for)
           handleSend(, for)
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], for, for)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
         endReturnStatement(true, return, ;)
         beginForStatement(for)
           handleIdentifier(x, expression)
@@ -2100,7 +2100,7 @@ beginCompilationUnit(int)
           handleNoTypeArguments())
           handleNoArguments())
           handleSend(, ))
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], ), ))
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 1, 1)
           handleExpressionStatement(;)
           handleForLoopParts(for, (, ;, 0)
           beginForStatementBody(+)
@@ -2333,7 +2333,7 @@ beginCompilationUnit(int)
           handleNoTypeArguments(if)
           handleNoArguments(if)
           handleSend(, if)
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], if, if)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
         endReturnStatement(true, return, ;)
         beginIfStatement(if)
           handleIdentifier(x, expression)
@@ -2697,7 +2697,7 @@ beginCompilationUnit(int)
             handleType(, null)
           endIsOperatorType(is)
           handleIsOperator(is, null)
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], (, ()
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], is, is)
         endReturnStatement(true, return, ;)
         handleIdentifier(x, expression)
         handleNoTypeArguments(-)
@@ -2987,7 +2987,7 @@ beginCompilationUnit(int)
             beginConstructorReference()
               handleNoTypeArguments(()
               handleNoConstructorReferenceContinuationAfterTypeArguments(()
-            endConstructorReference(, null, ()
+            endConstructorReference(, null, (, ConstructorReferenceContext.New)
             beginArguments(()
               handleIdentifier(x, expression)
               handleNoTypeArguments(-)
@@ -3906,7 +3906,7 @@ beginCompilationUnit(int)
           handleNoTypeArguments(switch)
           handleNoArguments(switch)
           handleSend(, switch)
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], switch, switch)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
         endReturnStatement(true, return, ;)
         beginSwitchStatement(switch)
           handleIdentifier(x, expression)
@@ -4205,7 +4205,7 @@ beginCompilationUnit(int)
           handleNoTypeArguments(try)
           handleNoArguments(try)
           handleSend(, try)
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], try, try)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
         endReturnStatement(true, return, ;)
         beginTryStatement(try)
           handleRecoverableError(Message[ExpectedClassOrMixinBody, A try statement must have a body, even if it is empty., Try adding an empty body., {string: try statement}], try, try)
@@ -4329,7 +4329,7 @@ beginCompilationUnit(int)
           handleNoTypeArguments(var)
           handleNoArguments(var)
           handleSend(, var)
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], var, var)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
         endReturnStatement(true, return, ;)
         beginMetadataStar(var)
         endMetadataStar(0)
@@ -4340,7 +4340,7 @@ beginCompilationUnit(int)
           beginInitializedIdentifier()
             handleNoVariableInitializer()
           endInitializedIdentifier()
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], x, x)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], (, ()
         endVariablesDeclaration(1, ;)
         handleIdentifier(x, expression)
         handleNoTypeArguments(-)
@@ -4356,7 +4356,7 @@ beginCompilationUnit(int)
         handleNoTypeArguments())
         handleNoArguments())
         handleSend(, ))
-        handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], ), ))
+        handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 1, 1)
         handleExpressionStatement(;)
         handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {lexeme: ;}], ), ))
         handleRecoverableError(UnsupportedPrefixPlus, +, +)
@@ -4415,7 +4415,7 @@ beginCompilationUnit(int)
           handleNoTypeArguments(void)
           handleNoArguments(void)
           handleSend(, void)
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], void, void)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
         endReturnStatement(true, return, ;)
         beginMetadataStar(void)
         endMetadataStar(0)
@@ -4426,7 +4426,7 @@ beginCompilationUnit(int)
           beginInitializedIdentifier()
             handleNoVariableInitializer()
           endInitializedIdentifier()
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], x, x)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], (, ()
         endVariablesDeclaration(1, ;)
         handleIdentifier(x, expression)
         handleNoTypeArguments(-)
@@ -4442,7 +4442,7 @@ beginCompilationUnit(int)
         handleNoTypeArguments())
         handleNoArguments())
         handleSend(, ))
-        handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], ), ))
+        handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 1, 1)
         handleExpressionStatement(;)
         handleRecoverableError(Message[UnexpectedToken, Unexpected token ';'., null, {lexeme: ;}], ), ))
         handleRecoverableError(UnsupportedPrefixPlus, +, +)
@@ -4501,7 +4501,7 @@ beginCompilationUnit(int)
           handleNoTypeArguments(while)
           handleNoArguments(while)
           handleSend(, while)
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], while, while)
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], return, return)
         endReturnStatement(true, return, ;)
         beginWhileStatement(while)
           handleIdentifier(x, expression)

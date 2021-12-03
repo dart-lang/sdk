@@ -11,4 +11,4 @@ Post issues and feature requests at https://github.com/dart-lang/sdk/issues
 
 See the [LICENSE] file.
 
-[LICENSE]: https://github.com/dart-lang/sdk/blob/master/pkg/diagnostic/LICENSE
+[LICENSE]: https://github.com/dart-lang/sdk/blob/main/pkg/diagnostic/LICENSE

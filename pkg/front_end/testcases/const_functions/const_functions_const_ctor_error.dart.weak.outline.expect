@@ -43,7 +43,7 @@ static const field core::String printString = "print";
 static const field self::Simple var1 = const self::Simple::•(self::printString);
 static const field self::Simple2 var2 = const self::Simple2::•(self::printString);
 static const field self::B var3 = const self::B::•();
-static const field dynamic var4 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:41:14: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+static const field invalid-type var4 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:41:14: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
 const var4 = C();
              ^";

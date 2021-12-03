@@ -5,10 +5,9 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:collection/collection.dart';
@@ -44,15 +43,16 @@ class DartProject {
   /// Project root.
   final Directory root;
 
-  /// Create a Dart project for the corresponding [driver] and [sources].
+  /// Create a Dart project for the corresponding [analysisSession] and [files].
   /// If a [dir] is unspecified the current working directory will be
   /// used.
   ///
   /// Note: clients should call [create] which performs API model initialization.
-  DartProject._(AnalysisDriver driver, List<Source> sources, {Directory? dir})
+  DartProject._(AnalysisSession analysisSession, List<String> files,
+      {Directory? dir})
       : root = dir ?? Directory.current {
     _pubspec = _findAndParsePubspec(root);
-    _apiModel = _ApiModel(driver, sources, root);
+    _apiModel = _ApiModel(analysisSession, files, root);
   }
 
   /// The project's name.
@@ -84,13 +84,14 @@ class DartProject {
     return p.basename(root.path);
   }
 
-  /// Create an initialized Dart project for the corresponding [driver] and
-  /// [sources].
+  /// Create an initialized Dart project for the corresponding [analysisSession]
+  /// and [files].
   /// If a [dir] is unspecified the current working directory will be
   /// used.
-  static Future<DartProject> create(AnalysisDriver driver, List<Source> sources,
+  static Future<DartProject> create(
+      AnalysisSession analysisSession, List<String> files,
       {Directory? dir}) async {
-    DartProject project = DartProject._(driver, sources, dir: dir);
+    DartProject project = DartProject._(analysisSession, files, dir: dir);
     await project._apiModel._calculate();
     return project;
   }
@@ -103,12 +104,12 @@ abstract class ProjectVisitor<T> {
 
 /// Captures the project's API as defined by pub package layout standards.
 class _ApiModel {
-  final AnalysisDriver driver;
-  final List<Source>? sources;
+  final AnalysisSession analysisSession;
+  final List<String> files;
   final Directory root;
   final Set<Element> elements = {};
 
-  _ApiModel(this.driver, this.sources, this.root) {
+  _ApiModel(this.analysisSession, this.files, this.root) {
     _calculate();
   }
 
@@ -124,17 +125,16 @@ class _ApiModel {
   }
 
   Future<void> _calculate() async {
-    if (sources == null || sources!.isEmpty) {
+    if (files.isEmpty) {
       return;
     }
 
     String libDir = root.path + '/lib';
     String libSrcDir = libDir + '/src';
 
-    for (Source source in sources!) {
-      String path = source.uri.path;
-      if (path.startsWith(libDir) && !path.startsWith(libSrcDir)) {
-        var result = await driver.getResult2(source.fullName);
+    for (var file in files) {
+      if (file.startsWith(libDir) && !file.startsWith(libSrcDir)) {
+        var result = await analysisSession.getResolvedUnit(file);
         if (result is ResolvedUnitResult) {
           LibraryElement library = result.libraryElement;
 

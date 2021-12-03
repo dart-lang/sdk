@@ -1,0 +1,36 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef Alias = self::Const;
+typedef ImplAlias<T extends core::num> = self::_ConstImpl<T>;
+class Class extends core::Object {
+  final field core::List<self::Const> constants;
+  constructor •({core::List<self::Const> constants}) → self::Class
+    ;
+  static method _#new#tearOff({core::List<self::Const> constants}) → self::Class
+    return new self::Class::•(constants: constants);
+}
+abstract class Const extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::Const::impl]/*isLegacy*/;
+  static factory impl() → self::Const
+    return new self::_ConstImpl::•<dynamic>();
+  static method _#impl#tearOff() → self::Const
+    return new self::_ConstImpl::•<dynamic>();
+}
+class _ConstImpl<T extends core::Object? = dynamic> extends core::Object implements self::Const /*hasConstConstructor*/  {
+  const constructor •() → self::_ConstImpl<self::_ConstImpl::T%>
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::_ConstImpl<self::_ConstImpl::_#new#tearOff::T%>
+    return new self::_ConstImpl::•<self::_ConstImpl::_#new#tearOff::T%>();
+}
+static method main() → dynamic
+  ;
+static method _#ImplAlias#new#tearOff<T extends core::num>() → self::_ConstImpl<self::_#ImplAlias#new#tearOff::T>
+  return new self::_ConstImpl::•<self::_#ImplAlias#new#tearOff::T>();
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///const_redirect.dart:21:16 -> ConstructorTearOffConstant(Const.impl)
+Extra constant evaluation: evaluated: 8, effectively constant: 1

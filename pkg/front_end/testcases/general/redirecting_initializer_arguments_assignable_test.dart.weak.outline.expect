@@ -17,7 +17,7 @@ class X extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Foo<T extends self::X*> extends core::Object {
-  generic-covariant-impl field self::Foo::T* x;
+  covariant-by-class field self::Foo::T* x;
   constructor fromX(self::X* _init) → self::Foo<self::Foo::T*>*
     ;
   constructor fromT(self::Foo::T* _init) → self::Foo<self::Foo::T*>*

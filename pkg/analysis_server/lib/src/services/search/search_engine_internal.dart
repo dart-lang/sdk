@@ -242,6 +242,9 @@ class SearchMatchImpl implements SearchMatch {
     if (kind == SearchResultKind.INVOCATION) {
       return MatchKind.INVOCATION;
     }
+    if (kind == SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF) {
+      return MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF;
+    }
     return MatchKind.REFERENCE;
   }
 }

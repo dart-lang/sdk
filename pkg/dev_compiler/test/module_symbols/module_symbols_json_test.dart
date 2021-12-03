@@ -4,7 +4,6 @@
 
 // @dart = 2.9
 
-import 'dart:core';
 import 'package:dev_compiler/src/kernel/module_symbols.dart';
 import 'package:test/test.dart';
 

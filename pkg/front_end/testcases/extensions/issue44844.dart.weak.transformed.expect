@@ -25,6 +25,6 @@ static method test() → void {
   invalid-expression "pkg/front_end/testcases/extensions/issue44844.dart:11:5: Error: The method 'foo' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'foo'.
   3.foo();
-    ^^^";
+    ^^^" in 3{<unresolved>}.foo();
 }
 static method main() → dynamic {}

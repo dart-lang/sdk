@@ -1574,7 +1574,8 @@ class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
   }
 }
 
-double _parseDouble(String source, int start, int end) native "Double_parse";
+@pragma("vm:external-name", "Double_parse")
+external double _parseDouble(String source, int start, int end);
 
 /**
  * Implements the chunked conversion from a UTF-8 encoding of JSON

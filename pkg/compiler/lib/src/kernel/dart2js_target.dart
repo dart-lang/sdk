@@ -21,9 +21,11 @@ import 'package:kernel/target/targets.dart';
 
 import '../options.dart';
 import 'invocation_mirror_constants.dart';
+import 'transformations/clone_mixin_methods_with_super.dart' as transformMixins
+    show transformLibraries;
 import 'transformations/lowering.dart' as lowering show transformLibraries;
 
-const Iterable<String> _allowedDartSchemePaths = const <String>[
+const Iterable<String> _allowedDartSchemePaths = [
   'async',
   'html',
   'html_common',
@@ -34,7 +36,6 @@ const Iterable<String> _allowedDartSchemePaths = const <String>[
   '_native_typed_data',
   'web_audio',
   'web_gl',
-  'web_sql'
 ];
 
 List<Pattern> _allowedNativeTestPatterns = [
@@ -60,19 +61,6 @@ bool maybeEnableNative(Uri uri) {
   return allowedNativeTest(uri) || allowedDartLibrary();
 }
 
-int _foldLateLowerings(List<int> lowerings) =>
-    lowerings.fold(LateLowering.none, (a, b) => a | b);
-
-/// Late lowerings which the frontend performs for dart2js.
-const List<int> _allEnabledLateLowerings = [
-  LateLowering.uninitializedNonFinalInstanceField,
-  LateLowering.uninitializedFinalInstanceField,
-  LateLowering.initializedNonFinalInstanceField,
-  LateLowering.initializedFinalInstanceField,
-];
-
-final int _enabledLateLowerings = _foldLateLowerings(_allEnabledLateLowerings);
-
 /// A kernel [Target] to configure the Dart Front End for dart2js.
 class Dart2jsTarget extends Target {
   @override
@@ -88,10 +76,7 @@ class Dart2jsTarget extends Target {
   bool get enableNoSuchMethodForwarders => true;
 
   @override
-  int get enabledLateLowerings =>
-      (options != null && options!.experimentLateInstanceVariables)
-          ? LateLowering.none
-          : _enabledLateLowerings;
+  int get enabledLateLowerings => LateLowering.none;
 
   @override
   bool get supportsLateLoweringSentinel => true;
@@ -105,7 +90,7 @@ class Dart2jsTarget extends Target {
   bool get supportsExplicitGetterCalls => false;
 
   @override
-  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.none;
+  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.all;
 
   @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name]!;
@@ -131,7 +116,9 @@ class Dart2jsTarget extends Target {
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
-      maybeEnableNative(importer);
+      maybeEnableNative(importer) ||
+      (importer.scheme == 'package' &&
+          importer.path.startsWith('dart2js_runtime_metrics/'));
 
   @override
   bool enableNative(Uri uri) => maybeEnableNative(uri);
@@ -156,17 +143,19 @@ class Dart2jsTarget extends Target {
     var nativeClasses = JsInteropChecks.getNativeClasses(component);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
-      // TODO (rileyporter): Merge js_util optimizations with other lowerings
-      // in the single pass in `transformations/lowering.dart`.
-      jsUtilOptimizer.visitLibrary(library);
       JsInteropChecks(
               coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
               nativeClasses)
           .visitLibrary(library);
+      // TODO (rileyporter): Merge js_util optimizations with other lowerings
+      // in the single pass in `transformations/lowering.dart`.
+      jsUtilOptimizer.visitLibrary(library);
     }
     lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
     logger?.call("Lowering transformations performed");
+    transformMixins.transformLibraries(libraries);
+    logger?.call("Mixin transformations performed");
   }
 
   @override
@@ -187,24 +176,24 @@ class Dart2jsTarget extends Target {
     } else {
       kind = invocationMirrorMethodKind;
     }
-    return new ir.StaticInvocation(
+    return ir.StaticInvocation(
         coreTypes.index
             .getTopLevelProcedure('dart:core', '_createInvocationMirror'),
-        new ir.Arguments(<ir.Expression>[
-          new ir.StringLiteral(name)..fileOffset = offset,
-          new ir.ListLiteral(
-              arguments.types.map((t) => new ir.TypeLiteral(t)).toList()),
-          new ir.ListLiteral(arguments.positional)..fileOffset = offset,
-          new ir.MapLiteral(new List<ir.MapLiteralEntry>.from(
+        ir.Arguments(<ir.Expression>[
+          ir.StringLiteral(name)..fileOffset = offset,
+          ir.ListLiteral(
+              arguments.types.map((t) => ir.TypeLiteral(t)).toList()),
+          ir.ListLiteral(arguments.positional)..fileOffset = offset,
+          ir.MapLiteral(List<ir.MapLiteralEntry>.from(
               arguments.named.map((ir.NamedExpression arg) {
-            return new ir.MapLiteralEntry(
-                new ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
+            return ir.MapLiteralEntry(
+                ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
                 arg.value)
               ..fileOffset = arg.fileOffset;
           })), keyType: coreTypes.stringNonNullableRawType)
             ..isConst = (arguments.named.length == 0)
             ..fileOffset = arguments.fileOffset,
-          new ir.IntLiteral(kind)..fileOffset = offset,
+          ir.IntLiteral(kind)..fileOffset = offset,
         ]))
       ..fileOffset = offset;
   }
@@ -212,29 +201,30 @@ class Dart2jsTarget extends Target {
   @override
   ir.Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
       ir.Expression receiver, String name, ir.Arguments arguments, int offset,
-      {bool isMethod: false,
-      bool isGetter: false,
-      bool isSetter: false,
-      bool isField: false,
-      bool isLocalVariable: false,
-      bool isDynamic: false,
-      bool isSuper: false,
-      bool isStatic: false,
-      bool isConstructor: false,
-      bool isTopLevel: false}) {
+      {bool isMethod = false,
+      bool isGetter = false,
+      bool isSetter = false,
+      bool isField = false,
+      bool isLocalVariable = false,
+      bool isDynamic = false,
+      bool isSuper = false,
+      bool isStatic = false,
+      bool isConstructor = false,
+      bool isTopLevel = false}) {
     // TODO(sigmund): implement;
-    return new ir.InvalidExpression(null);
+    return ir.InvalidExpression(null);
   }
 
   @override
-  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
+  ConstantsBackend get constantsBackend =>
       const Dart2jsConstantsBackend(supportsUnevaluatedConstants: true);
 }
 
 // TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
 // compile-platform should just specify which libraries to compile instead.
-const _requiredLibraries = const <String, List<String>>{
-  'dart2js': const <String>[
+const _requiredLibraries = <String, List<String>>{
+  'dart2js': [
+    'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
     'dart:_interceptors',
     'dart:_internal',
@@ -255,9 +245,9 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:svg',
     'dart:web_audio',
     'dart:web_gl',
-    'dart:web_sql',
   ],
-  'dart2js_server': const <String>[
+  'dart2js_server': [
+    'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
     'dart:_interceptors',
     'dart:_internal',

@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
 import 'context_collection_resolution.dart';
 
 main() {
@@ -18,8 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class MixinDriverResolutionTest extends PubPackageResolutionTest
-    with ElementsTypesMixin {
+class MixinDriverResolutionTest extends PubPackageResolutionTest {
   test_accessor_getter() async {
     await assertNoErrorsInCode(r'''
 mixin M {
@@ -94,10 +91,10 @@ class A extends Object with M {} // A
     var mElement = findElement.mixin('M');
 
     var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, [interfaceTypeNone(mElement)]);
+    assertElementTypes(aElement.mixins, ['M']);
 
-    var mRef = findNode.typeName('M {} // A');
-    assertTypeName(mRef, mElement, 'M');
+    var mRef = findNode.namedType('M {} // A');
+    assertNamedType(mRef, mElement, 'M');
   }
 
   test_classTypeAlias_with() async {
@@ -109,10 +106,10 @@ class A = Object with M;
     var mElement = findElement.mixin('M');
 
     var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, [interfaceTypeNone(mElement)]);
+    assertElementTypes(aElement.mixins, ['M']);
 
-    var mRef = findNode.typeName('M;');
-    assertTypeName(mRef, mElement, 'M');
+    var mRef = findNode.namedType('M;');
+    assertNamedType(mRef, mElement, 'M');
   }
 
   test_commentReference() async {
@@ -123,7 +120,7 @@ const a = 0;
 mixin M {}
 ''');
 
-    var aRef = findNode.commentReference('a]').identifier;
+    var aRef = findNode.commentReference('a]').expression;
     assertElement(aRef, findElement.topGet('a'));
     assertTypeNull(aRef);
   }
@@ -144,10 +141,13 @@ mixin M {}
     expect(element.isEnum, isFalse);
     expect(element.isMixin, isTrue);
     expect(element.isMixinApplication, isFalse);
-    expect(interfaceTypeStar(element).isDartCoreObject, isFalse);
+    expect(element.thisType.isDartCoreObject, isFalse);
     expect(element.isDartCoreObject, isFalse);
 
-    assertElementTypes(element.superclassConstraints, [objectType]);
+    assertElementTypes(
+      element.superclassConstraints,
+      ['Object'],
+    );
     assertElementTypes(element.interfaces, []);
   }
 
@@ -161,21 +161,13 @@ mixin M1 on A, B {}
 mixin M2 on A implements B, C {}
 ''');
 
-    var a = findElement.class_('A');
-    var b = findElement.class_('B');
-    var c = findElement.class_('C');
     assertElementTypes(
       findElement.mixin('M1').allSupertypes,
-      [interfaceTypeNone(a), interfaceTypeNone(b), objectType],
+      ['Object', 'A', 'B'],
     );
     assertElementTypes(
       findElement.mixin('M2').allSupertypes,
-      [
-        interfaceTypeNone(a),
-        objectType,
-        interfaceTypeNone(b),
-        interfaceTypeNone(c)
-      ],
+      ['Object', 'A', 'B', 'C'],
     );
   }
 
@@ -188,22 +180,13 @@ mixin M1 on A<int, double> {}
 mixin M2 on B<String> {}
 ''');
 
-    var a = findElement.class_('A');
-    var b = findElement.class_('B');
     assertElementTypes(
       findElement.mixin('M1').allSupertypes,
-      [
-        interfaceTypeNone(a, typeArguments: [intType, doubleType]),
-        objectType
-      ],
+      ['Object', 'A<int, double>'],
     );
     assertElementTypes(
       findElement.mixin('M2').allSupertypes,
-      [
-        interfaceTypeNone(b, typeArguments: [stringType]),
-        interfaceTypeNone(a, typeArguments: [intType, stringType]),
-        objectType
-      ],
+      ['Object', 'A<int, String>', 'B<String>'],
     );
   }
 
@@ -323,10 +306,10 @@ mixin M implements math.Random {}
     var randomElement = mathImport.importedLibrary!.getType('Random')!;
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.interfaces, [interfaceTypeNone(randomElement)]);
+    assertElementTypes(element.interfaces, ['Random']);
 
-    var typeRef = findNode.typeName('Random {}');
-    assertTypeName(typeRef, randomElement, 'Random',
+    var typeRef = findNode.namedType('Random {}');
+    assertNamedType(typeRef, randomElement, 'Random',
         expectedPrefix: mathImport.prefix);
   }
 
@@ -338,10 +321,10 @@ mixin M implements int {}
     ]);
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.interfaces, [intType]);
+    assertElementTypes(element.interfaces, ['int']);
 
-    var typeRef = findNode.typeName('int {}');
-    assertTypeName(typeRef, intElement, 'int');
+    var typeRef = findNode.namedType('int {}');
+    assertNamedType(typeRef, intElement, 'int');
   }
 
   test_error_implementsClause_nonClass_void() async {
@@ -355,8 +338,8 @@ mixin M implements void {}
     var element = findElement.mixin('M');
     assertElementTypes(element.interfaces, []);
 
-    var typeRef = findNode.typeName('void {}');
-    assertTypeName(typeRef, null, 'void');
+    var typeRef = findNode.namedType('void {}');
+    assertNamedType(typeRef, null, 'void');
   }
 
   test_error_memberWithClassName_getter() async {
@@ -831,7 +814,7 @@ main() {
 
     var creation = findNode.instanceCreation('M.named();');
     var m = findElement.mixin('M');
-    assertElement(creation.constructorName.type.name, m);
+    assertElement(creation.constructorName.type2.name, m);
   }
 
   test_error_onClause_deferredClass() async {
@@ -846,12 +829,10 @@ mixin M on math.Random {}
     var randomElement = mathImport.importedLibrary!.getType('Random')!;
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, [
-      interfaceTypeNone(randomElement),
-    ]);
+    assertElementTypes(element.superclassConstraints, ['Random']);
 
-    var typeRef = findNode.typeName('Random {}');
-    assertTypeName(typeRef, randomElement, 'Random',
+    var typeRef = findNode.namedType('Random {}');
+    assertNamedType(typeRef, randomElement, 'Random',
         expectedPrefix: mathImport.prefix);
   }
 
@@ -864,10 +845,10 @@ mixin M on int {}
     ]);
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, [intType]);
+    assertElementTypes(element.superclassConstraints, ['int']);
 
-    var typeRef = findNode.typeName('int {}');
-    assertTypeName(typeRef, intElement, 'int');
+    var typeRef = findNode.namedType('int {}');
+    assertNamedType(typeRef, intElement, 'int');
   }
 
   test_error_onClause_nonInterface_dynamic() async {
@@ -879,10 +860,10 @@ mixin M on dynamic {}
     ]);
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, [objectType]);
+    assertElementTypes(element.superclassConstraints, ['Object']);
 
-    var typeRef = findNode.typeName('dynamic {}');
-    assertTypeName(typeRef, dynamicElement, 'dynamic');
+    var typeRef = findNode.namedType('dynamic {}');
+    assertNamedType(typeRef, dynamicElement, 'dynamic');
   }
 
   test_error_onClause_nonInterface_enum() async {
@@ -895,10 +876,10 @@ mixin M on E {}
     ]);
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, [objectType]);
+    assertElementTypes(element.superclassConstraints, ['Object']);
 
-    var typeRef = findNode.typeName('E {}');
-    assertTypeName(typeRef, findElement.enum_('E'), 'E');
+    var typeRef = findNode.namedType('E {}');
+    assertNamedType(typeRef, findElement.enum_('E'), 'E');
   }
 
   test_error_onClause_nonInterface_void() async {
@@ -911,10 +892,10 @@ mixin M on void {}
     ]);
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, [objectType]);
+    assertElementTypes(element.superclassConstraints, ['Object']);
 
-    var typeRef = findNode.typeName('void {}');
-    assertTypeName(typeRef, null, 'void');
+    var typeRef = findNode.namedType('void {}');
+    assertNamedType(typeRef, null, 'void');
   }
 
   test_error_onClause_OK_mixin() async {
@@ -923,11 +904,8 @@ mixin A {}
 mixin B on A {} // ref
 ''');
 
-    var a = findElement.mixin('A');
     var b = findElement.mixin('B');
-    assertElementTypes(b.superclassConstraints, [
-      interfaceTypeNone(a),
-    ]);
+    assertElementTypes(b.superclassConstraints, ['A']);
   }
 
   test_error_undefinedSuperMethod() async {
@@ -978,7 +956,7 @@ mixin M<T> {
     var fNode = findNode.variableDeclaration('f;');
     assertElement(fNode.name, fElement);
 
-    assertTypeName(findNode.typeName('T f'), tElement, 'T');
+    assertNamedType(findNode.namedType('T f'), tElement, 'T');
 
     var accessors = element.accessors;
     expect(accessors, hasLength(2));
@@ -995,22 +973,13 @@ mixin M implements A, B {} // M
 ''');
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.interfaces, [
-      findElement.class_('A').instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-      findElement.class_('B').instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-    ]);
+    assertElementTypes(element.interfaces, ['A', 'B']);
 
-    var aRef = findNode.typeName('A, ');
-    assertTypeName(aRef, findElement.class_('A'), 'A');
+    var aRef = findNode.namedType('A, ');
+    assertNamedType(aRef, findElement.class_('A'), 'A');
 
-    var bRef = findNode.typeName('B {} // M');
-    assertTypeName(bRef, findElement.class_('B'), 'B');
+    var bRef = findNode.namedType('B {} // M');
+    assertNamedType(bRef, findElement.class_('B'), 'B');
   }
 
   test_invalid_unresolved_before_mixin() async {
@@ -1092,22 +1061,13 @@ mixin M on A, B {} // M
 ''');
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, [
-      findElement.class_('A').instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-      findElement.class_('B').instantiate(
-        typeArguments: const [],
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-    ]);
+    assertElementTypes(element.superclassConstraints, ['A', 'B']);
 
-    var aRef = findNode.typeName('A, ');
-    assertTypeName(aRef, findElement.class_('A'), 'A');
+    var aRef = findNode.namedType('A, ');
+    assertNamedType(aRef, findElement.class_('A'), 'A');
 
-    var bRef = findNode.typeName('B {} // M');
-    assertTypeName(bRef, findElement.class_('B'), 'B');
+    var bRef = findNode.namedType('B {} // M');
+    assertNamedType(bRef, findElement.class_('B'), 'B');
   }
 
   test_recursiveInterfaceInheritance_implements() async {

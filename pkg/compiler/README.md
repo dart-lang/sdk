@@ -631,8 +631,6 @@ _TODO: complete the documentation for the following files_.
 
 `lib/src/diagnostics`
 `lib/src/diagnostics/invariant.dart`
-`lib/src/diagnostics/generated`
-`lib/src/diagnostics/generated/shared_messages.dart`
 `lib/src/diagnostics/messages.dart`
 `lib/src/diagnostics/source_span.dart`
 `lib/src/diagnostics/code_location.dart`

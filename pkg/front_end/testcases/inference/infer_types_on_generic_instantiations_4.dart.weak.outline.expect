@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A<T extends core::Object* = dynamic> extends core::Object {
-  generic-covariant-impl field self::A::T* x;
+  covariant-by-class field self::A::T* x;
   synthetic constructor •() → self::A<self::A::T*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -18,7 +18,7 @@ class A<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class B<E extends core::Object* = dynamic> extends self::A<self::B::E*> {
-  generic-covariant-impl field self::B::E* y;
+  covariant-by-class field self::B::E* y;
   synthetic constructor •() → self::B<self::B::E*>*
     ;
   get x() → self::B::E*

@@ -298,6 +298,19 @@ class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
   const Register result_;
 };
 
+class DoubleToIntegerSlowPath
+    : public TemplateSlowPathCode<DoubleToIntegerInstr> {
+ public:
+  DoubleToIntegerSlowPath(DoubleToIntegerInstr* instruction,
+                          FpuRegister value_reg)
+      : TemplateSlowPathCode(instruction), value_reg_(value_reg) {}
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+ private:
+  FpuRegister value_reg_;
+};
+
 // Slow path code which calls runtime entry to throw an exception.
 class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
  public:
@@ -747,24 +760,19 @@ class FlowGraphCompiler : public ValueObject {
   void EmitMegamorphicInstanceCall(const ICData& icdata,
                                    intptr_t deopt_id,
                                    const InstructionSource& source,
-                                   LocationSummary* locs,
-                                   intptr_t try_index,
-                                   intptr_t slow_path_argument_count = 0) {
+                                   LocationSummary* locs) {
     const String& name = String::Handle(icdata.target_name());
     const Array& arguments_descriptor =
         Array::Handle(icdata.arguments_descriptor());
     EmitMegamorphicInstanceCall(name, arguments_descriptor, deopt_id, source,
-                                locs, try_index);
+                                locs);
   }
 
-  // Pass a value for try-index where block is not available (e.g. slow path).
   void EmitMegamorphicInstanceCall(const String& function_name,
                                    const Array& arguments_descriptor,
                                    intptr_t deopt_id,
                                    const InstructionSource& source,
-                                   LocationSummary* locs,
-                                   intptr_t try_index,
-                                   intptr_t slow_path_argument_count = 0);
+                                   LocationSummary* locs);
 
   void EmitInstanceCallAOT(
       const ICData& ic_data,
@@ -805,8 +813,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitEdgeCounter(intptr_t edge_id);
 
-  void RecordCatchEntryMoves(Environment* env,
-                             intptr_t try_index = kInvalidTryIndex);
+  void RecordCatchEntryMoves(Environment* env);
 
   void EmitCallToStub(const Code& stub);
   void EmitTailCallToStub(const Code& stub);

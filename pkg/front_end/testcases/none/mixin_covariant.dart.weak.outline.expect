@@ -9,9 +9,9 @@ class Superclass extends core::Object {
     ;
   method method2(core::num argument1, core::num argument2) → core::String
     ;
-  method method3(core::num argument1, covariant core::int argument2) → core::String
+  method method3(core::num argument1, covariant-by-declaration core::int argument2) → core::String
     ;
-  method method4(core::num argument1, covariant core::num argument2) → core::String
+  method method4(core::num argument1, covariant-by-declaration core::num argument2) → core::String
     ;
 }
 class Mixin extends core::Object {
@@ -19,11 +19,11 @@ class Mixin extends core::Object {
     ;
   method method1(core::num argument1, core::num argument2) → core::String
     ;
-  method method2(covariant core::int argument1, core::num argument2) → core::String
+  method method2(covariant-by-declaration core::int argument1, core::num argument2) → core::String
     ;
   method method3(core::num argument1, core::num argument2) → core::String
     ;
-  method method4(covariant core::int argument1, core::int argument2) → core::String
+  method method4(covariant-by-declaration core::int argument1, core::int argument2) → core::String
     ;
 }
 abstract class _Class&Superclass&Mixin = self::Superclass with self::Mixin /*isAnonymousMixin*/  {
@@ -32,11 +32,11 @@ abstract class _Class&Superclass&Mixin = self::Superclass with self::Mixin /*isA
     ;
   mixin-super-stub method method1(core::num argument1, core::num argument2) → core::String
     return super.{self::Mixin::method1}(argument1, argument2);
-  mixin-super-stub method method2(covariant core::int argument1, core::num argument2) → core::String
+  mixin-super-stub method method2(covariant-by-declaration core::int argument1, core::num argument2) → core::String
     return super.{self::Mixin::method2}(argument1, argument2);
-  forwarding-stub method method3(core::num argument1, covariant core::num argument2) → core::String
+  forwarding-stub method method3(core::num argument1, covariant-by-declaration core::num argument2) → core::String
     return super.{self::Mixin::method3}(argument1, argument2);
-  forwarding-stub method method4(covariant core::int argument1, covariant core::int argument2) → core::String
+  forwarding-stub method method4(covariant-by-declaration core::int argument1, covariant-by-declaration core::int argument2) → core::String
     return super.{self::Mixin::method4}(argument1, argument2);
 }
 class Class extends self::_Class&Superclass&Mixin {

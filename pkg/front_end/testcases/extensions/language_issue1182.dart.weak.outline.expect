@@ -5,7 +5,7 @@ import "dart:core" as core;
 class Foo<S extends core::num*> extends core::Object {
   synthetic constructor •() → self::Foo<self::Foo::S*>*
     ;
-  method test1(generic-covariant-impl self::Foo::S* x) → void
+  method test1(covariant-by-class self::Foo::S* x) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

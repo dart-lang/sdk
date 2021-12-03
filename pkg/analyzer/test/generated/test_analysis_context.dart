@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -18,7 +17,7 @@ class TestAnalysisContext implements AnalysisContext {
   final SourceFactory sourceFactory = _MockSourceFactory();
 
   final _MockAnalysisSession _analysisSession = _MockAnalysisSession();
-  late AnalysisOptionsImpl _analysisOptions;
+  final AnalysisOptionsImpl _analysisOptions = AnalysisOptionsImpl();
 
   late TypeProviderImpl _typeProviderLegacy;
   late TypeProviderImpl _typeProviderNonNullableByDefault;
@@ -26,10 +25,7 @@ class TestAnalysisContext implements AnalysisContext {
   late TypeSystemImpl _typeSystemLegacy;
   late TypeSystemImpl _typeSystemNonNullableByDefault;
 
-  TestAnalysisContext({FeatureSet? featureSet}) {
-    _analysisOptions = AnalysisOptionsImpl()
-      ..contextFeatures = featureSet ?? FeatureSet.forTesting();
-
+  TestAnalysisContext() {
     var sdkElements = MockSdkElements(this, _analysisSession);
 
     _typeProviderLegacy = TypeProviderImpl(

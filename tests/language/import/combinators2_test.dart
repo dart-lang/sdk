@@ -15,5 +15,5 @@ main() {
   print(ugly);
   //    ^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-  // [cfe] Getter not found: 'ugly'.
+  // [cfe] Undefined name 'ugly'.
 }

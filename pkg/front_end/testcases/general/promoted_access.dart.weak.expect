@@ -6,7 +6,7 @@ class Class<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::Class<self::Class::T*>*
     : super core::Object::•()
     ;
-  method method(generic-covariant-impl self::Class::T* o) → dynamic {
+  method method(covariant-by-class self::Class::T* o) → dynamic {
     if(o is self::Class<dynamic>*) {
       o{self::Class::T* & self::Class<dynamic>* /* '*' & '*' = '*' */}.{self::Class::method}(null){(dynamic) →* dynamic};
     }

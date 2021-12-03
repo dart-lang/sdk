@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // VMOptions=--deterministic  --optimization-counter-threshold=100 --deoptimize-on-runtime-call-name-filter=TypeCheck --deoptimize-on-runtime-call-every=1 --max-subtype-cache-entries=0
 
 main() {

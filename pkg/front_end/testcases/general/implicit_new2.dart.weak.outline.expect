@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "dart:async";
+
+static field void voidValue;
+static method main() → void
+  ;
+static method test1() → FutureOr<FutureOr<void>>
+  ;
+static method test2() → FutureOr<FutureOr<void>>
+  ;
+static method test3() → FutureOr<FutureOr<void>>
+  ;
+static method test4() → FutureOr<FutureOr<void>>
+  ;
+static method test5() → FutureOr<FutureOr<void>>
+  ;
+static method test6() → FutureOr<FutureOr<void>>
+  ;
+static method test() → FutureOr<FutureOr<void>>
+  ;

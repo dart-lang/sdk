@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
@@ -58,7 +57,9 @@ class CompletionRunner {
     var collection = AnalysisContextCollection(
         includedPaths: <String>[analysisRoot],
         resourceProvider: resourceProvider);
-    var contributor = DartCompletionManager();
+    var contributor = DartCompletionManager(
+      budget: CompletionBudget(const Duration(seconds: 30)),
+    );
     var statistics = CompletionPerformance();
     var stamp = 1;
 
@@ -99,12 +100,15 @@ class CompletionRunner {
           }
 
           timer.start();
-          var request = CompletionRequestImpl(result, offset, statistics);
-          var suggestions = await request.performance.runRequestOperation(
+          var dartRequest = DartCompletionRequest(
+            resolvedUnit: result,
+            offset: offset,
+          );
+          var suggestions = await statistics.runRequestOperation(
             (performance) async {
               return await contributor.computeSuggestions(
+                dartRequest,
                 performance,
-                request,
               );
             },
           );

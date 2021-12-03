@@ -7,34 +7,39 @@
 @patch
 class _Directory {
   @patch
-  static _current(_Namespace namespace) native "Directory_Current";
+  @pragma("vm:external-name", "Directory_Current")
+  external static _current(_Namespace namespace);
   @patch
-  static _setCurrent(_Namespace namespace, Uint8List rawPath)
-      native "Directory_SetCurrent";
+  @pragma("vm:external-name", "Directory_SetCurrent")
+  external static _setCurrent(_Namespace namespace, Uint8List rawPath);
   @patch
-  static _createTemp(_Namespace namespace, Uint8List rawPath)
-      native "Directory_CreateTemp";
+  @pragma("vm:external-name", "Directory_CreateTemp")
+  external static _createTemp(_Namespace namespace, Uint8List rawPath);
   @patch
-  static String _systemTemp(_Namespace namespace) native "Directory_SystemTemp";
+  @pragma("vm:external-name", "Directory_SystemTemp")
+  external static String _systemTemp(_Namespace namespace);
   @patch
-  static _exists(_Namespace namespace, Uint8List rawPath)
-      native "Directory_Exists";
+  @pragma("vm:external-name", "Directory_Exists")
+  external static _exists(_Namespace namespace, Uint8List rawPath);
   @patch
-  static _create(_Namespace namespace, Uint8List rawPath)
-      native "Directory_Create";
+  @pragma("vm:external-name", "Directory_Create")
+  external static _create(_Namespace namespace, Uint8List rawPath);
   @patch
-  static _deleteNative(_Namespace namespace, Uint8List rawPath, bool recursive)
-      native "Directory_Delete";
+  @pragma("vm:external-name", "Directory_Delete")
+  external static _deleteNative(
+      _Namespace namespace, Uint8List rawPath, bool recursive);
   @patch
-  static _rename(_Namespace namespace, Uint8List rawPath, String newPath)
-      native "Directory_Rename";
+  @pragma("vm:external-name", "Directory_Rename")
+  external static _rename(
+      _Namespace namespace, Uint8List rawPath, String newPath);
   @patch
-  static void _fillWithDirectoryListing(
+  @pragma("vm:external-name", "Directory_FillWithDirectoryListing")
+  external static void _fillWithDirectoryListing(
       _Namespace namespace,
       List<FileSystemEntity> list,
       Uint8List rawPath,
       bool recursive,
-      bool followLinks) native "Directory_FillWithDirectoryListing";
+      bool followLinks);
 }
 
 @patch
@@ -51,9 +56,11 @@ class _AsyncDirectoryListerOpsImpl extends NativeFieldWrapperClass1
   factory _AsyncDirectoryListerOpsImpl(int pointer) =>
       new _AsyncDirectoryListerOpsImpl._().._setPointer(pointer);
 
-  void _setPointer(int pointer)
-      native "Directory_SetAsyncDirectoryListerPointer";
-  int getPointer() native "Directory_GetAsyncDirectoryListerPointer";
+  @pragma("vm:external-name", "Directory_SetAsyncDirectoryListerPointer")
+  external void _setPointer(int pointer);
+
+  @pragma("vm:external-name", "Directory_GetAsyncDirectoryListerPointer")
+  external int getPointer();
 }
 
 // Corelib 'Uri.base' implementation.

@@ -7,7 +7,7 @@
 
 #include "vm/dart.h"
 
-#include "vm/clustered_snapshot.h"
+#include "vm/app_snapshot.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/runtime_offsets_extracted.h"
 #include "vm/compiler/runtime_offsets_list.h"
@@ -89,6 +89,67 @@ class ReadOnlyHandles {
   friend class Dart;
   DISALLOW_COPY_AND_ASSIGN(ReadOnlyHandles);
 };
+
+class DartInitializationState {
+ public:
+  uint8_t kUnInitialized = 0;
+  uint8_t kInitializing = 1;
+  uint8_t kInitialized = 2;
+  uint8_t kCleaningup = 3;
+
+  DartInitializationState() : state_(0), in_use_count_(0) {}
+  ~DartInitializationState() {}
+
+  bool SetInitializing() {
+    ASSERT(in_use_count_.load() == 0);
+    return state_.compare_exchange_strong(kUnInitialized, kInitializing);
+  }
+
+  void ResetInitializing() {
+    ASSERT(in_use_count_.load() == 0);
+    bool result = state_.compare_exchange_strong(kInitializing, kUnInitialized);
+    ASSERT(result);
+  }
+
+  void SetInitialized() {
+    ASSERT(in_use_count_.load() == 0);
+    bool result = state_.compare_exchange_strong(kInitializing, kInitialized);
+    ASSERT(result);
+  }
+
+  bool IsInitialized() const { return state_.load() == kInitialized; }
+
+  bool SetCleaningup() {
+    return state_.compare_exchange_strong(kInitialized, kCleaningup);
+  }
+
+  void SetUnInitialized() {
+    while (in_use_count_.load() > 0) {
+      OS::Sleep(1);  // Sleep for 1 millis waiting for it to not be in use.
+    }
+    bool result = state_.compare_exchange_strong(kCleaningup, kUnInitialized);
+    ASSERT(result);
+  }
+
+  bool SetInUse() {
+    if (state_.load() != kInitialized) {
+      return false;
+    }
+    in_use_count_ += 1;
+    return true;
+  }
+
+  void ResetInUse() {
+    uint8_t value = state_.load();
+    ASSERT((value == kInitialized) || (value == kCleaningup));
+    in_use_count_ -= 1;
+  }
+
+ private:
+  std::atomic<uint8_t> state_;
+  std::atomic<uint64_t> in_use_count_;
+};
+static DartInitializationState init_state_;
 
 static void CheckOffsets() {
 #if !defined(IS_SIMARM_X64)
@@ -180,26 +241,29 @@ static void CheckOffsets() {
 #endif  // !defined(IS_SIMARM_X64)
 }
 
-char* Dart::Init(const uint8_t* vm_isolate_snapshot,
-                 const uint8_t* instructions_snapshot,
-                 Dart_IsolateGroupCreateCallback create_group,
-                 Dart_InitializeIsolateCallback initialize_isolate,
-                 Dart_IsolateShutdownCallback shutdown,
-                 Dart_IsolateCleanupCallback cleanup,
-                 Dart_IsolateGroupCleanupCallback cleanup_group,
-                 Dart_ThreadExitCallback thread_exit,
-                 Dart_FileOpenCallback file_open,
-                 Dart_FileReadCallback file_read,
-                 Dart_FileWriteCallback file_write,
-                 Dart_FileCloseCallback file_close,
-                 Dart_EntropySource entropy_source,
-                 Dart_GetVMServiceAssetsArchive get_service_assets,
-                 bool start_kernel_isolate,
-                 Dart_CodeObserver* observer) {
+char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
+                     const uint8_t* instructions_snapshot,
+                     Dart_IsolateGroupCreateCallback create_group,
+                     Dart_InitializeIsolateCallback initialize_isolate,
+                     Dart_IsolateShutdownCallback shutdown,
+                     Dart_IsolateCleanupCallback cleanup,
+                     Dart_IsolateGroupCleanupCallback cleanup_group,
+                     Dart_ThreadExitCallback thread_exit,
+                     Dart_FileOpenCallback file_open,
+                     Dart_FileReadCallback file_read,
+                     Dart_FileWriteCallback file_write,
+                     Dart_FileCloseCallback file_close,
+                     Dart_EntropySource entropy_source,
+                     Dart_GetVMServiceAssetsArchive get_service_assets,
+                     bool start_kernel_isolate,
+                     Dart_CodeObserver* observer) {
   CheckOffsets();
-  // TODO(iposva): Fix race condition here.
-  if (vm_isolate_ != NULL || !Flags::Initialized()) {
-    return Utils::StrDup("VM already initialized or flags not initialized.");
+
+  if (!Flags::Initialized()) {
+    return Utils::StrDup("VM initialization failed-VM Flags not initialized.");
+  }
+  if (vm_isolate_ != NULL) {
+    return Utils::StrDup("VM initialization is in an inconsistent state.");
   }
 
   const Snapshot* snapshot = nullptr;
@@ -252,6 +316,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   NOT_IN_PRODUCT(Metric::Init());
   StoreBuffer::Init();
   MarkingStack::Init();
+  TargetCPUFeatures::Init();
 
 #if defined(USING_SIMULATOR)
   Simulator::Init();
@@ -299,7 +364,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     Object::InitNullAndBool(vm_isolate_->group());
     vm_isolate_->isolate_group_->set_object_store(new ObjectStore());
     vm_isolate_->isolate_object_store()->Init();
-    TargetCPUFeatures::Init();
     Object::Init(vm_isolate_->group());
     OffsetsTable::Init();
     ArgumentsDescriptor::Init();
@@ -439,6 +503,41 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   return NULL;
 }
 
+char* Dart::Init(const uint8_t* vm_isolate_snapshot,
+                 const uint8_t* instructions_snapshot,
+                 Dart_IsolateGroupCreateCallback create_group,
+                 Dart_InitializeIsolateCallback initialize_isolate,
+                 Dart_IsolateShutdownCallback shutdown,
+                 Dart_IsolateCleanupCallback cleanup,
+                 Dart_IsolateGroupCleanupCallback cleanup_group,
+                 Dart_ThreadExitCallback thread_exit,
+                 Dart_FileOpenCallback file_open,
+                 Dart_FileReadCallback file_read,
+                 Dart_FileWriteCallback file_write,
+                 Dart_FileCloseCallback file_close,
+                 Dart_EntropySource entropy_source,
+                 Dart_GetVMServiceAssetsArchive get_service_assets,
+                 bool start_kernel_isolate,
+                 Dart_CodeObserver* observer) {
+  if (!init_state_.SetInitializing()) {
+    return Utils::StrDup(
+        "Bad VM initialization state, "
+        "already initialized or "
+        "multiple threads initializing the VM.");
+  }
+  char* retval = DartInit(vm_isolate_snapshot, instructions_snapshot,
+                          create_group, initialize_isolate, shutdown, cleanup,
+                          cleanup_group, thread_exit, file_open, file_read,
+                          file_write, file_close, entropy_source,
+                          get_service_assets, start_kernel_isolate, observer);
+  if (retval != NULL) {
+    init_state_.ResetInitializing();
+    return retval;
+  }
+  init_state_.SetInitialized();
+  return NULL;
+}
+
 static void DumpAliveIsolates(intptr_t num_attempts,
                               bool only_aplication_isolates) {
   IsolateGroup::ForEach([&](IsolateGroup* group) {
@@ -501,9 +600,10 @@ void Dart::WaitForIsolateShutdown() {
 
 char* Dart::Cleanup() {
   ASSERT(Isolate::Current() == NULL);
-  if (vm_isolate_ == NULL) {
+  if (!init_state_.SetCleaningup()) {
     return Utils::StrDup("VM already terminated.");
   }
+  ASSERT(vm_isolate_ != NULL);
 
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Starting shutdown\n",
@@ -592,6 +692,7 @@ char* Dart::Cleanup() {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
                  UptimeMillis());
   }
+  init_state_.SetUnInitialized();
   thread_pool_->Shutdown();
   delete thread_pool_;
   thread_pool_ = NULL;
@@ -679,6 +780,18 @@ char* Dart::Cleanup() {
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   VirtualMemory::Cleanup();
   return NULL;
+}
+
+bool Dart::IsInitialized() {
+  return init_state_.IsInitialized();
+}
+
+bool Dart::SetActiveApiCall() {
+  return init_state_.SetInUse();
+}
+
+void Dart::ResetActiveApiCall() {
+  init_state_.ResetInUse();
 }
 
 Isolate* Dart::CreateIsolate(const char* name_prefix,
@@ -928,8 +1041,7 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
 #if !defined(PRODUCT)
   ServiceIsolate::MaybeMakeServiceIsolate(I);
-  if (!ServiceIsolate::IsServiceIsolate(I) &&
-      !KernelIsolate::IsKernelIsolate(I)) {
+  if (!Isolate::IsSystemIsolate(I)) {
     I->message_handler()->set_should_pause_on_start(
         FLAG_pause_isolates_on_start);
     I->message_handler()->set_should_pause_on_exit(FLAG_pause_isolates_on_exit);
@@ -952,9 +1064,9 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   return Error::null();
 }
 
-const char* Dart::FeaturesString(IsolateGroup* isolate_group,
-                                 bool is_vm_isolate,
-                                 Snapshot::Kind kind) {
+char* Dart::FeaturesString(IsolateGroup* isolate_group,
+                           bool is_vm_isolate,
+                           Snapshot::Kind kind) {
   TextBuffer buffer(64);
 
 // Different fields are included for DEBUG/RELEASE/PRODUCT.
@@ -979,7 +1091,7 @@ const char* Dart::FeaturesString(IsolateGroup* isolate_group,
   do {                                                                         \
     const bool value =                                                         \
         isolate_group != nullptr ? isolate_group->name() : flag;               \
-    ADD_FLAG(#name, value);                                                    \
+    ADD_FLAG(name, value);                                                     \
   } while (0);
 
   if (Snapshot::IncludesCode(kind)) {
@@ -1022,7 +1134,9 @@ const char* Dart::FeaturesString(IsolateGroup* isolate_group,
 #error What architecture?
 #endif
 #if defined(DART_COMPRESSED_POINTERS)
-    buffer.AddString(" compressed");
+    buffer.AddString(" compressed-pointers");
+#else
+    buffer.AddString(" no-compressed-pointers");
 #endif
   }
 

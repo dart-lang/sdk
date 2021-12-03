@@ -1,0 +1,58 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:14:9: Error: 'AAlias' is already declared in this scope.
+// typedef AAlias = A; //  error
+//         ^^^^^^
+// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:11:9: Context: Previous declaration of 'AAlias'.
+// typedef AAlias = A;
+//         ^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:15:9: Error: 'AAlias' is already declared in this scope.
+// typedef AAlias = C<String>; // error
+//         ^^^^^^
+// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:14:9: Context: Previous declaration of 'AAlias'.
+// typedef AAlias = A; //  error
+//         ^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:16:9: Error: 'CAlias' is already declared in this scope.
+// typedef CAlias<T> = C<T>; //  error
+//         ^^^^^^
+// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:12:9: Context: Previous declaration of 'CAlias'.
+// typedef CAlias<T> = C<T>;
+//         ^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:17:9: Error: 'CAlias' is already declared in this scope.
+// typedef CAlias = C<String>; //  error
+//         ^^^^^^
+// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:16:9: Context: Previous declaration of 'CAlias'.
+// typedef CAlias<T> = C<T>; //  error
+//         ^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:18:9: Error: 'CAlias' is already declared in this scope.
+// typedef CAlias<T1, T2> = C<T1>; //  error
+//         ^^^^^^
+// pkg/front_end/testcases/constructor_tearoffs/lowering/duplicate_typedefs.dart:17:9: Context: Previous declaration of 'CAlias'.
+// typedef CAlias = C<String>; //  error
+//         ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef AAlias = self::A;
+typedef CAlias<T extends core::Object? = dynamic> = self::C<T%>;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  static method _#new#tearOff() → self::A
+    return new self::A::•();
+}
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%>
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::C<self::C::_#new#tearOff::T%>
+    return new self::C::•<self::C::_#new#tearOff::T%>();
+}
+static method main() → dynamic
+  ;

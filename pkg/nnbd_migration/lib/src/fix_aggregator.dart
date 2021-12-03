@@ -1459,6 +1459,9 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
       NodeChangeForMethodInvocation();
 
   @override
+  NodeChange visitNamedType(NamedType node) => NodeChangeForTypeAnnotation();
+
+  @override
   NodeChange visitNode(AstNode node) =>
       throw StateError('Unexpected node type: ${node.runtimeType}');
 
@@ -1491,9 +1494,6 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
       return super.visitSimpleIdentifier(node);
     }
   }
-
-  @override
-  NodeChange visitTypeName(TypeName node) => NodeChangeForTypeAnnotation();
 
   @override
   NodeChange visitVariableDeclarationList(VariableDeclarationList node) =>

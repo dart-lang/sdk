@@ -21,13 +21,13 @@ class Step {
   final String script;
   final List<String> arguments;
   final Map<String, String> environment;
-  final String fileSet;
-  final int shards;
+  final String? fileSet;
+  final int? shards;
   final bool isTestRunner;
-  final Configuration testedConfiguration;
+  final Configuration? testedConfiguration;
 
-  Step(this.name, String script, this.arguments, this.environment, this.fileSet,
-      this.shards, this.isTestRunner, this.testedConfiguration)
+  Step(this.name, String? script, this.arguments, this.environment,
+      this.fileSet, this.shards, this.isTestRunner, this.testedConfiguration)
       : script = script ?? testScriptName;
 
   static const testScriptName = "tools/test.py";
@@ -36,14 +36,14 @@ class Step {
 
   /// Create a [Step] from the 'step template' [map], values for supported
   /// variables [configuration], and the list of supported named configurations.
-  static Step parse(Map map, Map<String, String> configuration,
+  static Step parse(Map map, Map<String, String?> configuration,
       List<Configuration> configurations) {
-    var arguments = (map["arguments"] as List ?? [])
+    var arguments = (map["arguments"] as List? ?? [])
         .map((argument) => _expandVariables(argument as String, configuration))
         .toList();
     var testedConfigurations = <Configuration>[];
-    var script = map["script"] as String ?? testScriptName;
-    var isTestRunner = map["testRunner"] as bool ?? false;
+    var script = map["script"] as String? ?? testScriptName;
+    var isTestRunner = map["testRunner"] as bool? ?? false;
     if (script == testScriptName || isTestRunner) {
       // TODO(karlklose): replace with argument parser that can handle all
       // arguments to test.py.
@@ -78,8 +78,8 @@ class Step {
         script,
         arguments,
         <String, String>{...?map["environment"]},
-        map["fileset"] as String,
-        map["shards"] as int,
+        map["fileset"] as String?,
+        map["shards"] as int?,
         isTestRunner,
         testedConfigurations.isEmpty ? null : testedConfigurations.single);
   }
@@ -92,13 +92,13 @@ class Step {
 /// the test matrix.
 class Builder {
   final String name;
-  final String description;
+  final String? description;
   final List<Step> steps;
-  final System system;
-  final Mode mode;
-  final Architecture arch;
-  final Sanitizer sanitizer;
-  final Runtime runtime;
+  final System? system;
+  final Mode? mode;
+  final Architecture? arch;
+  final Sanitizer? sanitizer;
+  final Runtime? runtime;
   final Set<Configuration> testedConfigurations;
 
   Builder(this.name, this.description, this.steps, this.system, this.mode,
@@ -111,7 +111,7 @@ class Builder {
   /// `${arch}`, and `${runtime}. The values for these variables are inferred
   /// from the builder's name.
   static Builder parse(String builderName, List<Map> steps,
-      List<Configuration> configurations, String description) {
+      List<Configuration> configurations, String? description) {
     var builderParts = builderName.split("-");
     var systemName = _findPart(builderParts, System.names, 'linux');
     var modeName = _findPart(builderParts, Mode.names, 'release');
@@ -146,7 +146,7 @@ class Builder {
 
 /// Tries to replace a variable named [variableName] with [value] and throws
 /// and exception if the variable is used but `value == null`.
-String _tryReplace(String string, String variableName, String value) {
+String _tryReplace(String string, String variableName, String? value) {
   var variable = "\${$variableName}";
   if (string.contains(variable)) {
     if (value == null) {
@@ -160,7 +160,7 @@ String _tryReplace(String string, String variableName, String value) {
 
 /// Replace the use of supported variable names with the their value given
 /// in [values] and throws an exception if an unsupported variable name is used.
-String _expandVariables(String string, Map<String, String> values) {
+String _expandVariables(String string, Map<String, String?> values) {
   for (var variable in ["system", "mode", "arch", "sanitizer", "runtime"]) {
     string = _tryReplace(string, variable, values[variable]);
   }
@@ -171,17 +171,19 @@ Set<Configuration> _getTestedConfigurations(List<Step> steps) {
   return steps
       .where((step) => step.isTestStep)
       .map((step) => step.testedConfiguration)
+      .whereType<Configuration>()
       .toSet();
 }
 
-T _findIfNotNull<T>(T Function(String) find, String name) {
+T? _findIfNotNull<T>(T Function(String) find, String? name) {
   return name != null ? find(name) : null;
 }
 
-String _findPart(List<String> builderParts, List<String> parts,
-    [String fallback]) {
-  return builderParts.firstWhere((part) => parts.contains(part),
-      orElse: () => fallback);
+String? _findPart(List<String> builderParts, List<String> parts,
+    [String? fallback]) {
+  return builderParts
+      .cast<String?>()
+      .firstWhere((part) => parts.contains(part), orElse: () => fallback);
 }
 
 List<Builder> parseBuilders(
@@ -189,7 +191,7 @@ List<Builder> parseBuilders(
   var builders = <Builder>[];
   var names = <String>{};
   for (var builderConfiguration in builderConfigurations) {
-    var meta = builderConfiguration["meta"] as Map ?? <String, String>{};
+    var meta = builderConfiguration["meta"] as Map? ?? <String, String>{};
     var builderNames = <String>[...?builderConfiguration["builders"]];
     var steps = <Map>[...?builderConfiguration["steps"]];
     for (var builderName in builderNames) {
@@ -197,7 +199,7 @@ List<Builder> parseBuilders(
         throw FormatException('Duplicate builder name: "$builderName"');
       }
       builders.add(Builder.parse(
-          builderName, steps, configurations, meta["description"] as String));
+          builderName, steps, configurations, meta["description"] as String?));
     }
   }
   return builders;

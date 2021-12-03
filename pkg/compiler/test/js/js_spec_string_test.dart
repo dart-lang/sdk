@@ -96,9 +96,7 @@ void testWithSideEffects(DartTypes dartTypes, String specString,
         returns: returns,
         creates: creates,
         expectedSideEffects: expectedSideEffects,
-        expectError: sideEffectsExpectError == null
-            ? expectError
-            : sideEffectsExpectError);
+        expectError: sideEffectsExpectError ?? expectError);
   }
 
   SideEffects emptySideEffects = new SideEffects.empty();

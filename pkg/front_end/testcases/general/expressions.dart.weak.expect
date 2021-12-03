@@ -72,7 +72,7 @@ static method main() → dynamic {
   self::caller(({dynamic x = #C1}) → Null {
     core::print("<anon> was called with ${x}");
   });
-  core::print((#C3).{core::Type::toString}(){() →* core::String*});
+  core::print(#C3.{core::Type::toString}(){() →* core::String*});
   core::print(#C3);
   core::print(let final core::Type* #t5 = #C3 in block {
     #t5.{core::Type::toString}(){() →* core::String*};

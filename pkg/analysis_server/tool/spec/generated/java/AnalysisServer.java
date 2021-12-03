@@ -402,6 +402,26 @@ public interface AnalysisServer {
   public void completion_getSuggestionDetails(String file, int id, String label, int offset, GetSuggestionDetailsConsumer consumer);
 
   /**
+   * {@code completion.getSuggestionDetails2}
+   *
+   * Clients must make this request when the user has selected a completion suggestion with the
+   * libraryUriToImportIndex field set. The server will respond with the text to insert, as well as
+   * any SourceChange that needs to be applied in case the completion requires an additional import
+   * to be added. The text to insert might be different from the original suggestion to include an
+   * import prefix if the library will be imported with a prefix to avoid shadowing conflicts in the
+   * file.
+   *
+   * @param file The path of the file into which this completion is being inserted.
+   * @param offset The offset in the file where the completion will be inserted.
+   * @param completion The completion from the selected CompletionSuggestion. It could be a name of a
+   *         class, or a name of a constructor in form "typeName.constructorName()", or an
+   *         enumeration constant in form "enumName.constantName", etc.
+   * @param libraryUri The URI of the library to import, so that the element referenced in the
+   *         completion becomes accessible.
+   */
+  public void completion_getSuggestionDetails2(String file, int offset, String completion, String libraryUri, GetSuggestionDetails2Consumer consumer);
+
+  /**
    * {@code completion.getSuggestions}
    *
    * Request that completion suggestions for the given offset in the given file be returned.
@@ -410,6 +430,19 @@ public interface AnalysisServer {
    * @param offset The offset within the file at which suggestions are to be made.
    */
   public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer);
+
+  /**
+   * {@code completion.getSuggestions2}
+   *
+   * Request that completion suggestions for the given offset in the given file be returned. The
+   * suggestions will be filtered using fuzzy matching with the already existing prefix.
+   *
+   * @param file The file containing the point at which suggestions are to be made.
+   * @param offset The offset within the file at which suggestions are to be made.
+   * @param maxResults The maximum number of suggestions to return. If the number of suggestions
+   *         after filtering is greater than the maxResults, then isIncomplete is set to true.
+   */
+  public void completion_getSuggestions2(String file, int offset, int maxResults, GetSuggestions2Consumer consumer);
 
   /**
    * {@code completion.registerLibraryPaths}

@@ -74,27 +74,27 @@ class C extends core::Object {
     ;
   static method test() → void {
     () → void f;
-    (let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:11:5: Error: Non-nullable variable 'f' must be assigned before it can be used.
+    invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:11:5: Error: Non-nullable variable 'f' must be assigned before it can be used.
     f.toString(); // error
-    ^" in f).{core::Object::toString}(){() → core::String};
+    ^" in f.{core::Object::toString}(){() → core::String};
   }
   method test2() → void {
     () → void f;
-    (let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:17:5: Error: Non-nullable variable 'f' must be assigned before it can be used.
+    invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:17:5: Error: Non-nullable variable 'f' must be assigned before it can be used.
     f.toString(); // error
-    ^" in f).{core::Object::toString}(){() → core::String};
+    ^" in f.{core::Object::toString}(){() → core::String};
   }
 }
 static method test() → dynamic {
   () → void f;
-  (let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:24:3: Error: Non-nullable variable 'f' must be assigned before it can be used.
+  invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:24:3: Error: Non-nullable variable 'f' must be assigned before it can be used.
   f.toString(); // error
-  ^" in f).{core::Object::toString}(){() → core::String};
+  ^" in f.{core::Object::toString}(){() → core::String};
   core::Function foo = () → Null {
     () → void f;
-    (let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:29:5: Error: Non-nullable variable 'f' must be assigned before it can be used.
+    invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41498b_lib.dart:29:5: Error: Non-nullable variable 'f' must be assigned before it can be used.
     f.toString(); // error
-    ^" in f).{core::Object::toString}(){() → core::String};
+    ^" in f.{core::Object::toString}(){() → core::String};
   };
   iss::C::test();
   new iss::C::•().{iss::C::test2}(){() → void};

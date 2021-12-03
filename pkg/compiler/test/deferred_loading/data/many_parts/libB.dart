@@ -4,14 +4,14 @@
 
 import "package:expect/expect.dart";
 
-/*member: v:member_unit=1{b1, b2, b3, b4, b5}*/
+/*member: v:member_unit=2{b1, b2, b3, b4, b5}*/
 void v(Set<String> u, String name, int bit) {
   Expect.isTrue(u.add(name));
   Expect.equals(name[bit], '1');
 }
 
 @pragma('dart2js:noInline')
-/*member: f_000_01:member_unit=2{b1}*/
+/*member: f_000_01:member_unit=1{b1}*/
 f_000_01(Set<String> u, int b) => v(u, '00001', b);
 
 @pragma('dart2js:noInline')
@@ -71,7 +71,7 @@ f_110_11(Set<String> u, int b) => v(u, '11011', b);
 f_111_01(Set<String> u, int b) => v(u, '11101', b);
 
 @pragma('dart2js:noInline')
-/*member: f_111_11:member_unit=1{b1, b2, b3, b4, b5}*/
+/*member: f_111_11:member_unit=2{b1, b2, b3, b4, b5}*/
 f_111_11(Set<String> u, int b) => v(u, '11111', b);
 
 @pragma('dart2js:noInline')

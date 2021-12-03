@@ -108,7 +108,7 @@ But that's exactly what we _must_ find, if we are to safely express the
 greatest possible amount of information about the set of objects whose type
 is on the form `C<T>` for some `T`. In particular, we cannot express the
 type which "should be" the result of
-[instantiate-to-bound](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
+[instantiate-to-bound](https://github.com/dart-lang/sdk/blob/main/docs/language/informal/instantiate-to-bound.md)
 on the raw type `C`.
 
 We can make an attempt to approximate the least supertype of all correct

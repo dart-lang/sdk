@@ -361,7 +361,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       properties.addNode('name', node.name);
       properties.addToken('period', node.period);
       properties.addElement('staticElement', node.staticElement);
-      properties.addNode('type', node.type);
+      properties.addNode('type', node.type2);
+      _writeProperties(properties);
+    });
+  }
+
+  @override
+  void visitConstructorReference(ConstructorReference node) {
+    _writeln('ConstructorReference');
+    _withIndent(() {
+      var properties = _Properties();
+      properties.addNode('constructorName', node.constructorName);
+      _addExpression(properties, node);
       _writeProperties(properties);
     });
   }
@@ -511,7 +522,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ExtendsClause');
     _withIndent(() {
       var properties = _Properties();
-      properties.addNode('superclass', node.superclass);
+      properties.addNode('superclass', node.superclass2);
       _addAstNode(properties, node);
       _writeProperties(properties);
     });
@@ -682,6 +693,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitFunctionReference(FunctionReference node) {
+    _writeln('FunctionReference');
+    _withIndent(() {
+      var properties = _Properties();
+      properties.addNode('function', node.function);
+      properties.addNode('typeArguments', node.typeArguments);
+      properties.addTypeList('typeArgumentTypes', node.typeArgumentTypes);
+      _addExpression(properties, node);
+      _writeProperties(properties);
+    });
+  }
+
+  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _writeNextCodeLine(node);
     _writeln('FunctionTypeAlias');
@@ -790,7 +814,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       var properties = _Properties();
       properties.addToken('implementsKeyword', node.implementsKeyword);
-      properties.addNodeList('interfaces', node.interfaces);
+      properties.addNodeList('interfaces', node.interfaces2);
       _addAstNode(properties, node);
       _writeProperties(properties);
     });
@@ -1010,6 +1034,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _writeNextCodeLine(node);
+    // TODO(scheglov) Change to NamedType.
+    _writeln('TypeName');
+    _withIndent(() {
+      _writeNode('name', node.name);
+      _writeType('type', node.type);
+      _writeNode('typeArguments', node.typeArguments);
+    });
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {
     _writeNextCodeLine(node);
     _writeln('NullLiteral');
@@ -1029,7 +1065,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       var properties = _Properties();
       properties.addToken('onKeyword', node.onKeyword);
       properties.addNodeList(
-          'superclassConstraints', node.superclassConstraints);
+          'superclassConstraints', node.superclassConstraints2);
       _addAstNode(properties, node);
       _writeProperties(properties);
     });
@@ -1217,9 +1253,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeNextCodeLine(node);
     _writeln('SimpleIdentifier');
     _withIndent(() {
-      _writeElement('staticElement', node.staticElement);
-      _writeType('staticType', node.staticType);
-      _writeToken('token', node.token);
+      var properties = _Properties();
+      properties.addElement('staticElement', node.staticElement);
+      properties.addType('staticType', node.staticType);
+      properties.addTypeList(
+        'tearOffTypeArgumentTypes',
+        node.tearOffTypeArgumentTypes,
+      );
+      properties.addToken('token', node.token);
+      _writeProperties(properties);
     });
   }
 
@@ -1393,13 +1435,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitTypeName(TypeName node) {
-    _writeNextCodeLine(node);
-    _writeln('TypeName');
+  void visitTypeLiteral(TypeLiteral node) {
+    _writeln('TypeLiteral');
     _withIndent(() {
-      _writeNode('name', node.name);
-      _writeType('type', node.type);
-      _writeNode('typeArguments', node.typeArguments);
+      var properties = _Properties();
+      // TODO(scheglov) Change to 'type'.
+      properties.addNode('typeName', node.type);
+      _addExpression(properties, node);
+      _writeProperties(properties);
     });
   }
 
@@ -1496,7 +1539,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       var properties = _Properties();
       properties.addToken('withKeyword', node.withKeyword);
-      properties.addNodeList('mixinTypes', node.mixinTypes);
+      properties.addNodeList('mixinTypes', node.mixinTypes2);
       _addAstNode(properties, node);
       _writeProperties(properties);
     });
@@ -1646,7 +1689,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     properties.addNode('argumentList', node.argumentList);
     properties.addType('staticInvokeType', node.staticInvokeType);
     properties.addNode('typeArguments', node.typeArguments);
-    properties.addTypeList('typeArgumentTypes', node.typeArgumentTypes!);
+    properties.addTypeList('typeArgumentTypes', node.typeArgumentTypes);
     _addExpression(properties, node);
   }
 
@@ -1774,6 +1817,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     return '{$entriesStr}';
   }
 
+  /// TODO(scheglov) Make [type] non-nullable?
   String? _typeStr(DartType? type) {
     return type?.getDisplayString(withNullability: _withNullability);
   }
@@ -1949,12 +1993,13 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writelnWithIndent('$name: $typeStr');
   }
 
-  void _writeTypeList(String name, List<DartType> types) {
-    if (types.isNotEmpty) {
+  void _writeTypeList(String name, List<DartType>? types) {
+    if (types != null && types.isNotEmpty) {
       _writelnWithIndent(name);
       _withIndent(() {
         for (var type in types) {
-          _writelnWithIndent('$type');
+          var typeStr = _typeStr(type);
+          _writelnWithIndent('$typeStr');
         }
       });
     }
@@ -2069,7 +2114,7 @@ class _Properties {
     );
   }
 
-  void addTypeList(String name, List<DartType> types) {
+  void addTypeList(String name, List<DartType>? types) {
     properties.add(
       _TypeListProperty(name, types),
     );
@@ -2129,7 +2174,7 @@ class _TokenProperty extends _Property {
 }
 
 class _TypeListProperty extends _Property {
-  final List<DartType> types;
+  final List<DartType>? types;
 
   _TypeListProperty(String name, this.types) : super(name);
 

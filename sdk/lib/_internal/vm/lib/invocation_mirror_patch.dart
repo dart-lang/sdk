@@ -105,8 +105,9 @@ class _InvocationMirror implements Invocation {
   }
 
   // Unpack the given TypeArguments object into a new list of individual types.
-  static List<Type> _unpackTypeArguments(typeArguments, int numTypeArguments)
-      native "InvocationMirror_unpackTypeArguments";
+  @pragma("vm:external-name", "InvocationMirror_unpackTypeArguments")
+  external static List<Type> _unpackTypeArguments(
+      typeArguments, int numTypeArguments);
 
   List get positionalArguments {
     if (_positionalArguments == null) {

@@ -1,0 +1,22 @@
+var list1 = List<int>.generate(10, (i) {
+  return i;
+});
+var list2 = List<int>.generate(10, (i) {
+  return i;
+}, growable: true);
+var list3 = List<int>.generate(10, (i) {
+  return i;
+}, growable: false);
+var list4 = List<int>.generate(10, (i) {
+  return i;
+}, growable: someGrowable);
+var list5 = List<int>.generate(10, (i) {
+  if (i.isEven) return i + 1;
+  return i - 1;
+});
+var list6 = List<int>.generate(10, foo);
+int foo(int i) => i;
+var list7 = List<int>.generate(10, bar);
+int Function(int) get bar => foo;
+bool someGrowable = true;
+void main() {}

@@ -1,0 +1,52 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Default extends core::Object /*hasConstConstructor*/  {
+  final field core::Object? defaultValue;
+  const constructor •(core::Object? defaultValue) → self::Default
+    : self::Default::defaultValue = defaultValue, super core::Object::•()
+    ;
+}
+class Settings extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::Settings::•]/*isLegacy*/;
+  static factory •({self::Sidebar sidebar}) → self::Settings
+    return self::_SSettings::•(sidebar: sidebar);
+}
+class Sidebar extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::Sidebar::•]/*isLegacy*/;
+  static factory •() → self::Sidebar
+    return self::_SSidebar::•();
+}
+abstract class _SSettings extends core::Object implements self::Settings {
+  static final field dynamic _redirecting# = <dynamic>[self::_SSettings::•]/*isLegacy*/;
+  static factory •({self::Sidebar sidebar}) → self::_SSettings
+    return new self::_$_SSettings::•(sidebar: sidebar);
+}
+class _$_SSettings extends core::Object implements self::_SSettings /*hasConstConstructor*/  {
+  final field self::Sidebar sidebar;
+  const constructor •({self::Sidebar sidebar = const self::_$_SSidebar::•()}) → self::_$_SSettings
+    : self::_$_SSettings::sidebar = sidebar, super core::Object::•()
+    ;
+}
+abstract class _SSidebar extends core::Object implements self::Sidebar {
+  static final field dynamic _redirecting# = <dynamic>[self::_SSidebar::•]/*isLegacy*/;
+  static factory •() → self::_SSidebar
+    return new self::_$_SSidebar::•();
+}
+class _$_SSidebar extends core::Object implements self::_SSidebar /*hasConstConstructor*/  {
+  const constructor •() → self::_$_SSidebar
+    : super core::Object::•()
+    ;
+}
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47036.dart:11:7 -> ConstructorTearOffConstant(Settings.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47036.dart:17:7 -> ConstructorTearOffConstant(Sidebar.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47036.dart:21:16 -> ConstructorTearOffConstant(_SSettings.)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47036.dart:26:44 -> InstanceConstant(const _$_SSidebar{})
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47036.dart:31:16 -> ConstructorTearOffConstant(_SSidebar.)
+Extra constant evaluation: evaluated: 17, effectively constant: 5

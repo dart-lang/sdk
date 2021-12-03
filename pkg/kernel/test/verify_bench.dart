@@ -13,7 +13,7 @@ Usage: verify_bench FILE.dill
 Measures the time it takes to run kernel verifier on the given component.
 ''';
 
-main(List<String> args) {
+void main(List<String> args) {
   if (args.length != 1) {
     print(usage);
     exit(1);

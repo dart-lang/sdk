@@ -10,37 +10,45 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticToken, TokenType;
 
-import 'package:kernel/clone.dart' show CloneVisitorWithMembers;
-
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        Component,
-        DartType,
-        Library,
-        Procedure,
-        Supertype,
-        TreeNode,
-        TypeParameter,
-        TypeParameterType,
-        dummyDartType,
-        dummyUri;
-
-import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-
-import 'package:kernel/text/ast_to_text.dart' show Printer;
+import 'package:kernel/ast.dart';
+import 'package:kernel/clone.dart';
+import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:kernel/text/ast_to_text.dart';
 
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-import '../builder/unresolved_type.dart';
 import '../combinator.dart';
 import '../configuration.dart';
 import '../identifiers.dart';
 import '../source/source_library_builder.dart';
 import 'body_builder.dart';
+
+void printNodeOn(Node? node, StringSink sink, {NameSystem? syntheticNames}) {
+  if (node == null) {
+    sink.write("null");
+  } else {
+    syntheticNames ??= new NameSystem();
+    new Printer(sink, syntheticNames: syntheticNames).writeNode(node);
+  }
+}
+
+void printQualifiedNameOn(Member? member, StringSink sink) {
+  if (member == null) {
+    sink.write("null");
+  } else {
+    sink.write(member.enclosingLibrary.importUri);
+    sink.write("::");
+    Class? cls = member.enclosingClass;
+    if (cls != null) {
+      sink.write(cls.name);
+      sink.write("::");
+    }
+    sink.write(member.name.text);
+  }
+}
 
 /// Print the given [component].  Do nothing if it is `null`.  If the
 /// [libraryFilter] is provided, then only libraries that satisfy it are
@@ -152,16 +160,48 @@ List<int> serializeProcedure(Procedure procedure) {
 class ByteSink implements Sink<List<int>> {
   final BytesBuilder builder = new BytesBuilder();
 
+  @override
   void add(List<int> data) {
     builder.add(data);
   }
 
+  @override
   void close() {}
+}
+
+int compareProcedures(Procedure a, Procedure b) {
+  int i = "${a.fileUri}".compareTo("${b.fileUri}");
+  if (i != 0) return i;
+  return a.fileOffset.compareTo(b.fileOffset);
+}
+
+bool isRedirectingGenerativeConstructorImplementation(Constructor constructor) {
+  List<Initializer> initializers = constructor.initializers;
+  return initializers.length == 1 &&
+      initializers.single is RedirectingInitializer;
+}
+
+List<Combinator>? toKernelCombinators(
+    List<CombinatorBuilder>? fastaCombinators) {
+  if (fastaCombinators == null) {
+    // Note: it's safe to return null here as Kernel's LibraryDependency will
+    // convert null to an empty list.
+    return null;
+  }
+
+  return new List<Combinator>.generate(fastaCombinators.length, (int i) {
+    CombinatorBuilder combinator = fastaCombinators[i];
+    List<String> nameList = combinator.names.toList();
+    return combinator.isShow
+        ? new Combinator.show(nameList)
+        : new Combinator.hide(nameList);
+  }, growable: true);
 }
 
 final Token dummyToken = new SyntheticToken(TokenType.AT, -1);
 final Identifier dummyIdentifier = new Identifier(dummyToken);
-final Combinator dummyCombinator = new Combinator(false, {}, -1, dummyUri);
+final CombinatorBuilder dummyCombinator =
+    new CombinatorBuilder(false, {}, -1, dummyUri);
 final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(dummyToken);
 final TypeBuilder dummyTypeBuilder =
     new FixedTypeBuilder(dummyDartType, dummyUri, -1);
@@ -172,5 +212,3 @@ final TypeVariableBuilder dummyTypeVariableBuilder =
 final Label dummyLabel = new Label('', -1);
 final FieldInfo dummyFieldInfo = new FieldInfo('', -1, null, dummyToken, -1);
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');
-final UnresolvedType dummyUnresolvedType =
-    new UnresolvedType(dummyTypeBuilder, -1, dummyUri);

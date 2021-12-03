@@ -5,4 +5,5 @@
 import "dart:_internal" show patch;
 
 @patch
-void _waitForEvent(int timeoutMillis) native "CLI_WaitForEvent";
+@pragma("vm:external-name", "CLI_WaitForEvent")
+external void _waitForEvent(int timeoutMillis);

@@ -174,7 +174,7 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
         break;
       }
 #undef SIZE_FROM_CLASS
-    case kFfiPointerCid:
+    case kPointerCid:
       instance_size = Pointer::InstanceSize();
       break;
     case kTypeArgumentsCid: {
@@ -222,13 +222,13 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
     case kFreeListElement: {
       uword addr = UntaggedObject::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
-      instance_size = element->HeapSize();
+      instance_size = element->HeapSize(tags);
       break;
     }
     case kForwardingCorpse: {
       uword addr = UntaggedObject::ToAddr(this);
       ForwardingCorpse* element = reinterpret_cast<ForwardingCorpse*>(addr);
-      instance_size = element->HeapSize();
+      instance_size = element->HeapSize(tags);
       break;
     }
     case kWeakSerializationReferenceCid: {
@@ -325,17 +325,6 @@ intptr_t UntaggedObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
     case kByteBufferCid: {
       InstancePtr raw_obj = static_cast<InstancePtr>(this);
       size = UntaggedInstance::VisitInstancePointers(raw_obj, visitor);
-      break;
-    }
-    case kFfiPointerCid: {
-      PointerPtr raw_obj = static_cast<PointerPtr>(this);
-      size = UntaggedPointer::VisitPointerPointers(raw_obj, visitor);
-      break;
-    }
-    case kFfiDynamicLibraryCid: {
-      DynamicLibraryPtr raw_obj = static_cast<DynamicLibraryPtr>(this);
-      size =
-          UntaggedDynamicLibrary::VisitDynamicLibraryPointers(raw_obj, visitor);
       break;
     }
 #define RAW_VISITPOINTERS(clazz) case kFfi##clazz##Cid:
@@ -578,7 +567,7 @@ VARIABLE_COMPRESSED_VISITOR(TypeArguments,
                             Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(LocalVarDescriptors, raw_obj->untag()->num_entries_)
 VARIABLE_COMPRESSED_VISITOR(ExceptionHandlers, raw_obj->untag()->num_entries_)
-VARIABLE_VISITOR(Context, raw_obj->untag()->num_variables_)
+VARIABLE_COMPRESSED_VISITOR(Context, raw_obj->untag()->num_variables_)
 VARIABLE_COMPRESSED_VISITOR(Array, Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(
     TypedData,
@@ -725,6 +714,18 @@ intptr_t UntaggedImmutableArray::VisitImmutableArrayPointers(
     ImmutableArrayPtr raw_obj,
     ObjectPointerVisitor* visitor) {
   return UntaggedArray::VisitArrayPointers(raw_obj, visitor);
+}
+
+intptr_t UntaggedImmutableLinkedHashMap::VisitImmutableLinkedHashMapPointers(
+    ImmutableLinkedHashMapPtr raw_obj,
+    ObjectPointerVisitor* visitor) {
+  return UntaggedLinkedHashMap::VisitLinkedHashMapPointers(raw_obj, visitor);
+}
+
+intptr_t UntaggedImmutableLinkedHashSet::VisitImmutableLinkedHashSetPointers(
+    ImmutableLinkedHashSetPtr raw_obj,
+    ObjectPointerVisitor* visitor) {
+  return UntaggedLinkedHashSet::VisitLinkedHashSetPointers(raw_obj, visitor);
 }
 
 void UntaggedObject::RememberCard(ObjectPtr const* slot) {

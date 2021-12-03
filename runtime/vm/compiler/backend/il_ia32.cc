@@ -2135,6 +2135,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(offset_in_bytes > 0);  // Field is finalized and points after header.
 
   if (slot().representation() != kTagged) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     auto const rep = slot().representation();
     ASSERT(RepresentationUtils::IsUnboxedInteger(rep));
     const size_t value_size = RepresentationUtils::ValueSize(rep);
@@ -2156,6 +2157,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (IsUnboxedDartFieldStore() && compiler->is_optimizing()) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     XmmRegister value = locs()->in(kValuePos).fpu_reg();
     Register temp = locs()->temp(0).reg();
     Register temp2 = locs()->temp(1).reg();
@@ -2207,6 +2209,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (IsPotentialUnboxedDartFieldStore()) {
+    ASSERT(memory_order_ != compiler::AssemblerBase::kRelease);
     __ Comment("PotentialUnboxedStore");
     Register value_reg = locs()->in(kValuePos).reg();
     Register temp = locs()->temp(0).reg();
@@ -2294,17 +2297,17 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register value_reg = locs()->in(kValuePos).reg();
     __ StoreIntoObject(instance_reg,
                        compiler::FieldAddress(instance_reg, offset_in_bytes),
-                       value_reg, CanValueBeSmi());
+                       value_reg, CanValueBeSmi(), memory_order_);
   } else {
     if (locs()->in(kValuePos).IsConstant()) {
       __ StoreIntoObjectNoBarrier(
           instance_reg, compiler::FieldAddress(instance_reg, offset_in_bytes),
-          locs()->in(kValuePos).constant());
+          locs()->in(kValuePos).constant(), memory_order_);
     } else {
       Register value_reg = locs()->in(kValuePos).reg();
       __ StoreIntoObjectNoBarrier(
           instance_reg, compiler::FieldAddress(instance_reg, offset_in_bytes),
-          value_reg);
+          value_reg, memory_order_);
     }
   }
   __ Bind(&skip_store);
@@ -4833,7 +4836,7 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
-  const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
+  const bool is_min = (op_kind() == MethodRecognizer::kMathMin);
   if (result_cid() == kDoubleCid) {
     compiler::Label done, returns_nan, are_equal;
     XmmRegister left = locs()->in(0).fpu_reg();
@@ -5010,45 +5013,29 @@ LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
-  LocationSummary* result = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  result->set_in(0, Location::RegisterLocation(ECX));
-  result->set_out(0, Location::RegisterLocation(EAX));
+  LocationSummary* result = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(0, Location::RequiresRegister());
   return result;
 }
 
 void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register result = locs()->out(0).reg();
-  Register value_obj = locs()->in(0).reg();
-  XmmRegister value_double = FpuTMP;
-  ASSERT(result == EAX);
-  ASSERT(result != value_obj);
-  __ movsd(value_double,
-           compiler::FieldAddress(value_obj, Double::value_offset()));
+  ASSERT(recognized_kind() == MethodRecognizer::kDoubleToInteger);
+  const Register result = locs()->out(0).reg();
+  const XmmRegister value_double = locs()->in(0).fpu_reg();
+
+  DoubleToIntegerSlowPath* slow_path =
+      new DoubleToIntegerSlowPath(this, value_double);
+  compiler->AddSlowPathCode(slow_path);
+
   __ cvttsd2si(result, value_double);
   // Overflow is signalled with minint.
-  compiler::Label do_call, done;
   // Check for overflow and that it fits into Smi.
   __ cmpl(result, compiler::Immediate(0xC0000000));
-  __ j(NEGATIVE, &do_call, compiler::Assembler::kNearJump);
+  __ j(NEGATIVE, slow_path->entry_label());
   __ SmiTag(result);
-  __ jmp(&done);
-  __ Bind(&do_call);
-  __ pushl(value_obj);
-  ASSERT(instance_call()->HasICData());
-  const ICData& ic_data = *instance_call()->ic_data();
-  ASSERT(ic_data.NumberOfChecksIs(1));
-  const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
-  const int kTypeArgsLen = 0;
-  const int kNumberOfArguments = 1;
-  constexpr int kSizeOfArguments = 1;
-  const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
-                          kNoArgumentNames);
-  compiler->GenerateStaticCall(deopt_id(), instance_call()->source(), target,
-                               args_info, locs(), ICData::Handle(),
-                               ICData::kStatic);
-  __ Bind(&done);
+  __ Bind(slow_path->exit_label());
 }
 
 LocationSummary* DoubleToSmiInstr::MakeLocationSummary(Zone* zone,
@@ -5089,13 +5076,13 @@ void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
   XmmRegister result = locs()->out(0).fpu_reg();
   switch (recognized_kind()) {
-    case MethodRecognizer::kDoubleTruncate:
+    case MethodRecognizer::kDoubleTruncateToDouble:
       __ roundsd(result, value, compiler::Assembler::kRoundToZero);
       break;
-    case MethodRecognizer::kDoubleFloor:
+    case MethodRecognizer::kDoubleFloorToDouble:
       __ roundsd(result, value, compiler::Assembler::kRoundDown);
       break;
-    case MethodRecognizer::kDoubleCeil:
+    case MethodRecognizer::kDoubleCeilToDouble:
       __ roundsd(result, value, compiler::Assembler::kRoundUp);
       break;
     default:

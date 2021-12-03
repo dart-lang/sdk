@@ -55,7 +55,7 @@ class CP<T extends core::Object> extends opt::P<opt::CP::T> /*hasConstConstructo
     : super opt::P::_(token)
     ;
   static factory •<T extends core::Object>(core::Type type) → opt::CP<opt::CP::•::T>
-    let dynamic #redirecting_factory = opt::CP::_ in let opt::CP::•::T #typeArg0 = null in invalid-expression;
+    return new opt::CP::_<opt::CP::•::T>(type);
 }
 class Token<T extends core::Object> extends core::Object /*hasConstConstructor*/  {
   const constructor •() → opt::Token<opt::Token::T>
@@ -68,7 +68,7 @@ class VP<T extends core::Object> extends opt::P<opt::VP::T> /*hasConstConstructo
     : super opt::P::_(token)
     ;
   static factory forToken<T extends core::Object>(opt::Token<opt::VP::forToken::T> token, opt::VP::forToken::T useValue) → opt::VP<opt::VP::forToken::T>
-    let dynamic #redirecting_factory = opt::VP::_ in let opt::VP::forToken::T #typeArg0 = null in invalid-expression;
+    return new opt::VP::_<opt::VP::forToken::T>(token, useValue);
 }
 class M extends core::Object /*hasConstConstructor*/  {
   final field core::List<opt::P<core::Object>> list;
@@ -81,5 +81,7 @@ class M extends core::Object /*hasConstConstructor*/  {
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:15:14 -> ListConstant(const <P<Object*>*>[const CP<Object*>{P.token: Class*}, const VP<Object*>{P.token: const XToken{}}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:20:11 -> InstanceConstant(const M{M.list: const <P<Object*>*>[const CP<Object*>{P.token: Class*}, const VP<Object*>{P.token: const XToken{}}]})
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:11:7 -> ConstructorTearOffConstant(CP.)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:21:7 -> ConstructorTearOffConstant(VP.forToken)
 Evaluated: ListLiteral @ org-dartlang-testcase:///opt_in_lib.dart:36:24 -> ListConstant(const <P<Object*>*>[])
-Extra constant evaluation: evaluated: 17, effectively constant: 3
+Extra constant evaluation: evaluated: 16, effectively constant: 5

@@ -103,7 +103,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '2.14.0'
+current-version: '2.15.0'
 
 features:
   variance:
@@ -122,8 +122,14 @@ features:
   const-functions:
     help: "Allow more of the Dart language to be executed in const expressions."
 
-  constructor-tearoffs:
-    help: "Allow constructor tear-offs and explicit generic instantiations."
+  enhanced-enums:
+    help: "Enhanced Enums"
+
+  named-arguments-anywhere:
+    help: "Named Arguments Anywhere"
+
+  super-parameters:
+    help: "Super-Initializer Parameters"
 
 # Experiment flag only used for testing.
   test-experiment:
@@ -145,6 +151,7 @@ features:
         S s = 'feature enabled';
         print(s);
       }
+    expired: true
 
   non-nullable:
     help: "Non Nullable by default"
@@ -155,10 +162,12 @@ features:
         int? a = null;
         print('feature enabled');
       }
+    expired: true
 
   extension-methods:
     help: "Extension Methods"
     enabledIn: '2.6.0'
+    expired: true
 
   constant-update-2018:
     help: "Enhanced constant expressions"
@@ -175,6 +184,7 @@ features:
       Allow annotations to accept type arguments;
       also allow generic function types as type arguments.
     enabledIn: '2.14.0'
+    expired: true
 
   set-literals:
     help: "Set Literals"
@@ -195,4 +205,19 @@ features:
       }
       void main() {
         if ((A() >>> 1) == 42) print('feature enabled');
+      }
+    expired: true
+
+  constructor-tearoffs:
+    help: "Allow constructor tear-offs and explicit generic instantiations."
+    enabledIn: '2.15.0'
+    validation: |
+      class A {
+        A() {
+          print('feature enabled');
+        }
+      }
+      void main() {
+        var c = A.new;
+        c();
       }

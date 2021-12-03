@@ -25,11 +25,11 @@ abstract class Test1 extends Base<int, int> {
 
     var /*@ type=int* */ v4 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getInt();
+             ??= getInt();
 
     var /*@ type=num* */ v5 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getNum();
+             ??= getNum();
 
     var /*@ type=int* */ v7 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
@@ -57,15 +57,15 @@ abstract class Test2 extends Base<int, num> {
 
     var /*@ type=int* */ v4 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getInt();
+             ??= getInt();
 
     var /*@ type=num* */ v5 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getNum();
+             ??= getNum();
 
     var /*@ type=num* */ v6 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getDouble();
+             ??= getDouble();
 
     var /*@ type=int* */ v7 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
@@ -95,11 +95,11 @@ abstract class Test3 extends Base<int, double> {
 
     var /*@ type=num* */ v5 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getNum();
+             ??= getNum();
 
     var /*@ type=num* */ v6 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getDouble();
+             ??= getDouble();
 
     var /*@ type=int* */ v7 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
@@ -129,11 +129,11 @@ abstract class Test4 extends Base<num, int> {
 
     var /*@ type=num* */ v4 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getInt();
+             ??= getInt();
 
     var /*@ type=num* */ v5 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getNum();
+             ??= getNum();
 
     var /*@ type=num* */ v7 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
@@ -161,15 +161,15 @@ abstract class Test5 extends Base<num, num> {
 
     var /*@ type=num* */ v4 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getInt();
+             ??= getInt();
 
     var /*@ type=num* */ v5 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getNum();
+             ??= getNum();
 
     var /*@ type=num* */ v6 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getDouble();
+             ??= getDouble();
 
     var /*@ type=num* */ v7 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
@@ -199,11 +199,11 @@ abstract class Test6 extends Base<num, double> {
 
     var /*@ type=num* */ v5 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getNum();
+             ??= getNum();
 
     var /*@ type=num* */ v6 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getDouble();
+             ??= getDouble();
 
     var /*@ type=num* */ v7 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
@@ -233,11 +233,11 @@ abstract class Test7 extends Base<double, int> {
 
     var /*@ type=num* */ v4 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getInt();
+             ??= getInt();
 
     var /*@ type=num* */ v5 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getNum();
+             ??= getNum();
 
     var /*@ type=double* */ v7 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
@@ -265,15 +265,15 @@ abstract class Test8 extends Base<double, num> {
 
     var /*@ type=num* */ v4 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getInt();
+             ??= getInt();
 
     var /*@ type=num* */ v5 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getNum();
+             ??= getNum();
 
     var /*@ type=double* */ v6 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getDouble();
+             ??= getDouble();
 
     var /*@ type=double* */ v7 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
@@ -303,11 +303,11 @@ abstract class Test9 extends Base<double, double> {
 
     var /*@ type=num* */ v5 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getNum();
+             ??= getNum();
 
     var /*@ type=double* */ v6 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']
-            /*@target=num.==*/ ??= getDouble();
+             ??= getDouble();
 
     var /*@ type=double* */ v7 =
         super /*@target=Base.[]*/ /*@target=Base.[]=*/ ['x']

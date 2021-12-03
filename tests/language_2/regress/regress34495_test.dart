@@ -7,7 +7,7 @@
 final foo = A<B>.foo();
 //          ^
 // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-// [cfe] Method not found: 'A'.
+// [cfe] Couldn't find constructor 'A'.
 //            ^
 // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
 // [cfe] 'B' isn't a type.

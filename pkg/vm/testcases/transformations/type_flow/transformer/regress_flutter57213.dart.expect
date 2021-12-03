@@ -7,6 +7,9 @@ class A extends core::Object {
   constructor •() → self::A
     : super core::Object::•()
     ;
+  @#C3
+  static factory foo() → self::A
+    return new self::B::•();
 }
 class B extends self::A {
   constructor •() → self::B
@@ -17,11 +20,16 @@ abstract class C extends core::Object {
   constructor •() → self::C
     : super core::Object::•()
     ;
+  @#C3
+  static factory bar() → self::C
+    return [@vm.inferred-type.metadata=#lib::E] self::D::baz();
 }
 abstract class D extends self::C {
   constructor •() → self::D
     : super self::C::•()
     ;
+  static factory baz() → self::D
+    return new self::E::•();
 }
 class E extends self::D {
   constructor •() → self::E

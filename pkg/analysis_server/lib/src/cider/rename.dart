@@ -61,7 +61,8 @@ class CiderRenameComputer {
     return null;
   }
 
-  CheckNameResponse? checkNewName(String filePath, int line, int column, String name) {
+  CheckNameResponse? checkNewName(
+      String filePath, int line, int column, String name) {
     var resolvedUnit = _fileResolver.resolve(path: filePath);
     var lineInfo = resolvedUnit.lineInfo;
     var offset = lineInfo.getOffsetOfLine(line) + column;
@@ -81,7 +82,7 @@ class CiderRenameComputer {
     } else if (element is FunctionElement) {
       status = validateFunctionName(name);
     }
-    if (status == null){
+    if (status == null) {
       return null;
     }
     return CheckNameResponse(lineInfo, status, element.displayName);

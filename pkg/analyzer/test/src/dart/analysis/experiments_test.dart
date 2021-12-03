@@ -18,10 +18,10 @@ main() {
 class ExperimentsTest {
   var knownFeatures = <String, ExperimentalFeature>{};
 
-  void assertLatestSdkLanguageVersion(ExperimentStatus status) {
+  void assertCurrentSdkLanguageVersion(ExperimentStatus status) {
     expect(
       getSdkLanguageVersion(status),
-      ExperimentStatus.latestSdkLanguageVersion,
+      ExperimentStatus.currentVersion,
     );
   }
 
@@ -126,10 +126,10 @@ class ExperimentsTest {
       releaseVersion: null,
     );
     var status = fromStrings2(
-      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
       flags: ['no-a', 'a'],
     );
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [true]);
   }
 
@@ -145,10 +145,10 @@ class ExperimentsTest {
       releaseVersion: null,
     );
     var status = fromStrings2(
-      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
       flags: ['a', 'no-a'],
     );
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [false]);
   }
 
@@ -163,10 +163,10 @@ class ExperimentsTest {
       releaseVersion: null,
     );
     var status = fromStrings2(
-      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
       flags: ['no-a'],
     );
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [false]);
   }
 
@@ -181,10 +181,10 @@ class ExperimentsTest {
       releaseVersion: Version.parse('1.0.0'),
     );
     var status = fromStrings2(
-      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
       flags: ['no-a'],
     );
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [false]);
   }
 
@@ -208,10 +208,10 @@ class ExperimentsTest {
       releaseVersion: Version.parse('1.0.0'),
     );
     var status = fromStrings2(
-      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
       flags: [],
     );
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [false, true]);
   }
 
@@ -226,10 +226,10 @@ class ExperimentsTest {
       releaseVersion: null,
     );
     var status = fromStrings2(
-      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
       flags: ['a'],
     );
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [true]);
   }
 
@@ -244,10 +244,10 @@ class ExperimentsTest {
       releaseVersion: Version.parse('1.0.0'),
     );
     var status = fromStrings2(
-      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
       flags: ['a'],
     );
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [true]);
   }
 
@@ -263,10 +263,10 @@ class ExperimentsTest {
       releaseVersion: Version.parse('1.0.0'),
     );
     var status = fromStrings2(
-      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
       flags: ['no-a'],
     );
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [true]);
   }
 
@@ -282,10 +282,10 @@ class ExperimentsTest {
       releaseVersion: null,
     );
     var status = fromStrings2(
-      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
       flags: ['a'],
     );
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [false]);
   }
 
@@ -301,10 +301,10 @@ class ExperimentsTest {
       releaseVersion: null,
     );
     var status = fromStrings2(
-      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
       flags: ['no-a'],
     );
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [false]);
   }
 
@@ -320,20 +320,20 @@ class ExperimentsTest {
       releaseVersion: Version.parse('1.0.0'),
     );
     var status = fromStrings2(
-      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
       flags: ['a'],
     );
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [true]);
   }
 
   test_fromStrings2_flags_unrecognized() {
     // Unrecognized flags are ignored.
     var status = fromStrings2(
-      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
       flags: ['a'],
     );
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), <Object>[]);
   }
 
@@ -485,7 +485,7 @@ class ExperimentsTest {
       releaseVersion: null,
     );
     var status = fromStrings(['no-a', 'a']);
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [true]);
   }
 
@@ -501,7 +501,7 @@ class ExperimentsTest {
       releaseVersion: null,
     );
     var status = fromStrings(['a', 'no-a']);
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [false]);
   }
 
@@ -525,7 +525,7 @@ class ExperimentsTest {
       releaseVersion: Version.parse('1.0.0'),
     );
     var status = fromStrings([]);
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [false, true]);
   }
 
@@ -540,7 +540,7 @@ class ExperimentsTest {
       releaseVersion: null,
     );
     var status = fromStrings(['no-a']);
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [false]);
   }
 
@@ -555,7 +555,7 @@ class ExperimentsTest {
       releaseVersion: Version.parse('1.0.0'),
     );
     var status = fromStrings(['no-a']);
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [false]);
   }
 
@@ -570,7 +570,7 @@ class ExperimentsTest {
       releaseVersion: null,
     );
     var status = fromStrings(['a']);
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [true]);
   }
 
@@ -585,7 +585,7 @@ class ExperimentsTest {
       releaseVersion: Version.parse('1.0.0'),
     );
     var status = fromStrings(['a']);
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [true]);
   }
 
@@ -601,7 +601,7 @@ class ExperimentsTest {
       releaseVersion: Version.parse('1.0.0'),
     );
     var status = fromStrings(['no-a']);
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [true]);
   }
 
@@ -617,7 +617,7 @@ class ExperimentsTest {
       releaseVersion: null,
     );
     var status = fromStrings(['a']);
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [false]);
   }
 
@@ -633,7 +633,7 @@ class ExperimentsTest {
       releaseVersion: null,
     );
     var status = fromStrings(['no-a']);
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [false]);
   }
 
@@ -649,14 +649,14 @@ class ExperimentsTest {
       releaseVersion: Version.parse('1.0.0'),
     );
     var status = fromStrings(['a']);
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), [true]);
   }
 
   test_fromStrings_unrecognized_flag() {
     // Unrecognized flags are ignored.
     var status = fromStrings(['a']);
-    assertLatestSdkLanguageVersion(status);
+    assertCurrentSdkLanguageVersion(status);
     expect(getFlags(status), <Object>[]);
   }
 

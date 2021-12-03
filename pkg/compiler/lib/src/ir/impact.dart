@@ -7,6 +7,7 @@ import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
+import '../serialization/serialization.dart';
 import 'constants.dart';
 import 'impact_data.dart';
 import 'runtime_type_analysis.dart';
@@ -510,7 +511,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
       // instantiated as int and String.
       registerNew(
           node.target,
-          new ir.InterfaceType(node.target.enclosingClass,
+          ir.InterfaceType(node.target.enclosingClass,
               node.target.enclosingLibrary.nonNullable, typeArguments),
           positionArguments,
           namedArguments,
@@ -678,7 +679,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   @override
   void handleConstantExpression(ir.ConstantExpression node) {
     ir.LibraryDependency import = getDeferredImport(node);
-    new ConstantImpactVisitor(this, import, node, staticTypeContext)
+    ConstantImpactVisitor(this, import, node, staticTypeContext)
         .visitConstant(node.constant);
   }
 }
@@ -696,8 +697,8 @@ class ImpactBuilder extends ImpactBuilderBase with ImpactRegistryMixin {
       StaticTypeCacheImpl staticTypeCache,
       ir.ClassHierarchy classHierarchy,
       VariableScopeModel variableScopeModel,
-      {this.useAsserts: false,
-      this.inferEffectivelyFinalVariableTypes: true})
+      {this.useAsserts = false,
+      this.inferEffectivelyFinalVariableTypes = true})
       : super(staticTypeContext, staticTypeCache, classHierarchy,
             variableScopeModel);
 
@@ -706,8 +707,8 @@ class ImpactBuilder extends ImpactBuilderBase with ImpactRegistryMixin {
       typeMapsForTesting = {};
     }
     node.accept(this);
-    return new ImpactBuilderData(
-        impactData, typeMapsForTesting, getStaticTypeCache());
+    return ImpactBuilderData(
+        node, impactData, typeMapsForTesting, getStaticTypeCache());
   }
 }
 
@@ -716,12 +717,32 @@ List<String> _getNamedArguments(ir.Arguments arguments) =>
     arguments.named.map((n) => n.name).toList();
 
 class ImpactBuilderData {
+  static const String tag = 'ImpactBuilderData';
+
+  final ir.Member node;
   final ImpactData impactData;
   final Map<ir.Expression, TypeMap> typeMapsForTesting;
   final StaticTypeCache cachedStaticTypes;
 
-  ImpactBuilderData(
-      this.impactData, this.typeMapsForTesting, this.cachedStaticTypes);
+  ImpactBuilderData(this.node, this.impactData, this.typeMapsForTesting,
+      this.cachedStaticTypes);
+
+  factory ImpactBuilderData.fromDataSource(DataSource source) {
+    source.begin(tag);
+    var node = source.readMemberNode();
+    var data = ImpactData.fromDataSource(source);
+    var cache = StaticTypeCache.readFromDataSource(source, node);
+    source.end(tag);
+    return ImpactBuilderData(node, data, const {}, cache);
+  }
+
+  void toDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeMemberNode(node);
+    impactData.toDataSink(sink);
+    cachedStaticTypes.writeToDataSink(sink, node);
+    sink.end(tag);
+  }
 }
 
 class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
@@ -735,7 +756,7 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
 
   @override
   void defaultConstant(ir.Constant node) {
-    throw new UnsupportedError(
+    throw UnsupportedError(
         "Unexpected constant ${node} (${node.runtimeType}).");
   }
 
@@ -774,7 +795,7 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
     node.fieldValues.forEach((ir.Reference reference, ir.Constant value) {
       ir.Field field = reference.asField;
       registry.registerFieldConstantInitialization(
-          field, new ConstantReference(expression, value));
+          field, ConstantReference(expression, value));
       visitConstant(value);
     });
   }

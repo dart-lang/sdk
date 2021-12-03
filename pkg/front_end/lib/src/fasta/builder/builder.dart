@@ -36,6 +36,8 @@ abstract class Builder {
 
   bool get isGetter;
 
+  bool get isExternal;
+
   /// Returns `true` if this builder is an extension declaration.
   ///
   /// For instance `B` in:
@@ -216,6 +218,7 @@ abstract class BuilderImpl implements Builder {
   @override
   Builder get origin => this;
 
+  @override
   bool get hasProblem => false;
 
   @override
@@ -274,6 +277,9 @@ abstract class BuilderImpl implements Builder {
 
   @override
   bool get isStatic => false;
+
+  @override
+  bool get isExternal => false;
 
   @override
   bool get isSynthetic => false;

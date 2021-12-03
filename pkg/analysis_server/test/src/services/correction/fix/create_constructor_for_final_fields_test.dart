@@ -7,13 +7,11 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateConstructorForFinalFieldsTest);
-    defineReflectiveTests(CreateConstructorForFinalFieldsWithNullSafetyTest);
   });
 }
 
@@ -21,6 +19,23 @@ void main() {
 class CreateConstructorForFinalFieldsTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
+
+  Future<void> test_excludesLate() async {
+    await resolveTestCode('''
+class Test {
+  final int a;
+  late final int b;
+}
+''');
+    await assertHasFix('''
+class Test {
+  final int a;
+  late final int b;
+
+  Test(this.a);
+}
+''');
+  }
 
   Future<void> test_flutter() async {
     writeTestPackageConfig(flutter: true);
@@ -158,29 +173,5 @@ class Test {
 final int v;
 ''');
     await assertNoFix();
-  }
-}
-
-@reflectiveTest
-class CreateConstructorForFinalFieldsWithNullSafetyTest extends FixProcessorTest
-    with WithNullSafetyMixin {
-  @override
-  FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
-
-  Future<void> test_excludesLate() async {
-    await resolveTestCode('''
-class Test {
-  final int a;
-  late final int b;
-}
-''');
-    await assertHasFix('''
-class Test {
-  final int a;
-  late final int b;
-
-  Test(this.a);
-}
-''');
   }
 }

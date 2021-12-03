@@ -152,6 +152,8 @@ class SearchDomainHandler implements protocol.RequestHandler {
           return protocol.ElementKind.MIXIN;
         case search.DeclarationKind.SETTER:
           return protocol.ElementKind.SETTER;
+        case search.DeclarationKind.TYPE_ALIAS:
+          return protocol.ElementKind.TYPE_ALIAS;
         case search.DeclarationKind.VARIABLE:
           return protocol.ElementKind.TOP_LEVEL_VARIABLE;
         default:

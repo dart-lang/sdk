@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../dill/dill_member_builder.dart';
@@ -11,18 +12,18 @@ import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/forest.dart';
 import '../kernel/internal_ast.dart';
-import '../kernel/kernel_api.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/redirecting_factory_body.dart'
     show getRedirectingFactoryBody, RedirectingFactoryBody;
 
-import '../loader.dart' show Loader;
+import '../source/source_loader.dart' show SourceLoader;
 
 import '../messages.dart'
     show messageConstFactoryRedirectionToNonConst, noLength;
 
 import '../problems.dart' show unexpected, unhandled;
 
+import '../source/name_scheme.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../type_inference/type_inferrer.dart';
@@ -36,7 +37,6 @@ import 'formal_parameter_builder.dart';
 import 'function_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
-import 'procedure_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
@@ -45,6 +45,7 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
+  @override
   final bool isExtensionInstanceMember = false;
 
   final Procedure _procedureInternal;
@@ -65,11 +66,12 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
       this.charOpenParenOffset,
       int charEndOffset,
       Reference? procedureReference,
+      Reference? tearOffReference,
       AsyncMarker asyncModifier,
-      ProcedureNameScheme procedureNameScheme,
+      NameScheme nameScheme,
       {String? nativeMethodName})
       : _procedureInternal = new Procedure(
-            procedureNameScheme.getName(ProcedureKind.Factory, name),
+            nameScheme.getProcedureName(ProcedureKind.Factory, name),
             ProcedureKind.Factory,
             new FunctionNode(null),
             fileUri: libraryBuilder.fileUri,
@@ -78,8 +80,8 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault,
-        _factoryTearOff = createFactoryTearOffProcedure(
-            name, libraryBuilder, libraryBuilder.fileUri, charOffset),
+        _factoryTearOff = createFactoryTearOffProcedure(name, libraryBuilder,
+            libraryBuilder.fileUri, charOffset, tearOffReference),
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             libraryBuilder, charOffset, nativeMethodName) {
     this.asyncModifier = asyncModifier;
@@ -198,7 +200,7 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
       throw new UnsupportedError('${runtimeType}.localSetters');
 
   @override
-  void becomeNative(Loader loader) {
+  void becomeNative(SourceLoader loader) {
     _procedureInternal.isExternal = true;
     super.becomeNative(loader);
   }
@@ -207,7 +209,7 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
     if (bodyInternal != null) {
       unexpected("null", "${bodyInternal.runtimeType}", charOffset, fileUri);
     }
-    bodyInternal = new RedirectingFactoryBody(target, typeArguments);
+    bodyInternal = new RedirectingFactoryBody(target, typeArguments, function);
     function.body = bodyInternal;
     bodyInternal?.parent = function;
     if (isPatch) {
@@ -272,7 +274,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       int charOpenParenOffset,
       int charEndOffset,
       Reference? procedureReference,
-      ProcedureNameScheme procedureNameScheme,
+      Reference? tearOffReference,
+      NameScheme nameScheme,
       String? nativeMethodName,
       this.redirectionTarget)
       : super(
@@ -288,8 +291,9 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             charOpenParenOffset,
             charEndOffset,
             procedureReference,
+            tearOffReference,
             AsyncMarker.Sync,
-            procedureNameScheme,
+            nameScheme,
             nativeMethodName: nativeMethodName);
 
   @override
@@ -307,7 +311,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           noLength, fileUri);
     }
 
-    bodyInternal = new RedirectingFactoryBody(target, typeArguments);
+    bodyInternal = new RedirectingFactoryBody(target, typeArguments, function);
     function.body = bodyInternal;
     bodyInternal?.parent = function;
     _procedure.isRedirectingFactory = true;
@@ -364,6 +368,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     return _procedureInternal;
   }
 
+  @override
   bool _hasBuiltOutlines = false;
 
   @override
@@ -399,7 +404,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         unhandled("${targetBuilder.runtimeType}", "buildOutlineExpressions",
             charOffset, fileUri);
       }
-      Arguments targetInvocationArguments;
+      ArgumentsImpl targetInvocationArguments;
       {
         List<Expression> positionalArguments = <Expression>[];
         for (VariableDeclaration parameter
@@ -436,7 +441,10 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             target.enclosingClass!.typeParameters.length, const DynamicType(),
             growable: true);
       }
-      member.function!.body = new RedirectingFactoryBody(target, typeArguments);
+
+      function.body =
+          new RedirectingFactoryBody(target, typeArguments, function);
+      function.body!.parent = function;
     }
     if (_factoryTearOff != null &&
         (target is Constructor || target is Procedure && target.isFactory)) {
@@ -452,6 +460,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     _hasBuiltOutlines = true;
   }
 
+  @override
   void _finishPatch() {
     super._finishPatch();
 

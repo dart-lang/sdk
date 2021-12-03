@@ -221,7 +221,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// initializer in the constructor declaration.
   Set<FieldElement?>? _fieldsNotInitializedByConstructor;
 
-  /// Current nesting depth of [visitTypeName]
+  /// Current nesting depth of [visitNamedType]
   int _typeNameNesting = 0;
 
   final Set<PromotableElement> _lateHintedLocals = {};
@@ -377,10 +377,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var previousAssignedVariables = _assignedVariables;
     if (_flowAnalysis == null) {
       _assignedVariables = AssignedVariables();
+      // Note: we are using flow analysis to help us track true nullabilities;
+      // it's not necessary to replicate old bugs.  So we pass `true` for
+      // `respectImplicitlyTypedVarInitializers`.
       _flowAnalysis = FlowAnalysis<AstNode, Statement, Expression,
               PromotableElement, DecoratedType>(
           DecoratedTypeOperations(_typeSystem, _variables, _graph),
-          _assignedVariables!);
+          _assignedVariables!,
+          respectImplicitlyTypedVarInitializers: true);
     }
     try {
       _dispatch(node.name);
@@ -485,9 +489,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitAwaitExpression(AwaitExpression node) {
     var expressionType = _dispatch(node.expression)!;
-    // TODO(paulberry) Handle subclasses of Future.
-    if (expressionType.type!.isDartAsyncFuture ||
-        expressionType.type!.isDartAsyncFutureOr) {
+    var type = expressionType.type!;
+    if (_typeSystem.isSubtypeOf(type, typeProvider.futureDynamicType)) {
+      expressionType = _decoratedClassHierarchy!
+          .asInstanceOf(expressionType, typeProvider.futureElement)
+          .typeArguments[0]!;
+    } else if (type.isDartAsyncFutureOr) {
       expressionType = expressionType.typeArguments[0]!;
     }
     return expressionType;
@@ -674,7 +681,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType? visitClassTypeAlias(ClassTypeAlias node) {
-    _dispatch(node.superclass);
+    _dispatch(node.superclass2);
     _dispatch(node.implementsClause);
     _dispatch(node.withClause);
     var classElement = node.declaredElement!;
@@ -768,7 +775,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType? visitConstructorDeclaration(ConstructorDeclaration node) {
     _fieldsNotInitializedByConstructor =
         _fieldsNotInitializedAtDeclaration!.toSet();
-    _dispatch(node.redirectedConstructor?.type.typeArguments);
+    _dispatch(node.redirectedConstructor?.type2.typeArguments);
     _handleExecutableDeclaration(
         node,
         node.declaredElement!,
@@ -1174,7 +1181,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var typeParameters = callee.enclosingElement.typeParameters;
     Iterable<DartType?> typeArgumentTypes;
     List<DecoratedType> decoratedTypeArguments;
-    var typeArguments = node.constructorName.type.typeArguments;
+    var typeArguments = node.constructorName.type2.typeArguments;
     late List<EdgeOrigin> parameterEdgeOrigins;
     var target =
         NullabilityNodeTarget.text('constructed type').withCodeRef(node);
@@ -1402,6 +1409,82 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _dispatch(node.onClause);
     _dispatch(node.typeParameters);
     return null;
+  }
+
+  @override
+  DecoratedType? visitNamedType(NamedType node) {
+    try {
+      _typeNameNesting++;
+      var typeArguments = node.typeArguments?.arguments;
+      var element = node.name.staticElement;
+      if (element is TypeAliasElement) {
+        var aliasedElement =
+            element.aliasedElement as GenericFunctionTypeElement;
+        final typedefType = _variables!.decoratedElementType(aliasedElement);
+        final typeNameType = _variables!.decoratedTypeAnnotation(source, node);
+
+        Map<TypeParameterElement, DecoratedType> substitutions;
+        if (node.typeArguments == null) {
+          // TODO(mfairhurst): substitute instantiations to bounds
+          substitutions = {};
+        } else {
+          substitutions =
+              Map<TypeParameterElement, DecoratedType>.fromIterables(
+                  element.typeParameters,
+                  node.typeArguments!.arguments.map(
+                      (t) => _variables!.decoratedTypeAnnotation(source, t)));
+        }
+
+        final decoratedType = typedefType.substitute(substitutions);
+        final origin = TypedefReferenceOrigin(source, node);
+        _linkDecoratedTypeParameters(decoratedType, typeNameType, origin,
+            isUnion: true);
+        _linkDecoratedTypes(
+            decoratedType.returnType!, typeNameType.returnType, origin,
+            isUnion: true);
+      } else if (element is TypeParameterizedElement) {
+        if (typeArguments == null) {
+          var instantiatedType =
+              _variables!.decoratedTypeAnnotation(source, node);
+          var origin = InstantiateToBoundsOrigin(source, node);
+          for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
+            _linkDecoratedTypes(
+                instantiatedType.typeArguments[i]!,
+                _variables!
+                    .decoratedTypeParameterBound(element.typeParameters[i]),
+                origin,
+                isUnion: false);
+          }
+        } else {
+          for (int i = 0; i < typeArguments.length; i++) {
+            DecoratedType? bound;
+            bound = _variables!
+                .decoratedTypeParameterBound(element.typeParameters[i]);
+            assert(bound != null);
+            var argumentType =
+                _variables!.decoratedTypeAnnotation(source, typeArguments[i]);
+            _checkAssignment(
+                TypeParameterInstantiationOrigin(source, typeArguments[i]),
+                FixReasonTarget.root,
+                source: argumentType,
+                destination: bound!,
+                hard: true);
+          }
+        }
+      }
+      node.visitChildren(this);
+      // If the type name is followed by a `/*!*/` comment, it is considered to
+      // apply to the type and not to the "as" expression.  In order to prevent
+      // a future call to _handleNullCheck from interpreting it as applying to
+      // the "as" expression, we need to store the `/*!*/` comment in
+      // _nullCheckHints.
+      var token = node.endToken;
+      _nullCheckHints[token] = getPostfixHint(token);
+      namedTypeVisited(node); // Note this has been visited to TypeNameTracker.
+      return null;
+    } finally {
+      _typeNameNesting--;
+    }
   }
 
   @override
@@ -1858,84 +1941,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
-  DecoratedType? visitTypeName(TypeName typeName) {
-    try {
-      _typeNameNesting++;
-      var typeArguments = typeName.typeArguments?.arguments;
-      var element = typeName.name.staticElement;
-      if (element is TypeAliasElement) {
-        var aliasedElement =
-            element.aliasedElement as GenericFunctionTypeElement;
-        final typedefType = _variables!.decoratedElementType(aliasedElement);
-        final typeNameType =
-            _variables!.decoratedTypeAnnotation(source, typeName);
-
-        Map<TypeParameterElement, DecoratedType> substitutions;
-        if (typeName.typeArguments == null) {
-          // TODO(mfairhurst): substitute instantiations to bounds
-          substitutions = {};
-        } else {
-          substitutions =
-              Map<TypeParameterElement, DecoratedType>.fromIterables(
-                  element.typeParameters,
-                  typeName.typeArguments!.arguments.map(
-                      (t) => _variables!.decoratedTypeAnnotation(source, t)));
-        }
-
-        final decoratedType = typedefType.substitute(substitutions);
-        final origin = TypedefReferenceOrigin(source, typeName);
-        _linkDecoratedTypeParameters(decoratedType, typeNameType, origin,
-            isUnion: true);
-        _linkDecoratedTypes(
-            decoratedType.returnType!, typeNameType.returnType, origin,
-            isUnion: true);
-      } else if (element is TypeParameterizedElement) {
-        if (typeArguments == null) {
-          var instantiatedType =
-              _variables!.decoratedTypeAnnotation(source, typeName);
-          var origin = InstantiateToBoundsOrigin(source, typeName);
-          for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
-            _linkDecoratedTypes(
-                instantiatedType.typeArguments[i]!,
-                _variables!
-                    .decoratedTypeParameterBound(element.typeParameters[i]),
-                origin,
-                isUnion: false);
-          }
-        } else {
-          for (int i = 0; i < typeArguments.length; i++) {
-            DecoratedType? bound;
-            bound = _variables!
-                .decoratedTypeParameterBound(element.typeParameters[i]);
-            assert(bound != null);
-            var argumentType =
-                _variables!.decoratedTypeAnnotation(source, typeArguments[i]);
-            _checkAssignment(
-                TypeParameterInstantiationOrigin(source, typeArguments[i]),
-                FixReasonTarget.root,
-                source: argumentType,
-                destination: bound!,
-                hard: true);
-          }
-        }
-      }
-      typeName.visitChildren(this);
-      // If the type name is followed by a `/*!*/` comment, it is considered to
-      // apply to the type and not to the "as" expression.  In order to prevent
-      // a future call to _handleNullCheck from interpreting it as applying to
-      // the "as" expression, we need to store the `/*!*/` comment in
-      // _nullCheckHints.
-      var token = typeName.endToken;
-      _nullCheckHints[token] = getPostfixHint(token);
-      typeNameVisited(
-          typeName); // Note this has been visited to TypeNameTracker.
-      return null;
-    } finally {
-      _typeNameNesting--;
-    }
-  }
-
-  @override
   DecoratedType? visitVariableDeclarationList(VariableDeclarationList node) {
     var parent = node.parent;
     bool isTopLevel =
@@ -1961,7 +1966,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (!declaredElement.isStatic && enclosingElement is ClassElement) {
         var overriddenElements = _inheritanceManager.getOverridden2(
             enclosingElement,
-            Name(enclosingElement.library.source.uri, declaredElement.name!));
+            Name(enclosingElement.library.source.uri, declaredElement.name));
         for (var overriddenElement
             in overriddenElements ?? <ExecutableElement>[]) {
           _handleFieldOverriddenDeclaration(
@@ -1971,7 +1976,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           var overriddenElements = _inheritanceManager.getOverridden2(
               enclosingElement,
               Name(enclosingElement.library.source.uri,
-                  declaredElement.name! + '='));
+                  declaredElement.name + '='));
           for (var overriddenElement
               in overriddenElements ?? <ExecutableElement>[]) {
             _handleFieldOverriddenDeclaration(
@@ -2110,10 +2115,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     assert(_assignedVariables == null);
     _assignedVariables =
         FlowAnalysisHelper.computeAssignedVariables(node, parameters);
+    // Note: we are using flow analysis to help us track true nullabilities;
+    // it's not necessary to replicate old bugs.  So we pass `true` for
+    // `respectImplicitlyTypedVarInitializers`.
     _flowAnalysis = FlowAnalysis<AstNode, Statement, Expression,
             PromotableElement, DecoratedType>(
         DecoratedTypeOperations(_typeSystem, _variables, _graph),
-        _assignedVariables!);
+        _assignedVariables!,
+        respectImplicitlyTypedVarInitializers: true);
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
         _flowAnalysis!.declare(parameter.declaredElement!, true);
@@ -2521,7 +2530,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var callee = redirectedConstructor.staticElement!.declaration;
     var redirectedClass = callee.enclosingElement;
     var calleeType = _variables!.decoratedElementType(callee);
-    var typeArguments = redirectedConstructor.type.typeArguments;
+    var typeArguments = redirectedConstructor.type2.typeArguments;
     var typeArgumentTypes =
         typeArguments?.arguments.map((t) => t.type).toList();
     _handleInvocationArguments(

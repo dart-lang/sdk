@@ -15,25 +15,20 @@ namespace dart {
 template <typename KeyValueTrait, typename B, typename Allocator = Zone>
 class BaseDirectChainedHashMap : public B {
  public:
-  explicit BaseDirectChainedHashMap(Allocator* allocator)
-      : array_size_(0),
-        lists_size_(0),
-        count_(0),
-        array_(NULL),
-        lists_(NULL),
-        free_list_head_(kNil),
-        allocator_(allocator) {
-    ResizeLists(kInitialSize);
-    Resize(kInitialSize);
+  explicit BaseDirectChainedHashMap(Allocator* allocator,
+                                    intptr_t initial_size = kInitialSize)
+      : allocator_(allocator) {
+    Resize(initial_size);
   }
 
   BaseDirectChainedHashMap(const BaseDirectChainedHashMap& other);
 
-  intptr_t Length() const { return count_; }
+  intptr_t Length() const { return next_pair_index_ - deleted_count_; }
 
-  virtual ~BaseDirectChainedHashMap() {
-    allocator_->template Free<HashMapListElement>(array_, array_size_);
-    allocator_->template Free<HashMapListElement>(lists_, lists_size_);
+  ~BaseDirectChainedHashMap() {
+    allocator_->template Free<uint32_t>(hash_table_, hash_table_size_);
+    allocator_->template Free<typename KeyValueTrait::Pair>(pairs_,
+                                                            pairs_size_);
   }
 
   // Assumes that no existing pair in the map has a key equal to [kv.key].
@@ -54,41 +49,35 @@ class BaseDirectChainedHashMap : public B {
 
   typename KeyValueTrait::Pair* Lookup(typename KeyValueTrait::Key key) const;
   bool HasKey(typename KeyValueTrait::Key key) const {
-    return Lookup(key) != NULL;
+    return Lookup(key) != nullptr;
   }
 
-  intptr_t Size() const { return count_; }
-  bool IsEmpty() const { return count_ == 0; }
+  intptr_t Size() const { return next_pair_index_ - deleted_count_; }
+  bool IsEmpty() const { return Size() == 0; }
 
-  virtual void Clear() {
-    if (!IsEmpty()) {
-      count_ = 0;
-      InitArray(array_, array_size_);
-      InitArray(lists_, lists_size_);
-      lists_[0].next = kNil;
-      for (intptr_t i = 1; i < lists_size_; ++i) {
-        lists_[i].next = i - 1;
-      }
-      free_list_head_ = lists_size_ - 1;
+  void Clear() {
+    for (uint32_t i = 0; i < hash_table_size_; i++) {
+      hash_table_[i] = kEmpty;
     }
+    for (uint32_t i = 0; i < next_pair_index_; i++) {
+      pairs_[i] = typename KeyValueTrait::Pair();
+    }
+    next_pair_index_ = 0;
+    deleted_count_ = 0;
   }
 
   class Iterator {
    public:
     typename KeyValueTrait::Pair* Next();
 
-    void Reset() {
-      array_index_ = 0;
-      list_index_ = kNil;
-    }
+    void Reset() { pair_index_ = 0; }
 
    private:
     explicit Iterator(const BaseDirectChainedHashMap& map)
-        : map_(map), array_index_(0), list_index_(kNil) {}
+        : map_(map), pair_index_(0) {}
 
     const BaseDirectChainedHashMap& map_;
-    intptr_t array_index_;
-    intptr_t list_index_;
+    uint32_t pair_index_;
 
     template <typename T, typename Bs, typename A>
     friend class BaseDirectChainedHashMap;
@@ -97,35 +86,21 @@ class BaseDirectChainedHashMap : public B {
   Iterator GetIterator() const { return Iterator(*this); }
 
  protected:
-  // A linked list of T values.  Stored in arrays.
-  struct HashMapListElement {
-    HashMapListElement() : kv(), next(kNil) {}
-    typename KeyValueTrait::Pair kv;
-    intptr_t next;  // Index in the array of the next list element.
-  };
-  static const intptr_t kNil = -1;  // The end of a linked list
-
-  static void InitArray(HashMapListElement* array, intptr_t size) {
-    for (intptr_t i = 0; i < size; ++i) {
-      array[i] = HashMapListElement();
-    }
-  }
-
-  // Must be a power of 2.
-  static const intptr_t kInitialSize = 16;
+  static constexpr intptr_t kInitialSize = 16;
 
   void Resize(intptr_t new_size);
-  void ResizeLists(intptr_t new_size);
-  uword Bound(uword value) const { return value & (array_size_ - 1); }
 
-  intptr_t array_size_;
-  intptr_t lists_size_;
-  intptr_t count_;             // The number of values stored in the HashMap.
-  HashMapListElement* array_;  // Primary store - contains the first value
-  // with a given hash.  Colliding elements are stored in linked lists.
-  HashMapListElement* lists_;  // The linked lists containing hash collisions.
-  intptr_t free_list_head_;  // Unused elements in lists_ are on the free list.
-  Allocator* allocator_;
+  Allocator* const allocator_;
+  uint32_t* hash_table_ = nullptr;
+  typename KeyValueTrait::Pair* pairs_ = nullptr;
+  uint32_t hash_table_size_ = 0;
+  uint32_t pairs_size_ = 0;
+  uint32_t next_pair_index_ = 0;
+  uint32_t deleted_count_ = 0;
+
+  static constexpr uint32_t kEmpty = kMaxUint32;
+  static constexpr uint32_t kDeleted = kMaxUint32 - 1;
+  static constexpr uint32_t kMaxPairs = kMaxUint32 - 2;
 
  private:
   void operator=(const BaseDirectChainedHashMap& other) = delete;
@@ -135,42 +110,45 @@ template <typename KeyValueTrait, typename B, typename Allocator>
 BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::BaseDirectChainedHashMap(
     const BaseDirectChainedHashMap& other)
     : B(),
-      array_size_(other.array_size_),
-      lists_size_(other.lists_size_),
-      count_(other.count_),
-      array_(other.allocator_->template Alloc<HashMapListElement>(
-          other.array_size_)),
-      lists_(other.allocator_->template Alloc<HashMapListElement>(
-          other.lists_size_)),
-      free_list_head_(other.free_list_head_),
-      allocator_(other.allocator_) {
-  memmove(array_, other.array_, array_size_ * sizeof(HashMapListElement));
-  memmove(lists_, other.lists_, lists_size_ * sizeof(HashMapListElement));
+      allocator_(other.allocator_),
+      hash_table_(
+          other.allocator_->template Alloc<uint32_t>(other.hash_table_size_)),
+      pairs_(other.allocator_->template Alloc<typename KeyValueTrait::Pair>(
+          other.pairs_size_)),
+      hash_table_size_(other.hash_table_size_),
+      pairs_size_(other.pairs_size_),
+      next_pair_index_(other.next_pair_index_),
+      deleted_count_(other.deleted_count_) {
+  memmove(hash_table_, other.hash_table_, hash_table_size_ * sizeof(uint32_t));
+  memmove(pairs_, other.pairs_,
+          pairs_size_ * sizeof(typename KeyValueTrait::Pair));
 }
 
 template <typename KeyValueTrait, typename B, typename Allocator>
 typename KeyValueTrait::Pair*
 BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Lookup(
     typename KeyValueTrait::Key key) const {
-  const typename KeyValueTrait::Value kNoValue =
-      KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
-
   uword hash = KeyValueTrait::Hash(key);
-  uword pos = Bound(hash);
-  if (KeyValueTrait::ValueOf(array_[pos].kv) != kNoValue) {
-    if (KeyValueTrait::IsKeyEqual(array_[pos].kv, key)) {
-      return &array_[pos].kv;
+  uint32_t mask = hash_table_size_ - 1;
+  uint32_t hash_index = hash & mask;
+  uint32_t start = hash_index;
+  for (;;) {
+    uint32_t pair_index = hash_table_[hash_index];
+    if (pair_index == kEmpty) {
+      return nullptr;
     }
-
-    intptr_t next = array_[pos].next;
-    while (next != kNil) {
-      if (KeyValueTrait::IsKeyEqual(lists_[next].kv, key)) {
-        return &lists_[next].kv;
+    if (pair_index != kDeleted) {
+      ASSERT(pair_index < pairs_size_);
+      if (KeyValueTrait::IsKeyEqual(pairs_[pair_index], key)) {
+        return &pairs_[pair_index];
       }
-      next = lists_[next].next;
     }
+    hash_index = (hash_index + 1) & mask;
+    // Hashtable must contain at least one empty marker.
+    ASSERT(hash_index != start);
   }
-  return NULL;
+  UNREACHABLE();
+  return nullptr;
 }
 
 template <typename KeyValueTrait, typename B, typename Allocator>
@@ -180,7 +158,7 @@ BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::LookupValue(
   const typename KeyValueTrait::Value kNoValue =
       KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
   typename KeyValueTrait::Pair* pair = Lookup(key);
-  return (pair == NULL) ? kNoValue : KeyValueTrait::ValueOf(*pair);
+  return (pair == nullptr) ? kNoValue : KeyValueTrait::ValueOf(*pair);
 }
 
 template <typename KeyValueTrait, typename B, typename Allocator>
@@ -188,135 +166,89 @@ typename KeyValueTrait::Pair*
 BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Iterator::Next() {
   const typename KeyValueTrait::Value kNoValue =
       KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
-
-  // Return the current lists_ entry (if any), advancing list_index_.
-  if (list_index_ != kNil) {
-    intptr_t current = list_index_;
-    list_index_ = map_.lists_[current].next;
-    return &map_.lists_[current].kv;
+  while (pair_index_ < map_.next_pair_index_) {
+    if (KeyValueTrait::ValueOf(map_.pairs_[pair_index_]) != kNoValue) {
+      intptr_t old_index = pair_index_;
+      pair_index_++;
+      return &map_.pairs_[old_index];
+    }
+    pair_index_++;
   }
-
-  // When we're done with the list, we'll continue with the next array
-  // slot.
-  while ((array_index_ < map_.array_size_) &&
-         KeyValueTrait::ValueOf(map_.array_[array_index_].kv) == kNoValue) {
-    ++array_index_;
-  }
-  if (array_index_ < map_.array_size_) {
-    const intptr_t old_array_index = array_index_;
-    ++array_index_;
-    list_index_ = map_.array_[old_array_index].next;
-    return &map_.array_[old_array_index].kv;
-  }
-
   return nullptr;
 }
 
 template <typename KeyValueTrait, typename B, typename Allocator>
 void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Resize(
     intptr_t new_size) {
+  ASSERT(new_size >= Size());
+
+  uint32_t old_hash_table_size = hash_table_size_;
+  // 75% load factor + at least one kEmpty slot
+  hash_table_size_ = Utils::RoundUpToPowerOfTwo(new_size * 4 / 3 + 1);
+  hash_table_ = allocator_->template Realloc<uint32_t>(
+      hash_table_, old_hash_table_size, hash_table_size_);
+  for (uint32_t i = 0; i < hash_table_size_; i++) {
+    hash_table_[i] = kEmpty;
+  }
+
+  typename KeyValueTrait::Pair* old_pairs = pairs_;
+  uint32_t old_pairs_size = pairs_size_;
+  uint32_t old_next_pair_index = next_pair_index_;
+  uint32_t old_deleted_count = deleted_count_;
+  next_pair_index_ = 0;
+  deleted_count_ = 0;
+  pairs_size_ = new_size;
+  pairs_ =
+      allocator_->template Alloc<typename KeyValueTrait::Pair>(pairs_size_);
+  for (uint32_t i = 0; i < pairs_size_; i++) {
+    pairs_[i] = typename KeyValueTrait::Pair();
+  }
+
   const typename KeyValueTrait::Value kNoValue =
       KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
-
-  ASSERT(new_size > count_);
-  // Hashing the values into the new array has no more collisions than in the
-  // old hash map, so we can use the existing lists_ array, if we are careful.
-
-  // Make sure we have at least one free element.
-  if (free_list_head_ == kNil) {
-    ResizeLists(lists_size_ << 1);
-  }
-
-  HashMapListElement* new_array =
-      allocator_->template Alloc<HashMapListElement>(new_size);
-  InitArray(new_array, new_size);
-
-  HashMapListElement* old_array = array_;
-  intptr_t old_size = array_size_;
-
-  intptr_t old_count = count_;
-  count_ = 0;
-  array_size_ = new_size;
-  array_ = new_array;
-
-  if (old_array != NULL) {
-    // Iterate over all the elements in lists, rehashing them.
-    for (intptr_t i = 0; i < old_size; ++i) {
-      if (KeyValueTrait::ValueOf(old_array[i].kv) != kNoValue) {
-        intptr_t current = old_array[i].next;
-        while (current != kNil) {
-          Insert(lists_[current].kv);
-          intptr_t next = lists_[current].next;
-          lists_[current].next = free_list_head_;
-          free_list_head_ = current;
-          current = next;
-        }
-        // Rehash the directly stored value.
-        Insert(old_array[i].kv);
-      }
+  uint32_t used = 0;
+  uint32_t deleted = 0;
+  for (uint32_t i = 0; i < old_next_pair_index; i++) {
+    if (KeyValueTrait::ValueOf(old_pairs[i]) == kNoValue) {
+      deleted++;
+    } else {
+      Insert(old_pairs[i]);
+      used++;
     }
   }
-  USE(old_count);
-  ASSERT(count_ == old_count);
-  allocator_->template Free<HashMapListElement>(old_array, old_size);
-}
-
-template <typename KeyValueTrait, typename B, typename Allocator>
-void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::ResizeLists(
-    intptr_t new_size) {
-  ASSERT(new_size > lists_size_);
-
-  HashMapListElement* new_lists =
-      allocator_->template Alloc<HashMapListElement>(new_size);
-  InitArray(new_lists, new_size);
-
-  HashMapListElement* old_lists = lists_;
-  intptr_t old_size = lists_size_;
-
-  lists_size_ = new_size;
-  lists_ = new_lists;
-
-  if (old_lists != NULL) {
-    for (intptr_t i = 0; i < old_size; i++) {
-      lists_[i] = old_lists[i];
-    }
-  }
-  for (intptr_t i = old_size; i < lists_size_; ++i) {
-    lists_[i].next = free_list_head_;
-    free_list_head_ = i;
-  }
-  allocator_->template Free<HashMapListElement>(old_lists, old_size);
+  ASSERT_EQUAL(deleted, old_deleted_count);
+  ASSERT_EQUAL(used, old_next_pair_index - old_deleted_count);
+  ASSERT_EQUAL(used, next_pair_index_);
+  allocator_->template Free<typename KeyValueTrait::Pair>(old_pairs,
+                                                          old_pairs_size);
 }
 
 template <typename KeyValueTrait, typename B, typename Allocator>
 void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Insert(
     typename KeyValueTrait::Pair kv) {
-  const typename KeyValueTrait::Value kNoValue =
-      KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
-
-  ASSERT(KeyValueTrait::ValueOf(kv) != kNoValue);
-  // TODO(dartbug.com/38018): Add assert that Lookup returns nullptr for key.
-
-  // Resizing when half of the hashtable is filled up.
-  if (count_ >= array_size_ >> 1) Resize(array_size_ << 1);
-  ASSERT(count_ < array_size_);
-  count_++;
-  uword pos = Bound(KeyValueTrait::Hash(KeyValueTrait::KeyOf(kv)));
-  if (KeyValueTrait::ValueOf(array_[pos].kv) == kNoValue) {
-    array_[pos].kv = kv;
-    array_[pos].next = kNil;
-  } else {
-    if (free_list_head_ == kNil) {
-      ResizeLists(lists_size_ << 1);
+  // TODO(dartbug.com/38018):
+  // ASSERT(Lookup(KeyValueTrait::KeyOf(kv)) == nullptr);
+  ASSERT(next_pair_index_ < pairs_size_);
+  uword hash = KeyValueTrait::Hash(KeyValueTrait::KeyOf(kv));
+  uint32_t mask = hash_table_size_ - 1;
+  uint32_t hash_index = hash & mask;
+  uint32_t start = hash_index;
+  for (;;) {
+    uint32_t pair_index = hash_table_[hash_index];
+    if ((pair_index == kEmpty) || (pair_index == kDeleted)) {
+      hash_table_[hash_index] = next_pair_index_;
+      pairs_[next_pair_index_] = kv;
+      next_pair_index_++;
+      break;
     }
-    intptr_t new_element_pos = free_list_head_;
-    ASSERT(new_element_pos != kNil);
-    free_list_head_ = lists_[free_list_head_].next;
-    lists_[new_element_pos].kv = kv;
-    lists_[new_element_pos].next = array_[pos].next;
-    ASSERT(array_[pos].next == kNil ||
-           KeyValueTrait::ValueOf(lists_[array_[pos].next].kv) != kNoValue);
-    array_[pos].next = new_element_pos;
+    ASSERT(pair_index < pairs_size_);
+    hash_index = (hash_index + 1) & mask;
+    // Hashtable must contain at least one empty marker.
+    ASSERT(hash_index != start);
+  }
+
+  if (next_pair_index_ == pairs_size_) {
+    Resize(Size() << 1);
   }
 }
 
@@ -337,66 +269,30 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Update(
 template <typename KeyValueTrait, typename B, typename Allocator>
 bool BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Remove(
     typename KeyValueTrait::Key key) {
-  const typename KeyValueTrait::Value kNoValue =
-      KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
-
-  uword pos = Bound(KeyValueTrait::Hash(key));
-
-  // Check to see if the first element in the bucket is the one we want to
-  // remove.
-  if (KeyValueTrait::ValueOf(array_[pos].kv) == kNoValue) return false;
-  if (KeyValueTrait::IsKeyEqual(array_[pos].kv, key)) {
-    if (array_[pos].next == kNil) {
-      array_[pos] = HashMapListElement();
-    } else {
-      intptr_t next = array_[pos].next;
-      array_[pos] = lists_[next];
-      lists_[next] = HashMapListElement();
-      lists_[next].next = free_list_head_;
-      free_list_head_ = next;
-    }
-    count_--;
-    return true;
-  }
-
-  intptr_t current = array_[pos].next;
-
-  // If there's only the single element in the bucket and it does not match the
-  // key to be removed, just return.
-  if (current == kNil) {
-    return false;
-  }
-
-  // Check the case where the second element in the bucket is the one to be
-  // removed.
-  if (KeyValueTrait::IsKeyEqual(lists_[current].kv, key)) {
-    array_[pos].next = lists_[current].next;
-    lists_[current] = HashMapListElement();
-    lists_[current].next = free_list_head_;
-    free_list_head_ = current;
-    count_--;
-    return true;
-  }
-
-  // Finally, iterate through the rest of the bucket to see if we can find the
-  // entry that matches our key.
-  intptr_t previous = -1;
-  while (!KeyValueTrait::IsKeyEqual(lists_[current].kv, key)) {
-    previous = current;
-    current = lists_[current].next;
-
-    if (current == kNil) {
-      // Could not find entry with provided key to remove.
+  uword hash = KeyValueTrait::Hash(key);
+  uint32_t mask = hash_table_size_ - 1;
+  uint32_t hash_index = hash & mask;
+  uint32_t start = hash_index;
+  for (;;) {
+    uint32_t pair_index = hash_table_[hash_index];
+    if (pair_index == kEmpty) {
       return false;
     }
+    if (pair_index != kDeleted) {
+      ASSERT(pair_index < pairs_size_);
+      if (KeyValueTrait::IsKeyEqual(pairs_[pair_index], key)) {
+        hash_table_[hash_index] = kDeleted;
+        pairs_[pair_index] = typename KeyValueTrait::Pair();
+        deleted_count_++;
+        return true;
+      }
+    }
+    hash_index = (hash_index + 1) & mask;
+    // Hashtable must contain at least one empty marker.
+    ASSERT(hash_index != start);
   }
-
-  lists_[previous].next = lists_[current].next;
-  lists_[current] = HashMapListElement();
-  lists_[current].next = free_list_head_;
-  free_list_head_ = current;
-  count_--;
-  return true;
+  UNREACHABLE();
+  return false;
 }
 
 template <typename KeyValueTrait>
@@ -407,9 +303,12 @@ class DirectChainedHashMap
       : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(
             ASSERT_NOTNULL(ThreadState::Current()->zone())) {}
 
-  explicit DirectChainedHashMap(Zone* zone)
+  explicit DirectChainedHashMap(
+      Zone* zone,
+      intptr_t initial_size = DirectChainedHashMap::kInitialSize)
       : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(
-            ASSERT_NOTNULL(zone)) {}
+            ASSERT_NOTNULL(zone),
+            initial_size) {}
 
   // There is a current use of the copy constructor in CSEInstructionMap
   // (compiler/backend/redundancy_elimination.cc), so work is needed if we
@@ -425,9 +324,11 @@ template <typename KeyValueTrait>
 class MallocDirectChainedHashMap
     : public BaseDirectChainedHashMap<KeyValueTrait, MallocAllocated, Malloc> {
  public:
-  MallocDirectChainedHashMap()
-      : BaseDirectChainedHashMap<KeyValueTrait, MallocAllocated, Malloc>(NULL) {
-  }
+  MallocDirectChainedHashMap(
+      intptr_t initial_size = MallocDirectChainedHashMap::kInitialSize)
+      : BaseDirectChainedHashMap<KeyValueTrait, MallocAllocated, Malloc>(
+            nullptr,
+            initial_size) {}
 
   // The only use of the copy constructor seems to be in hash_map_test.cc.
   // Not disallowing it for now just in case there are other users.
@@ -446,28 +347,32 @@ class ZoneDirectChainedHashMap
   ZoneDirectChainedHashMap()
       : BaseDirectChainedHashMap<KeyValueTrait, ZoneAllocated, Zone>(
             ThreadState::Current()->zone()) {}
-  explicit ZoneDirectChainedHashMap(Zone* zone)
-      : BaseDirectChainedHashMap<KeyValueTrait, ZoneAllocated, Zone>(zone) {}
+  explicit ZoneDirectChainedHashMap(
+      Zone* zone,
+      intptr_t initial_size = ZoneDirectChainedHashMap::kInitialSize)
+      : BaseDirectChainedHashMap<KeyValueTrait, ZoneAllocated, Zone>(
+            zone,
+            initial_size) {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ZoneDirectChainedHashMap);
 };
 
 template <typename T>
-class PointerKeyValueTrait {
+class PointerSetKeyValueTrait {
  public:
   typedef T* Value;
   typedef T* Key;
   typedef T* Pair;
 
   static Key KeyOf(Pair kv) { return kv; }
-
   static Value ValueOf(Pair kv) { return kv; }
-
   static inline uword Hash(Key key) { return key->Hash(); }
-
   static inline bool IsKeyEqual(Pair kv, Key key) { return kv->Equals(*key); }
 };
+
+template <typename T>
+using PointerSet = DirectChainedHashMap<PointerSetKeyValueTrait<T>>;
 
 template <typename T>
 class NumbersKeyValueTrait {
@@ -491,7 +396,7 @@ class RawPointerKeyValueTrait {
   struct Pair {
     Key key;
     Value value;
-    Pair() : key(NULL), value() {}
+    Pair() : key(nullptr), value() {}
     Pair(const Key key, const Value& value) : key(key), value(value) {}
     Pair(const Pair& other) : key(other.key), value(other.value) {}
     Pair& operator=(const Pair&) = default;
@@ -503,12 +408,14 @@ class RawPointerKeyValueTrait {
   static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
 };
 
-class CStringSetKeyValueTrait : public PointerKeyValueTrait<const char> {
+class CStringSetKeyValueTrait {
  public:
-  using Key = PointerKeyValueTrait<const char>::Key;
-  using Value = PointerKeyValueTrait<const char>::Value;
-  using Pair = PointerKeyValueTrait<const char>::Pair;
+  using Key = const char*;
+  using Value = const char*;
+  using Pair = const char*;
 
+  static Key KeyOf(Pair kv) { return kv; }
+  static Value ValueOf(Pair kv) { return kv; }
   static uword Hash(Key key) {
     ASSERT(key != nullptr);
     return Utils::StringHash(key, strlen(key));
@@ -634,7 +541,7 @@ class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V> > {
   inline V Lookup(const Key& key) const {
     Pair* pair =
         DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Lookup(key);
-    if (pair == NULL) {
+    if (pair == nullptr) {
       return V();
     } else {
       return pair->value;

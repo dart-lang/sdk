@@ -29,6 +29,6 @@ main() {
     });
     injectSource("window.postMessage('hello', '*');");
 
-    await completer;
+    await completer.future;
   });
 }

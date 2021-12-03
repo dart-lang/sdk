@@ -37,7 +37,7 @@ This document draws on many of the comments on the SDK issue
 ## Motivation
 
 The
-[language specification](https://github.com/dart-lang/sdk/blob/master/docs/language/dartLangSpec.tex)
+[language specification](https://github.com/dart-lang/sdk/blob/main/docs/language/dartLangSpec.tex)
 uses the phrase _function object_ to denote the first-class semantic
 entity which corresponds to a function declaration. In the following
 example, each of the expressions `fg`, `A.fs`, `new A().fi`, and `fl` in

@@ -8,7 +8,7 @@ import 'package:testing/testing.dart' show Chain, ChainContext, runMe;
 
 import 'parser_suite.dart';
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<ChainContext> createContext(

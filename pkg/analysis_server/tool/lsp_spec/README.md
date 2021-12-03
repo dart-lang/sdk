@@ -38,6 +38,7 @@ Client workspace settings are requested with `workspace/configuration` during in
 - `dart.lineLength`: The number of characters the formatter should wrap code at. If unspecified, code will be wrapped at `80` characters.
 - `dart.completeFunctionCalls`: Completes functions/methods with their required parameters.
 - `dart.showTodos`: Whether to generate diagnostics for TODO comments. If unspecified, diagnostics will not be generated.
+- `dart.renameFilesWithClasses`: When set to `"always"`, will rename files when classes are renamed if the filename matches the class name (but in snake_form). When set to `"prompt"`, a prompt will be shown on each class rename asking to confirm the file rename. Otherwise, files will not be renamed. Renames are performed using LSP's ResourceOperation edits - that means the rename is simply included in the resulting `WorkspaceEdit` and must be handled by the client.
 
 ## Method Status
 

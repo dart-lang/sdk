@@ -1,0 +1,6 @@
+String a<T1, T2>(int x) {}
+String f(a, [b]) => "$a, $b";
+expect(expected, actual) {}
+main() {}
+typedef b = int;
+typedef c = String;

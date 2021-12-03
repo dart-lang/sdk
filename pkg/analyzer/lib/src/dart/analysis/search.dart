@@ -54,7 +54,7 @@ class Search {
     List<String> files = await _driver.getFilesDefiningClassMemberName(name);
     for (String file in files) {
       if (searchedFiles.add(file, this)) {
-        var unitResult = await _driver.getUnitElement2(file);
+        var unitResult = await _driver.getUnitElement(file);
         if (unitResult is UnitElementResult) {
           unitResult.element.classes.forEach(addElements);
           unitResult.element.mixins.forEach(addElements);
@@ -73,11 +73,12 @@ class Search {
 
     ElementKind kind = element.kind;
     if (element is ClassElement ||
-        element is ConstructorElement ||
         element is ExtensionElement ||
         element is PropertyAccessorElement && element.isSetter ||
         element is TypeAliasElement) {
       return _searchReferences(element, searchedFiles);
+    } else if (element is ConstructorElement) {
+      return await _searchReferences_Constructor(element, searchedFiles);
     } else if (element is CompilationUnitElement) {
       return _searchReferences_CompilationUnit(element);
     } else if (element is PropertyAccessorElement && element.isGetter) {
@@ -174,7 +175,7 @@ class Search {
 
     List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
     for (FileState file in knownFiles) {
-      var unitResult = await _driver.getUnitElement2(file.path);
+      var unitResult = await _driver.getUnitElement(file.path);
       if (unitResult is UnitElementResult) {
         CompilationUnitElement unitElement = unitResult.element;
         unitElement.accessors.forEach(addElement);
@@ -283,7 +284,7 @@ class Search {
   }
 
   Future<CompilationUnitElement?> _getUnitElement(String file) async {
-    var result = await _driver.getUnitElement2(file);
+    var result = await _driver.getUnitElement(file);
     return result is UnitElementResult ? result.element : null;
   }
 
@@ -320,6 +321,18 @@ class Search {
         }
       }
     }
+    return results;
+  }
+
+  Future<List<SearchResult>> _searchReferences_Constructor(
+      ConstructorElement element, SearchedFiles searchedFiles) async {
+    List<SearchResult> results = <SearchResult>[];
+    await _addResults(results, element, searchedFiles, const {
+      IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
+      IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
+      IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF:
+          SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
+    });
     return results;
   }
 
@@ -378,7 +391,7 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      var unitResult = await _driver.getResult2(unitPath);
+      var unitResult = await _driver.getResult(unitPath);
       if (unitResult is ResolvedUnitResult) {
         var visitor = _ImportElementReferencesVisitor(element, unitElement);
         unitResult.unit.accept(visitor);
@@ -398,7 +411,7 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     for (CompilationUnitElement unitElement in element.units) {
       String unitPath = unitElement.source.fullName;
-      var unitResult = await _driver.getResult2(unitPath);
+      var unitResult = await _driver.getResult(unitPath);
       if (unitResult is ResolvedUnitResult) {
         CompilationUnit unit = unitResult.unit;
         for (Directive directive in unit.directives) {
@@ -428,7 +441,7 @@ class Search {
     }
 
     // Prepare the unit.
-    var unitResult = await _driver.getResult2(path);
+    var unitResult = await _driver.getResult(path);
     if (unitResult is! ResolvedUnitResult) {
       return const <SearchResult>[];
     }
@@ -481,7 +494,7 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      var unitResult = await _driver.getResult2(unitPath);
+      var unitResult = await _driver.getResult(unitPath);
       if (unitResult is ResolvedUnitResult) {
         var visitor = _LocalReferencesVisitor(element, unitElement);
         unitResult.unit.accept(visitor);
@@ -562,7 +575,14 @@ class SearchResult {
 }
 
 /// The kind of reference in a [SearchResult].
-enum SearchResultKind { READ, READ_WRITE, WRITE, INVOCATION, REFERENCE }
+enum SearchResultKind {
+  READ,
+  READ_WRITE,
+  WRITE,
+  INVOCATION,
+  REFERENCE,
+  REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
+}
 
 /// A single subtype of a type.
 class SubtypeResult {

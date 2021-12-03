@@ -57,6 +57,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           (builder) => buildLinkedEdit(builder as DartLinkedEditBuilder));
 
   @override
+  bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied}) =>
+      type != null && !type.isDynamic
+          ? _canWriteType(type, methodBeingCopied: methodBeingCopied)
+          : false;
+
+  @override
   LinkedEditBuilderImpl createLinkedEditBuilder() {
     return DartLinkedEditBuilderImpl(this);
   }
@@ -510,12 +516,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       ExecutableElement? methodBeingCopied,
       String? nameGroupName,
       DartType? type,
-      String? typeGroupName}) {
+      String? typeGroupName,
+      bool isRequiredType = false}) {
     bool writeType() {
       if (typeGroupName != null) {
         late bool hasType;
         addLinkedEdit(typeGroupName, (DartLinkedEditBuilder builder) {
-          hasType = _writeType(type, methodBeingCopied: methodBeingCopied);
+          hasType = _writeType(type,
+              methodBeingCopied: methodBeingCopied, required: isRequiredType);
           builder.addSuperTypesAsSuggestions(type);
         });
         return hasType;
@@ -590,7 +598,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameters(Iterable<ParameterElement> parameters,
-      {ExecutableElement? methodBeingCopied}) {
+      {ExecutableElement? methodBeingCopied, bool requiredTypes = false}) {
     var parameterNames = <String>{};
     for (var i = 0; i < parameters.length; i++) {
       var name = parameters.elementAt(i).name;
@@ -633,7 +641,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           methodBeingCopied: methodBeingCopied,
           nameGroupName: parameter.isNamed ? null : '${groupPrefix}PARAM$i',
           type: parameter.type,
-          typeGroupName: '${groupPrefix}TYPE$i');
+          typeGroupName: '${groupPrefix}TYPE$i',
+          isRequiredType: requiredTypes);
       // default value
       var defaultCode = parameter.defaultValueCode;
       if (defaultCode != null) {
@@ -838,6 +847,60 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
   }
 
+  /// Check if the code to reference [type] in this compilation unit can be
+  /// written.
+  ///
+  /// See also [_writeType]
+  bool _canWriteType(DartType? type,
+      {ExecutableElement? methodBeingCopied, bool required = false}) {
+    type = _getVisibleType(type, methodBeingCopied: methodBeingCopied);
+
+    // If not a useful type, don't write it.
+    if (type == null) {
+      return false;
+    }
+    if (type.isDynamic) {
+      if (required) {
+        return true;
+      }
+      return false;
+    }
+    if (type.isBottom) {
+      var library = dartFileEditBuilder.resolvedUnit.libraryElement;
+      if (library.isNonNullableByDefault) {
+        return true;
+      }
+      return false;
+    }
+
+    var alias = type.alias;
+    if (alias != null) {
+      return true;
+    }
+
+    if (type is FunctionType) {
+      return true;
+    }
+
+    if (type is InterfaceType) {
+      return true;
+    }
+
+    if (type is NeverType) {
+      return true;
+    }
+
+    if (type is TypeParameterType) {
+      return true;
+    }
+
+    if (type is VoidType) {
+      return true;
+    }
+
+    throw UnimplementedError('(${type.runtimeType}) $type');
+  }
+
   /// Generate a name that does not occur in [existingNames] that begins with
   /// the given [prefix].
   String _generateUniqueName(Set<String> existingNames, String prefix) {
@@ -890,7 +953,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       name = expression.methodName.name;
     } else if (expression is InstanceCreationExpression) {
       var constructorName = expression.constructorName;
-      var typeName = constructorName.type;
+      var typeName = constructorName.type2;
       var typeNameIdentifier = typeName.name;
       // new ClassName()
       if (typeNameIdentifier is SimpleIdentifier) {
@@ -1173,7 +1236,11 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write('Function');
       writeTypeParameters(type.typeFormals,
           methodBeingCopied: methodBeingCopied);
-      writeParameters(type.parameters, methodBeingCopied: methodBeingCopied);
+      writeParameters(type.parameters,
+          methodBeingCopied: methodBeingCopied, requiredTypes: true);
+      if (type.nullabilitySuffix == NullabilitySuffix.question) {
+        write('?');
+      }
       return true;
     }
 
@@ -1299,6 +1366,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           void Function(DartEditBuilder builder) buildEdit) =>
       super.addReplacement(
           range, (builder) => buildEdit(builder as DartEditBuilder));
+
+  @override
+  bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied}) {
+    var builder = createEditBuilder(0, 0);
+    return builder.canWriteType(type, methodBeingCopied: methodBeingCopied);
+  }
 
   @override
   void convertFunctionFromSyncToAsync(

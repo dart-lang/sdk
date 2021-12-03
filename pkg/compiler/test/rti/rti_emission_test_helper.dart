@@ -10,7 +10,6 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/js_emitter/model.dart';
@@ -21,6 +20,10 @@ import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import '../helpers/program_lookup.dart';
+
+main(List<String> args) {
+  runTests(args);
+}
 
 runTests(List<String> args, [int shardIndex]) {
   asyncTest(() async {

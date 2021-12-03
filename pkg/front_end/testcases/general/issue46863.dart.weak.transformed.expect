@@ -1,0 +1,34 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue46863.dart:5:36: Error: Method not found: 'bar'.
+// final foo = [() => const [], () => bar()];
+//                                    ^^^
+//
+// pkg/front_end/testcases/general/issue46863.dart:7:41: Error: 'Bar' isn't a type.
+// final foo2 = [(dynamic x) => const [], (Bar x) => const []];
+//                                         ^^^
+//
+// pkg/front_end/testcases/general/issue46863.dart:9:52: Error: 'Bar' isn't a type.
+// final foo3 = [(List<dynamic> x) => const [], (List<Bar> x) => const []];
+//                                                    ^^^
+//
+// pkg/front_end/testcases/general/issue46863.dart:11:60: Error: 'Bar' isn't a type.
+// final foo4 = [(Function(dynamic) x) => const [], (Function(Bar) x) => const []];
+//                                                            ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static final field core::List<() → invalid-type> foo = core::_GrowableList::_literal2<() → invalid-type>(() → core::List<dynamic> => #C1, () → invalid-type => invalid-expression "pkg/front_end/testcases/general/issue46863.dart:5:36: Error: Method not found: 'bar'.
+final foo = [() => const [], () => bar()];
+                                   ^^^");
+static final field core::List<(invalid-type) → core::List<dynamic>> foo2 = core::_GrowableList::_literal2<(invalid-type) → core::List<dynamic>>((dynamic x) → core::List<dynamic> => #C1, (invalid-type x) → core::List<dynamic> => #C1);
+static final field core::List<(core::List<dynamic>) → core::List<dynamic>> foo3 = core::_GrowableList::_literal2<(core::List<dynamic>) → core::List<dynamic>>((core::List<dynamic> x) → core::List<dynamic> => #C1, (core::List<invalid-type> x) → core::List<dynamic> => #C1);
+static final field core::List<((invalid-type) → dynamic) → core::List<dynamic>> foo4 = core::_GrowableList::_literal2<((invalid-type) → dynamic) → core::List<dynamic>>(((dynamic) → dynamic x) → core::List<dynamic> => #C1, ((invalid-type) → dynamic x) → core::List<dynamic> => #C1);
+static method main() → dynamic {}
+
+constants  {
+  #C1 = <dynamic>[]
+}

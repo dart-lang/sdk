@@ -5,18 +5,19 @@
 // part of "common_patch.dart";
 
 class _FilterImpl extends NativeFieldWrapperClass1 implements RawZLibFilter {
-  void process(List<int> data, int start, int end) native "Filter_Process";
+  @pragma("vm:external-name", "Filter_Process")
+  external void process(List<int> data, int start, int end);
 
-  List<int>? processed({bool flush: true, bool end: false})
-      native "Filter_Processed";
+  @pragma("vm:external-name", "Filter_Processed")
+  external List<int>? processed({bool flush: true, bool end: false});
 }
 
 class _ZLibInflateFilter extends _FilterImpl {
   _ZLibInflateFilter(int windowBits, List<int>? dictionary, bool raw) {
     _init(windowBits, dictionary, raw);
   }
-  void _init(int windowBits, List<int>? dictionary, bool raw)
-      native "Filter_CreateZLibInflate";
+  @pragma("vm:external-name", "Filter_CreateZLibInflate")
+  external void _init(int windowBits, List<int>? dictionary, bool raw);
 }
 
 class _ZLibDeflateFilter extends _FilterImpl {
@@ -24,8 +25,9 @@ class _ZLibDeflateFilter extends _FilterImpl {
       int strategy, List<int>? dictionary, bool raw) {
     _init(gzip, level, windowBits, memLevel, strategy, dictionary, raw);
   }
-  void _init(bool gzip, int level, int windowBits, int memLevel, int strategy,
-      List<int>? dictionary, bool raw) native "Filter_CreateZLibDeflate";
+  @pragma("vm:external-name", "Filter_CreateZLibDeflate")
+  external void _init(bool gzip, int level, int windowBits, int memLevel,
+      int strategy, List<int>? dictionary, bool raw);
 }
 
 @patch

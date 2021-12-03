@@ -65,6 +65,10 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   FlowGraph* BuildGraph();
 
+  // Returns true if given [function] is recognized for flow
+  // graph building and its body is expressed in a custom-built IL.
+  static bool IsRecognizedMethodForFlowGraph(const Function& function);
+
  private:
   BlockEntryInstr* BuildPrologue(BlockEntryInstr* normal_entry,
                                  PrologueInfo* prologue_info);
@@ -145,8 +149,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment NativeFunctionBody(const Function& function,
                               LocalVariable* first_parameter);
 
-  // Every recognized method has a body expressed in IL.
-  bool IsRecognizedMethodForFlowGraph(const Function& function);
   FlowGraph* BuildGraphOfRecognizedMethod(const Function& function);
 
   Fragment BuildTypedDataViewFactoryConstructor(const Function& function,
@@ -224,7 +226,11 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment StringInterpolate(TokenPosition position);
   Fragment ThrowTypeError();
-  Fragment ThrowNoSuchMethodError(const Function& target);
+
+  // [incompatible_arguments] should be true if the NSM is due to a mismatch
+  // between the provided arguments and the function signature.
+  Fragment ThrowNoSuchMethodError(const Function& target,
+                                  bool incompatible_arguments);
   Fragment ThrowLateInitializationError(TokenPosition position,
                                         const char* throw_method_name,
                                         const String& name);
@@ -268,6 +274,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Truncates (instead of deoptimizing) if the origin does not fit into the
   // target representation.
   Fragment UnboxTruncate(Representation to);
+
+  // Converts a true to 1 and false to 0.
+  Fragment BoolToInt();
+
+  // Converts 0 to false and the rest to true.
+  Fragment IntToBool();
 
   // Creates an ffi.Pointer holding a given address (TOS).
   Fragment FfiPointerFromAddress(const Type& result_type);

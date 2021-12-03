@@ -106,6 +106,7 @@ Future<void> testMain() async {
   for (int i = 0; i < 10; ++i) {
     final future = executeWithRandomDelay(() async {
       final r = await client.getUrl(randomlyAddRequestParams(address));
+      r.headers.add('cookie-eater', 'Cookie-Monster !');
       final response = await r.close();
       await response.drain();
     });
@@ -287,6 +288,24 @@ Future<void> hasValidHttpPOSTs(HttpProfile profile) =>
 Future<void> hasValidHttpPUTs(HttpProfile profile) =>
     hasValidHttpRequests(profile, 'PUT');
 
+void hasDefaultRequestHeaders(HttpProfile profile) {
+  for(final request in profile.requests) {
+    if(!request.request!.hasError) {
+      expect(request.request?.headers['host'], isNotNull);
+      expect(request.request?.headers['user-agent'], isNotNull);
+    }
+  }
+}
+
+void hasCustomRequestHeaders(HttpProfile profile) {
+  var requests = profile.requests.where((e) => e.method == "GET").toList();
+  for(final request in requests) {
+    if(!request.request!.hasError) {
+      expect(request.request?.headers['cookie-eater'], isNotNull);
+    }
+  }
+}
+
 var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     vmService = service;
@@ -303,6 +322,8 @@ var tests = <IsolateTest>[
     await hasValidHttpPATCHs(httpProfile);
     await hasValidHttpPOSTs(httpProfile);
     await hasValidHttpPUTs(httpProfile);
+    hasDefaultRequestHeaders(httpProfile);
+    hasCustomRequestHeaders(httpProfile);
   },
 ];
 

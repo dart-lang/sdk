@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -24,7 +23,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   final _imports = <ImportElement>[];
   var _isFirstLibraryDirective = true;
   var _hasCoreImport = false;
-  var _hasExtUri = false;
   var _partDirectiveIndex = 0;
 
   _EnclosingContext _enclosingContext;
@@ -72,7 +70,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
     }
     _libraryElement.imports = _imports;
-    _libraryElement.hasExtUri = _hasExtUri;
 
     if (_isFirstLibraryDirective) {
       _isFirstLibraryDirective = false;
@@ -87,19 +84,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         }
       }
     }
-  }
-
-  /// Build elements for [members] and add into the [element].
-  void buildMacroClassMembers(
-    ClassElementImpl element,
-    List<ClassMember> members,
-  ) {
-    var holder = _buildClassMembers(element, members);
-
-    element.accessors.addAll(holder.propertyAccessors);
-    element.constructors.addAll(holder.constructors);
-    element.fields.addAll(holder.properties.whereType<FieldElementImpl>());
-    element.methods.addAll(holder.methods);
   }
 
   @override
@@ -161,7 +145,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
     });
 
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
     node.withClause.accept(this);
     node.implementsClause?.accept(this);
   }
@@ -173,7 +157,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameNode = node.name ?? node.returnType;
     var name = node.name?.name ?? '';
     if (name == 'new') {
-      // An unnamed constructor declared with `C.new(` is modeled as unnamed.
+      // A constructor declared as `C.new` is unnamed, and is modeled as such.
       name = '';
     }
     var nameOffset = nameNode.offset;
@@ -240,7 +224,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    node.superclass.accept(this);
+    node.superclass2.accept(this);
   }
 
   @override
@@ -350,12 +334,19 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     ParameterElementImpl element;
     var parent = node.parent;
     if (parent is DefaultFormalParameter) {
-      element = DefaultFieldFormalParameterElementImpl(name, nameOffset)
-        ..constantInitializer = parent.defaultValue;
+      element = DefaultFieldFormalParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      )..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
       _enclosingContext.addParameter(name, element);
     } else {
-      element = FieldFormalParameterElementImpl(name, nameOffset);
+      element = FieldFormalParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      );
       _linker.elementNodes[element] = node;
       _enclosingContext.addParameter(null, element);
     }
@@ -363,7 +354,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.isExplicitlyCovariant = node.covariantKeyword != null;
     element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
-    element.parameterKind = node.kind;
     _setCodeRange(element, node);
 
     nameNode.staticElement = element;
@@ -497,17 +487,23 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     ParameterElementImpl element;
     var parent = node.parent;
     if (parent is DefaultFormalParameter) {
-      element = DefaultParameterElementImpl(name, nameOffset)
-        ..constantInitializer = parent.defaultValue;
+      element = DefaultParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      )..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
     } else {
-      element = ParameterElementImpl(name, nameOffset);
+      element = ParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      );
       _linker.elementNodes[element] = node;
     }
     element.isExplicitlyCovariant = node.covariantKeyword != null;
     element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
-    element.parameterKind = node.kind;
     _setCodeRange(element, node);
 
     nameNode.staticElement = element;
@@ -589,7 +585,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    node.interfaces.accept(this);
+    node.interfaces2.accept(this);
   }
 
   @override
@@ -620,8 +616,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     if (uriStr == 'dart:core') {
       _hasCoreImport = true;
-    } else if (DartUriResolver.isDartExtUri(uriStr)) {
-      _hasExtUri = true;
     }
   }
 
@@ -733,8 +727,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    node.typeArguments?.accept(this);
+  }
+
+  @override
   void visitOnClause(OnClause node) {
-    node.superclassConstraints.accept(this);
+    node.superclassConstraints2.accept(this);
   }
 
   @override
@@ -764,12 +763,19 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     ParameterElementImpl element;
     var parent = node.parent;
     if (parent is DefaultFormalParameter) {
-      element = DefaultParameterElementImpl(name, nameOffset)
-        ..constantInitializer = parent.defaultValue;
+      element = DefaultParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      )..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
       _enclosingContext.addParameter(name, element);
     } else {
-      element = ParameterElementImpl(name, nameOffset);
+      element = ParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      );
       _linker.elementNodes[element] = node;
       _enclosingContext.addParameter(null, element);
     }
@@ -778,7 +784,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.isExplicitlyCovariant = node.covariantKeyword != null;
     element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
-    element.parameterKind = node.kind;
     _setCodeRange(element, node);
 
     node.declaredElement = element;
@@ -850,11 +855,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitTypeName(TypeName node) {
-    node.typeArguments?.accept(this);
-  }
-
-  @override
   void visitTypeParameter(covariant TypeParameterImpl node) {
     var nameNode = node.name;
     var name = nameNode.name;
@@ -877,7 +877,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitWithClause(WithClause node) {
-    node.mixinTypes.accept(this);
+    node.mixinTypes2.accept(this);
   }
 
   List<ElementAnnotation> _buildAnnotations(List<Annotation> nodeList) {
@@ -885,7 +885,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   _EnclosingContext _buildClassMembers(
-      ElementImpl element, List<ClassMember> members) {
+      ElementImpl element, NodeList<ClassMember> members) {
     var hasConstConstructor = members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });
@@ -901,9 +901,29 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var element = node.declaredElement as ClassElementImpl;
     var holder = _buildClassMembers(element, node.members);
     element.accessors = holder.propertyAccessors;
-    element.constructors = holder.constructors;
     element.fields = holder.properties.whereType<FieldElement>().toList();
     element.methods = holder.methods;
+
+    var constructors = holder.constructors;
+    if (constructors.isEmpty) {
+      var containerRef = element.reference!.getChild('@constructor');
+      constructors = [
+        ConstructorElementImpl('', -1)
+          ..isSynthetic = true
+          ..reference = containerRef.getChild(''),
+      ];
+    }
+    element.constructors = constructors;
+
+    // We have all fields and constructors.
+    // Now we can resolve field formal parameters.
+    for (var constructor in constructors) {
+      for (var parameter in constructor.parameters) {
+        if (parameter is FieldFormalParameterElementImpl) {
+          parameter.field = element.getField(parameter.name);
+        }
+      }
+    }
   }
 
   void _buildExecutableElementChildren({
@@ -1007,7 +1027,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   bool _shouldBeConstField(FieldDeclaration node) {
     var fields = node.fields;
     return fields.isConst ||
-        fields.isFinal && _enclosingContext.hasConstConstructor;
+        !node.isStatic &&
+            fields.isFinal &&
+            _enclosingContext.hasConstConstructor;
   }
 
   void _visitPropertyFirst<T extends AstNode>(List<AstNode> nodes) {

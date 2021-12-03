@@ -221,7 +221,7 @@ main() {
   check(1, () => h.c?.x ??= bad(), ['h.C.x']);
   //               ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
-  // [cfe] Getter not found: 'c'.
+  // [cfe] Undefined name 'c'.
   yGetValue = 1;
   check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']);
   yGetValue = 1;

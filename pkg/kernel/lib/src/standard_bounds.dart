@@ -267,6 +267,10 @@ mixin StandardBounds {
 
   DartType getNullabilityAwareStandardLowerBoundInternal(
       DartType type1, DartType type2, Library clientLibrary) {
+    if (type1 is InvalidType || type2 is InvalidType) {
+      return const InvalidType();
+    }
+
     // DOWN(T1, T2) where TOP(T1) and TOP(T2) =
     //   T1 if MORETOP(T2, T1)
     //   T2 otherwise
@@ -629,6 +633,10 @@ mixin StandardBounds {
 
   DartType getNullabilityAwareStandardUpperBoundInternal(
       DartType type1, DartType type2, Library clientLibrary) {
+    if (type1 is InvalidType || type2 is InvalidType) {
+      return const InvalidType();
+    }
+
     // UP(T1, T2) where TOP(T1) and TOP(T2) =
     //   T1 if MORETOP(T1, T2)
     //   T2 otherwise

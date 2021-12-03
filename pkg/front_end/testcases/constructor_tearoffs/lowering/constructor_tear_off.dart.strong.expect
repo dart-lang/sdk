@@ -121,10 +121,10 @@ static method testArgs() → dynamic {
   self::Class3 c3a = f3a(42){(core::int) → self::Class3};
   self::expect(42, c3a.{self::Class3::field}{core::int});
   () → Null {
-    let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:73:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:73:8: Error: Too few positional arguments: 1 required, 0 given.
     f3a(); // error
        ^" in f3a{<inapplicable>}.();
-    let final Never #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:74:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:74:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     f3a(42, 87); // error
        ^" in f3a{<inapplicable>}.(42, 87);
@@ -140,7 +140,7 @@ Try removing the extra positional arguments.
   self::Class4 c4b = f4a(42){([core::int?]) → self::Class4};
   self::expect(42, c4b.{self::Class4::field}{core::int?});
   () → Null {
-    let final Never #t3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:89:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:89:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     f4a(42, 87); // error
        ^" in f4a{<inapplicable>}.(42, 87);
@@ -155,10 +155,10 @@ Try removing the extra positional arguments.
   self::expect(87, c5b.{self::Class5::field1}{core::int});
   self::expect(42, c5b.{self::Class5::field2}{core::int?});
   () → Null {
-    let final Never #t4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:103:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:103:8: Error: Too few positional arguments: 1 required, 0 given.
     f5a(); // error
        ^" in f5a{<inapplicable>}.();
-    let final Never #t5 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:104:8: Error: Too many positional arguments: 2 allowed, but 3 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:104:8: Error: Too many positional arguments: 2 allowed, but 3 found.
 Try removing the extra positional arguments.
     f5a(42, 87, 123); // error
        ^" in f5a{<inapplicable>}.(42, 87, 123);
@@ -172,17 +172,17 @@ Try removing the extra positional arguments.
   self::expect(null, c6a.{self::Class6::field2}{core::int?});
   self::expect(87, c6a.{self::Class6::field3}{core::int});
   () → Null {
-    let final Never #t6 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:116:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:116:8: Error: Too few positional arguments: 1 required, 0 given.
     f6a(); // error
        ^" in f6a{<inapplicable>}.();
-    let final Never #t7 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:117:8: Error: Required named parameter 'field3' must be provided.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:117:8: Error: Required named parameter 'field3' must be provided.
     f6a(42); // error
        ^" in f6a{<inapplicable>}.(42);
-    let final Never #t8 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:118:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:118:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     f6a(42, 87); // error
        ^" in f6a{<inapplicable>}.(42, 87);
-    let final Never #t9 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:119:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off.dart:119:8: Error: Too few positional arguments: 1 required, 0 given.
     f6a(field1: 87, field2: 87); // error
        ^" in f6a{<inapplicable>}.(field1: 87, field2: 87);
   };

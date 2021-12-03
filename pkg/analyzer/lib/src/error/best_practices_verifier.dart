@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -200,46 +202,40 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (parent is FieldDeclaration) {
         if (parent.isStatic) {
           _errorReporter.reportErrorForNode(
-              HintCode.INVALID_NON_VIRTUAL_ANNOTATION,
-              node,
-              [node.element!.name]);
+              HintCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
         }
       } else if (parent is MethodDeclaration) {
         if (parent.parent is ExtensionDeclaration ||
             parent.isStatic ||
             parent.isAbstract) {
           _errorReporter.reportErrorForNode(
-              HintCode.INVALID_NON_VIRTUAL_ANNOTATION,
-              node,
-              [node.element!.name]);
+              HintCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
         }
       } else {
         _errorReporter.reportErrorForNode(
-            HintCode.INVALID_NON_VIRTUAL_ANNOTATION,
-            node,
-            [node.element!.name]);
+            HintCode.INVALID_NON_VIRTUAL_ANNOTATION, node);
       }
     } else if (element.isSealed == true) {
       if (!(parent is ClassDeclaration || parent is ClassTypeAlias)) {
         _errorReporter.reportErrorForNode(
-            HintCode.INVALID_SEALED_ANNOTATION, node, [node.element!.name]);
+            HintCode.INVALID_SEALED_ANNOTATION, node);
       }
     } else if (element.isVisibleForTemplate == true ||
         element.isVisibleForTesting == true ||
         element.isVisibleForOverriding == true) {
       if (parent is Declaration) {
         void reportInvalidAnnotation(Element declaredElement) {
+          // This method is only called on named elements, so it is safe to
+          // assume that `declaredElement.name` is non-`null`.
           _errorReporter.reportErrorForNode(
               HintCode.INVALID_VISIBILITY_ANNOTATION,
               node,
-              [declaredElement.name, node.name.name]);
+              [declaredElement.name!, node.name.name]);
         }
 
         void reportInvalidVisibleForOverriding(Element declaredElement) {
           _errorReporter.reportErrorForNode(
-              HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION,
-              node,
-              [declaredElement.name, node.name.name]);
+              HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, node);
         }
 
         if (parent is TopLevelVariableDeclaration) {
@@ -270,12 +266,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         } else if (parent.declaredElement != null) {
           final declaredElement = parent.declaredElement!;
           if (element.isVisibleForOverriding &&
-              (!declaredElement.isInstanceMember ||
-                  declaredElement.enclosingElement is ExtensionElement)) {
+              !declaredElement.isInstanceMember) {
             reportInvalidVisibleForOverriding(declaredElement);
           }
 
-          if (Identifier.isPrivateName(declaredElement.name!)) {
+          var name = declaredElement.name;
+          if (name != null && Identifier.isPrivateName(name)) {
             reportInvalidAnnotation(declaredElement);
           }
         }
@@ -285,6 +281,30 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // visibleForTemplate or visibleForTesting, so leave it alone for now.
       }
     }
+
+    // Check for a reference to an undefined parameter in a `@UseResult.unless`
+    // annotation.
+    if (element.isUseResult) {
+      var undefinedParam = _findUndefinedUseResultParam(element, node, parent);
+      if (undefinedParam != null) {
+        String? name;
+        if (parent is FunctionDeclaration) {
+          name = parent.name.name;
+        } else if (parent is MethodDeclaration) {
+          name = parent.name.name;
+        }
+        if (name != null) {
+          var paramName = undefinedParam is SimpleStringLiteral
+              ? undefinedParam.value
+              : undefinedParam.staticParameterElement?.name;
+          _errorReporter.reportErrorForNode(
+              HintCode.UNDEFINED_REFERENCED_PARAMETER,
+              undefinedParam,
+              [paramName ?? undefinedParam, name]);
+        }
+      }
+    }
+
     var kinds = _targetKindsFor(element);
     if (kinds.isNotEmpty) {
       if (!_isValidTarget(parent, kinds)) {
@@ -301,8 +321,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         var kindNames = kinds.map((kind) => kind.displayString).toList()
           ..sort();
         var validKinds = kindNames.commaSeparatedWithOr;
+        // Annotations always refer to named elements, so we can safely assume
+        // that `name` is non-`null`.
         _errorReporter.reportErrorForNode(
-            HintCode.INVALID_ANNOTATION_TARGET, node.name, [name, validKinds]);
+            HintCode.INVALID_ANNOTATION_TARGET, node.name, [name!, validKinds]);
         return;
       }
     }
@@ -372,6 +394,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCommentReference(CommentReference node) {
+    var newKeyword = node.newKeyword;
+    if (newKeyword != null &&
+        _currentLibrary.featureSet.isEnabled(Feature.constructor_tearoffs)) {
+      _errorReporter.reportErrorForToken(
+          HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, newKeyword, []);
+    }
+    super.visitCommentReference(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredElement as ConstructorElementImpl;
     if (!_isNonNullableByDefault && node.declaredElement!.isFactory) {
@@ -403,7 +436,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitExportDirective(ExportDirective node) {
     _deprecatedVerifier.exportDirective(node);
     _checkForInternalExport(node);
-    _checkForUseOfNativeExtension(node);
     super.visitExportDirective(node);
   }
 
@@ -425,7 +457,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         ExecutableElement? getOverriddenPropertyAccessor() {
           final element = field.declaredElement;
           if (element is PropertyAccessorElement || element is FieldElement) {
-            Name name = Name(_currentLibrary.source.uri, element!.name!);
+            Name name = Name(_currentLibrary.source.uri, element!.name);
             Element enclosingElement = element.enclosingElement!;
             if (enclosingElement is ClassElement) {
               var overridden = _inheritanceManager
@@ -446,10 +478,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         final overriddenElement = getOverriddenPropertyAccessor();
         if (overriddenElement != null &&
             _hasNonVirtualAnnotation(overriddenElement)) {
+          // Overridden members are always inside classes or mixins, which are
+          // always named, so we can safely assume
+          // `overriddenElement.enclosingElement.name` is non-`null`.
           _errorReporter.reportErrorForNode(
               HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
               field.name,
-              [field.name, overriddenElement.enclosingElement.name]);
+              [field.name, overriddenElement.enclosingElement.name!]);
         }
         if (!_invalidAccessVerifier._inTestDirectory) {
           _checkForAssignmentOfDoNotStore(field.initializer);
@@ -558,7 +593,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     _invalidAccessVerifier.verifyImport(node);
     _checkForImportOfLegacyLibraryIntoNullSafe(node);
-    _checkForUseOfNativeExtension(node);
     super.visitImportDirective(node);
   }
 
@@ -631,10 +665,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
       if (overriddenElement != null &&
           _hasNonVirtualAnnotation(overriddenElement)) {
+        // Overridden members are always inside classes or mixins, which are
+        // always named, so we can safely assume
+        // `overriddenElement.enclosingElement.name` is non-`null`.
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
             node.name,
-            [node.name, overriddenElement.enclosingElement.name]);
+            [node.name, overriddenElement.enclosingElement.name!]);
       }
 
       super.visitMethodDeclaration(node);
@@ -670,6 +707,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _invalidAccessVerifier._enclosingClass = null;
       _deprecatedVerifier.popInDeprecated();
     }
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    var question = node.question;
+    if (question != null) {
+      var name = node.name.name;
+      var type = node.typeOrThrow;
+      // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
+      // not report synthetic `dynamic` in place of an unresolved type.
+      if ((type.element == _nullType.element ||
+              (type.isDynamic && name == 'dynamic')) &&
+          type.alias == null) {
+        _errorReporter.reportErrorForToken(
+            HintCode.UNNECESSARY_QUESTION_MARK, question, [name]);
+      }
+    }
+    super.visitNamedType(node);
   }
 
   @override
@@ -746,23 +801,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  @override
-  void visitTypeName(TypeName node) {
-    if (node.question != null) {
-      var name = node.name.name;
-      var type = node.typeOrThrow;
-      // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
-      // not report synthetic `dynamic` in place of an unresolved type.
-      if ((type.element == _nullType.element ||
-              (type.isDynamic && name == 'dynamic')) &&
-          type.alias == null) {
-        _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_QUESTION_MARK, node, [name]);
-      }
-    }
-    super.visitTypeName(node);
-  }
-
   /// Check for the passed is expression for the unnecessary type check hint
   /// codes as well as null checks expressed using an is expression.
   ///
@@ -772,81 +810,71 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// [HintCode.UNNECESSARY_TYPE_CHECK_TRUE], and
   /// [HintCode.UNNECESSARY_TYPE_CHECK_FALSE].
   bool _checkAllTypeChecks(IsExpression node) {
-    Expression expression = node.expression;
-    TypeAnnotation typeName = node.type;
-    var rhsType = typeName.type as TypeImpl;
-    var rhsNameStr = typeName is TypeName ? typeName.name.name : null;
-    // if x is dynamic
-    if (rhsType.isDynamic && rhsNameStr == Keyword.DYNAMIC.lexeme) {
-      if (node.notOperator == null) {
-        // the is case
-        _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node);
-      } else {
-        // the is not case
-        _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node);
-      }
-      return true;
+    var leftNode = node.expression;
+    var rightNode = node.type;
+    var rightType = rightNode.type as TypeImpl;
+
+    void report() {
+      _errorReporter.reportErrorForNode(
+        node.notOperator == null
+            ? HintCode.UNNECESSARY_TYPE_CHECK_TRUE
+            : HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
+        node,
+      );
     }
+
+    // `is dynamic` or `is! dynamic`
+    if (rightType.isDynamic) {
+      var rightTypeStr = rightNode is NamedType ? rightNode.name.name : null;
+      if (rightTypeStr == Keyword.DYNAMIC.lexeme) {
+        report();
+        return true;
+      }
+      return false;
+    }
+
     // `is Null` or `is! Null`
-    if (rhsType.isDartCoreNull) {
-      if (expression is NullLiteral) {
-        if (node.notOperator == null) {
-          _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
-            node,
-          );
-        } else {
-          _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
-            node,
-          );
-        }
+    if (rightType.isDartCoreNull) {
+      if (leftNode is NullLiteral) {
+        report();
       } else {
-        if (node.notOperator == null) {
-          _errorReporter.reportErrorForNode(
-            HintCode.TYPE_CHECK_IS_NULL,
-            node,
-          );
-        } else {
-          _errorReporter.reportErrorForNode(
-            HintCode.TYPE_CHECK_IS_NOT_NULL,
-            node,
-          );
-        }
+        _errorReporter.reportErrorForNode(
+          node.notOperator == null
+              ? HintCode.TYPE_CHECK_IS_NULL
+              : HintCode.TYPE_CHECK_IS_NOT_NULL,
+          node,
+        );
       }
       return true;
     }
-    // `is Object` or `is! Object`
-    if (rhsType.isDartCoreObject) {
-      var nullability = rhsType.nullabilitySuffix;
-      if (nullability == NullabilitySuffix.star ||
-          nullability == NullabilitySuffix.question) {
-        if (node.notOperator == null) {
-          _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
-            node,
-          );
-        } else {
-          _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
-            node,
-          );
-        }
+
+    if (_isNonNullableByDefault) {
+      var leftType = leftNode.typeOrThrow;
+      if (_typeSystem.isSubtypeOf(leftType, rightType)) {
+        report();
+        return true;
+      }
+    } else {
+      // In legacy all types are subtypes of `Object`.
+      if (rightType.isDartCoreObject) {
+        report();
         return true;
       }
     }
+
     return false;
   }
 
   void _checkForAssignmentOfDoNotStore(Expression? expression) {
     var expressionMap = _getSubExpressionsMarkedDoNotStore(expression);
     for (var entry in expressionMap.entries) {
+      // All the elements returned by [_getSubExpressionsMarkedDoNotStore] are
+      // named elements, so we can safely assume `entry.value.name` is
+      // non-`null`.
       _errorReporter.reportErrorForNode(
         HintCode.ASSIGNMENT_OF_DO_NOT_STORE,
         entry.key,
-        [entry.value.name],
+        [entry.value.name!],
       );
     }
   }
@@ -1183,7 +1211,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // TODO(jwren) We should modify ConstructorElement.getDisplayName(), or
       // have the logic centralized elsewhere, instead of doing this logic
       // here.
-      String fullConstructorName = constructorName.type.name.name;
+      String fullConstructorName = constructorName.type2.name.name;
       if (constructorName.name != null) {
         fullConstructorName = '$fullConstructorName.${constructorName.name}';
       }
@@ -1214,9 +1242,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         prefix.name, FunctionElement.LOAD_LIBRARY_NAME);
     if (loadLibraryElement != null) {
       _errorReporter.reportErrorForNode(
-          HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
-          node,
-          [importedLibrary.name]);
+          HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, node);
       return true;
     }
     return false;
@@ -1377,10 +1403,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         return;
       }
       for (var entry in expressionMap.entries) {
+        // All the elements returned by [_getSubExpressionsMarkedDoNotStore] are
+        // named elements, so we can safely assume `entry.value.name` is
+        // non-`null`.
         _errorReporter.reportErrorForNode(
           HintCode.RETURN_OF_DO_NOT_STORE,
           entry.key,
-          [entry.value.name, parent.declaredElement!.displayName],
+          [entry.value.name!, parent.declaredElement!.displayName],
         );
       }
     }
@@ -1430,16 +1459,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return false;
-  }
-
-  void _checkForUseOfNativeExtension(UriBasedDirective node) {
-    var uri = node.uriContent;
-    if (uri == null) {
-      return;
-    }
-    if (uri.startsWith('dart-ext:')) {
-      _errorReporter.reportErrorForNode(HintCode.USE_OF_NATIVE_EXTENSION, node);
-    }
   }
 
   void _checkRequiredParameter(FormalParameterList node) {
@@ -1536,6 +1555,60 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           reportNode,
           [displayName]);
     }
+  }
+
+  Expression? _findUndefinedUseResultParam(
+      ElementAnnotation element, Annotation node, AstNode parent) {
+    var constructorName = node.name;
+    if (constructorName is! PrefixedIdentifier ||
+        constructorName.identifier.name != 'unless') {
+      return null;
+    }
+
+    var unlessParam = element
+        .computeConstantValue()
+        ?.getField('parameterDefined')
+        ?.toStringValue();
+    if (unlessParam == null) {
+      return null;
+    }
+
+    Expression? checkParams(FormalParameterList? parameterList) {
+      if (parameterList == null) {
+        return null;
+      }
+
+      for (var param in parameterList.parameters) {
+        // Param is defined.
+        if (param.identifier?.name == unlessParam) {
+          return null;
+        }
+      }
+
+      // Find and return the parameter value node.
+      var arguments = node.arguments?.arguments;
+      if (arguments == null) {
+        return null;
+      }
+
+      for (var arg in arguments) {
+        if (arg is NamedExpression &&
+            arg.name.label.name == 'parameterDefined') {
+          return arg.expression;
+        }
+      }
+
+      return null;
+    }
+
+    if (parent is FunctionDeclarationImpl) {
+      return checkParams(parent.functionExpression.parameters);
+    }
+    if (parent is MethodDeclarationImpl) {
+      return checkParams(parent.parameters);
+    }
+
+    return null;
   }
 
   /// Return subexpressions that are marked `@doNotStore`, as a map so that
@@ -1840,8 +1913,12 @@ class _InvalidAccessVerifier {
     var element = node.uriElement;
     if (_hasInternal(element) &&
         !_isLibraryInWorkspacePackage(element!.library)) {
+      // The only way for an import directive's URI to have a `null`
+      // `stringValue` is if its string contains an interpolation, in which case
+      // the element would never have resolved in the first place.  So we can
+      // safely assume `node.uri.stringValue` is non-`null`.
       _errorReporter.reportErrorForNode(HintCode.INVALID_USE_OF_INTERNAL_MEMBER,
-          node, [node.uri.stringValue]);
+          node, [node.uri.stringValue!]);
     }
   }
 

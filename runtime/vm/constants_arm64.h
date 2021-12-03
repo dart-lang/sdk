@@ -172,9 +172,17 @@ struct InstantiationABI {
 struct TTSInternalRegs {
   static const Register kInstanceTypeArgumentsReg = R7;
   static const Register kScratchReg = R9;
+  static const Register kSubTypeArgumentReg = R5;
+  static const Register kSuperTypeArgumentReg = R6;
+
+  // Must be pushed/popped whenever generic type arguments are being checked as
+  // they overlap with registers in TypeTestABI.
+  static const intptr_t kSavedTypeArgumentRegisters = 0;
 
   static const intptr_t kInternalRegisters =
-      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+      ((1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg) |
+       (1 << kSubTypeArgumentReg) | (1 << kSuperTypeArgumentReg)) &
+      ~kSavedTypeArgumentRegisters;
 };
 
 // Registers in addition to those listed in TypeTestABI used inside the
@@ -325,6 +333,20 @@ struct AllocateArrayABI {
 struct AllocateTypedDataArrayABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
   static const Register kLengthReg = R4;
+};
+
+// ABI for BoxDoubleStub.
+struct BoxDoubleStubABI {
+  static const FpuRegister kValueReg = V0;
+  static const Register kTempReg = R1;
+  static const Register kResultReg = R0;
+};
+
+// ABI for DoubleToIntegerStub.
+struct DoubleToIntegerStubABI {
+  static const FpuRegister kInputReg = V0;
+  static const Register kRecognizedKindReg = R0;
+  static const Register kResultReg = R0;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch
@@ -527,9 +549,7 @@ static inline Condition InvertCondition(Condition c) {
   COMPILE_ASSERT((GE ^ LT) == 1);
   COMPILE_ASSERT((GT ^ LE) == 1);
   COMPILE_ASSERT((AL ^ NV) == 1);
-  // Although the NV condition is not valid for branches, it is used internally
-  // in the assembler in the implementation of far branches, so we have to
-  // allow AL and NV here. See EmitConditionalBranch.
+  ASSERT(c != AL);
   ASSERT(c != kInvalidCondition);
   return static_cast<Condition>(c ^ 1);
 }
@@ -917,7 +937,9 @@ enum FPIntCvtOp {
   FMOVSR = FPIntCvtFixed | B18 | B17 | B16,
   FMOVRD = FPIntCvtFixed | B22 | B18 | B17,
   FMOVDR = FPIntCvtFixed | B22 | B18 | B17 | B16,
-  FCVTZDS = FPIntCvtFixed | B22 | B20 | B19,
+  FCVTZS_D = FPIntCvtFixed | B22 | B20 | B19,
+  FCVTMS_D = FPIntCvtFixed | B22 | B20,
+  FCVTPS_D = FPIntCvtFixed | B22 | B19,
   SCVTFD = FPIntCvtFixed | B22 | B17,
 };
 

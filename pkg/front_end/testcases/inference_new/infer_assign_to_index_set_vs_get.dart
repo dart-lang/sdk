@@ -38,7 +38,7 @@ class Test {
         /*@ typeArgs=Index* */ f()] = /*@ typeArgs=A* */ f();
 
     t /*@target=Test.[]*/ /*@target=Test.[]=*/ [/*@ typeArgs=Index* */ f()]
-        /*@target=A.==*/ ??= /*@ typeArgs=A* */ f();
+         ??= /*@ typeArgs=A* */ f();
 
     t /*@target=Test.[]*/ /*@target=Test.[]=*/ [/*@ typeArgs=Index* */ f()]
         /*@target=B.+*/ += /*@ typeArgs=E* */ f();
@@ -54,7 +54,7 @@ class Test {
 
     var /*@ type=A* */ v2 = t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
             /*@ typeArgs=Index* */ f()]
-        /*@target=A.==*/ ??= /*@ typeArgs=A* */ f();
+         ??= /*@ typeArgs=A* */ f();
 
     var /*@ type=D* */ v3 = t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
             /*@ typeArgs=Index* */ f()]

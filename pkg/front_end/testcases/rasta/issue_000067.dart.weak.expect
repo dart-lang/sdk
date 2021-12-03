@@ -6,11 +6,11 @@ import "package:expect/expect.dart" as exp;
 import "package:expect/expect.dart";
 
 class A extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::foo];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   constructor •() → self::A*
     : super core::Object::•() {}
   static factory foo() → self::A*
-    let dynamic #redirecting_factory = self::C::bar in invalid-expression;
+    return self::C::bar();
   method m() → core::int* {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -24,11 +24,11 @@ class A extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C extends self::A {
-  static final field dynamic _redirecting# = <dynamic>[self::C::bar];
+  static final field dynamic _redirecting# = <dynamic>[#C2];
   constructor •() → self::C*
     : super self::A::•() {}
   static factory bar() → self::C*
-    let dynamic #redirecting_factory = self::D::• in invalid-expression;
+    return new self::D::•();
   method m() → core::int* {
     return 1;
   }
@@ -44,4 +44,9 @@ class D extends self::C {
 static method main() → dynamic {
   self::A* a = new self::D::•();
   exp::Expect::equals(2, a.{self::A::m}(){() →* core::int*});
+}
+
+constants  {
+  #C1 = constructor-tearoff self::A::foo
+  #C2 = constructor-tearoff self::C::bar
 }

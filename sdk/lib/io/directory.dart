@@ -36,7 +36,7 @@ part of dart.io;
 ///
 /// void main() async {
 ///   // Creates dir/ and dir/subdir/.
-///   var directory = await Directory('dir/subdir').create(recursive: true)
+///   var directory = await Directory('dir/subdir').create(recursive: true);
 ///   print(directory.path);
 /// }
 /// ```

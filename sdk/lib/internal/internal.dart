@@ -644,7 +644,7 @@ const Object sentinelValue = const SentinelValue(0);
 ///
 /// Example:
 ///
-/// ```dart
+/// ```dart template:none
 /// class Two<A, B> {}
 ///
 /// print(extractTypeArguments<List>(<int>[], <T>() => new Set<T>()));
@@ -658,7 +658,7 @@ const Object sentinelValue = const SentinelValue(0);
 /// The type argument T is important to choose which specific type parameter
 /// list in [instance]'s type hierarchy is being extracted. Consider:
 ///
-/// ```dart
+/// ```dart template:none
 /// class A<T> {}
 /// class B<T> {}
 ///
@@ -749,8 +749,7 @@ T checkNotNullable<T extends Object>(T value, String name) {
 class NotNullableError<T> extends Error implements TypeError {
   final String _name;
   NotNullableError(this._name);
-  String toString() =>
-      "Null is not a valid value for the parameter '$_name' of type '$T'";
+  String toString() => "Null is not a valid value for '$_name' of type '$T'";
 }
 
 /// A function that returns the value or default value (if invoked with `null`
@@ -947,4 +946,67 @@ abstract class HttpStatus {
   static const int HTTP_VERSION_NOT_SUPPORTED = httpVersionNotSupported;
   @Deprecated("Use networkConnectTimeoutError instead")
   static const int NETWORK_CONNECT_TIMEOUT_ERROR = networkConnectTimeoutError;
+}
+
+// Class moved here from dart:collection
+// to allow another, more important, class to implement the interface
+// without having to match the private members.
+
+/// An entry in a doubly linked list.
+///
+/// Such an entry contains an element and a link to the previous or next
+/// entries, if any.
+//
+// This class should have been abstract, but originally wasn't.
+// It's not used itself to interact with the double linked queue class,
+// which uses the `_DoubleLinkedQueueEntry` class and subclasses instead.
+// It's only used as an interface for the
+// `DoubleLinkedQueue.forEach`, `DoubleLinkedQueue.firstEntry` and
+// `DoubleLinkedQueue.lastEntry` members.
+// Still, someone might have based their own double-linked list on this
+// class, so we keep it functional.
+class DoubleLinkedQueueEntry<E> {
+  DoubleLinkedQueueEntry<E>? _previousLink;
+  DoubleLinkedQueueEntry<E>? _nextLink;
+
+  /// The element of the entry in the queue.
+  E element;
+
+  /// Creates a new entry with the given [element].
+  DoubleLinkedQueueEntry(this.element);
+
+  void _link(
+      DoubleLinkedQueueEntry<E>? previous, DoubleLinkedQueueEntry<E>? next) {
+    _nextLink = next;
+    _previousLink = previous;
+    previous?._nextLink = this;
+    next?._previousLink = this;
+  }
+
+  /// Appends the given element [e] as entry just after this entry.
+  void append(E e) {
+    DoubleLinkedQueueEntry<E>(e)._link(this, _nextLink);
+  }
+
+  /// Prepends the given [e] as entry just before this entry.
+  void prepend(E e) {
+    DoubleLinkedQueueEntry<E>(e)._link(_previousLink, this);
+  }
+
+  /// Removes this entry from any chain of entries it is part of.
+  ///
+  /// Returns its element value.
+  E remove() {
+    _previousLink?._nextLink = _nextLink;
+    _nextLink?._previousLink = _previousLink;
+    _nextLink = null;
+    _previousLink = null;
+    return element;
+  }
+
+  /// The previous entry, or `null` if there is none.
+  DoubleLinkedQueueEntry<E>? previousEntry() => _previousLink;
+
+  /// The next entry, or `null` if there is none.
+  DoubleLinkedQueueEntry<E>? nextEntry() => _nextLink;
 }

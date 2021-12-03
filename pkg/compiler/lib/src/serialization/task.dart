@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart' as ir;
+import 'package:front_end/src/fasta/util/bytes_sink.dart';
 import '../../compiler_new.dart' as api;
 import '../backend_strategy.dart';
 import '../commandline_options.dart' show Flags;
@@ -16,6 +17,7 @@ import '../elements/entities.dart';
 import '../environment.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
+import '../ir/modular.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/js_world.dart';
@@ -25,6 +27,15 @@ import '../options.dart';
 import '../util/sink_adapter.dart';
 import '../world.dart';
 import 'serialization.dart';
+
+/// A data class holding a [JsClosedWorld] and the associated
+/// [DataSourceIndices].
+class ClosedWorldAndIndices {
+  final JsClosedWorld closedWorld;
+  final DataSourceIndices indices;
+
+  ClosedWorldAndIndices(this.closedWorld, this.indices);
+}
 
 void serializeGlobalTypeInferenceResultsToSink(
     GlobalTypeInferenceResults results, DataSink sink) {
@@ -75,13 +86,13 @@ GlobalTypeInferenceResults
         AbstractValueStrategy abstractValueStrategy,
         ir.Component component,
         DataSource source) {
-  JsClosedWorld newClosedWorld = new JsClosedWorld.readFromDataSource(
+  JsClosedWorld newClosedWorld = JsClosedWorld.readFromDataSource(
       options, reporter, environment, abstractValueStrategy, component, source);
   GlobalLocalsMap newGlobalLocalsMap = GlobalLocalsMap.readFromDataSource(
       newClosedWorld.closureDataLookup.getEnclosingMember, source);
   InferredData newInferredData =
-      new InferredData.readFromDataSource(source, newClosedWorld);
-  return new GlobalTypeInferenceResults.readFromDataSource(
+      InferredData.readFromDataSource(source, newClosedWorld);
+  return GlobalTypeInferenceResults.readFromDataSource(
       source,
       newClosedWorld.elementMap,
       newClosedWorld,
@@ -101,12 +112,12 @@ JsClosedWorld deserializeClosedWorldFromSource(
     AbstractValueStrategy abstractValueStrategy,
     ir.Component component,
     DataSource source) {
-  return new JsClosedWorld.readFromDataSource(
+  return JsClosedWorld.readFromDataSource(
       options, reporter, environment, abstractValueStrategy, component, source);
 }
 
 class _StringInterner implements ir.StringInterner, StringInterner {
-  Map<String, String> _map = {};
+  final Map<String, String> _map = {};
 
   @override
   String internString(String string) {
@@ -136,8 +147,8 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing dill to ${_options.outputUri}');
       api.BinaryOutputSink dillOutput =
           _outputProvider.createBinarySink(_options.outputUri);
-      BinaryOutputSinkAdapter irSink = new BinaryOutputSinkAdapter(dillOutput);
-      ir.BinaryPrinter printer = new ir.BinaryPrinter(irSink);
+      BinaryOutputSinkAdapter irSink = BinaryOutputSinkAdapter(dillOutput);
+      ir.BinaryPrinter printer = ir.BinaryPrinter(irSink);
       printer.writeComponentFile(component);
       irSink.close();
     });
@@ -145,10 +156,10 @@ class SerializationTask extends CompilerTask {
 
   Future<ir.Component> deserializeComponent() async {
     return measureIoSubtask('deserialize dill', () async {
-      _reporter.log('Reading dill from ${_options.entryPoint}');
+      _reporter.log('Reading dill from ${_options.inputDillUri}');
       api.Input<List<int>> dillInput = await _provider
-          .readFromUri(_options.entryPoint, inputKind: api.InputKind.binary);
-      ir.Component component = new ir.Component();
+          .readFromUri(_options.inputDillUri, inputKind: api.InputKind.binary);
+      ir.Component component = ir.Component();
       // Not using growable lists saves memory.
       ir.BinaryBuilder(dillInput.data,
               useGrowableLists: false, stringInterner: _stringInterner)
@@ -166,8 +177,9 @@ class SerializationTask extends CompilerTask {
       var dillMode = isStrongDill ? 'sound' : 'unsound';
       var option =
           isStrongDill ? Flags.noSoundNullSafety : Flags.soundNullSafety;
-      throw ArgumentError("${_options.entryPoint} was compiled with $dillMode "
-          "null safety and is incompatible with the '$option' option");
+      throw ArgumentError("${_options.inputDillUri} was compiled with "
+          "$dillMode null safety and is incompatible with the '$option' "
+          "option");
     }
 
     _options.nullSafetyMode =
@@ -182,17 +194,78 @@ class SerializationTask extends CompilerTask {
     return component;
   }
 
+  void serializeModuleData(
+      ModuleData data, ir.Component component, Set<Uri> includedLibraries) {
+    measureSubtask('serialize transformed dill', () {
+      _reporter.log('Writing dill to ${_options.outputUri}');
+      var dillOutput = _outputProvider.createBinarySink(_options.outputUri);
+      var irSink = BinaryOutputSinkAdapter(dillOutput);
+      ir.BinaryPrinter printer = ir.BinaryPrinter(irSink,
+          libraryFilter: (ir.Library l) =>
+              includedLibraries.contains(l.importUri));
+      printer.writeComponentFile(component);
+      irSink.close();
+    });
+
+    measureSubtask('serialize module data', () {
+      _reporter.log('Writing data to ${_options.writeModularAnalysisUri}');
+      api.BinaryOutputSink dataOutput =
+          _outputProvider.createBinarySink(_options.writeModularAnalysisUri);
+      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput));
+      data.toDataSink(sink);
+      sink.close();
+    });
+  }
+
+  void testModuleSerialization(ModuleData data, ir.Component component) {
+    if (_options.testMode) {
+      // TODO(joshualitt):
+      // Consider using a strategy like we do for the global data, so we can also
+      // test it with the objectSink/objectSource:
+      //   List<Object> encoding = [];
+      //   DataSink sink = new ObjectSink(encoding, useDataKinds: true);
+      //   data.toDataSink(sink);
+      //   DataSource source = new ObjectSource(encoding, useDataKinds: true);
+      //   source.registerComponentLookup(new ComponentLookup(component));
+      //   ModuleData.fromDataSource(source);
+
+      BytesSink bytes = BytesSink();
+      BinarySink binarySink = BinarySink(bytes, useDataKinds: true);
+      data.toDataSink(binarySink);
+      binarySink.close();
+      var source =
+          BinarySourceImpl(bytes.builder.toBytes(), useDataKinds: true);
+      source.registerComponentLookup(ComponentLookup(component));
+      ModuleData.fromDataSource(source);
+    }
+  }
+
+  Future<List<ModuleData>> deserializeModuleData(ir.Component component) async {
+    return await measureIoSubtask('deserialize module data', () async {
+      _reporter.log('Reading data from ${_options.modularAnalysisInputs}');
+      List<ModuleData> results = [];
+      for (Uri uri in _options.modularAnalysisInputs) {
+        api.Input<List<int>> dataInput =
+            await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
+        DataSource source = BinarySourceImpl(dataInput.data);
+        source.registerComponentLookup(ComponentLookup(component));
+        results.add(ModuleData.fromDataSource(source));
+      }
+      return results;
+    });
+  }
+
   void serializeClosedWorld(JsClosedWorld closedWorld) {
     measureSubtask('serialize closed world', () {
       _reporter.log('Writing closed world to ${_options.writeClosedWorldUri}');
       api.BinaryOutputSink dataOutput =
           _outputProvider.createBinarySink(_options.writeClosedWorldUri);
-      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
+      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput));
       serializeClosedWorldToSink(closedWorld, sink);
     });
   }
 
-  Future<JsClosedWorld> deserializeClosedWorld(
+  Future<ClosedWorldAndIndices> deserializeClosedWorld(
       Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component) async {
@@ -203,12 +276,14 @@ class SerializationTask extends CompilerTask {
           inputKind: api.InputKind.binary);
       DataSource source =
           BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
-      return deserializeClosedWorldFromSource(_options, _reporter, environment,
-          abstractValueStrategy, component, source);
+      var closedWorld = deserializeClosedWorldFromSource(_options, _reporter,
+          environment, abstractValueStrategy, component, source);
+      return ClosedWorldAndIndices(closedWorld, source.exportIndices());
     });
   }
 
-  void serializeGlobalTypeInference(GlobalTypeInferenceResults results) {
+  void serializeGlobalTypeInference(
+      GlobalTypeInferenceResults results, DataSourceIndices indices) {
     JsClosedWorld closedWorld = results.closedWorld;
     ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
     serializeComponent(component);
@@ -217,7 +292,8 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing data to ${_options.writeDataUri}');
       api.BinaryOutputSink dataOutput =
           _outputProvider.createBinarySink(_options.writeDataUri);
-      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
+      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput),
+          importedIndices: indices);
       serializeGlobalTypeInferenceResultsToSink(results, sink);
     });
   }
@@ -226,20 +302,21 @@ class SerializationTask extends CompilerTask {
       Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
-      JsClosedWorld closedWorld) async {
+      ClosedWorldAndIndices closedWorldAndIndices) async {
     return await measureIoSubtask('deserialize data', () async {
       _reporter.log('Reading data from ${_options.readDataUri}');
       api.Input<List<int>> dataInput = await _provider
           .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
-      DataSource source =
-          BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
+      DataSource source = BinarySourceImpl(dataInput.data,
+          stringInterner: _stringInterner,
+          importedIndices: closedWorldAndIndices.indices);
       return deserializeGlobalTypeInferenceResultsFromSource(
           _options,
           _reporter,
           environment,
           abstractValueStrategy,
           component,
-          closedWorld,
+          closedWorldAndIndices.closedWorld,
           source);
     });
   }
@@ -254,7 +331,7 @@ class SerializationTask extends CompilerTask {
       _reporter.log('Writing data to ${_options.writeDataUri}');
       api.BinaryOutputSink dataOutput =
           _outputProvider.createBinarySink(_options.writeDataUri);
-      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
+      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput));
       serializeGlobalTypeInferenceResultsToSinkLegacy(results, sink);
     });
   }
@@ -275,8 +352,10 @@ class SerializationTask extends CompilerTask {
     });
   }
 
-  void serializeCodegen(
-      BackendStrategy backendStrategy, CodegenResults codegenResults) {
+  // TODO(joshualitt): Investigate whether closed world indices can be shared
+  // with codegen.
+  void serializeCodegen(BackendStrategy backendStrategy,
+      CodegenResults codegenResults, DataSourceIndices indices) {
     GlobalTypeInferenceResults globalTypeInferenceResults =
         codegenResults.globalTypeInferenceResults;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
@@ -295,10 +374,11 @@ class SerializationTask extends CompilerTask {
     measureSubtask('serialize codegen', () {
       Uri uri = Uri.parse('${_options.writeCodegenUri}$shard');
       api.BinaryOutputSink dataOutput = _outputProvider.createBinarySink(uri);
-      DataSink sink = new BinarySink(new BinaryOutputSinkAdapter(dataOutput));
+      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput),
+          importedIndices: indices);
       _reporter.log('Writing data to ${uri}');
       sink.registerEntityWriter(entityWriter);
-      sink.registerCodegenWriter(new CodegenWriterImpl(closedWorld));
+      sink.registerCodegenWriter(CodegenWriterImpl(closedWorld));
       sink.writeMemberMap(
           results,
           (MemberEntity member, CodegenResult result) =>
@@ -310,7 +390,8 @@ class SerializationTask extends CompilerTask {
   Future<CodegenResults> deserializeCodegen(
       BackendStrategy backendStrategy,
       GlobalTypeInferenceResults globalTypeInferenceResults,
-      CodegenInputs codegenInputs) async {
+      CodegenInputs codegenInputs,
+      DataSourceIndices indices) async {
     int shards = _options.codegenShards;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
     Map<MemberEntity, CodegenResult> results = {};
@@ -323,11 +404,11 @@ class SerializationTask extends CompilerTask {
         // TODO(36983): This code is extracted because there appeared to be a
         // memory leak for large buffer held by `source`.
         _deserializeCodegenInput(
-            backendStrategy, closedWorld, uri, dataInput, results);
+            backendStrategy, closedWorld, uri, dataInput, indices, results);
         dataInput.release();
       });
     }
-    return new DeserializedCodegenResults(
+    return DeserializedCodegenResults(
         globalTypeInferenceResults, codegenInputs, results);
   }
 
@@ -336,16 +417,17 @@ class SerializationTask extends CompilerTask {
       JClosedWorld closedWorld,
       Uri uri,
       api.Input<List<int>> dataInput,
+      DataSourceIndices importedIndices,
       Map<MemberEntity, CodegenResult> results) {
-    DataSource source =
-        BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
+    DataSource source = BinarySourceImpl(dataInput.data,
+        stringInterner: _stringInterner, importedIndices: importedIndices);
     backendStrategy.prepareCodegenReader(source);
     Map<MemberEntity, CodegenResult> codegenResults =
         source.readMemberMap((MemberEntity member) {
       List<ModularName> modularNames = [];
       List<ModularExpression> modularExpressions = [];
       CodegenReader reader =
-          new CodegenReaderImpl(closedWorld, modularNames, modularExpressions);
+          CodegenReaderImpl(closedWorld, modularNames, modularExpressions);
       source.registerCodegenReader(reader);
       CodegenResult result = CodegenResult.readFromDataSource(
           source, modularNames, modularExpressions);

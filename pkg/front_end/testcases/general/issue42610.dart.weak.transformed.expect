@@ -32,11 +32,11 @@ import "dart:core" as core;
 
 static method test() → void {
   #C1;
-  final dynamic x = invalid-expression "pkg/front_end/testcases/general/issue42610.dart:7:9: Error: The final variable 'x' must be initialized.
+  final invalid-type x = invalid-expression "pkg/front_end/testcases/general/issue42610.dart:7:9: Error: The final variable 'x' must be initialized.
 Try adding an initializer ('= expression') to the declaration.
   final x;
         ^";
-  const dynamic y = invalid-expression "pkg/front_end/testcases/general/issue42610.dart:8:9: Error: The const variable 'y' must be initialized.
+  const invalid-type y = invalid-expression "pkg/front_end/testcases/general/issue42610.dart:8:9: Error: The const variable 'y' must be initialized.
 Try adding an initializer ('= expression') to the declaration.
   const y;
         ^";

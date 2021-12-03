@@ -238,7 +238,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         ReadBool();
         const NameIndex field_name = ReadCanonicalNameReference();
         const Field& field =
-            Field::Handle(Z, H.LookupFieldByKernelGetterOrSetter(field_name));
+            Field::Handle(Z, H.LookupFieldByKernelField(field_name));
         initializer_fields[i] = &field;
         SkipExpression();
         continue;
@@ -725,7 +725,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionBody(
   } else if (has_body) {
     body += BuildStatement();
   } else if (dart_function.is_external()) {
-    body += ThrowNoSuchMethodError(dart_function);
+    body +=
+        ThrowNoSuchMethodError(dart_function, /*incompatible_arguments=*/false);
   }
 
   if (body.is_open()) {
@@ -988,7 +989,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     case UntaggedFunction::kSetterFunction:
     case UntaggedFunction::kClosureFunction:
     case UntaggedFunction::kConstructor: {
-      if (B->IsRecognizedMethodForFlowGraph(function)) {
+      if (FlowGraphBuilder::IsRecognizedMethodForFlowGraph(function)) {
         return B->BuildGraphOfRecognizedMethod(function);
       }
       return BuildGraphOfFunction(function.IsGenerativeConstructor());
@@ -1535,8 +1536,10 @@ Fragment StreamingFlowGraphBuilder::RethrowException(TokenPosition position,
 }
 
 Fragment StreamingFlowGraphBuilder::ThrowNoSuchMethodError(
-    const Function& target) {
-  return flow_graph_builder_->ThrowNoSuchMethodError(target);
+    const Function& target,
+    bool incompatible_arguments) {
+  return flow_graph_builder_->ThrowNoSuchMethodError(target,
+                                                     incompatible_arguments);
 }
 
 Fragment StreamingFlowGraphBuilder::Constant(const Object& value) {
@@ -1571,7 +1574,9 @@ Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
                                                intptr_t argument_count,
                                                ICData::RebindRule rebind_rule) {
   if (!target.AreValidArgumentCounts(0, argument_count, 0, nullptr)) {
-    return flow_graph_builder_->ThrowNoSuchMethodError(target);
+    return flow_graph_builder_->ThrowNoSuchMethodError(
+        target,
+        /*incompatible_arguments=*/true);
   }
   return flow_graph_builder_->StaticCall(position, target, argument_count,
                                          rebind_rule);
@@ -1588,7 +1593,9 @@ Fragment StreamingFlowGraphBuilder::StaticCall(
     bool use_unchecked_entry) {
   if (!target.AreValidArguments(type_args_count, argument_count, argument_names,
                                 nullptr)) {
-    return flow_graph_builder_->ThrowNoSuchMethodError(target);
+    return flow_graph_builder_->ThrowNoSuchMethodError(
+        target,
+        /*incompatible_arguments=*/true);
   }
   return flow_graph_builder_->StaticCall(
       position, target, argument_count, argument_names, rebind_rule,
@@ -1928,6 +1935,9 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
       ASSERT(instructions.current->previous() != nullptr);
       instructions.current = instructions.current->previous();
     } else {
+      if (NeedsDebugStepCheck(stack(), position)) {
+        instructions = DebugStepCheck(position) + instructions;
+      }
       instructions += CheckBoolean(position);
       instructions += Constant(Bool::True());
       Value* right_value = Pop();
@@ -2007,6 +2017,11 @@ Fragment StreamingFlowGraphBuilder::BuildInvalidExpression(
   TokenPosition pos = ReadPosition();
   if (position != NULL) *position = pos;
   const String& message = H.DartString(ReadStringReference());
+  Tag tag = ReadTag();  // read (first part of) expression.
+  if (tag == kSomething) {
+    SkipExpression();  // read (rest of) expression.
+  }
+
   // Invalid expression message has pointer to the source code, no need to
   // report it twice.
   H.ReportError(script(), TokenPosition::kNoSource, "%s", message.ToCString());
@@ -2769,6 +2784,10 @@ Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
       ASSERT(Class::Handle(field.Owner()).library() ==
                  Library::InternalLibrary() &&
              Class::Handle(field.Owner()).Name() == Symbols::ClassID().ptr());
+      return Constant(Instance::ZoneHandle(
+          Z, Instance::RawCast(field.StaticConstFieldValue())));
+    } else if (field.is_final() && field.has_trivial_initializer()) {
+      // Final fields with trivial initializers are effectively constant.
       return Constant(Instance::ZoneHandle(
           Z, Instance::RawCast(field.StaticConstFieldValue())));
     } else {
@@ -4850,17 +4869,28 @@ Fragment StreamingFlowGraphBuilder::BuildReturnStatement() {
 
   if (instructions.is_open()) {
     if (inside_try_finally) {
-      ASSERT(scopes()->finally_return_variable != NULL);
+      LocalVariable* const finally_return_variable =
+          scopes()->finally_return_variable;
+      ASSERT(finally_return_variable != nullptr);
       const Function& function = parsed_function()->function();
       if (NeedsDebugStepCheck(function, position)) {
         instructions += DebugStepCheck(position);
       }
-      instructions += StoreLocal(position, scopes()->finally_return_variable);
+      instructions += StoreLocal(position, finally_return_variable);
       instructions += Drop();
-      instructions += TranslateFinallyFinalizers(NULL, -1);
+      const intptr_t target_context_depth =
+          finally_return_variable->is_captured()
+              ? finally_return_variable->owner()->context_level()
+              : -1;
+      instructions += TranslateFinallyFinalizers(nullptr, target_context_depth);
       if (instructions.is_open()) {
-        instructions += LoadLocal(scopes()->finally_return_variable);
+        const intptr_t saved_context_depth = B->context_depth_;
+        if (finally_return_variable->is_captured()) {
+          B->context_depth_ = target_context_depth;
+        }
+        instructions += LoadLocal(finally_return_variable);
         instructions += Return(TokenPosition::kNoSource);
+        B->context_depth_ = saved_context_depth;
       }
     } else {
       instructions += Return(position);
@@ -5247,7 +5277,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     bool has_valid_annotation,
     bool has_pragma,
     intptr_t func_decl_offset) {
-  intptr_t offset = ReaderOffset();
+  const intptr_t offset = ReaderOffset();
 
   FunctionNodeHelper function_node_helper(this);
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
@@ -5346,7 +5376,11 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           function.set_is_inlinable(!FLAG_lazy_async_stacks);
         }
 
-        function.set_end_token_pos(function_node_helper.end_position_);
+        // If the start token position is synthetic, the end token position
+        // should be as well.
+        function.set_end_token_pos(
+            position.IsReal() ? function_node_helper.end_position_ : position);
+
         LocalScope* scope = scopes()->function_scopes[i].scope;
         const ContextScope& context_scope = ContextScope::Handle(
             Z, scope->PreserveOuterScope(flow_graph_builder_->context_depth_));
@@ -5376,7 +5410,11 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
   Fragment instructions;
   instructions += Constant(function);
-  instructions += LoadLocal(parsed_function()->current_context_var());
+  if (scopes()->IsClosureWithEmptyContext(offset)) {
+    instructions += NullConstant();
+  } else {
+    instructions += LoadLocal(parsed_function()->current_context_var());
+  }
   instructions += flow_graph_builder_->AllocateClosure();
   LocalVariable* closure = MakeTemporary();
 

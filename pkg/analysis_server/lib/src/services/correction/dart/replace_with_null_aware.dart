@@ -10,11 +10,36 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ReplaceWithNullAware extends CorrectionProducer {
+  /// The kind of correction to be made.
+  final _CorrectionKind correctionKind;
+
+  ReplaceWithNullAware(this.correctionKind);
+
+  @override
+  // NNBD makes this obsolete in the "chain" application; for the "single"
+  // application, there are other options and a null-aware replacement is not
+  // predictably correct.
+  bool get canBeAppliedInBulk => false;
+
+  @override
+  // NNBD makes this obsolete in the "chain" application; for the "single"
+  // application, there are other options and a null-aware replacement is not
+  // predictably correct.
+  bool get canBeAppliedToFile => false;
+
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_NULL_AWARE;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    if (correctionKind == _CorrectionKind.inChain) {
+      await _computeInChain(builder);
+    } else if (correctionKind == _CorrectionKind.single) {
+      await _computeSingle(builder);
+    }
+  }
+
+  Future<void> _computeInChain(ChangeBuilder builder) async {
     var node = coveredNode;
     if (node is Expression) {
       final node_final = node;
@@ -38,6 +63,37 @@ class ReplaceWithNullAware extends CorrectionProducer {
     }
   }
 
+  Future<void> _computeSingle(ChangeBuilder builder) async {
+    var node = coveredNode?.parent;
+    if (node is MethodInvocation) {
+      var operator = node.operator;
+      if (operator != null) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleReplacement(range.token(operator), '?.');
+        });
+      }
+    } else if (node is PrefixedIdentifier) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleReplacement(range.token(node.period), '?.');
+      });
+    } else if (node is PropertyAccess) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleReplacement(range.token(node.operator), '?.');
+      });
+    }
+  }
+
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceWithNullAware newInstance() => ReplaceWithNullAware();
+  static ReplaceWithNullAware inChain() =>
+      ReplaceWithNullAware(_CorrectionKind.inChain);
+
+  /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
+  static ReplaceWithNullAware single() =>
+      ReplaceWithNullAware(_CorrectionKind.single);
+}
+
+/// The kinds of corrections supported by [ReplaceWithNullAware].
+enum _CorrectionKind {
+  inChain,
+  single,
 }

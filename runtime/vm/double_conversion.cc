@@ -175,4 +175,21 @@ bool CStringToDouble(const char* str, intptr_t length, double* result) {
   return (parsed_count == length);
 }
 
+IntegerPtr DoubleToInteger(Zone* zone, double val) {
+  if (isinf(val) || isnan(val)) {
+    const Array& args = Array::Handle(zone, Array::New(1));
+    args.SetAt(0, String::Handle(zone, String::New("Infinity or NaN toInt")));
+    Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+  }
+  int64_t ival = 0;
+  if (val <= static_cast<double>(kMinInt64)) {
+    ival = kMinInt64;
+  } else if (val >= static_cast<double>(kMaxInt64)) {
+    ival = kMaxInt64;
+  } else {  // Representable in int64_t.
+    ival = static_cast<int64_t>(val);
+  }
+  return Integer::New(ival);
+}
+
 }  // namespace dart

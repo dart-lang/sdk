@@ -29,10 +29,8 @@ SDK_DIR="$CUR_DIR/../../.."
 # checked-in dart binaries must be adjusted.
 if [[ `uname` == 'Darwin' ]]; then
   DART="$SDK_DIR/tools/sdks/dart-sdk/bin/dart"
-  OUT_DIR="$SDK_DIR/xcodebuild"
 else
   DART="$SDK_DIR/tools/sdks/dart-sdk/bin/dart"
-  OUT_DIR="$SDK_DIR/out"
 fi
 
 exec "$DART" $DART_VM_FLAGS "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart" $@

@@ -13,7 +13,7 @@ import 'type_graph_nodes.dart';
 /// A set of selector names that [Set] implements and which we know do not
 /// change the element type of the set or let the set escape to code that might
 /// change the element type.
-Set<String> okSetSelectorSet = new Set<String>.from(const <String>[
+Set<String> okSetSelectorSet = Set<String>.from(const <String>[
   // From Object.
   '==',
   'hashCode',

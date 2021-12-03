@@ -53,38 +53,60 @@ class SynthesizedFunctionNode {
             new CloneVisitorNotMembers(typeSubstitution: _typeSubstitution);
         clonedParameter.initializer = cloner!
             .clone(originalParameter.initializer!)
-              ..parent = clonedParameter;
+          ..parent = clonedParameter;
       }
     }
 
     // For mixin application constructors, the argument count is the same, but
     // for redirecting tear off lowerings, the argument count of the tear off
-    // can be less than that of the redirection target.
-
-    assert(_synthesized.positionalParameters.length <=
-        _original.positionalParameters.length);
-    for (int i = 0; i < _synthesized.positionalParameters.length; i++) {
-      cloneInitializer(_original.positionalParameters[i],
-          _synthesized.positionalParameters[i]);
-    }
+    // can be less than that of the redirection target or, in errors cases, be
+    // unrelated.
 
     if (identicalSignatures) {
+      assert(_synthesized.positionalParameters.length ==
+          _original.positionalParameters.length);
+      for (int i = 0; i < _synthesized.positionalParameters.length; i++) {
+        cloneInitializer(_original.positionalParameters[i],
+            _synthesized.positionalParameters[i]);
+      }
       assert(_synthesized.namedParameters.length ==
           _original.namedParameters.length);
       for (int i = 0; i < _synthesized.namedParameters.length; i++) {
         cloneInitializer(
             _original.namedParameters[i], _synthesized.namedParameters[i]);
       }
-    } else if (_synthesized.namedParameters.isNotEmpty) {
-      Map<String, VariableDeclaration> originalParameters = {};
-      for (int i = 0; i < _original.namedParameters.length; i++) {
-        originalParameters[_original.namedParameters[i].name!] =
-            _original.namedParameters[i];
+    } else {
+      for (int i = 0; i < _synthesized.positionalParameters.length; i++) {
+        VariableDeclaration synthesizedParameter =
+            _synthesized.positionalParameters[i];
+        if (i < _original.positionalParameters.length) {
+          cloneInitializer(
+              _original.positionalParameters[i], synthesizedParameter);
+        } else {
+          // Error case: use `null` as initializer.
+          synthesizedParameter.initializer = new NullLiteral()
+            ..parent = synthesizedParameter;
+        }
       }
-      for (int i = 0; i < _synthesized.namedParameters.length; i++) {
-        cloneInitializer(
-            originalParameters[_synthesized.namedParameters[i].name!]!,
-            _synthesized.namedParameters[i]);
+      if (_synthesized.namedParameters.isNotEmpty) {
+        Map<String, VariableDeclaration> originalParameters = {};
+        for (int i = 0; i < _original.namedParameters.length; i++) {
+          originalParameters[_original.namedParameters[i].name!] =
+              _original.namedParameters[i];
+        }
+        for (int i = 0; i < _synthesized.namedParameters.length; i++) {
+          VariableDeclaration synthesizedParameter =
+              _synthesized.namedParameters[i];
+          VariableDeclaration? originalParameter =
+              originalParameters[synthesizedParameter.name!];
+          if (originalParameter != null) {
+            cloneInitializer(originalParameter, synthesizedParameter);
+          } else {
+            // Error case: use `null` as initializer.
+            synthesizedParameter.initializer = new NullLiteral()
+              ..parent = synthesizedParameter;
+          }
+        }
       }
     }
   }
@@ -94,8 +116,10 @@ class TypeDependency {
   final Member synthesized;
   final Member original;
   final Substitution substitution;
+  final bool copyReturnType;
 
-  TypeDependency(this.synthesized, this.original, this.substitution);
+  TypeDependency(this.synthesized, this.original, this.substitution,
+      {required this.copyReturnType});
 
   void copyInferred() {
     for (int i = 0; i < original.function!.positionalParameters.length; i++) {
@@ -114,7 +138,9 @@ class TypeDependency {
       synthesizedParameter.type =
           substitution.substituteType(originalParameter.type);
     }
-    synthesized.function!.returnType =
-        substitution.substituteType(original.function!.returnType);
+    if (copyReturnType) {
+      synthesized.function!.returnType =
+          substitution.substituteType(original.function!.returnType);
+    }
   }
 }

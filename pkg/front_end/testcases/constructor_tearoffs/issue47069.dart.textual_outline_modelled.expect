@@ -1,0 +1,4 @@
+func() {}
+main() {}
+@func()
+test() {}

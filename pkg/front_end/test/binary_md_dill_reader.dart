@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "dart:math" as math;
 
 class BinaryMdDillReader {
@@ -13,20 +11,20 @@ class BinaryMdDillReader {
   final List<int> _dillContent;
 
   String _currentlyUnparsed = "";
-  Map<String, List<String>> _readingInstructions;
-  Map<String, List<String>> _generics;
-  Map<int, String> tagToName;
-  Map<int, String> constantTagToName;
-  int version;
-  Map<String, String> _extends;
-  int _binaryMdNestingDepth;
-  String _binaryMdCurrentClass;
+  late Map<String, List<String>> _readingInstructions;
+  late Map<String, List<String>> _generics;
+  late Map<int, String> tagToName;
+  late Map<int, String> constantTagToName;
+  int? version;
+  late Map<String, String> _extends;
+  late int _binaryMdNestingDepth;
+  late String _binaryMdCurrentClass;
 
   /// The offset in the binary where we're supposed to read next.
-  int _binaryOffset;
+  late int _binaryOffset;
 
-  int _depth;
-  Map _dillStringsPointer;
+  late int _depth;
+  late Map _dillStringsPointer;
   int verboseLevel = 0;
   bool _ranSetup = false;
   List<String> readingStack = [];
@@ -100,16 +98,16 @@ class BinaryMdDillReader {
     }
   }
 
-  int numLibs;
-  int binaryOffsetForSourceTable;
-  int binaryOffsetForConstantTable;
-  int binaryOffsetForConstantTableIndex;
-  int binaryOffsetForCanonicalNames;
-  int binaryOffsetForMetadataPayloads;
-  int binaryOffsetForMetadataMappings;
-  int binaryOffsetForStringTable;
-  int binaryOffsetForStartOfComponentIndex;
-  int mainMethodReference;
+  late int numLibs;
+  late int binaryOffsetForSourceTable;
+  late int binaryOffsetForConstantTable;
+  late int binaryOffsetForConstantTableIndex;
+  late int binaryOffsetForCanonicalNames;
+  late int binaryOffsetForMetadataPayloads;
+  late int binaryOffsetForMetadataMappings;
+  late int binaryOffsetForStringTable;
+  late int binaryOffsetForStartOfComponentIndex;
+  late int mainMethodReference;
 
   /// Read the dill file data, parsing it into a Map.
   Map _readDill() {
@@ -146,7 +144,7 @@ class BinaryMdDillReader {
     /*int compilationMode = */ _peekUint32();
 
     _binaryOffset = binaryOffsetForStringTable;
-    var saved = _readingInstructions["ComponentFile"];
+    var saved = _readingInstructions["ComponentFile"]!;
     _readingInstructions["ComponentFile"] = ["StringTable strings;"];
     _readBinary("ComponentFile", "");
     _readingInstructions["ComponentFile"] = saved;
@@ -169,7 +167,7 @@ class BinaryMdDillReader {
   /// Initial setup of a "class definition" in the binary.md file.
   /// This includes parsing the name, setting up any "extends"-relationship,
   /// generics etc.
-  _binaryMdHandlePossibleClassStart(String s) {
+  void _binaryMdHandlePossibleClassStart(String s) {
     if (s.startsWith("type Byte =")) return;
     if (s.startsWith("type UInt32 =")) return;
 
@@ -189,8 +187,8 @@ class BinaryMdDillReader {
       name = name.substring("enum ".length);
       isEnum = true;
     }
-    String nameExtends = null;
-    Match extendsMatch = (new RegExp("extends (.+)[ \{]")).firstMatch(name);
+    String? nameExtends = null;
+    Match? extendsMatch = (new RegExp("extends (.+)[ \{]")).firstMatch(name);
     if (extendsMatch != null) {
       nameExtends = extendsMatch.group(1);
     }
@@ -221,7 +219,7 @@ class BinaryMdDillReader {
   /// * "Byte tag = 97;" into "Byte"
   /// * "List<T> {" into "List<T>"
   String _getType(final String inputString) {
-    String cached = _typeCache[inputString];
+    String? cached = _typeCache[inputString];
     if (cached != null) return cached;
     int end = math.max(
         math.max(inputString.indexOf(" "), inputString.lastIndexOf(">") + 1),
@@ -402,14 +400,14 @@ class BinaryMdDillReader {
       _currentlyUnparsed = "";
     }
 
-    _readingInstructions[_binaryMdCurrentClass].add(s.trim());
+    _readingInstructions[_binaryMdCurrentClass]!.add(s.trim());
   }
 
   /// Check the all types referenced by reading instructions are types we know
   /// about.
   void _binaryMdCheckHasAllTypes() {
     for (String key in _readingInstructions.keys) {
-      for (String s in _readingInstructions[key]) {
+      for (String s in _readingInstructions[key]!) {
         String type = _getType(s);
         if (!_isKnownType(type, key)) {
           throw "Unknown type: $type (used in $key)";
@@ -429,7 +427,7 @@ class BinaryMdDillReader {
     }
 
     if (parent.contains("<")) {
-      Set<String> types = _generics[parent].toSet();
+      Set<String> types = _generics[parent]!.toSet();
       if (types.contains(type)) return true;
       if (type.contains("[") &&
           types.contains(type.substring(0, type.indexOf("[")))) return true;
@@ -493,7 +491,7 @@ class BinaryMdDillReader {
     if (what.contains("<")) {
       types = _getGenerics(what);
       what = what.substring(0, what.indexOf("<")) + "<${types.length}>";
-      typeNames = _generics[what];
+      typeNames = _generics[what]!;
     }
 
     if (_readingInstructions[what] == null) {
@@ -508,7 +506,7 @@ class BinaryMdDillReader {
       print("".padLeft(_depth * 2) + " -> $what ($orgWhat @ $orgPosition)");
     }
 
-    for (String instruction in _readingInstructions[what]) {
+    for (String instruction in _readingInstructions[what]!) {
       // Special-case a few things that aren't (easily) described in the
       // binary.md file.
       if (what == "Name" && instruction == "LibraryReference library;") {
@@ -694,7 +692,7 @@ class BinaryMdDillReader {
   /// the binary.md file has been read in entirety (because the field isn't
   /// completely filled out yet).
   bool _isA(String what, String a) {
-    String parent = what;
+    String? parent = what;
     while (parent != null) {
       if (parent == a) return true;
       parent = _extends[parent];
@@ -715,7 +713,7 @@ class BinaryMdDillReader {
 
     if (what == "Expression") {
       if (tagMap[_dillContent[_binaryOffset]] != null) {
-        what = tagMap[_dillContent[_binaryOffset]];
+        what = tagMap[_dillContent[_binaryOffset]]!;
         if (!_isA(what, "Expression")) {
           throw "Expected Expression but found $what";
         }
@@ -725,7 +723,7 @@ class BinaryMdDillReader {
     }
     if (what == "IntegerLiteral") {
       if (tagMap[_dillContent[_binaryOffset]] != null) {
-        what = tagMap[_dillContent[_binaryOffset]];
+        what = tagMap[_dillContent[_binaryOffset]]!;
         if (!_isA(what, "IntegerLiteral")) {
           throw "Expected IntegerLiteral but found $what";
         }
@@ -735,7 +733,7 @@ class BinaryMdDillReader {
     }
     if (what == "Statement") {
       if (tagMap[_dillContent[_binaryOffset]] != null) {
-        what = tagMap[_dillContent[_binaryOffset]];
+        what = tagMap[_dillContent[_binaryOffset]]!;
         if (!_isA(what, "Statement")) {
           throw "Expected Statement but found $what";
         }
@@ -745,7 +743,7 @@ class BinaryMdDillReader {
     }
     if (what == "Initializer") {
       if (tagMap[_dillContent[_binaryOffset]] != null) {
-        what = tagMap[_dillContent[_binaryOffset]];
+        what = tagMap[_dillContent[_binaryOffset]]!;
         if (!_isA(what, "Initializer")) {
           throw "Expected Initializer but found $what";
         }
@@ -755,7 +753,7 @@ class BinaryMdDillReader {
     }
     if (what == "DartType") {
       if (tagMap[_dillContent[_binaryOffset]] != null) {
-        what = tagMap[_dillContent[_binaryOffset]];
+        what = tagMap[_dillContent[_binaryOffset]]!;
         if (!_isA(what, "DartType")) {
           throw "Expected DartType but found $what";
         }
@@ -766,13 +764,13 @@ class BinaryMdDillReader {
     }
     if (what.startsWith("Option<")) {
       if (tagMap[_dillContent[_binaryOffset]] != null &&
-          tagMap[_dillContent[_binaryOffset]].startsWith("Something<")) {
+          tagMap[_dillContent[_binaryOffset]]!.startsWith("Something<")) {
         what = what.replaceFirst("Option<", "Something<");
       }
     }
     if (what == "Constant") {
       if (tagMap[_dillContent[_binaryOffset]] != null) {
-        what = tagMap[_dillContent[_binaryOffset]];
+        what = tagMap[_dillContent[_binaryOffset]]!;
         if (!_isA(what, "Constant")) {
           throw "Expected Constant but found $what";
         }
@@ -837,11 +835,11 @@ class BinaryMdDillReader {
 }
 
 class DillComparer {
-  Map<int, String> tagToName;
-  StringBuffer outputTo;
+  Map<int, String>? tagToName;
+  StringBuffer? outputTo;
 
   bool compare(List<int> a, List<int> b, String binaryMd,
-      [StringBuffer outputTo]) {
+      [StringBuffer? outputTo]) {
     this.outputTo = outputTo;
     bool printOnExit = false;
     if (this.outputTo == null) {
@@ -865,10 +863,10 @@ class DillComparer {
   int outputLines = 0;
 
   void printDifference(String s) {
-    outputTo.writeln("----------");
-    outputTo.writeln(s);
-    outputTo.writeln("'Stacktrace':");
-    stack.forEach(outputTo.writeln);
+    outputTo!.writeln("----------");
+    outputTo!.writeln(s);
+    outputTo!.writeln("'Stacktrace':");
+    stack.forEach(outputTo!.writeln);
     outputLines += 3 + stack.length;
   }
 
@@ -937,8 +935,8 @@ class DillComparer {
     if (input is Map) {
       dynamic tag = input["tag"];
       if (tag != null) {
-        if (tagToName[tag] != null) {
-          return "(tag $tag, likely '${tagToName[tag]}')";
+        if (tagToName![tag] != null) {
+          return "(tag $tag, likely '${tagToName![tag]}')";
         }
         return "(tag $tag)";
       }

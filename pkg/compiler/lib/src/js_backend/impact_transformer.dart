@@ -62,8 +62,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
   @override
   WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
-    TransformedWorldImpact transformed =
-        new TransformedWorldImpact(worldImpact);
+    TransformedWorldImpact transformed = TransformedWorldImpact(worldImpact);
 
     void registerImpact(BackendImpact impact) {
       impact.registerImpact(transformed, _elementEnvironment);
@@ -95,8 +94,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           break;
         case Feature.FIELD_WITHOUT_INITIALIZER:
         case Feature.LOCAL_WITHOUT_INITIALIZER:
-          transformed.registerTypeUse(
-              new TypeUse.instantiation(_commonElements.nullType));
+          transformed
+              .registerTypeUse(TypeUse.instantiation(_commonElements.nullType));
           registerImpact(_impacts.nullLiteral);
           break;
         case Feature.LAZY_FIELD:
@@ -179,8 +178,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           break;
         case TypeUseKind.TYPE_LITERAL:
           _customElementsResolutionAnalysis.registerTypeLiteral(type);
-          var typeWithoutNullability = type.withoutNullability;
-          if (typeWithoutNullability is TypeVariableType) {
+          type.forEachTypeVariable((TypeVariableType variable) {
+            TypeVariableType typeWithoutNullability =
+                variable.withoutNullability;
             Entity typeDeclaration =
                 typeWithoutNullability.element.typeDeclaration;
             if (typeDeclaration is ClassEntity) {
@@ -194,7 +194,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
                   typeDeclaration);
             }
             registerImpact(_impacts.typeVariableExpression);
-          }
+          });
           hasTypeLiteral = true;
           break;
         case TypeUseKind.RTI_VALUE:
@@ -212,7 +212,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
     if (hasTypeLiteral) {
       transformed
-          .registerTypeUse(new TypeUse.instantiation(_commonElements.typeType));
+          .registerTypeUse(TypeUse.instantiation(_commonElements.typeType));
       registerImpact(_impacts.typeLiteral);
     }
 
@@ -222,8 +222,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       if (mapLiteralUse.isConstant) {
         registerImpact(_impacts.constantMapLiteral);
       } else {
-        transformed
-            .registerTypeUse(new TypeUse.instantiation(mapLiteralUse.type));
+        transformed.registerTypeUse(TypeUse.instantiation(mapLiteralUse.type));
       }
     }
 
@@ -231,16 +230,14 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       if (setLiteralUse.isConstant) {
         registerImpact(_impacts.constantSetLiteral);
       } else {
-        transformed
-            .registerTypeUse(new TypeUse.instantiation(setLiteralUse.type));
+        transformed.registerTypeUse(TypeUse.instantiation(setLiteralUse.type));
       }
     }
 
     for (ListLiteralUse listLiteralUse in worldImpact.listLiterals) {
       // TODO(johnniwinther): Use the [isConstant] and [isEmpty] property when
       // factory constructors are registered directly.
-      transformed
-          .registerTypeUse(new TypeUse.instantiation(listLiteralUse.type));
+      transformed.registerTypeUse(TypeUse.instantiation(listLiteralUse.type));
     }
 
     for (RuntimeTypeUse runtimeTypeUse in worldImpact.runtimeTypeUses) {
@@ -397,7 +394,7 @@ class CodegenImpactTransformer {
   }
 
   WorldImpact transformCodegenImpact(CodegenImpact impact) {
-    TransformedWorldImpact transformed = new TransformedWorldImpact(impact);
+    TransformedWorldImpact transformed = TransformedWorldImpact(impact);
 
     for (TypeUse typeUse in impact.typeUses) {
       DartType type = typeUse.type;

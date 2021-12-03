@@ -705,14 +705,16 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable<E> {
 
   E operator [](int index) {
     if (index is! int) throw diagnoseIndexError(this, index);
-    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
+    // This form of the range test correctly rejects NaN.
+    if (!(index >= 0 && index < length)) throw diagnoseIndexError(this, index);
     return JS('', '#[#]', this, index);
   }
 
   void operator []=(int index, E value) {
     checkMutable('indexed set');
     if (index is! int) throw diagnoseIndexError(this, index);
-    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
+    // This form of the range test correctly rejects NaN.
+    if (!(index >= 0 && index < length)) throw diagnoseIndexError(this, index);
     JS('void', r'#[#] = #', this, index, value);
   }
 

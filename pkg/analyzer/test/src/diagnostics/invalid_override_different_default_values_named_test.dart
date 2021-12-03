@@ -307,8 +307,7 @@ class B extends A {
 
 @reflectiveTest
 class InvalidOverrideDifferentDefaultValuesNamedWithNullSafetyTest
-    extends InvalidOverrideDifferentDefaultValuesNamedTest
-    with WithNullSafetyMixin {
+    extends InvalidOverrideDifferentDefaultValuesNamedTest {
   test_concrete_equal_optIn_extends_optOut() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7

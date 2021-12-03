@@ -74,7 +74,7 @@ class IllegalSupertype extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class C<T extends core::Object* = dynamic> extends core::Object { // from org-dartlang-testcase:///qualified_part.dart
-  static final field dynamic _redirecting# = <dynamic>[self::C::b];
+  static final field dynamic _redirecting# = <dynamic>[#C1];
   constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
@@ -82,7 +82,7 @@ class C<T extends core::Object* = dynamic> extends core::Object { // from org-da
     : super core::Object::•()
     ;
   static factory b<T extends core::Object* = dynamic>() → self::C<self::C::b::T*>*
-    let <T extends core::Object* = dynamic>() →* lib::C<T*>* #redirecting_factory = lib::C::b in let self::C::b::T* #typeArg0 = null in invalid-expression;
+    return lib::C::b<self::C::b::T*>();
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -115,7 +115,7 @@ import "org-dartlang-testcase:///qualified.dart" as main;
 
 typedef VoidFunction = () →* void;
 class C<T extends core::Object* = dynamic> extends self::C<lib::C::T*> {
-  static final field dynamic _redirecting# = <dynamic>[lib::C::b];
+  static final field dynamic _redirecting# = <dynamic>[#C2];
   constructor •() → lib::C<lib::C::T*>*
     : super self::C::•()
     ;
@@ -123,7 +123,7 @@ class C<T extends core::Object* = dynamic> extends self::C<lib::C::T*> {
     : super self::C::•()
     ;
   static factory b<T extends core::Object* = dynamic>() → lib::C<lib::C::b::T*>*
-    let Never #redirecting_factory = lib::C::a in let lib::C::b::T* #typeArg0 = null in invalid-expression;
+    return new lib::C::a<lib::C::b::T*>();
 }
 class Supertype extends core::Object {
   synthetic constructor •() → lib::Supertype*
@@ -160,4 +160,9 @@ abstract class Mixin extends core::Object {
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+
+constants  {
+  #C1 = constructor-tearoff self::C::b
+  #C2 = constructor-tearoff lib::C::b
 }

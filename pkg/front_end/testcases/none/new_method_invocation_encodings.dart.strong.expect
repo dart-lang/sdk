@@ -32,7 +32,7 @@ static method test(self::Class c, dynamic d, core::Function f1, () → void f2) 
  - 'Class' is from 'pkg/front_end/testcases/none/new_method_invocation_encodings.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'setter'.
   c.setter = c.getter;
-    ^^^^^^";
+    ^^^^^^" in c{<unresolved>}.setter = c.{self::Class::getter}{() → core::int?};
   c.{self::Class::method}{() → void};
   c.{self::Class::method}(){() → void};
   d{dynamic}.field = d{dynamic}.field;

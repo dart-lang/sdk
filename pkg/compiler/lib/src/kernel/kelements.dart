@@ -52,7 +52,8 @@ abstract class KMember extends IndexedMember {
   final Name _name;
   final bool _isStatic;
 
-  KMember(this.library, this.enclosingClass, this._name, {bool isStatic: false})
+  KMember(this.library, this.enclosingClass, this._name,
+      {bool isStatic = false})
       : _isStatic = isStatic;
 
   @override
@@ -112,7 +113,7 @@ abstract class KFunction extends KMember
 
   KFunction(KLibrary library, KClass enclosingClass, Name name,
       this.parameterStructure, this.asyncMarker,
-      {bool isStatic: false, this.isExternal: false})
+      {bool isStatic = false, this.isExternal = false})
       : super(library, enclosingClass, name, isStatic: isStatic);
 }
 

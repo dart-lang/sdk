@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 library fasta.testing.scanner_chain;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
@@ -33,8 +31,10 @@ class ScannedFile {
 class Read extends Step<TestDescription, ReadFile, ChainContext> {
   const Read();
 
+  @override
   String get name => "read";
 
+  @override
   Future<Result<ReadFile>> run(
       TestDescription input, ChainContext context) async {
     return pass(new ReadFile(input.uri, await readBytesFromFile(input.uri)));
@@ -44,9 +44,11 @@ class Read extends Step<TestDescription, ReadFile, ChainContext> {
 class Scan extends Step<ReadFile, ScannedFile, ChainContext> {
   const Scan();
 
+  @override
   String get name => "scan";
 
-  Future<Result<ScannedFile>> run(ReadFile file, ChainContext context) async {
-    return pass(new ScannedFile(file, scan(file.bytes)));
+  @override
+  Future<Result<ScannedFile>> run(ReadFile file, ChainContext context) {
+    return new Future.value(pass(new ScannedFile(file, scan(file.bytes))));
   }
 }

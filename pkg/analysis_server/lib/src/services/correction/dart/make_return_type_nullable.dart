@@ -25,6 +25,11 @@ class MakeReturnTypeNullable extends CorrectionProducer {
       return;
     }
 
+    final type = node.staticType;
+    if (type == null) {
+      return;
+    }
+
     var body = node.thisOrAncestorOfType<FunctionBody>();
     if (body == null) {
       return;
@@ -37,22 +42,22 @@ class MakeReturnTypeNullable extends CorrectionProducer {
 
     if (body.isAsynchronous || body.isGenerator) {
       if (returnType is! NamedType) {
-        return null;
+        return;
       }
       var typeArguments = returnType.typeArguments;
       if (typeArguments == null) {
-        return null;
+        return;
       }
       var arguments = typeArguments.arguments;
       if (arguments.length != 1) {
-        return null;
+        return;
       }
       returnType = arguments[0];
     }
 
     if (node is! NullLiteral &&
-        !typeSystem.isAssignableTo(returnType.typeOrThrow,
-            typeSystem.promoteToNonNull(node.typeOrThrow))) {
+        !typeSystem.isAssignableTo(
+            returnType.typeOrThrow, typeSystem.promoteToNonNull(type))) {
       return;
     }
 

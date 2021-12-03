@@ -22,7 +22,7 @@ import 'incremental_suite.dart'
 
 Directory outDir;
 
-main() async {
+Future<void> main() async {
   outDir =
       Directory.systemTemp.createTempSync("incremental_load_from_dill_test");
   try {

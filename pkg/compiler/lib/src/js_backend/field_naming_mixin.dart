@@ -15,15 +15,15 @@ abstract class _MinifiedFieldNamer implements Namer {
   // will return `null` and a normal field name has to be used.
   jsAst.Name _minifiedInstanceFieldPropertyName(FieldEntity element) {
     if (_nativeData.hasFixedBackendName(element)) {
-      return new StringBackedName(_nativeData.getFixedBackendName(element));
+      return StringBackedName(_nativeData.getFixedBackendName(element));
     }
 
     _FieldNamingScope names;
     if (element is JRecordField) {
-      names = new _FieldNamingScope.forBox(element.box, fieldRegistry);
+      names = _FieldNamingScope.forBox(element.box, fieldRegistry);
     } else {
       ClassEntity cls = element.enclosingClass;
-      names = new _FieldNamingScope.forClass(cls, _closedWorld, fieldRegistry);
+      names = _FieldNamingScope.forClass(cls, _closedWorld, fieldRegistry);
     }
 
     if (names.containsField(element)) {
@@ -69,7 +69,7 @@ class _FieldNamingRegistry {
       if (index < MinifyNamer._reservedNativeProperties.length &&
           MinifyNamer._reservedNativeProperties[index].length <= 2) {
         nameStore.add(
-            new StringBackedName(MinifyNamer._reservedNativeProperties[index]));
+            StringBackedName(MinifyNamer._reservedNativeProperties[index]));
       } else {
         nameStore.add(namer.getFreshName(namer.instanceScope, "field$index"));
       }
@@ -144,7 +144,7 @@ class _FieldNamingScope {
 
   factory _FieldNamingScope.forBox(Local box, _FieldNamingRegistry registry) {
     return registry.scopes
-        .putIfAbsent(box, () => new _BoxFieldNamingScope(box, registry));
+        .putIfAbsent(box, () => _BoxFieldNamingScope(box, registry));
   }
 
   _FieldNamingScope.rootScope(this.container, this.registry)
@@ -208,7 +208,7 @@ class _MixinFieldNamingScope extends _FieldNamingScope {
   @override
   jsAst.Name _nextName() {
     jsAst.Name proposed = super._nextName();
-    return new CompoundName([proposed, Namer._literalDollar]);
+    return CompoundName([proposed, Namer._literalDollar]);
   }
 }
 

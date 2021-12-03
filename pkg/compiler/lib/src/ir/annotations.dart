@@ -8,18 +8,19 @@ import '../common/names.dart';
 import 'modular.dart';
 
 class IrAnnotationData {
-  Map<ir.Class, String> _nativeClassNames = {};
-  Set<ir.Member> _nativeMembers = {};
-  Map<ir.Member, String> _nativeMemberNames = {};
-  Map<ir.Member, List<String>> _createsAnnotations = {};
-  Map<ir.Member, List<String>> _returnsAnnotations = {};
+  final Map<ir.Class, String> _nativeClassNames = {};
+  final Set<ir.Member> _nativeMembers = {};
+  final Map<ir.Member, String> _nativeMemberNames = {};
+  final Map<ir.Member, List<String>> _createsAnnotations = {};
+  final Map<ir.Member, List<String>> _returnsAnnotations = {};
 
-  Map<ir.Library, String> _jsInteropLibraryNames = {};
-  Map<ir.Class, String> _jsInteropClassNames = {};
-  Set<ir.Class> _anonymousJsInteropClasses = {};
-  Map<ir.Member, String> _jsInteropMemberNames = {};
+  final Map<ir.Library, String> _jsInteropLibraryNames = {};
+  final Map<ir.Class, String> _jsInteropClassNames = {};
+  final Set<ir.Class> _anonymousJsInteropClasses = {};
+  final Map<ir.Member, String> _jsInteropMemberNames = {};
 
-  Map<ir.Member, List<PragmaAnnotationData>> _memberPragmaAnnotations = {};
+  final Map<ir.Member, List<PragmaAnnotationData>> _memberPragmaAnnotations =
+      {};
 
   // Returns the text from the `@Native(<text>)` annotation of [node], if any.
   String getNativeClassName(ir.Class node) => _nativeClassNames[node];
@@ -123,10 +124,10 @@ class IrAnnotationData {
 
 IrAnnotationData processAnnotations(ModularCore modularCore) {
   ir.Component component = modularCore.component;
-  IrAnnotationData data = new IrAnnotationData();
+  IrAnnotationData data = IrAnnotationData();
 
   void processMember(ir.Member member) {
-    ir.StaticTypeContext staticTypeContext = new ir.StaticTypeContext(
+    ir.StaticTypeContext staticTypeContext = ir.StaticTypeContext(
         member, modularCore.constantEvaluator.typeEnvironment);
     List<PragmaAnnotationData> pragmaAnnotations;
     List<String> createsAnnotations;
@@ -180,7 +181,7 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
 
   for (ir.Library library in component.libraries) {
     ir.StaticTypeContext staticTypeContext =
-        new ir.StaticTypeContext.forAnnotations(
+        ir.StaticTypeContext.forAnnotations(
             library, modularCore.constantEvaluator.typeEnvironment);
     for (ir.Expression annotation in library.annotations) {
       if (annotation is ir.ConstantExpression) {
@@ -324,7 +325,7 @@ class PragmaAnnotationData {
   // TODO(johnniwinther): Support options objects when necessary.
   final bool hasOptions;
 
-  const PragmaAnnotationData(this.suffix, {this.hasOptions: false});
+  const PragmaAnnotationData(this.suffix, {this.hasOptions = false});
 
   String get name => 'dart2js:$suffix';
 
@@ -360,7 +361,7 @@ PragmaAnnotationData _getPragmaAnnotation(ir.Constant constant) {
     String prefix = 'dart2js:';
     if (!name.startsWith(prefix)) return null;
     String suffix = name.substring(prefix.length);
-    return new PragmaAnnotationData(suffix,
+    return PragmaAnnotationData(suffix,
         hasOptions: optionsValue is! ir.NullConstant);
   }
   return null;

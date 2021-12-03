@@ -1,0 +1,114 @@
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+@Const()
+library name;
+
+@Const()
+import 'redirecting_factory_invocation_metadata.dart' as self;
+
+@Const()
+export 'redirecting_factory_invocation_metadata.dart';
+
+@Const()
+part 'redirecting_factory_invocation_metadata_lib.dart';
+
+@Const()
+class Const {
+  const Const.internal();
+  const factory Const() = Const.internal;
+}
+
+@Const()
+var field = <@Const() T>(@Const() var o1, [@Const() var o2]) {
+  @Const()
+  var l1;
+
+  @Const()
+  l2<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+};
+
+@Const()
+method1<@Const() T>(@Const() var o1, [@Const() var o2]) {
+  @Const()
+  var l1;
+
+  @Const()
+  l2<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+}
+
+@Const()
+method2<@Const() T>(@Const() var o1, {@Const() var o2}) {
+  <@Const() T>(@Const() var o1, {@Const() var o2}) {};
+}
+
+class Class<@Const() T> {
+  @Const()
+  var field = <@Const() T>(@Const() var o1, {@Const() var o2}) {
+    @Const()
+    var l1;
+
+    @Const()
+    l2<@Const() T>(@Const() var o1, {@Const() var o2}) {}
+  };
+
+  @Const()
+  Class();
+
+  @Const()
+  method1<@Const() T>(@Const() var o1, [@Const() var o2]) {
+    @Const()
+    var l1;
+
+    @Const()
+    l2<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+  }
+
+  @Const()
+  method2<@Const() T>(@Const() var o1, {@Const() var o2}) {
+    <@Const() T>(@Const() var o1, {@Const() var o2}) {};
+  }
+}
+
+@Const()
+typedef Typedef1<@Const() T> = Function<@Const() T>(@Const() Class,
+    [@Const() Class]);
+
+@Const()
+typedef Typedef2<@Const() T> = Function<@Const() T>(@Const() Class,
+    {@Const() Class o2});
+
+@Const()
+typedef void Typedef3<@Const() T>(@Const() var o1, [@Const() var o2]);
+
+@Const()
+typedef void Typedef4<@Const() T>(@Const() var o1, {@Const() var o2});
+
+@Const()
+extension Extension<@Const() T> on Class<T> {
+  @Const()
+  static var field = <@Const() T>(@Const() var o1, [@Const() var o2]) {
+    @Const()
+    var l1;
+
+    @Const()
+    l2<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+  };
+
+  @Const()
+  method1<@Const() T>(@Const() var o1, [@Const() var o2]) {
+    @Const()
+    var l1;
+
+    @Const()
+    l2<@Const() T>(@Const() var o1, [@Const() var o2]) {}
+  }
+
+  @Const()
+  method2<@Const() T>(@Const() var o1, {@Const() var o2}) {
+    <@Const() T>(@Const() var o1, {@Const() var o2}) {};
+  }
+}
+
+main() {}

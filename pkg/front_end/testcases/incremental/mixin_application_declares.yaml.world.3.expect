@@ -13,7 +13,7 @@ library from "org-dartlang-test:///main_lib1.dart" as mai2 {
     synthetic constructor •() → mai2::SuperClass*
       : super dart.core::Object::•()
       ;
-    method method(covariant dart.core::int* i) → void {}
+    method method(covariant-by-declaration dart.core::int* i) → void {}
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
     abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
@@ -45,7 +45,7 @@ library from "org-dartlang-test:///main_lib1.dart" as mai2 {
     synthetic constructor •() → mai2::_Class&SuperClass&Mixin*
       : super mai2::SuperClass::•()
       ;
-    forwarding-stub method method(covariant dart.core::num* i) → void
+    forwarding-stub method method(covariant-by-declaration dart.core::num* i) → void
       return super.{mai2::Mixin::method}(i);
   }
   class Class extends mai2::_Class&SuperClass&Mixin {

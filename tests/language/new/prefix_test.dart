@@ -8,5 +8,5 @@ main() {
   return new prefix();
   //         ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'prefix'.
+  // [cfe] Couldn't find constructor 'prefix'.
 }

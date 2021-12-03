@@ -26,10 +26,54 @@ import 'mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisDomainTest);
+    defineReflectiveTests(AnalysisDomainBazelTest);
+    defineReflectiveTests(AnalysisDomainPubTest);
     defineReflectiveTests(AnalysisDomainHandlerTest);
     defineReflectiveTests(SetSubscriptionsTest);
   });
+}
+
+@reflectiveTest
+class AnalysisDomainBazelTest extends _AnalysisDomainTest {
+  String get myPackageLibPath => '$myPackageRootPath/lib';
+
+  String get myPackageRootPath => '$workspaceRootPath/dart/my';
+
+  String get myPackageTestFilePath => '$myPackageLibPath/test.dart';
+
+  String get workspaceRootPath => '/workspace';
+
+  @override
+  void setUp() {
+    super.setUp();
+    newFile('$workspaceRootPath/WORKSPACE');
+  }
+
+  Future<void> test_fileSystem_changeFile_buildFile() async {
+    // This BUILD file does not enable null safety.
+    newBazelBuildFile(myPackageRootPath, '');
+
+    newFile(myPackageTestFilePath, content: '''
+void f(int? a) {}
+''');
+
+    setRoots(included: [myPackageRootPath], excluded: []);
+    await server.onAnalysisComplete;
+
+    // Cannot use `int?` without enabling null safety.
+    assertHasErrors(myPackageTestFilePath);
+
+    // Enable null safety.
+    newBazelBuildFile(myPackageRootPath, '''
+dart_package(null_safety = True)
+''');
+
+    await pumpEventQueue();
+    await server.onAnalysisComplete;
+
+    // We have null safety enabled, so no errors.
+    assertNoErrors(myPackageTestFilePath);
+  }
 }
 
 @reflectiveTest
@@ -302,12 +346,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
 }
 
 @reflectiveTest
-class AnalysisDomainTest extends AbstractAnalysisTest {
-  final Map<String, List<AnalysisError>> filesErrors = {};
-
-  /// The files for which `analysis.flushResults` was received.
-  final List<String> flushResults = [];
-
+class AnalysisDomainPubTest extends _AnalysisDomainTest {
   String get testFilePath => '$testPackageLibPath/test.dart';
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
@@ -315,38 +354,6 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
   String get testPackageRootPath => '$workspaceRootPath/test';
 
   String get workspaceRootPath => '/home';
-
-  void assertHasErrors(String path) {
-    path = convertPath(path);
-    expect(filesErrors[path], isNotEmpty, reason: path);
-  }
-
-  void assertNoErrors(String path) {
-    path = convertPath(path);
-    expect(filesErrors[path], isEmpty, reason: path);
-  }
-
-  void assertNoErrorsNotification(String path) {
-    path = convertPath(path);
-    expect(filesErrors[path], isNull, reason: path);
-  }
-
-  void forgetReceivedErrors() {
-    filesErrors.clear();
-  }
-
-  @override
-  void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
-      var decoded = AnalysisFlushResultsParams.fromNotification(notification);
-      flushResults.addAll(decoded.files);
-      decoded.files.forEach(filesErrors.remove);
-    }
-    if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
-      var decoded = AnalysisErrorsParams.fromNotification(notification);
-      filesErrors[decoded.file] = decoded.errors;
-    }
-  }
 
   Future<void> test_fileSystem_addFile_analysisOptions() async {
     var a_path = '$testPackageLibPath/a.dart';
@@ -1408,44 +1415,6 @@ void f(A a) {}
     // errors are not reported for packages
     assertNoErrorsNotification(a_path);
   }
-
-  void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, content: config.toContent(toUriStr: toUriStr));
-  }
-
-  void _assertAnalyzedFiles({
-    required List<String> hasErrors,
-    List<String> noErrors = const [],
-    required List<String> notAnalyzed,
-  }) {
-    for (var path in hasErrors) {
-      assertHasErrors(path);
-    }
-
-    for (var path in noErrors) {
-      assertNoErrors(path);
-    }
-
-    for (var path in notAnalyzed) {
-      assertNoErrorsNotification(path);
-    }
-
-    filesErrors.clear();
-  }
-
-  void _assertFlushedResults(List<String> paths) {
-    var convertedPaths = paths.map(convertPath).toList();
-    expect(flushResults, unorderedEquals(convertedPaths));
-    flushResults.clear();
-  }
-
-  /// Create files with a content that has a compile time error.
-  /// So, when analyzed, these files will satisfy [assertHasErrors].
-  void _createFilesWithErrors(List<String> paths) {
-    for (var path in paths) {
-      newFile(path, content: 'error');
-    }
-  }
 }
 
 /// A helper to test 'analysis.*' requests.
@@ -1468,13 +1437,19 @@ class AnalysisTestHelper with ResourceProviderMixin {
     projectPath = convertPath('/project');
     testFile = convertPath('/project/bin/test.dart');
     serverChannel = MockServerChannel();
+
     // Create an SDK in the mock file system.
-    MockSdk(resourceProvider: resourceProvider);
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
+
     server = AnalysisServer(
         serverChannel,
         resourceProvider,
         AnalysisServerOptions(),
-        DartSdkManager(convertPath('/sdk')),
+        DartSdkManager(sdkRoot.path),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE);
     handler = AnalysisDomainHandler(server);
@@ -1774,5 +1749,82 @@ class A {}
     expect(subscriptions, hasLength(1));
     var files = subscriptions[plugin.AnalysisService.HIGHLIGHTS];
     expect(files, [testFile]);
+  }
+}
+
+class _AnalysisDomainTest extends AbstractAnalysisTest {
+  final Map<String, List<AnalysisError>> filesErrors = {};
+
+  /// The files for which `analysis.flushResults` was received.
+  final List<String> flushResults = [];
+
+  void assertHasErrors(String path) {
+    path = convertPath(path);
+    expect(filesErrors[path], isNotEmpty, reason: path);
+  }
+
+  void assertNoErrors(String path) {
+    path = convertPath(path);
+    expect(filesErrors[path], isEmpty, reason: path);
+  }
+
+  void assertNoErrorsNotification(String path) {
+    path = convertPath(path);
+    expect(filesErrors[path], isNull, reason: path);
+  }
+
+  void forgetReceivedErrors() {
+    filesErrors.clear();
+  }
+
+  @override
+  void processNotification(Notification notification) {
+    if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
+      var decoded = AnalysisFlushResultsParams.fromNotification(notification);
+      flushResults.addAll(decoded.files);
+      decoded.files.forEach(filesErrors.remove);
+    }
+    if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
+      var decoded = AnalysisErrorsParams.fromNotification(notification);
+      filesErrors[decoded.file] = decoded.errors;
+    }
+  }
+
+  void writePackageConfig(String path, PackageConfigFileBuilder config) {
+    newFile(path, content: config.toContent(toUriStr: toUriStr));
+  }
+
+  void _assertAnalyzedFiles({
+    required List<String> hasErrors,
+    List<String> noErrors = const [],
+    required List<String> notAnalyzed,
+  }) {
+    for (var path in hasErrors) {
+      assertHasErrors(path);
+    }
+
+    for (var path in noErrors) {
+      assertNoErrors(path);
+    }
+
+    for (var path in notAnalyzed) {
+      assertNoErrorsNotification(path);
+    }
+
+    filesErrors.clear();
+  }
+
+  void _assertFlushedResults(List<String> paths) {
+    var convertedPaths = paths.map(convertPath).toList();
+    expect(flushResults, unorderedEquals(convertedPaths));
+    flushResults.clear();
+  }
+
+  /// Create files with a content that has a compile time error.
+  /// So, when analyzed, these files will satisfy [assertHasErrors].
+  void _createFilesWithErrors(List<String> paths) {
+    for (var path in paths) {
+      newFile(path, content: 'error');
+    }
   }
 }

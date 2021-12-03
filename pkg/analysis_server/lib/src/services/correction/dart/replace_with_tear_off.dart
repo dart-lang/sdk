@@ -43,6 +43,16 @@ class ReplaceWithTearOff extends CorrectionProducer {
             builder.write(utils.getNodeText(expression.function));
           });
         });
+      } else if (expression is InstanceCreationExpression) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addReplacement(range.node(ancestor), (builder) {
+            var constructorName = expression.constructorName;
+            builder.write(utils.getNodeText(constructorName));
+            if (constructorName.name == null) {
+              builder.write('.new');
+            }
+          });
+        });
       }
     }
 

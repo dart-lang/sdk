@@ -93,11 +93,14 @@ class AstTestFactory {
 
   static ExpressionFunctionBodyImpl asyncExpressionFunctionBody(
           Expression expression) =>
-      astFactory.expressionFunctionBody(
-          TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
-          TokenFactory.tokenFromType(TokenType.FUNCTION),
-          expression,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      astFactory.expressionFunctionBody2(
+        keyword:
+            TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
+        star: null,
+        functionDefinition: TokenFactory.tokenFromType(TokenType.FUNCTION),
+        expression: expression,
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static BlockFunctionBodyImpl asyncGeneratorBlockFunctionBody(
           [List<Statement> statements = const []]) =>
@@ -105,6 +108,17 @@ class AstTestFactory {
           TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
           TokenFactory.tokenFromType(TokenType.STAR),
           block(statements));
+
+  static ExpressionFunctionBodyImpl asyncGeneratorExpressionFunctionBody(
+          Expression expression) =>
+      astFactory.expressionFunctionBody2(
+        keyword:
+            TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"),
+        star: TokenFactory.tokenFromType(TokenType.STAR),
+        functionDefinition: TokenFactory.tokenFromType(TokenType.FUNCTION),
+        expression: expression,
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static AwaitExpressionImpl awaitExpression(Expression expression) =>
       astFactory.awaitExpression(
@@ -247,7 +261,7 @@ class AstTestFactory {
           String name,
           TypeParameterList? typeParameters,
           Keyword? abstractKeyword,
-          TypeName superclass,
+          NamedType superclass,
           WithClause withClause,
           ImplementsClause? implementsClause) =>
       astFactory.classTypeAlias(
@@ -388,7 +402,7 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.EQ),
           expression);
 
-  static ConstructorNameImpl constructorName(TypeName type, String? name) =>
+  static ConstructorNameImpl constructorName(NamedType type, String? name) =>
       astFactory.constructorName(
           type,
           name == null ? null : TokenFactory.tokenFromType(TokenType.PERIOD),
@@ -485,17 +499,19 @@ class AstTestFactory {
 
   static ExpressionFunctionBodyImpl expressionFunctionBody(
           Expression expression) =>
-      astFactory.expressionFunctionBody(
-          null,
-          TokenFactory.tokenFromType(TokenType.FUNCTION),
-          expression,
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+      astFactory.expressionFunctionBody2(
+        keyword: null,
+        star: null,
+        functionDefinition: TokenFactory.tokenFromType(TokenType.FUNCTION),
+        expression: expression,
+        semicolon: TokenFactory.tokenFromType(TokenType.SEMICOLON),
+      );
 
   static ExpressionStatementImpl expressionStatement(Expression expression) =>
       astFactory.expressionStatement(
           expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
-  static ExtendsClauseImpl extendsClause(TypeName type) => astFactory
+  static ExtendsClauseImpl extendsClause(NamedType type) => astFactory
       .extendsClause(TokenFactory.tokenFromKeyword(Keyword.EXTENDS), type);
 
   static ExtensionDeclarationImpl extensionDeclaration(
@@ -503,6 +519,8 @@ class AstTestFactory {
           required bool isExtensionTypeDeclaration,
           TypeParameterList? typeParameters,
           required TypeAnnotation extendedType,
+          ShowClause? showClause,
+          HideClause? hideClause,
           List<ClassMember> members = const []}) =>
       astFactory.extensionDeclaration(
           comment: null,
@@ -515,6 +533,8 @@ class AstTestFactory {
           typeParameters: typeParameters,
           onKeyword: TokenFactory.tokenFromKeyword(Keyword.ON),
           extendedType: extendedType,
+          showClause: showClause,
+          hideClause: hideClause,
           leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
           members: members,
           rightBracket:
@@ -704,6 +724,11 @@ class AstTestFactory {
           functionType,
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
+  static HideClauseImpl hideClause(List<ShowHideClauseElement> elements) =>
+      astFactory.hideClause(
+          hideKeyword: TokenFactory.tokenFromString("hide"),
+          elements: elements);
+
   static HideCombinatorImpl hideCombinator(
           List<SimpleIdentifier> identifiers) =>
       astFactory.hideCombinator(
@@ -770,7 +795,7 @@ class AstTestFactory {
               : TokenFactory.tokenFromKeyword(Keyword.ELSE),
           elseStatement);
 
-  static ImplementsClauseImpl implementsClause(List<TypeName> types) =>
+  static ImplementsClauseImpl implementsClause(List<NamedType> types) =>
       astFactory.implementsClause(
           TokenFactory.tokenFromKeyword(Keyword.IMPLEMENTS), types);
 
@@ -838,12 +863,12 @@ class AstTestFactory {
           argumentList(arguments));
 
   static InstanceCreationExpressionImpl instanceCreationExpression2(
-          Keyword? keyword, TypeName type,
+          Keyword? keyword, NamedType type,
           [List<Expression> arguments = const []]) =>
       instanceCreationExpression3(keyword, type, null, arguments);
 
   static InstanceCreationExpressionImpl instanceCreationExpression3(
-          Keyword? keyword, TypeName type, String? identifier,
+          Keyword? keyword, NamedType type, String? identifier,
           [List<Expression> arguments = const []]) =>
       instanceCreationExpression(
           keyword,
@@ -1189,6 +1214,11 @@ class AstTestFactory {
         rightBracket: TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET),
       );
 
+  static ShowClauseImpl showClause(List<ShowHideClauseElement> elements) =>
+      astFactory.showClause(
+          showKeyword: TokenFactory.tokenFromString("show"),
+          elements: elements);
+
   static ShowCombinatorImpl showCombinator(
           List<SimpleIdentifier> identifiers) =>
       astFactory.showCombinator(
@@ -1197,6 +1227,24 @@ class AstTestFactory {
   static ShowCombinatorImpl showCombinator2(List<String> identifiers) =>
       astFactory.showCombinator(
           TokenFactory.tokenFromString("show"), identifierList(identifiers));
+
+  static ShowHideElementImpl showHideElement(String name) =>
+      astFactory.showHideElement(modifier: null, name: identifier3(name));
+
+  static ShowHideElementImpl showHideElementGetter(String name) =>
+      astFactory.showHideElement(
+          modifier: TokenFactory.tokenFromString("get"),
+          name: identifier3(name));
+
+  static ShowHideElementImpl showHideElementOperator(String name) =>
+      astFactory.showHideElement(
+          modifier: TokenFactory.tokenFromString("operator"),
+          name: identifier3(name));
+
+  static ShowHideElementImpl showHideElementSetter(String name) =>
+      astFactory.showHideElement(
+          modifier: TokenFactory.tokenFromString("set"),
+          name: identifier3(name));
 
   static SimpleFormalParameterImpl simpleFormalParameter(
           Keyword keyword, String parameterName) =>
@@ -1379,7 +1427,7 @@ class AstTestFactory {
   ///
   /// <b>Note:</b> This method does not correctly handle class elements that
   /// have type parameters.
-  static TypeNameImpl typeName(ClassElement element,
+  static NamedTypeImpl typeName(ClassElement element,
       [List<TypeAnnotation>? arguments]) {
     var name = identifier3(element.name);
     name.staticElement = element;
@@ -1394,15 +1442,21 @@ class AstTestFactory {
     return typeName;
   }
 
-  static TypeNameImpl typeName3(Identifier name,
+  static NamedTypeImpl typeName3(Identifier name,
           [List<TypeAnnotation>? arguments]) =>
-      astFactory.typeName(name, typeArgumentList(arguments));
+      astFactory.namedType(
+        name: name,
+        typeArguments: typeArgumentList(arguments),
+      );
 
-  static TypeNameImpl typeName4(String name,
+  static NamedTypeImpl typeName4(String name,
           [List<TypeAnnotation>? arguments, bool question = false]) =>
-      astFactory.typeName(identifier3(name), typeArgumentList(arguments),
-          question:
-              question ? TokenFactory.tokenFromType(TokenType.QUESTION) : null);
+      astFactory.namedType(
+        name: identifier3(name),
+        typeArguments: typeArgumentList(arguments),
+        question:
+            question ? TokenFactory.tokenFromType(TokenType.QUESTION) : null,
+      );
 
   static TypeParameterImpl typeParameter(String name) =>
       astFactory.typeParameter(null, null, identifier3(name), null, null);
@@ -1483,7 +1537,7 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
           body);
 
-  static WithClauseImpl withClause(List<TypeName> types) =>
+  static WithClauseImpl withClause(List<NamedType> types) =>
       astFactory.withClause(TokenFactory.tokenFromKeyword(Keyword.WITH), types);
 
   static YieldStatementImpl yieldEachStatement(Expression expression) =>

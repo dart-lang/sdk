@@ -106,7 +106,7 @@ abstract class KernelToElementMap {
   /// Computes the [ConstantValue] for the constant [expression].
   ConstantValue getConstantValue(
       ir.StaticTypeContext staticTypeContext, ir.Expression expression,
-      {bool requireConstant: true, bool implicitNull: false});
+      {bool requireConstant = true, bool implicitNull = false});
 
   /// Return the [ImportEntity] corresponding to [node].
   ImportEntity getImport(ir.LibraryDependency node);

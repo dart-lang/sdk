@@ -91,34 +91,34 @@ static method foo(Never x, Never? y) → dynamic {
   invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:30:5: Error: The method 'foo' isn't defined for the class 'Never?'.
 Try correcting the name to the name of an existing method, or defining a method named 'foo'.
   y.foo(); // Error.
-    ^^^";
+    ^^^" in y{<unresolved>}.foo();
   invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:31:5: Error: The getter 'bar' isn't defined for the class 'Never?'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'bar'.
   y.bar; // Error.
-    ^^^";
+    ^^^" in y{<unresolved>}.bar;
   invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:32:5: Error: The setter 'baz' isn't defined for the class 'Never?'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'baz'.
   y.baz = 42; // Error.
-    ^^^";
+    ^^^" in y{<unresolved>}.baz = 42;
   invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:33:4: Error: The method 'call' isn't defined for the class 'Never?'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
   y(); // Error.
-   ^";
+   ^" in y{<unresolved>}.call();
   y = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:34:4: Error: The operator '+' isn't defined for the class 'Never?'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
   y++; // Error.
-   ^" as{TypeError,ForDynamic,ForNonNullableByDefault} Never?;
+   ^" in y{<unresolved>}.+(1) as{TypeError,ForDynamic,ForNonNullableByDefault} Never?;
   y = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:35:5: Error: The operator '+' isn't defined for the class 'Never?'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
   y += 1; // Error.
-    ^" as{TypeError,ForDynamic,ForNonNullableByDefault} Never?;
+    ^" in y{<unresolved>}.+(1) as{TypeError,ForDynamic,ForNonNullableByDefault} Never?;
   invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:36:4: Error: The operator '[]' isn't defined for the class 'Never?'.
 Try correcting the operator to an existing operator, or defining a '[]' operator.
   y[42]; // Error.
-   ^";
+   ^" in y{<unresolved>}.[](42);
   invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:37:4: Error: The operator '[]=' isn't defined for the class 'Never?'.
 Try correcting the operator to an existing operator, or defining a '[]=' operator.
   y[42] = 42; // Error.
-   ^";
+   ^" in y{<unresolved>}.[]=(42, 42);
 }
 static method main() → dynamic {}

@@ -29,8 +29,8 @@ class MetricsBase implements Metrics {
   String get namespace => '';
 
   // TODO(sra): Make these late final fields.
-  List<Metric> _primary = [];
-  List<Metric> _secondary = [];
+  final List<Metric> _primary = [];
+  final List<Metric> _secondary = [];
 
   /// Setter method that is usually called in a subclass constructor to define
   /// the primary metrics.

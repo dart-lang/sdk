@@ -11,28 +11,29 @@ import 'dart:io';
 
 import 'package:expect/expect.dart';
 
-import 'dylib_utils.dart';
-import 'ffi_test_helpers.dart';
 import 'callback_tests_utils.dart';
+import 'dylib_utils.dart';
 
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 testLeafCall() {
   // Regular calls should transition generated -> native.
-  final isThreadInGenerated = ffiTestFunctions.lookupFunction<
-      Int8 Function(), int Function()>("IsThreadInGenerated");
+  final isThreadInGenerated = ffiTestFunctions
+      .lookupFunction<Int8 Function(), int Function()>("IsThreadInGenerated");
   Expect.equals(0, isThreadInGenerated());
   // Leaf calls should remain in generated state.
-  final isThreadInGeneratedLeaf = ffiTestFunctions.lookupFunction<
-      Int8 Function(), int Function()>("IsThreadInGenerated", isLeaf: true);
+  final isThreadInGeneratedLeaf = ffiTestFunctions
+      .lookupFunction<Int8 Function(), int Function()>("IsThreadInGenerated",
+          isLeaf: true);
   Expect.equals(1, isThreadInGeneratedLeaf());
 }
 
 testLeafCallApi() {
   // Note: This will only crash as expected in debug build mode. In other modes
   // it's effectively skip.
-  final f = ffiTestFunctions.lookupFunction<
-      Void Function(), void Function()>("TestLeafCallApi", isLeaf: true);
+  final f = ffiTestFunctions.lookupFunction<Void Function(), void Function()>(
+      "TestLeafCallApi",
+      isLeaf: true);
   // Calling Dart_.. API is unsafe from leaf calls since we explicitly haven't
   // made the generated -> native transition.
   f();
@@ -46,7 +47,8 @@ testCallbackLeaf() {
   // Note: This will only crash as expected in debug build mode. In other modes
   // it's effectively skip.
   CallbackTest("CallbackLeaf", Pointer.fromFunction<Void Function()>(nop),
-      isLeaf:true).run();
+          isLeaf: true)
+      .run();
 }
 
 main() {

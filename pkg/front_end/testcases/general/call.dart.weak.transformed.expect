@@ -1,0 +1,240 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/call.dart:29:31: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+//  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+//   var string5 = callableGetter(1);
+//                               ^
+//
+// pkg/front_end/testcases/general/call.dart:34:25: Error: Too few positional arguments: 1 required, 0 given.
+//   var nothing1 = closure();
+//                         ^
+//
+// pkg/front_end/testcases/general/call.dart:35:30: Error: Too few positional arguments: 1 required, 0 given.
+//   var nothing2 = closure.call();
+//                              ^
+//
+// pkg/front_end/testcases/general/call.dart:36:35: Error: Too few positional arguments: 1 required, 0 given.
+//   var nothing3 = closure.call.call();
+//                                   ^
+//
+// pkg/front_end/testcases/general/call.dart:37:40: Error: Too few positional arguments: 1 required, 0 given.
+//   var nothing4 = closure.call.call.call();
+//                                        ^
+//
+// pkg/front_end/testcases/general/call.dart:39:26: Error: Too few positional arguments: 1 required, 0 given.
+//   var nothing5 = callable();
+//                          ^
+//
+// pkg/front_end/testcases/general/call.dart:40:31: Error: Too few positional arguments: 1 required, 0 given.
+//   var nothing6 = callable.call();
+//                               ^
+//
+// pkg/front_end/testcases/general/call.dart:41:36: Error: Too few positional arguments: 1 required, 0 given.
+//   var nothing7 = callable.call.call();
+//                                    ^
+//
+// pkg/front_end/testcases/general/call.dart:42:41: Error: Too few positional arguments: 1 required, 0 given.
+//   var nothing8 = callable.call.call.call();
+//                                         ^
+//
+// pkg/front_end/testcases/general/call.dart:44:32: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+//  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+//   var nothing9 = callableGetter();
+//                                ^
+//
+// pkg/front_end/testcases/general/call.dart:63:29: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+//  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+// var string5 = callableGetter(1);
+//                             ^
+//
+// pkg/front_end/testcases/general/call.dart:68:23: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing1 = closure();
+//                       ^
+//
+// pkg/front_end/testcases/general/call.dart:69:28: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing2 = closure.call();
+//                            ^
+//
+// pkg/front_end/testcases/general/call.dart:70:33: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing3 = closure.call.call();
+//                                 ^
+//
+// pkg/front_end/testcases/general/call.dart:71:38: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing4 = closure.call.call.call();
+//                                      ^
+//
+// pkg/front_end/testcases/general/call.dart:73:24: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing5 = callable();
+//                        ^
+//
+// pkg/front_end/testcases/general/call.dart:74:29: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing6 = callable.call();
+//                             ^
+//
+// pkg/front_end/testcases/general/call.dart:75:34: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing7 = callable.call.call();
+//                                  ^
+//
+// pkg/front_end/testcases/general/call.dart:76:39: Error: Too few positional arguments: 1 required, 0 given.
+// var nothing8 = callable.call.call.call();
+//                                       ^
+//
+// pkg/front_end/testcases/general/call.dart:78:30: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+//  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+// var nothing9 = callableGetter();
+//                              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Callable extends core::Object {
+  synthetic constructor •() → self::Callable*
+    : super core::Object::•()
+    ;
+  method call(dynamic x) → dynamic {
+    return "string";
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class CallableGetter extends core::Object {
+  synthetic constructor •() → self::CallableGetter*
+    : super core::Object::•()
+    ;
+  get call() → dynamic
+    return new self::Callable::•();
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field (dynamic) →* dynamic closure = (dynamic x) → dynamic => x;
+static field dynamic int1 = self::closure(1){(dynamic) →* dynamic};
+static field dynamic int2 = self::closure(1){(dynamic) →* dynamic};
+static field dynamic int3 = self::closure.call(1){(dynamic) →* dynamic};
+static field dynamic int4 = self::closure.call.call(1){(dynamic) →* dynamic};
+static field self::Callable* callable = new self::Callable::•();
+static field dynamic string1 = self::callable.{self::Callable::call}(1){(dynamic) →* dynamic};
+static field dynamic string2 = self::callable.{self::Callable::call}(1){(dynamic) →* dynamic};
+static field dynamic string3 = self::callable.{self::Callable::call}{(dynamic) →* dynamic}(1){(dynamic) →* dynamic};
+static field dynamic string4 = self::callable.{self::Callable::call}{(dynamic) →* dynamic}.call(1){(dynamic) →* dynamic};
+static field self::CallableGetter* callableGetter = new self::CallableGetter::•();
+static field invalid-type string5 = invalid-expression "pkg/front_end/testcases/general/call.dart:63:29: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+ - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
+Try changing 'call' to a method or explicitly invoke 'call'.
+var string5 = callableGetter(1);
+                            ^";
+static field dynamic string6 = let final self::CallableGetter* #t1 = self::callableGetter in let final core::int* #t2 = 1 in #t1.{self::CallableGetter::call}{dynamic}{dynamic}.call(#t2);
+static field dynamic string7 = self::callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call(1);
+static field dynamic string8 = self::callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call{dynamic}.call(1);
+static field dynamic nothing1 = invalid-expression "pkg/front_end/testcases/general/call.dart:68:23: Error: Too few positional arguments: 1 required, 0 given.
+var nothing1 = closure();
+                      ^" in self::closure{<inapplicable>}.();
+static field dynamic nothing2 = invalid-expression "pkg/front_end/testcases/general/call.dart:69:28: Error: Too few positional arguments: 1 required, 0 given.
+var nothing2 = closure.call();
+                           ^" in self::closure{<inapplicable>}.();
+static field dynamic nothing3 = invalid-expression "pkg/front_end/testcases/general/call.dart:70:33: Error: Too few positional arguments: 1 required, 0 given.
+var nothing3 = closure.call.call();
+                                ^" in self::closure.call{<inapplicable>}.();
+static field dynamic nothing4 = invalid-expression "pkg/front_end/testcases/general/call.dart:71:38: Error: Too few positional arguments: 1 required, 0 given.
+var nothing4 = closure.call.call.call();
+                                     ^" in self::closure.call.call{<inapplicable>}.();
+static field dynamic nothing5 = invalid-expression "pkg/front_end/testcases/general/call.dart:73:24: Error: Too few positional arguments: 1 required, 0 given.
+var nothing5 = callable();
+                       ^" in self::callable.{self::Callable::call}{<inapplicable>}.(){() →* invalid-type};
+static field dynamic nothing6 = invalid-expression "pkg/front_end/testcases/general/call.dart:74:29: Error: Too few positional arguments: 1 required, 0 given.
+var nothing6 = callable.call();
+                            ^" in self::callable.{self::Callable::call}{<inapplicable>}.(){() →* invalid-type};
+static field dynamic nothing7 = invalid-expression "pkg/front_end/testcases/general/call.dart:75:34: Error: Too few positional arguments: 1 required, 0 given.
+var nothing7 = callable.call.call();
+                                 ^" in self::callable.{self::Callable::call}{(dynamic) →* dynamic}{<inapplicable>}.();
+static field dynamic nothing8 = invalid-expression "pkg/front_end/testcases/general/call.dart:76:39: Error: Too few positional arguments: 1 required, 0 given.
+var nothing8 = callable.call.call.call();
+                                      ^" in self::callable.{self::Callable::call}{(dynamic) →* dynamic}.call{<inapplicable>}.();
+static field invalid-type nothing9 = invalid-expression "pkg/front_end/testcases/general/call.dart:78:30: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+ - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
+Try changing 'call' to a method or explicitly invoke 'call'.
+var nothing9 = callableGetter();
+                             ^";
+static field dynamic nothing10 = self::callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call();
+static field dynamic nothing11 = self::callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call();
+static field dynamic nothing12 = self::callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call{dynamic}.call();
+static method main() → dynamic {
+  (dynamic) →* dynamic closure = (dynamic x) → dynamic => x;
+  dynamic int1 = closure(1){(dynamic) →* dynamic};
+  dynamic int2 = closure(1){(dynamic) →* dynamic};
+  dynamic int3 = closure.call(1){(dynamic) →* dynamic};
+  dynamic int4 = closure.call.call(1){(dynamic) →* dynamic};
+  self::Callable* callable = new self::Callable::•();
+  dynamic string1 = callable.{self::Callable::call}(1){(dynamic) →* dynamic};
+  dynamic string2 = callable.{self::Callable::call}(1){(dynamic) →* dynamic};
+  dynamic string3 = callable.{self::Callable::call}{(dynamic) →* dynamic}(1){(dynamic) →* dynamic};
+  dynamic string4 = callable.{self::Callable::call}{(dynamic) →* dynamic}.call(1){(dynamic) →* dynamic};
+  self::CallableGetter* callableGetter = new self::CallableGetter::•();
+  invalid-type string5 = invalid-expression "pkg/front_end/testcases/general/call.dart:29:31: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+ - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
+Try changing 'call' to a method or explicitly invoke 'call'.
+  var string5 = callableGetter(1);
+                              ^";
+  dynamic string6 = let final self::CallableGetter* #t3 = callableGetter in let final core::int* #t4 = 1 in #t3.{self::CallableGetter::call}{dynamic}{dynamic}.call(#t4);
+  dynamic string7 = callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call(1);
+  dynamic string8 = callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call{dynamic}.call(1);
+  invalid-type nothing1 = invalid-expression "pkg/front_end/testcases/general/call.dart:34:25: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing1 = closure();
+                        ^" in closure{<inapplicable>}.();
+  invalid-type nothing2 = invalid-expression "pkg/front_end/testcases/general/call.dart:35:30: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing2 = closure.call();
+                             ^" in closure{<inapplicable>}.();
+  invalid-type nothing3 = invalid-expression "pkg/front_end/testcases/general/call.dart:36:35: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing3 = closure.call.call();
+                                  ^" in closure.call{<inapplicable>}.();
+  invalid-type nothing4 = invalid-expression "pkg/front_end/testcases/general/call.dart:37:40: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing4 = closure.call.call.call();
+                                       ^" in closure.call.call{<inapplicable>}.();
+  invalid-type nothing5 = invalid-expression "pkg/front_end/testcases/general/call.dart:39:26: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing5 = callable();
+                         ^" in callable.{self::Callable::call}{<inapplicable>}.(){() →* invalid-type};
+  invalid-type nothing6 = invalid-expression "pkg/front_end/testcases/general/call.dart:40:31: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing6 = callable.call();
+                              ^" in callable.{self::Callable::call}{<inapplicable>}.(){() →* invalid-type};
+  invalid-type nothing7 = invalid-expression "pkg/front_end/testcases/general/call.dart:41:36: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing7 = callable.call.call();
+                                   ^" in callable.{self::Callable::call}{(dynamic) →* dynamic}{<inapplicable>}.();
+  invalid-type nothing8 = invalid-expression "pkg/front_end/testcases/general/call.dart:42:41: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing8 = callable.call.call.call();
+                                        ^" in callable.{self::Callable::call}{(dynamic) →* dynamic}.call{<inapplicable>}.();
+  invalid-type nothing9 = invalid-expression "pkg/front_end/testcases/general/call.dart:44:32: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
+ - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
+Try changing 'call' to a method or explicitly invoke 'call'.
+  var nothing9 = callableGetter();
+                               ^";
+  dynamic nothing10 = callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call();
+  dynamic nothing11 = callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call();
+  dynamic nothing12 = callableGetter.{self::CallableGetter::call}{dynamic}{dynamic}.call{dynamic}.call();
+}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///call.dart:30:37 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///call.dart:64:35 -> IntConstant(1)
+Extra constant evaluation: evaluated: 101, effectively constant: 2

@@ -51,8 +51,7 @@ void testProcessPathWithSpace() {
     result = Process.runSync('${processTest.path}', []);
     Process.killPid(result.pid);
   } catch (e) {
-    Expect.fail('System should find process_run_test executable');
-    print(e);
+    Expect.fail('System should find process_run_test executable ($e)');
   } finally {
     // Clean up the temp files and directory
     dir.deleteSync(recursive: true);

@@ -3,7 +3,7 @@ library from "org-dartlang-malformed-uri:?+package%3Afoo%2Fbar.dart" as ?+p {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:2:6: Error: Expected a URI.
+// org-dartlang-test:///main.dart:3:6: Error: Expected a URI.
 // part ' package:foo/bar.dart';
 //      ^
 //
@@ -13,7 +13,7 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:2:7: Error: Couldn't parse URI ' package:foo/bar.dart':
+// org-dartlang-test:///main.dart:3:7: Error: Couldn't parse URI ' package:foo/bar.dart':
 //   Scheme not starting with alphabetic character.
 // part ' package:foo/bar.dart';
 //       ^

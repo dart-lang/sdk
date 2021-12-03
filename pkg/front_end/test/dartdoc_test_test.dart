@@ -9,7 +9,7 @@ import 'package:front_end/src/fasta/hybrid_file_system.dart';
 
 import "../tool/dart_doctest_impl.dart" as impl;
 
-main() async {
+Future<void> main() async {
   expectCategory = "comment extraction";
   testCommentExtraction();
 
@@ -20,7 +20,7 @@ main() async {
   await testRunningTests();
 }
 
-void testRunningTests() async {
+Future<void> testRunningTests() async {
   MemoryFileSystem memoryFileSystem =
       new MemoryFileSystem(new Uri(scheme: "darttest", path: "/"));
   HybridFileSystem hybridFileSystem = new HybridFileSystem(memoryFileSystem);

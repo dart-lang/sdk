@@ -21,13 +21,13 @@ class SuperClass extends core::Object {
 abstract class Class extends self::SuperClass {
   synthetic constructor •() → self::Class*
     ;
-  forwarding-stub forwarding-semi-stub set setter(covariant core::int* o) → void
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::int*) →* void */ setter(covariant-by-declaration core::Object* o) → void
     return super.{self::SuperClass::setter} = o;
 }
 class SubClass extends self::Class {
   synthetic constructor •() → self::SubClass*
     ;
-  set setter(covariant core::int* o) → void
+  set setter(covariant-by-declaration core::int* o) → void
     ;
 }
 static method test() → dynamic

@@ -285,14 +285,14 @@ main() {
     try {
       doModVars(9, 9, -9, 0);
       acc = 0; // don't reach!
-    } on IntegerDivisionByZeroException catch (e, s) {}
+    } on UnsupportedError catch (e, s) {}
     Expect.equals(12, acc);
 
     acc = 0;
     try {
       doTruncDivVars(9, 9, -9, 0);
       acc = 0; // don't reach!
-    } on IntegerDivisionByZeroException catch (e, s) {}
+    } on UnsupportedError catch (e, s) {}
     Expect.equals(-23, acc);
   }
 }

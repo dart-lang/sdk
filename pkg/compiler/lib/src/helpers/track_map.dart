@@ -12,15 +12,15 @@
 /// After finishing the compilaton, the histogram of track map sizes
 /// is printed but only when running in verbose mode.
 class TrackMap<K, V> implements Map<K, V> {
-  final Map<K, V> _map;
+  final Map<K, V> _map = {};
   final List _counts;
   static final Map<String, List<int>> _countsMap = {};
 
-  TrackMap._internal(this._counts) : _map = new Map<K, V>();
+  TrackMap._internal(this._counts);
 
   factory TrackMap(String description) {
     List counts = _countsMap.putIfAbsent(description, () => [0]);
-    Map result = new TrackMap<K, V>._internal(counts);
+    Map result = TrackMap<K, V>._internal(counts);
     counts[0]++;
     return result;
   }

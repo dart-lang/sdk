@@ -12,6 +12,9 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 const String soundNullSafetyMessage = 'Info: Compiling with sound null safety';
+const devToolsMessagePrefix =
+    'The Dart DevTools debugger and profiler is available at: http://127.0.0.1:';
+const observatoryMessagePrefix = 'Observatory listening on http://127.0.0.1:';
 
 void main() {
   group('run', run, timeout: longTimeout);
@@ -347,10 +350,59 @@ void main(List<String> args) => print("$b $args");
     expect(result.exitCode, 0);
   });
 
-  group('DevTools', () {
-    const devToolsMessagePrefix =
-        'The Dart DevTools debugger and profiler is available at: http://127.0.0.1:';
+  group('DDS', () {
+    group('disable', () {
+      test('dart run simple', () {
+        p = project(mainSrc: "void main() { print('Hello World'); }");
+        ProcessResult result = p.runSync([
+          'run',
+          '--no-dds',
+          '--enable-vm-service',
+          p.relativeFilePath,
+        ]);
+        expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
+        expect(result.stdout, contains(observatoryMessagePrefix));
+      });
 
+      test('dart simple', () {
+        p = project(mainSrc: "void main() { print('Hello World'); }");
+        ProcessResult result = p.runSync([
+          '--no-dds',
+          '--enable-vm-service',
+          p.relativeFilePath,
+        ]);
+        expect(result.stdout, isNot(contains(devToolsMessagePrefix)));
+        expect(result.stdout, contains(observatoryMessagePrefix));
+      });
+    });
+
+    group('explicit enable', () {
+      test('dart run simple', () {
+        p = project(mainSrc: "void main() { print('Hello World'); }");
+        ProcessResult result = p.runSync([
+          'run',
+          '--dds',
+          '--enable-vm-service',
+          p.relativeFilePath,
+        ]);
+        expect(result.stdout, contains(devToolsMessagePrefix));
+        expect(result.stdout, contains(observatoryMessagePrefix));
+      });
+
+      test('dart simple', () {
+        p = project(mainSrc: "void main() { print('Hello World'); }");
+        ProcessResult result = p.runSync([
+          '--dds',
+          '--enable-vm-service',
+          p.relativeFilePath,
+        ]);
+        expect(result.stdout, contains(devToolsMessagePrefix));
+        expect(result.stdout, contains(observatoryMessagePrefix));
+      });
+    });
+  });
+
+  group('DevTools', () {
     test('dart run simple', () async {
       p = project(mainSrc: "void main() { print('Hello World'); }");
       ProcessResult result = p.runSync([

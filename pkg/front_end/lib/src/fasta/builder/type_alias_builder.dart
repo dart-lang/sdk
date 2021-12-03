@@ -39,10 +39,12 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
 
   String get debugName;
 
+  @override
   LibraryBuilder get parent;
 
   LibraryBuilder get library;
 
+  @override
   Uri get fileUri;
 
   List<TypeVariableBuilder>? get typeVariables;
@@ -54,20 +56,15 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   DartType buildThisType();
 
   /// [arguments] have already been built.
-  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+  @override
+  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType>? arguments);
 
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext});
+      LibraryBuilder library, List<TypeBuilder>? arguments);
 
   /// Returns `true` if this typedef is an alias of the `Null` type.
   bool get isNullAlias;
-
-  @override
-  DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext});
 
   /// Returns the [TypeDeclarationBuilder] for the type aliased by `this`,
   /// based on the given [typeArguments]. It expands type aliases repeatedly
@@ -145,14 +142,18 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       : fileUri = parent.fileUri,
         super(metadata, 0, name, parent, charOffset);
 
+  @override
   String get debugName => "TypeAliasBuilder";
 
+  @override
   LibraryBuilder get parent => super.parent as LibraryBuilder;
 
+  @override
   LibraryBuilder get library => super.parent as LibraryBuilder;
 
   /// [arguments] have already been built.
-  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+  @override
+  DartType buildTypeWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType>? arguments) {
     DartType thisType = buildThisType();
     if (const DynamicType() == thisType) return thisType;
@@ -182,23 +183,21 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
 
   @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
     return buildTypeInternal(library, nullabilityBuilder, arguments,
-        nonInstanceContext: nonInstanceContext, performLegacyErasure: true);
+        performLegacyErasure: true);
   }
 
   @override
   DartType buildTypeLiteralType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext}) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
     return buildTypeInternal(library, nullabilityBuilder, arguments,
-        nonInstanceContext: nonInstanceContext, performLegacyErasure: false);
+        performLegacyErasure: false);
   }
 
   DartType buildTypeInternal(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
-      {bool? nonInstanceContext, required bool performLegacyErasure}) {
+      {required bool performLegacyErasure}) {
     DartType thisType = buildThisType();
     if (thisType is InvalidType) return thisType;
 
@@ -222,7 +221,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       result = thisType.withDeclaredNullability(nullability);
     } else {
       // Otherwise, substitute.
-      result = buildTypesWithBuiltArguments(
+      result = buildTypeWithBuiltArguments(
           library, nullability, buildTypeArguments(library, arguments));
     }
     if (performLegacyErasure && !library.isNonNullableByDefault) {
@@ -259,6 +258,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   /// `const InvalidType()`). If `this` type alias expands to a
   /// [TypeVariableBuilder] then the type alias cannot be used as a class, in
   /// which case an error is emitted and `this` is returned.
+  @override
   TypeDeclarationBuilder? unaliasDeclaration(List<TypeBuilder>? typeArguments,
       {bool isUsedAsClass = false,
       int? usedAsClassCharOffset,
@@ -303,12 +303,12 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
             if (typeVariables != null)
               for (TypeVariableBuilder typeVariable in typeVariables!)
                 new NamedTypeBuilder.fromTypeDeclarationBuilder(
-                  typeVariable,
-                  library.nonNullableBuilder,
-                  const [],
-                  fileUri,
-                  charOffset,
-                ),
+                    typeVariable, library.nonNullableBuilder,
+                    arguments: const [],
+                    fileUri: fileUri,
+                    charOffset: charOffset,
+                    instanceTypeVariableAccess:
+                        InstanceTypeVariableAccessState.Unexpected),
           ];
           TypeDeclarationBuilder? typeDeclarationBuilder =
               _unaliasDeclaration(freshTypeArguments);
@@ -453,6 +453,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   /// [this], such that the returned [TypeBuilder]s are appropriate type
   /// arguments for passing to the [ClassBuilder] which is the end of the
   /// unaliasing chain.
+  @override
   List<TypeBuilder>? unaliasTypeArguments(List<TypeBuilder>? typeArguments) {
     TypeDeclarationBuilder? currentDeclarationBuilder = this;
     List<TypeBuilder>? currentTypeArguments = typeArguments;
@@ -513,6 +514,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
 
   Map<Name, Procedure>? get tearOffs;
 
+  @override
   Procedure? findConstructorOrFactory(
       String text, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
     if (tearOffs != null) {

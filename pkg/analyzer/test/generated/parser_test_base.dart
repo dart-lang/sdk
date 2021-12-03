@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' show CompilationUnitImpl;
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -220,8 +221,10 @@ class FastaParserTestCase
     implements AbstractParserTestCase {
   static final List<ErrorCode> NO_ERROR_COMPARISON = <ErrorCode>[];
 
-  final constructorTearoffs = FeatureSet.forTesting(
-      sdkVersion: '2.14.0', additionalFeatures: [Feature.constructor_tearoffs]);
+  final constructorTearoffs = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: ExperimentStatus.currentVersion,
+    flags: [EnableString.constructor_tearoffs],
+  );
 
   final controlFlow = FeatureSet.latestLanguageVersion();
 
@@ -289,7 +292,7 @@ class FastaParserTestCase
   @override
   void createParser(String content,
       {int? expectedEndOffset, FeatureSet? featureSet}) {
-    featureSet ??= FeatureSet.forTesting();
+    featureSet ??= FeatureSet.latestLanguageVersion();
     var result = scanString(content,
         configuration: featureSet.isEnabled(Feature.non_nullable)
             ? ScannerConfiguration.nonNullable
@@ -407,8 +410,8 @@ class FastaParserTestCase
 
   CompilationUnitImpl parseCompilationUnit2(
       String content, GatheringErrorListener listener,
-      {LanguageVersionToken? languageVersion, FeatureSet? featureSet}) {
-    featureSet ??= FeatureSet.forTesting();
+      {FeatureSet? featureSet}) {
+    featureSet ??= FeatureSet.latestLanguageVersion();
     var source = StringSource(content, 'parser_test_StringSource.dart');
 
     // Adjust the feature set based on language version comment.
@@ -941,7 +944,7 @@ class ParserProxy extends analyzer.Parser {
   }
 
   @override
-  TypeName parseTypeName(bool inExpression) {
+  NamedType parseTypeName(bool inExpression) {
     return _run('unspecified', () => super.parseTypeName(inExpression));
   }
 
@@ -1166,7 +1169,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     analyzer.Parser parser = analyzer.Parser(
       source,
       listener,
-      featureSet: FeatureSet.forTesting(),
+      featureSet: FeatureSet.latestLanguageVersion(),
     );
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(result.tokens);
@@ -1193,7 +1196,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     analyzer.Parser parser = analyzer.Parser(
       source,
       listener,
-      featureSet: FeatureSet.forTesting(),
+      featureSet: FeatureSet.latestLanguageVersion(),
     );
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     var unit = parser.parseCompilationUnit(result.tokens);
@@ -1471,7 +1474,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     analyzer.Parser parser = analyzer.Parser(
       source,
       listener,
-      featureSet: FeatureSet.forTesting(),
+      featureSet: FeatureSet.latestLanguageVersion(),
     );
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     Statement statement = parser.parseStatement(result.tokens);

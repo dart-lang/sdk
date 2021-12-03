@@ -4,6 +4,8 @@
 //
 // Test that optimization of named parameters doesn't change evaluation order.
 
+// @dart = 2.9
+
 import 'dart:math';
 import 'package:expect/expect.dart';
 

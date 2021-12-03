@@ -11,10 +11,12 @@ invalidate:
   - a.dart
 sources:
   a.dart: |
+    // @dart=2.9
     import 'b.dart';
 
     class A {
       void foo(B cls) {}
     }
   b.dart: |
+    // @dart=2.9
     abstract class B<T extends String> {}

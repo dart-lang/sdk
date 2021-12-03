@@ -31,7 +31,9 @@ import "dart:core" as core;
 class Supertype extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::Supertype::•];
   static factory •() → self::Supertype*
-    let dynamic #redirecting_factory = "Unresolved" in invalid-expression;
+    return invalid-expression "pkg/front_end/testcases/regress/issue_35259.dart:6:25: Error: Redirection constructor target not found: 'Unresolved'
+  factory Supertype() = Unresolved;
+                        ^";
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -45,3 +47,8 @@ class Supertype extends core::Object {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_35259.dart:5:7 -> ConstructorTearOffConstant(Supertype.)
+Extra constant evaluation: evaluated: 2, effectively constant: 1

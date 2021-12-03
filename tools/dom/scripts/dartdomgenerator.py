@@ -31,12 +31,11 @@ if not os.path.exists(ply_dir):
     third_party_dir = os.path.join(dart_dir, '..', 'third_party')
     assert (os.path.exists(third_party_dir))
 else:
-    # It's Dart we need to make sure that tools in injected in our search path
-    # because this is where idl_parser is located for a Dart enlistment.  Dartium
+    # It's Dart we need to make sure that WebCore is injected in our search path
+    # because this is where idl_parser is located for a Dart enlistment. Dartium
     # can figure out the tools directory because of the location of where the
     # scripts blink scripts are located.
-    tools_dir = os.path.join(dart_dir, 'tools')
-    sys.path.insert(1, tools_dir)
+    sys.path.insert(1, os.path.join(dart_dir, 'third_party/WebCore'))
 
 sys.path.insert(1, third_party_dir)
 
@@ -95,7 +94,8 @@ def GenerateFromDatabase(common_database,
                          dart2js_output_dir,
                          update_dom_metadata=False,
                          logging_level=logging.WARNING,
-                         dart_js_interop=False):
+                         dart_js_interop=False,
+                         generate_static_extensions=False):
     print('\n ----- Accessing DOM using %s -----\n' %
           ('dart:js' if dart_js_interop else 'C++'))
 
@@ -167,8 +167,9 @@ def GenerateFromDatabase(common_database,
         backend_options = GeneratorOptions(template_loader, webkit_database,
                                            type_registry, renamer, metadata,
                                            dart_js_interop)
+
         backend_factory = lambda interface:\
-            Dart2JSBackend(interface, backend_options, logging_level)
+            Dart2JSBackend(interface, backend_options, logging_level, generate_static_extensions)
 
         dart_output_dir = os.path.join(dart2js_output_dir, 'dart')
         dart_libraries = DartLibraries(HTML_LIBRARY_NAMES, template_loader,
@@ -306,6 +307,12 @@ def main():
         action='store_true',
         default=False,
         help='Do not generate the sdk/lib/js/cached_patches.dart file')
+    parser.add_option(
+        '--generate-static-extensions',
+        dest='generate_static_extensions',
+        action='store_true',
+        default=False,
+        help='Generate static extension members for dart:html classes')
 
     (options, args) = parser.parse_args()
 
@@ -337,7 +344,8 @@ def main():
 
     GenerateFromDatabase(database, dart2js_output_dir,
                          options.update_dom_metadata, logging_level,
-                         options.dart_js_interop)
+                         options.dart_js_interop,
+                         options.generate_static_extensions)
 
     file_generation_start_time = time.time()
 

@@ -274,6 +274,7 @@ abstract class CompilerInterface {
       List<String> typeDefinitions,
       String libraryUri,
       String klass,
+      String method,
       bool isStatic);
 
   /// Compiles [expression] in [libraryUri] at [line]:[column] to JavaScript
@@ -806,11 +807,12 @@ class FrontendCompiler implements CompilerInterface {
       List<String> typeDefinitions,
       String libraryUri,
       String klass,
+      String method,
       bool isStatic) async {
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
-    Procedure procedure = await _generator.compileExpression(
-        expression, definitions, typeDefinitions, libraryUri, klass, isStatic);
+    Procedure procedure = await _generator.compileExpression(expression,
+        definitions, typeDefinitions, libraryUri, klass, method, isStatic);
     if (procedure != null) {
       Component component = createExpressionEvaluationComponent(procedure);
       final IOSink sink = File(_kernelBinaryFilename).openWrite();
@@ -1091,6 +1093,7 @@ class _CompileExpressionRequest {
   List<String> typeDefs = <String>[];
   String library;
   String klass;
+  String method;
   bool isStatic;
 }
 
@@ -1231,6 +1234,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
               compileExpressionRequest.typeDefs,
               compileExpressionRequest.library,
               compileExpressionRequest.klass,
+              compileExpressionRequest.method,
               compileExpressionRequest.isStatic);
         } else {
           compiler

@@ -21,7 +21,7 @@ import "org-dartlang-testcase:///stub_or_not_lib2.dart";
 abstract class Qux extends core::Object implements stu2::EventFileA {
   synthetic constructor •() → stu::Qux*
     ;
-  method handleEvent(covariant stu2::EvenFileB* entry) → void
+  method handleEvent(covariant-by-declaration stu2::EvenFileB* entry) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -41,13 +41,13 @@ class EvenFileBPrime extends stu2::EvenFileB {
 abstract class Baz extends stu::Qux {
   synthetic constructor •() → stu::Baz*
     ;
-  method handleEvent(covariant stu::EvenFileBPrime* entry) → void
+  method handleEvent(covariant-by-declaration stu::EvenFileBPrime* entry) → void
     ;
 }
 abstract class Foo extends stu::Baz implements stu::Qux {
   synthetic constructor •() → stu::Foo*
     ;
-  abstract member-signature method handleEvent(covariant stu2::EvenFileB* entry) → void; -> stu::Qux::handleEvent
+  abstract member-signature method handleEvent(covariant-by-declaration stu2::EvenFileB* entry) → void; -> stu::Qux::handleEvent
 }
 
 library;

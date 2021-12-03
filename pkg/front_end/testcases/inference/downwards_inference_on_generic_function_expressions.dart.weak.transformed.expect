@@ -58,14 +58,14 @@ static method test() → void {
     <S extends core::Object* = dynamic>(core::int*) →* core::String* v = f;
     v = <T extends core::Object* = dynamic>(core::int* x) → Null => null;
     v = <T extends core::Object* = dynamic>(core::int* x) → core::String* => "hello";
-    v = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:14:68: Error: A value of type 'String Function<T>(String)' can't be assigned to a variable of type 'String Function<S>(int)'.
+    v = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:14:68: Error: A value of type 'String Function<T>(String)' can't be assigned to a variable of type 'String Function<S>(int)'.
     v = /*error:INVALID_ASSIGNMENT*/ <T> /*@ returnType=String* */ (String x) =>
                                                                    ^" in (<T extends core::Object* = dynamic>(core::String* x) → core::String* => "hello") as{TypeError} <S extends core::Object* = dynamic>(core::int*) →* core::String*;
-    v = <T extends core::Object* = dynamic>(core::int* x) → core::String* => let final Never* #t2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:16:79: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    v = <T extends core::Object* = dynamic>(core::int* x) → core::String* => invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:16:79: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
     v = /*error:INVALID_ASSIGNMENT*/ <T> /*@ returnType=String* */ (int x) => 3;
                                                                               ^" in 3 as{TypeError} core::String*;
     v = <T extends core::Object* = dynamic>(core::int* x) → core::String* {
-      return let final Never* #t3 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:18:47: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      return invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:18:47: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
       return /*error:RETURN_OF_INVALID_TYPE*/ 3;
                                               ^" in 3 as{TypeError} core::String*;
     };
@@ -76,16 +76,16 @@ static method test() → void {
     <S extends core::Object* = dynamic>(core::int*) →* core::String* v = f;
     v = <T extends core::Object* = dynamic>(core::int* x) → Null => null;
     v = <T extends core::Object* = dynamic>(core::int* x) → core::String* => "hello";
-    v = <T extends core::Object* = dynamic>(core::int* x) → core::String* => let final Never* #t4 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:28:9: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    v = <T extends core::Object* = dynamic>(core::int* x) → core::String* => invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:28:9: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
         3;
         ^" in 3 as{TypeError} core::String*;
     v = <T extends core::Object* = dynamic>(core::int* x) → core::String* {
-      return let final Never* #t5 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:30:47: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      return invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:30:47: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
       return /*error:RETURN_OF_INVALID_TYPE*/ 3;
                                               ^" in 3 as{TypeError} core::String*;
     };
     v = <T extends core::Object* = dynamic>(core::int* x) → core::String* {
-      return let final Never* #t6 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:33:47: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      return invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:33:47: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
       return /*error:RETURN_OF_INVALID_TYPE*/ x;
                                               ^" in x as{TypeError} core::String*;
     };
@@ -96,15 +96,15 @@ static method test() → void {
     <S extends core::Object* = dynamic>(core::int*) →* core::List<core::String*>* v = f;
     v = <T extends core::Object* = dynamic>(core::int* x) → Null => null;
     v = <T extends core::Object* = dynamic>(core::int* x) → core::List<core::String*>* => core::_GrowableList::_literal1<core::String*>("hello");
-    v = let final Never* #t7 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:43:75: Error: A value of type 'List<String> Function<T>(String)' can't be assigned to a variable of type 'List<String> Function<S>(int)'.
+    v = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:43:75: Error: A value of type 'List<String> Function<T>(String)' can't be assigned to a variable of type 'List<String> Function<S>(int)'.
  - 'List' is from 'dart:core'.
     v = /*error:INVALID_ASSIGNMENT*/ <T> /*@ returnType=List<String*>* */ (String
                                                                           ^" in (<T extends core::Object* = dynamic>(core::String* x) → core::List<core::String*>* => core::_GrowableList::_literal1<core::String*>("hello")) as{TypeError} <S extends core::Object* = dynamic>(core::int*) →* core::List<core::String*>*;
-    v = <T extends core::Object* = dynamic>(core::int* x) → core::List<core::String*>* => core::_GrowableList::_literal1<core::String*>(let final Never* #t8 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:46:54: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    v = <T extends core::Object* = dynamic>(core::int* x) → core::List<core::String*>* => core::_GrowableList::_literal1<core::String*>(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:46:54: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
           /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3
                                                      ^" in 3 as{TypeError} core::String*);
     v = <T extends core::Object* = dynamic>(core::int* x) → core::List<core::String*>* {
-      return core::_GrowableList::_literal1<core::String*>(let final Never* #t9 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:50:52: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      return core::_GrowableList::_literal1<core::String*>(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:50:52: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
         /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3
                                                    ^" in 3 as{TypeError} core::String*);
     };
@@ -120,13 +120,13 @@ static method test() → void {
     x = <T extends core::Object* = dynamic>(core::int* x) → core::int* => x;
     x = <T extends core::Object* = dynamic>(core::int* x) → core::int* => x.{core::num::+}(1){(core::num*) →* core::int*};
     <T extends core::Object* = dynamic>(core::int*) →* core::String* y = int2String;
-    y = <T extends core::Object* = dynamic>(core::int* x) → core::String* => let final Never* #t10 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:64:9: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    y = <T extends core::Object* = dynamic>(core::int* x) → core::String* => invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:64:9: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
         x;
         ^" in x as{TypeError} core::String*;
     y = <T extends core::Object* = dynamic>(core::int* x) → core::String* => invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:66:10: Error: The method 'substring' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'substring'.
         .substring(3);
-         ^^^^^^^^^";
+         ^^^^^^^^^" in x{<unresolved>}.substring(3);
     <T extends core::Object* = dynamic>(core::String*) →* core::String* z = string2String;
     z = <T extends core::Object* = dynamic>(core::String* x) → core::String* => x.{core::String::substring}(3){(core::int*, [core::int*]) →* core::String*};
   }

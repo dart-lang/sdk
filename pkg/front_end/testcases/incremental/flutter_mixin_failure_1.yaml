@@ -9,6 +9,7 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
 
         class Test extends Test2 {
@@ -19,6 +20,7 @@ worlds:
           Baz world();
         }
       lib.dart: |
+        // @dart=2.9
         class FooEntry {}
 
         class BarEntry extends FooEntry {}
@@ -46,6 +48,7 @@ worlds:
     expectInitializeFromDill: false
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
 
         class Test extends Test2 {

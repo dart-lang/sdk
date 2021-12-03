@@ -3,18 +3,18 @@ library from "org-dartlang-test:///lib.dart" as lib {
 //
 // Problems in library:
 //
-// org-dartlang-test:///lib.dart:3:18: Error: Factory bodies can't use 'async', 'async*', or 'sync*'.
+// org-dartlang-test:///lib.dart:4:18: Error: Factory bodies can't use 'async', 'async*', or 'sync*'.
 //   factory C.e4() async = C;
 //                  ^^^^^
 //
 
   class C extends dart.core::Object {
-    static final field dynamic _redirecting# = <dynamic>[lib::C::e4];
+    static final field dynamic _redirecting# = <dynamic>[#C1];
     constructor •() → lib::C*
       : super dart.core::Object::•()
       ;
     static factory e4() → lib::C*
-      let dynamic #redirecting_factory = lib::C::• in invalid-expression;
+      return new lib::C::•();
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
     abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
@@ -34,4 +34,7 @@ library from "org-dartlang-test:///main.dart" as main {
   static method main() → void {
     lib::C* c = new lib::C::•();
   }
+}
+constants  {
+  #C1 = constructor-tearoff lib::C::e4
 }

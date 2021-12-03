@@ -21,6 +21,8 @@ library from "package:flutter/src/widgets/widget_inspector.dart" as wid {
     synthetic constructor •() → wid::_Location
       : super dart.core::Object::•()
       ;
+    static method _#new#tearOff() → wid::_Location
+      return new wid::_Location::•();
   }
 }
 library from "org-dartlang-test:///flutter_gallery/lib/main.dart" as main {

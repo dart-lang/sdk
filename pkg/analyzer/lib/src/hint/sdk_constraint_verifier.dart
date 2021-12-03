@@ -33,6 +33,10 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// field.
   bool? _checkConstantUpdate2018;
 
+  /// A cached flag indicating whether references to the triple-shift features
+  /// need to be checked. Use [checkTripleShift] to access this field.
+  bool? _checkTripleShift;
+
   /// A cached flag indicating whether uses of extension method features need to
   /// be checked. Use [checkExtensionMethods] to access this field.
   bool? _checkExtensionMethods;
@@ -62,6 +66,10 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// report errors.
   SdkConstraintVerifier(this._errorReporter, this._containingLibrary,
       this._typeProvider, this._versionConstraint);
+
+  /// Return a range covering every version up to, but not including, 2.14.0.
+  VersionRange get before_2_14_0 =>
+      VersionRange(max: Version.parse('2.14.0'), includeMax: false);
 
   /// Return a range covering every version up to, but not including, 2.1.0.
   VersionRange get before_2_1_0 =>
@@ -105,6 +113,11 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   bool get checkSetLiterals =>
       _checkSetLiterals ??= !before_2_2_0.intersect(_versionConstraint).isEmpty;
 
+  /// Return `true` if references to the constant-update-2018 features need to
+  /// be checked.
+  bool get checkTripleShift => _checkTripleShift ??=
+      !before_2_14_0.intersect(_versionConstraint).isEmpty;
+
   /// Return `true` if references to the ui-as-code features (control flow and
   /// spread collections) need to be checked.
   bool get checkUiAsCode =>
@@ -121,35 +134,37 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    if (checkConstantUpdate2018) {
+    if (checkTripleShift) {
       TokenType operatorType = node.operator.type;
       if (operatorType == TokenType.GT_GT_GT) {
         _errorReporter.reportErrorForToken(
             HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.operator);
-      } else if ((operatorType == TokenType.AMPERSAND ||
-              operatorType == TokenType.BAR ||
-              operatorType == TokenType.CARET) &&
-          node.inConstantContext) {
-        if (node.leftOperand.typeOrThrow.isDartCoreBool) {
-          _errorReporter.reportErrorForToken(
-              HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
-              node.operator,
-              [node.operator.lexeme]);
-        }
-      } else if (operatorType == TokenType.EQ_EQ && node.inConstantContext) {
-        bool primitive(Expression node) {
-          DartType type = node.typeOrThrow;
-          return type.isDartCoreBool ||
-              type.isDartCoreDouble ||
-              type.isDartCoreInt ||
-              type.isDartCoreNull ||
-              type.isDartCoreString;
-        }
+      } else if (checkConstantUpdate2018) {
+        if ((operatorType == TokenType.AMPERSAND ||
+                operatorType == TokenType.BAR ||
+                operatorType == TokenType.CARET) &&
+            node.inConstantContext) {
+          if (node.leftOperand.typeOrThrow.isDartCoreBool) {
+            _errorReporter.reportErrorForToken(
+                HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
+                node.operator,
+                [node.operator.lexeme]);
+          }
+        } else if (operatorType == TokenType.EQ_EQ && node.inConstantContext) {
+          bool primitive(Expression node) {
+            DartType type = node.typeOrThrow;
+            return type.isDartCoreBool ||
+                type.isDartCoreDouble ||
+                type.isDartCoreInt ||
+                type.isDartCoreNull ||
+                type.isDartCoreString;
+          }
 
-        if (!primitive(node.leftOperand) || !primitive(node.rightOperand)) {
-          _errorReporter.reportErrorForToken(
-              HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT,
-              node.operator);
+          if (!primitive(node.leftOperand) || !primitive(node.rightOperand)) {
+            _errorReporter.reportErrorForToken(
+                HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT,
+                node.operator);
+          }
         }
       }
     }
@@ -210,7 +225,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (checkConstantUpdate2018 && node.isOperator && node.name.name == '>>>') {
+    if (checkTripleShift && node.isOperator && node.name.name == '>>>') {
       _errorReporter.reportErrorForNode(
           HintCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.name);
     }

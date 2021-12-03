@@ -18,7 +18,7 @@ import 'incremental_suite.dart' as helper;
 
 import "incremental_utils.dart" as util;
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   bool fast = false;
   bool useExperimentalInvalidation = false;
   bool addDebugBreaks = false;
@@ -59,7 +59,7 @@ class Dart2jsTester {
   Dart2jsTester(this.useExperimentalInvalidation, this.fast,
       this.addDebugBreaks, this.limit);
 
-  void test() async {
+  Future<void> test() async {
     helper.TestIncrementalCompiler compiler = await setup();
     if (addDebugBreaks) {
       debugger();

@@ -31,8 +31,8 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_audio' show AudioBuffer, AudioTrack, AudioTrackList;
 import 'dart:web_gl' as gl;
 import 'dart:web_gl' show RenderingContext, RenderingContext2;
-import 'dart:web_sql';
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
+import 'dart:js_util' as js_util;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -50,7 +50,6 @@ import 'dart:_js_helper'
         JSName,
         Native,
         Returns,
-        ForceInline,
         findDispatchTagForInterceptorClass,
         setNativeSubclassDispatchRecord,
         makeLeafDispatchRecord,
@@ -2980,7 +2979,7 @@ class CanvasRenderingContext2D extends Interceptor
 
 @Native("CharacterData")
 class CharacterData extends Node
-    implements NonDocumentTypeChildNode, ChildNode {
+    implements ChildNode, NonDocumentTypeChildNode {
   // To suppress missing implicit constructor warnings.
   factory CharacterData._() {
     throw new UnsupportedError("Not supported");
@@ -9212,13 +9211,6 @@ class DataTransferItemList extends Interceptor {
 
 // WARNING: Do not edit - generated code.
 
-typedef void DatabaseCallback(SqlDatabase database);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 typedef void DecodeErrorCallback(DomException error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10100,10 +10092,6 @@ class Document extends Node {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void _webkitExitFullscreen() native;
 
-  // From NonElementParentNode
-
-  Element? getElementById(String elementId) native;
-
   // From DocumentOrShadowRoot
 
   Element? get activeElement native;
@@ -10125,6 +10113,10 @@ class Document extends Node {
   // From FontFaceSource
 
   FontFaceSet? get fonts native;
+
+  // From NonElementParentNode
+
+  Element? getElementById(String elementId) native;
 
   // From ParentNode
 
@@ -10458,7 +10450,7 @@ class Document extends Node {
 
 @Native("DocumentFragment")
 class DocumentFragment extends Node
-    implements NonElementParentNode, ParentNode {
+    implements ParentNode, NonElementParentNode {
   factory DocumentFragment() => document.createDocumentFragment();
 
   factory DocumentFragment.html(String? html,
@@ -11447,8 +11439,7 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
       width == other.width &&
       height == other.height;
 
-  int get hashCode => _JenkinsSmiHash.hash4(
-      left.hashCode, top.hashCode, width.hashCode, height.hashCode);
+  int get hashCode => Object.hash(left, top, width, height);
 
   /**
    * Computes the intersection of `this` and [other].
@@ -11627,7 +11618,7 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
 @Native("DOMStringList")
 class DomStringList extends Interceptor
     with ListMixin<String>, ImmutableListMixin<String>
-    implements JavaScriptIndexingBehavior<String>, List<String> {
+    implements List<String>, JavaScriptIndexingBehavior<String> {
   // To suppress missing implicit constructor warnings.
   factory DomStringList._() {
     throw new UnsupportedError("Not supported");
@@ -12704,10 +12695,10 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
 @Native("Element")
 class Element extends Node
     implements
-        NonDocumentTypeChildNode,
-        GlobalEventHandlers,
         ParentNode,
-        ChildNode {
+        ChildNode,
+        NonDocumentTypeChildNode,
+        GlobalEventHandlers {
   /**
    * Creates an HTML element from a valid fragment of HTML.
    *
@@ -12998,7 +12989,7 @@ class Element extends Node
   }
 
   @pragma('dart2js:tryInline')
-  void setAttribute(String name, String value) {
+  void setAttribute(String name, Object value) {
     // TODO(41258): Delete these assertions after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
@@ -13007,7 +12998,7 @@ class Element extends Node
   }
 
   @pragma('dart2js:tryInline')
-  void setAttributeNS(String? namespaceURI, String name, String value) {
+  void setAttributeNS(String? namespaceURI, String name, Object value) {
     // TODO(41258): Delete these assertions after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
@@ -13336,7 +13327,7 @@ class Element extends Node
   /**
    * Scrolls this element into view.
    *
-   * Only one of of the alignment options may be specified at a time.
+   * Only one of the alignment options may be specified at a time.
    *
    * If no options are specified then this will attempt to scroll the minimum
    * amount needed to bring the element into view.
@@ -14861,10 +14852,10 @@ class Element extends Node
   void _scrollTo_3(num? x, y) native;
 
   @JSName('setAttribute')
-  void _setAttribute(String name, String value) native;
+  void _setAttribute(String name, Object value) native;
 
   @JSName('setAttributeNS')
-  void _setAttributeNS(String? namespaceURI, String name, String value) native;
+  void _setAttributeNS(String? namespaceURI, String name, Object value) native;
 
   void setPointerCapture(int pointerId) native;
 
@@ -17646,7 +17637,7 @@ class History extends Interceptor implements HistoryBase {
 @Native("HTMLCollection")
 class HtmlCollection extends Interceptor
     with ListMixin<Node>, ImmutableListMixin<Node>
-    implements JavaScriptIndexingBehavior<Node>, List<Node> {
+    implements List<Node>, JavaScriptIndexingBehavior<Node> {
   // To suppress missing implicit constructor warnings.
   factory HtmlCollection._() {
     throw new UnsupportedError("Not supported");
@@ -18337,7 +18328,7 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * Specify the desired `url`, and `method` to use in making the request.
    *
-   * By default the request is done asyncronously, with no user or password
+   * By default the request is done asynchronously, with no user or password
    * authentication information. If `async` is false, the request will be sent
    * synchronously.
    *
@@ -22620,10 +22611,10 @@ class NavigationPreloadManager extends Interceptor {
 class Navigator extends NavigatorConcurrentHardware
     implements
         NavigatorCookies,
+        NavigatorID,
         NavigatorLanguage,
         NavigatorOnLine,
-        NavigatorAutomationInformation,
-        NavigatorID {
+        NavigatorAutomationInformation {
   List<Gamepad?> getGamepads() {
     var gamepadList = _getGamepads();
 
@@ -23619,7 +23610,7 @@ class NodeIterator extends Interceptor {
 @Native("NodeList,RadioNodeList")
 class NodeList extends Interceptor
     with ListMixin<Node>, ImmutableListMixin<Node>
-    implements JavaScriptIndexingBehavior<Node>, List<Node> {
+    implements List<Node>, JavaScriptIndexingBehavior<Node> {
   // To suppress missing implicit constructor warnings.
   factory NodeList._() {
     throw new UnsupportedError("Not supported");
@@ -25591,7 +25582,7 @@ class Plugin extends Interceptor {
 @Native("PluginArray")
 class PluginArray extends Interceptor
     with ListMixin<Plugin>, ImmutableListMixin<Plugin>
-    implements JavaScriptIndexingBehavior<Plugin>, List<Plugin> {
+    implements List<Plugin>, JavaScriptIndexingBehavior<Plugin> {
   // To suppress missing implicit constructor warnings.
   factory PluginArray._() {
     throw new UnsupportedError("Not supported");
@@ -28255,7 +28246,7 @@ class SourceBuffer extends EventTarget {
 @Native("SourceBufferList")
 class SourceBufferList extends EventTarget
     with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer>
-    implements JavaScriptIndexingBehavior<SourceBuffer>, List<SourceBuffer> {
+    implements List<SourceBuffer>, JavaScriptIndexingBehavior<SourceBuffer> {
   // To suppress missing implicit constructor warnings.
   factory SourceBufferList._() {
     throw new UnsupportedError("Not supported");
@@ -28406,7 +28397,7 @@ class SpeechGrammar extends Interceptor {
 @Native("SpeechGrammarList")
 class SpeechGrammarList extends Interceptor
     with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar>
-    implements JavaScriptIndexingBehavior<SpeechGrammar>, List<SpeechGrammar> {
+    implements List<SpeechGrammar>, JavaScriptIndexingBehavior<SpeechGrammar> {
   // To suppress missing implicit constructor warnings.
   factory SpeechGrammarList._() {
     throw new UnsupportedError("Not supported");
@@ -30400,7 +30391,7 @@ class TouchEvent extends UIEvent {
 @Native("TouchList")
 class TouchList extends Interceptor
     with ListMixin<Touch>, ImmutableListMixin<Touch>
-    implements JavaScriptIndexingBehavior<Touch>, List<Touch> {
+    implements List<Touch>, JavaScriptIndexingBehavior<Touch> {
   // To suppress missing implicit constructor warnings.
   factory TouchList._() {
     throw new UnsupportedError("Not supported");
@@ -32036,11 +32027,11 @@ class WheelEvent extends MouseEvent {
 @Native("Window,DOMWindow")
 class Window extends EventTarget
     implements
-        WindowEventHandlers,
-        WindowBase,
         GlobalEventHandlers,
+        WindowBase64,
+        WindowEventHandlers,
         _WindowTimers,
-        WindowBase64 {
+        WindowBase {
   /**
    * Returns a Future that completes just before the window is about to
    * repaint so the user can draw an animation frame.
@@ -32983,16 +32974,6 @@ class Window extends EventTarget
   @JSName('moveTo')
   void _moveTo(int x, int y) native;
 
-  @JSName('openDatabase')
-
-  /// *Deprecated.*
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Creates('SqlDatabase')
-  SqlDatabase _openDatabase(
-      String name, String version, String displayName, int estimatedSize,
-      [DatabaseCallback? creationCallback]) native;
-
   void postMessage(/*any*/ message, String targetOrigin,
       [List<Object>? transfer]) {
     if (transfer != null) {
@@ -33680,26 +33661,6 @@ class Window extends EventTarget
     _moveTo(p.x.toInt(), p.y.toInt());
   }
 
-  @JSName('openDatabase')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Creates('SqlDatabase')
-  @deprecated
-  SqlDatabase openDatabase(
-      String name, String version, String displayName, int estimatedSize,
-      [DatabaseCallback? creationCallback]) {
-    var db;
-    if (creationCallback == null)
-      db = _openDatabase(name, version, displayName, estimatedSize);
-    else
-      db = _openDatabase(
-          name, version, displayName, estimatedSize, creationCallback);
-
-    applyExtension('Database', db);
-
-    return db;
-  }
-
   int get pageXOffset => JS<num>('num', '#.pageXOffset', this).round();
 
   int get pageYOffset => JS<num>('num', '#.pageYOffset', this).round();
@@ -33944,7 +33905,7 @@ class Worker extends EventTarget implements AbstractWorker {
 
 @Native("WorkerGlobalScope")
 class WorkerGlobalScope extends EventTarget
-    implements _WindowTimers, WindowBase64 {
+    implements WindowBase64, _WindowTimers {
   // To suppress missing implicit constructor warnings.
   factory WorkerGlobalScope._() {
     throw new UnsupportedError("Not supported");
@@ -34456,7 +34417,7 @@ class _Clipboard extends EventTarget {
 @Native("CSSRuleList")
 class _CssRuleList extends Interceptor
     with ListMixin<CssRule>, ImmutableListMixin<CssRule>
-    implements JavaScriptIndexingBehavior<CssRule>, List<CssRule> {
+    implements List<CssRule>, JavaScriptIndexingBehavior<CssRule> {
   // To suppress missing implicit constructor warnings.
   factory _CssRuleList._() {
     throw new UnsupportedError("Not supported");
@@ -34578,8 +34539,7 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
       width == other.width &&
       height == other.height;
 
-  int get hashCode => _JenkinsSmiHash.hash4(
-      left.hashCode, top.hashCode, width.hashCode, height.hashCode);
+  int get hashCode => Object.hash(left, top, width, height);
 
   /**
    * Computes the intersection of `this` and [other].
@@ -34717,43 +34677,6 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
   num? get y native;
 
   set y(num? value) native;
-}
-
-/**
- * This is the [Jenkins hash function][1] but using masking to keep
- * values in SMI range.
- *
- * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
- *
- * Use:
- * Hash each value with the hash of the previous value, then get the final
- * hash by calling finish.
- *
- *     var hash = 0;
- *     for (var value in values) {
- *       hash = JenkinsSmiHash.combine(hash, value.hashCode);
- *     }
- *     hash = JenkinsSmiHash.finish(hash);
- */
-class _JenkinsSmiHash {
-  // TODO(11617): This class should be optimized and standardized elsewhere.
-
-  static int combine(int hash, int value) {
-    hash = 0x1fffffff & (hash + value);
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-
-  static int hash2(a, b) => finish(combine(combine(0, a), b));
-
-  static int hash4(a, b, c, d) =>
-      finish(combine(combine(combine(combine(0, a), b), c), d));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35084,7 +35007,7 @@ abstract class _NFC extends Interceptor {
 @Native("NamedNodeMap,MozNamedAttrMap")
 class _NamedNodeMap extends Interceptor
     with ListMixin<Node>, ImmutableListMixin<Node>
-    implements JavaScriptIndexingBehavior<Node>, List<Node> {
+    implements List<Node>, JavaScriptIndexingBehavior<Node> {
   // To suppress missing implicit constructor warnings.
   factory _NamedNodeMap._() {
     throw new UnsupportedError("Not supported");
@@ -35277,8 +35200,8 @@ class _SpeechRecognitionResultList extends Interceptor
         ListMixin<SpeechRecognitionResult>,
         ImmutableListMixin<SpeechRecognitionResult>
     implements
-        JavaScriptIndexingBehavior<SpeechRecognitionResult>,
-        List<SpeechRecognitionResult> {
+        List<SpeechRecognitionResult>,
+        JavaScriptIndexingBehavior<SpeechRecognitionResult> {
   // To suppress missing implicit constructor warnings.
   factory _SpeechRecognitionResultList._() {
     throw new UnsupportedError("Not supported");
@@ -35718,7 +35641,7 @@ abstract class _WorkerLocation extends Interceptor implements UrlUtilsReadOnly {
 
 @Native("WorkerNavigator")
 abstract class _WorkerNavigator extends NavigatorConcurrentHardware
-    implements NavigatorOnLine, NavigatorID {
+    implements NavigatorID, NavigatorOnLine {
   // To suppress missing implicit constructor warnings.
   factory _WorkerNavigator._() {
     throw new UnsupportedError("Not supported");
@@ -36633,8 +36556,7 @@ abstract class CssRect implements Rectangle<num> {
       right == other.right &&
       bottom == other.bottom;
 
-  int get hashCode => _JenkinsSmiHash.hash4(
-      left.hashCode, top.hashCode, right.hashCode, bottom.hashCode);
+  int get hashCode => Object.hash(left, top, right, bottom);
 
   /**
    * Computes the intersection of `this` and [other].

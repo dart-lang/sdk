@@ -30,7 +30,7 @@ ACTUAL  :
         threw = False
         try:
             output_text = self._preprocess(input_text, conds)
-        except Exception, e:
+        except Exception as e:
             threw = True
             if str(e).find(expected_message) == -1:
                 self.fail("'%s' does not contain '%s'" % (e, expected_message))

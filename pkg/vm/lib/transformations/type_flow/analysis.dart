@@ -104,6 +104,9 @@ abstract class _Invocation extends _DependencyTracker
 
   _Invocation(this.selector, this.args);
 
+  /// Initialize invocation before it is cached and processed.
+  void init() {}
+
   Type process(TypeFlowAnalysis typeFlowAnalysis);
 
   /// Returns result of this invocation if its available without
@@ -186,21 +189,29 @@ abstract class _Invocation extends _DependencyTracker
 
 class _DirectInvocation extends _Invocation {
   _DirectInvocation(DirectSelector selector, Args<Type> args)
-      : super(selector, args) {
+      : super(selector, args);
+
+  @override
+  void init() {
     // We don't emit [TypeCheck] statements for bounds checks of type
     // parameters, so if there are any type parameters, we must assume
     // they could fail bounds checks.
     //
     // TODO(sjindel): Use [TypeCheck] to avoid bounds checks.
-    final function = selector.member.function;
+    final function = selector.member!.function;
     if (function != null) {
-      typeChecksNeeded =
-          function.typeParameters.any((t) => t.isGenericCovariantImpl);
+      for (TypeParameter tp in function.typeParameters) {
+        if (tp.isCovariantByClass) {
+          typeChecksNeeded = true;
+        }
+      }
     } else {
       Field field = selector.member as Field;
       if (selector.callKind == CallKind.PropertySet) {
         // TODO(dartbug.com/40615): Use TFA results to improve this criterion.
-        typeChecksNeeded = field.isGenericCovariantImpl;
+        if (field.isCovariantByClass) {
+          typeChecksNeeded = true;
+        }
       }
     }
   }
@@ -550,8 +561,7 @@ class _DispatchableInvocation extends _Invocation {
       TypeFlowAnalysis typeFlowAnalysis) {
     final TFClass cls = receiver.cls;
 
-    Member? target =
-        (cls as _TFClassImpl).getDispatchTarget(selector, typeFlowAnalysis);
+    Member? target = (cls as _TFClassImpl).getDispatchTarget(selector);
 
     if (target != null) {
       if (kPrintTrace) {
@@ -792,6 +802,7 @@ class _InvocationsCache {
               _typeFlowAnalysis.summaryCollector.rawArguments(selector);
           sa.approximation =
               approximation = _DispatchableInvocation(selector, rawArgs);
+          approximation.init();
           Statistics.approximateInvocationsCreated++;
         }
         Statistics.approximateInvocationsUsed++;
@@ -803,6 +814,7 @@ class _InvocationsCache {
           max(Statistics.maxInvocationsCachedPerSelector, sa.count);
     }
 
+    invocation.init();
     bool added = _invocations.add(invocation);
     assert(added);
     ++Statistics.invocationsAddedToCache;
@@ -948,9 +960,13 @@ class _TFClassImpl extends TFClass {
   /// exceeds this constant, then WideConeType approximation is used.
   static const int maxAllocatedTypesInSetSpecializations = 128;
 
+  final _TFClassImpl? superclass;
   final Set<_TFClassImpl> supertypes; // List of super-types including this.
   final Set<_TFClassImpl> _allocatedSubtypes = new Set<_TFClassImpl>();
-  final Map<Selector, Member> _dispatchTargets = <Selector, Member>{};
+  late final Map<Name, Member> _dispatchTargetsSetters =
+      _initDispatchTargets(true);
+  late final Map<Name, Member> _dispatchTargetsNonSetters =
+      _initDispatchTargets(false);
   final _DependencyTracker dependencyTracker = new _DependencyTracker();
 
   /// Flag indicating if this class has a noSuchMethod() method not inherited
@@ -958,7 +974,7 @@ class _TFClassImpl extends TFClass {
   /// Lazy initialized by ClassHierarchyCache.hasNonTrivialNoSuchMethod().
   bool? hasNonTrivialNoSuchMethod;
 
-  _TFClassImpl(int id, Class classNode, this.supertypes)
+  _TFClassImpl(int id, Class classNode, this.superclass, this.supertypes)
       : super(id, classNode) {
     supertypes.add(this);
   }
@@ -1001,18 +1017,37 @@ class _TFClassImpl extends TFClass {
     _specializedConeType = null; // Reset cached specialization.
   }
 
-  Member? getDispatchTarget(
-      Selector selector, TypeFlowAnalysis typeFlowAnalysis) {
-    Member? target = _dispatchTargets[selector];
-    if (target == null) {
-      target = typeFlowAnalysis.hierarchyCache.hierarchy.getDispatchTarget(
-          classNode, selector.name,
-          setter: selector.isSetter);
-      if (target != null) {
-        _dispatchTargets[selector] = target;
+  Map<Name, Member> _initDispatchTargets(bool setters) {
+    Map<Name, Member> targets;
+    final superclass = this.superclass;
+    if (superclass != null) {
+      targets = Map.from(setters
+          ? superclass._dispatchTargetsSetters
+          : superclass._dispatchTargetsNonSetters);
+    } else {
+      targets = {};
+    }
+    for (Field f in classNode.fields) {
+      if (!f.isStatic && !f.isAbstract) {
+        if (!setters || f.hasSetter) {
+          targets[f.name] = f;
+        }
       }
     }
-    return target;
+    for (Procedure p in classNode.procedures) {
+      if (!p.isStatic && !p.isAbstract) {
+        if (p.isSetter == setters) {
+          targets[p.name] = p;
+        }
+      }
+    }
+    return targets;
+  }
+
+  Member? getDispatchTarget(Selector selector) {
+    return (selector.isSetter
+        ? _dispatchTargetsSetters
+        : _dispatchTargetsNonSetters)[selector.name];
   }
 
   String dump() => "$this {supers: $supertypes}";
@@ -1126,7 +1161,10 @@ class _ClassHierarchyCache extends TypeHierarchy {
     for (var sup in c.supers) {
       supertypes.addAll(getTFClass(sup.classNode).supertypes);
     }
-    return new _TFClassImpl(++_classIdCounter, c, supertypes);
+    Class? superclassNode = c.superclass;
+    _TFClassImpl? superclass =
+        superclassNode != null ? getTFClass(superclassNode) : null;
+    return new _TFClassImpl(++_classIdCounter, c, superclass, supertypes);
   }
 
   ConcreteType addAllocatedClass(Class cl) {
@@ -1499,7 +1537,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
     _FieldValue? fieldValue = _fieldValues[field];
     if (fieldValue == null) {
       Summary? typeGuardSummary = null;
-      if (field.isGenericCovariantImpl) {
+      if (field.isCovariantByClass) {
         typeGuardSummary = summaryCollector.createSummary(field,
             fieldSummaryType: FieldSummaryType.kFieldGuard);
       }

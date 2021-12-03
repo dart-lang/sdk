@@ -23,5 +23,5 @@ main() {
   Expect.throwsNoSuchMethodError(() => Enum2._A);
   //                                         ^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ENUM_CONSTANT
-  // [cfe] Getter not found: '_A'.
+  // [cfe] Member not found: '_A'.
 }

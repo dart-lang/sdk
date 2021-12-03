@@ -1,4 +1,5 @@
 import 'typedef_identical_lib.dart';
+
 typedef H<X, Y> = A<Y>;
 var H_new = H.new;
 var H_named = H.named;

@@ -29,7 +29,6 @@ group("most") {
     ":dartanalyzer",
     ":dartdevc",
     ":runtime",
-    ":samples",
   ]
 }
 
@@ -42,13 +41,11 @@ group("runtime") {
   }
   deps = [
     "runtime/bin:dart",
-    "runtime/bin:entrypoints_verification_test_extension",
+    "runtime/bin:entrypoints_verification_test",
     "runtime/bin:ffi_test_dynamic_library",
     "runtime/bin:ffi_test_functions",
     "runtime/bin:process_test",
     "runtime/bin:run_vm_tests",
-    "runtime/bin:sample_extension",
-    "runtime/bin:test_extension",
     "runtime/vm:kernel_platform_files($host_toolchain)",
     "utils/kernel-service:kernel-service",
   ]
@@ -71,14 +68,6 @@ group("runtime") {
 # "runtime" does not get many executables extra as build output.
 group("run_ffi_unit_tests") {
   deps = [ "runtime/bin/ffi_unit_test:run_ffi_unit_tests" ]
-}
-
-group("runtime_kernel") {
-  if (targetting_fuchsia) {
-    # Fuchsia has run_vm_tests marked testonly.
-    testonly = true
-  }
-  deps = [ ":runtime" ]
 }
 
 group("runtime_precompiled") {
@@ -111,10 +100,6 @@ group("dartdevc") {
   deps = [ "utils/dartdevc" ]
 }
 
-group("dartfmt") {
-  deps = [ "utils/dartfmt" ]
-}
-
 group("analysis_server") {
   deps = [ "utils/analysis_server" ]
 }
@@ -124,10 +109,6 @@ group("analysis_server") {
 # test suites.
 group("dart2js_bot") {
   deps = [ ":create_sdk" ]
-}
-
-group("samples") {
-  deps = [ "runtime/bin:sample_extension" ]
 }
 
 # This rule and the compressed_observatory_archive rule are for the Fuchsia
@@ -143,8 +124,8 @@ group("compressed_observatory_archive") {
 }
 
 if (is_fuchsia) {
-  import("third_party/fuchsia/sdk/linux/build/component.gni")
-  import("third_party/fuchsia/sdk/linux/build/package.gni")
+  import("third_party/fuchsia/sdk/${host_os}/build/component.gni")
+  import("third_party/fuchsia/sdk/${host_os}/build/package.gni")
 
   template("dart_fuchsia_test_package") {
     fuchsia_package(target_name) {

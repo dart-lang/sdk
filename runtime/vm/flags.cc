@@ -113,30 +113,29 @@ class Flag {
     }
     switch (type_) {
       case kBoolean: {
-        OS::PrintErr("%s: %s (%s)\n", name_,
-                     *this->bool_ptr_ ? "true" : "false", comment_);
+        OS::Print("%s: %s (%s)\n", name_, *this->bool_ptr_ ? "true" : "false",
+                  comment_);
         break;
       }
       case kInteger: {
-        OS::PrintErr("%s: %d (%s)\n", name_, *this->int_ptr_, comment_);
+        OS::Print("%s: %d (%s)\n", name_, *this->int_ptr_, comment_);
         break;
       }
       case kUint64: {
-        OS::PrintErr("%s: %" Pu64 " (%s)\n", name_, *this->uint64_ptr_,
-                     comment_);
+        OS::Print("%s: %" Pu64 " (%s)\n", name_, *this->uint64_ptr_, comment_);
         break;
       }
       case kString: {
         if (*this->charp_ptr_ != NULL) {
-          OS::PrintErr("%s: '%s' (%s)\n", name_, *this->charp_ptr_, comment_);
+          OS::Print("%s: '%s' (%s)\n", name_, *this->charp_ptr_, comment_);
         } else {
-          OS::PrintErr("%s: (null) (%s)\n", name_, comment_);
+          OS::Print("%s: (null) (%s)\n", name_, comment_);
         }
         break;
       }
       case kOptionHandler:
       case kFlagHandler: {
-        OS::PrintErr("%s: (%s)\n", name_, comment_);
+        OS::Print("%s: (%s)\n", name_, comment_);
         break;
       }
       default:
@@ -499,7 +498,7 @@ bool Flags::SetFlag(const char* name, const char* value, const char** error) {
 }
 
 void Flags::PrintFlags() {
-  OS::PrintErr("Flag settings:\n");
+  OS::Print("Flag settings:\n");
   for (intptr_t i = 0; i < num_flags_; ++i) {
     flags_[i]->Print();
   }

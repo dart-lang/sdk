@@ -8,7 +8,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -18,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddNullCheckTest extends FixProcessorTest with WithNullSafetyMixin {
+class AddNullCheckTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_NULL_CHECK;
 

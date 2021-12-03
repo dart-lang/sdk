@@ -19,11 +19,11 @@ class CallStructure {
   /// data stream.
   static const String tag = 'call-structure';
 
-  static const CallStructure NO_ARGS = const CallStructure.unnamed(0);
-  static const CallStructure ONE_ARG = const CallStructure.unnamed(1);
-  static const CallStructure TWO_ARGS = const CallStructure.unnamed(2);
-  static const CallStructure THREE_ARGS = const CallStructure.unnamed(3);
-  static const CallStructure FOUR_ARGS = const CallStructure.unnamed(4);
+  static const CallStructure NO_ARGS = CallStructure.unnamed(0);
+  static const CallStructure ONE_ARG = CallStructure.unnamed(1);
+  static const CallStructure TWO_ARGS = CallStructure.unnamed(2);
+  static const CallStructure THREE_ARGS = CallStructure.unnamed(3);
+  static const CallStructure FOUR_ARGS = CallStructure.unnamed(4);
 
   /// The number of type arguments of the call.
   final int typeArgumentCount;
@@ -42,10 +42,9 @@ class CallStructure {
   factory CallStructure(int argumentCount,
       [List<String> namedArguments, int typeArgumentCount = 0]) {
     if (namedArguments == null || namedArguments.isEmpty) {
-      return new CallStructure.unnamed(argumentCount, typeArgumentCount);
+      return CallStructure.unnamed(argumentCount, typeArgumentCount);
     }
-    return new NamedCallStructure(
-        argumentCount, namedArguments, typeArgumentCount);
+    return NamedCallStructure(argumentCount, namedArguments, typeArgumentCount);
   }
 
   /// Deserializes a [CallStructure] object from [source].
@@ -55,7 +54,7 @@ class CallStructure {
     List<String> namedArguments = source.readStrings();
     int typeArgumentCount = source.readInt();
     source.end(tag);
-    return new CallStructure(argumentCount, namedArguments, typeArgumentCount);
+    return CallStructure(argumentCount, namedArguments, typeArgumentCount);
   }
 
   /// Serializes this [CallStructure] to [sink].
@@ -77,7 +76,7 @@ class CallStructure {
   CallStructure toNormalized() => this;
 
   CallStructure withTypeArgumentCount(int typeArgumentCount) =>
-      new CallStructure(argumentCount, namedArguments, typeArgumentCount);
+      CallStructure(argumentCount, namedArguments, typeArgumentCount);
 
   /// `true` if this call has named arguments.
   bool get isNamed => false;
@@ -86,18 +85,18 @@ class CallStructure {
   bool get isUnnamed => true;
 
   /// The names of the named arguments in call-site order.
-  List<String> get namedArguments => const <String>[];
+  List<String> get namedArguments => const [];
 
   /// The names of the named arguments in canonicalized order.
-  List<String> getOrderedNamedArguments() => const <String>[];
+  List<String> getOrderedNamedArguments() => const [];
 
   CallStructure get nonGeneric => typeArgumentCount == 0
       ? this
-      : new CallStructure(argumentCount, namedArguments);
+      : CallStructure(argumentCount, namedArguments);
 
   /// Short textual representation use for testing.
   String get shortText {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('(');
     sb.write(positionalArgumentCount);
     if (namedArgumentCount > 0) {
@@ -110,7 +109,7 @@ class CallStructure {
 
   /// A description of the argument structure.
   String structureToString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('arity=$argumentCount');
     if (typeArgumentCount != 0) {
       sb.write(', types=$typeArgumentCount');
@@ -121,7 +120,7 @@ class CallStructure {
   @override
   String toString() => 'CallStructure(${structureToString()})';
 
-  Selector get callSelector => new Selector.call(Names.call, this);
+  Selector get callSelector => Selector.call(Names.call, this);
 
   bool match(CallStructure other) {
     if (identical(this, other)) return true;
@@ -210,10 +209,9 @@ class NamedCallStructure extends CallStructure {
 
   NamedCallStructure(
       int argumentCount, List<String> namedArguments, int typeArgumentCount)
-      : this.internal(
-            argumentCount, namedArguments, typeArgumentCount, <String>[]);
+      : this._(argumentCount, namedArguments, typeArgumentCount, []);
 
-  NamedCallStructure.internal(int argumentCount, this.namedArguments,
+  NamedCallStructure._(int argumentCount, this.namedArguments,
       int typeArgumentCount, this._orderedNamedArguments)
       : assert(namedArguments.isNotEmpty),
         super.unnamed(argumentCount, typeArgumentCount);
@@ -234,7 +232,7 @@ class NamedCallStructure extends CallStructure {
   bool get isNormalized => namedArguments == _orderedNamedArguments;
 
   @override
-  CallStructure toNormalized() => new NamedCallStructure.internal(
+  CallStructure toNormalized() => NamedCallStructure._(
       argumentCount,
       getOrderedNamedArguments(),
       typeArgumentCount,
@@ -253,7 +251,7 @@ class NamedCallStructure extends CallStructure {
 
   @override
   String structureToString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('arity=$argumentCount, named=[${namedArguments.join(', ')}]');
     if (typeArgumentCount != 0) {
       sb.write(', types=$typeArgumentCount');

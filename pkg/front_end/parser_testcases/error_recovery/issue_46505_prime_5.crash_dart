@@ -1,0 +1,32 @@
+class A {
+  // Option #1 --- like the other ones. No identifier after.
+  // The user is in the middle of adding the first field/method in a class.
+  Stream<List<Set<List</* user curser here*/>>>>
+}
+
+class B {
+  Stream<List<Set<List<String>>>> foo;
+  // Option #1 --- like the other ones. No identifier after.
+  // The user is in the middle of adding a field/method at the end of the class.
+  Stream<List<Set<List</* user curser here*/>>>>
+}
+
+class C {
+  Stream<List<Set<List<String>>>> foo;
+  // Option #2 --- there is an identifier after, because
+  // the user is in the middle of adding a field/method between other
+  //fields/methods.
+  Stream<List<Set<List</* user curser here*/>>>>
+  Stream<List<Set<List<String>>>> baz;
+}
+
+// Option #3 --- there is an identifier after, because
+// the user is in the middle of adding a field/method between other
+//fields/methods (top-level this time).
+Stream<List<Set<List</* user curser here*/>>>>
+Stream<List<Set<List<String>>>> baz;
+
+// Option #4 --- there is no identifier after, because
+// the user is in the middle of adding a field/method at the end of file.
+// This is issue #42229.
+Stream<List<Set<List</* user curser here*/>>>>

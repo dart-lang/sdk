@@ -1349,10 +1349,20 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 #endif
   }
 
-  // lock+andl is an atomic read-modify-write.
-  __ lock();
-  __ andl(FieldAddress(EDX, target::Object::tags_offset()),
+  // Atomically clear kOldAndNotRememberedBit.
+  Label retry, lost_race;
+  __ movl(EAX, FieldAddress(EDX, target::Object::tags_offset()));
+  __ Bind(&retry);
+  __ movl(ECX, EAX);
+  __ testl(ECX,
+           Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+  __ j(ZERO, &lost_race);  // Remembered by another thread.
+  __ andl(ECX,
           Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
+  // Cmpxchgl: compare value = implicit operand EAX, new value = ECX.
+  // On failure, EAX is updated with the current value.
+  __ LockCmpxchgl(FieldAddress(EDX, target::Object::tags_offset()), ECX);
+  __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1388,6 +1398,11 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();
+  __ ret();
+
+  __ Bind(&lost_race);
+  __ popl(ECX);  // Unspill.
+  __ popl(EAX);  // Unspill.
   __ ret();
 
   if (cards) {

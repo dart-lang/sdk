@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:core';
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analyzer/error/listener.dart';
@@ -142,6 +141,10 @@ class ContextManagerImpl implements ContextManager {
   /// particular context.
   final DartSdkManager sdkManager;
 
+  /// The path to the package config file override.
+  /// If `null`, then the default discovery mechanism is used.
+  final String? packagesFile;
+
   /// The storage for cached results.
   final ByteStore _byteStore;
 
@@ -213,6 +216,7 @@ class ContextManagerImpl implements ContextManager {
   ContextManagerImpl(
       this.resourceProvider,
       this.sdkManager,
+      this.packagesFile,
       this._byteStore,
       this._fileContentCache,
       this._performanceLog,
@@ -417,6 +421,7 @@ class ContextManagerImpl implements ContextManager {
 
   void _createAnalysisContexts() {
     _destroyAnalysisContexts();
+    _fileContentCache.invalidateAll();
 
     var collection = _collection = AnalysisContextCollectionImpl(
       includedPaths: includedPaths,
@@ -428,6 +433,7 @@ class ContextManagerImpl implements ContextManager {
       resourceProvider: resourceProvider,
       scheduler: _scheduler,
       sdkPath: sdkManager.defaultSdkDirectory,
+      packagesFile: packagesFile,
       fileContentCache: _fileContentCache,
     );
 
@@ -501,7 +507,7 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
-  List<String> _getPossibelBazelBinPaths(_BazelWatchedFiles watched) => [
+  List<String> _getPossibleBazelBinPaths(_BazelWatchedFiles watched) => [
         pathContext.join(watched.workspace, 'bazel-bin'),
         pathContext.join(watched.workspace, 'blaze-bin'),
       ];
@@ -525,33 +531,32 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /// Notifies the drivers that a generated Bazel file has changed.
-  void _handleBazelWatchEvents(List<WatchEvent> allEvents) {
+  void _handleBazelWatchEvents(List<WatchEvent> events) {
     // First check if we have any changes to the bazel-*/blaze-* paths.  If
     // we do, we'll simply recreate all contexts to make sure that we follow the
     // correct paths.
     var bazelSymlinkPaths = bazelWatchedPathsPerFolder.values
-        .expand((watched) => _getPossibelBazelBinPaths(watched))
+        .expand((watched) => _getPossibleBazelBinPaths(watched))
         .toSet();
-    if (allEvents.any((event) => bazelSymlinkPaths.contains(event.path))) {
+    if (events.any((event) => bazelSymlinkPaths.contains(event.path))) {
       refresh();
       return;
     }
 
-    var fileEvents =
-        allEvents.where((event) => !bazelSymlinkPaths.contains(event.path));
+    // If a file was created or removed, the URI resolution is likely wrong.
+    // Do as for `package_config.json` changes - recreate all contexts.
+    if (events
+        .map((event) => event.type)
+        .any((type) => type == ChangeType.ADD || type == ChangeType.REMOVE)) {
+      refresh();
+      return;
+    }
+
+    // If we have only changes to generated files, notify drivers.
     for (var driver in driverMap.values) {
-      var needsUriReset = false;
-      for (var event in fileEvents) {
-        if (event.type == ChangeType.ADD) {
-          driver.addFile(event.path);
-          needsUriReset = true;
-        }
-        if (event.type == ChangeType.MODIFY) driver.changeFile(event.path);
-        if (event.type == ChangeType.REMOVE) driver.removeFile(event.path);
+      for (var event in events) {
+        driver.changeFile(event.path);
       }
-      // Since the file has been created after we've searched for it, the
-      // URI resolution is likely wrong, so we need to reset it.
-      if (needsUriReset) driver.resetUriResolution();
     }
   }
 
@@ -572,15 +577,16 @@ class ContextManagerImpl implements ContextManager {
 
     _instrumentationService.logWatchEvent('<unknown>', path, type.toString());
 
-    final isPubpsec = file_paths.isPubspecYaml(pathContext, path);
+    final isPubspec = file_paths.isPubspecYaml(pathContext, path);
     if (file_paths.isAnalysisOptionsYaml(pathContext, path) ||
+        file_paths.isBazelBuild(pathContext, path) ||
         file_paths.isDotPackages(pathContext, path) ||
         file_paths.isPackageConfigJson(pathContext, path) ||
-        isPubpsec ||
+        isPubspec ||
         false) {
       _createAnalysisContexts();
 
-      if (isPubpsec) {
+      if (isPubspec) {
         if (type == ChangeType.REMOVE) {
           callbacks.pubspecRemoved(path);
         } else {
@@ -684,7 +690,7 @@ class ContextManagerImpl implements ContextManager {
   void _startWatchingBazelBinPaths(_BazelWatchedFiles watched) {
     var watcherService = bazelWatcherService;
     if (watcherService == null) return;
-    var paths = _getPossibelBazelBinPaths(watched);
+    var paths = _getPossibleBazelBinPaths(watched);
     watcherService.startWatching(
         watched.workspace, BazelSearchInfo(paths[0], paths));
   }
@@ -693,7 +699,7 @@ class ContextManagerImpl implements ContextManager {
   void _stopWatchingBazelBinPaths(_BazelWatchedFiles watched) {
     var watcherService = bazelWatcherService;
     if (watcherService == null) return;
-    var paths = _getPossibelBazelBinPaths(watched);
+    var paths = _getPossibleBazelBinPaths(watched);
     watcherService.stopWatching(watched.workspace, paths[0]);
   }
 

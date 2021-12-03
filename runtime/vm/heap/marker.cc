@@ -39,14 +39,16 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         marked_micros_(0) {
     ASSERT(thread_->isolate_group() == isolate_group);
   }
-  ~MarkingVisitorBase() {}
+  ~MarkingVisitorBase() {
+    ASSERT(delayed_weak_properties_ == WeakProperty::null());
+  }
 
   uintptr_t marked_bytes() const { return marked_bytes_; }
   int64_t marked_micros() const { return marked_micros_; }
   void AddMicros(int64_t micros) { marked_micros_ += micros; }
 
   bool ProcessPendingWeakProperties() {
-    bool marked = false;
+    bool more_to_mark = false;
     WeakPropertyPtr cur_weak = delayed_weak_properties_;
     delayed_weak_properties_ = WeakProperty::null();
     while (cur_weak != WeakProperty::null()) {
@@ -55,10 +57,11 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       ObjectPtr raw_key = cur_weak->untag()->key();
       // Reset the next pointer in the weak property.
       cur_weak->untag()->next_ = WeakProperty::null();
-      if (raw_key->untag()->IsMarked()) {
+      if (raw_key->IsSmiOrNewObject() || raw_key->untag()->IsMarked()) {
         ObjectPtr raw_val = cur_weak->untag()->value();
-        marked = marked ||
-                 (raw_val->IsHeapObject() && !raw_val->untag()->IsMarked());
+        if (!raw_val->IsSmiOrNewObject() && !raw_val->untag()->IsMarked()) {
+          more_to_mark = true;
+        }
 
         // The key is marked so we make sure to properly visit all pointers
         // originating from this weak property.
@@ -70,7 +73,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       // Advance to next weak property in the queue.
       cur_weak = next_weak;
     }
-    return marked;
+    return more_to_mark;
   }
 
   void DrainMarkingStack() {
@@ -175,16 +178,24 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     ObjectPtr raw_obj;
     while ((raw_obj = deferred_work_list_.Pop()) != nullptr) {
       ASSERT(raw_obj->IsHeapObject() && raw_obj->IsOldObject());
-      // N.B. We are scanning the object even if it is already marked.
+      // We need to scan objects even if they were already scanned via ordinary
+      // marking. An object may have changed since its ordinary scan and been
+      // added to deferred marking stack to compensate for write-barrier
+      // elimination.
+      // A given object may be included in the deferred marking stack multiple
+      // times. It may or may not also be in the ordinary marking stack, so
+      // failing to acquire the mark bit here doesn't reliably indicate the
+      // object was already encountered through the deferred marking stack. Our
+      // processing here is idempotent, so repeated visits only hurt performance
+      // but not correctness. Duplicatation is expected to be low.
+      // By the absence of a special case, we are treating WeakProperties as
+      // strong references here. This guarantees a WeakProperty will only be
+      // added to the delayed_weak_properties_ list of the worker that
+      // encounters it during ordinary marking. This is in the same spirit as
+      // the eliminated write barrier, which would have added the newly written
+      // key and value to the ordinary marking stack.
       bool did_mark = TryAcquireMarkBit(raw_obj);
-      const intptr_t class_id = raw_obj->GetClassId();
-      intptr_t size;
-      if (class_id != kWeakPropertyCid) {
-        size = raw_obj->untag()->VisitPointersNonvirtual(this);
-      } else {
-        WeakPropertyPtr raw_weak = static_cast<WeakPropertyPtr>(raw_obj);
-        size = ProcessWeakProperty(raw_weak, did_mark);
-      }
+      intptr_t size = raw_obj->untag()->VisitPointersNonvirtual(this);
       // Add the size only if we win the marking race to prevent
       // double-counting.
       if (did_mark) {
@@ -193,26 +204,22 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     }
   }
 
-  void FinalizeDeferredMarking() {
-    ProcessDeferredMarking();
+  // Called when all marking is complete. Any attempt to push to the mark stack
+  // after this will trigger an error.
+  void FinalizeMarking() {
+    work_list_.Finalize();
     deferred_work_list_.Finalize();
   }
 
-  // Called when all marking is complete.
-  void Finalize() {
-    work_list_.Finalize();
-    // Clear pending weak properties.
+  void MournWeakProperties() {
     WeakPropertyPtr cur_weak = delayed_weak_properties_;
     delayed_weak_properties_ = WeakProperty::null();
-    intptr_t weak_properties_cleared = 0;
     while (cur_weak != WeakProperty::null()) {
       WeakPropertyPtr next_weak =
           cur_weak->untag()->next_.Decompress(cur_weak->heap_base());
       cur_weak->untag()->next_ = WeakProperty::null();
       RELEASE_ASSERT(!cur_weak->untag()->key()->untag()->IsMarked());
       WeakProperty::Clear(cur_weak);
-      weak_properties_cleared++;
-      // Advance to next weak property in the queue.
       cur_weak = next_weak;
     }
   }
@@ -224,6 +231,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   void AbandonWork() {
     work_list_.AbandonWork();
     deferred_work_list_.AbandonWork();
+    delayed_weak_properties_ = WeakProperty::null();
   }
 
  private:
@@ -594,23 +602,20 @@ class ParallelMarkTask : public ThreadPool::Task {
       } while (more_to_mark);
 
       // Phase 2: deferred marking.
-      visitor_->FinalizeDeferredMarking();
+      visitor_->ProcessDeferredMarking();
+      visitor_->FinalizeMarking();
       barrier_->Sync();
 
-      // Phase 3: Weak processing.
+      // Phase 3: Weak processing and statistics.
+      visitor_->MournWeakProperties();
       marker_->IterateWeakRoots(thread);
-      barrier_->Sync();
-
-      // Phase 4: Gather statistics from all markers.
       int64_t stop = OS::GetCurrentMonotonicMicros();
       visitor_->AddMicros(stop - start);
       if (FLAG_log_marker_tasks) {
         THR_Print("Task marked %" Pd " bytes in %" Pd64 " micros.\n",
                   visitor_->marked_bytes(), visitor_->marked_micros());
       }
-      marker_->FinalizeResultsFrom(visitor_);
-
-      delete visitor_;
+      barrier_->Sync();
     }
   }
 
@@ -684,16 +689,6 @@ class ConcurrentMarkTask : public ThreadPool::Task {
 
   DISALLOW_COPY_AND_ASSIGN(ConcurrentMarkTask);
 };
-
-template <class MarkingVisitorType>
-void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
-  {
-    MutexLocker ml(&stats_mutex_);
-    marked_bytes_ += visitor->marked_bytes();
-    marked_micros_ += visitor->marked_micros();
-  }
-  visitor->Finalize();
-}
 
 intptr_t GCMarker::MarkedWordsPerMicro() const {
   intptr_t marked_words_per_job_micro;
@@ -790,18 +785,21 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       TIMELINE_FUNCTION_GC_DURATION(thread, "Mark");
       int64_t start = OS::GetCurrentMonotonicMicros();
       // Mark everything on main thread.
-      UnsyncMarkingVisitor mark(isolate_group_, page_space, &marking_stack_,
-                                &deferred_marking_stack_);
+      UnsyncMarkingVisitor visitor(isolate_group_, page_space, &marking_stack_,
+                                   &deferred_marking_stack_);
       ResetSlices();
-      IterateRoots(&mark);
-      mark.ProcessDeferredMarking();
-      mark.DrainMarkingStack();
-      mark.FinalizeDeferredMarking();
+      IterateRoots(&visitor);
+      visitor.ProcessDeferredMarking();
+      visitor.DrainMarkingStack();
+      visitor.ProcessDeferredMarking();
+      visitor.FinalizeMarking();
+      visitor.MournWeakProperties();
       IterateWeakRoots(thread);
       // All marking done; detach code, etc.
       int64_t stop = OS::GetCurrentMonotonicMicros();
-      mark.AddMicros(stop - start);
-      FinalizeResultsFrom(&mark);
+      visitor.AddMicros(stop - start);
+      marked_bytes_ += visitor.marked_bytes();
+      marked_micros_ += visitor.marked_micros();
     } else {
       ThreadBarrier barrier(num_tasks, heap_->barrier(), heap_->barrier_done());
       ResetSlices();
@@ -809,14 +807,14 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       RelaxedAtomic<uintptr_t> num_busy(num_tasks);
       // Phase 1: Iterate over roots and drain marking stack in tasks.
       for (intptr_t i = 0; i < num_tasks; ++i) {
-        SyncMarkingVisitor* visitor;
-        if (visitors_[i] != NULL) {
-          visitor = visitors_[i];
-          visitors_[i] = NULL;
-        } else {
+        SyncMarkingVisitor* visitor = visitors_[i];
+        // Visitors may or may not have already been created depending on
+        // whether we did some concurrent marking.
+        if (visitor == nullptr) {
           visitor =
               new SyncMarkingVisitor(isolate_group_, page_space,
                                      &marking_stack_, &deferred_marking_stack_);
+          visitors_[i] = visitor;
         }
         if (i < (num_tasks - 1)) {
           // Begin marking on a helper thread.
@@ -831,6 +829,14 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
           task.RunEnteredIsolateGroup();
           barrier.Exit();
         }
+      }
+
+      for (intptr_t i = 0; i < num_tasks; i++) {
+        SyncMarkingVisitor* visitor = visitors_[i];
+        marked_bytes_ += visitor->marked_bytes();
+        marked_micros_ += visitor->marked_micros();
+        delete visitor;
+        visitors_[i] = nullptr;
       }
     }
   }

@@ -7,6 +7,8 @@
 // Test that SpeculativeInt64ShiftOp's range is correctly inferred when the RHS
 // is a nullable smi.
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 
 int getShift(List<String> args) {

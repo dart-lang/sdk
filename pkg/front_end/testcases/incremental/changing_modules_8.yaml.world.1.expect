@@ -12,9 +12,9 @@ library from "package:module/lib1.dart" as lib1 {
   import "package:module/lib2.dart";
 
   abstract class XSet extends dart.core::Object {
-    static final field dynamic _redirecting# = <dynamic>[lib1::XSet::identity];
+    static final field dynamic _redirecting# = <dynamic>[#C1];
     static factory identity() → lib1::XSet*
-      let dynamic #redirecting_factory = lib2::XLinkedHashSet::identity in invalid-expression;
+      return lib2::XLinkedHashSet::identity();
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
     abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
@@ -33,9 +33,9 @@ library from "package:module/lib2.dart" as lib2 {
   import "package:module/lib3.dart";
 
   class XLinkedHashSet extends dart.core::Object implements lib1::XSet {
-    static final field dynamic _redirecting# = <dynamic>[lib2::XLinkedHashSet::identity];
+    static final field dynamic _redirecting# = <dynamic>[#C2];
     static factory identity() → lib2::XLinkedHashSet*
-      let dynamic #redirecting_factory = lib3::XIdentityHashSet::• in invalid-expression;
+      return new lib3::XIdentityHashSet::•();
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
     abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
@@ -67,4 +67,8 @@ library from "package:module/lib3.dart" as lib3 {
     abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
     abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
+}
+constants  {
+  #C1 = constructor-tearoff lib1::XSet::identity
+  #C2 = constructor-tearoff lib2::XLinkedHashSet::identity
 }

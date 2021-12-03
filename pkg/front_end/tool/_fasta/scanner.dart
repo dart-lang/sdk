@@ -5,4 +5,4 @@
 import 'package:_fe_analyzer_shared/src/scanner/scanner_main.dart'
     show mainEntryPoint;
 
-main(List<String> arguments) => mainEntryPoint(arguments);
+void main(List<String> arguments) => mainEntryPoint(arguments);

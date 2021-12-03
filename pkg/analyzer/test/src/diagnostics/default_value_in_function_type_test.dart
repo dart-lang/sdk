@@ -58,4 +58,18 @@ typedef F([x = 0]);
       error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 13, 1),
     ]);
   }
+
+  test_typeArgument_ofInstanceCreation() async {
+    await assertErrorsInCode('''
+class A<T> {}
+
+void f() {
+  A<void Function([int x = 42])>();
+}
+''', [
+      error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 51, 1),
+    ]);
+    // The expression is resolved, even if it is invalid.
+    assertType(findNode.integerLiteral('42'), 'int');
+  }
 }

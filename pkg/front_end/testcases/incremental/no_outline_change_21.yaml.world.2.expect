@@ -3,24 +3,24 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:3:3: Error: 'A1.foo1' is already declared in this scope.
+// org-dartlang-test:///main.dart:4:3: Error: 'A1.foo1' is already declared in this scope.
 //   A1.foo1(){}
 //   ^^^^^^^
-// org-dartlang-test:///main.dart:2:3: Context: Previous declaration of 'A1.foo1'.
+// org-dartlang-test:///main.dart:3:3: Context: Previous declaration of 'A1.foo1'.
 //   A1.foo1(){}
 //   ^^^^^^^
 //
-// org-dartlang-test:///main.dart:5:7: Error: 'A1' is already declared in this scope.
+// org-dartlang-test:///main.dart:6:7: Error: 'A1' is already declared in this scope.
 // class A1 {
 //       ^^
-// org-dartlang-test:///main.dart:1:7: Context: Previous declaration of 'A1'.
+// org-dartlang-test:///main.dart:2:7: Context: Previous declaration of 'A1'.
 // class A1 {
 //       ^^
 //
-// org-dartlang-test:///main.dart:7:3: Error: 'A1.foo2' is already declared in this scope.
+// org-dartlang-test:///main.dart:8:3: Error: 'A1.foo2' is already declared in this scope.
 //   A1.foo2(){}
 //   ^^^^^^^
-// org-dartlang-test:///main.dart:6:3: Context: Previous declaration of 'A1.foo2'.
+// org-dartlang-test:///main.dart:7:3: Context: Previous declaration of 'A1.foo2'.
 //   A1.foo2(){}
 //   ^^^^^^^
 //

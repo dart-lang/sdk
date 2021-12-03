@@ -7,8 +7,10 @@ library test_helper;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:dds/dds.dart';
 import 'package:observatory/service_io.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'service_test_common.dart';
 export 'service_test_common.dart' show DDSTest, IsolateTest, VMTest;
@@ -94,7 +96,8 @@ class _ServiceTesteeLauncher {
   final _processCompleter = Completer<void>();
   bool killedByTester = false;
 
-  _ServiceTesteeLauncher() : args = [Platform.script.toFilePath()] {}
+  _ServiceTesteeLauncher({String? script})
+      : args = [script ?? Platform.script.toFilePath()] {}
 
   // Spawn the testee process.
   Future<Process> _spawnProcess(
@@ -343,6 +346,7 @@ class _ServiceTesterRunner {
     bool testeeControlsServer: false,
     bool enableDds: true,
     bool enableService: true,
+    bool compileToKernelFirst: false,
     int port = 0,
   }) {
     if (executableArgs == null) {
@@ -352,6 +356,7 @@ class _ServiceTesterRunner {
     late WebSocketVM vm;
     late _ServiceTesteeLauncher process;
     bool testsDone = false;
+    final tempDir = Directory.systemTemp.createTempSync('testee_dill');
 
     ignoreLateException(Function f) async {
       try {
@@ -369,7 +374,26 @@ class _ServiceTesterRunner {
     setUp(
       () => ignoreLateException(
         () async {
-          process = _ServiceTesteeLauncher();
+          String testeePath = Platform.script.toFilePath();
+          if (compileToKernelFirst && testeePath.endsWith('.dart')) {
+            final testeePathDill = path.join(tempDir.path, 'testee.dill');
+            final ProcessResult result =
+                await Process.run(Platform.executable, [
+              '--snapshot-kind=kernel',
+              '--snapshot=$testeePathDill',
+              ...Platform.executableArguments,
+              testeePath,
+            ]);
+            if (result.exitCode != 0) {
+              throw 'Failed to compile testee to kernel:\n'
+                  'stdout: ${result.stdout}\n'
+                  'stderr: ${result.stderr}\n'
+                  'exitCode: ${result.exitCode}\n';
+            }
+            testeePath = testeePathDill;
+          }
+
+          process = _ServiceTesteeLauncher(script: testeePath);
           await process
               .launch(
                   pause_on_start,
@@ -611,6 +635,7 @@ Future runVMTests(List<String> mainArgs, List<VMTest> tests,
     bool enable_service_port_fallback: false,
     bool enableDds: true,
     bool enableService: true,
+    bool compileToKernelFirst: false,
     int port = 0,
     List<String>? extraArgs,
     List<String>? executableArgs}) async {
@@ -633,6 +658,7 @@ Future runVMTests(List<String> mainArgs, List<VMTest> tests,
       enable_service_port_fallback: enable_service_port_fallback,
       enableDds: enableDds,
       enableService: enableService,
+      compileToKernelFirst: compileToKernelFirst,
       port: port,
     );
   }

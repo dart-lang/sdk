@@ -45,6 +45,7 @@ typedef enum {
   Dart_CObject_kExternalTypedData,
   Dart_CObject_kSendPort,
   Dart_CObject_kCapability,
+  Dart_CObject_kNativePointer,
   Dart_CObject_kUnsupported,
   Dart_CObject_kNumberOfTypes
 } Dart_CObject_Type;
@@ -70,16 +71,21 @@ typedef struct _Dart_CObject {
     } as_array;
     struct {
       Dart_TypedData_Type type;
-      intptr_t length;
+      intptr_t length; /* in elements, not bytes */
       uint8_t* values;
     } as_typed_data;
     struct {
       Dart_TypedData_Type type;
-      intptr_t length;
+      intptr_t length; /* in elements, not bytes */
       uint8_t* data;
       void* peer;
       Dart_HandleFinalizer callback;
     } as_external_typed_data;
+    struct {
+      intptr_t ptr;
+      intptr_t size;
+      Dart_HandleFinalizer callback;
+    } as_native_pointer;
   } value;
 } Dart_CObject;
 // This struct is versioned by DART_API_DL_MAJOR_VERSION, bump the version when

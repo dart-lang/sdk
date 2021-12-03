@@ -13,16 +13,44 @@ extension DdsExtension on VmService {
   static bool _factoriesRegistered = false;
   static Version? _ddsVersion;
 
-  /// The _getDartDevelopmentServiceVersion_ RPC is used to determine what version of
+  /// The [getDartDevelopmentServiceVersion] RPC is used to determine what version of
   /// the Dart Development Service Protocol is served by a DDS instance.
   ///
   /// The result of this call is cached for subsequent invocations.
   Future<Version> getDartDevelopmentServiceVersion() async {
     if (_ddsVersion == null) {
-      _ddsVersion =
-          await _callHelper<Version>('getDartDevelopmentServiceVersion');
+      _ddsVersion = await _callHelper<Version>(
+        'getDartDevelopmentServiceVersion',
+      );
     }
     return _ddsVersion!;
+  }
+
+  /// The [getCachedCpuSamples] RPC is used to retrieve a cache of CPU samples
+  /// collected under a [UserTag] with name `userTag`.
+  Future<CachedCpuSamples> getCachedCpuSamples(
+      String isolateId, String userTag) async {
+    if (!(await _versionCheck(1, 3))) {
+      throw UnimplementedError('getCachedCpuSamples requires DDS version 1.3');
+    }
+    return _callHelper<CachedCpuSamples>('getCachedCpuSamples', args: {
+      'isolateId': isolateId,
+      'userTag': userTag,
+    });
+  }
+
+  /// The [getAvailableCachedCpuSamples] RPC is used to determine which caches of CPU samples
+  /// are available. Caches are associated with individual [UserTag] names and are specified
+  /// when DDS is started via the `cachedUserTags` parameter.
+  Future<AvailableCachedCpuSamples> getAvailableCachedCpuSamples() async {
+    if (!(await _versionCheck(1, 3))) {
+      throw UnimplementedError(
+        'getAvailableCachedCpuSamples requires DDS version 1.3',
+      );
+    }
+    return _callHelper<AvailableCachedCpuSamples>(
+      'getAvailableCachedCpuSamples',
+    );
   }
 
   /// Retrieve the event history for `stream`.
@@ -63,7 +91,11 @@ extension DdsExtension on VmService {
       }
       unawaited(controller.sink.addStream(streamEvents.rest));
     }, onCancel: () {
-      streamEvents.cancel();
+      try {
+        streamEvents.cancel();
+      } on StateError {
+        // Underlying stream may have already been cancelled.
+      }
     });
 
     return controller.stream;
@@ -126,6 +158,11 @@ extension DdsExtension on VmService {
 
   static void _registerFactories() {
     addTypeFactory('StreamHistory', StreamHistory.parse);
+    addTypeFactory(
+      'AvailableCachedCpuSamples',
+      AvailableCachedCpuSamples.parse,
+    );
+    addTypeFactory('CachedCpuSamples', CachedCpuSamples.parse);
     _factoriesRegistered = true;
   }
 }
@@ -153,4 +190,87 @@ class StreamHistory extends Response {
   /// Historical [Event]s for a stream.
   List<Event> get history => UnmodifiableListView(_history);
   final List<Event> _history;
+}
+
+/// An extension of [CpuSamples] which represents a set of cached samples,
+/// associated with a particular [UserTag] name.
+class CachedCpuSamples extends CpuSamples {
+  static CachedCpuSamples? parse(Map<String, dynamic>? json) =>
+      json == null ? null : CachedCpuSamples._fromJson(json);
+
+  CachedCpuSamples({
+    required this.userTag,
+    this.truncated,
+    required int? samplePeriod,
+    required int? maxStackDepth,
+    required int? sampleCount,
+    required int? timeSpan,
+    required int? timeOriginMicros,
+    required int? timeExtentMicros,
+    required int? pid,
+    required List<ProfileFunction>? functions,
+    required List<CpuSample>? samples,
+  }) : super(
+          samplePeriod: samplePeriod,
+          maxStackDepth: maxStackDepth,
+          sampleCount: sampleCount,
+          timeSpan: timeSpan,
+          timeOriginMicros: timeOriginMicros,
+          timeExtentMicros: timeExtentMicros,
+          pid: pid,
+          functions: functions,
+          samples: samples,
+        );
+
+  CachedCpuSamples._fromJson(Map<String, dynamic> json)
+      : userTag = json['userTag']!,
+        truncated = json['truncated'],
+        super(
+          samplePeriod: json['samplePeriod'] ?? -1,
+          maxStackDepth: json['maxStackDepth'] ?? -1,
+          sampleCount: json['sampleCount'] ?? -1,
+          timeSpan: json['timeSpan'] ?? -1,
+          timeOriginMicros: json['timeOriginMicros'] ?? -1,
+          timeExtentMicros: json['timeExtentMicros'] ?? -1,
+          pid: json['pid'] ?? -1,
+          functions: List<ProfileFunction>.from(
+            createServiceObject(json['functions'], const ['ProfileFunction'])
+                    as List? ??
+                [],
+          ),
+          samples: List<CpuSample>.from(
+            createServiceObject(json['samples'], const ['CpuSample'])
+                    as List? ??
+                [],
+          ),
+        );
+
+  @override
+  String get type => 'CachedCpuSamples';
+
+  /// The name of the [UserTag] associated with this cache of [CpuSamples].
+  final String userTag;
+
+  /// Provided if the CPU sample cache has filled and older samples have been
+  /// dropped.
+  final bool? truncated;
+}
+
+/// A collection of [UserTag] names associated with caches of CPU samples.
+class AvailableCachedCpuSamples extends Response {
+  static AvailableCachedCpuSamples? parse(Map<String, dynamic>? json) =>
+      json == null ? null : AvailableCachedCpuSamples._fromJson(json);
+
+  AvailableCachedCpuSamples({
+    required this.cacheNames,
+  });
+
+  AvailableCachedCpuSamples._fromJson(Map<String, dynamic> json)
+      : cacheNames = List<String>.from(json['cacheNames']);
+
+  @override
+  String get type => 'AvailableCachedUserTagCpuSamples';
+
+  /// A [List] of [UserTag] names associated with CPU sample caches.
+  final List<String> cacheNames;
 }

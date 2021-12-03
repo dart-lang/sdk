@@ -3,10 +3,10 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:2:6: Error: 'foo' is already declared in this scope.
+// org-dartlang-test:///main.dart:3:6: Error: 'foo' is already declared in this scope.
 // void foo() {}
 //      ^^^
-// org-dartlang-test:///main.dart:1:6: Context: Previous declaration of 'foo'.
+// org-dartlang-test:///main.dart:2:6: Context: Previous declaration of 'foo'.
 // void foo() {}
 //      ^^^
 //

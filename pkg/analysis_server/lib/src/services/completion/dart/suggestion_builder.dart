@@ -138,9 +138,73 @@ class MemberSuggestionBuilder {
   }
 }
 
+class NewSuggestionsProcessor {
+  final SuggestionBuilder _builder;
+  final Set<protocol.CompletionSuggestion> _current = Set.identity();
+
+  NewSuggestionsProcessor._(this._builder) {
+    _current.addAll(_builder._suggestionMap.values);
+  }
+
+  /// Update suggestions added since this marker was created.
+  void setLibraryUriToImportIndex(int Function() produce) {
+    int? libraryUriToImportIndex;
+    var suggestionMap = _builder._suggestionMap;
+    for (var entry in suggestionMap.entries.toList()) {
+      var suggestion = entry.value;
+      if (!_current.contains(suggestion)) {
+        libraryUriToImportIndex ??= produce();
+        suggestionMap[entry.key] = protocol.CompletionSuggestion(
+          suggestion.kind,
+          suggestion.relevance,
+          suggestion.completion,
+          suggestion.selectionOffset,
+          suggestion.selectionLength,
+          suggestion.isDeprecated,
+          suggestion.isPotential,
+          displayText: suggestion.displayText,
+          replacementOffset: suggestion.replacementOffset,
+          replacementLength: suggestion.replacementLength,
+          docSummary: suggestion.docSummary,
+          docComplete: suggestion.docComplete,
+          declaringType: suggestion.declaringType,
+          defaultArgumentListString: suggestion.defaultArgumentListString,
+          defaultArgumentListTextRanges:
+              suggestion.defaultArgumentListTextRanges,
+          element: suggestion.element,
+          returnType: suggestion.returnType,
+          parameterNames: suggestion.parameterNames,
+          parameterTypes: suggestion.parameterTypes,
+          requiredParameterCount: suggestion.requiredParameterCount,
+          hasNamedParameters: suggestion.hasNamedParameters,
+          parameterName: suggestion.parameterName,
+          parameterType: suggestion.parameterType,
+          libraryUriToImportIndex: libraryUriToImportIndex,
+        );
+      }
+    }
+  }
+}
+
 /// An object used to build a list of suggestions in response to a single
 /// completion request.
 class SuggestionBuilder {
+  /// The cache of suggestions for [Element]s. We use it to avoid computing
+  /// the same documentation, parameters, return type, etc for elements that
+  /// are exactly the same (the same instances) as they were the last time.
+  ///
+  /// This cache works because:
+  /// 1. Flutter applications usually reference many libraries, which they
+  /// consume, but don't change. So, all their elements stay unchanged.
+  /// 2. The analyzer keeps the same library instances loaded as the user
+  /// types in the application, so the instances of all elements stay the
+  /// same, and the cache works.
+  /// 3. The analyzer does not patch elements (at least not after the linking
+  /// process is done, and the elements are exposed to any client code). So,
+  /// any type information, or documentation, stays the same. If this changes,
+  /// we would need a signal, e.g. some modification counter on the element.
+  static final _elementSuggestionCache = Expando<_CompletionSuggestionEntry>();
+
   /// The completion request for which suggestions are being built.
   final DartCompletionRequest request;
 
@@ -186,7 +250,7 @@ class SuggestionBuilder {
   String? get _containingMemberName {
     if (!_hasContainingMemberName) {
       _hasContainingMemberName = true;
-      if (request.dotTarget is SuperExpression) {
+      if (request.target.dotTarget is SuperExpression) {
         var containingMethod = request.target.containingNode
             .thisOrAncestorOfType<MethodDeclaration>();
         if (containingMethod != null) {
@@ -198,7 +262,12 @@ class SuggestionBuilder {
   }
 
   bool get _isNonNullableByDefault =>
-      request.libraryElement?.isNonNullableByDefault ?? false;
+      request.libraryElement.isNonNullableByDefault;
+
+  /// Return an object that knows which suggestions exist, and which are new.
+  NewSuggestionsProcessor markSuggestions() {
+    return NewSuggestionsProcessor._(this);
+  }
 
   /// Add a suggestion for an [accessor] declared within a class or extension.
   /// If the accessor is being invoked with a target of `super`, then the
@@ -336,10 +405,13 @@ class SuggestionBuilder {
   /// period, and hence should not include the name of the class. If the class
   /// can only be referenced using a prefix, and the class name is to be
   /// included in the completion, then the [prefix] should be provided.
-  void suggestConstructor(ConstructorElement constructor,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      bool hasClassName = false,
-      String? prefix}) {
+  void suggestConstructor(
+    ConstructorElement constructor, {
+    CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+    bool tearOff = false,
+    bool hasClassName = false,
+    String? prefix,
+  }) {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
@@ -349,8 +421,12 @@ class SuggestionBuilder {
       return;
     }
 
-    var completion = constructor.displayName;
-    if (!hasClassName && className.isNotEmpty) {
+    var completion = constructor.name;
+    if (tearOff && completion.isEmpty) {
+      completion = 'new';
+    }
+
+    if (!hasClassName) {
       if (completion.isEmpty) {
         completion = className;
       } else {
@@ -457,9 +533,8 @@ class SuggestionBuilder {
 
   /// Add a suggestion for the `call` method defined on functions.
   void suggestFunctionCall() {
-    const callString = 'call';
-    final element = protocol.Element(
-        protocol.ElementKind.METHOD, callString, protocol.Element.makeFlags(),
+    final element = protocol.Element(protocol.ElementKind.METHOD,
+        FunctionElement.CALL_METHOD_NAME, protocol.Element.makeFlags(),
         location: null,
         typeParameters: null,
         parameters: '()',
@@ -467,8 +542,8 @@ class SuggestionBuilder {
     _add(CompletionSuggestion(
       CompletionSuggestionKind.INVOCATION,
       Relevance.callFunction,
-      callString,
-      callString.length,
+      FunctionElement.CALL_METHOD_NAME,
+      FunctionElement.CALL_METHOD_NAME.length,
       0,
       false,
       false,
@@ -1005,6 +1080,50 @@ class SuggestionBuilder {
       CompletionSuggestionKind? kind,
       String? prefix,
       required int relevance}) {
+    var inputs = _CompletionSuggestionInputs(
+      completion: completion,
+      elementKind: elementKind,
+      kind: kind,
+      prefix: prefix,
+    );
+
+    var cacheEntry = _elementSuggestionCache[element];
+    if (cacheEntry != null) {
+      if (cacheEntry.inputs == inputs) {
+        final suggestion = cacheEntry.suggestion;
+        suggestion.relevance = relevance;
+        return suggestion;
+      }
+    }
+
+    var suggestion = _createSuggestion0(
+      element,
+      completion: completion,
+      elementKind: elementKind,
+      kind: kind,
+      prefix: prefix,
+      relevance: relevance,
+    );
+    if (suggestion == null) {
+      return null;
+    }
+
+    _elementSuggestionCache[element] = _CompletionSuggestionEntry(
+      inputs: inputs,
+      suggestion: suggestion,
+    );
+    return suggestion;
+  }
+
+  /// The non-caching implementation of [_createSuggestion].
+  CompletionSuggestion? _createSuggestion0(
+    Element element, {
+    required String? completion,
+    required protocol.ElementKind? elementKind,
+    required CompletionSuggestionKind? kind,
+    required String? prefix,
+    required int relevance,
+  }) {
     if (element is ExecutableElement && element.isOperator) {
       // Do not include operators in suggestions
       return null;
@@ -1076,7 +1195,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement!.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
 
@@ -1094,7 +1213,7 @@ class SuggestionBuilder {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var neverType = request.libraryElement!.typeProvider.neverType;
+      var neverType = request.libraryElement.typeProvider.neverType;
       typeArguments = List.filled(typeParameters.length, neverType);
     }
 
@@ -1111,15 +1230,12 @@ class SuggestionBuilder {
   /// If the [element] has a documentation comment, fill the [suggestion]'s
   /// documentation fields.
   void _setDocumentation(CompletionSuggestion suggestion, Element element) {
-    final request = this.request;
-    if (request is DartCompletionRequestImpl) {
-      var documentationCache = request.documentationCache;
-      var data = documentationCache?.dataFor(element);
-      if (data != null) {
-        suggestion.docComplete = data.full;
-        suggestion.docSummary = data.summary;
-        return;
-      }
+    var documentationCache = request.documentationCache;
+    var data = documentationCache?.dataFor(element);
+    if (data != null) {
+      suggestion.docComplete = data.full;
+      suggestion.docSummary = data.summary;
+      return;
     }
     var doc = DartUnitHoverComputer.computeDocumentation(
         request.dartdocDirectiveInfo, element,
@@ -1159,4 +1275,42 @@ abstract class SuggestionListener {
   /// Invoked when an element kind feature cannot be produced because there is
   /// no `elementKindRelevance` table associated with the [completionLocation].
   void missingElementKindTableFor(String completionLocation);
+}
+
+/// The entry of the element to suggestion cache.
+class _CompletionSuggestionEntry {
+  final _CompletionSuggestionInputs inputs;
+
+  /// The suggestion computed for the element and [inputs].
+  final CompletionSuggestion suggestion;
+
+  _CompletionSuggestionEntry({
+    required this.inputs,
+    required this.suggestion,
+  });
+}
+
+/// The inputs, other than the [Element], that were provided to create an
+/// instance of [CompletionSuggestion].
+class _CompletionSuggestionInputs {
+  final String? completion;
+  final protocol.ElementKind? elementKind;
+  final CompletionSuggestionKind? kind;
+  final String? prefix;
+
+  _CompletionSuggestionInputs({
+    required this.completion,
+    required this.elementKind,
+    required this.kind,
+    required this.prefix,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    return other is _CompletionSuggestionInputs &&
+        other.completion == completion &&
+        other.elementKind == elementKind &&
+        other.kind == kind &&
+        other.prefix == prefix;
+  }
 }

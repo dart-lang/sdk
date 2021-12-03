@@ -8,7 +8,6 @@
   -- Note: if you move this file to a different location, please make sure that
   -- you also update these references to it:
   --  * pkg/compiler/lib/src/diagnostics/messages.dart
-  --  * pkg/dart_messages/lib/shared_messages.dart
   --  * pkg/_fe_analyzer_shared/lib/src/base/errors.dart
   --  * https://github.com/dart-lang/linter/
   -->

@@ -36,3 +36,21 @@ static method foo() → dynamic {
   core::String a;
 }
 static method main() → dynamic {}
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _#A#fromCharCodes#tearOff<unrelated X extends core::int>(core::Iterable<core::int> charCodes, [core::int start = #C1, core::int? end = #C2]) → core::String
+  return core::String::fromCharCodes(charCodes, start, end);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _#A#fromCharCode#tearOff<unrelated X extends core::int>(core::int charCode) → core::String
+  return core::String::fromCharCode(charCode);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _#A#fromEnvironment#tearOff<unrelated X extends core::int>(core::String name, {core::String defaultValue = #C3}) → core::String
+  return core::String::fromEnvironment(name, defaultValue: defaultValue);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _#B#fromCharCodes#tearOff<unrelated X extends core::int>(core::Iterable<core::int> charCodes, [core::int start = #C1, core::int? end = #C2]) → core::String
+  return core::String::fromCharCodes(charCodes, start, end);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _#B#fromCharCode#tearOff<unrelated X extends core::int>(core::int charCode) → core::String
+  return core::String::fromCharCode(charCode);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _#B#fromEnvironment#tearOff<unrelated X extends core::int>(core::String name, {core::String defaultValue = #C3}) → core::String
+  return core::String::fromEnvironment(name, defaultValue: defaultValue);
+
+constants  {
+  #C1 = 0
+  #C2 = null
+  #C3 = ""
+}

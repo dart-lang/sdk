@@ -14,18 +14,16 @@ import 'package:kernel/transformations/mixin_full_resolution.dart'
 import 'package:kernel/transformations/continuation.dart' as transformAsync
     show transformLibraries, transformProcedure;
 import 'package:kernel/type_environment.dart';
-import 'package:kernel/vm/constants_native_effects.dart'
-    show VmConstantsBackend;
 
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
 import '../transformations/lowering.dart' as lowering
     show transformLibraries, transformProcedure;
-import '../transformations/ffi.dart' as ffiHelper show importsFfi;
-import '../transformations/ffi_definitions.dart' as transformFfiDefinitions
+import '../transformations/ffi/common.dart' as ffiHelper show importsFfi;
+import '../transformations/ffi/definitions.dart' as transformFfiDefinitions
     show transformLibraries;
-import '../transformations/ffi_native.dart' as transformFfiNative
+import '../transformations/ffi/native.dart' as transformFfiNative
     show transformLibraries;
-import '../transformations/ffi_use_sites.dart' as transformFfiUseSites
+import '../transformations/ffi/use_sites.dart' as transformFfiUseSites
     show transformLibraries;
 
 /// Specializes the kernel IR to the Dart VM.
@@ -34,8 +32,10 @@ class VmTarget extends Target {
 
   Class? _growableList;
   Class? _immutableList;
+  Class? _internalImmutableLinkedHashMap;
+  Class? _internalImmutableLinkedHashSet;
   Class? _internalLinkedHashMap;
-  Class? _immutableMap;
+  Class? _internalLinkedHashSet;
   Class? _oneByteString;
   Class? _twoByteString;
   Class? _smi;
@@ -50,22 +50,20 @@ class VmTarget extends Target {
   bool get supportsSetLiterals => false;
 
   @override
-  int get enabledLateLowerings => flags.forceLateLoweringsForTesting;
+  int get enabledLateLowerings => LateLowering.none;
 
   @override
-  bool get supportsLateLoweringSentinel =>
-      flags.forceLateLoweringSentinelForTesting;
+  bool get supportsLateLoweringSentinel => false;
 
   @override
-  bool get useStaticFieldLowering => flags.forceStaticFieldLoweringForTesting;
+  bool get useStaticFieldLowering => false;
 
   @override
-  bool get supportsExplicitGetterCalls =>
-      !flags.forceNoExplicitGetterCallsForTesting;
+  bool get supportsExplicitGetterCalls => true;
 
   @override
   int get enabledConstructorTearOffLowerings =>
-      flags.forceConstructorTearOffLoweringForTesting;
+      ConstructorTearOffLowering.typedefs;
 
   @override
   String get name => 'vm';
@@ -159,10 +157,15 @@ class VmTarget extends Target {
     if (!ffiHelper.importsFfi(component, libraries)) {
       logger?.call("Skipped ffi transformation");
     } else {
-      // Transform @FfiNative(..) functions into ffi native call functions.
-      transformFfiNative.transformLibraries(
-          component, libraries, diagnosticReporter, referenceFromIndex);
+      // Transform @FfiNative(..) functions into FFI native call functions.
+      // Pass instance method receivers as implicit first argument to the static
+      // native function.
+      // Transform arguments that extend NativeFieldWrapperClass1 to Pointer if
+      // the native function expects Pointer (to avoid Handle overhead).
+      transformFfiNative.transformLibraries(component, coreTypes, hierarchy,
+          libraries, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed ffi natives");
+
       // TODO(jensj/dacoharkes): We can probably limit the transformations to
       // libraries that transitivley depend on dart:ffi.
       transformFfiDefinitions.transformLibraries(
@@ -441,8 +444,20 @@ class VmTarget extends Target {
 
   @override
   Class concreteConstMapLiteralClass(CoreTypes coreTypes) {
-    return _immutableMap ??=
-        coreTypes.index.getClass('dart:core', '_ImmutableMap');
+    return _internalImmutableLinkedHashMap ??= coreTypes.index
+        .getClass('dart:collection', '_InternalImmutableLinkedHashMap');
+  }
+
+  @override
+  Class concreteSetLiteralClass(CoreTypes coreTypes) {
+    return _internalLinkedHashSet ??=
+        coreTypes.index.getClass('dart:collection', '_CompactLinkedHashSet');
+  }
+
+  @override
+  Class concreteConstSetLiteralClass(CoreTypes coreTypes) {
+    return _internalImmutableLinkedHashSet ??= coreTypes.index
+        .getClass('dart:collection', '_CompactImmutableLinkedHashSet');
   }
 
   @override
@@ -478,8 +493,7 @@ class VmTarget extends Target {
   }
 
   @override
-  ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      new VmConstantsBackend(coreTypes);
+  ConstantsBackend get constantsBackend => const ConstantsBackend();
 
   @override
   Map<String, String> updateEnvironmentDefines(Map<String, String> map) {

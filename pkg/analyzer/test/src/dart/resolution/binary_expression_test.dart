@@ -123,7 +123,7 @@ f(int a, int b) {
       findNode.binary('a != b'),
       element: elementMatcher(
         numElement.getMethod('=='),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'bool',
     );
@@ -177,7 +177,7 @@ f(int a, int b) {
       findNode.binary('a == b'),
       element: elementMatcher(
         numElement.getMethod('=='),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'bool',
     );
@@ -273,7 +273,7 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_minus_int_double() async {
@@ -287,7 +287,7 @@ f(int a, double b) {
       findNode.binary('a - b'),
       element: elementMatcher(
         numElement.getMethod('-'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'double',
     );
@@ -304,7 +304,7 @@ f(int a, int b) {
       findNode.binary('a - b'),
       element: elementMatcher(
         numElement.getMethod('-'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -320,7 +320,7 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_mod_int_double() async {
@@ -334,7 +334,7 @@ f(int a, double b) {
       findNode.binary('a % b'),
       element: elementMatcher(
         numElement.getMethod('%'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'double',
     );
@@ -351,7 +351,7 @@ f(int a, int b) {
       findNode.binary('a % b'),
       element: elementMatcher(
         numElement.getMethod('%'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -405,7 +405,7 @@ f(double a, dynamic b) {
       findNode.binary('a + b'),
       element: elementMatcher(
         doubleElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'double',
     );
@@ -421,7 +421,7 @@ h(double x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'double' : 'num']);
+        [typeStringByNullability(nullable: 'double', legacy: 'num')]);
   }
 
   test_plus_int_context_int() async {
@@ -434,7 +434,7 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_plus_int_context_int_target_rewritten() async {
@@ -447,7 +447,7 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_plus_int_context_int_via_extension_explicit() async {
@@ -489,7 +489,7 @@ f(int a, double b) {
       findNode.binary('a + b'),
       element: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'double',
     );
@@ -506,7 +506,7 @@ f(int a, dynamic b) {
       findNode.binary('a + b'),
       element: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'num',
     );
@@ -523,7 +523,7 @@ f(int a, int b) {
       findNode.binary('a + b'),
       element: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -540,7 +540,7 @@ f(int Function() a, int b) {
       findNode.binary('a() + b'),
       element: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );
@@ -577,7 +577,7 @@ f(int a, num b) {
       findNode.binary('a + b'),
       element: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'num',
     );
@@ -741,7 +741,7 @@ f<T extends num>(T a) {
       findNode.binary('a + 0'),
       element: elementMatcher(
         numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'num',
     );
@@ -758,7 +758,7 @@ f(int a, int b) {
       findNode.binary('a / b'),
       element: elementMatcher(
         numElement.getMethod('/'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'double',
     );
@@ -774,7 +774,7 @@ h(int x) {}
 ''');
 
     assertTypeArgumentTypes(findNode.methodInvocation('f()'),
-        [typeToStringWithNullability ? 'int' : 'num']);
+        [typeStringByNullability(nullable: 'int', legacy: 'num')]);
   }
 
   test_star_int_double() async {
@@ -788,7 +788,7 @@ f(int a, double b) {
       findNode.binary('a * b'),
       element: elementMatcher(
         numElement.getMethod('*'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'double',
     );
@@ -805,7 +805,7 @@ f(int a, int b) {
       findNode.binary('a * b'),
       element: elementMatcher(
         numElement.getMethod('*'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );

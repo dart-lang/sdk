@@ -10,7 +10,7 @@ import 'dart:_foreign_helper' show JS; // error
 
 test() {
   String x = JS('int', '42'); // error
-  var /*@type=dynamic*/ y = JS<String>('String', '"hello"');
+  var /*@type=invalid-type*/ y = JS<String>('String', '"hello"');
   y = "world";
   y = 42; // error
 }

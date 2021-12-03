@@ -151,8 +151,8 @@ abstract class A<AT extends core::Object? = dynamic> extends core::Object {
   abstract method method2b(dynamic x) → void;
   abstract method method3a<AT3a extends core::Object? = dynamic>(self::A::method3a::AT3a% x) → void;
   abstract method method3b<AT3b extends core::Object? = dynamic>(self::A::method3b::AT3b% x) → void;
-  abstract method method4a<AT4a extends core::Object? = dynamic>(self::A::method4a::AT4a% x, generic-covariant-impl self::A::AT% y) → void;
-  abstract method method4b<AT4b extends core::Object? = dynamic>(self::A::method4b::AT4b% x, generic-covariant-impl self::A::AT% y) → void;
+  abstract method method4a<AT4a extends core::Object? = dynamic>(self::A::method4a::AT4a% x, covariant-by-class self::A::AT% y) → void;
+  abstract method method4b<AT4b extends core::Object? = dynamic>(self::A::method4b::AT4b% x, covariant-by-class self::A::AT% y) → void;
   abstract method method5a(core::int x, core::num y) → void;
   abstract method method5b(core::int x, core::num y) → void;
   abstract method method6a({core::int x, core::num y}) → void;
@@ -198,8 +198,8 @@ abstract class B<BT extends core::Object? = dynamic> extends core::Object {
   abstract method method2b(core::Object? x) → void;
   abstract method method3a<BT3a extends core::Object? = dynamic>(self::B::method3a::BT3a% x) → void;
   abstract method method3b<BT3b extends core::Object? = dynamic>(self::B::method3b::BT3b% x) → void;
-  abstract method method4a<BT4a extends core::Object? = dynamic>(self::B::method4a::BT4a% x, generic-covariant-impl self::B::BT% y) → void;
-  abstract method method4b<BT4b extends core::Object? = dynamic>(self::B::method4b::BT4b% x, generic-covariant-impl self::B::BT% y) → void;
+  abstract method method4a<BT4a extends core::Object? = dynamic>(self::B::method4a::BT4a% x, covariant-by-class self::B::BT% y) → void;
+  abstract method method4b<BT4b extends core::Object? = dynamic>(self::B::method4b::BT4b% x, covariant-by-class self::B::BT% y) → void;
   abstract method method5a(core::num x, core::int y) → void;
   abstract method method5b(core::num x, core::int y) → void;
   abstract method method6a({core::Object x, core::num y}) → void;
@@ -255,8 +255,8 @@ abstract class C extends core::Object implements self::A<core::int>, self::B<cor
   abstract method method2b(core::Object? x) → void;
   abstract method method3a<CT3a extends core::Object? = dynamic>(self::C::method3a::CT3a% x) → void;
   abstract method method3b<CT3b extends core::Object? = dynamic>(self::C::method3b::CT3b% x, [dynamic y]) → void;
-  abstract method method4a<CT4a extends core::Object? = dynamic>(self::C::method4a::CT4a% x, generic-covariant-impl core::num y) → void;
-  abstract method method4b<CT4b extends core::Object? = dynamic>(self::C::method4b::CT4b% x, generic-covariant-impl core::num y, [dynamic z]) → void;
+  abstract method method4a<CT4a extends core::Object? = dynamic>(self::C::method4a::CT4a% x, covariant-by-class core::num y) → void;
+  abstract method method4b<CT4b extends core::Object? = dynamic>(self::C::method4b::CT4b% x, covariant-by-class core::num y, [dynamic z]) → void;
   abstract method method5a(invalid-type x, invalid-type y) → void;
   abstract method method5b(core::num x, core::num y, [invalid-type z]) → void;
   abstract method method6a({core::Object x, core::num y}) → void;

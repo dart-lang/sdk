@@ -15,7 +15,7 @@
 #include "platform/globals.h"
 #include "platform/utils.h"
 
-#include "vm/clustered_snapshot.h"
+#include "vm/app_snapshot.h"
 #include "vm/dart_api_impl.h"
 #include "vm/datastream.h"
 #include "vm/message_snapshot.h"
@@ -48,7 +48,6 @@ BENCHMARK(CorelibCompileAll) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
-  HANDLESCOPE(thread);
   Timer timer;
   timer.Start();
   const Error& error =
@@ -166,20 +165,23 @@ static Dart_NativeFunction bm_uda_lookup(Dart_Handle name,
 
 BENCHMARK(UseDartApi) {
   const int kNumIterations = 1000000;
-  const char* kScriptChars =
-      "import 'dart:nativewrappers';\n"
-      "class Class extends NativeFieldWrapperClass1 {\n"
-      "  void init() native 'init';\n"
-      "  int method(int param1, int param2) native 'method';\n"
-      "}\n"
-      "\n"
-      "void benchmark(int count) {\n"
-      "  Class c = Class();\n"
-      "  c.init();\n"
-      "  for (int i = 0; i < count; i++) {\n"
-      "    c.method(i,7);\n"
-      "  }\n"
-      "}\n";
+  const char* kScriptChars = R"(
+import 'dart:nativewrappers';
+
+class Class extends NativeFieldWrapperClass1 {
+  @pragma("vm:external-name", "init")
+  external void init();
+  @pragma("vm:external-name", "method")
+  external int method(int param1, int param2);
+}
+
+void benchmark(int count) {
+  Class c = Class();
+  c.init();
+  for (int i = 0; i < count; i++) {
+    c.method(i,7);
+  }
+})";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, bm_uda_lookup,
                                              RESOLVED_USER_TEST_URI, false);
@@ -410,7 +412,6 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
 
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
-  HANDLESCOPE(thread);
 
   Api::CheckAndFinalizePendingClasses(thread);
 
@@ -448,7 +449,6 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
 
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
-  HANDLESCOPE(thread);
 
   Api::CheckAndFinalizePendingClasses(thread);
 
@@ -493,7 +493,6 @@ BENCHMARK(EnterExitIsolate) {
   {
     TransitionNativeToVM transition(thread);
     StackZone zone(thread);
-    HANDLESCOPE(thread);
     Api::CheckAndFinalizePendingClasses(thread);
   }
   Dart_Isolate isolate = Dart_CurrentIsolate();
@@ -511,7 +510,6 @@ BENCHMARK(EnterExitIsolate) {
 BENCHMARK(SerializeNull) {
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
-  HANDLESCOPE(thread);
   const Object& null_object = Object::Handle();
   const intptr_t kLoopCount = 1000000;
   Timer timer;
@@ -519,8 +517,8 @@ BENCHMARK(SerializeNull) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     std::unique_ptr<Message> message =
-        WriteMessage(/* can_send_any_object */ true, null_object, ILLEGAL_PORT,
-                     Message::kNormalPriority);
+        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
+                     null_object, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
     ReadMessage(thread, message.get());
@@ -533,7 +531,6 @@ BENCHMARK(SerializeNull) {
 BENCHMARK(SerializeSmi) {
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
-  HANDLESCOPE(thread);
   const Integer& smi_object = Integer::Handle(Smi::New(42));
   const intptr_t kLoopCount = 1000000;
   Timer timer;
@@ -541,8 +538,8 @@ BENCHMARK(SerializeSmi) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     std::unique_ptr<Message> message =
-        WriteMessage(/* can_send_any_object */ true, smi_object, ILLEGAL_PORT,
-                     Message::kNormalPriority);
+        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
+                     smi_object, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
     ReadMessage(thread, message.get());
@@ -555,7 +552,6 @@ BENCHMARK(SerializeSmi) {
 BENCHMARK(SimpleMessage) {
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
-  HANDLESCOPE(thread);
   const Array& array_object = Array::Handle(Array::New(2));
   array_object.SetAt(0, Integer::Handle(Smi::New(42)));
   array_object.SetAt(1, Object::Handle());
@@ -565,8 +561,8 @@ BENCHMARK(SimpleMessage) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     std::unique_ptr<Message> message = WriteMessage(
-        /* can_send_any_object */ true, array_object, ILLEGAL_PORT,
-        Message::kNormalPriority);
+        /* can_send_any_object */ true, /* same_group */ false, array_object,
+        ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
     ReadMessage(thread, message.get());
@@ -589,7 +585,6 @@ BENCHMARK(LargeMap) {
   EXPECT_VALID(h_result);
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
-  HANDLESCOPE(thread);
   Instance& map = Instance::Handle();
   map ^= Api::UnwrapHandle(h_result);
   const intptr_t kLoopCount = 100;
@@ -598,8 +593,8 @@ BENCHMARK(LargeMap) {
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
     std::unique_ptr<Message> message =
-        WriteMessage(/* can_send_any_object */ true, map, ILLEGAL_PORT,
-                     Message::kNormalPriority);
+        WriteMessage(/* can_send_any_object */ true, /* same_group */ false,
+                     map, ILLEGAL_PORT, Message::kNormalPriority);
 
     // Read object back from the snapshot.
     ReadMessage(thread, message.get());

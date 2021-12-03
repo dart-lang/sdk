@@ -5,8 +5,8 @@
 // @dart = 2.7
 
 /*class: E:
- class_unit=2{lib3},
- type_unit=2{lib3}
+ class_unit=3{lib3},
+ type_unit=3{lib3}
 */
 class E<T> {
   const E();
@@ -14,7 +14,7 @@ class E<T> {
 
 /*class: F:
  class_unit=none,
- type_unit=3{lib1, lib3}
+ type_unit=2{lib1, lib3}
 */
 class F {}
 

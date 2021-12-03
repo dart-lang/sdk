@@ -18,7 +18,7 @@ import "dart:core" as core;
 class SuperClass extends core::Object {
   synthetic constructor •() → mai::SuperClass
     ;
-  method method(covariant core::int i) → void
+  method method(covariant-by-declaration core::int i) → void
     ;
 }
 class Mixin extends core::Object {
@@ -31,7 +31,7 @@ abstract class _Class&SuperClass&Mixin = mai::SuperClass with mai::Mixin /*isAno
   synthetic constructor •() → mai::_Class&SuperClass&Mixin
     : super mai::SuperClass::•()
     ;
-  forwarding-stub method method(covariant core::num i) → void
+  forwarding-stub method method(covariant-by-declaration core::num i) → void
     return super.{mai::Mixin::method}(i);
 }
 class Class extends mai::_Class&SuperClass&Mixin {

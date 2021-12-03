@@ -46,7 +46,7 @@ class Class<T extends core::Object> extends core::Object {
   field core::int? _#Class#instanceField = null;
   field dynamic _#Class#finalInstanceField = null;
   field core::bool _#Class#finalInstanceField#isSet = false;
-  generic-covariant-impl field non::Class::T? _#Class#instanceTypeVariable = null;
+  covariant-by-class field non::Class::T? _#Class#instanceTypeVariable = null;
   field non::Class::T? _#Class#finalInstanceTypeVariable = null;
   static field core::int? _#staticField = null;
   static field dynamic _#staticFinalField = null;
@@ -69,7 +69,7 @@ class Class<T extends core::Object> extends core::Object {
     }
   get instanceTypeVariable() → non::Class::T
     return let final non::Class::T? #t4 = this.{non::Class::_#Class#instanceTypeVariable}{non::Class::T?} in #t4 == null ?{non::Class::T} throw new _in::LateError::fieldNI("instanceTypeVariable") : #t4{non::Class::T};
-  set instanceTypeVariable(generic-covariant-impl non::Class::T #t5) → void
+  set instanceTypeVariable(covariant-by-class non::Class::T #t5) → void
     this.{non::Class::_#Class#instanceTypeVariable} = #t5;
   get finalInstanceTypeVariable() → non::Class::T
     return let final non::Class::T? #t6 = this.{non::Class::_#Class#finalInstanceTypeVariable}{non::Class::T?} in #t6 == null ?{non::Class::T} throw new _in::LateError::fieldNI("finalInstanceTypeVariable") : #t6{non::Class::T};

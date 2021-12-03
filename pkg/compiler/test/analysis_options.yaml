@@ -9,9 +9,12 @@ analyzer:
 
   exclude:
     - '**/data/*'
+    - 'rti/emission/*'
     - '**/model_data/*'
     - 'deferred_loading/libs/*'
 
 linter:
   rules:
     - annotate_overrides
+    - prefer_if_null_operators
+    - prefer_null_aware_operators

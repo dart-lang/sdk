@@ -266,18 +266,18 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
       if (isMatchingRead(left)) {
         if (left.usedBy.length == 1) {
           if (right is HConstant && right.constant.isOne) {
-            HInstruction rmw = new HReadModifyWrite.preOp(
+            HInstruction rmw = HReadModifyWrite.preOp(
                 setter.element, incrementOp, receiver, op.instructionType);
             return replaceOp(rmw, left);
           } else {
-            HInstruction rmw = new HReadModifyWrite.assignOp(
+            HInstruction rmw = HReadModifyWrite.assignOp(
                 setter.element, assignOp, receiver, right, op.instructionType);
             return replaceOp(rmw, left);
           }
         } else if (op.usedBy.length == 1 &&
             right is HConstant &&
             right.constant.isOne) {
-          HInstruction rmw = new HReadModifyWrite.postOp(
+          HInstruction rmw = HReadModifyWrite.postOp(
               setter.element, incrementOp, receiver, op.instructionType);
           block.addAfter(left, rmw);
           block.remove(setter);
@@ -294,7 +294,7 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
         String assignOp, HInstruction left, HInstruction right) {
       if (isMatchingRead(left)) {
         if (left.usedBy.length == 1) {
-          HInstruction rmw = new HReadModifyWrite.assignOp(
+          HInstruction rmw = HReadModifyWrite.assignOp(
               setter.element, assignOp, receiver, right, op.instructionType);
           return replaceOp(rmw, left);
         }
@@ -809,8 +809,8 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
 
     // The expectedInputs list holds non-trivial instructions that may
     // be generated at their use site, if they occur in the correct order.
-    if (expectedInputs == null) expectedInputs = <HInstruction>[];
-    if (pureInputs == null) pureInputs = new Set<HInstruction>();
+    expectedInputs ??= [];
+    pureInputs ??= {};
 
     // Pop instructions from expectedInputs until instruction is found.
     // Return true if it is found, or false if not.
@@ -1133,7 +1133,7 @@ class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
   _cache(
       HInstruction node, bool Function(HInstruction) cacheable, String name) {
     var users = node.usedBy.toList();
-    var reference = new HLateValue(node);
+    var reference = HLateValue(node);
     // TODO(sra): The sourceInformation should really be from the function
     // entry, not the use of `this`.
     reference.sourceInformation = node.sourceInformation;

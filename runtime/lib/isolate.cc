@@ -108,28 +108,16 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
 
   const Dart_Port destination_port_id = port.Id();
   const bool can_send_any_object = isolate->origin_id() == port.origin_id();
-
-  if (ApiObjectConverter::CanConvert(obj.ptr())) {
-    PortMap::PostMessage(
-        Message::New(destination_port_id, obj.ptr(), Message::kNormalPriority));
-  } else {
-    const bool same_group = FLAG_enable_isolate_groups &&
-                            PortMap::IsReceiverInThisIsolateGroup(
-                                destination_port_id, isolate->group());
-    if (same_group) {
-      const auto& copy = Object::Handle(CopyMutableObjectGraph(obj));
-      auto handle = isolate->group()->api_state()->AllocatePersistentHandle();
-      handle->set_ptr(copy.ptr());
-      std::unique_ptr<Message> message(
-          new Message(destination_port_id, handle, Message::kNormalPriority));
-      PortMap::PostMessage(std::move(message));
-    } else {
-      // TODO(turnidge): Throw an exception when the return value is false?
-      PortMap::PostMessage(WriteMessage(can_send_any_object, obj,
-                                        destination_port_id,
-                                        Message::kNormalPriority));
-    }
-  }
+  // We have to check whether the receiver has the same isolate group (e.g.
+  // native message handlers such as an IOService handler does not but does
+  // share the same origin port).
+  const bool same_group =
+      FLAG_enable_isolate_groups && PortMap::IsReceiverInThisIsolateGroup(
+                                        destination_port_id, isolate->group());
+  // TODO(turnidge): Throw an exception when the return value is false?
+  PortMap::PostMessage(WriteMessage(can_send_any_object, same_group, obj,
+                                    destination_port_id,
+                                    Message::kNormalPriority));
   return Object::null();
 }
 
@@ -217,8 +205,36 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
       ObjectPtr raw = working_set.RemoveLast();
 
       const intptr_t cid = raw->GetClassId();
+      // Keep the list in sync with the one in runtime/vm/object_graph_copy.cc
       switch (cid) {
-        // List below matches the one in raw_object_snapshot.cc
+        // Can be shared.
+        case kOneByteStringCid:
+        case kTwoByteStringCid:
+        case kExternalOneByteStringCid:
+        case kExternalTwoByteStringCid:
+        case kMintCid:
+        case kImmutableArrayCid:
+        case kNeverCid:
+        case kSentinelCid:
+        case kInt32x4Cid:
+        case kSendPortCid:
+        case kCapabilityCid:
+        case kRegExpCid:
+        case kStackTraceCid:
+          continue;
+        // Cannot be shared due to possibly being mutable boxes for unboxed
+        // fields in JIT, but can be transferred via Isolate.exit()
+        case kDoubleCid:
+        case kFloat32x4Cid:
+        case kFloat64x2Cid:
+          continue;
+
+        case kClosureCid:
+          closure ^= raw;
+          // Only context has to be checked.
+          working_set.Add(closure.context());
+          continue;
+
 #define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
   case k##type##Cid:                                                           \
     error_message =                                                            \
@@ -226,27 +242,12 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
     error_found = true;                                                        \
     break;
 
-        MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
-        MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
-        MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
-        MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
-        MESSAGE_SNAPSHOT_ILLEGAL(RegExp);
-        MESSAGE_SNAPSHOT_ILLEGAL(StackTrace);
-        MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
+          MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
+          MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
+          MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
+          MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
+          MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
 
-        case kClosureCid: {
-          closure = Closure::RawCast(raw);
-          FunctionPtr func = closure.function();
-          // We only allow closure of top level methods or static functions in a
-          // class to be sent in isolate messages.
-          if (!Function::IsImplicitStaticClosureFunction(func)) {
-            // All other closures are errors.
-            erroneous_closure_function = func;
-            error_found = true;
-            break;
-          }
-          break;
-        }
         default:
           if (cid >= kNumPredefinedCids) {
             klass = class_table->At(cid);
@@ -284,34 +285,37 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
   return obj.ptr();
 }
 
-DEFINE_NATIVE_ENTRY(SendPortImpl_sendAndExitInternal_, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
-  if (!PortMap::IsReceiverInThisIsolateGroup(port.Id(), isolate->group())) {
-    const auto& error =
-        String::Handle(String::New("sendAndExit is only supported across "
-                                   "isolates spawned via spawnFunction."));
-    Exceptions::ThrowArgumentError(error);
-    UNREACHABLE();
-  }
+DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
+  GET_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
+  if (!port.IsNull()) {
+    GET_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
+    if (!PortMap::IsReceiverInThisIsolateGroup(port.Id(), isolate->group())) {
+      const auto& error =
+          String::Handle(String::New("exit with final message is only allowed "
+                                     "for isolates in one isolate group."));
+      Exceptions::ThrowArgumentError(error);
+      UNREACHABLE();
+    }
 
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
-
-  Object& validated_result = Object::Handle(zone);
-  const Object& msg_obj = Object::Handle(zone, obj.ptr());
-  validated_result = ValidateMessageObject(zone, isolate, msg_obj);
-  // msg_array = [<message>, <object-in-message-to-rehash>]
-  const Array& msg_array = Array::Handle(zone, Array::New(2));
-  msg_array.SetAt(0, msg_obj);
-  if (validated_result.IsUnhandledException()) {
-    Exceptions::PropagateError(Error::Cast(validated_result));
-    UNREACHABLE();
+    Object& validated_result = Object::Handle(zone);
+    const Object& msg_obj = Object::Handle(zone, obj.ptr());
+    validated_result = ValidateMessageObject(zone, isolate, msg_obj);
+    // msg_array = [
+    //     <message>,
+    //     <collection-lib-objects-to-rehash>,
+    //     <core-lib-objects-to-rehash>,
+    // ]
+    const Array& msg_array = Array::Handle(zone, Array::New(3));
+    msg_array.SetAt(0, msg_obj);
+    if (validated_result.IsUnhandledException()) {
+      Exceptions::PropagateError(Error::Cast(validated_result));
+      UNREACHABLE();
+    }
+    PersistentHandle* handle =
+        isolate->group()->api_state()->AllocatePersistentHandle();
+    handle->set_ptr(msg_array);
+    isolate->bequeath(std::unique_ptr<Bequest>(new Bequest(handle, port.Id())));
   }
-  PersistentHandle* handle =
-      isolate->group()->api_state()->AllocatePersistentHandle();
-  handle->set_ptr(msg_array);
-  isolate->bequeath(std::unique_ptr<Bequest>(new Bequest(handle, port.Id())));
-  // TODO(aam): Ensure there are no dart api calls after this point as we want
-  // to ensure that validated message won't get tampered with.
   Isolate::KillIfExists(isolate, Isolate::LibMsgId::kKillMsg);
   // Drain interrupts before running so any IMMEDIATE operations on the current
   // isolate happen synchronously.
@@ -328,6 +332,7 @@ class IsolateSpawnState {
                     Dart_Port origin_id,
                     const char* script_url,
                     const Function& func,
+                    PersistentHandle* closure_tuple_handle,
                     SerializedObjectBuffer* message_buffer,
                     const char* package_config,
                     bool paused,
@@ -362,14 +367,20 @@ class IsolateSpawnState {
   const char* class_name() const { return class_name_; }
   const char* function_name() const { return function_name_; }
   const char* debug_name() const { return debug_name_; }
-  bool is_spawn_uri() const { return library_url_ == nullptr; }
+  bool is_spawn_uri() const {
+    return library_url_ == nullptr &&         // No top-level entrypoint.
+           closure_tuple_handle_ == nullptr;  // No closure entrypoint.
+  }
   bool paused() const { return paused_; }
   bool errors_are_fatal() const { return errors_are_fatal_; }
   Dart_IsolateFlags* isolate_flags() { return &isolate_flags_; }
+  PersistentHandle* closure_tuple_handle() const {
+    return closure_tuple_handle_;
+  }
 
   ObjectPtr ResolveFunction();
-  InstancePtr BuildArgs(Thread* thread);
-  InstancePtr BuildMessage(Thread* thread);
+  ObjectPtr BuildArgs(Thread* thread);
+  ObjectPtr BuildMessage(Thread* thread);
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
 
@@ -385,6 +396,7 @@ class IsolateSpawnState {
   const char* class_name_ = nullptr;
   const char* function_name_ = nullptr;
   const char* debug_name_;
+  PersistentHandle* closure_tuple_handle_ = nullptr;
   IsolateGroup* isolate_group_;
   std::unique_ptr<Message> serialized_args_;
   std::unique_ptr<Message> serialized_message_;
@@ -405,6 +417,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      Dart_Port origin_id,
                                      const char* script_url,
                                      const Function& func,
+                                     PersistentHandle* closure_tuple_handle,
                                      SerializedObjectBuffer* message_buffer,
                                      const char* package_config,
                                      bool paused,
@@ -420,25 +433,34 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       script_url_(script_url),
       package_config_(package_config),
       debug_name_(debug_name),
+      closure_tuple_handle_(closure_tuple_handle),
       isolate_group_(isolate_group),
       serialized_args_(nullptr),
       serialized_message_(message_buffer->StealMessage()),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
+  // Either we have a top-level function or we have a closure.
+  ASSERT((closure_tuple_handle_ != nullptr) == func.IsNull());
+
   auto thread = Thread::Current();
   auto isolate = thread->isolate();
-  auto zone = thread->zone();
-  const auto& cls = Class::Handle(zone, func.Owner());
-  const auto& lib = Library::Handle(zone, cls.library());
-  const auto& lib_url = String::Handle(zone, lib.url());
-  library_url_ = NewConstChar(lib_url.ToCString());
 
-  String& func_name = String::Handle(zone);
-  func_name = func.name();
-  function_name_ = NewConstChar(String::ScrubName(func_name));
-  if (!cls.IsTopLevel()) {
-    const auto& class_name = String::Handle(zone, cls.Name());
-    class_name_ = NewConstChar(class_name.ToCString());
+  if (!func.IsNull()) {
+    auto zone = thread->zone();
+    const auto& cls = Class::Handle(zone, func.Owner());
+    const auto& lib = Library::Handle(zone, cls.library());
+    const auto& lib_url = String::Handle(zone, lib.url());
+    library_url_ = NewConstChar(lib_url.ToCString());
+
+    String& func_name = String::Handle(zone);
+    func_name = func.name();
+    function_name_ = NewConstChar(String::ScrubName(func_name));
+    if (!cls.IsTopLevel()) {
+      const auto& class_name = String::Handle(zone, cls.Name());
+      class_name_ = NewConstChar(class_name.ToCString());
+    }
+  } else {
+    ASSERT(closure_tuple_handle != nullptr);
   }
 
   // Inherit flags from spawning isolate.
@@ -455,14 +477,14 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      Dart_Port on_exit_port,
                                      Dart_Port on_error_port,
                                      const char* debug_name,
-                                     IsolateGroup* group)
+                                     IsolateGroup* isolate_group)
     : parent_port_(parent_port),
       on_exit_port_(on_exit_port),
       on_error_port_(on_error_port),
       script_url_(script_url),
       package_config_(package_config),
       debug_name_(debug_name),
-      isolate_group_(group),
+      isolate_group_(isolate_group),
       serialized_args_(args_buffer->StealMessage()),
       serialized_message_(message_buffer->StealMessage()),
       isolate_flags_(),
@@ -565,26 +587,29 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
   return func.ptr();
 }
 
-static InstancePtr DeserializeMessage(Thread* thread, Message* message) {
+static ObjectPtr DeserializeMessage(Thread* thread, Message* message) {
   if (message == NULL) {
-    return Instance::null();
+    return Object::null();
   }
-  Zone* zone = thread->zone();
   if (message->IsRaw()) {
-    return Instance::RawCast(message->raw_obj());
+    return Object::RawCast(message->raw_obj());
   } else {
-    const Object& obj = Object::Handle(zone, ReadMessage(thread, message));
-    ASSERT(!obj.IsError());
-    return Instance::RawCast(obj.ptr());
+    return ReadMessage(thread, message);
   }
 }
 
-InstancePtr IsolateSpawnState::BuildArgs(Thread* thread) {
-  return DeserializeMessage(thread, serialized_args_.get());
+ObjectPtr IsolateSpawnState::BuildArgs(Thread* thread) {
+  const Object& result =
+      Object::Handle(DeserializeMessage(thread, serialized_args_.get()));
+  serialized_args_.reset();
+  return result.ptr();
 }
 
-InstancePtr IsolateSpawnState::BuildMessage(Thread* thread) {
-  return DeserializeMessage(thread, serialized_message_.get());
+ObjectPtr IsolateSpawnState::BuildMessage(Thread* thread) {
+  const Object& result =
+      Object::Handle(DeserializeMessage(thread, serialized_message_.get()));
+  serialized_message_.reset();
+  return result.ptr();
 }
 
 static void ThrowIsolateSpawnException(const String& message) {
@@ -642,7 +667,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     parent_isolate_ = nullptr;
 
     if (isolate == nullptr) {
-      FailedSpawn(error);
+      FailedSpawn(error, /*has_current_isolate=*/false);
       free(error);
       return;
     }
@@ -668,7 +693,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     parent_isolate_ = nullptr;
 
     if (isolate == nullptr) {
-      FailedSpawn(error);
+      FailedSpawn(error, /*has_current_isolate=*/false);
       free(error);
       return;
     }
@@ -676,8 +701,8 @@ class SpawnIsolateTask : public ThreadPool::Task {
     void* child_isolate_data = nullptr;
     const bool success = initialize_callback(&child_isolate_data, &error);
     if (!success) {
-      Dart_ShutdownIsolate();
       FailedSpawn(error);
+      Dart_ShutdownIsolate();
       free(error);
       return;
     }
@@ -694,7 +719,11 @@ class SpawnIsolateTask : public ThreadPool::Task {
     }
 
     state_->set_isolate(child);
-    child->set_origin_id(state_->origin_id());
+    if (state_->origin_id() != ILLEGAL_PORT) {
+      // origin_id is set to parent isolate main port id when spawning via
+      // spawnFunction.
+      child->set_origin_id(state_->origin_id());
+    }
 
     bool success = true;
     {
@@ -707,6 +736,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     }
 
     if (!success) {
+      state_ = nullptr;
       Dart_ShutdownIsolate();
       return;
     }
@@ -739,26 +769,53 @@ class SpawnIsolateTask : public ThreadPool::Task {
   bool EnqueueEntrypointInvocationAndNotifySpawner(Thread* thread) {
     auto isolate = thread->isolate();
     auto zone = thread->zone();
+    const bool is_spawn_uri = state_->is_spawn_uri();
 
     // Step 1) Resolve the entrypoint function.
-    auto& result = Object::Handle(zone, state_->ResolveFunction());
-    const bool is_spawn_uri = state_->is_spawn_uri();
-    if (result.IsError()) {
-      ASSERT(is_spawn_uri);
-      ReportError("Failed to resolve entrypoint function.");
-      return false;
+    auto& entrypoint_closure = Closure::Handle(zone);
+    if (state_->closure_tuple_handle() != nullptr) {
+      const auto& result = Object::Handle(
+          zone,
+          ReadObjectGraphCopyMessage(thread, state_->closure_tuple_handle()));
+      if (result.IsError()) {
+        ReportError(
+            "Failed to deserialize the passed entrypoint to the new isolate.");
+        return false;
+      }
+      entrypoint_closure = Closure::RawCast(result.ptr());
+    } else {
+      const auto& result = Object::Handle(zone, state_->ResolveFunction());
+      if (result.IsError()) {
+        ASSERT(is_spawn_uri);
+        ReportError("Failed to resolve entrypoint function.");
+        return false;
+      }
+      ASSERT(result.IsFunction());
+      auto& func = Function::Handle(zone, Function::Cast(result).ptr());
+      func = func.ImplicitClosureFunction();
+      entrypoint_closure = func.ImplicitStaticClosure();
     }
-    ASSERT(result.IsFunction());
-    auto& func = Function::Handle(zone, Function::Cast(result).ptr());
-    func = func.ImplicitClosureFunction();
-    const auto& entrypoint_closure =
-        Object::Handle(zone, func.ImplicitStaticClosure());
 
     // Step 2) Enqueue delayed invocation of entrypoint callback.
+    const auto& args_obj = Object::Handle(zone, state_->BuildArgs(thread));
+    if (args_obj.IsError()) {
+      ReportError(
+          "Failed to deserialize the passed arguments to the new isolate.");
+      return false;
+    }
+    ASSERT(args_obj.IsNull() || args_obj.IsInstance());
+    const auto& message_obj =
+        Object::Handle(zone, state_->BuildMessage(thread));
+    if (message_obj.IsError()) {
+      ReportError(
+          "Failed to deserialize the passed arguments to the new isolate.");
+      return false;
+    }
+    ASSERT(message_obj.IsNull() || message_obj.IsInstance());
     const Array& args = Array::Handle(zone, Array::New(4));
     args.SetAt(0, entrypoint_closure);
-    args.SetAt(1, Instance::Handle(zone, state_->BuildArgs(thread)));
-    args.SetAt(2, Instance::Handle(zone, state_->BuildMessage(thread)));
+    args.SetAt(1, args_obj);
+    args.SetAt(2, message_obj);
     args.SetAt(3, is_spawn_uri ? Bool::True() : Bool::False());
 
     const auto& lib = Library::Handle(zone, Library::IsolateLibrary());
@@ -766,7 +823,8 @@ class SpawnIsolateTask : public ThreadPool::Task {
     const auto& entry_point =
         Function::Handle(zone, lib.LookupLocalFunction(entry_name));
     ASSERT(entry_point.IsFunction() && !entry_point.IsNull());
-    result = DartEntry::InvokeFunction(entry_point, args);
+    const auto& result =
+        Object::Handle(zone, DartEntry::InvokeFunction(entry_point, args));
     if (result.IsError()) {
       ReportError("Failed to enqueue delayed entrypoint invocation.");
       return false;
@@ -794,18 +852,37 @@ class SpawnIsolateTask : public ThreadPool::Task {
     {
       // If parent isolate died, we ignore the fact that we cannot notify it.
       PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
-                                        message, state_->parent_port(),
+                                        /* same_group */ false, message,
+                                        state_->parent_port(),
                                         Message::kNormalPriority));
     }
 
     return true;
   }
 
-  void FailedSpawn(const char* error) {
+  void FailedSpawn(const char* error, bool has_current_isolate = true) {
     ReportError(error != nullptr
                     ? error
                     : "Unknown error occured during Isolate spawning.");
-    state_ = nullptr;
+    // Destruction of [IsolateSpawnState] may cause destruction of [Message]
+    // which make need to delete persistent handles (which requires a current
+    // isolate group).
+    if (has_current_isolate) {
+      ASSERT(IsolateGroup::Current() == state_->isolate_group());
+      state_ = nullptr;
+    } else if (state_->isolate_group() != nullptr) {
+      ASSERT(IsolateGroup::Current() == nullptr);
+      const bool kBypassSafepoint = false;
+      const bool result = Thread::EnterIsolateGroupAsHelper(
+          state_->isolate_group(), Thread::kUnknownTask, kBypassSafepoint);
+      ASSERT(result);
+      state_ = nullptr;
+      Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
+    } else {
+      // The state won't need a current isolate group, because it belongs to a
+      // [Isolate.spawnUri] call.
+      state_ = nullptr;
+    }
   }
 
   void ReportError(const char* error) {
@@ -833,67 +910,87 @@ static const char* String2UTF8(const String& str) {
   return result;
 }
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
+static FunctionPtr GetTopLevelFunction(Zone* zone, const Instance& closure) {
+  if (closure.IsClosure()) {
+    auto& func = Function::Handle(zone);
+    func = Closure::Cast(closure).function();
+    if (func.IsImplicitClosureFunction() && func.is_static()) {
+      ASSERT(Closure::Cast(closure).context() == Context::null());
+      // Get the parent function so that we get the right function name.
+      return func.parent_function();
+    }
+  }
+  return Function::null();
+}
+
+DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, script_uri, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Closure, closure, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, paused, arguments->NativeArgAt(4));
   GET_NATIVE_ARGUMENT(Bool, fatalErrors, arguments->NativeArgAt(5));
   GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(6));
   GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(7));
   GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(8));
-  GET_NATIVE_ARGUMENT(Bool, newIsolateGroup, arguments->NativeArgAt(9));
-  GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(10));
+  GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(9));
 
-  if (closure.IsClosure()) {
-    Function& func = Function::Handle();
-    func = Closure::Cast(closure).function();
-    if (func.IsImplicitClosureFunction() && func.is_static()) {
-#if defined(DEBUG)
-      Context& ctx = Context::Handle();
-      ctx = Closure::Cast(closure).context();
-      ASSERT(ctx.IsNull());
-#endif
-      // Get the parent function so that we get the right function name.
-      func = func.parent_function();
-
-      bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
-      Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
-      Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
-
-      // We first try to serialize the message.  In case the message is not
-      // serializable this will throw an exception.
-      SerializedObjectBuffer message_buffer;
-      {
-        message_buffer.set_message(WriteMessage(
-            /* can_send_any_object */ true, message, ILLEGAL_PORT,
-            Message::kNormalPriority));
-      }
-
-      const char* utf8_package_config =
-          packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
-      const char* utf8_debug_name =
-          debugName.IsNull() ? NULL : String2UTF8(debugName);
-      const bool in_new_isolate_group = newIsolateGroup.value();
-
-      std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
-          port.Id(), isolate->origin_id(), String2UTF8(script_uri), func,
-          &message_buffer, utf8_package_config, paused.value(), fatal_errors,
-          on_exit_port, on_error_port, utf8_debug_name,
-          in_new_isolate_group ? nullptr : isolate->group()));
-
-      // Since this is a call to Isolate.spawn, copy the parent isolate's code.
-      state->isolate_flags()->copy_parent_code = true;
-
-      isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
-                                                             std::move(state));
-      return Object::null();
+  const auto& func = Function::Handle(zone, GetTopLevelFunction(zone, closure));
+  PersistentHandle* closure_tuple_handle = nullptr;
+  if (func.IsNull()) {
+    if (!FLAG_enable_isolate_groups) {
+      const String& msg = String::Handle(String::New(
+          "Isolate.spawn expects to be passed a static or top-level function"));
+      Exceptions::ThrowArgumentError(msg);
+    } else {
+      // We have a non-toplevel closure that we might need to copy.
+      // Result will be [<closure-copy>, <objects-in-msg-to-rehash>]
+      const auto& closure_copy_tuple = Object::Handle(
+          zone, CopyMutableObjectGraph(closure));  // Throws if it fails.
+      ASSERT(closure_copy_tuple.IsArray());
+      ASSERT(Object::Handle(zone, Array::Cast(closure_copy_tuple).At(0))
+                 .IsClosure());
+      closure_tuple_handle =
+          isolate->group()->api_state()->AllocatePersistentHandle();
+      closure_tuple_handle->set_ptr(closure_copy_tuple.ptr());
     }
   }
-  const String& msg = String::Handle(String::New(
-      "Isolate.spawn expects to be passed a static or top-level function"));
-  Exceptions::ThrowArgumentError(msg);
+
+  bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
+  Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
+  Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
+
+  // We first try to serialize the message.  In case the message is not
+  // serializable this will throw an exception.
+  SerializedObjectBuffer message_buffer;
+  message_buffer.set_message(WriteMessage(
+      /* can_send_any_object */ true,
+      /* same_group */ FLAG_enable_isolate_groups, message, ILLEGAL_PORT,
+      Message::kNormalPriority));
+
+  const char* utf8_package_config =
+      packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
+  const char* utf8_debug_name =
+      debugName.IsNull() ? NULL : String2UTF8(debugName);
+  if (closure_tuple_handle != nullptr && utf8_debug_name == nullptr) {
+    ASSERT(func.IsNull());
+
+    const auto& closure_function = Function::Handle(zone, closure.function());
+    utf8_debug_name =
+        NewConstChar(closure_function.QualifiedUserVisibleNameCString());
+  }
+
+  std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
+      port.Id(), isolate->origin_id(), String2UTF8(script_uri), func,
+      closure_tuple_handle, &message_buffer, utf8_package_config,
+      paused.value(), fatal_errors, on_exit_port, on_error_port,
+      utf8_debug_name, isolate->group()));
+
+  // Since this is a call to Isolate.spawn, copy the parent isolate's code.
+  state->isolate_flags()->copy_parent_code = true;
+
+  isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
+                                                         std::move(state));
   return Object::null();
 }
 
@@ -951,13 +1048,14 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   SerializedObjectBuffer arguments_buffer;
   SerializedObjectBuffer message_buffer;
   {
-    arguments_buffer.set_message(WriteMessage(/* can_send_any_object */ false,
-                                              args, ILLEGAL_PORT,
-                                              Message::kNormalPriority));
+    arguments_buffer.set_message(WriteMessage(
+        /* can_send_any_object */ false,
+        /* same_group */ false, args, ILLEGAL_PORT, Message::kNormalPriority));
   }
   {
     message_buffer.set_message(WriteMessage(/* can_send_any_object */ false,
-                                            message, ILLEGAL_PORT,
+                                            /* same_group */ false, message,
+                                            ILLEGAL_PORT,
                                             Message::kNormalPriority));
   }
 
@@ -1031,8 +1129,9 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   // Ensure message writer (and it's resources, e.g. forwarding tables) are
   // cleaned up before handling interrupts.
   {
-    PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false, msg,
-                                      port.Id(), Message::kOOBPriority));
+    PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
+                                      /* same_group */ false, msg, port.Id(),
+                                      Message::kOOBPriority));
   }
 
   // Drain interrupts before running so any IMMEDIATE operations on the current

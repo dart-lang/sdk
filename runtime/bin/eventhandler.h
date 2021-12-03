@@ -32,6 +32,7 @@ enum MessageFlags {
   kSetEventMaskCommand = 12,
   kListeningSocket = 16,
   kPipe = 17,
+  kSignalSocket = 18,
 };
 
 // clang-format off
@@ -54,6 +55,8 @@ enum MessageFlags {
      (data & ~(1 << kInEvent | 1 << kOutEvent | 1 << kCloseEvent)) == 0)
 #define IS_LISTENING_SOCKET(data)                                              \
     ((data & (1 << kListeningSocket)) != 0)  // NOLINT
+#define IS_SIGNAL_SOCKET(data)                                                 \
+    ((data & (1 << kSignalSocket)) != 0)  // NOLINT
 #define TOKEN_COUNT(data) (data & ((1 << kCloseCommand) - 1))
 // clang-format on
 

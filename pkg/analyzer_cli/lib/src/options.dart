@@ -397,7 +397,7 @@ class CommandLineOptions {
         hide: hide);
     parser.addOption(_packagesOption,
         help: 'The path to the package resolution configuration file, which '
-            'supplies a mapping of package names\nto paths.',
+            'supplies a mapping of package names\ninto paths.',
         hide: ddc);
     parser.addFlag(_enableInitializingFormalAccessFlag,
         help:

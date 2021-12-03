@@ -9,11 +9,13 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib.dart";
         void main() {
           var c = new C.e4();
         }
       lib.dart: |
+        // @dart=2.9
         class C {
           C();
           factory C.e4() async = C;
@@ -25,12 +27,14 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib.dart";
         void main() {
           var c = new C.e4();
           print(c);
         }
       lib.dart: |
+        // @dart=2.9
         class C {
           C();
           factory C.e4() async = C;

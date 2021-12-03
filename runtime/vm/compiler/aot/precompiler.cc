@@ -174,15 +174,20 @@ class RetainedReasonsWriter : public ValueObject {
   explicit RetainedReasonsWriter(Zone* zone)
       : zone_(zone), retained_reasons_map_(zone) {}
 
-  void Init(const char* filename) {
-    if (filename == nullptr) return;
-    const auto file_open = Dart::file_open_callback();
-    if (file_open == nullptr) return;
+  bool Init(const char* filename) {
+    if (filename == nullptr) return false;
 
-    const auto file = file_open(filename, /*write=*/true);
+    if ((Dart::file_write_callback() == nullptr) ||
+        (Dart::file_open_callback() == nullptr) ||
+        (Dart::file_close_callback() == nullptr)) {
+      OS::PrintErr("warning: Could not access file callbacks.");
+      return false;
+    }
+
+    void* file = Dart::file_open_callback()(filename, /*write=*/true);
     if (file == nullptr) {
-      OS::PrintErr("Failed to open file %s\n", filename);
-      return;
+      OS::PrintErr("warning: Failed to write retained reasons: %s\n", filename);
+      return false;
     }
 
     file_ = file;
@@ -191,6 +196,7 @@ class RetainedReasonsWriter : public ValueObject {
     // and printed at one point. This avoids having to keep otherwise
     // unneeded information around.
     writer_.OpenArray();
+    return true;
   }
 
   void AddDropped(const Object& obj) {
@@ -446,8 +452,7 @@ void Precompiler::DoCompileAll() {
     zone_ = stack_zone.GetZone();
     RetainedReasonsWriter reasons_writer(zone_);
 
-    if (FLAG_write_retained_reasons_to != nullptr) {
-      reasons_writer.Init(FLAG_write_retained_reasons_to);
+    if (reasons_writer.Init(FLAG_write_retained_reasons_to)) {
       retained_reasons_writer_ = &reasons_writer;
     }
 
@@ -547,7 +552,7 @@ void Precompiler::DoCompileAll() {
 
       // With the nnbd experiment enabled, these non-nullable type arguments may
       // not be retained, although they will be used and expected to be
-      // canonical.
+      // canonical by Dart_NewListOfType.
       AddTypeArguments(
           TypeArguments::Handle(Z, IG->object_store()->type_argument_int()));
       AddTypeArguments(
@@ -652,7 +657,7 @@ void Precompiler::DoCompileAll() {
       ProgramVisitor::Dedup(T);
     }
 
-    if (FLAG_write_retained_reasons_to != nullptr) {
+    if (retained_reasons_writer_ != nullptr) {
       reasons_writer.Write();
       retained_reasons_writer_ = nullptr;
     }
@@ -718,6 +723,7 @@ void Precompiler::PrecompileConstructors() {
 }
 
 void Precompiler::AddRoots() {
+  HANDLESCOPE(T);
   // Note that <rootlibrary>.main is not a root. The appropriate main will be
   // discovered through _getMainClosure.
 
@@ -776,6 +782,8 @@ void Precompiler::Iterate() {
 }
 
 void Precompiler::CollectCallbackFields() {
+  PRECOMPILER_TIMER_SCOPE(this, CollectCallbackFields);
+  HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Class& subcls = Class::Handle(Z);
@@ -790,6 +798,7 @@ void Precompiler::CollectCallbackFields() {
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -843,6 +852,7 @@ void Precompiler::CollectCallbackFields() {
 }
 
 void Precompiler::ProcessFunction(const Function& function) {
+  HANDLESCOPE(T);
   const intptr_t gop_offset =
       FLAG_use_bare_instructions ? global_object_pool_builder()->CurrentLength()
                                  : 0;
@@ -874,6 +884,7 @@ void Precompiler::ProcessFunction(const Function& function) {
 }
 
 void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
+  PRECOMPILER_TIMER_SCOPE(this, AddCalleesOf);
   ASSERT(function.HasCode());
 
   const Code& code = Code::Handle(Z, function.CurrentCode());
@@ -978,51 +989,70 @@ static bool IsPotentialClosureCall(const String& selector) {
 void Precompiler::AddCalleesOfHelper(const Object& entry,
                                      String* temp_selector,
                                      Class* temp_cls) {
-  if (entry.IsUnlinkedCall()) {
-    const auto& call_site = UnlinkedCall::Cast(entry);
-    // A dynamic call.
-    *temp_selector = call_site.target_name();
-    AddSelector(*temp_selector);
-    if (IsPotentialClosureCall(*temp_selector)) {
-      const Array& arguments_descriptor =
-          Array::Handle(Z, call_site.arguments_descriptor());
-      AddClosureCall(*temp_selector, arguments_descriptor);
-    }
-  } else if (entry.IsMegamorphicCache()) {
-    // A dynamic call.
-    const auto& cache = MegamorphicCache::Cast(entry);
-    *temp_selector = cache.target_name();
-    AddSelector(*temp_selector);
-    if (IsPotentialClosureCall(*temp_selector)) {
-      const Array& arguments_descriptor =
-          Array::Handle(Z, cache.arguments_descriptor());
-      AddClosureCall(*temp_selector, arguments_descriptor);
-    }
-  } else if (entry.IsField()) {
-    // Potential need for field initializer.
-    const auto& field = Field::Cast(entry);
-    AddField(field);
-  } else if (entry.IsInstance()) {
-    // Const object, literal or args descriptor.
-    const auto& instance = Instance::Cast(entry);
-    AddConstObject(instance);
-  } else if (entry.IsFunction()) {
-    // Local closure function.
-    const auto& target = Function::Cast(entry);
-    AddFunction(target, RetainReasons::kLocalClosure);
-    if (target.IsFfiTrampoline()) {
-      const auto& callback_target =
-          Function::Handle(Z, target.FfiCallbackTarget());
-      if (!callback_target.IsNull()) {
-        AddFunction(callback_target, RetainReasons::kFfiCallbackTarget);
+  switch (entry.GetClassId()) {
+    case kOneByteStringCid:
+    case kNullCid:
+      // Skip common leaf constants early in order to
+      // process object pools faster.
+      return;
+    case kUnlinkedCallCid: {
+      const auto& call_site = UnlinkedCall::Cast(entry);
+      // A dynamic call.
+      *temp_selector = call_site.target_name();
+      AddSelector(*temp_selector);
+      if (IsPotentialClosureCall(*temp_selector)) {
+        const Array& arguments_descriptor =
+            Array::Handle(Z, call_site.arguments_descriptor());
+        AddClosureCall(*temp_selector, arguments_descriptor);
       }
+      break;
     }
-  } else if (entry.IsCode()) {
-    const auto& target_code = Code::Cast(entry);
-    if (target_code.IsAllocationStubCode()) {
-      *temp_cls ^= target_code.owner();
-      AddInstantiatedClass(*temp_cls);
+    case kMegamorphicCacheCid: {
+      // A dynamic call.
+      const auto& cache = MegamorphicCache::Cast(entry);
+      *temp_selector = cache.target_name();
+      AddSelector(*temp_selector);
+      if (IsPotentialClosureCall(*temp_selector)) {
+        const Array& arguments_descriptor =
+            Array::Handle(Z, cache.arguments_descriptor());
+        AddClosureCall(*temp_selector, arguments_descriptor);
+      }
+      break;
     }
+    case kFieldCid: {
+      // Potential need for field initializer.
+      const auto& field = Field::Cast(entry);
+      AddField(field);
+      break;
+    }
+    case kFunctionCid: {
+      // Local closure function.
+      const auto& target = Function::Cast(entry);
+      AddFunction(target, RetainReasons::kLocalClosure);
+      if (target.IsFfiTrampoline()) {
+        const auto& callback_target =
+            Function::Handle(Z, target.FfiCallbackTarget());
+        if (!callback_target.IsNull()) {
+          AddFunction(callback_target, RetainReasons::kFfiCallbackTarget);
+        }
+      }
+      break;
+    }
+    case kCodeCid: {
+      const auto& target_code = Code::Cast(entry);
+      if (target_code.IsAllocationStubCode()) {
+        *temp_cls ^= target_code.owner();
+        AddInstantiatedClass(*temp_cls);
+      }
+      break;
+    }
+    default:
+      if (entry.IsInstance()) {
+        // Const object, literal or args descriptor.
+        const auto& instance = Instance::Cast(entry);
+        AddConstObject(instance);
+      }
+      break;
   }
 }
 
@@ -1462,6 +1492,7 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
 
 // Adds all values annotated with @pragma('vm:entry-point') as roots.
 void Precompiler::AddAnnotatedRoots() {
+  HANDLESCOPE(T);
   auto& lib = Library::Handle(Z);
   auto& cls = Class::Handle(Z);
   auto& members = Array::Handle(Z);
@@ -1480,6 +1511,7 @@ void Precompiler::AddAnnotatedRoots() {
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -1592,6 +1624,8 @@ void Precompiler::AddAnnotatedRoots() {
 }
 
 void Precompiler::CheckForNewDynamicFunctions() {
+  PRECOMPILER_TIMER_SCOPE(this, CheckForNewDynamicFunctions);
+  HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
@@ -1604,6 +1638,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -1769,6 +1804,7 @@ void Precompiler::CollectDynamicFunctionNames() {
   if (!FLAG_collect_dynamic_function_names) {
     return;
   }
+  HANDLESCOPE(T);
   auto& lib = Library::Handle(Z);
   auto& cls = Class::Handle(Z);
   auto& functions = Array::Handle(Z);
@@ -1781,6 +1817,7 @@ void Precompiler::CollectDynamicFunctionNames() {
   Table table(HashTables::New<Table>(100));
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -1873,6 +1910,7 @@ void Precompiler::CollectDynamicFunctionNames() {
 }
 
 void Precompiler::TraceForRetainedFunctions() {
+  HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
@@ -1884,6 +1922,7 @@ void Precompiler::TraceForRetainedFunctions() {
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -1969,6 +2008,7 @@ void Precompiler::TraceForRetainedFunctions() {
 void Precompiler::FinalizeDispatchTable() {
   PRECOMPILER_TIMER_SCOPE(this, FinalizeDispatchTable);
   if (!FLAG_use_bare_instructions || !FLAG_use_table_dispatch) return;
+  HANDLESCOPE(T);
   // Build the entries used to serialize the dispatch table before
   // dropping functions, as we may clear references to Code objects.
   const auto& entries =
@@ -2083,10 +2123,12 @@ void Precompiler::ReplaceFunctionStaticCallEntries() {
 }
 
 void Precompiler::DropFunctions() {
+  HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
   Function& function = Function::Handle(Z);
+  Function& target = Function::Handle(Z);
   Code& code = Code::Handle(Z);
   Object& owner = Object::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
@@ -2094,6 +2136,24 @@ void Precompiler::DropFunctions() {
   auto& ref = Object::Handle(Z);
 
   auto trim_function = [&](const Function& function) {
+    if (function.IsDynamicInvocationForwarder()) {
+      // For dynamic invocation forwarders sever strong connection between the
+      // forwarder and the target function if we are not going to retain
+      // target function anyway. The only use of the forwarding target outside
+      // of compilation pipeline is in Function::script() and that should not
+      // be used when we are dropping functions (cause we are not going to
+      // emit symbolic stack traces anyway).
+      // Note that we still need Function::script() to work during snapshot
+      // generation to generate DWARF, that's why we are using WSR and not
+      // simply setting forwarding target to null.
+      target = function.ForwardingTarget();
+      if (!functions_to_retain_.ContainsKey(target)) {
+        ref =
+            WeakSerializationReference::New(target, Function::null_function());
+        function.set_data(ref);
+      }
+    }
+
     sig = function.signature();
     // In the AOT runtime, most calls are direct or through the dispatch table,
     // not resolved via dynamic lookup. Thus, we only need to retain the
@@ -2163,6 +2223,7 @@ void Precompiler::DropFunctions() {
   auto& desc = Array::Handle(Z);
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -2232,6 +2293,7 @@ void Precompiler::DropFunctions() {
 }
 
 void Precompiler::DropFields() {
+  HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& fields = Array::Handle(Z);
@@ -2242,6 +2304,7 @@ void Precompiler::DropFields() {
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -2294,6 +2357,7 @@ void Precompiler::DropFields() {
 
 void Precompiler::AttachOptimizedTypeTestingStub() {
   PRECOMPILER_TIMER_SCOPE(this, AttachOptimizedTypeTestingStub);
+  HANDLESCOPE(T);
   IsolateGroup::Current()->heap()->CollectAllGarbage();
   GrowableHandlePtrArray<const AbstractType> types(Z, 200);
   {
@@ -2359,6 +2423,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
 }
 
 void Precompiler::TraceTypesFromRetainedClasses() {
+  HANDLESCOPE(T);
   auto& lib = Library::Handle(Z);
   auto& cls = Class::Handle(Z);
   auto& members = Array::Handle(Z);
@@ -2370,6 +2435,7 @@ void Precompiler::TraceTypesFromRetainedClasses() {
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -2445,6 +2511,7 @@ void Precompiler::TraceTypesFromRetainedClasses() {
 }
 
 void Precompiler::DropMetadata() {
+  HANDLESCOPE(T);
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
 
   Library& lib = Library::Handle(Z);
@@ -2455,6 +2522,7 @@ void Precompiler::DropMetadata() {
 }
 
 void Precompiler::DropLibraryEntries() {
+  HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Array& dict = Array::Handle(Z);
   Object& entry = Object::Handle(Z);
@@ -2501,6 +2569,7 @@ void Precompiler::DropLibraryEntries() {
 }
 
 void Precompiler::DropClasses() {
+  HANDLESCOPE(T);
   Class& cls = Class::Handle(Z);
   Array& constants = Array::Handle(Z);
   GrowableObjectArray& implementors = GrowableObjectArray::Handle(Z);
@@ -2587,6 +2656,7 @@ void Precompiler::DropClasses() {
 }
 
 void Precompiler::DropLibraries() {
+  HANDLESCOPE(T);
   const GrowableObjectArray& retained_libraries =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
   const Library& root_lib =
@@ -2596,6 +2666,7 @@ void Precompiler::DropLibraries() {
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     intptr_t entries = 0;
     DictionaryIterator it(lib);
     while (it.HasNext()) {
@@ -2824,6 +2895,7 @@ void Precompiler::DiscardCodeObjects() {
     return;
   }
 
+  HANDLESCOPE(T);
   DiscardCodeVisitor visitor(Z, functions_to_retain_,
                              functions_called_dynamically_);
   ProgramVisitor::WalkProgram(Z, IG, &visitor);
@@ -2956,7 +3028,6 @@ void Precompiler::FinalizeAllClasses() {
   // otherwise unreachable constants of dropped classes, which would
   // cause assertion failures during GC after classes are dropped.
   StackZone stack_zone(thread());
-  HANDLESCOPE(thread());
 
   error_ = Library::FinalizeAllClasses();
   if (!error_.IsNull()) {
@@ -3471,7 +3542,11 @@ void Obfuscator::InitializeRenamingMap() {
   PreventRenaming("html");
 
   // Looked up by name via "DartUtils::GetDartType".
+  PreventRenaming("_RandomAccessFile");
   PreventRenaming("_RandomAccessFileOpsImpl");
+  PreventRenaming("ResourceHandle");
+  PreventRenaming("_ResourceHandleImpl");
+  PreventRenaming("_SocketControlMessageImpl");
   PreventRenaming("_NamespaceImpl");
 }
 

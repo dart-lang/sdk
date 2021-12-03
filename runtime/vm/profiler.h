@@ -73,6 +73,9 @@ class Profiler : public AllStatic {
   static SampleBlockBuffer* sample_block_buffer() {
     return sample_block_buffer_;
   }
+  static void set_sample_block_buffer(SampleBlockBuffer* buffer) {
+    sample_block_buffer_ = buffer;
+  }
   static AllocationSampleBuffer* allocation_sample_buffer() {
     return allocation_sample_buffer_;
   }
@@ -408,9 +411,9 @@ class Sample {
     kTruncatedTraceBit = 5,
     kClassAllocationSampleBit = 6,
     kContinuationSampleBit = 7,
-    kThreadTaskBit = 8,  // 6 bits.
-    kMetadataBit = 14,   // 16 bits.
-    kNextFreeBit = 30,
+    kThreadTaskBit = 8,  // 7 bits.
+    kMetadataBit = 15,   // 16 bits.
+    kNextFreeBit = 31,
   };
   class HeadSampleBit : public BitField<uint32_t, bool, kHeadSampleBit, 1> {};
   class LeafFrameIsDart
@@ -426,7 +429,7 @@ class Sample {
   class ContinuationSampleBit
       : public BitField<uint32_t, bool, kContinuationSampleBit, 1> {};
   class ThreadTaskBit
-      : public BitField<uint32_t, Thread::TaskKind, kThreadTaskBit, 6> {};
+      : public BitField<uint32_t, Thread::TaskKind, kThreadTaskBit, 7> {};
   class MetadataBits : public BitField<uint32_t, intptr_t, kMetadataBit, 16> {};
 
   int64_t timestamp_;
@@ -710,7 +713,7 @@ class SampleBuffer : public ProcessedSampleBufferBuilder {
 class SampleBlock : public SampleBuffer {
  public:
   // The default number of samples per block. Overridden by some tests.
-  static const intptr_t kSamplesPerBlock = 1000;
+  static const intptr_t kSamplesPerBlock = 100;
 
   SampleBlock() = default;
   virtual ~SampleBlock() = default;
@@ -764,14 +767,16 @@ class SampleBlock : public SampleBuffer {
   SampleBlock* next_free_ = nullptr;
 
  private:
+  friend class SampleBlockListProcessor;
   friend class SampleBlockBuffer;
+  friend class Isolate;
 
   DISALLOW_COPY_AND_ASSIGN(SampleBlock);
 };
 
 class SampleBlockBuffer : public ProcessedSampleBufferBuilder {
  public:
-  static const intptr_t kDefaultBlockCount = 60;
+  static const intptr_t kDefaultBlockCount = 600;
 
   // Creates a SampleBlockBuffer with a predetermined number of blocks.
   //
@@ -864,7 +869,23 @@ class SampleBlockBuffer : public ProcessedSampleBufferBuilder {
   // Sample buffer management.
   VirtualMemory* memory_;
   Sample* sample_buffer_;
+
+  friend class Isolate;
   DISALLOW_COPY_AND_ASSIGN(SampleBlockBuffer);
+};
+
+class SampleBlockListProcessor : public ProcessedSampleBufferBuilder {
+ public:
+  explicit SampleBlockListProcessor(SampleBlock* head) : head_(head) {}
+
+  virtual ProcessedSampleBuffer* BuildProcessedSampleBuffer(
+      SampleFilter* filter,
+      ProcessedSampleBuffer* buffer = nullptr);
+
+ private:
+  SampleBlock* head_;
+
+  DISALLOW_COPY_AND_ASSIGN(SampleBlockListProcessor);
 };
 
 class AllocationSampleBuffer : public SampleBuffer {
@@ -1035,6 +1056,24 @@ class ProcessedSampleBuffer : public ZoneAllocated {
   CodeLookupTable* code_lookup_table_;
 
   DISALLOW_COPY_AND_ASSIGN(ProcessedSampleBuffer);
+};
+
+class SampleBlockProcessor : public AllStatic {
+ public:
+  static void Init();
+
+  static void Startup();
+  static void Cleanup();
+
+ private:
+  static const intptr_t kMaxThreads = 4096;
+  static bool initialized_;
+  static bool shutdown_;
+  static bool thread_running_;
+  static ThreadJoinId processor_thread_id_;
+  static Monitor* monitor_;
+
+  static void ThreadMain(uword parameters);
 };
 
 }  // namespace dart

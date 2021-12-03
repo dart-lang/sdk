@@ -7,7 +7,6 @@ import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -69,8 +68,7 @@ void function({@required String param}) {
 }
 
 @reflectiveTest
-class AddRequiredWithNullSafetyTest extends FixProcessorTest
-    with WithNullSafetyMixin {
+class AddRequiredWithNullSafetyTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_REQUIRED2;
 

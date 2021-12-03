@@ -43,9 +43,9 @@ part of dart.io;
 ///
 /// You can get the name of the operating system as a string with the
 /// [operatingSystem] getter. You can also use one of the static boolean
-/// getters: [isMacOS], [isLinux], and [isWindows].
+/// getters: [isMacOS], [isLinux], [isWindows], etc.
 /// ```dart
-/// import 'dart:io' show Platform, stdout;
+/// import 'dart:io' show Platform;
 ///
 /// void main() {
 ///   // Get the operating system as a string.
@@ -74,15 +74,55 @@ class Platform {
   static String get pathSeparator => _pathSeparator;
 
   /// Get the name of the current locale.
+  ///
+  /// The result should include a language and country code
+  /// (e.g. "en_US", "de_AT") and may include a character set
+  /// (e.g. "en_US.UTF-8").
+  ///
+  /// On Linux and Fushia, the locale is taken from the "LANG" environment
+  /// variable, which may be set to any value. For example:
+  /// ```shell
+  /// LANG=kitten dart myfile.dart  # localeName is "kitten"
+  /// ```
+  ///
+  /// On Android, the value will not change while the application is running,
+  /// even if the user adjusts their language settings.
+  ///
+  /// See https://en.wikipedia.org/wiki/Locale_(computer_software)
   static String get localeName => _Platform.localeName();
 
   /// A string representing the operating system or platform.
+  ///
+  /// Possible values include:
+  ///   "android"
+  ///   "fuchsia"
+  ///   "ios"
+  ///   "linux"
+  ///   "macos"
+  ///   "windows"
+  ///
+  /// Note that this list may change over time so platform-specific logic
+  /// should be guarded by the appropriate boolean getter e.g. [isMacOS].
   static String get operatingSystem => _operatingSystem;
 
   /// A string representing the version of the operating system or platform.
+  ///
+  /// The format of this string will vary by operating system, platform and
+  /// version and is not suitable for parsing. For example:
+  ///   "Linux 5.11.0-1018-gcp #20~20.04.2-Ubuntu SMP Fri Sep 3 01:01:37 UTC 2021"
+  ///   "Version 14.5 (Build 18E182)"
+  ///   '"Windows 10 Pro" 10.0 (Build 19043)'
   static String get operatingSystemVersion => _operatingSystemVersion;
 
   /// The local hostname for the system.
+  ///
+  /// For example:
+  ///   "mycomputer.corp.example.com"
+  ///   "mycomputer"
+  ///
+  /// Uses the platform
+  /// [`gethostname`](https://pubs.opengroup.org/onlinepubs/9699919799/functions/gethostname.html)
+  /// implementation.
   static String get localHostname => _localHostname;
 
   /// Whether the operating system is a version of

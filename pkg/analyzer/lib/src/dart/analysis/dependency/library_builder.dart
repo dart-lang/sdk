@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/dependency/node.dart';
@@ -140,7 +142,7 @@ class _LibraryBuilder {
   /// It is mixed into every API token signature, because for example even
   /// though types of two functions might be the same, their locations
   /// are different.
-  late List<int> uriSignature;
+  late Uint8List uriSignature;
 
   /// The precomputed signature of the enclosing class name, or `null` if
   /// outside a class.
@@ -148,7 +150,7 @@ class _LibraryBuilder {
   /// It is mixed into every API token signature of every class member, because
   /// for example even though types of two methods might be the same, their
   /// locations are different.
-  List<int>? enclosingClassNameSignature;
+  Uint8List? enclosingClassNameSignature;
 
   _LibraryBuilder(this.uri, this.units);
 
@@ -169,9 +171,9 @@ class _LibraryBuilder {
   void _addClassOrMixin(ClassOrMixinDeclaration node) {
     var enclosingClassName = node.name.name;
 
-    TypeName? enclosingSuperClass;
+    NamedType? enclosingSuperClass;
     if (node is ClassDeclaration) {
-      enclosingSuperClass = node.extendsClause?.superclass;
+      enclosingSuperClass = node.extendsClause?.superclass2;
     }
 
     enclosingClassNameSignature =
@@ -288,7 +290,7 @@ class _LibraryBuilder {
     var api = referenceCollector.collect(
       apiTokenSignature,
       typeParameters: node.typeParameters,
-      superClass: node.superclass,
+      superClass: node.superclass2,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
     );
@@ -303,7 +305,7 @@ class _LibraryBuilder {
 
   void _addConstructor(
     Node enclosingClass,
-    TypeName? enclosingSuperClass,
+    NamedType? enclosingSuperClass,
     List<Node> classMembers,
     ConstructorDeclaration node,
   ) {
@@ -669,15 +671,15 @@ class _LibraryBuilder {
   }
 
   /// Return the signature for all tokens of the [node].
-  List<int> _computeNodeTokenSignature(AstNode? node) {
+  Uint8List _computeNodeTokenSignature(AstNode? node) {
     if (node == null) {
-      return const <int>[];
+      return Uint8List(0);
     }
     return _computeTokenSignature(node.beginToken, node.endToken);
   }
 
   /// Return the signature for tokens from [begin] to [end] (both including).
-  List<int> _computeTokenSignature(Token begin, Token end) {
+  Uint8List _computeTokenSignature(Token begin, Token end) {
     var signature = _newApiSignatureBuilder();
     _appendTokens(signature, begin, end);
     return signature.toByteList();

@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -31,9 +32,13 @@ class LocalReferenceContributor extends DartCompletionContributor {
   /// been shadowed by local declarations.
   _VisibilityTracker visibilityTracker = _VisibilityTracker();
 
+  LocalReferenceContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var opType = request.opType;
     AstNode? node = request.target.containingNode;
 
@@ -85,15 +90,14 @@ class LocalReferenceContributor extends DartCompletionContributor {
           var declaredElement = classOrMixin.declaredElement;
           if (declaredElement != null) {
             memberBuilder = MemberSuggestionBuilder(request, builder);
-            _computeSuggestionsForClass(declaredElement, request);
+            _computeSuggestionsForClass(declaredElement);
           }
         }
       }
     }
   }
 
-  void _addSuggestionsForType(InterfaceType type, DartCompletionRequest request,
-      double inheritanceDistance,
+  void _addSuggestionsForType(InterfaceType type, double inheritanceDistance,
       {bool isFunctionalArgument = false}) {
     var opType = request.opType;
     if (!isFunctionalArgument) {
@@ -134,8 +138,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
     }
   }
 
-  void _computeSuggestionsForClass(
-      ClassElement classElement, DartCompletionRequest request) {
+  void _computeSuggestionsForClass(ClassElement classElement) {
     var isFunctionalArgument = request.target.isFunctionalArgument();
     classMemberSuggestionKind = isFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
@@ -143,7 +146,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
     for (var type in classElement.allSupertypes) {
       var inheritanceDistance = request.featureComputer
           .inheritanceDistanceFeature(classElement, type.element);
-      _addSuggestionsForType(type, request, inheritanceDistance,
+      _addSuggestionsForType(type, inheritanceDistance,
           isFunctionalArgument: isFunctionalArgument);
     }
   }
@@ -437,7 +440,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   bool _isUnused(String identifier) => RegExp(r'^_+$').hasMatch(identifier);
 
   bool _isVoid(TypeAnnotation? returnType) {
-    if (returnType is TypeName) {
+    if (returnType is NamedType) {
       var id = returnType.name;
       if (id.name == 'void') {
         return true;

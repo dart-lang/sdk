@@ -42,10 +42,12 @@ class _AssertionError extends Error implements AssertionError {
     _doThrowNewSource('$name != null', line, column, null);
   }
 
-  static _doThrowNew(int assertionStart, int assertionEnd, Object? message)
-      native "AssertionError_throwNew";
-  static _doThrowNewSource(String failedAssertion, int line, int column,
-      Object? message) native "AssertionError_throwNewSource";
+  @pragma("vm:external-name", "AssertionError_throwNew")
+  external static _doThrowNew(
+      int assertionStart, int assertionEnd, Object? message);
+  @pragma("vm:external-name", "AssertionError_throwNewSource")
+  external static _doThrowNewSource(
+      String failedAssertion, int line, int column, Object? message);
 
   @pragma("vm:entry-point", "call")
   static _evaluateAssertion(condition) {
@@ -94,8 +96,9 @@ class _TypeError extends Error implements TypeError, CastError {
   _TypeError._create(this._url, this._line, this._column, this._message);
 
   @pragma("vm:entry-point", "call")
-  static _throwNew(int location, Object srcValue, _Type dstType, String dstName)
-      native "TypeError_throwNew";
+  @pragma("vm:external-name", "TypeError_throwNew")
+  external static _throwNew(
+      int location, Object srcValue, _Type dstType, String dstName);
 
   String toString() => _message;
 
@@ -127,7 +130,8 @@ class FallThroughError {
   @pragma("vm:entry-point")
   FallThroughError._create(this._url, this._line);
 
-  static _throwNew(int caseClausePos) native "FallThroughError_throwNew";
+  @pragma("vm:external-name", "FallThroughError_throwNew")
+  external static _throwNew(int caseClausePos);
 
   @patch
   String toString() {
@@ -168,8 +172,8 @@ class AbstractClassInstantiationError {
   AbstractClassInstantiationError._create(
       this._className, this._url, this._line);
 
-  static _throwNew(int caseClausePos, String className)
-      native "AbstractClassInstantiationError_throwNew";
+  @pragma("vm:external-name", "AbstractClassInstantiationError_throwNew")
+  external static _throwNew(int caseClausePos, String className);
 
   @patch
   String toString() {
@@ -264,8 +268,9 @@ class NoSuchMethodError {
                 ? _NamedArgumentsMap(arguments!, argumentNames)
                 : null);
 
-  static String? _existingMethodSignature(Object? receiver, String methodName,
-      int invocationType) native "NoSuchMethodError_existingMethodSignature";
+  @pragma("vm:external-name", "NoSuchMethodError_existingMethodSignature")
+  external static String? _existingMethodSignature(
+      Object? receiver, String methodName, int invocationType);
 
   @patch
   String toString() {
@@ -445,7 +450,9 @@ class NoSuchMethodError {
     if (invocation.typeArguments.isNotEmpty) {
       buffer.write("<");
       for (var type in invocation.typeArguments) {
-        buffer..write(separator)..write("_");
+        buffer
+          ..write(separator)
+          ..write("_");
         separator = ", ";
       }
       buffer.write(">");
@@ -453,14 +460,21 @@ class NoSuchMethodError {
     }
     buffer.write("(");
     for (var argument in invocation.positionalArguments) {
-      buffer..write(separator)..write("_");
+      buffer
+        ..write(separator)
+        ..write("_");
       separator = ", ";
     }
     if (invocation.namedArguments.isNotEmpty) {
-      buffer..write(separator)..write("{");
+      buffer
+        ..write(separator)
+        ..write("{");
       separator = "";
       for (var name in invocation.namedArguments.keys) {
-        buffer..write(separator)..write(_symbolToString(name))..write(": _");
+        buffer
+          ..write(separator)
+          ..write(_symbolToString(name))
+          ..write(": _");
         separator = ",";
       }
       buffer.write("}");

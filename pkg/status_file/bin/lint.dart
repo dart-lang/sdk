@@ -56,10 +56,11 @@ void main(List<String> arguments) {
 }
 
 void lintStdIn({bool checkForDisjunctions = false}) {
-  List<String> strings = <String>[];
-  String readString;
+  var strings = <String>[];
   try {
-    while (null != (readString = stdin.readLineSync())) {
+    while (true) {
+      var readString = stdin.readLineSync();
+      if (readString == null) break;
       strings.add(readString);
     }
   } on StdinException {
@@ -126,7 +127,7 @@ bool lintStatusFile(StatusFile statusFile,
     print("");
     return true;
   }
-  if (statusFile.path != null && statusFile.path.isNotEmpty) {
+  if (statusFile.path.isNotEmpty) {
     print("${statusFile.path}");
   }
   var errors = lintingErrors.toList();

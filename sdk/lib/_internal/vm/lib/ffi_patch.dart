@@ -31,18 +31,19 @@ int sizeOf<T extends NativeType>() {
 }
 
 @pragma("vm:recognized", "other")
-Pointer<T> _fromAddress<T extends NativeType>(int ptr) native "Ffi_fromAddress";
+@pragma("vm:external-name", "Ffi_fromAddress")
+external Pointer<T> _fromAddress<T extends NativeType>(int ptr);
 
 // The real implementation of this function (for interface calls) lives in
 // BuildFfiAsFunctionCall in the Kernel frontend. No calls can actually reach
 // this function.
 @pragma("vm:recognized", "other")
-DS _asFunctionInternal<DS extends Function, NS extends Function>(
-    Pointer<NativeFunction<NS>> ptr,
-    bool isLeaf) native "Ffi_asFunctionInternal";
+@pragma("vm:external-name", "Ffi_asFunctionInternal")
+external DS _asFunctionInternal<DS extends Function, NS extends Function>(
+    Pointer<NativeFunction<NS>> ptr, bool isLeaf);
 
-dynamic _asExternalTypedData(Pointer ptr, int count)
-    native "Ffi_asExternalTypedData";
+@pragma("vm:external-name", "Ffi_asExternalTypedData")
+external dynamic _asExternalTypedData(Pointer ptr, int count);
 
 // Returns a Function object for a native callback.
 //
@@ -61,11 +62,13 @@ dynamic _asExternalTypedData(Pointer ptr, int count)
 // Function objects returned by this native method are not Dart instances,
 // so we need to use top type as a return type to avoid type check.
 @pragma("vm:recognized", "other")
-dynamic _nativeCallbackFunction<NS extends Function>(Function target,
-    Object? exceptionalReturn) native "Ffi_nativeCallbackFunction";
+@pragma("vm:external-name", "Ffi_nativeCallbackFunction")
+external dynamic _nativeCallbackFunction<NS extends Function>(
+    Function target, Object? exceptionalReturn);
 
-Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(dynamic function)
-    native "Ffi_pointerFromFunction";
+@pragma("vm:external-name", "Ffi_pointerFromFunction")
+external Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(
+    dynamic function);
 
 @patch
 @pragma("vm:entry-point")
@@ -88,7 +91,8 @@ class Pointer<T extends NativeType> {
 
   @patch
   @pragma("vm:recognized", "other")
-  int get address native "Ffi_address";
+  @pragma("vm:external-name", "Ffi_address")
+  external int get address;
 
   // For statically known types, this is rewritten.
   @patch
@@ -139,8 +143,9 @@ class Array<T extends NativeType> {
 /// calculations. See pkg/vm/lib/transformations/ffi.dart.
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
-int _abi()
-    native "Recognized method: IR graph is built in the flow graph builder.";
+@pragma("vm:external-name",
+    "Recognized method: IR graph is built in the flow graph builder.")
+external int _abi();
 
 /// Copies data byte-wise from [source] to [target].
 ///
@@ -191,111 +196,131 @@ void _memCopy(Object target, int targetOffsetInBytes, Object source,
 // and GCing new spaces takes a lot of the benchmark time. The next speedup is
 // getting rid of these allocations by inlining these functions.
 @pragma("vm:recognized", "other")
-int _loadInt8(Object typedDataBase, int offsetInBytes) native "Ffi_loadInt8";
+@pragma("vm:external-name", "Ffi_loadInt8")
+external int _loadInt8(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-int _loadInt16(Object typedDataBase, int offsetInBytes) native "Ffi_loadInt16";
+@pragma("vm:external-name", "Ffi_loadInt16")
+external int _loadInt16(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-int _loadInt32(Object typedDataBase, int offsetInBytes) native "Ffi_loadInt32";
+@pragma("vm:external-name", "Ffi_loadInt32")
+external int _loadInt32(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-int _loadInt64(Object typedDataBase, int offsetInBytes) native "Ffi_loadInt64";
+@pragma("vm:external-name", "Ffi_loadInt64")
+external int _loadInt64(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-int _loadUint8(Object typedDataBase, int offsetInBytes) native "Ffi_loadUint8";
+@pragma("vm:external-name", "Ffi_loadUint8")
+external int _loadUint8(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-int _loadUint16(Object typedDataBase, int offsetInBytes)
-    native "Ffi_loadUint16";
+@pragma("vm:external-name", "Ffi_loadUint16")
+external int _loadUint16(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-int _loadUint32(Object typedDataBase, int offsetInBytes)
-    native "Ffi_loadUint32";
+@pragma("vm:external-name", "Ffi_loadUint32")
+external int _loadUint32(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-int _loadUint64(Object typedDataBase, int offsetInBytes)
-    native "Ffi_loadUint64";
+@pragma("vm:external-name", "Ffi_loadUint64")
+external int _loadUint64(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-int _loadIntPtr(Object typedDataBase, int offsetInBytes)
-    native "Ffi_loadIntPtr";
+@pragma("vm:external-name", "Ffi_loadIntPtr")
+external int _loadIntPtr(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-double _loadFloat(Object typedDataBase, int offsetInBytes)
-    native "Ffi_loadFloat";
+@pragma("vm:external-name", "Ffi_loadFloat")
+external double _loadFloat(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-double _loadDouble(Object typedDataBase, int offsetInBytes)
-    native "Ffi_loadDouble";
+@pragma("vm:external-name", "Ffi_loadDouble")
+external double _loadDouble(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-double _loadFloatUnaligned(Object typedDataBase, int offsetInBytes)
-    native "Ffi_loadFloatUnaligned";
+@pragma("vm:external-name", "Ffi_loadFloatUnaligned")
+external double _loadFloatUnaligned(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-double _loadDoubleUnaligned(Object typedDataBase, int offsetInBytes)
-    native "Ffi_loadDoubleUnaligned";
+@pragma("vm:external-name", "Ffi_loadDoubleUnaligned")
+external double _loadDoubleUnaligned(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-Pointer<S> _loadPointer<S extends NativeType>(
-    Object typedDataBase, int offsetInBytes) native "Ffi_loadPointer";
+@pragma("vm:external-name", "Ffi_loadPointer")
+external Pointer<S> _loadPointer<S extends NativeType>(
+    Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-void _storeInt8(Object typedDataBase, int offsetInBytes, int value)
-    native "Ffi_storeInt8";
+@pragma("vm:external-name", "Ffi_storeInt8")
+external void _storeInt8(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
-void _storeInt16(Object typedDataBase, int offsetInBytes, int value)
-    native "Ffi_storeInt16";
+@pragma("vm:external-name", "Ffi_storeInt16")
+external void _storeInt16(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
-void _storeInt32(Object typedDataBase, int offsetInBytes, int value)
-    native "Ffi_storeInt32";
+@pragma("vm:external-name", "Ffi_storeInt32")
+external void _storeInt32(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
-void _storeInt64(Object typedDataBase, int offsetInBytes, int value)
-    native "Ffi_storeInt64";
+@pragma("vm:external-name", "Ffi_storeInt64")
+external void _storeInt64(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
-void _storeUint8(Object typedDataBase, int offsetInBytes, int value)
-    native "Ffi_storeUint8";
+@pragma("vm:external-name", "Ffi_storeUint8")
+external void _storeUint8(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
-void _storeUint16(Object typedDataBase, int offsetInBytes, int value)
-    native "Ffi_storeUint16";
+@pragma("vm:external-name", "Ffi_storeUint16")
+external void _storeUint16(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
-void _storeUint32(Object typedDataBase, int offsetInBytes, int value)
-    native "Ffi_storeUint32";
+@pragma("vm:external-name", "Ffi_storeUint32")
+external void _storeUint32(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
-void _storeUint64(Object typedDataBase, int offsetInBytes, int value)
-    native "Ffi_storeUint64";
+@pragma("vm:external-name", "Ffi_storeUint64")
+external void _storeUint64(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
-void _storeIntPtr(Object typedDataBase, int offsetInBytes, int value)
-    native "Ffi_storeIntPtr";
+@pragma("vm:external-name", "Ffi_storeIntPtr")
+external void _storeIntPtr(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
-void _storeFloat(Object typedDataBase, int offsetInBytes, double value)
-    native "Ffi_storeFloat";
+@pragma("vm:external-name", "Ffi_storeFloat")
+external void _storeFloat(
+    Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
-void _storeDouble(Object typedDataBase, int offsetInBytes, double value)
-    native "Ffi_storeDouble";
+@pragma("vm:external-name", "Ffi_storeDouble")
+external void _storeDouble(
+    Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
-void _storeFloatUnaligned(Object typedDataBase, int offsetInBytes, double value)
-    native "Ffi_storeFloatUnaligned";
+@pragma("vm:external-name", "Ffi_storeFloatUnaligned")
+external void _storeFloatUnaligned(
+    Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
-void _storeDoubleUnaligned(Object typedDataBase, int offsetInBytes,
-    double value) native "Ffi_storeDoubleUnaligned";
+@pragma("vm:external-name", "Ffi_storeDoubleUnaligned")
+external void _storeDoubleUnaligned(
+    Object typedDataBase, int offsetInBytes, double value);
 
 @pragma("vm:recognized", "other")
-void _storePointer<S extends NativeType>(Object typedDataBase,
-    int offsetInBytes, Pointer<S> value) native "Ffi_storePointer";
+@pragma("vm:external-name", "Ffi_storePointer")
+external void _storePointer<S extends NativeType>(
+    Object typedDataBase, int offsetInBytes, Pointer<S> value);
+
+bool _loadBool(Object typedDataBase, int offsetInBytes) =>
+    _loadUint8(typedDataBase, offsetInBytes) != 0;
+
+void _storeBool(Object typedDataBase, int offsetInBytes, bool value) =>
+    _storeUint8(typedDataBase, offsetInBytes, value ? 1 : 0);
+
+Pointer<Bool> _elementAtBool(Pointer<Bool> pointer, int index) =>
+    Pointer.fromAddress(pointer.address + 1 * index);
 
 Pointer<Int8> _elementAtInt8(Pointer<Int8> pointer, int index) =>
     Pointer.fromAddress(pointer.address + 1 * index);
@@ -532,6 +557,20 @@ extension DoublePointer on Pointer<Double> {
   Float64List asTypedList(int elements) => _asExternalTypedData(this, elements);
 }
 
+extension BoolPointer on Pointer<Bool> {
+  @patch
+  bool get value => _loadBool(this, 0);
+
+  @patch
+  set value(bool value) => _storeBool(this, 0, value);
+
+  @patch
+  bool operator [](int index) => _loadBool(this, index);
+
+  @patch
+  operator []=(int index, bool value) => _storeBool(this, index, value);
+}
+
 extension Int8Array on Array<Int8> {
   @patch
   int operator [](int index) {
@@ -686,6 +725,20 @@ extension DoubleArray on Array<Double> {
   }
 }
 
+extension BoolArray on Array<Bool> {
+  @patch
+  bool operator [](int index) {
+    _checkIndex(index);
+    return _loadBool(_typedDataBase, index);
+  }
+
+  @patch
+  operator []=(int index, bool value) {
+    _checkIndex(index);
+    return _storeBool(_typedDataBase, index, value);
+  }
+}
+
 //
 // End of generated code.
 //
@@ -762,17 +815,21 @@ extension UnionArray<T extends Union> on Array<T> {
 
 extension NativePort on SendPort {
   @patch
-  int get nativePort native "SendPortImpl_get_id";
+  @pragma("vm:external-name", "SendPortImpl_get_id")
+  external int get nativePort;
 }
 
-int _nativeApiFunctionPointer(String symbol)
-    native "DartNativeApiFunctionPointer";
+@pragma("vm:external-name", "DartNativeApiFunctionPointer")
+external int _nativeApiFunctionPointer(String symbol);
 
-int _initializeApiDLData() native "DartApiDLInitializeData";
+@pragma("vm:external-name", "DartApiDLInitializeData")
+external int _initializeApiDLData();
 
-int _dartApiMajorVersion() native "DartApiDLMajorVersion";
+@pragma("vm:external-name", "DartApiDLMajorVersion")
+external int _dartApiMajorVersion();
 
-int _dartApiMinorVersion() native "DartApiDLMinorVersion";
+@pragma("vm:external-name", "DartApiDLMinorVersion")
+external int _dartApiMinorVersion();
 
 @patch
 abstract class NativeApi {

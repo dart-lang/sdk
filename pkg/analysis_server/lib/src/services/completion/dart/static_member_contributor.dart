@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/utilities/extensions/completion_request.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 
@@ -12,19 +14,16 @@ import 'package:analyzer/dart/element/element.dart';
 /// suggestions for expressions of the form `C.^`, where `C` is the name of a
 /// class, enum, or extension.
 class StaticMemberContributor extends DartCompletionContributor {
+  StaticMemberContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  ) : super(request, builder);
+
   @override
-  Future<void> computeSuggestions(
-      DartCompletionRequest request, SuggestionBuilder builder) async {
+  Future<void> computeSuggestions() async {
     var library = request.libraryElement;
-    if (library == null) {
-      // Gracefully degrade if the library could not be determined, such as a
-      // detached part file or source change.
-      // TODO(brianwilkerson) Consider testing for this before invoking _any_ of
-      //  the contributors.
-      return;
-    }
     bool isVisible(Element element) => element.isAccessibleIn(library);
-    var targetId = request.dotTarget;
+    var targetId = request.target.dotTarget;
     if (targetId is Identifier && !request.target.isCascade) {
       var element = targetId.staticElement;
       if (element is TypeAliasElement) {
@@ -39,10 +38,12 @@ class StaticMemberContributor extends DartCompletionContributor {
             builder.suggestAccessor(accessor, inheritanceDistance: 0.0);
           }
         }
-        for (var constructor in element.constructors) {
-          if (isVisible(constructor)) {
-            if (!element.isAbstract || constructor.isFactory) {
-              builder.suggestConstructor(constructor, hasClassName: true);
+        if (!request.shouldSuggestTearOff(element)) {
+          for (var constructor in element.constructors) {
+            if (isVisible(constructor)) {
+              if (!element.isAbstract || constructor.isFactory) {
+                builder.suggestConstructor(constructor, hasClassName: true);
+              }
             }
           }
         }

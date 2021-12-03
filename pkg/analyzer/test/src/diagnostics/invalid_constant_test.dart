@@ -10,13 +10,24 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidConstantTest);
-    defineReflectiveTests(InvalidConstantWithNullSafetyTest);
+    defineReflectiveTests(InvalidConstantWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class InvalidConstantTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with InvalidConstantTestCases {
+  test_in_initializer_field_as() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  final l;
+  const C.test(dynamic x) : l = x as List<T>;
+}
+''');
+  }
+}
+
+mixin InvalidConstantTestCases on PubPackageResolutionTest {
   test_in_initializer_assert_condition() async {
     await assertErrorsInCode('''
 class A {
@@ -164,14 +175,5 @@ class B extends A {
 }
 
 @reflectiveTest
-class InvalidConstantWithNullSafetyTest extends InvalidConstantTest
-    with WithNullSafetyMixin {
-  test_in_initializer_field_as() async {
-    await assertNoErrorsInCode('''
-class C<T> {
-  final l;
-  const C.test(dynamic x) : l = x as List<T>;
-}
-''');
-  }
-}
+class InvalidConstantWithoutNullSafetyTest extends PubPackageResolutionTest
+    with InvalidConstantTestCases, WithoutNullSafetyMixin {}

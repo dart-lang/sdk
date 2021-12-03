@@ -38,7 +38,7 @@ class B extends self::A {
 class C extends self::B {
   synthetic constructor •() → self::C*
     ;
-  method method(covariant core::String* a) → dynamic
+  method method(covariant-by-declaration core::String* a) → dynamic
     ;
 }
 static method main() → dynamic

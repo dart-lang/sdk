@@ -6,12 +6,13 @@
 
 // @dart = 2.9
 
-import "dart:async";
+// VMOptions=--no-enable-isolate-groups
+// VMOptions=--enable-isolate-groups
+
 import "dart:developer";
 import "dart:isolate";
 
 import "package:async_helper/async_helper.dart";
-import "package:expect/expect.dart";
 
 main() {
   asyncStart();
@@ -25,12 +26,11 @@ main() {
     asyncEnd();
   });
 
-
   var unwrittenKey = new Object();
   var expando = new Expando();
   expando[unwrittenKey] = new UserTag("cant send this");
 
   port.sendPort.send(expando);
 
-  print(unwrittenKey);  // Ensure [unwrittenKey] is live during [send].
+  print(unwrittenKey); // Ensure [unwrittenKey] is live during [send].
 }

@@ -18,7 +18,7 @@ OLD=$(gclient getdep --var=co19_rev)
 NEW=$(cd $CO19 && git fetch origin && git rev-parse origin/master)
 
 git fetch origin
-git branch cl-co19-roll-co19-to-$NEW origin/master
+git branch cl-co19-roll-co19-to-$NEW origin/main
 git checkout cl-co19-roll-co19-to-$NEW
 
 # Build a cipd package of the commit.
@@ -50,7 +50,7 @@ git commit DEPS -m \
   "$(printf "[co19] Roll co19 to $NEW\n\n" \
   && cd $CO19 \
   && git log --date='format:%Y-%m-%d' --pretty='format:%ad %ae %s' $OLD..$NEW \
-    | tr -d '#' \
+    | sed 's/\#/dart-lang\/co19\#/g' \
   && printf "\nCq-Include-Trybots: dart/try:$BUILDERS\n")"
 
 rm -rf tests/co19/src.git

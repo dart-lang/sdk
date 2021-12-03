@@ -17,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class TypeReferencesAnyTest extends AbstractTypeSystemNullSafetyTest {
+class TypeReferencesAnyTest extends AbstractTypeSystemTest {
   late TypeParameterElement T;
   late TypeParameterType T_none;
 

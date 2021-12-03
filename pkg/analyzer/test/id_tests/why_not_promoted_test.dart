@@ -22,7 +22,7 @@ main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(
-          const _WhyNotPromotedDataComputer(), [analyzerNnbdConfig]));
+          const _WhyNotPromotedDataComputer(), [analyzerDefaultConfig]));
 }
 
 class _WhyNotPromotedDataComputer extends DataComputer<String?> {

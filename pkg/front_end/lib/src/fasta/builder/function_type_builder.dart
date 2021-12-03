@@ -20,6 +20,7 @@ import '../source/source_library_builder.dart';
 
 import 'formal_parameter_builder.dart';
 import 'library_builder.dart';
+import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
@@ -28,8 +29,11 @@ class FunctionTypeBuilder extends TypeBuilder {
   final TypeBuilder? returnType;
   final List<TypeVariableBuilder>? typeVariables;
   final List<FormalParameterBuilder>? formals;
+  @override
   final NullabilityBuilder nullabilityBuilder;
+  @override
   final Uri? fileUri;
+  @override
   final int charOffset;
 
   FunctionTypeBuilder(this.returnType, this.typeVariables, this.formals,
@@ -41,6 +45,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   @override
   String get debugName => "Function";
 
+  @override
   bool get isVoidType => false;
 
   @override
@@ -77,19 +82,16 @@ class FunctionTypeBuilder extends TypeBuilder {
     return buffer;
   }
 
-  FunctionType build(LibraryBuilder library,
-      {TypedefType? origin, bool? nonInstanceContext}) {
+  @override
+  FunctionType build(LibraryBuilder library, {TypedefType? origin}) {
     DartType builtReturnType =
-        returnType?.build(library, nonInstanceContext: nonInstanceContext) ??
-            const DynamicType();
+        returnType?.build(library) ?? const DynamicType();
     List<DartType> positionalParameters = <DartType>[];
     List<NamedType>? namedParameters;
     int requiredParameterCount = 0;
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
-        DartType type = formal.type
-                ?.build(library, nonInstanceContext: nonInstanceContext) ??
-            const DynamicType();
+        DartType type = formal.type?.build(library) ?? const DynamicType();
         if (formal.isPositional) {
           positionalParameters.add(type);
           if (formal.isRequired) requiredParameterCount++;
@@ -120,6 +122,7 @@ class FunctionTypeBuilder extends TypeBuilder {
         typedefType: origin);
   }
 
+  @override
   Supertype? buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     library.addProblem(
@@ -127,13 +130,15 @@ class FunctionTypeBuilder extends TypeBuilder {
     return null;
   }
 
+  @override
   Supertype? buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     return buildSupertype(library, charOffset, fileUri);
   }
 
+  @override
   FunctionTypeBuilder clone(
-      List<TypeBuilder> newTypes,
+      List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
     List<TypeVariableBuilder>? clonedTypeVariables;
@@ -149,17 +154,16 @@ class FunctionTypeBuilder extends TypeBuilder {
         return formal.clone(newTypes, contextLibrary, contextDeclaration);
       }, growable: false);
     }
-    FunctionTypeBuilder newType = new FunctionTypeBuilder(
+    return new FunctionTypeBuilder(
         returnType?.clone(newTypes, contextLibrary, contextDeclaration),
         clonedTypeVariables,
         clonedFormals,
         nullabilityBuilder,
         fileUri,
         charOffset);
-    newTypes.add(newType);
-    return newType;
   }
 
+  @override
   FunctionTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
     return new FunctionTypeBuilder(returnType, typeVariables, formals,

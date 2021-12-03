@@ -15,6 +15,7 @@ import '../util/graph.dart' show Graph, computeStrongComponents;
 import 'legacy_erasure.dart';
 
 class TypeVariableGraph extends Graph<int> {
+  @override
   late List<int> vertices;
   List<TypeParameter> typeParameters;
   List<DartType> bounds;
@@ -50,6 +51,7 @@ class TypeVariableGraph extends Graph<int> {
     }
   }
 
+  @override
   Iterable<int> neighborsOf(int index) {
     return edges[index];
   }
@@ -67,22 +69,28 @@ class OccurrenceCollectorVisitor extends DartTypeVisitor<void> {
     node.type.accept(this);
   }
 
+  @override
   void visitInvalidType(InvalidType node);
+  @override
   void visitDynamicType(DynamicType node);
+  @override
   void visitVoidType(VoidType node);
 
+  @override
   void visitInterfaceType(InterfaceType node) {
     for (DartType argument in node.typeArguments) {
       argument.accept(this);
     }
   }
 
+  @override
   void visitTypedefType(TypedefType node) {
     for (DartType argument in node.typeArguments) {
       argument.accept(this);
     }
   }
 
+  @override
   void visitFunctionType(FunctionType node) {
     for (TypeParameter typeParameter in node.typeParameters) {
       typeParameter.bound.accept(this);
@@ -97,6 +105,7 @@ class OccurrenceCollectorVisitor extends DartTypeVisitor<void> {
     node.returnType.accept(this);
   }
 
+  @override
   void visitTypeParameterType(TypeParameterType node) {
     if (typeParameters.contains(node.parameter)) {
       occurred.add(node.parameter);
@@ -249,6 +258,7 @@ class TypeArgumentIssue {
       this.index, this.argument, this.typeParameter, this.enclosingType,
       {this.invertedType, this.isGenericTypeAsArgumentIssue = false});
 
+  @override
   int get hashCode {
     int hash = 0x3fffffff & index;
     hash = 0x3fffffff & (hash * 31 + (hash ^ argument.hashCode));
@@ -257,6 +267,7 @@ class TypeArgumentIssue {
     return hash;
   }
 
+  @override
   bool operator ==(Object other) {
     assert(other is TypeArgumentIssue);
     return other is TypeArgumentIssue &&
@@ -266,6 +277,7 @@ class TypeArgumentIssue {
         enclosingType == other.enclosingType;
   }
 
+  @override
   String toString() {
     return "TypeArgumentIssue(index=${index}, argument=${argument}, "
         "typeParameter=${typeParameter}, enclosingType=${enclosingType}";

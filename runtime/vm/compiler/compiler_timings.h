@@ -20,6 +20,9 @@
   V(CompileAll)                                                                \
   V(Iterate)                                                                   \
   V(CompileFunction)                                                           \
+  V(AddCalleesOf)                                                              \
+  V(CheckForNewDynamicFunctions)                                               \
+  V(CollectCallbackFields)                                                     \
   V(PrecompileConstructors)                                                    \
   V(AttachOptimizedTypeTestingStub)                                            \
   V(TraceForRetainedFunctions)                                                 \

@@ -1,4 +1,3 @@
-// @dart = 2.13
 T Function(T) create<T>() => id;
 T id<T>(T t) => t;
 const int Function(int) implicitConstInstantiation = id;

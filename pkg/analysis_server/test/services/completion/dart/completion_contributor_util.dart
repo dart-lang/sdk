@@ -5,10 +5,9 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
-    show DartCompletionRequestImpl;
+    show DartCompletionRequest;
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -43,28 +42,23 @@ typedef SuggestionMatcher = bool Function(CompletionSuggestion suggestion);
 /// suggestions.
 abstract class DartCompletionContributorTest
     extends _BaseDartCompletionContributorTest {
-  late DartCompletionContributor contributor;
-
   @nonVirtual
   @override
   Future<List<CompletionSuggestion>> computeContributedSuggestions(
       DartCompletionRequest request) async {
     var builder = SuggestionBuilder(request);
-    await contributor.computeSuggestions(request, builder);
+    var contributor = createContributor(request, builder);
+    await contributor.computeSuggestions();
     return builder.suggestions.toList();
   }
 
-  DartCompletionContributor createContributor();
-
-  @override
-  void setUp() {
-    super.setUp();
-    contributor = createContributor();
-  }
+  DartCompletionContributor createContributor(
+    DartCompletionRequest request,
+    SuggestionBuilder builder,
+  );
 }
 
-abstract class _BaseDartCompletionContributorTest extends AbstractContextTest
-    with WithNonFunctionTypeAliasesMixin {
+abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   static const String _UNCHECKED = '__UNCHECKED__';
   late String testFile;
   int _completionOffset = -1;
@@ -268,20 +262,19 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest
     return cs;
   }
 
-  CompletionSuggestion assertSuggestConstructor(String name,
+  CompletionSuggestion assertSuggestConstructor(String suggestion,
       {String? elementName,
       int? elemOffset,
       String defaultArgListString = _UNCHECKED,
       List<int>? defaultArgumentListTextRanges}) {
-    var cs = assertSuggest(name,
+    elementName ??= suggestion;
+    var cs = assertSuggest(suggestion,
         elemKind: ElementKind.CONSTRUCTOR,
         elemOffset: elemOffset,
         defaultArgListString: defaultArgListString,
         defaultArgumentListTextRanges: defaultArgumentListTextRanges);
     var element = cs.element!;
     expect(element.kind, equals(ElementKind.CONSTRUCTOR));
-    var index = name.indexOf('.');
-    elementName ??= index >= 0 ? name.substring(index + 1) : '';
     expect(element.name, elementName);
     return cs;
   }
@@ -537,14 +530,14 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest
 
   Future computeSuggestions({int times = 200}) async {
     result = await session.getResolvedUnit(testFile) as ResolvedUnitResult;
-    var baseRequest = CompletionRequestImpl(
-        result, completionOffset, CompletionPerformance());
-
-    return await baseRequest.performance.runRequestOperation(
+    return await CompletionPerformance().runRequestOperation(
       (performance) async {
         // Build the request
-        var request = await DartCompletionRequestImpl.from(
-            performance, baseRequest, dartdocInfo);
+        var request = DartCompletionRequest(
+          resolvedUnit: result,
+          offset: completionOffset,
+          dartdocDirectiveInfo: dartdocInfo,
+        );
 
         var range = request.target.computeReplacementRange(request.offset);
         replacementOffset = range.offset;

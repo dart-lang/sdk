@@ -1,0 +1,28 @@
+class A<T> {
+  A();
+  factory A.fact() => new A();
+  factory A.redirect() = A;
+}
+
+const a = A.new;
+const b = A<int>.new;
+const c = A.fact;
+const d = A<int>.fact;
+const e = A.redirect;
+const f = A<int>.redirect;
+const g = B.new;
+const h = B<int>.new;
+const i = B.fact;
+const j = B<int>.fact;
+const k = B.redirect;
+const l = B<int>.redirect;
+const m = C.new;
+const n = C<int>.new;
+const o = C.fact;
+const p = C<int>.fact;
+const q = C.redirect;
+const r = C<int>.redirect;
+main() {}
+test() {}
+typedef B<T> = A<T>;
+typedef C<T> = A<int>;

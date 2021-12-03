@@ -22,6 +22,4 @@ class A<T extends Foo> implements IA<T> {
 
 main() {
   var result = new IA<String>();
-  //               ^
-  // [cfe] Type argument 'String' doesn't conform to the bound 'Foo' of the type variable 'T' on 'A'.
 }

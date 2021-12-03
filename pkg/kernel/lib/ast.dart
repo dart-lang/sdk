@@ -64,7 +64,6 @@
 ///
 library kernel.ast;
 
-import 'dart:core';
 import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 
@@ -80,6 +79,7 @@ export 'default_language_version.dart' show defaultLanguageVersion;
 import 'transformations/flags.dart';
 import 'text/ast_to_text.dart' as astToText;
 import 'core_types.dart';
+import 'class_hierarchy.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
 import 'src/assumptions.dart';
@@ -101,6 +101,7 @@ abstract class Node {
   ///
   /// The data is generally bare-bones, but can easily be updated for your
   /// specific debugging needs.
+  @override
   String toString();
 
   /// Returns the textual representation of this node for use in debugging.
@@ -138,6 +139,7 @@ abstract class Node {
 /// This is anything other than [Name] and [DartType] nodes.
 abstract class TreeNode extends Node {
   static int _hashCounter = 0;
+  @override
   final int hashCode = _hashCounter = (_hashCounter + 1) & 0x3fffffff;
   static const int noOffset = -1;
 
@@ -149,8 +151,11 @@ abstract class TreeNode extends Node {
   /// not available (this is the default if none is specifically set).
   int fileOffset = noOffset;
 
+  @override
   R accept<R>(TreeVisitor<R> v);
+  @override
   R accept1<R, A>(TreeVisitor1<R, A> v, A arg);
+  @override
   void visitChildren(Visitor v);
   void transformChildren(Transformer v);
   void transformOrRemoveChildren(RemovingTransformer v);
@@ -211,11 +216,7 @@ abstract class NamedNode extends TreeNode {
 
   NamedNode(Reference? reference)
       : this.reference = reference ?? new Reference() {
-    if (this is Field) {
-      (this as Field).getterReference.node = this;
-    } else {
-      this.reference.node = this;
-    }
+    this.reference.node = this;
   }
 
   /// This is an advanced feature.
@@ -488,7 +489,10 @@ class Library extends NamedNode
     }
     for (int i = 0; i < fields.length; ++i) {
       Field field = fields[i];
-      canonicalName.getChildFromField(field).bindTo(field.getterReference);
+      canonicalName.getChildFromField(field).bindTo(field.fieldReference);
+      canonicalName
+          .getChildFromFieldGetter(field)
+          .bindTo(field.getterReference);
       if (field.hasSetter) {
         canonicalName
             .getChildFromFieldSetter(field)
@@ -608,10 +612,12 @@ class Library extends NamedNode
     printer.write(libraryNameToString(this));
   }
 
+  @override
   Location? _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 
+  @override
   String leakingDebugToString() => astToText.debugLibraryToString(this);
 }
 
@@ -1255,7 +1261,10 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     if (!dirty) return;
     for (int i = 0; i < fields.length; ++i) {
       Field member = fields[i];
-      canonicalName.getChildFromField(member).bindTo(member.getterReference);
+      canonicalName.getChildFromField(member).bindTo(member.fieldReference);
+      canonicalName
+          .getChildFromFieldGetter(member)
+          .bindTo(member.getterReference);
       if (member.hasSetter) {
         canonicalName
             .getChildFromFieldSetter(member)
@@ -1510,6 +1519,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   String name;
 
   /// The URI of the source file this class was loaded from.
+  @override
   Uri fileUri;
 
   /// Type parameters declared on the extension.
@@ -1522,7 +1532,15 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   ///   class A {}
   ///   extension B on A {}
   ///
+  /// The 'on clause' appears also in the experimental feature 'extension
+  /// types' as a part of an extension type declaration, for example:
+  ///
+  ///   class A {}
+  ///   extension type B on A {}
   late DartType onType;
+
+  /// The 'show' and 'hide' clauses of an extension type declaration.
+  ExtensionTypeShowHideClause? showHideClause;
 
   /// The members declared by the extension.
   ///
@@ -1591,23 +1609,37 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   void visitChildren(Visitor v) {
     visitList(typeParameters, v);
     onType.accept(v);
+    if (showHideClause != null) {
+      visitList(showHideClause!.shownSupertypes, v);
+      visitList(showHideClause!.hiddenSupertypes, v);
+    }
   }
 
   @override
   void transformChildren(Transformer v) {
+    v.transformList(annotations, this);
     v.transformList(typeParameters, this);
     // ignore: unnecessary_null_comparison
     if (onType != null) {
       onType = v.visitDartType(onType);
     }
+    if (showHideClause != null) {
+      v.transformSupertypeList(showHideClause!.shownSupertypes);
+      v.transformSupertypeList(showHideClause!.hiddenSupertypes);
+    }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(annotations, this);
     v.transformTypeParameterList(typeParameters, this);
     // ignore: unnecessary_null_comparison
     if (onType != null) {
       onType = v.visitDartType(onType, cannotRemoveSentinel);
+    }
+    if (showHideClause != null) {
+      v.transformSupertypeList(showHideClause!.shownSupertypes);
+      v.transformSupertypeList(showHideClause!.hiddenSupertypes);
     }
   }
 
@@ -1643,7 +1675,7 @@ class ExtensionMemberDescriptor {
   /// The name of the extension member.
   ///
   /// The name of the generated top-level member is mangled to ensure
-  /// uniqueness. This name is used to lookup an extension method the
+  /// uniqueness. This name is used to lookup an extension method in the
   /// extension itself.
   Name name;
 
@@ -1693,6 +1725,180 @@ class ExtensionMemberDescriptor {
   String toString() {
     return 'ExtensionMemberDescriptor($name,$kind,'
         '${member.toStringInternal()},isStatic=${isStatic})';
+  }
+}
+
+enum CallSiteAccessKind {
+  methodInvocation,
+  getterInvocation,
+  setterInvocation,
+  operatorInvocation,
+}
+
+/// Elements of the 'show' and 'hide' clauses of an extension type declaration.
+class ExtensionTypeShowHideClause {
+  /// The types in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance A, B in:
+  ///
+  ///   class A {}
+  ///   class B {}
+  ///   class C extends B implements A {}
+  ///   extension type E on C show B, A {}
+  final List<Supertype> shownSupertypes = <Supertype>[];
+
+  /// The methods in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance foo in
+  ///
+  ///   class A {
+  ///     void foo() {}
+  ///   }
+  ///   extension type E on A show foo {}
+  final List<Reference> shownMethods = <Reference>[];
+
+  /// The getters in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance foo, bar, baz in
+  ///
+  ///   class A {
+  ///     void foo() {}
+  ///     int? bar;
+  ///     int get baz => 42;
+  ///   }
+  ///   extension type E on A show get foo, get bar, get baz {}
+  final List<Reference> shownGetters = <Reference>[];
+
+  /// The setters in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance foo, bar in
+  ///
+  ///   class A {
+  ///     int? foo;
+  ///     void set bar(int value) {}
+  ///   }
+  ///   extension type E on A show set foo, set bar {}
+  final List<Reference> shownSetters = <Reference>[];
+
+  /// The operators in the 'show clause' of the extension type declaration.
+  ///
+  /// For instance +, * in
+  ///
+  ///   class A {
+  ///     A operator+(A other) => other;
+  ///     A operator*(A other) => this;
+  ///   }
+  ///   extension type E on A show operator +, operator * {}
+  final List<Reference> shownOperators = <Reference>[];
+
+  /// The types in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance A, B in:
+  ///
+  ///   class A {}
+  ///   class B {}
+  ///   class C extends B implements A {}
+  ///   extension E on C hide A, B {}
+  final List<Supertype> hiddenSupertypes = <Supertype>[];
+
+  /// The methods in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance foo in
+  ///
+  ///   class A {
+  ///     void foo() {}
+  ///   }
+  ///   extension type E on A hide foo {}
+  final List<Reference> hiddenMethods = <Reference>[];
+
+  /// The getters in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance foo, bar, baz in
+  ///
+  ///   class A {
+  ///     void foo() {}
+  ///     int? bar;
+  ///     int get baz => 42;
+  ///   }
+  ///   extension type E on A hide get foo, get bar, get baz {}
+  final List<Reference> hiddenGetters = <Reference>[];
+
+  /// The setters in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance foo, bar in
+  ///
+  ///   class A {
+  ///     int? foo;
+  ///     void set bar(int value) {}
+  ///   }
+  ///   extension type E on A hide set foo, set bar {}
+  final List<Reference> hiddenSetters = <Reference>[];
+
+  /// The operators in the 'hide clause' of the extension type declaration.
+  ///
+  /// For instance +, * in
+  ///
+  ///   class A {
+  ///     A operator+(A other) => other;
+  ///     A operator*(A other) => this;
+  ///   }
+  ///   extension type E on A hide operator +, operator * {}
+  final List<Reference> hiddenOperators = <Reference>[];
+
+  Reference? findShownReference(Name name,
+      CallSiteAccessKind callSiteAccessKind, ClassHierarchy hierarchy) {
+    List<Reference> shownReferences;
+    List<Reference> hiddenReferences;
+    switch (callSiteAccessKind) {
+      case CallSiteAccessKind.getterInvocation:
+        shownReferences = shownGetters;
+        hiddenReferences = hiddenGetters;
+        break;
+      case CallSiteAccessKind.setterInvocation:
+        shownReferences = shownSetters;
+        hiddenReferences = hiddenSetters;
+        break;
+      case CallSiteAccessKind.methodInvocation:
+        shownReferences = shownMethods;
+        hiddenReferences = hiddenMethods;
+        break;
+      case CallSiteAccessKind.operatorInvocation:
+        shownReferences = shownOperators;
+        hiddenReferences = hiddenOperators;
+        break;
+    }
+
+    Reference? reference = _findMember(
+        name, shownReferences, shownSupertypes, hierarchy, callSiteAccessKind);
+    if (reference != null &&
+        _findMember(name, hiddenReferences, hiddenSupertypes, hierarchy,
+                callSiteAccessKind) ==
+            null) {
+      return reference;
+    }
+
+    return null;
+  }
+
+  Reference? _findMember(
+      Name name,
+      List<Reference> references,
+      List<Supertype> interfaces,
+      ClassHierarchy hierarchy,
+      CallSiteAccessKind callSiteAccessKind) {
+    for (Reference reference in references) {
+      if (reference.asMember.name == name) {
+        return reference;
+      }
+    }
+    for (Supertype interface in interfaces) {
+      Member? member = hierarchy.getInterfaceMember(interface.classNode, name,
+          setter: callSiteAccessKind == CallSiteAccessKind.setterInvocation);
+      if (member != null) {
+        return member.reference;
+      }
+    }
+    return null;
   }
 }
 
@@ -1825,8 +2031,81 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
     node.parent = this;
   }
 
+  /// Returns the type of this member when accessed as a getter.
+  ///
+  /// For a field, this is the field type. For a getter, this is the return
+  /// type. For a method or constructor, this is the tear off type.
+  ///
+  /// For a setter, this is undefined. Currently, non-nullable `Never` is
+  /// returned.
+  // TODO(johnniwinther): Should we use `InvalidType` for the undefined cases?
   DartType get getterType;
+
+  /// Returns the type of this member when access as a getter on a super class.
+  ///
+  /// This is in most cases the same as for [getterType].
+  ///
+  /// An exception is for forwarding semi stubs:
+  ///
+  ///    class Super {
+  ///      void method(num a) {}
+  ///    }
+  ///    class Class extends Super {
+  ///      void method(covariant int a);
+  ///    }
+  ///    class Subclass extends Class {
+  ///      void method(int a) {
+  ///        super.method; // Type `void Function(num)`.
+  ///        Class().method; // Type `void Function(int)`.
+  ///      }
+  ///    }
+  ///
+  /// Here, `Class.method` is turned into a forwarding semi stub
+  ///
+  ///     void method(covariant num a) => super.method(a);
+  ///
+  /// with [signatureType] `void Function(int)`. When `Class.method` is used
+  /// as the target of a super get, it has getter type `void Function(num)` and
+  /// as the target of an instance get, it has getter type `void Function(int)`.
+  DartType get superGetterType => getterType;
+
+  /// Returns the type of this member when accessed as a setter.
+  ///
+  /// For an assignable field, this is the field type. For a setter this is the
+  /// parameter type.
+  ///
+  /// For other members, including unassignable fields, this is undefined.
+  /// Currently, non-nullable `Never` is returned.
+  // TODO(johnniwinther): Should we use `InvalidType` for the undefined cases?
   DartType get setterType;
+
+  /// Returns the type of this member when access as a setter on a super class.
+  ///
+  /// This is in most cases the same as for [setterType].
+  ///
+  /// An exception is for forwarding semi stubs:
+  ///
+  ///    class Super {
+  ///      void set setter(num a) {}
+  ///    }
+  ///    class Class extends Super {
+  ///      void set setter(covariant int a);
+  ///    }
+  ///    class Subclass extends Class {
+  ///      void set setter(int a) {
+  ///        super.setter = 0.5; // Valid.
+  ///        Class().setter = 0.5; // Invalid.
+  ///      }
+  ///    }
+  ///
+  /// Here, `Class.setter` is turned into a forwarding semi stub
+  ///
+  ///     void set setter(covariant num a) => super.setter = a;
+  ///
+  /// with [signatureType] `void Function(int)`. When `Class.setter` is used
+  /// as the target of a super set, it has setter type `num` and as the target
+  /// of an instance set, it has setter type `int`.
+  DartType get superSetterType => setterType;
 
   bool get containsSuperCalls {
     return transformerFlags & TransformerFlag.superCalls != 0;
@@ -1845,32 +2124,50 @@ class Field extends Member {
   DartType type; // Not null. Defaults to DynamicType.
   int flags = 0;
   Expression? initializer; // May be null.
+
+  /// Reference used for reading from this field.
+  ///
+  /// This should be used as the target in [StaticGet], [InstanceGet], and
+  /// [SuperPropertyGet].
+  final Reference getterReference;
+
+  /// Reference used for writing to this field.
+  ///
+  /// This should be used as the target in [StaticSet], [InstanceSet], and
+  /// [SuperPropertySet].
   final Reference? setterReference;
 
   @override
   @Deprecated("Use the specific getterReference/setterReference instead")
   Reference get reference => super.reference;
 
-  Reference get getterReference => super.reference;
+  /// Reference used for initializing this field.
+  ///
+  /// This should be used as the target in [FieldInitializer] and as the key
+  /// in the field values of [InstanceConstant].
+  Reference get fieldReference => super.reference;
 
   Field.mutable(Name name,
       {this.type: const DynamicType(),
       this.initializer,
-      bool isCovariant: false,
+      bool isCovariantByDeclaration: false,
       bool isFinal: false,
       bool isStatic: false,
       bool isLate: false,
       int transformerFlags: 0,
       required Uri fileUri,
+      Reference? fieldReference,
       Reference? getterReference,
       Reference? setterReference})
-      : this.setterReference = setterReference ?? new Reference(),
-        super(name, fileUri, getterReference) {
+      : this.getterReference = getterReference ?? new Reference(),
+        this.setterReference = setterReference ?? new Reference(),
+        super(name, fileUri, fieldReference) {
+    this.getterReference.node = this;
     this.setterReference!.node = this;
     // ignore: unnecessary_null_comparison
     assert(type != null);
     initializer?.parent = this;
-    this.isCovariant = isCovariant;
+    this.isCovariantByDeclaration = isCovariantByDeclaration;
     this.isFinal = isFinal;
     this.isStatic = isStatic;
     this.isLate = isLate;
@@ -1880,20 +2177,23 @@ class Field extends Member {
   Field.immutable(Name name,
       {this.type: const DynamicType(),
       this.initializer,
-      bool isCovariant: false,
+      bool isCovariantByDeclaration: false,
       bool isFinal: false,
       bool isConst: false,
       bool isStatic: false,
       bool isLate: false,
       int transformerFlags: 0,
       required Uri fileUri,
+      Reference? fieldReference,
       Reference? getterReference})
-      : this.setterReference = null,
-        super(name, fileUri, getterReference) {
+      : this.getterReference = getterReference ?? new Reference(),
+        this.setterReference = null,
+        super(name, fileUri, fieldReference) {
+    this.getterReference.node = this;
     // ignore: unnecessary_null_comparison
     assert(type != null);
     initializer?.parent = this;
-    this.isCovariant = isCovariant;
+    this.isCovariantByDeclaration = isCovariantByDeclaration;
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isStatic = isStatic;
@@ -1903,7 +2203,8 @@ class Field extends Member {
 
   @override
   void _relinkNode() {
-    super._relinkNode();
+    this.fieldReference.node = this;
+    this.getterReference.node = this;
     if (hasSetter) {
       this.setterReference!.node = this;
     }
@@ -1913,14 +2214,14 @@ class Field extends Member {
   static const int FlagConst = 1 << 1;
   static const int FlagStatic = 1 << 2;
   static const int FlagCovariant = 1 << 3;
-  static const int FlagGenericCovariantImpl = 1 << 4;
+  static const int FlagCovariantByClass = 1 << 4;
   static const int FlagLate = 1 << 5;
   static const int FlagExtensionMember = 1 << 6;
   static const int FlagNonNullableByDefault = 1 << 7;
   static const int FlagInternalImplementation = 1 << 8;
 
   /// Whether the field is declared with the `covariant` keyword.
-  bool get isCovariant => flags & FlagCovariant != 0;
+  bool get isCovariantByDeclaration => flags & FlagCovariant != 0;
 
   bool get isFinal => flags & FlagFinal != 0;
 
@@ -1937,7 +2238,7 @@ class Field extends Member {
   ///
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
-  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+  bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
   /// Whether the field is declared with the `late` keyword.
   bool get isLate => flags & FlagLate != 0;
@@ -1949,7 +2250,7 @@ class Field extends Member {
   // lowering.
   bool get isInternalImplementation => flags & FlagInternalImplementation != 0;
 
-  void set isCovariant(bool value) {
+  void set isCovariantByDeclaration(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
   }
 
@@ -1970,10 +2271,10 @@ class Field extends Member {
         value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
   }
 
-  void set isGenericCovariantImpl(bool value) {
+  void set isCovariantByClass(bool value) {
     flags = value
-        ? (flags | FlagGenericCovariantImpl)
-        : (flags & ~FlagGenericCovariantImpl);
+        ? (flags | FlagCovariantByClass)
+        : (flags & ~FlagCovariantByClass);
   }
 
   void set isLate(bool value) {
@@ -2064,7 +2365,7 @@ class Field extends Member {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeMemberName(getterReference);
+    printer.writeMemberName(fieldReference);
   }
 }
 
@@ -2208,6 +2509,7 @@ class Constructor extends Member {
     }
   }
 
+  // TODO(johnniwinther): Provide the tear off type here.
   @override
   DartType get getterType => const NeverType.nonNullable();
 
@@ -2260,6 +2562,7 @@ class RedirectingFactory extends Member {
   /// The `FunctionNode.body` is `null` or a synthesized [ConstructorInvocation]
   /// of the [targetReference] constructor using the [typeArguments] and
   /// [VariableGet] of the parameters.
+  @override
   FunctionNode function;
 
   RedirectingFactory(this.targetReference,
@@ -2368,7 +2671,8 @@ class RedirectingFactory extends Member {
   }
 
   @override
-  DartType get getterType => const NeverType.nonNullable();
+  DartType get getterType =>
+      function.computeFunctionType(enclosingLibrary.nonNullable);
 
   @override
   DartType get setterType => const NeverType.nonNullable();
@@ -2386,8 +2690,8 @@ enum ProcedureStubKind {
   /// The stub target is `null`.
   Regular,
 
-  /// An abstract procedure inserted to add `isCovariant` and
-  /// `isGenericCovariantImpl` to parameters for a set of overridden members.
+  /// An abstract procedure inserted to add `isCovariantByDeclaration` and
+  /// `isCovariantByClass` to parameters for a set of overridden members.
   ///
   /// The stub is inserted when not all of the overridden members agree on
   /// the covariance flags. For instance:
@@ -2412,8 +2716,8 @@ enum ProcedureStubKind {
   /// The stub target is one of the overridden members.
   AbstractForwardingStub,
 
-  /// A concrete procedure inserted to add `isCovariant` and
-  /// `isGenericCovariantImpl` checks to parameters before calling the
+  /// A concrete procedure inserted to add `isCovariantByDeclaration` and
+  /// `isCovariantByClass` checks to parameters before calling the
   /// overridden member in the superclass.
   ///
   /// The stub is inserted when not all of the overridden members agree on
@@ -2621,6 +2925,31 @@ class Procedure extends Member {
 
   ProcedureStubKind stubKind;
   Reference? stubTargetReference;
+
+  /// The interface member signature type of this procedure.
+  ///
+  /// Normally this is derived from the parameter types and return type of
+  /// [function]. In rare cases, the interface member signature type is
+  /// different from the class member type, in which case the interface member
+  /// signature type is stored here.
+  ///
+  /// For instance
+  ///
+  ///   class Super {
+  ///     void method(num a) {}
+  ///   }
+  ///   class Class extends Super {
+  ///     void method(covariant int a);
+  ///   }
+  ///
+  /// Here the member `Class.method` is turned into a forwarding semi stub to
+  /// ensure that arguments passed to `Super.method` are checked as covariant.
+  /// Since `Super.method` allows `num` as argument, the inserted covariant
+  /// check must be against `num` and not `int`, and the parameter type of the
+  /// forwarding semi stub must be changed to `num`. Still, the interface of
+  /// `Class` requires that `Class.method` is `void Function(int)`, so for this,
+  /// it is stored explicitly as the [signatureType] on the procedure.
+  FunctionType? signatureType;
 
   Procedure(Name name, ProcedureKind kind, FunctionNode function,
       {bool isAbstract: false,
@@ -2852,6 +3181,9 @@ class Procedure extends Member {
       function = v.transform(function);
       function.parent = this;
     }
+    if (signatureType != null) {
+      signatureType = v.visitDartType(signatureType!) as FunctionType;
+    }
   }
 
   @override
@@ -2862,10 +3194,27 @@ class Procedure extends Member {
       function = v.transform(function);
       function.parent = this;
     }
+    if (signatureType != null) {
+      DartType newSignatureType =
+          v.visitDartType(signatureType!, dummyDartType);
+      if (identical(newSignatureType, dummyDartType)) {
+        signatureType = null;
+      } else {
+        signatureType = newSignatureType as FunctionType;
+      }
+    }
   }
 
   @override
   DartType get getterType {
+    return isGetter
+        ? (signatureType?.returnType ?? function.returnType)
+        : (signatureType ??
+            function.computeFunctionType(enclosingLibrary.nonNullable));
+  }
+
+  @override
+  DartType get superGetterType {
     return isGetter
         ? function.returnType
         : function.computeFunctionType(enclosingLibrary.nonNullable);
@@ -2873,6 +3222,14 @@ class Procedure extends Member {
 
   @override
   DartType get setterType {
+    return isSetter
+        ? (signatureType?.positionalParameters[0] ??
+            function.positionalParameters[0].type)
+        : const NeverType.nonNullable();
+  }
+
+  @override
+  DartType get superSetterType {
     return isSetter
         ? function.positionalParameters[0].type
         : const NeverType.nonNullable();
@@ -2957,10 +3314,7 @@ class FieldInitializer extends Initializer {
   Expression value;
 
   FieldInitializer(Field field, Expression value)
-      : this.byReference(
-            // getterReference is used since this refers to the field itself
-            field.getterReference,
-            value);
+      : this.byReference(field.fieldReference, value);
 
   FieldInitializer.byReference(this.fieldReference, this.value) {
     value.parent = this;
@@ -2969,7 +3323,7 @@ class FieldInitializer extends Initializer {
   Field get field => fieldReference.asField;
 
   void set field(Field field) {
-    fieldReference = field.getterReference;
+    fieldReference = field.fieldReference;
   }
 
   @override
@@ -3251,7 +3605,7 @@ class AssertInitializer extends Initializer {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    // TODO(johnniwinther): Implement this.
+    statement.toTextInternal(printer);
   }
 }
 
@@ -3706,7 +4060,12 @@ class InvalidExpression extends Expression {
   // TODO(johnniwinther): Avoid using `null` as the empty string.
   String? message;
 
-  InvalidExpression(this.message);
+  /// The expression containing the error.
+  Expression? expression;
+
+  InvalidExpression(this.message, [this.expression]) {
+    expression?.parent = this;
+  }
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -3724,13 +4083,25 @@ class InvalidExpression extends Expression {
       v.visitInvalidExpression(this, arg);
 
   @override
-  void visitChildren(Visitor v) {}
+  void visitChildren(Visitor v) {
+    expression?.accept(v);
+  }
 
   @override
-  void transformChildren(Transformer v) {}
+  void transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = v.transform(expression!);
+      expression?.parent = this;
+    }
+  }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (expression != null) {
+      expression = v.transformOrRemoveExpression(expression!);
+      expression?.parent = this;
+    }
+  }
 
   @override
   String toString() {
@@ -3741,6 +4112,10 @@ class InvalidExpression extends Expression {
   void toTextInternal(AstPrinter printer) {
     printer.write('<invalid:');
     printer.write(message ?? '');
+    if (expression != null) {
+      printer.write(', ');
+      printer.writeExpression(expression!);
+    }
     printer.write('>');
   }
 }
@@ -4546,7 +4921,8 @@ class StaticGet extends Expression {
   Reference targetReference;
 
   StaticGet(Member target)
-      : this.byReference(getNonNullableMemberReferenceGetter(target));
+      : assert(target is Field || (target is Procedure && target.isGetter)),
+        this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   StaticGet.byReference(this.targetReference);
 
@@ -4594,7 +4970,10 @@ class StaticTearOff extends Expression {
   Reference targetReference;
 
   StaticTearOff(Procedure target)
-      : this.byReference(getNonNullableMemberReferenceGetter(target));
+      : assert(target.isStatic, "Unexpected static tear off target: $target"),
+        assert(target.kind == ProcedureKind.Method,
+            "Unexpected static tear off target: $target"),
+        this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   StaticTearOff.byReference(this.targetReference);
 
@@ -5028,6 +5407,7 @@ class InstanceInvocation extends InstanceInvocationExpression {
   static const int FlagBoundsSafe = 1 << 1;
 
   final InstanceAccessKind kind;
+  @override
   Expression receiver;
 
   @override
@@ -5201,6 +5581,7 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
   static const int FlagBoundsSafe = 1 << 1;
 
   final InstanceAccessKind kind;
+  @override
   Expression receiver;
 
   @override
@@ -5307,6 +5688,7 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
     interfaceTarget.acceptReference(v);
     name.accept(v);
     arguments.accept(v);
+    functionType?.accept(v);
   }
 
   @override
@@ -5321,6 +5703,9 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
       arguments = v.transform(arguments);
       arguments.parent = this;
     }
+    if (functionType != null) {
+      functionType = v.visitDartType(functionType!) as FunctionType;
+    }
   }
 
   @override
@@ -5334,6 +5719,10 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
     if (arguments != null) {
       arguments = v.transform(arguments);
       arguments.parent = this;
+    }
+    if (functionType != null) {
+      functionType =
+          v.visitDartType(functionType!, cannotRemoveSentinel) as FunctionType;
     }
   }
 
@@ -6067,9 +6456,14 @@ class Instantiation extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    FunctionType type = expression.getStaticType(context) as FunctionType;
-    return Substitution.fromPairs(type.typeParameters, typeArguments)
-        .substituteType(type.withoutTypeParameters);
+    DartType type = expression.getStaticType(context);
+    if (type is FunctionType) {
+      return Substitution.fromPairs(type.typeParameters, typeArguments)
+          .substituteType(type.withoutTypeParameters);
+    }
+    assert(type is InvalidType || type is NeverType,
+        "Unexpected operand type $type for $expression");
+    return type;
   }
 
   @override
@@ -6784,6 +7178,7 @@ class InstanceCreation extends Expression {
 class FileUriExpression extends Expression implements FileUriNode {
   /// The URI of the source file in which the subexpression is located.
   /// Can be different from the file containing the [FileUriExpression].
+  @override
   Uri fileUri;
 
   Expression expression;
@@ -6869,6 +7264,7 @@ class IsExpression extends Expression {
         : (flags & ~FlagForNonNullableByDefault);
   }
 
+  @override
   DartType getStaticType(StaticTypeContext context) =>
       getStaticTypeInternal(context);
 
@@ -7286,6 +7682,7 @@ class NullLiteral extends BasicLiteral {
   @override
   Object? get value => null;
 
+  @override
   DartType getStaticType(StaticTypeContext context) =>
       getStaticTypeInternal(context);
 
@@ -7398,6 +7795,7 @@ class TypeLiteral extends Expression {
 }
 
 class ThisExpression extends Expression {
+  @override
   DartType getStaticType(StaticTypeContext context) =>
       getStaticTypeInternal(context);
 
@@ -7791,12 +8189,14 @@ class MapLiteralEntry extends TreeNode {
     return "MapEntry(${toStringInternal()})";
   }
 
+  @override
   String toText(AstTextStrategy strategy) {
     AstPrinter printer = new AstPrinter(strategy);
     toTextInternal(printer);
     return printer.getText();
   }
 
+  @override
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(key);
     printer.write(': ');
@@ -8223,8 +8623,9 @@ class ConstructorTearOff extends Expression {
   Reference targetReference;
 
   ConstructorTearOff(Member target)
-      : assert(target is Constructor ||
-            (target is Procedure && target.kind == ProcedureKind.Factory)),
+      : assert(
+            target is Constructor || (target is Procedure && target.isFactory),
+            "Unexpected constructor tear off target: $target"),
         this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   ConstructorTearOff.byReference(this.targetReference);
@@ -9874,8 +10275,8 @@ class VariableDeclaration extends Statement implements Annotatable {
       int flags: -1,
       bool isFinal: false,
       bool isConst: false,
-      bool isFieldFormal: false,
-      bool isCovariant: false,
+      bool isInitializingFormal: false,
+      bool isCovariantByDeclaration: false,
       bool isLate: false,
       bool isRequired: false,
       bool isLowered: false}) {
@@ -9887,8 +10288,8 @@ class VariableDeclaration extends Statement implements Annotatable {
     } else {
       this.isFinal = isFinal;
       this.isConst = isConst;
-      this.isFieldFormal = isFieldFormal;
-      this.isCovariant = isCovariant;
+      this.isInitializingFormal = isInitializingFormal;
+      this.isCovariantByDeclaration = isCovariantByDeclaration;
       this.isLate = isLate;
       this.isRequired = isRequired;
       this.isLowered = isLowered;
@@ -9899,7 +10300,7 @@ class VariableDeclaration extends Statement implements Annotatable {
   VariableDeclaration.forValue(this.initializer,
       {bool isFinal: true,
       bool isConst: false,
-      bool isFieldFormal: false,
+      bool isInitializingFormal: false,
       bool isLate: false,
       bool isRequired: false,
       bool isLowered: false,
@@ -9909,7 +10310,7 @@ class VariableDeclaration extends Statement implements Annotatable {
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
-    this.isFieldFormal = isFieldFormal;
+    this.isInitializingFormal = isInitializingFormal;
     this.isLate = isLate;
     this.isRequired = isRequired;
     this.isLowered = isLowered;
@@ -9917,9 +10318,9 @@ class VariableDeclaration extends Statement implements Annotatable {
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
-  static const int FlagFieldFormal = 1 << 2;
-  static const int FlagCovariant = 1 << 3;
-  static const int FlagGenericCovariantImpl = 1 << 4;
+  static const int FlagInitializingFormal = 1 << 2;
+  static const int FlagCovariantByDeclaration = 1 << 3;
+  static const int FlagCovariantByClass = 1 << 4;
   static const int FlagLate = 1 << 5;
   static const int FlagRequired = 1 << 6;
   static const int FlagLowered = 1 << 7;
@@ -9928,12 +10329,13 @@ class VariableDeclaration extends Statement implements Annotatable {
   bool get isConst => flags & FlagConst != 0;
 
   /// Whether the parameter is declared with the `covariant` keyword.
-  bool get isCovariant => flags & FlagCovariant != 0;
+  // TODO(johnniwinther): Rename to isCovariantByDeclaration
+  bool get isCovariantByDeclaration => flags & FlagCovariantByDeclaration != 0;
 
-  /// Whether the variable is declared as a field formal parameter of
+  /// Whether the variable is declared as an initializing formal parameter of
   /// a constructor.
   @informative
-  bool get isFieldFormal => flags & FlagFieldFormal != 0;
+  bool get isInitializingFormal => flags & FlagInitializingFormal != 0;
 
   /// If this [VariableDeclaration] is a parameter of a method, indicates
   /// whether the method implementation needs to contain a runtime type check to
@@ -9941,7 +10343,8 @@ class VariableDeclaration extends Statement implements Annotatable {
   ///
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
-  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+  // TODO(johnniwinther): Rename to isCovariantByClass
+  bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
   /// Whether the variable is declared with the `late` keyword.
   ///
@@ -9986,19 +10389,23 @@ class VariableDeclaration extends Statement implements Annotatable {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
-  void set isCovariant(bool value) {
-    flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
+  void set isCovariantByDeclaration(bool value) {
+    flags = value
+        ? (flags | FlagCovariantByDeclaration)
+        : (flags & ~FlagCovariantByDeclaration);
   }
 
   @informative
-  void set isFieldFormal(bool value) {
-    flags = value ? (flags | FlagFieldFormal) : (flags & ~FlagFieldFormal);
+  void set isInitializingFormal(bool value) {
+    flags = value
+        ? (flags | FlagInitializingFormal)
+        : (flags & ~FlagInitializingFormal);
   }
 
-  void set isGenericCovariantImpl(bool value) {
+  void set isCovariantByClass(bool value) {
     flags = value
-        ? (flags | FlagGenericCovariantImpl)
-        : (flags & ~FlagGenericCovariantImpl);
+        ? (flags | FlagCovariantByClass)
+        : (flags & ~FlagCovariantByClass);
   }
 
   void set isLate(bool value) {
@@ -10329,6 +10736,7 @@ abstract class DartType extends Node {
   @override
   R accept<R>(DartTypeVisitor<R> v);
 
+  @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg);
 
   @override
@@ -10984,6 +11392,7 @@ class FunctionType extends DartType {
 ///
 /// The underlying type can be extracted using [unalias].
 class TypedefType extends DartType {
+  @override
   final Nullability declaredNullability;
   final Reference typedefReference;
   final List<DartType> typeArguments;
@@ -11088,6 +11497,7 @@ class TypedefType extends DartType {
 class FutureOrType extends DartType {
   final DartType typeArgument;
 
+  @override
   final Nullability declaredNullability;
 
   FutureOrType(this.typeArgument, this.declaredNullability);
@@ -11320,12 +11730,14 @@ class NamedType extends Node implements Comparable<NamedType> {
     return "NamedType(${toStringInternal()})";
   }
 
+  @override
   String toText(AstTextStrategy strategy) {
     AstPrinter printer = new AstPrinter(strategy);
     printer.writeNamedType(this);
     return printer.getText();
   }
 
+  @override
   void toTextInternal(AstPrinter printer) {
     if (isRequired) {
       printer.write("required ");
@@ -11973,7 +12385,7 @@ class TypeParameter extends TreeNode implements Annotatable {
         defaultType = defaultType ?? unsetDefaultTypeSentinel;
 
   // Must match serialized bit positions.
-  static const int FlagGenericCovariantImpl = 1 << 0;
+  static const int FlagCovariantByClass = 1 << 0;
 
   /// If this [TypeParameter] is a type parameter of a generic method, indicates
   /// whether the method implementation needs to contain a runtime type check to
@@ -11981,12 +12393,12 @@ class TypeParameter extends TreeNode implements Annotatable {
   ///
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
-  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+  bool get isCovariantByClass => flags & FlagCovariantByClass != 0;
 
-  void set isGenericCovariantImpl(bool value) {
+  void set isCovariantByClass(bool value) {
     flags = value
-        ? (flags | FlagGenericCovariantImpl)
-        : (flags & ~FlagGenericCovariantImpl);
+        ? (flags | FlagCovariantByClass)
+        : (flags & ~FlagCovariantByClass);
   }
 
   @override
@@ -12064,12 +12476,14 @@ class Supertype extends Node {
 
   Class get classNode => className.asClass;
 
+  @override
   R accept<R>(Visitor<R> v) => v.visitSupertype(this);
 
   @override
   R accept1<R, A>(Visitor1<R, A> v, A arg) => v.visitSupertype(this, arg);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     classNode.acceptReference(v);
     visitList(typeArguments, v);
   }
@@ -12078,6 +12492,7 @@ class Supertype extends Node {
     return new InterfaceType(classNode, Nullability.legacy, typeArguments);
   }
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is Supertype) {
@@ -12092,6 +12507,7 @@ class Supertype extends Node {
     }
   }
 
+  @override
   int get hashCode {
     int hash = 0x3fffffff & className.hashCode;
     for (int i = 0; i < typeArguments.length; ++i) {
@@ -12627,7 +13043,8 @@ class InstanceConstant extends Constant {
 
   Class get classNode => classReference.asClass;
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     classReference.asClass.acceptReference(v);
     visitList(typeArguments, v);
     for (final Reference reference in fieldValues.keys) {
@@ -12638,6 +13055,7 @@ class InstanceConstant extends Constant {
     }
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitInstanceConstant(this);
 
   @override
@@ -12757,10 +13175,11 @@ class StaticTearOffConstant extends Constant implements TearOffConstant {
   @override
   final Reference targetReference;
 
-  StaticTearOffConstant(Procedure procedure)
-      : targetReference = procedure.reference {
-    assert(procedure.isStatic);
-  }
+  StaticTearOffConstant(Procedure target)
+      : assert(target.isStatic),
+        assert(target.kind == ProcedureKind.Method,
+            "Unexpected static tear off target: $target"),
+        targetReference = target.reference;
 
   StaticTearOffConstant.byReference(this.targetReference);
 
@@ -12818,8 +13237,9 @@ class ConstructorTearOffConstant extends Constant implements TearOffConstant {
   final Reference targetReference;
 
   ConstructorTearOffConstant(Member target)
-      : assert(target is Constructor ||
-            (target is Procedure && target.kind == ProcedureKind.Factory)),
+      : assert(
+            target is Constructor || (target is Procedure && target.isFactory),
+            "Unexpected constructor tear off target: $target"),
         this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   ConstructorTearOffConstant.byReference(this.targetReference);
@@ -12858,13 +13278,16 @@ class ConstructorTearOffConstant extends Constant implements TearOffConstant {
   @override
   String toString() => 'ConstructorTearOffConstant(${toStringInternal()})';
 
+  @override
   int get hashCode => targetReference.hashCode;
 
+  @override
   bool operator ==(Object other) {
     return other is ConstructorTearOffConstant &&
         other.targetReference == targetReference;
   }
 
+  @override
   FunctionType getType(StaticTypeContext context) {
     return function.computeFunctionType(context.nonNullable);
   }
@@ -12917,13 +13340,16 @@ class RedirectingFactoryTearOffConstant extends Constant
   String toString() =>
       'RedirectingFactoryTearOffConstant(${toStringInternal()})';
 
+  @override
   int get hashCode => targetReference.hashCode;
 
+  @override
   bool operator ==(Object other) {
     return other is RedirectingFactoryTearOffConstant &&
         other.targetReference == targetReference;
   }
 
+  @override
   FunctionType getType(StaticTypeContext context) {
     return function.computeFunctionType(context.nonNullable);
   }
@@ -12934,6 +13360,7 @@ class TypedefTearOffConstant extends Constant {
   final TearOffConstant tearOffConstant;
   final List<DartType> types;
 
+  @override
   late final int hashCode = _computeHashCode();
 
   TypedefTearOffConstant(this.parameters, this.tearOffConstant, this.types);
@@ -12970,6 +13397,7 @@ class TypedefTearOffConstant extends Constant {
   @override
   String toString() => 'TypedefTearOffConstant(${toStringInternal()})';
 
+  @override
   bool operator ==(Object other) {
     if (other is! TypedefTearOffConstant) return false;
     if (other.tearOffConstant != tearOffConstant) return false;
@@ -13008,6 +13436,7 @@ class TypedefTearOffConstant extends Constant {
     return hash;
   }
 
+  @override
   DartType getType(StaticTypeContext context) {
     FunctionType type = tearOffConstant.getType(context) as FunctionType;
     FreshTypeParameters freshTypeParameters =
@@ -13065,6 +13494,7 @@ class TypeLiteralConstant extends Constant {
     return other is TypeLiteralConstant && other.type == type;
   }
 
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.typeRawType(context.nonNullable);
 }
@@ -13096,6 +13526,7 @@ class UnevaluatedConstant extends Constant {
   R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
       v.visitUnevaluatedConstantReference(this, arg);
 
+  @override
   DartType getType(StaticTypeContext context) =>
       expression.getStaticType(context);
 
@@ -13303,6 +13734,7 @@ class Component extends TreeNode {
     // TODO(johnniwinther): Implement this.
   }
 
+  @override
   String leakingDebugToString() => astToText.debugComponentToString(this);
 }
 
@@ -13315,6 +13747,7 @@ class Location {
 
   Location(this.file, this.line, this.column);
 
+  @override
   String toString() => '$file:$line:$column';
 }
 
@@ -13975,6 +14408,11 @@ final List<Constant> emptyListOfConstant =
 /// Almost const <String>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<String> emptyListOfString = List.filled(0, '', growable: false);
+
+/// Almost const <Reference>[], but not const in an attempt to avoid
+/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
+final List<Reference> emptyListOfReference =
+    List.filled(0, Reference(), growable: false);
 
 /// Almost const <Typedef>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.

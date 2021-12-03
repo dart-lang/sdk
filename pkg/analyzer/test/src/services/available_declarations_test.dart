@@ -36,6 +36,8 @@ class AbstractContextTest with ResourceProviderMixin {
   String get analysisOptionsPath =>
       convertPath('/home/test/analysis_options.yaml');
 
+  Folder get sdkRoot => newFolder('/sdk');
+
   void addDotPackagesDependency(String path, String name, String rootPath) {
     var packagesFile = getFile(path);
 
@@ -68,7 +70,7 @@ class AbstractContextTest with ResourceProviderMixin {
     analysisContextCollection = AnalysisContextCollectionImpl(
       includedPaths: [convertPath('/home')],
       resourceProvider: resourceProvider,
-      sdkPath: convertPath('/sdk'),
+      sdkPath: sdkRoot.path,
     );
 
     var testPath = convertPath('/home/test');
@@ -99,7 +101,10 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   setUp() {
-    MockSdk(resourceProvider: resourceProvider);
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
+    );
 
     newFolder('/home/test');
     newDotPackagesFile('/home/test', content: '''
@@ -2534,6 +2539,61 @@ set c(int value) {}
       parameterTypes: ['int'],
       relevanceTags: ['ElementKind.FUNCTION'],
       requiredParameterCount: 1,
+    );
+  }
+
+  test_TYPE_ALIAS() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+typedef A = double;
+
+@deprecated
+typedef B = double;
+
+/// aaa
+///
+/// bbb bbb
+typedef C = double;
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'A'),
+      'A',
+      DeclarationKind.TYPE_ALIAS,
+      parameters: null,
+      parameterNames: null,
+      parameterTypes: null,
+      relevanceTags: ['ElementKind.TYPE_ALIAS', 'package:test/test.dart::A'],
+      requiredParameterCount: null,
+      returnType: null,
+    );
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'B'),
+      'B',
+      DeclarationKind.TYPE_ALIAS,
+      isDeprecated: true,
+      parameters: null,
+      parameterNames: null,
+      parameterTypes: null,
+      relevanceTags: ['ElementKind.TYPE_ALIAS', 'package:test/test.dart::B'],
+      requiredParameterCount: null,
+      returnType: null,
+    );
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'C'),
+      'C',
+      DeclarationKind.TYPE_ALIAS,
+      docSummary: 'aaa',
+      docComplete: 'aaa\n\nbbb bbb',
+      parameters: null,
+      parameterNames: null,
+      parameterTypes: null,
+      relevanceTags: ['ElementKind.TYPE_ALIAS', 'package:test/test.dart::C'],
+      requiredParameterCount: null,
+      returnType: null,
     );
   }
 

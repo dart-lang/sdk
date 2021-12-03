@@ -109,7 +109,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   // vm/cc tests to randomly time out due to inability to shut service-isolate
   // down.
   // Issue(https://dartbug.com/37741):
-  if (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod") != 0) {
+  if ((strcmp(run_filter, "DartAPI_InvokeVMServiceMethod") != 0) &&
+      (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod_Loop") != 0)) {
     return nullptr;
   }
 

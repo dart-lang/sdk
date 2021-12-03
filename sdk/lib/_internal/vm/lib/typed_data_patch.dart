@@ -61,7 +61,8 @@ abstract class _TypedListBase {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get length native "TypedDataBase_length";
+  @pragma("vm:external-name", "TypedDataBase_length")
+  external int get length;
 
   int get elementSizeInBytes;
   int get offsetInBytes;
@@ -112,13 +113,9 @@ abstract class _TypedListBase {
   // match the cids of 'this' and 'from'.
   // Uses toCid and fromCid to decide if clamping is necessary.
   // Element size of toCid and fromCid must match (test at caller).
-  bool _setRange(
-      int startInBytes,
-      int lengthInBytes,
-      _TypedListBase from,
-      int startFromInBytes,
-      int toCid,
-      int fromCid) native "TypedDataBase_setRange";
+  @pragma("vm:external-name", "TypedDataBase_setRange")
+  external bool _setRange(int startInBytes, int lengthInBytes,
+      _TypedListBase from, int startFromInBytes, int toCid, int fromCid);
 }
 
 mixin _IntListMixin implements List<int> {
@@ -2048,79 +2045,100 @@ abstract class _TypedList extends _TypedListBase {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int _getInt8(int offsetInBytes) native "TypedData_GetInt8";
+  @pragma("vm:external-name", "TypedData_GetInt8")
+  external int _getInt8(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  void _setInt8(int offsetInBytes, int value) native "TypedData_SetInt8";
+  @pragma("vm:external-name", "TypedData_SetInt8")
+  external void _setInt8(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int _getUint8(int offsetInBytes) native "TypedData_GetUint8";
+  @pragma("vm:external-name", "TypedData_GetUint8")
+  external int _getUint8(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  void _setUint8(int offsetInBytes, int value) native "TypedData_SetUint8";
+  @pragma("vm:external-name", "TypedData_SetUint8")
+  external void _setUint8(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int _getInt16(int offsetInBytes) native "TypedData_GetInt16";
+  @pragma("vm:external-name", "TypedData_GetInt16")
+  external int _getInt16(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  void _setInt16(int offsetInBytes, int value) native "TypedData_SetInt16";
+  @pragma("vm:external-name", "TypedData_SetInt16")
+  external void _setInt16(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
-  int _getUint16(int offsetInBytes) native "TypedData_GetUint16";
+  @pragma("vm:external-name", "TypedData_GetUint16")
+  external int _getUint16(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  void _setUint16(int offsetInBytes, int value) native "TypedData_SetUint16";
+  @pragma("vm:external-name", "TypedData_SetUint16")
+  external void _setUint16(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
-  int _getInt32(int offsetInBytes) native "TypedData_GetInt32";
+  @pragma("vm:external-name", "TypedData_GetInt32")
+  external int _getInt32(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  void _setInt32(int offsetInBytes, int value) native "TypedData_SetInt32";
+  @pragma("vm:external-name", "TypedData_SetInt32")
+  external void _setInt32(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
-  int _getUint32(int offsetInBytes) native "TypedData_GetUint32";
+  @pragma("vm:external-name", "TypedData_GetUint32")
+  external int _getUint32(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  void _setUint32(int offsetInBytes, int value) native "TypedData_SetUint32";
+  @pragma("vm:external-name", "TypedData_SetUint32")
+  external void _setUint32(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
-  int _getInt64(int offsetInBytes) native "TypedData_GetInt64";
+  @pragma("vm:external-name", "TypedData_GetInt64")
+  external int _getInt64(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  void _setInt64(int offsetInBytes, int value) native "TypedData_SetInt64";
+  @pragma("vm:external-name", "TypedData_SetInt64")
+  external void _setInt64(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
-  int _getUint64(int offsetInBytes) native "TypedData_GetUint64";
+  @pragma("vm:external-name", "TypedData_GetUint64")
+  external int _getUint64(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  void _setUint64(int offsetInBytes, int value) native "TypedData_SetUint64";
+  @pragma("vm:external-name", "TypedData_SetUint64")
+  external void _setUint64(int offsetInBytes, int value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Double")
-  double _getFloat32(int offsetInBytes) native "TypedData_GetFloat32";
+  @pragma("vm:external-name", "TypedData_GetFloat32")
+  external double _getFloat32(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  void _setFloat32(int offsetInBytes, double value)
-      native "TypedData_SetFloat32";
+  @pragma("vm:external-name", "TypedData_SetFloat32")
+  external void _setFloat32(int offsetInBytes, double value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Double")
-  double _getFloat64(int offsetInBytes) native "TypedData_GetFloat64";
+  @pragma("vm:external-name", "TypedData_GetFloat64")
+  external double _getFloat64(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  void _setFloat64(int offsetInBytes, double value)
-      native "TypedData_SetFloat64";
+  @pragma("vm:external-name", "TypedData_SetFloat64")
+  external void _setFloat64(int offsetInBytes, double value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 _getFloat32x4(int offsetInBytes) native "TypedData_GetFloat32x4";
+  @pragma("vm:external-name", "TypedData_GetFloat32x4")
+  external Float32x4 _getFloat32x4(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  void _setFloat32x4(int offsetInBytes, Float32x4 value)
-      native "TypedData_SetFloat32x4";
+  @pragma("vm:external-name", "TypedData_SetFloat32x4")
+  external void _setFloat32x4(int offsetInBytes, Float32x4 value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 _getInt32x4(int offsetInBytes) native "TypedData_GetInt32x4";
+  @pragma("vm:external-name", "TypedData_GetInt32x4")
+  external Int32x4 _getInt32x4(int offsetInBytes);
   @pragma("vm:recognized", "other")
-  void _setInt32x4(int offsetInBytes, Int32x4 value)
-      native "TypedData_SetInt32x4";
+  @pragma("vm:external-name", "TypedData_SetInt32x4")
+  external void _setInt32x4(int offsetInBytes, Int32x4 value);
 
-  Float64x2 _getFloat64x2(int offsetInBytes) native "TypedData_GetFloat64x2";
-  void _setFloat64x2(int offsetInBytes, Float64x2 value)
-      native "TypedData_SetFloat64x2";
+  @pragma("vm:external-name", "TypedData_GetFloat64x2")
+  external Float64x2 _getFloat64x2(int offsetInBytes);
+  @pragma("vm:external-name", "TypedData_SetFloat64x2")
+  external void _setFloat64x2(int offsetInBytes, Float64x2 value);
 
   /**
    * Stores the [CodeUnits] as UTF-16 units into this TypedData at
@@ -2146,7 +2164,8 @@ class Int8List {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int8List)
   @pragma("vm:prefer-inline")
-  factory Int8List(int length) native "TypedData_Int8Array_new";
+  @pragma("vm:external-name", "TypedData_Int8Array_new")
+  external factory Int8List(int length);
 
   @patch
   factory Int8List.fromList(List<int> elements) {
@@ -2198,7 +2217,8 @@ class Uint8List {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint8List)
   @pragma("vm:prefer-inline")
-  factory Uint8List(int length) native "TypedData_Uint8Array_new";
+  @pragma("vm:external-name", "TypedData_Uint8Array_new")
+  external factory Uint8List(int length);
 
   @patch
   factory Uint8List.fromList(List<int> elements) {
@@ -2250,7 +2270,8 @@ class Uint8ClampedList {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint8ClampedList)
   @pragma("vm:prefer-inline")
-  factory Uint8ClampedList(int length) native "TypedData_Uint8ClampedArray_new";
+  @pragma("vm:external-name", "TypedData_Uint8ClampedArray_new")
+  external factory Uint8ClampedList(int length);
 
   @patch
   factory Uint8ClampedList.fromList(List<int> elements) {
@@ -2302,7 +2323,8 @@ class Int16List {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int16List)
   @pragma("vm:prefer-inline")
-  factory Int16List(int length) native "TypedData_Int16Array_new";
+  @pragma("vm:external-name", "TypedData_Int16Array_new")
+  external factory Int16List(int length);
 
   @patch
   factory Int16List.fromList(List<int> elements) {
@@ -2374,7 +2396,8 @@ class Uint16List {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint16List)
   @pragma("vm:prefer-inline")
-  factory Uint16List(int length) native "TypedData_Uint16Array_new";
+  @pragma("vm:external-name", "TypedData_Uint16Array_new")
+  external factory Uint16List(int length);
 
   @patch
   factory Uint16List.fromList(List<int> elements) {
@@ -2446,7 +2469,8 @@ class Int32List {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32List)
   @pragma("vm:prefer-inline")
-  factory Int32List(int length) native "TypedData_Int32Array_new";
+  @pragma("vm:external-name", "TypedData_Int32Array_new")
+  external factory Int32List(int length);
 
   @patch
   factory Int32List.fromList(List<int> elements) {
@@ -2505,7 +2529,8 @@ class Uint32List {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint32List)
   @pragma("vm:prefer-inline")
-  factory Uint32List(int length) native "TypedData_Uint32Array_new";
+  @pragma("vm:external-name", "TypedData_Uint32Array_new")
+  external factory Uint32List(int length);
 
   @patch
   factory Uint32List.fromList(List<int> elements) {
@@ -2564,7 +2589,8 @@ class Int64List {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int64List)
   @pragma("vm:prefer-inline")
-  factory Int64List(int length) native "TypedData_Int64Array_new";
+  @pragma("vm:external-name", "TypedData_Int64Array_new")
+  external factory Int64List(int length);
 
   @patch
   factory Int64List.fromList(List<int> elements) {
@@ -2623,7 +2649,8 @@ class Uint64List {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint64List)
   @pragma("vm:prefer-inline")
-  factory Uint64List(int length) native "TypedData_Uint64Array_new";
+  @pragma("vm:external-name", "TypedData_Uint64Array_new")
+  external factory Uint64List(int length);
 
   @patch
   factory Uint64List.fromList(List<int> elements) {
@@ -2682,7 +2709,8 @@ class Float32List {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32List)
   @pragma("vm:prefer-inline")
-  factory Float32List(int length) native "TypedData_Float32Array_new";
+  @pragma("vm:external-name", "TypedData_Float32Array_new")
+  external factory Float32List(int length);
 
   @patch
   factory Float32List.fromList(List<double> elements) {
@@ -2742,7 +2770,8 @@ class Float64List {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64List)
   @pragma("vm:prefer-inline")
-  factory Float64List(int length) native "TypedData_Float64Array_new";
+  @pragma("vm:external-name", "TypedData_Float64Array_new")
+  external factory Float64List(int length);
 
   @patch
   factory Float64List.fromList(List<double> elements) {
@@ -2802,7 +2831,8 @@ class Float32x4List {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4List)
   @pragma("vm:prefer-inline")
-  factory Float32x4List(int length) native "TypedData_Float32x4Array_new";
+  @pragma("vm:external-name", "TypedData_Float32x4Array_new")
+  external factory Float32x4List(int length);
 
   @patch
   factory Float32x4List.fromList(List<Float32x4> elements) {
@@ -2861,7 +2891,8 @@ class Int32x4List {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4List)
   @pragma("vm:prefer-inline")
-  factory Int32x4List(int length) native "TypedData_Int32x4Array_new";
+  @pragma("vm:external-name", "TypedData_Int32x4Array_new")
+  external factory Int32x4List(int length);
 
   @patch
   factory Int32x4List.fromList(List<Int32x4> elements) {
@@ -2920,7 +2951,8 @@ class Float64x2List {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2List)
   @pragma("vm:prefer-inline")
-  factory Float64x2List(int length) native "TypedData_Float64x2Array_new";
+  @pragma("vm:external-name", "TypedData_Float64x2Array_new")
+  external factory Float64x2List(int length);
 
   @patch
   factory Float64x2List.fromList(List<Float64x2> elements) {
@@ -3557,8 +3589,9 @@ class Float32x4 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  static _Float32x4 _Float32x4FromDoubles(
-      double x, double y, double z, double w) native "Float32x4_fromDoubles";
+  @pragma("vm:external-name", "Float32x4_fromDoubles")
+  external static _Float32x4 _Float32x4FromDoubles(
+      double x, double y, double z, double w);
 
   @patch
   @pragma("vm:prefer-inline")
@@ -3569,90 +3602,113 @@ class Float32x4 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  static _Float32x4 _Float32x4Splat(double v) native "Float32x4_splat";
+  @pragma("vm:external-name", "Float32x4_splat")
+  external static _Float32x4 _Float32x4Splat(double v);
 
   @patch
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  factory Float32x4.zero() native "Float32x4_zero";
+  @pragma("vm:external-name", "Float32x4_zero")
+  external factory Float32x4.zero();
 
   @patch
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  factory Float32x4.fromInt32x4Bits(Int32x4 x)
-      native "Float32x4_fromInt32x4Bits";
+  @pragma("vm:external-name", "Float32x4_fromInt32x4Bits")
+  external factory Float32x4.fromInt32x4Bits(Int32x4 x);
 
   @patch
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  factory Float32x4.fromFloat64x2(Float64x2 v) native "Float32x4_fromFloat64x2";
+  @pragma("vm:external-name", "Float32x4_fromFloat64x2")
+  external factory Float32x4.fromFloat64x2(Float64x2 v);
 }
 
 @pragma("vm:entry-point")
 class _Float32x4 implements Float32x4 {
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 operator +(Float32x4 other) native "Float32x4_add";
+  @pragma("vm:external-name", "Float32x4_add")
+  external Float32x4 operator +(Float32x4 other);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 operator -() native "Float32x4_negate";
+  @pragma("vm:external-name", "Float32x4_negate")
+  external Float32x4 operator -();
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 operator -(Float32x4 other) native "Float32x4_sub";
+  @pragma("vm:external-name", "Float32x4_sub")
+  external Float32x4 operator -(Float32x4 other);
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 operator *(Float32x4 other) native "Float32x4_mul";
+  @pragma("vm:external-name", "Float32x4_mul")
+  external Float32x4 operator *(Float32x4 other);
   @pragma("vm:recognized", "graph-intrinsic")
-  Float32x4 operator /(Float32x4 other) native "Float32x4_div";
+  @pragma("vm:external-name", "Float32x4_div")
+  external Float32x4 operator /(Float32x4 other);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 lessThan(Float32x4 other) native "Float32x4_cmplt";
+  @pragma("vm:external-name", "Float32x4_cmplt")
+  external Int32x4 lessThan(Float32x4 other);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 lessThanOrEqual(Float32x4 other) native "Float32x4_cmplte";
+  @pragma("vm:external-name", "Float32x4_cmplte")
+  external Int32x4 lessThanOrEqual(Float32x4 other);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 greaterThan(Float32x4 other) native "Float32x4_cmpgt";
+  @pragma("vm:external-name", "Float32x4_cmpgt")
+  external Int32x4 greaterThan(Float32x4 other);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 greaterThanOrEqual(Float32x4 other) native "Float32x4_cmpgte";
+  @pragma("vm:external-name", "Float32x4_cmpgte")
+  external Int32x4 greaterThanOrEqual(Float32x4 other);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 equal(Float32x4 other) native "Float32x4_cmpequal";
+  @pragma("vm:external-name", "Float32x4_cmpequal")
+  external Int32x4 equal(Float32x4 other);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 notEqual(Float32x4 other) native "Float32x4_cmpnequal";
+  @pragma("vm:external-name", "Float32x4_cmpnequal")
+  external Int32x4 notEqual(Float32x4 other);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 scale(double s) native "Float32x4_scale";
+  @pragma("vm:external-name", "Float32x4_scale")
+  external Float32x4 scale(double s);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 abs() native "Float32x4_abs";
+  @pragma("vm:external-name", "Float32x4_abs")
+  external Float32x4 abs();
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit)
-      native "Float32x4_clamp";
+  @pragma("vm:external-name", "Float32x4_clamp")
+  external Float32x4 clamp(Float32x4 lowerLimit, Float32x4 upperLimit);
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Double")
-  double get x native "Float32x4_getX";
+  @pragma("vm:external-name", "Float32x4_getX")
+  external double get x;
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Double")
-  double get y native "Float32x4_getY";
+  @pragma("vm:external-name", "Float32x4_getY")
+  external double get y;
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Double")
-  double get z native "Float32x4_getZ";
+  @pragma("vm:external-name", "Float32x4_getZ")
+  external double get z;
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Double")
-  double get w native "Float32x4_getW";
+  @pragma("vm:external-name", "Float32x4_getW")
+  external double get w;
   @pragma("vm:recognized", "other")
-  int get signMask native "Float32x4_getSignMask";
+  @pragma("vm:external-name", "Float32x4_getSignMask")
+  external int get signMask;
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 shuffle(int mask) native "Float32x4_shuffle";
+  @pragma("vm:external-name", "Float32x4_shuffle")
+  external Float32x4 shuffle(int mask);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 shuffleMix(Float32x4 zw, int mask) native "Float32x4_shuffleMix";
+  @pragma("vm:external-name", "Float32x4_shuffleMix")
+  external Float32x4 shuffleMix(Float32x4 zw, int mask);
 
   @pragma("vm:prefer-inline")
   Float32x4 withX(double x) {
@@ -3662,7 +3718,8 @@ class _Float32x4 implements Float32x4 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 _withX(double x) native "Float32x4_setX";
+  @pragma("vm:external-name", "Float32x4_setX")
+  external Float32x4 _withX(double x);
 
   @pragma("vm:prefer-inline")
   Float32x4 withY(double y) {
@@ -3672,7 +3729,8 @@ class _Float32x4 implements Float32x4 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 _withY(double y) native "Float32x4_setY";
+  @pragma("vm:external-name", "Float32x4_setY")
+  external Float32x4 _withY(double y);
 
   @pragma("vm:prefer-inline")
   Float32x4 withZ(double z) {
@@ -3682,7 +3740,8 @@ class _Float32x4 implements Float32x4 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 _withZ(double z) native "Float32x4_setZ";
+  @pragma("vm:external-name", "Float32x4_setZ")
+  external Float32x4 _withZ(double z);
 
   @pragma("vm:prefer-inline")
   Float32x4 withW(double w) {
@@ -3692,23 +3751,29 @@ class _Float32x4 implements Float32x4 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 _withW(double w) native "Float32x4_setW";
+  @pragma("vm:external-name", "Float32x4_setW")
+  external Float32x4 _withW(double w);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 min(Float32x4 other) native "Float32x4_min";
+  @pragma("vm:external-name", "Float32x4_min")
+  external Float32x4 min(Float32x4 other);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 max(Float32x4 other) native "Float32x4_max";
+  @pragma("vm:external-name", "Float32x4_max")
+  external Float32x4 max(Float32x4 other);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 sqrt() native "Float32x4_sqrt";
+  @pragma("vm:external-name", "Float32x4_sqrt")
+  external Float32x4 sqrt();
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 reciprocal() native "Float32x4_reciprocal";
+  @pragma("vm:external-name", "Float32x4_reciprocal")
+  external Float32x4 reciprocal();
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 reciprocalSqrt() native "Float32x4_reciprocalSqrt";
+  @pragma("vm:external-name", "Float32x4_reciprocalSqrt")
+  external Float32x4 reciprocalSqrt();
 }
 
 @patch
@@ -3725,8 +3790,8 @@ class Int32x4 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  static _Int32x4 _Int32x4FromInts(int x, int y, int z, int w)
-      native "Int32x4_fromInts";
+  @pragma("vm:external-name", "Int32x4_fromInts")
+  external static _Int32x4 _Int32x4FromInts(int x, int y, int z, int w);
 
   @patch
   @pragma("vm:prefer-inline")
@@ -3740,35 +3805,47 @@ class Int32x4 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  static _Int32x4 _Int32x4FromBools(bool x, bool y, bool z, bool w)
-      native "Int32x4_fromBools";
+  @pragma("vm:external-name", "Int32x4_fromBools")
+  external static _Int32x4 _Int32x4FromBools(bool x, bool y, bool z, bool w);
 
   @patch
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  factory Int32x4.fromFloat32x4Bits(Float32x4 x)
-      native "Int32x4_fromFloat32x4Bits";
+  @pragma("vm:external-name", "Int32x4_fromFloat32x4Bits")
+  external factory Int32x4.fromFloat32x4Bits(Float32x4 x);
 }
 
 @pragma("vm:entry-point")
 class _Int32x4 implements Int32x4 {
-  Int32x4 operator |(Int32x4 other) native "Int32x4_or";
-  Int32x4 operator &(Int32x4 other) native "Int32x4_and";
-  Int32x4 operator ^(Int32x4 other) native "Int32x4_xor";
-  Int32x4 operator +(Int32x4 other) native "Int32x4_add";
-  Int32x4 operator -(Int32x4 other) native "Int32x4_sub";
-  int get x native "Int32x4_getX";
-  int get y native "Int32x4_getY";
-  int get z native "Int32x4_getZ";
-  int get w native "Int32x4_getW";
+  @pragma("vm:external-name", "Int32x4_or")
+  external Int32x4 operator |(Int32x4 other);
+  @pragma("vm:external-name", "Int32x4_and")
+  external Int32x4 operator &(Int32x4 other);
+  @pragma("vm:external-name", "Int32x4_xor")
+  external Int32x4 operator ^(Int32x4 other);
+  @pragma("vm:external-name", "Int32x4_add")
+  external Int32x4 operator +(Int32x4 other);
+  @pragma("vm:external-name", "Int32x4_sub")
+  external Int32x4 operator -(Int32x4 other);
+  @pragma("vm:external-name", "Int32x4_getX")
+  external int get x;
+  @pragma("vm:external-name", "Int32x4_getY")
+  external int get y;
+  @pragma("vm:external-name", "Int32x4_getZ")
+  external int get z;
+  @pragma("vm:external-name", "Int32x4_getW")
+  external int get w;
   @pragma("vm:recognized", "other")
-  int get signMask native "Int32x4_getSignMask";
+  @pragma("vm:external-name", "Int32x4_getSignMask")
+  external int get signMask;
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 shuffle(int mask) native "Int32x4_shuffle";
+  @pragma("vm:external-name", "Int32x4_shuffle")
+  external Int32x4 shuffle(int mask);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 shuffleMix(Int32x4 zw, int mask) native "Int32x4_shuffleMix";
+  @pragma("vm:external-name", "Int32x4_shuffleMix")
+  external Int32x4 shuffleMix(Int32x4 zw, int mask);
 
   @pragma("vm:prefer-inline")
   Int32x4 withX(int x) {
@@ -3777,7 +3854,8 @@ class _Int32x4 implements Int32x4 {
   }
 
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 _withX(int x) native "Int32x4_setX";
+  @pragma("vm:external-name", "Int32x4_setX")
+  external Int32x4 _withX(int x);
 
   @pragma("vm:prefer-inline")
   Int32x4 withY(int y) {
@@ -3786,7 +3864,8 @@ class _Int32x4 implements Int32x4 {
   }
 
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 _withY(int y) native "Int32x4_setY";
+  @pragma("vm:external-name", "Int32x4_setY")
+  external Int32x4 _withY(int y);
 
   @pragma("vm:prefer-inline")
   Int32x4 withZ(int z) {
@@ -3795,7 +3874,8 @@ class _Int32x4 implements Int32x4 {
   }
 
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 _withZ(int z) native "Int32x4_setZ";
+  @pragma("vm:external-name", "Int32x4_setZ")
+  external Int32x4 _withZ(int z);
 
   @pragma("vm:prefer-inline")
   Int32x4 withW(int w) {
@@ -3804,20 +3884,25 @@ class _Int32x4 implements Int32x4 {
   }
 
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 _withW(int w) native "Int32x4_setW";
+  @pragma("vm:external-name", "Int32x4_setW")
+  external Int32x4 _withW(int w);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", bool)
-  bool get flagX native "Int32x4_getFlagX";
+  @pragma("vm:external-name", "Int32x4_getFlagX")
+  external bool get flagX;
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", bool)
-  bool get flagY native "Int32x4_getFlagY";
+  @pragma("vm:external-name", "Int32x4_getFlagY")
+  external bool get flagY;
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", bool)
-  bool get flagZ native "Int32x4_getFlagZ";
+  @pragma("vm:external-name", "Int32x4_getFlagZ")
+  external bool get flagZ;
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", bool)
-  bool get flagW native "Int32x4_getFlagW";
+  @pragma("vm:external-name", "Int32x4_getFlagW")
+  external bool get flagW;
 
   @pragma("vm:prefer-inline", _Int32x4)
   Int32x4 withFlagX(bool x) {
@@ -3827,7 +3912,8 @@ class _Int32x4 implements Int32x4 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 _withFlagX(bool x) native "Int32x4_setFlagX";
+  @pragma("vm:external-name", "Int32x4_setFlagX")
+  external Int32x4 _withFlagX(bool x);
 
   @pragma("vm:prefer-inline", _Int32x4)
   Int32x4 withFlagY(bool y) {
@@ -3837,7 +3923,8 @@ class _Int32x4 implements Int32x4 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 _withFlagY(bool y) native "Int32x4_setFlagY";
+  @pragma("vm:external-name", "Int32x4_setFlagY")
+  external Int32x4 _withFlagY(bool y);
 
   @pragma("vm:prefer-inline", _Int32x4)
   Int32x4 withFlagZ(bool z) {
@@ -3847,7 +3934,8 @@ class _Int32x4 implements Int32x4 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 _withFlagZ(bool z) native "Int32x4_setFlagZ";
+  @pragma("vm:external-name", "Int32x4_setFlagZ")
+  external Int32x4 _withFlagZ(bool z);
 
   @pragma("vm:prefer-inline", _Int32x4)
   Int32x4 withFlagW(bool w) {
@@ -3857,12 +3945,13 @@ class _Int32x4 implements Int32x4 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
-  Int32x4 _withFlagW(bool w) native "Int32x4_setFlagW";
+  @pragma("vm:external-name", "Int32x4_setFlagW")
+  external Int32x4 _withFlagW(bool w);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
-  Float32x4 select(Float32x4 trueValue, Float32x4 falseValue)
-      native "Int32x4_select";
+  @pragma("vm:external-name", "Int32x4_select")
+  external Float32x4 select(Float32x4 trueValue, Float32x4 falseValue);
 }
 
 @patch
@@ -3877,8 +3966,8 @@ class Float64x2 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
-  static _Float64x2 _Float64x2FromDoubles(double x, double y)
-      native "Float64x2_fromDoubles";
+  @pragma("vm:external-name", "Float64x2_fromDoubles")
+  external static _Float64x2 _Float64x2FromDoubles(double x, double y);
 
   @patch
   @pragma("vm:prefer-inline")
@@ -3889,48 +3978,61 @@ class Float64x2 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
-  static _Float64x2 _Float64x2Splat(double v) native "Float64x2_splat";
+  @pragma("vm:external-name", "Float64x2_splat")
+  external static _Float64x2 _Float64x2Splat(double v);
 
   @patch
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
-  factory Float64x2.zero() native "Float64x2_zero";
+  @pragma("vm:external-name", "Float64x2_zero")
+  external factory Float64x2.zero();
 
   @patch
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
-  factory Float64x2.fromFloat32x4(Float32x4 v) native "Float64x2_fromFloat32x4";
+  @pragma("vm:external-name", "Float64x2_fromFloat32x4")
+  external factory Float64x2.fromFloat32x4(Float32x4 v);
 }
 
 @pragma("vm:entry-point")
 class _Float64x2 implements Float64x2 {
   @pragma("vm:recognized", "graph-intrinsic")
-  Float64x2 operator +(Float64x2 other) native "Float64x2_add";
+  @pragma("vm:external-name", "Float64x2_add")
+  external Float64x2 operator +(Float64x2 other);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
-  Float64x2 operator -() native "Float64x2_negate";
+  @pragma("vm:external-name", "Float64x2_negate")
+  external Float64x2 operator -();
   @pragma("vm:recognized", "graph-intrinsic")
-  Float64x2 operator -(Float64x2 other) native "Float64x2_sub";
+  @pragma("vm:external-name", "Float64x2_sub")
+  external Float64x2 operator -(Float64x2 other);
   @pragma("vm:recognized", "graph-intrinsic")
-  Float64x2 operator *(Float64x2 other) native "Float64x2_mul";
+  @pragma("vm:external-name", "Float64x2_mul")
+  external Float64x2 operator *(Float64x2 other);
   @pragma("vm:recognized", "graph-intrinsic")
-  Float64x2 operator /(Float64x2 other) native "Float64x2_div";
+  @pragma("vm:external-name", "Float64x2_div")
+  external Float64x2 operator /(Float64x2 other);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
-  Float64x2 scale(double s) native "Float64x2_scale";
+  @pragma("vm:external-name", "Float64x2_scale")
+  external Float64x2 scale(double s);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
-  Float64x2 abs() native "Float64x2_abs";
-  Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit)
-      native "Float64x2_clamp";
+  @pragma("vm:external-name", "Float64x2_abs")
+  external Float64x2 abs();
+  @pragma("vm:external-name", "Float64x2_clamp")
+  external Float64x2 clamp(Float64x2 lowerLimit, Float64x2 upperLimit);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Double")
-  double get x native "Float64x2_getX";
+  @pragma("vm:external-name", "Float64x2_getX")
+  external double get x;
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Double")
-  double get y native "Float64x2_getY";
+  @pragma("vm:external-name", "Float64x2_getY")
+  external double get y;
   @pragma("vm:recognized", "other")
-  int get signMask native "Float64x2_getSignMask";
+  @pragma("vm:external-name", "Float64x2_getSignMask")
+  external int get signMask;
 
   @pragma("vm:prefer-inline")
   Float64x2 withX(double x) {
@@ -3940,7 +4042,8 @@ class _Float64x2 implements Float64x2 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
-  Float64x2 _withX(double x) native "Float64x2_setX";
+  @pragma("vm:external-name", "Float64x2_setX")
+  external Float64x2 _withX(double x);
 
   @pragma("vm:prefer-inline")
   Float64x2 withY(double y) {
@@ -3950,17 +4053,21 @@ class _Float64x2 implements Float64x2 {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
-  Float64x2 _withY(double y) native "Float64x2_setY";
+  @pragma("vm:external-name", "Float64x2_setY")
+  external Float64x2 _withY(double y);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
-  Float64x2 min(Float64x2 other) native "Float64x2_min";
+  @pragma("vm:external-name", "Float64x2_min")
+  external Float64x2 min(Float64x2 other);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
-  Float64x2 max(Float64x2 other) native "Float64x2_max";
+  @pragma("vm:external-name", "Float64x2_max")
+  external Float64x2 max(Float64x2 other);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
-  Float64x2 sqrt() native "Float64x2_sqrt";
+  @pragma("vm:external-name", "Float64x2_sqrt")
+  external Float64x2 sqrt();
 }
 
 class _TypedListIterator<E> implements Iterator<E> {
@@ -4005,12 +4112,14 @@ abstract class _TypedListView extends _TypedListBase implements TypedData {
   @pragma("vm:recognized", "other")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:prefer-inline")
-  _TypedList get _typedData native "TypedDataView_typedData";
+  @pragma("vm:external-name", "TypedDataView_typedData")
+  external _TypedList get _typedData;
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get offsetInBytes native "TypedDataView_offsetInBytes";
+  @pragma("vm:external-name", "TypedDataView_offsetInBytes")
+  external int get offsetInBytes;
 }
 
 @pragma("vm:entry-point")
@@ -4020,8 +4129,9 @@ class _Int8ArrayView extends _TypedListView
   // Constructor.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int8ArrayView)
-  factory _Int8ArrayView._(_TypedList buffer, int offsetInBytes, int length)
-      native "TypedDataView_Int8ArrayView_new";
+  @pragma("vm:external-name", "TypedDataView_Int8ArrayView_new")
+  external factory _Int8ArrayView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
@@ -4060,8 +4170,9 @@ class _Uint8ArrayView extends _TypedListView
   // Constructor.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint8ArrayView)
-  factory _Uint8ArrayView._(_TypedList buffer, int offsetInBytes, int length)
-      native "TypedDataView_Uint8ArrayView_new";
+  @pragma("vm:external-name", "TypedDataView_Uint8ArrayView_new")
+  external factory _Uint8ArrayView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
@@ -4100,8 +4211,9 @@ class _Uint8ClampedArrayView extends _TypedListView
   // Constructor.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint8ClampedArrayView)
-  factory _Uint8ClampedArrayView._(_TypedList buffer, int offsetInBytes,
-      int length) native "TypedDataView_Uint8ClampedArrayView_new";
+  @pragma("vm:external-name", "TypedDataView_Uint8ClampedArrayView_new")
+  external factory _Uint8ClampedArrayView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
@@ -4140,8 +4252,9 @@ class _Int16ArrayView extends _TypedListView
   // Constructor.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int16ArrayView)
-  factory _Int16ArrayView._(_TypedList buffer, int offsetInBytes, int length)
-      native "TypedDataView_Int16ArrayView_new";
+  @pragma("vm:external-name", "TypedDataView_Int16ArrayView_new")
+  external factory _Int16ArrayView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
@@ -4193,8 +4306,9 @@ class _Uint16ArrayView extends _TypedListView
   // Constructor.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint16ArrayView)
-  factory _Uint16ArrayView._(_TypedList buffer, int offsetInBytes, int length)
-      native "TypedDataView_Uint16ArrayView_new";
+  @pragma("vm:external-name", "TypedDataView_Uint16ArrayView_new")
+  external factory _Uint16ArrayView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
@@ -4247,8 +4361,9 @@ class _Int32ArrayView extends _TypedListView
   // Constructor.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32ArrayView)
-  factory _Int32ArrayView._(_TypedList buffer, int offsetInBytes, int length)
-      native "TypedDataView_Int32ArrayView_new";
+  @pragma("vm:external-name", "TypedDataView_Int32ArrayView_new")
+  external factory _Int32ArrayView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
@@ -4287,8 +4402,9 @@ class _Uint32ArrayView extends _TypedListView
   // Constructor.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint32ArrayView)
-  factory _Uint32ArrayView._(_TypedList buffer, int offsetInBytes, int length)
-      native "TypedDataView_Uint32ArrayView_new";
+  @pragma("vm:external-name", "TypedDataView_Uint32ArrayView_new")
+  external factory _Uint32ArrayView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
@@ -4327,8 +4443,9 @@ class _Int64ArrayView extends _TypedListView
   // Constructor.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int64ArrayView)
-  factory _Int64ArrayView._(_TypedList buffer, int offsetInBytes, int length)
-      native "TypedDataView_Int64ArrayView_new";
+  @pragma("vm:external-name", "TypedDataView_Int64ArrayView_new")
+  external factory _Int64ArrayView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
@@ -4367,8 +4484,9 @@ class _Uint64ArrayView extends _TypedListView
   // Constructor.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint64ArrayView)
-  factory _Uint64ArrayView._(_TypedList buffer, int offsetInBytes, int length)
-      native "TypedDataView_Uint64ArrayView_new";
+  @pragma("vm:external-name", "TypedDataView_Uint64ArrayView_new")
+  external factory _Uint64ArrayView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
@@ -4407,8 +4525,9 @@ class _Float32ArrayView extends _TypedListView
   // Constructor.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32ArrayView)
-  factory _Float32ArrayView._(_TypedList buffer, int offsetInBytes, int length)
-      native "TypedDataView_Float32ArrayView_new";
+  @pragma("vm:external-name", "TypedDataView_Float32ArrayView_new")
+  external factory _Float32ArrayView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
@@ -4447,8 +4566,9 @@ class _Float64ArrayView extends _TypedListView
   // Constructor.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64ArrayView)
-  factory _Float64ArrayView._(_TypedList buffer, int offsetInBytes, int length)
-      native "TypedDataView_Float64ArrayView_new";
+  @pragma("vm:external-name", "TypedDataView_Float64ArrayView_new")
+  external factory _Float64ArrayView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing List interface.
   @pragma("vm:prefer-inline")
@@ -4487,8 +4607,9 @@ class _Float32x4ArrayView extends _TypedListView
   // Constructor.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4ArrayView)
-  factory _Float32x4ArrayView._(_TypedList buffer, int offsetInBytes,
-      int length) native "TypedDataView_Float32x4ArrayView_new";
+  @pragma("vm:external-name", "TypedDataView_Float32x4ArrayView_new")
+  external factory _Float32x4ArrayView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing List interface.
   Float32x4 operator [](int index) {
@@ -4525,8 +4646,9 @@ class _Int32x4ArrayView extends _TypedListView
   // Constructor.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4ArrayView)
-  factory _Int32x4ArrayView._(_TypedList buffer, int offsetInBytes, int length)
-      native "TypedDataView_Int32x4ArrayView_new";
+  @pragma("vm:external-name", "TypedDataView_Int32x4ArrayView_new")
+  external factory _Int32x4ArrayView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing List interface.
   Int32x4 operator [](int index) {
@@ -4563,8 +4685,9 @@ class _Float64x2ArrayView extends _TypedListView
   // Constructor.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2ArrayView)
-  factory _Float64x2ArrayView._(_TypedList buffer, int offsetInBytes,
-      int length) native "TypedDataView_Float64x2ArrayView_new";
+  @pragma("vm:external-name", "TypedDataView_Float64x2ArrayView_new")
+  external factory _Float64x2ArrayView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing List interface.
   Float64x2 operator [](int index) {
@@ -4598,8 +4721,9 @@ class _Float64x2ArrayView extends _TypedListView
 class _ByteDataView implements ByteData {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _ByteDataView)
-  factory _ByteDataView._(_TypedList buffer, int offsetInBytes, int length)
-      native "TypedDataView_ByteDataView_new";
+  @pragma("vm:external-name", "TypedDataView_ByteDataView_new")
+  external factory _ByteDataView._(
+      _TypedList buffer, int offsetInBytes, int length);
 
   // Method(s) implementing TypedData interface.
   _ByteBuffer get buffer {
@@ -4846,17 +4970,20 @@ class _ByteDataView implements ByteData {
   @pragma("vm:recognized", "other")
   @pragma("vm:non-nullable-result-type")
   @pragma("vm:prefer-inline")
-  _TypedList get _typedData native "TypedDataView_typedData";
+  @pragma("vm:external-name", "TypedDataView_typedData")
+  external _TypedList get _typedData;
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get offsetInBytes native "TypedDataView_offsetInBytes";
+  @pragma("vm:external-name", "TypedDataView_offsetInBytes")
+  external int get offsetInBytes;
 
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
-  int get length native "TypedDataBase_length";
+  @pragma("vm:external-name", "TypedDataBase_length")
+  external int get length;
 }
 
 @pragma("vm:prefer-inline")

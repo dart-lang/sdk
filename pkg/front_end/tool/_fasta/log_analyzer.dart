@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:testing/src/run_tests.dart' show CommandLine;
 
-main(List<String> arguments) async {
+Future<void> main(List<String> arguments) async {
   CommandLine cl = CommandLine.parse(arguments);
   Set<String> fields = cl.commaSeparated("--fields=");
   if (fields.isEmpty) {

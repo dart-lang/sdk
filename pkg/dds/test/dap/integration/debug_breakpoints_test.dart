@@ -19,7 +19,7 @@ main() {
     test('stops at a line breakpoint', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       await client.hitBreakpoint(testFile, breakpointLine);
     });
@@ -27,7 +27,7 @@ main() {
     test('stops at a line breakpoint and can be resumed', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       // Hit the initial breakpoint.
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
@@ -40,14 +40,14 @@ main() {
     });
 
     test('stops at a line breakpoint and can step over (next)', () async {
-      final testFile = dap.createTestFile(r'''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) async {
-  print('Hello!'); // BREAKPOINT
-  print('Hello!'); // STEP
+  print('Hello!'); $breakpointMarker
+  print('Hello!'); $stepMarker
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
-      final stepLine = lineWith(testFile, '// STEP');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stepLine = lineWith(testFile, stepMarker);
 
       // Hit the initial breakpoint.
       final stop = await dap.client.hitBreakpoint(testFile, breakpointLine);
@@ -63,18 +63,18 @@ void main(List<String> args) async {
         'stops at a line breakpoint and can step over (next) an async boundary',
         () async {
       final client = dap.client;
-      final testFile = dap.createTestFile(r'''
+      final testFile = dap.createTestFile('''
 Future<void> main(List<String> args) async {
-  await asyncPrint('Hello!'); // BREAKPOINT
-  await asyncPrint('Hello!'); // STEP
+  await asyncPrint('Hello!'); $breakpointMarker
+  await asyncPrint('Hello!'); $stepMarker
 }
 
 Future<void> asyncPrint(String message) async {
   await Future.delayed(const Duration(milliseconds: 1));
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
-      final stepLine = lineWith(testFile, '// STEP');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stepLine = lineWith(testFile, stepMarker);
 
       // Hit the initial breakpoint.
       final stop = await dap.client.hitBreakpoint(testFile, breakpointLine);
@@ -96,17 +96,17 @@ Future<void> asyncPrint(String message) async {
 
     test('stops at a line breakpoint and can step in', () async {
       final client = dap.client;
-      final testFile = dap.createTestFile(r'''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) async {
-  log('Hello!'); // BREAKPOINT
+  log('Hello!'); $breakpointMarker
 }
 
-void log(String message) { // STEP
+void log(String message) { $stepMarker
   print(message);
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
-      final stepLine = lineWith(testFile, '// STEP');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stepLine = lineWith(testFile, stepMarker);
 
       // Hit the initial breakpoint.
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
@@ -120,18 +120,18 @@ void log(String message) { // STEP
 
     test('stops at a line breakpoint and can step out', () async {
       final client = dap.client;
-      final testFile = dap.createTestFile(r'''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) async {
   log('Hello!');
-  log('Hello!'); // STEP
+  log('Hello!'); $stepMarker
 }
 
 void log(String message) {
-  print(message); // BREAKPOINT
+  print(message); $breakpointMarker
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
-      final stepLine = lineWith(testFile, '// STEP');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stepLine = lineWith(testFile, stepMarker);
 
       // Hit the initial breakpoint.
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
@@ -145,14 +145,14 @@ void log(String message) {
 
     test('does not step into SDK code with debugSdkLibraries=false', () async {
       final client = dap.client;
-      final testFile = dap.createTestFile(r'''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) async {
-  print('Hello!'); // BREAKPOINT
-  print('Hello!'); // STEP
+  print('Hello!'); $breakpointMarker
+  print('Hello!'); $stepMarker
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
-      final stepLine = lineWith(testFile, '// STEP');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stepLine = lineWith(testFile, stepMarker);
 
       // Hit the initial breakpoint.
       final stop = await client.hitBreakpoint(
@@ -173,13 +173,13 @@ void main(List<String> args) async {
 
     test('steps into SDK code with debugSdkLibraries=true', () async {
       final client = dap.client;
-      final testFile = dap.createTestFile(r'''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) async {
-  print('Hello!'); // BREAKPOINT
+  print('Hello!'); $breakpointMarker
   print('Hello!');
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       // Hit the initial breakpoint.
       final stop = await dap.client.hitBreakpoint(
@@ -200,26 +200,114 @@ void main(List<String> args) async {
 
     test(
         'does not step into external package code with debugExternalPackageLibraries=false',
-        () {
-      // TODO(dantup): Support for debugExternalPackageLibraries
-    }, skip: true);
+        () async {
+      final client = dap.client;
+      final otherPackageUri = await dap.createFooPackage();
+      final testFile = dap.createTestFile('''
+import '$otherPackageUri';
+
+void main(List<String> args) async {
+  foo(); $breakpointMarker
+  foo(); $stepMarker
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stepLine = lineWith(testFile, stepMarker);
+
+      // Hit the initial breakpoint.
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          debugExternalPackageLibraries: false,
+        ),
+      );
+
+      // Step in and expect stopping on the next line (don't go into the package).
+      await Future.wait([
+        client.expectStop('step', file: testFile, line: stepLine),
+        client.stepIn(stop.threadId!),
+      ], eagerError: true);
+    });
 
     test(
         'steps into external package code with debugExternalPackageLibraries=true',
-        () {
-      // TODO(dantup): Support for debugExternalPackageLibraries
-    }, skip: true);
+        () async {
+      final client = dap.client;
+      final otherPackageUri = await dap.createFooPackage();
+      final testFile = dap.createTestFile('''
+import '$otherPackageUri';
+
+void main(List<String> args) async {
+  foo(); $breakpointMarker
+  foo();
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Hit the initial breakpoint.
+      final stop = await dap.client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          debugExternalPackageLibraries: true,
+        ),
+      );
+
+      // Step in and expect to go into the package.
+      await Future.wait([
+        client.expectStop('step', sourceName: '$otherPackageUri'),
+        client.stepIn(stop.threadId!),
+      ], eagerError: true);
+    });
+
+    test(
+        'steps into other-project package code with debugExternalPackageLibraries=false',
+        () async {
+      final client = dap.client;
+      final otherPackageUri = await dap.createFooPackage();
+      final testFile = dap.createTestFile('''
+import '$otherPackageUri';
+
+void main(List<String> args) async {
+  foo(); $breakpointMarker
+  foo();
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Hit the initial breakpoint.
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          debugExternalPackageLibraries: false,
+          // Include the packages folder as an additional project path so that
+          // it will be treated as local code.
+          additionalProjectPaths: [dap.testPackagesDir.path],
+        ),
+      );
+
+      // Step in and expect stopping in the other package.
+      await Future.wait([
+        client.expectStop('step', sourceName: '$otherPackageUri'),
+        client.stepIn(stop.threadId!),
+      ], eagerError: true);
+    });
 
     test('allows changing debug settings during session', () async {
       final client = dap.client;
-      final testFile = dap.createTestFile(r'''
+      final testFile = dap.createTestFile('''
 void main(List<String> args) async {
-  print('Hello!'); // BREAKPOINT
-  print('Hello!'); // STEP
+  print('Hello!'); $breakpointMarker
+  print('Hello!'); $stepMarker
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
-      final stepLine = lineWith(testFile, '// STEP');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+      final stepLine = lineWith(testFile, stepMarker);
 
       // Start with debugSdkLibraryes _enabled_ and hit the breakpoint.
       final stop = await client.hitBreakpoint(
@@ -243,6 +331,153 @@ void main(List<String> args) async {
         client.stepIn(stop.threadId!),
       ], eagerError: true);
     });
+  }, timeout: Timeout.none);
+
+  group('debug mode conditional breakpoints', () {
+    test('stops with condition evaluating to true', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        condition: '1 == 1',
+      );
+    });
+
+    test('does not stop with condition evaluating to false', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      await client.doNotHitBreakpoint(
+        testFile,
+        breakpointLine,
+        condition: '1 == 2',
+      );
+    });
+
+    test('stops with condition evaluating to non-zero', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        condition: '1 + 1',
+      );
+    });
+
+    test('does not stop with condition evaluating to zero', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      await client.doNotHitBreakpoint(
+        testFile,
+        breakpointLine,
+        condition: '1 - 1',
+      );
+    });
+
+    test('reports evaluation errors for conditions', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final outputEventsFuture = client.outputEvents.toList();
+
+      await client.doNotHitBreakpoint(
+        testFile,
+        breakpointLine,
+        condition: "1 + 'a'",
+      );
+
+      final outputEvents = await outputEventsFuture;
+      final outputMessages = outputEvents.map((e) => e.output);
+
+      final hasPrefix = startsWith(
+          'Debugger failed to evaluate breakpoint condition "1 + \'a\'": '
+          'evaluateInFrame: (113) Expression compilation error');
+      final hasDescriptiveMessage = contains(
+          "A value of type 'String' can't be assigned to a variable of type 'num'");
+
+      expect(
+        outputMessages,
+        containsAll([allOf(hasPrefix, hasDescriptiveMessage)]),
+      );
+    });
+    // These tests can be slow due to starting up the external server process.
+  }, timeout: Timeout.none);
+
+  group('debug mode logpoints', () {
+    /// A helper that tests a LogPoint using [logMessage] and expecting the
+    /// script not to pause and [expectedMessage] to show up in the output.
+    Future<void> _testLogPoint(
+      DapTestSession dap,
+      String logMessage,
+      String expectedMessage,
+    ) async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final outputEventsFuture = client.outputEvents.toList();
+
+      await client.doNotHitBreakpoint(
+        testFile,
+        breakpointLine,
+        logMessage: logMessage,
+      );
+
+      final outputEvents = await outputEventsFuture;
+      final outputMessages = outputEvents.map((e) => e.output.trim());
+
+      expect(
+        outputMessages,
+        contains(expectedMessage),
+      );
+    }
+
+    test('print simple messages', () async {
+      await _testLogPoint(
+        dap,
+        r'This is a test message',
+        'This is a test message',
+      );
+    });
+
+    test('print messages with Dart interpolation', () async {
+      await _testLogPoint(
+        dap,
+        r'This is a test message in ${DateTime.now().year}',
+        'This is a test message in ${DateTime.now().year}',
+      );
+    });
+
+    test('print messages with just {braces}', () async {
+      await _testLogPoint(
+        dap,
+        // The DAP spec says "Expressions within {} are interpolated" so in the DA
+        // we just prefix them with $ and treat them like other Dart interpolation
+        // expressions.
+        r'This is a test message in {DateTime.now().year}',
+        'This is a test message in ${DateTime.now().year}',
+      );
+    });
+
+    test('allows \\{escaped braces}', () async {
+      await _testLogPoint(
+        dap,
+        // Since we treat things in {braces} as expressions, we need to support
+        // escaping them.
+        r'This is a test message with \{escaped braces}',
+        r'This is a test message with {escaped braces}',
+      );
+    });
+
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
 }

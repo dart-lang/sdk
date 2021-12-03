@@ -22,8 +22,8 @@ main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest:
-          runTestFor(const _TypePromotionDataComputer(), [analyzerNnbdConfig]));
+      runTest: runTestFor(
+          const _TypePromotionDataComputer(), [analyzerDefaultConfig]));
 }
 
 class _TypePromotionDataComputer extends DataComputer<DartType> {

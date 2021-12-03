@@ -2,19 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
+// @dart = 2.12
 
 import "package:expect/expect.dart";
 import "package:compiler/src/util/maplet.dart";
 
-main() {
+void main() {
   for (int i = 1; i <= 32; i++) {
     test(i);
   }
 }
 
-test(int size) {
-  var maplet = new Maplet();
+void test(int size) {
+  final maplet = Maplet<int?, String>();
   for (int i = 0; i < size; i++) {
     Expect.isTrue(maplet.isEmpty == (i == 0));
     maplet[i] = '$i';

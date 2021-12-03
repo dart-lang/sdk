@@ -15,7 +15,6 @@ import 'package:meta/meta.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
-import 'package:nnbd_migration/src/utilities/hint_utils.dart';
 
 Map<int?, List<AtomicEdit>>? _removeCode(
     int offset, int end, _RemovalStyle removalStyle, AtomicEditInfo? info) {
@@ -82,7 +81,6 @@ class AtomicEdit {
   /// made.
   const AtomicEdit.delete(this.length, {this.info, this.isInformative = false})
       : assert(length > 0),
-        assert(isInformative is bool),
         replacement = '';
 
   /// Initialize an edit to insert the [replacement] characters.
@@ -92,7 +90,6 @@ class AtomicEdit {
   const AtomicEdit.insert(this.replacement,
       {this.info, this.isInformative = false})
       : assert(replacement.length > 0),
-        assert(isInformative is bool),
         length = 0;
 
   /// Initialize an edit to replace [length] characters with the [replacement]

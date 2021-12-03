@@ -9,7 +9,7 @@ library;
 //   Foo(x, y);
 //   ^^^
 //
-// pkg/front_end/testcases/rasta/unresolved_constructor.dart:11:11: Error: Method not found: 'Foo.notHere'.
+// pkg/front_end/testcases/rasta/unresolved_constructor.dart:11:11: Error: Couldn't find constructor 'Foo.notHere'.
 //   new Foo.notHere();
 //           ^^^^^^^
 //
@@ -35,7 +35,7 @@ static method main() → dynamic {
   invalid-expression "pkg/front_end/testcases/rasta/unresolved_constructor.dart:10:10: Error: Too few positional arguments: 2 required, 0 given.
   new Foo();
          ^";
-  invalid-expression "pkg/front_end/testcases/rasta/unresolved_constructor.dart:11:11: Error: Method not found: 'Foo.notHere'.
+  invalid-expression "pkg/front_end/testcases/rasta/unresolved_constructor.dart:11:11: Error: Couldn't find constructor 'Foo.notHere'.
   new Foo.notHere();
           ^^^^^^^";
 }

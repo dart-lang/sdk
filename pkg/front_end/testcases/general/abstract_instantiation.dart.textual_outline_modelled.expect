@@ -1,0 +1,8 @@
+abstract class A {}
+
+abstract class B implements A {
+  factory B() = A;
+}
+
+main() {}
+test() {}

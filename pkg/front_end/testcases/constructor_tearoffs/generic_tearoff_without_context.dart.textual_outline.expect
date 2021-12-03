@@ -3,6 +3,7 @@ class A<X> {
   A() {}
   factory A.bar() => new A<X>();
 }
+
 testFoo() => A.foo;
 testFooArgs() => A<int>.foo;
 testNew() => A.new;

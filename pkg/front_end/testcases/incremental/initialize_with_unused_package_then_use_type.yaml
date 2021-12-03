@@ -14,12 +14,14 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "package:mypackage/foo.dart";
         main() {
           Foo foo = new Foo();
           foo.foo();
         }
       mypackage/foo.dart: |
+        // @dart=2.9
         class Foo {
           foo() {
             print("Foo!");
@@ -32,10 +34,12 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         main() {
           print("hello from main");
         }
       mypackage/foo.dart: |
+        // @dart=2.9
         class Foo {
           foo() {
             print("Foo!");
@@ -50,6 +54,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "package:mypackage/foo.dart";
         main() {
           Foo foo = new Foo();

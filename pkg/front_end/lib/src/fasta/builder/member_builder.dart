@@ -54,7 +54,7 @@ abstract class MemberBuilder implements ModifierBuilder {
 
   /// The [Member] to use when invoking this member builder.
   ///
-  /// For a constructor, a field, a regular method, a getter an operator or
+  /// For a constructor, a field, a regular method, a getter, an operator or
   /// a factory this is the [member] itself. For a setter this is `null`.
   Member? get invokeTarget;
 
@@ -68,6 +68,7 @@ abstract class MemberBuilder implements ModifierBuilder {
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   ProcedureKind? get kind;
 
+  @override
   bool get isExternal;
 
   bool get isAbstract;
@@ -206,6 +207,11 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
     return buffer;
   }
 
+  /// The builder for the enclosing class or extension, if any.
+  DeclarationBuilder? get declarationBuilder =>
+      parent is DeclarationBuilder ? parent as DeclarationBuilder : null;
+
+  /// The builder for the enclosing class, if any.
   ClassBuilder? get classBuilder =>
       parent is ClassBuilder ? parent as ClassBuilder : null;
 }

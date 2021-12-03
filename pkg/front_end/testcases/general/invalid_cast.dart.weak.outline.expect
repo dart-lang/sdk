@@ -13,7 +13,7 @@ class C extends core::Object {
   static factory fact() → self::C*
     ;
   static factory fact2() → self::C*
-    let dynamic #redirecting_factory = self::D::• in invalid-expression;
+    return new self::D::•();
   static method staticFunction(core::int* i) → void
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -39,3 +39,8 @@ static method ok() → dynamic
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///invalid_cast.dart:7:7 -> ConstructorTearOffConstant(C.fact2)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

@@ -29,6 +29,8 @@ int topLevelMethodAndSetter1() => 1;
 void set topLevelMethodAndSetter1(int value) {}
 void set topLevelMethodAndSetter2(int value) {}
 int topLevelMethodAndSetter2() => 1;
+var field = topLevelMethod;
+@topLevelMethod
 test() {}
 main() {}
 expect(expected, actual) {}

@@ -9,7 +9,7 @@ class Simple extends core::Object /*hasConstConstructor*/  {
   final field core::String name;
   const constructor •(core::String name) → self::Simple
     : self::Simple::name = name, super core::Object::•() {
-    assert(this.{self::Simple::name}{core::String} =={core::String::==}{(core::Object) → core::bool} (#C1));
+    assert(this.{self::Simple::name}{core::String} =={core::String::==}{(core::Object) → core::bool} #C1);
   }
 }
 class A extends core::Object /*hasConstConstructor*/  {
@@ -25,7 +25,7 @@ static const field self::A var3 = #C3;
 static method fn() → self::A
   return new self::A::•();
 static method main() → void {
-  exp::Expect::equals((#C2).{self::Simple::name}{core::String}, #C1);
+  exp::Expect::equals(#C2.{self::Simple::name}{core::String}, #C1);
 }
 
 constants  {

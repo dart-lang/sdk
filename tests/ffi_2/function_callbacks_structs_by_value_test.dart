@@ -13,8 +13,12 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
+import 'dylib_utils.dart';
+
 // Reuse the struct classes.
-import 'function_structs_by_value_generated_test.dart';
+import 'function_structs_by_value_generated_compounds.dart';
+
+final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 void main() {
   for (int i = 0; i < 10; i++) {
@@ -74,7 +78,8 @@ final cPassStructRecursive = ffiTestFunctions.lookupFunction<
     Struct20BytesHomogeneousInt32 Function(int recursionCounter,
         Struct20BytesHomogeneousInt32, Pointer)>("PassStructRecursive");
 
-Struct8BytesNestedInt typedDataBackedStruct = Struct8BytesNestedInt();
+Struct8BytesNestedInt typedDataBackedStruct =
+    Pointer<Struct8BytesNestedInt>.fromAddress(0).ref;
 bool typedDataBackedStructSet = false;
 void _receiveStructByValue(Struct8BytesNestedInt struct) {
   typedDataBackedStruct = struct;

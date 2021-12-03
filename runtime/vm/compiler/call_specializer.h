@@ -172,9 +172,6 @@ class CallSpecializer : public FlowGraphVisitor {
   bool TryOptimizeInstanceOfUsingStaticTypes(InstanceCallInstr* call,
                                              const AbstractType& type);
 
-  void ReplaceWithMathCFunction(InstanceCallInstr* call,
-                                MethodRecognizer::Kind recognized_kind);
-
   bool TryStringLengthOneEquality(InstanceCallInstr* call, Token::Kind op_kind);
 
   void SpecializePolymorphicInstanceCall(PolymorphicInstanceCallInstr* call);

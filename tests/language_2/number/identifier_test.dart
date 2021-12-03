@@ -11,32 +11,26 @@ main() {
   Expect.isTrue(2 is int);
   //                 ^^^
   // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
-  //                 ^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
   Expect.equals(2, 2 as int);
   //                    ^^^
-  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
-  //                    ^^^
   // [analyzer] COMPILE_TIME_ERROR.CAST_TO_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   Expect.isTrue(-2 is int);
   //                  ^^^
   // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
-  //                  ^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
   Expect.equals(-2, -2 as int);
   //                      ^^^
-  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
-  //                      ^^^
   // [analyzer] COMPILE_TIME_ERROR.CAST_TO_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   Expect.isTrue(0x10 is int);
   //                    ^^^
   // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
-  //                    ^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
   Expect.isTrue(-0x10 is int);
   //                     ^^^
   // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
-  //                     ^^^
   // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_NON_TYPE
 
   // "a" will be part of hex literal, the following "s" is an error.
@@ -78,14 +72,14 @@ main() {
 // [cfe] Expected ';' after this.
 // ^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'd'.
+// [cfe] Undefined name 'd'.
   1D;
 //^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
 // ^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'D'.
+// [cfe] Undefined name 'D'.
   Expect.throwsNoSuchMethodError(() => 1.d+2);
   //                                     ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
@@ -100,14 +94,14 @@ main() {
 // [cfe] Expected ';' after this.
 //   ^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'd'.
+// [cfe] Undefined name 'd'.
   1.1D;
 //^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
 //   ^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'D'.
+// [cfe] Undefined name 'D'.
   1e;
 //^
 // [cfe] Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).
@@ -119,5 +113,5 @@ main() {
 // [cfe] Expected ';' after this.
 // ^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'x'.
+// [cfe] Undefined name 'x'.
 }

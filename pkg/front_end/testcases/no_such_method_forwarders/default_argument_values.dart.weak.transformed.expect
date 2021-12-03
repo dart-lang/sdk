@@ -7,11 +7,11 @@ abstract class A extends core::Object {
     : super core::Object::•()
     ;
   method noSuchMethod(core::Invocation* i) → dynamic {
-    if(i.{core::Invocation::memberName}{core::Symbol*} =={core::Symbol::==}{(core::Object*) →* core::bool*} (#C1)) {
+    if(i.{core::Invocation::memberName}{core::Symbol*} =={core::Symbol::==}{(core::Object*) →* core::bool*} #C1) {
       return i.{core::Invocation::namedArguments}{core::Map<core::Symbol*, dynamic>*}.{core::Map::[]}(#C2){(core::Object*) →* dynamic};
     }
     else
-      if(i.{core::Invocation::memberName}{core::Symbol*} =={core::Symbol::==}{(core::Object*) →* core::bool*} (#C3)) {
+      if(i.{core::Invocation::memberName}{core::Symbol*} =={core::Symbol::==}{(core::Object*) →* core::bool*} #C3) {
         return i.{core::Invocation::positionalArguments}{core::List<dynamic>*}.{core::List::[]}(0){(core::int*) →* dynamic};
       }
     return null;
@@ -56,5 +56,5 @@ constants  {
   #C5 = 42
   #C6 = <core::Type*>[]
   #C7 = <dynamic>[]
-  #C8 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C7}
+  #C8 = <core::Symbol*, dynamic>{)
 }

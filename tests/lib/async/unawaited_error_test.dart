@@ -5,7 +5,7 @@
 void main() {
   // The `unawaited` function is not exposed by dart:core.
   unawaited;
-  // [error line 7, column 3, length 9]
-  // [cfe] Getter not found: 'unawaited'.
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+//^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [cfe] Undefined name 'unawaited'.
 }

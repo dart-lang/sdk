@@ -68,6 +68,38 @@ class B extends A {
     _checkGetterDifferent(import.topSet('foo'));
   }
 
+  test_class_getter_fromExtends_blockBody() async {
+    await resolve('''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  void bar(int foo) {
+    this.foo;
+  }
+}
+''');
+    _checkGetterRequested(
+      findElement.parameter('foo'),
+    );
+  }
+
+  test_class_getter_fromExtends_expressionBody() async {
+    await resolve('''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  void bar(int foo) => this.foo;
+}
+''');
+    _checkGetterRequested(
+      findElement.parameter('foo'),
+    );
+  }
+
   test_class_getter_none_fromExtends() async {
     await resolve('''
 class A {
@@ -408,6 +440,16 @@ class A {
     _checkMethodRequested(findElement.typeParameter('foo'));
   }
 
+  test_class_method_typeParameter() async {
+    await resolve('''
+class A {
+  void foo<T>(int T) {}
+}
+''');
+    var node = findNode.simple('T)');
+    _resultRequested(node, 'T', false, findElement.typeParameter('T'));
+  }
+
   test_class_setter_different_formalParameter_constructor() async {
     await resolve('''
 class A {
@@ -538,6 +580,46 @@ void foo() {}
     _checkSetterRequested(findElement.setter('foo'));
   }
 
+  test_class_typeParameter_inConstructor() async {
+    await resolve('''
+class A<T> {
+  A(int T) {}
+}
+''');
+    var node = findNode.simple('T)');
+    _resultRequested(node, 'T', false, findElement.typeParameter('T'));
+  }
+
+  test_class_typeParameter_inField() async {
+    await resolve('''
+class A<T> {
+  T? a;
+}
+''');
+    var node = findNode.simple('T?');
+    _resultRequested(node, 'T', false, findElement.typeParameter('T'));
+  }
+
+  test_class_typeParameter_inMethod() async {
+    await resolve('''
+class A<T> {
+  void foo(int T) {}
+}
+''');
+    var node = findNode.simple('T)');
+    _resultRequested(node, 'T', false, findElement.typeParameter('T'));
+  }
+
+  test_class_typeParameter_inSetter() async {
+    await resolve('''
+class A<T> {
+  set foo(int T) {}
+}
+''');
+    var node = findNode.simple('T)');
+    _resultRequested(node, 'T', false, findElement.typeParameter('T'));
+  }
+
   test_extension_method_none_fromExtended() async {
     await resolve('''
 class A {
@@ -608,6 +690,41 @@ extension on A {
     _checkMethodRequested(findElement.method('foo'));
   }
 
+  test_extension_typeParameter_inMethod() async {
+    await resolve('''
+extension E<T> on int {
+  void foo(int T) {}
+}
+''');
+    var node = findNode.simple('T)');
+    _resultRequested(node, 'T', false, findElement.typeParameter('T'));
+  }
+
+  test_function_typeParameter() async {
+    await resolve('''
+void foo<T>(int T) {}
+''');
+    var node = findNode.simple('T)');
+    _resultRequested(node, 'T', false, findElement.typeParameter('T'));
+  }
+
+  test_genericFunctionType_typeParameter() async {
+    await resolve('''
+void foo(void Function<T>(String T) b) {}
+''');
+    var node = findNode.simple('T)');
+    var T = findNode.typeParameter('T>').declaredElement!;
+    _resultRequested(node, 'T', false, T);
+  }
+
+  test_genericTypeAlias_typeParameter() async {
+    await resolve('''
+typedef A<T> = List<T>;
+''');
+    var node = findNode.simple('T>;');
+    _resultRequested(node, 'T', false, findElement.typeParameter('T'));
+  }
+
   test_mixin_method_requested_formalParameter_method() async {
     await resolve('''
 mixin M {
@@ -632,6 +749,26 @@ mixin M {
 }
 ''');
     _checkMethodRequested(findElement.method('foo'));
+  }
+
+  test_mixin_typeParameter_inField() async {
+    await resolve('''
+mixin A<T> {
+  T? a;
+}
+''');
+    var node = findNode.simple('T?');
+    _resultRequested(node, 'T', false, findElement.typeParameter('T'));
+  }
+
+  test_mixin_typeParameter_inMethod() async {
+    await resolve('''
+mixin A<T> {
+  void foo(int T) {}
+}
+''');
+    var node = findNode.simple('T)');
+    _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
   void _checkGetterDifferent(Element expected) {

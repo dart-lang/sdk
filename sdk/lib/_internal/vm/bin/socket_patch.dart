@@ -41,8 +41,8 @@ class RawSocketOption {
     return _optionsCache[key] ??= _getNativeOptionValue(key);
   }
 
-  static int _getNativeOptionValue(int key)
-      native "RawSocketOption_GetOptionValue";
+  @pragma("vm:external-name", "RawSocketOption_GetOptionValue")
+  external static int _getNativeOptionValue(int key);
 }
 
 @patch
@@ -114,7 +114,8 @@ class NetworkInterface {
         type: type);
   }
 
-  static bool _listSupported() native "NetworkInterface_ListSupported";
+  @pragma("vm:external-name", "NetworkInterface_ListSupported")
+  external static bool _listSupported();
 }
 
 void _throwOnBadPort(int port) {
@@ -351,11 +352,13 @@ class _InternetAddress implements InternetAddress {
     return "InternetAddress('$address', ${type.name})";
   }
 
-  static String _rawAddrToString(Uint8List address)
-      native "InternetAddress_RawAddrToString";
-  static dynamic /* int | OSError */ _parseScopedLinkLocalAddress(
-      String address) native "InternetAddress_ParseScopedLinkLocalAddress";
-  static Uint8List? _parse(String address) native "InternetAddress_Parse";
+  @pragma("vm:external-name", "InternetAddress_RawAddrToString")
+  external static String _rawAddrToString(Uint8List address);
+  @pragma("vm:external-name", "InternetAddress_ParseScopedLinkLocalAddress")
+  external static dynamic /* int | OSError */ _parseScopedLinkLocalAddress(
+      String address);
+  @pragma("vm:external-name", "InternetAddress_Parse")
+  external static Uint8List? _parse(String address);
 }
 
 class _NetworkInterface implements NetworkInterface {
@@ -375,7 +378,8 @@ class _NetworkInterface implements NetworkInterface {
 class _NativeSocketNativeWrapper extends NativeFieldWrapperClass1 {}
 
 /// Returns error code that corresponds to EINPROGRESS OS error.
-int get _inProgressErrorCode native "OSError_inProgressErrorCode";
+@pragma("vm:external-name", "OSError_inProgressErrorCode")
+external int get _inProgressErrorCode;
 
 // The _NativeSocket class encapsulates an OS socket.
 class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
@@ -736,7 +740,16 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           connectionResult = socket.nativeCreateUnixDomainConnect(
               address.address, _Namespace._namespace);
         } else {
-          assert(source.type == InternetAddressType.unix);
+          if (source.type != InternetAddressType.unix) {
+            return SocketException(
+                // Use the same error message as used on Linux for better
+                // searchability...
+                "Address family not supported by protocol family, "
+                // ...and then add some details.
+                "sourceAddress.type must be ${InternetAddressType.unix} but was "
+                "${source.type}",
+                address: address);
+          }
           connectionResult = socket.nativeCreateUnixDomainBindConnect(
               address.address, source.address, _Namespace._namespace);
         }
@@ -749,6 +762,17 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           connectionResult = socket.nativeCreateConnect(
               address_._in_addr, port, address_._scope_id);
         } else {
+          if (source.type != InternetAddressType.IPv4 &&
+              source.type != InternetAddressType.IPv6) {
+            return SocketException(
+                // Use the same error message as used on Linux for better
+                // searchability...
+                "Address family not supported by protocol family, "
+                // ...and then add some details.
+                "sourceAddress.type must be ${InternetAddressType.IPv4} or "
+                "${InternetAddressType.IPv6} but was ${source.type}",
+                address: address);
+          }
           connectionResult = socket.nativeCreateBindConnect(
               address_._in_addr, port, source._in_addr, address_._scope_id);
         }
@@ -769,6 +793,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           return createError(
               connectionResult, "Connection failed", address, port);
         }
+      } else if (connectionResult is SocketException) {
+        return connectionResult;
       } else if (connectionResult is Error) {
         return connectionResult;
       }
@@ -1077,6 +1103,43 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
   }
 
+  SocketMessage? readMessage([int? count]) {
+    if (count != null && count <= 0) {
+      throw ArgumentError("Illegal length $count");
+    }
+    if (isClosing || isClosed) return null;
+    try {
+      final bytesCount = count ?? nativeAvailable();
+      // Returned messagesData is a list of triples (level, type, uint8list)
+      // followed by uint8list with raw data.
+      // This is kept at this level to minimize dart api use in native method.
+      final List<dynamic> messagesData = nativeReceiveMessage(bytesCount);
+      final messages = <SocketControlMessage>[];
+      if (messagesData.isNotEmpty) {
+        final triplesCount = (messagesData.length - 1) / 3;
+        assert((triplesCount * 3) == (messagesData.length - 1));
+        for (int i = 0; i < triplesCount; i++) {
+          final message = _SocketControlMessageImpl(
+              messagesData[i * 3] as int,
+              messagesData[i * 3 + 1] as int,
+              messagesData[i * 3 + 2] as Uint8List);
+          messages.add(message);
+        }
+      }
+      final socketMessage = SocketMessage(
+          messagesData[messagesData.length - 1] as Uint8List, messages);
+      available = nativeAvailable();
+      if (!const bool.fromEnvironment("dart.vm.product")) {
+        _SocketProfile.collectStatistic(
+            nativeGetSocketId(), _SocketProfileType.readBytes, bytesCount);
+      }
+      return socketMessage;
+    } catch (e, st) {
+      reportError(e, st, "Read failed");
+      return null;
+    }
+  }
+
   static int _fixOffset(int? offset) => offset ?? 0;
 
   int write(List<int> buffer, int offset, int? bytes) {
@@ -1141,6 +1204,44 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     } catch (e) {
       StackTrace st = StackTrace.current;
       scheduleMicrotask(() => reportError(e, st, "Send failed"));
+      return 0;
+    }
+  }
+
+  int sendMessage(List<int> buffer, int offset, int? bytes,
+      List<SocketControlMessage> controlMessages) {
+    if (offset < 0) throw new RangeError.value(offset);
+    if (bytes != null) {
+      if (bytes < 0) throw new RangeError.value(bytes);
+    } else {
+      bytes = buffer.length - offset;
+    }
+    if ((offset + bytes) > buffer.length) {
+      throw new RangeError.value(offset + bytes);
+    }
+    if (isClosing || isClosed) return 0;
+    try {
+      _BufferAndStart bufferAndStart =
+          _ensureFastAndSerializableByteData(buffer, offset, bytes);
+      if (!const bool.fromEnvironment("dart.vm.product")) {
+        _SocketProfile.collectStatistic(
+            nativeGetSocketId(),
+            _SocketProfileType.writeBytes,
+            bufferAndStart.buffer.length - bufferAndStart.start);
+      }
+      // list of triples <level, type, data> arranged to minimize dart api
+      // use in native method.
+      List<dynamic> messages = <dynamic>[];
+      for (SocketControlMessage controlMessage in controlMessages) {
+        messages.add(controlMessage.level);
+        messages.add(controlMessage.type);
+        messages.add(controlMessage.data);
+      }
+
+      return nativeSendMessage(
+          bufferAndStart.buffer, bufferAndStart.start, bytes, messages);
+    } catch (e, st) {
+      scheduleMicrotask(() => reportError(e, st, "SendMessage failed"));
       return 0;
     }
   }
@@ -1526,46 +1627,73 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         interfaceAddr?._in_addr, interfaceIndex);
   }
 
-  void nativeSetSocketId(int id, int typeFlags) native "Socket_SetSocketId";
-  int nativeAvailable() native "Socket_Available";
-  bool nativeAvailableDatagram() native "Socket_AvailableDatagram";
-  Uint8List? nativeRead(int len) native "Socket_Read";
-  Datagram? nativeRecvFrom() native "Socket_RecvFrom";
-  int nativeWrite(List<int> buffer, int offset, int bytes)
-      native "Socket_WriteList";
-  int nativeSendTo(List<int> buffer, int offset, int bytes, Uint8List address,
-      int port) native "Socket_SendTo";
-  nativeCreateConnect(Uint8List addr, int port, int scope_id)
-      native "Socket_CreateConnect";
-  nativeCreateUnixDomainConnect(String addr, _Namespace namespace)
-      native "Socket_CreateUnixDomainConnect";
-  nativeCreateBindConnect(Uint8List addr, int port, Uint8List sourceAddr,
-      int scope_id) native "Socket_CreateBindConnect";
-  nativeCreateUnixDomainBindConnect(String addr, String sourceAddr,
-      _Namespace namespace) native "Socket_CreateUnixDomainBindConnect";
-  bool isBindError(int errorNumber) native "SocketBase_IsBindError";
-  nativeCreateBindListen(Uint8List addr, int port, int backlog, bool v6Only,
-      bool shared, int scope_id) native "ServerSocket_CreateBindListen";
-  nativeCreateUnixDomainBindListen(String addr, int backlog, bool shared,
-      _Namespace namespace) native "ServerSocket_CreateUnixDomainBindListen";
-  nativeCreateBindDatagram(Uint8List addr, int port, bool reuseAddress,
-      bool reusePort, int ttl) native "Socket_CreateBindDatagram";
-  bool nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
-  dynamic nativeGetPort() native "Socket_GetPort";
-  List nativeGetRemotePeer() native "Socket_GetRemotePeer";
-  int nativeGetSocketId() native "Socket_GetSocketId";
-  OSError nativeGetError() native "Socket_GetError";
-  nativeGetOption(int option, int protocol) native "Socket_GetOption";
-  void nativeGetRawOption(int level, int option, Uint8List data)
-      native "Socket_GetRawOption";
-  void nativeSetOption(int option, int protocol, value)
-      native "Socket_SetOption";
-  void nativeSetRawOption(int level, int option, Uint8List data)
-      native "Socket_SetRawOption";
-  void nativeJoinMulticast(Uint8List addr, Uint8List? interfaceAddr,
-      int interfaceIndex) native "Socket_JoinMulticast";
-  void nativeLeaveMulticast(Uint8List addr, Uint8List? interfaceAddr,
-      int interfaceIndex) native "Socket_LeaveMulticast";
+  @pragma("vm:external-name", "Socket_SetSocketId")
+  external void nativeSetSocketId(int id, int typeFlags);
+  @pragma("vm:external-name", "Socket_Available")
+  external int nativeAvailable();
+  @pragma("vm:external-name", "Socket_AvailableDatagram")
+  external bool nativeAvailableDatagram();
+  @pragma("vm:external-name", "Socket_Read")
+  external Uint8List? nativeRead(int len);
+  @pragma("vm:external-name", "Socket_RecvFrom")
+  external Datagram? nativeRecvFrom();
+  @pragma("vm:external-name", "Socket_ReceiveMessage")
+  external List<dynamic> nativeReceiveMessage(int len);
+  @pragma("vm:external-name", "Socket_WriteList")
+  external int nativeWrite(List<int> buffer, int offset, int bytes);
+  @pragma("vm:external-name", "Socket_SendTo")
+  external int nativeSendTo(
+      List<int> buffer, int offset, int bytes, Uint8List address, int port);
+  @pragma("vm:external-name", "Socket_SendMessage")
+  external nativeSendMessage(
+      List<int> buffer, int offset, int bytes, List<dynamic> controlMessages);
+  @pragma("vm:external-name", "Socket_CreateConnect")
+  external nativeCreateConnect(Uint8List addr, int port, int scope_id);
+  @pragma("vm:external-name", "Socket_CreateUnixDomainConnect")
+  external nativeCreateUnixDomainConnect(String addr, _Namespace namespace);
+  @pragma("vm:external-name", "Socket_CreateBindConnect")
+  external nativeCreateBindConnect(
+      Uint8List addr, int port, Uint8List sourceAddr, int scope_id);
+  @pragma("vm:external-name", "Socket_CreateUnixDomainBindConnect")
+  external nativeCreateUnixDomainBindConnect(
+      String addr, String sourceAddr, _Namespace namespace);
+  @pragma("vm:external-name", "SocketBase_IsBindError")
+  external bool isBindError(int errorNumber);
+  @pragma("vm:external-name", "ServerSocket_CreateBindListen")
+  external nativeCreateBindListen(Uint8List addr, int port, int backlog,
+      bool v6Only, bool shared, int scope_id);
+  @pragma("vm:external-name", "ServerSocket_CreateUnixDomainBindListen")
+  external nativeCreateUnixDomainBindListen(
+      String addr, int backlog, bool shared, _Namespace namespace);
+  @pragma("vm:external-name", "Socket_CreateBindDatagram")
+  external nativeCreateBindDatagram(
+      Uint8List addr, int port, bool reuseAddress, bool reusePort, int ttl);
+  @pragma("vm:external-name", "ServerSocket_Accept")
+  external bool nativeAccept(_NativeSocket socket);
+  @pragma("vm:external-name", "Socket_GetPort")
+  external dynamic nativeGetPort();
+  @pragma("vm:external-name", "Socket_GetRemotePeer")
+  external List nativeGetRemotePeer();
+  @pragma("vm:external-name", "Socket_GetSocketId")
+  external int nativeGetSocketId();
+  @pragma("vm:external-name", "Socket_GetFD")
+  external int get fd;
+  @pragma("vm:external-name", "Socket_GetError")
+  external OSError nativeGetError();
+  @pragma("vm:external-name", "Socket_GetOption")
+  external nativeGetOption(int option, int protocol);
+  @pragma("vm:external-name", "Socket_GetRawOption")
+  external void nativeGetRawOption(int level, int option, Uint8List data);
+  @pragma("vm:external-name", "Socket_SetOption")
+  external void nativeSetOption(int option, int protocol, value);
+  @pragma("vm:external-name", "Socket_SetRawOption")
+  external void nativeSetRawOption(int level, int option, Uint8List data);
+  @pragma("vm:external-name", "Socket_JoinMulticast")
+  external void nativeJoinMulticast(
+      Uint8List addr, Uint8List? interfaceAddr, int interfaceIndex);
+  @pragma("vm:external-name", "Socket_LeaveMulticast")
+  external void nativeLeaveMulticast(
+      Uint8List addr, Uint8List? interfaceAddr, int interfaceIndex);
 }
 
 class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
@@ -1761,8 +1889,16 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
     }
   }
 
+  SocketMessage? readMessage([int? count]) {
+    return _socket.readMessage(count);
+  }
+
   int write(List<int> buffer, [int offset = 0, int? count]) =>
       _socket.write(buffer, offset, count);
+
+  int sendMessage(List<SocketControlMessage> controlMessages, List<int> data,
+          [int offset = 0, int? count]) =>
+      _socket.sendMessage(data, offset, count, controlMessages);
 
   Future<RawSocket> close() => _socket.close().then<RawSocket>((_) {
         if (!const bool.fromEnvironment("dart.vm.product")) {
@@ -2386,4 +2522,104 @@ Datagram _makeDatagram(
       data,
       _InternetAddress(InternetAddressType._from(type), address, null, in_addr),
       port);
+}
+
+@patch
+class ResourceHandle {
+  factory ResourceHandle.fromFile(RandomAccessFile file) {
+    int fd = (file as _RandomAccessFile).fd;
+    return _ResourceHandleImpl(fd);
+  }
+
+  factory ResourceHandle.fromSocket(Socket socket) {
+    final _socket = socket as _Socket;
+    if (_socket._raw == null) {
+      throw ArgumentError("Socket is closed");
+    }
+    final _RawSocket raw = _socket._raw! as _RawSocket;
+    final _NativeSocket nativeSocket = raw._socket;
+    int fd = nativeSocket.fd;
+    return _ResourceHandleImpl(fd);
+  }
+
+  factory ResourceHandle.fromRawSocket(RawSocket socket) {
+    final _RawSocket raw = socket as _RawSocket;
+    final _NativeSocket nativeSocket = raw._socket;
+    int fd = nativeSocket.fd;
+    return _ResourceHandleImpl(fd);
+  }
+
+  factory ResourceHandle.fromRawDatagramSocket(RawDatagramSocket socket) {
+    final _RawDatagramSocket raw = socket as _RawDatagramSocket;
+    final _NativeSocket nativeSocket = socket._socket;
+    int fd = nativeSocket.fd;
+    return _ResourceHandleImpl(fd);
+  }
+
+  factory ResourceHandle.fromStdin(Stdin stdin) {
+    return _ResourceHandleImpl(stdin._fd);
+  }
+
+  factory ResourceHandle.fromStdout(Stdout stdout) {
+    return _ResourceHandleImpl(stdout._fd);
+  }
+}
+
+@pragma("vm:entry-point")
+class _ResourceHandleImpl implements ResourceHandle {
+  @pragma("vm:entry-point")
+  int _handle; // file descriptor on linux
+  @pragma("vm:entry-point")
+  _ResourceHandleImpl(this._handle);
+
+  @pragma("vm:external-name", "ResourceHandleImpl_toFile")
+  external RandomAccessFile toFile();
+  @pragma("vm:external-name", "ResourceHandleImpl_toSocket")
+  external Socket toSocket();
+  @pragma("vm:external-name", "ResourceHandleImpl_toRawSocket")
+  external List<dynamic> _toRawSocket();
+
+  RawSocket toRawSocket() {
+    List<dynamic> list = _toRawSocket();
+    InternetAddressType type = InternetAddressType._from(list[0] as int);
+    String hostname = list[1] as String;
+    Uint8List rawAddr = list[2] as Uint8List;
+    int fd = list[3] as int;
+    InternetAddress internetAddress = type == InternetAddressType.unix
+        ? _InternetAddress.fromString(hostname, type: InternetAddressType.unix)
+        : _InternetAddress(type, hostname, null, rawAddr);
+    final nativeSocket = _NativeSocket.normal(internetAddress);
+    nativeSocket.nativeSetSocketId(fd, _NativeSocket.typeInternalSocket);
+    return _RawSocket(nativeSocket);
+  }
+
+  @pragma("vm:external-name", "ResourceHandleImpl_toRawDatagramSocket")
+  external RawDatagramSocket toRawDatagramSocket();
+
+  @pragma("vm:entry-point")
+  static final _ResourceHandleImpl _sentinel = _ResourceHandleImpl(-1);
+}
+
+@patch
+class SocketControlMessage {
+  factory SocketControlMessage.fromHandles(List<ResourceHandle> handles)
+      native "SocketControlMessage_fromHandles";
+}
+
+@pragma("vm:entry-point")
+class _SocketControlMessageImpl implements SocketControlMessage {
+  @pragma("vm:entry-point")
+  final int level;
+  @pragma("vm:entry-point")
+  final int type;
+  @pragma("vm:entry-point")
+  final Uint8List data;
+
+  @pragma("vm:entry-point")
+  _SocketControlMessageImpl(this.level, this.type, this.data);
+
+  @pragma("vm:external-name", "SocketControlMessageImpl_extractHandles")
+  external List<ResourceHandle> extractHandles();
+
+  static final _sentinel = _SocketControlMessageImpl(0, 0, Uint8List(0));
 }

@@ -1,0 +1,11 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+static method foo<X extends core::Object?>(self::foo::X% x) → asy::Future<core::int> async 
+  ;
+static method main() → dynamic
+  ;

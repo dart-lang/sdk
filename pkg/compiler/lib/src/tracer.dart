@@ -44,14 +44,14 @@ class Tracer extends TracerUtil {
     tag("compilation", () {
       printProperty("name", methodName);
       printProperty("method", methodName);
-      printProperty("date", new DateTime.now().millisecondsSinceEpoch);
+      printProperty("date", DateTime.now().millisecondsSinceEpoch);
     });
   }
 
   void traceGraph(String name, var irObject) {
     if (!traceActive) return;
     if (irObject is ssa.HGraph) {
-      new HTracer(output, closedWorld).traceGraph(name, irObject);
+      HTracer(output, closedWorld).traceGraph(name, irObject);
     }
   }
 
@@ -64,7 +64,7 @@ class Tracer extends TracerUtil {
 
 abstract class TracerUtil {
   api.OutputSink get output;
-  final Indentation _ind = new Indentation();
+  final Indentation _ind = Indentation();
 
   void tag(String tagName, Function f) {
     println("begin_$tagName");

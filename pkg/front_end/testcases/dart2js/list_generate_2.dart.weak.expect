@@ -1,0 +1,7 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  core::print(core::List::generate<core::List<core::int>>(10, (core::int i) → core::List<core::int> => core::List::generate<core::int>(i, (core::int i) → core::int => i.{core::num::+}(1){(core::num) → core::int})));
+}

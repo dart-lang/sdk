@@ -16,9 +16,9 @@ class DictionaryTypeMask extends MapTypeMask {
   static const String tag = 'dictionary-type-mask';
 
   // The underlying key/value map of this dictionary.
-  final Map<String, AbstractValue> _typeMap;
+  final Map<String, TypeMask> _typeMap;
 
-  DictionaryTypeMask(
+  const DictionaryTypeMask(
       TypeMask forwardTo,
       ir.Node allocationNode,
       MemberEntity allocationElement,
@@ -31,15 +31,15 @@ class DictionaryTypeMask extends MapTypeMask {
   factory DictionaryTypeMask.readFromDataSource(
       DataSource source, CommonMasks domain) {
     source.begin(tag);
-    TypeMask forwardTo = new TypeMask.readFromDataSource(source, domain);
+    TypeMask forwardTo = TypeMask.readFromDataSource(source, domain);
     ir.TreeNode allocationNode = source.readTreeNodeOrNull();
     MemberEntity allocationElement = source.readMemberOrNull();
-    TypeMask keyType = new TypeMask.readFromDataSource(source, domain);
-    TypeMask valueType = new TypeMask.readFromDataSource(source, domain);
-    Map<String, AbstractValue> typeMap = source
-        .readStringMap(() => new TypeMask.readFromDataSource(source, domain));
+    TypeMask keyType = TypeMask.readFromDataSource(source, domain);
+    TypeMask valueType = TypeMask.readFromDataSource(source, domain);
+    Map<String, TypeMask> typeMap =
+        source.readStringMap(() => TypeMask.readFromDataSource(source, domain));
     source.end(tag);
-    return new DictionaryTypeMask(forwardTo, allocationNode, allocationElement,
+    return DictionaryTypeMask(forwardTo, allocationNode, allocationElement,
         keyType, valueType, typeMap);
   }
 
@@ -53,27 +53,28 @@ class DictionaryTypeMask extends MapTypeMask {
     sink.writeMemberOrNull(allocationElement);
     keyType.writeToDataSink(sink);
     valueType.writeToDataSink(sink);
-    sink.writeStringMap(_typeMap, (AbstractValue value) {
-      TypeMask typeMask = value;
+    sink.writeStringMap(_typeMap, (TypeMask typeMask) {
       typeMask.writeToDataSink(sink);
     });
     sink.end(tag);
   }
 
   @override
-  TypeMask nullable() {
-    return isNullable
-        ? this
-        : new DictionaryTypeMask(forwardTo.nullable(), allocationNode,
-            allocationElement, keyType, valueType, _typeMap);
-  }
-
-  @override
-  TypeMask nonNullable() {
-    return isNullable
-        ? new DictionaryTypeMask(forwardTo.nonNullable(), allocationNode,
-            allocationElement, keyType, valueType, _typeMap)
-        : this;
+  DictionaryTypeMask withFlags({bool isNullable, bool hasLateSentinel}) {
+    isNullable ??= this.isNullable;
+    hasLateSentinel ??= this.hasLateSentinel;
+    if (isNullable == this.isNullable &&
+        hasLateSentinel == this.hasLateSentinel) {
+      return this;
+    }
+    return DictionaryTypeMask(
+        forwardTo.withFlags(
+            isNullable: isNullable, hasLateSentinel: hasLateSentinel),
+        allocationNode,
+        allocationElement,
+        keyType,
+        valueType,
+        _typeMap);
   }
 
   @override
@@ -86,37 +87,16 @@ class DictionaryTypeMask extends MapTypeMask {
   TypeMask getValueForKey(String key) => _typeMap[key];
 
   @override
-  bool equalsDisregardNull(other) {
-    if (other is! DictionaryTypeMask) return false;
-    return allocationNode == other.allocationNode &&
-        keyType == other.keyType &&
-        valueType == other.valueType &&
-        _typeMap.keys.every((k) => other._typeMap.containsKey(k)) &&
-        other._typeMap.keys.every(
-            (k) => _typeMap.containsKey(k) && _typeMap[k] == other._typeMap[k]);
-  }
-
-  @override
-  TypeMask intersection(TypeMask other, CommonMasks domain) {
-    TypeMask forwardIntersection = forwardTo.intersection(other, domain);
-    if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
-    return forwardIntersection.isNullable ? nullable() : nonNullable();
-  }
-
-  @override
-  TypeMask union(dynamic other, CommonMasks domain) {
-    if (this == other) {
-      return this;
-    } else if (equalsDisregardNull(other)) {
-      return other.isNullable ? other : this;
-    } else if (other.isEmptyOrNull) {
-      return other.isNullable ? this.nullable() : this;
-    } else if (other.isDictionary) {
+  TypeMask _unionSpecialCases(TypeMask other, CommonMasks domain,
+      {bool isNullable, bool hasLateSentinel}) {
+    assert(isNullable != null);
+    assert(hasLateSentinel != null);
+    if (other is DictionaryTypeMask) {
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
       TypeMask newKeyType = keyType.union(other.keyType, domain);
       TypeMask newValueType = valueType.union(other.valueType, domain);
-      Map<String, TypeMask> mappings = <String, TypeMask>{};
-      _typeMap.forEach((k, dynamic v) {
+      Map<String, TypeMask> mappings = {};
+      _typeMap.forEach((k, v) {
         if (!other._typeMap.containsKey(k)) {
           mappings[k] = v.nullable();
         }
@@ -128,28 +108,32 @@ class DictionaryTypeMask extends MapTypeMask {
           mappings[k] = v.nullable();
         }
       });
-      return new DictionaryTypeMask(
+      return DictionaryTypeMask(
           newForwardTo, null, null, newKeyType, newValueType, mappings);
-    } else if (other.isMap &&
+    }
+    if (other is MapTypeMask &&
         (other.keyType != null) &&
         (other.valueType != null)) {
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, domain);
       TypeMask newKeyType = keyType.union(other.keyType, domain);
       TypeMask newValueType = valueType.union(other.valueType, domain);
-      return new MapTypeMask(
-          newForwardTo, null, null, newKeyType, newValueType);
-    } else {
-      return forwardTo.union(other, domain);
+      return MapTypeMask(newForwardTo, null, null, newKeyType, newValueType);
     }
+    return null;
   }
 
   @override
-  bool operator ==(other) => super == other;
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! DictionaryTypeMask) return false;
+    return super == other &&
+        _typeMap.keys.every((k) => other._typeMap.containsKey(k)) &&
+        other._typeMap.keys.every(
+            (k) => _typeMap.containsKey(k) && _typeMap[k] == other._typeMap[k]);
+  }
 
   @override
-  int get hashCode {
-    return computeHashCode(allocationNode, isNullable, _typeMap, forwardTo);
-  }
+  int get hashCode => Hashing.objectHash(_typeMap, super.hashCode);
 
   @override
   String toString() {

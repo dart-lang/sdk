@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  final field (core::int) → core::int x;
+  const constructor •(core::bool b) → self::A
+    : self::A::x = (b ?{<X extends core::Object? = dynamic>(X%) → X%} self::id : self::other)<core::int>, super core::Object::•()
+    ;
+}
+static method id<X extends core::Object? = dynamic>(self::id::X% x) → self::id::X%
+  ;
+static method other<X extends core::Object? = dynamic>(self::other::X% x) → self::other::X%
+  ;
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticTearOff @ org-dartlang-testcase:///issue47154a.dart:9:15 -> StaticTearOffConstant(id)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///issue47154a.dart:10:15 -> StaticTearOffConstant(other)
+Extra constant evaluation: evaluated: 5, effectively constant: 2

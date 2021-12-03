@@ -124,8 +124,8 @@ class VerifyOriginId : public IsolateVisitor {
 
 static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
                                                  const Instance& obj) {
-  return WriteMessage(/* can_send_any_object */ false, obj, dest_port,
-                      Message::kNormalPriority);
+  return WriteMessage(/* can_send_any_object */ false, /* same_group */ false,
+                      obj, dest_port, Message::kNormalPriority);
 }
 
 static std::unique_ptr<Message> SerializeMessage(Zone* zone,
@@ -650,7 +650,6 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
   thread->set_execution_state(Thread::kThreadInNative);
   thread->set_safepoint_state(Thread::AtSafepointField::encode(true) |
                               Thread::AtDeoptSafepointField::encode(true));
-  thread->clear_pending_functions();
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   if (is_mutator) {
     // The mutator thread structure stays alive and attached to the isolate as
@@ -1007,8 +1006,9 @@ void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   element = Capability::New(capability);
   msg.SetAt(2, element);
 
-  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false, msg,
-                                    main_port(), Message::kOOBPriority));
+  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
+                                    /* same_group */ false, msg, main_port(),
+                                    Message::kOOBPriority));
 }
 
 void IsolateGroup::set_object_store(ObjectStore* object_store) {
@@ -1126,6 +1126,7 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
       if (!obj.IsSmi()) return Error::null();
       const intptr_t priority = Smi::Cast(obj).Value();
       if (priority == Isolate::kImmediateAction) {
+        Thread::Current()->StartUnwindError();
         obj = message.At(2);
         if (I->VerifyTerminateCapability(obj)) {
           // We will kill the current isolate by returning an UnwindError.
@@ -1306,44 +1307,8 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   tbes.CopyArgument(0, "isolateName", I->name());
 #endif
 
-  // If the message is in band we lookup the handler to dispatch to.  If the
-  // receive port was closed, we drop the message without deserializing it.
-  // Illegal port is a special case for artificially enqueued isolate library
-  // messages which are handled in C++ code below.
-  Object& msg_handler = Object::Handle(zone);
-  if (!message->IsOOB() && (message->dest_port() != Message::kIllegalPort)) {
-    msg_handler = DartLibraryCalls::LookupHandler(message->dest_port());
-    if (msg_handler.IsError()) {
-      return ProcessUnhandledException(Error::Cast(msg_handler));
-    }
-    if (msg_handler.IsNull()) {
-      // If the port has been closed then the message will be dropped at this
-      // point. Make sure to post to the delivery failure port in that case.
-      if (message->RedirectToDeliveryFailurePort()) {
-        PortMap::PostMessage(std::move(message));
-      }
-      return kOK;
-    }
-  }
-
   // Parse the message.
-  Object& msg_obj = Object::Handle(zone);
-  if (message->IsPersistentHandle()) {
-    // msg_array = [<message>, <object-in-message-to-rehash>]
-    const auto& msg_array = Array::Handle(
-        zone, Array::RawCast(message->persistent_handle()->ptr()));
-    msg_obj = msg_array.At(0);
-    if (msg_array.At(1) != Object::null()) {
-      const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(1));
-      const auto& result = Object::Handle(
-          zone, DartLibraryCalls::RehashObjects(thread, objects_to_rehash));
-      if (result.ptr() != Object::null()) {
-        msg_obj = result.ptr();
-      }
-    }
-  } else {
-    msg_obj = ReadMessage(thread, message.get());
-  }
+  Object& msg_obj = Object::Handle(zone, ReadMessage(thread, message.get()));
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
     return ProcessUnhandledException(Error::Cast(msg_obj));
@@ -1418,23 +1383,18 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       }
     }
   } else {
-#ifndef PRODUCT
-    if (!Isolate::IsSystemIsolate(I)) {
-      // Mark all the user isolates as using a simplified timeline page of
-      // Observatory. The internal isolates will be filtered out from
-      // the Timeline due to absence of this argument. We still send them in
-      // order to maintain the original behavior of the full timeline and allow
-      // the developer to download complete dump files.
-      tbes.SetNumArguments(2);
-      tbes.CopyArgument(1, "mode", "basic");
-    }
-#endif
-    const Object& result =
-        Object::Handle(zone, DartLibraryCalls::HandleMessage(msg_handler, msg));
-    if (result.IsError()) {
-      status = ProcessUnhandledException(Error::Cast(result));
+    const Object& msg_handler = Object::Handle(
+        zone, DartLibraryCalls::HandleMessage(message->dest_port(), msg));
+    if (msg_handler.IsError()) {
+      status = ProcessUnhandledException(Error::Cast(msg_handler));
+    } else if (msg_handler.IsNull()) {
+      // If the port has been closed then the message will be dropped at this
+      // point. Make sure to post to the delivery failure port in that case.
+      if (message->RedirectToDeliveryFailurePort()) {
+        PortMap::PostMessage(std::move(message));
+      }
     } else {
-      ASSERT(result.IsNull());
+      // The handler closure which was used to successfully handle the message.
     }
   }
   return status;
@@ -2145,7 +2105,7 @@ void Isolate::MakeRunnableLocked() {
 #ifndef PRODUCT
   if (!Isolate::IsSystemIsolate(this) && Service::isolate_stream.enabled()) {
     ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
-    Service::HandleEvent(&runnableEvent);
+    Service::HandleEvent(&runnableEvent, /* enter_safepoint */ false);
   }
   GetRunnableLatencyMetric()->set_value(UptimeMicros());
 #endif  // !PRODUCT
@@ -2344,8 +2304,12 @@ bool Isolate::NotifyErrorListeners(const char* message,
   msg.value.as_string = const_cast<char*>(message);
   arr_values[0] = &msg;
   Dart_CObject stack;
-  stack.type = Dart_CObject_kString;
-  stack.value.as_string = const_cast<char*>(stacktrace);
+  if (stacktrace == NULL) {
+    stack.type = Dart_CObject_kNull;
+  } else {
+    stack.type = Dart_CObject_kString;
+    stack.value.as_string = const_cast<char*>(stacktrace);
+  }
   arr_values[1] = &stack;
 
   SendPort& listener = SendPort::Handle(current_zone());
@@ -2393,11 +2357,79 @@ void Isolate::set_current_allocation_sample_block(SampleBlock* current) {
   }
   current_allocation_sample_block_ = current;
 }
+
+void Isolate::FreeSampleBlock(SampleBlock* block) {
+  if (block == nullptr) {
+    return;
+  }
+  SampleBlock* head;
+  // We're pushing the freed sample block to the front of the free_block_list_,
+  // which means the last element of the list will be the oldest freed sample.
+  do {
+    head = free_block_list_.load(std::memory_order_acquire);
+    block->next_free_ = head;
+  } while (!free_block_list_.compare_exchange_weak(head, block,
+                                                   std::memory_order_release));
+}
+
+void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
+  SampleBlock* head = free_block_list_.exchange(nullptr);
+  if (head == nullptr) {
+    // No sample blocks to process.
+    return;
+  }
+  // Reverse the list before processing so older blocks are streamed and reused
+  // first.
+  SampleBlock* reversed_head = nullptr;
+  do {
+    SampleBlock* next = head->next_free_;
+    if (reversed_head == nullptr) {
+      reversed_head = head;
+      reversed_head->next_free_ = nullptr;
+    } else {
+      head->next_free_ = reversed_head;
+      reversed_head = head;
+    }
+    head = next;
+  } while (head != nullptr);
+  head = reversed_head;
+
+  if (Service::profiler_stream.enabled() && !IsSystemIsolate(this)) {
+    SampleBlockListProcessor buffer(head);
+    StackZone zone(thread);
+    HandleScope handle_scope(thread);
+    Profile profile;
+    profile.Build(thread, nullptr, &buffer);
+    ServiceEvent event(this, ServiceEvent::kCpuSamples);
+    event.set_cpu_profile(&profile);
+    Service::HandleEvent(&event);
+  }
+
+  do {
+    SampleBlock* next = head->next_free_;
+    head->next_free_ = nullptr;
+    head->evictable_ = true;
+    Profiler::sample_block_buffer()->FreeBlock(head);
+    head = next;
+    thread->CheckForSafepoint();
+  } while (head != nullptr);
+}
 #endif  // !defined(PRODUCT)
 
 // static
 void Isolate::NotifyLowMemory() {
-  Isolate::KillAllIsolates(Isolate::kLowMemoryMsg);
+  IsolateGroup::ForEach([](IsolateGroup* group) { group->NotifyLowMemory(); });
+}
+
+void IsolateGroup::NotifyLowMemory() {
+  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
+  MonitorLocker ml2(Isolate::isolate_creation_monitor_);
+  for (Isolate* isolate : isolates_) {
+    if (isolate->AcceptsMessagesLocked()) {
+      isolate->KillLocked(Isolate::kLowMemoryMsg);
+      return;  // Only wake up one member of the group.
+    }
+  }
 }
 
 void Isolate::LowLevelShutdown() {
@@ -2493,6 +2525,25 @@ void Isolate::Shutdown() {
     ServiceIsolate::SendIsolateShutdownMessage();
 #if !defined(PRODUCT)
     debugger()->Shutdown();
+    // Cleanup profiler state.
+    SampleBlock* cpu_block = current_sample_block();
+    if (cpu_block != nullptr) {
+      cpu_block->release_block();
+    }
+    SampleBlock* allocation_block = current_allocation_sample_block();
+    if (allocation_block != nullptr) {
+      allocation_block->release_block();
+    }
+
+    // Process the previously assigned sample blocks if we're using the
+    // profiler's sample buffer. Some tests create their own SampleBlockBuffer
+    // and handle block processing themselves.
+    if ((cpu_block != nullptr || allocation_block != nullptr) &&
+        Profiler::sample_block_buffer() != nullptr) {
+      StackZone zone(thread);
+      HandleScope handle_scope(thread);
+      Profiler::sample_block_buffer()->ProcessCompletedBlocks();
+    }
 #endif
   }
 
@@ -2550,26 +2601,6 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   // From this point on the isolate doesn't participate in safepointing
   // requests anymore.
   Thread::ExitIsolate();
-
-#if !defined(PRODUCT)
-  // Cleanup profiler state.
-  SampleBlock* cpu_block = isolate->current_sample_block();
-  if (cpu_block != nullptr) {
-    cpu_block->release_block();
-  }
-  SampleBlock* allocation_block = isolate->current_allocation_sample_block();
-  if (allocation_block != nullptr) {
-    allocation_block->release_block();
-  }
-
-  // Process the previously assigned sample blocks if we're using the
-  // profiler's sample buffer. Some tests create their own SampleBlockBuffer
-  // and handle block processing themselves.
-  if ((cpu_block != nullptr || allocation_block != nullptr) &&
-      Profiler::sample_block_buffer() != nullptr) {
-    Profiler::sample_block_buffer()->ProcessCompletedBlocks();
-  }
-#endif  // !defined(PRODUCT)
 
   // Now it's safe to delete the isolate.
   delete isolate;
@@ -2643,14 +2674,16 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   ValidationPolicy validate_frames) {
   ASSERT(visitor != nullptr);
 
+  // Visit objects in the field table.
+  // N.B.: The heap snapshot writer requires visiting the field table first, so
+  // that the pointer visitation order aligns with order of field name metadata.
+  if (!visitor->trace_values_through_fields()) {
+    field_table()->VisitObjectPointers(visitor);
+  }
+
   // Visit objects in the isolate object store.
   if (isolate_object_store() != nullptr) {
     isolate_object_store()->VisitObjectPointers(visitor);
-  }
-
-  // Visit objects in the field table.
-  if (!visitor->trace_values_through_fields()) {
-    field_table()->VisitObjectPointers(visitor);
   }
 
   visitor->clear_gc_root_type();
@@ -2660,12 +2693,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ic_miss_code_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&tag_table_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
-  if (isolate_group_ != nullptr) {
-    if (isolate_group_->source()->loaded_blobs_ != nullptr) {
-      visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(
-          &(isolate_group_->source()->loaded_blobs_)));
-    }
-  }
 #if !defined(PRODUCT)
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&pending_service_extension_calls_));
@@ -2825,13 +2852,18 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
 
 void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                        ValidationPolicy validate_frames) {
+  VisitSharedPointers(visitor);
+  for (Isolate* isolate : isolates_) {
+    isolate->VisitObjectPointers(visitor, validate_frames);
+  }
+  VisitStackPointers(visitor, validate_frames);
+}
+
+void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
   // if class table is shared, it's stored on isolate group
   if (class_table() != nullptr) {
     // Visit objects in the class table.
     class_table()->VisitObjectPointers(visitor);
-  }
-  for (Isolate* isolate : isolates_) {
-    isolate->VisitObjectPointers(visitor, validate_frames);
   }
   api_state()->VisitObjectPointersUnlocked(visitor);
   // Visit objects in the object store.
@@ -2840,7 +2872,6 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
   initial_field_table()->VisitObjectPointers(visitor);
-  VisitStackPointers(visitor, validate_frames);
 
   // Visit the boxed_field_list_.
   // 'boxed_field_list_' access via mutator and background compilation threads
@@ -2864,6 +2895,15 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
         visitor);
   }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+  if (source()->loaded_blobs_ != nullptr) {
+    visitor->VisitPointer(
+        reinterpret_cast<ObjectPtr*>(&(source()->loaded_blobs_)));
+  }
+
+  if (become() != nullptr) {
+    become()->VisitObjectPointers(visitor);
+  }
 }
 
 void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
@@ -3291,8 +3331,8 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
     element = Smi::New(Isolate::kBeforeNextEventAction);
     msg.SetAt(2, element);
     std::unique_ptr<Message> message = WriteMessage(
-        /* can_send_any_object */ false, msg, main_port(),
-        Message::kOOBPriority);
+        /* can_send_any_object */ false, /* same_group */ false, msg,
+        main_port(), Message::kOOBPriority);
     bool posted = PortMap::PostMessage(std::move(message));
     ASSERT(posted);
   }

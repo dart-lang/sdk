@@ -11,7 +11,7 @@ class C extends core::Object {
     ;
   get x() → core::int
     return this.{self::C::_#C#x#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self::C::_#C#x}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("x");
-  set x(covariant core::int #t2) → void
+  set x(covariant-by-declaration core::int #t2) → void
     if(this.{self::C::_#C#x#isSet}{core::bool})
       throw new _in::LateError::fieldAI("x");
     else {
@@ -23,7 +23,7 @@ class D extends self::C {
   synthetic constructor •() → self::D
     : super self::C::•()
     ;
-  set x(covariant core::num value) → void {
+  set x(covariant-by-declaration core::num value) → void {
     super.{self::C::x} = value.{core::num::toInt}(){() → core::int};
   }
 }

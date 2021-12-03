@@ -18,178 +18,69 @@ class ToSourceVisitor implements AstVisitor<void> {
   /// visited nodes to the given [sink].
   ToSourceVisitor(this.sink);
 
-  /// Visit the given function [body], printing the [prefix] before if the body
-  /// is not empty.
-  @protected
-  void safelyVisitFunctionWithPrefix(String prefix, FunctionBody body) {
-    if (body is! EmptyFunctionBody) {
-      sink.write(prefix);
-    }
-    safelyVisitNode(body);
-  }
-
-  /// Safely visit the given [node].
-  @protected
-  void safelyVisitNode(AstNode? node) {
-    if (node != null) {
-      node.accept(this);
-    }
-  }
-
-  /// Print a list of [nodes] without any separation.
-  @protected
-  void safelyVisitNodeList(NodeList<AstNode> nodes) {
-    safelyVisitNodeListWithSeparator(nodes, "");
-  }
-
-  /// Print a list of [nodes], separated by the given [separator].
-  @protected
-  void safelyVisitNodeListWithSeparator(
-      NodeList<AstNode> nodes, String separator) {
-    int size = nodes.length;
-    for (int i = 0; i < size; i++) {
-      if (i > 0) {
-        sink.write(separator);
-      }
-      nodes[i].accept(this);
-    }
-  }
-
-  /// Print a list of [nodes], prefixed by the given [prefix] if the list is not
-  /// empty, and separated by the given [separator].
-  @protected
-  void safelyVisitNodeListWithSeparatorAndPrefix(
-      String prefix, NodeList<AstNode> nodes, String separator) {
-    int size = nodes.length;
-    if (size > 0) {
-      sink.write(prefix);
-      for (int i = 0; i < size; i++) {
-        if (i > 0) {
-          sink.write(separator);
-        }
-        nodes[i].accept(this);
-      }
-    }
-  }
-
-  /// Print a list of [nodes], separated by the given [separator], followed by
-  /// the given [suffix] if the list is not empty.
-  @protected
-  void safelyVisitNodeListWithSeparatorAndSuffix(
-      NodeList<AstNode> nodes, String separator, String suffix) {
-    int size = nodes.length;
-    if (size > 0) {
-      for (int i = 0; i < size; i++) {
-        if (i > 0) {
-          sink.write(separator);
-        }
-        nodes[i].accept(this);
-      }
-      sink.write(suffix);
-    }
-  }
-
-  /// Safely visit the given [node], printing the [prefix] before the node if it
-  /// is non-`null`.
-  @protected
-  void safelyVisitNodeWithPrefix(String prefix, AstNode? node) {
-    if (node != null) {
-      sink.write(prefix);
-      node.accept(this);
-    }
-  }
-
-  /// Safely visit the given [node], printing the [suffix] after the node if it
-  /// is non-`null`.
-  @protected
-  void safelyVisitNodeWithSuffix(AstNode? node, String suffix) {
-    if (node != null) {
-      node.accept(this);
-      sink.write(suffix);
-    }
-  }
-
-  /// Safely visit the given [token].
-  @protected
-  void safelyVisitToken(Token? token) {
-    if (token != null) {
-      sink.write(token.lexeme);
-    }
-  }
-
-  /// Safely visit the given [token], printing the [suffix] after the token if
-  /// it is non-`null`.
-  @protected
-  void safelyVisitTokenWithSuffix(Token? token, String suffix) {
-    if (token != null) {
-      sink.write(token.lexeme);
-      sink.write(suffix);
-    }
-  }
-
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
-    safelyVisitNodeListWithSeparator(node.strings, " ");
+    _visitNodeList(node.strings, separator: ' ');
   }
 
   @override
   void visitAnnotation(Annotation node) {
     sink.write('@');
-    safelyVisitNode(node.name);
-    safelyVisitNode(node.typeArguments);
-    safelyVisitNodeWithPrefix(".", node.constructorName);
-    safelyVisitNode(node.arguments);
+    _visitNode(node.name);
+    _visitNode(node.typeArguments);
+    _visitNode(node.constructorName, prefix: '.');
+    _visitNode(node.arguments);
   }
 
   @override
   void visitArgumentList(ArgumentList node) {
     sink.write('(');
-    safelyVisitNodeListWithSeparator(node.arguments, ", ");
+    _visitNodeList(node.arguments, separator: ', ');
     sink.write(')');
   }
 
   @override
   void visitAsExpression(AsExpression node) {
-    safelyVisitNode(node.expression);
-    sink.write(" as ");
-    safelyVisitNode(node.type);
+    _visitNode(node.expression);
+    sink.write(' as ');
+    _visitNode(node.type);
   }
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
-    sink.write("assert (");
-    safelyVisitNode(node.condition);
+    sink.write('assert (');
+    _visitNode(node.condition);
     if (node.message != null) {
       sink.write(', ');
-      safelyVisitNode(node.message);
+      _visitNode(node.message);
     }
-    sink.write(");");
+    sink.write(')');
   }
 
   @override
   void visitAssertStatement(AssertStatement node) {
-    sink.write("assert (");
-    safelyVisitNode(node.condition);
+    sink.write('assert (');
+    _visitNode(node.condition);
     if (node.message != null) {
       sink.write(', ');
-      safelyVisitNode(node.message);
+      _visitNode(node.message);
     }
-    sink.write(");");
+    sink.write(');');
   }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    safelyVisitNode(node.leftHandSide);
+    _visitNode(node.leftHandSide);
     sink.write(' ');
     sink.write(node.operator.lexeme);
     sink.write(' ');
-    safelyVisitNode(node.rightHandSide);
+    _visitNode(node.rightHandSide);
   }
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    sink.write("await ");
-    safelyVisitNode(node.expression);
+    sink.write('await ');
+    _visitNode(node.expression);
   }
 
   @override
@@ -204,7 +95,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitBlock(Block node) {
     sink.write('{');
-    safelyVisitNodeListWithSeparator(node.statements, " ");
+    _visitNodeList(node.statements, separator: ' ');
     sink.write('}');
   }
 
@@ -218,7 +109,7 @@ class ToSourceVisitor implements AstVisitor<void> {
       }
       sink.write(' ');
     }
-    safelyVisitNode(node.block);
+    _visitNode(node.block);
   }
 
   @override
@@ -228,63 +119,63 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    sink.write("break");
-    safelyVisitNodeWithPrefix(" ", node.label);
-    sink.write(";");
+    sink.write('break');
+    _visitNode(node.label, prefix: ' ');
+    sink.write(';');
   }
 
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    safelyVisitNode(node.target);
-    safelyVisitNodeList(node.cascadeSections);
+    _visitNode(node.target);
+    _visitNodeList(node.cascadeSections);
   }
 
   @override
   void visitCatchClause(CatchClause node) {
-    safelyVisitNodeWithPrefix("on ", node.exceptionType);
+    _visitNode(node.exceptionType, prefix: 'on ');
     if (node.catchKeyword != null) {
       if (node.exceptionType != null) {
         sink.write(' ');
       }
-      sink.write("catch (");
-      safelyVisitNode(node.exceptionParameter);
-      safelyVisitNodeWithPrefix(", ", node.stackTraceParameter);
-      sink.write(") ");
+      sink.write('catch (');
+      _visitNode(node.exceptionParameter);
+      _visitNode(node.stackTraceParameter, prefix: ', ');
+      sink.write(') ');
     } else {
-      sink.write(" ");
+      sink.write(' ');
     }
-    safelyVisitNode(node.body);
+    _visitNode(node.body);
   }
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    safelyVisitTokenWithSuffix(node.abstractKeyword, " ");
-    sink.write("class ");
-    safelyVisitNode(node.name);
-    safelyVisitNode(node.typeParameters);
-    safelyVisitNodeWithPrefix(" ", node.extendsClause);
-    safelyVisitNodeWithPrefix(" ", node.withClause);
-    safelyVisitNodeWithPrefix(" ", node.implementsClause);
-    sink.write(" {");
-    safelyVisitNodeListWithSeparator(node.members, " ");
-    sink.write("}");
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.abstractKeyword, suffix: ' ');
+    sink.write('class ');
+    _visitNode(node.name);
+    _visitNode(node.typeParameters);
+    _visitNode(node.extendsClause, prefix: ' ');
+    _visitNode(node.withClause, prefix: ' ');
+    _visitNode(node.implementsClause, prefix: ' ');
+    sink.write(' {');
+    _visitNodeList(node.members, separator: ' ');
+    sink.write('}');
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     if (node.abstractKeyword != null) {
-      sink.write("abstract ");
+      sink.write('abstract ');
     }
-    sink.write("class ");
-    safelyVisitNode(node.name);
-    safelyVisitNode(node.typeParameters);
-    sink.write(" = ");
-    safelyVisitNode(node.superclass);
-    safelyVisitNodeWithPrefix(" ", node.withClause);
-    safelyVisitNodeWithPrefix(" ", node.implementsClause);
-    sink.write(";");
+    sink.write('class ');
+    _visitNode(node.name);
+    _visitNode(node.typeParameters);
+    sink.write(' = ');
+    _visitNode(node.superclass2);
+    _visitNode(node.withClause, prefix: ' ');
+    _visitNode(node.implementsClause, prefix: ' ');
+    sink.write(';');
   }
 
   @override
@@ -297,103 +188,104 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitCompilationUnit(CompilationUnit node) {
     var scriptTag = node.scriptTag;
     NodeList<Directive> directives = node.directives;
-    safelyVisitNode(scriptTag);
-    String prefix = scriptTag == null ? "" : " ";
-    safelyVisitNodeListWithSeparatorAndPrefix(prefix, directives, " ");
-    prefix = scriptTag == null && directives.isEmpty ? "" : " ";
-    safelyVisitNodeListWithSeparatorAndPrefix(prefix, node.declarations, " ");
+    _visitNode(scriptTag);
+    String prefix = scriptTag == null ? '' : ' ';
+    _visitNodeList(directives, prefix: prefix, separator: ' ');
+    prefix = scriptTag == null && directives.isEmpty ? '' : ' ';
+    _visitNodeList(node.declarations, prefix: prefix, separator: ' ');
   }
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    safelyVisitNode(node.condition);
-    sink.write(" ? ");
-    safelyVisitNode(node.thenExpression);
-    sink.write(" : ");
-    safelyVisitNode(node.elseExpression);
+    _visitNode(node.condition);
+    sink.write(' ? ');
+    _visitNode(node.thenExpression);
+    sink.write(' : ');
+    _visitNode(node.elseExpression);
   }
 
   @override
   void visitConfiguration(Configuration node) {
     sink.write('if (');
-    safelyVisitNode(node.name);
-    safelyVisitNodeWithPrefix(" == ", node.value);
+    _visitNode(node.name);
+    _visitNode(node.value, prefix: ' == ');
     sink.write(') ');
-    safelyVisitNode(node.uri);
+    _visitNode(node.uri);
   }
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    safelyVisitTokenWithSuffix(node.externalKeyword, " ");
-    safelyVisitTokenWithSuffix(node.constKeyword, " ");
-    safelyVisitTokenWithSuffix(node.factoryKeyword, " ");
-    safelyVisitNode(node.returnType);
-    safelyVisitNodeWithPrefix(".", node.name);
-    safelyVisitNode(node.parameters);
-    safelyVisitNodeListWithSeparatorAndPrefix(" : ", node.initializers, ", ");
-    safelyVisitNodeWithPrefix(" = ", node.redirectedConstructor);
-    safelyVisitFunctionWithPrefix(" ", node.body);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.externalKeyword, suffix: ' ');
+    _visitToken(node.constKeyword, suffix: ' ');
+    _visitToken(node.factoryKeyword, suffix: ' ');
+    _visitNode(node.returnType);
+    _visitNode(node.name, prefix: '.');
+    _visitNode(node.parameters);
+    _visitNodeList(node.initializers, prefix: ' : ', separator: ', ');
+    _visitNode(node.redirectedConstructor, prefix: ' = ');
+    _visitFunctionBody(node.body);
   }
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    safelyVisitTokenWithSuffix(node.thisKeyword, ".");
-    safelyVisitNode(node.fieldName);
-    sink.write(" = ");
-    safelyVisitNode(node.expression);
+    _visitToken(node.thisKeyword, suffix: '.');
+    _visitNode(node.fieldName);
+    sink.write(' = ');
+    _visitNode(node.expression);
   }
 
   @override
   void visitConstructorName(ConstructorName node) {
-    safelyVisitNode(node.type);
-    safelyVisitNodeWithPrefix(".", node.name);
+    _visitNode(node.type2);
+    _visitNode(node.name, prefix: '.');
   }
 
   @override
   void visitConstructorReference(ConstructorReference node) {
-    safelyVisitNode(node.constructorName);
+    _visitNode(node.constructorName);
   }
 
   @override
   void visitContinueStatement(ContinueStatement node) {
-    sink.write("continue");
-    safelyVisitNodeWithPrefix(" ", node.label);
-    sink.write(";");
+    sink.write('continue');
+    _visitNode(node.label, prefix: ' ');
+    sink.write(';');
   }
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    safelyVisitTokenWithSuffix(node.keyword, " ");
-    safelyVisitNodeWithSuffix(node.type, " ");
-    safelyVisitNode(node.identifier);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.keyword, suffix: ' ');
+    _visitNode(node.type, suffix: ' ');
+    _visitNode(node.identifier);
   }
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    safelyVisitNode(node.parameter);
-    if (node.separator != null) {
-      if (node.separator!.lexeme != ":") {
-        sink.write(" ");
+    _visitNode(node.parameter);
+    var separator = node.separator;
+    if (separator != null) {
+      if (separator.lexeme != ':') {
+        sink.write(' ');
       }
-      sink.write(node.separator!.lexeme);
-      safelyVisitNodeWithPrefix(" ", node.defaultValue);
+      sink.write(separator.lexeme);
+      _visitNode(node.defaultValue, prefix: ' ');
     }
   }
 
   @override
   void visitDoStatement(DoStatement node) {
-    sink.write("do ");
-    safelyVisitNode(node.body);
-    sink.write(" while (");
-    safelyVisitNode(node.condition);
-    sink.write(");");
+    sink.write('do ');
+    _visitNode(node.body);
+    sink.write(' while (');
+    _visitNode(node.condition);
+    sink.write(');');
   }
 
   @override
   void visitDottedName(DottedName node) {
-    safelyVisitNodeListWithSeparator(node.components, ".");
+    _visitNodeList(node.components, separator: '.');
   }
 
   @override
@@ -413,26 +305,27 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    safelyVisitNode(node.name);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitNode(node.name);
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    sink.write("enum ");
-    safelyVisitNode(node.name);
-    sink.write(" {");
-    safelyVisitNodeListWithSeparator(node.constants, ", ");
-    sink.write("}");
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    sink.write('enum ');
+    _visitNode(node.name);
+    sink.write(' {');
+    _visitNodeList(node.constants, separator: ', ');
+    sink.write('}');
   }
 
   @override
   void visitExportDirective(ExportDirective node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    sink.write("export ");
-    safelyVisitNode(node.uri);
-    safelyVisitNodeListWithSeparatorAndPrefix(" ", node.combinators, " ");
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    sink.write('export ');
+    _visitNode(node.uri);
+    _visitNodeList(node.configurations, prefix: ' ', separator: ' ');
+    _visitNodeList(node.combinators, prefix: ' ', separator: ' ');
     sink.write(';');
   }
 
@@ -441,10 +334,13 @@ class ToSourceVisitor implements AstVisitor<void> {
     var keyword = node.keyword;
     if (keyword != null) {
       sink.write(keyword.lexeme);
+      if (node.star != null) {
+        sink.write('*');
+      }
       sink.write(' ');
     }
     sink.write('${node.functionDefinition.lexeme} ');
-    safelyVisitNode(node.expression);
+    _visitNode(node.expression);
     if (node.semicolon != null) {
       sink.write(';');
     }
@@ -452,83 +348,85 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
-    safelyVisitNode(node.expression);
+    _visitNode(node.expression);
     sink.write(';');
   }
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    sink.write("extends ");
-    safelyVisitNode(node.superclass);
+    sink.write('extends ');
+    _visitNode(node.superclass2);
   }
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
-    safelyVisitTokenWithSuffix(node.extensionKeyword, ' ');
-    safelyVisitTokenWithSuffix(node.typeKeyword, ' ');
-    safelyVisitNode(node.name);
-    safelyVisitNode(node.typeParameters);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.extensionKeyword, suffix: ' ');
+    _visitToken(node.typeKeyword, suffix: ' ');
+    _visitNode(node.name);
+    _visitNode(node.typeParameters);
     sink.write(' ');
-    safelyVisitToken(node.onKeyword);
+    _visitToken(node.onKeyword);
     sink.write(' ');
-    safelyVisitNodeWithSuffix(node.extendedType, ' ');
-    safelyVisitToken(node.leftBracket);
-    safelyVisitNodeListWithSeparator(node.members, ' ');
-    safelyVisitToken(node.rightBracket);
+    _visitNode(node.extendedType, suffix: ' ');
+    _visitNode(node.showClause, suffix: ' ');
+    _visitNode(node.hideClause, suffix: ' ');
+    _visitToken(node.leftBracket);
+    _visitNodeList(node.members, separator: ' ');
+    _visitToken(node.rightBracket);
   }
 
   @override
   void visitExtensionOverride(ExtensionOverride node) {
-    safelyVisitNode(node.extensionName);
-    safelyVisitNode(node.typeArguments);
-    safelyVisitNode(node.argumentList);
+    _visitNode(node.extensionName);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
   }
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    safelyVisitTokenWithSuffix(node.abstractKeyword, " ");
-    safelyVisitTokenWithSuffix(node.externalKeyword, " ");
-    safelyVisitTokenWithSuffix(node.staticKeyword, " ");
-    safelyVisitNode(node.fields);
-    sink.write(";");
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.abstractKeyword, suffix: ' ');
+    _visitToken(node.externalKeyword, suffix: ' ');
+    _visitToken(node.staticKeyword, suffix: ' ');
+    _visitNode(node.fields);
+    sink.write(';');
   }
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
-    safelyVisitTokenWithSuffix(node.requiredKeyword, " ");
-    safelyVisitTokenWithSuffix(node.covariantKeyword, ' ');
-    safelyVisitTokenWithSuffix(node.keyword, " ");
-    safelyVisitNodeWithSuffix(node.type, " ");
-    sink.write("this.");
-    safelyVisitNode(node.identifier);
-    safelyVisitNode(node.typeParameters);
-    safelyVisitNode(node.parameters);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.requiredKeyword, suffix: ' ');
+    _visitToken(node.covariantKeyword, suffix: ' ');
+    _visitToken(node.keyword, suffix: ' ');
+    _visitNode(node.type, suffix: ' ');
+    sink.write('this.');
+    _visitNode(node.identifier);
+    _visitNode(node.typeParameters);
+    _visitNode(node.parameters);
   }
 
   @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
-    safelyVisitNode(node.loopVariable);
+    _visitNode(node.loopVariable);
     sink.write(' in ');
-    safelyVisitNode(node.iterable);
+    _visitNode(node.iterable);
   }
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    safelyVisitNode(node.identifier);
+    _visitNode(node.identifier);
     sink.write(' in ');
-    safelyVisitNode(node.iterable);
+    _visitNode(node.iterable);
   }
 
   @override
   void visitForElement(ForElement node) {
-    safelyVisitTokenWithSuffix(node.awaitKeyword, ' ');
+    _visitToken(node.awaitKeyword, suffix: ' ');
     sink.write('for (');
-    safelyVisitNode(node.forLoopParts);
+    _visitNode(node.forLoopParts);
     sink.write(') ');
-    safelyVisitNode(node.body);
+    _visitNode(node.body);
   }
 
   @override
@@ -540,14 +438,14 @@ class ToSourceVisitor implements AstVisitor<void> {
     for (int i = 0; i < size; i++) {
       FormalParameter parameter = parameters[i];
       if (i > 0) {
-        sink.write(", ");
+        sink.write(', ');
       }
       if (groupEnd == null && parameter is DefaultFormalParameter) {
         if (parameter.isNamed) {
-          groupEnd = "}";
+          groupEnd = '}';
           sink.write('{');
         } else {
-          groupEnd = "]";
+          groupEnd = ']';
           sink.write('[');
         }
       }
@@ -561,20 +459,20 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    safelyVisitNode(node.variables);
+    _visitNode(node.variables);
     sink.write(';');
-    safelyVisitNodeWithPrefix(' ', node.condition);
+    _visitNode(node.condition, prefix: ' ');
     sink.write(';');
-    safelyVisitNodeListWithSeparatorAndPrefix(' ', node.updaters, ', ');
+    _visitNodeList(node.updaters, prefix: ' ', separator: ', ');
   }
 
   @override
   void visitForPartsWithExpression(ForPartsWithExpression node) {
-    safelyVisitNode(node.initialization);
+    _visitNode(node.initialization);
     sink.write(';');
-    safelyVisitNodeWithPrefix(' ', node.condition);
+    _visitNode(node.condition, prefix: ' ');
     sink.write(';');
-    safelyVisitNodeListWithSeparatorAndPrefix(" ", node.updaters, ', ');
+    _visitNodeList(node.updaters, prefix: ' ', separator: ', ');
   }
 
   @override
@@ -583,69 +481,66 @@ class ToSourceVisitor implements AstVisitor<void> {
       sink.write('await ');
     }
     sink.write('for (');
-    safelyVisitNode(node.forLoopParts);
+    _visitNode(node.forLoopParts);
     sink.write(') ');
-    safelyVisitNode(node.body);
+    _visitNode(node.body);
   }
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    safelyVisitTokenWithSuffix(node.externalKeyword, " ");
-    safelyVisitNodeWithSuffix(node.returnType, " ");
-    safelyVisitTokenWithSuffix(node.propertyKeyword, " ");
-    safelyVisitNode(node.name);
-    safelyVisitNode(node.functionExpression);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.externalKeyword, suffix: ' ');
+    _visitNode(node.returnType, suffix: ' ');
+    _visitToken(node.propertyKeyword, suffix: ' ');
+    _visitNode(node.name);
+    _visitNode(node.functionExpression);
   }
 
   @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    safelyVisitNode(node.functionDeclaration);
+    _visitNode(node.functionDeclaration);
   }
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    safelyVisitNode(node.typeParameters);
-    safelyVisitNode(node.parameters);
-    if (node.body is! EmptyFunctionBody) {
-      sink.write(' ');
-    }
-    safelyVisitNode(node.body);
+    _visitNode(node.typeParameters);
+    _visitNode(node.parameters);
+    _visitFunctionBody(node.body);
   }
 
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    safelyVisitNode(node.function);
-    safelyVisitNode(node.typeArguments);
-    safelyVisitNode(node.argumentList);
+    _visitNode(node.function);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
   }
 
   @override
   void visitFunctionReference(FunctionReference node) {
-    safelyVisitNode(node.function);
-    safelyVisitNode(node.typeArguments);
+    _visitNode(node.function);
+    _visitNode(node.typeArguments);
   }
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    sink.write("typedef ");
-    safelyVisitNodeWithSuffix(node.returnType, " ");
-    safelyVisitNode(node.name);
-    safelyVisitNode(node.typeParameters);
-    safelyVisitNode(node.parameters);
-    sink.write(";");
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    sink.write('typedef ');
+    _visitNode(node.returnType, suffix: ' ');
+    _visitNode(node.name);
+    _visitNode(node.typeParameters);
+    _visitNode(node.parameters);
+    sink.write(';');
   }
 
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
-    safelyVisitTokenWithSuffix(node.requiredKeyword, ' ');
-    safelyVisitTokenWithSuffix(node.covariantKeyword, ' ');
-    safelyVisitNodeWithSuffix(node.returnType, " ");
-    safelyVisitNode(node.identifier);
-    safelyVisitNode(node.typeParameters);
-    safelyVisitNode(node.parameters);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.requiredKeyword, suffix: ' ');
+    _visitToken(node.covariantKeyword, suffix: ' ');
+    _visitNode(node.returnType, suffix: ' ');
+    _visitNode(node.identifier);
+    _visitNode(node.typeParameters);
+    _visitNode(node.parameters);
     if (node.question != null) {
       sink.write('?');
     }
@@ -653,10 +548,10 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
-    safelyVisitNode(node.returnType);
+    _visitNode(node.returnType);
     sink.write(' Function');
-    safelyVisitNode(node.typeParameters);
-    safelyVisitNode(node.parameters);
+    _visitNode(node.typeParameters);
+    _visitNode(node.parameters);
     if (node.question != null) {
       sink.write('?');
     }
@@ -664,75 +559,89 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    sink.write("typedef ");
-    safelyVisitNode(node.name);
-    safelyVisitNode(node.typeParameters);
-    sink.write(" = ");
-    safelyVisitNode(node.type);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    sink.write('typedef ');
+    _visitNode(node.name);
+    _visitNode(node.typeParameters);
+    sink.write(' = ');
+    _visitNode(node.type);
+    sink.write(';');
+  }
+
+  @override
+  void visitHideClause(HideClause node) {
+    sink.write('hide ');
+    _visitNodeList(node.elements, separator: ', ');
   }
 
   @override
   void visitHideCombinator(HideCombinator node) {
-    sink.write("hide ");
-    safelyVisitNodeListWithSeparator(node.hiddenNames, ", ");
+    sink.write('hide ');
+    _visitNodeList(node.hiddenNames, separator: ', ');
   }
 
   @override
   void visitIfElement(IfElement node) {
     sink.write('if (');
-    safelyVisitNode(node.condition);
+    _visitNode(node.condition);
     sink.write(') ');
-    safelyVisitNode(node.thenElement);
-    safelyVisitNodeWithPrefix(' else ', node.elseElement);
+    _visitNode(node.thenElement);
+    _visitNode(node.elseElement, prefix: ' else ');
   }
 
   @override
   void visitIfStatement(IfStatement node) {
-    sink.write("if (");
-    safelyVisitNode(node.condition);
-    sink.write(") ");
-    safelyVisitNode(node.thenStatement);
-    safelyVisitNodeWithPrefix(" else ", node.elseStatement);
+    sink.write('if (');
+    _visitNode(node.condition);
+    sink.write(') ');
+    _visitNode(node.thenStatement);
+    _visitNode(node.elseStatement, prefix: ' else ');
   }
 
   @override
   void visitImplementsClause(ImplementsClause node) {
-    sink.write("implements ");
-    safelyVisitNodeListWithSeparator(node.interfaces, ", ");
+    sink.write('implements ');
+    _visitNodeList(node.interfaces2, separator: ', ');
+  }
+
+  @override
+  void visitImplicitCallReference(ImplicitCallReference node) {
+    _visitNode(node.expression);
+    _visitNode(node.typeArguments);
   }
 
   @override
   void visitImportDirective(ImportDirective node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    sink.write("import ");
-    safelyVisitNode(node.uri);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    sink.write('import ');
+    _visitNode(node.uri);
+    _visitNodeList(node.configurations, prefix: ' ', separator: ' ');
     if (node.deferredKeyword != null) {
-      sink.write(" deferred");
+      sink.write(' deferred');
     }
-    safelyVisitNodeWithPrefix(" as ", node.prefix);
-    safelyVisitNodeListWithSeparatorAndPrefix(" ", node.combinators, " ");
+    _visitNode(node.prefix, prefix: ' as ');
+    _visitNodeList(node.combinators, prefix: ' ', separator: ' ');
     sink.write(';');
   }
 
   @override
   void visitIndexExpression(IndexExpression node) {
     if (node.isCascaded) {
-      safelyVisitToken(node.period);
+      _visitToken(node.period);
     } else {
-      safelyVisitNode(node.target);
+      _visitNode(node.target);
     }
-    safelyVisitToken(node.question);
-    safelyVisitToken(node.leftBracket);
-    safelyVisitNode(node.index);
-    safelyVisitToken(node.rightBracket);
+    _visitToken(node.question);
+    _visitToken(node.leftBracket);
+    _visitNode(node.index);
+    _visitToken(node.rightBracket);
   }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    safelyVisitTokenWithSuffix(node.keyword, " ");
-    safelyVisitNode(node.constructorName);
-    safelyVisitNode(node.argumentList);
+    _visitToken(node.keyword, suffix: ' ');
+    _visitNode(node.constructorName);
+    _visitNode(node.argumentList);
   }
 
   @override
@@ -743,12 +652,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
     if (node.rightBracket != null) {
-      sink.write("\${");
-      safelyVisitNode(node.expression);
-      sink.write("}");
+      sink.write('\${');
+      _visitNode(node.expression);
+      sink.write('}');
     } else {
-      sink.write("\$");
-      safelyVisitNode(node.expression);
+      sink.write('\$');
+      _visitNode(node.expression);
     }
   }
 
@@ -759,32 +668,32 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitIsExpression(IsExpression node) {
-    safelyVisitNode(node.expression);
+    _visitNode(node.expression);
     if (node.notOperator == null) {
-      sink.write(" is ");
+      sink.write(' is ');
     } else {
-      sink.write(" is! ");
+      sink.write(' is! ');
     }
-    safelyVisitNode(node.type);
+    _visitNode(node.type);
   }
 
   @override
   void visitLabel(Label node) {
-    safelyVisitNode(node.label);
-    sink.write(":");
+    _visitNode(node.label);
+    sink.write(':');
   }
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.labels, " ", " ");
-    safelyVisitNode(node.statement);
+    _visitNodeList(node.labels, separator: ' ', suffix: ' ');
+    _visitNode(node.statement);
   }
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    sink.write("library ");
-    safelyVisitNode(node.name);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    sink.write('library ');
+    _visitNode(node.name);
     sink.write(';');
   }
 
@@ -795,115 +704,118 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    safelyVisitTokenWithSuffix(node.constKeyword, ' ');
-    safelyVisitNode(node.typeArguments);
+    _visitToken(node.constKeyword, suffix: ' ');
+    _visitNode(node.typeArguments);
     sink.write('[');
-    safelyVisitNodeListWithSeparator(node.elements, ', ');
+    _visitNodeList(node.elements, separator: ', ');
     sink.write(']');
   }
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
-    safelyVisitNode(node.key);
-    sink.write(" : ");
-    safelyVisitNode(node.value);
+    _visitNode(node.key);
+    sink.write(' : ');
+    _visitNode(node.value);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    safelyVisitTokenWithSuffix(node.externalKeyword, " ");
-    safelyVisitTokenWithSuffix(node.modifierKeyword, " ");
-    safelyVisitNodeWithSuffix(node.returnType, " ");
-    safelyVisitTokenWithSuffix(node.propertyKeyword, " ");
-    safelyVisitTokenWithSuffix(node.operatorKeyword, " ");
-    safelyVisitNode(node.name);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.externalKeyword, suffix: ' ');
+    _visitToken(node.modifierKeyword, suffix: ' ');
+    _visitNode(node.returnType, suffix: ' ');
+    _visitToken(node.propertyKeyword, suffix: ' ');
+    _visitToken(node.operatorKeyword, suffix: ' ');
+    _visitNode(node.name);
     if (!node.isGetter) {
-      safelyVisitNode(node.typeParameters);
-      safelyVisitNode(node.parameters);
+      _visitNode(node.typeParameters);
+      _visitNode(node.parameters);
     }
-    safelyVisitFunctionWithPrefix(" ", node.body);
+    _visitFunctionBody(node.body);
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.isCascaded) {
-      sink.write(node.operator!.lexeme);
-    } else {
-      if (node.target != null) {
-        node.target!.accept(this);
-        sink.write(node.operator!.lexeme);
-      }
-    }
-    safelyVisitNode(node.methodName);
-    safelyVisitNode(node.typeArguments);
-    safelyVisitNode(node.argumentList);
+    _visitNode(node.target);
+    _visitToken(node.operator);
+    _visitNode(node.methodName);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
   }
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    sink.write("mixin ");
-    safelyVisitNode(node.name);
-    safelyVisitNode(node.typeParameters);
-    safelyVisitNodeWithPrefix(" ", node.onClause);
-    safelyVisitNodeWithPrefix(" ", node.implementsClause);
-    sink.write(" {");
-    safelyVisitNodeListWithSeparator(node.members, " ");
-    sink.write("}");
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    sink.write('mixin ');
+    _visitNode(node.name);
+    _visitNode(node.typeParameters);
+    _visitNode(node.onClause, prefix: ' ');
+    _visitNode(node.implementsClause, prefix: ' ');
+    sink.write(' {');
+    _visitNodeList(node.members, separator: ' ');
+    sink.write('}');
   }
 
   @override
   void visitNamedExpression(NamedExpression node) {
-    safelyVisitNode(node.name);
-    safelyVisitNodeWithPrefix(" ", node.expression);
+    _visitNode(node.name);
+    _visitNode(node.expression, prefix: ' ');
+  }
+
+  @override
+  void visitNamedType(NamedType node) {
+    _visitNode(node.name);
+    _visitNode(node.typeArguments);
+    if (node.question != null) {
+      sink.write('?');
+    }
   }
 
   @override
   void visitNativeClause(NativeClause node) {
-    sink.write("native ");
-    safelyVisitNode(node.name);
+    sink.write('native ');
+    _visitNode(node.name);
   }
 
   @override
   void visitNativeFunctionBody(NativeFunctionBody node) {
-    sink.write("native ");
-    safelyVisitNode(node.stringLiteral);
+    sink.write('native ');
+    _visitNode(node.stringLiteral);
     sink.write(';');
   }
 
   @override
   void visitNullLiteral(NullLiteral node) {
-    sink.write("null");
+    sink.write('null');
   }
 
   @override
   void visitOnClause(OnClause node) {
     sink.write('on ');
-    safelyVisitNodeListWithSeparator(node.superclassConstraints, ", ");
+    _visitNodeList(node.superclassConstraints2, separator: ', ');
   }
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     sink.write('(');
-    safelyVisitNode(node.expression);
+    _visitNode(node.expression);
     sink.write(')');
   }
 
   @override
   void visitPartDirective(PartDirective node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    sink.write("part ");
-    safelyVisitNode(node.uri);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    sink.write('part ');
+    _visitNode(node.uri);
     sink.write(';');
   }
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    sink.write("part of ");
-    safelyVisitNode(node.libraryName);
-    safelyVisitNode(node.uri);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    sink.write('part of ');
+    _visitNode(node.libraryName);
+    _visitNode(node.uri);
     sink.write(';');
   }
 
@@ -915,9 +827,9 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    safelyVisitNode(node.prefix);
+    _visitNode(node.prefix);
     sink.write('.');
-    safelyVisitNode(node.identifier);
+    _visitNode(node.identifier);
   }
 
   @override
@@ -931,34 +843,34 @@ class ToSourceVisitor implements AstVisitor<void> {
     if (node.isCascaded) {
       sink.write(node.operator.lexeme);
     } else {
-      safelyVisitNode(node.target);
+      _visitNode(node.target);
       sink.write(node.operator.lexeme);
     }
-    safelyVisitNode(node.propertyName);
+    _visitNode(node.propertyName);
   }
 
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    sink.write("this");
-    safelyVisitNodeWithPrefix(".", node.constructorName);
-    safelyVisitNode(node.argumentList);
+    sink.write('this');
+    _visitNode(node.constructorName, prefix: '.');
+    _visitNode(node.argumentList);
   }
 
   @override
   void visitRethrowExpression(RethrowExpression node) {
-    sink.write("rethrow");
+    sink.write('rethrow');
   }
 
   @override
   void visitReturnStatement(ReturnStatement node) {
     var expression = node.expression;
     if (expression == null) {
-      sink.write("return;");
+      sink.write('return;');
     } else {
-      sink.write("return ");
+      sink.write('return ');
       expression.accept(this);
-      sink.write(";");
+      sink.write(';');
     }
   }
 
@@ -969,30 +881,42 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    safelyVisitTokenWithSuffix(node.constKeyword, ' ');
-    safelyVisitNode(node.typeArguments);
+    _visitToken(node.constKeyword, suffix: ' ');
+    _visitNode(node.typeArguments);
     sink.write('{');
-    safelyVisitNodeListWithSeparator(node.elements, ', ');
+    _visitNodeList(node.elements, separator: ', ');
     sink.write('}');
   }
 
   @override
+  void visitShowClause(ShowClause node) {
+    sink.write('show ');
+    _visitNodeList(node.elements, separator: ', ');
+  }
+
+  @override
   void visitShowCombinator(ShowCombinator node) {
-    sink.write("show ");
-    safelyVisitNodeListWithSeparator(node.shownNames, ", ");
+    sink.write('show ');
+    _visitNodeList(node.shownNames, separator: ', ');
+  }
+
+  @override
+  void visitShowHideElement(ShowHideElement node) {
+    _visitToken(node.modifier, suffix: ' ');
+    _visitNode(node.name);
   }
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
-    safelyVisitTokenWithSuffix(node.requiredKeyword, ' ');
-    safelyVisitTokenWithSuffix(node.covariantKeyword, ' ');
-    safelyVisitTokenWithSuffix(node.keyword, " ");
-    safelyVisitNode(node.type);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.requiredKeyword, suffix: ' ');
+    _visitToken(node.covariantKeyword, suffix: ' ');
+    _visitToken(node.keyword, suffix: ' ');
+    _visitNode(node.type);
     if (node.type != null && node.identifier != null) {
       sink.write(' ');
     }
-    safelyVisitNode(node.identifier);
+    _visitNode(node.identifier);
   }
 
   @override
@@ -1008,58 +932,58 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitSpreadElement(SpreadElement node) {
     sink.write(node.spreadOperator.lexeme);
-    safelyVisitNode(node.expression);
+    _visitNode(node.expression);
   }
 
   @override
   void visitStringInterpolation(StringInterpolation node) {
-    safelyVisitNodeList(node.elements);
+    _visitNodeList(node.elements);
   }
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    sink.write("super");
-    safelyVisitNodeWithPrefix(".", node.constructorName);
-    safelyVisitNode(node.argumentList);
+    sink.write('super');
+    _visitNode(node.constructorName, prefix: '.');
+    _visitNode(node.argumentList);
   }
 
   @override
   void visitSuperExpression(SuperExpression node) {
-    sink.write("super");
+    sink.write('super');
   }
 
   @override
   void visitSwitchCase(SwitchCase node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.labels, " ", " ");
-    sink.write("case ");
-    safelyVisitNode(node.expression);
-    sink.write(": ");
-    safelyVisitNodeListWithSeparator(node.statements, " ");
+    _visitNodeList(node.labels, separator: ' ', suffix: ' ');
+    sink.write('case ');
+    _visitNode(node.expression);
+    sink.write(': ');
+    _visitNodeList(node.statements, separator: ' ');
   }
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.labels, " ", " ");
-    sink.write("default: ");
-    safelyVisitNodeListWithSeparator(node.statements, " ");
+    _visitNodeList(node.labels, separator: ' ', suffix: ' ');
+    sink.write('default: ');
+    _visitNodeList(node.statements, separator: ' ');
   }
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    sink.write("switch (");
-    safelyVisitNode(node.expression);
-    sink.write(") {");
-    safelyVisitNodeListWithSeparator(node.members, " ");
-    sink.write("}");
+    sink.write('switch (');
+    _visitNode(node.expression);
+    sink.write(') {');
+    _visitNodeList(node.members, separator: ' ');
+    sink.write('}');
   }
 
   @override
   void visitSymbolLiteral(SymbolLiteral node) {
-    sink.write("#");
+    sink.write('#');
     List<Token> components = node.components;
     for (int i = 0; i < components.length; i++) {
       if (i > 0) {
-        sink.write(".");
+        sink.write('.');
       }
       sink.write(components[i].lexeme);
     }
@@ -1067,115 +991,157 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitThisExpression(ThisExpression node) {
-    sink.write("this");
+    sink.write('this');
   }
 
   @override
   void visitThrowExpression(ThrowExpression node) {
-    sink.write("throw ");
-    safelyVisitNode(node.expression);
+    sink.write('throw ');
+    _visitNode(node.expression);
   }
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    safelyVisitTokenWithSuffix(node.externalKeyword, " ");
-    safelyVisitNodeWithSuffix(node.variables, ";");
+    _visitToken(node.externalKeyword, suffix: ' ');
+    _visitNode(node.variables, suffix: ';');
   }
 
   @override
   void visitTryStatement(TryStatement node) {
-    sink.write("try ");
-    safelyVisitNode(node.body);
-    safelyVisitNodeListWithSeparatorAndPrefix(" ", node.catchClauses, " ");
-    safelyVisitNodeWithPrefix(" finally ", node.finallyBlock);
+    sink.write('try ');
+    _visitNode(node.body);
+    _visitNodeList(node.catchClauses, prefix: ' ', separator: ' ');
+    _visitNode(node.finallyBlock, prefix: ' finally ');
   }
 
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
     sink.write('<');
-    safelyVisitNodeListWithSeparator(node.arguments, ", ");
+    _visitNodeList(node.arguments, separator: ', ');
     sink.write('>');
   }
 
   @override
   void visitTypeLiteral(TypeLiteral node) {
-    safelyVisitNode(node.typeName);
+    _visitNode(node.type);
   }
 
+  @Deprecated('Override visitNamedType instead')
   @override
   void visitTypeName(TypeName node) {
-    safelyVisitNode(node.name);
-    safelyVisitNode(node.typeArguments);
-    if (node.question != null) {
-      sink.write('?');
-    }
+    throw StateError('Should not be invoked');
   }
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
     // added to the interface.
     var varianceKeyword = (node as TypeParameterImpl).varianceKeyword;
     if (varianceKeyword != null) {
       sink.write(varianceKeyword.lexeme + ' ');
     }
-    safelyVisitNode(node.name);
-    safelyVisitNodeWithPrefix(" extends ", node.bound);
+    _visitNode(node.name);
+    _visitNode(node.bound, prefix: ' extends ');
   }
 
   @override
   void visitTypeParameterList(TypeParameterList node) {
     sink.write('<');
-    safelyVisitNodeListWithSeparator(node.typeParameters, ", ");
+    _visitNodeList(node.typeParameters, separator: ', ');
     sink.write('>');
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    safelyVisitNode(node.name);
-    safelyVisitNodeWithPrefix(" = ", node.initializer);
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitNode(node.name);
+    _visitNode(node.initializer, prefix: ' = ');
   }
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
-    safelyVisitTokenWithSuffix(node.lateKeyword, " ");
-    safelyVisitTokenWithSuffix(node.keyword, " ");
-    safelyVisitNodeWithSuffix(node.type, " ");
-    safelyVisitNodeListWithSeparator(node.variables, ", ");
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.lateKeyword, suffix: ' ');
+    _visitToken(node.keyword, suffix: ' ');
+    _visitNode(node.type, suffix: ' ');
+    _visitNodeList(node.variables, separator: ', ');
   }
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    safelyVisitNode(node.variables);
-    sink.write(";");
+    _visitNode(node.variables);
+    sink.write(';');
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    sink.write("while (");
-    safelyVisitNode(node.condition);
-    sink.write(") ");
-    safelyVisitNode(node.body);
+    sink.write('while (');
+    _visitNode(node.condition);
+    sink.write(') ');
+    _visitNode(node.body);
   }
 
   @override
   void visitWithClause(WithClause node) {
-    sink.write("with ");
-    safelyVisitNodeListWithSeparator(node.mixinTypes, ", ");
+    sink.write('with ');
+    _visitNodeList(node.mixinTypes2, separator: ', ');
   }
 
   @override
   void visitYieldStatement(YieldStatement node) {
     if (node.star != null) {
-      sink.write("yield* ");
+      sink.write('yield* ');
     } else {
-      sink.write("yield ");
+      sink.write('yield ');
     }
-    safelyVisitNode(node.expression);
-    sink.write(";");
+    _visitNode(node.expression);
+    sink.write(';');
+  }
+
+  /// Visit the given function [body], printing a prefix before if the body
+  /// is not empty.
+  void _visitFunctionBody(FunctionBody body) {
+    if (body is! EmptyFunctionBody) {
+      sink.write(' ');
+    }
+    _visitNode(body);
+  }
+
+  /// Print the given [node], printing the [prefix] before the node,
+  /// and [suffix] after the node, if it is non-`null`.
+  void _visitNode(AstNode? node, {String prefix = '', String suffix = ''}) {
+    if (node != null) {
+      sink.write(prefix);
+      node.accept(this);
+      sink.write(suffix);
+    }
+  }
+
+  /// Print a list of [nodes], separated by the given [separator]; if the list
+  /// is not empty print [prefix] before the first node, and [suffix] after
+  /// the last node.
+  void _visitNodeList(List<AstNode> nodes,
+      {String prefix = '', String separator = '', String suffix = ''}) {
+    var length = nodes.length;
+    if (length > 0) {
+      sink.write(prefix);
+      for (int i = 0; i < length; i++) {
+        if (i > 0) {
+          sink.write(separator);
+        }
+        nodes[i].accept(this);
+      }
+      sink.write(suffix);
+    }
+  }
+
+  /// Print the given [token].
+  void _visitToken(Token? token, {String suffix = ''}) {
+    if (token != null) {
+      sink.write(token.lexeme);
+      sink.write(suffix);
+    }
   }
 
   void _writeOperand(Expression node, Expression operand) {

@@ -16,7 +16,7 @@ class _Class extends core::Object { // from org-dartlang-testcase:///private_mem
   constructor _privateConstructor() → self::_Class
     ;
   static factory _privateRedirectingFactory() → self::_Class
-    let dynamic #redirecting_factory = self::_Class::_privateConstructor in invalid-expression;
+    return new self::_Class::_privateConstructor();
   method _privateMethod() → void
     ;
   get _privateGetter() → core::int
@@ -46,3 +46,8 @@ static method /* from org-dartlang-testcase:///private_members_part.dart */ _Ext
   ;
 static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|set#_privateSetter(lowered final core::int #this, core::int value) → void
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///private_members_part.dart:11:7 -> ConstructorTearOffConstant(_Class._privateRedirectingFactory)
+Extra constant evaluation: evaluated: 6, effectively constant: 1

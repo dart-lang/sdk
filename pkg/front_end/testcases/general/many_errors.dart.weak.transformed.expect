@@ -139,6 +139,6 @@ Try using a constructor or factory that is 'const'.
  - 'B' is from 'pkg/front_end/testcases/general/many_errors.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
   (new C()?.b ??= new B()).b;
-                           ^";
+                           ^" in (let final self::C* #t3 = new self::C::•() in #t3 == null ?{self::B*} null : let final self::B* #t4 = #t3.{self::C::b}{self::B*} in #t4 == null ?{self::B*} #t3.{self::C::b} = new self::B::•() : #t4){<unresolved>}.b;
 }
 static method main() → dynamic {}

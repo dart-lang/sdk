@@ -42,9 +42,9 @@ abstract class I<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::I<self::I::T*>*
     ;
   abstract get x() → self::I::T*;
-  abstract set x(generic-covariant-impl self::I::T* value) → void;
+  abstract set x(covariant-by-class self::I::T* value) → void;
   abstract get y() → core::Object*;
-  abstract set y(covariant core::Object* value) → void;
+  abstract set y(covariant-by-declaration core::Object* value) → void;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -78,11 +78,11 @@ class C = self::B with self::M implements self::I<core::int*> {
     ;
   mixin-super-stub get x() → core::int*
     return super.{self::M::x};
-  forwarding-stub set x(generic-covariant-impl core::int* value) → void
+  forwarding-stub set x(covariant-by-class core::int* value) → void
     return super.{self::M::x} = value;
   mixin-super-stub get y() → core::int*
     return super.{self::M::y};
-  forwarding-stub set y(covariant core::int* value) → void
+  forwarding-stub set y(covariant-by-declaration core::int* value) → void
     return super.{self::M::y} = value;
 }
 static method expectTypeError(() →* void callback) → void

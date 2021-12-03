@@ -326,7 +326,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'abstractKeyword': node.abstractKeyword,
       'name': node.name,
       'typeParameters': node.typeParameters,
-      'superclass': node.superclass,
+      'superclass': node.superclass2,
       'withClause': node.withClause,
       'implementsClause': node.implementsClause,
     });
@@ -343,7 +343,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   void visitCommentReference(CommentReference node) {
     _visitChildren(node, {
       'newKeyword': node.newKeyword,
-      'identifier': node.identifier,
+      'expression': node.expression,
     });
     super.visitCommentReference(node);
   }
@@ -409,7 +409,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitConstructorName(ConstructorName node) {
     _visitChildren(node, {
-      'type': node.type,
+      'type': node.type2,
       'name': node.name,
     });
     super.visitConstructorName(node);
@@ -531,7 +531,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitExtendsClause(ExtendsClause node) {
     _visitChildren(node, {
-      'superclass': node.superclass,
+      'superclass': node.superclass2,
     });
     super.visitExtendsClause(node);
   }
@@ -775,7 +775,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitImplementsClause(ImplementsClause node) {
     _visitChildren(node, {
-      'interfaces': node.interfaces,
+      'interfaces': node.interfaces2,
     });
     super.visitImplementsClause(node);
   }
@@ -954,6 +954,16 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNamedType(NamedType node) {
+    _visitChildren(node, {
+      'name': node.name,
+      'typeArguments': node.typeArguments,
+      'question': node.question,
+    });
+    super.visitNamedType(node);
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     _visitChildren(node, {
       'name': node.name,
@@ -976,7 +986,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitOnClause(OnClause node) {
     _visitChildren(node, {
-      'superclassConstraints': node.superclassConstraints,
+      'superclassConstraints': node.superclassConstraints2,
     });
     super.visitOnClause(node);
   }
@@ -1220,16 +1230,6 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitTypeName(TypeName node) {
-    _visitChildren(node, {
-      'name': node.name,
-      'typeArguments': node.typeArguments,
-      'question': node.question,
-    });
-    super.visitTypeName(node);
-  }
-
-  @override
   void visitTypeParameter(TypeParameter node) {
     _visitChildren(node, {
       'name': node.name,
@@ -1286,7 +1286,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitWithClause(WithClause node) {
     _visitChildren(node, {
-      'mixinTypes': node.mixinTypes,
+      'mixinTypes': node.mixinTypes2,
     });
     super.visitWithClause(node);
   }

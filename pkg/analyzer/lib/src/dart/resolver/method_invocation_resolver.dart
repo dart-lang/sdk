@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
@@ -74,9 +73,6 @@ class MethodInvocationResolver {
         _localVariableTypeProvider = _resolver.localVariableTypeProvider,
         _extensionResolver = _resolver.extensionResolver,
         _inferenceHelper = inferenceHelper;
-
-  /// The scope used to resolve identifiers.
-  Scope get nameScope => _resolver.nameScope;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
@@ -168,6 +164,21 @@ class MethodInvocationResolver {
       return;
     }
 
+    if (receiver is TypeLiteralImpl &&
+        receiver.type.typeArguments != null &&
+        receiver.type.type is FunctionType) {
+      // There is no possible resolution for a property access of a function
+      // type literal (which can only be a type instantiation of a type alias
+      // of a function type).
+      _resolver.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE,
+        nameNode,
+        [name, receiver.type.name.name],
+      );
+      _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
+      return;
+    }
+
     _resolveReceiverType(
       node: node,
       receiver: receiver,
@@ -198,7 +209,7 @@ class MethodInvocationResolver {
 
     expression.staticType = type;
     if (_resolver.typeSystem.isBottom(type)) {
-      _resolver.flowAnalysis?.flow?.handleExit();
+      _resolver.flowAnalysis.flow?.handleExit();
     }
   }
 
@@ -207,27 +218,45 @@ class MethodInvocationResolver {
     ExecutableElement element,
     bool nullReceiver,
   ) {
-    if (_resolver.enclosingExtension != null) {
+    var enclosingElement = element.enclosingElement;
+    if (nullReceiver) {
+      if (_resolver.enclosingExtension != null) {
+        _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
+          nameNode,
+          [enclosingElement.displayName],
+        );
+      } else {
+        _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          nameNode,
+          [enclosingElement.displayName],
+        );
+      }
+    } else if (enclosingElement is ExtensionElement &&
+        enclosingElement.name == null) {
       _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode
-            .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
-        nameNode,
-        [element.enclosingElement.displayName],
-      );
-    } else if (nullReceiver) {
-      _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-        nameNode,
-        [element.enclosingElement.displayName],
-      );
+          CompileTimeErrorCode
+              .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+          nameNode,
+          [
+            nameNode.name,
+            element.kind.displayName,
+          ]);
     } else {
+      // It is safe to assume that `enclosingElement.name` is non-`null` because
+      // it can only be `null` for extensions, and we handle that case above.
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
         nameNode,
         [
           nameNode.name,
           element.kind.displayName,
-          element.enclosingElement.displayName,
+          enclosingElement.name!,
+          enclosingElement is ClassElement && enclosingElement.isMixin
+              ? 'mixin'
+              : enclosingElement.kind.displayName,
         ],
       );
     }
@@ -364,10 +393,12 @@ class MethodInvocationResolver {
     }
 
     _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
+    // This method is only called for named extensions, so we know that
+    // `extension.name` is non-`null`.
     _resolver.errorReporter.reportErrorForNode(
       CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
       nameNode,
-      [name, extension.name],
+      [name, extension.name!],
     );
   }
 
@@ -382,10 +413,12 @@ class MethodInvocationResolver {
 
     if (member == null) {
       _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
+      // Extension overrides always refer to named extensions, so we can safely
+      // assume `override.staticElement!.name` is non-`null`.
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
         nameNode,
-        [name, override.staticElement!.name],
+        [name, override.staticElement!.name!],
       );
       return;
     }
@@ -495,9 +528,11 @@ class MethodInvocationResolver {
         );
       } else {
         _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
-        _resolver.nullableDereferenceVerifier.report(methodName, receiverType,
-            errorCode: CompileTimeErrorCode
-                .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE);
+        _resolver.nullableDereferenceVerifier.report(
+          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          methodName,
+          receiverType,
+        );
       }
       return;
     }
@@ -531,7 +566,7 @@ class MethodInvocationResolver {
       SimpleIdentifierImpl nameNode,
       String name,
       List<WhyNotPromotedGetter> whyNotPromotedList) {
-    var element = nameScope.lookup(name).getter;
+    var element = nameNode.scopeLookupResult!.getter;
     if (element != null) {
       element = _resolver.toLegacyElement(element);
       nameNode.staticElement = element;
@@ -828,7 +863,7 @@ class MethodInvocationResolver {
           node.methodName,
         );
       }
-      _resolver.flowAnalysis?.flow?.propertyGet(
+      _resolver.flowAnalysis.flow?.propertyGet(
           functionExpression,
           target,
           node.methodName.name,
@@ -845,7 +880,7 @@ class MethodInvocationResolver {
     NodeReplacer.replace(node, invocation);
     node.setProperty(_rewriteResultKey, invocation);
     InferenceContext.setTypeFromNode(invocation, node);
-    _resolver.flowAnalysis?.transferTestData(node, invocation);
+    _resolver.flowAnalysis.transferTestData(node, invocation);
   }
 
   void _setDynamicResolution(MethodInvocationImpl node,

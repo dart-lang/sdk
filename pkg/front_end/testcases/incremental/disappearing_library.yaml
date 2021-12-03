@@ -12,6 +12,7 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         library mainLibrary;
         import "b.dart" as b;
 
@@ -19,6 +20,7 @@ worlds:
           b.foo();
         }
       b.dart: |
+        // @dart=2.9
         library bLibrary;
 
         foo() {
@@ -31,6 +33,7 @@ worlds:
       - b.dart
     sources:
       b.dart: |
+        // @dart=2.9
         library bLibrary;
 
         main() {

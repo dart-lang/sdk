@@ -23,7 +23,7 @@ import "dart:_internal" as _in;
 static method test() → dynamic {
   function bounded<X extends core::num>(X x) → X
     return x;
-  core::String a = let final Never #t1 = bounded<Never>(let final Never #t2 = invalid-expression "pkg/front_end/testcases/general/bounded_implicit_instantiation.dart:7:22: Error: The argument type 'String' can't be assigned to the parameter type 'Never'.
+  core::String a = let final Never #t1 = bounded<Never>(invalid-expression "pkg/front_end/testcases/general/bounded_implicit_instantiation.dart:7:22: Error: The argument type 'String' can't be assigned to the parameter type 'Never'.
   String a = bounded('');
                      ^" in "" as{TypeError,ForNonNullableByDefault} Never){(Never) → Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
   core::String b = bounded<core::String>(""){(core::String) → core::String};
