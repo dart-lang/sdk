@@ -41,17 +41,17 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_Combinator_hide() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/home/test/lib/ab.dart', '''
+    addSource('$testPackageLibPath/ab.dart', '''
       library libAB;
       part "ab_part.dart";
       class A { }
       class B { }''');
-    addSource('/home/test/lib/ab_part.dart', '''
+    addSource('$testPackageLibPath/ab_part.dart', '''
       part of libAB;
       var T1;
       PB F1() => new PB();
       class PB { }''');
-    addSource('/home/test/lib/cd.dart', '''
+    addSource('$testPackageLibPath/cd.dart', '''
       class C { }
       class D { }''');
     addTestSource('''
@@ -81,20 +81,20 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_Combinator_show() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/home/test/lib/ab.dart', '''
+    addSource('$testPackageLibPath/ab.dart', '''
       library libAB;
       part "ab_part.dart";
       class A { }
       class B { }
       class _AB''');
-    addSource('/home/test/lib/ab_part.dart', '''
+    addSource('$testPackageLibPath/ab_part.dart', '''
       part of libAB;
       var T1;
       PB F1() => new PB();
       typedef PB2 F2(int blat);
       class Clz = Object with Object;
       class PB { }''');
-    addSource('/home/test/lib/cd.dart', '''
+    addSource('$testPackageLibPath/cd.dart', '''
       class C { }
       class D { }''');
     addTestSource('''
@@ -129,11 +129,11 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_Combinator_show_export_withShow() async {
-    addSource('/home/test/lib/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 ''');
-    addSource('/home/test/lib/b.dart', r'''
+    addSource('$testPackageLibPath/b.dart', r'''
 export 'a.dart' show A;
 ''');
     addTestSource(r'''
@@ -152,10 +152,10 @@ import 'b.dart' show ^;
   }
 
   Future<void> test_Combinator_show_recursive() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class A {}
 ''');
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
 export 'a.dart';
 export 'b.dart';
 class B {}

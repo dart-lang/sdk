@@ -20,12 +20,12 @@ class ConvertPartOfToUriTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_PART_OF_TO_URI;
 
   Future<void> test_nonSibling() async {
-    addSource('/home/test/lib/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 library foo;
 part 'src/bar.dart';
 ''');
 
-    testFile = convertPath('/home/test/lib/src/bar.dart');
+    testFile = convertPath('$testPackageLibPath/src/bar.dart');
     addTestSource('''
 part of foo;
 ''');
@@ -38,12 +38,12 @@ part of '../foo.dart';
   }
 
   Future<void> test_sibling() async {
-    addSource('/home/test/lib/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 library foo;
 part 'bar.dart';
 ''');
 
-    testFile = convertPath('/home/test/lib/bar.dart');
+    testFile = convertPath('$testPackageLibPath/bar.dart');
     addTestSource('''
 part of foo;
 ''');

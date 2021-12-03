@@ -23,7 +23,7 @@ class ClosingLabelsComputerTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    sourcePath = convertPath('/home/test/lib/test.dart');
+    sourcePath = convertPath('$testPackageLibPath/test.dart');
   }
 
   Future<void> test_adjacentLinesExcluded() async {

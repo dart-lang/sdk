@@ -153,7 +153,7 @@ class C extends B {
   }
 
   Future<void> test_fromPart() async {
-    addSource('/home/test/lib/myLib.dart', '''
+    addSource('$testPackageLibPath/myLib.dart', '''
 library myLib;
 part 'test.dart';
 part 'otherPart.dart';
@@ -162,7 +162,7 @@ class A {
   B suggested2(String y) => null;
 }
 ''');
-    addSource('/home/test/lib/otherPart.dart', '''
+    addSource('$testPackageLibPath/otherPart.dart', '''
 part of myLib;
 class B extends A {
   B suggested2(String y) => null;

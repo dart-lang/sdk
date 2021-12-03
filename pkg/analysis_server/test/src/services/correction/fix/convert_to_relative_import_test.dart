@@ -23,13 +23,13 @@ class ConvertToRelativeImportBulkTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.prefer_relative_imports;
 
   Future<void> test_singleFile() async {
-    addSource('/home/test/lib/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
-    addSource('/home/test/lib/bar.dart', '''
+    addSource('$testPackageLibPath/bar.dart', '''
 class D {}
 ''');
-    testFile = convertPath('/home/test/lib/src/test.dart');
+    testFile = convertPath('$testPackageLibPath/src/test.dart');
 
     await resolveTestCode('''
 import 'package:test/bar.dart';
@@ -55,10 +55,10 @@ class ConvertToRelativeImportTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_relative_imports;
 
   Future<void> test_relativeImport() async {
-    addSource('/home/test/lib/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
-    testFile = convertPath('/home/test/lib/src/test.dart');
+    testFile = convertPath('$testPackageLibPath/src/test.dart');
     await resolveTestCode('''
 import 'package:test/foo.dart';
 C? c;
@@ -82,8 +82,8 @@ import 'package:test1/foo.dart';
   }
 
   Future<void> test_relativeImportGarbledUri() async {
-    addSource('/home/test/lib/foo.dart', '');
-    testFile = convertPath('/home/test/lib/bar.dart');
+    addSource('$testPackageLibPath/foo.dart', '');
+    testFile = convertPath('$testPackageLibPath/bar.dart');
     await resolveTestCode('''
 import 'package:test/foo';
 ''');
@@ -96,10 +96,10 @@ import 'foo';
   }
 
   Future<void> test_relativeImportRespectQuoteStyle() async {
-    addSource('/home/test/lib/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
-    testFile = convertPath('/home/test/lib/bar.dart');
+    testFile = convertPath('$testPackageLibPath/bar.dart');
     await resolveTestCode('''
 import "package:test/foo.dart";
 C? c;
@@ -112,10 +112,10 @@ C? c;
   }
 
   Future<void> test_relativeImportSameDirectory() async {
-    addSource('/home/test/lib/foo.dart', '''
+    addSource('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
-    testFile = convertPath('/home/test/lib/bar.dart');
+    testFile = convertPath('$testPackageLibPath/bar.dart');
     await resolveTestCode('''
 import 'package:test/foo.dart';
 C? c;
@@ -128,10 +128,10 @@ C? c;
   }
 
   Future<void> test_relativeImportSubDirectory() async {
-    addSource('/home/test/lib/baz/foo.dart', '''
+    addSource('$testPackageLibPath/baz/foo.dart', '''
 class C {}
 ''');
-    testFile = convertPath('/home/test/lib/test.dart');
+    testFile = convertPath('$testPackageLibPath/test.dart');
     await resolveTestCode('''
 import 'package:test/baz/foo.dart';
 C? c;

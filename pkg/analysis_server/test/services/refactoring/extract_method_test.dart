@@ -2871,7 +2871,7 @@ void res() {
   }
 
   void _addLibraryReturningAsync() {
-    addSource('/home/test/lib/asyncLib.dart', r'''
+    addSource('$testPackageLibPath/asyncLib.dart', r'''
 import 'dart:async';
 
 Completer<int> newCompleter() => null;

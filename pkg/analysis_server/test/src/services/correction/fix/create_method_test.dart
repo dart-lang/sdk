@@ -834,8 +834,8 @@ class D {
 }
 ''';
 
-    addSource('/home/test/lib/test2.dart', code2);
-    addSource('/home/test/lib/test3.dart', r'''
+    addSource('$testPackageLibPath/test2.dart', code2);
+    addSource('$testPackageLibPath/test3.dart', r'''
 library test3;
 class E {}
 ''');
@@ -855,11 +855,11 @@ export 'test3.dart';
 class D {
   void foo(bbb.E e) {}
 }
-''', target: '/home/test/lib/test2.dart');
+''', target: '$testPackageLibPath/test2.dart');
   }
 
   Future<void> test_parameterType_inTargetUnit() async {
-    addSource('/home/test/lib/test2.dart', r'''
+    addSource('$testPackageLibPath/test2.dart', r'''
 class D {
 }
 
@@ -880,7 +880,7 @@ class D {
 }
 
 class E {}
-''', target: '/home/test/lib/test2.dart');
+''', target: '$testPackageLibPath/test2.dart');
   }
 
   Future<void> test_static() async {

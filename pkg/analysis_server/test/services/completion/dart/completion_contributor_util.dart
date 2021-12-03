@@ -609,7 +609,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = convertPath('/home/test/lib/test.dart');
+    testFile = convertPath('$testPackageLibPath/test.dart');
   }
 
   CompletionSuggestion suggestionWith(

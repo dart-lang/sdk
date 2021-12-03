@@ -35,7 +35,7 @@ library my.app;
   }
 
   Future<void> test_createChange() async {
-    addSource('/home/test/lib/part.dart', '''
+    addSource('$testPackageLibPath/part.dart', '''
 part of my.app;
 ''');
     await indexTestUnit('''
@@ -52,13 +52,13 @@ part 'part.dart';
 library the.new.name;
 part 'part.dart';
 ''');
-    assertFileChangeResult('/home/test/lib/part.dart', '''
+    assertFileChangeResult('$testPackageLibPath/part.dart', '''
 part of the.new.name;
 ''');
   }
 
   Future<void> test_createChange_hasWhitespaces() async {
-    addSource('/home/test/lib/part.dart', '''
+    addSource('$testPackageLibPath/part.dart', '''
 part of my .  app;
 ''');
     await indexTestUnit('''
@@ -75,7 +75,7 @@ part 'part.dart';
 library the.new.name;
 part 'part.dart';
 ''');
-    assertFileChangeResult('/home/test/lib/part.dart', '''
+    assertFileChangeResult('$testPackageLibPath/part.dart', '''
 part of the.new.name;
 ''');
   }

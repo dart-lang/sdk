@@ -24,7 +24,7 @@ class ImportLibraryProject1Test extends FixProcessorTest {
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT1;
 
   Future<void> test_alreadyImported_package() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class A {}
 class B {}
 ''');
@@ -40,14 +40,14 @@ main() {
   }
 
   Future<void> test_extension_notImported_field_onThisType_fromClass() async {
-    addUnimportedFile('/home/test/lib/lib2.dart', '''
+    addUnimportedFile('$testPackageLibPath/lib2.dart', '''
 import 'package:test/lib1.dart';
 
 extension E on C {
   int m() => 0;
 }
 ''');
-    addSource('/home/test/lib/lib1.dart', '''
+    addSource('$testPackageLibPath/lib1.dart', '''
 class C {}
 ''');
     await resolveTestCode('''
@@ -68,7 +68,7 @@ class D extends C {
   }
 
   Future<void> test_extension_notImported_getter() async {
-    addUnimportedFile('/home/test/lib/lib.dart', '''
+    addUnimportedFile('$testPackageLibPath/lib.dart', '''
 extension E on String {
   int get m => 0;
 }
@@ -88,7 +88,7 @@ void f(String s) {
   }
 
   Future<void> test_extension_notImported_method() async {
-    addUnimportedFile('/home/test/lib/lib.dart', '''
+    addUnimportedFile('$testPackageLibPath/lib.dart', '''
 extension E on String {
   void m() {}
 }
@@ -108,7 +108,7 @@ void f(String s) {
   }
 
   Future<void> test_extension_notImported_method_extendsGeneric() async {
-    addUnimportedFile('/home/test/lib/lib.dart', '''
+    addUnimportedFile('$testPackageLibPath/lib.dart', '''
 import 'package:test/lib1.dart';
 
 extension E<T extends num> on List<T> {
@@ -130,14 +130,14 @@ void f(List<int> l) {
   }
 
   Future<void> test_extension_notImported_method_onThisType_fromClass() async {
-    addUnimportedFile('/home/test/lib/lib2.dart', '''
+    addUnimportedFile('$testPackageLibPath/lib2.dart', '''
 import 'package:test/lib1.dart';
 
 extension E on C {
   void m() {}
 }
 ''');
-    addSource('/home/test/lib/lib1.dart', '''
+    addSource('$testPackageLibPath/lib1.dart', '''
 class C {}
 ''');
     await resolveTestCode('''
@@ -163,14 +163,14 @@ class D extends C {
 
   Future<void>
       test_extension_notImported_method_onThisType_fromExtension() async {
-    addUnimportedFile('/home/test/lib/lib2.dart', '''
+    addUnimportedFile('$testPackageLibPath/lib2.dart', '''
 import 'package:test/lib1.dart';
 
 extension E on C {
   void m() {}
 }
 ''');
-    addSource('/home/test/lib/lib1.dart', '''
+    addSource('$testPackageLibPath/lib1.dart', '''
 class C {}
 ''');
     await resolveTestCode('''
@@ -195,7 +195,7 @@ extension F on C {
   }
 
   Future<void> test_extension_notImported_operator() async {
-    addUnimportedFile('/home/test/lib/lib.dart', '''
+    addUnimportedFile('$testPackageLibPath/lib.dart', '''
 extension E on String {
   String operator -(String other) => this;
 }
@@ -215,7 +215,7 @@ void f(String s) {
   }
 
   Future<void> test_extension_notImported_setter() async {
-    addUnimportedFile('/home/test/lib/lib.dart', '''
+    addUnimportedFile('$testPackageLibPath/lib.dart', '''
 extension E on String {
   set m(int v) {}
 }
@@ -235,7 +235,7 @@ void f(String s) {
   }
 
   Future<void> test_invalidUri_interpolation() async {
-    addSource('/home/test/lib/lib.dart', r'''
+    addSource('$testPackageLibPath/lib.dart', r'''
 class Test {
   const Test();
 }
@@ -355,7 +355,7 @@ main() {
   }
 
   Future<void> test_relativeDirective() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class Foo {}
 ''');
     await resolveTestCode('''
@@ -377,7 +377,7 @@ main() { new Foo(); }
   }
 
   Future<void> test_relativeDirective_downOneDirectory() async {
-    addSource('/home/test/lib/dir/a.dart', '''
+    addSource('$testPackageLibPath/dir/a.dart', '''
 class Foo {}
 ''');
     await resolveTestCode('''
@@ -394,7 +394,7 @@ main() { new Foo(); }
 
   Future<void> test_relativeDirective_preferRelativeImports() async {
     createAnalysisOptionsFile(lints: [LintNames.prefer_relative_imports]);
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class Foo {}
 ''');
     await resolveTestCode('''
@@ -416,10 +416,10 @@ main() { new Foo(); }
   }
 
   Future<void> test_relativeDirective_upOneDirectory() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class Foo {}
 ''');
-    testFile = convertPath('/home/test/lib/dir/test.dart');
+    testFile = convertPath('$testPackageLibPath/dir/test.dart');
     await resolveTestCode('''
 main() { new Foo(); }
 ''');
@@ -433,7 +433,7 @@ main() { new Foo(); }
   }
 
   Future<void> test_withClass_annotation() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 library lib;
 class Test {
   const Test(int p);
@@ -454,7 +454,7 @@ main() {
   }
 
   Future<void> test_withClass_catchClause() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class Test {}
 ''');
     await resolveTestCode('''
@@ -480,11 +480,11 @@ void f() {
   }
 
   Future<void> test_withClass_hasOtherLibraryWithPrefix() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 library a;
 class One {}
 ''');
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
 library b;
 class One {}
 class Two {}
@@ -573,7 +573,7 @@ main() {
   }
 
   Future<void> test_withClass_instanceCreation_const() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class Test {
   const Test();
 }
@@ -593,7 +593,7 @@ main() {
   }
 
   Future<void> test_withClass_instanceCreation_const_namedConstructor() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class Test {
   const Test.named();
 }
@@ -613,7 +613,7 @@ main() {
   }
 
   Future<void> test_withClass_instanceCreation_implicit() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class Test {
   const Test();
 }
@@ -633,7 +633,7 @@ main() {
   }
 
   Future<void> test_withClass_instanceCreation_new() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class Test {
   const Test();
 }
@@ -653,7 +653,7 @@ main() {
   }
 
   Future<void> test_withClass_instanceCreation_new_namedConstructor() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class Test {
   Test.named();
 }
@@ -673,7 +673,7 @@ main() {
   }
 
   Future<void> test_withFunction() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 library lib;
 myFunction() {}
 ''');
@@ -692,7 +692,7 @@ main() {
   }
 
   Future<void> test_withFunction_functionTopLevelVariable() async {
-    addSource('/home/test/lib/lib.dart', 'var myFunction = () {};');
+    addSource('$testPackageLibPath/lib.dart', 'var myFunction = () {};');
     await resolveTestCode('''
 main() {
   myFunction();
@@ -708,7 +708,7 @@ main() {
   }
 
   Future<void> test_withFunction_functionTopLevelVariableIdentifier() async {
-    addSource('/home/test/lib/lib.dart', 'var myFunction = () {};');
+    addSource('$testPackageLibPath/lib.dart', 'var myFunction = () {};');
     await resolveTestCode('''
 main() {
   myFunction;
@@ -724,7 +724,7 @@ main() {
   }
 
   Future<void> test_withFunction_identifier() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 library lib;
 myFunction() {}
 ''');
@@ -744,7 +744,7 @@ main() {
 
   @failingTest
   Future<void> test_withFunction_nonFunctionType() async {
-    addSource('/home/test/lib/lib.dart', 'int zero = 0;');
+    addSource('$testPackageLibPath/lib.dart', 'int zero = 0;');
     await resolveTestCode('''
 main() {
   zero();
@@ -754,7 +754,7 @@ main() {
   }
 
   Future<void> test_withFunction_unresolvedMethod() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 library lib;
 myFunction() {}
 ''');
@@ -777,7 +777,7 @@ class A {
   }
 
   Future<void> test_withFunctionTypeAlias() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 library lib;
 typedef MyFunction();
 ''');
@@ -798,7 +798,7 @@ main() {
   }
 
   Future<void> test_withMixin() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 mixin Test {}
 ''');
     await resolveTestCode('''
@@ -812,7 +812,7 @@ class X = Object with Test;
   }
 
   Future<void> test_withTopLevelVariable() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 library lib;
 int MY_VAR = 42;
 ''');
@@ -955,7 +955,7 @@ main() {
   }
 
   Future<void> test_inLibSrc_thisContextRoot() async {
-    addSource('/home/test/lib/src/lib.dart', 'class Test {}');
+    addSource('$testPackageLibPath/src/lib.dart', 'class Test {}');
     await resolveTestCode('''
 main() {
   Test t;
@@ -973,7 +973,7 @@ main() {
   }
 
   Future<void> test_inLibSrc_thisContextRoot_extension() async {
-    addSource('/home/test/lib/src/lib.dart', '''
+    addSource('$testPackageLibPath/src/lib.dart', '''
 extension E on int {
   static String m() => '';
 }

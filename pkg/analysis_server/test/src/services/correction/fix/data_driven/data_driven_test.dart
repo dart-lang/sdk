@@ -1134,7 +1134,7 @@ transforms:
     - kind: 'rename'
       newName: 'New'
 ''');
-    addSource('/home/test/lib/test.config', '''
+    addSource('$testPackageLibPath/test.config', '''
 'Rename to New':
   bulkApply: true
 ''');

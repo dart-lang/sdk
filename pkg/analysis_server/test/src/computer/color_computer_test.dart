@@ -192,8 +192,8 @@ class ColorComputerTest extends AbstractContextTest {
   void setUp() {
     super.setUp();
     writeTestPackageConfig(flutter: true);
-    testPath = convertPath('/home/test/lib/test.dart');
-    otherPath = convertPath('/home/test/lib/other_file.dart');
+    testPath = convertPath('$testPackageLibPath/test.dart');
+    otherPath = convertPath('$testPackageLibPath/other_file.dart');
   }
 
   Future<void> test_collectionLiteral_const() async {

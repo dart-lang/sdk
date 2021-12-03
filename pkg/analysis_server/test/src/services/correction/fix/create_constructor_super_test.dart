@@ -50,10 +50,10 @@ class B extends A {
   }
 
   Future<void> test_importType() async {
-    addSource('/home/test/lib/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
-    addSource('/home/test/lib/b.dart', r'''
+    addSource('$testPackageLibPath/b.dart', r'''
 import 'package:test/a.dart';
 
 class B {

@@ -57,7 +57,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    path = convertPath('/home/test/lib/test.dart');
+    path = convertPath('$testPackageLibPath/test.dart');
   }
 
   Future<void> test_createEdits_addImport_noDirectives() async {
