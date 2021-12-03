@@ -40,6 +40,7 @@ abstract class Timer {
   ///
   /// The [callback] function is invoked after the given [duration].
   ///
+  /// Example:
   /// ```dart
   /// final timer =
   ///     Timer(const Duration(seconds: 5), () => print('Timer finished'));
@@ -103,6 +104,7 @@ abstract class Timer {
   ///
   /// This function is equivalent to `new Timer(Duration.zero, callback)`.
   ///
+  /// Example:
   /// ```dart
   /// Timer.run(() => print('timer run'));
   /// ```
@@ -115,6 +117,8 @@ abstract class Timer {
   /// Once a [Timer] has been canceled, the callback function will not be called
   /// by the timer. Calling [cancel] more than once on a [Timer] is allowed, and
   /// will have no further effect.
+  ///
+  /// Example:
   /// ```dart
   /// final timer =
   ///     Timer(const Duration(seconds: 5), () => print('Timer finished'));
@@ -134,6 +138,8 @@ abstract class Timer {
   /// and no callback is invoked for them.
   /// The [tick] count reflects the number of durations that have passed and
   /// not the number of callback invocations that have happened.
+  ///
+  /// Example:
   /// ```dart
   /// var counter = 3;
   /// Timer.periodic(const Duration(seconds: 2), (timer) {
