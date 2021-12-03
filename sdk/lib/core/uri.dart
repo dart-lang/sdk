@@ -175,6 +175,7 @@ abstract class Uri {
   /// general delimiters are escaped if necessary.
   /// If [fragment] is omitted or `null`, the URI has no fragment part.
   ///
+  /// Example:
   /// ```dart
   /// final httpsUri = Uri(
   ///     scheme: 'https',
@@ -202,6 +203,7 @@ abstract class Uri {
 
   /// Creates a new `http` URI from authority, path and query.
   ///
+  /// Example:
   /// ```dart
   /// var uri = Uri.http('example.org', '/path', { 'q' : 'dart' });
   /// print(uri); // http://example.org/path?q=dart
@@ -237,6 +239,7 @@ abstract class Uri {
   /// This constructor is the same as [Uri.http] except for the scheme
   /// which is set to `https`.
   ///
+  /// Example:
   /// ```dart
   /// var uri = Uri.https('example.org', '/path', {'q': 'dart'});
   /// print(uri); // https://example.org/path?q=dart
@@ -340,6 +343,7 @@ abstract class Uri {
   /// then a slash is added to the returned URI's path.
   /// In all other cases, the result is the same as returned by `Uri.file`.
   ///
+  /// Example:
   /// ```dart
   /// final fileDirectory = Uri.directory('data/images', windows: false);
   /// print(fileDirectory); // data/images/
@@ -519,6 +523,7 @@ abstract class Uri {
   /// The [queryParametersAll] getter can provide a map
   /// that maps keys to all of their values.
   ///
+  /// Example:
   /// ```dart
   /// final uri =
   ///     Uri.parse('https://example.com/api/fetch?limit=10,20,30&max=100');
@@ -540,6 +545,7 @@ abstract class Uri {
   /// its value is a singleton list. If a key occurs with no value, the
   /// empty string is used as the value for that occurrence.
   ///
+  /// Example:
   /// ```dart
   /// final uri =
   ///     Uri.parse('https://example.com/api/fetch?limit=10,20,30&max=100');
@@ -749,6 +755,8 @@ abstract class Uri {
   /// Creates a `Uri` that differs from this only in not having a fragment.
   ///
   /// If this `Uri` does not have a fragment, it is itself returned.
+  ///
+  /// Example:
   /// ```dart
   /// final uri =
   ///     Uri.parse('https://example.org:8080/foo/bar#frag').removeFragment();
@@ -804,6 +812,8 @@ abstract class Uri {
   ///
   /// If the [uri] string is not valid as a URI or URI reference,
   /// a [FormatException] is thrown.
+  ///
+  /// Example:
   /// ```dart
   /// final uri =
   ///     Uri.parse('https://example.com/api/fetch?limit=10,20,30&max=100');
@@ -1106,6 +1116,8 @@ abstract class Uri {
   /// of [uri], and only the substring from `start` to `end` is parsed as a URI.
   ///
   /// Returns `null` if the [uri] string is not valid as a URI or URI reference.
+  ///
+  /// Example:
   /// ```dart
   /// final uri = Uri.tryParse(
   ///     'https://dart.dev/guides/libraries/library-tour#utility-classes', 0,
@@ -1140,6 +1152,7 @@ abstract class Uri {
   /// and [queryParameters] optional named arguments when constructing
   /// a [Uri].
   ///
+  /// Example:
   /// ```dart
   /// const request = 'http://example.com/search=Dart';
   /// final encoded = Uri.encodeComponent(request);
@@ -1198,6 +1211,8 @@ abstract class Uri {
   /// For handling the [path] and [query] components, consider using
   /// [pathSegments] and [queryParameters] to get the separated and
   /// decoded component.
+  ///
+  /// Example:
   /// ```dart
   /// final decoded =
   ///     Uri.decodeComponent('http%3A%2F%2Fexample.com%2Fsearch%3DDart');
@@ -1228,6 +1243,7 @@ abstract class Uri {
   /// is the set of characters specified in in ECMA-262 version 5.1 for
   /// the encodeURI function.
   ///
+  /// Example:
   /// ```dart
   /// final encoded =
   ///     Uri.encodeFull('https://example.com/api/query?search= dart is');
@@ -1244,6 +1260,7 @@ abstract class Uri {
   /// cases, an encoded URI should be parsed into components using
   /// [Uri.parse] before decoding the separate components.
   ///
+  /// Example:
   /// ```dart
   /// final decoded =
   ///     Uri.decodeFull('https://example.com/api/query?search=%20dart%20is');
@@ -1267,10 +1284,11 @@ abstract class Uri {
   /// Each query component will be decoded using [encoding]. The default
   /// encoding is UTF-8.
   ///
+  /// Example:
   /// ```dart
-  /// final queryMap =
+  /// final queryStringMap =
   ///     Uri.splitQueryString('limit=10&max=100&search=Dart%20is%20fun');
-  /// print(queryMap); // {limit: 10, max: 100, search: Dart is fun}
+  /// print(queryStringMap); // {limit: 10, max: 100, search: Dart is fun}
   /// ```
   static Map<String, String> splitQueryString(String query,
       {Encoding encoding = utf8}) {
