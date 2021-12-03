@@ -212,6 +212,8 @@ DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
 Encoding/analyzerCode: Fail
 EnumConstantSameNameAsEnclosing/example: Fail
+EnumDeclaresFactory/analyzerCode: Fail
+EnumDeclaresFactory/example: Fail
 EnumInstantiation/example: Fail
 EqualityCannotBeEqualityOperand/part_wrapped_script1: Fail
 EqualityCannotBeEqualityOperand/part_wrapped_script2: Fail
@@ -525,10 +527,6 @@ JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
 JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropIndexNotSupported/example: Fail # Web compiler specific
-JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
-JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
 JsInteropJSClassExtendsDartClass/example: Fail # Web compiler specific
 JsInteropNamedParameters/analyzerCode: Fail # Web compiler specific
@@ -539,6 +537,10 @@ JsInteropNonExternalConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalConstructor/example: Fail # Web compiler specific
 JsInteropNonExternalMember/analyzerCode: Fail # Web compiler specific
 JsInteropNonExternalMember/example: Fail # Web compiler specific
+JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
+JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.

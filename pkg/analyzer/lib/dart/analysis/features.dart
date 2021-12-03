@@ -23,6 +23,9 @@ abstract class Feature {
   static final control_flow_collections =
       ExperimentalFeatures.control_flow_collections;
 
+  /// Feature information for enhanced enums.
+  static final enhanced_enums = ExperimentalFeatures.enhanced_enums;
+
   /// Feature information for extension methods.
   static final extension_methods = ExperimentalFeatures.extension_methods;
 

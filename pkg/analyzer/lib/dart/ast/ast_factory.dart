@@ -308,6 +308,7 @@ abstract class AstFactory {
       SimpleIdentifier name,
       Token leftBracket,
       List<EnumConstantDeclaration> constants,
+      List<ClassMember> members,
       Token rightBracket);
 
   /// Returns a newly created export directive. Either or both of the

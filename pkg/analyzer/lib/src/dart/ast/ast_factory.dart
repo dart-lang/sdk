@@ -391,9 +391,17 @@ class AstFactoryImpl extends AstFactory {
           SimpleIdentifier name,
           Token leftBracket,
           List<EnumConstantDeclaration> constants,
+          List<ClassMember> members,
           Token rightBracket) =>
-      EnumDeclarationImpl(comment as CommentImpl?, metadata, enumKeyword,
-          name as SimpleIdentifierImpl, leftBracket, constants, rightBracket);
+      EnumDeclarationImpl(
+          comment as CommentImpl?,
+          metadata,
+          enumKeyword,
+          name as SimpleIdentifierImpl,
+          leftBracket,
+          constants,
+          members,
+          rightBracket);
 
   @override
   ExportDirectiveImpl exportDirective(

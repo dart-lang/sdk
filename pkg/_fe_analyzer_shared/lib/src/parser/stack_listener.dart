@@ -37,6 +37,7 @@ enum NullValue {
   ConditionallySelectedImport,
   ConstructorInitializerSeparator,
   ConstructorInitializers,
+  ConstructorReference,
   ConstructorReferenceContinuationAfterTypeArguments,
   ContinueTarget,
   Deferred,
@@ -346,9 +347,8 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleClassOrMixinImplements(
-      Token? implementsKeyword, int interfacesCount) {
-    debugEvent("ClassImplements");
+  void handleImplements(Token? implementsKeyword, int interfacesCount) {
+    debugEvent("Implements");
   }
 
   @override

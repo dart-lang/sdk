@@ -867,9 +867,9 @@ extension ClassDeclarationExtension on ClassDeclarationEnd {
     throw "Not found.";
   }
 
-  ClassOrMixinImplementsHandle getClassImplements() {
+  ImplementsHandle getClassImplements() {
     for (ParserAstNode child in children!) {
-      if (child is ClassOrMixinImplementsHandle) {
+      if (child is ImplementsHandle) {
         return child;
       }
     }
@@ -1512,24 +1512,30 @@ class ParserASTListener extends AbstractParserAstListener {
                 end == "ExtensionConstructor" ||
                 end == "ExtensionMethod" ||
                 end == "MixinConstructor" ||
-                end == "MixinMethod")) {
-          // beginMethod is ended by one of endClassConstructor, endClassMethod,
-          // endExtensionMethod, endMixinConstructor or endMixinMethod.
+                end == "MixinMethod" ||
+                end == "EnumConstructor" ||
+                end == "EnumMethod")) {
+          // beginMethod is ended by one of endClassConstructor,
+          // endClassMethod, endExtensionMethod, endMixinConstructor,
+          // endMixinMethod, endEnumMethod or endEnumConstructor.
         } else if (begin == "Fields" &&
             (end == "TopLevelFields" ||
                 end == "ClassFields" ||
                 end == "MixinFields" ||
-                end == "ExtensionFields")) {
-          // beginFields is ended by one of endTopLevelFields, endMixinFields or
-          // endExtensionFields.
+                end == "ExtensionFields" ||
+                end == "EnumFields")) {
+          // beginFields is ended by one of endTopLevelFields, endMixinFields,
+          // endEnumFields or endExtensionFields.
         } else if (begin == "ForStatement" && end == "ForIn") {
           // beginForStatement is ended by either endForStatement or endForIn.
         } else if (begin == "FactoryMethod" &&
             (end == "ClassFactoryMethod" ||
                 end == "MixinFactoryMethod" ||
-                end == "ExtensionFactoryMethod")) {
+                end == "ExtensionFactoryMethod" ||
+                end == "EnumFactoryMethod")) {
           // beginFactoryMethod is ended by either endClassFactoryMethod,
-          // endMixinFactoryMethod or endExtensionFactoryMethod.
+          // endMixinFactoryMethod, endExtensionFactoryMethod, or
+          // endEnumFactoryMethod.
         } else if (begin == "ForControlFlow" && (end == "ForInControlFlow")) {
           // beginForControlFlow is ended by either endForControlFlow or
           // endForInControlFlow.
