@@ -823,13 +823,14 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
     });
   }
 
-  SourceLibraryBuilder createDartDocTestLibrary(LibraryBuilder libraryBuilder) {
+  SourceLibraryBuilder createDartDocTestLibrary(
+      SourceLoader loader, LibraryBuilder libraryBuilder) {
     SourceLibraryBuilder dartDocTestLibrary = new SourceLibraryBuilder(
       dartDocTestUri,
       dartDocTestUri,
       /*packageUri*/ null,
       new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
-      kernelTargetForTesting!.loader,
+      loader,
       null,
       scope: libraryBuilder.scope.createNestedScope("dartdoctest"),
       nameOrigin: libraryBuilder,
@@ -911,8 +912,8 @@ class DocTestSourceLoader extends SourceLoader {
       fs
           .entityForUri(DocTestIncrementalCompiler.dartDocTestUri)
           .writeAsStringSync(compiler._dartDocTestCode!);
-      return compiler
-          .createDartDocTestLibrary(compiler._dartDocTestLibraryBuilder!);
+      return compiler.createDartDocTestLibrary(
+          this, compiler._dartDocTestLibraryBuilder!);
     }
     return super.createLibraryBuilder(uri, fileUri, packageUri,
         packageLanguageVersion, origin, referencesFrom, referenceIsPartOwner);
