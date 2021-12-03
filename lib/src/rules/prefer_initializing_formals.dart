@@ -71,6 +71,19 @@ class Point {
 }
 ```
 
+**NOTE**
+Also note that it is possible to enforce a type that is stricter than the
+initialized field with an initializing formal parameter.  In the following
+example the unnamed `Bid` constructor requires a non-null `int` despite
+`amount` being declared nullable (`int?`).
+
+```dart
+class Bid {
+ final int? amount;
+ Bid(int this.amount);
+ Bid.pass() : amount = null;
+}
+```
 ''';
 
 Iterable<AssignmentExpression> _getAssignmentExpressionsInConstructorBody(
