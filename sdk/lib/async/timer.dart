@@ -4,7 +4,7 @@
 
 part of dart.async;
 
-/// A count-down timer that can be configured to fire once or repeatedly.
+/// A countdown timer that can be configured to fire once or repeatedly.
 ///
 /// The timer counts down from the specified duration to 0.
 /// When the timer reaches 0, the timer invokes the specified callback function.
@@ -102,6 +102,10 @@ abstract class Timer {
   /// Runs the given [callback] asynchronously as soon as possible.
   ///
   /// This function is equivalent to `new Timer(Duration.zero, callback)`.
+  ///
+  /// ```dart
+  /// Timer.run(() => print('timer run'));
+  /// ```
   static void run(void Function() callback) {
     new Timer(Duration.zero, callback);
   }
