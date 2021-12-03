@@ -157,7 +157,7 @@ void testClassStuff() {
   expect("Foo", decl.getIdentifier().token.lexeme);
   ClassExtendsHandle extendsDecl = cls.getClassExtends();
   expect("extends", extendsDecl.extendsKeyword?.lexeme);
-  ClassOrMixinImplementsHandle implementsDecl = cls.getClassImplements();
+  ImplementsHandle implementsDecl = cls.getClassImplements();
   expect("implements", implementsDecl.implementsKeyword?.lexeme);
   ClassWithClauseHandle? withClauseDecl = cls.getClassWithClause();
   expect(null, withClauseDecl);

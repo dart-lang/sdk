@@ -179,6 +179,7 @@ char
 charcode
 chars
 checkpoint
+chloestefantsova
 chunks
 ci
 circuited
@@ -273,6 +274,7 @@ cruft
 cryptic
 crypto
 csslib
+cstefantsova
 ctx
 customized
 cut

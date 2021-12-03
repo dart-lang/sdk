@@ -14,4 +14,7 @@ enum DeclarationKind {
 
   /// An extension declaration.
   Extension,
+
+  /// An enum.
+  Enum,
 }

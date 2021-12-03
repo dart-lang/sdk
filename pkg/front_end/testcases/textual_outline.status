@@ -28,6 +28,8 @@ constructor_tearoffs/issue47075: FormatterCrash
 constructor_tearoffs/new_as_selector: FormatterCrash
 dart2js/late_fields: FormatterCrash
 dart2js/late_statics: FormatterCrash
+enhanced_enums/entries_with_type_arguments: FormatterCrash
+enhanced_enums/qualified_names_with_no_type_arguments: FormatterCrash
 extension_types/basic_show: FormatterCrash
 extension_types/call_not_get: FormatterCrash
 extension_types/keyword_in_show_hide_element: FormatterCrash

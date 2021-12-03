@@ -179,12 +179,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleClassOrMixinImplements(
-      Token? implementsKeyword, int interfacesCount) {
-    ClassOrMixinImplementsHandle data = new ClassOrMixinImplementsHandle(
-        ParserAstType.HANDLE,
-        implementsKeyword: implementsKeyword,
-        interfacesCount: interfacesCount);
+  void handleImplements(Token? implementsKeyword, int interfacesCount) {
+    ImplementsHandle data = new ImplementsHandle(ParserAstType.HANDLE,
+        implementsKeyword: implementsKeyword, interfacesCount: interfacesCount);
     seen(data);
   }
 
@@ -411,9 +408,54 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int count) {
+  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
     EnumEnd data = new EnumEnd(ParserAstType.END,
-        enumKeyword: enumKeyword, leftBrace: leftBrace, count: count);
+        enumKeyword: enumKeyword,
+        leftBrace: leftBrace,
+        memberCount: memberCount);
+    seen(data);
+  }
+
+  @override
+  void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    EnumConstructorEnd data = new EnumConstructorEnd(ParserAstType.END,
+        getOrSet: getOrSet,
+        beginToken: beginToken,
+        beginParam: beginParam,
+        beginInitializers: beginInitializers,
+        endToken: endToken);
+    seen(data);
+  }
+
+  @override
+  void handleEnumElements(Token elementsEndToken, int elementsCount) {
+    EnumElementsHandle data = new EnumElementsHandle(ParserAstType.HANDLE,
+        elementsEndToken: elementsEndToken, elementsCount: elementsCount);
+    seen(data);
+  }
+
+  @override
+  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+    EnumHeaderHandle data = new EnumHeaderHandle(ParserAstType.HANDLE,
+        enumKeyword: enumKeyword, leftBrace: leftBrace);
+    seen(data);
+  }
+
+  @override
+  void handleEnumElement(Token beginToken) {
+    EnumElementHandle data =
+        new EnumElementHandle(ParserAstType.HANDLE, beginToken: beginToken);
+    seen(data);
+  }
+
+  @override
+  void endEnumFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    EnumFactoryMethodEnd data = new EnumFactoryMethodEnd(ParserAstType.END,
+        beginToken: beginToken,
+        factoryKeyword: factoryKeyword,
+        endToken: endToken);
     seen(data);
   }
 
@@ -614,6 +656,42 @@ abstract class AbstractParserAstListener implements Listener {
         varFinalOrConst: varFinalOrConst,
         count: count,
         beginToken: beginToken,
+        endToken: endToken);
+    seen(data);
+  }
+
+  @override
+  void endEnumFields(
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    EnumFieldsEnd data = new EnumFieldsEnd(ParserAstType.END,
+        abstractToken: abstractToken,
+        externalToken: externalToken,
+        staticToken: staticToken,
+        covariantToken: covariantToken,
+        lateToken: lateToken,
+        varFinalOrConst: varFinalOrConst,
+        count: count,
+        beginToken: beginToken,
+        endToken: endToken);
+    seen(data);
+  }
+
+  @override
+  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    EnumMethodEnd data = new EnumMethodEnd(ParserAstType.END,
+        getOrSet: getOrSet,
+        beginToken: beginToken,
+        beginParam: beginParam,
+        beginInitializers: beginInitializers,
         endToken: endToken);
     seen(data);
   }
@@ -820,6 +898,20 @@ abstract class AbstractParserAstListener implements Listener {
   void handleClassNoWithClause() {
     ClassNoWithClauseHandle data =
         new ClassNoWithClauseHandle(ParserAstType.HANDLE);
+    seen(data);
+  }
+
+  @override
+  void handleEnumWithClause(Token withKeyword) {
+    EnumWithClauseHandle data = new EnumWithClauseHandle(ParserAstType.HANDLE,
+        withKeyword: withKeyword);
+    seen(data);
+  }
+
+  @override
+  void handleEnumNoWithClause() {
+    EnumNoWithClauseHandle data =
+        new EnumNoWithClauseHandle(ParserAstType.HANDLE);
     seen(data);
   }
 
@@ -2188,6 +2280,14 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleNoTypeNameInConstructorReference(Token token) {
+    NoTypeNameInConstructorReferenceHandle data =
+        new NoTypeNameInConstructorReferenceHandle(ParserAstType.HANDLE,
+            token: token);
+    seen(data);
+  }
+
+  @override
   void handleNoType(Token lastConsumed) {
     NoTypeHandle data =
         new NoTypeHandle(ParserAstType.HANDLE, lastConsumed: lastConsumed);
@@ -2747,13 +2847,13 @@ class ClassExtendsHandle extends ParserAstNode {
       };
 }
 
-class ClassOrMixinImplementsHandle extends ParserAstNode {
+class ImplementsHandle extends ParserAstNode {
   final Token? implementsKeyword;
   final int interfacesCount;
 
-  ClassOrMixinImplementsHandle(ParserAstType type,
+  ImplementsHandle(ParserAstType type,
       {this.implementsKeyword, required this.interfacesCount})
-      : super("ClassOrMixinImplements", type);
+      : super("Implements", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -3167,17 +3267,105 @@ class EnumBegin extends ParserAstNode {
 class EnumEnd extends ParserAstNode {
   final Token enumKeyword;
   final Token leftBrace;
-  final int count;
+  final int memberCount;
 
   EnumEnd(ParserAstType type,
-      {required this.enumKeyword, required this.leftBrace, required this.count})
+      {required this.enumKeyword,
+      required this.leftBrace,
+      required this.memberCount})
       : super("Enum", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "enumKeyword": enumKeyword,
         "leftBrace": leftBrace,
-        "count": count,
+        "memberCount": memberCount,
+      };
+}
+
+class EnumConstructorEnd extends ParserAstNode {
+  final Token? getOrSet;
+  final Token beginToken;
+  final Token beginParam;
+  final Token? beginInitializers;
+  final Token endToken;
+
+  EnumConstructorEnd(ParserAstType type,
+      {this.getOrSet,
+      required this.beginToken,
+      required this.beginParam,
+      this.beginInitializers,
+      required this.endToken})
+      : super("EnumConstructor", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "getOrSet": getOrSet,
+        "beginToken": beginToken,
+        "beginParam": beginParam,
+        "beginInitializers": beginInitializers,
+        "endToken": endToken,
+      };
+}
+
+class EnumElementsHandle extends ParserAstNode {
+  final Token elementsEndToken;
+  final int elementsCount;
+
+  EnumElementsHandle(ParserAstType type,
+      {required this.elementsEndToken, required this.elementsCount})
+      : super("EnumElements", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "elementsEndToken": elementsEndToken,
+        "elementsCount": elementsCount,
+      };
+}
+
+class EnumHeaderHandle extends ParserAstNode {
+  final Token enumKeyword;
+  final Token leftBrace;
+
+  EnumHeaderHandle(ParserAstType type,
+      {required this.enumKeyword, required this.leftBrace})
+      : super("EnumHeader", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "enumKeyword": enumKeyword,
+        "leftBrace": leftBrace,
+      };
+}
+
+class EnumElementHandle extends ParserAstNode {
+  final Token beginToken;
+
+  EnumElementHandle(ParserAstType type, {required this.beginToken})
+      : super("EnumElement", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "beginToken": beginToken,
+      };
+}
+
+class EnumFactoryMethodEnd extends ParserAstNode {
+  final Token beginToken;
+  final Token factoryKeyword;
+  final Token endToken;
+
+  EnumFactoryMethodEnd(ParserAstType type,
+      {required this.beginToken,
+      required this.factoryKeyword,
+      required this.endToken})
+      : super("EnumFactoryMethod", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "beginToken": beginToken,
+        "factoryKeyword": factoryKeyword,
+        "endToken": endToken,
       };
 }
 
@@ -3532,6 +3720,68 @@ class ExtensionFieldsEnd extends ParserAstNode {
         "varFinalOrConst": varFinalOrConst,
         "count": count,
         "beginToken": beginToken,
+        "endToken": endToken,
+      };
+}
+
+class EnumFieldsEnd extends ParserAstNode {
+  final Token? abstractToken;
+  final Token? externalToken;
+  final Token? staticToken;
+  final Token? covariantToken;
+  final Token? lateToken;
+  final Token? varFinalOrConst;
+  final int count;
+  final Token beginToken;
+  final Token endToken;
+
+  EnumFieldsEnd(ParserAstType type,
+      {this.abstractToken,
+      this.externalToken,
+      this.staticToken,
+      this.covariantToken,
+      this.lateToken,
+      this.varFinalOrConst,
+      required this.count,
+      required this.beginToken,
+      required this.endToken})
+      : super("EnumFields", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "abstractToken": abstractToken,
+        "externalToken": externalToken,
+        "staticToken": staticToken,
+        "covariantToken": covariantToken,
+        "lateToken": lateToken,
+        "varFinalOrConst": varFinalOrConst,
+        "count": count,
+        "beginToken": beginToken,
+        "endToken": endToken,
+      };
+}
+
+class EnumMethodEnd extends ParserAstNode {
+  final Token? getOrSet;
+  final Token beginToken;
+  final Token beginParam;
+  final Token? beginInitializers;
+  final Token endToken;
+
+  EnumMethodEnd(ParserAstType type,
+      {this.getOrSet,
+      required this.beginToken,
+      required this.beginParam,
+      this.beginInitializers,
+      required this.endToken})
+      : super("EnumMethod", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "getOrSet": getOrSet,
+        "beginToken": beginToken,
+        "beginParam": beginParam,
+        "beginInitializers": beginInitializers,
         "endToken": endToken,
       };
 }
@@ -3904,6 +4154,25 @@ class ClassWithClauseHandle extends ParserAstNode {
 class ClassNoWithClauseHandle extends ParserAstNode {
   ClassNoWithClauseHandle(ParserAstType type)
       : super("ClassNoWithClause", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {};
+}
+
+class EnumWithClauseHandle extends ParserAstNode {
+  final Token withKeyword;
+
+  EnumWithClauseHandle(ParserAstType type, {required this.withKeyword})
+      : super("EnumWithClause", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "withKeyword": withKeyword,
+      };
+}
+
+class EnumNoWithClauseHandle extends ParserAstNode {
+  EnumNoWithClauseHandle(ParserAstType type) : super("EnumNoWithClause", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {};
@@ -6370,6 +6639,19 @@ class NoConstructorReferenceContinuationAfterTypeArgumentsHandle
   NoConstructorReferenceContinuationAfterTypeArgumentsHandle(ParserAstType type,
       {required this.token})
       : super("NoConstructorReferenceContinuationAfterTypeArguments", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
+class NoTypeNameInConstructorReferenceHandle extends ParserAstNode {
+  final Token token;
+
+  NoTypeNameInConstructorReferenceHandle(ParserAstType type,
+      {required this.token})
+      : super("NoTypeNameInConstructorReference", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {

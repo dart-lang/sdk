@@ -467,6 +467,7 @@ class AstTestFactory {
           name,
           TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
           constants,
+          [],
           TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
   static EnumDeclarationImpl enumDeclaration2(

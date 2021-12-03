@@ -3301,6 +3301,9 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   /// The enumeration constants being declared.
   final NodeListImpl<EnumConstantDeclaration> _constants = NodeListImpl._();
 
+  /// The members defined by the enum.
+  final NodeListImpl<ClassMember> _members = NodeListImpl._();
+
   /// The right curly bracket.
   @override
   Token rightBracket;
@@ -3316,9 +3319,11 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
       SimpleIdentifierImpl name,
       this.leftBracket,
       List<EnumConstantDeclaration> constants,
+      List<ClassMember> members,
       this.rightBracket)
       : super(comment, metadata, name) {
     _constants._initialize(this, constants);
+    _members._initialize(this, members);
   }
 
   @override
@@ -3328,6 +3333,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..add(_name)
     ..add(leftBracket)
     ..addAll(_constants)
+    ..addAll(_members)
     ..add(rightBracket);
 
   @override
@@ -3343,6 +3349,9 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   Token get firstTokenAfterCommentAndMetadata => enumKeyword;
 
   @override
+  NodeListImpl<ClassMember> get members => _members;
+
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEnumDeclaration(this);
 
   @override
@@ -3350,6 +3359,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     super.visitChildren(visitor);
     _name.accept(visitor);
     _constants.accept(visitor);
+    _members.accept(visitor);
   }
 }
 

@@ -319,10 +319,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   Version? _enableExtensionTypesVersionInLibrary;
   Version? _enableNamedArgumentsAnywhereVersionInLibrary;
   Version? _enableSuperParametersVersionInLibrary;
+  Version? _enableEnhancedEnumsVersionInLibrary;
   bool? _enableTripleShiftInLibrary;
   bool? _enableExtensionMethodsInLibrary;
   bool? _enableGenericMetadataInLibrary;
   bool? _enableExtensionTypesInLibrary;
+  bool? _enableEnhancedEnumsInLibrary;
   bool? _enableConstructorTearOffsInLibrary;
   bool? _enableNamedArgumentsAnywhereInLibrary;
   bool? _enableSuperParametersInLibrary;
@@ -423,6 +425,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       _enableSuperParametersVersionInLibrary ??= loader.target
           .getExperimentEnabledVersionInLibrary(
               ExperimentalFlag.superParameters, _packageUri ?? importUri);
+
+  bool get enableEnhancedEnumsInLibrary => _enableEnhancedEnumsInLibrary ??=
+      loader.target.isExperimentEnabledInLibraryByVersion(
+          ExperimentalFlag.enhancedEnums,
+          _packageUri ?? importUri,
+          languageVersion.version);
+
+  Version get enableEnhancedEnumsVersionInLibrary =>
+      _enableEnhancedEnumsVersionInLibrary ??= loader.target
+          .getExperimentEnabledVersionInLibrary(
+              ExperimentalFlag.enhancedEnums, _packageUri ?? importUri);
 
   void _updateLibraryNNBDSettings() {
     library.isNonNullableByDefault = isNonNullableByDefault;
@@ -2677,6 +2690,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       referencesFromIndexedClass =
           referencesFromIndexed!.lookupIndexedClass(name);
     }
+    // Nested declaration began in `OutlineBuilder.beginEnum`.
+    // TODO(cstefantsova): Use actual type variables here.
+    TypeParameterScopeBuilder declaration =
+        endNestedDeclaration(TypeParameterScopeKind.enumDeclaration, name)
+          ..resolveNamedTypes([], this);
     EnumBuilder builder = new EnumBuilder(
         metadata,
         name,
@@ -2685,7 +2703,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         startCharOffset,
         charOffset,
         charEndOffset,
-        referencesFromIndexedClass);
+        referencesFromIndexedClass,
+        new Scope(
+            local: declaration.members!,
+            setters: declaration.setters!,
+            parent: scope.withTypeVariables(<TypeVariableBuilder>[]),
+            debugName: "enum $name",
+            isModifiable: false));
     addBuilder(name, builder, charOffset,
         getterReference: referencesFromIndexedClass?.cls.reference);
   }
@@ -4586,6 +4610,7 @@ enum TypeParameterScopeKind {
   topLevelMethod,
   factoryMethod,
   functionType,
+  enumDeclaration,
 }
 
 /// A builder object preparing for building declarations that can introduce type

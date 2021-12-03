@@ -1593,6 +1593,9 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
   /// Return the left curly bracket.
   Token get leftBracket;
 
+  /// Return the members declared by the enumeration.
+  NodeList<ClassMember> get members;
+
   @override
   SimpleIdentifier get name;
 

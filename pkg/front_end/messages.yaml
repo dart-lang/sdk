@@ -2069,6 +2069,10 @@ InternalProblemUnsupportedNullability:
   problemMessage: "Unsupported nullability value '#string' on type '#type'."
   severity: INTERNAL_PROBLEM
 
+InternalProblemOmittedTypeNameInConstructorReference:
+  problemMessage: "Unsupported omission of the type name in a constructor reference outside of an enum element declaration."
+  severity: INTERNAL_PROBLEM
+
 IncrementalCompilerIllegalParameter:
   problemMessage: "Illegal parameter name '#string' found during expression compilation."
 
@@ -5436,3 +5440,7 @@ NewAsSelector:
   experiments: constructor-tearoffs
   script: |
     method(dynamic d) => d.new;
+
+EnumDeclaresFactory:
+  problemMessage: "Enums can't declare factory constructors."
+  correctionMessage: "Try removing the factory constructor declaration."

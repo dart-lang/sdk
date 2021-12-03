@@ -309,6 +309,33 @@ enum DeclarationContext {
   /// This includes type of the declaration but excludes annotations on the
   /// field declaration itself, which are seen in the [ExtensionBody] context.
   ExtensionStaticField,
+
+  /// In a generative constructor declaration inside an enum declaration.
+  EnumConstructor,
+
+  /// In a static method declaration inside an enum declaration.
+  EnumStaticMethod,
+
+  /// In a static field declaration inside an enum declaration.
+  EnumStaticField,
+
+  /// In an instance method declaration inside an enum declaration.
+  EnumInstanceMethod,
+
+  /// In an instance field declaration inside an enum declaration.
+  EnumInstanceField,
+
+  /// In a factory constructor declaration inside an enum declaration. This
+  /// is an error case.
+  ///
+  /// This excludes annotations on the constructor declaration itself, which
+  /// are seen in the [EnumBody] context.
+  EnumFactory,
+
+  /// In an enum declaration body.
+  ///
+  /// This includes annotations on extension member declarations.
+  EnumBody,
 }
 
 extension on DeclarationContext {
@@ -318,7 +345,6 @@ extension on DeclarationContext {
       case DeclarationContext.Typedef:
       case DeclarationContext.TopLevelMethod:
       case DeclarationContext.TopLevelField:
-      case DeclarationContext.Enum:
         return InstanceTypeVariableAccessState.Unexpected;
       case DeclarationContext.ClassOrMixinOrNamedMixinApplication:
       case DeclarationContext.NamedMixinApplication:
@@ -327,6 +353,10 @@ extension on DeclarationContext {
       case DeclarationContext.ClassFactory:
       case DeclarationContext.ClassInstanceMethod:
       case DeclarationContext.ClassInstanceField:
+      case DeclarationContext.Enum:
+      case DeclarationContext.EnumConstructor:
+      case DeclarationContext.EnumInstanceField:
+      case DeclarationContext.EnumInstanceMethod:
       case DeclarationContext.Mixin:
       case DeclarationContext.MixinInstanceMethod:
       case DeclarationContext.MixinInstanceField:
@@ -337,6 +367,9 @@ extension on DeclarationContext {
       case DeclarationContext.ClassBody:
       case DeclarationContext.ClassStaticMethod:
       case DeclarationContext.ClassStaticField:
+      case DeclarationContext.EnumStaticField:
+      case DeclarationContext.EnumStaticMethod:
+      case DeclarationContext.EnumBody:
       case DeclarationContext.MixinBody:
       case DeclarationContext.MixinStaticMethod:
       case DeclarationContext.MixinStaticField:
@@ -349,6 +382,7 @@ extension on DeclarationContext {
       case DeclarationContext.ExtensionConstructor:
       case DeclarationContext.ExtensionFactory:
       case DeclarationContext.ExtensionInstanceField:
+      case DeclarationContext.EnumFactory:
         return InstanceTypeVariableAccessState.Invalid;
     }
   }
@@ -824,6 +858,9 @@ class OutlineBuilder extends StackListenerImpl {
       case DeclarationKind.Extension:
         declarationContext = DeclarationContext.ExtensionBody;
         break;
+      case DeclarationKind.Enum:
+        declarationContext = DeclarationContext.Enum;
+        break;
     }
     pushDeclarationContext(declarationContext);
     if (kind == DeclarationKind.Extension) {
@@ -876,12 +913,21 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void handleClassOrMixinImplements(
-      Token? implementsKeyword, int interfacesCount) {
-    debugEvent("ClassOrMixinImplements");
+  void handleImplements(Token? implementsKeyword, int interfacesCount) {
+    debugEvent("Implements");
     push(const FixedNullableList<TypeBuilder>()
             .popNonNullable(stack, interfacesCount, dummyTypeBuilder) ??
         NullValue.TypeBuilderList);
+
+    if (!libraryBuilder.enableEnhancedEnumsInLibrary &&
+        implementsKeyword != null &&
+        declarationContext == DeclarationContext.Enum) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments('enhanced-enums',
+              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
+          implementsKeyword.charOffset,
+          -1);
+    }
   }
 
   @override
@@ -1457,6 +1503,14 @@ class OutlineBuilder extends StackListenerImpl {
           declarationContext = DeclarationContext.ExtensionInstanceMethod;
         }
         break;
+      case DeclarationKind.Enum:
+        if (inConstructor) {
+          declarationContext = DeclarationContext.EnumConstructor;
+        } else if (staticToken != null) {
+          declarationContext = DeclarationContext.EnumStaticMethod;
+        } else {
+          declarationContext = DeclarationContext.EnumInstanceMethod;
+        }
     }
     pushDeclarationContext(declarationContext);
 
@@ -1910,6 +1964,12 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void endArguments(int count, Token beginToken, Token endToken) {
+    debugEvent("Arguments");
+    push(NullValue.Arguments);
+  }
+
+  @override
   void handleInvalidTypeArguments(Token token) {
     debugEvent("InvalidTypeArguments");
     pop(NullValue.TypeArguments);
@@ -1959,9 +2019,28 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void handleNoArguments(Token token) {
+    debugEvent("NoArguments");
+    push(NullValue.Arguments);
+  }
+
+  @override
   void handleNoTypeVariables(Token token) {
     super.handleNoTypeVariables(token);
     inConstructorName = false;
+  }
+
+  @override
+  void handleNoTypeArguments(Token token) {
+    debugEvent("NoTypeArguments");
+    push(NullValue.TypeArguments);
+  }
+
+  @override
+  void handleNoTypeNameInConstructorReference(Token token) {
+    debugEvent("NoTypeNameInConstructorReference");
+    push(NullValue.Name);
+    push(token.charOffset);
   }
 
   @override
@@ -2168,23 +2247,70 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void beginEnum(Token enumKeyword) {
+    assert(checkState(
+        enumKeyword, [ValueKinds.Integer, ValueKinds.NameOrParserRecovery]));
+    int offset = pop() as int;
+    Object? name = pop();
+    push(name);
+    push(offset);
+
+    String declarationName;
+    if (name is String) {
+      declarationName = name;
+    } else {
+      declarationName = '#enum';
+    }
     pushDeclarationContext(DeclarationContext.Enum);
+    libraryBuilder.beginNestedDeclaration(
+        TypeParameterScopeKind.enumDeclaration, declarationName);
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int count) {
-    debugEvent("Enum");
+  void handleEnumElement(Token beginToken) {
+    debugEvent("EnumElements");
+    pop(); // arguments.
+    pop(); // constructor reference.
+    // Keep on the stack the EnumConstantInfo created in handleIdentifier.
+  }
+
+  @override
+  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+    debugEvent("EnumHeader");
+    push(enumKeyword.charOffset); // start char offset.
+    push(leftBrace.endGroup!.charOffset); // end char offset.
+  }
+
+  @override
+  void handleEnumElements(Token elementsEndToken, int elementsCount) {
+    debugEvent("EnumElements");
     List<EnumConstantInfo?>? enumConstantInfos =
-        const FixedNullableList<EnumConstantInfo>().pop(stack, count);
+        const FixedNullableList<EnumConstantInfo>().pop(stack, elementsCount);
+    int endCharOffset = popCharOffset();
+    int startCharOffset = popCharOffset();
+    pop() as List<TypeBuilder>?; // interfaces.
+    pop() as List<TypeBuilder>?; // mixins.
+    List<TypeVariableBuilder>? typeVariables =
+        pop() as List<TypeVariableBuilder>?;
     int charOffset = popCharOffset(); // identifier char offset.
-    int startCharOffset = enumKeyword.charOffset;
     Object? name = pop();
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-    checkEmpty(enumKeyword.charOffset);
+    checkEmpty(startCharOffset);
+
     if (name is! ParserRecovery) {
       libraryBuilder.addEnum(metadata, name as String, enumConstantInfos,
-          startCharOffset, charOffset, leftBrace.endGroup!.charOffset);
+          startCharOffset, charOffset, endCharOffset);
+    } else {
+      libraryBuilder
+          .endNestedDeclaration(
+              TypeParameterScopeKind.enumDeclaration, "<syntax-error>")
+          .resolveNamedTypes(typeVariables, libraryBuilder);
     }
+  }
+
+  @override
+  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+    debugEvent("Enum");
+    checkEmpty(enumKeyword.charOffset);
     popDeclarationContext(DeclarationContext.Enum);
   }
 
@@ -2413,6 +2539,12 @@ class OutlineBuilder extends StackListenerImpl {
           declarationContext = DeclarationContext.ExtensionInstanceField;
         }
         break;
+      case DeclarationKind.Enum:
+        if (staticToken != null) {
+          declarationContext = DeclarationContext.EnumStaticMethod;
+        } else {
+          declarationContext = DeclarationContext.EnumInstanceMethod;
+        }
     }
     pushDeclarationContext(declarationContext);
   }
@@ -2588,6 +2720,15 @@ class OutlineBuilder extends StackListenerImpl {
   void endTypeVariables(Token beginToken, Token endToken) {
     debugEvent("endTypeVariables");
 
+    if (!libraryBuilder.enableEnhancedEnumsInLibrary &&
+        declarationContext == DeclarationContext.Enum) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments('enhanced-enums',
+              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
+          beginToken.charOffset,
+          -1);
+    }
+
     // Peek to leave type parameters on top of stack.
     List<TypeVariableBuilder>? typeParameters =
         peek() as List<TypeVariableBuilder>?;
@@ -2681,12 +2822,44 @@ class OutlineBuilder extends StackListenerImpl {
     String? suffix = popIfNotNull(periodBeforeName) as String?;
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
     int charOffset = popCharOffset();
-    Object name = pop()!;
+    Object? name = pop();
     if (name is ParserRecovery) {
       push(name);
-    } else {
+    } else if (name != null) {
       push(libraryBuilder.addConstructorReference(
           name, typeArguments, suffix, charOffset));
+    } else {
+      assert(name == null);
+      // At the moment, the name of the type in a constructor reference can be
+      // omitted only within an enum element declaration.
+      if (libraryBuilder.currentTypeParameterScopeBuilder.kind ==
+          TypeParameterScopeKind.enumDeclaration) {
+        if (libraryBuilder.enableEnhancedEnumsInLibrary) {
+          push(libraryBuilder.addConstructorReference(
+              libraryBuilder.currentTypeParameterScopeBuilder.name,
+              typeArguments,
+              suffix,
+              charOffset));
+        } else {
+          // For entries that consist of their name only, all of the elements
+          // of the constructor reference should be null.
+          if (typeArguments != null || suffix != null) {
+            addProblem(
+                templateExperimentNotEnabled.withArguments(
+                    'enhanced-enums',
+                    libraryBuilder.enableEnhancedEnumsVersionInLibrary
+                        .toText()),
+                charOffset,
+                -1);
+          }
+          push(NullValue.ConstructorReference);
+        }
+      } else {
+        internalProblem(
+            messageInternalProblemOmittedTypeNameInConstructorReference,
+            charOffset,
+            uri);
+      }
     }
   }
 
@@ -2705,6 +2878,9 @@ class OutlineBuilder extends StackListenerImpl {
         break;
       case DeclarationKind.Extension:
         declarationContext = DeclarationContext.ExtensionFactory;
+        break;
+      case DeclarationKind.Enum:
+        declarationContext = DeclarationContext.EnumFactory;
         break;
     }
 
@@ -2777,6 +2953,150 @@ class OutlineBuilder extends StackListenerImpl {
   void endExtensionFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     _endFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endEnumFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    // TODO(cstefantsova): Call endClassFactoryMethod instead.
+    debugEvent("EnumFactoryMethod");
+    MethodBody bodyKind = pop() as MethodBody;
+    if (bodyKind == MethodBody.RedirectingFactoryBody) {
+      pop(); // reference
+    }
+    pop(); // async marker
+    pop(); // formals
+    popCharOffset(); // formals char offset
+    pop(); // type variables
+    popCharOffset(); // char offset
+    pop(); // name
+    pop(); // modifiers
+    pop(); // metadata
+    checkEmpty(beginToken.charOffset);
+    popDeclarationContext();
+    // TODO(cstefantsova): Use actual type parameters.
+    libraryBuilder
+        .endNestedDeclaration(
+            TypeParameterScopeKind.factoryMethod, "#factory_method")
+        .resolveNamedTypes([], libraryBuilder);
+    // Skip the declaration. An error as already been produced by the parser.
+
+    if (libraryBuilder.enableEnhancedEnumsInLibrary) {
+      addProblem(messageEnumDeclaresFactory, beginToken.charOffset, -1);
+    } else {
+      addProblem(
+          templateExperimentNotEnabled.withArguments('enhanced-enums',
+              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
+          beginToken.charOffset,
+          -1);
+    }
+  }
+
+  @override
+  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    // TODO(cstefantsova): Call endClassMethod instead.
+    debugEvent("EnumMethod");
+    MethodBody bodyKind = pop() as MethodBody;
+    if (bodyKind == MethodBody.RedirectingFactoryBody) {
+      pop(); // reference
+    }
+    pop(); // async marker
+    pop(); // formals
+    popCharOffset(); // formals char offset
+    pop(); // type variables
+    popCharOffset(); // char offset
+    pop(); // name
+    pop(); // return type
+    int modifiers = Modifier.toMask(pop() as List<Modifier>?);
+    popCharOffset(); // final or const offset
+    pop(); // metadata
+    checkEmpty(beginToken.charOffset);
+    popDeclarationContext();
+    TypeParameterScopeKind scopeKind;
+    if ((modifiers & staticMask) != 0) {
+      scopeKind = TypeParameterScopeKind.staticMethod;
+    } else {
+      scopeKind = TypeParameterScopeKind.instanceMethod;
+    }
+    // TODO(cstefantsova): Use actual type parameters.
+    libraryBuilder
+        .endNestedDeclaration(scopeKind, "#method")
+        .resolveNamedTypes([], libraryBuilder);
+    // Skip the declaration. An error as already been produced by the parser.
+
+    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments('enhanced-enums',
+              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
+          beginToken.charOffset,
+          -1);
+    }
+  }
+
+  @override
+  void endEnumFields(
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    // TODO(cstefantsova): Call endClassFields instead.
+    debugEvent("EnumFields");
+    popFieldInfos(count); // field infos
+    pop(); // type
+    pop(); // metadata
+    checkEmpty(beginToken.charOffset);
+    popDeclarationContext();
+    // Skip the declaration. An error as already been produced by the parser.
+
+    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments('enhanced-enums',
+              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
+          beginToken.charOffset,
+          -1);
+    }
+  }
+
+  @override
+  void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    // TODO(cstefantsova): Call endClassConstructor instead.
+    debugEvent("EnumMethod");
+    MethodBody bodyKind = pop() as MethodBody;
+    if (bodyKind == MethodBody.RedirectingFactoryBody) {
+      pop(); // reference
+    }
+    pop(); // async marker
+    pop(); // formals
+    popCharOffset(); // formals char offset
+    pop(); // type variables
+    popCharOffset(); // char offset
+    pop(); // name
+    pop(); // return type
+    pop(); // modifiers
+    popCharOffset(); // final or const offset
+    pop(); // metadata
+    checkEmpty(beginToken.charOffset);
+    popDeclarationContext();
+    // TODO(cstefantsova): Use actual type parameters.
+    libraryBuilder
+        .endNestedDeclaration(TypeParameterScopeKind.instanceMethod, "#method")
+        .resolveNamedTypes([], libraryBuilder);
+    // Skip the declaration. An error as already been produced by the parser.
+
+    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments('enhanced-enums',
+              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
+          beginToken.charOffset,
+          -1);
+    }
   }
 
   @override
@@ -2866,6 +3186,33 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleClassNoWithClause() {
     debugEvent("ClassNoWithClause");
+  }
+
+  @override
+  void handleEnumWithClause(Token withKeyword) {
+    debugEvent("EnumWithClause");
+
+    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments('enhanced-enums',
+              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
+          withKeyword.charOffset,
+          -1);
+    }
+
+    Object? mixins = pop();
+    if (mixins is ParserRecovery) {
+      push(new ParserRecovery(withKeyword.charOffset));
+    } else {
+      // TODO(cstefantsova): Handle enum mixins here.
+      push(mixins);
+    }
+  }
+
+  @override
+  void handleEnumNoWithClause() {
+    debugEvent("EnumNoWithClause");
+    push(NullValue.TypeBuilderList);
   }
 
   @override

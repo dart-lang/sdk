@@ -759,7 +759,7 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int count) {
+  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
     elementStartToChunk[enumKeyword] =
         new _EnumChunk(enumKeyword, leftBrace.endGroup!);
   }

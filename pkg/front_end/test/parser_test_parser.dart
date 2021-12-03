@@ -392,10 +392,19 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseWithClauseOpt(Token token) {
-    doPrint('parseWithClauseOpt(' '$token)');
+  Token parseClassWithClauseOpt(Token token) {
+    doPrint('parseClassWithClauseOpt(' '$token)');
     indent++;
-    var result = super.parseWithClauseOpt(token);
+    var result = super.parseClassWithClauseOpt(token);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseEnumWithClauseOpt(Token token) {
+    doPrint('parseEnumWithClauseOpt(' '$token)');
+    indent++;
+    var result = super.parseEnumWithClauseOpt(token);
     indent--;
     return result;
   }
@@ -555,6 +564,24 @@ class TestParser extends Parser {
   }
 
   @override
+  Token parseEnumHeaderOpt(Token token, Token enumKeyword) {
+    doPrint('parseEnumHeaderOpt(' '$token, ' '$enumKeyword)');
+    indent++;
+    var result = super.parseEnumHeaderOpt(token, enumKeyword);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseEnumElement(Token token) {
+    doPrint('parseEnumElement(' '$token)');
+    indent++;
+    var result = super.parseEnumElement(token);
+    indent--;
+    return result;
+  }
+
+  @override
   Token parseClassOrNamedMixinApplication(
       Token? abstractToken, Token classKeyword) {
     doPrint('parseClassOrNamedMixinApplication('
@@ -628,10 +655,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseClassOrMixinImplementsOpt(Token token) {
-    doPrint('parseClassOrMixinImplementsOpt(' '$token)');
+  Token parseClassOrMixinOrEnumImplementsOpt(Token token) {
+    doPrint('parseClassOrMixinOrEnumImplementsOpt(' '$token)');
     indent++;
-    var result = super.parseClassOrMixinImplementsOpt(token);
+    var result = super.parseClassOrMixinOrEnumImplementsOpt(token);
     indent--;
     return result;
   }
@@ -1126,14 +1153,14 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseClassOrMixinOrExtensionMemberImpl(
+  Token parseClassOrMixinOrExtensionOrEnumMemberImpl(
       Token token, DeclarationKind kind, String? enclosingDeclarationName) {
-    doPrint('parseClassOrMixinOrExtensionMemberImpl('
+    doPrint('parseClassOrMixinOrExtensionOrEnumMemberImpl('
         '$token, '
         '$kind, '
         '$enclosingDeclarationName)');
     indent++;
-    var result = super.parseClassOrMixinOrExtensionMemberImpl(
+    var result = super.parseClassOrMixinOrExtensionOrEnumMemberImpl(
         token, kind, enclosingDeclarationName);
     indent--;
     return result;
@@ -1279,14 +1306,15 @@ class TestParser extends Parser {
   @override
   Token parseConstructorReference(
       Token token, ConstructorReferenceContext constructorReferenceContext,
-      [TypeParamOrArgInfo? typeArg]) {
+      [TypeParamOrArgInfo? typeArg, bool isImplicitTypeName = false]) {
     doPrint('parseConstructorReference('
         '$token, '
         '$constructorReferenceContext, '
-        '$typeArg)');
+        '$typeArg, '
+        '$isImplicitTypeName)');
     indent++;
-    var result = super
-        .parseConstructorReference(token, constructorReferenceContext, typeArg);
+    var result = super.parseConstructorReference(
+        token, constructorReferenceContext, typeArg, isImplicitTypeName);
     indent--;
     return result;
   }

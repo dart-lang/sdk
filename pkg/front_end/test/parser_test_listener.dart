@@ -214,12 +214,9 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleClassOrMixinImplements(
-      Token? implementsKeyword, int interfacesCount) {
+  void handleImplements(Token? implementsKeyword, int interfacesCount) {
     seen(implementsKeyword);
-    doPrint('handleClassOrMixinImplements('
-        '$implementsKeyword, '
-        '$interfacesCount)');
+    doPrint('handleImplements(' '$implementsKeyword, ' '$interfacesCount)');
   }
 
   @override
@@ -450,11 +447,60 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int count) {
+  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
     indent--;
     seen(enumKeyword);
     seen(leftBrace);
-    doPrint('endEnum(' '$enumKeyword, ' '$leftBrace, ' '$count)');
+    doPrint('endEnum(' '$enumKeyword, ' '$leftBrace, ' '$memberCount)');
+  }
+
+  @override
+  void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    indent--;
+    seen(getOrSet);
+    seen(beginToken);
+    seen(beginParam);
+    seen(beginInitializers);
+    seen(endToken);
+    doPrint('endEnumConstructor('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
+  }
+
+  @override
+  void handleEnumElements(Token elementsEndToken, int elementsCount) {
+    seen(elementsEndToken);
+    doPrint('handleEnumElements(' '$elementsEndToken, ' '$elementsCount)');
+  }
+
+  @override
+  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+    seen(enumKeyword);
+    seen(leftBrace);
+    doPrint('handleEnumHeader(' '$enumKeyword, ' '$leftBrace)');
+  }
+
+  @override
+  void handleEnumElement(Token beginToken) {
+    seen(beginToken);
+    doPrint('handleEnumElement(' '$beginToken)');
+  }
+
+  @override
+  void endEnumFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    indent--;
+    seen(beginToken);
+    seen(factoryKeyword);
+    seen(endToken);
+    doPrint('endEnumFactoryMethod('
+        '$beginToken, '
+        '$factoryKeyword, '
+        '$endToken)');
   }
 
   @override
@@ -704,6 +750,55 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void endEnumFields(
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    indent--;
+    seen(abstractToken);
+    seen(externalToken);
+    seen(staticToken);
+    seen(covariantToken);
+    seen(lateToken);
+    seen(varFinalOrConst);
+    seen(beginToken);
+    seen(endToken);
+    doPrint('endEnumFields('
+        '$abstractToken, '
+        '$externalToken, '
+        '$staticToken, '
+        '$covariantToken, '
+        '$lateToken, '
+        '$varFinalOrConst, '
+        '$count, '
+        '$beginToken, '
+        '$endToken)');
+  }
+
+  @override
+  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    indent--;
+    seen(getOrSet);
+    seen(beginToken);
+    seen(beginParam);
+    seen(beginInitializers);
+    seen(endToken);
+    doPrint('endEnumMethod('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
+  }
+
+  @override
   void handleForInitializerEmptyStatement(Token token) {
     seen(token);
     doPrint('handleForInitializerEmptyStatement(' '$token)');
@@ -907,6 +1002,17 @@ class ParserTestListener implements Listener {
   @override
   void handleClassNoWithClause() {
     doPrint('handleClassNoWithClause()');
+  }
+
+  @override
+  void handleEnumWithClause(Token withKeyword) {
+    seen(withKeyword);
+    doPrint('handleEnumWithClause(' '$withKeyword)');
+  }
+
+  @override
+  void handleEnumNoWithClause() {
+    doPrint('handleEnumNoWithClause()');
   }
 
   @override
@@ -2308,6 +2414,12 @@ class ParserTestListener implements Listener {
     seen(token);
     doPrint('handleNoConstructorReferenceContinuationAfterTypeArguments('
         '$token)');
+  }
+
+  @override
+  void handleNoTypeNameInConstructorReference(Token token) {
+    seen(token);
+    doPrint('handleNoTypeNameInConstructorReference(' '$token)');
   }
 
   @override
