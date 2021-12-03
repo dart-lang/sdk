@@ -1612,14 +1612,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var fn = node.function;
     var body = _emitArgumentInitializers(fn, node.name.text);
 
-    // Redirecting constructors: these are not allowed to have initializers,
-    // and the redirecting ctor invocation runs before field initializers.
-    var redirectCall = node.initializers
-            .firstWhere((i) => i is RedirectingInitializer, orElse: () => null)
-        as RedirectingInitializer;
-
-    if (redirectCall != null) {
-      body.add(_emitRedirectingConstructor(redirectCall, className));
+    // Redirecting constructors are not allowed to have conventional
+    // initializers but can have variable declarations in the form of
+    // initializers to support named arguments appearing anywhere in the
+    // arguments list.
+    if (node.initializers.any((i) => i is RedirectingInitializer)) {
+      body.add(_emitRedirectingConstructor(node.initializers, className));
       return body;
     }
 
@@ -1652,15 +1650,23 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Statement _emitRedirectingConstructor(
-      RedirectingInitializer node, js_ast.Expression className) {
-    var ctor = node.target;
-    // We can't dispatch to the constructor with `this.new` as that might hit a
-    // derived class constructor with the same name.
-    return js.statement('#.#.call(this, #);', [
-      className,
-      _constructorName(ctor.name.text),
-      _emitArgumentList(node.arguments, types: false)
-    ]);
+      List<Initializer> initializers, js_ast.Expression className) {
+    var jsInitializers = <js_ast.Statement>[
+      for (var init in initializers)
+        if (init is LocalInitializer)
+          // Temporary locals are created when named arguments don't appear at
+          // the end of the arguments list.
+          visitVariableDeclaration(init.variable)
+        else if (init is RedirectingInitializer)
+          // We can't dispatch to the constructor with `this.new` as that might
+          // hit a derived class constructor with the same name.
+          js.statement('#.#.call(this, #);', [
+            className,
+            _constructorName(init.target.name.text),
+            _emitArgumentList(init.arguments, types: false)
+          ])
+    ];
+    return js_ast.Block(jsInitializers);
   }
 
   js_ast.Statement _emitSuperConstructorCallIfNeeded(
