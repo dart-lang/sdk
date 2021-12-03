@@ -162,6 +162,8 @@ abstract class Iterable<E> {
   /// The returned iterable will provide the same elements as this iterable,
   /// and, after that, the elements of [other], in the same order as in the
   /// original iterables.
+  ///
+  /// Example:
   /// ```dart
   /// var planets = <String>['Earth', 'Jupiter'];
   /// var updated = planets.followedBy(['Mars', 'Venus']);
@@ -221,6 +223,8 @@ abstract class Iterable<E> {
   /// Iterating will not cache results, and thus iterating multiple times over
   /// the returned [Iterable] may invoke the supplied
   /// function [test] multiple times on the same element.
+  ///
+  /// Example:
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// var result = numbers.where((x) => x < 5); // (1, 2, 3)
@@ -284,6 +288,8 @@ abstract class Iterable<E> {
   /// (see [Set.identity]) that its `contains` uses.
   /// Likewise the `Iterable` returned by a [Map.keys] call
   /// should use the same equality that the `Map` uses for keys.
+  ///
+  /// Example:
   /// ```dart
   /// final gasPlanets = <int, String>{1: 'Jupiter', 2: 'Saturn'};
   /// final containsOne = gasPlanets.keys.contains(1); // true
@@ -299,6 +305,8 @@ abstract class Iterable<E> {
   }
 
   /// Invokes [action] on each element of this iterable in iteration order.
+  ///
+  /// Example:
   /// ```dart
   /// final planetsByMass = <double, String>{0.06: 'Mercury', 0.81: 'Venus',
   ///   0.11: 'Mars'};
@@ -378,6 +386,8 @@ abstract class Iterable<E> {
   ///
   /// Checks every element in iteration order, and returns `false` if
   /// any of them make [test] return `false`, otherwise returns `true`.
+  ///
+  /// Example:
   /// ```dart
   /// final planetsByMass = <double,String>{0.06: 'Mercury', 0.81: 'Venus',
   ///   0.11: 'Mars'};
@@ -399,6 +409,7 @@ abstract class Iterable<E> {
   /// and then concatenates the strings, with the
   /// [separator] string interleaved between the elements.
   ///
+  /// Example:
   /// ```dart
   /// final planetsByMass = <double,String>{0.06: 'Mercury', 0.81: 'Venus',
   ///   0.11: 'Mars'};
@@ -427,6 +438,7 @@ abstract class Iterable<E> {
   /// Checks every element in iteration order, and returns `true` if
   /// any of them make [test] return `true`, otherwise returns false.
   ///
+  /// Example:
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// var result = numbers.any((element) => element == 5); // true;
@@ -443,6 +455,8 @@ abstract class Iterable<E> {
   ///
   /// The elements are in iteration order.
   /// The list is fixed-length if [growable] is false.
+  ///
+  /// Example:
   /// ```dart
   /// final planets = <int, String>{1: 'Mercury', 2: 'Venus', 3: 'Mars'};
   /// final keysList = planets.keys.toList(); // [1, 2, 3]
@@ -459,6 +473,8 @@ abstract class Iterable<E> {
   /// or it contains one or more elements that are equal.
   /// The order of the elements in the set is not guaranteed to be the same
   /// as for the iterable.
+  ///
+  /// Example:
   /// ```dart
   /// final planets = <int, String>{1: 'Mercury', 2: 'Venus', 3: 'Mars'};
   /// final valueSet = planets.values.toSet(); // {Mercury, Venus, Mars}
@@ -482,22 +498,26 @@ abstract class Iterable<E> {
 
   /// Whether this collection has no elements.
   ///
+  /// May be computed by checking if `iterator.moveNext()` returns `false`.
+  ///
+  /// Example:
   /// ```dart
   /// final emptyList = List.empty();
   /// print(emptyList.isEmpty); // true;
   /// print(emptyList.iterator.moveNext()); // false
   /// ```
-  /// May be computed by checking if `iterator.moveNext()` returns `false`.
   bool get isEmpty => !iterator.moveNext();
 
   /// Whether this collection has at least one element.
   ///
+  /// May be computed by checking if `iterator.moveNext()` returns `true`.
+  ///
+  /// Example:
   /// ```dart
   /// final numbers = <int>{1, 2, 3};
   /// print(numbers.isNotEmpty); // true;
   /// print(numbers.iterator.moveNext()); // true
   /// ```
-  /// May be computed by checking if `iterator.moveNext()` returns `true`.
   bool get isNotEmpty => !isEmpty;
 
   /// Returns a lazy iterable of the [count] first elements of this iterable.
@@ -508,12 +528,13 @@ abstract class Iterable<E> {
   /// The elements can be computed by stepping through [iterator] until [count]
   /// elements have been seen.
   ///
+  /// The `count` must not be negative.
+  ///
+  /// Example:
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// final result = numbers.take(4); // (1, 2, 3, 5)
   /// ```
-  ///
-  /// The `count` must not be negative.
   Iterable<E> take(int count) {
     return TakeIterable<E>(this, count);
   }
@@ -526,6 +547,8 @@ abstract class Iterable<E> {
   /// The elements can be computed by stepping through [iterator] until an
   /// element is found where `test(element)` is false. At that point,
   /// the returned iterable stops (its `moveNext()` returns false).
+  ///
+  /// Example:
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// var result = numbers.takeWhile((x) => x < 5); // (1, 2, 3)
@@ -550,6 +573,7 @@ abstract class Iterable<E> {
   /// through earlier elements, for example when iterating a [List].
   /// Such iterables are allowed to ignore the initial skipped elements.
   ///
+  /// Example:
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// final result = numbers.skip(4); // (6, 7)
@@ -571,6 +595,7 @@ abstract class Iterable<E> {
   /// otherwise it iterates the remaining elements in their original order,
   /// starting with the first element for which `test(element)` returns `false`.
   ///
+  /// Example:
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// var result = numbers.skipWhile((x) => x < 5); // (5, 6, 7)
@@ -630,6 +655,7 @@ abstract class Iterable<E> {
   ///
   /// Iterates through elements and returns the first to satisfy [test].
   ///
+  /// Example:
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// var result = numbers.firstWhere((element) => element < 5); // 1
@@ -658,6 +684,7 @@ abstract class Iterable<E> {
   /// checks `test(element)` for each,
   /// and finally returns that last one that matched.
   ///
+  /// Example:
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// var result = numbers.lastWhere((element) => element < 5); // 3
@@ -691,6 +718,7 @@ abstract class Iterable<E> {
   /// If no matching element is found, returns the result of [orElse].
   /// If [orElse] is omitted, it defaults to throwing a [StateError].
   ///
+  /// Example:
   /// ```dart
   /// final numbers = <int>[2, 2, 10];
   /// var result = numbers.singleWhere((element) => element > 5); // 10
@@ -729,6 +757,7 @@ abstract class Iterable<E> {
   /// first [index] elements and then returning the next.
   /// Some iterables may have a more efficient way to find the element.
   ///
+  /// Example:
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// final elementAt = numbers.elementAt(4); // 6
