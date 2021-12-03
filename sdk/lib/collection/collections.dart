@@ -8,6 +8,17 @@ part of dart.collection;
 ///
 /// The source of the elements may be a [List] or any [Iterable] with
 /// efficient [Iterable.length] and [Iterable.elementAt].
+///
+/// ```dart
+/// final numbers = <int>[10, 20, 30];
+/// final unmodifiableListView = UnmodifiableListView(numbers);
+///
+/// // Insert an new element to the original list.
+/// numbers.addAll([40, 50]);
+/// print(unmodifiableListView); // [10, 20, 30, 40, 50]
+///
+/// unmodifiableListView.remove(20); // Throws.
+/// ```
 class UnmodifiableListView<E> extends UnmodifiableListBase<E> {
   final Iterable<E> _source;
 
