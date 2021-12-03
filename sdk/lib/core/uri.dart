@@ -51,7 +51,6 @@ const String _hexDigits = "0123456789ABCDEF";
 /// ## File URI
 /// To create a URI from file path, use [Uri.file]:
 /// ```dart
-///
 /// final fileUri = Uri.file('C:/data/images/image.png', windows: false);
 /// print(fileUri); // C%3A/data/images/image.png
 ///
@@ -73,23 +72,22 @@ const String _hexDigits = "0123456789ABCDEF";
 /// ## URI from string
 /// To create a URI from string, use [Uri.parse] or [Uri.tryParse]:
 /// ```dart
-/// final uri = Uri.parse(
+/// final uri = Uri.tryParse(
 ///     'https://dart.dev/guides/libraries/library-tour#utility-classes');
 /// print(uri); // https://api.dart.dev
-/// print(uri.isScheme('https')); // true
-/// print(uri.origin); // https://dart.dev
-/// print(uri.host); // dart.dev
-/// print(uri.authority); // api.dart.dev
-/// print(uri.port); // 443
-/// print(uri.path); // guides/libraries/library-tour
-/// print(uri.pathSegments); // [guides, libraries, library-tour]
-/// print(uri.fragment); // utility-classes
+/// print(uri?.isScheme('https')); // true
+/// print(uri?.origin); // https://dart.dev
+/// print(uri?.host); // dart.dev
+/// print(uri?.authority); // api.dart.dev
+/// print(uri?.port); // 443
+/// print(uri?.path); // guides/libraries/library-tour
+/// print(uri?.pathSegments); // [guides, libraries, library-tour]
+/// print(uri?.fragment); // utility-classes
+/// print(uri?.hasQuery); // false
+/// print(uri?.data); // null
 /// ```
-/// If the uri string is not valid as a URI or URI reference, a
-/// [FormatException] is thrown.
 ///
 /// **See also:**
-///
 /// * [URIs][uris] in the [library tour][libtour]
 /// * [RFC-3986](https://tools.ietf.org/html/rfc3986)
 /// * [RFC-2396](https://tools.ietf.org/html/rfc2396)
@@ -176,6 +174,21 @@ abstract class Uri {
   /// It should be a valid URI fragment, but invalid characters other than
   /// general delimiters are escaped if necessary.
   /// If [fragment] is omitted or `null`, the URI has no fragment part.
+  ///
+  /// ```dart
+  /// final httpsUri = Uri(
+  ///     scheme: 'https',
+  ///     host: 'dart.dev',
+  ///     path: 'guides/libraries/library-tour',
+  ///     fragment: 'numbers');
+  /// print(httpsUri); // https://dart.dev/guides/libraries/library-tour#numbers
+  ///
+  /// final mailtoUri = Uri(
+  ///     scheme: 'mailto',
+  ///     path: 'John.Doe@example.com',
+  ///     queryParameters: {'subject': 'Example'});
+  /// print(mailtoUri); // mailto:John.Doe@example.com?subject=Example
+  /// ```
   factory Uri(
       {String? scheme,
       String? userInfo,
@@ -273,7 +286,6 @@ abstract class Uri {
   /// semantics and passing `false` will use non-Windows semantics.
   ///
   /// Examples using non-Windows semantics:
-  ///
   /// ```dart
   /// // xxx/yyy
   /// Uri.file('xxx/yyy', windows: false);
@@ -292,7 +304,6 @@ abstract class Uri {
   /// ```
   ///
   /// Examples using Windows semantics:
-  ///
   /// ```dart
   /// // xxx/yyy
   /// Uri.file(r'xxx\yyy', windows: true);
@@ -364,6 +375,16 @@ abstract class Uri {
   /// as an omitted `charset` parameter defaults to meaning `US-ASCII`.
   ///
   /// To read the content back, use [UriData.contentAsString].
+  ///
+  /// Example:
+  /// ```dart
+  /// final uri = Uri.dataFromString(
+  ///   'example content',
+  ///   mimeType: 'text/plain',
+  ///   parameters: <String, String>{'search': 'file', 'max': '10'},
+  /// );
+  /// print(uri); // data:;search=name;max=10,example%20content
+  /// ```
   factory Uri.dataFromString(String content,
       {String? mimeType,
       Encoding? encoding,
@@ -391,6 +412,12 @@ abstract class Uri {
   /// in the data URI, the character is percent-escaped. If the character is
   /// non-ASCII, it is first UTF-8 encoded and then the bytes are percent
   /// encoded.
+  ///
+  /// Example:
+  /// ```dart
+  /// final uri = Uri.dataFromBytes([68, 97, 114, 116]);
+  /// print(uri); // data:application/octet-stream;base64,RGFydA==
+  /// ```
   factory Uri.dataFromBytes(List<int> bytes,
       {String mimeType = "application/octet-stream",
       Map<String, String>? parameters,
@@ -1079,6 +1106,12 @@ abstract class Uri {
   /// of [uri], and only the substring from `start` to `end` is parsed as a URI.
   ///
   /// Returns `null` if the [uri] string is not valid as a URI or URI reference.
+  /// ```dart
+  /// final uri = Uri.tryParse(
+  ///     'https://dart.dev/guides/libraries/library-tour#utility-classes', 0,
+  ///     16);
+  /// print(uri); // https://dart.dev
+  /// ```
   static Uri? tryParse(String uri, [int start = 0, int? end]) {
     // TODO: Optimize to avoid throwing-and-recatching.
     try {
