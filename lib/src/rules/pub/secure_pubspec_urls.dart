@@ -42,7 +42,7 @@ class SecurePubspecUrls extends LintRule {
 
   @override
   LintCode get lintCode => const LintCode(
-      'secure_pubspec_urls', 'The url should only only use secure protocols.',
+      'secure_pubspec_urls', 'The url should only use secure protocols.',
       correctionMessage: "Try using 'https'.");
 }
 
@@ -60,6 +60,16 @@ class Visitor extends PubspecVisitor<void> {
         rule.reportPubLint(node);
       }
     }
+  }
+
+  @override
+  void visitPackageIssueTracker(PSEntry issueTracker) {
+    _checkUrl(issueTracker.value);
+  }
+
+  @override
+  void visitPackageRepository(PSEntry repostory) {
+    _checkUrl(repostory.value);
   }
 
   @override

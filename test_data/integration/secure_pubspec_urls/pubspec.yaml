@@ -1,8 +1,9 @@
 name: fancy
 description: Fancy pre-built things.
 version: 1.1.1
-homepage: http://github.com/dart-lang/linter
-repository: http://github.com/dart-lang/linter
+homepage: http://github.com/dart-lang/linter # lint
+repository: http://github.com/dart-lang/linter # lint
+issue_tracker: http://github.com/dart-lang/linter/issues # lint
 
 environment:
   sdk: ">=2.15.2 <3.0.0"
@@ -21,7 +22,7 @@ dev_dependencies:
 
 dependency_overrides:
   kittens:
-    git: http://github.com/munificent/kittens.git # lint
+    git: http://github.com/munificent/kittens.git # lint, needs fix in analyzer
   kittens2:
     git:
       url: http://github.com/munificent/kittens2.git # lint

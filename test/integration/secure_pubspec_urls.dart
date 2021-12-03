@@ -35,12 +35,14 @@ void main() {
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
-            'pubspec.yaml 4:11 [lint] The url should only only use secure protocols.',
-            'pubspec.yaml 14:12 [lint] The url should only only use secure protocols.',
-            'pubspec.yaml 19:13 [lint] The url should only only use secure protocols.',
-            'pubspec.yaml 27:12 [lint] The url should only only use secure protocols.',
-            'pubspec.yaml 31:12 [lint] The url should only only use secure protocols.',
-            '1 file analyzed, 5 issues found',
+            '4:11 [lint] The url should only use secure protocols.',
+            '6:16 [lint] The url should only use secure protocols.',
+            '5:13 [lint] The url should only use secure protocols.',
+            '15:12 [lint] The url should only use secure protocols.',
+            '20:13 [lint] The url should only use secure protocols.',
+            '28:12 [lint] The url should only use secure protocols.',
+            '32:12 [lint] The url should only use secure protocols.',
+            '1 file analyzed, 7 issues found',
           ]));
       expect(exitCode, 1);
     });
