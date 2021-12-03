@@ -27,7 +27,7 @@ class FlutterOutlineComputerTest extends AbstractContextTest {
   void setUp() {
     super.setUp();
     writeTestPackageConfig(flutter: true);
-    testPath = convertPath('/home/test/lib/test.dart');
+    testPath = convertPath('$testPackageLibPath/test.dart');
   }
 
   Future<void> test_attribute_namedExpression() async {
@@ -234,7 +234,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_children_closure_blockBody() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {
@@ -270,7 +270,7 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_children_closure_expressionBody() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {
@@ -443,7 +443,7 @@ class WidgetFactory {
   }
 
   Future<void> test_parentAssociationLabel() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 import 'package:flutter/widgets.dart';
 
 class WidgetA extends StatelessWidget {

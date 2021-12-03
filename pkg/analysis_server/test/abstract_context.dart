@@ -5,8 +5,6 @@
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -22,24 +20,6 @@ import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 
 import 'src/utilities/mock_packages.dart';
-
-/// Finds an [Element] with the given [name].
-Element? findChildElement(Element root, String name, [ElementKind? kind]) {
-  Element? result;
-  root.accept(_ElementVisitorFunctionWrapper((Element element) {
-    if (element.name != name) {
-      return;
-    }
-    if (kind != null && element.kind != kind) {
-      return;
-    }
-    result = element;
-  }));
-  return result;
-}
-
-/// A function to be called for every [Element].
-typedef _ElementVisitorFunction = void Function(Element element);
 
 class AbstractContextTest with ResourceProviderMixin {
   static bool _lintRulesAreRegistered = false;
@@ -64,6 +44,13 @@ class AbstractContextTest with ResourceProviderMixin {
   AnalysisDriver get driver {
     throw 0;
   }
+
+  /// Return a list of the experiments that are to be enabled for tests in this
+  /// class, an empty list if there are no experiments that should be enabled.
+  List<String> get experiments => [
+        EnableString.constructor_tearoffs,
+        EnableString.named_arguments_anywhere,
+      ];
 
   String get latestLanguageVersion =>
       '${ExperimentStatus.currentVersion.major}.'
@@ -192,6 +179,10 @@ class AbstractContextTest with ResourceProviderMixin {
     );
 
     writeTestPackageConfig();
+
+    createAnalysisOptionsFile(
+      experiments: experiments,
+    );
   }
 
   void setupResourceProvider() {}
@@ -300,18 +291,5 @@ class AbstractContextTest with ResourceProviderMixin {
 
     _addAnalyzedFilesToDrivers();
     verifyCreatedCollection();
-  }
-}
-
-/// Wraps the given [_ElementVisitorFunction] into an instance of
-/// [engine.GeneralizingElementVisitor].
-class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor<void> {
-  final _ElementVisitorFunction function;
-  _ElementVisitorFunctionWrapper(this.function);
-
-  @override
-  void visitElement(Element element) {
-    function(element);
-    super.visitElement(element);
   }
 }

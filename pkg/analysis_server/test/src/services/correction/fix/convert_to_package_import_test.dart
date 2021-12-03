@@ -24,7 +24,7 @@ class ConvertToPackageImportBulkTest extends BulkFixProcessorTest {
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44673')
   Future<void> test_singleFile() async {
     writeTestPackageConfig(config: PackageConfigFileBuilder());
-    addSource('/home/test/lib/bar.dart', 'class Bar {}');
+    addSource('$testPackageLibPath/bar.dart', 'class Bar {}');
 
     testFile = convertPath('/home/test/tool/test.dart');
 
@@ -55,7 +55,7 @@ class ConvertToPackageImportTest extends FixProcessorLintTest {
     // This test fails because any attempt to specify a relative path that
     // includes 'lib' (which the lint requires) results in a malformed URI when
     // trying to resolve the import.
-    newFile('/home/test/lib/foo/bar.dart', content: '''
+    newFile('$testPackageLibPath/foo/bar.dart', content: '''
 class C {}
 ''');
     await resolveTestCode('''

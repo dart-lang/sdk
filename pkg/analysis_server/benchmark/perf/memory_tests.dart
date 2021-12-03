@@ -230,7 +230,7 @@ class LspAnalysisServerMemoryUsageTest
   Map<String, List<Diagnostic>> currentAnalysisErrors = {};
 
   @override
-  void expect(actual, matcher, {String? reason}) =>
+  void expect(Object? actual, Matcher matcher, {String? reason}) =>
       outOfTestExpect(actual, matcher, reason: reason);
 
   /// The server is automatically started before every test.
@@ -265,8 +265,8 @@ mixin ServerMemoryUsageMixin {
 
     var total = 0;
 
-    List isolateGroupsRefs = vm['isolateGroups'];
-    for (Map isolateGroupRef in isolateGroupsRefs) {
+    var isolateGroupsRefs = vm['isolateGroups'] as List<Object?>;
+    for (var isolateGroupRef in isolateGroupsRefs.cast<Map>()) {
       final heapUsage = await service.call('getIsolateGroupMemoryUsage',
           {'isolateGroupId': isolateGroupRef['id']});
       total += heapUsage['heapUsage'] + heapUsage['externalUsage'] as int;
@@ -312,10 +312,10 @@ class ServiceProtocol {
     }
 
     try {
-      dynamic json = jsonDecode(message);
+      var json = jsonDecode(message) as Map<Object?, Object?>;
       if (json.containsKey('id')) {
-        dynamic id = json['id'];
-        _completers[id]?.complete(json['result']);
+        var id = json['id'];
+        _completers[id]?.complete(json['result'] as Map<Object?, Object?>);
         _completers.remove(id);
       }
     } catch (e) {

@@ -45,21 +45,21 @@ class LibraryPrefixContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_Block() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/home/test/lib/ab.dart', '''
+    addSource('$testPackageLibPath/ab.dart', '''
 export "dart:math" hide max;
 class A {int x;}
 @deprecated D1() {int x;}
 class _B {boo() { partBoo() {}} }''');
-    addSource('/home/test/lib/cd.dart', '''
+    addSource('$testPackageLibPath/cd.dart', '''
 String T1;
 var _T2;
 class C { }
 class D { }''');
-    addSource('/home/test/lib/eef.dart', '''
+    addSource('$testPackageLibPath/eef.dart', '''
 class EE { }
 class F { }''');
-    addSource('/home/test/lib/g.dart', 'class G { }');
-    addSource('/home/test/lib/h.dart', '''
+    addSource('$testPackageLibPath/g.dart', 'class G { }');
+    addSource('$testPackageLibPath/h.dart', '''
 class H { }
 int T3;
 var _T4;'''); // not imported
@@ -186,7 +186,7 @@ class Z { }''');
 
   Future<void> test_ClassDeclaration_body() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
 class B { }''');
     addTestSource('''
 import "b.dart" as x;
@@ -201,7 +201,7 @@ A T;''');
 
   Future<void> test_ClassDeclaration_body_final() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
 class B { }''');
     addTestSource('''
 import "b.dart" as x;
@@ -216,7 +216,7 @@ A T;''');
 
   Future<void> test_ClassDeclaration_body_final_field() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
 class B { }''');
     addTestSource('''
 import "b.dart" as x;
@@ -231,7 +231,7 @@ A T;''');
 
   Future<void> test_ClassDeclaration_body_final_field2() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
 class B { }''');
     addTestSource('''
 import "b.dart" as Soo;
@@ -246,7 +246,7 @@ A Sew;''');
 
   Future<void> test_ClassDeclaration_body_final_final() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
 class B { }''');
     addTestSource('''
 import "b.dart" as x;
@@ -261,7 +261,7 @@ A T;''');
 
   Future<void> test_ClassDeclaration_body_final_var() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
 class B { }''');
     addTestSource('''
 import "b.dart" as x;
@@ -275,7 +275,7 @@ A T;''');
   }
 
   Future<void> test_InstanceCreationExpression() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
@@ -294,11 +294,11 @@ main() {new ^ String x = "hello";}''');
   }
 
   Future<void> test_InstanceCreationExpression_inPart() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
 library testB;
 import "a.dart" as t;
 import "dart:math" as math;
@@ -313,11 +313,11 @@ main() {new ^ String x = "hello";}''');
   }
 
   Future<void> test_InstanceCreationExpression_inPart_detached() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
 library testB;
 import "a.dart" as t;
 import "dart:math" as math;

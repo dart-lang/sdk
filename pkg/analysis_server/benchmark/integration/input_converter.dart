@@ -62,7 +62,7 @@ abstract class CommonInputConverter extends Converter<String, Operation?> {
 
   /// Return an operation for the notification or `null` if none.
   Operation? convertNotification(Map<String, dynamic> json) {
-    String event = json['event'];
+    var event = json['event'] as String;
     if (event == SERVER_NOTIFICATION_STATUS) {
       // {"event":"server.status","params":{"analysis":{"isAnalyzing":false}}}
       var params = asMap2(json['params']);
@@ -214,21 +214,21 @@ abstract class CommonInputConverter extends Converter<String, Operation?> {
   /// Recursively translate source paths in the specified JSON to reference
   /// the temporary source used during performance measurement rather than
   /// the original source when the instrumentation or log file was generated.
-  dynamic translateSrcPaths(json) {
+  Object? translateSrcPaths(Object? json) {
     if (json is String) {
       return srcPathMap.translate(json);
     }
     if (json is List) {
-      var result = [];
+      var result = <Object?>[];
       for (var i = 0; i < json.length; ++i) {
-        result.add(translateSrcPaths(json[i]));
+        result.add(translateSrcPaths(json[i] as Object?));
       }
       return result;
     }
     if (json is Map) {
       var result = <String, Object?>{};
       json.forEach((origKey, value) {
-        result[translateSrcPaths(origKey)] = translateSrcPaths(value);
+        result[translateSrcPaths(origKey) as String] = translateSrcPaths(value);
       });
       return result;
     }

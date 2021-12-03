@@ -90,7 +90,7 @@ class RemoveArgumentTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.avoid_redundant_argument_values;
 
-  Future<void> test_named_param() async {
+  Future<void> test_named() async {
     await resolveTestCode('''
 void f({bool valWithDefault = true, bool? val}) {}
 
@@ -107,7 +107,27 @@ void main() {
 ''');
   }
 
-  Future<void> test_named_param_2() async {
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/linter/issues/3082',
+  )
+  Future<void> test_named_betweenRequiredPositional() async {
+    await resolveTestCode('''
+void foo(int a, int b, {bool c = true}) {}
+
+void f() {
+  foo(0, c: true, 1);
+}
+''');
+    await assertHasFix('''
+void foo(int a, int b, {bool c = true}) {}
+
+void f() {
+  foo(0, 1);
+}
+''');
+  }
+
+  Future<void> test_named_hasOtherNamed() async {
     await resolveTestCode('''
 void f({bool valWithDefault = true, bool? val}) {}
 

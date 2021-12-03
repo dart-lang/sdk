@@ -457,5 +457,5 @@ class _RawParams extends ToJsonable {
   _RawParams(this._json);
 
   @override
-  Object toJson() => jsonDecode(_json);
+  Object toJson() => jsonDecode(_json) as Object;
 }

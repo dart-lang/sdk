@@ -62,7 +62,7 @@ void f() {
   }
 
   Future<void> test_qualified() async {
-    newFile('/home/test/lib/ext.dart', content: '''
+    newFile('$testPackageLibPath/ext.dart', content: '''
 extension E on String {
   static int m() => 0;
 }

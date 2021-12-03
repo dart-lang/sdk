@@ -36,7 +36,7 @@ mixin ImportedReferenceContributorMixin on DartCompletionContributorTest {
 class ImportedReferenceContributorTest extends DartCompletionContributorTest
     with ImportedReferenceContributorMixin {
   Future<void> test_Annotation_typeArguments() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class C {}
 typedef T1 = void Function();
 typedef T2 = List<int>;
@@ -67,7 +67,7 @@ void f() {}
   Future<void> test_ArgDefaults_function_with_required_named() async {
     writeTestPackageConfig(meta: true);
 
-    resolveSource('/home/test/lib/b.dart', '''
+    resolveSource('$testPackageLibPath/b.dart', '''
 lib B;
 import 'package:meta/meta.dart';
 
@@ -85,7 +85,7 @@ void f() {f^}''');
 
   Future<void> test_ArgumentList() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         library A;
         bool hasLength(int expected) { }
         void baz() { }''');
@@ -110,7 +110,7 @@ void f() {f^}''');
 
   Future<void> test_ArgumentList_imported_function() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         library A;
         bool hasLength(int expected) { }
         expect(arg) { }
@@ -137,7 +137,7 @@ void f() {f^}''');
   Future<void>
       test_ArgumentList_InstanceCreationExpression_functionalArg() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         library A;
         class A { A(f()) { } }
         bool hasLength(int expected) { }
@@ -167,7 +167,7 @@ void f() {f^}''');
 
   Future<void> test_ArgumentList_InstanceCreationExpression_typedefArg() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         library A;
         typedef Funct();
         class A { A(Funct f) { } }
@@ -198,7 +198,7 @@ void f() {f^}''');
 
   Future<void> test_ArgumentList_local_function() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         library A;
         bool hasLength(int expected) { }
         void baz() { }''');
@@ -224,7 +224,7 @@ void f() {f^}''');
 
   Future<void> test_ArgumentList_local_method() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         library A;
         bool hasLength(int expected) { }
         void baz() { }''');
@@ -250,7 +250,7 @@ void f() {f^}''');
 
   Future<void> test_ArgumentList_MethodInvocation_functionalArg() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         library A;
         class A { A(f()) { } }
         bool hasLength(int expected) { }
@@ -280,7 +280,7 @@ void f() {f^}''');
 
   Future<void> test_ArgumentList_MethodInvocation_methodArg() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         library A;
         class A { A(f()) { } }
         bool hasLength(int expected) { }
@@ -309,7 +309,7 @@ void f() {f^}''');
   Future<void> test_ArgumentList_namedParam() async {
     // SimpleIdentifier  NamedExpression  ArgumentList  MethodInvocation
     // ExpressionStatement
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         library A;
         bool hasLength(int expected) { }''');
     addTestSource('''
@@ -352,7 +352,7 @@ void f() {f^}''');
     // value to the type it already has.
 
     // SimpleIdentifier  NamedType  AsExpression  IfStatement
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
           foo() { }
           class A {} class B extends A {} class C extends B {}
           class X {X.c(); X._d(); z() {}}''');
@@ -379,7 +379,7 @@ void f() {f^}''');
     // value to the type it already has.
 
     // SimpleIdentifier  NamedType  AsExpression  IfStatement
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
           foo() { }
           class A {} class B implements A {} class C implements B {}
           class X {X.c(); X._d(); z() {}}''');
@@ -528,7 +528,7 @@ void f() {f^}''');
   }
 
   Future<void> test_AwaitExpression_function() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 Future y() async {return 0;}
 ''');
     addTestSource('''
@@ -548,7 +548,7 @@ class B extends A {
 
   Future<void> test_AwaitExpression_inherited() async {
     // SimpleIdentifier  AwaitExpression  ExpressionStatement
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
 lib libB;
 class A {
   Future y() async { return 0; }
@@ -602,21 +602,21 @@ class B extends A {
 
   Future<void> test_Block() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/home/test/lib/ab.dart', '''
+    addSource('$testPackageLibPath/ab.dart', '''
         export "dart:math" hide max;
         class A {int x;}
         @deprecated D1() {int x;}
         class _B {boo() { partBoo() {}} }''');
-    addSource('/home/test/lib/cd.dart', '''
+    addSource('$testPackageLibPath/cd.dart', '''
         String T1;
         var _T2;
         class C { }
         class D { }''');
-    addSource('/home/test/lib/eef.dart', '''
+    addSource('$testPackageLibPath/eef.dart', '''
         class EE { }
         class F { }''');
-    addSource('/home/test/lib/g.dart', 'class G { }');
-    addSource('/home/test/lib/h.dart', '''
+    addSource('$testPackageLibPath/g.dart', 'class G { }');
+    addSource('$testPackageLibPath/h.dart', '''
         class H { }
         int T3;
         var _T4;'''); // not imported
@@ -657,7 +657,7 @@ class B extends A {
     assertNotSuggested('x');
     assertNotSuggested('partT8');
 
-    assertSuggestClass('A', elemFile: '/home/test/lib/ab.dart');
+    assertSuggestClass('A', elemFile: '$testPackageLibPath/ab.dart');
     if (suggestConstructorsWithoutNew) {
       assertSuggestConstructor('A');
     }
@@ -705,21 +705,21 @@ class B extends A {
 
   Future<void> test_Block_final() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/home/test/lib/ab.dart', '''
+    addSource('$testPackageLibPath/ab.dart', '''
         export "dart:math" hide max;
         class A {int x;}
         @deprecated D1() {int x;}
         class _B {boo() { partBoo() {}} }''');
-    addSource('/home/test/lib/cd.dart', '''
+    addSource('$testPackageLibPath/cd.dart', '''
         String T1;
         var _T2;
         class C { }
         class D { }''');
-    addSource('/home/test/lib/eef.dart', '''
+    addSource('$testPackageLibPath/eef.dart', '''
         class EE { }
         class F { }''');
-    addSource('/home/test/lib/g.dart', 'class G { }');
-    addSource('/home/test/lib/h.dart', '''
+    addSource('$testPackageLibPath/g.dart', 'class G { }');
+    addSource('$testPackageLibPath/h.dart', '''
         class H { }
         int T3;
         var _T4;'''); // not imported
@@ -818,21 +818,21 @@ class B extends A {
 
   Future<void> test_Block_final_final() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/home/test/lib/ab.dart', '''
+    addSource('$testPackageLibPath/ab.dart', '''
         export "dart:math" hide max;
         class A {int x;}
         @deprecated D1() {int x;}
         class _B {boo() { partBoo() {}} }''');
-    addSource('/home/test/lib/cd.dart', '''
+    addSource('$testPackageLibPath/cd.dart', '''
         String T1;
         var _T2;
         class C { }
         class D { }''');
-    addSource('/home/test/lib/eef.dart', '''
+    addSource('$testPackageLibPath/eef.dart', '''
         class EE { }
         class F { }''');
-    addSource('/home/test/lib/g.dart', 'class G { }');
-    addSource('/home/test/lib/h.dart', '''
+    addSource('$testPackageLibPath/g.dart', 'class G { }');
+    addSource('$testPackageLibPath/h.dart', '''
         class H { }
         int T3;
         var _T4;'''); // not imported
@@ -919,21 +919,21 @@ class B extends A {
 
   Future<void> test_Block_final_var() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/home/test/lib/ab.dart', '''
+    addSource('$testPackageLibPath/ab.dart', '''
         export "dart:math" hide max;
         class A {int x;}
         @deprecated D1() {int x;}
         class _B {boo() { partBoo() {}} }''');
-    addSource('/home/test/lib/cd.dart', '''
+    addSource('$testPackageLibPath/cd.dart', '''
         String T1;
         var _T2;
         class C { }
         class D { }''');
-    addSource('/home/test/lib/eef.dart', '''
+    addSource('$testPackageLibPath/eef.dart', '''
         class EE { }
         class F { }''');
-    addSource('/home/test/lib/g.dart', 'class G { }');
-    addSource('/home/test/lib/h.dart', '''
+    addSource('$testPackageLibPath/g.dart', 'class G { }');
+    addSource('$testPackageLibPath/h.dart', '''
         class H { }
         int T3;
         var _T4;'''); // not imported
@@ -1017,21 +1017,21 @@ class B extends A {
   }
 
   Future<void> test_Block_identifier_partial() async {
-    resolveSource('/home/test/lib/ab.dart', '''
+    resolveSource('$testPackageLibPath/ab.dart', '''
         export "dart:math" hide max;
         class A {int x;}
         @deprecated D1() {int x;}
         class _B { }''');
-    addSource('/home/test/lib/cd.dart', '''
+    addSource('$testPackageLibPath/cd.dart', '''
         String T1;
         var _T2;
         class C { }
         class D { }''');
-    addSource('/home/test/lib/eef.dart', '''
+    addSource('$testPackageLibPath/eef.dart', '''
         class EE { }
         class DF { }''');
-    addSource('/home/test/lib/g.dart', 'class G { }');
-    addSource('/home/test/lib/h.dart', '''
+    addSource('$testPackageLibPath/g.dart', 'class G { }');
+    addSource('$testPackageLibPath/h.dart', '''
         class H { }
         class D3 { }
         int T3;
@@ -1094,7 +1094,7 @@ class B extends A {
 
   Future<void> test_Block_inherited_imported() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         class F { var f1; f2() { } get f3 => 0; set f4(fx) { } var _pf; }
         class E extends F { var e1; e2() { } }
@@ -1148,21 +1148,21 @@ class B extends A {
   }
 
   Future<void> test_Block_local_function() async {
-    addSource('/home/test/lib/ab.dart', '''
+    addSource('$testPackageLibPath/ab.dart', '''
         export "dart:math" hide max;
         class A {int x;}
         @deprecated D1() {int x;}
         class _B {boo() { partBoo() {}} }''');
-    addSource('/home/test/lib/cd.dart', '''
+    addSource('$testPackageLibPath/cd.dart', '''
         String T1;
         var _T2;
         class C { }
         class D { }''');
-    addSource('/home/test/lib/eef.dart', '''
+    addSource('$testPackageLibPath/eef.dart', '''
         class EE { }
         class F { }''');
-    addSource('/home/test/lib/g.dart', 'class G { }');
-    addSource('/home/test/lib/h.dart', '''
+    addSource('$testPackageLibPath/g.dart', 'class G { }');
+    addSource('$testPackageLibPath/h.dart', '''
         class H { }
         int T3;
         var _T4;'''); // not imported
@@ -1200,21 +1200,21 @@ class B extends A {
 
   Future<void> test_Block_partial_results() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/home/test/lib/ab.dart', '''
+    addSource('$testPackageLibPath/ab.dart', '''
         export "dart:math" hide max;
         class A {int x;}
         @deprecated D1() {int x;}
         class _B { }''');
-    addSource('/home/test/lib/cd.dart', '''
+    addSource('$testPackageLibPath/cd.dart', '''
         String T1;
         var _T2;
         class C { }
         class D { }''');
-    addSource('/home/test/lib/eef.dart', '''
+    addSource('$testPackageLibPath/eef.dart', '''
         class EE { }
         class F { }''');
-    addSource('/home/test/lib/g.dart', 'class G { }');
-    addSource('/home/test/lib/h.dart', '''
+    addSource('$testPackageLibPath/g.dart', 'class G { }');
+    addSource('$testPackageLibPath/h.dart', '''
         class H { }
         int T3;
         var _T4;'''); // not imported
@@ -1252,7 +1252,7 @@ class B extends A {
 
   Future<void> test_CascadeExpression_selector1() async {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         class B { }''');
     addTestSource('''
         import 'b.dart';
@@ -1277,7 +1277,7 @@ class B extends A {
 
   Future<void> test_CascadeExpression_selector2() async {
     // SimpleIdentifier  PropertyAccess  CascadeExpression  ExpressionStatement
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         class B { }''');
     addTestSource('''
         import 'b.dart';
@@ -1300,7 +1300,7 @@ class B extends A {
 
   Future<void> test_CascadeExpression_selector2_withTrailingReturn() async {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         class B { }''');
     addTestSource('''
         import 'b.dart';
@@ -1395,7 +1395,7 @@ class B extends A {
 
   Future<void> test_ClassDeclaration_body() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         class B { }''');
     addTestSource('''
         import "b.dart" as x;
@@ -1420,7 +1420,7 @@ class B extends A {
 
   Future<void> test_ClassDeclaration_body_final() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         class B { }''');
     addTestSource('''
         import "b.dart" as x;
@@ -1441,7 +1441,7 @@ class B extends A {
 
   Future<void> test_ClassDeclaration_body_final_field() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         class B { }''');
     addTestSource('''
         import "b.dart" as x;
@@ -1462,7 +1462,7 @@ class B extends A {
 
   Future<void> test_ClassDeclaration_body_final_field2() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         class B { }''');
     addTestSource('''
         import "b.dart" as Soo;
@@ -1483,7 +1483,7 @@ class B extends A {
 
   Future<void> test_ClassDeclaration_body_final_final() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         class B { }''');
     addTestSource('''
         import "b.dart" as x;
@@ -1504,7 +1504,7 @@ class B extends A {
 
   Future<void> test_ClassDeclaration_body_final_var() async {
     // ClassDeclaration  CompilationUnit
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         class B { }''');
     addTestSource('''
         import "b.dart" as x;
@@ -1525,7 +1525,7 @@ class B extends A {
 
   Future<void> test_Combinator_hide() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/home/test/lib/ab.dart', '''
+    addSource('$testPackageLibPath/ab.dart', '''
         library libAB;
         part 'partAB.dart';
         class A { }
@@ -1535,7 +1535,7 @@ class B extends A {
         var T1;
         PB F1() => new PB();
         class PB { }''');
-    addSource('/home/test/lib/cd.dart', '''
+    addSource('$testPackageLibPath/cd.dart', '''
         class C { }
         class D { }''');
     addTestSource('''
@@ -1549,7 +1549,7 @@ class B extends A {
 
   Future<void> test_Combinator_show() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/home/test/lib/ab.dart', '''
+    addSource('$testPackageLibPath/ab.dart', '''
         library libAB;
         part 'partAB.dart';
         class A { }
@@ -1561,7 +1561,7 @@ class B extends A {
         typedef PB2 F2(int blat);
         class Clz = Object with Object;
         class PB { }''');
-    addSource('/home/test/lib/cd.dart', '''
+    addSource('$testPackageLibPath/cd.dart', '''
         class C { }
         class D { }''');
     addTestSource('''
@@ -1575,7 +1575,7 @@ class B extends A {
 
   Future<void> test_ConditionalExpression_elseExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
@@ -1595,7 +1595,7 @@ class B extends A {
 
   Future<void> test_ConditionalExpression_elseExpression_empty() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
@@ -1624,7 +1624,7 @@ class B extends A {
 
   Future<void> test_ConditionalExpression_partial_thenExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
@@ -1644,7 +1644,7 @@ class B extends A {
 
   Future<void> test_ConditionalExpression_partial_thenExpression_empty() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
@@ -1673,7 +1673,7 @@ class B extends A {
 
   Future<void> test_ConditionalExpression_thenExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
@@ -1694,7 +1694,7 @@ class B extends A {
   Future<void> test_ConstructorName_importedClass() async {
     // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
@@ -1719,7 +1719,7 @@ class B extends A {
   Future<void> test_ConstructorName_importedFactory() async {
     // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
@@ -1820,7 +1820,7 @@ class B extends A {
   }
 
   Future<void> test_doc_class() async {
-    addSource('/home/test/lib/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 library A;
 /// My class.
 /// Short description.
@@ -1842,7 +1842,7 @@ class A {}
   }
 
   Future<void> test_doc_function() async {
-    resolveSource('/home/test/lib/a.dart', r'''
+    resolveSource('$testPackageLibPath/a.dart', r'''
 library A;
 /// My function.
 /// Short description.
@@ -1861,7 +1861,7 @@ int myFunc() {}
   }
 
   Future<void> test_doc_function_c_style() async {
-    resolveSource('/home/test/lib/a.dart', r'''
+    resolveSource('$testPackageLibPath/a.dart', r'''
 library A;
 /**
  * My function.
@@ -1882,7 +1882,7 @@ int myFunc() {}
   }
 
   Future<void> test_enum() async {
-    addSource('/home/test/lib/a.dart', 'library A; enum E { one, two }');
+    addSource('$testPackageLibPath/a.dart', 'library A; enum E { one, two }');
     addTestSource('import "a.dart"; void f() {^}');
     await computeSuggestions();
     assertSuggestEnum('E');
@@ -1891,8 +1891,8 @@ int myFunc() {}
   }
 
   Future<void> test_enum_deprecated() async {
-    addSource(
-        '/home/test/lib/a.dart', 'library A; @deprecated enum E { one, two }');
+    addSource('$testPackageLibPath/a.dart',
+        'library A; @deprecated enum E { one, two }');
     addTestSource('import "a.dart"; void f() {^}');
     await computeSuggestions();
     // TODO(danrube) investigate why suggestion/element is not deprecated
@@ -1903,7 +1903,7 @@ int myFunc() {}
   }
 
   Future<void> test_enum_filter() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 enum E { one, two }
 enum F { three, four }
 ''');
@@ -1929,7 +1929,7 @@ void f() {
 
   Future<void> test_ExpressionStatement_identifier() async {
     // SimpleIdentifier  ExpressionStatement  Block
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         _B F1() { }
         class A {int x;}
         class _B { }''');
@@ -1959,7 +1959,7 @@ void f() {
 
   Future<void> test_ExpressionStatement_name() async {
     // ExpressionStatement  Block  BlockFunctionBody  MethodDeclaration
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         B T1;
         class B{}''');
     addTestSource('''
@@ -1971,7 +1971,7 @@ void f() {
   }
 
   Future<void> test_ExtendsClause() async {
-    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
     addTestSource('''
 import 'a.dart';
 
@@ -1982,7 +1982,7 @@ class B extends ^
   }
 
   Future<void> test_ExtensionDeclaration_extendedType() async {
-    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
     addTestSource('''
 import 'a.dart';
 
@@ -1994,7 +1994,7 @@ extension E on ^
   }
 
   Future<void> test_ExtensionDeclaration_extendedType2() async {
-    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
     addTestSource('''
 import 'a.dart';
 
@@ -2006,7 +2006,7 @@ extension E on ^ {}
   }
 
   Future<void> test_ExtensionDeclaration_member() async {
-    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
     addTestSource('''
 import 'a.dart';
 
@@ -2019,7 +2019,7 @@ extension E on A { ^ }
   Future<void> test_FieldDeclaration_name_typed() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
-    addSource('/home/test/lib/a.dart', 'class A { }');
+    addSource('$testPackageLibPath/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
         class C {A ^}''');
@@ -2031,7 +2031,7 @@ extension E on A { ^ }
   Future<void> test_FieldDeclaration_name_var() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
-    addSource('/home/test/lib/a.dart', 'class A { }');
+    addSource('$testPackageLibPath/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
         class C {var ^}''');
@@ -2043,7 +2043,7 @@ extension E on A { ^ }
   Future<void> test_FieldDeclaration_type() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
-    addSource('/home/test/lib/a.dart', 'class A { }');
+    addSource('$testPackageLibPath/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
         class C {^ foo;) ''');
@@ -2056,7 +2056,7 @@ extension E on A { ^ }
   Future<void> test_FieldDeclaration_type_after_comment1() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
-    addSource('/home/test/lib/a.dart', 'class A { }');
+    addSource('$testPackageLibPath/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
         class C {
@@ -2072,7 +2072,7 @@ extension E on A { ^ }
   Future<void> test_FieldDeclaration_type_after_comment2() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
-    addSource('/home/test/lib/a.dart', 'class A { }');
+    addSource('$testPackageLibPath/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
         class C {
@@ -2088,7 +2088,7 @@ extension E on A { ^ }
   Future<void> test_FieldDeclaration_type_after_comment3() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
-    addSource('/home/test/lib/a.dart', 'class A { }');
+    addSource('$testPackageLibPath/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
         class C {
@@ -2104,7 +2104,7 @@ extension E on A { ^ }
   Future<void> test_FieldDeclaration_type_without_semicolon() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // FieldDeclaration
-    addSource('/home/test/lib/a.dart', 'class A { }');
+    addSource('$testPackageLibPath/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
         class C {^ foo} ''');
@@ -2287,7 +2287,7 @@ void f() {
   }
 
   Future<void> test_function_parameters_mixed_required_and_named() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 int m(x, {int y}) {}
 ''');
     addTestSource('''
@@ -2310,7 +2310,7 @@ class B extends A {
   }
 
   Future<void> test_function_parameters_mixed_required_and_positional() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 void m(x, [int y]) {}
 ''');
     addTestSource('''
@@ -2333,7 +2333,7 @@ class B extends A {
   }
 
   Future<void> test_function_parameters_named() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 void m({x, int y}) {}
 ''');
     addTestSource('''
@@ -2357,7 +2357,7 @@ class B extends A {
 
   Future<void> test_function_parameters_nnbd_required() async {
     createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 void m(int? nullable, int nonNullable) {}
 ''');
     addTestSource('''
@@ -2380,7 +2380,7 @@ void f() {^}
 
   Future<void> test_function_parameters_nnbd_required_into_legacy() async {
     createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 void m(int? nullable, int nonNullable) {}
 ''');
     addTestSource('''
@@ -2404,7 +2404,7 @@ void f() {^}
 
   Future<void> test_function_parameters_nnbd_required_legacy() async {
     createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 // @dart = 2.8
 void m(int param) {}
 ''');
@@ -2425,7 +2425,7 @@ void f() {^}
   }
 
   Future<void> test_function_parameters_none() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 void m() {}
 ''');
     addTestSource('''
@@ -2444,7 +2444,7 @@ class B extends A {
   }
 
   Future<void> test_function_parameters_positional() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 void m([x, int y]) {}
 ''');
     addTestSource('''
@@ -2467,7 +2467,7 @@ class B extends A {
   }
 
   Future<void> test_function_parameters_required() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 void m(x, int y) {}
 ''');
     addTestSource('''
@@ -2491,7 +2491,7 @@ class B extends A {
 
   Future<void> test_FunctionDeclaration_returnType_afterComment() async {
     // ClassDeclaration  CompilationUnit
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
@@ -2522,7 +2522,7 @@ class B extends A {
 
   Future<void> test_FunctionDeclaration_returnType_afterComment2() async {
     // FunctionDeclaration  ClassDeclaration  CompilationUnit
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
@@ -2553,7 +2553,7 @@ class B extends A {
 
   Future<void> test_FunctionDeclaration_returnType_afterComment3() async {
     // FunctionDeclaration  ClassDeclaration  CompilationUnit
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
@@ -2600,7 +2600,7 @@ class B extends A {
   }
 
   Future<void> test_functionTypeAlias_genericTypeAlias() async {
-    addSource('/home/test/lib/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 typedef F = void Function();
 ''');
     addTestSource(r'''
@@ -2616,7 +2616,7 @@ void f() {
   }
 
   Future<void> test_functionTypeAlias_old() async {
-    addSource('/home/test/lib/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 typedef void F();
 ''');
     addTestSource(r'''
@@ -2697,7 +2697,7 @@ void f() {
   }
 
   Future<void> test_implementsClause() async {
-    newFile('/home/test/lib/a.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
     addTestSource('''
 import 'a.dart';
 
@@ -2708,7 +2708,7 @@ class B implements ^
   }
 
   Future<void> test_implicitCreation() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class A {
   A.a1();
   A.a2();
@@ -2748,7 +2748,7 @@ void f() {
 
   Future<void> test_IndexExpression() async {
     // ExpressionStatement  Block
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
@@ -2777,7 +2777,7 @@ void f() {
 
   Future<void> test_IndexExpression2() async {
     // SimpleIdentifier IndexExpression ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         class A {int x;}''');
@@ -2796,7 +2796,7 @@ void f() {
   }
 
   Future<void> test_InstanceCreationExpression() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
@@ -2850,7 +2850,7 @@ void f() {new ^ String x = "hello";}''');
   }
 
   Future<void> test_InstanceCreationExpression_abstractClass() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 abstract class A {
   A();
   A.generative();
@@ -2873,7 +2873,7 @@ void f() {
 
   Future<void>
       test_InstanceCreationExpression_abstractClass_implicitConstructor() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 abstract class A {}
 ''');
     addTestSource('''
@@ -2889,7 +2889,7 @@ void f() {
   }
 
   Future<void> test_InstanceCreationExpression_filter() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class A {}
 class B extends A {}
 class C implements A {}
@@ -2912,7 +2912,7 @@ void f() {
 
   Future<void> test_InstanceCreationExpression_imported() async {
     // SimpleIdentifier  NamedType  ConstructorName  InstanceCreationExpression
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         class A {A(this.x) { } int x;}''');
@@ -2955,7 +2955,7 @@ void f() {
 
   Future<void> test_InstanceCreationExpression_unimported() async {
     // SimpleIdentifier  NamedType  ConstructorName  InstanceCreationExpression
-    addSource('/home/test/lib/ab.dart', 'class Clip { }');
+    addSource('$testPackageLibPath/ab.dart', 'class Clip { }');
     addTestSource('class A {foo(){new C^}}');
 
     await computeSuggestions();
@@ -2979,7 +2979,7 @@ void f() {
 
   Future<void> test_InterpolationExpression() async {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
@@ -3013,7 +3013,7 @@ void f() {
 
   Future<void> test_InterpolationExpression_block() async {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
@@ -3088,7 +3088,7 @@ void f() {
 
   Future<void> test_IsExpression() async {
     // SimpleIdentifier  NamedType  IsExpression  IfStatement
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         foo() { }
         class X {X.c(); X._d(); z() {}}''');
@@ -3163,7 +3163,7 @@ void f() {
     // value to the type it already has.
 
     // SimpleIdentifier  NamedType  IsExpression  IfStatement
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         foo() { }
         class A {} class B extends A {} class C extends B {}
         class X {X.c(); X._d(); z() {}}''');
@@ -3190,7 +3190,7 @@ void f() {
     // value to the type it already has.
 
     // SimpleIdentifier  NamedType  IsExpression  IfStatement
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         foo() { }
         class A {} class B implements A {} class C implements B {}
         class X {X.c(); X._d(); z() {}}''');
@@ -3211,7 +3211,7 @@ void f() {
   }
 
   Future<void> test_keyword() async {
-    resolveSource('/home/test/lib/b.dart', '''
+    resolveSource('$testPackageLibPath/b.dart', '''
         lib B;
         int newT1;
         int T1;
@@ -3272,7 +3272,7 @@ void f() {
 
   Future<void> test_MapLiteralEntry() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
@@ -3310,7 +3310,7 @@ void f() {
 
   Future<void> test_MapLiteralEntry1() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
@@ -3337,7 +3337,7 @@ void f() {
 
   Future<void> test_MapLiteralEntry2() async {
     // SimpleIdentifier  MapLiteralEntry  MapLiteral  VariableDeclaration
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
@@ -3358,7 +3358,7 @@ void f() {
   }
 
   Future<void> test_method_parameters_mixed_required_and_named() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 void m(x, {int y}) {}
 ''');
     addTestSource('''
@@ -3381,7 +3381,7 @@ class B extends A {
   }
 
   Future<void> test_method_parameters_mixed_required_and_positional() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 void m(x, [int y]) {}
 ''');
     addTestSource('''
@@ -3404,7 +3404,7 @@ class B extends A {
   }
 
   Future<void> test_method_parameters_named() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 void m({x, int y}) {}
 ''');
     addTestSource('''
@@ -3427,7 +3427,7 @@ class B extends A {
   }
 
   Future<void> test_method_parameters_none() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 void m() {}
 ''');
     addTestSource('''
@@ -3446,7 +3446,7 @@ class B extends A {
   }
 
   Future<void> test_method_parameters_positional() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 void m([x, int y]) {}
 ''');
     addTestSource('''
@@ -3469,7 +3469,7 @@ class B extends A {
   }
 
   Future<void> test_method_parameters_required() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 void m(x, int y) {}
 ''');
     addTestSource('''
@@ -3505,7 +3505,7 @@ class B {
 
   Future<void> test_MethodDeclaration_body_static() async {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/home/test/lib/c.dart', '''
+    addSource('$testPackageLibPath/c.dart', '''
         class C {
           c1() {}
           var c2;
@@ -3591,7 +3591,7 @@ class B {
 
   Future<void> test_MethodDeclaration_returnType() async {
     // ClassDeclaration  CompilationUnit
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
@@ -3621,7 +3621,7 @@ class B {
 
   Future<void> test_MethodDeclaration_returnType_afterComment() async {
     // ClassDeclaration  CompilationUnit
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
@@ -3651,7 +3651,7 @@ class B {
 
   Future<void> test_MethodDeclaration_returnType_afterComment2() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
@@ -3681,7 +3681,7 @@ class B {
 
   Future<void> test_MethodDeclaration_returnType_afterComment3() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         int T1;
         F1() { }
         typedef D1();
@@ -3745,7 +3745,7 @@ class B {
   }
 
   Future<void> test_MethodTypeArgumentList() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class A {}
 class B {}
 ''');
@@ -3786,7 +3786,7 @@ void g() {
   }
 
   Future<void> test_mixin_ordering() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class B {}
 class M1 {
   void m() {}
@@ -3820,7 +3820,7 @@ class C extends B with M1, M2 {
   }
 
   Future<void> test_no_parameters_field() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 int x;
 ''');
     addTestSource('''
@@ -3835,7 +3835,7 @@ class B extends A {
   }
 
   Future<void> test_no_parameters_getter() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 int get x => null;
 ''');
     addTestSource('''
@@ -3850,7 +3850,7 @@ class B extends A {
   }
 
   Future<void> test_no_parameters_setter() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 set x(int value) {};
 ''');
     addTestSource('''
@@ -3910,12 +3910,12 @@ class B extends A {
 
   Future<void> test_partFile_TypeName2() async {
     // SimpleIdentifier  NamedType  ConstructorName
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib libB;
         int T1;
         F1() { }
         class X {X.c(); X._d(); z() {}}''');
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         part of libA;
         class B { }''');
     addTestSource('''
@@ -3945,7 +3945,7 @@ class B extends A {
 
   Future<void> test_PrefixedIdentifier_class_const() async {
     // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         class I {
           static const scI = 'boo';
@@ -3992,7 +3992,7 @@ class B extends A {
 
   Future<void> test_PrefixedIdentifier_class_imported() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         class I {X get f => new A();get _g => new A();}
         class A implements I {
@@ -4071,7 +4071,7 @@ class B extends A {
 
   Future<void> test_PrefixedIdentifier_library() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         var T1;
         class X { }
@@ -4098,7 +4098,7 @@ class B extends A {
 
   Future<void> test_PrefixedIdentifier_library_typesOnly() async {
     // SimpleIdentifier  PrefixedIdentifier  NamedType
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         var T1;
         class X { }
@@ -4125,7 +4125,7 @@ class B extends A {
 
   Future<void> test_PrefixedIdentifier_library_typesOnly2() async {
     // SimpleIdentifier  PrefixedIdentifier  NamedType
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         var T1;
         class X { }
@@ -4152,7 +4152,7 @@ class B extends A {
 
   Future<void> test_PrefixedIdentifier_parameter() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         class _W {M y; var _z;}
         class X extends _W {}
@@ -4171,7 +4171,7 @@ class B extends A {
 
   Future<void> test_PrefixedIdentifier_prefix() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         class A {static int bar = 10;}
         _B() {}''');
     addTestSource('''
@@ -4317,7 +4317,7 @@ class B extends A {
 
   Future<void> test_PropertyAccess_noTarget() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
-    addSource('/home/test/lib/ab.dart', 'class Foo { }');
+    addSource('$testPackageLibPath/ab.dart', 'class Foo { }');
     addTestSource('class C {foo(){.^}}');
 
     await computeSuggestions();
@@ -4326,7 +4326,7 @@ class B extends A {
 
   Future<void> test_PropertyAccess_noTarget2() async {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement
-    addSource('/home/test/lib/ab.dart', 'class Foo { }');
+    addSource('$testPackageLibPath/ab.dart', 'class Foo { }');
     addTestSource('void f() {.^}');
 
     await computeSuggestions();
@@ -4598,7 +4598,7 @@ class B extends A {
   Future<void> test_TopLevelVariableDeclaration_type() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
-    addSource('/home/test/lib/a.dart', 'class A { }');
+    addSource('$testPackageLibPath/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
         ^ foo; ''');
@@ -4611,7 +4611,7 @@ class B extends A {
   Future<void> test_TopLevelVariableDeclaration_type_after_comment1() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
-    addSource('/home/test/lib/a.dart', 'class A { }');
+    addSource('$testPackageLibPath/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
         // comment
@@ -4625,7 +4625,7 @@ class B extends A {
   Future<void> test_TopLevelVariableDeclaration_type_after_comment2() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
-    addSource('/home/test/lib/a.dart', 'class A { }');
+    addSource('$testPackageLibPath/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
         /* comment */
@@ -4639,7 +4639,7 @@ class B extends A {
   Future<void> test_TopLevelVariableDeclaration_type_after_comment3() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
-    addSource('/home/test/lib/a.dart', 'class A { }');
+    addSource('$testPackageLibPath/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
         /// some dartdoc
@@ -4653,7 +4653,7 @@ class B extends A {
   Future<void> test_TopLevelVariableDeclaration_type_without_semicolon() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // TopLevelVariableDeclaration
-    addSource('/home/test/lib/a.dart', 'class A { }');
+    addSource('$testPackageLibPath/a.dart', 'class A { }');
     addTestSource('''
         import 'a.dart';
         ^ foo ''');
@@ -4730,7 +4730,7 @@ typedef void F(^);
 
   Future<void> test_TypeArgumentList() async {
     // SimpleIdentifier  BinaryExpression  ExpressionStatement
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
         class C1 {int x;}
         F1() => 0;
         typedef String T1(int blat);''');
@@ -4757,7 +4757,7 @@ typedef void F(^);
 
   Future<void> test_TypeArgumentList2() async {
     // NamedType  TypeArgumentList  NamedType
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
         class C1 {int x;}
         F1() => 0;
         typedef String T1(int blat);''');
@@ -4795,10 +4795,10 @@ void f() {
   }
 
   Future<void> test_TypeArgumentList_recursive() async {
-    resolveSource('/home/test/lib/a.dart', '''
+    resolveSource('$testPackageLibPath/a.dart', '''
 class A {}
 ''');
-    resolveSource('/home/test/lib/b.dart', '''
+    resolveSource('$testPackageLibPath/b.dart', '''
 export 'a.dart';
 export 'b.dart';
 class B {}
@@ -4817,7 +4817,7 @@ List<^> x;
   Future<void> test_VariableDeclaration_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         foo() { }
         class _B { }
@@ -4844,7 +4844,7 @@ List<^> x;
   Future<void> test_VariableDeclarationStatement_RHS() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         foo() { }
         class _B { }
@@ -4869,7 +4869,7 @@ List<^> x;
   Future<void> test_VariableDeclarationStatement_RHS_missing_semicolon() async {
     // VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement
-    resolveSource('/home/test/lib/b.dart', '''
+    resolveSource('$testPackageLibPath/b.dart', '''
         lib B;
         foo1() { }
         void bar1() { }
@@ -4898,7 +4898,7 @@ List<^> x;
   }
 
   Future<void> test_withClause_mixin() async {
-    newFile('/home/test/lib/a.dart', content: 'mixin M {}');
+    newFile('$testPackageLibPath/a.dart', content: 'mixin M {}');
     addTestSource('''
 import 'a.dart';
 

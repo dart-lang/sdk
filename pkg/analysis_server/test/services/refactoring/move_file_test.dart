@@ -57,7 +57,7 @@ part '${toUriStr('/absolute/uri.dart')}';
   }
 
   Future<void> test_file_imported_with_package_uri_down() async {
-    var file = newFile('/home/test/lib/old_name.dart', content: '');
+    var file = newFile('$testPackageLibPath/old_name.dart', content: '');
     addTestSource(r'''
 import 'package:test/old_name.dart';
 ''');
@@ -69,7 +69,8 @@ import 'package:test/old_name.dart';
     testAnalysisResult =
         await session.getResolvedUnit(file.path) as ResolvedUnitResult;
 
-    _createRefactoring('/home/test/lib/222/new_name.dart', oldFile: file.path);
+    _createRefactoring('$testPackageLibPath/222/new_name.dart',
+        oldFile: file.path);
     await _assertSuccessfulRefactoring();
 
     assertFileChangeResult(testFile, '''
@@ -150,7 +151,7 @@ import 'package:test0.test1/111/name.dart';
   }
 
   Future<void> test_file_imported_with_package_uri_sideways() async {
-    var file = newFile('/home/test/lib/111/old_name.dart', content: '');
+    var file = newFile('$testPackageLibPath/111/old_name.dart', content: '');
     addTestSource(r'''
 import 'package:test/111/old_name.dart';
 ''');
@@ -162,7 +163,8 @@ import 'package:test/111/old_name.dart';
     testAnalysisResult =
         await session.getResolvedUnit(file.path) as ResolvedUnitResult;
 
-    _createRefactoring('/home/test/lib/222/new_name.dart', oldFile: file.path);
+    _createRefactoring('$testPackageLibPath/222/new_name.dart',
+        oldFile: file.path);
     await _assertSuccessfulRefactoring();
 
     assertFileChangeResult(testFile, '''
@@ -171,7 +173,7 @@ import 'package:test/222/new_name.dart';
   }
 
   Future<void> test_file_imported_with_package_uri_up() async {
-    var file = newFile('/home/test/lib/222/old_name.dart', content: '');
+    var file = newFile('$testPackageLibPath/222/old_name.dart', content: '');
     addTestSource(r'''
 import 'package:test/222/old_name.dart';
 ''');
@@ -183,7 +185,7 @@ import 'package:test/222/old_name.dart';
     testAnalysisResult =
         await session.getResolvedUnit(file.path) as ResolvedUnitResult;
 
-    _createRefactoring('/home/test/lib/new_name.dart', oldFile: file.path);
+    _createRefactoring('$testPackageLibPath/new_name.dart', oldFile: file.path);
     await _assertSuccessfulRefactoring();
 
     assertFileChangeResult(testFile, '''

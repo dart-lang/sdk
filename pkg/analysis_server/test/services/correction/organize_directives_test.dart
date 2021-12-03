@@ -881,7 +881,7 @@ import 'annotations.dart'; // used
   }
 
   Future<void> _addAnnotationsFile() async {
-    final annotationsFile = convertPath('/home/test/lib/annotations.dart');
+    final annotationsFile = convertPath('$testPackageLibPath/annotations.dart');
     const annotationsContent = '''
 import 'package:meta/meta_meta.dart';
 

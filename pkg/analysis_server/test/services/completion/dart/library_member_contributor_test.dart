@@ -29,7 +29,7 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   Future<void> test_extension() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
 extension MyExt on int {}
 ''');
     addTestSource('''
@@ -134,7 +134,7 @@ extension MyExt on int {}
 
   Future<void> test_PrefixedIdentifier_library() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         var T1;
         class X { }
@@ -158,11 +158,11 @@ extension MyExt on int {}
   }
 
   Future<void> test_PrefixedIdentifier_library_export_withShow() async {
-    addSource('/home/test/lib/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 ''');
-    addSource('/home/test/lib/b.dart', r'''
+    addSource('$testPackageLibPath/b.dart', r'''
 export 'a.dart' show A;
 ''');
     addTestSource(r'''
@@ -177,7 +177,7 @@ main() {
   }
 
   Future<void> test_PrefixedIdentifier_library_import_withShow() async {
-    addSource('/home/test/lib/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 ''');

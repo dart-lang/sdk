@@ -21,7 +21,7 @@ class ConvertToPackageImportTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.CONVERT_TO_PACKAGE_IMPORT;
 
   Future<void> test_fileName_onImport() async {
-    addSource('/home/test/lib/foo.dart', '');
+    addSource('$testPackageLibPath/foo.dart', '');
 
     await resolveTestCode('''
 import 'foo.dart';
@@ -33,7 +33,7 @@ import 'package:test/foo.dart';
   }
 
   Future<void> test_fileName_onUri() async {
-    addSource('/home/test/lib/foo.dart', '');
+    addSource('$testPackageLibPath/foo.dart', '');
 
     await resolveTestCode('''
 import 'foo.dart';
@@ -52,8 +52,8 @@ import ':[invalidUri]';
   }
 
   Future<void> test_nonPackage_Uri() async {
-    addSource('/home/test/lib/foo.dart', '');
-    testFile = convertPath('/home/test/lib/src/test.dart');
+    addSource('$testPackageLibPath/foo.dart', '');
+    testFile = convertPath('$testPackageLibPath/src/test.dart');
     await resolveTestCode('''
 import 'dart:core';
 ''');
@@ -63,7 +63,7 @@ import 'dart:core';
   }
 
   Future<void> test_packageUri() async {
-    addSource('/home/test/lib/foo.dart', '');
+    addSource('$testPackageLibPath/foo.dart', '');
 
     await resolveTestCode('''
 import 'package:test/foo.dart';
@@ -73,9 +73,9 @@ import 'package:test/foo.dart';
   }
 
   Future<void> test_path() async {
-    addSource('/home/test/lib/foo/bar.dart', '');
+    addSource('$testPackageLibPath/foo/bar.dart', '');
 
-    testFile = convertPath('/home/test/lib/src/test.dart');
+    testFile = convertPath('$testPackageLibPath/src/test.dart');
 
     await resolveTestCode('''
 import '../foo/bar.dart';
@@ -89,7 +89,7 @@ import 'package:test/foo/bar.dart';
   Future<void> test_relativeImport_noAssistWithLint() async {
     createAnalysisOptionsFile(lints: [LintNames.avoid_relative_lib_imports]);
     verifyNoTestUnitErrors = false;
-    addSource('/home/test/lib/foo.dart', '');
+    addSource('$testPackageLibPath/foo.dart', '');
 
     await resolveTestCode('''
 import '../lib/foo.dart';

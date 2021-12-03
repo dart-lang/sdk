@@ -20,27 +20,6 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
-/// Transforms the given [list] by applying [transform] to all its elements.
-///
-/// If no changes are made (i.e. the return value of [transform] is identical
-/// to its parameter each time it is invoked), the original list is returned.
-List<T> _transformOrShare<T>(List<T> list, T Function(T) transform) {
-  var length = list.length;
-  for (int i = 0; i < length; i++) {
-    var item = list[i];
-    var transformed = transform(item);
-    if (!identical(item, transformed)) {
-      var newList = list.toList();
-      newList[i] = transformed;
-      for (i++; i < length; i++) {
-        newList[i] = transform(list[i]);
-      }
-      return newList;
-    }
-  }
-  return list;
-}
-
 /// The [Type] representing the type `dynamic`.
 class DynamicTypeImpl extends TypeImpl implements DynamicType {
   /// The unique instance of this class.
@@ -247,16 +226,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
     var substitution = Substitution.fromPairs(typeFormals, argumentTypes);
 
-    ParameterElement transformParameter(ParameterElement p) {
-      return p.copyWith(
-        type: substitution.substituteType(p.type),
-      );
-    }
-
     return FunctionTypeImpl(
       returnType: substitution.substituteType(returnType),
       typeFormals: const [],
-      parameters: _transformOrShare(parameters, transformParameter),
+      parameters: parameters
+          .map((p) => p.copyWith(type: substitution.substituteType(p.type)))
+          .toList(),
       nullabilitySuffix: nullabilitySuffix,
     );
   }

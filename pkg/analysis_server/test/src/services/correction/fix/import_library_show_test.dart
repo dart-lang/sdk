@@ -20,7 +20,7 @@ class ImportLibraryShowTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_SHOW;
 
   Future<void> test_extension_notShown_getter() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class C {}
 extension E on String {
   int get m => 0;
@@ -43,7 +43,7 @@ void f(String s, C c) {
   }
 
   Future<void> test_extension_notShown_method() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class C {}
 extension E on String {
   void m() {}
@@ -66,7 +66,7 @@ void f(String s, C c) {
   }
 
   Future<void> test_extension_notShown_operator() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class C {}
 extension E on String {
   String operator -(String other) => this;
@@ -89,7 +89,7 @@ void f(String s, C c) {
   }
 
   Future<void> test_extension_notShown_setter() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class C {}
 extension E on String {
   set m(int v) {}
@@ -112,7 +112,7 @@ void f(String s, C c) {
   }
 
   Future<void> test_override_samePackage() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on int {
   String m() => '';
@@ -133,7 +133,7 @@ void f(A a) {
   }
 
   Future<void> test_package() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class A {}
 class B {}
 ''');
@@ -175,7 +175,7 @@ main() {
   }
 
   Future<void> test_static_samePackage() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class A {}
 extension E on int {
   static String m() => '';

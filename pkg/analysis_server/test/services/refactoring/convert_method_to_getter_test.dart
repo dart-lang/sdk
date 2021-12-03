@@ -88,7 +88,7 @@ void f(A a, B b, C c, D d) {
   }
 
   Future<void> test_change_multipleFiles() async {
-    await indexUnit('/home/test/lib/other.dart', r'''
+    await indexUnit('$testPackageLibPath/other.dart', r'''
 class A {
   int test() => 1;
 }

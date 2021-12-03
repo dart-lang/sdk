@@ -90,9 +90,8 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// The processor used to compute bulk fixes.
   late BulkFixProcessor processor;
 
-  /// Return a list of the experiments that are to be enabled for tests in this
-  /// class, or `null` if there are no experiments that should be enabled.
-  List<String>? get experiments => null;
+  @override
+  List<String> get experiments => const [];
 
   /// Return the lint code being tested.
   String? get lintCode => null;

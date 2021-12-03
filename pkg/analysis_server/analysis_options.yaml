@@ -2,6 +2,7 @@ include: package:pedantic/analysis_options.1.9.0.yaml
 
 analyzer:
   # This currently finds ~1,200 implicit-casts issues when enabled.
+  # TODO(srawlins): Switch to strict-casts
   # strong-mode:
   #   implicit-casts: false
   exclude:
