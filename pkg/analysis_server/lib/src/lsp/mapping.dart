@@ -1225,12 +1225,12 @@ lsp.Location toLocation(server.Location location, server.LineInfo lineInfo) =>
 ErrorOr<int> toOffset(
   server.LineInfo lineInfo,
   lsp.Position pos, {
-  failureIsCritial = false,
+  bool failureIsCritical = false,
 }) {
   // line is zero-based so cannot equal lineCount
   if (pos.line >= lineInfo.lineCount) {
     return ErrorOr<int>.error(lsp.ResponseError(
-        code: failureIsCritial
+        code: failureIsCritical
             ? lsp.ServerErrorCodes.ClientServerInconsistentState
             : lsp.ServerErrorCodes.InvalidFileLineCol,
         message: 'Invalid line number',

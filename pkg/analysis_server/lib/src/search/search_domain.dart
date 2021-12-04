@@ -5,6 +5,8 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/protocol/protocol_internal.dart'
+    show ResponseResult;
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
@@ -262,8 +264,8 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   /// Send a search response with the given [result] to the given [request].
-  void _sendSearchResult(protocol.Request request, result) {
-    protocol.Response response = result.toResponse(request.id);
+  void _sendSearchResult(protocol.Request request, ResponseResult result) {
+    var response = result.toResponse(request.id);
     server.sendResponse(response);
   }
 

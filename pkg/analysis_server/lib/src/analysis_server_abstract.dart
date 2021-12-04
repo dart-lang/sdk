@@ -431,7 +431,7 @@ abstract class AbstractAnalysisServer {
     return driver
         .getResult(path, sendCachedToStream: sendCachedToStream)
         .then((value) => value is ResolvedUnitResult ? value : null)
-        .catchError((e, st) {
+        .catchError((Object e, StackTrace st) {
       instrumentationService.logException(e, st);
       return null;
     });
@@ -505,8 +505,8 @@ abstract class AbstractAnalysisServer {
   /// Sends an error notification to the user.
   void sendServerErrorNotification(
     String message,
-    dynamic exception,
-    /*StackTrace*/ stackTrace, {
+    Object exception,
+    StackTrace? stackTrace, {
     bool fatal = false,
   });
 
