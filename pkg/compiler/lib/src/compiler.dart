@@ -5,6 +5,7 @@
 library dart2js.compiler_base;
 
 import 'dart:async' show Future;
+import 'dart:convert' show jsonEncode;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show clearStringTokenCanonicalizer;
@@ -246,6 +247,31 @@ abstract class Compiler {
     return options.readClosedWorldUri != null && options.readDataUri != null;
   }
 
+  /// Dumps a list of unused [ir.Library]'s in the [KernelResult]. This *must*
+  /// be called before [setMainAndTrimComponent], because that method will
+  /// discard the unused [ir.Library]s.
+  void dumpUnusedLibraries(KernelResult result) {
+    var usedUris = result.libraries.toSet();
+    bool isUnused(ir.Library l) => !usedUris.contains(l.importUri);
+    String libraryString(ir.Library library) {
+      return '${library.importUri}(${library.fileUri})';
+    }
+
+    var unusedLibraries =
+        result.component.libraries.where(isUnused).map(libraryString).toList();
+    unusedLibraries.sort();
+    var jsonLibraries = jsonEncode(unusedLibraries);
+    outputProvider.createOutputSink(options.outputUri.pathSegments.last,
+        'unused.json', api.OutputType.dumpUnusedLibraries)
+      ..add(jsonLibraries)
+      ..close();
+    reporter.reportInfo(
+        reporter.createMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+      'text': "${unusedLibraries.length} unused libraries out of "
+          "${result.component.libraries.length}. Dumping to JSON."
+    }));
+  }
+
   Future runInternal() async {
     clearState();
     var compilationTarget = options.compilationTarget;
@@ -324,6 +350,9 @@ abstract class Compiler {
         // deserialized modular data because some of this data may reference
         // 'trimmed' elements.
         if (options.fromDill) {
+          if (options.dumpUnusedLibraries) {
+            dumpUnusedLibraries(result);
+          }
           if (options.entryUri != null) {
             result.setMainAndTrimComponent(options.entryUri);
           }
