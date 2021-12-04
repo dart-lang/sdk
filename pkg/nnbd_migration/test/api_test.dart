@@ -954,6 +954,25 @@ Map<int, String?> Function() f(C<String?> c) => c;
     });
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47848')
+  Future<void> test_call_tearoff_futureOr() async {
+    var content = '''
+import 'dart:async';
+class C {
+  void call() {}
+}
+FutureOr<void Function()> f(C c) => c;
+''';
+    var expected = '''
+import 'dart:async';
+class C {
+  void call() {}
+}
+FutureOr<void Function()> f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_call_tearoff_inherited() async {
     var content = '''
 class B {
@@ -1002,6 +1021,23 @@ class C {
   Map<int, String?> call() => {1: null};
 }
 Map<int, String?> Function() f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47848')
+  Future<void> test_call_tearoff_raw_function() async {
+    var content = '''
+class C {
+  void call() {}
+}
+Function f(C c) => c;
+''';
+    var expected = '''
+class C {
+  void call() {}
+}
+Function f(C c) => c;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
