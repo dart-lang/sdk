@@ -221,7 +221,7 @@ class ContextManagerImpl implements ContextManager {
       this._performanceLog,
       this._scheduler,
       this._instrumentationService,
-      {required enableBazelWatcher})
+      {required bool enableBazelWatcher})
       : pathContext = resourceProvider.pathContext {
     if (enableBazelWatcher) {
       bazelWatcherService = BazelFileWatcherService(_instrumentationService);

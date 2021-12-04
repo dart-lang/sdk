@@ -134,7 +134,8 @@ abstract class MessageHandler<P, R>
   FutureOr<ErrorOr<R>> handleMessage(
       IncomingMessage message, CancellationToken token) {
     final reporter = LspJsonReporter('params');
-    if (!jsonHandler.validateParams(message.params, reporter)) {
+    final paramsJson = message.params as Map<String, Object?>?;
+    if (!jsonHandler.validateParams(paramsJson, reporter)) {
       return error(
         ErrorCodes.InvalidParams,
         'Invalid params for ${message.method}:\n'
@@ -144,9 +145,8 @@ abstract class MessageHandler<P, R>
       );
     }
 
-    final params = message.params != null
-        ? jsonHandler.convertParams(message.params)
-        : null as P;
+    final params =
+        paramsJson != null ? jsonHandler.convertParams(paramsJson) : null as P;
     return handle(params, token);
   }
 }

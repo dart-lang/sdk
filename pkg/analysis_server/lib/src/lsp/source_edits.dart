@@ -31,7 +31,7 @@ ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
           Either2<TextDocumentContentChangeEvent1,
               TextDocumentContentChangeEvent2>>
       changes, {
-  failureIsCritical = false,
+  bool failureIsCritical = false,
 }) {
   var newContent = oldContent;
   final serverEdits = <server.SourceEdit>[];
@@ -45,9 +45,9 @@ ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
       (change) {
         final lines = LineInfo.fromContent(newContent);
         final offsetStart = toOffset(lines, change.range.start,
-            failureIsCritial: failureIsCritical);
+            failureIsCritical: failureIsCritical);
         final offsetEnd = toOffset(lines, change.range.end,
-            failureIsCritial: failureIsCritical);
+            failureIsCritical: failureIsCritical);
         if (offsetStart.isError) {
           return ErrorOr.error(offsetStart.error);
         }

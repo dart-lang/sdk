@@ -374,17 +374,18 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   /// Logs an exception by sending it to the client (window/logMessage) and
   /// recording it in a buffer on the server for diagnostics.
-  void logException(String message, exception, stackTrace) {
+  void logException(String message, Object exception, StackTrace? stackTrace) {
     var fullMessage = message;
     if (exception is CaughtException) {
       stackTrace ??= exception.stackTrace;
       fullMessage = '$fullMessage: ${exception.exception}';
-    } else if (exception != null) {
+    } else {
       fullMessage = '$fullMessage: $exception';
     }
 
     final fullError =
         stackTrace == null ? fullMessage : '$fullMessage\n$stackTrace';
+    stackTrace ??= StackTrace.current;
 
     // Log the full message since showMessage above may be truncated or
     // formatted badly (eg. VS Code takes the newlines out).
@@ -394,7 +395,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     exceptions.add(ServerException(
       message,
       exception,
-      stackTrace is StackTrace ? stackTrace : StackTrace.current,
+      stackTrace,
       false,
     ));
 
@@ -550,9 +551,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   @override
-  void sendServerErrorNotification(String message, exception, stackTrace,
+  void sendServerErrorNotification(
+      String message, Object exception, StackTrace? stackTrace,
       {bool fatal = false}) {
-    message = exception == null ? message : '$message: $exception';
+    message = '$message: $exception';
 
     // Show message (without stack) to the user.
     showErrorMessageToUser(message);
@@ -652,9 +654,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   /// There was an error related to the socket from which messages are being
   /// read.
-  void socketError(error, stack) {
+  void socketError(Object error, StackTrace? stackTrace) {
     // Don't send to instrumentation service; not an internal error.
-    sendServerErrorNotification('Socket error', error, stack);
+    sendServerErrorNotification('Socket error', error, stackTrace);
   }
 
   Future<void> updateWorkspaceFolders(
@@ -670,7 +672,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     _refreshAnalysisRoots();
   }
 
-  void _afterOverlayChanged(String path, dynamic changeForPlugins) {
+  void _afterOverlayChanged(String path, plugin.HasToJson changeForPlugins) {
     driverMap.values.forEach((driver) => driver.changeFile(path));
     pluginManager.setAnalysisUpdateContentParams(
       plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
