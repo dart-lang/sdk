@@ -564,6 +564,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Verbosity level used for filtering messages during compilation.
   fe.Verbosity verbosity = fe.Verbosity.all;
 
+  // Whether or not to dump a list of unused libraries.
+  bool dumpUnusedLibraries = false;
+
   late FeatureOptions features;
 
   // -------------------------------------------------
@@ -690,6 +693,7 @@ class CompilerOptions implements DiagnosticOptions {
       .._noSoundNullSafety = _hasOption(options, Flags.noSoundNullSafety)
       .._mergeFragmentsThreshold =
           _extractIntOption(options, '${Flags.mergeFragmentsThreshold}=')
+      ..dumpUnusedLibraries = _hasOption(options, Flags.dumpUnusedLibraries)
       ..cfeInvocationModes = fe.InvocationMode.parseArguments(
           _extractStringOption(options, '${Flags.cfeInvocationModes}=', '')!,
           onError: onError)

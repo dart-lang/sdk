@@ -175,6 +175,9 @@ class Flags {
   // For backward compatibility the option is still accepted, but it is ignored.
   static const String initializingFormalAccess = '--initializing-formal-access';
 
+  // Whether or not to dump a list of unused libraries.
+  static const String dumpUnusedLibraries = '--dump-unused-libraries';
+
   // Experimental flags.
   static const String resolveOnly = '--resolve-only';
 

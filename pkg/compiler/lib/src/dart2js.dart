@@ -627,6 +627,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     OptionHandler(Flags.benchmarkingExperiment, passThrough),
     OptionHandler(Flags.soundNullSafety, setNullSafetyMode),
     OptionHandler(Flags.noSoundNullSafety, setNullSafetyMode),
+    OptionHandler(Flags.dumpUnusedLibraries, passThrough),
 
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly
