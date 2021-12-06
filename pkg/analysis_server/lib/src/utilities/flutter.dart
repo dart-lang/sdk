@@ -72,64 +72,20 @@ class Flutter {
     return null;
   }
 
-  void convertChildToChildren(
-      InstanceCreationExpression childArg,
-      NamedExpression namedExp,
-      String eol,
-      Function getNodeText,
-      Function getLinePrefix,
-      Function getIndent,
-      Function getText,
-      Function _addInsertEdit,
-      Function _addRemoveEdit,
-      Function _addReplaceEdit,
-      Function rangeNode) {
-    var childLoc = namedExp.offset + 'child'.length;
-    _addInsertEdit(childLoc, 'ren');
-    var listLoc = childArg.offset;
-    String childArgSrc = getNodeText(childArg);
-    if (!childArgSrc.contains(eol)) {
-      _addInsertEdit(listLoc, '[');
-      _addInsertEdit(listLoc + childArg.length, ']');
-    } else {
-      var newlineLoc = childArgSrc.lastIndexOf(eol);
-      if (newlineLoc == childArgSrc.length) {
-        newlineLoc -= 1;
-      }
-      String indentOld =
-          getLinePrefix(childArg.offset + eol.length + newlineLoc);
-      var indentNew = '$indentOld${getIndent(1)}';
-      // The separator includes 'child:' but that has no newlines.
-      String separator =
-          getText(namedExp.offset, childArg.offset - namedExp.offset);
-      var prefix = separator.contains(eol) ? '' : '$eol$indentNew';
-      if (prefix.isEmpty) {
-        _addInsertEdit(namedExp.offset + 'child:'.length, ' [');
-        _addRemoveEdit(SourceRange(childArg.offset - 2, 2));
-      } else {
-        _addInsertEdit(listLoc, '[');
-      }
-      var newChildArgSrc = childArgSrc.replaceAll(
-          RegExp('^$indentOld', multiLine: true), '$indentNew');
-      newChildArgSrc = '$prefix$newChildArgSrc,$eol$indentOld]';
-      _addReplaceEdit(rangeNode(childArg), newChildArgSrc);
-    }
-  }
-
   void convertChildToChildren2(
       DartFileEditBuilder builder,
       Expression childArg,
       NamedExpression namedExp,
       String eol,
-      Function getNodeText,
-      Function getLinePrefix,
-      Function getIndent,
-      Function getText,
-      Function rangeNode) {
+      String Function(Expression) getNodeText,
+      String Function(int) getLinePrefix,
+      String Function(int) getIndent,
+      String Function(int, int) getText,
+      SourceRange Function(Expression) rangeNode) {
     var childLoc = namedExp.offset + 'child'.length;
     builder.addSimpleInsertion(childLoc, 'ren');
     var listLoc = childArg.offset;
-    String childArgSrc = getNodeText(childArg);
+    var childArgSrc = getNodeText(childArg);
     if (!childArgSrc.contains(eol)) {
       builder.addSimpleInsertion(listLoc, '[');
       builder.addSimpleInsertion(listLoc + childArg.length, ']');
@@ -138,11 +94,10 @@ class Flutter {
       if (newlineLoc == childArgSrc.length) {
         newlineLoc -= 1;
       }
-      String indentOld =
-          getLinePrefix(childArg.offset + eol.length + newlineLoc);
+      var indentOld = getLinePrefix(childArg.offset + eol.length + newlineLoc);
       var indentNew = '$indentOld${getIndent(1)}';
       // The separator includes 'child:' but that has no newlines.
-      String separator =
+      var separator =
           getText(namedExp.offset, childArg.offset - namedExp.offset);
       var prefix = separator.contains(eol) ? '' : '$eol$indentNew';
       if (prefix.isEmpty) {
