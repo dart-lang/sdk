@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 
 class SurroundWith extends MultiCorrectionProducer {
   @override
-  Iterable<CorrectionProducer> get producers sync* {
+  Stream<CorrectionProducer> get producers async* {
     // If the node is the CompilationUnit, the selected statements must span multiple
     // top level items and cannot be surrounded with anything.
     if (node is CompilationUnit) {

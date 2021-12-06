@@ -383,7 +383,7 @@ class BulkFixProcessor {
           for (var multiGenerator in multiGenerators) {
             var multiProducer = multiGenerator();
             multiProducer.configure(context);
-            for (var producer in multiProducer.producers) {
+            await for (var producer in multiProducer.producers) {
               await _generateFix(context, producer, codeName);
             }
           }
