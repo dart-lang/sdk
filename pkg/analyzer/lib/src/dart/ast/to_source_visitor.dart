@@ -314,8 +314,12 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('enum ');
     _visitNode(node.name);
+    _visitNode(node.typeParameters);
+    _visitNode(node.withClause, prefix: ' ');
+    _visitNode(node.implementsClause, prefix: ' ');
     sink.write(' {');
     _visitNodeList(node.constants, separator: ', ');
+    _visitNodeList(node.members, prefix: '; ', separator: ' ');
     sink.write('}');
   }
 

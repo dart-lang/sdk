@@ -2002,7 +2002,18 @@ class NodeReplacer implements AstVisitor<bool> {
     if (identical(node.name, _oldNode)) {
       node.name = _newNode as SimpleIdentifier;
       return true;
+    } else if (identical(node.typeParameters, _oldNode)) {
+      node.typeParameters = _newNode as TypeParameterList;
+      return true;
+    } else if (identical(node.withClause, _oldNode)) {
+      node.withClause = _newNode as WithClause;
+      return true;
+    } else if (identical(node.implementsClause, _oldNode)) {
+      node.implementsClause = _newNode as ImplementsClause;
+      return true;
     } else if (_replaceInList(node.constants)) {
+      return true;
+    } else if (_replaceInList(node.members)) {
       return true;
     }
     return visitAnnotatedNode(node);

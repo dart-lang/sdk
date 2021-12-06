@@ -1577,7 +1577,9 @@ abstract class EnumConstantDeclaration implements Declaration {
 /// The declaration of an enumeration.
 ///
 ///    enumType ::=
-///        metadata 'enum' [SimpleIdentifier] '{' [SimpleIdentifier] (',' [SimpleIdentifier])* (',')? '}'
+///        metadata 'enum' [SimpleIdentifier] [TypeParameterList]?
+///        [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
+///        (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class EnumDeclaration implements NamedCompilationUnitMember {
@@ -1590,6 +1592,10 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
   /// Return the 'enum' keyword.
   Token get enumKeyword;
 
+  /// Returns the `implements` clause for the enumeration, or `null` if the
+  /// enumeration does not implement any interfaces.
+  ImplementsClause? get implementsClause;
+
   /// Return the left curly bracket.
   Token get leftBracket;
 
@@ -1601,6 +1607,14 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
 
   /// Return the right curly bracket.
   Token get rightBracket;
+
+  /// Returns the type parameters for the enumeration, or `null` if the
+  /// enumeration does not have any type parameters.
+  TypeParameterList? get typeParameters;
+
+  /// Return the `with` clause for the enumeration, or `null` if the
+  /// enumeration does not have a `with` clause.
+  WithClause? get withClause;
 }
 
 /// An export directive.

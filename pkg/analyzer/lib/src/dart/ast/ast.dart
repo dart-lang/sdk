@@ -3286,13 +3286,26 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
 /// The declaration of an enumeration.
 ///
 ///    enumType ::=
-///        metadata 'enum' [SimpleIdentifier] '{' [SimpleIdentifier]
-///        (',' [SimpleIdentifier])* (',')? '}'
+///        metadata 'enum' [SimpleIdentifier] [TypeParameterList]?
+///        [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
+///        (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
 class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements EnumDeclaration {
   /// The 'enum' keyword.
   @override
   Token enumKeyword;
+
+  /// The type parameters, or `null` if the enumeration does not have any
+  /// type parameters.
+  TypeParameterListImpl? _typeParameters;
+
+  /// The `with` clause for the enumeration, or `null` if the class does not
+  /// have a `with` clause.
+  WithClauseImpl? _withClause;
+
+  /// The `implements` clause for the enumeration, or `null` if the enumeration
+  /// does not implement any interfaces.
+  ImplementsClauseImpl? _implementsClause;
 
   /// The left curly bracket.
   @override
@@ -3317,11 +3330,17 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
       List<Annotation>? metadata,
       this.enumKeyword,
       SimpleIdentifierImpl name,
+      this._typeParameters,
+      this._withClause,
+      this._implementsClause,
       this.leftBracket,
       List<EnumConstantDeclaration> constants,
       List<ClassMember> members,
       this.rightBracket)
       : super(comment, metadata, name) {
+    _becomeParentOf(_typeParameters);
+    _becomeParentOf(_withClause);
+    _becomeParentOf(_implementsClause);
     _constants._initialize(this, constants);
     _members._initialize(this, members);
   }
@@ -3331,6 +3350,9 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   Iterable<SyntacticEntity> get childEntities => super._childEntities
     ..add(enumKeyword)
     ..add(_name)
+    ..add(_typeParameters)
+    ..add(_withClause)
+    ..add(_implementsClause)
     ..add(leftBracket)
     ..addAll(_constants)
     ..addAll(_members)
@@ -3349,7 +3371,29 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   Token get firstTokenAfterCommentAndMetadata => enumKeyword;
 
   @override
+  ImplementsClauseImpl? get implementsClause => _implementsClause;
+
+  set implementsClause(ImplementsClause? implementsClause) {
+    _implementsClause =
+        _becomeParentOf(implementsClause as ImplementsClauseImpl?);
+  }
+
+  @override
   NodeListImpl<ClassMember> get members => _members;
+
+  @override
+  TypeParameterListImpl? get typeParameters => _typeParameters;
+
+  set typeParameters(TypeParameterList? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  }
+
+  @override
+  WithClauseImpl? get withClause => _withClause;
+
+  set withClause(WithClause? withClause) {
+    _withClause = _becomeParentOf(withClause as WithClauseImpl?);
+  }
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEnumDeclaration(this);
@@ -3358,6 +3402,9 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _name.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _withClause?.accept(visitor);
+    _implementsClause?.accept(visitor);
     _constants.accept(visitor);
     _members.accept(visitor);
   }

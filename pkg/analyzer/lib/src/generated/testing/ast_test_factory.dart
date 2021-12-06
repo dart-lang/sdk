@@ -458,30 +458,6 @@ class AstTestFactory {
   static EmptyStatementImpl emptyStatement() => astFactory
       .emptyStatement(TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
-  static EnumDeclarationImpl enumDeclaration(
-          SimpleIdentifier name, List<EnumConstantDeclaration> constants) =>
-      astFactory.enumDeclaration(
-          null,
-          null,
-          TokenFactory.tokenFromKeyword(Keyword.ENUM),
-          name,
-          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
-          constants,
-          [],
-          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
-
-  static EnumDeclarationImpl enumDeclaration2(
-      String name, List<String> constantNames) {
-    var constants = constantNames.map((name) {
-      return astFactory.enumConstantDeclaration(
-        null,
-        null,
-        identifier3(name),
-      );
-    }).toList();
-    return enumDeclaration(identifier3(name), constants);
-  }
-
   static ExportDirectiveImpl exportDirective(
           List<Annotation> metadata, String uri,
           [List<Combinator> combinators = const []]) =>

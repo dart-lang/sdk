@@ -1649,12 +1649,44 @@ void f() {
   }
 
   void test_enumDeclaration() {
-    var node = AstTestFactory.enumDeclaration2("E", ["ONE", "TWO"]);
-    node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
-    node.metadata
-        .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
-    _assertReplace(node, Getter_NodeReplacerTest_test_enumDeclaration());
-    _testAnnotatedNode(node);
+    var findNode = _parseStringToFindNode(r'''
+enum E1<T> with M1 implements I1 {one, two}
+enum E2<U> with M2 implements I2 {one, two}
+''');
+    _assertReplace2<EnumDeclaration>(
+      destination: findNode.enumDeclaration('enum E1'),
+      source: findNode.enumDeclaration('enum E2'),
+      getters: [
+        (node) => node.name,
+        (node) => node.typeParameters!,
+        (node) => node.withClause!,
+        (node) => node.implementsClause!,
+      ],
+    );
+  }
+
+  void test_enumDeclaration_constants() {
+    var findNode = _parseStringToFindNode(r'''
+enum E1 {one}
+enum E2 {two}
+''');
+    _assertReplaceInList(
+      destination: findNode.enumDeclaration('enum E1'),
+      child: findNode.enumConstantDeclaration('one'),
+      replacement: findNode.enumConstantDeclaration('two'),
+    );
+  }
+
+  void test_enumDeclaration_members() {
+    var findNode = _parseStringToFindNode(r'''
+enum E1 {one; void foo() {}}
+enum E2 {two; void bar() {}}
+''');
+    _assertReplaceInList(
+      destination: findNode.enumDeclaration('enum E1'),
+      child: findNode.methodDeclaration('foo'),
+      replacement: findNode.methodDeclaration('bar'),
+    );
   }
 
   void test_exportDirective() {
@@ -2303,12 +2335,24 @@ class B extends A {
     }
   }
 
+  void _assertReplaceInList({
+    required AstNode destination,
+    required AstNode child,
+    required AstNode replacement,
+  }) {
+    expect(child.parent, destination);
+
+    NodeReplacer.replace(child, replacement);
+    expect(replacement.parent, destination);
+  }
+
   FindNode _parseStringToFindNode(String content) {
     var parseResult = parseString(
       content: content,
       featureSet: FeatureSet.fromEnableFlags2(
         sdkLanguageVersion: ExperimentStatus.currentVersion,
         flags: [
+          Feature.enhanced_enums.enableString,
           Feature.super_parameters.enableString,
         ],
       ),
