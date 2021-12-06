@@ -308,6 +308,14 @@ parser/error_recovery/keyword_named_class_methods:282:7: 'super' can't be used a
   int super(int x) {
       ^^^^^
 
+parser/error_recovery/keyword_named_class_methods:282:7: Expected ';' after this.
+  int super(int x) {
+      ^^^^^
+
+parser/error_recovery/keyword_named_class_methods:282:12: Expected an identifier, but got '('.
+  int super(int x) {
+           ^
+
 parser/error_recovery/keyword_named_class_methods:287:7: 'switch' can't be used as an identifier because it's a keyword.
   int switch(int x) {
       ^^^^^^
@@ -3883,12 +3891,23 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginMethod(DeclarationKind.Class, null, null, null, null, null, super)
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, })
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(super)
             handleType(int, null)
             handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: super}], super, super)
-            handleIdentifier(super, methodDeclaration)
+            handleIdentifier(super, fieldDeclaration)
+            handleNoFieldInitializer(()
+            handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], super, super)
+          endClassFields(null, null, null, null, null, null, 1, int, ;)
+        endMember()
+        beginMetadataStar(()
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, ()
+            handleNoType(;)
+            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., Try inserting an identifier before '('., {lexeme: (}], (, ()
+            handleIdentifier(, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
               beginMetadataStar(int)
@@ -3937,7 +3956,7 @@ beginCompilationUnit(class)
                 endBinaryExpression(+)
               endReturnStatement(true, return, ;)
             endBlockFunctionBody(2, {, })
-          endClassMethod(null, int, (, null, })
+          endClassMethod(null, , (, null, })
         endMember()
         beginMetadataStar(int)
         endMetadataStar(0)
@@ -4743,7 +4762,7 @@ beginCompilationUnit(class)
             endBlockFunctionBody(2, {, })
           endClassMethod(null, int, (, null, })
         endMember()
-      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 70, {, })
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 71, {, })
     endClassDeclaration(class, })
   endTopLevelDeclaration()
 endCompilationUnit(1, )

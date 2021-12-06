@@ -1,0 +1,93 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/super_parameters/typed_super_parameter.dart:11:3: Error: The superclass, 'A1', has no unnamed constructor that takes no arguments.
+//   B1(int super.foo);
+//   ^^
+//
+// pkg/front_end/testcases/super_parameters/typed_super_parameter.dart:20:3: Error: The superclass, 'A2', has no unnamed constructor that takes no arguments.
+//   B2(int Function(int) super.foo);
+//   ^^
+//
+// pkg/front_end/testcases/super_parameters/typed_super_parameter.dart:29:3: Error: The superclass, 'A3', has no unnamed constructor that takes no arguments.
+//   B3(int super.foo(int));
+//   ^^
+//
+// pkg/front_end/testcases/super_parameters/typed_super_parameter.dart:38:3: Error: The superclass, 'A4', has no unnamed constructor that takes no arguments.
+//   B4(void Function() super.foo(void Function()));
+//   ^^
+//
+// pkg/front_end/testcases/super_parameters/typed_super_parameter.dart:48:3: Error: The superclass, 'A5', has no unnamed constructor that takes no arguments.
+//   B5(void Function() Function(void Function()) super.foo);
+//   ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A1 extends core::Object {
+  final field core::int foo;
+  constructor •(core::int foo) → self::A1
+    : self::A1::foo = foo, super core::Object::•()
+    ;
+}
+class B1 extends self::A1 {
+  constructor •(core::int foo) → self::B1
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/super_parameters/typed_super_parameter.dart:11:3: Error: The superclass, 'A1', has no unnamed constructor that takes no arguments.
+  B1(int super.foo);
+  ^^"
+    ;
+}
+class A2 extends core::Object {
+  final field (core::int) → core::int foo;
+  constructor •((core::int) → core::int foo) → self::A2
+    : self::A2::foo = foo, super core::Object::•()
+    ;
+}
+class B2 extends self::A2 {
+  constructor •((core::int) → core::int foo) → self::B2
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/super_parameters/typed_super_parameter.dart:20:3: Error: The superclass, 'A2', has no unnamed constructor that takes no arguments.
+  B2(int Function(int) super.foo);
+  ^^"
+    ;
+}
+class A3 extends core::Object {
+  final field (core::int) → core::int foo;
+  constructor •((dynamic) → core::int foo) → self::A3
+    : self::A3::foo = foo, super core::Object::•()
+    ;
+}
+class B3 extends self::A3 {
+  constructor •((dynamic) → core::int foo) → self::B3
+    : final dynamic #t3 = invalid-expression "pkg/front_end/testcases/super_parameters/typed_super_parameter.dart:29:3: Error: The superclass, 'A3', has no unnamed constructor that takes no arguments.
+  B3(int super.foo(int));
+  ^^"
+    ;
+}
+class A4 extends core::Object {
+  final field (() → void) → () → void foo;
+  constructor •((() → void) → () → void foo) → self::A4
+    : self::A4::foo = foo, super core::Object::•()
+    ;
+}
+class B4 extends self::A4 {
+  constructor •((() → void) → () → void foo) → self::B4
+    : final dynamic #t4 = invalid-expression "pkg/front_end/testcases/super_parameters/typed_super_parameter.dart:38:3: Error: The superclass, 'A4', has no unnamed constructor that takes no arguments.
+  B4(void Function() super.foo(void Function()));
+  ^^"
+    ;
+}
+class A5 extends core::Object {
+  final field (() → void) → () → void foo;
+  constructor •((() → void) → () → void foo) → self::A5
+    : self::A5::foo = foo, super core::Object::•()
+    ;
+}
+class B5 extends self::A5 {
+  constructor •((() → void) → () → void foo) → self::B5
+    : final dynamic #t5 = invalid-expression "pkg/front_end/testcases/super_parameters/typed_super_parameter.dart:48:3: Error: The superclass, 'A5', has no unnamed constructor that takes no arguments.
+  B5(void Function() Function(void Function()) super.foo);
+  ^^"
+    ;
+}
+static method main() → dynamic {}
