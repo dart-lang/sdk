@@ -743,7 +743,7 @@ class PluginManager {
         sourceUrl: pubspecFile.toUri());
     var contents = document.contents;
     if (contents is YamlMap) {
-      YamlNode dependencies = contents['dependencies'];
+      var dependencies = contents['dependencies'] as YamlNode?;
       if (dependencies is YamlMap) {
         return dependencies.keys.cast<String>();
       }

@@ -260,19 +260,19 @@ class Driver {
       return false;
     }
 
-    if (results[HELP_FLAG_NAME]) {
+    if (results[HELP_FLAG_NAME] as bool) {
       _showUsage(parser);
       return false;
     }
 
-    String overlayStyleValue = results[OVERLAY_STYLE_OPTION_NAME];
+    var overlayStyleValue = results[OVERLAY_STYLE_OPTION_NAME] as String;
     if (overlayStyleValue == CHANGE_OVERLAY_STYLE) {
       overlayStyle = OverlayStyle.change;
     } else if (overlayStyleValue == MULTIPLE_ADD_OVERLAY_STYLE) {
       overlayStyle = OverlayStyle.multipleAdd;
     }
 
-    if (results[VERBOSE_FLAG_NAME]) {
+    if (results[VERBOSE_FLAG_NAME] as bool) {
       verbose = true;
       logger = Logger(stdout);
     }

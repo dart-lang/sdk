@@ -492,8 +492,8 @@ Expression stepUpNamedExpression(Expression expression) {
 }
 
 /// Return `true` if the given [lists] are identical at the given [position].
-bool _allListsIdentical(List<List> lists, int position) {
-  Object element = lists[0][position];
+bool _allListsIdentical(List<List<Object>> lists, int position) {
+  var element = lists[0][position];
   for (var list in lists) {
     if (list[position] != element) {
       return false;

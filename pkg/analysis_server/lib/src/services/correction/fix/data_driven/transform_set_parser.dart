@@ -292,6 +292,7 @@ class TransformSetParser {
   /// Report any keys in the [map] whose values are not in [validKeys].
   void _reportUnsupportedKeys(YamlMap map, Set<String> validKeys) {
     for (var keyNode in map.nodes.keys) {
+      keyNode as YamlNode;
       var key = _translateKey(keyNode);
       if (key != null && !validKeys.contains(key)) {
         _reportError(TransformSetErrorCode.unsupportedKey, keyNode, [key]);
@@ -910,7 +911,7 @@ class TransformSetParser {
     if (node is YamlMap) {
       var generators = <String, ValueGenerator>{};
       for (var entry in node.nodes.entries) {
-        var name = _translateKey(entry.key);
+        var name = _translateKey(entry.key as YamlNode);
         if (name != null) {
           var value = _translateValueGenerator(
               entry.value, ErrorContext(key: name, parentNode: node));
