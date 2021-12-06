@@ -92,6 +92,26 @@ class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
     expect(generatedFile.path, generatedPath);
     expect(writableFile2, same(generatedFile));
   }
+
+  void test_getFileForUri_nestedLib_notCanonicalUri() async {
+    var outerPath = convertPath('$workspaceRootPath/my/outer/lib/a.dart');
+    var outerUri = Uri.parse('package:my.outer/a.dart');
+
+    var innerPath = convertPath('/workspace/my/outer/lib/inner/lib/b.dart');
+    var innerUri = Uri.parse('package:my.outer.lib.inner/b.dart');
+
+    var analysisDriver = driverFor(outerPath);
+    var fsState = analysisDriver.fsState;
+
+    // User code might use such relative URI.
+    var innerUri2 = outerUri.resolve('inner/lib/b.dart');
+    expect(innerUri2, Uri.parse('package:my.outer/inner/lib/b.dart'));
+
+    // However the returned file must use the canonical URI.
+    var innerFile = fsState.getFileForUri(innerUri2).t1!;
+    expect(innerFile.path, innerPath);
+    expect(innerFile.uri, innerUri);
+  }
 }
 
 @reflectiveTest

@@ -783,7 +783,7 @@ class LibraryAnalyzer {
     }
 
     var absoluteUri = resolveRelativeUri(_library.uri, relativeUri);
-    return rewriteFileToPackageUri(_sourceFactory, absoluteUri);
+    return rewriteToCanonicalUri(_sourceFactory, absoluteUri);
   }
 
   /// Return the result of resolve the given [uriContent], reporting errors
