@@ -48,6 +48,8 @@ dependencies:
 dev_dependencies:
   markdown: '>=0.7.1+2 <0.8.0'
   unittest: '>=0.11.0 <0.12.0'
+  kittens2:
+    git: git://github.com/munificent/kittens2.git
 dependency_overrides:
   foo: 1.2.0
 repository: https://github.com/dart-lang/linter
@@ -147,6 +149,14 @@ issue_tracker: https://github.com/dart-lang/linter/issues
         testValue('ref', git.ref, equals('some-branch'));
         testValue(
             'url', git.url, equals('git://github.com/munificent/kittens.git'));
+      });
+
+      group('git (short form)', () {
+        PSDependency dep = findDependency(ps.devDependencies, name: 'kittens2');
+        PSGitRepo git = dep.git!;
+        test('ref', () => expect(git.ref, isNull));
+        testValue(
+            'url', git.url, equals('git://github.com/munificent/kittens2.git'));
       });
     });
 //    group('visiting', () {

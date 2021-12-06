@@ -37,6 +37,12 @@ PSDependencyList? _processDependencies(
 
 PSGitRepo? _processGitRepo(
     YamlScalar key, YamlNode v, ResourceProvider? resourceProvider) {
+  if (v is YamlScalar) {
+    _PSGitRepo repo = _PSGitRepo();
+    repo.token = _PSNode(key, resourceProvider);
+    repo.url = PSEntry(repo.token, _PSNode(v, resourceProvider));
+    return repo;
+  }
   if (v is! YamlMap) {
     return null;
   }
@@ -130,9 +136,44 @@ class PSEntry {
   String toString() => '${key != null ? (key.toString() + ': ') : ''}$value';
 }
 
+/// Representation of git-dependency in `pubspec.yaml`.
+///
+/// **Example** of a git-dependency:
+/// ```yaml
+/// dependencies:
+///   foo:
+///     git: # <-- this is the [token] property
+///       url: https://github.com/example/example
+///       ref: main # ref is optional
+/// ```
+///
+/// This may also be written in the form:
+/// ```yaml
+/// dependencies:
+///   foo:
+///     git:       https://github.com/example/example
+///     # ^-token  ^--url
+///     # In this case [ref] is `null`.
+/// ```
 abstract class PSGitRepo {
+  /// [PSEntry] for `ref: main` where [PSEntry.key] is `ref` and [PSEntry.value]
+  /// is `main`.
   PSEntry? get ref;
+
+  /// The `'git'` from the `pubspec.yaml`, this is the key that indicates this
+  /// is a git-dependency.
   PSNode? get token;
+
+  /// [PSEntry] for `url: https://...` or `git: https://`, where [PSEntry.key]
+  /// is either `url` or `git`, and [PSEntry.key] is the URL.
+  ///
+  /// If the git-dependency is given in the form:
+  /// ```yaml
+  /// dependencies:
+  ///   foo:
+  ///     git:       https://github.com/example/example
+  /// ```
+  /// Then [token] and [url.key] will be the same object.
   PSEntry? get url;
 }
 
