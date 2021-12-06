@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -1699,6 +1700,37 @@ main() {
 
 @reflectiveTest
 class UnusedElementWithNullSafetyTest extends PubPackageResolutionTest {
+  test_optionalParameter_isUsed_genericConstructor() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C._([int? x]);
+}
+void foo() {
+  C._(7);
+}
+''');
+  }
+
+  test_optionalParameter_isUsed_genericFunction() async {
+    await assertNoErrorsInCode('''
+void _f<T>([int? x]) {}
+void foo() {
+  _f(7);
+}
+''');
+  }
+
+  test_optionalParameter_isUsed_genericMethod() async {
+    await assertNoErrorsInCode('''
+class C {
+  void _m<T>([int? x]) {}
+}
+void foo() {
+  C()._m(7);
+}
+''');
+  }
+
   test_optionalParameter_isUsed_overrideRequiredNamed() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -1709,6 +1741,49 @@ class B implements A {
 }
 f() => A()._m(a: 0);
 ''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
+  test_optionalParameter_notUsed_genericConstructor() async {
+    // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
+    addTestFile('''
+class C<T> {
+  C._([int? x]);
+}
+void foo() {
+  C._();
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
+  test_optionalParameter_notUsed_genericFunction() async {
+    // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
+    addTestFile('''
+void _f<T>([int? x]) {}
+void foo() {
+  _f();
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
+  test_optionalParameter_notUsed_genericMethod() async {
+    // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
+    addTestFile('''
+class C {
+  void _m<T>([int? x]) {}
+}
+void foo() {
+  C()._m();
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
   }
 
   test_typeAlias_interfaceType_isUsed_typeName_isExpression() async {
