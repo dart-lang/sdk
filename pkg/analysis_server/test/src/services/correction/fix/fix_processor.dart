@@ -264,8 +264,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
   Future<void> addUnimportedFile(String filePath, String content) async {
     addSource(filePath, content);
-    var result = await session.getResolvedUnit(convertPath(filePath));
-    extensionCache.cacheFromResult(result as ResolvedUnitResult);
+    await cacheExtensionsForFile(filePath);
   }
 
   Future<void> assertHasFix(String expected,
@@ -376,6 +375,11 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   Future<void> assertNoFixAllFix(ErrorCode errorCode) async {
     var error = await _findErrorToFixOfType(errorCode);
     await _assertNoFixAllFix(error);
+  }
+
+  Future<void> cacheExtensionsForFile(String path) async {
+    var result = await session.getResolvedUnit(convertPath(path));
+    extensionCache.cacheFromResult(result as ResolvedUnitResult);
   }
 
   List<LinkedEditSuggestion> expectedSuggestions(

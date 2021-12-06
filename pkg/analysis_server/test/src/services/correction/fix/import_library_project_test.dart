@@ -234,6 +234,48 @@ void f(String s) {
 ''');
   }
 
+  @FailingTest(reason: 'We suggest importing src/b.dart')
+  Future<void> test_extension_otherPackage_exported_fromSrc() async {
+    var pkgRootPath = '/.pub-cache/aaa';
+
+    var a = newFile('$pkgRootPath/lib/a.dart', content: r'''
+export 'src/b.dart';
+''');
+
+    var b = newFile('$pkgRootPath/lib/src/b.dart', content: r'''
+extension IntExtension on int {
+  int get foo => 0;
+}
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: pkgRootPath),
+    );
+
+    updateTestPubspecFile('''
+dependencies:
+  aaa: any
+''');
+
+    await cacheExtensionsForFile(a.path);
+    await cacheExtensionsForFile(b.path);
+
+    await resolveTestCode('''
+void f() {
+  0.foo;
+}
+''');
+
+    await assertHasFix('''
+import 'package:aaa/a.dart';
+
+void f() {
+  0.foo;
+}
+''');
+  }
+
   Future<void> test_invalidUri_interpolation() async {
     addSource('$testPackageLibPath/lib.dart', r'''
 class Test {
