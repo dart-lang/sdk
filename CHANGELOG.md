@@ -25,6 +25,15 @@
 
 [an issue]: https://github.com/dart-lang/sdk/issues/new
 
+- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dartdoc` tool has been
+  marked deprecated as previously announced.
+  Its replacement is the `dart doc` command.
+  Should you find any issues, or missing features, in the replacement
+  command, kindly file [an issue][].
+
+[an issue]: https://github.com/dart-lang/sdk/issues/new
+
 #### Linter
 
 Updated the Linter to `1.15.0`, which includes changes that

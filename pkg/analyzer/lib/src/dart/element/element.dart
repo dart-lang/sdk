@@ -1297,6 +1297,9 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   bool get hasInitializer => false;
 
   @override
+  bool get isEnumConstant => true;
+
+  @override
   Element get nonSynthetic => this;
 
   @override
@@ -3284,10 +3287,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }
 
   @override
-  bool get isEnumConstant =>
-      enclosingElement is ClassElement &&
-      (enclosingElement as ClassElement).isEnum &&
-      !isSynthetic;
+  bool get isEnumConstant => false;
 
   @override
   bool get isExternal {
