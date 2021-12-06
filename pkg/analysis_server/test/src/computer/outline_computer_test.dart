@@ -123,7 +123,7 @@ MyWidget
     void writeOutline(Outline outline, String indent) {
       buffer.write(indent);
       buffer.writeln(outline.element.name);
-      for (var child in outline.children ?? const []) {
+      for (var child in outline.children ?? const <Outline>[]) {
         writeOutline(child, '$indent  ');
       }
     }

@@ -18,10 +18,10 @@ void main(List<String> args) async {
 
     var runner = CompletionRunner(
         output: stdout,
-        printMissing: result['missing'],
-        printQuality: result['quality'],
-        timing: result['timing'],
-        verbose: result['verbose']);
+        printMissing: result['missing'] as bool?,
+        printQuality: result['quality'] as bool?,
+        timing: result['timing'] as bool?,
+        verbose: result['verbose'] as bool?);
     await runner.runAll(analysisRoot);
     await stdout.flush();
   }

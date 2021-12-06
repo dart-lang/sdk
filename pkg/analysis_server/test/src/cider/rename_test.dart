@@ -221,7 +221,7 @@ void foo(String ^a) {
     );
   }
 
-  RenameResponse? _rename(String content, newName) {
+  RenameResponse? _rename(String content, String newName) {
     _updateFile(content);
 
     return CiderRenameComputer(
