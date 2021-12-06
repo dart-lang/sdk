@@ -7,6 +7,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -100,7 +101,9 @@ class ArgListContributor extends DartCompletionContributor {
     if (_isEditingNamedArgLabel() ||
         _isAppendingToArgList() ||
         _isAddingLabelToPositional()) {
-      if (requiredCount == 0 || requiredCount < _argCount()) {
+      if (request.featureSet.isEnabled(Feature.named_arguments_anywhere) ||
+          requiredCount == 0 ||
+          requiredCount < _argCount()) {
         // If there's a replacement range that starts at the caret, it will be
         // for an identifier that is not the named label and therefore it should
         // not be replaced.
