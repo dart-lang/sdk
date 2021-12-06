@@ -1,0 +1,51 @@
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class A1 {
+  final int foo;
+  A1(int this.foo);
+}
+
+class B1 extends A1 {
+  B1(int super.foo);
+}
+
+class A2 {
+  final int Function(int) foo;
+  A2(int Function(int) this.foo);
+}
+
+class B2 extends A2 {
+  B2(int Function(int) super.foo);
+}
+
+class A3 {
+  final int Function(int) foo;
+  A3(int this.foo(int));
+}
+
+class B3 extends A3 {
+  B3(int super.foo(int));
+}
+
+class A4 {
+  final void Function() Function(void Function()) foo;
+  A4(void Function() this.foo(void Function()));
+}
+
+class B4 extends A4 {
+  B4(void Function() super.foo(void Function()));
+}
+
+
+class A5 {
+  final void Function() Function(void Function()) foo;
+  A5(void Function() Function(void Function()) this.foo);
+}
+
+class B5 extends A5 {
+  B5(void Function() Function(void Function()) super.foo);
+}
+
+main() {}
