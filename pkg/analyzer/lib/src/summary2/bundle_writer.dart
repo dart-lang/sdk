@@ -173,7 +173,8 @@ class BundleWriter {
     _sink._writeStringReference(element.name);
     _resolutionSink._writeAnnotationList(element.metadata);
 
-    var constants = element.fields.where((e) => !e.isSynthetic).toList();
+    var constants =
+        element.fields.whereType<ConstFieldElementImpl_EnumValue>().toList();
     _writeList<FieldElement>(constants, (field) {
       _sink._writeStringReference(field.name);
       _resolutionSink._writeAnnotationList(field.metadata);
