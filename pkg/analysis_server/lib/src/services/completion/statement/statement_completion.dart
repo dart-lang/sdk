@@ -262,7 +262,7 @@ class StatementCompletionProcessor {
   void _checkExpressions(AstNode node) {
     // Note: This may queue edits that have to be accounted for later.
     // See _lengthOfInsertions().
-    AstNode? errorMatching(errorCode, {partialMatch}) {
+    AstNode? errorMatching(ErrorCode errorCode, {Pattern? partialMatch}) {
       var error = _findError(errorCode, partialMatch: partialMatch);
       if (error == null) {
         return null;
@@ -1069,7 +1069,7 @@ class StatementCompletionProcessor {
         node, stmt, DartStatementCompletion.COMPLETE_WHILE_STMT);
   }
 
-  engine.AnalysisError? _findError(ErrorCode code, {partialMatch}) {
+  engine.AnalysisError? _findError(ErrorCode code, {Pattern? partialMatch}) {
     return errors.firstWhereOrNull((err) =>
         err.errorCode == code &&
         (partialMatch == null ? true : err.message.contains(partialMatch)));
@@ -1169,7 +1169,7 @@ class StatementCompletionProcessor {
     return Position(file, offset);
   }
 
-  void _removeError(errorCode, {partialMatch}) {
+  void _removeError(ErrorCode errorCode, {Pattern? partialMatch}) {
     var error = _findError(errorCode, partialMatch: partialMatch);
     if (error != null) {
       errors.remove(error);

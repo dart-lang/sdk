@@ -145,10 +145,12 @@ class Driver implements ServerStarter {
 
     var analysisServerOptions = AnalysisServerOptions();
     analysisServerOptions.newAnalysisDriverLog =
-        results[ANALYSIS_DRIVER_LOG] ?? results[ANALYSIS_DRIVER_LOG_ALIAS];
-    analysisServerOptions.clientId = results[CLIENT_ID];
+        (results[ANALYSIS_DRIVER_LOG] ?? results[ANALYSIS_DRIVER_LOG_ALIAS])
+            as String?;
+    analysisServerOptions.clientId = results[CLIENT_ID] as String?;
     if (results.wasParsed(USE_LSP)) {
-      analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
+      analysisServerOptions.useLanguageServerProtocol =
+          results[USE_LSP] as bool;
     } else {
       analysisServerOptions.useLanguageServerProtocol =
           results[SERVER_PROTOCOL] == PROTOCOL_LSP;
@@ -160,18 +162,18 @@ class Driver implements ServerStarter {
             ? 'unknown.client.lsp'
             : 'unknown.client.classic';
 
-    analysisServerOptions.clientVersion = results[CLIENT_VERSION];
-    analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
-    analysisServerOptions.packagesFile = results[PACKAGES_FILE];
+    analysisServerOptions.clientVersion = results[CLIENT_VERSION] as String?;
+    analysisServerOptions.cacheFolder = results[CACHE_FOLDER] as String?;
+    analysisServerOptions.packagesFile = results[PACKAGES_FILE] as String?;
     analysisServerOptions.reportProtocolVersion =
-        results[REPORT_PROTOCOL_VERSION];
+        results[REPORT_PROTOCOL_VERSION] as String?;
 
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
     var sdkConfig = SdkConfiguration.readFromSdk();
     analysisServerOptions.configurationOverrides = sdkConfig;
 
     // Analytics
-    bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
+    var disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG] as bool;
     if (results.wasParsed(TRAIN_USING)) {
       disableAnalyticsForSession = true;
     }
@@ -212,15 +214,16 @@ class Driver implements ServerStarter {
 
     if (telemetry.showAnalyticsUI) {
       if (results.wasParsed(ANALYTICS_FLAG)) {
-        analytics.enabled = results[ANALYTICS_FLAG];
+        analytics.enabled = results[ANALYTICS_FLAG] as bool;
         print(telemetry.createAnalyticsStatusMessage(analytics.enabled));
         return null;
       }
     }
 
     {
-      bool disableCompletion = results[DISABLE_SERVER_FEATURE_COMPLETION];
-      bool disableSearch = results[DISABLE_SERVER_FEATURE_SEARCH];
+      var disableCompletion =
+          results[DISABLE_SERVER_FEATURE_COMPLETION] as bool;
+      var disableSearch = results[DISABLE_SERVER_FEATURE_SEARCH] as bool;
       if (disableCompletion || disableSearch) {
         analysisServerOptions.featureSet = FeatureSet(
           completion: !disableCompletion,
@@ -229,7 +232,7 @@ class Driver implements ServerStarter {
       }
     }
 
-    if (results[HELP_OPTION]) {
+    if (results[HELP_OPTION] as bool) {
       _printUsage(parser, analytics, fromHelp: true);
       return null;
     }
@@ -244,8 +247,8 @@ class Driver implements ServerStarter {
     //
     // Initialize the instrumentation service.
     //
-    var logFilePath =
-        results[PROTOCOL_TRAFFIC_LOG] ?? results[PROTOCOL_TRAFFIC_LOG_ALIAS];
+    var logFilePath = (results[PROTOCOL_TRAFFIC_LOG] ??
+        results[PROTOCOL_TRAFFIC_LOG_ALIAS]) as String?;
     var allInstrumentationServices = this.instrumentationService == null
         ? <InstrumentationService>[]
         : [this.instrumentationService!];
@@ -274,8 +277,8 @@ class Driver implements ServerStarter {
     AnalysisEngine.instance.instrumentationService = instrumentationService;
 
     int? diagnosticServerPort;
-    final String? portValue =
-        results[DIAGNOSTIC_PORT] ?? results[DIAGNOSTIC_PORT_ALIAS];
+    final portValue =
+        (results[DIAGNOSTIC_PORT] ?? results[DIAGNOSTIC_PORT_ALIAS]) as String?;
     if (portValue != null) {
       try {
         diagnosticServerPort = int.parse(portValue);
@@ -324,10 +327,10 @@ class Driver implements ServerStarter {
     ErrorNotifier errorNotifier,
     SendPort? sendPort,
   ) {
-    var capture = results[DISABLE_SERVER_EXCEPTION_HANDLING]
+    var capture = results[DISABLE_SERVER_EXCEPTION_HANDLING] as bool
         ? (_, Function f, {Function(String)? print}) => f()
         : _captureExceptions;
-    var trainDirectory = results[TRAIN_USING];
+    var trainDirectory = results[TRAIN_USING] as String?;
     if (trainDirectory != null) {
       if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
         print("Training directory '$trainDirectory' not found.\n");
@@ -426,7 +429,7 @@ class Driver implements ServerStarter {
           if (sendPort == null) exit(0);
         });
       },
-          print: results[INTERNAL_PRINT_TO_CONSOLE]
+          print: results[INTERNAL_PRINT_TO_CONSOLE] as bool
               ? null
               : httpServer!.recordPrint);
     }
@@ -440,7 +443,7 @@ class Driver implements ServerStarter {
     int? diagnosticServerPort,
     ErrorNotifier errorNotifier,
   ) {
-    var capture = args[DISABLE_SERVER_EXCEPTION_HANDLING]
+    var capture = args[DISABLE_SERVER_EXCEPTION_HANDLING] as bool
         ? (_, Function f, {Function(String)? print}) => f()
         : _captureExceptions;
 
@@ -483,7 +486,7 @@ class Driver implements ServerStarter {
       InstrumentationService service, void Function() callback,
       {void Function(String line)? print}) {
     void errorFunction(Zone self, ZoneDelegate parent, Zone zone,
-        dynamic exception, StackTrace stackTrace) {
+        Object exception, StackTrace stackTrace) {
       service.logException(exception, stackTrace);
       throw exception;
     }

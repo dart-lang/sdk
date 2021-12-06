@@ -80,13 +80,13 @@ mixin TreeWriter {
 
   /// Write the [value] of the property with the given [name].
   void _writePropertyValue(Object value, int baseIndent) {
-    if (value is List) {
+    if (value is List<Object>) {
       if (value.isEmpty) {
         buffer.write('[]');
       } else {
         var elementIndent = baseIndent + 2;
         buffer.write('[<br>');
-        for (Object element in value) {
+        for (var element in value) {
           indent(elementIndent);
           _writePropertyValue(element, elementIndent);
           buffer.write('<br>');
