@@ -280,13 +280,17 @@ class LateLowering {
       Name name = field.name;
       Uri fileUri = field.fileUri;
       DartType type = field.type;
+      // We need to unbind the canonical name since we reuse the reference but
+      // change the name.
+      field.fieldReference.canonicalName?.unbind();
       Field fieldCell = Field.immutable(_mangleFieldCellName(field),
           type: InterfaceType(_coreTypes.cellClass, nonNullable),
           initializer: _callCellConstructor(
               _nameLiteral(name.text, fileOffset), fileOffset),
           isFinal: true,
           isStatic: true,
-          fileUri: fileUri)
+          fileUri: fileUri,
+          fieldReference: field.fieldReference)
         ..fileOffset = fileOffset
         ..isNonNullableByDefault = true;
       StaticGet fieldCellAccess() =>
@@ -364,6 +368,8 @@ class LateLowering {
     Expression? initializer = field.initializer;
     Class enclosingClass = field.enclosingClass!;
 
+    // We need to unbind the canonical name since we reuse the reference but
+    // change the name.
     field.fieldReference.canonicalName?.unbind();
     Field backingField = Field.mutable(mangledName,
         type: type,
