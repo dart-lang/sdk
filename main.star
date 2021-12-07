@@ -1839,7 +1839,7 @@ def chromium_infra_recipe(name):
         name = name,
         cipd_package =
             "infra/recipe_bundles/chromium.googlesource.com/infra/infra",
-        cipd_version = "git_revision:bc0c2fb9082bc82a2d972b5cca8fc17afa55d34e",
+        cipd_version = "git_revision:21e1e6473db300eb5045e4483e8b53d1324cd0d8",
         use_bbagent = True,
     )
 
