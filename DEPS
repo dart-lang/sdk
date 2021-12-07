@@ -135,7 +135,7 @@ vars = {
   "package_config_rev": "fb736aa12316dd2d882b202a438a6946a4b4bea0",
   "path_rev": "c20d73c3516d3a0061c90f14b761ff532b9bf707",
   "pedantic_rev": "66f2f6c27581c7936482e83be80b27be2719901c",
-  "platform_rev": "c20e6fa315e9f8820e51c0ae721f63aff33b8e17",
+  "platform_rev": "1ffad63428bbd1b3ecaa15926bacfb724023648c",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",

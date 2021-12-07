@@ -205,11 +205,6 @@ class Platform {
   /// Provides a new list every time the value is read.
   static List<String> get executableArguments => _Platform.executableArguments;
 
-  /// This returns `null`, as `packages/` directories are no longer supported.
-  ///
-  @Deprecated('packages/ directory resolution is not supported in Dart 2')
-  static String? get packageRoot => null; // TODO(mfairhurst): remove this
-
   /// The `--packages` flag passed to the executable used to run the script
   /// in this isolate.
   ///

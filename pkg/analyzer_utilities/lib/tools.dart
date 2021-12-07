@@ -283,14 +283,8 @@ abstract class GeneratedContent {
     if (generateNeeded) {
       print('Please regenerate using:');
       var executable = Platform.executable;
-      var packageRoot = '';
-      // ignore: deprecated_member_use
-      if (Platform.packageRoot != null) {
-        // ignore: deprecated_member_use
-        packageRoot = ' --package-root=${Platform.packageRoot}';
-      }
       var generateScript = normalize(joinAll(posix.split(generatorPath)));
-      print('  $executable$packageRoot $generateScript ${args.join(" ")}');
+      print('  $executable $generateScript ${args.join(" ")}');
       fail('Error codes need to be generated');
     } else {
       print('All generated files up to date.');

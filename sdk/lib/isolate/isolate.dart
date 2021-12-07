@@ -18,8 +18,8 @@
 /// {@category VM}
 library dart.isolate;
 
-import "dart:async";
 import "dart:_internal" show Since;
+import "dart:async";
 import "dart:typed_data" show ByteBuffer, TypedData, Uint8List;
 
 part "capability.dart";
@@ -157,13 +157,6 @@ class Isolate {
   /// first passing the ability to resume it again to another isolate,
   /// is a sure way to hang your program.
   external static Isolate get current;
-
-  /// The package root of the current isolate, if any.
-  ///
-  /// This getter returns `null`, as the `packages/` directory is not supported
-  /// in Dart 2.
-  @Deprecated('packages/ directory resolution is not supported in Dart 2.')
-  external static Future<Uri?> get packageRoot;
 
   /// The location of the package configuration of the current isolate, if any.
   ///
