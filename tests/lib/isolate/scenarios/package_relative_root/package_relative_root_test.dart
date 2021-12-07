@@ -7,8 +7,8 @@
 import 'dart:io';
 import 'dart:isolate';
 
-import "package:foo/foo.dart";
 import "package:bar/bar.dart";
+import "package:foo/foo.dart";
 
 var CONFIG_URI = "package:bar/spawned_packages/";
 
@@ -18,8 +18,7 @@ main([args, port]) async {
     return;
   }
   var p = new RawReceivePort();
-  Isolate.spawnUri(Platform.script, [], p.sendPort,
-      packageRoot: Uri.parse(CONFIG_URI));
+  Isolate.spawnUri(Platform.script, [], p.sendPort);
   p.handler = (msg) {
     p.close();
     if (msg is! List) {
@@ -45,11 +44,9 @@ main([args, port]) async {
 
 testCorrectBarPackage(port) async {
   try {
-    var packageRootStr = Platform.packageRoot;
     var packageConfigStr = Platform.packageConfig;
     var packageConfig = await Isolate.packageConfig;
     var resolvedPkg = await Isolate.resolvePackageUri(Uri.parse(CONFIG_URI));
-    print("Spawned isolate's package root flag: $packageRootStr");
     print("Spawned isolate's package config flag: $packageConfigStr");
     print("Spawned isolate's loaded package config: $packageConfig");
     print("Spawned isolate's resolved package path: $resolvedPkg");

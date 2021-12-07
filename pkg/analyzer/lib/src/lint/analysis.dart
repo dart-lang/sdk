@@ -67,10 +67,6 @@ class DriverOptions {
   /// The path to a `.packages` configuration file
   String? packageConfigPath;
 
-  /// The path to the package root.
-  @Deprecated('https://github.com/dart-lang/sdk/issues/41197')
-  String? packageRootPath;
-
   /// Whether to use Dart's Strong Mode analyzer.
   bool strongMode = true;
 

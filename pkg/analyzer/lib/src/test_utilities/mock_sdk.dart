@@ -1192,7 +1192,6 @@ class Isolate {
     bool errorsAreFatal = true,
     bool? checked,
     Map<String, String>? environment,
-    @deprecated Uri? packageRoot,
     Uri? packageConfig,
     bool automaticPackageResolution = false,
     String? debugName,

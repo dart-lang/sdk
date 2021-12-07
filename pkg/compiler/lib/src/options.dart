@@ -168,8 +168,6 @@ class CompilerOptions implements DiagnosticOptions {
   }
 
   /// Location of the package configuration file.
-  ///
-  /// If not null then [packageRoot] should be null.
   Uri? packageConfig;
 
   /// List of kernel files to load.

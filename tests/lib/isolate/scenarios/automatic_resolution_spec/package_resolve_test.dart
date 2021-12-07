@@ -32,16 +32,13 @@ main([args, port]) async {
     }
     print("SUCCESS");
   };
-  print("Spawning isolate's package root: ${await Isolate.packageRoot}");
 }
 
 testPackageResolution(port) async {
   try {
-    var packageRootStr = Platform.packageRoot;
     var packageConfigStr = Platform.packageConfig;
     var packageConfig = await Isolate.packageConfig;
     var resolvedPkg = await Isolate.resolvePackageUri(Uri.parse(PACKAGE_URI));
-    print("Spawned isolate's package root flag: $packageRootStr");
     print("Spawned isolate's package config flag: $packageConfigStr");
     print("Spawned isolate's loaded package config: $packageConfig");
     print("Spawned isolate's resolved package path: $resolvedPkg");
