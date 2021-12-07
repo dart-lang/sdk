@@ -15,14 +15,14 @@
 #### `dart:io`
 
 - **Breaking Change** [#47769](https://github.com/dart-lang/sdk/issues/47769):
-The `Platform.packageRoot` API has been removed. I had been marked deprecated in
-2018, as it doesn't work with any Dart 2.x release.
+The `Platform.packageRoot` API has been removed. It had been marked deprecated
+in 2018, as it doesn't work with any Dart 2.x release.
 
 #### `dart:isolate`
 
 - **Breaking Change** [#47769](https://github.com/dart-lang/sdk/issues/47769):
-The `Isolate.packageRoot` API has been removed. I had been marked deprecated in
-2018, as it doesn't work with any Dart 2.x release.
+The `Isolate.packageRoot` API has been removed. It had been marked deprecated
+in 2018, as it doesn't work with any Dart 2.x release.
 
 ### Tools
 
