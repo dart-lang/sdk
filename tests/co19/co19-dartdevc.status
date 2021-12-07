@@ -50,7 +50,6 @@ LibTest/core/int/operator_truncating_division_A01_t02: SkipByDesign # Division b
 LibTest/core/int/parse_A01_t02: SkipByDesign # big integers cannot be represented in JavaScript
 LibTest/core/int/remainder_A01_t03: SkipByDesign # Division by zero is not an error in JavaScript
 LibTest/ffi/*: SkipByDesign # dart:ffi is not supported
-LibTest/html/HttpRequest/responseText_A01_t02: Skip # https://github.com/dart-lang/co19/issues/932
 LibTest/html/HttpRequestUpload/*: Skip # https://github.com/dart-lang/co19/issues/932
 LibTest/io/*: SkipByDesign # dart:io not supported.
 LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
