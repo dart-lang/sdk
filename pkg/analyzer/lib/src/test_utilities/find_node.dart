@@ -123,6 +123,10 @@ class FindNode {
     return _node(search, (n) => n is DoubleLiteral);
   }
 
+  EnumConstantDeclaration enumConstantDeclaration(String search) {
+    return _node(search, (n) => n is EnumConstantDeclaration);
+  }
+
   EnumDeclaration enumDeclaration(String search) {
     return _node(search, (n) => n is EnumDeclaration);
   }

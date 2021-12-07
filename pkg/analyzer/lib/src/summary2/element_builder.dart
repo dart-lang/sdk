@@ -1009,7 +1009,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var absoluteUri = resolveRelativeUri(_libraryBuilder.uri, relativeUri);
 
     var sourceFactory = _linker.analysisContext.sourceFactory;
-    return rewriteFileToPackageUri(sourceFactory, absoluteUri);
+    return rewriteToCanonicalUri(sourceFactory, absoluteUri);
   }
 
   LibraryElement? _selectLibrary(NamespaceDirective node) {

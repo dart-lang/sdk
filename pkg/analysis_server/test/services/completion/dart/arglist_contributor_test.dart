@@ -172,6 +172,15 @@ class A { const A({int one, String two: 'defaultValue'}); }
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
   }
 
+  Future<void> test_Annotation_local_constructor_named_param_12() async {
+    addTestSource('''
+class A { const A(int one, int two, int three, {int four, String five:
+  'defaultValue'}); }
+@A(1, ^, 3) main() { }''');
+    await computeSuggestions();
+    assertSuggestions(['four: ', 'five: ']);
+  }
+
   Future<void> test_Annotation_local_constructor_named_param_2() async {
     addTestSource('''
 class A { const A({int one, String two: 'defaultValue'}); }
@@ -239,6 +248,7 @@ class A { const A({int one, String two: 'defaultValue'}); }
 
   Future<void> test_Annotation_local_constructor_named_param_negative() async {
     addTestSource('''
+// @dart = 2.15
 class A { const A(int one, int two, int three, {int four, String five:
   'defaultValue'}); }
 @A(1, ^, 3) main() { }''');
@@ -660,6 +670,7 @@ foo({String children}) {}
       expect(String arg1, int arg2, {bool arg3}) { }
       void baz() { }''');
     addTestSource('''
+      // @dart = 2.15
       import 'a.dart'
       class B { }
       String bar() => true;
@@ -676,6 +687,7 @@ foo({String children}) {}
       expect(String arg1, int arg2, {bool arg3}) { }
       void baz() { }''');
     addTestSource('''
+      // @dart = 2.15
       import 'a.dart'
       class B { }
       String bar() => true;
@@ -692,6 +704,7 @@ foo({String children}) {}
       expect(String arg1, int arg2, {bool arg3}) { }
       void baz() { }''');
     addTestSource('''
+      // @dart = 2.15
       import 'a.dart'
       class B { }
       String bar() => true;
@@ -708,6 +721,7 @@ foo({String children}) {}
       expect(String arg1, int arg2, {bool arg3}) { }
       void baz() { }''');
     addTestSource('''
+      // @dart = 2.15
       import 'a.dart'
       class B { }
       String bar() => true;
@@ -987,6 +1001,7 @@ main() { new A(^);}''');
   Future<void> test_ArgumentList_local_function_3a() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
+      // @dart = 2.15
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -998,6 +1013,7 @@ main() { new A(^);}''');
   Future<void> test_ArgumentList_local_function_3b() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
+      // @dart = 2.15
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -1009,6 +1025,7 @@ main() { new A(^);}''');
   Future<void> test_ArgumentList_local_function_3c() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
+      // @dart = 2.15
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -1020,6 +1037,7 @@ main() { new A(^);}''');
   Future<void> test_ArgumentList_local_function_3d() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
+      // @dart = 2.15
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;

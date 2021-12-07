@@ -301,6 +301,7 @@ abstract class AstFactory {
   /// [comment] and [metadata] can be `null` if the declaration does not have
   /// the corresponding attribute. The list of [constants] must contain at least
   /// one value.
+  @Deprecated('Use enumDeclaration2() instead')
   EnumDeclaration enumDeclaration(
       Comment? comment,
       List<Annotation>? metadata,
@@ -308,8 +309,25 @@ abstract class AstFactory {
       SimpleIdentifier name,
       Token leftBracket,
       List<EnumConstantDeclaration> constants,
-      List<ClassMember> members,
       Token rightBracket);
+
+  /// Returns a newly created enumeration declaration. Either or both of the
+  /// [comment] and [metadata] can be `null` if the declaration does not have
+  /// the corresponding attribute. The list of [constants] must contain at least
+  /// one value.
+  EnumDeclaration enumDeclaration2({
+    required Comment? comment,
+    required List<Annotation>? metadata,
+    required Token enumKeyword,
+    required SimpleIdentifier name,
+    required TypeParameterList? typeParameters,
+    required WithClause? withClause,
+    required ImplementsClause? implementsClause,
+    required Token leftBracket,
+    required List<EnumConstantDeclaration> constants,
+    required List<ClassMember> members,
+    required Token rightBracket,
+  });
 
   /// Returns a newly created export directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the

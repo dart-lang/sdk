@@ -383,6 +383,7 @@ class AstFactoryImpl extends AstFactory {
       EnumConstantDeclarationImpl(
           comment as CommentImpl?, metadata, name as SimpleIdentifierImpl);
 
+  @Deprecated('Use enumDeclaration2() instead')
   @override
   EnumDeclarationImpl enumDeclaration(
           Comment? comment,
@@ -391,17 +392,48 @@ class AstFactoryImpl extends AstFactory {
           SimpleIdentifier name,
           Token leftBracket,
           List<EnumConstantDeclaration> constants,
-          List<ClassMember> members,
           Token rightBracket) =>
-      EnumDeclarationImpl(
-          comment as CommentImpl?,
-          metadata,
-          enumKeyword,
-          name as SimpleIdentifierImpl,
-          leftBracket,
-          constants,
-          members,
-          rightBracket);
+      enumDeclaration2(
+          comment: comment,
+          metadata: metadata,
+          enumKeyword: enumKeyword,
+          name: name,
+          typeParameters: null,
+          withClause: null,
+          implementsClause: null,
+          leftBracket: leftBracket,
+          constants: constants,
+          members: [],
+          rightBracket: rightBracket);
+
+  @override
+  EnumDeclarationImpl enumDeclaration2({
+    required Comment? comment,
+    required List<Annotation>? metadata,
+    required Token enumKeyword,
+    required SimpleIdentifier name,
+    required TypeParameterList? typeParameters,
+    required WithClause? withClause,
+    required ImplementsClause? implementsClause,
+    required Token leftBracket,
+    required List<EnumConstantDeclaration> constants,
+    required List<ClassMember> members,
+    required Token rightBracket,
+  }) {
+    return EnumDeclarationImpl(
+      comment as CommentImpl?,
+      metadata,
+      enumKeyword,
+      name as SimpleIdentifierImpl,
+      typeParameters as TypeParameterListImpl?,
+      withClause as WithClauseImpl?,
+      implementsClause as ImplementsClauseImpl?,
+      leftBracket,
+      constants,
+      members,
+      rightBracket,
+    );
+  }
 
   @override
   ExportDirectiveImpl exportDirective(

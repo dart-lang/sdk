@@ -27,7 +27,7 @@ class ImportLibrary extends MultiCorrectionProducer {
   ImportLibrary(this._importKind);
 
   @override
-  Iterable<CorrectionProducer> get producers sync* {
+  Stream<CorrectionProducer> get producers async* {
     final node = this.node;
     if (_importKind == _ImportKind.dartAsync) {
       yield* _importLibrary(DartFixKind.IMPORT_ASYNC, Uri.parse('dart:async'));
@@ -42,8 +42,8 @@ class ImportLibrary extends MultiCorrectionProducer {
     } else if (_importKind == _ImportKind.forExtensionMember) {
       /// Return producers that will import extensions that apply to the
       /// [targetType] and that define a member with the given [memberName].
-      Iterable<CorrectionProducer> importMatchingExtensions(
-          String memberName, DartType? targetType) sync* {
+      Stream<CorrectionProducer> importMatchingExtensions(
+          String memberName, DartType? targetType) async* {
         if (targetType == null) {
           return;
         }
@@ -151,8 +151,8 @@ class ImportLibrary extends MultiCorrectionProducer {
     return false;
   }
 
-  Iterable<CorrectionProducer> _importExtensionInLibrary(
-      Uri uri, DartType targetType, String memberName) sync* {
+  Stream<CorrectionProducer> _importExtensionInLibrary(
+      Uri uri, DartType targetType, String memberName) async* {
     // Look to see whether the library at the [uri] is already imported. If it
     // is, then we can check the extension elements without needing to perform
     // additional analysis.
@@ -197,31 +197,33 @@ class ImportLibrary extends MultiCorrectionProducer {
   /// path and a correction with a relative path are returned. If the
   /// `prefer_relative_imports` lint rule is enabled, the relative path is
   /// returned first.
-  Iterable<CorrectionProducer> _importLibrary(
+  Stream<CorrectionProducer> _importLibrary(
     FixKind fixKind,
     Uri library, {
     bool includeRelativeFix = false,
   }) {
     if (!includeRelativeFix) {
-      return [_ImportAbsoluteLibrary(fixKind, library)];
+      return Stream.fromIterable([
+        _ImportAbsoluteLibrary(fixKind, library),
+      ]);
     }
     if (isLintEnabled(LintNames.prefer_relative_imports)) {
-      return [
+      return Stream.fromIterable([
         _ImportRelativeLibrary(fixKind, library),
         _ImportAbsoluteLibrary(fixKind, library),
-      ];
+      ]);
     } else {
-      return [
+      return Stream.fromIterable([
         _ImportAbsoluteLibrary(fixKind, library),
         _ImportRelativeLibrary(fixKind, library),
-      ];
+      ]);
     }
   }
 
-  Iterable<CorrectionProducer> _importLibraryForElement(
+  Stream<CorrectionProducer> _importLibraryForElement(
       String name,
       List<ElementKind> elementKinds,
-      List<TopLevelDeclarationKind> kinds2) sync* {
+      List<TopLevelDeclarationKind> kinds2) async* {
     // ignore if private
     if (name.startsWith('_')) {
       return;

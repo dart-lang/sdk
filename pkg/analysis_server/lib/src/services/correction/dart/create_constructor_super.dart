@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateConstructorSuper extends MultiCorrectionProducer {
   @override
-  Iterable<CorrectionProducer> get producers sync* {
+  Stream<CorrectionProducer> get producers async* {
     var targetClassNode = node.thisOrAncestorOfType<ClassDeclaration>();
     if (targetClassNode == null) {
       return;

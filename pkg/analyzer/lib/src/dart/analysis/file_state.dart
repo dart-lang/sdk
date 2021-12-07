@@ -873,7 +873,7 @@ class FileSystemState {
 
       File resource = _resourceProvider.getFile(path);
 
-      var rewrittenUri = rewriteFileToPackageUri(_sourceFactory, uri);
+      var rewrittenUri = rewriteToCanonicalUri(_sourceFactory, uri);
       if (rewrittenUri == null) {
         return Either2.t1(null);
       }

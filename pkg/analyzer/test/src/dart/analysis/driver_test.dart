@@ -28,12 +28,14 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../util/element_type_matchers.dart';
 import '../../../utils.dart';
+import '../resolution/context_collection_resolution.dart';
 import 'base.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDriverSchedulerTest);
     defineReflectiveTests(AnalysisDriverTest);
+    defineReflectiveTests(AnalysisDriver_BazelWorkspaceTest);
   });
 }
 
@@ -47,6 +49,59 @@ Future pumpEventQueue([int times = 5000]) {
   // would therefore not wait for microtask callbacks that are scheduled after
   // invoking this method.
   return Future.delayed(Duration.zero, () => pumpEventQueue(times - 1));
+}
+
+@reflectiveTest
+class AnalysisDriver_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
+  void test_nestedLib_notCanonicalUri() async {
+    var outerLibPath = '$workspaceRootPath/my/outer/lib';
+
+    var innerPath = convertPath('$outerLibPath/inner/lib/b.dart');
+    var innerUri = Uri.parse('package:my.outer.lib.inner/b.dart');
+    newFile(innerPath, content: 'class B {}');
+
+    var analysisSession = contextFor(innerPath).currentSession;
+
+    void assertInnerUri(ResolvedUnitResult result) {
+      var innerLibrary = result.libraryElement.importedLibraries
+          .where((e) => e.source.fullName == innerPath)
+          .single;
+      expect(innerLibrary.source.uri, innerUri);
+    }
+
+    // Reference "inner" using a non-canonical URI.
+    {
+      var path = convertPath('$outerLibPath/a.dart');
+      newFile(path, content: r'''
+import 'inner/lib/b.dart';
+''');
+      var result = await analysisSession.getResolvedUnit(path);
+      result as ResolvedUnitResult;
+      assertInnerUri(result);
+    }
+
+    // Reference "inner" using the canonical URI, via relative.
+    {
+      var path = '$outerLibPath/inner/lib/c.dart';
+      newFile(path, content: r'''
+import 'b.dart';
+''');
+      var result = await analysisSession.getResolvedUnit(path);
+      result as ResolvedUnitResult;
+      assertInnerUri(result);
+    }
+
+    // Reference "inner" using the canonical URI, via absolute.
+    {
+      var path = '$outerLibPath/inner/lib/d.dart';
+      newFile(path, content: '''
+import '$innerUri';
+''');
+      var result = await analysisSession.getResolvedUnit(path);
+      result as ResolvedUnitResult;
+      assertInnerUri(result);
+    }
+  }
 }
 
 @reflectiveTest

@@ -2813,8 +2813,21 @@ class AstBuilder extends StackListener {
       );
     }
 
-    declarations.add(enumDeclaration = ast.enumDeclaration(comment, metadata,
-        enumKeyword, name, leftBrace, [], [], leftBrace.endGroup!));
+    declarations.add(
+      enumDeclaration = ast.enumDeclaration2(
+        comment: comment,
+        metadata: metadata,
+        enumKeyword: enumKeyword,
+        name: name,
+        typeParameters: typeParameters,
+        withClause: withClause,
+        implementsClause: implementsClause,
+        leftBracket: leftBrace,
+        constants: [],
+        members: [],
+        rightBracket: leftBrace.endGroup!,
+      ),
+    );
   }
 
   @override

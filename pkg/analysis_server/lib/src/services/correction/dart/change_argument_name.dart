@@ -17,7 +17,7 @@ class ChangeArgumentName extends MultiCorrectionProducer {
   static const _maxDistance = 4;
 
   @override
-  Iterable<CorrectionProducer> get producers sync* {
+  Stream<CorrectionProducer> get producers async* {
     var namedContext = _getNamedParameterNames();
     if (namedContext == null) {
       return;
