@@ -16,7 +16,8 @@ import 'typescript_parser.dart';
 
 Future<void> main(List<String> arguments) async {
   final args = argParser.parse(arguments);
-  if (args[argHelp]) {
+  var help = args[argHelp] as bool;
+  if (help) {
     print(argParser.usage);
     return;
   }
@@ -189,15 +190,14 @@ List<AstNode> getCustomClasses() {
   Field field(
     String name, {
     required String type,
-    array = false,
-    canBeNull = false,
-    canBeUndefined = false,
+    bool array = false,
+    bool canBeUndefined = false,
   }) {
     var fieldType =
         array ? ArrayType(Type.identifier(type)) : Type.identifier(type);
 
     return Field(
-        null, Token.identifier(name), fieldType, canBeNull, canBeUndefined);
+        null, Token.identifier(name), fieldType, false, canBeUndefined);
   }
 
   final customTypes = <AstNode>[
@@ -302,7 +302,8 @@ List<AstNode> getCustomClasses() {
 }
 
 Future<List<AstNode>> getSpecClasses(ArgResults args) async {
-  if (args[argDownload]) {
+  var download = args[argDownload] as bool;
+  if (download) {
     await downloadSpec();
   }
   final spec = await readSpec();

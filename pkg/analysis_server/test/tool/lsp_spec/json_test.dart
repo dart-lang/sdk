@@ -334,7 +334,8 @@ void main() {
   group('fromJson', () {
     test('parses JSON for types with unions (left side)', () {
       final input = '{"id":1,"method":"shutdown","jsonrpc":"test"}';
-      final message = RequestMessage.fromJson(jsonDecode(input));
+      final message =
+          RequestMessage.fromJson(jsonDecode(input) as Map<String, Object?>);
       expect(message.id, equals(Either2<num, String>.t1(1)));
       expect(message.id.valueEquals(1), isTrue);
       expect(message.jsonrpc, 'test');
@@ -343,7 +344,8 @@ void main() {
 
     test('parses JSON for types with unions (right side)', () {
       final input = '{"id":"one","method":"shutdown","jsonrpc":"test"}';
-      final message = RequestMessage.fromJson(jsonDecode(input));
+      final message =
+          RequestMessage.fromJson(jsonDecode(input) as Map<String, Object?>);
       expect(message.id, equals(Either2<num, String>.t2('one')));
       expect(message.id.valueEquals('one'), isTrue);
       expect(message.jsonrpc, 'test');
@@ -352,13 +354,15 @@ void main() {
 
     test('parses JSON with nulls for unions that allow null', () {
       final input = '{"id":null,"jsonrpc":"test"}';
-      final message = ResponseMessage.fromJson(jsonDecode(input));
+      final message =
+          ResponseMessage.fromJson(jsonDecode(input) as Map<String, Object?>);
       expect(message.id, isNull);
     });
 
     test('parses JSON with nulls for unions that allow null', () {
       final input = '{"method":"test","jsonrpc":"test"}';
-      final message = NotificationMessage.fromJson(jsonDecode(input));
+      final message = NotificationMessage.fromJson(
+          jsonDecode(input) as Map<String, Object?>);
       expect(message.params, isNull);
     });
 
@@ -370,7 +374,8 @@ void main() {
             version: 111, uri: 'file:///foo/bar.dart'),
         position: Position(line: 1, character: 1),
       ).toJson());
-      final params = TextDocumentPositionParams.fromJson(jsonDecode(input));
+      final params = TextDocumentPositionParams.fromJson(
+          jsonDecode(input) as Map<String, Object?>);
       expect(params.textDocument,
           const TypeMatcher<VersionedTextDocumentIdentifier>());
     });
@@ -378,7 +383,8 @@ void main() {
     test('parses JSON with unknown fields', () {
       final input =
           '{"id":1,"invalidField":true,"method":"foo","jsonrpc":"test"}';
-      final message = RequestMessage.fromJson(jsonDecode(input));
+      final message =
+          RequestMessage.fromJson(jsonDecode(input) as Map<String, Object?>);
       expect(message.id.valueEquals(1), isTrue);
       expect(message.method, equals(Method('foo')));
       expect(message.params, isNull);
@@ -401,7 +407,8 @@ void main() {
       workspaceFolders: workspaceFolders,
     );
     final json = jsonEncode(obj);
-    final restoredObj = InitializeParams.fromJson(jsonDecode(json));
+    final restoredObj =
+        InitializeParams.fromJson(jsonDecode(json) as Map<String, Object?>);
     final restoredWorkspaceFolders = restoredObj.workspaceFolders!;
 
     expect(restoredWorkspaceFolders, hasLength(workspaceFolders.length));
@@ -420,7 +427,8 @@ void main() {
         endCharacter: 4,
         kind: FoldingRangeKind.Comment);
     final json = jsonEncode(obj);
-    final restoredObj = FoldingRange.fromJson(jsonDecode(json));
+    final restoredObj =
+        FoldingRange.fromJson(jsonDecode(json) as Map<String, Object?>);
 
     expect(restoredObj.startLine, equals(obj.startLine));
     expect(restoredObj.startCharacter, equals(obj.startCharacter));
@@ -438,7 +446,8 @@ void main() {
       'fileB': [TextEdit(range: range, newText: 'text B')]
     });
     final json = jsonEncode(obj);
-    final restoredObj = WorkspaceEdit.fromJson(jsonDecode(json));
+    final restoredObj =
+        WorkspaceEdit.fromJson(jsonDecode(json) as Map<String, Object?>);
 
     expect(restoredObj.documentChanges, equals(obj.documentChanges));
     expect(restoredObj.changes, equals(obj.changes));

@@ -185,7 +185,7 @@ void main() {
 }
 
 /// Returns matcher that can compare double values.
-Matcher doubleEquals(expected) => _DoubleEquals(expected);
+Matcher doubleEquals(double expected) => _DoubleEquals(expected);
 
 class _DoubleEquals extends Matcher {
   final double _value;

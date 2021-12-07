@@ -452,7 +452,7 @@ class CallHierarchyIncomingCall implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((fromRanges is List &&
+        if (!((fromRanges is List<Object?> &&
             (fromRanges.every((item) => Range.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Range>');
           return false;
@@ -741,7 +741,7 @@ class CallHierarchyItem implements ToJsonable {
       try {
         final tags = obj['tags'];
         if (tags != null &&
-            !((tags is List &&
+            !((tags is List<Object?> &&
                 (tags.every((item) => SymbolTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
@@ -963,7 +963,7 @@ class CallHierarchyOutgoingCall implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((fromRanges is List &&
+        if (!((fromRanges is List<Object?> &&
             (fromRanges.every((item) => Range.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Range>');
           return false;
@@ -1298,7 +1298,7 @@ class CallHierarchyRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -2585,7 +2585,7 @@ class CodeAction implements ToJsonable {
       try {
         final diagnostics = obj['diagnostics'];
         if (diagnostics != null &&
-            !((diagnostics is List &&
+            !((diagnostics is List<Object?> &&
                 (diagnostics
                     .every((item) => Diagnostic.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Diagnostic>');
@@ -2926,7 +2926,7 @@ class CodeActionClientCapabilitiesCodeActionKind implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((valueSet is List &&
+        if (!((valueSet is List<Object?> &&
             (valueSet
                 .every((item) => CodeActionKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CodeActionKind>');
@@ -3071,7 +3071,7 @@ class CodeActionClientCapabilitiesResolveSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((properties is List &&
+        if (!((properties is List<Object?> &&
             (properties.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -3160,7 +3160,7 @@ class CodeActionContext implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((diagnostics is List &&
+        if (!((diagnostics is List<Object?> &&
             (diagnostics
                 .every((item) => Diagnostic.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Diagnostic>');
@@ -3173,7 +3173,7 @@ class CodeActionContext implements ToJsonable {
       try {
         final only = obj['only'];
         if (only != null &&
-            !((only is List &&
+            !((only is List<Object?> &&
                 (only.every(
                     (item) => CodeActionKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CodeActionKind>');
@@ -3280,7 +3280,7 @@ class CodeActionKind {
 
   final String _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is String;
   }
 
@@ -3402,7 +3402,7 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
       try {
         final codeActionKinds = obj['codeActionKinds'];
         if (codeActionKinds != null &&
-            !((codeActionKinds is List &&
+            !((codeActionKinds is List<Object?> &&
                 (codeActionKinds.every(
                     (item) => CodeActionKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CodeActionKind>');
@@ -3712,7 +3712,7 @@ class CodeActionRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -3725,7 +3725,7 @@ class CodeActionRegistrationOptions
       try {
         final codeActionKinds = obj['codeActionKinds'];
         if (codeActionKinds != null &&
-            !((codeActionKinds is List &&
+            !((codeActionKinds is List<Object?> &&
                 (codeActionKinds.every(
                     (item) => CodeActionKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CodeActionKind>');
@@ -4262,7 +4262,7 @@ class CodeLensRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -4698,7 +4698,7 @@ class ColorPresentation implements ToJsonable {
       try {
         final additionalTextEdits = obj['additionalTextEdits'];
         if (additionalTextEdits != null &&
-            !((additionalTextEdits is List &&
+            !((additionalTextEdits is List<Object?> &&
                 (additionalTextEdits
                     .every((item) => TextEdit.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<TextEdit>');
@@ -4990,7 +4990,8 @@ class Command implements ToJsonable {
       try {
         final arguments = obj['arguments'];
         if (arguments != null &&
-            !((arguments is List && (arguments.every((item) => true))))) {
+            !((arguments is List<Object?> &&
+                (arguments.every((item) => true))))) {
           reporter.reportError('must be of type List<Object?>');
           return false;
         }
@@ -5323,7 +5324,7 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         final documentationFormat = obj['documentationFormat'];
         if (documentationFormat != null &&
-            !((documentationFormat is List &&
+            !((documentationFormat is List<Object?> &&
                 (documentationFormat
                     .every((item) => MarkupKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<MarkupKind>');
@@ -5482,7 +5483,7 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
       try {
         final valueSet = obj['valueSet'];
         if (valueSet != null &&
-            !((valueSet is List &&
+            !((valueSet is List<Object?> &&
                 (valueSet.every(
                     (item) => CompletionItemKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CompletionItemKind>');
@@ -5554,7 +5555,7 @@ class CompletionClientCapabilitiesInsertTextModeSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((valueSet is List &&
+        if (!((valueSet is List<Object?> &&
             (valueSet
                 .every((item) => InsertTextMode.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<InsertTextMode>');
@@ -5627,7 +5628,7 @@ class CompletionClientCapabilitiesResolveSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((properties is List &&
+        if (!((properties is List<Object?> &&
             (properties.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -5698,7 +5699,7 @@ class CompletionClientCapabilitiesTagSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((valueSet is List &&
+        if (!((valueSet is List<Object?> &&
             (valueSet.every(
                 (item) => CompletionItemTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CompletionItemTag>');
@@ -6124,7 +6125,7 @@ class CompletionItem implements ToJsonable {
       try {
         final tags = obj['tags'];
         if (tags != null &&
-            !((tags is List &&
+            !((tags is List<Object?> &&
                 (tags.every(
                     (item) => CompletionItemTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CompletionItemTag>');
@@ -6245,7 +6246,7 @@ class CompletionItem implements ToJsonable {
       try {
         final additionalTextEdits = obj['additionalTextEdits'];
         if (additionalTextEdits != null &&
-            !((additionalTextEdits is List &&
+            !((additionalTextEdits is List<Object?> &&
                 (additionalTextEdits
                     .every((item) => TextEdit.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<TextEdit>');
@@ -6258,7 +6259,7 @@ class CompletionItem implements ToJsonable {
       try {
         final commitCharacters = obj['commitCharacters'];
         if (commitCharacters != null &&
-            !((commitCharacters is List &&
+            !((commitCharacters is List<Object?> &&
                 (commitCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -6353,7 +6354,7 @@ class CompletionItemKind {
 
   final int _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is int;
   }
 
@@ -6403,7 +6404,7 @@ class CompletionItemTag {
 
   final int _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is int;
   }
 
@@ -6483,7 +6484,7 @@ class CompletionList implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((items is List &&
+        if (!((items is List<Object?> &&
             (items
                 .every((item) => CompletionItem.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CompletionItem>');
@@ -6600,7 +6601,7 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
       try {
         final triggerCharacters = obj['triggerCharacters'];
         if (triggerCharacters != null &&
-            !((triggerCharacters is List &&
+            !((triggerCharacters is List<Object?> &&
                 (triggerCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -6612,7 +6613,7 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
       try {
         final allCommitCharacters = obj['allCommitCharacters'];
         if (allCommitCharacters != null &&
-            !((allCommitCharacters is List &&
+            !((allCommitCharacters is List<Object?> &&
                 (allCommitCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -6946,7 +6947,7 @@ class CompletionRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -6959,7 +6960,7 @@ class CompletionRegistrationOptions
       try {
         final triggerCharacters = obj['triggerCharacters'];
         if (triggerCharacters != null &&
-            !((triggerCharacters is List &&
+            !((triggerCharacters is List<Object?> &&
                 (triggerCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -6971,7 +6972,7 @@ class CompletionRegistrationOptions
       try {
         final allCommitCharacters = obj['allCommitCharacters'];
         if (allCommitCharacters != null &&
-            !((allCommitCharacters is List &&
+            !((allCommitCharacters is List<Object?> &&
                 (allCommitCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -7042,7 +7043,7 @@ class CompletionTriggerKind {
 
   final num _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     switch (obj) {
       case 1:
       case 2:
@@ -7183,7 +7184,7 @@ class ConfigurationParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((items is List &&
+        if (!((items is List<Object?> &&
             (items.every(
                 (item) => ConfigurationItem.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<ConfigurationItem>');
@@ -7473,7 +7474,7 @@ class CreateFilesParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((files is List &&
+        if (!((files is List<Object?> &&
             (files.every((item) => FileCreate.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FileCreate>');
           return false;
@@ -7869,7 +7870,7 @@ class DeclarationRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -8252,7 +8253,7 @@ class DefinitionRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -8554,7 +8555,7 @@ class DeleteFilesParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((files is List &&
+        if (!((files is List<Object?> &&
             (files.every((item) => FileDelete.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FileDelete>');
           return false;
@@ -8788,7 +8789,7 @@ class Diagnostic implements ToJsonable {
       try {
         final tags = obj['tags'];
         if (tags != null &&
-            !((tags is List &&
+            !((tags is List<Object?> &&
                 (tags.every(
                     (item) => DiagnosticTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DiagnosticTag>');
@@ -8801,7 +8802,7 @@ class Diagnostic implements ToJsonable {
       try {
         final relatedInformation = obj['relatedInformation'];
         if (relatedInformation != null &&
-            !((relatedInformation is List &&
+            !((relatedInformation is List<Object?> &&
                 (relatedInformation.every((item) =>
                     DiagnosticRelatedInformation.canParse(item, reporter)))))) {
           reporter.reportError(
@@ -8954,7 +8955,7 @@ class DiagnosticSeverity {
 
   final num _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is num;
   }
 
@@ -8989,7 +8990,7 @@ class DiagnosticTag {
 
   final num _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is num;
   }
 
@@ -9211,7 +9212,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((contentChanges is List &&
+        if (!((contentChanges is List<Object?> &&
             (contentChanges.every((item) =>
                 (TextDocumentContentChangeEvent1.canParse(item, reporter) ||
                     TextDocumentContentChangeEvent2.canParse(
@@ -9356,7 +9357,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((changes is List &&
+        if (!((changes is List<Object?> &&
             (changes.every((item) => FileEvent.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FileEvent>');
           return false;
@@ -9427,7 +9428,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((watchers is List &&
+        if (!((watchers is List<Object?> &&
             (watchers.every(
                 (item) => FileSystemWatcher.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FileSystemWatcher>');
@@ -10040,7 +10041,7 @@ class DocumentColorRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -10493,7 +10494,7 @@ class DocumentFormattingRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -10693,7 +10694,7 @@ class DocumentHighlightKind {
 
   final int _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is int;
   }
 
@@ -10982,7 +10983,7 @@ class DocumentHighlightRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -11492,7 +11493,7 @@ class DocumentLinkRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -11672,7 +11673,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
       try {
         final moreTriggerCharacter = obj['moreTriggerCharacter'];
         if (moreTriggerCharacter != null &&
-            !((moreTriggerCharacter is List &&
+            !((moreTriggerCharacter is List<Object?> &&
                 (moreTriggerCharacter.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -11919,7 +11920,7 @@ class DocumentOnTypeFormattingRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -11950,7 +11951,7 @@ class DocumentOnTypeFormattingRegistrationOptions
       try {
         final moreTriggerCharacter = obj['moreTriggerCharacter'];
         if (moreTriggerCharacter != null &&
-            !((moreTriggerCharacter is List &&
+            !((moreTriggerCharacter is List<Object?> &&
                 (moreTriggerCharacter.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -12310,7 +12311,7 @@ class DocumentRangeFormattingRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -12512,7 +12513,7 @@ class DocumentSymbol implements ToJsonable {
       try {
         final tags = obj['tags'];
         if (tags != null &&
-            !((tags is List &&
+            !((tags is List<Object?> &&
                 (tags.every((item) => SymbolTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
@@ -12570,7 +12571,7 @@ class DocumentSymbol implements ToJsonable {
       try {
         final children = obj['children'];
         if (children != null &&
-            !((children is List &&
+            !((children is List<Object?> &&
                 (children.every(
                     (item) => DocumentSymbol.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentSymbol>');
@@ -12818,7 +12819,7 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
       try {
         final valueSet = obj['valueSet'];
         if (valueSet != null &&
-            !((valueSet is List &&
+            !((valueSet is List<Object?> &&
                 (valueSet
                     .every((item) => SymbolKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SymbolKind>');
@@ -12890,7 +12891,7 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((valueSet is List &&
+        if (!((valueSet is List<Object?> &&
             (valueSet.every((item) => SymbolTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
@@ -13189,7 +13190,7 @@ class DocumentSymbolRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -13252,7 +13253,7 @@ class ErrorCodes {
 
   final int _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is int;
   }
 
@@ -13402,7 +13403,7 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((commands is List &&
+        if (!((commands is List<Object?> &&
             (commands.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -13515,7 +13516,8 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
       try {
         final arguments = obj['arguments'];
         if (arguments != null &&
-            !((arguments is List && (arguments.every((item) => true))))) {
+            !((arguments is List<Object?> &&
+                (arguments.every((item) => true))))) {
           reporter.reportError('must be of type List<Object?>');
           return false;
         }
@@ -13606,7 +13608,7 @@ class ExecuteCommandRegistrationOptions
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((commands is List &&
+        if (!((commands is List<Object?> &&
             (commands.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -13656,7 +13658,7 @@ class FailureHandlingKind {
 
   final String _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     switch (obj) {
       case 'abort':
       case 'transactional':
@@ -13704,7 +13706,7 @@ class FileChangeType {
 
   final int _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is int;
   }
 
@@ -14160,7 +14162,7 @@ class FileOperationPatternKind {
 
   final String _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is String;
   }
 
@@ -14281,7 +14283,7 @@ class FileOperationRegistrationOptions implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((filters is List &&
+        if (!((filters is List<Object?> &&
             (filters.every(
                 (item) => FileOperationFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FileOperationFilter>');
@@ -14781,7 +14783,7 @@ class FoldingRangeKind {
 
   final String _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is String;
   }
 
@@ -15048,7 +15050,7 @@ class FoldingRangeRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -15408,7 +15410,7 @@ class HoverClientCapabilities implements ToJsonable {
       try {
         final contentFormat = obj['contentFormat'];
         if (contentFormat != null &&
-            !((contentFormat is List &&
+            !((contentFormat is List<Object?> &&
                 (contentFormat
                     .every((item) => MarkupKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<MarkupKind>');
@@ -15663,7 +15665,7 @@ class HoverRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -16066,7 +16068,7 @@ class ImplementationRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -16356,7 +16358,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       try {
         final workspaceFolders = obj['workspaceFolders'];
         if (workspaceFolders != null &&
-            !((workspaceFolders is List &&
+            !((workspaceFolders is List<Object?> &&
                 (workspaceFolders.every(
                     (item) => WorkspaceFolder.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<WorkspaceFolder>');
@@ -16831,7 +16833,7 @@ class InsertTextFormat {
 
   final int _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     switch (obj) {
       case 1:
       case 2:
@@ -16870,7 +16872,7 @@ class InsertTextMode {
 
   final num _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is num;
   }
 
@@ -17203,7 +17205,7 @@ class LinkedEditingRangeRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -17308,7 +17310,7 @@ class LinkedEditingRanges implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((ranges is List &&
+        if (!((ranges is List<Object?> &&
             (ranges.every((item) => Range.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Range>');
           return false;
@@ -17955,7 +17957,7 @@ class MarkupKind {
 
   final String _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     switch (obj) {
       case 'plaintext':
       case 'markdown':
@@ -18118,7 +18120,7 @@ class MessageType {
 
   final int _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is int;
   }
 
@@ -18152,7 +18154,7 @@ class Method {
 
   final String _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is String;
   }
 
@@ -18624,7 +18626,7 @@ class MonikerKind {
 
   final String _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is String;
   }
 
@@ -18904,7 +18906,7 @@ class MonikerRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -19567,7 +19569,7 @@ class PrepareSupportDefaultBehavior {
 
   final num _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is num;
   }
 
@@ -19859,7 +19861,7 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((valueSet is List &&
+        if (!((valueSet is List<Object?> &&
             (valueSet
                 .every((item) => DiagnosticTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DiagnosticTag>');
@@ -19975,7 +19977,7 @@ class PublishDiagnosticsParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((diagnostics is List &&
+        if (!((diagnostics is List<Object?> &&
             (diagnostics
                 .every((item) => Diagnostic.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Diagnostic>');
@@ -20584,7 +20586,7 @@ class ReferenceRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -20765,7 +20767,7 @@ class RegistrationParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((registrations is List &&
+        if (!((registrations is List<Object?> &&
             (registrations
                 .every((item) => Registration.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Registration>');
@@ -21317,7 +21319,7 @@ class RenameFilesParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((files is List &&
+        if (!((files is List<Object?> &&
             (files.every((item) => FileRename.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FileRename>');
           return false;
@@ -21630,7 +21632,7 @@ class RenameRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -21822,7 +21824,7 @@ class ResourceOperationKind {
 
   final String _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     switch (obj) {
       case 'create':
       case 'rename':
@@ -22440,7 +22442,7 @@ class SelectionRangeParams
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((positions is List &&
+        if (!((positions is List<Object?> &&
             (positions.every((item) => Position.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Position>');
           return false;
@@ -22567,7 +22569,7 @@ class SelectionRangeRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -22620,7 +22622,7 @@ class SemanticTokenModifiers {
 
   final String _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is String;
   }
 
@@ -22653,7 +22655,7 @@ class SemanticTokenTypes {
 
   final String _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is String;
   }
 
@@ -22749,7 +22751,7 @@ class SemanticTokens implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((data is List && (data.every((item) => item is int))))) {
+        if (!((data is List<Object?> && (data.every((item) => item is int))))) {
           reporter.reportError('must be of type List<int>');
           return false;
         }
@@ -22917,7 +22919,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((tokenTypes is List &&
+        if (!((tokenTypes is List<Object?> &&
             (tokenTypes.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -22936,7 +22938,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((tokenModifiers is List &&
+        if (!((tokenModifiers is List<Object?> &&
             (tokenModifiers.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -22955,7 +22957,7 @@ class SemanticTokensClientCapabilities implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((formats is List &&
+        if (!((formats is List<Object?> &&
             (formats.every((item) => TokenFormat.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<TokenFormat>');
           return false;
@@ -23284,7 +23286,7 @@ class SemanticTokensDelta implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((edits is List &&
+        if (!((edits is List<Object?> &&
             (edits.every(
                 (item) => SemanticTokensEdit.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SemanticTokensEdit>');
@@ -23509,7 +23511,7 @@ class SemanticTokensDeltaPartialResult implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((edits is List &&
+        if (!((edits is List<Object?> &&
             (edits.every(
                 (item) => SemanticTokensEdit.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SemanticTokensEdit>');
@@ -23622,7 +23624,7 @@ class SemanticTokensEdit implements ToJsonable {
       try {
         final data = obj['data'];
         if (data != null &&
-            !((data is List && (data.every((item) => item is int))))) {
+            !((data is List<Object?> && (data.every((item) => item is int))))) {
           reporter.reportError('must be of type List<int>');
           return false;
         }
@@ -23700,7 +23702,7 @@ class SemanticTokensLegend implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((tokenTypes is List &&
+        if (!((tokenTypes is List<Object?> &&
             (tokenTypes.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -23719,7 +23721,7 @@ class SemanticTokensLegend implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((tokenModifiers is List &&
+        if (!((tokenModifiers is List<Object?> &&
             (tokenModifiers.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -24162,7 +24164,7 @@ class SemanticTokensPartialResult implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((data is List && (data.every((item) => item is int))))) {
+        if (!((data is List<Object?> && (data.every((item) => item is int))))) {
           reporter.reportError('must be of type List<int>');
           return false;
         }
@@ -24452,7 +24454,7 @@ class SemanticTokensRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -26627,7 +26629,7 @@ class ShowMessageRequestParams implements ToJsonable {
       try {
         final actions = obj['actions'];
         if (actions != null &&
-            !((actions is List &&
+            !((actions is List<Object?> &&
                 (actions.every(
                     (item) => MessageActionItem.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<MessageActionItem>');
@@ -26735,7 +26737,7 @@ class SignatureHelp implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((signatures is List &&
+        if (!((signatures is List<Object?> &&
             (signatures.every(
                 (item) => SignatureInformation.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SignatureInformation>');
@@ -27036,7 +27038,7 @@ class SignatureHelpClientCapabilitiesSignatureInformation
       try {
         final documentationFormat = obj['documentationFormat'];
         if (documentationFormat != null &&
-            !((documentationFormat is List &&
+            !((documentationFormat is List<Object?> &&
                 (documentationFormat
                     .every((item) => MarkupKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<MarkupKind>');
@@ -27312,7 +27314,7 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
       try {
         final triggerCharacters = obj['triggerCharacters'];
         if (triggerCharacters != null &&
-            !((triggerCharacters is List &&
+            !((triggerCharacters is List<Object?> &&
                 (triggerCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -27324,7 +27326,7 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
       try {
         final retriggerCharacters = obj['retriggerCharacters'];
         if (retriggerCharacters != null &&
-            !((retriggerCharacters is List &&
+            !((retriggerCharacters is List<Object?> &&
                 (retriggerCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -27598,7 +27600,7 @@ class SignatureHelpRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -27611,7 +27613,7 @@ class SignatureHelpRegistrationOptions
       try {
         final triggerCharacters = obj['triggerCharacters'];
         if (triggerCharacters != null &&
-            !((triggerCharacters is List &&
+            !((triggerCharacters is List<Object?> &&
                 (triggerCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -27623,7 +27625,7 @@ class SignatureHelpRegistrationOptions
       try {
         final retriggerCharacters = obj['retriggerCharacters'];
         if (retriggerCharacters != null &&
-            !((retriggerCharacters is List &&
+            !((retriggerCharacters is List<Object?> &&
                 (retriggerCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
@@ -27683,7 +27685,7 @@ class SignatureHelpTriggerKind {
 
   final num _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is num;
   }
 
@@ -27815,7 +27817,7 @@ class SignatureInformation implements ToJsonable {
       try {
         final parameters = obj['parameters'];
         if (parameters != null &&
-            !((parameters is List &&
+            !((parameters is List<Object?> &&
                 (parameters.every((item) =>
                     ParameterInformation.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<ParameterInformation>');
@@ -28077,7 +28079,7 @@ class SymbolInformation implements ToJsonable {
       try {
         final tags = obj['tags'];
         if (tags != null &&
-            !((tags is List &&
+            !((tags is List<Object?> &&
                 (tags.every((item) => SymbolTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
@@ -28159,7 +28161,7 @@ class SymbolKind {
 
   final int _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is int;
   }
 
@@ -28209,7 +28211,7 @@ class SymbolTag {
 
   final num _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is num;
   }
 
@@ -28292,7 +28294,7 @@ class TextDocumentChangeRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -29338,7 +29340,7 @@ class TextDocumentEdit implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((edits is List &&
+        if (!((edits is List<Object?> &&
             (edits.every((item) => (SnippetTextEdit.canParse(item, reporter) ||
                 AnnotatedTextEdit.canParse(item, reporter) ||
                 TextEdit.canParse(item, reporter))))))) {
@@ -29850,7 +29852,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -29891,7 +29893,7 @@ class TextDocumentSaveReason {
 
   final int _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is int;
   }
 
@@ -29973,7 +29975,7 @@ class TextDocumentSaveRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -30146,7 +30148,7 @@ class TextDocumentSyncKind {
 
   final int _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is int;
   }
 
@@ -30433,7 +30435,7 @@ class TokenFormat {
 
   final String _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is String;
   }
 
@@ -30807,7 +30809,7 @@ class TypeDefinitionRegistrationOptions
         }
         final documentSelector = obj['documentSelector'];
         if (documentSelector != null &&
-            !((documentSelector is List &&
+            !((documentSelector is List<Object?> &&
                 (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
@@ -30871,7 +30873,7 @@ class UniquenessLevel {
 
   final String _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is String;
   }
 
@@ -31027,7 +31029,7 @@ class UnregistrationParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((unregisterations is List &&
+        if (!((unregisterations is List<Object?> &&
             (unregisterations
                 .every((item) => Unregistration.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Unregistration>');
@@ -31159,7 +31161,7 @@ class WatchKind {
 
   final int _value;
 
-  static bool canParse(Object obj, LspJsonReporter reporter) {
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
     return obj is int;
   }
 
@@ -32116,15 +32118,14 @@ class WorkspaceEdit implements ToJsonable {
     final documentChangesJson = json['documentChanges'];
     final documentChanges = documentChangesJson == null
         ? null
-        : ((documentChangesJson is List &&
+        : ((documentChangesJson is List<Object?> &&
                 (documentChangesJson.every((item) =>
                     TextDocumentEdit.canParse(item, nullLspJsonReporter))))
-            ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1(
-                (documentChangesJson)
-                    .map((item) =>
-                        TextDocumentEdit.fromJson(item as Map<String, Object?>))
-                    .toList())
-            : ((documentChangesJson is List &&
+            ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1((documentChangesJson)
+                .map((item) =>
+                    TextDocumentEdit.fromJson(item as Map<String, Object?>))
+                .toList())
+            : ((documentChangesJson is List<Object?> &&
                     (documentChangesJson.every((item) =>
                         (TextDocumentEdit.canParse(item, nullLspJsonReporter) ||
                             CreateFile.canParse(item, nullLspJsonReporter) ||
@@ -32194,7 +32195,7 @@ class WorkspaceEdit implements ToJsonable {
             !((changes is Map &&
                 (changes.keys.every((item) =>
                     item is String &&
-                    changes.values.every((item) => (item is List &&
+                    changes.values.every((item) => (item is List<Object?> &&
                         (item.every((item) =>
                             TextEdit.canParse(item, reporter)))))))))) {
           reporter.reportError('must be of type Map<String, List<TextEdit>>');
@@ -32207,10 +32208,10 @@ class WorkspaceEdit implements ToJsonable {
       try {
         final documentChanges = obj['documentChanges'];
         if (documentChanges != null &&
-            !(((documentChanges is List &&
+            !(((documentChanges is List<Object?> &&
                     (documentChanges.every((item) =>
                         TextDocumentEdit.canParse(item, reporter)))) ||
-                (documentChanges is List &&
+                (documentChanges is List<Object?> &&
                     (documentChanges.every((item) =>
                         (TextDocumentEdit.canParse(item, reporter) ||
                             CreateFile.canParse(item, reporter) ||
@@ -32368,7 +32369,7 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
       try {
         final resourceOperations = obj['resourceOperations'];
         if (resourceOperations != null &&
-            !((resourceOperations is List &&
+            !((resourceOperations is List<Object?> &&
                 (resourceOperations.every((item) =>
                     ResourceOperationKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<ResourceOperationKind>');
@@ -32642,7 +32643,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((added is List &&
+        if (!((added is List<Object?> &&
             (added
                 .every((item) => WorkspaceFolder.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<WorkspaceFolder>');
@@ -32662,7 +32663,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((removed is List &&
+        if (!((removed is List<Object?> &&
             (removed
                 .every((item) => WorkspaceFolder.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<WorkspaceFolder>');
@@ -32945,7 +32946,7 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
       try {
         final valueSet = obj['valueSet'];
         if (valueSet != null &&
-            !((valueSet is List &&
+            !((valueSet is List<Object?> &&
                 (valueSet
                     .every((item) => SymbolKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SymbolKind>');
@@ -33017,7 +33018,7 @@ class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((valueSet is List &&
+        if (!((valueSet is List<Object?> &&
             (valueSet.every((item) => SymbolTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;

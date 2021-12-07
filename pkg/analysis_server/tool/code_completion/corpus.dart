@@ -18,7 +18,7 @@ Future<void> main(List<String> args) async {
     exit(1);
   }
 
-  final repos = [];
+  final repos = <String>[];
   if (args.length == 1 && !Directory(args[0]).existsSync()) {
     final contents = File(args[0]).readAsStringSync();
     repos.addAll(LineSplitter().convert(contents));
@@ -86,7 +86,7 @@ Future<CloneResult> _clone(String repo) async {
     result = await Process.run(
         'git', ['clone', '--recurse-submodules', '$repo.git', cloneDir]);
   }
-  return CloneResult(result.exitCode, cloneDir, msg: result.stderr);
+  return CloneResult(result.exitCode, cloneDir, msg: result.stderr as String);
 }
 
 Future<String> _getBody(String url) async => (await _getResponse(url)).body;
@@ -105,11 +105,11 @@ Future<void> _runPubGet(FileSystemEntity dir) async {
   if (_hasPubspec(dir)) {
     final packageFile = path.join(dir.path, _package_config);
     if (!File(packageFile).existsSync() || forcePubUpdate) {
-      print(
-          'Getting pub dependencies for "${path.relative(dir.path, from: _appDir)}"...');
+      final relativeDirPath = path.relative(dir.path, from: _appDir);
+      print('Getting pub dependencies for "$relativeDirPath"...');
       final pubRun = await _runPub(dir.path);
       if (pubRun.exitCode != 0) {
-        print('Error: ' + pubRun.stderr);
+        print('Error: ${pubRun.stderr}');
       }
     }
   }
