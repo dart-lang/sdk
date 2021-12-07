@@ -451,7 +451,6 @@ class VoidType implements TypeInfo {
 bool looksLikeName(Token token) {
   return token.kind == IDENTIFIER_TOKEN ||
       optional('this', token) ||
-      optional('super', token) ||
       (token.isIdentifier &&
           // Although `typedef` is a legal identifier,
           // type `typedef` identifier is not legal and in this situation
@@ -795,9 +794,7 @@ class ComplexTypeInfo implements TypeInfo {
         if (optional('?', next)) {
           next = next.next!;
         }
-        if (!(next.isIdentifier ||
-            optional('this', next) ||
-            optional('super', next))) {
+        if (!(next.isIdentifier || optional('this', next))) {
           break; // `Function` used as the name in a function declaration.
         }
       }
