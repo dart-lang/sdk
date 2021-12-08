@@ -126,6 +126,8 @@ class ConvertToFieldParameter extends CorrectionProducer {
         }
       }
     }
+
+    return null;
   }
 }
 

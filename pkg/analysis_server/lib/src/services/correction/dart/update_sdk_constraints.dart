@@ -77,6 +77,7 @@ class UpdateSdkConstraints extends CorrectionProducer {
         return pubspecFile;
       }
     }
+    return null;
   }
 
   /// Return an instance of this class that will update the SDK constraints to

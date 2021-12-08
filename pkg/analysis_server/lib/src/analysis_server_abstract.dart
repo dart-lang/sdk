@@ -500,6 +500,7 @@ abstract class AbstractAnalysisServer {
     } catch (e, st) {
       instrumentationService.logException(e, st);
     }
+    return null;
   }
 
   /// Sends an error notification to the user.

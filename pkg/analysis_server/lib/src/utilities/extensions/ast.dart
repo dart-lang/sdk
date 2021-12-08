@@ -71,6 +71,7 @@ extension AstNodeExtensions on AstNode {
         return null;
       }
     }
+    return null;
   }
 
   /// Return this node and all its parents.
