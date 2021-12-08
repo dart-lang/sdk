@@ -262,6 +262,7 @@ class CompletionTarget {
         return node.prefix;
       }
     }
+    return null;
   }
 
   /// If the target is an argument in an argument list, and the invocation is
