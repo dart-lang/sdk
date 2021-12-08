@@ -544,6 +544,11 @@
     },
     "dart2js-(linux|mac|win)-chrome": {
       "options": {
+        "use-sdk": true
+      }
+    },
+    "dart2js-canary-(linux|mac|win)-chrome": {
+      "options": {
         "use-sdk": true,
         "dart2js-options": [
           "--canary"
@@ -691,9 +696,9 @@
         ]
       }
     },
-    "dart2js-modern-(linux|mac|win)-d8": {
+    "dart2js-canary-(linux|mac|win)-d8": {
       "options": {
-        "builder-tag": "dart2js_modern",
+        "builder-tag": "dart2js_canary",
         "use-sdk": true,
         "dart2js-options": [
           "--canary"
@@ -2398,6 +2403,62 @@
     },
     {
       "builders": [
+        "dart2js-canary-x64"
+      ],
+      "meta": {
+        "description": "dart2js canary tests."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "create_sdk",
+            "dart2js_bot"
+          ]
+        },
+        {
+          "name": "dart2js canary d8 tests",
+          "arguments": [
+            "-ndart2js-canary-linux-d8",
+            "language",
+            "corelib",
+            "web"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js canary chrome tests",
+          "arguments": [
+            "-ndart2js-canary-linux-chrome",
+            "web"
+          ],
+          "shards": 3,
+          "fileset": "web_platform_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js canary lib tests",
+          "arguments": [
+            "-ndart2js-canary-linux-chrome",
+            "lib"
+          ],
+          "shards": 3,
+          "fileset": "web_platform_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js canary co19 tests",
+          "arguments": [
+            "-ndart2js-canary-linux-chrome",
+            "co19"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_hostasserts_nnbd"
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart2js-unit-linux-x64-release"
       ],
       "meta": {
@@ -2640,13 +2701,6 @@
           "name": "dart2js -O0 smoke tests",
           "arguments": [
             "-ndart2js-o0-linux-d8",
-            "web_2"
-          ]
-        },
-        {
-          "name": "dart2js --canary smoke tests",
-          "arguments": [
-            "-ndart2js-modern-linux-d8",
             "web_2"
           ]
         },
