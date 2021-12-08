@@ -33,7 +33,7 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
         );
 
   @override
-  int get maxIterations => 2;
+  int get maxIterations => 1;
 
   @override
   Future<BenchMarkResult> run({
@@ -243,12 +243,12 @@ class FlutterCompletionBenchmark extends Benchmark implements FlutterBenchmark {
     // Perform warm-up.
     // The cold start does not matter.
     // The sustained performance is much more important.
-    const kWarmUpCount = 20;
+    const kWarmUpCount = 5;
     for (var i = 0; i < kWarmUpCount; i++) {
       await perform();
     }
 
-    const kRepeatCount = 10;
+    const kRepeatCount = 5;
     final timer = Stopwatch()..start();
     for (var i = 0; i < kRepeatCount; i++) {
       await perform();

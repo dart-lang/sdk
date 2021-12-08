@@ -2790,10 +2790,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
   bool get hasStaticMember => true;
 
   @override
-  List<InterfaceType> get interfaces {
-    var enumType = library.typeProvider.enumType;
-    return enumType != null ? <InterfaceType>[enumType] : const [];
-  }
+  List<InterfaceType> get interfaces => const [];
 
   @override
   bool get isAbstract => false;
@@ -2834,7 +2831,10 @@ class EnumElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  InterfaceType get supertype => library.typeProvider.objectType;
+  InterfaceType get supertype {
+    var enumType = library.typeProvider.enumType;
+    return enumType ?? library.typeProvider.objectType;
+  }
 
   @override
   List<TypeParameterElement> get typeParameters =>

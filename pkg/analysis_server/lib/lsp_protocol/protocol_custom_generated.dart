@@ -846,7 +846,7 @@ class FlutterOutline implements ToJsonable {
       try {
         final attributes = obj['attributes'];
         if (attributes != null &&
-            !((attributes is List &&
+            !((attributes is List<Object?> &&
                 (attributes.every((item) =>
                     FlutterOutlineAttribute.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FlutterOutlineAttribute>');
@@ -905,7 +905,7 @@ class FlutterOutline implements ToJsonable {
       try {
         final children = obj['children'];
         if (children != null &&
-            !((children is List &&
+            !((children is List<Object?> &&
                 (children.every(
                     (item) => FlutterOutline.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FlutterOutline>');
@@ -1168,7 +1168,7 @@ class Outline implements ToJsonable {
       try {
         final children = obj['children'];
         if (children != null &&
-            !((children is List &&
+            !((children is List<Object?> &&
                 (children
                     .every((item) => Outline.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Outline>');
@@ -1376,7 +1376,7 @@ class PublishClosingLabelsParams implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((labels is List &&
+        if (!((labels is List<Object?> &&
             (labels.every((item) => ClosingLabel.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<ClosingLabel>');
           return false;

@@ -3188,6 +3188,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
   bool _checkForMixinInheritsNotFromObject(
       NamedType mixinName, ClassElement mixinElement) {
+    if (mixinElement.isEnum) {
+      return false;
+    }
+
     var mixinSupertype = mixinElement.supertype;
     if (mixinSupertype == null || mixinSupertype.isDartCoreObject) {
       var mixins = mixinElement.mixins;

@@ -61,7 +61,7 @@ List<String> _listBenchmarks() {
     [path.join('benchmark', 'benchmarks.dart'), 'list', '--machine'],
     workingDirectory: _serverSourcePath,
   );
-  Map m = json.decode(result.stdout);
-  List benchmarks = m['benchmarks'];
+  var output = json.decode(result.stdout as String) as Map<Object?, Object?>;
+  var benchmarks = (output['benchmarks'] as List).cast<Map<Object?, Object?>>();
   return benchmarks.map((b) => b['id']).cast<String>().toList();
 }

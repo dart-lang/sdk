@@ -40,19 +40,21 @@ class SdkConfiguration {
   }
 
   /// Whether analytics is forced on.
-  bool? get analyticsForceEnabled => _values['server.analytics.forceEnabled'];
+  bool? get analyticsForceEnabled =>
+      _values['server.analytics.forceEnabled'] as bool?;
 
   /// Return an override value for the analysis server's google analytics ID, or
   /// `null` if the default value should be used.
-  String? get analyticsId => _values['server.analytics.id'];
+  String? get analyticsId => _values['server.analytics.id'] as String?;
 
   /// Whether crash reporting is forced on.
   bool? get crashReportingForceEnabled =>
-      _values['server.crash.reporting.forceEnabled'];
+      _values['server.crash.reporting.forceEnabled'] as bool?;
 
   /// Return an override value for the analysis server's crash reporting product
   /// ID, or `null` if the default value should be used.
-  String? get crashReportingId => _values['server.crash.reporting.id'];
+  String? get crashReportingId =>
+      _values['server.crash.reporting.id'] as String?;
 
   /// Return a string describing the contents of this SDK configuration.
   String get displayString {
@@ -67,9 +69,10 @@ class SdkConfiguration {
 
   void _readFromFile(File file) {
     try {
-      Map m = jsonDecode(file.readAsStringSync());
-      for (var key in m.keys) {
-        _values[key] = m[key];
+      var content =
+          jsonDecode(file.readAsStringSync()) as Map<Object?, Object?>;
+      for (var key in content.keys) {
+        _values[key as String] = content[key];
       }
     } catch (_) {
       // ignore issues reading the file

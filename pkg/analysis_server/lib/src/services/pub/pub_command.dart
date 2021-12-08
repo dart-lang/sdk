@@ -136,7 +136,7 @@ class PubCommand {
       try {
         final results = jsonDecode(stdout);
         _instrumentationService.logInfo('pub command completed successfully');
-        return results;
+        return results as Map<String, Object?>?;
       } catch (e) {
         _instrumentationService
             .logError('pub command returned invalid JSON: $e.');

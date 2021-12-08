@@ -341,7 +341,11 @@ bool MallocHooks::Active() {
 bool MallocHooks::GetStats(intptr_t* used,
                            intptr_t* capacity,
                            const char** implementation) {
+#if defined(DART_USE_MALLINFO2)
+  struct mallinfo2 info = mallinfo2();
+#else
   struct mallinfo info = mallinfo();
+#endif  // defined(DART_USE_MALLINFO2)
   *used = info.uordblks;
   *capacity = *used + info.fordblks;
   *implementation = "tcmalloc";

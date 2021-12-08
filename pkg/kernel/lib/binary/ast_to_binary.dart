@@ -2498,6 +2498,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeName(descriptor.name);
       writeByte(descriptor.kind.index);
       writeByte(descriptor.flags);
+      assert(descriptor.member.canonicalName != null,
+          "No canonical name for ${descriptor}.");
       writeNonNullCanonicalNameReference(descriptor.member.canonicalName!);
     }
   }
