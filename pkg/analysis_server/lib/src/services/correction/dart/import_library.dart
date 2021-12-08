@@ -344,6 +344,8 @@ class ImportLibrary extends MultiCorrectionProducer {
         return parent.declaredElement?.thisType;
       } else if (parent is ExtensionDeclaration) {
         return parent.extendedType.type;
+      } else {
+        return null;
       }
     }
 
@@ -361,6 +363,8 @@ class ImportLibrary extends MultiCorrectionProducer {
       }
       parent = parent.parent;
     }
+
+    return null;
   }
 
   /// Return an instance of this class that will add an import of `dart:async`.
