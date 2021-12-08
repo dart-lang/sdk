@@ -475,13 +475,13 @@ class ServerSocket {
 class RawSocket {
   @patch
   static Future<RawSocket> connect(dynamic host, int port,
-      {dynamic sourceAddress, Duration? timeout}) {
+      {dynamic sourceAddress, int sourcePort = 0, Duration? timeout}) {
     throw new UnsupportedError("RawSocket constructor");
   }
 
   @patch
   static Future<ConnectionTask<RawSocket>> startConnect(dynamic host, int port,
-      {dynamic sourceAddress}) {
+      {dynamic sourceAddress, int sourcePort = 0}) {
     throw new UnsupportedError("RawSocket constructor");
   }
 }
@@ -490,13 +490,13 @@ class RawSocket {
 class Socket {
   @patch
   static Future<Socket> _connect(dynamic host, int port,
-      {dynamic sourceAddress, Duration? timeout}) {
+      {dynamic sourceAddress, int sourcePort = 0, Duration? timeout}) {
     throw new UnsupportedError("Socket constructor");
   }
 
   @patch
   static Future<ConnectionTask<Socket>> _startConnect(dynamic host, int port,
-      {dynamic sourceAddress}) {
+      {dynamic sourceAddress, int sourcePort = 0}) {
     throw new UnsupportedError("Socket constructor");
   }
 }

@@ -81,10 +81,10 @@ abstract class IOOverrides {
 
       // Socket
       Future<Socket> Function(dynamic, int,
-              {dynamic sourceAddress, Duration? timeout})?
+              {dynamic sourceAddress, int sourcePort, Duration? timeout})?
           socketConnect,
       Future<ConnectionTask<Socket>> Function(dynamic, int,
-              {dynamic sourceAddress})?
+              {dynamic sourceAddress, int sourcePort})?
           socketStartConnect,
 
       // ServerSocket
@@ -269,9 +269,9 @@ abstract class IOOverrides {
   /// When this override is installed, this functions overrides the behavior of
   /// `Socket.connect(...)`.
   Future<Socket> socketConnect(host, int port,
-      {sourceAddress, Duration? timeout}) {
+      {sourceAddress, int sourcePort = 0, Duration? timeout}) {
     return Socket._connect(host, port,
-        sourceAddress: sourceAddress, timeout: timeout);
+        sourceAddress: sourceAddress, sourcePort: sourcePort, timeout: timeout);
   }
 
   /// Asynchronously returns a [ConnectionTask] that connects to the given host
@@ -280,8 +280,9 @@ abstract class IOOverrides {
   /// When this override is installed, this functions overrides the behavior of
   /// `Socket.startConnect(...)`.
   Future<ConnectionTask<Socket>> socketStartConnect(host, int port,
-      {sourceAddress}) {
-    return Socket._startConnect(host, port, sourceAddress: sourceAddress);
+      {sourceAddress, int sourcePort = 0}) {
+    return Socket._startConnect(host, port,
+        sourceAddress: sourceAddress, sourcePort: sourcePort);
   }
 
   // ServerSocket
@@ -355,9 +356,11 @@ class _IOOverridesScope extends IOOverrides {
 
   // Socket
   Future<Socket> Function(dynamic, int,
-      {dynamic sourceAddress, Duration? timeout})? _socketConnect;
+      {dynamic sourceAddress,
+      int sourcePort,
+      Duration? timeout})? _socketConnect;
   Future<ConnectionTask<Socket>> Function(dynamic, int,
-      {dynamic sourceAddress})? _socketStartConnect;
+      {dynamic sourceAddress, int sourcePort})? _socketStartConnect;
 
   // ServerSocket
   Future<ServerSocket> Function(dynamic, int,
@@ -518,30 +521,34 @@ class _IOOverridesScope extends IOOverrides {
   // Socket
   @override
   Future<Socket> socketConnect(host, int port,
-      {sourceAddress, Duration? timeout}) {
+      {sourceAddress, int sourcePort = 0, Duration? timeout}) {
     if (_socketConnect != null) {
       return _socketConnect!(host, port,
           sourceAddress: sourceAddress, timeout: timeout);
     }
     if (_previous != null) {
       return _previous!.socketConnect(host, port,
-          sourceAddress: sourceAddress, timeout: timeout);
+          sourceAddress: sourceAddress,
+          sourcePort: sourcePort,
+          timeout: timeout);
     }
     return super.socketConnect(host, port,
-        sourceAddress: sourceAddress, timeout: timeout);
+        sourceAddress: sourceAddress, sourcePort: sourcePort, timeout: timeout);
   }
 
   @override
   Future<ConnectionTask<Socket>> socketStartConnect(host, int port,
-      {sourceAddress}) {
+      {sourceAddress, int sourcePort = 0}) {
     if (_socketStartConnect != null) {
-      return _socketStartConnect!(host, port, sourceAddress: sourceAddress);
+      return _socketStartConnect!(host, port,
+          sourceAddress: sourceAddress, sourcePort: sourcePort);
     }
     if (_previous != null) {
-      return _previous!
-          .socketStartConnect(host, port, sourceAddress: sourceAddress);
+      return _previous!.socketStartConnect(host, port,
+          sourceAddress: sourceAddress, sourcePort: sourcePort);
     }
-    return super.socketStartConnect(host, port, sourceAddress: sourceAddress);
+    return super.socketStartConnect(host, port,
+        sourceAddress: sourceAddress, sourcePort: sourcePort);
   }
 
   // ServerSocket

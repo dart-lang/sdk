@@ -684,8 +684,10 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
   @override
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
     if (invalidJsonStdout != null) {
+      output.subsection("analyzer json parse result");
+      output.write("- parse failed");
       output.subsection("invalid analyzer json");
-      output.write(invalidJsonStdout);
+      super.describe(testCase, progress, output);
       return;
     }
 
