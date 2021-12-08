@@ -136,6 +136,94 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  Future<void> test_dynamicRegistration_areNotInterleaved() async {
+    // Some of the issues in https://github.com/dart-lang/sdk/issues/47851
+    // (duplicate hovers/code actions/etc.) were caused by duplicate
+    // registrations. This happened when we tried to rebuild registrations
+    // concurrently as the code would:
+    //
+    // 1. compute the new set of registrations
+    // 2. compute which had changed
+    // 3. send _and await_ the unregistration
+    // 4. send _and await_ the new registration
+    //
+    // If the code was triggered multiple times concurrently, it was possible
+    // for step 3 in second request to occur before step 4 in the first, which
+    // would result in unregistrations being sent for registrations that had
+    // not been sent. They would be silently dropped, and then we'd end up with
+    // multiple registrations.
+    //
+    // This test triggers the rebuild via pluginManager.pluginsChangedController
+    // multiple times and ensures the events all arrive in the correct order,
+    // that is, no unregistration ever contains the ID of something that is not
+    // currently registered.
+
+    final registrations = <Registration>[];
+    await monitorDynamicRegistrations(
+      registrations,
+      () => initialize(
+          textDocumentCapabilities:
+              withAllSupportedTextDocumentDynamicRegistrations(
+                  emptyTextDocumentClientCapabilities)),
+    );
+
+    final knownRegistrationsIds =
+        registrations.map((registration) => registration.id).toSet();
+
+    final numberOfReregistrations = 10;
+
+    // Listen to incoming registrations, ensure they're not in the set, and add
+    // them.
+    final registrationsDone = requestsFromServer
+        .where((n) => n.method == Method.client_registerCapability)
+        .take(numberOfReregistrations)
+        .listen((request) {
+      respondTo(request, null);
+      final registrations =
+          RegistrationParams.fromJson(request.params as Map<String, Object?>)
+              .registrations;
+      for (final registration in registrations) {
+        final id = registration.id;
+        if (!knownRegistrationsIds.add(id)) {
+          throw 'Registration $id was already in the existing set!';
+        }
+      }
+    }).asFuture();
+
+    // Listen to incoming unregistrations, verify they're in the set, and remove
+    // them.
+    final unregistrationsDone = requestsFromServer
+        .where((n) => n.method == Method.client_unregisterCapability)
+        .take(numberOfReregistrations)
+        .listen((request) {
+      respondTo(request, null);
+      final unregistrations =
+          UnregistrationParams.fromJson(request.params as Map<String, Object?>)
+              .unregisterations;
+      for (final unregistration in unregistrations) {
+        final id = unregistration.id;
+        if (!knownRegistrationsIds.remove(id)) {
+          throw 'Registration $id was not in the existing set!';
+        }
+      }
+    }).asFuture();
+
+    // Trigger multiple plugin events that will rebuild the registrations.
+    for (var i = 0; i < numberOfReregistrations; i++) {
+      final plugin = configureTestPlugin();
+      plugin.currentSession = PluginSession(plugin);
+      // Ensure they have different file types so the registrations change,
+      // otherwise they will be optimised out as not changing.
+      plugin.currentSession!.interestingFiles = ['*.foo$i'];
+      pluginManager.pluginsChangedController.add(null);
+      await null; // Allow the server to begin processing the change.
+    }
+
+    // Wait for both streams to have handled all of the numberOfReregistrations
+    // expected events (without throwing).
+    await Future.wait([registrationsDone, unregistrationsDone]);
+  }
+
   Future<void> test_dynamicRegistration_containsAppropriateSettings() async {
     // Basic check that the server responds with the capabilities we'd expect,
     // for ex including analysis_options.yaml in text synchronization but not
