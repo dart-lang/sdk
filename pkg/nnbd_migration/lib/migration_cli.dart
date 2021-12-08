@@ -358,6 +358,7 @@ class MigrationCli {
           logger: isVerbose! ? loggerFactory(true) : null);
     } on Object catch (exception) {
       handleArgParsingException(exception);
+      return null;
     }
   }
 
