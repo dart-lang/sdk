@@ -49,12 +49,12 @@ in 2018, as it doesn't work with any Dart 2.x release.
 #### Linter
 
 Updated the Linter to `1.15.0`, which includes changes that
-- adds new lint: `use_decorated_box`.
+- adds new lint: `avoid_final_parameters`.
 - adds new lint: `no_leading_underscores_for_library_prefixes`.
 - adds new lint: `no_leading_underscores_for_local_identifiers`.
 - adds new lint: `secure_pubspec_urls`.
 - adds new lint: `sized_box_shrink_expand`.
-- adds new lint: `avoid_final_parameters`.
+- adds new lint: `use_decorated_box`.
 - improves docs for `omit_local_variable_types`.
 
 ## 2.15.0
@@ -71,8 +71,8 @@ them, you must set the lower bound on the SDK constraint for your package to
   instance to be passed as a closure, and similarly for static methods. This is
   commonly referred to as "closurizing" or "tearing off" a method. Constructors
   were not previously eligible for closurization, forcing users to explicitly
-  write wrapper functions when using constructors as first class functions, as
-  in the calls to `map()` in the following example:
+  write wrapper functions when using constructors as first class functions.
+  See the calls to `map()` in this example:
 
   ```dart
   class A {
@@ -94,9 +94,9 @@ them, you must set the lower bound on the SDK constraint for your package to
   ```
 
   New in Dart 2.15, constructors are now allowed to be torn off. Named
-  constructors are closurized using their declared name (here `A.fromString`),
-  and unnamed closures are referred to for closurization using the keyword `new`
-  (here `A.new`). The example above may now be written as:
+  constructors are closurized using their declared name (here `A.fromString`).
+  To closurize unnamed constructors, use the keyword `new` (here `A.new`).
+  The above example may now be written as:
 
   ```dart
   class A {
@@ -118,11 +118,11 @@ them, you must set the lower bound on the SDK constraint for your package to
   ```
 
   Constructors for generic classes may be torn off as generic functions, or
-  instantiated at the tear-off site. So in the following code, the tear-off
-  `G.new` used to initialize the variable `f` produces a generic function which
-  may be used to produce an instance of `G<T>` for any type `T` provided when
-  `f` is called. The tear-off `G<String>.new` used to initialize the variable
-  `g` on the other hand produces a non-generic function which may only be used
+  instantiated at the tear-off site. In the following example, the tear-off
+  `G.new` is used to initialize the variable `f` produces a generic function
+  which may be used to produce an instance of `G<T>` for any type `T` provided
+  when `f` is called. The tear-off `G<String>.new` is used to initialize the
+  variable `g` to produce a non-generic function which may only be used
   to produce instances of type `G<String>`.
 
   ```dart
@@ -139,7 +139,7 @@ them, you must set the lower bound on the SDK constraint for your package to
   }
   ```
 
-[constructor tear-offs]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/constructor-tearoffs/feature-specification.md
+[constructor tear-offs]: https://github.com/dart-lang/language/blob/master/accepted/2.15/constructor-tearoffs/feature-specification.md
 
 - **[Generic type literals][explicit instantiation]**: Previous Dart versions
   allowed class names to be used as type literals. So for example,`int` may be
@@ -213,14 +213,15 @@ them, you must set the lower bound on the SDK constraint for your package to
   }
   ```
 
-[explicit instantiation]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/constructor-tearoffs/feature-specification.md#explicitly-instantiated-classes-and-functions
+[explicit instantiation]: https://github.com/dart-lang/language/blob/master/accepted/2.15/constructor-tearoffs/feature-specification.md#explicitly-instantiated-classes-and-functions
 
 - **[Generic instantiation of function objects][object instantiation]**: Generic
   function instantiation was previously restricted to function declarations. For
-  example, as soon as a function had already been torn off, it could not be
+  example, as soon as a function had been torn off, it could not be
   instantiated:
 
   ```dart
+  // Before Dart 2.15:
   X id<X>(X x) => x;
 
   void main() {
@@ -231,7 +232,7 @@ them, you must set the lower bound on the SDK constraint for your package to
   }
   ```
 
-  New in Dart 2.15, this restriction has been lifted, and it is now possible
+  New in Dart 2.15, this restriction has been lifted. It is now possible
   to obtain a generic instantiation of an existing function object, both
   explicitly and implicitly (again, this works the same for non-constants):
 
@@ -292,36 +293,36 @@ them, you must set the lower bound on the SDK constraint for your package to
   }
   ```
 
-  Previously, the above program had a compile-time error because type promotion
-  due to a bug ([#1785][]) which prevented the initializer expression (`i ==
-  null`) from being accounted for when the variable in question (`iIsNull`)
-  lacked an explicit type.
+  Previously, the above program had a compile-time error due to a bug
+  ([#1785][]) in type promotion which prevented the initializer expression
+  (`i == null`) from being accounted for when the variable in question
+  (`iIsNull`) lacked an explicit type.
 
   To avoid causing problems for packages that are intended to work with older
-  versions of Dart, the fix only takes effect when the "constructor tear-offs"
-  language feature is enabled.
+  versions of Dart, the fix only takes effect when the minimum SDK of the source
+  packages is 2.15 or greater.
 
 [#1785]: https://github.com/dart-lang/language/issues/1785
 
 - Restrictions on members of a class with a constant constructor are relaxed
   such that they only apply when the class has a _generative_ constant
-  constructor.  For example, this used to be an error, but is now permitted:
+  constructor. For example, this used to be an error, but is now permitted:
 
   ```dart
   abstract class A {
+    const factory A() = B;
     var v1;
     late final v2 = Random().nextInt(10);
     late final v3;
-    const factory A() = B;
   }
 
   class B implements A {
+    const B([this.v3 = 1]);
     get v1 => null;
     set v1(_) => throw 'Cannot mutate B.v1';
     final v2 = 0;
     final v3;
     set v3(_) => throw 'Cannot initialize B.v3';
-    const B([this.v3 = 1]);
   }
   ```
 
@@ -337,7 +338,7 @@ them, you must set the lower bound on the SDK constraint for your package to
   In particular, function objects are now equal when they are obtained by
   generic instantiation from the same function with the same actual type
   arguments, even when that type argument is not known at compile time.
-  When the expressions are constant then said function objects are identical.
+  When the expressions are constant then the function objects are identical.
   Constant expressions are treated as such even when they do not occur in a
   constant context (e.g., `var f = top;`).
 
@@ -346,14 +347,12 @@ them, you must set the lower bound on the SDK constraint for your package to
 #### `dart:async`
 
 - Make the `unawaited` function's argument nullable, to allow calls like
-  `unawaited(foo?.bar())` too.
+  `unawaited(foo?.bar())`.
 
 #### `dart:cli`
 
 - The experimental `waitFor` functionality, and the library containing only that
   function, are now deprecated.
-- When a script is `dart run` it will always be precompiled, but with
-  incremental precompilation for following runs.
 
 #### `dart:core`
 
@@ -396,8 +395,8 @@ them, you must set the lower bound on the SDK constraint for your package to
 #### `dart:html`
 
 - **Breaking Change** [#46316](https://github.com/dart-lang/sdk/issues/46316):
-  Related to the removal of `dart:web_sql` (see above), the
-  `window.openDatabase` has been removed as well.
+  Related to the removal of `dart:web_sql` (see above), `window.openDatabase`
+  has been removed.
 
 ### Tools
 
@@ -413,6 +412,9 @@ them, you must set the lower bound on the SDK constraint for your package to
 
   Note that `dart format` has [a different set of options and
   defaults][dartfmt cli] than `dartfmt`.
+
+- When a script is `dart run` it will always be precompiled, but with
+  incremental precompilation for following runs.
 
 #### Dart VM
 
@@ -448,53 +450,48 @@ them, you must set the lower bound on the SDK constraint for your package to
 #### Linter
 
 Updated the Linter to `1.14.0`, which includes changes that
-- fix `omit_local_variable_types` to not flag a local type that is
-  required for inference.
-- allow `while (true) { ... }` in `literal_only_boolean_expressions`.
-- fix `file_names` to report at the start of the file (not the entire
-  compilation unit).
-- fix `prefer_collection_literals` named typed parameter false positives.
-- improve control flow analysis for `use_build_context_synchronously`.
-- update `avoid_print` to allow `kDebugMode`-wrapped print calls.
-- fix handling of initializing formals in `prefer_final_parameters`.
-- fix `unnecessary_parenthesis` false positive with function expressions.
-- adds support for constructor tear-offs to `avoid_redundant_argument_values`,
-  `unnecessary_lambdas`, and `unnecessary_parenthesis`.
-- adds a new lint: `unnecessary_constructor_name` to flag unnecessary uses of
-  `.new`.
-- improves regular expression parsing performance for common checks
-  (`camel_case_types`, `file_names`, etc.).
-- (internal) migrates to analyzer 2.1.0 APIs.
-- fixes false positive in `use_build_context_synchronously` in awaits inside
-  anonymous functions.
-- fixes `overridden_fields` false positive w/ static fields.
-- fixes false positive in `avoid_null_checks_in_equality_operators` w/
-  non-nullable params.
-- fixes false positive for deferred imports in `prefer_const_constructors`.
-- marks `avoid_dynamic_calls` stable.
-- (internal) removes unused `MockPubVisitor` and `MockRule` classes.
-- fixes a `prefer_void_to_null` false positive w/ overridden properties.
-- (internal) removes references to `NodeLintRule` in lint rule declarations.
-- fixes `prefer_void_to_null` false positives on overriding returns.
-- fixes `prefer_generic_function_type_aliases` false positives w/ incomplete
-  statements.
-- fixes false positives for `prefer_initializing_formals` with factory
-  constructors.
-- fixes `void_checks` false positives with incomplete source.
-- updates `unnecessary_getters_setters` to only flag the getter.
-- improves messages for `avoid_renaming_method_parameters`.
-- fixes false positives in `prefer_void_to_null`.
-- fixes false positives in `omit_local_variable_types`.
-- fixes false positives in `use_rethrow_when_possible`.
 - improves performance for `annotate_overrides`, `prefer_contains`, and
   `prefer_void_to_null`.
+- marks `avoid_dynamic_calls` stable.
+- fixed `avoid_null_checks_in_equality_operators` false positive with
+  non-nullable params.
+- update `avoid_print` to allow `kDebugMode`-wrapped print calls.
+- adds support for constructor tear-offs to `avoid_redundant_argument_values`,
+  `unnecessary_lambdas`, and `unnecessary_parenthesis`.
+- improves messages for `avoid_renaming_method_parameters`.
+- improves regular expression parsing performance for common checks
+  (`camel_case_types`, `file_names`, etc.).
+- fixed `file_names` to report at the start of the file
+  (not the entire compilation unit).
+- allow `while (true) { ... }` in `literal_only_boolean_expressions`.
+- fixed `omit_local_variable_types` false positives.
+- fixed `omit_local_variable_types` to not flag a local type that is required
+  for inference.
+- fixed `overridden_fields` false positive with static fields.
+- fixed `prefer_collection_literals` named typed parameter false positives.
+- fixed `prefer_const_constructors` false positive for deferred imports.
+- fixed `prefer_final_parameters` handling of initializing formals.
+- fixed `prefer_generic_function_type_aliases` false positives with incomplete
+  statements.
+- fixed `prefer_initializing_formals` false positives with factory constructors.
+- fixed `prefer_void_to_null` false positive with overridden properties.
+- fixed `prefer_void_to_null` false positives on overriding returns.
+- fixed `prefer_void_to_null` false positives.
+- adds a new lint: `unnecessary_constructor_name` to flag unnecessary uses of
+  `.new`.
+- updates `unnecessary_getters_setters` to only flag the getter.
+- fixed `unnecessary_parenthesis` false positive with function expressions.
+- fixed `use_build_context_synchronously` false positive in awaits inside
+  anonymous functions.
+- improve control flow analysis for `use_build_context_synchronously`.
+- fixed `use_rethrow_when_possible` false positives.
+- fixed `void_checks` false positives with incomplete source.
 
 ### Pub
 
 - If you have analytics enabled `dart pub get` will send
   [usage metrics](https://github.com/dart-lang/pub/blob/0035a40f25d027130c0314571da53ffafc6d973b/lib/src/solver/result.dart#L131-L175)
   for packages from pub.dev, intended for popularity analysis.
-
 - Adds support for token-based authorization to third-party package-repositories
   with the new command `dart pub token`.
 - Credentials are no longer stored in the pub-cache, but in a platform dependent
@@ -506,7 +503,7 @@ Updated the Linter to `1.14.0`, which includes changes that
 - The syntax for dependencies hosted at a third-party package repository has
   been simplified. Before you would need to write:
 
-```
+```yaml
 dependencies:
   colorizer:
     hosted:
@@ -519,7 +516,7 @@ environment:
 
 Now you can write:
 
-```
+```yaml
 dependencies:
   colorizer:
     hosted: 'https://custom-pub-server.com'
