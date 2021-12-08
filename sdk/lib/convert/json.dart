@@ -72,7 +72,9 @@ const JsonCodec json = JsonCodec();
 /// object that must be directly encodable.
 ///
 /// If [toEncodable] is omitted, it defaults to a function that returns the
-/// result of calling `.toJson()` on the unencodable object.
+/// result of calling `.toJson()` on the unencodable object as a dynamic. If
+/// toJson() is an extension (including of an enum), that toJson will not work.
+/// See https://github.com/dart-lang/sdk/issues/42742.
 ///
 /// Shorthand for `json.encode`. Useful if a local variable shadows the global
 /// [json] constant.
