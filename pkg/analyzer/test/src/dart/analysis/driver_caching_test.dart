@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/error/lint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,6 +23,38 @@ class AnalysisDriverCachingTest extends PubPackageResolutionTest {
   List<Set<String>> get _linkedCycles {
     var driver = driverFor(testFilePath);
     return driver.test.libraryContextTestView.linkedCycles;
+  }
+
+  test_analysisOptions_strictCasts() async {
+    useEmptyByteStore();
+
+    // Configure `strict-casts: false`.
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictCasts: false,
+      ),
+    );
+
+    newFile(testFilePath, content: r'''
+dynamic a = 0;
+int b = a;
+''');
+
+    // `strict-cast: false`, so no errors.
+    assertErrorsInList(await _computeTestFileErrors(), []);
+
+    // Configure `strict-casts: true`.
+    disposeAnalysisContextCollection();
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictCasts: true,
+      ),
+    );
+
+    // `strict-cast: true`, so has errors.
+    assertErrorsInList(await _computeTestFileErrors(), [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 1),
+    ]);
   }
 
   test_change_factoryConstructor_addEqNothing() async {
