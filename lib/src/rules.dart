@@ -174,6 +174,7 @@ import 'rules/unnecessary_constructor_name.dart';
 import 'rules/unnecessary_final.dart';
 import 'rules/unnecessary_getters_setters.dart';
 import 'rules/unnecessary_lambdas.dart';
+import 'rules/unnecessary_late.dart';
 import 'rules/unnecessary_new.dart';
 import 'rules/unnecessary_null_aware_assignments.dart';
 import 'rules/unnecessary_null_checks.dart';
@@ -385,6 +386,7 @@ void registerLintRules({bool inTestMode = false}) {
     //..register(UnnecessaryGetters())
     ..register(UnnecessaryGettersSetters())
     ..register(UnnecessaryLambdas())
+    ..register(UnnecessaryLate())
     ..register(UnnecessaryNullableForFinalVariableDeclarations())
     ..register(UnnecessaryNullChecks())
     ..register(UnnecessaryOverrides())
