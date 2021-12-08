@@ -61,8 +61,7 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(Assembler* assembler,
   __ Comment("Calling initializer function");
   __ PushRegister(kFieldReg);
   __ LoadCompressedFieldFromOffset(
-      kFunctionReg, InitInstanceFieldABI::kFieldReg,
-      target::Field::initializer_function_offset());
+      kFunctionReg, kFieldReg, target::Field::initializer_function_offset());
   if (!FLAG_precompiled_mode) {
     __ LoadCompressedFieldFromOffset(CODE_REG, kFunctionReg,
                                      target::Function::code_offset());
