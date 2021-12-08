@@ -379,6 +379,13 @@ abstract class Future<T> {
   ///
   /// See also [Completer] for a way to create and complete a future at a
   /// later time that isn't necessarily after a known fixed duration.
+  ///
+  /// Example:
+  /// ```dart
+  /// Future.delayed(const Duration(seconds: 1), () {
+  ///   print("One second has passed."); // After 1 second this is printed.
+  /// });
+  /// ```
   factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) {
     if (computation == null && !typeAcceptsNull<T>()) {
       throw ArgumentError.value(
@@ -426,6 +433,22 @@ abstract class Future<T> {
   ///
   /// The call to [cleanUp] should not throw. If it does, the error will be an
   /// uncaught asynchronous error.
+  ///
+  /// Example:
+  /// ```dart
+  /// void main() async{
+  ///   var value = await Future.wait([getFuture1(), getFuture2()]);
+  ///   print(value); // [2, result]
+  /// }
+  ///
+  /// Future<int> getFuture1() async {
+  ///   return await Future.delayed(const Duration(seconds: 2), () => 2);
+  /// }
+  ///
+  /// Future<String> getFuture2() async {
+  ///   return await Future.delayed(const Duration(seconds: 4), () => 'result');
+  /// }
+  /// ```
   @pragma("vm:recognized", "other")
   static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
       {bool eagerError = false, void cleanUp(T successValue)?}) {
@@ -534,6 +557,28 @@ abstract class Future<T> {
   ///
   /// If [futures] is empty, or if none of its futures complete,
   /// the returned future never completes.
+  ///
+  /// Example:
+  /// ```dart
+  /// void main() async{
+  ///   final result =
+  ///       await Future.any([getFuture1(), getFuture2(), getFuture3()]);
+  ///   // getFuture3 is finished first, others are discarded.
+  ///   print(result); // 3
+  /// }
+  ///
+  /// Future<int> getFuture1() async {
+  ///   return await Future.delayed(const Duration(seconds: 10), () => 2);
+  /// }
+  ///
+  /// Future<String> getFuture2() async {
+  ///   return await Future.delayed(const Duration(seconds: 5), () => 'result');
+  /// }
+  ///
+  /// Future<int> getFuture3() async {
+  ///   return await Future.delayed(const Duration(seconds: 1), () => 3);
+  /// }
+  /// ```
   static Future<T> any<T>(Iterable<Future<T>> futures) {
     var completer = new Completer<T>.sync();
     void onValue(T value) {
@@ -750,6 +795,18 @@ abstract class Future<T> {
   ///   });
   /// }
   /// ```
+  /// Example:
+  /// ```dart
+  /// void main() async {
+  ///   await Future.value(
+  ///       waitTask().whenComplete(() => print('do some work here')));
+  /// }
+  ///
+  /// Future<String> waitTask() async {
+  ///   return await Future.delayed(
+  ///       const Duration(seconds: 5), () => 'completed');
+  /// }
+  /// ```
   Future<T> whenComplete(FutureOr<void> action());
 
   /// Creates a [Stream] containing the result of this future.
@@ -773,6 +830,27 @@ abstract class Future<T> {
   ///
   /// If `onTimeout` is omitted, a timeout will cause the returned future to
   /// complete with a [TimeoutException].
+  ///
+  /// Example:
+  /// ```dart
+  /// void main() async {
+  ///   var result = await Future.value(waitTask()
+  ///       .timeout(const Duration(seconds: 10)));
+  ///   print(result); // completed
+  ///
+  ///   result = await Future.value(waitTask()
+  ///       .timeout(const Duration(seconds: 1), onTimeout: () => 'timeout'));
+  ///   print(result); // timeout
+  ///
+  ///   result = await Future.value(waitTask()
+  ///       .timeout(const Duration(seconds: 2))); // Throws TimeoutException.
+  /// }
+  ///
+  /// Future<String> waitTask() async {
+  ///   return await Future.delayed(
+  ///       const Duration(seconds: 5), () => 'completed');
+  /// }
+  /// ```
   Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?});
 }
 
