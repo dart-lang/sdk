@@ -18,12 +18,12 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ToSourceVisitor2Test);
+    defineReflectiveTests(ToSourceVisitorTest);
   });
 }
 
 @reflectiveTest
-class ToSourceVisitor2Test {
+class ToSourceVisitorTest {
   void test_visitAdjacentStrings() {
     _assertSource(
         "'a' 'b'",
@@ -3400,7 +3400,7 @@ import 'foo.dart'
         AstTestFactory.yieldEachStatement(AstTestFactory.identifier3("e")));
   }
 
-  /// Assert that a `ToSourceVisitor2` will produce the [expectedSource] when
+  /// Assert that a [ToSourceVisitor] will produce the [expectedSource] when
   /// visiting the given [node].
   void _assertSource(String expectedSource, AstNode node) {
     StringBuffer buffer = StringBuffer();

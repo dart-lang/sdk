@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 
@@ -3227,11 +3226,4 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
     }
     return node.end < _position;
   }
-}
-
-/// A visitor used to write a source representation of a visited AST node (and
-/// all of it's children) to a sink.
-@Deprecated('Use ToSourceVisitor')
-class ToSourceVisitor2 extends ToSourceVisitor {
-  ToSourceVisitor2(StringSink sink) : super(sink);
 }
