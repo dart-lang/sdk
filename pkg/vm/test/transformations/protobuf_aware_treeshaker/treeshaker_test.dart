@@ -92,17 +92,19 @@ Future<void> compileAOT(Uri source) async {
   );
 }
 
-main() async {
-  final testCases = Directory(path.join(
-    pkgVmDir,
-    'testcases',
-    'transformations',
-    'type_flow',
-    'transformer',
-    'protobuf_handler',
-    'lib',
-  )).listSync().where((f) => f.path.endsWith('_test.dart'));
-  for (final entry in testCases) {
-    test(entry.path, () => runTestCase(entry.uri));
-  }
+main() {
+  group('protobuf-aware-treeshaker', () {
+    final testCases = Directory(path.join(
+      pkgVmDir,
+      'testcases',
+      'transformations',
+      'type_flow',
+      'transformer',
+      'protobuf_handler',
+      'lib',
+    )).listSync().where((f) => f.path.endsWith('_test.dart'));
+    for (final entry in testCases) {
+      test(entry.path, () => runTestCase(entry.uri));
+    }
+  }, timeout: Timeout.none);
 }
