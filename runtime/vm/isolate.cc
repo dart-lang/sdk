@@ -3369,7 +3369,8 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
 // done atomically.
 void Isolate::RegisterServiceExtensionHandler(const String& name,
                                               const Instance& closure) {
-  if (Isolate::IsSystemIsolate(this)) {
+  // Don't allow for service extensions to be registered for internal isolates.
+  if (Isolate::IsVMInternalIsolate(this)) {
     return;
   }
   GrowableObjectArray& handlers =
@@ -3571,6 +3572,11 @@ bool Isolate::IsolateCreationEnabled() {
 
 bool IsolateGroup::IsSystemIsolateGroup(const IsolateGroup* group) {
   return group->source()->flags.is_system_isolate;
+}
+
+bool Isolate::IsVMInternalIsolate(const Isolate* isolate) {
+  return isolate->is_kernel_isolate() || isolate->is_service_isolate() ||
+         (Dart::vm_isolate() == isolate);
 }
 
 void Isolate::KillLocked(LibMsgId msg_id) {
