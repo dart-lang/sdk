@@ -161,12 +161,12 @@ class LinkMock extends FileSystemEntity implements Link {
 }
 
 Future<Socket> socketConnect(dynamic host, int port,
-    {dynamic sourceAddress, Duration? timeout}) {
+    {dynamic sourceAddress, int sourcePort = 0, Duration? timeout}) {
   throw "";
 }
 
 Future<ConnectionTask<Socket>> socketStartConnect(dynamic host, int port,
-    {dynamic sourceAddress}) {
+    {dynamic sourceAddress, int sourcePort = 0}) {
   throw "";
 }
 

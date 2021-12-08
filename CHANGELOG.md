@@ -17,6 +17,7 @@
 - **Breaking Change** [#47769](https://github.com/dart-lang/sdk/issues/47769):
 The `Platform.packageRoot` API has been removed. It had been marked deprecated
 in 2018, as it doesn't work with any Dart 2.x release.
+- Add optional `sourcePort` parameter to `Socket.connect`, `Socket.startConnect`, `RawSocket.connect` and `RawSocket.startConnect`
 
 #### `dart:isolate`
 

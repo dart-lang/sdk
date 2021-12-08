@@ -17,14 +17,14 @@ class RawServerSocket {
 class RawSocket {
   @patch
   static Future<RawSocket> connect(dynamic host, int port,
-      {dynamic sourceAddress, Duration? timeout}) {
-    return _RawSocket.connect(host, port, sourceAddress, timeout);
+      {dynamic sourceAddress, int sourcePort = 0, Duration? timeout}) {
+    return _RawSocket.connect(host, port, sourceAddress, sourcePort, timeout);
   }
 
   @patch
   static Future<ConnectionTask<RawSocket>> startConnect(dynamic host, int port,
-      {dynamic sourceAddress}) {
-    return _RawSocket.startConnect(host, port, sourceAddress);
+      {dynamic sourceAddress, int sourcePort = 0}) {
+    return _RawSocket.startConnect(host, port, sourceAddress, sourcePort);
   }
 }
 
@@ -654,7 +654,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   static Future<ConnectionTask<_NativeSocket>> startConnect(
-      dynamic host, int port, dynamic sourceAddress) {
+      dynamic host, int port, dynamic sourceAddress, int sourcePort) {
     // Looks up [sourceAddress] to one or more IP addresses,
     // then tries connecting to each one until a connection succeeds.
     // Attempts are staggered by a minimum delay, so a new
@@ -666,6 +666,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       host = escapeLinkLocalAddress(host);
     }
     _throwOnBadPort(port);
+    _throwOnBadPort(sourcePort);
     _InternetAddress? source;
     if (sourceAddress != null) {
       if (sourceAddress is _InternetAddress) {
@@ -682,7 +683,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
     return new Future.value(host).then<ConnectionTask<_NativeSocket>>((host) {
       if (host is _InternetAddress) {
-        return tryConnectToResolvedAddresses(host, port, source,
+        return tryConnectToResolvedAddresses(host, port, source, sourcePort,
             Stream.value(<_InternetAddress>[host]), stackTrace);
       }
       final hostname = host as String;
@@ -700,7 +701,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
               : lookupAsStream(hostname);
 
       return tryConnectToResolvedAddresses(
-          host, port, source, stream, stackTrace);
+          host, port, source, sourcePort, stream, stackTrace);
     });
   }
 
@@ -708,6 +709,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       dynamic host,
       int port,
       _InternetAddress? source,
+      int sourcePort,
       Stream<List<InternetAddress>> addresses,
       StackTrace callerStackTrace) {
     // Completer for result.
@@ -758,10 +760,16 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
             connectionResult is OSError);
       } else {
         final address_ = address as _InternetAddress;
-        if (source == null) {
+        if (source == null && sourcePort == 0) {
           connectionResult = socket.nativeCreateConnect(
               address_._in_addr, port, address_._scope_id);
         } else {
+          // allow specified port without address
+          if (source == null) {
+            source = address_.type == InternetAddressType.IPv4
+                ? _InternetAddress.anyIPv4
+                : _InternetAddress.anyIPv6;
+          }
           if (source.type != InternetAddressType.IPv4 &&
               source.type != InternetAddressType.IPv6) {
             return SocketException(
@@ -773,8 +781,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
                 "${InternetAddressType.IPv6} but was ${source.type}",
                 address: address);
           }
-          connectionResult = socket.nativeCreateBindConnect(
-              address_._in_addr, port, source._in_addr, address_._scope_id);
+          connectionResult = socket.nativeCreateBindConnect(address_._in_addr,
+              port, source._in_addr, sourcePort, address_._scope_id);
         }
         assert(connectionResult == true || connectionResult is OSError);
       }
@@ -935,9 +943,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     return new ConnectionTask<_NativeSocket>._(result.future, onCancel);
   }
 
-  static Future<_NativeSocket> connect(
-      dynamic host, int port, dynamic sourceAddress, Duration? timeout) {
-    return startConnect(host, port, sourceAddress)
+  static Future<_NativeSocket> connect(dynamic host, int port,
+      dynamic sourceAddress, int sourcePort, Duration? timeout) {
+    return startConnect(host, port, sourceAddress, sourcePort)
         .then((ConnectionTask<_NativeSocket> task) {
       Future<_NativeSocket> socketFuture = task.socket;
       if (timeout != null) {
@@ -1653,8 +1661,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   @pragma("vm:external-name", "Socket_CreateUnixDomainConnect")
   external nativeCreateUnixDomainConnect(String addr, _Namespace namespace);
   @pragma("vm:external-name", "Socket_CreateBindConnect")
-  external nativeCreateBindConnect(
-      Uint8List addr, int port, Uint8List sourceAddr, int scope_id);
+  external nativeCreateBindConnect(Uint8List addr, int port,
+      Uint8List sourceAddr, int sourcePort, int scope_id);
   @pragma("vm:external-name", "Socket_CreateUnixDomainBindConnect")
   external nativeCreateUnixDomainBindConnect(
       String addr, String sourceAddr, _Namespace namespace);
@@ -1792,9 +1800,9 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
   // Flag to handle Ctrl-D closing of stdio on Mac OS.
   bool _isMacOSTerminalInput = false;
 
-  static Future<RawSocket> connect(
-      dynamic host, int port, dynamic sourceAddress, Duration? timeout) {
-    return _NativeSocket.connect(host, port, sourceAddress, timeout)
+  static Future<RawSocket> connect(dynamic host, int port,
+      dynamic sourceAddress, int sourcePort, Duration? timeout) {
+    return _NativeSocket.connect(host, port, sourceAddress, sourcePort, timeout)
         .then((socket) {
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectNewSocket(
@@ -1805,8 +1813,8 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
   }
 
   static Future<ConnectionTask<_RawSocket>> startConnect(
-      dynamic host, int port, dynamic sourceAddress) {
-    return _NativeSocket.startConnect(host, port, sourceAddress)
+      dynamic host, int port, dynamic sourceAddress, int sourcePort) {
+    return _NativeSocket.startConnect(host, port, sourceAddress, sourcePort)
         .then((ConnectionTask<_NativeSocket> nativeTask) {
       final Future<_RawSocket> raw =
           nativeTask.socket.then((_NativeSocket nativeSocket) {
@@ -2016,16 +2024,19 @@ class _ServerSocket extends Stream<Socket> implements ServerSocket {
 class Socket {
   @patch
   static Future<Socket> _connect(dynamic host, int port,
-      {dynamic sourceAddress, Duration? timeout}) {
+      {dynamic sourceAddress, int sourcePort = 0, Duration? timeout}) {
     return RawSocket.connect(host, port,
-            sourceAddress: sourceAddress, timeout: timeout)
+            sourceAddress: sourceAddress,
+            sourcePort: sourcePort,
+            timeout: timeout)
         .then((socket) => new _Socket(socket));
   }
 
   @patch
   static Future<ConnectionTask<Socket>> _startConnect(dynamic host, int port,
-      {dynamic sourceAddress}) {
-    return RawSocket.startConnect(host, port, sourceAddress: sourceAddress)
+      {dynamic sourceAddress, int sourcePort = 0}) {
+    return RawSocket.startConnect(host, port,
+            sourceAddress: sourceAddress, sourcePort: sourcePort)
         .then((rawTask) {
       Future<Socket> socket =
           rawTask.socket.then((rawSocket) => new _Socket(rawSocket));
