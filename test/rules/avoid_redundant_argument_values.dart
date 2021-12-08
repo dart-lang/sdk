@@ -10,11 +10,12 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidRedundantArgumentValuesTest);
+    defineReflectiveTests(AvoidRedundantArgumentValuesNamedArgsAnywhereTest);
   });
 }
 
 @reflectiveTest
-class AvoidRedundantArgumentValuesTest extends LintRuleTest {
+class AvoidRedundantArgumentValuesNamedArgsAnywhereTest extends LintRuleTest {
   @override
   List<String> get experiments => [EnableString.named_arguments_anywhere];
 
@@ -31,5 +32,21 @@ void f() {
 ''', [
       lint('avoid_redundant_argument_values', 67, 4),
     ]);
+  }
+}
+
+@reflectiveTest
+class AvoidRedundantArgumentValuesTest extends LintRuleTest {
+  @override
+  String get lintRule => 'avoid_redundant_argument_values';
+
+  test_requiredNullable() async {
+    await assertNoDiagnostics(r'''
+void f({required int? x}) { }
+
+void main() {
+  f(x: null);
+} 
+''');
   }
 }
