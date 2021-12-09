@@ -204,10 +204,15 @@ abstract class Iterable<E> {
   /// }
   /// ```
   /// Example:
-  /// ```dart
-  /// final gasPlanets = <int, String>{1: 'Jupiter', 2: 'Saturn'};
-  /// final map = gasPlanets
-  ///     .map((key, value) => MapEntry(value, key)); // {Jupiter: 1, Saturn: 2}
+  /// ```dart import:convert
+  /// var products = jsonDecode('''
+  /// [
+  ///   {"name": "Screwdriver", "price": 42.00},
+  ///   {"name": "Wingnut", "price": 0.50}
+  /// ]
+  /// ''');
+  /// var values = products.map((product) => product['price'] as double);
+  /// var totalPrice = values.fold(0.0, (a, b) => a + b); // 42.5.
   /// ```
   Iterable<T> map<T>(T toElement(E e)) => MappedIterable<E, T>(this, toElement);
 
@@ -254,13 +259,14 @@ abstract class Iterable<E> {
   ///
   /// Example:
   /// ```dart
-  /// final pairs = <List<int>>[[1, 2], [3, 4]];
-  /// final flattened = pairs.expand((pair) => pair).toList();
-  /// print(flattened); // [1, 2, 3, 4];
+  /// Iterable<int> count(int n) sync* {
+  ///   for (var i = 1; i <= n; i++) {
+  ///     yield i;
+  ///    }
+  ///  }
   ///
-  /// final input = <int>[1, 2, 3];
-  /// final duplicated = input.expand((i) => [i, i]).toList();
-  /// print(duplicated); // [1, 1, 2, 2, 3, 3]
+  /// var numbers = [1, 3, 0, 2];
+  /// print(numbers.expand(count)); // (1, 1, 2, 3, 1, 2)
   /// ```
   ///
   /// Equivalent to:
@@ -308,13 +314,13 @@ abstract class Iterable<E> {
   ///
   /// Example:
   /// ```dart
-  /// final planetsByMass = <double, String>{0.06: 'Mercury', 0.81: 'Venus',
-  ///   0.11: 'Mars'};
-  /// planetsByMass.forEach((key, value) {
-  ///   print('$key : $value');
-  ///   // 0.06 : Mercury
-  ///   // 0.81 : Venus
-  ///   // 0.11 : Mars
+  /// final numbers = <int>[1, 2, 6, 7];
+  /// numbers.forEach((element) {
+  ///   print(element);
+  ///   // 1
+  ///   // 2
+  ///   // 6
+  ///   // 7
   /// });
   /// ```
   void forEach(void action(E element)) {
@@ -372,8 +378,8 @@ abstract class Iterable<E> {
   /// ```dart
   /// final numbers = <double>[10, 2, 5, 0.5];
   /// const initialValue = 100.0;
-  /// final result = numbers.fold(initialValue,
-  ///     (previousValue, element) => (previousValue as double) + element);
+  /// final result = numbers.fold<double>(
+  ///     initialValue, (previousValue, element) => previousValue + element);
   /// print(result); // 117.5
   /// ```
   T fold<T>(T initialValue, T combine(T previousValue, E element)) {
@@ -389,11 +395,10 @@ abstract class Iterable<E> {
   ///
   /// Example:
   /// ```dart
-  /// final planetsByMass = <double,String>{0.06: 'Mercury', 0.81: 'Venus',
+  /// final planetsByMass = <double, String>{0.06: 'Mercury', 0.81: 'Venus',
   ///   0.11: 'Mars'};
-  /// // Checks whether all keys smaller than 1.
-  /// final every =
-  ///     planetsByMass.entries.every((element) => element.key < 1.0); // true
+  /// // Checks whether all keys are smaller than 1.
+  /// final every = planetsByMass.keys.every((key) => key < 1.0); // true
   /// ```
   bool every(bool test(E element)) {
     for (E element in this) {
@@ -411,7 +416,7 @@ abstract class Iterable<E> {
   ///
   /// Example:
   /// ```dart
-  /// final planetsByMass = <double,String>{0.06: 'Mercury', 0.81: 'Venus',
+  /// final planetsByMass = <double, String>{0.06: 'Mercury', 0.81: 'Venus',
   ///   0.11: 'Mars'};
   /// final joinedNames = planetsByMass.values.join('-'); // Mercury-Venus-Mars
   /// ```
@@ -441,8 +446,8 @@ abstract class Iterable<E> {
   /// Example:
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
-  /// var result = numbers.any((element) => element == 5); // true;
-  /// result = numbers.any((element) => element == 4); // false;
+  /// var result = numbers.any((element) => element >= 5); // true;
+  /// result = numbers.any((element) => element >= 10); // false;
   /// ```
   bool any(bool test(E element)) {
     for (E element in this) {
@@ -459,8 +464,9 @@ abstract class Iterable<E> {
   /// Example:
   /// ```dart
   /// final planets = <int, String>{1: 'Mercury', 2: 'Venus', 3: 'Mars'};
-  /// final keysList = planets.keys.toList(); // [1, 2, 3]
-  /// final valuesList = planets.values.toList(); // [Mercury, Venus, Mars]
+  /// final keysList = planets.keys.toList(growable: false); // [1, 2, 3]
+  /// final valuesList =
+  ///     planets.values.toList(growable: false); // [Mercury, Venus, Mars]
   /// ```
   List<E> toList({bool growable = true}) {
     return List<E>.of(this, growable: growable);
@@ -502,7 +508,7 @@ abstract class Iterable<E> {
   ///
   /// Example:
   /// ```dart
-  /// final emptyList = List.empty();
+  /// final emptyList = <int>[];
   /// print(emptyList.isEmpty); // true;
   /// print(emptyList.iterator.moveNext()); // false
   /// ```
@@ -534,6 +540,7 @@ abstract class Iterable<E> {
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// final result = numbers.take(4); // (1, 2, 3, 5)
+  /// final takeAll = numbers.take(100); // (1, 2, 3, 5, 6, 7)
   /// ```
   Iterable<E> take(int count) {
     return TakeIterable<E>(this, count);
@@ -577,6 +584,7 @@ abstract class Iterable<E> {
   /// ```dart
   /// final numbers = <int>[1, 2, 3, 5, 6, 7];
   /// final result = numbers.skip(4); // (6, 7)
+  /// final skipAll = numbers.skip(100); // () - no elements.
   /// ```
   ///
   /// The [count] must not be negative.
@@ -722,12 +730,15 @@ abstract class Iterable<E> {
   /// ```dart
   /// final numbers = <int>[2, 2, 10];
   /// var result = numbers.singleWhere((element) => element > 5); // 10
-  ///
-  /// // When no matching element is found, returns result from orElse.
+  /// ```
+  /// When no matching element is found, the result of calling [orElse] is
+  /// returned instead.
+  /// ```dart continued
   /// result = numbers.singleWhere((element) => element == 1,
   ///     orElse: () => -1); // -1
-  ///
-  /// // Multiple matches, throws an error.
+  /// ```
+  /// Multiple matches, throws an error.
+  /// ```dart continued
   /// result = numbers.singleWhere((element) => element == 2); // StateError.
   /// ```
   E singleWhere(bool test(E element), {E orElse()?}) {
