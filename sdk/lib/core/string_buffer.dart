@@ -28,7 +28,7 @@ part of dart.core;
 ///   ..write(' since ') // Writes a string.
 ///   ..write(dartYear); // Writes an int.
 /// print(buffer); // DART is open source since 2011
-/// print(buffer.length); // 31
+/// print(buffer.length); // 30
 /// ```
 /// To add a newline after the object's string representation, use [writeln].
 /// Calling [writeln] with no argument adds a single newline to the buffer.
