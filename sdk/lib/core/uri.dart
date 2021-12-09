@@ -26,14 +26,21 @@ const String _hexDigits = "0123456789ABCDEF";
 
 /// A parsed URI, such as a URL.
 ///
-/// To create a URI with specific components, use [Uri.()]:
+/// To create a URI with specific components, use [new Uri]:
 /// ```dart
-/// final httpsUri = Uri(
+/// var httpsUri = Uri(
 ///     scheme: 'https',
 ///     host: 'dart.dev',
-///     path: 'guides/libraries/library-tour',
+///     path: '/guides/libraries/library-tour',
 ///     fragment: 'numbers');
 /// print(httpsUri); // https://dart.dev/guides/libraries/library-tour#numbers
+///
+/// httpsUri = Uri(
+///    scheme: 'https',
+///    host: 'example.com',
+///    path: '/page/',
+///    queryParameters: {'search': 'blue', 'limit': '10'});
+/// print(httpsUri); // https://example.com/page/?search=blue&limit=10
 ///
 /// final mailtoUri = Uri(
 ///     scheme: 'mailto',
@@ -51,19 +58,22 @@ const String _hexDigits = "0123456789ABCDEF";
 /// ## File URI
 /// To create a URI from file path, use [Uri.file]:
 /// ```dart
-/// final fileUri = Uri.file('C:/data/images/image.png', windows: false);
-/// print(fileUri); // C%3A/data/images/image.png
+/// final fileUriUnix =
+///     Uri.file(r'/home/myself/images/image.png', windows: false);
+/// print(fileUriUnix); // file:///home/myself/images/image.png
 ///
-/// final fileWindows = Uri.file('C:/data/images/image.png', windows: true);
-/// print(fileWindows); // file:///C:/data/images/image.png
+/// final fileUriWindows =
+///     Uri.file(r'C:\Users\myself\Documents\image.png', windows: true);
+/// print(fileUriWindows); // file:///C:/Users/myself/Documents/image.png
 /// ```
 /// If the URI is not a file URI, calling this throws [UnsupportedError].
 ///
 /// ## Directory URI
 /// Like [Uri.file] except that a non-empty URI path ends in a slash.
 /// ```dart
-/// final fileDirectory = Uri.directory('data/images', windows: false);
-/// print(fileDirectory); // data/images/
+/// final fileDirectory =
+///     Uri.directory('/home/myself/data/image', windows: false);
+/// print(fileDirectory); // file:///home/myself/data/image/
 ///
 /// final fileDirectoryWindows = Uri.directory('/data/images', windows: true);
 /// print(fileDirectoryWindows); //  file:///data/images/
@@ -72,19 +82,19 @@ const String _hexDigits = "0123456789ABCDEF";
 /// ## URI from string
 /// To create a URI from string, use [Uri.parse] or [Uri.tryParse]:
 /// ```dart
-/// final uri = Uri.tryParse(
+/// final uri = Uri.parse(
 ///     'https://dart.dev/guides/libraries/library-tour#utility-classes');
-/// print(uri); // https://api.dart.dev
-/// print(uri?.isScheme('https')); // true
-/// print(uri?.origin); // https://dart.dev
-/// print(uri?.host); // dart.dev
-/// print(uri?.authority); // api.dart.dev
-/// print(uri?.port); // 443
-/// print(uri?.path); // guides/libraries/library-tour
-/// print(uri?.pathSegments); // [guides, libraries, library-tour]
-/// print(uri?.fragment); // utility-classes
-/// print(uri?.hasQuery); // false
-/// print(uri?.data); // null
+/// print(uri); // https://dart.dev
+/// print(uri.isScheme('https')); // true
+/// print(uri.origin); // https://dart.dev
+/// print(uri.host); // dart.dev
+/// print(uri.authority); // dart.dev
+/// print(uri.port); // 443
+/// print(uri.path); // guides/libraries/library-tour
+/// print(uri.pathSegments); // [guides, libraries, library-tour]
+/// print(uri.fragment); // utility-classes
+/// print(uri.hasQuery); // false
+/// print(uri.data); // null
 /// ```
 ///
 /// **See also:**
@@ -348,8 +358,9 @@ abstract class Uri {
   /// final fileDirectory = Uri.directory('data/images', windows: false);
   /// print(fileDirectory); // data/images/
   ///
-  /// final fileDirectoryWindows = Uri.directory('/data/images', windows: true);
-  /// print(fileDirectoryWindows); //  file:///data/images/
+  /// final fileDirectoryWindows =
+  ///    Uri.directory(r'C:\data\images', windows: true);
+  /// print(fileDirectoryWindows); // file:///C:/data/images/
   /// ```
   factory Uri.directory(String path, {bool? windows}) = _Uri.directory;
 
@@ -524,10 +535,11 @@ abstract class Uri {
   /// that maps keys to all of their values.
   ///
   /// Example:
-  /// ```dart
+  /// ```dart import:convert
   /// final uri =
   ///     Uri.parse('https://example.com/api/fetch?limit=10,20,30&max=100');
-  /// print(uri.queryParameters); // {limit: 10,20,30, max: 100}
+  /// print(jsonEncode(uri.queryParameters));
+  /// // {"limit":"10,20,30","max":"100"}
   /// ```
   ///
   /// The map is unmodifiable.
@@ -546,10 +558,10 @@ abstract class Uri {
   /// empty string is used as the value for that occurrence.
   ///
   /// Example:
-  /// ```dart
+  /// ```dart import:convert
   /// final uri =
   ///     Uri.parse('https://example.com/api/fetch?limit=10,20,30&max=100');
-  /// print(uri.queryParametersAll); // {limit: [10,20,30], max: [100]}
+  /// print(jsonEncode(uri.queryParameters)); // {"limit":"10,20,30","max":"100"}
   /// ```
   ///
   /// The map and the lists it contains are unmodifiable.
@@ -606,7 +618,7 @@ abstract class Uri {
   /// var uri = Uri.parse('http://example.com');
   /// print(uri.isScheme('HTTP')); // true
   ///
-  /// final uriNoScheme = Uri.parse('example.com');
+  /// final uriNoScheme = Uri(host: 'example.com');
   /// print(uriNoScheme.isScheme('HTTP')); // false
   /// ```
   ///
@@ -704,8 +716,8 @@ abstract class Uri {
   /// This method takes the same parameters as the [Uri] constructor,
   /// and they have the same meaning.
   ///
-  /// At most, one of [path] and [pathSegments] must be provided.
-  /// Likewise, at most, one of [query] and [queryParameters] must be provided.
+  /// At most one of [path] and [pathSegments] must be provided.
+  /// Likewise, at most one of [query] and [queryParameters] must be provided.
   ///
   /// Each part that is not provided will default to the corresponding
   /// value from this `Uri` instead.
@@ -727,7 +739,7 @@ abstract class Uri {
   /// ```
   /// This method acts similarly to using the `Uri` constructor with
   /// some of the arguments taken from this `Uri`. Example:
-  /// ```
+  /// ``` dart continued
   /// final Uri uri3 = Uri(
   ///     scheme: 'https',
   ///     userInfo: uri1.userInfo,
@@ -818,6 +830,8 @@ abstract class Uri {
   /// final uri =
   ///     Uri.parse('https://example.com/api/fetch?limit=10,20,30&max=100');
   /// print(uri); // https://example.com/api/fetch?limit=10,20,30&max=100
+  ///
+  /// Uri.parse('::Not valid URI::'); // Throws FormatException.
   /// ```
   static Uri parse(String uri, [int start = 0, int? end]) {
     // This parsing will not validate percent-encoding, IPv6, etc.
@@ -1123,6 +1137,9 @@ abstract class Uri {
   ///     'https://dart.dev/guides/libraries/library-tour#utility-classes', 0,
   ///     16);
   /// print(uri); // https://dart.dev
+  ///
+  /// var notUri = Uri.tryParse('::Not valid URI::');
+  /// print(notUri); // null
   /// ```
   static Uri? tryParse(String uri, [int start = 0, int? end]) {
     // TODO: Optimize to avoid throwing-and-recatching.
@@ -1148,7 +1165,7 @@ abstract class Uri {
   /// For encoding the query part consider using
   /// [encodeQueryComponent].
   ///
-  /// To avoid the need for explicitly encoding use the [pathSegments]
+  /// To avoid the need for explicitly encoding, use the [pathSegments]
   /// and [queryParameters] optional named arguments when constructing
   /// a [Uri].
   ///
@@ -1285,10 +1302,12 @@ abstract class Uri {
   /// encoding is UTF-8.
   ///
   /// Example:
-  /// ```dart
+  /// ```dart import:convert
   /// final queryStringMap =
   ///     Uri.splitQueryString('limit=10&max=100&search=Dart%20is%20fun');
-  /// print(queryStringMap); // {limit: 10, max: 100, search: Dart is fun}
+  /// print(jsonEncode(queryStringMap));
+  /// // {"limit":"10","max":"100","search":"Dart is fun"}
+  ///
   /// ```
   static Map<String, String> splitQueryString(String query,
       {Encoding encoding = utf8}) {
