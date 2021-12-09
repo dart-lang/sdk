@@ -1451,6 +1451,26 @@ void test1() {
 ''');
   }
 
+  test_implicit_call_reference_in_top_level_type_inference() async {
+    // This test case is important because the variable `map` is subject to top
+    // level type inference, which means it gets resolved twice.  We need to
+    // make sure that on the second resolution pass, the resolver can handle the
+    // ImplicitCallReference node
+    await assertNoErrorsInCode(r'''
+typedef Object Func(Object x);
+
+class Bar {
+  int x = 42;
+
+  Object call(Object x) {
+    return 'Bar $x';
+  }
+}
+
+var map = <String, Func>{'bar': new Bar()};
+''');
+  }
+
   test_importDuplicatedLibraryName() async {
     newFile("$testPackageLibPath/lib.dart", content: "library lib;");
     await assertErrorsInCode(r'''
