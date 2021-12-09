@@ -1868,6 +1868,42 @@ void functionAfter() {
 ''');
   }
 
+  Future<void> test_multipleEdits_concurrently() async {
+    var initialCode = '00';
+    var path = convertPath('/home/test/lib/test.dart');
+    newFile(path, content: initialCode);
+
+    var builder = newBuilder();
+    var future = Future.wait([
+      builder.addDartFileEdit(path, (builder) {
+        builder.addSimpleInsertion(0, '11');
+      }),
+      builder.addDartFileEdit(path, (builder) {
+        builder.addSimpleInsertion(2, '22');
+      }),
+    ]);
+
+    expect(future, throwsA(TypeMatcher<StateError>()));
+  }
+
+  Future<void> test_multipleEdits_sequentially() async {
+    var initialCode = '00';
+    var path = convertPath('/home/test/lib/test.dart');
+    newFile(path, content: initialCode);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addSimpleInsertion(0, '11');
+    });
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addSimpleInsertion(2, '22');
+    });
+
+    var edits = getEdits(builder);
+    var resultCode = SourceEdit.applySequence(initialCode, edits);
+    expect(resultCode, '110022');
+  }
+
   Future<void> test_replaceTypeWithFuture() async {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'String f() {}');
