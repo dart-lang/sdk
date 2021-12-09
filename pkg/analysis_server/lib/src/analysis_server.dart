@@ -41,6 +41,7 @@ import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/utilities/process.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -80,6 +81,13 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// A set of the [ServerService]s to send notifications for.
   Set<ServerService> serverServices = HashSet<ServerService>();
+
+  /// A table mapping request ids to cancellation tokens that allow cancelling
+  /// the request.
+  ///
+  /// Tokens are removed once a request completes and should not be assumed to
+  /// exist in this table just because cancellation was requested.
+  Map<String, CancelableToken> cancellationTokens = {};
 
   /// A set of the [GeneralAnalysisService]s to send notifications for.
   Set<GeneralAnalysisService> generalAnalysisServices =
@@ -219,6 +227,10 @@ class AnalysisServer extends AbstractAnalysisServer {
     return sdkManager.defaultSdkDirectory;
   }
 
+  void cancelRequest(String id) {
+    cancellationTokens[id]?.cancel();
+  }
+
   /// The socket from which requests are being read has been closed.
   void done() {}
 
@@ -241,30 +253,32 @@ class AnalysisServer extends AbstractAnalysisServer {
   void handleRequest(Request request) {
     performance.logRequestTiming(request.clientRequestTime);
     runZonedGuarded(() {
+      var cancellationToken = CancelableToken();
+      cancellationTokens[request.id] = cancellationToken;
       var count = handlers.length;
       for (var i = 0; i < count; i++) {
         try {
-          var response = handlers[i].handleRequest(request);
+          var response = handlers[i].handleRequest(request, cancellationToken);
           if (response == Response.DELAYED_RESPONSE) {
             return;
           }
           if (response != null) {
-            channel.sendResponse(response);
+            sendResponse(response);
             return;
           }
         } on RequestFailure catch (exception) {
-          channel.sendResponse(exception.response);
+          sendResponse(exception.response);
           return;
         } catch (exception, stackTrace) {
           var error =
               RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
           error.stackTrace = stackTrace.toString();
           var response = Response(request.id, error: error);
-          channel.sendResponse(response);
+          sendResponse(response);
           return;
         }
       }
-      channel.sendResponse(Response.unknownRequest(request));
+      sendResponse(Response.unknownRequest(request));
     }, (exception, stackTrace) {
       instrumentationService.logException(
         FatalException(
@@ -310,6 +324,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Send the given [response] to the client.
   void sendResponse(Response response) {
     channel.sendResponse(response);
+    cancellationTokens.remove(response.id);
   }
 
   /// If the [path] is not a valid file path, that is absolute and normalized,

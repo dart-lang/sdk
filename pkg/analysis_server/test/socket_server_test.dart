@@ -10,6 +10,7 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:test/test.dart';
@@ -123,7 +124,7 @@ class _MockRequestHandler implements RequestHandler {
   _MockRequestHandler(this.futureException);
 
   @override
-  Response handleRequest(Request request) {
+  Response handleRequest(Request request, CancellationToken cancellationToken) {
     if (futureException) {
       Future(throwException);
       return Response(request.id);

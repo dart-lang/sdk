@@ -8,6 +8,7 @@ import 'dart:convert' hide JsonDecoder;
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 
 export 'package:analyzer_plugin/protocol/protocol.dart' show Enum;
 
@@ -270,7 +271,7 @@ abstract class RequestHandler {
   /// this handler, return `null` so that other handlers will be given a chance
   /// to handle it. Otherwise, return the response that should be passed back to
   /// the client.
-  Response? handleRequest(Request request);
+  Response? handleRequest(Request request, CancellationToken cancellationToken);
 }
 
 /// A response to a request.

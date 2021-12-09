@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.32.7</version>
+  <version>1.32.8</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -134,6 +134,11 @@
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.32.8</h4>
+<ul>
+  <li>Added <tt>server.cancelRequest</tt> to allow clients to request cancellation
+  of outstanding requests.</li>
+</ul>
 <h4>1.32.7</h4>
 <ul>
   <li><tt>HoverInformation.elementDescription</tt> may now include linebreaks to
@@ -291,6 +296,26 @@
           <ref>ServerService</ref>
         </list>
         <p>A list of the services being subscribed to.</p>
+      </field>
+    </params>
+  </request>
+  <request method="cancelRequest">
+    <p>Requests cancellation of a request sent by the client by id.
+      This is provided on a best-effort basis and there is no
+      guarantee the server will be able to cancel any specific
+      request.
+
+      The server will still always produce a response to the request
+      even in the case of cancellation, but clients should discard
+      any results of any cancelled request because they may be
+      incomplete or inaccurate.
+      
+      This request always completes without error regardless of
+      whether the request is successfully cancelled.</p>
+    <params>
+      <field name="id">
+        <ref>String</ref>
+        <p>The id of the request that should be cancelled.</p>
       </field>
     </params>
   </request>
