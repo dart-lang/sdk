@@ -1024,21 +1024,6 @@ class AnalysisError implements Diagnostic {
         url: null);
   }
 
-  /// Initialize a newly created analysis error. The error is associated with
-  /// the given [source] and is located at the given [offset] with the given
-  /// [length]. The error will have the given [errorCode] and the map  of
-  /// [arguments] will be used to complete the message and correction. If any
-  /// [contextMessages] are provided, they will be recorded with the error.
-  ///
-  /// Deprecated - no analyzer errors use named arguments anymore.  Please use
-  /// `AnalysisError()`.
-  @deprecated
-  AnalysisError.withNamedArguments(Source source, int offset, int length,
-      ErrorCode errorCode, Map<String, dynamic> arguments,
-      {List<DiagnosticMessage> contextMessages = const []})
-      : this(source, offset, length, errorCode,
-            _translateNamedArguments(arguments), contextMessages);
-
   @override
   List<DiagnosticMessage> get contextMessages => _contextMessages;
 
@@ -1136,21 +1121,5 @@ class AnalysisError implements Diagnostic {
       errors.addAll(errorList);
     }
     return errors.toList();
-  }
-
-  static Null _translateNamedArguments(Map<String, dynamic> arguments) {
-    // All analyzer errors now use positional arguments, so if this method is
-    // being called, either no arguments were provided to the
-    // AnalysisError.withNamedArguments constructor, or the client was
-    // developed against an older version of the analyzer that used named
-    // arguments.  In either case, we'll make a best effort translation of named
-    // arguments to positional ones.  In the case where some arguments were
-    // provided, we have an assertion to alert the developer that they may not
-    // get correct results.
-    assert(
-        arguments.isEmpty,
-        'AnalysisError.withNamedArguments is no longer supported.  Making a '
-        'best effort translation to positional arguments.  Please use '
-        'AnalysisError() instead.');
   }
 }

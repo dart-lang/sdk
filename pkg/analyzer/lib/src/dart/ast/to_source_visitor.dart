@@ -1043,12 +1043,6 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNode(node.type);
   }
 
-  @Deprecated('Override visitNamedType instead')
-  @override
-  void visitTypeName(TypeName node) {
-    throw StateError('Should not be invoked');
-  }
-
   @override
   void visitTypeParameter(TypeParameter node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');

@@ -968,13 +968,6 @@ abstract class AstFactory {
   /// Returns a newly created type literal.
   TypeLiteral typeLiteral({required NamedType typeName});
 
-  /// Returns a newly created type name. The [typeArguments] can be `null` if
-  /// there are no type arguments. The [question] can be `null` if there is no
-  /// question mark.
-  @Deprecated('Use namedType() instead')
-  TypeName typeName(Identifier name, TypeArgumentList? typeArguments,
-      {Token? question});
-
   /// Returns a newly created type parameter. Either or both of the [comment]
   /// and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute. The [extendsKeyword] and [bound] can be `null` if

@@ -779,7 +779,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       units.add(unitResult);
     }
 
-    return ParsedLibraryResultImpl(currentSession, path, file.uri, units);
+    return ParsedLibraryResultImpl(currentSession, units);
   }
 
   /// Return a [ParsedLibraryResult] for the library with the given [uri].
@@ -1547,8 +1547,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
       return ResolvedLibraryResultImpl(
         currentSession,
-        library.path,
-        library.uri,
         resolvedUnits.first.libraryElement,
         resolvedUnits,
       );
@@ -1579,7 +1577,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         file.uri,
         file.lineInfo,
         file.isPart,
-        library.transitiveSignature,
         element,
       );
     });

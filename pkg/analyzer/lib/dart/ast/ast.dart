@@ -592,9 +592,6 @@ abstract class AstVisitor<R> {
 
   R? visitTypeLiteral(TypeLiteral node);
 
-  @Deprecated('Override visitNamedType instead')
-  R? visitTypeName(TypeName node);
-
   R? visitTypeParameter(TypeParameter node);
 
   R? visitTypeParameterList(TypeParameterList node);
@@ -905,10 +902,6 @@ abstract class ClassTypeAlias implements TypeAlias {
 
   @override
   SimpleIdentifier get name;
-
-  /// Return the name of the superclass of the class being declared.
-  @Deprecated('Use superclass2 instead')
-  TypeName get superclass;
 
   /// Return the name of the superclass of the class being declared.
   NamedType get superclass2;
@@ -1337,10 +1330,6 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
   Token? get period;
 
   /// Return the name of the type defining the constructor.
-  @Deprecated('Use type2 instead')
-  TypeName get type;
-
-  /// Return the name of the type defining the constructor.
   NamedType get type2;
 }
 
@@ -1732,10 +1721,6 @@ abstract class ExpressionStatement implements Statement {
 abstract class ExtendsClause implements AstNode {
   /// Return the token representing the 'extends' keyword.
   Token get extendsKeyword;
-
-  /// Return the name of the class that is being extended.
-  @Deprecated('Use superclass2 instead')
-  TypeName get superclass;
 
   /// Return the name of the class that is being extended.
   NamedType get superclass2;
@@ -2635,10 +2620,6 @@ abstract class ImplementsClause implements AstNode {
   Token get implementsKeyword;
 
   /// Return the list of the interfaces that are being implemented.
-  @Deprecated('Use interfaces2 instead')
-  NodeList<TypeName> get interfaces;
-
-  /// Return the list of the interfaces that are being implemented.
   NodeList<NamedType> get interfaces2;
 }
 
@@ -3489,10 +3470,6 @@ abstract class NullShortableExpression implements Expression {
 abstract class OnClause implements AstNode {
   /// Return the token representing the 'on' keyword.
   Token get onKeyword;
-
-  /// Return the list of the classes are superclass constraints for the mixin.
-  @Deprecated('Use superclassConstraints2 instead')
-  NodeList<TypeName> get superclassConstraints;
 
   /// Return the list of the classes are superclass constraints for the mixin.
   NodeList<NamedType> get superclassConstraints2;
@@ -4376,20 +4353,7 @@ abstract class TypedLiteral implements Literal {
 abstract class TypeLiteral implements Expression, CommentReferableExpression {
   /// The type represented by this literal.
   NamedType get type;
-
-  /// The type represented by this literal.
-  @Deprecated('Use namedType instead')
-  TypeName get typeName;
 }
-
-/// The name of a type, which can optionally include type arguments.
-///
-///    typeName ::=
-///        [Identifier] typeArguments?
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use NamedType instead')
-abstract class TypeName implements NamedType {}
 
 /// A type parameter.
 ///
@@ -4590,10 +4554,6 @@ abstract class WhileStatement implements Statement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class WithClause implements AstNode {
-  /// Return the names of the mixins that were specified.
-  @Deprecated('Use mixinTypes2 instead')
-  NodeList<TypeName> get mixinTypes;
-
   /// Return the names of the mixins that were specified.
   NodeList<NamedType> get mixinTypes2;
 

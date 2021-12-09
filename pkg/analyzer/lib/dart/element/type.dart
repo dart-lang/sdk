@@ -22,7 +22,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
-import 'package:analyzer/src/dart/element/type.dart' show InterfaceTypeImpl;
 
 /// The type associated with elements in the element model.
 ///
@@ -32,16 +31,6 @@ abstract class DartType {
   /// the alias element, and the type arguments.
   /// Otherwise return `null`.
   InstantiatedTypeAliasElement? get alias;
-
-  /// If this type is an instantiation of a type alias, return the type
-  /// arguments used for the instantiation. Otherwise return `null`.
-  @Deprecated('Use alias instead')
-  List<DartType>? get aliasArguments;
-
-  /// If this type is an instantiation of a type alias, return it.
-  /// Otherwise return `null`.
-  @Deprecated('Use alias instead')
-  TypeAliasElement? get aliasElement;
 
   /// Return the name of this type as it should appear when presented to users
   /// in contexts such as error messages.
@@ -337,23 +326,6 @@ abstract class InterfaceType implements ParameterizedType {
   /// </blockquote>
   ConstructorElement? lookUpConstructor(String? name, LibraryElement library);
 
-  /// Return the element representing the getter that results from looking up
-  /// the getter with the given [name] in this class with respect to the given
-  /// [library], or `null` if the look up fails. The behavior of this method is
-  /// defined by the Dart Language Specification in section 12.15.1:
-  /// <blockquote>
-  /// The result of looking up getter (respectively setter) <i>m</i> in class
-  /// <i>C</i> with respect to library <i>L</i> is:
-  /// * If <i>C</i> declares an instance getter (respectively setter) named
-  ///   <i>m</i> that is accessible to <i>L</i>, then that getter (respectively
-  ///   setter) is the result of the lookup. Otherwise, if <i>C</i> has a
-  ///   superclass <i>S</i>, then the result of the lookup is the result of
-  ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
-  ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
-  /// </blockquote>
-  @Deprecated('Use lookupGetter2 instead')
-  PropertyAccessorElement? lookUpGetter(String name, LibraryElement library);
-
   /// Return the getter with the given [name].
   ///
   /// If [concrete] is `true`, then the concrete implementation is returned,
@@ -371,93 +343,6 @@ abstract class InterfaceType implements ParameterizedType {
     bool inherited = false,
     bool recoveryStatic = false,
   });
-
-  /// Return the element representing the getter that results from looking up
-  /// the getter with the given [name] in the superclass of this class with
-  /// respect to the given [library], or `null` if the look up fails. The
-  /// behavior of this method is defined by the Dart Language Specification in
-  /// section 12.15.1:
-  /// <blockquote>
-  /// The result of looking up getter (respectively setter) <i>m</i> in class
-  /// <i>C</i> with respect to library <i>L</i> is:
-  /// * If <i>C</i> declares an instance getter (respectively setter) named
-  ///   <i>m</i> that is accessible to <i>L</i>, then that getter (respectively
-  ///   setter) is the result of the lookup. Otherwise, if <i>C</i> has a
-  ///   superclass <i>S</i>, then the result of the lookup is the result of
-  ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
-  ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
-  /// </blockquote>
-  @Deprecated('Use lookupGetter2 instead')
-  PropertyAccessorElement? lookUpGetterInSuperclass(
-      String name, LibraryElement? library);
-
-  /// Look up the member with the given [name] in this type and all extended
-  /// and mixed in classes, and by default including [thisType]. If the search
-  /// fails, this will then search interfaces.
-  ///
-  /// Return the element representing the member that was found, or `null` if
-  /// there is no getter with the given name.
-  ///
-  /// The [library] determines if a private member name is visible, and does not
-  /// need to be supplied for public names.
-  @Deprecated('Use lookupGetter2 instead')
-  PropertyAccessorElement? lookUpInheritedGetter(String name,
-      {LibraryElement? library, bool thisType = true});
-
-  /// Look up the member with the given [name] in this type and all extended
-  /// and mixed in classes, starting from this type. If the search fails,
-  /// search interfaces.
-  ///
-  /// Return the element representing the member that was found, or `null` if
-  /// there is no getter with the given name.
-  ///
-  /// The [library] determines if a private member name is visible, and does not
-  /// need to be supplied for public names.
-  @Deprecated('Use lookupGetter2 and/or lookupMethod2 instead')
-  ExecutableElement? lookUpInheritedGetterOrMethod(String name,
-      {LibraryElement? library});
-
-  /// Look up the member with the given [name] in this type and all extended
-  /// and mixed in classes, and by default including [thisType]. If the search
-  /// fails, this will then search interfaces.
-  ///
-  /// Return the element representing the member that was found, or `null` if
-  /// there is no getter with the given name.
-  ///
-  /// The [library] determines if a private member name is visible, and does not
-  /// need to be supplied for public names.
-  @Deprecated('Use lookupMethod2 instead')
-  MethodElement? lookUpInheritedMethod(String name,
-      {LibraryElement? library, bool thisType = true});
-
-  /// Look up the member with the given [name] in this type and all extended
-  /// and mixed in classes, and by default including [thisType]. If the search
-  /// fails, this will then search interfaces.
-  ///
-  /// Return the element representing the member that was found, or `null` if
-  /// there is no getter with the given name.
-  ///
-  /// The [library] determines if a private member name is visible, and does not
-  /// need to be supplied for public names.
-  @Deprecated('Use lookupSetter2 instead')
-  PropertyAccessorElement? lookUpInheritedSetter(String name,
-      {LibraryElement? library, bool thisType = true});
-
-  /// Return the element representing the method that results from looking up
-  /// the method with the given [name] in this class with respect to the given
-  /// [library], or `null` if the look up fails. The behavior of this method is
-  /// defined by the Dart Language Specification in section 12.15.1:
-  /// <blockquote>
-  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
-  /// library <i>L</i> is:
-  /// * If <i>C</i> declares an instance method named <i>m</i> that is
-  ///   accessible to <i>L</i>, then that method is the result of the lookup.
-  ///   Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the
-  ///   lookup is the result of looking up method <i>m</i> in <i>S</i> with
-  ///   respect to <i>L</i> Otherwise, we say that the lookup has failed.
-  /// </blockquote>
-  @Deprecated('Use lookupMethod2 instead')
-  MethodElement? lookUpMethod(String name, LibraryElement library);
 
   /// Return the method with the given [name].
   ///
@@ -477,41 +362,6 @@ abstract class InterfaceType implements ParameterizedType {
     bool recoveryStatic = false,
   });
 
-  /// Return the element representing the method that results from looking up
-  /// the method with the given [name] in the superclass of this class with
-  /// respect to the given [library], or `null` if the look up fails. The
-  /// behavior of this method is defined by the Dart Language Specification in
-  /// section 12.15.1:
-  /// <blockquote>
-  /// The result of looking up method <i>m</i> in class <i>C</i> with respect to
-  /// library <i>L</i> is:
-  /// * If <i>C</i> declares an instance method named <i>m</i> that is
-  ///   accessible to <i>L</i>, then that method is the result of the lookup.
-  ///   Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the
-  /// * lookup is the result of looking up method <i>m</i> in <i>S</i> with
-  ///   respect to <i>L</i>.
-  /// * Otherwise, we say that the lookup has failed.
-  /// </blockquote>
-  @Deprecated('Use lookupMethod2 instead')
-  MethodElement? lookUpMethodInSuperclass(String name, LibraryElement library);
-
-  /// Return the element representing the setter that results from looking up
-  /// the setter with the given [name] in this class with respect to the given
-  /// [library], or `null` if the look up fails. The behavior of this method is
-  /// defined by the Dart Language Specification in section 12.16:
-  /// <blockquote>
-  /// The result of looking up getter (respectively setter) <i>m</i> in class
-  /// <i>C</i> with respect to library <i>L</i> is:
-  /// * If <i>C</i> declares an instance getter (respectively setter) named
-  ///   <i>m</i> that is accessible to <i>L</i>, then that getter (respectively
-  ///   setter) is the result of the lookup. Otherwise, if <i>C</i> has a
-  ///   superclass <i>S</i>, then the result of the lookup is the result of
-  ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
-  ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
-  /// </blockquote>
-  @Deprecated('Use lookupSetter2 instead')
-  PropertyAccessorElement? lookUpSetter(String name, LibraryElement library);
-
   /// Return the setter with the given [name].
   ///
   /// If [concrete] is `true`, then the concrete implementation is returned,
@@ -529,36 +379,6 @@ abstract class InterfaceType implements ParameterizedType {
     bool inherited = false,
     bool recoveryStatic = false,
   });
-
-  /// Return the element representing the setter that results from looking up
-  /// the setter with the given [name] in the superclass of this class with
-  /// respect to the given [library], or `null` if the look up fails. The
-  /// behavior of this method is defined by the Dart Language Specification in
-  /// section 12.16:
-  /// <blockquote>
-  /// The result of looking up getter (respectively setter) <i>m</i> in class
-  /// <i>C</i> with respect to library <i>L</i> is:
-  /// * If <i>C</i> declares an instance getter (respectively setter) named
-  ///   <i>m</i> that is accessible to <i>L</i>, then that getter (respectively
-  ///   setter) is the result of the lookup. Otherwise, if <i>C</i> has a
-  ///   superclass <i>S</i>, then the result of the lookup is the result of
-  ///   looking up getter (respectively setter) <i>m</i> in <i>S</i> with
-  ///   respect to <i>L</i>. Otherwise, we say that the lookup has failed.
-  /// </blockquote>
-  @Deprecated('Use lookupSetter2 instead')
-  PropertyAccessorElement? lookUpSetterInSuperclass(
-      String name, LibraryElement library);
-
-  /// Returns a "smart" version of the "least upper bound" of the given types.
-  ///
-  /// If these types have the same element and differ only in terms of the type
-  /// arguments, attempts to find a compatible set of type arguments.
-  ///
-  /// Otherwise, returns the same result as [DartType.getLeastUpperBound].
-  @Deprecated('Use TypeSystem.leastUpperBound instead')
-  static InterfaceType getSmartLeastUpperBound(
-          InterfaceType first, InterfaceType second) =>
-      InterfaceTypeImpl.getSmartLeastUpperBound(first, second);
 }
 
 /// The type `Never` represents the uninhabited bottom type.

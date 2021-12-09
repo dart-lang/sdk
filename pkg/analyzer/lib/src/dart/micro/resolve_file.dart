@@ -569,7 +569,7 @@ class FileResolver {
 
       var libraryUnit = resolvedUnits.first;
       var result = ResolvedLibraryResultImpl(contextObjects!.analysisSession,
-          path, libraryUnit.uri, libraryUnit.libraryElement, resolvedUnits);
+          libraryUnit.libraryElement, resolvedUnits);
 
       if (completionPath == null) {
         cachedResults[path] = result;

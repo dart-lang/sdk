@@ -1200,12 +1200,6 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(node.type, other.type);
   }
 
-  @Deprecated('Override visitNamedType instead')
-  @override
-  bool visitTypeName(TypeName node) {
-    throw StateError('Should not be invoked');
-  }
-
   @override
   bool visitTypeParameter(TypeParameter node) {
     TypeParameter other = _other as TypeParameter;
@@ -2928,11 +2922,6 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     }
     return visitNode(node);
-  }
-
-  @override
-  bool visitTypeName(covariant NamedTypeImpl node) {
-    throw StateError('Should not be invoked');
   }
 
   @override
