@@ -65,9 +65,9 @@ abstract class int extends num {
   /// If both operands are negative, the result is negative, otherwise
   /// the result is non-negative.
   /// ```dart
-  /// print((2 & 1).toRadixString(2)); //  0010 & 0001 -> 0000
-  /// print((3 & 1).toRadixString(2)); //  0011 & 0001 -> 0001
-  /// print((10 & 2).toRadixString(2)); //  1010 & 0010 -> 0010
+  /// print((2 & 1).toRadixString(2)); // 0010 & 0001 -> 0000
+  /// print((3 & 1).toRadixString(2)); // 0011 & 0001 -> 0001
+  /// print((10 & 2).toRadixString(2)); // 1010 & 0010 -> 0010
   /// ```
   int operator &(int other);
 
@@ -82,9 +82,9 @@ abstract class int extends num {
   ///
   /// Example:
   /// ```dart
-  /// print((2 | 1).toRadixString(2)); //  0010 | 0001 -> 0011
-  /// print((3 | 1).toRadixString(2)); //  0011 | 0001 -> 0011
-  /// print((10 | 2).toRadixString(2)); //  1010 | 0010 -> 1010
+  /// print((2 | 1).toRadixString(2)); // 0010 | 0001 -> 0011
+  /// print((3 | 1).toRadixString(2)); // 0011 | 0001 -> 0011
+  /// print((10 | 2).toRadixString(2)); // 1010 | 0010 -> 1010
   /// ```
   int operator |(int other);
 
@@ -126,10 +126,9 @@ abstract class int extends num {
   ///
   /// Example:
   /// ```dart
-  /// print((3 << 1).toRadixString(2)); // 0011 -> 0110 == 6
-  /// print(int.tryParse('0110', radix: 2)); // 6
+  /// print((3 << 1).toRadixString(2)); // 0011 -> 0110
+  /// print((9 << 2).toRadixString(2)); // 1001 -> 100100
   /// print((10 << 3).toRadixString(2)); // 1010 -> 01010000
-  /// print(int.tryParse('01010000', radix: 2)); // 80
   /// ```
   int operator <<(int shiftAmount);
 
@@ -145,10 +144,8 @@ abstract class int extends num {
   ///
   /// ```dart
   /// print((3 >> 1).toRadixString(2)); // 0011 -> 0001
-  /// print((3 >> 2).toRadixString(2)); // 0011 -> 0000
-  /// print(int.tryParse('0001', radix: 2)); // 1
-  /// print((10 >> 2).toRadixString(2)); // 1010 -> 0010
-  /// print(int.tryParse('0010', radix: 2)); // 2
+  /// print((9 >> 2).toRadixString(2)); // 1001 -> 0010
+  /// print((10 >> 3).toRadixString(2)); // 1010 -> 0001
   /// ```
   int operator >>(int shiftAmount);
 
@@ -163,10 +160,10 @@ abstract class int extends num {
   /// Example:
   ///
   /// ```dart
-  /// print((3 >>> 2).toRadixString(2)); // 0011 -> 0000
-  /// print((10 >>> 2).toRadixString(2)); // 1010 -> 0010
-  /// print((2021 >>> 1).toRadixString(2)); // 11111100101 -> 1111110010
-  /// print((2021 >>> 4).toRadixString(2)); // 11111100101 -> 1111110
+  /// print((3 >>> 1).toRadixString(2)); // 0011 -> 0001
+  /// print((9 >>> 2).toRadixString(2)); // 1001 -> 0010
+  /// print(((-9) >>> 2).toRadixString(2));
+  /// // 11111111111111111111111111111111111111111111111111111111111101
   /// ```
   int operator >>>(int shiftAmount);
 
