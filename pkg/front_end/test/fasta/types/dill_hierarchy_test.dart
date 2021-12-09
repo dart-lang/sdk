@@ -29,7 +29,7 @@ import "package:front_end/src/fasta/dill/dill_loader.dart" show DillLoader;
 
 import "package:front_end/src/fasta/dill/dill_target.dart" show DillTarget;
 
-import "package:front_end/src/fasta/kernel/class_hierarchy_builder.dart"
+import "package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart"
     show ClassHierarchyBuilder;
 
 import "package:front_end/src/fasta/ticker.dart" show Ticker;
@@ -38,65 +38,41 @@ const String expectedHierarchy = """
 Object:
   superclasses:
   interfaces:
-  classMembers:
-  classSetters:
 
 A:
   superclasses:
     Object
   interfaces:
-  classMembers:
-  classSetters:
 
 B:
   Longest path to Object: 2
   superclasses:
     Object
   interfaces: A
-  classMembers:
-  classSetters:
-  interfaceMembers:
-  interfaceSetters:
 
 C:
   Longest path to Object: 2
   superclasses:
     Object
   interfaces: A
-  classMembers:
-  classSetters:
-  interfaceMembers:
-  interfaceSetters:
 
 D:
   Longest path to Object: 3
   superclasses:
     Object
   interfaces: B<T>, A, C<U>
-  classMembers:
-  classSetters:
-  interfaceMembers:
-  interfaceSetters:
 
 E:
   Longest path to Object: 4
   superclasses:
     Object
   interfaces: D<int,double>, B<int>, A, C<double>
-  classMembers:
-  classSetters:
-  interfaceMembers:
-  interfaceSetters:
 
 F:
   Longest path to Object: 4
   superclasses:
     Object
   interfaces: D<int,bool>, B<int>, A, C<bool>
-  classMembers:
-  classSetters:
-  interfaceMembers:
-  interfaceSetters:
 """;
 
 void main() {

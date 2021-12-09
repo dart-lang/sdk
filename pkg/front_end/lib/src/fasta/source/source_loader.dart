@@ -63,7 +63,10 @@ import '../denylisted_classes.dart'
 import '../export.dart' show Export;
 import '../fasta_codes.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
-import '../kernel/class_hierarchy_builder.dart';
+import '../kernel/hierarchy/class_member.dart';
+import '../kernel/hierarchy/delayed.dart';
+import '../kernel/hierarchy/hierarchy_builder.dart';
+import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart'
     show SynthesizedFunctionNode, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
@@ -101,7 +104,9 @@ class SourceLoader extends Loader {
 
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
 
-  ClassHierarchyBuilder? _builderHierarchy;
+  ClassHierarchyBuilder? _hierarchyBuilder;
+
+  ClassMembersBuilder? _membersBuilder;
 
   ReferenceFromIndex? referenceFromIndex;
 
@@ -676,7 +681,9 @@ severity: $severity
 
   TypeInferenceEngineImpl get typeInferenceEngine => _typeInferenceEngine!;
 
-  ClassHierarchyBuilder get builderHierarchy => _builderHierarchy!;
+  ClassHierarchyBuilder get hierarchyBuilder => _hierarchyBuilder!;
+
+  ClassMembersBuilder get membersBuilder => _membersBuilder!;
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateSourceOutlineSummary;
@@ -1724,7 +1731,7 @@ severity: $severity
     for (LibraryBuilder libraryBuilder in libraryBuilders) {
       if (libraryBuilder.loader == this &&
           libraryBuilder is SourceLibraryBuilder) {
-        libraryBuilder.computeShowHideElements(_builderHierarchy!);
+        libraryBuilder.computeShowHideElements(membersBuilder);
       }
     }
     ticker.logMs("Computed show and hide elements");
@@ -1781,9 +1788,9 @@ severity: $severity
   }
 
   void checkOverrides(List<SourceClassBuilder> sourceClasses) {
-    List<DelayedCheck> overrideChecks = builderHierarchy.takeDelayedChecks();
+    List<DelayedCheck> overrideChecks = membersBuilder.takeDelayedChecks();
     for (int i = 0; i < overrideChecks.length; i++) {
-      overrideChecks[i].check(builderHierarchy);
+      overrideChecks[i].check(membersBuilder);
     }
     ticker.logMs("Checked ${overrideChecks.length} overrides");
 
@@ -1793,10 +1800,10 @@ severity: $severity
 
   void checkAbstractMembers(List<SourceClassBuilder> sourceClasses) {
     List<ClassMember> delayedMemberChecks =
-        builderHierarchy.takeDelayedMemberComputations();
+        membersBuilder.takeDelayedMemberComputations();
     Set<Class> changedClasses = new Set<Class>();
     for (int i = 0; i < delayedMemberChecks.length; i++) {
-      delayedMemberChecks[i].getMember(builderHierarchy);
+      delayedMemberChecks[i].getMember(membersBuilder);
       changedClasses.add(delayedMemberChecks[i].classBuilder.cls);
     }
     ticker.logMs(
@@ -1888,9 +1895,13 @@ severity: $severity
 
   void buildClassHierarchy(
       List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
-    _builderHierarchy = ClassHierarchyBuilder.build(
-        objectClass, sourceClasses, this, coreTypes);
-    typeInferenceEngine.hierarchyBuilder = builderHierarchy;
+    ClassHierarchyBuilder hierarchyBuilder = _hierarchyBuilder =
+        ClassHierarchyBuilder.build(
+            objectClass, sourceClasses, this, coreTypes);
+    ClassMembersBuilder membersBuilder = _membersBuilder =
+        ClassMembersBuilder.build(hierarchyBuilder, sourceClasses);
+    typeInferenceEngine.hierarchyBuilder = hierarchyBuilder;
+    typeInferenceEngine.membersBuilder = membersBuilder;
     ticker.logMs("Built class hierarchy");
   }
 
@@ -1904,7 +1915,7 @@ severity: $severity
     /// might be subject to type inference, and records dependencies between
     /// them.
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
-    builderHierarchy.computeTypes();
+    membersBuilder.computeTypes();
 
     List<FieldBuilder> allImplicitlyTypedFields = <FieldBuilder>[];
     for (LibraryBuilder library in libraryBuilders) {
@@ -2130,7 +2141,8 @@ severity: $severity
 
   void releaseAncillaryResources() {
     hierarchy = null;
-    _builderHierarchy = null;
+    _hierarchyBuilder = null;
+    _membersBuilder = null;
     _typeInferenceEngine = null;
     _builders.clear();
     libraries.clear();

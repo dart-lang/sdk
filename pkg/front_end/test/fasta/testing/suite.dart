@@ -66,11 +66,11 @@ import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
-import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
-    show ClassHierarchyNode;
-
-import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
+import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart'
     show ClassHierarchyBuilder;
+
+import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_node.dart'
+    show ClassHierarchyNode;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -2148,7 +2148,7 @@ class MatchHierarchy
     Uri uri =
         component.uriToSource.keys.firstWhere((uri) => uri.scheme == "file");
     KernelTarget target = result.sourceTarget;
-    ClassHierarchyBuilder hierarchy = target.loader.builderHierarchy;
+    ClassHierarchyBuilder hierarchy = target.loader.hierarchyBuilder;
     StringBuffer sb = new StringBuffer();
     for (ClassHierarchyNode node in hierarchy.nodes.values) {
       sb.writeln(node);

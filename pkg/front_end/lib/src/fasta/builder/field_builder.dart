@@ -16,7 +16,8 @@ import '../constant_context.dart' show ConstantContext;
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
-import '../kernel/class_hierarchy_builder.dart';
+import '../kernel/hierarchy/class_member.dart';
+import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/implicit_field_type.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
@@ -311,10 +312,10 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     _overrideDependencies!.addAll(overriddenMembers);
   }
 
-  void _ensureType(ClassHierarchyBuilder hierarchy) {
+  void _ensureType(ClassMembersBuilder membersBuilder) {
     if (_typeEnsured) return;
     if (_overrideDependencies != null) {
-      hierarchy.inferFieldType(this, _overrideDependencies!);
+      membersBuilder.inferFieldType(this, _overrideDependencies!);
       _overrideDependencies = null;
     } else {
       inferType();
@@ -765,8 +766,8 @@ class SourceFieldMember extends BuilderClassMember {
       : assert(forSetter != null);
 
   @override
-  void inferType(ClassHierarchyBuilder hierarchy) {
-    memberBuilder._ensureType(hierarchy);
+  void inferType(ClassMembersBuilder membersBuilder) {
+    memberBuilder._ensureType(membersBuilder);
   }
 
   @override
@@ -775,15 +776,16 @@ class SourceFieldMember extends BuilderClassMember {
   }
 
   @override
-  Member getMember(ClassHierarchyBuilder hierarchy) {
-    memberBuilder._ensureType(hierarchy);
+  Member getMember(ClassMembersBuilder membersBuilder) {
+    memberBuilder._ensureType(membersBuilder);
     return memberBuilder.field;
   }
 
   @override
-  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+  Covariance getCovariance(ClassMembersBuilder membersBuilder) {
     return _covariance ??= forSetter
-        ? new Covariance.fromMember(getMember(hierarchy), forSetter: forSetter)
+        ? new Covariance.fromMember(getMember(membersBuilder),
+            forSetter: forSetter)
         : const Covariance.empty();
   }
 
@@ -1433,20 +1435,20 @@ class _SynthesizedFieldClassMember implements ClassMember {
       : assert(isInternalImplementation != null);
 
   @override
-  Member getMember(ClassHierarchyBuilder hierarchy) {
-    fieldBuilder._ensureType(hierarchy);
+  Member getMember(ClassMembersBuilder membersBuilder) {
+    fieldBuilder._ensureType(membersBuilder);
     return _member;
   }
 
   @override
-  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
-    return _covariance ??=
-        new Covariance.fromMember(getMember(hierarchy), forSetter: forSetter);
+  Covariance getCovariance(ClassMembersBuilder membersBuilder) {
+    return _covariance ??= new Covariance.fromMember(getMember(membersBuilder),
+        forSetter: forSetter);
   }
 
   @override
-  void inferType(ClassHierarchyBuilder hierarchy) {
-    fieldBuilder._ensureType(hierarchy);
+  void inferType(ClassMembersBuilder membersBuilder) {
+    fieldBuilder._ensureType(membersBuilder);
   }
 
   @override

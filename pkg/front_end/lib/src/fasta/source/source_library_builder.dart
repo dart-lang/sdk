@@ -80,7 +80,7 @@ import '../identifiers.dart' show QualifiedName, flattenName;
 
 import '../import.dart' show Import;
 
-import '../kernel/class_hierarchy_builder.dart';
+import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
@@ -4294,7 +4294,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     checkUncheckedTypedefTypes(typeEnvironment);
   }
 
-  void computeShowHideElements(ClassHierarchyBuilder hierarchy) {
+  void computeShowHideElements(ClassMembersBuilder membersBuilder) {
     assert(currentTypeParameterScopeBuilder.kind ==
         TypeParameterScopeKind.library);
     for (SourceExtensionBuilder extensionBuilder
@@ -4306,8 +4306,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 new ExtensionTypeShowHideClause();
 
         // TODO(dmitryas): Handle private names.
-        List<Supertype> supertypes =
-            hierarchy.getNodeFromClass(onType.classNode).superclasses;
+        List<Supertype> supertypes = membersBuilder.hierarchyBuilder
+            .getNodeFromClass(onType.classNode)
+            .superclasses;
         Map<String, Supertype> supertypesByName = <String, Supertype>{};
         for (Supertype supertype in supertypes) {
           // TODO(dmitryas): Should only non-generic supertypes be allowed?
@@ -4317,7 +4318,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // Handling elements of the 'show' clause.
         for (String memberOrTypeName in extensionBuilder
             .extensionTypeShowHideClauseBuilder.shownMembersOrTypes) {
-          Member? getableMember = hierarchy.getInterfaceMember(
+          Member? getableMember = membersBuilder.getInterfaceMember(
               onType.classNode, new Name(memberOrTypeName));
           if (getableMember != null) {
             if (getableMember is Field) {
@@ -4330,7 +4331,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               getableMember.kind == ProcedureKind.Method) {
             showHideClause.shownMethods.add(getableMember.reference);
           }
-          Member? setableMember = hierarchy.getInterfaceMember(
+          Member? setableMember = membersBuilder.getInterfaceMember(
               onType.classNode, new Name(memberOrTypeName),
               setter: true);
           if (setableMember != null) {
@@ -4357,7 +4358,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
         for (String getterName in extensionBuilder
             .extensionTypeShowHideClauseBuilder.shownGetters) {
-          Member? member = hierarchy.getInterfaceMember(
+          Member? member = membersBuilder.getInterfaceMember(
               onType.classNode, new Name(getterName));
           if (member != null) {
             if (member is Field) {
@@ -4373,7 +4374,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
         for (String setterName in extensionBuilder
             .extensionTypeShowHideClauseBuilder.shownSetters) {
-          Member? member = hierarchy.getInterfaceMember(
+          Member? member = membersBuilder.getInterfaceMember(
               onType.classNode, new Name(setterName),
               setter: true);
           if (member != null) {
@@ -4394,7 +4395,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
         for (Operator operator in extensionBuilder
             .extensionTypeShowHideClauseBuilder.shownOperators) {
-          Member? member = hierarchy.getInterfaceMember(
+          Member? member = membersBuilder.getInterfaceMember(
               onType.classNode, new Name(operatorToString(operator)));
           if (member != null) {
             showHideClause.shownOperators.add(member.reference);
@@ -4409,7 +4410,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // Handling elements of the 'hide' clause.
         for (String memberOrTypeName in extensionBuilder
             .extensionTypeShowHideClauseBuilder.hiddenMembersOrTypes) {
-          Member? getableMember = hierarchy.getInterfaceMember(
+          Member? getableMember = membersBuilder.getInterfaceMember(
               onType.classNode, new Name(memberOrTypeName));
           if (getableMember != null) {
             if (getableMember is Field) {
@@ -4422,7 +4423,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               getableMember.kind == ProcedureKind.Method) {
             showHideClause.hiddenMethods.add(getableMember.reference);
           }
-          Member? setableMember = hierarchy.getInterfaceMember(
+          Member? setableMember = membersBuilder.getInterfaceMember(
               onType.classNode, new Name(memberOrTypeName),
               setter: true);
           if (setableMember != null) {
@@ -4450,7 +4451,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
         for (String getterName in extensionBuilder
             .extensionTypeShowHideClauseBuilder.hiddenGetters) {
-          Member? member = hierarchy.getInterfaceMember(
+          Member? member = membersBuilder.getInterfaceMember(
               onType.classNode, new Name(getterName));
           if (member != null) {
             if (member is Field) {
@@ -4466,7 +4467,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
         for (String setterName in extensionBuilder
             .extensionTypeShowHideClauseBuilder.hiddenSetters) {
-          Member? member = hierarchy.getInterfaceMember(
+          Member? member = membersBuilder.getInterfaceMember(
               onType.classNode, new Name(setterName),
               setter: true);
           if (member != null) {
@@ -4487,7 +4488,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
         for (Operator operator in extensionBuilder
             .extensionTypeShowHideClauseBuilder.hiddenOperators) {
-          Member? member = hierarchy.getInterfaceMember(
+          Member? member = membersBuilder.getInterfaceMember(
               onType.classNode, new Name(operatorToString(operator)));
           if (member != null) {
             showHideClause.hiddenOperators.add(member.reference);

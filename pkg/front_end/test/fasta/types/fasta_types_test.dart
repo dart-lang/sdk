@@ -29,7 +29,7 @@ import "package:front_end/src/fasta/dill/dill_loader.dart" show DillLoader;
 
 import "package:front_end/src/fasta/dill/dill_target.dart" show DillTarget;
 
-import "package:front_end/src/fasta/kernel/class_hierarchy_builder.dart"
+import "package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart"
     show ClassHierarchyBuilder;
 
 import "package:front_end/src/fasta/ticker.dart" show Ticker;

@@ -14,10 +14,10 @@ import '../constant_context.dart' show ConstantContext;
 import '../dill/dill_member_builder.dart';
 
 import '../kernel/body_builder.dart' show BodyBuilder;
-import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart'
     show ExpressionGeneratorHelper;
+import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/utils.dart'
     show isRedirectingGenerativeConstructorImplementation;
 import '../kernel/kernel_helper.dart' show SynthesizedFunctionNode;
