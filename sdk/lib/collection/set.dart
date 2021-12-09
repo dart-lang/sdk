@@ -400,6 +400,17 @@ class _UnmodifiableSet<E> extends _SetBase<E> with _UnmodifiableSetMixin<E> {
 ///
 /// Methods that could change the set, such as [add] and [remove],
 /// must not be called.
+///
+/// ```dart
+/// final baseSet = <String>{'Mars', 'Mercury', 'Earth', 'Venus'};
+/// final unmodifiableSetView = UnmodifiableSetView(baseSet);
+///
+/// // Remove an element from the original set.
+/// baseSet.remove('Venus');
+/// print(unmodifiableSetView); // {Mars, Mercury, Earth}
+///
+/// unmodifiableSetView.remove('Earth'); // Throws.
+/// ```
 @Since("2.12")
 class UnmodifiableSetView<E> extends SetBase<E> with _UnmodifiableSetMixin<E> {
   final Set<E> _source;
