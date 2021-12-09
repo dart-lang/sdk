@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -18,6 +19,8 @@ void main() {
 
 @reflectiveTest
 class SortMembersTest extends AbstractSingleUnitTest {
+  LineInfo? lineInfo;
+
   Future<void> test_classMembers_accessor() async {
     await _parseTestUnit(r'''
 class A {
@@ -304,6 +307,34 @@ class A {
   static nnn() {}
   /// static method private
   static _nnn() {}
+}
+''');
+  }
+
+  Future<void> test_classMembers_trailingComments() async {
+    await _parseTestUnit(r'''
+class A { // classA
+  // instanceA
+  int instanceA; // instanceA
+  // A()
+  A(); // A()
+  // staticA
+  static int staticA; // staticA
+  // static_b
+  static int static_b; // static_b
+}
+''');
+    // validate change
+    _assertSort(r'''
+class A { // classA
+  // staticA
+  static int staticA; // staticA
+  // static_b
+  static int static_b; // static_b
+  // instanceA
+  int instanceA; // instanceA
+  // A()
+  A(); // A()
 }
 ''');
   }
@@ -916,8 +947,40 @@ int c;
 ''');
   }
 
+  Future<void> test_unitMembers_trailingComments() async {
+    await _parseTestUnit(r'''
+// Header
+class B {} // B
+// A
+class A {} // A
+// C
+class C {} // C
+// b
+var b; // b
+// a
+var a; // a
+// c
+var c; // c
+''');
+    // validate change
+    _assertSort(r'''
+// Header
+// a
+var a; // a
+// b
+var b; // b
+// c
+var c; // c
+// A
+class A {} // A
+class B {} // B
+// C
+class C {} // C
+''');
+  }
+
   void _assertSort(String expectedCode) {
-    var sorter = MemberSorter(testCode, testUnit);
+    var sorter = MemberSorter(testCode, testUnit, lineInfo!);
     var edits = sorter.sort();
     var result = SourceEdit.applySequence(testCode, edits);
     expect(result, expectedCode);
@@ -926,6 +989,7 @@ int c;
   Future<void> _parseTestUnit(String code) async {
     addTestSource(code);
     var result = session.getParsedUnit(testFile) as ParsedUnitResult;
+    lineInfo = result.lineInfo;
     testUnit = result.unit;
   }
 }
