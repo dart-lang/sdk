@@ -49,7 +49,13 @@ in 2018, as it doesn't work with any Dart 2.x release.
 
 #### Linter
 
-Updated the Linter to `1.15.0`, which includes changes that
+Updated the Linter to `1.16.0`, which includes changes that
+- improves docs for `prefer_initializing_formals`.
+- updates `secure_pubspec_urls` to check `issue_tracker` and
+  `repository` entries.
+- adds new lint: `conditional_uri_does_not_exist`.
+- improves performance for
+  `missing_whitespace_between_adjacent_strings`.
 - adds new lint: `avoid_final_parameters`.
 - adds new lint: `no_leading_underscores_for_library_prefixes`.
 - adds new lint: `no_leading_underscores_for_local_identifiers`.
