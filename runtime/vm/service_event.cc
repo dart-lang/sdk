@@ -54,14 +54,14 @@ ServiceEvent::ServiceEvent(IsolateGroup* isolate_group,
   // over the service.
   ASSERT(isolate_ != Dart::vm_isolate());
 
-  // System isolates should never post service events. However, the Isolate
+  // VM internal isolates should never post service events. However, the Isolate
   // service object uses a service event to represent the current running state
   // of the isolate, so we need to allow for system isolates to create resume
   // and none events for this purpose. The resume event represents a running
   // isolate and the none event is returned for an isolate that has not yet
   // been marked as runnable (see "pauseEvent" in Isolate::PrintJSON).
-  ASSERT(isolate == NULL || !Isolate::IsSystemIsolate(isolate) ||
-         (Isolate::IsSystemIsolate(isolate) &&
+  ASSERT(isolate == NULL || !Isolate::IsVMInternalIsolate(isolate) ||
+         (Isolate::IsVMInternalIsolate(isolate) &&
           (event_kind == ServiceEvent::kResume ||
            event_kind == ServiceEvent::kNone ||
            // VM service can print Observatory information to Stdout or Stderr

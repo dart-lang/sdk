@@ -1188,7 +1188,7 @@ abstract class Uri {
     //  - The last two parts may be replaced by an IPv4 "dotted-quad" address.
 
     // Helper function for reporting a badly formatted IPv6 address.
-    void error(String msg, [position]) {
+    void error(String msg, int? position) {
       throw FormatException('Illegal IPv6 address, $msg', host, position);
     }
 
@@ -1204,7 +1204,7 @@ abstract class Uri {
       return value;
     }
 
-    if (host.length < 2) error('address is too short');
+    if (host.length < 2) error('address is too short', null);
     List<int> parts = [];
     bool wildcardSeen = false;
     // Set if seeing a ".", suggesting that there is an IPv4 address.
@@ -1238,7 +1238,7 @@ abstract class Uri {
         seenDot = true;
       }
     }
-    if (parts.length == 0) error('too few parts');
+    if (parts.length == 0) error('too few parts', null);
     bool atEnd = (partStart == end);
     bool isLastWildcard = (parts.last == -1);
     if (atEnd && !isLastWildcard) {
@@ -1255,10 +1255,10 @@ abstract class Uri {
     }
     if (wildcardSeen) {
       if (parts.length > 7) {
-        error('an address with a wildcard must have less than 7 parts');
+        error('an address with a wildcard must have less than 7 parts', null);
       }
     } else if (parts.length != 8) {
-      error('an address without a wildcard must contain exactly 8 parts');
+      error('an address without a wildcard must contain exactly 8 parts', null);
     }
     List<int> bytes = Uint8List(16);
     for (int i = 0, index = 0; i < parts.length; i++) {

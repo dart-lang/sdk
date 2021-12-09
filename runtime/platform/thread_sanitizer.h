@@ -21,4 +21,16 @@ extern "C" void __tsan_release(void* addr);
 #define NO_SANITIZE_THREAD
 #endif
 
+#if defined(USING_THREAD_SANITIZER)
+#define DO_IF_TSAN(CODE) CODE
+#else
+#define DO_IF_TSAN(CODE)
+#endif
+
+#if defined(USING_THREAD_SANITIZER)
+#define DO_IF_NOT_TSAN(CODE)
+#else
+#define DO_IF_NOT_TSAN(CODE) CODE
+#endif
+
 #endif  // RUNTIME_PLATFORM_THREAD_SANITIZER_H_

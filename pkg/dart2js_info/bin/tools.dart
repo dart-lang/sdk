@@ -5,6 +5,7 @@
 import 'package:args/command_runner.dart';
 
 import 'src/code_deps.dart';
+import 'src/common_command.dart';
 import 'src/coverage_log_server.dart';
 import 'src/debug_info.dart';
 import 'src/diff.dart';
@@ -23,6 +24,7 @@ void main(args) {
   var commandRunner = CommandRunner("dart2js_info",
       "collection of tools to digest the output of dart2js's --dump-info")
     ..addCommand(CodeDepsCommand())
+    ..addCommand(CommonCommand())
     ..addCommand(CoverageLogServerCommand())
     ..addCommand(DebugCommand())
     ..addCommand(DiffCommand())

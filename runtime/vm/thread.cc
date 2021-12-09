@@ -48,6 +48,8 @@ Thread::~Thread() {
     delete api_reusable_scope_;
     api_reusable_scope_ = NULL;
   }
+
+  DO_IF_TSAN(delete tsan_utils_);
 }
 
 #if defined(DEBUG)
@@ -86,6 +88,7 @@ Thread::Thread(bool is_vm_isolate)
       api_top_scope_(NULL),
       double_truncate_round_supported_(
           TargetCPUFeatures::double_truncate_round_supported() ? 1 : 0),
+      tsan_utils_(DO_IF_TSAN(new TsanUtils()) DO_IF_NOT_TSAN(nullptr)),
       task_kind_(kUnknownTask),
       dart_stream_(NULL),
       thread_lock_(),

@@ -19,7 +19,9 @@
 // in compiler::target namespace.
 
 #include "platform/globals.h"
+#include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
+
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/bss_relocs.h"
@@ -1059,6 +1061,15 @@ class MonomorphicSmiableCall : public AllStatic {
   FINAL_CLASS();
 };
 
+class TsanUtils : public AllStatic {
+ public:
+  static word setjmp_function_offset();
+  static word setjmp_buffer_offset();
+  static word exception_pc_offset();
+  static word exception_sp_offset();
+  static word exception_fp_offset();
+};
+
 class Thread : public AllStatic {
  public:
   static word api_top_scope_offset();
@@ -1122,6 +1133,8 @@ class Thread : public AllStatic {
 
   static word callback_code_offset();
   static word callback_stack_return_offset();
+  static word tsan_utils_offset();
+  static word jump_to_frame_entry_point_offset();
 
   static word AllocateArray_entry_point_offset();
   static word write_barrier_code_offset();

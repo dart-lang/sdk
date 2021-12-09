@@ -33,7 +33,7 @@ class DateTime {
   static const _MONTH_INDEX = 7;
   static const _YEAR_INDEX = 8;
 
-  List? __parts;
+  List<int>? __parts;
 
   @patch
   DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
@@ -191,7 +191,7 @@ class DateTime {
     return list;
   }
 
-  get _parts {
+  List<int> get _parts {
     return __parts ??= _computeUpperPart(_localDateInUtcMicros);
   }
 
@@ -282,7 +282,7 @@ class DateTime {
         _flooredDivision(year - 1601, 400);
   }
 
-  static bool _isLeapYear(y) {
+  static bool _isLeapYear(int y) {
     // (y % 16 == 0) matches multiples of 400, and is faster than % 400.
     return (y % 4 == 0) && ((y % 16 == 0) || (y % 100 != 0));
   }

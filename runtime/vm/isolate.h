@@ -1401,6 +1401,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   static bool IsSystemIsolate(const Isolate* isolate) {
     return IsolateGroup::IsSystemIsolateGroup(isolate->group());
   }
+  static bool IsVMInternalIsolate(const Isolate* isolate);
 
   HandlerInfoCache* handler_info_cache() { return &handler_info_cache_; }
 

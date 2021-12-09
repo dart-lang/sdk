@@ -286,6 +286,13 @@
   FIELD(Thread, heap_base_offset)                                              \
   FIELD(Thread, callback_code_offset)                                          \
   FIELD(Thread, callback_stack_return_offset)                                  \
+  FIELD(Thread, jump_to_frame_entry_point_offset)                              \
+  FIELD(Thread, tsan_utils_offset)                                             \
+  FIELD(TsanUtils, setjmp_function_offset)                                     \
+  FIELD(TsanUtils, setjmp_buffer_offset)                                       \
+  FIELD(TsanUtils, exception_pc_offset)                                        \
+  FIELD(TsanUtils, exception_sp_offset)                                        \
+  FIELD(TsanUtils, exception_fp_offset)                                        \
   FIELD(TimelineStream, enabled_offset)                                        \
   FIELD(TwoByteString, data_offset)                                            \
   FIELD(Type, arguments_offset)                                                \
