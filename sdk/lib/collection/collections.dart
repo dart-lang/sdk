@@ -13,7 +13,7 @@ part of dart.collection;
 /// final numbers = <int>[10, 20, 30];
 /// final unmodifiableListView = UnmodifiableListView(numbers);
 ///
-/// // Insert an new element to the original list.
+/// // Insert new elements into the original list.
 /// numbers.addAll([40, 50]);
 /// print(unmodifiableListView); // [10, 20, 30, 40, 50]
 ///
