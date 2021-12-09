@@ -59,7 +59,7 @@ part of dart.core;
 /// ```dart
 /// const string = 'Dart';
 /// final firstCodeUnit = string.codeUnitAt(0);
-/// print(firstCodeUnit); // 68
+/// print(firstCodeUnit); // 68, aka U+0044, the code point for 'D'.
 /// final allCodeUnits = string.codeUnits;
 /// print(allCodeUnits); // [68, 97, 114, 116]
 /// ```
@@ -245,12 +245,12 @@ abstract class String implements Comparable<String>, Pattern {
   /// Ordering does not check for Unicode equivalence.
   /// The comparison is case sensitive.
   /// ```dart
-  /// var isEqual = 'Dart'.compareTo('Go');
-  /// print(isEqual); // < 0
-  /// isEqual = 'Go'.compareTo('Forward');
-  /// print(isEqual); // > 0
-  /// isEqual = 'Forward'.compareTo('Forward');
-  /// print(isEqual); // 0
+  /// var relation = 'Dart'.compareTo('Go');
+  /// print(relation); // < 0
+  /// relation = 'Go'.compareTo('Forward');
+  /// print(relation); // > 0
+  /// relation = 'Forward'.compareTo('Forward');
+  /// print(relation); // 0
   /// ```
   int compareTo(String other);
 
