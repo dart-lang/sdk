@@ -5,7 +5,8 @@
 library fasta.source_class_builder;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, ClassHierarchyMembers;
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/legacy_erasure.dart';
@@ -1002,8 +1003,13 @@ class SourceClassBuilder extends ClassBuilderImpl
     return count;
   }
 
-  void checkOverride(Types types, Member declaredMember, Member interfaceMember,
-      bool isSetter, callback(Member interfaceMember, bool isSetter),
+  void checkOverride(
+      Types types,
+      ClassHierarchyMembers memberHierarchy,
+      Member declaredMember,
+      Member interfaceMember,
+      bool isSetter,
+      callback(Member interfaceMember, bool isSetter),
       {required bool isInterfaceCheck,
       required bool declaredNeedsLegacyErasure}) {
     // ignore: unnecessary_null_comparison
@@ -1031,7 +1037,8 @@ class SourceClassBuilder extends ClassBuilderImpl
               isInterfaceCheck,
               declaredNeedsLegacyErasure);
           if (seenCovariant) {
-            handleSeenCovariant(types, interfaceMember, isSetter, callback);
+            handleSeenCovariant(
+                memberHierarchy, interfaceMember, isSetter, callback);
           }
         } else if (declaredMember.kind == ProcedureKind.Getter) {
           checkGetterOverride(
@@ -1050,7 +1057,8 @@ class SourceClassBuilder extends ClassBuilderImpl
               isInterfaceCheck,
               declaredNeedsLegacyErasure);
           if (seenCovariant) {
-            handleSeenCovariant(types, interfaceMember, isSetter, callback);
+            handleSeenCovariant(
+                memberHierarchy, interfaceMember, isSetter, callback);
           }
         } else {
           assert(
@@ -1090,7 +1098,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             isInterfaceCheck,
             declaredNeedsLegacyErasure);
         if (seenCovariant) {
-          handleSeenCovariant(types, interfaceMember, isSetter, callback);
+          handleSeenCovariant(
+              memberHierarchy, interfaceMember, isSetter, callback);
         }
       }
     }

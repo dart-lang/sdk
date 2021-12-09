@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -104,7 +105,7 @@ main() { int x =
 ''');
     return waitForTasksFinished().then((_) {
       var request = EditFormatParams(testFile, 0, 3).toRequest('0');
-      var response = handler.handleRequest(request);
+      var response = handler.handleRequest(request, NotCancelableToken());
       expect(response, isResponseFailure('0'));
     });
   }

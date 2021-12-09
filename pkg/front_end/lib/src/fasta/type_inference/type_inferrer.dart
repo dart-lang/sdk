@@ -35,7 +35,7 @@ import '../builder/member_builder.dart';
 
 import '../fasta_codes.dart';
 
-import '../kernel/class_hierarchy_builder.dart' show ClassMember;
+import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/inference_visitor.dart';
@@ -4250,7 +4250,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
   Member? _getInterfaceMember(
       Class class_, Name name, bool setter, int charOffset) {
-    ClassMember? classMember = engine.hierarchyBuilder
+    ClassMember? classMember = engine.membersBuilder
         .getInterfaceClassMember(class_, name, setter: setter);
     if (classMember != null) {
       if (classMember.isStatic) {
@@ -4266,7 +4266,7 @@ class TypeInferrerImpl implements TypeInferrer {
         classMember = null;
       }
     }
-    Member? member = classMember?.getMember(engine.hierarchyBuilder);
+    Member? member = classMember?.getMember(engine.membersBuilder);
     if (member == null && library.isPatch) {
       // TODO(johnniwinther): Injected members are currently not included
       // in the class hierarchy builder.

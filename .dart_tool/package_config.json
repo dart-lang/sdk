@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-11-15T17:34:02.415038",
+  "generated": "2021-12-09T13:52:42.287379",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -760,7 +760,7 @@
       "name": "vm",
       "rootUri": "../pkg/vm",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.15"
     },
     {
       "name": "vm_service",

@@ -122,7 +122,7 @@ import 'util/textual_outline.dart' show textualOutline;
 
 import 'hybrid_file_system.dart' show HybridFileSystem;
 
-import 'kernel/class_hierarchy_builder.dart' show ClassHierarchyBuilder;
+import 'kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 
 import 'kernel/internal_ast.dart' show VariableDeclarationImpl;
 
@@ -527,7 +527,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
     nextGoodKernelTarget.loader.buildersCreatedWithReferences.clear();
-    nextGoodKernelTarget.loader.builderHierarchy.clear();
+    nextGoodKernelTarget.loader.hierarchyBuilder.clear();
     nextGoodKernelTarget.loader.referenceFromIndex = null;
     convertedLibraries = null;
     experimentalInvalidation = null;
@@ -703,7 +703,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     updateNeededDillLibrariesWithHierarchy(
-        neededDillLibraries, hierarchy, target.loader.builderHierarchy);
+        neededDillLibraries, hierarchy, target.loader.hierarchyBuilder);
 
     return neededDillLibraries;
   }

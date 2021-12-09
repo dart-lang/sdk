@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:telemetry/telemetry.dart';
 
 /// Instances of the class [AnalyticsDomainHandler] implement a [RequestHandler]
@@ -34,7 +35,8 @@ class AnalyticsDomainHandler implements RequestHandler {
   }
 
   @override
-  Response? handleRequest(Request request) {
+  Response? handleRequest(
+      Request request, CancellationToken cancellationToken) {
     var requestName = request.method;
 
     if (requestName == ANALYTICS_REQUEST_IS_ENABLED) {

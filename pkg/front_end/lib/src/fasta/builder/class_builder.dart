@@ -23,7 +23,8 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         getAsTypeArguments;
 
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, ClassHierarchyMembers;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -35,8 +36,6 @@ import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
 import 'package:kernel/src/legacy_erasure.dart';
-
-import 'package:kernel/src/types.dart' show Types;
 
 import '../dill/dill_member_builder.dart';
 
@@ -178,7 +177,10 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   void checkSupertypes(CoreTypes coreTypes);
 
-  void handleSeenCovariant(Types types, Member interfaceMember, bool isSetter,
+  void handleSeenCovariant(
+      ClassHierarchyMembers memberHierarchy,
+      Member interfaceMember,
+      bool isSetter,
       callback(Member interfaceMember, bool isSetter));
 
   bool hasUserDefinedNoSuchMethod(
@@ -767,12 +769,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  void handleSeenCovariant(Types types, Member interfaceMember, bool isSetter,
+  void handleSeenCovariant(
+      ClassHierarchyMembers memberHierarchy,
+      Member interfaceMember,
+      bool isSetter,
       callback(Member interfaceMember, bool isSetter)) {
     // When a parameter is covariant we have to check that we also
     // override the same member in all parents.
     for (Supertype supertype in interfaceMember.enclosingClass!.supers) {
-      Member? member = types.hierarchy.getInterfaceMember(
+      Member? member = memberHierarchy.getInterfaceMember(
           supertype.classNode, interfaceMember.name,
           setter: isSetter);
       if (member != null) {

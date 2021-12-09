@@ -5,7 +5,8 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 
-import '../kernel/class_hierarchy_builder.dart';
+import '../kernel/hierarchy/class_member.dart';
+import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/member_covariance.dart';
 
 import '../source/name_scheme.dart';
@@ -197,15 +198,15 @@ class SourceProcedureBuilder extends FunctionBuilderImpl
     _overrideDependencies!.addAll(overriddenMembers);
   }
 
-  void _ensureTypes(ClassHierarchyBuilder hierarchy) {
+  void _ensureTypes(ClassMembersBuilder membersBuilder) {
     if (_typeEnsured) return;
     if (_overrideDependencies != null) {
       if (isGetter) {
-        hierarchy.inferGetterType(this, _overrideDependencies!);
+        membersBuilder.inferGetterType(this, _overrideDependencies!);
       } else if (isSetter) {
-        hierarchy.inferSetterType(this, _overrideDependencies!);
+        membersBuilder.inferSetterType(this, _overrideDependencies!);
       } else {
-        hierarchy.inferMethodType(this, _overrideDependencies!);
+        membersBuilder.inferMethodType(this, _overrideDependencies!);
       }
       _overrideDependencies = null;
     }
@@ -527,8 +528,8 @@ class SourceProcedureMember extends BuilderClassMember {
   bool get isSourceDeclaration => true;
 
   @override
-  void inferType(ClassHierarchyBuilder hierarchy) {
-    memberBuilder._ensureTypes(hierarchy);
+  void inferType(ClassMembersBuilder membersBuilder) {
+    memberBuilder._ensureTypes(membersBuilder);
   }
 
   @override
@@ -537,15 +538,15 @@ class SourceProcedureMember extends BuilderClassMember {
   }
 
   @override
-  Member getMember(ClassHierarchyBuilder hierarchy) {
-    memberBuilder._ensureTypes(hierarchy);
+  Member getMember(ClassMembersBuilder membersBuilder) {
+    memberBuilder._ensureTypes(membersBuilder);
     return memberBuilder.member;
   }
 
   @override
-  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
-    return _covariance ??=
-        new Covariance.fromMember(getMember(hierarchy), forSetter: forSetter);
+  Covariance getCovariance(ClassMembersBuilder membersBuilder) {
+    return _covariance ??= new Covariance.fromMember(getMember(membersBuilder),
+        forSetter: forSetter);
   }
 
   @override

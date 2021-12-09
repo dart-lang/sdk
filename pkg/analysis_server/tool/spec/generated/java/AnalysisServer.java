@@ -981,6 +981,20 @@ public interface AnalysisServer {
   public void search_getTypeHierarchy(String file, int offset, boolean superOnly, GetTypeHierarchyConsumer consumer);
 
   /**
+   * {@code server.cancelRequest}
+   *
+   * Requests cancellation of a request sent by the client by id. This is provided on a best-effort
+   * basis and there is no guarantee the server will be able to cancel any specific request. The
+   * server will still always produce a response to the request even in the case of cancellation, but
+   * clients should discard any results of any cancelled request because they may be incomplete or
+   * inaccurate. This request always completes without error regardless of whether the request is
+   * successfully cancelled.
+   *
+   * @param id The id of the request that should be cancelled.
+   */
+  public void server_cancelRequest(String id);
+
+  /**
    * {@code server.getVersion}
    *
    * Return the version number of the analysis server.

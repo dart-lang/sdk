@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -38,7 +39,7 @@ void main() {
   group('ServerDomainHandler', () {
     test('getVersion', () {
       var request = ServerGetVersionParams().toRequest('0');
-      var response = handler.handleRequest(request)!;
+      var response = handler.handleRequest(request, NotCancelableToken())!;
       expect(
           response.toJson(),
           equals({
@@ -52,7 +53,7 @@ void main() {
         var request = Request('0', SERVER_REQUEST_SET_SUBSCRIPTIONS, {
           SUBSCRIPTIONS: ['noSuchService']
         });
-        var response = handler.handleRequest(request);
+        var response = handler.handleRequest(request, NotCancelableToken());
         expect(response, isResponseFailure('0'));
       });
 
@@ -61,7 +62,7 @@ void main() {
         // send request
         var request =
             ServerSetSubscriptionsParams([ServerService.STATUS]).toRequest('0');
-        var response = handler.handleRequest(request);
+        var response = handler.handleRequest(request, NotCancelableToken());
         expect(response, isResponseSuccess('0'));
         // set of services has been changed
         expect(server.serverServices, contains(ServerService.STATUS));

@@ -31,7 +31,7 @@ void main(List<String> arguments) {
     } else if (arg == '--write-js') {
       writeJs = true;
     } else {
-      int index = int.parse(arg, onError: (_) => null);
+      int index = int.tryParse(arg);
       if (index != null) {
         indices ??= <int>[];
         if (index < 0 || index >= TESTS.length * 2) {

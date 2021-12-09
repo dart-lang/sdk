@@ -38,17 +38,6 @@ abstract class ClassHierarchyBase {
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass);
 
-  /// Returns the possibly abstract interface member of [class_] with the given
-  /// [name].
-  ///
-  /// If [setter] is `false`, only fields, methods, and getters with that name
-  /// will be found.  If [setter] is `true`, only non-final fields and setters
-  /// will be found.
-  ///
-  /// If multiple members with that name are inherited and not overridden, the
-  /// member from the first declared supertype is returned.
-  Member? getInterfaceMember(Class class_, Name name, {bool setter: false});
-
   /// Returns the least upper bound of two interface types, as defined by Dart
   /// 1.0.
   ///
@@ -68,8 +57,22 @@ abstract class ClassHierarchyBase {
       InterfaceType type1, InterfaceType type2, Library clientLibrary);
 }
 
+abstract class ClassHierarchyMembers {
+  /// Returns the possibly abstract interface member of [class_] with the given
+  /// [name].
+  ///
+  /// If [setter] is `false`, only fields, methods, and getters with that name
+  /// will be found.  If [setter] is `true`, only non-final fields and setters
+  /// will be found.
+  ///
+  /// If multiple members with that name are inherited and not overridden, the
+  /// member from the first declared supertype is returned.
+  Member? getInterfaceMember(Class class_, Name name, {bool setter: false});
+}
+
 /// Interface for answering various subclassing queries.
-abstract class ClassHierarchy implements ClassHierarchyBase {
+abstract class ClassHierarchy
+    implements ClassHierarchyBase, ClassHierarchyMembers {
   factory ClassHierarchy(Component component, CoreTypes coreTypes,
       {HandleAmbiguousSupertypes? onAmbiguousSupertypes,
       MixinInferrer? mixinInferrer}) {

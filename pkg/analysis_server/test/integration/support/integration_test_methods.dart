@@ -64,6 +64,26 @@ abstract class IntegrationTestMixin {
     return null;
   }
 
+  /// Requests cancellation of a request sent by the client by id. This is
+  /// provided on a best-effort basis and there is no guarantee the server will
+  /// be able to cancel any specific request. The server will still always
+  /// produce a response to the request even in the case of cancellation, but
+  /// clients should discard any results of any cancelled request because they
+  /// may be incomplete or inaccurate. This request always completes without
+  /// error regardless of whether the request is successfully cancelled.
+  ///
+  /// Parameters
+  ///
+  /// id: String
+  ///
+  ///   The id of the request that should be cancelled.
+  Future sendServerCancelRequest(String id) async {
+    var params = ServerCancelRequestParams(id).toJson();
+    var result = await server.send('server.cancelRequest', params);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
   /// Reports that the server is running. This notification is issued once
   /// after the server has started running but before any requests are
   /// processed to let the client know that it started correctly.
