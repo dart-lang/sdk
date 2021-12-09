@@ -31,7 +31,7 @@ part of dart.core;
 /// Properties can access that single number in different ways.
 /// For example the [inMinutes] gives the number of whole minutes
 /// in the total duration, which includes the minutes that were provided
-/// as "hours" to the constructor, and can be larger then 59.
+/// as "hours" to the constructor, and can be larger than 59.
 ///
 /// ```dart
 /// const fastestMarathon = Duration(hours: 2, minutes: 3, seconds: 2);
