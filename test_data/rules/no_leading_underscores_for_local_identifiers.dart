@@ -9,6 +9,8 @@ const _foo1 = 1; // OK
 final _foo2 = 2; // OK
 
 void fn() {
+  try {
+  } catch(_) { } // OK
   var _f1, // LINT
       _f2; // LINT
   const _foo1 = 1; // LINT

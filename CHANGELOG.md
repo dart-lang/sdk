@@ -1,3 +1,8 @@
+# <next>
+
+- fix to `no_leading_underscores_for_local_identifiers` to allow
+  underscores in catch clauses
+
 # 1.16.0
 
 - doc improvements for `prefer_initializing_formals`
