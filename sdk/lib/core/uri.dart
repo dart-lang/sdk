@@ -36,10 +36,10 @@ const String _hexDigits = "0123456789ABCDEF";
 /// print(httpsUri); // https://dart.dev/guides/libraries/library-tour#numbers
 ///
 /// httpsUri = Uri(
-///    scheme: 'https',
-///    host: 'example.com',
-///    path: '/page/',
-///    queryParameters: {'search': 'blue', 'limit': '10'});
+///     scheme: 'https',
+///     host: 'example.com',
+///     path: '/page/',
+///     queryParameters: {'search': 'blue', 'limit': '10'});
 /// print(httpsUri); // https://example.com/page/?search=blue&limit=10
 ///
 /// final mailtoUri = Uri(
