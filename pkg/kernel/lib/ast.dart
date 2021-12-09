@@ -11888,7 +11888,9 @@ class TypeParameterType extends DartType {
       v.visitTypeParameterType(this, arg);
 
   @override
-  void visitChildren(Visitor v) {}
+  void visitChildren(Visitor v) {
+    promotedBound?.accept(v);
+  }
 
   @override
   bool operator ==(Object other) => equals(other, null);
