@@ -8,6 +8,13 @@ part of dart.core;
 ///
 /// It is a compile-time error for any type other than [int] or [double]
 /// to attempt to extend or implement `num`.
+///
+/// **See also:**
+/// * [int] an integer number.
+/// * [double] a double-precision floating point number.
+/// * [Numbers](https://dart.dev/guides/language/numbers)  in
+/// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
+
 abstract class num implements Comparable<num> {
   /// Test whether this value is numerically equal to `other`.
   ///
@@ -184,6 +191,13 @@ abstract class num implements Comparable<num> {
   /// The result is an [int], as described by [int.remainder],
   /// if both this number and [other] is an integer,
   /// otherwise the result is a [double].
+  ///
+  /// Example:
+  /// ```dart
+  /// print(3.remainder(1)); // 0
+  /// print(10.remainder(3)); // 1
+  /// print(5.remainder(3.0)); // 2.0
+  /// ```
   num remainder(num other);
 
   /// Whether this number is numerically smaller than [other].
@@ -256,6 +270,11 @@ abstract class num implements Comparable<num> {
   /// and `-value` if the value is negative.
   ///
   /// Integer overflow may cause the result of `-value` to stay negative.
+  ///
+  /// ```dart
+  /// print((2).abs()); // 2
+  /// print((-2.5).abs()); // 2.5
+  /// ```
   num abs();
 
   /// Negative one, zero or positive one depending on the sign and
@@ -377,6 +396,14 @@ abstract class num implements Comparable<num> {
   ///
   /// The arguments [lowerLimit] and [upperLimit] must form a valid range where
   /// `lowerLimit.compareTo(upperLimit) <= 0`.
+  ///
+  /// Example:
+  /// ```dart
+  /// var result = 10.5.clamp(5, 10.0); // 10.0
+  /// result = 0.75.clamp(5, 10.0); // 5
+  /// result = (-10).clamp(-5, 5.0); // -5
+  /// result = (-0).clamp(-5, 5.0); // 0
+  /// ```
   num clamp(num lowerLimit, num upperLimit);
 
   /// Truncates this [num] to an integer and returns the result as an [int].
@@ -528,6 +555,22 @@ abstract class num implements Comparable<num> {
   ///
   /// Like [parse] except that this function returns `null` for invalid inputs
   /// instead of throwing.
+  ///
+  /// Examples:
+  /// ```dart
+  /// var value = num.tryParse('2021'); // 2021
+  /// value = num.tryParse('1f'); // null
+  /// value = num.tryParse('3.14'); // 3.14
+  /// value = num.tryParse('  3.14 \xA0'); // 3.14
+  /// value = num.tryParse('0.'); // 0.0
+  /// value = num.tryParse('.0'); // 0.0
+  /// value = num.tryParse('-1.e3'); // -1000.0
+  /// value = num.tryParse('1234E+7'); // 12340000000.0
+  /// value = num.tryParse('+.12e-9'); // 1.2e-10
+  /// value = num.tryParse('-NaN'); // NaN
+  /// value = num.tryParse('0xFF'); // 255
+  /// value = num.tryParse((2.0 / 0).toString()); // Infinity
+  /// ```
   static num? tryParse(String input) {
     String source = input.trim();
     // TODO(lrn): Optimize to detect format and result type in one check.
