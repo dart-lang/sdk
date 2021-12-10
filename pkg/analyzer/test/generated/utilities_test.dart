@@ -2592,39 +2592,4 @@ class StringUtilitiesTest {
     expect(StringUtilities.endsWithChar("b", 0x61), isFalse);
     expect(StringUtilities.endsWithChar("", 0x61), isFalse);
   }
-
-  void test_printListOfQuotedNames_empty() {
-    expect(() {
-      StringUtilities.printListOfQuotedNames([]);
-    }, throwsArgumentError);
-  }
-
-  void test_printListOfQuotedNames_five() {
-    expect(
-        StringUtilities.printListOfQuotedNames(
-            <String>["a", "b", "c", "d", "e"]),
-        "'a', 'b', 'c', 'd' and 'e'");
-  }
-
-  void test_printListOfQuotedNames_null() {
-    expect(() {
-      StringUtilities.printListOfQuotedNames(null);
-    }, throwsArgumentError);
-  }
-
-  void test_printListOfQuotedNames_one() {
-    expect(() {
-      StringUtilities.printListOfQuotedNames(<String>["a"]);
-    }, throwsArgumentError);
-  }
-
-  void test_printListOfQuotedNames_three() {
-    expect(StringUtilities.printListOfQuotedNames(<String>["a", "b", "c"]),
-        "'a', 'b' and 'c'");
-  }
-
-  void test_printListOfQuotedNames_two() {
-    expect(StringUtilities.printListOfQuotedNames(<String>["a", "b"]),
-        "'a' and 'b'");
-  }
 }
