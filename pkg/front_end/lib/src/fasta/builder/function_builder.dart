@@ -219,7 +219,8 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
     if (formals == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
     for (FormalParameterBuilder formal in formals!) {
-      if (!isConstructor || !formal.isInitializingFormal) {
+      if (!isConstructor ||
+          !formal.isInitializingFormal && !formal.isSuperInitializingFormal) {
         local[formal.name] = formal;
       }
     }

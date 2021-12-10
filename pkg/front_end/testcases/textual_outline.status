@@ -200,6 +200,8 @@ regress/issue_39091_1: FormatterCrash
 regress/issue_41265.crash: Crash
 regress/issue_41265.crash: FormatterCrash
 super_parameters/simple: FormatterCrash
+super_parameters/simple_positional_super_parameters: FormatterCrash
+super_parameters/typed_super_parameter: FormatterCrash
 triple_shift/invalid_operator: FormatterCrash
 variance/class_type_parameter_modifier: FormatterCrash
 variance/generic_covariance_sound_variance: FormatterCrash

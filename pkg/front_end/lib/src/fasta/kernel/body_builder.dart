@@ -1043,6 +1043,56 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         buildInvalidInitializer(node as Expression, token.charOffset)
       ];
     }
+
+    if (initializers.isNotEmpty && initializers.last is SuperInitializer) {
+      List<VariableDeclaration>? positionalSuperParameters;
+      List<VariableDeclaration>? namedSuperParameters;
+
+      List<FormalParameterBuilder>? formals =
+          (member as ConstructorBuilder).formals;
+      if (formals != null) {
+        for (FormalParameterBuilder formal in formals) {
+          if (formal.isSuperInitializingFormal) {
+            if (formal.isNamed) {
+              (namedSuperParameters ??= <VariableDeclaration>[])
+                  .add(formal.variable!);
+            } else {
+              (positionalSuperParameters ??= <VariableDeclaration>[])
+                  .add(formal.variable!);
+            }
+          }
+        }
+
+        SuperInitializer superInitializer =
+            initializers.last as SuperInitializer;
+        Arguments arguments = superInitializer.arguments;
+        if (positionalSuperParameters != null) {
+          if (arguments.positional.isNotEmpty) {
+            addProblem(fasta.messagePositionalSuperParametersAndArguments,
+                arguments.fileOffset, noLength,
+                context: <LocatedMessage>[
+                  fasta.messageSuperInitializerParameter.withLocation(
+                      uri, positionalSuperParameters.first.fileOffset, noLength)
+                ]);
+          } else {
+            for (VariableDeclaration positional in positionalSuperParameters) {
+              arguments.positional.add(
+                  new VariableGetImpl(positional, forNullGuardedAccess: false)
+                    ..fileOffset = positional.fileOffset);
+            }
+          }
+        }
+        if (namedSuperParameters != null) {
+          // TODO(cstefantsova): Report name conflicts.
+          for (VariableDeclaration named in namedSuperParameters) {
+            arguments.named.add(new NamedExpression(named.name!,
+                new VariableGetImpl(named, forNullGuardedAccess: false))
+              ..fileOffset = named.fileOffset);
+          }
+        }
+      }
+    }
+
     _initializers ??= <Initializer>[];
     _initializers!.addAll(initializers);
   }

@@ -8810,6 +8810,16 @@ const MessageCode messagePositionalParameterWithEquals = const MessageCode(
     correctionMessage: r"""Try replacing ':' with '='.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePositionalSuperParametersAndArguments =
+    messagePositionalSuperParametersAndArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePositionalSuperParametersAndArguments = const MessageCode(
+    "PositionalSuperParametersAndArguments",
+    problemMessage:
+        r"""Positional super-initializer parameters cannot be used when the super initializer has positional arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePrefixAfterCombinator = messagePrefixAfterCombinator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9410,6 +9420,16 @@ const MessageCode messageSuperInitializerNotLast = const MessageCode(
     "SuperInitializerNotLast",
     analyzerCodes: <String>["SUPER_INVOCATION_NOT_LAST"],
     problemMessage: r"""Can't have initializers after 'super'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSuperInitializerParameter =
+    messageSuperInitializerParameter;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSuperInitializerParameter = const MessageCode(
+    "SuperInitializerParameter",
+    severity: Severity.context,
+    problemMessage: r"""This is the super-initializer parameter.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperNullAware = messageSuperNullAware;

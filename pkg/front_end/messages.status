@@ -725,6 +725,8 @@ PatchNonExternal/analyzerCode: Fail
 PatchNonExternal/example: Fail
 PlatformPrivateLibraryAccess/example: Fail
 PositionalAfterNamedArgument/example: Fail
+PositionalSuperParametersAndArguments/analyzerCode: Fail
+PositionalSuperParametersAndArguments/example: Fail
 PrefixAfterCombinator/example: Fail
 PreviousUseOfName/analyzerCode: Fail
 PreviousUseOfName/example: Fail

@@ -1,0 +1,11 @@
+class A {
+  final int foo;
+  A(this.foo);
+}
+class B extends A {
+  B(super.foo) : super();
+}
+class C extends A {
+  C(super.foo) : super(42);
+}
+main() {}
