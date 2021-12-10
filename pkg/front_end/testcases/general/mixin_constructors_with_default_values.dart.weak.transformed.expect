@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/mixin_constructors_with_default_values.dart:9:15: Error: Type variables can't be used as constants.
+// pkg/front_end/testcases/general/mixin_constructors_with_default_values.dart:9:15: Error: Type variables can't be used in static members.
 //   C({a: 0, b: T}) : trace = "a: $a, b: $b";
 //               ^
 //
@@ -14,7 +14,7 @@ import "package:expect/expect.dart";
 
 class C<T extends core::Object* = dynamic> extends core::Object {
   field core::String* trace;
-  constructor •({dynamic a = #C1, dynamic b = invalid-expression "Type variables can't be used as constants."}) → self::C<self::C::T*>*
+  constructor •({dynamic a = #C1, dynamic b = #C2}) → self::C<self::C::T*>*
     : self::C::trace = "a: ${a}, b: ${b}", super core::Object::•()
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -54,7 +54,7 @@ class E extends self::D {
     ;
 }
 abstract class _F&C&M extends self::C<core::int*> implements self::M /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •({dynamic a = #C1, dynamic b = #C3}) → self::_F&C&M*
+  synthetic constructor •({dynamic a = #C1, dynamic b = #C2}) → self::_F&C&M*
     : super self::C::•(a: a, b: b)
     ;
 }
@@ -73,6 +73,5 @@ static method main() → dynamic {
 
 constants  {
   #C1 = 0
-  #C2 = TypeLiteralConstant(core::String*)
-  #C3 = TypeLiteralConstant(core::int*)
+  #C2 = TypeLiteralConstant(invalid-type)
 }

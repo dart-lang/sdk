@@ -15,7 +15,7 @@ import "dart:_internal";
 
 @_in::patch
 class Class extends core::Object {
-  constructor _internal({core::bool* value}) → self2::Class*
+  constructor _internal({core::bool* value = false}) → self2::Class*
     ;
   @_in::patch
   external constructor patched() → self2::Class*
