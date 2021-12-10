@@ -2012,7 +2012,7 @@
       "851867060": {
         "id": "class/851867060",
         "kind": "class",
-        "name": "JavaScriptObject",
+        "name": "LegacyJavaScriptObject",
         "size": 225,
         "outputUnit": "outputUnit/669725655",
         "parent": "library/325218131",

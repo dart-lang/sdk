@@ -5083,7 +5083,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // resulting code bloat (e.g. from `dart:html`), we unsoundly assume that
     // only JS interop types are returned.
     nativeBehavior.typesInstantiated.add(_elementEnvironment
-        .getThisType(_commonElements.jsJavaScriptObjectClass));
+        .getThisType(_commonElements.jsLegacyJavaScriptObjectClass));
 
     AbstractValue instructionType =
         _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);

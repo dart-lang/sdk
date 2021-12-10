@@ -20,6 +20,15 @@ class HTMLDivElement {
   external String bar();
 }
 
+@JS('Foo.HTMLDivElement')
+@staticInterop
+class StaticHTMLDivElement {}
+
+extension StaticHTMLDivElementExtension on StaticHTMLDivElement {
+  external String bar();
+  external StaticHTMLDivElement cloneNode(bool? deep);
+}
+
 @pragma('dart2js:noInline')
 @pragma('dart2js:assumeDynamic')
 confuse(x) => x;

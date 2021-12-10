@@ -4,8 +4,6 @@
 
 // @dart = 2.9
 
-import 'dart:html' as html;
-
 import 'package:expect/minitest.dart';
 
 import 'util.dart';
@@ -18,5 +16,6 @@ main() {
     // to Interceptor, but should be added to the class that implements all
     // the JS-interop methods.
     expect(e is HTMLDivElement, isFalse);
+    expect(e is StaticHTMLDivElement, isFalse);
   });
 }

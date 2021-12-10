@@ -92,8 +92,10 @@ class BaseJavaScriptObject extends Interceptor {
 
 /// Interceptor base class for JavaScript objects not recognized as some more
 /// specific native type.
-class JavaScriptObject extends BaseJavaScriptObject implements JSObject {
-  const JavaScriptObject();
+///
+/// Note that this used to be `JavaScriptObject`.
+class LegacyJavaScriptObject extends BaseJavaScriptObject implements JSObject {
+  const LegacyJavaScriptObject();
 }
 
 /// Interceptor for plain JavaScript objects created as JavaScript object
@@ -101,7 +103,7 @@ class JavaScriptObject extends BaseJavaScriptObject implements JSObject {
 ///
 /// Note that this isn't being used today in ddc. Instead of using interceptors,
 /// we have other type logic to distinguish JS types.
-class PlainJavaScriptObject extends JavaScriptObject {
+class PlainJavaScriptObject extends LegacyJavaScriptObject {
   const PlainJavaScriptObject();
 }
 
@@ -111,7 +113,7 @@ class PlainJavaScriptObject extends JavaScriptObject {
 /// This class also serves as a fallback for unknown JavaScript exceptions.
 /// Note that this isn't being used today in ddc. Instead of using interceptors,
 /// we have other type logic to distinguish JS types.
-class UnknownJavaScriptObject extends JavaScriptObject {
+class UnknownJavaScriptObject extends LegacyJavaScriptObject {
   const UnknownJavaScriptObject();
 }
 

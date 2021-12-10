@@ -417,8 +417,10 @@ class BaseJavaScriptObject extends Interceptor {
 
 /// Interceptor base class for JavaScript objects not recognized as some more
 /// specific native type.
-class JavaScriptObject extends BaseJavaScriptObject implements JSObject {
-  const JavaScriptObject();
+///
+/// Note that this used to be `JavaScriptObject`.
+class LegacyJavaScriptObject extends BaseJavaScriptObject implements JSObject {
+  const LegacyJavaScriptObject();
 
   // It would be impolite to stash a property on the object.
   int get hashCode => 0;
@@ -431,7 +433,7 @@ class JavaScriptObject extends BaseJavaScriptObject implements JSObject {
 
 /// Interceptor for plain JavaScript objects created as JavaScript object
 /// literals or `new Object()`.
-class PlainJavaScriptObject extends JavaScriptObject {
+class PlainJavaScriptObject extends LegacyJavaScriptObject {
   const PlainJavaScriptObject();
 }
 
@@ -439,7 +441,7 @@ class PlainJavaScriptObject extends JavaScriptObject {
 /// non-trivial prototype chain.
 ///
 /// This class also serves as a fallback for unknown JavaScript exceptions.
-class UnknownJavaScriptObject extends JavaScriptObject {
+class UnknownJavaScriptObject extends LegacyJavaScriptObject {
   const UnknownJavaScriptObject();
 }
 
@@ -447,7 +449,7 @@ class UnknownJavaScriptObject extends JavaScriptObject {
 /// been converted to JavaScript functions.
 /// These interceptor methods are not always used as the JavaScript function
 /// object has also been mangled to support Dart function calling conventions.
-class JavaScriptFunction extends JavaScriptObject implements Function {
+class JavaScriptFunction extends LegacyJavaScriptObject implements Function {
   const JavaScriptFunction();
 
   String toString() {
