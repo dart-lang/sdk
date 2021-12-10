@@ -55,6 +55,9 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: false)
+  ..addFlag('rta',
+      help: 'Use rapid type analysis for faster compilation in AOT mode.',
+      defaultsTo: true)
   ..addFlag('tree-shake-write-only-fields',
       help: 'Enable tree shaking of fields which are only written in AOT mode.',
       defaultsTo: true)
@@ -555,6 +558,7 @@ class FrontendCompiler implements CompilerInterface {
           deleteToStringPackageUris: options['delete-tostring-package-uri'],
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
+          useRapidTypeAnalysis: options['rta'],
           environmentDefines: environmentDefines,
           enableAsserts: options['enable-asserts'],
           useProtobufTreeShakerV2: options['protobuf-tree-shaker-v2'],
