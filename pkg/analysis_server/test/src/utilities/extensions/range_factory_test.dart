@@ -70,8 +70,8 @@ abstract class BaseRangeFactoryTest extends AbstractSingleUnitTest {
         ? testCode.indexOf(endsBefore)
         : testCode.indexOf(endsAfter!) + endsAfter.length;
 
-    assert(offset > -1);
-    assert(end > -1);
+    expect(offset, greaterThanOrEqualTo(0));
+    expect(end, greaterThanOrEqualTo(0));
 
     return SourceRange(offset, end - offset);
   }
