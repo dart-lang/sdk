@@ -399,15 +399,25 @@ abstract class JSMutableIndexable<E> extends JSIndexable<E> {
   operator []=(int index, E value);
 }
 
-/// The interface implemented by JavaScript objects.  These are methods in
-/// addition to the regular Dart Object methods like [Object.hashCode].
+/// The interface implemented by JavaScript objects.
 ///
-/// This is the type that should be exported by a JavaScript interop library.
+/// These are methods in addition to the regular Dart Object methods like
+/// [Object.hashCode]. This is the type that should be exported by a JavaScript
+/// interop library.
 abstract class JSObject {}
+
+/// Superclass of all interop objects and native types defined in the web
+/// libraries.
+///
+/// This is the class static interop classes erase to and the class interop
+/// extension types should use as the on-type.
+class BaseJavaScriptObject extends Interceptor {
+  const BaseJavaScriptObject();
+}
 
 /// Interceptor base class for JavaScript objects not recognized as some more
 /// specific native type.
-class JavaScriptObject extends Interceptor implements JSObject {
+class JavaScriptObject extends BaseJavaScriptObject implements JSObject {
   const JavaScriptObject();
 
   // It would be impolite to stash a property on the object.

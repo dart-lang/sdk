@@ -81,13 +81,18 @@ abstract class JSMutableIndexable<E> extends JSIndexable<E> {
 /// interop library.
 abstract class JSObject {}
 
+/// Superclass of all interop objects and native types defined in the web
+/// libraries.
+///
+/// This is the class static interop classes erase to and the class interop
+/// extension types should use as the on-type.
+class BaseJavaScriptObject extends Interceptor {
+  const BaseJavaScriptObject();
+}
+
 /// Interceptor base class for JavaScript objects not recognized as some more
 /// specific native type.
-
-/// Unlike dart2js, ddc does not intercept JS objects, so this is only used as
-/// an on-type for JS interop extension types. All JS interop objects should be
-/// castable to this type.
-abstract class JavaScriptObject extends Interceptor implements JSObject {
+class JavaScriptObject extends BaseJavaScriptObject implements JSObject {
   const JavaScriptObject();
 }
 

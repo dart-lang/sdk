@@ -98,6 +98,8 @@ $mainSource
     ClassEntity Object_ = registerClass(world.commonElements.objectClass);
     ClassEntity Interceptor =
         registerClass(world.commonElements.jsInterceptorClass);
+    ClassEntity BaseJavaScriptObject =
+        registerClass(world.commonElements.jsBaseJavaScriptObjectClass);
     ClassEntity JavaScriptObject =
         registerClass(world.commonElements.jsJavaScriptObjectClass);
     ClassEntity A = registerClass(findClass(world, 'A'));
@@ -111,7 +113,9 @@ $mainSource
 
     Expect.equals(elementEnvironment.getSuperClass(Interceptor), Object_);
     Expect.equals(
-        elementEnvironment.getSuperClass(JavaScriptObject), Interceptor);
+        elementEnvironment.getSuperClass(BaseJavaScriptObject), Interceptor);
+    Expect.equals(elementEnvironment.getSuperClass(JavaScriptObject),
+        BaseJavaScriptObject);
 
     Expect.equals(elementEnvironment.getSuperClass(A), JavaScriptObject);
     Expect.equals(elementEnvironment.getSuperClass(B), JavaScriptObject);
@@ -185,28 +189,69 @@ $mainSource
 
   await test('main() {}');
 
-  await test('main() => newA();',
-      abstractlyInstantiated: ['A', 'B', 'C', 'D'],
-      indirectlyInstantiated: ['Object', 'Interceptor', 'JavaScriptObject']);
+  await test('main() => newA();', abstractlyInstantiated: [
+    'A',
+    'B',
+    'C',
+    'D'
+  ], indirectlyInstantiated: [
+    'Object',
+    'Interceptor',
+    'BaseJavaScriptObject',
+    'JavaScriptObject'
+  ]);
 
-  await test('main() => newB();',
-      abstractlyInstantiated: ['A', 'B', 'C', 'D'],
-      indirectlyInstantiated: ['Object', 'Interceptor', 'JavaScriptObject']);
+  await test('main() => newB();', abstractlyInstantiated: [
+    'A',
+    'B',
+    'C',
+    'D'
+  ], indirectlyInstantiated: [
+    'Object',
+    'Interceptor',
+    'BaseJavaScriptObject',
+    'JavaScriptObject'
+  ]);
 
-  await test('main() => newC();',
-      abstractlyInstantiated: ['A', 'B', 'C', 'D'],
-      indirectlyInstantiated: ['Object', 'Interceptor', 'JavaScriptObject']);
+  await test('main() => newC();', abstractlyInstantiated: [
+    'A',
+    'B',
+    'C',
+    'D'
+  ], indirectlyInstantiated: [
+    'Object',
+    'Interceptor',
+    'BaseJavaScriptObject',
+    'JavaScriptObject'
+  ]);
 
-  await test('main() => newD();',
-      abstractlyInstantiated: ['A', 'B', 'C', 'D'],
-      indirectlyInstantiated: ['Object', 'Interceptor', 'JavaScriptObject']);
+  await test('main() => newD();', abstractlyInstantiated: [
+    'A',
+    'B',
+    'C',
+    'D'
+  ], indirectlyInstantiated: [
+    'Object',
+    'Interceptor',
+    'BaseJavaScriptObject',
+    'JavaScriptObject'
+  ]);
 
   await test('main() => newE();', directlyInstantiated: ['E']);
 
   await test('main() => newF();', directlyInstantiated: ['F']);
 
-  await test('main() => [newD(), newE()];',
-      directlyInstantiated: ['E'],
-      abstractlyInstantiated: ['A', 'B', 'C', 'D'],
-      indirectlyInstantiated: ['Object', 'Interceptor', 'JavaScriptObject']);
+  await test('main() => [newD(), newE()];', directlyInstantiated: [
+    'E'
+  ], abstractlyInstantiated: [
+    'A',
+    'B',
+    'C',
+    'D'
+  ], indirectlyInstantiated: [
+    'Object',
+    'Interceptor',
+    'BaseJavaScriptObject',
+    'JavaScriptObject'
+  ]);
 }

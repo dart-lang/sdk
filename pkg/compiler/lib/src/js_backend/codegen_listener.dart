@@ -289,6 +289,8 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       registerInstantiation(_commonElements.jsUInt31Class);
       registerInstantiation(_commonElements.jsNumNotIntClass);
       registerInstantiation(_commonElements.jsNumberClass);
+    } else if (cls == _commonElements.jsBaseJavaScriptObjectClass) {
+      registerInstantiation(_commonElements.jsBaseJavaScriptObjectClass);
     } else if (cls == _commonElements.jsJavaScriptObjectClass) {
       registerInstantiation(_commonElements.jsJavaScriptObjectClass);
     } else if (cls == _commonElements.jsPlainJavaScriptObjectClass) {
