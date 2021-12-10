@@ -21,7 +21,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show Creates, Returns, JSName, Native;
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show Interceptor;
+import 'dart:_interceptors' show JavaScriptObject;
 
 part '$AUXILIARY_DIR/shared_SVGFactoryProviders.dart';
 

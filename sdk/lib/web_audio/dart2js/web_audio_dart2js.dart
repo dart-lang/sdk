@@ -13,7 +13,7 @@ import 'dart:html_common';
 import 'dart:_native_typed_data';
 import 'dart:typed_data';
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show Interceptor;
+import 'dart:_interceptors' show JavaScriptObject;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:audio library.
@@ -81,7 +81,7 @@ class AnalyserNode extends AudioNode {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("AudioBuffer")
-class AudioBuffer extends Interceptor {
+class AudioBuffer extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AudioBuffer._() {
     throw new UnsupportedError("Not supported");
@@ -268,7 +268,7 @@ class AudioDestinationNode extends AudioNode {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("AudioListener")
-class AudioListener extends Interceptor {
+class AudioListener extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AudioListener._() {
     throw new UnsupportedError("Not supported");
@@ -343,7 +343,7 @@ class AudioNode extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("AudioParam")
-class AudioParam extends Interceptor {
+class AudioParam extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AudioParam._() {
     throw new UnsupportedError("Not supported");
@@ -379,7 +379,7 @@ class AudioParam extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("AudioParamMap")
-class AudioParamMap extends Interceptor with MapMixin<String, dynamic> {
+class AudioParamMap extends JavaScriptObject with MapMixin<String, dynamic> {
   // To suppress missing implicit constructor warnings.
   factory AudioParamMap._() {
     throw new UnsupportedError("Not supported");
@@ -495,7 +495,7 @@ class AudioScheduledSourceNode extends AudioNode {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("AudioTrack")
-class AudioTrack extends Interceptor {
+class AudioTrack extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AudioTrack._() {
     throw new UnsupportedError("Not supported");
@@ -589,7 +589,7 @@ class AudioWorkletNode extends AudioNode {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("AudioWorkletProcessor")
-class AudioWorkletProcessor extends Interceptor {
+class AudioWorkletProcessor extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AudioWorkletProcessor._() {
     throw new UnsupportedError("Not supported");
@@ -1196,7 +1196,7 @@ class PannerNode extends AudioNode {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PeriodicWave")
-class PeriodicWave extends Interceptor {
+class PeriodicWave extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PeriodicWave._() {
     throw new UnsupportedError("Not supported");
