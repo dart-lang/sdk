@@ -544,6 +544,22 @@ abstract class num implements Comparable<num> {
   /// The [onError] parameter is deprecated and will be removed.
   /// Instead of `num.parse(string, (string) { ... })`,
   /// you should use `num.tryParse(string) ?? (...)`.
+  ///
+  /// Examples:
+  /// ```dart
+  /// var value = num.parse('2021'); // 2021
+  /// value = num.parse('3.14'); // 3.14
+  /// value = num.parse('  3.14 \xA0'); // 3.14
+  /// value = num.parse('0.'); // 0.0
+  /// value = num.parse('.0'); // 0.0
+  /// value = num.parse('-1.e3'); // -1000.0
+  /// value = num.parse('1234E+7'); // 12340000000.0
+  /// value = num.parse('+.12e-9'); // 1.2e-10
+  /// value = num.parse('-NaN'); // NaN
+  /// value = num.parse('0xFF'); // 255
+  /// value = num.parse((2.0 / 0).toString()); // Infinity
+  /// value = num.parse('1f'); // Throws.
+  /// ```
   static num parse(String input, [@deprecated num onError(String input)?]) {
     num? result = tryParse(input);
     if (result != null) return result;
@@ -559,7 +575,6 @@ abstract class num implements Comparable<num> {
   /// Examples:
   /// ```dart
   /// var value = num.tryParse('2021'); // 2021
-  /// value = num.tryParse('1f'); // null
   /// value = num.tryParse('3.14'); // 3.14
   /// value = num.tryParse('  3.14 \xA0'); // 3.14
   /// value = num.tryParse('0.'); // 0.0
@@ -570,6 +585,7 @@ abstract class num implements Comparable<num> {
   /// value = num.tryParse('-NaN'); // NaN
   /// value = num.tryParse('0xFF'); // 255
   /// value = num.tryParse((2.0 / 0).toString()); // Infinity
+  /// value = num.tryParse('1f'); // null
   /// ```
   static num? tryParse(String input) {
     String source = input.trim();
